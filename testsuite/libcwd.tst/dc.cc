@@ -29,14 +29,14 @@ int main(void)
   ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );
   Debug( list_channels_on(libcw_do) );
 
-#ifdef DEBUGUSEBFD
-  Dout(dc::bfd, "bfd Testing");
-#else
-  Dout(dc::notice, "bfd Testing disabled");
-#endif
   Dout(dc::debug, "debug Testing");
   Dout(dc::malloc, "malloc Testing");
   Dout(dc::notice, "notice Testing");
+#ifdef DEBUGUSEBFD
+  Dout(dc::stabs, "stabs Testing");
+#else
+  Dout(dc::notice, "stabs Testing disabled");
+#endif
   Dout(dc::system, "system Testing");
   Dout(dc::warning, "warning Testing");
 

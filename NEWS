@@ -10,8 +10,8 @@ libcwd-0.99.10
 	changes in maintMakefile.in and macrotest.cc.  Alternatively you can use the
 	nodebug.h file that is part of this distribution.
 
-	Libcwd does not use libbfd anymore (and thus also libiberty).  The symbol table
-	is now read by libcwd itself as is the source file and line number lookup.
+	Libcwd does not use libbfd anymore (and thus also not libiberty).  The symbol
+	table is now read by libcwd itself as is the source file and line number lookup.
 	The configure option --disable-libcwd-bfd was therefore renamed to
 	--disable-libcwd-location.  Added was the configure option --enable-libcwd-bfd
 	in order to allow you to still use libbfd.
@@ -31,6 +31,8 @@ libcwd-0.99.10
 
 	::libcw_bfd_builtin_return_address_offset was renamed to
 	libcw::debug::builtin_return_address_offset.
+
+	The debug channel dc::bfd was renamed to dc::stabs and uses "STABS" as label now.
 
 	Two methods have been added to class libcw::debug::debug_ct: `inc_indent'
 	and `dec_indent' to increment and decrement the indentation respectively.

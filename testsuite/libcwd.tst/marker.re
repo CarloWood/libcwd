@@ -1,3 +1,7 @@
+// input lines 2
+// output till ^MALLOC
+(STABS   : Loading debug info from.*
+)*
 MALLOC  : operator new \(size = 12\) = 0x[0-9a-f]*
 MALLOC  : operator new \(size = 1\) = 0x[0-9a-f]*
 MALLOC  : New libcw::debug::marker_ct at 0x[0-9a-f]*

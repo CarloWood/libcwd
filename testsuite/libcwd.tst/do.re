@@ -1,3 +1,7 @@
+// input lines 2
+// output till ^NOTICE
+(STABS   : Loading debug info from.*
+)*
 // type exact
 NOTICE  : Dout Turned on 1
 DEBUG   : Dout Turned on 2

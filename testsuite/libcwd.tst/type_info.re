@@ -1,3 +1,7 @@
+// input lines 2
+// output till ^int : 0
+(STABS   : Loading debug info from.*
+)*
 // type exact
 int : 0
 int* : 4

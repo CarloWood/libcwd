@@ -1,3 +1,7 @@
+// input lines 2
+// output till ^MALLOC
+(STABS   : Loading debug info from.*
+)*
 MALLOC  : operator new \(size = 1\) = 0x[0-9a-f]*
 NOTICE  : Before making allocation invisible:
 MALLOC  : Allocated memory: 1 bytes in 1 blocks.

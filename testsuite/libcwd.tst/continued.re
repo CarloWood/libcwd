@@ -1,10 +1,14 @@
+// input lines 2
+// output till ^BAR     : Enabled
+(STABS   : Loading debug info from.*
+)*
 BAR     : Enabled
-BFD     : Disabled
 DEBUG   : Disabled
 FOO     : Enabled
 MALLOC  : Disabled
 NOTICE  : Enabled
 RUN     : Enabled
+STABS   : Disabled
 SYSTEM  : Enabled
 WARNING : Disabled
 ===========================================================================

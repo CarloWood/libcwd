@@ -1,3 +1,7 @@
+// input lines 2
+// output till ^NOTICE
+(STABS   : Loading debug info from.*
+)*
 // type exact
 NOTICE  : Generating tables part1... <sleeping><unfinished>
 GENERATE:     Inside generate_tables()
