@@ -148,6 +148,9 @@ CW_CLEAN_CACHE
 dnl Add -pipe to EXTRAOPTS if possible
 CW_PIPE_EXTRAOPTS
 
+dnl Put CXXFLAGS into the Makefile too
+AC_SUBST(CXXFLAGS)
+
 dnl Figure out linker characteristics
 CW_RPATH_OPTION
 
@@ -463,6 +466,31 @@ CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS
 CW_SYS_FRAME_ADDRESS_OFFSET
 AC_C_BIGENDIAN
 
+dnl Check if compiler supports PCH.
+AC_CACHE_CHECK([for compiler with PCH support],
+  [cw_cv_prog_CXX_pch],
+  [ac_save_CXXFLAGS="$CXXFLAGS"
+   CXXFLAGS="$CXXFLAGS -Werror -Winvalid-pch -Wno-deprecated"
+   AC_LANG_SAVE
+   AC_LANG_CPLUSPLUS
+   echo '#include <math.h>' > conftest.h
+   rm -f conftest.h.gch
+   if $CXX $CXXFLAGS $CPPFLAGS -x c++-header conftest.h \
+	  -c -o conftest.h.gch 1>&5 2>&1 &&
+      echo '#error "pch failed"' > conftest.h &&
+      echo '#include "conftest.h"' > conftest.cc &&
+     $CXX -c $CXXFLAGS $CPPFLAGS conftest.cc 1>&5 2>&1 ;
+   then
+     cw_cv_prog_CXX_pch=yes
+   else
+     cw_cv_prog_CXX_pch=no
+   fi
+   rm -f conftest*
+   CXXFLAGS=$ac_save_CXXFLAGS
+   AC_LANG_RESTORE
+  ])
+AM_CONDITIONAL(BUILD_PCH, test "$cw_cv_prog_CXX_pch" = "yes")
+
 dnl Check for library functions.
 AC_CHECK_FUNCS(getgid getegid getgroups __libc_malloc _libc_malloc wmemcpy)
 
@@ -518,6 +546,12 @@ fi
 touch timestamp-sys.h
 cd ..
 ])
+
+dnl These options are needed, but cannot be used during the configure tests.
+if test "$cw_cv_prog_CXX_pch" = "yes"; then
+  WARNOPTS="$WARNOPTS -Winvalid-pch"
+  EXTRAOPTS="-include pch.h $EXTRAOPTS"
+fi
 
 AC_OUTPUT(libcwd.spec libcwd.lsm Makefile maintMakefile include/sys.ho include/Makefile include/libcwd/config.ho include/libcwd/sys.ho include/libcwd/Makefile utils/Makefile tests/Makefile testsuite/Makefile documentation/tutorial/Makefile)
 

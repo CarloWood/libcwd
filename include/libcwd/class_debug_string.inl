@@ -113,33 +113,33 @@ debug_string_ct::c_str(void) const
 }
 
 /**
- * \brief Assign \s to the string.
+ * \brief Assign \a str to the string.
  */
 __inline__
 void
-debug_string_ct::assign(std::string const& s)
+debug_string_ct::assign(std::string const& str)
 {
-  assign(s.data(), s.size());
+  assign(str.data(), str.size());
 }
 
 /**
- * \brief Append \s to the string.
+ * \brief Append \a str to the string.
  */
 __inline__
 void
-debug_string_ct::append(std::string const& s)
+debug_string_ct::append(std::string const& str)
 {
-  append(s.data(), s.size());
+  append(str.data(), str.size());
 }
 
 /**
- * \brief Prepend \s to the string.
+ * \brief Prepend \a str to the string.
  */
 __inline__
 void
-debug_string_ct::prepend(std::string const& s)
+debug_string_ct::prepend(std::string const& str)
 {
-  prepend(s.data(), s.size());
+  prepend(str.data(), str.size());
 }
 
 __inline__

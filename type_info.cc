@@ -11,10 +11,6 @@
 // packaging of this file.
 //
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
-
 #include "sys.h"
 #include "cwd_debug.h"
 #include <libcwd/demangle.h>

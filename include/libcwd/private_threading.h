@@ -81,7 +81,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #endif
 #else
 #if LIBCWD_THREAD_SAFE
-#error Fatal error: thread support was not detected during configuration of libcwd! How come you are trying to compile a threaded program now?
+#error Fatal error: thread support was not detected during configuration of libcwd (did you use --disable-threading?)! How come you are trying to compile a threaded program now?
 #endif
 #endif // LIBCWD_HAVE_PTHREAD
 
@@ -260,7 +260,7 @@ template <int instance>
     static pthread_mutex_t S_mutex;
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   protected:
-    static bool S_initialized;
+    static bool volatile S_initialized;
     static void S_initialize(void);
 #endif
   public:
@@ -484,7 +484,7 @@ template <int instance>
   private:
     static pthread_cond_t S_condition;
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
-    static bool S_initialized;
+    static bool volatile S_initialized;
   private:
     static void S_initialize(void);
 #endif
@@ -613,7 +613,7 @@ template <int instance>
     typedef cond_tct<holders_instance> cond_t;
     static cond_t S_no_holders_condition;
     static int S_holders_count;				// Number of readers or -1 if a writer locked this object.
-    static bool S_writer_is_waiting;
+    static bool volatile S_writer_is_waiting;
     static pthread_t S_writer_id;
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
     static bool S_initialized;				// Set when initialized.

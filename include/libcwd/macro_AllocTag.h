@@ -175,7 +175,8 @@ extern void register_external_allocation(void const* ptr, size_t size);
 	{ \
 	  ::libcw::debug::_private_::auto_internal_stringstream buf; \
 	  buf << x << ::std::ends; \
-	  size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
+	  ::std::streampos pos = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
+	  size_t size = pos - ::std::streampos(0); \
 	  ::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	  WS_desc = new char [size]; /* This is never deleted anymore */ \
 	  ::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
@@ -199,7 +200,8 @@ extern void register_external_allocation(void const* ptr, size_t size);
       { \
 	::libcw::debug::_private_::auto_internal_stringstream buf; \
 	buf << x << ::std::ends; \
-	size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
+	::std::streampos pos = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
+	size_t size = pos - ::std::streampos(0); \
 	::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	desc = new char [size]; \
 	::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \

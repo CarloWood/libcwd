@@ -2,10 +2,8 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-EXTRAOPTS = @EXTRAOPTS@
-DEBUGOPTS = @DEBUGOPTS@
+CXXFLAGS = @CXXFLAGS@
 WARNOPTS = @WARNOPTS@
-CXXFLAGS =
 INCLUDES = -I$(srcdir)/../include -I$(top_builddir)/include
 DEFAULT_INCLUDES =
 LIBS=
@@ -24,7 +22,7 @@ endif
 noinst_LTLIBRARIES = $(LIBUTILS) $(LIBUTILS_R)
 
 if ENABLENONTHREADING
-libutils_la_CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
+libutils_la_CXXFLAGS = -DCWDEBUG $(WARNOPTS)
 libutils_la_SOURCES = \
 buf2str.cc \
 char2str.cc \
@@ -35,7 +33,7 @@ attach_gdb.cc
 endif
 
 if ENABLETHREADING
-libutils_r_la_CXXFLAGS = -DCWDEBUG -D_REENTRANT -pthread $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
+libutils_r_la_CXXFLAGS = -DCWDEBUG -D_REENTRANT -pthread $(WARNOPTS)
 libutils_r_la_SOURCES = \
 buf2str.cc \
 char2str.cc \

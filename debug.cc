@@ -158,8 +158,8 @@ void allocator_unlock(void)
 	position = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out);
       }
       void restore_position(void) {
-	this->pubseekoff(position, std::ios_base::beg, std::ios_base::out);
-	this->pubseekoff(0, std::ios_base::beg, std::ios_base::in);
+	this->pubseekpos(position, std::ios_base::out);
+	this->pubseekpos(0, std::ios_base::in);
 #if LIBCWD_THREAD_SAFE
 	continued_needed = false;
 #endif
@@ -167,11 +167,12 @@ void allocator_unlock(void)
       void write_prefix_to(std::ostream* os)
       {
 	streampos_t old_in_pos = this->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
-	this->pubseekoff(0, std::ios_base::beg, std::ios_base::in);
+	this->pubseekpos(0, std::ios_base::in);
 	os->put(this->sgetc());
-	for (int c = 1; c < position; ++c)
+	int size = position - std::streampos(0);
+	for (int c = 1; c < size; ++c)
 	  os->put(this->snextc());
-        this->pubseekoff(old_in_pos, std::ios_base::beg, std::ios_base::in);
+        this->pubseekpos(old_in_pos, std::ios_base::in);
       }
     };
 
@@ -789,7 +790,7 @@ void allocator_unlock(void)
 #if LIBCWD_THREAD_SAFE
       LIBCWD_ENABLE_CANCEL;
 #endif
-      exit(6);		// Never reached.
+      _exit(6);		// Never reached.
     }
 
     size_t debug_string_ct::calculate_capacity(size_t size)
@@ -1213,7 +1214,7 @@ void allocator_unlock(void)
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
 #endif
-	  exit(254);
+	  _exit(254);	// Exit without calling global destructors.
 	}
 	if ((current->mask & wait_cf))
 	{
@@ -1935,3 +1936,86 @@ void debug_ct::set_ostream(std::ostream* os)
 
 // This can be used in configure to see if libcwd exists.
 extern "C" char const* const __libcwd_version = VERSION;
+
+// The following functions can be invoked from gdb directly.
+
+namespace libcw {
+  namespace debug {
+    namespace _private_ {
+      extern void demangle_symbol(char const* in, _private_::internal_string& out);
+    } // namespace _private_
+  } // namespace debug
+} // namespace libcw
+
+extern "C" {
+
+static int debug_alloc(void const* ptr) __attribute__ ((unused));
+
+static int debug_alloc(void const* ptr)
+{
+  using namespace libcw::debug;
+  LIBCWD_TSD_DECLARATION;
+  ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+  _private_::set_invisible_on(LIBCWD_TSD);
+  alloc_ct const* alloc = find_alloc(ptr);
+  if (!alloc)
+    std::cout << ptr << " is not (part of) a dynamic allocation.\n";
+  else
+  {
+    void const* start = alloc->start();
+    if (start != ptr)
+      std::cout << ptr << " points inside a memory allocation that starts at " << start << "\n";
+    std::cout << "      start: " << start << '\n';
+    std::cout << "       size: " << alloc->size() << '\n';
+    type_info_ct const& type_info = alloc->type_info();
+    std::cout << "       type: " << ((&type_info != &unknown_type_info_c) ?
+	type_info.demangled_name() : "<No AllocTag>") << '\n';
+    char const* desc = alloc->description();
+    std::cout << "description: " << (desc ? desc : "<No AllocTag>") << '\n';
+    std::cout << "   location: " << alloc->location() << '\n';
+    char const* function_name = alloc->location().mangled_function_name();
+    if (function_name != unknown_function_c)
+    {
+      std::cout << "in function: ";
+      size_t s;
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      do
+      {
+	_private_::internal_string f;
+	_private_::demangle_symbol(function_name, f);
+	_private_::set_alloc_checking_on(LIBCWD_TSD);
+	s = f.size();
+	std::cout.write(f.data(), s);
+	_private_::set_alloc_checking_off(LIBCWD_TSD);
+      }
+      while(0);
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+      std::cout << '\n';
+    }
+    struct tm* tbuf_ptr;
+    struct timeval const& a_time(alloc->time());
+#if LIBCWD_THREAD_SAFE
+    struct tm tbuf;
+    tbuf_ptr = localtime_r(&a_time.tv_sec, &tbuf);
+#else
+    tbuf_ptr = localtime(&a_time.tv_sec);
+#endif
+    char prev_fill = std::cout.fill('0');
+    std::cout << "       when: ";
+    std::cout.width(2);
+    std::cout << tbuf_ptr->tm_hour << ':';
+    std::cout.width(2);
+    std::cout << tbuf_ptr->tm_min << ':';
+    std::cout.width(2);
+    std::cout << tbuf_ptr->tm_sec << '.';
+    std::cout.width(6);
+    std::cout << a_time.tv_usec << '\n';
+    std::cout.fill(prev_fill);
+  }
+  std::cout << std::flush;
+  _private_::set_invisible_off(LIBCWD_TSD);
+  --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+  return 0;
+}
+
+} // extern "C"

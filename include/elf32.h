@@ -38,9 +38,6 @@ static int const BSF_INDIRECT          = 0x2000;
 static int const BSF_FILE              = 0x4000;
 static int const BSF_DYNAMIC           = 0x8000;
 static int const BSF_OBJECT            = 0x10000;
-
-class object_file_ct;
-
 } // namespace cwbfd
 
 namespace elf32 {
@@ -79,7 +76,7 @@ struct bfd_st {
   char const* filename;
   union {
     char* usrdata;
-    cwbfd::object_file_ct const* object_file;
+    cwbfd::bfile_ct const* object_file;
   };
   bool cacheable;
   bool M_has_syms;

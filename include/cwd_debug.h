@@ -20,7 +20,10 @@
 #ifndef RAW_WRITE_INL
 #include <raw_write.inl>
 #endif
+#ifndef LIBCW_IOSTREAM
+#define LIBCW_IOSTREAM
 #include <iostream>
+#endif
 #ifndef LIBCWD_PRIVATE_INTERNAL_STRING_H
 #include <libcwd/private_internal_string.h>
 #endif

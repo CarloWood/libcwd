@@ -25,7 +25,7 @@
 // Currently this file has been tested with gcc-2.95.2 and gcc-2.96 (RedHat).
 //
 // For a standalone demangler, compile this file as:
-// g++ -pthread -DSTANDALONE -DCWDEBUG -Iinclude demangle.cc -Wl,-rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
+// g++ -pthread -DSTANDALONE -DCWDEBUG -Iinclude demangle.cc -Wl,--rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
 //
 
 #undef CPPFILTCOMPATIBLE

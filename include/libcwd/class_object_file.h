@@ -49,6 +49,7 @@ private:
   friend class ooam_filter_ct;
 #endif
   bool M_hide;
+  mutable bool M_no_debug_line_sections;
 
 protected:
   friend class cwbfd::bfile_ct;
@@ -60,7 +61,10 @@ public:
   /** \brief The file name of the loaded executable or shared library (with path stripped off). */
   char const* filename(void) const { return M_filename; }
 
+  // For internal use.
   bool hide_from_alloc_list() const { return M_hide; }
+  void set_has_no_debug_line_sections(void) const { M_no_debug_line_sections = true; }
+  bool has_no_debug_line_sections(void) const { return M_no_debug_line_sections; }
 };
 
 /** \} */ // End of group 'group_locations'

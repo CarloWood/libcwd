@@ -27,6 +27,7 @@
 #include "sys.h"
 #include "hello_world_debug.h"
 #include <iostream>
+#include <libcwd/class_function.h>
 
 // Define our own debug channel (see also "debug.h"):
 #ifdef CWDEBUG
@@ -36,6 +37,15 @@ namespace debug_channels {
   }
 }
 #endif
+
+extern void debug_load_object_file(char const* filename, bool shared);
+
+namespace libcw {
+  namespace debug {
+    void test(void);
+  }
+}
+using libcw::debug::test;
 
 int main(void)
 {
@@ -73,7 +83,12 @@ int main(void)
   // Write "Hello World" to our own channel:
   Dout(dc::hello, "Hello World!");
 
-  Debug( attach_gdb() );
+  //Debug( attach_gdb() );
+  using libcw::debug::Function;
+  Function test;
+//  test.init("init", Function::regexp|Function::cpp_linkage|Function::c_linkage);
+
+  debug_load_object_file("dwarf-die3.o", true);
 
   return 0;
 }

@@ -42,8 +42,8 @@ class channel_ct;
  *
  * \brief This object represents a runtime configuration file.
  *
- * Libcwd contains one object of this time, <code>libcw::debug::rcfile</code>.
- * That object is used normally, for example when calling
+ * Libcwd contains one object of this type, <code>libcw::debug::rcfile</code>.
+ * This is the object that is used by
  * <code>\link libcw::debug::read_rcfile read_rcfile() \endlink</code>.
  */
 class rcfile_ct {
@@ -56,6 +56,9 @@ private:
   bool M_read_called;
 
 public:
+  /**
+   * \brief Construct a rcfile object.
+   */
   rcfile_ct() : M_env_set(false), M_read_called(false) { }
   virtual ~rcfile_ct() { }
 
@@ -70,19 +73,43 @@ private:
   static void S_process_channels(std::string list, action_nt const action);
 
 public:
+  /**
+   * \brief Initialize this object by reading the rcfile.
+   */
   void read(void);
+  /**
+   * \brief Returns the command line string as set with the 'xterm' keyword.
+   */
   std::string const& konsole_command(void) const { return M_konsole_command; }
+  /**
+   * \brief Returns the command line string as set with the 'gdb_bin' keyword.
+   */
   std::string const& gdb_bin(void) const { return M_gdb_bin; }
+  /**
+   * \brief Returns true when this object is initialized.
+   */
   bool read_called(void) const { return M_read_called; }
 
 protected:
+  /**
+   * \brief Virtual function called for unknown keywords.
+   *
+   * By using this class as a base and overriding this function
+   * it is possible to extend the keywords that are recognized.
+   *
+   * This function should return \c true when the keyword is <em>not</em> handled.
+   * The default behaviour is to always return \c true.
+   */
   virtual bool unknown_keyword(std::string const& keyword, std::string const& value);
-    // Should return true if the keyword was not handled.
-    // Default behaviour: returns true.
 };
 
 extern rcfile_ct rcfile;
 
+/**
+ * \brief Calls libcw::debug::rcfile.read().
+ *
+ * \sa group_rcfile
+ */
 inline void read_rcfile(void)
 {
   rcfile.read();

@@ -121,12 +121,9 @@ bool statically_linked;
 //----------------------------------------------------------------------------------------
 // Interface Adaptor
 
-int const bfd_archive = 0;
-uint32_t const HAS_SYMS = 0xffffffff;
+static int const bfd_archive = 0;
+static uint32_t const HAS_SYMS = 0xffffffff;
 
-inline asection const* bfd_get_section(asymbol const* s) { return s->section; }
-inline bfd*& bfd_asymbol_bfd(asymbol* s) { return s->bfd_ptr; }
-inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
 inline bool bfd_check_format(bfd const* abfd, int) { return abfd->check_format(); }
 inline uint32_t bfd_get_file_flags(bfd const* abfd) { return abfd->has_syms() ? HAS_SYMS : 0; }
 inline long bfd_get_symtab_upper_bound(bfd* abfd) { return abfd->get_symtab_upper_bound(); }
@@ -185,33 +182,6 @@ void bfd_close(bfd* abfd)
 
       // cwbfd::
       typedef PTR addr_ptr_t;
-
-      // cwbfd::
-#ifdef PTR
-      typedef const PTR addr_const_ptr_t;	// Warning: PTR is a macro, must put `const' in front of it
-#else
-      typedef char const* addr_const_ptr_t;
-#endif
-
-      // cwbfd::
-      inline addr_const_ptr_t
-      symbol_start_addr(asymbol const* s)
-      {
-	return s->value + bfd_get_section(s)->offset
-	    + reinterpret_cast<char const*>(reinterpret_cast<bfile_ct const*>(bfd_asymbol_bfd(s)->usrdata)->get_lbase());
-      }
-
-      // cwbfd::
-      inline size_t symbol_size(asymbol const* s)
-      {
-	return reinterpret_cast<size_t>(s->udata.p);
-      }
-
-      // cwbfd::
-      inline size_t& symbol_size(asymbol* s)
-      {
-	return *reinterpret_cast<size_t*>(&s->udata.p);
-      }
 
       // cwbfd::
       bool symbol_key_greater::operator()(symbol_ct const& a, symbol_ct const& b) const
@@ -342,7 +312,7 @@ void bfd_close(bfd* abfd)
 		cwprint(::libcw::debug::environment_ct(matching)));
 	    free(matching);
 	  }
-	  DoutFatal(dc::fatal, filename << ": can not get addresses from object file: " << bfd_errmsg(bfd_get_error()));
+	  DoutFatal(dc::fatal, filename << ": cannot get addresses from object file: " << bfd_errmsg(bfd_get_error()));
 	}
 #endif
 
@@ -510,7 +480,13 @@ void bfd_close(bfd* abfd)
 	      }
 	      if (best_count < 3)
 	      {
+#if CWDEBUG_ALLOC
+		__libcwd_tsd.internal = 0;
+#endif
 		Dout(dc::warning, "Unable to determine start of \"" << filename << "\", skipping.");
+#if CWDEBUG_ALLOC
+		__libcwd_tsd.internal = saved_internal;
+#endif
 		free(symbol_table);
 		symbol_table  = NULL;
 		if (abfd)
@@ -573,7 +549,8 @@ void bfd_close(bfd* abfd)
 	  asymbol** se2 = &symbol_table[number_of_symbols - 1];
 	  for (asymbol** s = symbol_table; s <= se2;)
 	  {
-	    if (((*s)->flags & (BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|BSF_INDIRECT|BSF_DYNAMIC)) != 0
+	    if (((*s)->name[0] == '.' && (*s)->name[1] == 'L')
+	        || ((*s)->flags & (BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|BSF_INDIRECT|BSF_DYNAMIC)) != 0
 		|| (s_end_start_addr != NULL && symbol_start_addr(*s) >= s_end_start_addr)
 		|| (*s)->flags & BSF_FUNCTION == 0)	// Only keep functions.
 	    {
@@ -601,12 +578,24 @@ void bfd_close(bfd* abfd)
 	  }
 
 #if 0
-	  if (function_symbols.size() < 200)
+	  if (function_symbols.size() < 20000)
+	  {
+	    libcw::debug::debug_ct::OnOffState state;
+	    Debug( libcw_do.force_on(state) );
+#if CWDEBUG_ALLOC
+	    int saved_internal = __libcwd_tsd.internal;
+	    __libcwd_tsd.internal = 0;
+#endif
 	    for(function_symbols_ct::iterator i(function_symbols.begin()); i != function_symbols.end(); ++i)
 	    {
 	      asymbol const* s = i->get_symbol();
-	      Dout(dc::bfd, s->name << " (" << s->section->name << ") = " << s->value);
+	      Dout(dc::always, s->name << " (" << s->section->name << ") = " << s->value);
 	    }
+#if CWDEBUG_ALLOC
+	    __libcwd_tsd.internal = saved_internal;
+#endif
+	    Debug( libcw_do.restore(state) );
+	  }
 #endif
 	}
 
@@ -984,11 +973,11 @@ void bfd_close(bfd* abfd)
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
         if (l_addr == unknown_l_addr)
-	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << ' ');
+	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << ' ');
 	else if (l_addr == 0)
-	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << "... ");
+	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << "... ");
 	else
-	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << " (" << l_addr << ") ... ");
+	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << " (" << l_addr << ") ... ");
 	bfile_ct* object_file;
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
@@ -1294,10 +1283,11 @@ void bfd_close(bfd* abfd)
 typedef location_ct bfd_location_ct;
 #endif
 
-    libcw::debug::object_file_ct::object_file_ct(char const* filepath)
+    libcw::debug::object_file_ct::object_file_ct(char const* filepath) :
 #if CWDEBUG_ALLOC
-        : M_hide(false)
+        M_hide(false),
 #endif
+	M_no_debug_line_sections(false)
     {
       LIBCWD_TSD_DECLARATION;
       set_alloc_checking_off(LIBCWD_TSD);
@@ -1452,7 +1442,7 @@ already_loaded:
 	  if (p->name)
 	  {
 	    static int const BSF_WARNING_PRINTED = 0x40000000;
-	    if (!(p->flags & BSF_WARNING_PRINTED))
+	    if (!M_object_file->has_no_debug_line_sections() && !(p->flags & BSF_WARNING_PRINTED))
 	    {
 	      const_cast<asymbol*>(p)->flags |= BSF_WARNING_PRINTED;
 	      set_alloc_checking_off(LIBCWD_TSD);

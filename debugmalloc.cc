@@ -2090,15 +2090,25 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 // We expect only a single call to malloc() from dlopen (from init_malloc_function_pointers)
 // but provide a slightly more general set of stubs here anyway.
 //
-static char allocation_heap[128];
-static void* allocation_ptrs[4];
+static size_t const assert_reserve_heap_size = 1024;
+static size_t const assert_reserve_ptrs_size = 6;
+static char allocation_heap[1024 + assert_reserve_heap_size];
+static void* allocation_ptrs[8 + assert_reserve_ptrs_size];
 static unsigned int allocation_counter = 0;
 static char* allocation_ptr = allocation_heap;
 
 void* malloc_bootstrap2(size_t size)
 {
-  assert( allocation_counter <= sizeof(allocation_ptrs) / sizeof(void*) );
-  assert( allocation_ptr + size <= allocation_heap + sizeof(allocation_heap) );
+  static size_t _assert_reserve_heap_size = assert_reserve_heap_size;
+  static size_t _assert_reserve_ptrs_size = assert_reserve_ptrs_size;
+  if (allocation_counter > sizeof(allocation_ptrs) / sizeof(void*) - _assert_reserve_ptrs_size
+      || allocation_ptr + size > allocation_heap + sizeof(allocation_heap) - _assert_reserve_heap_size)
+  {
+    _assert_reserve_heap_size = 0;
+    _assert_reserve_ptrs_size = 0;
+    assert(allocation_counter <= sizeof(allocation_ptrs) / sizeof(void*) - assert_reserve_ptrs_size);
+    assert(allocation_ptr + size <= allocation_heap + sizeof(allocation_heap) - assert_reserve_heap_size);
+  }
   void* ptr = allocation_ptr;
   allocation_ptrs[allocation_counter++] = ptr;
   allocation_ptr += size;

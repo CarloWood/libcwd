@@ -10,6 +10,24 @@ libcwd-0.99.32
 	Documentation for both functions above has been added to the
 	reference manual.
 
+	Code has been added to correct wrong debug info as outputted
+	by the commonly used GNU assembler version 2.3.90 as result
+	of a frequently occuring bug.  Before this correction is was
+	possible that libcwd was unable to determine the line number
+	information of about 1% of the functions.
+
+	The library now prints "Loading debug symbols from..."
+	(if the environment variable LIBCWD_PRINT_LOADING is set)
+	and "Loading debug info from..." seperately.
+
+	A function was added that is intended to be called from gdb like:
+	(gdb) call debug_alloc(0x84002f2)
+	It prints information about the pointer passed to it.  This
+	function can ONLY be called from within gdb, to assist in
+	debugging memory allocation related problems.
+
+        *** WIP: functions / stack stuff
+
 	API changes:
 
 	The debug channel constructor was changed from
@@ -28,6 +46,13 @@ libcwd-0.99.32
 	Where the allocation of that specific instance clearly isn't
 	"pre libcwd initialization".  The reason for this is that
 	locations are cached: the delayed lookup was never performed.
+
+	When libcwd could not determine the start of shared library
+	it would core dump with the message  COREDUMP: bfd.cc:513:
+	void libcw::debug::cwbfd::bfile_ct::initialize(const char*, void*):
+	Assertion `!__libcwd_tsd.internal' failed.
+	This was because 'internal' was still set, while since 0.99.29
+	allocations inside Dout are treated as normal (non-internal).
 
 libcwd-0.99.31
 

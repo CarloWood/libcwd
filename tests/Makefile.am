@@ -15,33 +15,54 @@ dout_alloc \
 mangling \
 allocator \
 stabs \
-lines
+lines \
+inlined
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
+hello_world_CXXFLAGS = -g
 hello_world_SOURCES = hello_world.cc
+
+location_CXXFLAGS = -g
 location_SOURCES = location.cc
+
+syslog_CXXFLAGS = -g
 syslog_SOURCES = syslog.cc
+
+initbug_CXXFLAGS = -g
 initbug_SOURCES = initbug.cc initbug_GlobalObject.cc
+
+dout_alloc_CXXFLAGS = -g
 dout_alloc_SOURCES = dout_alloc.cc
+
+mangling_CXXFLAGS = -g
 mangling_SOURCES = mangling.cc
+
+allocator_CXXFLAGS = -g
 allocator_SOURCES = allocator.cc
-stabs_SOURCES = stabs.cc
+
+lines_CXXFLAGS = -g
 lines_SOURCES = lines.cc
 
-threads_CXXFLAGS = -DCWDEBUG -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+stabs_CXXFLAGS = -O2
+stabs_SOURCES = stabs.cc
+
+inlined_CXXFLAGS = -g -finline
+inlined_SOURCES = inlined.cc inlined_main.cc
+
+threads_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
 threads_SOURCES = threads.cc
 threads_LDADD = ../libcwd_r.la
 
-threads2_CXXFLAGS = -DCWDEBUG -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads2_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
 threads2_SOURCES = threads2.cc
 threads2_LDADD = ../libcwd_r.la
 
-threads3_CXXFLAGS = -DCWDEBUG -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads3_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
 threads3_SOURCES = threads3.cc
 threads3_LDADD = ../libcwd_r.la
 
-threads4_CXXFLAGS = -DCWDEBUG -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads4_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
 threads4_SOURCES = threads4.cc
 threads4_LDADD = ../libcwd_r.la
 
@@ -55,14 +76,8 @@ EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
 TESTOPTS = @TESTOPTS@
-CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+CXXFLAGS = -DCWDEBUG $(TESTOPTS)
 INCLUDES = -I. -I$(top_builddir)/include -I$(srcdir)/../include
 DEFAULT_INCLUDES =
 
 MAINTAINERCLEANFILES = Makefile.in
-
-stabs.o: stabs.cc
-	$(CXXCOMPILE) -O2 -c $<
-
-stabs.lo: stabs.cc
-	$(LTCXXCOMPILE) -O2 -c $<

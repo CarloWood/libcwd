@@ -167,6 +167,37 @@ NEEDS_WRITE_LOCK_object_files(void)
   return *reinterpret_cast<object_files_ct*>(bfile_ct::ST_list_instance);
 }
 
+#if !CWDEBUG_LIBBFD
+inline asection const* bfd_get_section(asymbol const* s) { return s->section; }
+inline bfd*& bfd_asymbol_bfd(asymbol* s) { return s->bfd_ptr; }
+inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
+
+#ifdef PTR
+      typedef const PTR addr_const_ptr_t;       // Warning: PTR is a macro, must put `const' in front of it
+#else
+      typedef char const* addr_const_ptr_t;
+#endif
+
+inline addr_const_ptr_t
+symbol_start_addr(asymbol const* s)
+{
+  return s->value + bfd_get_section(s)->offset
+      + reinterpret_cast<char const*>(reinterpret_cast<bfile_ct const*>(bfd_asymbol_bfd(s)->usrdata)->get_lbase());
+}
+
+// cwbfd::
+inline size_t symbol_size(asymbol const* s)
+{
+  return reinterpret_cast<size_t>(s->udata.p);
+}
+
+// cwbfd::
+inline size_t& symbol_size(asymbol* s)
+{
+  return *reinterpret_cast<size_t*>(&s->udata.p);
+}
+#endif
+
     } // namespace cwbfd
 
   } // namespace debug

@@ -752,15 +752,24 @@ cw_cv_sys_LIBS="$LIBS"
 dnl CW_DO_OPTIONS
 dnl Chose reasonable default values for WARNOPTS, DEBUGOPTS and EXTRAOPTS
 AC_DEFUN(CW_DO_OPTIONS, [dnl
+dnl Other options
+dnl -fno-exceptions is really only needed when using a compiler that was configured
+dnl with --enable-slsj-exceptions, in order to avoid calls to calloc() from
+dnl __pthread_setspecific when being 'internal'.
+if test "$USE_MAINTAINER_MODE" = yes; then
+EXTRAOPTS="-fno-exceptions"
+else
+EXTRAOPTS="-O -fno-exceptions"
+fi
+AC_SUBST(EXTRAOPTS)
+
 dnl Choose warning options to use
 if test "$USE_MAINTAINER_MODE" = yes; then
-AC_EGREP_CPP(Winline-broken,
-[#if __GNUC__ < 3
-Winline-broken
-#endif
-],
-WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Werror",
-WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Werror -Winline")
+if echo "$EXTRAOPTS" | grep -- -O >/dev/null; then
+WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Werror"
+else
+WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Werror"
+fi
 else
 WARNOPTS=
 fi
@@ -776,17 +785,6 @@ case "$host" in
   *) DEBUGOPTS=-g ;;
 esac
 AC_SUBST(DEBUGOPTS)
-
-dnl Other options
-dnl -fno-exceptions is really only needed when using a compiler that was configured
-dnl with --enable-slsj-exceptions, in order to avoid calls to calloc() from
-dnl __pthread_setspecific when being 'internal'.
-if test "$USE_MAINTAINER_MODE" = yes; then
-EXTRAOPTS="-fno-exceptions"
-else
-EXTRAOPTS="-O -fno-exceptions"
-fi
-AC_SUBST(EXTRAOPTS)
 
 dnl Test options
 TESTOPTS=""

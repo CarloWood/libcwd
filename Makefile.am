@@ -9,11 +9,9 @@ EXTRA_DIST = LICENSE.QPL README.CVS README.threads README.FreeBSD README.openbsd
 DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz
 
 VERSIONINFO=@VERSIONINFO@
-EXTRAOPTS = @EXTRAOPTS@
-DEBUGOPTS = @DEBUGOPTS@
+CXXFLAGS = @CXXFLAGS@
 WARNOPTS = @WARNOPTS@
-CXXFLAGS =
-INCLUDES = -I$(top_builddir)/include -I$(srcdir)/include
+INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 DEFAULT_INCLUDES =
 
 if ENABLETHREADING
@@ -31,7 +29,7 @@ dist_pkgdata_DATA = libcwdrc
 lib_LTLIBRARIES = $(LIBCWD) $(LIBCWD_R)
 
 if ENABLENONTHREADING
-libcwd_la_CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
+libcwd_la_CXXFLAGS = -DCWDEBUG $(WARNOPTS)
 libcwd_la_SOURCES = \
 	elf32.cc \
 	environ.cc \
@@ -42,13 +40,14 @@ libcwd_la_SOURCES = \
 	demangle3.cc \
 	ooam_filter.cc \
 	strerrno.cc \
-	type_info.cc
+	type_info.cc \
+	function.cc
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
 libcwd_la_LIBADD = utils/libutils.la
 endif
 
 if ENABLETHREADING
-libcwd_r_la_CXXFLAGS = -DCWDEBUG -D_REENTRANT -pthread $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
+libcwd_r_la_CXXFLAGS = -DCWDEBUG -D_REENTRANT -pthread $(WARNOPTS)
 libcwd_r_la_SOURCES = \
 	elf32.cc \
 	environ.cc \
@@ -60,6 +59,7 @@ libcwd_r_la_SOURCES = \
 	ooam_filter.cc \
 	strerrno.cc \
 	type_info.cc \
+	function.cc \
 	threading.cc \
 	wrapcnclpnts.cc
 libcwd_r_la_LDFLAGS = -version-info $(VERSIONINFO) $(LIB_THREADS_SHARED)

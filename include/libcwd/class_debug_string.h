@@ -80,9 +80,9 @@ public:
   void assign(char const* str, size_t len);
   void append(char const* str, size_t len);
   void prepend(char const* str, size_t len);
-  void assign(std::string const& s);
-  void append(std::string const& s);
-  void prepend(std::string const& s);
+  void assign(std::string const& str);
+  void append(std::string const& str);
+  void prepend(std::string const& str);
 };
 
 // Used for the margin and marker stacks.

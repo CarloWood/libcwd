@@ -40,22 +40,35 @@
 #define DEBUGSTABS 0
 #define DEBUGDWARF 0
 
+#if DEBUGELF32 || DEBUGSTABS || DEBUGDWARF
+static bool const default_dout_c = false;
+#endif
+
+#if DEBUGDWARF || DEBUGSTABS
+static bool doutdwarfon = default_dout_c;
+static bool doutstabson = default_dout_c;
+void debug_load_object_file(char const* filename, bool shared);
+#endif
+
 #if DEBUGDWARF
-#define DoutDwarf(cntrl, x) do { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } while(0)
+#define DoutDwarf(cntrl, x) do { if (doutdwarfon) { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } } while(0)
 #define DEBUGDWARF_OPT_COMMA(x) ,x
+#define DEBUGDWARF_OPT(x) x
 #else
 #define DoutDwarf(cntrl, x) do { } while(0)
 #define DEBUGDWARF_OPT_COMMA(x)
+#define DEBUGDWARF_OPT(x)
 #endif
 
 #if DEBUGSTABS
-#define DoutStabs(cntrl, x) do { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } while(0)
+#define DoutStabs(cntrl, x) do { if (doutstabson) { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } } while(0)
 #else
 #define DoutStabs(cntrl, x) do { } while(0)
 #endif
 
 #if DEBUGELF32
-#define DoutElf32(cntrl, x) do { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } while(0)
+static bool doutelf32on = default_dout_c;
+#define DoutElf32(cntrl, x) do { if (doutelf32on) { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } } while(0)
 #else
 #define DoutElf32(cntrl, x) do { } while(0)
 #endif
@@ -734,6 +747,325 @@ static uLEB128_t const DW_LNE_end_sequence	= 1;
 static uLEB128_t const DW_LNE_set_address	= 2;
 static uLEB128_t const DW_LNE_define_file	= 3;
 
+static unsigned char address_size;	// Should be sizeof(void*) - at least it is constant,
+					// so it's thread safe to be static.
+
+//--------------------------------------------------------------------------------------------------------------------------
+// The types (defined in "2.2 Attribute Types" of the draft).
+
+// address	: Refers to some location in the address space of the described program.
+typedef Elf32_Addr address_t;
+// block	: An arbitrary number of uninterpreted bytes of data.
+struct block_t { Elf32_Addr begin; size_t number_of_bytes; };
+// constant	: One, two, four or eight bytes of uninterpreted data, or data encoded
+//                in the variable length format known as LEB128 (see section 7.6).
+// We don't handle 8 byte sizes if uLEB128_t doesn't either.
+typedef uLEB128_t constant_t;
+// flag		: A small constant that indicates the presence or absence of an attribute.
+typedef bool flag_t;
+// reference	: Refers to some member of the set of debugging information entries that
+//                describe the program.  There are two types of reference.  The first is
+//                an offset relative to the beginning of the compilation unit in which the
+//                reference occurs and must refer to an entry within that same compilation
+//                unit.  The second type of reference is the address of any debugging
+//                information entry within the same executable or shared object; it may
+//                refer to an entry in a different compilation unit from the unit containing
+//                the reference.
+typedef unsigned char const* reference_t;
+// string	: A null-terminated sequence of zero or more (non-null) bytes.  Data in this
+//                form are generally printable strings. Strings may be represented directly
+//                in the debugging information entry or as an offset in a separate string table.
+typedef char const* string_t;
+// lineptr	: Refers to a location in the DWARF section that holds line number information.
+typedef unsigned char const* lineptr_t;
+
+//------------------------------------------------
+
+template<typename T>
+  static inline void
+  dwarf_read(unsigned char const*& in, T& x)
+  {
+    x = *reinterpret_cast<T const*>(in);
+    in += sizeof(T);
+  }
+
+template<>
+  static void
+  dwarf_read(unsigned char const*& in, uLEB128_t& x)
+  {
+    int shift = 7;
+    uLEB128_t byte = *in;
+    x = byte;
+    while(byte >= 0x80)
+    {
+      byte = (*++in) ^ 1;
+      LIBCWD_ASSERT( byte < (1UL << (number_of_bits_in_uLEB128_t - shift)) );
+      x ^= byte << shift;
+      shift += 7;
+    }
+    ++in;
+  }
+
+template<>
+  static void
+  dwarf_read(unsigned char const*& in, LEB128_t& x)
+  {
+    int shift = 7;
+    LEB128_t byte = *in;
+    x = byte;
+    while(byte >= 0x80)
+    {
+      byte = (*++in) ^ 1;
+      LIBCWD_ASSERT( byte < (1L << (number_of_bits_in_LEB128_t - shift)) );
+      x ^= byte << shift;
+      shift += 7;
+    }
+    if (shift < number_of_bits_in_LEB128_t && (byte & 0x40))
+      x |= - (1L << shift);
+    ++in;
+  }
+
+inline static void
+eat_string(unsigned char const*& debug_info_ptr)
+{
+#ifdef __i386__
+  // The optimization of gcc is horrible.  Lets do it ourselfs.
+  int __d0;
+  asm("cld; repnz; scasb" : "=c" (__d0), "=D" (debug_info_ptr) : "0" (-1), "1" (debug_info_ptr), "a" (0));
+#else
+  // This is the same as 'while(*debug_info_ptr++);', but that results in horribly
+  // inefficient code (tested with g++ 3.4).
+  unsigned char const* tmp = debug_info_ptr;
+  while(*tmp)
+    ++tmp;
+  debug_info_ptr = tmp + 1;
+#endif
+}
+
+//------------------------------------------------
+// Conversion routines.
+// The following routines read a FORM of the expected type
+// and return the value as one of the types given above.
+
+inline address_t
+read_address(unsigned char const*& debug_info_ptr, uLEB128_t const DEBUGDWARF_OPT(form))
+{
+#if DEBUGDWARF
+  LIBCWD_ASSERT(form == DW_FORM_addr);
+#endif
+  address_t result;
+  dwarf_read(debug_info_ptr, result);
+  DoutDwarf(dc::finish, result);
+  return result;
+}
+
+block_t
+read_block(unsigned char const*& debug_info_ptr, uLEB128_t const form)
+{
+#if DEBUGDWARF
+  LIBCWD_ASSERT(form == DW_FORM_block1 || form == DW_FORM_block2 || form == DW_FORM_block4 || form == DW_FORM_block);
+#endif
+  block_t result;
+  result.begin = (Elf32_Addr)debug_info_ptr;
+  switch(form)
+  {
+    case DW_FORM_block1:
+    {
+      uint8_t number_of_bytes;
+      dwarf_read(debug_info_ptr, number_of_bytes);
+      result.number_of_bytes = number_of_bytes;
+      break;
+    }
+    case DW_FORM_block2:
+    {
+      uint16_t number_of_bytes;
+      dwarf_read(debug_info_ptr, number_of_bytes);
+      result.number_of_bytes = number_of_bytes;
+      break;
+    }
+    case DW_FORM_block4:
+    {
+      uint32_t number_of_bytes;
+      dwarf_read(debug_info_ptr, number_of_bytes);
+      result.number_of_bytes = number_of_bytes;
+      break;
+    }
+    case DW_FORM_block:
+    {
+      uLEB128_t number_of_bytes;
+      dwarf_read(debug_info_ptr, number_of_bytes);
+      result.number_of_bytes = number_of_bytes;
+      break;
+    }
+  }
+  debug_info_ptr += result.number_of_bytes;
+  return result;
+}
+
+inline constant_t
+read_constant(unsigned char const*& debug_info_ptr, uLEB128_t const form)
+{
+#if DEBUGDWARF
+  LIBCWD_ASSERT(form == DW_FORM_data1 || form == DW_FORM_data2 || form == DW_FORM_data4 || form == DW_FORM_udata);
+#endif
+  constant_t result;
+  switch(form)
+  {
+    case DW_FORM_data1:
+    {
+      uint8_t data;
+      dwarf_read(debug_info_ptr, data);
+      result = data;
+      break;
+    }
+    case DW_FORM_data2:
+    {
+      uint16_t data;
+      dwarf_read(debug_info_ptr, data);
+      result = data;
+      break;
+    }
+    case DW_FORM_data4:
+    {
+      uint32_t data;
+      dwarf_read(debug_info_ptr, data);
+      result = data;
+      break;
+    }
+    case DW_FORM_udata:
+    {
+      uLEB128_t data;
+      dwarf_read(debug_info_ptr, data);
+      result = data;
+      break;
+    }
+    case DW_FORM_sdata:
+    case DW_FORM_data8:
+      DoutFatal(dc::fatal, "read_constant() cannot handle this FORM");
+  }
+  return result;
+}
+
+inline flag_t
+read_flag(unsigned char const*& debug_info_ptr, uLEB128_t const DEBUGDWARF_OPT(form))
+{
+#if DEBUGDWARF
+  LIBCWD_ASSERT(form == DW_FORM_flag);
+#endif
+  uint8_t result;
+  dwarf_read(debug_info_ptr, result);
+  return result;
+}
+
+inline reference_t
+read_reference(unsigned char const*& debug_info_ptr, uLEB128_t const form,
+               unsigned char const* debug_info_root, unsigned char const* debug_info_start)
+{
+#if DEBUGDWARF
+  LIBCWD_ASSERT(form == DW_FORM_ref1 || form == DW_FORM_ref2 || form == DW_FORM_ref4 ||
+                form == DW_FORM_ref_udata || form == DW_FORM_ref_addr);
+  size_t compilation_unit_offset = debug_info_root - debug_info_start;
+#endif
+  switch(form)
+  {
+    case DW_FORM_ref1:
+    {
+      uint8_t offset;
+      dwarf_read(debug_info_ptr, offset);
+      DoutDwarf(dc::finish, '<' << std::hex << compilation_unit_offset + offset << '>');
+      return debug_info_root + offset;
+    }
+    case DW_FORM_ref2:
+    {
+      uint16_t offset;
+      dwarf_read(debug_info_ptr, offset);
+      DoutDwarf(dc::finish, '<' << std::hex << compilation_unit_offset + offset << '>');
+      return debug_info_root + offset;
+    }
+    case DW_FORM_ref4:
+    {
+      uint32_t offset;
+      dwarf_read(debug_info_ptr, offset);
+      DoutDwarf(dc::finish, '<' << std::hex << compilation_unit_offset + offset << '>');
+      return debug_info_root + offset;
+    }
+    case DW_FORM_ref_udata:
+    {
+      uLEB128_t offset;
+      dwarf_read(debug_info_ptr, offset);
+      DoutDwarf(dc::finish, '<' << std::hex << compilation_unit_offset + offset << '>');
+      return debug_info_root + offset;
+    }
+    case DW_FORM_ref_addr:
+    {
+      uint32_t offset;
+      dwarf_read(debug_info_ptr, offset);
+      DoutDwarf(dc::finish, '<' << std::hex << offset << '>');
+      return debug_info_start + offset;
+    }
+#if 0
+    case DW_FORM_ref8:
+      DoutFatal(dc::fatal, "read_reference() cannot handle DW_FORM_ref8");
+#endif
+  }
+  abort();
+}
+
+inline string_t
+read_string(unsigned char const*& debug_info_ptr, uLEB128_t const form, unsigned char const* debug_str)
+{
+  string_t result;
+  switch(form)
+  {
+    case DW_FORM_string:
+    {
+      result = reinterpret_cast<string_t>(debug_info_ptr);
+      eat_string(debug_info_ptr);
+      break;
+    }
+    case DW_FORM_strp:
+    {
+      result = reinterpret_cast<string_t>(&debug_str[*reinterpret_cast<uint32_t const*>(debug_info_ptr)]);
+      debug_info_ptr += 4;
+      break;
+    }
+  }
+  DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << result << '"');
+  return result;
+}
+
+inline lineptr_t
+read_lineptr(unsigned char const*& debug_info_ptr DEBUGDWARF_OPT_COMMA(uLEB128_t const form), lineptr_t debug_line)
+{
+#if DEBUGDWARF
+  LIBCWD_ASSERT(form == DW_FORM_data4);
+#endif
+  uint32_t line_offset;
+  dwarf_read(debug_info_ptr, line_offset);
+  DoutDwarf(dc::finish, "0x" << std::hex << line_offset);
+  return debug_line + line_offset;
+}
+
+// Inline encodings
+static constant_t const DW_INL_not_inlined		= 0;
+static constant_t const DW_INL_inlined			= 1;
+static constant_t const DW_INL_declared_not_inlined	= 2;
+static constant_t const DW_INL_declared_inlined		= 3;
+
+#if DEBUGDWARF
+char const* print_DW_INL_name(constant_t inline_encoding)
+{
+  switch(inline_encoding)
+  {
+    case DW_INL_not_inlined: return "DW_INL_not_inlined";
+    case DW_INL_inlined: return "DW_INL_inlined";
+    case DW_INL_declared_not_inlined: return "DW_INL_declared_not_inlined";
+    case DW_INL_declared_inlined: return "DW_INL_declared_inlined";
+  }
+  abort();
+}
+#endif
+
 //==========================================================================================================================================
 // Because the functions in this compilation unit can be called from malloc(), we need to use
 // the alternative allocators.  Moreover, `internal' should already be set everywhere and
@@ -964,6 +1296,9 @@ struct hash_list_st {
 //
 
 class objfile_ct : public bfd_st {
+#if DEBUGSTABS || DEBUGDWARF
+  friend void ::debug_load_object_file(char const* filename, bool shared);
+#endif
 #if CWDEBUG_ALLOC
   typedef std::map<range_st, location_st, compare_range_st, _private_::object_files_allocator::rebind<std::pair<range_st const, location_st> >::other> object_files_range_location_map_ct;
 #else
@@ -1023,10 +1358,10 @@ private:
   void register_range(location_st const& location, range_st const& range);
   void load_stabs(void);
   void load_dwarf(void);
-  template<typename T>
-    inline void dwarf_read(unsigned char const*& debug_info_ptr, T& x);
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
-  void eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const& form DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str));
+  void eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const& form
+                DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str)
+                DEBUGDWARF_OPT_COMMA(uint32_t debug_info_offset));
 };
 
 #if LIBCWD_THREAD_SAFE
@@ -1282,7 +1617,9 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	(*p)->already_added = false;
 	symbol_table[table_entries++] = new_symbol++;
       }
-      realloc(M_hash_list_pool, (hash_list_pool_next - M_hash_list_pool) * sizeof(hash_list_st));
+      // The assignment is needed in case hash_list_pool_next == M_hash_list_pool.
+      M_hash_list_pool = (hash_list_st*)realloc(M_hash_list_pool,
+                                                (hash_list_pool_next - M_hash_list_pool) * sizeof(hash_list_st));
       delete [] symbols;
       break;							// There *should* only be one symbol table section.
     }
@@ -1291,47 +1628,6 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
   M_number_of_symbols = table_entries;
   return M_number_of_symbols;
 }
-
-template<typename T>
-  inline void objfile_ct::dwarf_read(unsigned char const*& in, T& x)
-  {
-    x = *reinterpret_cast<T const*>(in);
-    in += sizeof(T);
-  }
-
-template<>
-  void objfile_ct::dwarf_read(unsigned char const*& in, uLEB128_t& x)
-  {
-    int shift = 7;
-    uLEB128_t byte = *in;
-    x = byte;
-    while(byte >= 0x80)
-    {
-      byte = (*++in) ^ 1;
-      LIBCWD_ASSERT( byte < (1UL << (number_of_bits_in_uLEB128_t - shift)) );
-      x ^= byte << shift;
-      shift += 7;
-    }
-    ++in;
-  }
-
-template<>
-  void objfile_ct::dwarf_read(unsigned char const*& in, LEB128_t& x)
-  {
-    int shift = 7;
-    LEB128_t byte = *in;
-    x = byte;
-    while(byte >= 0x80)
-    {
-      byte = (*++in) ^ 1;
-      LIBCWD_ASSERT( byte < (1L << (number_of_bits_in_LEB128_t - shift)) );
-      x ^= byte << shift;
-      shift += 7;
-    }
-    if (shift < number_of_bits_in_LEB128_t && (byte & 0x40))
-      x |= - (1L << shift);
-    ++in;
-  }
 
 struct attr_st {
   uLEB128_t attr;
@@ -1394,28 +1690,9 @@ void objfile_ct::delete_hash_list(void)
   }
 }
 
-inline static void
-eat_string(unsigned char const*& debug_info_ptr)
-{
-#ifdef __i386__
-  // The optimization of gcc is horrible.  Lets do it ourselfs.
-  int __d0;
-  asm("cld; repnz; scasb" : "=c" (__d0), "=D" (debug_info_ptr) : "0" (-1), "1" (debug_info_ptr), "a" (0));
-#else
-  // This is the same as 'while(*debug_info_ptr++);', but that results in horribly
-  // inefficient code (tested with g++ 3.4).
-  unsigned char const* tmp = debug_info_ptr;
-  while(*tmp)
-    ++tmp;
-  debug_info_ptr = tmp + 1;
-#endif
-}
-
-static unsigned char address_size;	// Should be sizeof(void*) - at least it is constant,
-					// so it's thread safe to be static.
-
 void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const& form
-                          DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str))
+                          DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str)
+			  DEBUGDWARF_OPT_COMMA(uint32_t debug_info_offset))
 {
   DoutDwarf(dc::continued, '(' << print_DW_FORM_name(form) << ") ");
   switch(form)
@@ -1443,7 +1720,8 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
 	DoutDwarf(dc::finish, pos << " (\"" << &debug_str[pos] << "\")");
       }
       else
-	DoutDwarf(dc::finish, '<' << std::hex << *reinterpret_cast<uint32_t const*>(debug_info_ptr) << '>');
+	DoutDwarf(dc::finish, '<' << std::hex <<
+	    *reinterpret_cast<uint32_t const*>(debug_info_ptr) + debug_info_offset << '>');
 #endif
       debug_info_ptr += 4;
       break;
@@ -1456,7 +1734,7 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       uLEB128_t tmpform = form;
       DoutDwarf(dc::continued, "-> ");
       dwarf_read(debug_info_ptr, tmpform);
-      eat_form(debug_info_ptr, tmpform DEBUGDWARF_OPT_COMMA(debug_str));
+      eat_form(debug_info_ptr, tmpform DEBUGDWARF_OPT_COMMA(debug_str) DEBUGDWARF_OPT_COMMA(debug_info_offset));
       break;
     }
     case DW_FORM_string:
@@ -1481,7 +1759,7 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       break;
     case DW_FORM_block1:
     {
-      unsigned char length;
+      uint8_t length;
       dwarf_read(debug_info_ptr, length);
       DoutDwarf(dc::finish, "[" << (unsigned int)length << " bytes]");
       debug_info_ptr += length;
@@ -1518,8 +1796,8 @@ void objfile_ct::load_dwarf(void)
 {
 #if DEBUGDWARF
   LIBCWD_TSD_DECLARATION;
-#endif
   uint32_t total_length;
+#endif
 
   libcw::debug::debug_ct::OnOffState state;
   libcw::debug::channel_ct::OnOffState state2;
@@ -1529,7 +1807,14 @@ void objfile_ct::load_dwarf(void)
     Debug( libcw_do.force_on(state) );
     Debug( dc::bfd.force_on(state2, "BFD") );
   }
+#if CWDEBUG_ALLOC
+  int saved_internal = __libcwd_tsd.internal;
+  __libcwd_tsd.internal = false;
+#endif
   Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << this->filename << "... ");
+#if CWDEBUG_ALLOC
+  __libcwd_tsd.internal = saved_internal;
+#endif
 
 #if DEBUGDWARF
   // Not loaded already.
@@ -1549,14 +1834,12 @@ void objfile_ct::load_dwarf(void)
   unsigned char* debug_abbrev = (unsigned char*)allocate_and_read_section(M_dwarf_debug_abbrev_section_index);
   // Start of .debug_info section.
   unsigned char* debug_info = (unsigned char*)allocate_and_read_section(M_dwarf_debug_info_section_index);
-#if DEBUGDWARF
   unsigned char* const debug_info_start = debug_info;
-#endif
   unsigned char* debug_info_end = debug_info + M_sections[M_dwarf_debug_info_section_index].section_header().sh_size;
   // Start of .debug_line section.
-  unsigned char* debug_line = (unsigned char*)allocate_and_read_section(M_dwarf_debug_line_section_index);
-  unsigned char* debug_line_end = debug_line + M_sections[M_dwarf_debug_line_section_index].section_header().sh_size;
-  unsigned char const* debug_line_ptr;
+  lineptr_t debug_line = reinterpret_cast<lineptr_t>(allocate_and_read_section(M_dwarf_debug_line_section_index));
+  lineptr_t debug_line_end = debug_line + M_sections[M_dwarf_debug_line_section_index].section_header().sh_size;
+  lineptr_t debug_line_ptr;
   // Start of .debug_str section.
   // Needed for DW_FORM_strp.
   unsigned char* debug_str = (unsigned char*)allocate_and_read_section(M_dwarf_debug_str_section_index);
@@ -1567,18 +1850,20 @@ void objfile_ct::load_dwarf(void)
     unsigned char const* const debug_info_root = debug_info_ptr;
     uint32_t length;
     dwarf_read(debug_info_ptr, length);
-    if (DEBUGDWARF)
+#if DEBUGDWARF
+    LIBCWD_TSD_DECLARATION;
+    if (doutdwarfon)
     {
-      LIBCWD_TSD_DECLARATION;
       _private_::set_alloc_checking_on(LIBCWD_TSD);	// Needed for Dout().
       Dout(dc::bfd, "debug_info_ptr = " << (void*)debug_info_ptr << "; debug_info_end = " << (void*)debug_info_end);
       Dout(dc::bfd, "length = " << length);
       total_length += length + 4;
       Dout(dc::bfd, "total length = " << total_length << " (of " <<
 	  M_sections[M_dwarf_debug_info_section_index].section_header().sh_size << ").");
-      LIBCWD_ASSERT( total_length <= M_sections[M_dwarf_debug_info_section_index].section_header().sh_size );
       _private_::set_alloc_checking_off(LIBCWD_TSD);
     }
+    LIBCWD_ASSERT( total_length <= M_sections[M_dwarf_debug_info_section_index].section_header().sh_size );
+#endif
     uint16_t version;
     dwarf_read(debug_info_ptr, version);
     if ( version == 2 )		// DWARF version 2 (and 3)
@@ -1664,14 +1949,15 @@ void objfile_ct::load_dwarf(void)
 	      default:
 	        if (first_time)
 		{
-		  first_time = false;
 		  abbrev.starts_with_string = (form == DW_FORM_string);
 		  if (abbrev.starts_with_string)
 		    break;
 		}
 	        has_fixed_size = false;
+		break;
             }
 	  }
+	  first_time = false;
 	  ++abbrev.attributes_size;
 	}
 	abbrev.fixed_size = has_fixed_size ? fixed_size : 0;
@@ -1711,8 +1997,8 @@ void objfile_ct::load_dwarf(void)
 	object_files_string cur_dir;
 	object_files_string default_source;
 	bool found_stmt_list = false;
-	void* low_pc = NULL;
-	void* high_pc = NULL;
+	address_t low_pc = 0;
+	address_t high_pc = 0;
 
 	attr_st* attr = abbrev.attributes;
 
@@ -1724,30 +2010,13 @@ void objfile_ct::load_dwarf(void)
 	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
 	    if (attr->attr == DW_AT_stmt_list)
 	    {
-	      LIBCWD_ASSERT( form == DW_FORM_data4 );
-	      uint32_t line_offset;
-	      dwarf_read(debug_info_ptr, line_offset);
-	      DoutDwarf(dc::finish, "0x" << std::hex << line_offset);
-	      debug_line_ptr = debug_line + line_offset;
+	      debug_line_ptr = read_lineptr(debug_info_ptr DEBUGDWARF_OPT_COMMA(form), debug_line);
 	      found_stmt_list = true;
 	      continue;
 	    }
 	    else if (attr->attr == DW_AT_name || attr->attr == DW_AT_comp_dir)
 	    {
-	      char const* str;
-	      if (form == DW_FORM_strp)
-	      {
-		LIBCWD_ASSERT( M_dwarf_debug_str_section_index );
-		str = reinterpret_cast<char const*>(debug_str + *reinterpret_cast<unsigned int const*>(debug_info_ptr));
-		debug_info_ptr += 4;
-	      }
-	      else
-	      {
-		LIBCWD_ASSERT( form == DW_FORM_string );
-		str = reinterpret_cast<char const*>(debug_info_ptr);
-		eat_string(debug_info_ptr);
-	      }
-	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << str << '"');
+	      string_t str = read_string(debug_info_ptr, attr->form, debug_str);
 	      if (attr->attr == DW_AT_comp_dir)
 	      {
 		default_dir.assign(str);
@@ -1766,15 +2035,15 @@ void objfile_ct::load_dwarf(void)
 	    }
 	    else if (attr->attr == DW_AT_high_pc || attr->attr == DW_AT_low_pc)
 	    {
-	      LIBCWD_ASSERT( form == DW_FORM_addr );
-	      DoutDwarf(dc::finish, *reinterpret_cast<void* const*>(debug_info_ptr));
+	      address_t address = read_address(debug_info_ptr, form);
 	      if (attr->attr == DW_AT_high_pc)
-		dwarf_read(debug_info_ptr, high_pc);
+	        high_pc = address;
 	      else
-		dwarf_read(debug_info_ptr, low_pc);
+		low_pc = address;
 	      continue;
 	    }
-	    eat_form(debug_info_ptr, form DEBUGDWARF_OPT_COMMA(debug_str));
+	    eat_form(debug_info_ptr, form DEBUGDWARF_OPT_COMMA(debug_str)
+	        DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
 	  }
         }
 	else if (abbrev.tag == DW_TAG_subprogram)
@@ -1782,7 +2051,8 @@ void objfile_ct::load_dwarf(void)
 	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
 	  {
 	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
-	    eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str));
+	    eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
+	        DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
 	  }
 	}
 	else if (abbrev.tag == DW_TAG_inlined_subroutine)
@@ -1790,7 +2060,8 @@ void objfile_ct::load_dwarf(void)
 	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
 	  {
 	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
-	    eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str));
+	    eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
+	        DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
 	  }
 	}
 	else
@@ -1806,13 +2077,15 @@ void objfile_ct::load_dwarf(void)
 	  {
 	    // DW_AT_sibling is always the first attribute.
 	    if (abbrev.attributes_size > 0 && attr->attr == DW_AT_sibling &&
-		abbrev.tag != DW_TAG_lexical_block	// Do DW_TAG_lexical_block ever have a DW_AT_sibling?
+	        abbrev.tag != DW_TAG_structure_type &&
+	        abbrev.tag != DW_TAG_class_type &&
+		abbrev.tag != DW_TAG_lexical_block 	// Do DW_TAG_lexical_block ever have a DW_AT_sibling?
 	       )
 	    {
 	      LIBCWD_ASSERT(abbrev.has_children);
-	      LIBCWD_ASSERT(attr->form == DW_FORM_ref4);// unsigned int.
 	      // Skip the children.
-	      debug_info_ptr = *reinterpret_cast<unsigned int const*>(debug_info_ptr) + debug_info_root;
+	      DoutDwarf(dc::bfd|continued_cf, "decoding DW_AT_sibling ");
+	      debug_info_ptr = read_reference(debug_info_ptr, attr->form, debug_info_root, debug_info_start);
 	      if (DEBUGDWARF)
 		Debug(libcw_do.dec_indent(4));
 	      continue;
@@ -1820,7 +2093,8 @@ void objfile_ct::load_dwarf(void)
 	    for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
 	    {
 	      DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
-	      eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str));
+	      eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
+	          DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
 	    }
 	  }
 	}
@@ -1909,7 +2183,7 @@ void objfile_ct::load_dwarf(void)
 	    location_ct location(this);
 
 	    object_files_string cur_func("-\0");	// We don't add function names - this is used to see we're
-							// doing DWARF in find_nearest_line().  KEEP THAT '-' thus!
+							// doing DWARF in find_nearest_line().  Keep that '-' thus!
 	    location.set_func_iter(M_function_names.insert(cur_func).first);
 
 	    while( debug_line_ptr < debug_line_ptr_end )
@@ -2115,7 +2389,14 @@ void objfile_ct::load_dwarf(void)
   if (!M_stabs_section_index)
     delete_hash_list();
   M_debug_info_loaded = true;
+#if CWDEBUG_ALLOC
+  saved_internal = __libcwd_tsd.internal;
+  __libcwd_tsd.internal = false;
+#endif
   Dout(dc::finish, "done");
+#if CWDEBUG_ALLOC
+  __libcwd_tsd.internal = saved_internal;
+#endif
   if (_private_::always_print_loading)
   {
     Debug( dc::bfd.restore(state2) );
@@ -2385,8 +2666,15 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
     else if (!M_stabs_section_index && !this->object_file->get_object_file()->has_no_debug_line_sections())
     {
       this->object_file->get_object_file()->set_has_no_debug_line_sections();
+#if CWDEBUG_ALLOC
+      int saved_internal = __libcwd_tsd.internal;
+      __libcwd_tsd.internal = false;
+#endif
       Dout( dc::warning, "Object file " << this->filename << " does not have debug info.  Address lookups inside "
           "this object file will result in a function name only, not a source file location.");
+#if CWDEBUG_ALLOC
+      __libcwd_tsd.internal = saved_internal;
+#endif
     }
     if (M_stabs_section_index)
       load_stabs();
@@ -2447,9 +2735,12 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
   if ((DEBUGDWARF && M_dwarf_debug_line_section_index)
       || (DEBUGSTABS && M_stabs_section_index))
   {
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
-    Dout(dc::bfd, std::hex << range.start << " - " << (range.start + range.size) << "; " << location << '.');
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
+    if (doutdwarfon || doutstabson)
+    {
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+      Dout(dc::bfd, std::hex << range.start << " - " << (range.start + range.size) << "; " << location << '.');
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+    }
   }
 #endif
   std::pair<object_files_range_location_map_ct::iterator, bool>
@@ -2464,13 +2755,16 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
   Elf32_Addr high = old.first.start + old.first.size - 1;
   char const* low_mn = pc_mangled_function_name((void*)(low + (char*)this->object_file->get_lbase()));
   char const* high_mn = pc_mangled_function_name((void*)(high + (char*)this->object_file->get_lbase()));
-  if (low_mn != high_mn)
+  if (doutdwarfon || doutstabson)
   {
-    Dout(dc::bfd, std::hex << low << " == " << low_mn);
-    Dout(dc::bfd, std::hex << high << " == " << high_mn);
+    if (low_mn != high_mn)
+    {
+      Dout(dc::bfd, std::hex << low << " == " << low_mn);
+      Dout(dc::bfd, std::hex << high << " == " << high_mn);
+    }
+    else
+      Dout(dc::bfd, "Function: " << low_mn);
   }
-  else
-    Dout(dc::bfd, "Function: " << low_mn);
 #endif
   bool need_old_reinsert = false;
   bool need_restore = false;
@@ -2480,7 +2774,8 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 #endif
   if ((*p.first).second.M_func_iter != location.M_func_iter)
 #if DEBUGSTABS || DEBUGDWARF
-    Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
+    if (doutdwarfon || doutstabson)
+      Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
 #else
     ;
 #endif
@@ -2519,7 +2814,8 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 	// |<--old range------>?
 	//   ? |<--new range-->|
 #if DEBUGSTABS || DEBUGDWARF
-	Dout(dc::bfd, "WARNING: New range overlaps old range, removing (" << *p.first << "),");
+	if (doutdwarfon || doutstabson)
+	  Dout(dc::bfd, "WARNING: New range overlaps old range, removing (" << *p.first << "),");
 #endif
 	save_old_range = old.first;					// Backup.
 	_private_::set_alloc_checking_off(LIBCWD_TSD);
@@ -2530,14 +2826,16 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 	if (old.first.size > 0)
 	{
 #if DEBUGSTABS || DEBUGDWARF
-	  Dout(dc::bfd, "         ... and adding (" << old << ").");
+	  if (doutdwarfon || doutstabson)
+	    Dout(dc::bfd, "         ... and adding (" << old << ").");
 #endif
 	  need_old_reinsert = true;
 	}
       }
 #if DEBUGSTABS || DEBUGDWARF
       _private_::set_alloc_checking_off(LIBCWD_TSD);
-      Dout(dc::bfd, "WARNING: New range being added instead: " << nw);
+      if (doutdwarfon || doutstabson)
+	Dout(dc::bfd, "WARNING: New range being added instead: " << nw);
       LIBCWD_ASSERT( nw.first.size > 0 );
       // Check that new range falls within one function.
       char const* nwlow_mn = pc_mangled_function_name((void*)(nw.first.start + (char*)this->object_file->get_lbase()));
@@ -2553,13 +2851,15 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
       if (!M_ranges.insert(nw).second)
       {
 #if DEBUGSTABS || DEBUGDWARF
-	Dout(dc::bfd, "WARNING: Insertion of new range still failed");
+	if (doutdwarfon || doutstabson)
+	  Dout(dc::bfd, "WARNING: Insertion of new range still failed");
 #endif
 	if (need_restore)
 	{
 	  old.first = save_old_range;
 #if DEBUGSTABS || DEBUGDWARF
-	  Dout(dc::bfd, "         ... backing up to old situation (" << old << ").");
+	  if (doutdwarfon || doutstabson)
+	    Dout(dc::bfd, "         ... backing up to old situation (" << old << ").");
 #endif
 	  need_old_reinsert = true;
 	}
@@ -2572,20 +2872,24 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 	  M_ranges.insert(old);
 #if DEBUGSTABS || DEBUGDWARF
 	if (!p.second)
-	  DoutFatal(dc::core, "Re-adding of shortened old range failed.");
+	  if (doutdwarfon || doutstabson)
+	    DoutFatal(dc::core, "Re-adding of shortened old range failed.");
 #endif
       }
       return;
     }
 #if DEBUGSTABS || DEBUGDWARF
-    else if ((*p.first).second.M_source_iter != location.M_source_iter)
-      Dout(dc::bfd, "Collision with " << *p.first << ".");
-    else if (different_start)
-      Dout(dc::bfd, "WARNING: Different start for same function (" << *p.first << ")!?");
-    else if (different_lines)
-      Dout(dc::bfd, "WARNING: Different line numbers for overlapping range (" << *p.first << ")!?");
-    else if ((*p.first).first.size != range.size)
-      Dout(dc::bfd, "WARNING: Different sizes for same function!");
+    else if (doutdwarfon || doutstabson)
+    {
+      if ((*p.first).second.M_source_iter != location.M_source_iter)
+	Dout(dc::bfd, "Collision with " << *p.first << ".");
+      else if (different_start)
+	Dout(dc::bfd, "WARNING: Different start for same function (" << *p.first << ")!?");
+      else if (different_lines)
+	Dout(dc::bfd, "WARNING: Different line numbers for overlapping range (" << *p.first << ")!?");
+      else if ((*p.first).first.size != range.size)
+	Dout(dc::bfd, "WARNING: Different sizes for same function!");
+    }
 #endif
   }
 #if DEBUGSTABS || DEBUGDWARF
@@ -2709,5 +3013,42 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
 
   } // namespace debug
 } // namespace libcw
+
+#if DEBUGSTABS || DEBUGDWARF
+namespace libcw {
+  namespace debug {
+    namespace cwbfd {
+      bfile_ct* load_object_file(char const* name, void* l_addr);
+    }
+  }
+}
+
+// This can be used to load and print an arbitrary object file (for debugging purposes).
+void debug_load_object_file(char const* filename, bool shared)
+{
+  using namespace libcw::debug;
+  cwbfd::bfile_ct* bfile = cwbfd::load_object_file(filename, 0);
+  if (!bfile)
+    return;
+  LIBCWD_TSD_DECLARATION;
+  libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
+  using namespace libcw::debug::elf32;
+  doutdwarfon = true;
+  objfile_ct* of = static_cast<objfile_ct*>(bfile->get_bfd());
+  if (of->M_dwarf_debug_line_section_index)
+    of->load_dwarf();
+  else if (!of->M_stabs_section_index && !of->object_file->get_object_file()->has_no_debug_line_sections())
+  {
+    of->object_file->get_object_file()->set_has_no_debug_line_sections();
+    Dout( dc::warning, "Object file " << of->filename << " does not have debug info.  Address lookups inside "
+	"this object file will result in a function name only, not a source file location.");
+  }
+  if (of->M_stabs_section_index)
+    of->load_stabs();
+  libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);
+  of->M_input_stream->close();
+  doutdwarfon = false;
+}
+#endif
 
 #endif // CWDEBUG_LOCATION && !CWDEBUG_LIBBFD
