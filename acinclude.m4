@@ -879,13 +879,13 @@ dnl Find out which debugging options we need
 AC_CANONICAL_HOST
 case "$host" in
   *freebsd*) DEBUGOPTS=-ggdb ;; dnl FreeBSD needs -ggdb to include sourcefile:linenumber info in its object files.
-  *) DEBUGOPTS=-g ;;
+  *) DEBUGOPTS=-ggdb3 ;;
 esac
 AC_SUBST(DEBUGOPTS)
 
 dnl Other options
 if test "$USE_MAINTAINER_MODE" = yes; then
-EXTRAOPTS="-O"
+EXTRAOPTS=""
 else
 EXTRAOPTS="-O"
 fi

@@ -38,6 +38,13 @@ int main(void)
 #endif
 
   Debug( libcw_do.on() );
+#ifdef DEBUGDEBUG
+  // Get rid of the `first_time'.
+  Debug( my_own_do.on() );
+  Debug( my_own_do.off() );
+  Debug( example::my_own_do.on() );
+  Debug( example::my_own_do.off() );
+#endif
   Debug( dc::notice.on() );
   Debug( dc::debug.on() );
 

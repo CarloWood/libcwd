@@ -614,7 +614,9 @@ struct location_st {
   object_files_string_set_ct::iterator M_source_iter;
   Elf32_Half M_line;
 
+#if DEBUGSTABS || DEBUGDWARF
   friend std::ostream& operator<<(std::ostream& os, location_st const& loc);
+#endif
 };
 
 class object_file_ct;
@@ -1910,18 +1912,14 @@ char* object_file_ct::allocate_and_read_section(int i)
 
 void object_file_ct::register_range(location_st const& location, range_st const& range)
 {
+#if !DEBUGSTABS && !DEBUGDWARF
+  M_ranges.insert(std::pair<range_st, location_st>(range, location));
+#else
   if ((DEBUGDWARF && M_dwarf_debug_line_section_index)
       || (DEBUGSTABS && M_stabs_section_index))
     Dout(dc::bfd, std::hex << range.start << " - " << (range.start + range.size) << "; " << location << '.');
-#if DEBUGSTABS || DEBUGDWARF
-  std::pair<object_files_range_location_map_ct::iterator, bool> p(
-#endif
-      M_ranges.insert(std::pair<range_st, location_st>(range, location))
-#if DEBUGSTABS || DEBUGDWARF
-      )
-#endif
-      ;
-#if DEBUGSTABS || DEBUGDWARF
+
+  std::pair<object_files_range_location_map_ct::iterator, bool> p(M_ranges.insert(std::pair<range_st, location_st>(range, location)));
   if (!p.second)
   {
     if ((*p.first).second.M_func_iter != location.M_func_iter)
