@@ -7,7 +7,7 @@ dnl by demanding that it contains `debugmalloc.cc'.
 AC_INIT(debugmalloc.cc)
 
 dnl Put resulting configuration defines in this header file.
-AC_CONFIG_HEADER(include/libcw/config.h)
+AC_CONFIG_HEADER(include/config.h)
 
 dnl Demand at least version 2.13 of autoconf.
 AC_PREREQ(2.13)
