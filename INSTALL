@@ -26,7 +26,7 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      i) The GNU compiler, version 2.95.1 or higher.
 
      Location: gnu/gcc/
-     Current version: 2.95.3
+     Current version: 2.95.2
      The development versions are supported.
 
      Alternatively you can install only
@@ -65,16 +65,14 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      ii) GNU binutils, version 2.9 or higher.
 
      Location: gnu/binutils/binutils-<version>.tar.gz
-     Current version: 2.10
+     Current version: 2.10.1
 
      This is only needed for libbfd.  On some OS you also
      need this for libiberty (although on most OS libiberty
      comes with the GNU compiler).
 
      (If you have any troubles on linux with binutils,
-      then first try upgrading to binutils-2.10.0.18.
-      You can download this from
-ftp://ftp.valinux.com/pub/support/hjl/binutils/binutils-2.10.0.18.tar.gz
+      then first try upgrading to binutils-2.10.1.
       If that solves your problem, please let me know: libcwd
       should work with binutils-2.9 but I never thoughroughly
       tested it and would like to know which version gives a
