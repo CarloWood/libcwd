@@ -645,7 +645,7 @@ namespace libcw {
 	target_os->write("<unfinished>\n", 13);		// Continued debug output should end on a space by itself,
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
 	static_cast<buffer_ct*>(current_oss)->restore_position();
-	static_cast<buffer_ct*>(current_oss)->write("<continued> ", 12);	// therefore we repeat the space here.
+	current_oss->write("<continued> ", 12);		// therefore we repeat the space here.
       }
 
       // Is this a nested debug output (the first of a series in the middle of another debug output)?
@@ -682,9 +682,9 @@ namespace libcw {
       // Handle most common case first: no special flags set
       if (!(channel_set.mask & (noprefix_cf|nolabel_cf|blank_margin_cf|blank_label_cf|blank_marker_cf)))
       {
-	static_cast<buffer_ct*>(current_oss)->write(debug_object.margin.c_str(), debug_object.margin.size());
-	static_cast<buffer_ct*>(current_oss)->write(channel_set.label, WST_max_len);
-	static_cast<buffer_ct*>(current_oss)->write(debug_object.marker.c_str(), debug_object.marker.size());
+	current_oss->write(debug_object.margin.c_str(), debug_object.margin.size());
+	current_oss->write(channel_set.label, WST_max_len);
+	current_oss->write(debug_object.marker.c_str(), debug_object.marker.size());
 	write_whitespace_to(*current_oss, indent);
       }
       else if (!(channel_set.mask & noprefix_cf))
@@ -692,7 +692,7 @@ namespace libcw {
 	if ((channel_set.mask & blank_margin_cf))
 	  write_whitespace_to(*current_oss, debug_object.margin.size());
 	else
-	  static_cast<buffer_ct*>(current_oss)->write(debug_object.margin.c_str(), debug_object.margin.size());
+	  current_oss->write(debug_object.margin.c_str(), debug_object.margin.size());
 #ifndef DEBUGDEBUGOUTPUT
 	if (!(channel_set.mask & nolabel_cf))
 #endif
@@ -700,11 +700,11 @@ namespace libcw {
 	  if ((channel_set.mask & blank_label_cf))
 	    write_whitespace_to(*current_oss, WST_max_len);
 	  else
-	    static_cast<buffer_ct*>(current_oss)->write(channel_set.label, WST_max_len);
+	    current_oss->write(channel_set.label, WST_max_len);
 	  if ((channel_set.mask & blank_marker_cf))
 	    write_whitespace_to(*current_oss, debug_object.marker.size());
 	  else
-	    static_cast<buffer_ct*>(current_oss)->write(debug_object.marker.c_str(), debug_object.marker.size());
+	    current_oss->write(debug_object.marker.c_str(), debug_object.marker.size());
 	  write_whitespace_to(*current_oss, indent);
 	}
       }
@@ -825,8 +825,10 @@ namespace libcw {
       {
         current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);	// Used (MT: read-only!) in next debug_ct::start().
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
-	current_oss = target_os;					// Used in start.
+#ifdef DEBUGDEBUG
+	current_oss = NULL;
 	DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
+#endif
       }
 
       start_expected = true;
@@ -842,23 +844,6 @@ namespace libcw {
     {
       finish(debug_object, channel_set LIBCWD_COMMA_TSD);
       DoutFatal( dc::core, "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
-    }
-
-    /**
-     * \brief Set output device.
-     * \ingroup group_destination
-     *
-     * Assign a new \c ostream to this %debug object (default is <CODE>std::cerr</CODE>).
-     */
-    void debug_ct::set_ostream(std::ostream* os)
-    {
-      LIBCWD_TSD_DECLARATION
-#ifdef DEBUGDEBUG
-      LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
-#endif
-      real_os = os;
-      if (LIBCWD_TSD_MEMBER(laf_stack).size() == 0)
-	LIBCWD_TSD_MEMBER(current_oss) = real_os;
     }
 
     void debug_ct::NS_init(void)
@@ -952,8 +937,10 @@ namespace libcw {
       // current.mask needs to be 0 to avoid a crash in start():
       current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
-      current_oss = &current->oss;
+#ifdef DEBUGDEBUG
+      current_oss = NULL;
       DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
+#endif
       laf_stack.init();
       continued_stack.init();
 

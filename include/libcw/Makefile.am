@@ -5,6 +5,7 @@ libcwd_HEADERS = \
 	buf2str.h \
 	char2str.h \
 	class_alloc.h \
+	class_always_channel.h \
 	class_always_channel.inl \
 	class_channel.h \
 	class_channel.inl \
@@ -45,6 +46,7 @@ libcwd_HEADERS = \
 	private_set_alloc_checking.h \
 	private_threading.h \
 	strerrno.h \
+	struct_debug_tsd.h \
 	type_info.h
 
 BUILT_SOURCES = sysd.ho debug_config.ho

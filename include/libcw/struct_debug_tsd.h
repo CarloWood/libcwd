@@ -45,7 +45,6 @@ class debug_ct;
 class channel_ct;
 class fatal_channel_ct;
 class laf_ct;
-class buffer_ct;
 
 //===================================================================================================
 // struct debug_tsd_st
