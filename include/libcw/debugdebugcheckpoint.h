@@ -14,9 +14,6 @@
 #ifdef DEBUGDEBUG
 
 #ifndef LIBCW_DEBUGDEBUGCHECKPOINT_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_DEBUGDEBUGCHECKPOINT_H
 
 RCSTAG_H(debugdebugcheckpoint, "$Id$")

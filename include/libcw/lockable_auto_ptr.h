@@ -12,9 +12,6 @@
 //
 
 #ifndef LIBCW_LOCKABLE_AUTO_PTR_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_LOCKABLE_AUTO_PTR_H
 
 RCSTAG_H(lockable_auto_ptr, "$Id$")

@@ -12,9 +12,6 @@
 //
 
 #ifndef LIBCW_SYS_H
-  #ifdef __GNUC__
-    #pragma interface
-  #endif
 #define LIBCW_SYS_H
 
 //

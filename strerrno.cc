@@ -11,12 +11,9 @@
 // packaging of this file.
 //
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
-#include "libcw/sys.h"
-#include "libcw/h.h"
-#include "libcw/strerrno.h"
+#include <libcw/sys.h>
+#include <libcw/h.h>
+#include <libcw/strerrno.h>
 
 RCSTAG_CC("$Id$")
 

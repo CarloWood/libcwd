@@ -11,13 +11,10 @@
 // packaging of this file.
 //
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
-#include "libcw/sys.h"
-#include "libcw/h.h"
-#include "libcw/debug.h"
-#include "libcw/debugdebugcheckpoint.h"
+#include <libcw/sys.h>
+#include <libcw/h.h>
+#include <libcw/debug.h>
+#include <libcw/debugdebugcheckpoint.h>
 
 #ifdef DEBUGDEBUG
 RCSTAG_CC("$Id$")

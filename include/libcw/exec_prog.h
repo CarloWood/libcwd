@@ -11,8 +11,13 @@
 // packaging of this file.
 //
 
-#include <libcw/sys.h>
-#include <libcw/h.h>
-#include <libcw/buf2str.h>
+#ifndef LIBCW_EXEC_PROG_H
+#define LIBCW_EXEC_PROG_H
 
-RCSTAG_CC("$Id$")
+RCSTAG_H(exec_prog, "$Id$")
+
+#ifdef DEBUG
+extern int exec_prog(char const* prog_name, char const* const argv[], char const* const envp[], int (*decode_stdout)(char const*, size_t));
+#endif
+
+#endif // LIBCW_EXEC_PROG_H

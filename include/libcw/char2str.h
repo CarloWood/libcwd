@@ -12,9 +12,6 @@
 //
 
 #ifndef LIBCW_CHAR2STR_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_CHAR2STR_H
 
 #include <iosfwd>

@@ -10,7 +10,8 @@
 // version 1.0 as appearing in the file LICENSE.QPL included in the
 // packaging of this file.
 //
-#include "libcw/sys.h"
+
+#include <libcw/sys.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -21,9 +22,9 @@
 #include <vector>
 #include <list>
 #include <iomanip>
-#include "libcw/h.h"
-#include "libcw/debug.h"
-#include "libcw/perf.h"
+#include <libcw/h.h>
+#include <libcw/debug.h>
+#include <libcw/perf.h>
 #include <papi_internal.h>
 #include <papiStdEventDefs.h>
 

@@ -12,10 +12,6 @@
 //
 
 #ifndef LIBCW_BCD2STR_H
-#ifdef __GNUG__
-// Size of text segment _shrinks_ with this commented out! (v1.1.1.1)
-//#pragma interface
-#endif
 #define UTILS_BCD2STR_H
 
 RCSTAG_H(bcd2str, "$Id$")

@@ -15,11 +15,11 @@
 #pragma implementation
 #endif
 
-#include "libcw/sys.h"
-#include "libcw/h.h"
-#include "libcw/debug.h"
-#include "libcw/demangle.h"
-#include "libcw/type_info.h"
+#include <libcw/sys.h>
+#include <libcw/h.h>
+#include <libcw/debug.h>
+#include <libcw/demangle.h>
+#include <libcw/type_info.h>
 
 RCSTAG_CC("$Id$")
 

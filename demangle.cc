@@ -32,14 +32,11 @@
 // Currently this file has only been tested with egcs-1.1.1
 //
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
-#include "libcw/sys.h"
+#include <libcw/sys.h>
 #include <strstream>
-#include "libcw/h.h"
-#include "libcw/debug.h"
-#include "libcw/demangle.h"
+#include <libcw/h.h>
+#include <libcw/debug.h>
+#include <libcw/demangle.h>
 
 RCSTAG_CC("$Id$")
 

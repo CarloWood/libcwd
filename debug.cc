@@ -11,8 +11,7 @@
 // packaging of this file.
 //
 
-#include "libcw/sys.h"
-#include "libcw/debugging_defs.h"
+#include <libcw/sys.h>
 #ifdef DEBUG
 #include <errno.h>
 #include <signal.h>		// Needed for raise()
@@ -21,10 +20,10 @@
 #include <iostream>		// Needed for cerr
 #include <algorithm>
 #include <new>
-#include "libcw/h.h"
-#include "libcw/debug.h"
-#include "libcw/strerrno.h"
-#include "libcw/no_alloc_checking_ostrstream.h"
+#include <libcw/h.h>
+#include <libcw/debug.h>
+#include <libcw/strerrno.h>
+#include <libcw/no_alloc_checking_ostrstream.h>
 #endif
 
 RCSTAG_CC("$Id$")

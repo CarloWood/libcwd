@@ -12,14 +12,9 @@
 //
 
 #ifndef LIBCW_STRERRNO_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_STRERRNO_H
 
 RCSTAG_H(strerrno, "$Id$")
-
-#include <libcw/debugging_defs.h>
 
 #ifdef DEBUG
 extern char const* strerrno(unsigned int err);

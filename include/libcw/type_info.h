@@ -12,9 +12,6 @@
 //
 
 #ifndef LIBCW_TYPE_INFO_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_TYPE_INFO_H
 
 RCSTAG_H(type_info, "$Id$")

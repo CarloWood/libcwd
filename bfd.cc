@@ -11,11 +11,11 @@
 // packaging of this file.
 //
 
-#include "libcw/debugging_defs.h"
+#include <libcw/debugging_defs.h>
 
 #ifdef DEBUGUSEBFD
 
-#include "libcw/sys.h"
+#include <libcw/sys.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <sys/types.h>
@@ -28,9 +28,9 @@
 #include <link.h>
 #include <strstream>
 #include <string>
-#include "libcw/h.h"
-#include "libcw/debug.h"
-#include "libcw/bfd.h"
+#include <libcw/h.h>
+#include <libcw/debug.h>
+#include <libcw/bfd.h>
 
 RCSTAG_CC("$Id$")
 

@@ -12,9 +12,6 @@
 //
 
 #ifndef LIBCW_DEMANGLE_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_DEMANGLE_H
 
 RCSTAG_H(demangle, "$Id$")

@@ -11,12 +11,9 @@
 // packaging of this file.
 //
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
 #define DEBUGMALLOC_INTERNAL
-#include "libcw/sys.h"
-#include "libcw/debugging_defs.h"
+#include <libcw/sys.h>
+#include <libcw/debugging_defs.h>
 
 #ifdef DEBUGMALLOC
 
@@ -25,15 +22,15 @@
 #include <string>
 #include <map>
 #include <iomanip.h>
-#include "libcw/h.h"
-#include "libcw/debug.h"
-#include "libcw/lockable_auto_ptr.h"
-#include "libcw/demangle.h"
+#include <libcw/h.h>
+#include <libcw/debug.h>
+#include <libcw/lockable_auto_ptr.h>
+#include <libcw/demangle.h>
 #ifdef DEBUGUSEBFD
-#include "libcw/bfd.h"
+#include <libcw/bfd.h>
 #endif
 #ifdef DEBUG
-#include "libcw/iomanip.h"
+#include <libcw/iomanip.h>
 #endif
 
 RCSTAG_CC("$Id$")

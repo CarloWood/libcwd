@@ -12,9 +12,6 @@
 //
 
 #ifndef LIBCW_BUF2STR_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_BUF2STR_H
 
 #include <libcw/char2str.h>
