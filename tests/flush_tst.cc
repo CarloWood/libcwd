@@ -15,7 +15,6 @@
 #include <unistd.h>
 #include "libcw/h.h"
 #include "libcw/debug.h"
-#include "libcw/dbstreambuf.h"
 
 RCSTAG_CC("$Id$")
 

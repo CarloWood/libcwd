@@ -19,7 +19,6 @@
 #include <getopt.h>
 #include "libcw/h.h"
 #include "libcw/debug.h"
-#include "libcw/libcw_app.h"
 
 RCSTAG_CC("$Id$")
 
