@@ -35,7 +35,13 @@ using namespace std;
 
 #ifdef CWDEBUG
 
-extern "C" ssize_t write(int fd, const void *buf, size_t count);
+#ifdef DEBUGMALLOC
+#define debug_alloc_checking_on() set_alloc_checking_off()
+#define debug_alloc_checking_off() set_alloc_checking_on()
+#else
+#define debug_alloc_checking_on()
+#define debug_alloc_checking_off()
+#endif
 
 namespace libcw {
   namespace debug {
@@ -187,7 +193,7 @@ namespace libcw {
       }
 #endif
 
-      set_alloc_checking_off();
+      debug_alloc_checking_on();
 
       // Skip `start()' for a `continued' debug output.
       // Generating the "prefix: <continued>" is already taken care of while generating the "<unfinished>" (see next `if' block).
@@ -195,6 +201,7 @@ namespace libcw {
       {
         current->mask = channel_set.mask;	// New bits might have been added
 	current->err = errno;			// Always keep the last errno as set at the start of LibcwDout()
+	ASSERT( _internal_::internal == 0 );
         return;
       }
 
@@ -284,6 +291,10 @@ namespace libcw {
 
       --_off;
       DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << _off );
+
+      // While writing debug output (which is directly after returning from this function)
+      // alloc checking needs to be on.
+      ASSERT( _internal_::internal == 0 );
     }
 
     static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
@@ -306,7 +317,7 @@ namespace libcw {
 	  // finished.
 	  *os << flush;
 	}
-	set_alloc_checking_on();
+	debug_alloc_checking_off();
         return;
       }
 
@@ -362,7 +373,7 @@ namespace libcw {
 	    debug_internal2 = true;
 	    *os << endl;
 	  }
-	  set_alloc_checking_on();
+	  debug_alloc_checking_off();
 	  exit(254);
 	}
 	if ((channel_set.mask & wait_cf))
@@ -404,7 +415,7 @@ namespace libcw {
       --_off;
       DEBUGDEBUG_CERR( "Leaving debug_ct::finish(), _off became " << _off );
 
-      set_alloc_checking_on();
+      debug_alloc_checking_off();
     }
 
     void debug_ct::fatal_finish(void)
@@ -419,14 +430,6 @@ namespace libcw {
         return;
 
       _off = 0;						// Turn off all debugging until initialization is completed.
-#if 0 //defined(DEBUGDEBUG) && defined(DEBUGMALLOC)
-      if (!_internal_::ios_base_initialized)
-      {
-        set_alloc_checking_off();
-        delete new int;	// Get the damn thing to check it again.
-        set_alloc_checking_on();
-      }
-#endif
       DEBUGDEBUG_CERR( "In debug_ct::init(void), _off set to 0" );
 
       if (find(debug_objects().begin(), debug_objects().end(), this) == debug_objects().end()) // Not added before?
@@ -443,10 +446,10 @@ namespace libcw {
       new (const_cast<fatal_channel_ct*>(&channels::dc::core)) fatal_channel_ct const ("COREDUMP", coredump_maskbit);
       // `current' needs to be non-zero (saving us a check in start()) and
       // current.mask needs to be 0 to avoid a crash in start():
-      set_alloc_checking_off();
+      debug_alloc_checking_on();
       current = new (dummy_laf) laf_ct(0, channels::dc::debug.label, NULL, 0);	// Leaks 24 bytes of memory
       current_oss = &current->oss;
-      set_alloc_checking_on();
+      debug_alloc_checking_off();
       laf_stack.init();
       continued_stack.init();
       margin.init("", 0, true);				// Note: These first time strings need to be static/const.

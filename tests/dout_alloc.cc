@@ -33,7 +33,7 @@ int main(void)
 
   int* p;
   Dout(dc::notice, "Allocation inside Dout: " << (p = new int [10]));
-  delete p;
+  delete [] p;
 
   return 0;
 }

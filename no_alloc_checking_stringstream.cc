@@ -37,9 +37,9 @@ no_alloc_checking_allocator::allocate(no_alloc_checking_allocator::size_type siz
 #endif
 {
   set_alloc_checking_off();
-  channels::dc::malloc.off();
+  //channels::dc::malloc.off();
   pointer ptr = (pointer)new char[size];
-  channels::dc::malloc.on();
+  //channels::dc::malloc.on();
   set_alloc_checking_on();
   return ptr;
 }
@@ -51,9 +51,9 @@ void no_alloc_checking_allocator::deallocate(no_alloc_checking_allocator::pointe
 #endif
 {
   set_alloc_checking_off();
-  channels::dc::malloc.off();
+  //channels::dc::malloc.off();
   delete [] (char*)p;
-  channels::dc::malloc.on();
+  //channels::dc::malloc.on();
   set_alloc_checking_on();
 }
 

@@ -22,7 +22,9 @@ RCSTAG_H(type_info, "$Id$")
 namespace libcw {
   namespace debug {
 
-extern char const* make_label(char const* mangled_name);
+namespace _internal_ {
+  extern char const* make_label(char const* mangled_name);
+}
 
 class type_info_ct {
 protected:
@@ -34,7 +36,7 @@ public:
   type_info_ct(void) :
       a_type_info(0), type_size(0), type_ref_size(0), dem_name("<unknown type>") {}
   type_info_ct(std::type_info const& ti, size_t s, size_t rs) :
-      a_type_info(&ti), type_size(s), type_ref_size(rs), dem_name(make_label(ti.name())) {}
+      a_type_info(&ti), type_size(s), type_ref_size(rs), dem_name(_internal_::make_label(ti.name())) {}
   char const* demangled_name(void) const { return dem_name; }
   char const* name(void) const { return a_type_info->name(); }
   size_t size(void) const { return type_size; }

@@ -25,27 +25,31 @@ RCSTAG_CC("$Id$")
 namespace libcw {
   namespace debug {
 
-    type_info_ct unknown_type_info;
+type_info_ct unknown_type_info;
 
-    // Warning: This LEAKS memory!
-    // For internal use only
+namespace _internal_ {
 
-    char const* make_label(char const* mangled_name)
-    {
-      char const* demangled_name;
-      size_t len;
-      std::string out;
-      demangle_type(mangled_name, out);
-      demangled_name = out.c_str();
-      len = out.size();
-      set_alloc_checking_off();
-      char* label = new char[len + 1];
-      set_alloc_checking_on();
-      strcpy(label, demangled_name);
-      return label;
-    }
+  // Warning: This LEAKS memory!
+  // For internal use only
 
-    type_info_ct const _internal_::type_info<void*>::value(typeid(void*), sizeof(void*), 0 /* unknown */);
+  char const* make_label(char const* mangled_name)
+  {
+    char const* demangled_name;
+    size_t len;
+    std::string out;
+    demangle_type(mangled_name, out);
+    demangled_name = out.c_str();
+    len = out.size();
+    set_alloc_checking_off();
+    char* label = new char[len + 1];
+    set_alloc_checking_on();
+    strcpy(label, demangled_name);
+    return label;
+  }
+
+  type_info_ct const type_info<void*>::value(typeid(void*), sizeof(void*), 0 /* unknown */);
+
+} // namespace _internal_
 
   } // namespace debug
 } // namespace libcw
