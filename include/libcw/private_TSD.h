@@ -71,13 +71,16 @@ struct TSD_st {
   int internal;
   int library_call;
 #ifdef DEBUGDEBUGMALLOC
-  int recursive;        // Used for sanity double checks (also used in debug.cc now).
   int marker;
+  int recursive;        	// Used for sanity double checks in debugmalloc.cc.
 #endif
 #endif // DEBUGMALLOC
-  bool recursive_fatal;
+  bool recursive_fatal;		// Detect loop involving dc::fatal or dc::core.
+#ifdef DEBUGDEBUG
+  bool recursive_assert;	// Detect loop involving LIBCWD_ASSERT.
+#endif
 #ifdef LIBCWD_THREAD_SAFE	// Directly contained in debug_ct when not threaded.
-  debug_tsd_st do_array[16];
+  debug_tsd_st do_array[16];	// Thread Specific Data of Debug Objects.
 #endif
   int off_cnt_array[256];
   TSD_st(void) { std::memset(this, 0, sizeof(struct TSD_st)); }

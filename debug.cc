@@ -957,6 +957,8 @@ namespace libcw {
 
     debug_tsd_st::~debug_tsd_st()
     {
+      if (!tsd_initialized)	// Don't de-initialize when it wasn't initialized.
+	return;
       // Sanity checks:
       if (continued_stack.size())
         DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty continued_stack (missing dc::finish?)" );
@@ -1320,15 +1322,20 @@ namespace libcw {
 
       void assert_fail(char const* expr, char const* file, int line, char const* function)
       {
-#ifdef DEBUGDEBUGMALLOC
+#ifdef DEBUGDEBUG
 	LIBCWD_TSD_DECLARATION
-	if (__libcwd_tsd.recursive)
+	if (__libcwd_tsd.recursive_assert
+#ifdef DEBUGDEBUGMALLOC
+	    || __libcwd_tsd.recursive
+#endif
+	    ) 
 	{
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  FATALDEBUGDEBUG_CERR(file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
 	  set_alloc_checking_on(LIBCWD_TSD);
 	  core_dump();
 	}
+	__libcwd_tsd.recursive_assert = true;
 #endif
 	DoutFatal(dc::core, file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
       }
