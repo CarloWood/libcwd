@@ -50,20 +50,16 @@ template <>
   pthread_mutex_t mutex_tct<tsd_initialization_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
-#else // !LIBCWD_THREAD_SAFE
-TSD_st __libcwd_tsd;
-#endif // !LIBCWD_THREAD_SAFE
-
 void fatal_cancellation(void* arg) throw()
 {
   char* text = static_cast<char*>(arg);
   Dout(dc::core, "Cancelling a thread " << text << ".  This is not supported by libcwd, sorry.");
 }
 
-//===================================================================================================
-// Implementation of Thread Specific Data.
-
 TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
+#else // !LIBCWD_THREAD_SAFE
+TSD_st __libcwd_tsd;
+#endif // !LIBCWD_THREAD_SAFE
 
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 pthread_key_t TSD_st::S_exit_key;
