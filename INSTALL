@@ -26,6 +26,18 @@ http://libcw.sourceforge.net/templates/index.html?debugging
 If you want to change Makefile.am files and the-like
 then you'll need to use --enable-maintainer-mode.
 
+The configure script looks for a GNU C++ compiler version
+2.95.1 or higher.  If it can't find one (it will only
+find one when there is a g++ or c++ in your PATH), then
+you can specify the right path during configuration.
+For example, I configure libcwd as follows to compile
+with the latest CVS version of g++, which I installed
+in /usr/local/bin/g++-cvs (and /usr/local/bin is in my
+PATH):
+
+CXX="g++-cvs -D_G_CLOG_CONFLICT=0 -D_G_HAS_LABS=1" ./configure
+
+
 You can install libcwd in a `staging' directory
 by issuing
 
@@ -33,6 +45,7 @@ make DESTDIR=/tmp/staging install
 
 this can come in handy when you want to build an rpm
 for instance.
+
 
 The Makefile has the following targets:
 
@@ -48,6 +61,7 @@ make dist
 make maintainer-clean
 
 well, ... heh.  Look in the Makefile for more targets ;)
+
 
 Finally, you can also build libcwd in a different directory
 than the source tree is in:

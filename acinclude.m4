@@ -230,11 +230,19 @@ CXXFLAGS="`echo $CXXFLAGS | sed -e 's/-Werror//g'`"
 if { (eval echo configure: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&1 | tee conftest.out >&5; }; then
 changequote(, )dnl
   cw_result="`grep 'detect_type<.*>' conftest.out | sed -e 's/.*detect_type<//g' -e 's/>[^>]*//' | head -n 1`"
+  if test -z "$cw_result"; then
+    cw_result="`cat conftest.out`"
+    dnl We need this comment to work around a bug in autoconf or m4: '['
+    cw_result="`echo $cw_result | sed -e 's/.*detect_type.*with ARG = //g' -e 's/].*//'`"
+  fi
+  if test -z "$cw_result"; then
+    AC_MSG_ERROR(Configure problem: Failed to determine type)
+  fi
 changequote([, ])dnl
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
-  AC_MSG_ERROR(Fatal compilation error)
+  AC_MSG_ERROR(Configuration problem: Failed to compile a test program)
 fi
 CXXFLAGS="$save_CXXFLAGS"
 rm -f conftest*
@@ -464,5 +472,44 @@ if test "$ac_cv_type_getgroups" = cross; then
                   ac_cv_type_getgroups=gid_t, ac_cv_type_getgroups=int)
 fi])
 CW_DEFINE_TYPE(getgroups_t, [$ac_cv_type_getgroups])
+])
+
+dnl CW_PROG_CXX
+dnl
+dnl Like AC_PROG_CXX, except that it demands that GNU g++-2.95.1
+dnl or higher is available.
+AC_DEFUN(CW_PROG_CXX,
+[AC_BEFORE([$0], [AC_PROG_CXXCPP])dnl
+AC_CHECK_PROGS(CXX, g++ c++)
+AC_PROG_CXX_WORKS
+AC_CACHE_CHECK(whether we are using GNU C++ version 2.95.1 or later, ac_cv_prog_gxx_version,
+[dnl The semicolon is to pacify NeXT's syntax-checking cpp.
+cat > conftest.C <<EOF
+#ifdef __GNUG__
+  gnu;
+#if __GNUG__ > 2 || (__GNUG__ == 2 && __GNUC_MINOR__ >= 95)
+  yes;
+#endif
+#endif
+EOF
+if AC_TRY_COMMAND(${CXX-g++} -E conftest.C) | egrep yes >/dev/null 2>&1; then
+  ac_cv_prog_gxx_version=yes
+else
+  if AC_TRY_COMMAND(${CXX-g++} -E conftest.C) | egrep gnu >/dev/null 2>&1; then
+    ac_cv_prog_gxx_version="old version"
+  else
+    ac_cv_prog_gxx_version=no
+  fi
+fi])
+if test "$ac_cv_prog_gxx_version" = yes; then
+  ac_cv_prog_gxx=yes
+  GXX=yes
+else
+  if test "$ac_cv_prog_gxx_version" = "old version"; then
+    AC_MSG_ERROR([Installation problem: GNU C++ version 2.95.1 or higher is required])
+  else
+    AC_MSG_ERROR([Installation problem: Cannot find GNU C++ compiler])
+  fi
+fi
 ])
 
