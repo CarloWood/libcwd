@@ -4,16 +4,16 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = include utils . tests testsuite
 
-BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec
-EXTRA_DIST = LICENSE.QPL README.FreeBSD README.openbsd debian $(BUILT_SOURCES)
+BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec nodebug.h
+EXTRA_DIST = LICENSE.QPL README.FreeBSD README.openbsd README.nodebug.h debian $(BUILT_SOURCES)
 DISTCLEANFILES = libcwd-@VERSION@.tar.gz
 
 VERSIONINFO=@VERSIONINFO@
 EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
-CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
-INCLUDES = -I$(top_builddir) -I- -I$(top_builddir)/include -I$(srcdir)/include -DCWDEBUG
+CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
+INCLUDES = -I$(top_builddir) -I- -I$(top_builddir)/include -I$(srcdir)/include
 
 lib_LTLIBRARIES = libcwd.la
 

@@ -253,7 +253,9 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 };
      
 #define NEW(x) __libcwd_allocCatcher(new x)
+#ifndef DEBUGMALLOCEXTERNALCLINKAGE
 #define RegisterExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
+#endif
 
 #include <libcw/type_info.h>
 
@@ -264,7 +266,9 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
+#ifndef DEBUGMALLOCEXTERNALCLINKAGE
 #define RegisterExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
+#endif
 
 #endif // !CWDEBUG
 
@@ -273,7 +277,9 @@ namespace libcw {
 
 extern void set_alloc_checking_off(void);
 extern void set_alloc_checking_on(void);
+#ifndef DEBUGMALLOCEXTERNALCLINKAGE
 extern void register_external_allocation(void const*, size_t);
+#endif
 
   }
 }
@@ -288,7 +294,9 @@ using libcw::debug::set_alloc_checking_on;
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
+#ifndef DEBUGMALLOCEXTERNALCLINKAGE
 #define RegisterExternalAlloc(p, s)
+#endif
 #define set_alloc_checking_on()
 #define set_alloc_checking_off()
 
@@ -423,26 +431,26 @@ inline void list_allocations_on(debug_ct&) { }
 #ifndef DEBUGMALLOC_INTERNAL
 #ifdef DEBUGMALLOC
 
-#ifndef HAVE___LIBC_MALLOC
+#ifndef DEBUGMALLOCEXTERNALCLINKAGE
 // Ugh, use kludge.
-extern void* __libcwd_malloc(size_t size);
-extern void* __libcwd_calloc(size_t nmemb, size_t size);
-extern void* __libcwd_realloc(void* ptr, size_t size);
-extern void  __libcwd_free(void* ptr);
+#include <cstdlib>	// Make sure the prototypes for malloc et al are declared before defining the macros!
 #define malloc __libcwd_malloc
 #define calloc __libcwd_calloc
 #define realloc __libcwd_realloc
 #define free __libcwd_free
-#else
+#endif
+
 // Use external linkage to catch ALL calls to all malloc/calloc/realloc/free functions,
 // also those that are done in libc, or any other shared library that might be linked.
+// [ Note: if DEBUGMALLOCEXTERNALCLINKAGE wasn't defined, then these are the prototypes
+// for __libcwd_malloc et al of course.  We still use external "C" linkage in that case
+// in order to avoid a collision with possibily later included prototypes for malloc. ]
 extern "C" void* malloc(size_t size);
 extern "C" void* calloc(size_t nmemb, size_t size);
 extern "C" void* realloc(void* ptr, size_t size);
 extern "C" void  free(void* ptr);
-#endif
 
-#ifndef HAVE___LIBC_MALLOC
+#ifndef DEBUGMALLOCEXTERNALCLINKAGE
 // Use same kludge for other libc functions that return malloc-ed pointers.
 #define strdup __libcwd_strdup
 #ifdef HAVE_WMEMCPY
@@ -478,7 +486,7 @@ inline wchar_t* __libcwd_wcsdup(wchar_t const* str)
   return p;
 }
 #endif // HAVE_WMEMCPY
-#endif // !HAVE___LIBC_MALLOC
+#endif // !DEBUGMALLOCEXTERNALCLINKAGE
 
 #endif // DEBUGMALLOC
 #endif // !DEBUG_INTERNAL

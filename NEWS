@@ -7,7 +7,8 @@ libcwd-0.99.10
 
 	IMPORTANT: The way nodebug.h was generated in the example-project was wrong.
 	If you used the example-project for your own project, then please look at the
-	changes in maintMakefile.in and macrotest.cc.
+	changes in maintMakefile.in and macrotest.cc.  Alternatively you can use the
+	nodebug.h file that is part of this distribution.
 
 	Libcwd does not use libbfd anymore (and thus also libiberty).  The symbol table
 	is now read by libcwd itself as is the source file and line number lookup.

@@ -114,3 +114,10 @@ ChangeLog:
 	else \
 	  touch ChangeLog; \
 	fi
+
+nodebug.h: maintMakefile example-project/macrotest.cc include/libcw/debug.h include/libcw/debugmalloc.h include/libcw/debug_config.h
+	$(CXX) -dM -E $(INCLUDES) example-project/macrotest.cc | sed -e 's/#define \([^ ]*\).*/#undef \1/' > phase1.h
+	@echo "// Please read the file README.nodebug.h that is part of the libcwd documentation." > nodebug.h
+	$(CXX) -dM -E $(INCLUDES) -DPHASE2 example-project/macrotest.cc 2>/dev/null | egrep -v '(#define __|_H *$$|DEBUG)' | sort >> nodebug.h
+	rm -f phase1.h
+

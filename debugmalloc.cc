@@ -146,7 +146,7 @@
 #include <libcw/cwprint.h>
 #endif
 
-#ifdef HAVE___LIBC_MALLOC
+#ifdef DEBUGMALLOCEXTERNALCLINKAGE
 #define __libcwd_malloc malloc
 #define __libcwd_calloc calloc
 #define __libcwd_realloc realloc
@@ -1545,7 +1545,7 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 
 #endif // DEBUGMAGICMALLOC
 
-#ifndef HAVE___LIBC_MALLOC
+#ifndef DEBUGMALLOCEXTERNALCLINKAGE
 
 // If we cannot call the libc malloc functions directly, then we cannot declare
 // a malloc function with external linkage but instead have to use a macro `malloc'
@@ -1613,7 +1613,7 @@ void register_external_allocation(void const* mptr, size_t size)
   --recursive;
 #endif
 }
-#endif // !HAVE___LIBC_MALLOC
+#endif // !DEBUGMALLOCEXTERNALCLINKAGE
 
   } // namespace debug
 } // namespace libcw
@@ -1625,6 +1625,8 @@ using namespace ::libcw::debug;
 // malloc(3) and calloc(3) replacements:
 //
 
+extern "C" {
+
 void* __libcwd_malloc(size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
@@ -1632,7 +1634,7 @@ void* __libcwd_malloc(size_t size)
   ++recursive;
   int saved_marker = ++marker;
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
@@ -1701,7 +1703,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
   ++recursive;
   int saved_marker = ++marker;
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
@@ -1781,7 +1783,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   ++recursive;
   int saved_marker = ++marker;
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
@@ -1982,7 +1984,7 @@ void __libcwd_free(void* ptr)
   ASSERT( !recursive || internal );
   ++recursive;
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from_nt from = deallocated_from;
@@ -2165,6 +2167,8 @@ void __libcwd_free(void* ptr)
 #endif
 }
 
+} // extern "C"
+
 //=============================================================================
 //
 // operator `new' and `new []' replacements.
@@ -2307,7 +2311,7 @@ void operator delete(void* ptr)
   ASSERT( !recursive || internal );
   ++recursive;
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from = from_delete;
@@ -2323,7 +2327,7 @@ void operator delete[](void* ptr)
   ASSERT( !recursive || internal );
   ++recursive;
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from = from_delete_array;

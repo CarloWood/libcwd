@@ -610,7 +610,7 @@ namespace channels {
     extern channel_ct const system;
     extern channel_ct const warning;
 #ifdef DEBUGMALLOC
-#ifdef HAVE___LIBC_MALLOC
+#ifdef DEBUGMALLOCEXTERNALCLINKAGE
     extern channel_ct const malloc;
 #else
     extern channel_ct const __libcwd_malloc;

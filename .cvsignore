@@ -18,6 +18,7 @@ stamp-h
 Makefile.in
 Makefile
 maintMakefile
+nodebug.h
 .deps
 .libs
 *.lo
