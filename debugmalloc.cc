@@ -241,7 +241,7 @@ namespace _internal_ {
   // The memory allocations performed by the users application are stored
   // in a red/black tree using the STL map container.  Using this container
   // does cause calls to malloc by itself.  Of course we can not also store
-  // *those* allocation in the map, that would result in an endless loop.
+  // *those* allocations in the map, that would result in an endless loop.
   // Therefore we use a local variable `internal' and set that before we
   // do the calls to the map<> methods.  Then, when malloc is called with
   // `internal' set, we do not store these allocations in the map.
@@ -264,7 +264,10 @@ namespace _internal_ {
   // allocation routines with `internal' set off.  In order to avoid an
   // endless loop in this case we have to store those allocations in the
   // map<> in total silence (no debug output what so ever).  The variable
-  // that is used for this is `library_call'.
+  // that is used for this is `library_call'.  In other words, `library_call'
+  // is set when we call a library function that could call malloc or new
+  // (most notably operator<<(ostream&, ...), while writing debug output;
+  // and when creating a location_ct (which is a 'library call' of libcwd).
   //
   // internal	library_call	Action
   //
