@@ -2290,8 +2290,6 @@ void objfile_ct::load_dwarf(void)
 		    }
 		    case DW_LNS_set_file:
 		    {
-		      static int count;
-		      ++count;
 		      dwarf_read(debug_line_ptr, file);
 		      --file;
 		      DoutDwarf(dc::bfd, "DW_LNS_set_file: \"" << file_names[file].name << '"');
