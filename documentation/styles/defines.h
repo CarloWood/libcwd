@@ -23,6 +23,13 @@
 #endif
 
 #define NORMAL_FONT font-family: arial, sans-serif; font-size: NORMAL_SIZE; font-size-adjust: none
+/* Don't use helvetica, it is broken on RedHat which has an alias "-alias-helvetica-medium-i-normal--*-iso8859-1"
+ * installed that is actually a horrible looking japanese font.  See https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=59911 */
+#ifndef IE
+#define NORMAL_ITALICS_FONT font-family: sans-serif; font-size: NORMAL_SIZE; font-size-adjust: none
+#else
+#define NORMAL_ITALICS_FONT NORMAL_FONT
+#endif
 
 #ifdef KONQUEROR
 #define HSIZE1 24pt

@@ -782,15 +782,16 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    DoutFatal(dc::fatal|error_cf, "Failed to execute \"" << ps_prog << "\"");
 	}
 
-	//std::cerr << "argv0 = \"" << argv0 << '"' << std::endl;
-	if (argv0.find('/') != 0)
+	argv0 += '\0';
+	// argv0 now contains a zero terminated string optionally followed by the command line
+	// arguments (which is why we can't use argv0.find('/') here), all seperated by the 0 character.
+	if (!strchr(argv0.data(), '/'))
 	{
 	  _private_::ST_internal_string prog_name(argv0);
 	  _private_::ST_internal_string path_list(getenv("PATH"));
 	  _private_::ST_internal_string::size_type start_pos = 0, end_pos;
 	  _private_::ST_internal_string path;
 	  struct stat finfo;
-	  prog_name += '\0';
 	  for (;;)
 	  {
 	    end_pos = path_list.find(':', start_pos);

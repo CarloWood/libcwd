@@ -20,7 +20,7 @@
 //
 // Use all GNU extensions.
 //
-#ifndef _GNU_SOURCE
+#if !defined(_GNU_SOURCE) && defined(LIBCWD_THREAD_SAFE)
 #define _GNU_SOURCE
 #endif
 

@@ -368,13 +368,6 @@ if test "$libcwd_config_threading" = yes; then
 * include posix threads by itself and I can't find -lpthread.
 * Use --disable-libcwd-threading to compile a libcwd that is not thread safe.
 ])])
-  AC_LANG_RESTORE
-  CW_CONFIG_THREAD_SAFE=define
-  SAVE_LIBS="$LIBS"
-  LIBS="$LIBS $LIB_THREADS"
-  AC_CHECK_FUNCS(pthread_kill_other_threads_np)
-  LIBS="$SAVE_LIBS"
-
   if test "$ac_cv_search_pthread_create" = "none required"; then
     dnl Even if nothing is required, we still need to use -lpthread explicitly
     dnl while linking a shared library, otherwise the versioning info of
@@ -382,6 +375,17 @@ if test "$libcwd_config_threading" = yes; then
     dnl itself even!.
     AC_CHECK_LIB(pthread, pthread_create, [LIB_THREADS_SHARED=-lpthread])
   fi
+
+  AC_LANG_RESTORE
+  CW_CONFIG_THREAD_SAFE=define
+
+  dnl pthread_kill_other_threads_np is a GNU extension, therefore we need to
+  dnl define _GNU_SOURCE.  The extension also needs -lpthread to be available.
+  AC_DEFINE_UNQUOTED(_GNU_SOURCE, "1")
+  SAVE_LIBS="$LIBS"
+  LIBS="$LIBS $LIB_THREADS $LIB_THREADS_SHARED"
+  AC_CHECK_FUNCS(pthread_kill_other_threads_np)
+  LIBS="$SAVE_LIBS"
 fi
 
 dnl This test needs the full set of libraries we just determined.

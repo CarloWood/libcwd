@@ -13,14 +13,16 @@ to <CODE>cerr</CODE> is:</P>
 <P>Compile as: <SPAN class="shell-command">g++ -g -DCWDEBUG hello_world.cc -lcwd -o hello_world</SPAN></P>
 
 <PRE>
-#define _GNU_SOURCE			// This must be defined before including &lt;libcw/sysd.h&gt;
-#include &lt;libcw/sysd.h&gt;           // This must be the first header file&nbsp;&nbsp;
+// These two lines should actually be part of a custom &quot;sys.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
+#define _GNU_SOURCE                     // This must be defined before including &lt;libcw/sysd.h&gt;
+#include &lt;libcw/sysd.h&gt;                 // This must be the first header file
+// This line should actually be part of a custom &quot;debug.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
 #include &lt;libcw/debug.h&gt;
 
 int main(void)
 {
-  Debug( dc::notice.on() );             // Turn on the NOTICE Debug Channel
-  Debug( libcw_do.on() );               // Turn on the default Debug Object
+  Debug( dc::notice.on() );             // Turn on the NOTICE Debug Channel.
+  Debug( libcw_do.on() );               // Turn on the default Debug Object.
 
   Dout( dc::notice, "Hello World" );
 
@@ -37,7 +39,7 @@ want to use the GNU extensions (see /usr/include/features.h).&nbsp;
 In order to make you explicitely aware of the fact that it is
 defined, libcwd does not define this macro itself (which it could do inside &lt;libcw/sysd.h&gt;),
 but forces you to define it when using libcwd.&nbsp;
-Note you only really have to define it when you compiled libcwd with
+Note that you only really have to define it when you compiled libcwd with
 threading support.&nbsp;
 If you do not define this macro and libcwd needs it, then you will get
 a compile error in &lt;libcw/sysd.h&gt; telling you so.</P>

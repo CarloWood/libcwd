@@ -22,6 +22,9 @@
 // Defined when both -lpthread and pthread.h could be found.
 #undef LIBCWD_HAVE_PTHREAD
 
+// This is needed when using threading, for example to get `pthread_kill_other_threads_np'.
+#undef _GNU_SOURCE
+
 // Defined when --enable-libcwd-threading is used.
 #undef LIBCWD_THREAD_SAFE
 @BOTTOM@

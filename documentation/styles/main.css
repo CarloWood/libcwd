@@ -216,3 +216,11 @@ PRE, PRE.output {
   font-size		: NORMAL_SIZE;
 }
 
+I {
+  NORMAL_ITALICS_FONT
+}
+
+EM {
+  NORMAL_ITALICS_FONT
+}
+

@@ -1,3 +1,22 @@
+libcwd-0.99.17
+
+	Bug fixes:
+
+	Libcwd failed to find an executable in the current directory
+	when one of the command line parameters contained a '/'.
+
+	The tutorial had several occurances of '<' where '&lt;' should
+	have been used, with as result that parts of example code didn't
+	show up in a browser.
+
+	`pthread_kill_other_threads_np' was not detected by ./configure.
+
+	Due to a problem with how RedHat ships fonts, using mozilla,
+	italic helvetica looks horrible.  The documentation now uses
+	plain 'sans-serif' instead which will use the default font
+	that is defined under preferences -> appearance -> fonts.
+	This should be set to -adobe-helvetica-*-.
+
 libcwd-0.99.16
 
 	* libcwd is now thread-safe *

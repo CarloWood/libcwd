@@ -4,15 +4,15 @@ OUTPUT=$(shell for b in $(BROWSERS); do for i in $(TEMPLATES); do echo $$b/$$i; 
 
 all: $(OUTPUT)
 
-%/main.css: main.css
+%/main.css: main.css defines.h
 	@MACRO=`echo $@ | sed -e 's%\([^/]*\)/.*%\1%' | tr a-z A-Z`; \
 	cat main.css | gcc -D$$MACRO -E -c - | egrep -v '^(#|$$)' > $@
 
-%/doxygen.css: doxygen.css
+%/doxygen.css: doxygen.css defines.h
 	@MACRO=`echo $@ | sed -e 's%\([^/]*\)/.*%\1%' | tr a-z A-Z`; \
 	cat doxygen.css | gcc -D$$MACRO -E -c - | egrep -v '^(#|$$)' > $@
 
-%/tutorial.css: tutorial.css
+%/tutorial.css: tutorial.css defines.h
 	@MACRO=`echo $@ | sed -e 's%\([^/]*\)/.*%\1%' | tr a-z A-Z`; \
 	cat tutorial.css | gcc -D$$MACRO -E -c - | egrep -v '^(#|$$)' > $@
 
