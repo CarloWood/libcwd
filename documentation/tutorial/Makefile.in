@@ -24,11 +24,11 @@ html: index.html faq.html intro.html tut1.html tut2.html tut3.html tut4.html tut
 
 tut5.m4: tut5.in $(AOUT5)
 	awk -f moo.awk $< > $@
-	@rm -f core*
+	@rm -f core.*
 
 tut7.m4: tut7.in $(AOUT7)
 	awk -f moo.awk $< > $@
-	@rm -f core
+	@rm -f core.*
 	
 $(SOURCES5): tut5.in
 	$(MAKE) -s $@-cc
