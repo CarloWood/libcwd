@@ -253,12 +253,12 @@ DEBUGDEBUG_CERR( "Entering 'DoutFatalInternal(cntrl, \"" << data << "\")'.  inte
       (*libcw_do.current_oss) << data;			\
       --libcw_do._off;					\
       libcw_do.fatal_finish();	/* Never returns */	\
-      ASSERT( !"Bug in libcwd!" );			\
+      CWASSERT( !"Bug in libcwd!" );			\
     }							\
     else						\
     {							\
       DEBUGDEBUG_ELSE_DoutFatalInternal(data)		\
-      ASSERT( !"See msg above." );			\
+      CWASSERT( !"See msg above." );			\
       raise(3);						\
     }							\
   } while(0)
@@ -343,7 +343,7 @@ namespace _internal_ {
   bool inside_ios_base_Init_Init(void)
   {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !internal );
+  CWASSERT( !internal );
 #endif
 #ifndef _GLIBCPP_USE_WCHAR_T
     if (std::cerr.flags() != std::ios_base::unitbuf)                // Still didn't reach the end of ios_base::Init::Init()?
@@ -608,7 +608,7 @@ public:
   bool operator==(memblk_key_ct b) const
   {
 #ifdef DEBUGDEBUGMALLOC
-    ASSERT( internal );
+    CWASSERT( internal );
     DoutInternal( dc::warning, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" );
 #endif
     return a_start == b.start();
@@ -718,7 +718,7 @@ inline bool dm_alloc_ct::is_deleted(void) const
 dm_alloc_ct::~dm_alloc_ct()
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( internal );
+  CWASSERT( internal );
   if (a_next_list)
     DoutFatalInternal( dc::core, "Removing an dm_alloc_ct that still has an own list" );
   dm_alloc_ct* tmp;
@@ -744,7 +744,7 @@ dm_alloc_ct::~dm_alloc_ct()
 void dm_alloc_ct::print_description(void) const
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !internal && !library_call );
+  CWASSERT( !internal && !library_call );
 #endif
 #ifdef DEBUGUSEBFD
   if (M_location.is_known())
@@ -866,7 +866,7 @@ void memblk_info_ct::printOn(ostream& os) const
 void memblk_info_ct::erase(void)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( internal );
+  CWASSERT( internal );
 #endif
   dm_alloc_ct* ap = a_alloc_node.get();
 #ifdef DEBUGDEBUGMALLOC
@@ -1077,7 +1077,7 @@ ostream& operator<<(ostream& o, debugmalloc_report_ct)
 void list_allocations_on(debug_ct& debug_object)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  CWASSERT( !recursive && !internal );
 #endif
 
 #if 0
@@ -1107,7 +1107,7 @@ void list_allocations_on(debug_ct& debug_object)
 void make_invisible(void const* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !internal );
+  CWASSERT( !internal );
 #endif
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i == memblk_map->end() || (*i).first.start() != ptr)
@@ -1122,7 +1122,7 @@ void make_invisible(void const* ptr)
 void make_all_allocations_invisible_except(void const* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !internal );
+  CWASSERT( !internal );
 #endif
   for (dm_alloc_ct const* alloc = base_alloc_list; alloc;)
   {
@@ -1190,7 +1190,7 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<
 debugmalloc_newctor_ct::debugmalloc_newctor_ct(void* ptr, type_info_ct const& ti) : no_heap_alloc_node(NULL)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  CWASSERT( !recursive && !internal );
   Dout( dc_malloc, "New debugmalloc_newctor_ct at " << this << " from object " << ti.name() << " (" << ptr << ")" );
 #endif
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
@@ -1220,7 +1220,7 @@ debugmalloc_newctor_ct::debugmalloc_newctor_ct(void* ptr, type_info_ct const& ti
 debugmalloc_newctor_ct::~debugmalloc_newctor_ct(void)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  CWASSERT( !recursive && !internal );
   Dout( dc_malloc, "Removing debugmalloc_newctor_ct at " << (void*)this );
   Debug( list_allocations_on(libcw_do) );
 #endif
@@ -1245,7 +1245,7 @@ debugmalloc_newctor_ct::~debugmalloc_newctor_ct(void)
 void marker_ct::register_marker(char const* label)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  CWASSERT( !recursive && !internal );
 #endif
   Dout( dc_malloc, "New libcw::debug::marker_ct at " << this );
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(this, 0)));
@@ -1265,7 +1265,7 @@ void marker_ct::register_marker(char const* label)
 marker_ct::~marker_ct(void)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  CWASSERT( !recursive && !internal );
 #endif
 
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(this, 0)));
@@ -1300,7 +1300,7 @@ marker_ct::~marker_ct(void)
 void libcw_debug_move_outside(marker_ct* marker, void const* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  CWASSERT( !recursive && !internal );
 #endif
 
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
@@ -1347,7 +1347,7 @@ void libcw_debug_move_outside(marker_ct* marker, void const* ptr)
 alloc_ct const* find_alloc(void const* ptr)
 { 
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  CWASSERT( !recursive && !internal );
 #endif
 
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
@@ -1564,11 +1564,11 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 void register_external_allocation(void const* mptr, size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  CWASSERT( !recursive && !internal );
   ++recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__)
-  ASSERT( _internal_::ios_base_initialized );
+  CWASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
     DoutFatalInternal( dc::core, "Calling register_external_allocation while `internal' is true!  "
@@ -1633,11 +1633,11 @@ extern "C" {
 void __libcwd_free(void* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
+  CWASSERT( !recursive || internal );
   ++recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  ASSERT( _internal_::ios_base_initialized );
+  CWASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from_nt from = deallocated_from;
   deallocated_from = from_free;
@@ -1734,7 +1734,8 @@ void __libcwd_free(void* ptr)
       DoutInternal( dc_malloc|continued_cf,
 	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	  << ptr << ((from == from_free) ? ") " : " ") );
-      (*i).second.print_description();
+      if (channels::dc_malloc.is_on())
+	(*i).second.print_description();
 #ifdef DEBUGDEBUGMALLOC
       DoutInternal( dc::continued, " [" << ++marker << "] " );
 #else
@@ -1833,12 +1834,12 @@ void __libcwd_free(void* ptr)
 void* __libcwd_malloc(size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
+  CWASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  ASSERT( _internal_::ios_base_initialized );
+  CWASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
   {
@@ -1902,12 +1903,12 @@ void* __libcwd_malloc(size_t size)
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
+  CWASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  ASSERT( _internal_::ios_base_initialized );
+  CWASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
   {
@@ -1982,12 +1983,12 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 void* __libcwd_realloc(void* ptr, size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
+  CWASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  ASSERT( _internal_::ios_base_initialized );
+  CWASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
   {
@@ -2185,7 +2186,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 void* operator new(size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
+  CWASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
@@ -2248,7 +2249,7 @@ void* operator new(size_t size)
 void* operator new[](size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
+  CWASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
@@ -2316,11 +2317,11 @@ void* operator new[](size_t size)
 void operator delete(void* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
+  CWASSERT( !recursive || internal );
   ++recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  ASSERT( _internal_::ios_base_initialized );
+  CWASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from = from_delete;
 #ifdef DEBUGDEBUGMALLOC
@@ -2332,11 +2333,11 @@ void operator delete(void* ptr)
 void operator delete[](void* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
+  CWASSERT( !recursive || internal );
   ++recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  ASSERT( _internal_::ios_base_initialized );
+  CWASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from = from_delete_array;
 #ifdef DEBUGDEBUGMALLOC

@@ -29,11 +29,6 @@
 // for more, detailed documentation.
 //
 
-// Allow people to use just -DDEBUG instead of -DCWDEBUG in the command line.
-#if defined(DEBUG) && (DEBUG == 1)
-#define CWDEBUG
-#endif
-
 //
 // DEBUGMALLOC
 //

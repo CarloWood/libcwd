@@ -230,7 +230,7 @@ namespace libcw {
         current->mask = channel_set.mask;	// New bits might have been added
 	current->err = errno;			// Always keep the last errno as set at the start of LibcwDout()
 #ifdef DEBUGMALLOC
-	ASSERT( _internal_::internal == 1 );
+	CWASSERT( _internal_::internal == 1 );
 #endif
         return;
       }
@@ -327,7 +327,7 @@ namespace libcw {
 #ifdef DEBUGMALLOC
       // While writing debug output (which is directly after returning from this function)
       // alloc checking needs to be on.  FIXME
-      ASSERT( _internal_::internal == 1 );
+      CWASSERT( _internal_::internal == 1 );
 #endif
     }
 

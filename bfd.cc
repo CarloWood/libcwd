@@ -303,7 +303,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
       {
 #ifdef DEBUGDEBUGMALLOC
-	ASSERT( libcw::debug::_internal_::internal );
+	CWASSERT( libcw::debug::_internal_::internal );
 #endif
 
 	abfd = bfd_openr(filename, NULL);
@@ -837,7 +837,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // cwbfd::
       object_file_ct* load_object_file(char const* name, void* l_addr)
       {
-	ASSERT( libcw::debug::_internal_::internal );
+	CWASSERT( libcw::debug::_internal_::internal );
         if (l_addr == unknown_l_addr)
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << ' ');
 	else if (l_addr == 0)
@@ -881,7 +881,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	if (!second_time)
 	{
 	  second_time = true;
-	  ASSERT( !libcw::debug::_internal_::internal );
+	  CWASSERT( !libcw::debug::_internal_::internal );
 	}
 #endif
 
@@ -1098,7 +1098,7 @@ already_loaded:
 	bfd* abfd = bfd_asymbol_bfd(p);
 	asection const* sect = bfd_get_section(p);
 	char const* file;
-	ASSERT( object_file->get_bfd() == abfd );
+	CWASSERT( object_file->get_bfd() == abfd );
 	set_alloc_checking_off();
 #ifdef DEBUGUSEGNULIBBFD
 	bfd_find_nearest_line(abfd, const_cast<asection*>(sect), const_cast<asymbol**>(object_file->get_symbol_table()),
@@ -1107,7 +1107,7 @@ already_loaded:
         abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line);
 #endif
 	set_alloc_checking_on();
-	ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
+	CWASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
 	M_func = p->name;
 
 	if (file && M_line)			// When line is 0, it turns out that `file' is nonsense.
@@ -1215,7 +1215,7 @@ already_loaded:
 
     void location_ct::move(location_ct& prototype)
     {
-      ASSERT( !this->is_known() );
+      CWASSERT( !this->is_known() );
       M_filepath = prototype.M_filepath;
       M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
       M_line = prototype.M_line;
@@ -1270,7 +1270,7 @@ static libcwd_dlopen_map_type libcwd_dlopen_map;
 extern "C" {
   void* __libcwd_dlopen(char const* name, int flags)
   {
-    ASSERT( !libcw::debug::_internal_::internal );
+    CWASSERT( !libcw::debug::_internal_::internal );
     void* handle = ::dlopen(name, flags);
 #ifdef RTLD_NOLOAD
     if ((flags & RTLD_NOLOAD))
@@ -1291,7 +1291,7 @@ extern "C" {
 
   int __libcwd_dlclose(void *handle)
   {
-    ASSERT( !libcw::debug::_internal_::internal );
+    CWASSERT( !libcw::debug::_internal_::internal );
     int ret = ::dlclose(handle);
     libcwd_dlopen_map_type::iterator iter(libcwd_dlopen_map.find(handle));
     if (iter != libcwd_dlopen_map.end())

@@ -61,12 +61,12 @@ namespace libcw {
 #undef Dout
 #undef DoutFatal
 #undef Debug
-#undef ASSERT
+#undef CWASSERT
 #undef NEW
 #define Dout(cntrl, data)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(::std, /*nothing*/, cntrl, data)
 #define Debug(x)
-#define ASSERT(x)
+#define CWASSERT(x)
 #define NEW(x) new x
 #define DoutEntering(x)
 #define RETURN return M_result
@@ -434,7 +434,7 @@ namespace {
   bool demangler_ct::decode_substitution(std::string& output, qualifiers_ct* qualifiers = NULL)
   {
     DoutEntering("decode_substitution");
-    ASSERT( current() == 'S');
+    CWASSERT( current() == 'S');
     unsigned int value = 0;
     char c = next();
     if (c != '_')
@@ -1872,7 +1872,6 @@ decode_type_exit:
     if (!demangler.decode_bare_function_type(output))
       return INT_MIN;
     output += nested_name_qualifiers;
-    ASSERT( !demangler.M_inside_type );	// REMOVE THIS XXX
     return demangler.M_pos;
   }
 

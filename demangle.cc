@@ -239,6 +239,7 @@ namespace libcw {
       string prefix;
       string postfix;
       char const* p = input;
+      template_parameters = NULL;
 
       if (p[0] == '_' && p[1] == 'G' && !strncmp(p, "_GLOBAL_.", 9) && (p[9] == 'D' || p[9] == 'I') && p[10] == '.')
       {
@@ -1197,7 +1198,7 @@ namespace libcw {
 	    return true;
 	  if (!isdigit(*input++))
 	    return true;
-	  if ((size_t)index >= template_parameters->size())
+	  if (!template_parameters || (size_t)index >= template_parameters->size())
 	    return true;
 	  char const* recursive_input = (*template_parameters)[index];
 	  return eat_template_type(recursive_input, prefix, last_class_name);

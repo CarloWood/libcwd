@@ -42,7 +42,7 @@ RCSTAG_H(debug, "$Id$")
 #endif
 #define UNUSED_UNLESS_DEBUG(x) x
 #include <cassert>
-#define ASSERT(x) assert(x)
+#define CWASSERT(x) assert(x)
 #define LibcwDebug(dc_namespace, x) do { using namespace ::libcw::debug; using namespace dc_namespace; { x; } } while(0)
 #define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
 #define __Debug(x) LibcwDebug(::libcw::debug::channels, x)
@@ -68,7 +68,7 @@ RCSTAG_H(debug, "$Id$")
 #else
 #define UNUSED_UNLESS_DEBUG(x) unused__##x
 #endif
-#define ASSERT(x)
+#define CWASSERT(x)
 #define LibcwDebug(dc_namespace, x)
 #define Debug(x)
 #define __Debug(x)
@@ -363,7 +363,7 @@ template<typename T>		// T must be a builtin type.
     }
     void push(T ptr) {
 #ifdef DEBUGDEBUG
-      ASSERT( end != NULL );
+      CWASSERT( end != NULL );
 #endif
       if (p == end)
 	raise(3);	// This is really not normal, if you core here you probably did something wrong.
@@ -376,22 +376,22 @@ template<typename T>		// T must be a builtin type.
     void pop(void)
     {
 #ifdef DEBUGDEBUG
-      ASSERT( end != NULL );
-      ASSERT( p != &st[-1] );
+      CWASSERT( end != NULL );
+      CWASSERT( p != &st[-1] );
 #endif
       --p;
     }
     T top(void)
     {
 #ifdef DEBUGDEBUG
-      ASSERT( end != NULL );
+      CWASSERT( end != NULL );
 #endif
       return *p;
     }
     size_t size(void)
     {
 #ifdef DEBUGDEBUG
-      ASSERT( end != NULL );
+      CWASSERT( end != NULL );
 #endif
       return p - &st[-1];
     }

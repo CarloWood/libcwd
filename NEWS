@@ -1,6 +1,22 @@
 libcwd-0.99.15
 
-	...
+	libcwd now works with (single threaded) Qt applications.
+
+	API changes:
+
+	You now MUST use CWDEBUG, defining DEBUG will no longer work; it was
+	incompatible with qt-2.2.4.
+
+	The macro ASSERT, which is equivalent with assert when CWDEBUG is
+	defined and empty when not, was renamed to CWASSERT.  The main reason
+	for this is that qt already defines a macro called ASSERT.
+
+	Bug fixes:
+
+	A bug in the demangler for gcc-2.96 and earlier caused core dumps for
+	symbols that started with _X... Since those are used a lot in X libs,
+	libcwd was unusable with X windowing system applications (like those
+	using Qt).
 
 libcwd-0.99.14
 

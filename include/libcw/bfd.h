@@ -86,7 +86,7 @@ public:
   bool is_known(void) const { return M_filepath != NULL; }
       // Returns false if no source-file:line-number information is known for this location (or when it is uninitialized or cleared).
 
-  std::string file(void) const { ASSERT( M_filepath != NULL ); return M_filename; }
+  std::string file(void) const { CWASSERT( M_filepath != NULL ); return M_filename; }
       // Return the source file name (without path).  We don't allow to retrieve a pointer
       // to M_filepath; that is dangerous as the memory that it is pointing to could be deleted.
 
@@ -99,8 +99,8 @@ public:
       // the idea is to never print that: you should know it when a location object is in these states.
 
   // Printing
-  void print_filepath_on(std::ostream& os) const { ASSERT( M_filepath != NULL ); os << M_filepath; }
-  void print_filename_on(std::ostream& os) const { ASSERT( M_filepath != NULL ); os << M_filename; }
+  void print_filepath_on(std::ostream& os) const { CWASSERT( M_filepath != NULL ); os << M_filepath; }
+  void print_filename_on(std::ostream& os) const { CWASSERT( M_filepath != NULL ); os << M_filename; }
   friend std::ostream& operator<<(std::ostream& os, location_ct const& location);		// Prints a default "M_filename:M_line".
 };
 

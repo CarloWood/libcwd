@@ -97,7 +97,7 @@ template<class X, bool array = false>	// Use array == true when `ptr' was alloca
     X* get() const { return ptr; }
       // Return the pointer itself.
 
-    bool strict_owner() const { ASSERT(is_owner()); return locked; }
+    bool strict_owner() const { CWASSERT(is_owner()); return locked; }
       // Returns `true' when this object is the strict owner.
       // You should only call this when this object is the owner.
 
@@ -113,11 +113,11 @@ template<class X, bool array = false>	// Use array == true when `ptr' was alloca
     void reset() { bool owns = owner; owner = 0; if (owns) { if (array) delete [] ptr; else delete ptr; } ptr = NULL; }
       // Get rid of object, if any.
 
-    X* release() const { ASSERT(is_owner()); owner = 0; return ptr; }
+    X* release() const { CWASSERT(is_owner()); owner = 0; return ptr; }
       // Release this object of its ownership (the caller is now responsible for deleting it if this object was the owner)
       // You should only call this when this object is the owner.
 
-    void lock() { ASSERT(is_owner()); locked = true; }
+    void lock() { CWASSERT(is_owner()); locked = true; }
       // Lock the ownership.
       // You should only call this when this object is the owner.
 
