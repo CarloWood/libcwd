@@ -38,7 +38,7 @@ RCSTAG_H(debug, "$Id$")
 #    define UNUSED_UNLESS_DEBUG(x) x
 #    include <cassert>
 #    define ASSERT(x) assert(x);
-#    define LibcwDebug(dc_namespace, x) do { USING_NAMESPACE_LIBCW_DEBUG using namespace dc_namespace; (x); } while(0)
+#    define LibcwDebug(dc_namespace, x) do { USING_NAMESPACE_LIBCW_DEBUG using namespace dc_namespace; {x;} } while(0)
 #    define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
 #    define __Debug(x) LibcwDebug(NAMESPACE_LIBCW_DEBUG::channels, x)
 #    define ForAllDebugObjects(STATEMENT) \
