@@ -40,5 +40,5 @@ rm -rf "$RPM_BUILD_ROOT"
 %{__prefix}/lib/*
 %{__prefix}/include/libcw/*
 
-@CHANGELOG@
+%changelog@SPECCHANGELOG@
 
