@@ -1,0 +1,145 @@
+// $Header$
+//
+// Copyright (C) 2000, by
+// 
+// Carlo Wood, Run on IRC <carlo@alinoe.com>
+// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
+// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
+//
+// This file may be distributed under the terms of the Q Public License
+// version 1.0 as appearing in the file LICENSE.QPL included in the
+// packaging of this file.
+//
+
+#ifndef LIBCW_LOCKABLE_AUTO_PTR_H
+#ifdef __GNUG__
+#pragma interface
+#endif
+#define LIBCW_LOCKABLE_AUTO_PTR_H
+
+RCSTAG_H(lockable_auto_ptr, "$Id$")
+
+//=========================================================================
+//
+// class lockable_auto_ptr
+//
+// An 'auto_ptr' with lockable ownership.
+//
+// When the `lockable_auto_ptr' is not locked it behaves the same as
+// an 'auto_ptr': Ownership of the object it points to is transfered
+// when the `lockable_auto_ptr' is copied or assigned to another
+// `lockable_auto_ptr'.  The object it points to is deleted when the
+// `lockable_auto_ptr' that owns it is destructed.
+//
+// When the `lockable_auto_ptr' is locked, then the ownership is
+// not transfered, but stays on the same (locked) `lockable_auto_ptr'.
+//
+
+template<class X>
+class lockable_auto_ptr {
+  typedef X element_type;
+
+private:
+  X* ptr;			// Pointer to object of type X, or NULL when not pointing to anything.
+  bool locked;			// Set if this lockable_auto_ptr object is locked.
+  mutable bool owner;		// Set if this lockable_auto_ptr object is the owner of the object that `ptr' points too.
+  const bool array;		// Set when `ptr' was allocated with new [].
+
+public:
+  //-----------------------------------------------------------------------
+  // Constructors
+  //
+
+  explicit lockable_auto_ptr(X* p = 0, bool is_array = false) : ptr(p), locked(false), owner(p), array(is_array) {}
+      // Explicit constructor that creates a lockable_auto_ptr pointing to `p'.
+
+  lockable_auto_ptr(lockable_auto_ptr const& r) : ptr(r.ptr), locked(false), owner(r.owner && !r.locked), array(r.array)
+      { if (!r.locked) r.owner = 0; }
+      // The default copy constructor.
+
+  template<class Y> friend class lockable_auto_ptr;
+
+  template<class Y>
+  lockable_auto_ptr(lockable_auto_ptr<Y> const& r) : ptr(r.ptr), locked(false), owner(r.owner && !r.locked), array(r.array)
+      { if (!r.locked) r.owner = 0; }
+      // Constructor to copy a lockable_auto_ptr that point to an object derived from X.
+
+  //-----------------------------------------------------------------------
+  // Operators
+  //
+
+  template<class Y>
+  lockable_auto_ptr& operator=(lockable_auto_ptr<Y> const& r);
+
+  lockable_auto_ptr& operator=(lockable_auto_ptr const& r) { return operator= <X> (r); }
+      // The default assignment operator.
+
+  //-----------------------------------------------------------------------
+  // Destructor
+  //
+
+  ~lockable_auto_ptr() { if (owner) { if (array) delete [] ptr; else delete ptr; } }
+
+  //-----------------------------------------------------------------------
+  // Accessors
+  //
+
+  X& operator*() const { return *ptr; }
+    // Access the object that this `lockable_auto_ptr' points to.
+
+  X* operator->() const { return ptr; }
+    // Access the object that this `lockable_auto_ptr' points to.
+
+  X* get() const { return ptr; }
+    // Return the pointer itself.
+
+  bool strict_owner() const { return locked; }
+    // Returns `true' when this object is the strict owner.
+    // You should only call this when this object is the owner.
+
+#ifdef DEBUG
+  bool is_owner(void) const { return owner; }
+    // Don't use this except for debug testing.
+#endif
+
+  //-----------------------------------------------------------------------
+  // Manipulators
+  //
+
+  void reset() { bool owns = owner; owner = 0; if (owns) { if (array) delete [] ptr; else delete ptr; } ptr = NULL; }
+    // Get rid of object, if any.
+
+  X* release() const { ASSERT(is_owner()); owner = 0; return ptr; }
+    // Release this object of its ownership (the caller is now responsible for deleting it if this object was the owner)
+    // You should only call this when this object is the owner.
+
+  void lock() { ASSERT(is_owner()); locked = true; }
+    // Lock the ownership.
+    // You should only call this when this object is the owner.
+
+  void unlock() { locked = false; }
+    // Unlock the ownership (if any).
+};
+
+template<class X>
+template<class Y>
+lockable_auto_ptr<X>& lockable_auto_ptr<X>::operator=(lockable_auto_ptr<Y> const& r)
+{
+  if ((void*)&r != (void*)this)
+  {
+    ASSERT(array == r.array);
+    if (owner) 
+    {
+      if (array)
+        delete [] ptr;
+      else
+	delete ptr;
+    }
+    ptr = r.ptr;
+    owner = r.owner; 
+    r.owner = 0;
+  }
+  return *this;
+}
+
+#endif // LIBCW_LOCKABLE_AUTO_PTR_H

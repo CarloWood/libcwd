@@ -1,0 +1,25 @@
+// $Header$
+//
+// Copyright (C) 2000, by
+// 
+// Carlo Wood, Run on IRC <carlo@alinoe.com>
+// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
+// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
+//
+// This file may be distributed under the terms of the Q Public License
+// version 1.0 as appearing in the file LICENSE.QPL included in the
+// packaging of this file.
+//
+
+#ifndef LIBCW_BCD2STR_H
+#ifdef __GNUG__
+// Size of text segment _shrinks_ with this commented out! (v1.1.1.1)
+//#pragma interface
+#endif
+#define UTILS_BCD2STR_H
+
+RCSTAG_H(bcd2str, "$Id$")
+
+extern char const* bcd2str(char const*, int);
+
+#endif // LIBCW_BCD2STR_H
