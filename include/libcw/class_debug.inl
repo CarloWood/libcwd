@@ -39,22 +39,54 @@ namespace libcw {
 /** \addtogroup group_formatting */
 /* \{ */
 
+__inline__
+debug_string_ct&
+debug_ct::margin(void)
+{
+  LIBCWD_TSD_DECLARATION
+  return LIBCWD_TSD_MEMBER(margin);
+}
+
+__inline__
+debug_string_ct const&
+debug_ct::margin(void) const
+{
+  LIBCWD_TSD_DECLARATION
+  return LIBCWD_TSD_MEMBER(margin);
+}
+
+__inline__
+debug_string_ct&
+debug_ct::marker(void)
+{
+  LIBCWD_TSD_DECLARATION
+  return LIBCWD_TSD_MEMBER(marker);
+}
+
+__inline__
+debug_string_ct const&
+debug_ct::marker(void) const
+{
+  LIBCWD_TSD_DECLARATION
+  return LIBCWD_TSD_MEMBER(marker);
+}
+
 // This is here only for backwards compatibility.
-// You should call margin.assign() directly.
+// You should call margin().assign(s) directly.
 __inline__
 void
 debug_ct::set_margin(std::string const& s)
 {
-  margin.assign(s);
+  margin().assign(s);
 }
 
 // This is here only for backwards compatibility.
-// You should call marker.assign() directly.
+// You should call marker().assign(s) directly.
 __inline__
 void
 debug_ct::set_marker(std::string const& s)
 {
-  marker.assign(s);
+  marker().assign(s);
 }
 
 /**
@@ -108,7 +140,7 @@ __inline__
 std::string
 debug_ct::get_margin(void) const
 {
-  return std::string(margin.c_str(), margin.size());
+  return std::string(margin().c_str(), margin().size());
 }
 
 // This is here only for backwards compatibility.
@@ -117,7 +149,7 @@ __inline__
 std::string
 debug_ct::get_marker(void) const
 {
-  return std::string(marker.c_str(), marker.size());
+  return std::string(marker().c_str(), marker().size());
 }
 
 /** \} */

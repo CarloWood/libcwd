@@ -39,7 +39,7 @@ class fatal_channel_ct;
 //===================================================================================================
 // struct channel_set_data_st
 //
-// The attributes of channel_set_st and continued_channel_set_st
+// The attributes of channel_set_bootstrap_st, channel_set_st and continued_channel_set_st
 //
 
 struct channel_set_data_st {
@@ -62,42 +62,26 @@ public:
 };
 
 //===================================================================================================
-// struct continued_channel_set_st
-//
-// The debug output target; a combination of channels and control bits.
-//
-
-struct continued_channel_set_st : public channel_set_data_st {
-  // Warning: This struct may not have attributes of its own!
-public:
-  continued_channel_set_st& operator|(control_flag_t cf);
-};
-
-//===================================================================================================
-// struct channel_set_st
-//
-// The debug output target; a combination of channels and control bits.
-//
-
-struct channel_set_st : public channel_set_data_st {
-  // Warning: This struct may not have attributes of its own!
-public:
-  channel_set_st& operator|(control_flag_t cf);
-  channel_set_st& operator|(channel_ct const& dc);
-  channel_set_st& operator|(fatal_channel_ct const& fdc);
-  continued_channel_set_st& operator|(continued_cf_nt);
-};
-
-//===================================================================================================
 // struct channel_set_bootstrap_st
 //
-// The debug output target; a combination of channels and control bits.
+// This is the left-most type of channel 'control' series
+// existing of <channel_set_bootstrap_st>|<one or more channels>|<optional control flags>.
+// It is used in macro LibcwdDoutScopeStart.
+//
+// LibcwDoutFatal uses operator& while LibcwDout uses operator|.
+//
+// The return type is a cast of this object to
+// either a channel_set_st (the normal case) or a
+// continued_channel_set_st in the case that the
+// special debug channel dc::continued was used.
 //
 
 class channel_ct;
 class fatal_channel_ct;
 class continued_channel_ct;
 class always_channel_ct;
+struct channel_set_st;
+struct continued_channel_set_st;
 
 struct channel_set_bootstrap_st : public channel_set_data_st {
   // Warning: This struct may not have attributes of its own!
@@ -114,6 +98,35 @@ public:
   continued_channel_set_st& operator|(continued_channel_ct const& cdc);
   channel_set_st& operator|(fatal_channel_ct const&);
   channel_set_st& operator&(channel_ct const&);
+};
+
+//===================================================================================================
+// struct channel_set_st
+//
+// The debug output target; a combination of channels and control bits.
+// The final result of a series of <channel>|<control flag>|...
+// is passed to struct_debug_tsd_st::start().
+//
+
+struct channel_set_st : public channel_set_data_st {
+  // Warning: This struct may not have attributes of its own!
+public:
+  channel_set_st& operator|(control_flag_t cf);
+  channel_set_st& operator|(channel_ct const& dc);
+  channel_set_st& operator|(fatal_channel_ct const& fdc);
+  continued_channel_set_st& operator|(continued_cf_nt);
+};
+
+//===================================================================================================
+// struct continued_channel_set_st
+//
+// The channel set type used for a series that starts with dc::continued.
+//
+
+struct continued_channel_set_st : public channel_set_data_st {
+  // Warning: This struct may not have attributes of its own!
+public:
+  continued_channel_set_st& operator|(control_flag_t cf);
 };
 
   } // namespace debug

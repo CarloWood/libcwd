@@ -156,8 +156,8 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
 #else // !__GLIBCPP__
       std::ofstream debug_stream(debug_filedes[1]);
 #endif // !__GLIBCPP__
-      Debug( libcw_do.margin.assign(prog_name, strlen(prog_name)) );
-      Debug( libcw_do.margin.append(": ", 2) );
+      Debug( libcw_do.margin().assign(prog_name, strlen(prog_name)) );
+      Debug( libcw_do.margin().append(": ", 2) );
       Debug( libcw_do.set_ostream(&debug_stream) );
 #endif // CWDEBUG
       // Child process

@@ -1793,7 +1793,7 @@ marker_ct::~marker_ct(void)
   if ((*iter).second.a_alloc_node.get()->next_list())
   {
     libcw_do.push_margin();
-    libcw_do.margin.append("  * ", 4);
+    libcw_do.margin().append("  * ", 4);
     Dout( dc::warning, "Memory leak detected!" );
     (*iter).second.a_alloc_node.get()->next_list()->show_alloc_list(1, channels::dc::warning);
     libcw_do.pop_margin();

@@ -113,14 +113,8 @@ public:
    * \sa push_margin()
    *  \n pop_margin()
    */
-#if defined(LIBCWD_THREAD_SAFE) && !defined(LIBCW_DOXYGEN)
-  struct TS_margin_st {
-    __inline__ operator debug_string_ct& (void);
-    __inline__ operator debug_string_ct const& (void) const;
-  } margin;
-#else
-  debug_string_ct margin;
-#endif
+  debug_string_ct& margin(void);
+  debug_string_ct const& margin(void) const;
 
   /**
    * \brief The marker
@@ -131,14 +125,8 @@ public:
    * \sa push_marker()
    *  \n pop_marker()
    */
-#if defined(LIBCWD_THREAD_SAFE) && !defined(LIBCW_DOXYGEN)
-  struct TS_marker_st {
-    __inline__ operator debug_string_ct& (void);
-    __inline__ operator debug_string_ct const& (void) const;
-  } marker;
-#else
-  debug_string_ct marker;
-#endif
+  debug_string_ct& marker(void);
+  debug_string_ct const& marker(void) const;
 
   /** \} */
 

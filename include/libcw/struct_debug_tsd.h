@@ -86,10 +86,11 @@ struct debug_tsd_st {
   _private_::debug_stack_tst<int> continued_stack;
     // Stores the number of nested and switched off continued channels.
 
-#ifdef LIBCWD_THREAD_SAFE
   debug_string_ct margin;
+    // The margin string.
+
   debug_string_ct marker;
-#endif
+    // The marker string.
 
   debug_string_stack_element_ct* M_margin_stack;
     // Pointer to list of pushed margins.

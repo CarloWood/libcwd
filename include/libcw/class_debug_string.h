@@ -47,6 +47,8 @@ class debug_ct;
  * This type is used for the public attributes debug_ct::margin and debug_ct::marker of the %debug object class.
  */
 class debug_string_ct {
+  friend class debug_ct;			// Needs access to the private functions.
+  friend struct debug_tsd_st;
 private:
   char* M_str;					// Pointer to malloc-ed (zero terminated) string.
   size_t M_size;				// Size of string (exclusive terminating zero).
@@ -61,11 +63,6 @@ private:
   void internal_swallow(debug_string_ct const&);
 
 private:
-#ifdef LIBCWD_THREAD_SAFE
-  friend struct debug_tsd_st;
-#else
-  friend class debug_ct;
-#endif
   void NS_internal_init(char const* s, size_t l);
   void ST_internal_deinit(void);
   debug_string_ct(void) { }

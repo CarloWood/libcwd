@@ -77,9 +77,9 @@ namespace libcw {
 	int curlen = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out) - rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
 	if (curlen > 512 || !(buf = (char*)alloca(curlen)))
 	{
-	  set_alloc_checking_off();
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  buf = (char*)malloc(curlen);
-	  set_alloc_checking_on();
+	  set_alloc_checking_on(LIBCWD_TSD);
 	  used_malloc = true;
 	}
 	rdbuf()->sgetn(buf, curlen);
@@ -98,9 +98,9 @@ namespace libcw {
 #endif
 	if (used_malloc)
 	{
-	  set_alloc_checking_off();
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  free(buf);
-	  set_alloc_checking_on();
+	  set_alloc_checking_on(LIBCWD_TSD);
 	}
       }
       void store_position(void) {
@@ -446,13 +446,8 @@ namespace libcw {
     size_t debug_string_ct::calculate_capacity(size_t size)
     {
       size_t capacity_plus_one = M_default_capacity + 1;			// For the terminating zero.
-      do 
-      {
-	if (size < capacity_plus_one)
-	  return capacity_plus_one;
+      while(size >= capacity_plus_one)
 	capacity_plus_one *= 2;
-      }
-      while(1);
       return capacity_plus_one - 1;
     }
 
@@ -472,7 +467,7 @@ namespace libcw {
 
     void debug_string_ct::internal_assign(char const* str, size_t len)
     {
-      if (len > M_capacity || (M_capacity >= M_default_capacity && len < M_default_capacity))
+      if (len > M_capacity || (M_capacity > M_default_capacity && len < M_default_capacity))
         M_str = (char*)realloc(M_str, (M_capacity = calculate_capacity(len)) + 1);
       strncpy(M_str, str, len);
       M_size = len;
@@ -481,7 +476,7 @@ namespace libcw {
 
     void debug_string_ct::internal_append(char const* str, size_t len)
     {
-      if (M_size + len > M_capacity || (M_capacity >= M_default_capacity && M_size + len < M_default_capacity))
+      if (M_size + len > M_capacity || (M_capacity > M_default_capacity && M_size + len < M_default_capacity))
         M_str = (char*)realloc(M_str, (M_capacity = calculate_capacity(M_size + len)) + 1);
       strncpy(M_str + M_size, str, len);
       M_size += len;
@@ -490,10 +485,11 @@ namespace libcw {
 
     void debug_string_ct::internal_prepend(char const* str, size_t len)
     {
-      if (M_size + len > M_capacity || (M_capacity >= M_default_capacity && M_size + len < M_default_capacity))
+      if (M_size + len > M_capacity || (M_capacity > M_default_capacity && M_size + len < M_default_capacity))
         M_str = (char*)realloc(M_str, (M_capacity = calculate_capacity(M_size + len)) + 1);
       memmove(M_str + len, M_str, M_size + 1);
       strncpy(M_str, str, len);
+      M_size += len;
     }
 
     /**
@@ -532,7 +528,7 @@ namespace libcw {
       debug_string_stack_element_ct* current_margin_stack = LIBCWD_TSD_MEMBER(M_margin_stack);
       set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
-      LIBCWD_TSD_MEMBER(M_margin_stack) = new (new_debug_string) debug_string_stack_element_ct(margin);
+      LIBCWD_TSD_MEMBER(M_margin_stack) = new (new_debug_string) debug_string_stack_element_ct(LIBCWD_TSD_MEMBER(margin));
       set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(M_margin_stack)->next = current_margin_stack;
     }
@@ -547,7 +543,7 @@ namespace libcw {
 	DoutFatal(dc::core, "Calling `debug_ct::pop_margin' more often than `debug_ct::push_margin'.");
       debug_string_stack_element_ct* next = LIBCWD_TSD_MEMBER(M_margin_stack)->next;
       set_alloc_checking_off(LIBCWD_TSD);
-      margin.internal_swallow(LIBCWD_TSD_MEMBER(M_margin_stack)->debug_string);
+      LIBCWD_TSD_MEMBER(margin).internal_swallow(LIBCWD_TSD_MEMBER(M_margin_stack)->debug_string);
       free(LIBCWD_TSD_MEMBER(M_margin_stack));
       set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(M_margin_stack) = next;
@@ -562,7 +558,7 @@ namespace libcw {
       debug_string_stack_element_ct* current_marker_stack = LIBCWD_TSD_MEMBER(M_marker_stack);
       set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
-      LIBCWD_TSD_MEMBER(M_marker_stack) = new (new_debug_string) debug_string_stack_element_ct(marker);
+      LIBCWD_TSD_MEMBER(M_marker_stack) = new (new_debug_string) debug_string_stack_element_ct(LIBCWD_TSD_MEMBER(marker));
       LIBCWD_TSD_MEMBER(M_marker_stack)->next = current_marker_stack;
     }
 
@@ -576,7 +572,7 @@ namespace libcw {
 	DoutFatal(dc::core, "Calling `debug_ct::pop_marker' more often than `debug_ct::push_marker'.");
       debug_string_stack_element_ct* next = LIBCWD_TSD_MEMBER(M_marker_stack)->next;
       set_alloc_checking_off(LIBCWD_TSD);
-      marker.internal_swallow(LIBCWD_TSD_MEMBER(M_marker_stack)->debug_string);
+      LIBCWD_TSD_MEMBER(marker).internal_swallow(LIBCWD_TSD_MEMBER(M_marker_stack)->debug_string);
       free(LIBCWD_TSD_MEMBER(M_marker_stack));
       set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(M_marker_stack) = next;
@@ -682,17 +678,17 @@ namespace libcw {
       // Handle most common case first: no special flags set
       if (!(channel_set.mask & (noprefix_cf|nolabel_cf|blank_margin_cf|blank_label_cf|blank_marker_cf)))
       {
-	current_oss->write(debug_object.margin.c_str(), debug_object.margin.size());
+	current_oss->write(margin.c_str(), margin.size());
 	current_oss->write(channel_set.label, WST_max_len);
-	current_oss->write(debug_object.marker.c_str(), debug_object.marker.size());
+	current_oss->write(marker.c_str(), marker.size());
 	write_whitespace_to(*current_oss, indent);
       }
       else if (!(channel_set.mask & noprefix_cf))
       {
 	if ((channel_set.mask & blank_margin_cf))
-	  write_whitespace_to(*current_oss, debug_object.margin.size());
+	  write_whitespace_to(*current_oss, margin.size());
 	else
-	  current_oss->write(debug_object.margin.c_str(), debug_object.margin.size());
+	  current_oss->write(margin.c_str(), margin.size());
 #ifndef DEBUGDEBUGOUTPUT
 	if (!(channel_set.mask & nolabel_cf))
 #endif
@@ -702,9 +698,9 @@ namespace libcw {
 	  else
 	    current_oss->write(channel_set.label, WST_max_len);
 	  if ((channel_set.mask & blank_marker_cf))
-	    write_whitespace_to(*current_oss, debug_object.marker.size());
+	    write_whitespace_to(*current_oss, marker.size());
 	  else
-	    current_oss->write(debug_object.marker.c_str(), debug_object.marker.size());
+	    current_oss->write(marker.c_str(), marker.size());
 	  write_whitespace_to(*current_oss, indent);
 	}
       }
@@ -876,8 +872,6 @@ namespace libcw {
 #ifndef LIBCWD_THREAD_SAFE
       tsd.init();
 #endif
-      margin.NS_internal_init("", 0);
-      marker.NS_internal_init(": ", 2);
       set_alloc_checking_on(LIBCWD_TSD);
 
       // This set current_oss and must be called after tsd.init().
@@ -913,6 +907,10 @@ namespace libcw {
 
     void debug_tsd_st::init(void)
     {
+#ifdef DEBUGDEBUGMALLOC
+      LIBCWD_TSD_DECLARATION
+      LIBCWD_ASSERT( __libcwd_tsd.internal );
+#endif
       _off = 0;						// Turn off all debugging until initialization is completed.
       DEBUGDEBUG_CERR( "In debug_tsd_st::NS_init(void), _off set to 0" );
 
@@ -943,6 +941,8 @@ namespace libcw {
 #endif
       laf_stack.init();
       continued_stack.init();
+      margin.NS_internal_init("", 0);
+      marker.NS_internal_init(": ", 2);
 
 #ifdef DEBUGDEBUGOUTPUT
       _off = -1;		// Print as much debug output as possible right away.
@@ -966,13 +966,11 @@ namespace libcw {
       ++_off;		// Turn all debug output premanently off, otherwise we might re-initialize
                         // this object again when we try to write debug output to it!
       DEBUGDEBUG_CERR( "debug_tsd_st destructed: _off became " << _off );
-#ifdef LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION
       set_alloc_checking_off(LIBCWD_TSD);
       marker.ST_internal_deinit();
       margin.ST_internal_deinit();
       set_alloc_checking_on(LIBCWD_TSD);
-#endif
       tsd_initialized = false;
     }
 
@@ -987,10 +985,6 @@ namespace libcw {
 #endif
       LIBCWD_TSD_DECLARATION
       set_alloc_checking_off(LIBCWD_TSD);
-#ifndef LIBCWD_THREAD_SAFE
-      marker.ST_internal_deinit();
-      margin.ST_internal_deinit();
-#endif
       DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
       {
         _private_::debug_objects_ct::container_type& objects(_private_::debug_objects.write_locked());
@@ -1354,6 +1348,7 @@ namespace libcw {
 
     void debug_ct::restore(debug_ct::OnOffState const& state)
     {
+      LIBCWD_TSD_DECLARATION
 #ifdef DEBUGDEBUGOUTPUT
       if (state.first_time != LIBCWD_TSD_MEMBER(first_time))		// state.first_time && !first_time.
 	core_dump();							// on() was called without first a call to off().
