@@ -76,7 +76,9 @@ int main(int argc, char* argv[])
 
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
-  Debug( dc::warning.on() );
+#if !defined(__sun__) || !defined(__svr4__)
+  Debug( dc::warning.on() );	// On Solaris we fail to find the start of libdl
+#endif
   Debug( dc::bfd.on() );
   Debug( dc::notice.on() );
   Debug( dc::system.on() );
