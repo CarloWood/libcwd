@@ -257,7 +257,7 @@ void bfd_close(bfd* abfd)
       void* const unknown_l_addr = (void*)-1;
 
       // cwbfd::
-      bfile_ct::bfile_ct(char const* filename, void* base) : lbase(base), M_object_file(filename)
+      bfile_ct::bfile_ct(char const* filename, void* base) : M_lbase(base), M_object_file(filename)
       {
 #if CWDEBUG_DEBUGM
 	LIBCWD_TSD_DECLARATION;
@@ -279,19 +279,19 @@ void bfd_close(bfd* abfd)
 #endif
 
 #if CWDEBUG_LIBBFD
-	abfd = bfd_openr(filename, NULL);
-	if (!abfd)
+	M_abfd = bfd_openr(filename, NULL);
+	if (!M_abfd)
 	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
-	abfd->cacheable = bfd_tttrue;
+	M_abfd->cacheable = bfd_tttrue;
 #else
-	abfd = bfd::openr(filename, base != 0);
-	abfd->M_s_end_offset = 0;
+	M_abfd = bfd::openr(filename, base != 0);
+	M_abfd->M_s_end_offset = 0;
 #endif
-	abfd->usrdata = (addr_ptr_t)this;
+	M_abfd->usrdata = (addr_ptr_t)this;
 
-	if (bfd_check_format(abfd, bfd_archive))
+	if (bfd_check_format(M_abfd, bfd_archive))
 	{
-	  bfd_close(abfd);
+	  bfd_close(M_abfd);
 #if CWDEBUG_LIBBFD
 	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive: " << bfd_errmsg(bfd_get_error()));
 #else
@@ -300,7 +300,7 @@ void bfd_close(bfd* abfd)
 	}
 #if CWDEBUG_LIBBFD
 	char** matching;
-	if (!bfd_check_format_matches(abfd, bfd_object, &matching))
+	if (!bfd_check_format_matches(M_abfd, bfd_object, &matching))
 	{
 	  if (bfd_get_error() == bfd_error_file_ambiguously_recognized)
 	  {
@@ -312,15 +312,15 @@ void bfd_close(bfd* abfd)
 	}
 #endif
 
-	if (!(bfd_get_file_flags(abfd) & HAS_SYMS))
+	if (!(bfd_get_file_flags(M_abfd) & HAS_SYMS))
 	{
 	  Dout(dc::warning, filename << " has no symbols, skipping.");
-	  bfd_close(abfd);
-	  number_of_symbols = 0;
+	  bfd_close(M_abfd);
+	  M_number_of_symbols = 0;
 	  return;
 	}
 
-	long storage_needed = bfd_get_symtab_upper_bound (abfd);
+	long storage_needed = bfd_get_symtab_upper_bound(M_abfd);
 #if CWDEBUG_LIBBFD
 	if (storage_needed < 0)
 	  DoutFatal(dc::bfd, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
@@ -328,41 +328,41 @@ void bfd_close(bfd* abfd)
 	if (storage_needed == 0)
 	{
 	  Dout(dc::warning, filename << " has no symbols, skipping.");
-	  bfd_close(abfd);
-	  number_of_symbols = 0;
+	  bfd_close(M_abfd);
+	  M_number_of_symbols = 0;
 	  return;
 	}
 #endif
 
 	M_symbol_table = (asymbol**) malloc(storage_needed);	// Leaks memory.
 
-	number_of_symbols = bfd_canonicalize_symtab(abfd, M_symbol_table);
+	M_number_of_symbols = bfd_canonicalize_symtab(M_abfd, M_symbol_table);
 #if CWDEBUG_LIBBFD
-	if (number_of_symbols < 0)
+	if (M_number_of_symbols < 0)
 	  DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
 #endif
 
-	if (number_of_symbols > 0)
+	if (M_number_of_symbols > 0)
 	{
 #if !CWDEBUG_LIBBFD
-	  size_t s_end_offset = abfd->M_s_end_offset;
+	  size_t s_end_offset = M_abfd->M_s_end_offset;
 #else
 	  size_t s_end_offset = 0;
 	  // Throw away symbols that can endanger determining the size of functions
 	  // like: local symbols, debugging symbols.  Also throw away all symbols
 	  // in uninteresting sections to safe time with sorting.
 	  // Also try to find symbol _end to determine the size of the bfd.
-	  asymbol** se = &M_symbol_table[number_of_symbols - 1];
+	  asymbol** se = &M_symbol_table[M_number_of_symbols - 1];
 	  for (asymbol** s = M_symbol_table; s <= se;)
 	  {
 	    if ((*s)->name == 0)
 	    {
 	      *s = *se--;
-	      --number_of_symbols;
+	      --M_number_of_symbols;
 	    }
 	    // Find the start address of the last symbol: "_end".
 	    else if ((*s)->name[0] == '_' && (*s)->name[1] == 'e' && (*s)->name[2] == 'n' && (*s)->name[3] == 'd' && (*s)->name[4] == 0)
-	      s_end_offset = (*s++)->value;		// Relative to (yet unknown) lbase.
+	      s_end_offset = (*s++)->value;		// Relative to (yet unknown) M_lbase.
 	    else if (((*s)->flags & (BSF_GLOBAL|BSF_FUNCTION|BSF_OBJECT)) == 0
 		|| ((*s)->flags & (BSF_DEBUGGING|BSF_CONSTRUCTOR|BSF_WARNING|BSF_FILE)) != 0
 		|| bfd_is_abs_section(bfd_get_section(*s))
@@ -370,14 +370,14 @@ void bfd_close(bfd* abfd)
 		|| bfd_is_ind_section(bfd_get_section(*s)))
 	    {
 	      *s = *se--;
-	      --number_of_symbols;
+	      --M_number_of_symbols;
 	    }
 	    else
 	      ++s;
 	  }
 #endif // CWDEBUG_LIBBFD
 
-	  if (!s_end_offset && number_of_symbols > 0)
+	  if (!s_end_offset && M_number_of_symbols > 0)
 	  {
 #if CWDEBUG_ALLOC
 	    int saved_internal = __libcwd_tsd.internal;
@@ -390,7 +390,7 @@ void bfd_close(bfd* abfd)
 	  }
 
 	  // Guess the start of the shared object when ldd didn't return it.
-	  if (lbase == unknown_l_addr)
+	  if (M_lbase == unknown_l_addr)
 	  {
 #ifdef HAVE_DLOPEN
 #if CWDEBUG_ALLOC
@@ -414,7 +414,7 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
 #endif
-	      lbase = val - s_end_offset;
+	      M_lbase = val - s_end_offset;
 	    }
 	    else if (!statically_linked)
 #ifdef HAVE__DL_LOADED
@@ -425,12 +425,12 @@ void bfd_close(bfd* abfd)
 	      for(link_map* p = *dl_loaded_ptr; p; p = p->l_next)
 	        if (!strcmp(p->l_name, filename))
 		{
-		  lbase = reinterpret_cast<void*>(p->l_addr);		// No idea why they use unsigned int for a load address.
+		  M_lbase = reinterpret_cast<void*>(p->l_addr);		// No idea why they use unsigned int for a load address.
 		  break;
 		}
 	    }
 #endif // HAVE__DL_LOADED
-	    if (lbase == 0 || lbase == unknown_l_addr)
+	    if (M_lbase == 0 || M_lbase == unknown_l_addr)
 	    {
 #if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
@@ -443,7 +443,7 @@ void bfd_close(bfd* abfd)
 	      start_values_map_ct start_values;
 	      unsigned int best_count = 0;
 	      void* best_start = 0;
-	      for (asymbol** s = M_symbol_table; s <= &M_symbol_table[number_of_symbols - 1]; ++s)
+	      for (asymbol** s = M_symbol_table; s <= &M_symbol_table[M_number_of_symbols - 1]; ++s)
 	      {
 		if ((*s)->name == 0 || ((*s)->flags & BSF_FUNCTION) == 0 || ((*s)->flags & (BSF_GLOBAL|BSF_WEAK)) == 0)
 		  continue;
@@ -485,12 +485,12 @@ void bfd_close(bfd* abfd)
 #endif
 		free(M_symbol_table);
 		M_symbol_table  = NULL;
-		if (abfd)
+		if (M_abfd)
 		{
-		  bfd_close(abfd);
-		  abfd = NULL;
+		  bfd_close(M_abfd);
+		  M_abfd = NULL;
 		}
-		number_of_symbols = 0;
+		M_number_of_symbols = 0;
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = 0;
 #endif
@@ -500,13 +500,13 @@ void bfd_close(bfd* abfd)
 #endif
 		return;
 	      }
-	      lbase = best_start;
+	      M_lbase = best_start;
 	    }
 #if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = 0;
 #endif
 	    ::dlclose(handle);
-	    Dout(dc::continued, '(' << lbase << ") ... ");
+	    Dout(dc::continued, '(' << M_lbase << ") ... ");
 #if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = saved_internal;
 #endif
@@ -519,7 +519,7 @@ void bfd_close(bfd* abfd)
 	  
 	  if (s_end_offset)
 	  {
-	    s_end_start_addr = (char*)lbase + s_end_offset;
+	    s_end_start_addr = (char*)M_lbase + s_end_offset;
 	    M_size = s_end_offset;
           }
 	  else
@@ -529,21 +529,21 @@ void bfd_close(bfd* abfd)
 	  }
 
 	  // Sort the symbol table in order of start address.
-	  std::sort(M_symbol_table, &M_symbol_table[number_of_symbols], symbol_less());
+	  std::sort(M_symbol_table, &M_symbol_table[M_number_of_symbols], symbol_less());
 
 	  // Calculate sizes for every symbol
-	  for (int i = 0; i < number_of_symbols - 1; ++i)
+	  for (int i = 0; i < M_number_of_symbols - 1; ++i)
 	    symbol_size(M_symbol_table[i]) =
 	        (char*)symbol_start_addr(M_symbol_table[i + 1]) - (char*)symbol_start_addr(M_symbol_table[i]);
 
 	  // Use reasonable size for last one.
 	  // This should be "_end", or one behond it, and will be thrown away in the next loop.
-	  symbol_size(M_symbol_table[number_of_symbols - 1]) = 100000;
+	  symbol_size(M_symbol_table[M_number_of_symbols - 1]) = 100000;
 
           BFD_ACQUIRE_WRITE_LOCK;	// Needed for M_function_symbols.
 
 	  // Throw away all symbols that are not a global variable or function, store the rest in a vector.
-	  asymbol** se2 = &M_symbol_table[number_of_symbols - 1];
+	  asymbol** se2 = &M_symbol_table[M_number_of_symbols - 1];
 	  for (asymbol** s = M_symbol_table; s <= se2;)
 	  {
 	    if (((*s)->name[0] == '.' && (*s)->name[1] == 'L')
@@ -552,7 +552,7 @@ void bfd_close(bfd* abfd)
 		|| (*s)->flags & BSF_FUNCTION == 0)	// Only keep functions.
 	    {
 	      *s = *se2--;
-	      --number_of_symbols;
+	      --M_number_of_symbols;
 	    }
 	    else
 	    {
@@ -571,7 +571,7 @@ void bfd_close(bfd* abfd)
 	      BFD_ACQUIRE_WRITE_LOCK;
 	    }
 	    if (!M_size)
-	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)lbase;
+	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_lbase;
 	  }
 
 #if 0
@@ -596,7 +596,7 @@ void bfd_close(bfd* abfd)
 #endif
 	}
 
-	if (number_of_symbols > 0)
+	if (M_number_of_symbols > 0)
 	  NEEDS_WRITE_LOCK_object_files().push_back(this);
 
 	BFD_RELEASE_WRITE_LOCK;
@@ -612,10 +612,10 @@ void bfd_close(bfd* abfd)
 #endif
 #endif
 	set_alloc_checking_off(LIBCWD_TSD);
-	if (abfd)
+	if (M_abfd)
 	{
-	  bfd_close(abfd);
-	  abfd = NULL;
+	  bfd_close(M_abfd);
+	  M_abfd = NULL;
 	}
 	if (M_symbol_table)
 	{

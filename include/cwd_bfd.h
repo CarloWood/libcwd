@@ -118,11 +118,11 @@ typedef std::list<bfile_ct*> object_files_ct;
 
 class bfile_ct {                                  // All allocations related to bfile_ct must be `internal'.
 private:
-  bfd* abfd;
-  void* lbase;
+  bfd* M_abfd;
+  void* M_lbase;
   size_t M_size;
   asymbol** M_symbol_table;
-  long number_of_symbols;
+  long M_number_of_symbols;
   function_symbols_ct M_function_symbols;
   libcw::debug::object_file_ct M_object_file;
 public:
@@ -130,11 +130,11 @@ public:
   void initialize(char const* filename, void* base LIBCWD_COMMA_TSD_PARAM);
   void deinitialize(LIBCWD_TSD_PARAM);
 
-  bfd* get_bfd(void) const { return abfd; }
-  void* const get_lbase(void) const { return lbase; }
+  bfd* get_bfd(void) const { return M_abfd; }
+  void* const get_lbase(void) const { return M_lbase; }
   size_t size(void) const { return M_size; }
   asymbol** get_symbol_table(void) const { return M_symbol_table; }
-  long get_number_of_symbols(void) const { return number_of_symbols; }
+  long get_number_of_symbols(void) const { return M_number_of_symbols; }
   libcw::debug::object_file_ct const* get_object_file(void) const { return &M_object_file; }
   libcw::debug::object_file_ct* get_object_file(void) { return &M_object_file; }
   function_symbols_ct& get_function_symbols(void) { return M_function_symbols; }

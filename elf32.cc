@@ -1378,6 +1378,7 @@ private:
   void eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const& form
                 DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str)
                 DEBUGDWARF_OPT_COMMA(uint32_t debug_info_offset));
+  //bfile_ct* get_bfile(void) { return reinterpret_cast<bfile_ct*>(usrdata); }
 };
 
 #if LIBCWD_THREAD_SAFE
