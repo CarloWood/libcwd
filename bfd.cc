@@ -768,10 +768,12 @@ namespace libcw {
   namespace debug {
 #endif
 
+char const* const unknown_function_c = "<unknown function>";
+
 //
 // Find the mangled function name of the address `addr'.
 //
-char const* pc_function_name(void const* addr)
+char const* pc_mangled_function_name(void const* addr)
 {
   if (!initialized)
   {
@@ -787,12 +789,10 @@ char const* pc_function_name(void const* addr)
   symbol_ct const* symbol = pc_symbol((bfd_vma)addr, find_object_file(addr));
 
   if (!symbol)
-    return NULL;
+    return unknown_function_c;
 
   return symbol->get_symbol()->name;
 }
-
-char const* const unknown_function_c = "<unknown function>";
 
 //
 // location_ct::M_bfd_pc_location

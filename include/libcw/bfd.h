@@ -49,7 +49,7 @@ namespace channels {
   };
 };
 
-extern char const* pc_function_name(void const* addr);
+extern char const* pc_mangled_function_name(void const* addr);
 extern char const* const unknown_function_c;
 
 //
@@ -91,15 +91,15 @@ public:
   bool is_known(void) const { return M_filepath != NULL; }
       // Returns false if no source-file:line-number information is known for this location (or when it is uninitialized or cleared).
 
-  string filename(void) const { ASSERT( M_filepath != NULL ); return M_filename; }
+  string file(void) const { ASSERT( M_filepath != NULL ); return M_filename; }
       // Return the source file name (without path).  We don't allow to retrieve a pointer
       // to M_filepath; that is dangerous as the memory that it is pointing to could be deleted.
 
   unsigned int line(void) const { return M_line; }
       // Return the line number; only valid if is_known() returns true.
 
-  char const* function(void) const { return M_func; }
-      // Return the mangled function name or `unknown_location_c' when no function could be found.
+  char const* mangled_function_name(void) const { return M_func; }
+      // Return the mangled function name or `unknown_function_c' when no function could be found.
       // Two other strings that can be returned are "<uninitialized location_ct>" and "<cleared location_ct>",
       // the idea is to never print that: you should know it when a location object is in these states.
 

@@ -30,7 +30,7 @@ int main(void)
   make_all_allocations_invisible_except(NULL);
 
   // Make sure we initialized the bfd stuff before we turn on WARNING.
-  Debug( (void)pc_function_name((void*)main) );
+  Debug( (void)pc_mangled_function_name((void*)main) );
 
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );

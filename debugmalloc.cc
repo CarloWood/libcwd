@@ -525,10 +525,10 @@ void dm_alloc_ct::print_description(void) const
   if (M_location.is_known())
     Dout(dc::continued, setw(20) << NAMESPACE_LIBCW_DEBUG::print_using(M_location, &debug::location_ct::print_filename_on) <<
         ':' << setw(5) << setiosflags(ios::left) << M_location.line());
-  else if (M_location.function())
+  else if (M_location.mangled_function_name() != debug::unknown_function_c)
   {
     string f;
-    demangle_symbol(M_location.function(), f);
+    demangle_symbol(M_location.mangled_function_name(), f);
     Dout( dc::continued, setw(24) << f << ' ' );
   }
   else

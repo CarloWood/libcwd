@@ -92,7 +92,7 @@ void libcw_bfd_test3(void)
           libcw::debug::location_ct((char*)frame_return_address(i) + libcw_bfd_builtin_return_address_offset) << "!");
 #endif
 
-    if (loc.line() == 0)
+    if (!loc.is_known())
       break;
   }
 }

@@ -19,24 +19,26 @@ libcwd-0.99.6
 	- The global structure `location_st' has been removed and is replaced
 	  by a class `location_ct' in namespace `libcw::debug'.
 	- The function `libcw_bfd_pc_function_name' has been renamed to
-	  `libcw::debug::pc_function_name'.
+	  `libcw::debug::pc_mangled_function_name'.
         - The function `libcw_bfd_pc_location' has been completely removed.
 	  Instead you should use the constructor location_ct(void const* addr).
 	If you used any of this then you will need to recompile your programs.
 	There is no danger to make errors: things are garanteed to not compile
 	until you fixed them except for the following changes in functionality
 	of the function name pointer as returned by location_ct::function():
-	- The function name pointer as returned by location_ct::function() is
-	  now the same as what is returned by pc_function_name.  This makes it
-	  unnecessary to call pc_function_name after pc_location failed, in the
-	  hope that that will work.
+	- The function name pointer as returned by location_ct::mangled_function_name()
+	  is now the same as what is returned by pc_mangled_function_name (This
+	  makes it unnecessary to call pc_mangled_function_name after pc_location
+	  failed, in the hope that that will work).
 	- It is now possible to check if the function that is returned is known
 	  by comparing the returned function name pointer with
 	  `libcw::debug::unknown_function_c' (instead of needing a strcmp()).
-	  Note that `pc_function_name' still returns NULL on failure.
+	- `pc_mangled_function_name' also returns `libcw::debug::unknown_function_c'
+	   on failure and not NULL as did `libcw_bfd_pc_function_name'.
 	[ "location_st" --> "libcw::debug::location_ct" ]
 	[ "libcw_bfd_pc_function_name(addr)" -->
-	  "libcw::debug::pc_function_name(addr)" ]
+	  "libcw::debug::pc_mangled_function_name(addr)" (and does not return
+	  NULL anymore) ]
 	[ "location_st location; libcw_bfd_pc_location(location, addr);" -->
 	  "libcw::debug::location_ct location(addr);" ]
 	[ Available interface of location_ct: see libcw/bfd.h ]
