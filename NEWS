@@ -5,6 +5,13 @@ libcwd-0.99.19
 	same headerfiles that assume thread safety when either one
 	of the macros _REENTRANT or _THREAD_SAFE are defined.
 
+	FreeBSD, that does not have __libc_malloc but does have
+	dlopen(), now also uses malloc with external C linkage:
+	malloc et al are looked up with dlsym() (instead of defining
+	malloc et al as a macro).  This means that also on FreeBSD
+	ALL allocations are accounted, including those done by third
+	party libraries.
+
 libcwd-0.99.18
 
 	API changes:

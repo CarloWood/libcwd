@@ -186,30 +186,62 @@ using libcw::debug::_private_::memblk_map_instance;
 #define ACQUIRE_WRITE2READ_LOCK
 #endif // !_REENTRANT
 
+#define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE \
+    (defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && defined(HAVE_DLOPEN) \
+     && !defined(LIBCWD_HAVE__LIBC_MALLOC) && !defined(LIBCWD_HAVE___LIBC_MALLOC))
+
 #ifdef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
+
 #define __libcwd_malloc malloc
 #define __libcwd_calloc calloc
 #define __libcwd_realloc realloc
 #define __libcwd_free free
 #define dc_malloc dc::malloc
+
+#if defined(LIBCWD_HAVE__LIBC_MALLOC) || defined(LIBCWD_HAVE___LIBC_MALLOC)
 #ifdef LIBCWD_HAVE__LIBC_MALLOC
 #define __libc_malloc _libc_malloc
 #define __libc_calloc _libc_calloc
 #define __libc_realloc _libc_realloc
 #define __libc_free _libc_free
 #endif
-#else
+#else // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
+#ifndef HAVE_DLOPEN
+#error "configure bug: macros are inconsistent"
+#endif
+#define __libc_malloc (*libc_malloc)
+#define __libc_calloc (*libc_calloc)
+#define __libc_realloc (*libc_realloc)
+#define __libc_free (*libc_free)
+namespace libcw {
+  namespace debug {
+void* malloc_bootstrap1(size_t size);
+void* calloc_bootstrap1(size_t nmemb, size_t size);
+  }
+}
+void* __libc_malloc(size_t size) = libcw::debug::malloc_bootstrap1;
+void* __libc_calloc(size_t nmemb, size_t size) = libcw::debug::calloc_bootstrap1;
+void* __libc_realloc(void* ptr, size_t size);
+void __libc_free(void* ptr);
+void __libc_free_final(void* ptr) = (void (*)(void*))0;
+#endif // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
+
+#else // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
+
 #define __libc_malloc malloc
 #define __libc_calloc calloc
 #define __libc_realloc realloc
 #define __libc_free free
 #define dc_malloc dc::__libcwd_malloc
-#endif
 
+#endif // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
+
+#if !USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
 extern "C" void* __libc_malloc(size_t size);
 extern "C" void* __libc_calloc(size_t nmemb, size_t size);
 extern "C" void* __libc_realloc(void* ptr, size_t size);
 extern "C" void __libc_free(void* ptr);
+#endif
 
 namespace libcw {
   namespace debug {
@@ -1462,6 +1494,134 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
   }
   --__libcwd_tsd.inside_malloc_or_free;
 }
+
+#if USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
+//---------------------------------------------------------------------------------------------
+// This is a tiny 'malloc library' that is used while
+// looking up the real malloc functions in libc.
+// We expect only a single call to malloc() from dlopen (from init_malloc_function_pointers)
+// but provide a slightly more general set of stubs here anyway.
+//
+static char allocation_heap[128];
+static void* allocation_ptrs[4];
+static int allocation_counter = -1;
+static char* allocation_ptr = allocation_heap;
+
+void* malloc_bootstrap2(size_t size)
+{
+  assert( allocation_counter < sizeof(allocation_ptrs) / sizeof(void*) );
+  assert( allocation_ptr + size <= allocation_heap + sizeof(allocation_heap) );
+  void* ptr = allocation_ptr;
+  allocation_ptrs[++allocation_counter] = ptr;
+  allocation_ptr += size;
+  return ptr;
+}
+
+void free_bootstrap2(void* ptr)
+{
+  for (int i = 0; i <= allocation_counter; ++i)
+    if (allocation_ptrs[i] == ptr)
+    {
+      allocation_ptrs[i] = allocation_ptrs[allocation_counter];
+      allocation_ptrs[allocation_counter] = NULL;
+      if (--allocation_counter < 0 && libc_free_final)	// Done?
+	libc_free = libc_free_final;
+      return;
+    }
+  (*libc_free_final)(ptr);
+}
+
+// This appears not to be called by dlopen/dlsym/dlclose, but lets keep it anyway.
+void* calloc_bootstrap2(size_t nmemb, size_t size)
+{
+  void* ptr = malloc_bootstrap2(nmemb * size);
+  memset(ptr, 0, nmemb * size);
+  return ptr;
+}
+
+// This appears not to be called by dlopen/dlsym/dlclose, but lets keep it anyway.
+void* realloc_bootstrap2(void* ptr, size_t size)
+{
+  // This assumes that allocations during dlopen()/dlclose()
+  // never use the fact that decreasing an allocation is
+  // garanteed not to relocate it.
+  void* ptr = malloc_bootstrap2(size);
+  free_bootstrap2(ptr);
+  return ptr;
+}
+
+#undef dlopen
+#undef dlclose
+void init_malloc_function_pointers(void)
+{
+  // Point functions to next phase.
+  libc_malloc = malloc_bootstrap2;
+  libc_calloc = calloc_bootstrap2;
+  libc_realloc = realloc_bootstrap2;
+  libc_free = free_bootstrap2;
+#if !LIBCWD_THREAD_SAFE
+  // Please mail libcwd@alinoe.com if you need to extend this.
+  char const* libc_filename[] = {
+    "/usr/lib/libc.so.4",		// FreeBSD 4.5
+   NULL
+  };
+#else
+  // Please mail libcwd@alinoe.com if you need to extend this.
+  char const* libc_filename[] = {
+    "/usr/lib/libc_r.so.4",		// FreeBSD 4.5
+    NULL
+  };
+#endif
+  // This calls malloc.
+  void* handle = NULL;
+  int i = 0;
+  while (!handle && libc_filename[i])
+  {
+    handle = ::dlopen(libc_filename[i], RTLD_LAZY);
+    ++i;
+  }
+  assert(handle);
+  void* (*libc_malloc_tmp)(size_t size);
+  void* (*libc_calloc_tmp)(size_t nmemb, size_t size);
+  void* (*libc_realloc_tmp)(void* ptr, size_t size);
+  void (*libc_free_tmp)(void* ptr);
+  libc_malloc_tmp = (void* (*)(size_t))dlsym(handle, "malloc");
+  assert(libc_malloc_tmp);
+  libc_calloc_tmp = (void* (*)(size_t, size_t))dlsym(handle, "calloc");
+  assert(libc_calloc_tmp);
+  libc_realloc_tmp = (void* (*)(void*, size_t))dlsym(handle, "realloc");
+  assert(libc_realloc_tmp);
+  libc_free_tmp = (void (*)(void*))dlsym(handle, "free");
+  assert(libc_free_tmp);
+  // Hopefully this calls free again.
+  ::dlclose(handle);
+  libc_malloc = libc_malloc_tmp;
+  libc_calloc = libc_calloc_tmp;
+  libc_realloc = libc_realloc_tmp;
+  if (allocation_counter == -1)	// Done?
+    libc_free = libc_free_tmp;
+  else
+    // There are allocations left, we have to check
+    // every free to see if it's one that was
+    // allocated here... until it is finally freed.
+    libc_free_final = libc_free_tmp;
+}
+
+// Very first time that malloc(2) or calloc(2) are called; initialize the function pointers.
+
+void* malloc_bootstrap1(size_t size)
+{
+  init_malloc_function_pointers();
+  return __libc_malloc(size);
+}
+
+void* calloc_bootstrap1(size_t nmemb, size_t size)
+{
+  init_malloc_function_pointers();
+  return __libc_calloc(nmemb, size);
+}
+//---------------------------------------------------------------------------------------------
+#endif // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
 
 void init_debugmalloc(void)
 {
