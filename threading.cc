@@ -181,6 +181,7 @@ TSD_st& TSD_st::S_create(int from_free)
   if (!WST_first_thread_initialized)		// Is this the first thread?
   {
     WST_first_thread_initialized = true;
+#ifdef _CS_GNU_LIBPTHREAD_VERSION
     size_t n = confstr (_CS_GNU_LIBPTHREAD_VERSION, NULL, 0);
     if (n > 0)
     {
@@ -189,6 +190,7 @@ TSD_st& TSD_st::S_create(int from_free)
       if (strstr (buf, "NPTL"))
 	WST_is_NPTL = true;
     }
+#endif
     initialize_global_mutexes();
     threading_tsd_init(*static_tsd);		// Initialize the TSD of stuff that goes in threading.cc.
     // Initialize libcwd now, before calling pthread_setspecific() below.

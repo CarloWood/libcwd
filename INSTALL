@@ -66,9 +66,22 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.30 was tested with gcc-3.0.4, gcc-3.1,
+libcwd-0.99.31 was tested with gcc-3.0.4, gcc-3.1,
 gcc-3.1.1, gcc-3.2, gcc-3.2.1, gcc-3.2.2, gcc-3.2.3,
-gcc-3.3 and gcc version 3.4 20030519 (experimental)
+gcc-3.3 and gcc version 3.4 20030626 (experimental).
+
+Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
+making the use of dlclose() and/or threading with NPTL
+impossible.  The problem of dlclose() is that it
+closes the standard streams; libcwd works around this
+problem but without libcwd your program will still
+suffer from it, you should upgrade your compiler.
+The problem of nptl is actually a bug in the version
+of nptl that is distributed with RedHat 9 (the only
+distribution with NPTL at the moment).  The current
+development version of NPTL has this fixed.  It tries
+to free a pointer that is really a global struct -
+libcwd will CORE when it detects that.
 
 Packages needed to run the testsuite
 ------------------------------------

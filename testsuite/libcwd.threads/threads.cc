@@ -29,8 +29,8 @@
     ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() ); \
     ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() ); \
     { \
-      ForAllDebugObjects( while (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) >= 0) debugObject.on() ); \
-      ForAllDebugObjects( if (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) < 0) debugObject.off() ); \
+      ForAllDebugObjects( LIBCWD_TSD_DECLARATION; while (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) >= 0) debugObject.on() ); \
+      ForAllDebugObjects( LIBCWD_TSD_DECLARATION; if (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) < 0) debugObject.off() ); \
     } \
     ++heartbeat[thread_index(pthread_self())]; \
     pthread_testcancel(); \
@@ -209,6 +209,7 @@ int main(void)
 {
   Debug( check_configuration() );
 
+#ifdef _CS_GNU_LIBPTHREAD_VERSION
   size_t n = confstr (_CS_GNU_LIBPTHREAD_VERSION, NULL, 0);
   if (n > 0)
   {
@@ -217,6 +218,7 @@ int main(void)
     if (strstr (buf, "NPTL"))
       is_NPTL = true;
   }
+#endif
 
   bool is_valgrind = false;
   if (pthread_equal(pthread_self(), 1))

@@ -17,7 +17,11 @@
 #if defined(_REENTRANT) && CWDEBUG_ALLOC
 // This has to be very early (must not have been included elsewhere already).
 #define private public  // Ugly, I know.
+#if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
 #include <bits/stl_alloc.h>
+#else
+#include <ext/pool_allocator.h>
+#endif
 #undef private
 #endif // defined(_REENTRANT) && CWDEBUG_ALLOC
 
@@ -95,10 +99,10 @@ bool allocator_trylock(void)
   return (__gthread_mutex_trylock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock) == 0);
 #else
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
-  if (!std::__pool_alloc<true, 0>::_S_lock._M_init_flag)
-    std::__pool_alloc<true, 0>::_S_lock._M_initialize();
+  if (!LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_init_flag)
+    LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_initialize();
 #endif
-  return (__gthread_mutex_trylock(&std::__pool_alloc<true, 0>::_S_lock._M_lock) == 0);
+  return (__gthread_mutex_trylock(&LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_lock) == 0);
 #endif
 }
 
@@ -117,10 +121,10 @@ void allocator_unlock(void)
   __gthread_mutex_unlock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
 #else
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
-  if (!std::__pool_alloc<true, 0>::_S_lock._M_init_flag)
-    std::__pool_alloc<true, 0>::_S_lock._M_initialize();
+  if (!LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_init_flag)
+    LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_initialize();
 #endif
-  __gthread_mutex_unlock(&std::__pool_alloc<true, 0>::_S_lock._M_lock);
+  __gthread_mutex_unlock(&LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_lock);
 #endif
 }
 #endif // defined(_REENTRANT) && CWDEBUG_ALLOC
