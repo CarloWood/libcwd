@@ -1297,12 +1297,14 @@ extern "C" {
     libcwd_dlopen_map_type::iterator iter(libcwd_dlopen_map.find(handle));
     if (iter != libcwd_dlopen_map.end())
     {
+#ifdef RTLD_NODELETE
       if (!((*iter).second.M_flags & RTLD_NODELETE))
       {
         set_alloc_checking_off();
 	delete (*iter).second.M_object_file;
         set_alloc_checking_on();
       }
+#endif
       libcwd_dlopen_map.erase(iter);
     }
     return ret;
