@@ -565,7 +565,7 @@ public:
 private:
   bool first_time;
 public:
-  void on(void) { if (first_time) first_time = false; else --_off; }
+  void on(void) { if (first_time && _off == -1) first_time = false; else --_off; }
 #endif
 
   //===========================================================================

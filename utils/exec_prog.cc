@@ -51,12 +51,12 @@ namespace libcw {
     // line (ending on a new-line) received via stdout from the child process is passed to the
     // call-back function `decode_stdout'.
     //
-
+using std::cerr;
     int exec_prog(char const* prog_name, char const* const argv[], char const* const envp[], int (*decode_stdout)(char const*, size_t))
     {
       Debug(
 	if (!dc::debug.is_on())
-	  libcw_do.off()
+	  libcw_do.off();
       );
       Dout(dc::debug|continued_cf, "exec_prog(\"" << prog_name << "\", " <<
           cwprint(argv_ct(argv)) << ", " << cwprint(environment_ct(envp)) << ", decode) = ");
@@ -129,14 +129,14 @@ namespace libcw {
 	  
 	  // Write debug output to pipe.
 	  ofdstream debug_stream(debug_filedes[1]);
-#else
+#else // !__GLIBCPP__
 	  std::ofstream debug_stream(debug_filedes[1]);
-#endif
+#endif // !__GLIBCPP__
 	  Debug( libcw_do.set_margin(std::string(prog_name) + ": ") );
 	  Debug( libcw_do.set_ostream(&debug_stream) );
-	  Debug( libcw_do.on() );
-#endif
+#endif // CWDEBUG
 	  // Child process
+	  Debug( libcw_do.on() );
 	  Dout(dc::system, "fork() = 0 [child process]");
 	  ret = close(stdout_filedes[0]);
 	  Dout(dc::system|cond_error_cf(ret == -1), "close(" << stdout_filedes[0] << ") = " << ret);
@@ -320,7 +320,7 @@ namespace libcw {
       Dout(dc::finish, ret);
       Debug(
 	if (!dc::debug.is_on())
-	  libcw_do.on()
+	  libcw_do.on();
       );
       return ret;
     }

@@ -969,10 +969,9 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
       internal = false;
     }
 #ifdef CWDEBUG
-    else
 #ifdef __GLIBCPP__
     // "ios_base" is always initialized for libstdc++ version 2.
-        if (!_internal_::ios_base_initialized && !_internal_::inside_ios_base_Init_Init())
+    if (!_internal_::ios_base_initialized && !_internal_::inside_ios_base_Init_Init())
 #endif // __GLIBCPP__
     {
       initialization_state = 1;			// initialize_globals() calls malloc again of course.

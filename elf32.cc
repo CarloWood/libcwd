@@ -193,6 +193,7 @@ long bfd_ct::get_symtab_upper_bound(void)
   M_input_stream.rdbuf()->pubseekpos(M_header.e_shoff);
   M_section_headers = new Elf32_Shdr [M_header.e_shnum];
   M_input_stream.read(reinterpret_cast<char*>(M_section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
+  Dout(dc::bfd, "Number of section headers: " << M_header.e_shnum);
   return 0;
 }
 

@@ -1,9 +1,5 @@
 NODEBUGCHECK = nodebug
 TSTCHECK = alloctag basic bfd cf continued dc demangler do flush leak lockable_auto_ptr magic marker test_delete type_info undef
-SHAREDTSTTARGETS := $(patsubst %,tst_%_shared,$(TSTCHECK))
-STATICTSTTARGETS := $(patsubst %,tst_%_static,$(TSTCHECK))
-SHAREDNODEBUGTARGETS := $(patsubst %,nodebug_%_shared,$(NODEBUGCHECK))
-STATICNODEBUGTARGETS := $(patsubst %,nodebug_%_static,$(NODEBUGCHECK))
 
 srcdir = @srcdir@
 top_builddir = ..
@@ -28,6 +24,22 @@ INCLUDES = -Ilibcwd.tst -I- -I$(top_builddir)/include -I$(srcdir)/../include
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 DISTFILES = Makefile.in config lib libcwd.tst libcwd.nodebug
+
+ifeq ($(enable_shared), yes)
+SHAREDTSTTARGETS := $(patsubst %,tst_%_shared,$(TSTCHECK))
+SHAREDNODEBUGTARGETS := $(patsubst %,nodebug_%_shared,$(NODEBUGCHECK))
+else
+SHAREDTSTTARGETS :=
+SHAREDNODEBUGTARGETS :=
+endif
+
+ifeq ($(enable_static), yes)
+STATICTSTTARGETS := $(patsubst %,tst_%_static,$(TSTCHECK))
+STATICNODEBUGTARGETS := $(patsubst %,nodebug_%_static,$(NODEBUGCHECK))
+else
+STATICTSTTARGETS :=
+STATICNODEBUGTARGETS :=
+endif
 
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
 CXXLINK = $(CXX) $(CXXFLAGS) $(LDFLAGS)
@@ -66,14 +78,14 @@ check: site.exp
 # Provide rules for manual compilation:
 dummy:
 
-tst_%.o: libcwd.tst/%.cc dummy
+tst_%.o: libcwd.tst/%.cc Makefile $(top_builddir)/include/libcw/*.h
 	$(CXXCOMPILE) -c $< -o $@
 
-nodebug_%.o: libcwd.nodebug/%.cc dummy
+nodebug_%.o: libcwd.nodebug/%.cc Makefile $(top_builddir)/include/libcw/*.h
 	$(CXXCOMPILE) -c $< -o $@
 
 ifeq ($(enable_shared), yes)
-%_shared: %.o
+%_shared: %.o $(top_builddir)/.libs/libcwd.so.*
 	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
 endif
 
@@ -81,6 +93,12 @@ ifeq ($(enable_static), yes)
 %_static: %.o $(top_builddir)/.libs/libcwd.a
 	$(CXXLINK) $< -o $@ $(STATICLIBS)
 endif
+
+shared: $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS)
+static: $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS)
+
+run: shared static
+	@for i in $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS); do echo -n "$$i: "; if $$i 2>/dev/null >/dev/null; then echo "OK"; else echo "ERROR"; fi ; done
 
 # Clean rules
 mostlyclean:
