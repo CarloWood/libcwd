@@ -161,9 +161,12 @@ char const* continued_func(unsigned int what)
   if (--what == 0)
     return "BOTTOM";
   Dout( dc::run|continued_cf, "1" );
-  Dout( dc::foo, nested_foo(what & 1, what & 2) << what << continued_func(what) << what << nested_foo(what & 2, what & 1));
+  // The order of evaluation of x() and y() in f(x(), y()) is undetermined,
+  // therefore we call the recursive functions outside the << << <<, forcing
+  // a fixed order.
+  Dout( dc::foo, ""; char const* str3 = nested_foo(what & 2, what & 1); char const* str2 = continued_func(what); char const* str1 = nested_foo(what & 1, what & 2); (*NAMESPACE_LIBCW_DEBUG::libcw_do.current_oss) << str1 << what << str2 << what << str3 );
   Dout( dc::continued, "2" );
-  Dout( dc::foo, nested_foo(what & 1, what & 2) << what << continued_func(what) << what << nested_foo(what & 2, what & 1));
+  Dout( dc::foo, ""; char const* str3 = nested_foo(what & 2, what & 1); char const* str2 = continued_func(what); char const* str1 = nested_foo(what & 1, what & 2); (*NAMESPACE_LIBCW_DEBUG::libcw_do.current_oss) << str1 << what << str2 << what << str3 );
   Dout( dc::finish, "3" );
   return ":";
 }
