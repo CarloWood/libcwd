@@ -1,3 +1,11 @@
+libcwd-0.99.22
+
+        Bug fixes:
+
+	Using error_cf while interrupting continued_cf debug
+	output could cause errno to be set to EINTR before
+	printing the error message, in threaded applications.
+
 libcwd-0.99.21
 
 	The library now compiles with g++ version 3.1 and

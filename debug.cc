@@ -811,6 +811,7 @@ void allocator_unlock(void)
       // Generating the "prefix: <continued>" is already taken care of while generating the "<unfinished>" (see next `if' block).
       if ((channel_set.mask & (continued_maskbit|finish_maskbit)))
       {
+	current->err = errno;				// Always keep the last errno as set at the start of LibcwDout()
 	if (!(current->mask & continued_expected_maskbit))
 	{
 	  std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
@@ -849,7 +850,6 @@ void allocator_unlock(void)
         current->mask = channel_set.mask;		// New bits might have been added
 	if ((current->mask & finish_maskbit))
 	  current->mask &= ~continued_expected_maskbit;
-	current->err = errno;			// Always keep the last errno as set at the start of LibcwDout()
         return;
       }
 
@@ -864,6 +864,7 @@ void allocator_unlock(void)
 	//     (current->mask & continued_cf_maskbit) is false and this if is skipped.
 	LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
 #endif
+        int saved_errno = errno;				// The writeto below changes errno.
 	// Append <unfinished> to the current buffer.
 	current_oss->write("<unfinished>\n", 13);		// Continued debug output should end on a space by itself,
 	// And write out what is in the buffer till now.
@@ -871,7 +872,8 @@ void allocator_unlock(void)
 	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object);
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
 	static_cast<buffer_ct*>(current_oss)->restore_position();
-	current_oss->write("<continued> ", 12);		// therefore we repeat the space here.
+	current_oss->write("<continued> ", 12);			// therefore we repeat the space here.
+        errno = saved_errno;
       }
 
       // Is this a nested debug output (the first of a series in the middle of another debug output)?

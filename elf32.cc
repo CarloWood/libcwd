@@ -2127,15 +2127,9 @@ void objfile_ct::initialize(char const* file_name)
   M_input_stream = new std::ifstream;
   Debug( make_invisible(M_input_stream) );
   Debug( libcw_do.on() );
-  for(;;)
-  {
-    M_input_stream->open(file_name);
-    if (M_input_stream->good())
-      break;
-    if (errno != EINTR)
-      DoutFatal(dc::fatal|error_cf, "std::ifstream.open(\"" << file_name << "\")");
-    M_input_stream->clear();
-  }
+  M_input_stream->open(file_name);
+  if (!M_input_stream->good())
+    DoutFatal(dc::fatal|error_cf, "std::ifstream.open(\"" << file_name << "\")");
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   _private_::set_library_call_on(LIBCWD_TSD);
   *M_input_stream >> M_header;

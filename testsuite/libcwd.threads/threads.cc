@@ -1,4 +1,4 @@
-#define PREFIX_CODE set_margin(); int __res; for(int __i = 0; __i < 10; ++__i) {
+#define PREFIX_CODE set_margin(); int __res; for(int __i = 0; __i < 10000; ++__i) {
 #define EXIT(res) \
     __res = (res); \
     ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() ); \
