@@ -355,6 +355,7 @@ void internal_strstreambuf_free(void* ptr)
 }
 #endif
 
+#if CWDEBUG_ALLOC
 void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal)
 {
   char buf[32];			// 32 > x where x is the number of digits of the largest unsigned long.
@@ -377,6 +378,7 @@ void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal
   }
   os->write(p, &buf[32] - p);
 }
+#endif
 
 void smart_ptr::decrement(LIBCWD_TSD_PARAM)
 {
@@ -1294,31 +1296,41 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
       if (a_type[s - 1] == '*' && type_info_ptr->ref_size() != 0)
       {
 	__libcwd_tsd.internal = 1;
-	_private_::internal_stringstream* buf = new _private_::internal_stringstream;
+	char* buf = new char [s + 34];	// s-1 + '[' + 32 + ']' + '\0'.
 	if (a_memblk_type == memblk_type_new || a_memblk_type == memblk_type_deleted)
 	{
 	  if (s > 1 && a_type[s - 2] == ' ')
-	    buf->write(a_type, s - 2);
+	  {
+	    std::strncpy(buf, a_type, s - 2);
+	    buf[s - 2] = 0;
+	  }
 	  else
-	    buf->write(a_type, s - 1);
+	  {
+	    std::strncpy(buf, a_type, s - 1);
+	    buf[s - 1] = 0;
+	  }
 	}
 	else /* if (a_memblk_type == memblk_type_new_array || a_memblk_type == memblk_type_deleted_array) */
 	{
-	  buf->write(a_type, s - 1);
+	  std::strncpy(buf, a_type, s - 1);
 	  // We can't use operator<<(ostream&, int) because that uses std::alloc.
-	  buf->put('[');
-	  _private_::no_alloc_print_int_to(buf, a_size / type_info_ptr->ref_size(), false);
-	  buf->put(']');
+	  buf[s - 1] = '[';
+	  unsigned long val = a_size / type_info_ptr->ref_size();
+	  char intbuf[32];	// 32 > x where x is the number of digits of the largest unsigned long.
+	  char* p = &intbuf[32];
+	  do
+	  {
+	    int digit = val % 10;
+	    *--p = (char)('0' + digit);
+	    val /= 10;
+	  }
+	  while(val > 0);
+	  std::strncpy(buf + s, p, &intbuf[32] - p);
+	  buf[s + &intbuf[32] - p] = ']';
+	  buf[s + &intbuf[32] - p + 1] = 0;
 	}
-#ifdef LIBCWD_USE_STRSTREAM
-	buf->put('\0');
-	DoutInternalDo( debug_object, dc::continued, buf->str() );
-	buf->freeze(0);
-#else
-	buf->put('\0');
-	DoutInternalDo( debug_object, dc::continued, buf->str().data() );
-#endif
-	delete buf;
+	DoutInternalDo( debug_object, dc::continued, buf );
+	delete [] buf;
 	__libcwd_tsd.internal = 0;
       }
       else
