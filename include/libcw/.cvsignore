@@ -2,3 +2,4 @@ config.h.in
 config.h
 debug_config.h
 stamp-h
+sys.h
