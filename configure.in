@@ -328,7 +328,7 @@ fi
 dnl Generate include/libcw/debug_config.h and include/libcw/sys.h, preserving timestamp when they are not changed.
 AC_OUTPUT_COMMANDS([
 cd include/libcw
-if echo "$CONFIG_FILES" | grep debug_config.ho; then
+if echo "$CONFIG_FILES" | grep debug_config.ho > /dev/null; then
   if cmp -s debug_config.h debug_config.ho 2> /dev/null; then
     echo "debug_config.h is unchanged"
   else
@@ -336,7 +336,7 @@ if echo "$CONFIG_FILES" | grep debug_config.ho; then
     cp debug_config.ho debug_config.h
   fi
 fi
-if echo "$CONFIG_FILES" | grep sys.ho; then
+if echo "$CONFIG_FILES" | grep sys.ho >/dev/null; then
   if cmp -s sys.h sys.ho 2> /dev/null; then
     echo "sys.h is unchanged"
   else
