@@ -203,7 +203,7 @@ cat >> conftest.$ac_ext <<EOF
 int main(void)
 {
   foo($1);
-  return 0;
+  exit(0);
 }
 EOF
 save_CXXFLAGS="$CXXFLAGS"
