@@ -66,6 +66,10 @@ void* thread_function(void* arguments)
   return (void*)true;
 }
 
+#ifdef CWDEBUG
+pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 int main(void)
 {
   // Don't output a single character at a time (yuk)
@@ -74,9 +78,6 @@ int main(void)
   // Do header files and library match?
   Debug( check_configuration() );
   // Send debug output to std::cout.
-#ifdef CWDEBUG
-  pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
   Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
   // Turn debug object on.
   Debug( libcw_do.on() );
