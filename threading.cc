@@ -293,8 +293,6 @@ void TSD_st::cleanup_routine(void)
     TSD_st* static_tsd = allocate_static_tsd(tid);
     std::memcpy(static_tsd, this, sizeof(TSD_st));		// Save a copy of the TSD.
     static_tsd->terminated = ++terminated_count;
-    std::cout << pthread_self() << ": Thread with tid " << static_tsd->tid <<
-        " terminated.  TSD pointer = " << (void*)static_tsd << "\n";
     mutex_tct<static_tsd_instance>::unlock();
     pthread_setcanceltype(oldtype, NULL);
     this->internal = 1;

@@ -12,16 +12,12 @@ namespace debug_channels {
 }
 #endif
 
-int const loopsize = 50;
+int const loopsize = 1000;
 int const number_of_threads = 10;
 int const number_of_threads2 = 10;
 
 void* thread_function2(void* arguments)
 {
-  std::cout << pthread_self() << ": Entering thread_function2\n";
-  LIBCWD_TSD_DECLARATION;
-  std::cout << pthread_self() << ": tid is set to " << __libcwd_tsd.tid <<
-      " and tsd pointer is " << (void*)&__libcwd_tsd << "\n";
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   Debug( libcw_do.on() );
   Dout(dc::hello, "THIS SHOULD NOT BE PRINTED! (tf2)");
@@ -32,10 +28,6 @@ void* thread_function2(void* arguments)
 
 void* thread_function(void* arguments)
 {
-  std::cout << pthread_self() << ": Entering thread_function\n";
-  LIBCWD_TSD_DECLARATION;
-  std::cout << pthread_self() << ": tid is set to " << __libcwd_tsd.tid <<
-      " and tsd pointer is " << (void*)&__libcwd_tsd << "\n";
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   pthread_t thread_id[number_of_threads2];
   // Set Thread Specific on/off flags of the debug channels.
