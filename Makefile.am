@@ -38,5 +38,6 @@ dist-hook:
 	for i in `grep '^/' example-project/CVS/Entries | cut -d/ -f2`; do \
 	  cp -p $(srcdir)/example-project/$$i $(distdir)/example-project; \
 	done
+	chmod +x $(distdir)/install-sh
 
 @MAINTAINER_MODE_TRUE@include maintMakefile
