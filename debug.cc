@@ -71,13 +71,13 @@ namespace _private_ {
 
 #if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
 // The following tries to take the "node allocator" lock -- the lock of the
-// default allocator for threaded applications. The parameter is the value to
-// return when no lock exist. This should probably be implemented as a macro
-// test instead.
+// default allocator for threaded applications.
 __inline__
 bool allocator_trylock(void)
 {
+#if (__GNUC__ < 3 || __GNUC_MINOR__ == 0)
   if (!(__NODE_ALLOCATOR_THREADS)) return true;
+#endif
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
   if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
     std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
@@ -89,7 +89,9 @@ bool allocator_trylock(void)
 __inline__
 void allocator_unlock(void)
 {
+#if (__GNUC__ < 3 || __GNUC_MINOR__ == 0)
   if (!(__NODE_ALLOCATOR_THREADS)) return;
+#endif
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
   if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
     std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();

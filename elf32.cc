@@ -818,6 +818,7 @@ private:
   Elf32_Word M_dwarf_debug_info_section_index;
   Elf32_Word M_dwarf_debug_abbrev_section_index;
   Elf32_Word M_dwarf_debug_line_section_index;
+  Elf32_Word M_dwarf_debug_str_section_index;
   static uint32_t const hash_table_size = 2049;		// Lets use a prime number.
   hash_list_st** M_hash_list;
 public:
@@ -1159,6 +1160,7 @@ void objfile_ct::load_dwarf(void)
     LIBCWD_ASSERT( M_sections[M_dwarf_debug_line_section_index].section_header().sh_entsize == 0 );
     LIBCWD_ASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
     LIBCWD_ASSERT( M_sections[M_dwarf_debug_abbrev_section_index].section_header().sh_entsize == 0 );
+    LIBCWD_ASSERT( M_dwarf_debug_str_section_index == 0 || M_sections[M_dwarf_debug_str_section_index].section_header().sh_entsize == 0 );
     // Initialization of debug variable.
     total_length = 0;
   }
@@ -1171,6 +1173,11 @@ void objfile_ct::load_dwarf(void)
   // Start of .debug_line section.
   unsigned char* debug_line = (unsigned char*)allocate_and_read_section(M_dwarf_debug_line_section_index);
   unsigned char const* debug_line_ptr;
+  // Start of .debug_str section.
+#if __GNUC__ == 3 && __GNUC_MINOR__ >= 1
+  // Previous compiler versions don't use DW_FORM_strp.
+  unsigned char* debug_str = (unsigned char*)allocate_and_read_section(M_dwarf_debug_str_section_index);
+#endif
 
   // Run over all compilation units.
   for (unsigned char const* debug_info_ptr = debug_info; debug_info_ptr < debug_info_end;)
@@ -1308,27 +1315,39 @@ void objfile_ct::load_dwarf(void)
 	      found_stmt_list = true;
 	      continue;
 	    }
-	    else if (attr->attr == DW_AT_name)
+	    else if (attr->attr == DW_AT_name || attr->attr == DW_AT_comp_dir)
 	    {
-	      LIBCWD_ASSERT( form == DW_FORM_string );
-	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
-	      if (*debug_info_ptr == '/')
-		default_dir.erase();
-	      default_source.assign(reinterpret_cast<char const*>(debug_info_ptr));
-	      default_source += '\0';
-	      while(*debug_info_ptr++);
-	      continue;
-	    }
-	    else if (attr->attr == DW_AT_comp_dir)
-	    {
-	      LIBCWD_ASSERT( form == DW_FORM_string );
-	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
-	      if (*debug_info_ptr != '/')
+	      char const* str;
+#if __GNUC__ == 3 && __GNUC_MINOR__ >= 1
+	      if (form == DW_FORM_strp)
 	      {
-		default_dir.assign(reinterpret_cast<char const*>(debug_info_ptr));
-		default_dir += '/';
+		LIBCWD_ASSERT( M_dwarf_debug_str_section_index );
+	        str = reinterpret_cast<char const*>(debug_str + *reinterpret_cast<unsigned int const*>(debug_info_ptr));
+	        debug_info_ptr += 4;
 	      }
-	      while(*debug_info_ptr++);
+	      else
+#endif
+	      {
+		LIBCWD_ASSERT( form == DW_FORM_string );
+	        str = reinterpret_cast<char const*>(debug_info_ptr);
+	        while(*debug_info_ptr++);
+	      }
+	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << str << '"');
+	      if (attr->attr == DW_AT_comp_dir)
+	      {
+		if (*str != '/')
+		{
+		  default_dir.assign(str);
+		  default_dir += '/';
+		}
+	      }
+	      else
+	      {
+		if (*str == '/')
+		  default_dir.erase();
+		default_source.assign(str);
+		default_source += '\0';
+	      }
 	      continue;
 	    }
 	  }
@@ -1442,8 +1461,11 @@ indirect:
 	      debug_info_ptr += address_size;
 	      break;
 	    case DW_FORM_strp:
-	      DoutDwarf(dc::finish, *reinterpret_cast<unsigned int const*>(debug_info_ptr));
+#if DEBUGDWARF
+	      unsigned int pos = *reinterpret_cast<unsigned int const*>(debug_info_ptr);
+#endif
 	      debug_info_ptr += 4;
+	      DoutDwarf(dc::finish, pos << " (\"" << &debug_str[pos] << "\")");
 	      break;
 	  }
 	}
@@ -2133,6 +2155,7 @@ objfile_ct::objfile_ct(char const* file_name) :
 #endif
   M_stabs_section_index = 0;
   M_dwarf_debug_line_section_index = 0;
+  M_dwarf_debug_str_section_index = 0;
   for(int i = 0; i < M_header.e_shnum; ++i)
   {
     if (DEBUGELF32 && section_headers[i].sh_name)
@@ -2155,6 +2178,8 @@ objfile_ct::objfile_ct(char const* file_name) :
       M_dwarf_debug_abbrev_section_index = i;
     else if (!strcmp(M_sections[i].name, ".debug_info"))
       M_dwarf_debug_info_section_index = i;
+    else if (!strcmp(M_sections[i].name, ".debug_str"))
+      M_dwarf_debug_str_section_index = i;
     if ((section_headers[i].sh_type == SHT_SYMTAB || section_headers[i].sh_type == SHT_DYNSYM)
         && section_headers[i].sh_size > 0)
     {

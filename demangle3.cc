@@ -440,7 +440,7 @@ namespace {
   // <seq-id> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z [<seq-id>]	# Base 36 number
   //
   // {anonymous}::
-  bool demangler_ct::decode_substitution(internal_string& output, qualifiers_ct* qualifiers = NULL)
+  bool demangler_ct::decode_substitution(internal_string& output, qualifiers_ct* qualifiers)
   {
     DoutEntering("decode_substitution");
     unsigned int value = 0;
@@ -612,7 +612,7 @@ namespace {
   //                  ::= T <parameter-2 non-negative number> _
   //
   // {anonymous}::
-  bool demangler_ct::decode_template_param(internal_string& output, qualifiers_ct* qualifiers = NULL)
+  bool demangler_ct::decode_template_param(internal_string& output, qualifiers_ct* qualifiers)
   {
     DoutEntering("decode_template_parameter");
     if (current() != 'T')
@@ -1190,7 +1190,7 @@ namespace {
 
   //
   // {anonymous}::
-  bool demangler_ct::decode_type(internal_string& output, qualifiers_ct* qualifiers = NULL)
+  bool demangler_ct::decode_type(internal_string& output, qualifiers_ct* qualifiers)
   {
     DoutEntering("decode_type");
     ++M_inside_type;

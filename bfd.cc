@@ -1272,7 +1272,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       S_id = M_id;
     }
 
-    ooam_filter_ct::ooam_filter_ct(ooam_format_t flags = 0) : M_flags(flags), M_start(no_time_limit), M_end(no_time_limit)
+    ooam_filter_ct::ooam_filter_ct(ooam_format_t flags) : M_flags(flags), M_start(no_time_limit), M_end(no_time_limit)
     {
       LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
       ACQUIRE_LISTALLOC_LOCK;
