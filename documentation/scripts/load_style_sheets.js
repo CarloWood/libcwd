@@ -54,7 +54,7 @@ with (document)
     }
   }
 
-  // See http://devedge.netscape.com/evangelism/docs/api/xbDebug/
+  // http://devedge.netscape.com/toolbox/examples/2002/xb/xbDebug/
   //xbDEBUG.push();
   //xbDEBUG.dump("styles_path = " + styles_path);
   //xbDEBUG.pop();
