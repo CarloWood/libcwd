@@ -1,5 +1,9 @@
 libcwd-0.99.5
 
+	The prototype of libcw_bfd_pc_location was changed from
+	location_st libcw_bfd_pc_location(void const* addr) into
+	void libcw_bfd_pc_location(location_st& result, void const* addr).
+
 	Support for openBSD was finished: it is now possible to
 	compile a static library.  Unfortunately, it is still not
 	possible to compile a shared library on this OS.
@@ -9,6 +13,24 @@ libcwd-0.99.5
 	"DoutFatal(dc::fatal|error_cf, ...".
 
 	Added support for libtool-1.3c and higher (cvs developer version).
+
+	Bug fixes:
+
+	Fixed a problem related to reentrance of bfd_find_nearest_line
+	(of libbfd) under certain circumstances, causing a copy of
+	uninitialized memory.
+
+	Removed a few compile warnings for g++-2.96.
+
+	The order of debug channels in a `ForAllDebugChannels' is no
+	longer dependant of the order of initialisation of the global
+	debug channel objects (they are now alphabetically ordered on
+	label).
+
+	Fixed the generation of nodebug.h in the example project to remove
+	the replacement-lists too after turning #defines into #undef.
+
+	Now using the namespace of std::type_info in libcw/type_info.h.
 
 libcwd-0.99.4
 
