@@ -21,6 +21,9 @@
 
 // Defined when memory access need to be aligned to sizeof(size_t) bytes alignment.
 #undef LIBCWD_NEED_WORD_ALIGNMENT
+
+// Defined when both -lpthread and pthread.h could be found.
+#undef LIBCWD_HAVE_PTHREAD
 @BOTTOM@
 
 #endif // LIBCW_CONFIG_H

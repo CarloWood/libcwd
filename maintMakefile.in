@@ -60,7 +60,7 @@ test-values:
 	@echo "PREVTAG  = \"$(PREVTAG)\""
 
 ## Make sure the ChangeLog is up to date in maintainer mode
-.PHONY: tar rpm ChangeLog
+.PHONY: tar rpm ChangeLog reconfig
 
 tar:
 	$(MAKE) dist
@@ -69,6 +69,9 @@ tar:
 rpm: tar $(SPECFILE)
 	cd rpm; rpm --rcfile=/usr/lib/rpm/rpmrc:rpmrc --target=$(TARGET) --sign --clean -ba ../$(SPECFILE)
 
+reconfig: $(top_builddir)/config.status
+	$(top_builddir)/config.status
+	
 $(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
 	if test $(CVSWRITEACCESS) = yes; then \
 	  (cd $(srcdir); cvs commit $(SPECFILE).in); \
