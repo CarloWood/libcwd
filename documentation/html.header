@@ -7,7 +7,7 @@
 <META name="keywords" content="libcwd, debug output, debug facility, debug channel, object orientation, OO, C++, nested debug output, ostream, memory allocation, debugging, source file and line number">
 <META http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <META http-equiv="content-script-type" content="text/javascript">
-<TITLE>libcwd: The C++ Debugging Library - Reference Manual</TITLE>
+<TITLE>libcwd: The C++ Debugging Support Library - Reference Manual</TITLE>
 <SCRIPT src="../scripts/detect_browser.js"></SCRIPT>
 <SCRIPT>need_style_doxygen=1</SCRIPT>
 <SCRIPT src="../scripts/load_style_sheets.js"></SCRIPT>

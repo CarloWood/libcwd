@@ -159,9 +159,9 @@ documentation: example-project/debug.h
 
 syncwww: documentation
 	@echo "Synchronizing with libcwd.sourceforge.net..."
-	rsync -v -rlptz -e /usr/bin/ssh --delete --exclude-from=documentation/www/exclude --delete-excluded \
+	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=documentation/www/exclude --delete-excluded \
 		/home/carlo/c++/libcwd/documentation/ libcw:"~/libcwd.www/htdocs"
 	@echo "Synchronizing with www.xs4all.nl..."
-	rsync -v -rlptz -e /usr/bin/ssh --delete --exclude-from=documentation/www/exclude --delete-excluded \
+	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=documentation/www/exclude --delete-excluded \
 		/home/carlo/c++/libcwd/documentation/ xs4:"~/WWW/libcwd"
 

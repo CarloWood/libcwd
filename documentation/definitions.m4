@@ -5,7 +5,7 @@ define(__HTMLHEADER, [[<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional/
 <META name="Author" content="Carlo Wood">
 <META http-equiv="content-type" content="text/html; charset=iso-8859-1">
 <META http-equiv="content-script-type" content="text/javascript">
-<TITLE>libcwd: The C++ Debugging Support Library</TITLE>
+<TITLE>libcwd: The C++ Debugging Support Library - Tutorial</TITLE>
 <SCRIPT SRC="../scripts/detect_browser.js"></SCRIPT>
 ifdef([[__DOXYGEN]], [[<SCRIPT>need_style_doxygen=1</SCRIPT>
 ]])dnl
