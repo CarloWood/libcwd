@@ -15,7 +15,6 @@
 #include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
-#undef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
 #include <libcw/return_address.h>
 
 RCSTAG_CC("$Id$")
