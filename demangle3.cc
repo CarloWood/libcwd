@@ -678,7 +678,11 @@ implementation_details::decode_real(char* output, unsigned long* input, size_t s
   return true;
 }
 
+#if CWDEBUG_ALLOC
 typedef __gnu_cxx::demangler::session<internal_allocator> session_type;
+#else
+typedef __gnu_cxx::demangler::session<std::allocator<char> > session_type;
+#endif
 
 //
 // demangle_symbol

@@ -20,6 +20,7 @@
 #include <libcwd/private_threading.h>
 #endif
 #include <sys/types.h>
+#include <sys/time.h>
 #include <regex.h>
 #include <libcwd/class_function.h>
 

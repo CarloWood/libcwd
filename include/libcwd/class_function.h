@@ -141,8 +141,12 @@ public:
 // with an existing chunk, insert() will return a pair<..., bool> with
 // the boolean set to false.
 
+#if CWDEBUG_ALLOC
 typedef std::map<FunctionChunkKey, FunctionInstance*, std::less<FunctionChunkKey>,
     _private_::internal_allocator::rebind<FunctionChunk>::other> FunctionChunkMap;
+#else
+typedef std::map<FunctionChunkKey, FunctionInstance*, std::less<FunctionChunkKey> > FunctionChunkMap;
+#endif
 extern FunctionChunkMap functionChunkMap;
 
 // The remaining information for the function root instance.
@@ -165,8 +169,12 @@ public:
 // The functionRootsMap contains all function roots.  The key used is the mangled name
 // of the function, causing each function root to be added to the map at most once.
 
+#if CWDEBUG_ALLOC
 typedef std::map<FunctionRootInstanceKey, FunctionRootInstanceInfo, std::less<FunctionRootInstanceKey>,
     _private_::internal_allocator::rebind<FunctionRootInstance>::other> FunctionRootsMap;
+#else
+typedef std::map<FunctionRootInstanceKey, FunctionRootInstanceInfo, std::less<FunctionRootInstanceKey> > FunctionRootsMap;
+#endif
 
 FunctionRootInstance const*
 FunctionInstance::root(void) const

@@ -39,7 +39,11 @@ private:
 public:
   // Dirty initialization - the idea is to decouple us here from the rest of elf32.cc and bfd.cc.
   // These four are called once, from elf32.cc.
+#if CWDEBUG_ALLOC
   typedef std::basic_string<char, std::char_traits<char>, _private_::object_files_allocator> object_files_string;
+#else
+  typedef std::string object_files_string;
+#endif
   typedef uint32_t Elf32_Addr;	// See elf32.h.
   void set_lowpc(Elf32_Addr lowpc)
       { M_lowpc = reinterpret_cast<void const*>(lowpc); }

@@ -1973,6 +1973,7 @@ namespace libcw {
   } // namespace debug
 } // namespace libcw
 
+#if CWDEBUG_ALLOC
 extern "C" {
 
 static int debug_alloc(void const* ptr) __attribute__ ((unused));
@@ -2045,3 +2046,4 @@ static int debug_alloc(void const* ptr)
 }
 
 } // extern "C"
+#endif // CWDEBUG_ALLOC

@@ -193,10 +193,12 @@ TSD_st& TSD_st::S_create(int from_free)
 #endif
     initialize_global_mutexes();
     threading_tsd_init(*static_tsd);		// Initialize the TSD of stuff that goes in threading.cc.
+#if CWDEBUG_ALLOC
     // Initialize libcwd now, before calling pthread_setspecific() below.
     // Otherwise the call to calloc() by pthread_setspecific might cause initialization of static_tsd
     // while its contents have already been copied to real_tsd, causing this initialization to get lost.
     init_debugmalloc();
+#endif
   }
   else
   {
@@ -287,9 +289,13 @@ void TSD_st::cleanup_routine(void)
 	do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
 	do_array[i] = NULL;			// So we won't free it again.
 	ptr->tsd_initialized = false;
+#if CWDEBUG_ALLOC
 	internal = 1;
+#endif
 	delete ptr;				// Free debug object TSD.
+#if CWDEBUG_ALLOC
 	internal = 0;
+#endif
       }
 
     int oldtype;
@@ -304,11 +310,15 @@ void TSD_st::cleanup_routine(void)
 
     pthread_setspecific(S_tsd_key, (void*)0);	// Make sure that instance_free() won't use the KEY anymore!
     // Then we can savely delete the current TSD.
+#if CWDEBUG_ALLOC
     static_tsd->internal = 1;			// We can't call set_alloc_checking_off, because with --enable-debugm
     						// that will do a LIBCWD_TSD_DECLARATION, causing a new key
 						// to be generated.
+#endif
     delete this;
+#if CWDEBUG_ALLOC
     static_tsd->internal = 0;
+#endif
   }
 }
 
