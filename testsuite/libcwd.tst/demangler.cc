@@ -20,7 +20,8 @@ char const* test_cases [] = {
    "SKIPPED",
    "_X11TransParseAddress",
    "_t13_Alloc_traits2Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1ZQ45libcw5debug9_private_t17allocator_adaptor3Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1Zt24__default_alloc_template2b0i327664b1._S_instanceless",
-   "_GLOBAL_.I.fn__Fv"
+   "_GLOBAL_.I.fn__Fv",
+   "r__FPM1GCFPC1G_i"
 };
 #else
 char const* test_cases [] = {
@@ -37,7 +38,8 @@ char const* test_cases [] = {
    "_ZngILi42EEvN1AIXplT_Li2EEE1TE",
    "_X11TransParseAddress",
    "_ZNSt13_Alloc_traitsISbIcSt18string_char_traitsIcEN5libcw5debug9_private_17allocator_adaptorIcSt24__default_alloc_templateILb0ELi327664EELb1EEEENS5_IS9_S7_Lb1EEEE15_S_instancelessE",
-   "_GLOBAL__I__Z2fnv"
+   "_GLOBAL__I__Z2fnv",
+   "_Z1rM1GKFivE"
 };
 #endif
 
@@ -399,6 +401,43 @@ void q(void)
     >
   > dummy1;
   x = dummy1._S_instanceless;
+}
+
+// _Z1rM1GKFivE
+
+struct G {
+  int m(void) const { return 0; }
+  int n(void) { return 0; }
+};
+
+struct H {
+  int m(void) const { return 0; }
+  int n(void) { return 0; }
+};
+
+template<typename T>
+  class what
+  {
+  };
+
+template<typename T>
+  class what2
+  {
+  };
+
+void r(int (G::*)(void),
+       int (G::*)(void) const,
+       G, /* S_ */
+       int (H::*)(void), /* M1HS0_ */
+       int (G::*)(void), /* S1_ */
+       what<G const>, /* what<S2_> */
+       what2<G const>, /* what2<S2_> */
+       int (G::*)(void) const /* S3_ */)
+{
+  G g;
+  what<G const> y;
+  what2<G const> y2;
+  r(&G::n, &G::m, g, &H::n, &G::n, y, y2, &G::m);
 }
 
 #endif // INSTANTIATE

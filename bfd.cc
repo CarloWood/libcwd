@@ -69,7 +69,7 @@ extern link_map* _dl_loaded;
 #if CWDEBUG_LIBBFD
 #if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
 // libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
-// for `long long'.  If you run into this error (and you insist on use libbfd) then either recompile
+// for `long long'.  If you run into this error (and you insist on using libbfd) then either recompile
 // libstdc++ with support for `long long' or recompile libbfd without 64bit support.
 #error "Incompatible libbfd and libstdc++ (see comments in source code)."
 #endif
@@ -378,7 +378,7 @@ void bfd_close(bfd* abfd)
 	  size_t s_end_vma = 0;
 	  // Throw away symbols that can endanger determining the size of functions
 	  // like: local symbols, debugging symbols.  Also throw away all symbols
-	  // in uninteresting sections, so safe time with sorting.
+	  // in uninteresting sections to safe time with sorting.
 	  // Also try to find symbol _end to determine the size of the bfd.
 	  asymbol** se = &symbol_table[number_of_symbols - 1];
 	  for (asymbol** s = symbol_table; s <= se;)
@@ -505,10 +505,10 @@ void bfd_close(bfd* abfd)
 		number_of_symbols = 0;
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = 0;
+#endif
 		::dlclose(handle);
+#if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = saved_internal;
-#else
-		::dlclose(handle);
 #endif
 		return;
 	      }

@@ -1,3 +1,11 @@
+libcwd-1.0.0
+
+	Final release.
+
+	Bug fixes:
+
+	Configuration with --disable-alloc was still broken on SunOS.
+
 libcwd-0.99.27
 
 	Bug fixes:

@@ -8,7 +8,7 @@
 # GNU which-2.x
 # GNU date
 # awk
-# rpm-4.x (RedHat-7.x)
+# rpm-4.1 (RedHat-8)
 # rcs2log
 # cut
 # grep
@@ -75,7 +75,7 @@ test-values:
 
 rpm: dist $(SPECFILE) $(LSMFILE)
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
-	cd rpm; rpm --rcfile=/usr/lib/rpm/rpmrc:rpmrc --sign --clean -ba ../$(SPECFILE)
+	cd rpm; rpmbuild --rcfile=/usr/lib/rpm/rpmrc:rpmrc --sign --clean -ba ../$(SPECFILE)
 
 reconfig: $(top_builddir)/config.status
 	$(top_builddir)/config.status --recheck

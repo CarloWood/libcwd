@@ -52,9 +52,15 @@ STATICNODEBUGTARGETS :=
 STATICTHREADSTARGETS :=
 endif
 ifeq ($(enable_threads), yes)
+ifeq ($(enable_static), yes)
 SHAREDTARGETS := $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(SHAREDTHREADSTARGETS)
 EXPECT_SCRIPTS = nodebug.exp threads.exp tst.exp
 MODULETARGETS = module.so module_r.so
+else
+SHAREDTARGETS := $(SHAREDTHREADSTARGETS)
+EXPECT_SCRIPTS = threads.exp
+MODULETARGETS = module_r.so
+endif
 else
 SHAREDTARGETS := $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS)
 EXPECT_SCRIPTS = nodebug.exp tst.exp
@@ -100,8 +106,10 @@ site.exp: Makefile
 check: site.exp $(MODULETARGETS)
 	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS) $(EXPECT_SCRIPTS)
 
+ifeq ($(enable_static), yes)
 module.so: module.cc $(top_builddir)/.libs/libcwd.so.*
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
+endif
 
 ifeq ($(enable_threads), yes)
 module_r.so: module.cc $(top_builddir)/.libs/libcwd_r.so.*
