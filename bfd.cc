@@ -1012,6 +1012,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
           static_string(void)
 	      {
 		value = new _private_::ST_string;
+		AllocTag2(value, "Full path and name of executable");
 	      }
 	  ~static_string()
 	      {

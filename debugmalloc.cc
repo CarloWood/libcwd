@@ -204,6 +204,12 @@ using libcw::debug::_private_::list_allocations_instance;
 #define ACQUIRE_LC_WRITE2READ_LOCK
 #endif // !_REENTRANT
 
+#if CWDEBUG_LOCATION
+#define LIBCWD_COMMA_LOCATION(x) , x
+#else
+#define LIBCWD_COMMA_LOCATION(x)
+#endif
+
 #ifdef LIBCW_DOXYGEN
 // Doxygen doesn't parse the define below.  On linux this evaluates to 0.
 #define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE 0
@@ -693,8 +699,9 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 
 class dm_alloc_base_ct : public alloc_ct {
 public:
-  dm_alloc_base_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, struct timeval const& t) :
-    alloc_ct(s, sz, type, ti, t) { }
+  dm_alloc_base_ct(void const* s, size_t sz, memblk_types_nt type,
+      type_info_ct const& ti, struct timeval const& t LIBCWD_COMMA_LOCATION(location_ct const* l))
+    : alloc_ct(s, sz, type, ti, t LIBCWD_COMMA_LOCATION(l)) { }
   void print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const;
 };
 
@@ -732,8 +739,8 @@ private:
   				// this object.
 
 public:
-  dm_alloc_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t) :		// MT-safe: write lock is set.
-      dm_alloc_base_ct(s, sz , f, unknown_type_info_c, t),
+  dm_alloc_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t LIBCWD_COMMA_LOCATION(location_ct const* l)) :		// MT-safe: write lock is set.
+      dm_alloc_base_ct(s, sz , f, unknown_type_info_c, t LIBCWD_COMMA_LOCATION(l)),
       next(*dm_alloc_ct::current_alloc_list), prev(NULL), a_next_list(NULL),
       my_list(dm_alloc_ct::current_alloc_list), my_owner_node(dm_alloc_ct::current_owner_node)
       {
@@ -863,7 +870,7 @@ private:
     // after this memblk_info_ct is deleted (dm_alloc_ct marked `is_deleted'),
     // when it still has allocated 'childeren' in `a_next_list' of its own.
 public:
-  memblk_info_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t);
+  memblk_info_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t LIBCWD_COMMA_LOCATION(location_ct const* l));
   void erase(LIBCWD_TSD_PARAM);
   void lock(void) { a_alloc_node.lock(); }
   void make_invisible(void);
@@ -1093,31 +1100,31 @@ void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COM
   LibcwDoutScopeBegin(channels, libcw_do, dc::continued);
   if (filter.M_flags & show_objectfile)
   {
-    object_file_ct const* object_file = M_location.object_file();
+    object_file_ct const* object_file = M_location->object_file();
     if (object_file)
       LibcwDoutStream << object_file->filename() << ':';
     else
       LibcwDoutStream << "<unknown object file>:";
   }
-  if (M_location.is_known())
+  if (M_location->is_known())
   {
     if (filter.M_flags & show_path)
     {
-      size_t len = M_location.filepath_length();
+      size_t len = M_location->filepath_length();
       if (len < 20)
 	LibcwDoutStream.write(twentyfive_spaces_c, 20 - len);
-      M_location.print_filepath_on(LibcwDoutStream);
+      M_location->print_filepath_on(LibcwDoutStream);
     }
     else
     {
-      size_t len = M_location.filename_length();
+      size_t len = M_location->filename_length();
       if (len < 20)
 	LibcwDoutStream.write(twentyfive_spaces_c, 20 - len);
-      M_location.print_filename_on(LibcwDoutStream);
+      M_location->print_filename_on(LibcwDoutStream);
     }
     LibcwDoutStream.put(':');
-    print_integer(LibcwDoutStream, M_location.line(), 1);
-    int l = M_location.line();
+    print_integer(LibcwDoutStream, M_location->line(), 1);
+    int l = M_location->line();
     int cnt = 0;
     while(l < 10000)
     {
@@ -1126,10 +1133,10 @@ void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COM
     }
     LibcwDoutStream.write(twentyfive_spaces_c, cnt);
   }
-  else if (M_location.mangled_function_name() != unknown_function_c)
+  else if (M_location->mangled_function_name() != unknown_function_c)
   {
     _private_::internal_string f;
-    demangle_symbol(M_location.mangled_function_name(), f);
+    demangle_symbol(M_location->mangled_function_name(), f);
     size_t s = f.size();
     LibcwDoutStream.write(f.data(), s);
     if (s < 25)
@@ -1263,8 +1270,9 @@ void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooa
 // memblk_ct methods
 //
 
-inline memblk_info_ct::memblk_info_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t) :	// MT-safe: write lock is set.
-    M_memblk_type(f), a_alloc_node(new dm_alloc_ct(s, sz, f, t)) {}
+inline memblk_info_ct::memblk_info_ct(void const* s, size_t sz,
+    memblk_types_nt f, struct timeval const& t LIBCWD_COMMA_LOCATION(location_ct const* l))
+  : M_memblk_type(f), a_alloc_node(new dm_alloc_ct(s, sz, f, t LIBCWD_COMMA_LOCATION(l))) { }	// MT-safe: write lock is set.
 
 void memblk_key_ct::printOn(std::ostream& os) const
 {
@@ -1533,7 +1541,8 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
   gettimeofday(&alloc_time, 0);
   ACQUIRE_WRITE_LOCK
   std::pair<memblk_map_ct::iterator, bool> const&
-      iter(memblk_map_write->insert(memblk_ct(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, flag, alloc_time))));
+      iter(memblk_map_write->insert(memblk_ct(memblk_key_ct(mptr, size),
+	      memblk_info_ct(mptr, size, flag, alloc_time LIBCWD_COMMA_LOCATION(loc)))));
   memblk_info = &(*iter.first).second;
 #if CWDEBUG_DEBUGM
   error = !iter.second;
@@ -1552,9 +1561,6 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 #endif
 
   memblk_info->lock();				// Lock ownership (doesn't call malloc).
-#if CWDEBUG_LOCATION
-  memblk_info->get_alloc_node()->location_reference() = *loc;
-#endif
 
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
   DoutInternal( dc::finish, (void*)(mptr) << " [" << saved_marker << ']' );
@@ -2479,6 +2485,7 @@ bool memblk_key_ct::selftest(void)
   memblk_map_ct map1;
   unsigned int cnt = 0;
   struct timeval alloc_time = { 0, 0 };
+  location_ct loc;
 
   long const interval_start = 100;
   long const interval_end = 200;
@@ -2497,7 +2504,7 @@ bool memblk_key_ct::selftest(void)
 	    continue;
 	  std::pair<memblk_map_ct::iterator, bool> const& p3(map1.insert(
 	      memblk_ct(memblk_key_ct((void*)start1, end1 - start1),
-	      memblk_info_ct((void*)start1, end1 - start1, memblk_type_malloc, alloc_time)) ));
+	      memblk_info_ct((void*)start1, end1 - start1, memblk_type_malloc, alloc_time, &loc)) ));
 	  if (p3.second)
 	    ++cnt;
 	  for (long start_or_end_start2 = interval_start;; start_or_end_start2 = interval_end)
@@ -2515,7 +2522,7 @@ bool memblk_key_ct::selftest(void)
                   memblk_map_ct map2;
 		  std::pair<memblk_map_ct::iterator, bool> const& p1(map2.insert(
                       memblk_ct(memblk_key_ct((void*)start1, end1 - start1),
-                      memblk_info_ct((void*)start1, end1 - start1, memblk_type_malloc, alloc_time)) ));
+                      memblk_info_ct((void*)start1, end1 - start1, memblk_type_malloc, alloc_time, &loc)) ));
                   if (!p1.second)
                     return true;
                   if ((*p1.first).first.start() != (void*)start1 || (*p1.first).first.end() != (void*)end1)
@@ -2523,7 +2530,7 @@ bool memblk_key_ct::selftest(void)
                   bool overlap = !((start1 < start2 && end1 <= start2) || (start2 < start1 && end2 <= start1));
 		  std::pair<memblk_map_ct::iterator, bool> const& p2(map2.insert(
                       memblk_ct(memblk_key_ct((void*)start2, end2 - start2),
-                      memblk_info_ct((void*)start2, end2 - start2, memblk_type_malloc, alloc_time)) ));
+                      memblk_info_ct((void*)start2, end2 - start2, memblk_type_malloc, alloc_time, &loc)) ));
                   if (overlap && p2.second || (!overlap && !p2.second))
                     return true;
 		  if (((*p2.first).first.start() < (void*)start2 && (*p2.first).first.end() <= (void*)start2) ||
@@ -2608,8 +2615,8 @@ void register_external_allocation(void const* mptr, size_t size)
   gettimeofday(&alloc_time, 0);
   std::pair<memblk_map_ct::iterator, bool> iter;
   LIBCWD_DEFER_CANCEL;
-  ACQUIRE_WRITE_LOCK
-  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_external, alloc_time));	// MT: memblk_info_ct() needs wrlock.
+  ACQUIRE_WRITE_LOCK	// MT: memblk_info_ct() needs wrlock.
+  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_external, alloc_time LIBCWD_COMMA_LOCATION(loc)));
   iter = memblk_map_write->insert(memblk);
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL;
@@ -2623,9 +2630,6 @@ void register_external_allocation(void const* mptr, size_t size)
 
   memblk_info_ct& memblk_info((*iter.first).second);
   memblk_info.lock();		// Lock ownership (doesn't call malloc).
-#if CWDEBUG_LOCATION
-  memblk_info.get_alloc_node()->location_reference().move(*loc);
-#endif
   --__libcwd_tsd.inside_malloc_or_free;
 }
 #endif // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
@@ -2972,8 +2976,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
   char const* d = (*iter).second.description().get();
   struct timeval realloc_time;
   gettimeofday(&realloc_time, 0);
-  ACQUIRE_READ2WRITE_LOCK
-  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_realloc, realloc_time));	// MT: memblk_info_ct() needs wrlock.
+  ACQUIRE_READ2WRITE_LOCK	// MT: memblk_info_ct() needs wrlock.
+  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_realloc, realloc_time LIBCWD_COMMA_LOCATION(loc)));
   memblk_map_write->erase(memblk_iter_write);
   std::pair<memblk_map_ct::iterator, bool> const& iter2(memblk_map_write->insert(memblk));
   if (!iter2.second)
@@ -2988,9 +2992,6 @@ void* __libcwd_realloc(void* ptr, size_t size)
   memblk_info.change_label(*t, d);
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
-#if CWDEBUG_LOCATION
-  memblk_info.get_alloc_node()->location_reference() = *loc;
-#endif
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
 

@@ -1,3 +1,17 @@
+libcwd-0.99.21
+
+	API changes:
+
+	location_ct::location_reference() has been removed.
+	This member function was only there because previously
+	we needed a delayed initialization of the location_ct
+	that is part of class alloc_ct, but since 0.99.19 we
+	use location caching and now the location in alloc_ct
+	was replaced with a pointer into this cache.
+	The write access (via location_reference) now had to
+	be removed because it is not thread-safe to allow the
+	user to write to the cached location objects.
+
 libcwd-0.99.20
 
 	Several small adjustments have been made to support the

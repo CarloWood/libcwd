@@ -63,7 +63,7 @@ protected:
   _private_::smart_ptr a_description;		//!< A label describing this memblk.
   struct timeval a_time;			//!< The time at which the memory was allocated.
 #if CWDEBUG_LOCATION
-  location_ct M_location;			//!< Source file, function and line number from where the allocator was called from.
+  location_ct const* M_location;		//!< Pointer into the location cache, with the source file, function and line number from where the allocator was called from.
 #endif
 
 public:
@@ -109,29 +109,27 @@ public:
   /**
    * \brief The source file location that the allocator was called from.
    *
-   * \returns a non-const \ref location_ct reference corresponding to the place where the allocation was done.&nbsp;
-   * Class \ref location_ct describes a source file and line number location and in which function that location resides.&nbsp;
-   * \sa \ref chapter_alloc_locations
-   */
-  location_ct& location_reference(void) { return M_location; }
-
-  /**
-   * \brief The source file location that the allocator was called from.
-   *
    * \returns a const \ref location_ct reference corresponding to the place where the allocation was done.&nbsp;
    * Class \ref location_ct describes a source file and line number location and in which function that location resides.&nbsp;
    * \sa \ref chapter_alloc_locations
    */
-  location_ct const& location(void) const { return M_location; }
+  location_ct const& location(void) const { return *M_location; }
 #endif
 
 protected:
   /**
-   * \brief Construct an \c alloc_ct object with attributes \a s, \a sz, \a type, \a ti and \a t.
+   * \brief Construct an \c alloc_ct object with attributes \a s, \a sz, \a type, \a ti, \a t and \a l.
    * \internal
    */
-  alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, struct timeval const& t) :
-      a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti), a_time(t) { }
+  alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, struct timeval const& t
+#if CWDEBUG_LOCATION
+      , location_ct const* l
+#endif
+      ) : a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti), a_time(t)
+#if CWDEBUG_LOCATION
+      , M_location(l)
+#endif
+      { }
 
   /**
    * \brief Destructor.

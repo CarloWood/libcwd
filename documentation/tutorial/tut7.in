@@ -410,6 +410,7 @@ blocks.&nbsp The Allocated memory Overview is then printed.</P>
 
 int main(void)
 {
+  Debug( make_all_allocations_invisible_except(NULL) );
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
 
@@ -457,6 +458,7 @@ For example, we could move the allocation of <CODE>p2</CODE> outside our marker:
 
 int main(void)
 {
+  Debug( make_all_allocations_invisible_except(NULL) );
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
 
