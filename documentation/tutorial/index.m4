@@ -9,7 +9,7 @@ define(__TOC_START, [[
 </TD>
 <TD valign=center><DIV class="toc-header1">
   <A class="toc1" href="../html/index.html" target="_top">
-    Back to main index
+    back to main index
   </A></DIV>
 </TD>
 </TR>
@@ -62,25 +62,26 @@ __PAGESTART
 __TOC_START
 __PAGE(1, [[Introduction]], intro.html)
 __PAGE(2, [[Tutorial 1 : Hello World]], tut1.html)
-__PAGE(3, [[Tutorial 2 : Creating your own Debug Channels]], tut2.html)
-__PAGE(4, [[Tutorial 3 : Setting the <CODE>ostream</CODE>]], tut3.html)
-__PAGE(5, [[Tutorial 4 : Management of <CODE>CWDEBUG</CODE>]], tut4.html)
-__PAGE(6, [[Tutorial 5 : Advanced examples]], tut5.html)
+__PAGE(3, [[Tutorial 2 : Creating Your Own Debug Channels]], tut2.html)
+__PAGE(4, [[Tutorial 3 : Setting The <CODE>ostream</CODE>]], tut3.html)
+__PAGE(5, [[Tutorial 4 : Management Of <CODE>CWDEBUG</CODE>]], tut4.html)
+__PAGE(6, [[Tutorial 5 : Advanced Examples]], tut5.html)
 __PAGE_START
-__PARAGRAPH(2f, 5.1, [[Running over all Debug Channels]], [[tut5.html#Running]])
-__PARAGRAPH(2, 5.2, [[Debug Channels and name spaces]], [[tut5.html#Debug]])
-__PARAGRAPH(2, 5.3, [[Combining channels]], [[tut5.html#Combining]])
-__PARAGRAPH(2, 5.4, [[Formatting debug output]], [[tut5.html#Formatting]])
-__PARAGRAPH(3, 5.4.1, [[Control flags]], [[tut5.html#Control]])
-__PARAGRAPH(3, 5.4.2, [[Methods of the debug object]], [[tut5.html#Methods]])
+__PARAGRAPH(2f, 5.1, [[Running Over All Debug Channels]], [[tut5.html#Running]])
+__PARAGRAPH(2, 5.2, [[Debug Channels And Name Spaces]], [[tut5.html#Debug]])
+__PARAGRAPH(2, 5.3, [[Combining Channels]], [[tut5.html#Combining]])
+__PARAGRAPH(2, 5.4, [[Formatting Debug Output]], [[tut5.html#Formatting]])
+__PARAGRAPH(3, 5.4.1, [[Control Flags]], [[tut5.html#Control]])
+__PARAGRAPH(3, 5.4.2, [[Methods Of The Debug Object]], [[tut5.html#Methods]])
 __PAGE_END
-__PAGE(7, [[Tutorial 6 : The debugging of dynamic memory allocations]], tut6.html)
-__PAGE(8, [[Tutorial 7 : Advanced examples]], tut7.html)
+__PAGE(7, [[Tutorial 6 : The Debugging Of Dynamic Memory Allocations]], tut6.html)
+__PAGE(8, [[Tutorial 7 : Advanced Examples]], tut7.html)
 __PAGE_START
-__PARAGRAPH(2f, 7.1, [[Removing allocations from the Allocated memory Overview]], [[tut7.html#Removing]])
-__PARAGRAPH(2, 7.2, [[Retrieving information about memory allocations]], [[tut7.html#Retrieving]])
-__PARAGRAPH(2, 7.3, [[Memory leak detection]], [[tut7.html#Memory]])
+__PARAGRAPH(2f, 7.1, [[Removing Allocations From The Allocated Memory Overview]], [[tut7.html#Removing]])
+__PARAGRAPH(2, 7.2, [[Retrieving Information About Memory Allocations]], [[tut7.html#Retrieving]])
+__PARAGRAPH(2, 7.3, [[Memory Leak Detection]], [[tut7.html#Memory]])
 __PAGE_END
+__PAGE(9, [[Tutorial 8 : Debugging Threaded Applications]], tut8.html)
 __TOC_END
 __PAGEEND
 __PAGEFOOTER

@@ -9,7 +9,7 @@ AOUT7:=$(shell grep 'START OUTPUT' tut7.in | cut -d \  -f4)
 all: examples html
 
 examples: $(SOURCES5) $(SOURCES7)
-html: index.html faq.html intro.html tut1.html tut2.html tut3.html tut4.html tut5.html tut6.html tut7.html
+html: index.html faq.html intro.html tut1.html tut2.html tut3.html tut4.html tut5.html tut6.html tut7.html tut8.html
 
 %.html: %.m4 ../definitions.m4
 	m4 -D__TUTORIAL=1 -I.. $< > $@

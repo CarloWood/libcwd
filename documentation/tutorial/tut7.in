@@ -495,14 +495,12 @@ int main(void)
 <!-- START OUTPUT examples7/test7.3.5-bin -->
 </PRE>
 
-<P>Congratulations, you are now a libcwd expert.&nbsp; If you still have any
-questions that you can't find here, feel free to mail me.</P>
-
 __PAGEEND
-<P class="line"><IMG width=870 height=25 src="../images/lines/owl.png"></P>
+<P class="line"><IMG width=870 height=19 src="../images/lines/hippo.png"></P>
 <DIV class="buttons">
 <A HREF="tut6.html"><IMG width=64 height=32 src="../images/buttons/lr_prev.png" border="0"></A>
 <A HREF="index.html"><IMG width=64 height=32 src="../images/buttons/lr_index.png" border="0"></A>
+<A HREF="tut8.html"><IMG width=64 height=32 src="../images/buttons/lr_next.png" border="0"></A>
 </DIV>
 __PAGEFOOTER
 __HTMLFOOTER
