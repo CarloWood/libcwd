@@ -626,7 +626,6 @@ public:
 };
 
 class memblk_info_ct {
-  friend class dm_alloc_ct;
 #ifdef DEBUGMARKER
   friend class marker_ct;
   friend void libcw_debug_move_outside(marker_ct* marker, void const* ptr);
