@@ -27,33 +27,31 @@ libcwd-0.99.16
 
 	IMPORTANT: 'channel_ct const' -> 'channel_ct'.
 	Debug channels should no longer be declared constant.
-	Declarations like
-	libcw::debug::channel_ct const my_channel("FOO");
-	will have to be changed to
-	libcw::debug::selector_ct my_channel("FOO");
-	removing the `const'.
+	[ "libcw::debug::channel_ct const my_channel("FOO");" -->
+	  "libcw::debug::selector_ct my_channel("FOO");" ]
 
 	`long memblks()' has been renamed to `unsigned long mem_blocks()'.
+	[ "memblks()" --> "mem_blocks()" ]
 
-	In debug_ct, set_margin, get_margin, set_marker and get_marker are
-	a bit slow for heavy swapping of the margin and marker (std::string
-	is 'slow'); therefore (using internal allocations, which is not
-	possible with std::string (see bug fixes below)) public access
-	to members debug_ct::margin and debug_ct::marker is now granted,
-	providing the following methods of the returned object: size(),
-	c_str() (the terminating zero is already there, this just returns
-	an internal pointer), reserve(), capacity(), append(), prepend()
-	and assign() - all with meanings borrowed from std::string.
-	For example, when capacity() returns a value larger or equal to
-	the length of a string that would result from a call to append(),
-	then calling append is garanteed not to invalidate the pointer
-	returned by c_str().  The default capacity can be set with `reserve'.
-	append/prepend/assign accept both a std::string reference or a
-	char*/size_t pair.
-	Finally, the following methods are added to debug_ct directly:
-	`push_margin', `pop_margin', `push_marker' and `pop_marker'.
+	The margin and marker are no longer using std::string, which is
+	a bit slow.  Access to the margin and marker is now granted through
+	debug_ct::margin() and debug_ct::marker().  The returned objects
+	provide the following methods: size(), c_str() (this just returns
+	an internal pointer, the termination zero is already there),
+	reserve(), capacity(), append(), prepend() and assign() - all with
+	their meanings borrowed from std::string.  For example, when
+	capacity() returns a value larger or equal to the length of a string
+	that would result from a call to append(), then calling append is
+	garanteed not to invalidate the pointer returned by c_str().  The
+	default capacity can be set with `reserve'.  append/prepend/assign
+	accept both a std::string reference or a char*/size_t pair.
+	Finally, the following methods are added to debug_ct:
+	`push_margin()', `pop_margin()', `push_marker()' and `pop_marker()'.
 	These functions can be used to quickly store and restore the
 	respective formatting strings.
+	[ "Debug( libcw_do.set_margin(std::string(buf, len)) );" -->
+	  "Debug( libcw_do.margin().assign(buf, len) );" ]
+
 
 	A debug function for internal use (by the maintainers):
 	`debugdebugcheckpoint()' has been removed.  If you need a user
@@ -63,6 +61,7 @@ libcwd-0.99.16
 	CWASSERT was renamed to LIBCWD_ASSERT; Note that all macros that start
 	with LIBCWD_ should NOT be used by the user, they are for internal use
 	by libcwd.
+	[ "CWASSERT( i == 1 );" --> "assert( i == 1);" ]
 
 	debug_ct::get_os() has been removed.  Use cwprint or cwprint_using.
 	Reason: the temporary stringstream that was returned was only valid

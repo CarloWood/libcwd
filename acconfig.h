@@ -7,9 +7,6 @@
 #ifndef LIBCW_CONFIG_H
 #define LIBCW_CONFIG_H
 @TOP@
-// Defined when RETSIGTYPE is `int'.
-#undef CW_RETSIGTYPE_IS_INT
-
 // Full path to the `ps' executable.
 #undef CW_PATH_PROG_PS
 

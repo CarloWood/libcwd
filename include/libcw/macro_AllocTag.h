@@ -185,7 +185,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
 	desc = new char [size]; \
 	buf.rdbuf()->sgetn(desc, size); \
       } \
-      ::libcw::debug::_private:::set_alloc_checking_on(LIBCWD_TSD); \
+      ::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), \
 	  			      ::libcw::lockable_auto_ptr<char, true>(desc)); \
     } while(0)

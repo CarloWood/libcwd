@@ -58,7 +58,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LIBCWD_STR1(x) #x
 #define LIBCWD_STR2(x) LIBCWD_STR1(x)
 #define LIBCWD_STR3 "LibcwDout at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
-#define DEBUGDEBUGLIBCWDOUTMARKER ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3) - 1);
+#define DEBUGDEBUGLIBCWDOUTMARKER LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code ); ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3) - 1); LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );
 #else // !DEBUGDEBUGOUTPUT
 #define DEBUGDEBUGLIBCWDOUTMARKER
 #endif // !DEBUGDEBUGOUTPUT
@@ -80,8 +80,8 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LibcwDoutScopeBegin( dc_namespace, debug_obj, cntrl )									\
   do																\
   {																\
-    DEBUGDEBUGLIBCWDOUTMARKER													\
     LIBCWD_TSD_DECLARATION													\
+    DEBUGDEBUGLIBCWDOUTMARKER													\
     if (LIBCWD_DO_TSD_MEMBER_OFF(debug_obj) < 0)										\
     {																\
       using namespace ::libcw::debug;												\
@@ -114,7 +114,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #ifndef DEBUGDEBUGLIBCWDOUTFATALMARKER
 #ifdef DEBUGDEBUGOUTPUT
 #define LIBCWD_STR4 "LibcwDoutFatal at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
-#define DEBUGDEBUGLIBCWDOUTFATALMARKER ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4) - 1);
+#define DEBUGDEBUGLIBCWDOUTFATALMARKER LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code ); ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4) - 1); LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );
 #else
 #define DEBUGDEBUGLIBCWDOUTFATALMARKER
 #endif
@@ -136,8 +136,8 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LibcwDoutFatalScopeBegin( dc_namespace, debug_obj, cntrl )								\
   do																\
   {																\
-    DEBUGDEBUGLIBCWDOUTFATALMARKER												\
     LIBCWD_TSD_DECLARATION													\
+    DEBUGDEBUGLIBCWDOUTFATALMARKER												\
     using namespace ::libcw::debug;												\
     ::libcw::debug::channel_set_bootstrap_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
     {																\
