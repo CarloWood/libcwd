@@ -104,6 +104,8 @@ changequote([, ])dnl
 AC_MSG_CHECKING([if $1 redefines macros])
 AC_CACHE_VAL(cw_cv_bug_redefines_$cw_bug_var,
 [cat > conftest.$ac_ext <<EOF
+#include <sys/types.h>
+#include <sys/time.h>
 #include <$1>
 int main() { return 0; }
 EOF
@@ -127,7 +129,11 @@ CXXFLAGS="$save_CXXFLAGS"
 rm -f conftest*])
 eval "cw_redefined_macros=\"\$cw_cv_bug_redefines_$cw_bug_var\""
 eval "cw_redefined_from=\"\$cw_cv_bug_redefines_${cw_bug_var}_prev\""
-AC_MSG_RESULT($cw_redefined_macros from $cw_redefined_from)
+if test x"$cw_redefined_macros" = x; then
+  AC_MSG_RESULT(no)
+else
+  AC_MSG_RESULT($cw_redefined_macros from $cw_redefined_from)
+fi
 for i in $cw_redefined_from; do
 CW_REDEFINES_FIX="$CW_REDEFINES_FIX\\
 #include <$i>"
@@ -243,7 +249,8 @@ dnl
 AC_DEFUN(CW_TYPE_SOCKLEN_T,
 [AC_CACHE_CHECK(type socklen_t, cw_cv_type_socklen_t,
 [AC_EGREP_HEADER(socklen_t, sys/socket.h, cw_cv_type_socklen_t=exists,
-[CW_TYPE_EXTRACT_FROM(setsockopt, [#include <sys/socket.h>], 5, 5)
+[CW_TYPE_EXTRACT_FROM(setsockopt, [#include <sys/types.h>
+#include <sys/socket.h>], 5, 5)
 eval "cw_cv_type_socklen_t=\"$cw_result\""])])
 if test "$cw_cv_type_socklen_t" != exists; then
   CW_DEFINE_TYPE(socklen_t, [$cw_cv_type_socklen_t])
@@ -259,7 +266,8 @@ dnl
 AC_DEFUN(CW_TYPE_OPTVAL_T,
 [AC_CACHE_CHECK(type optval_t, cw_cv_type_optval_t,
 [AC_EGREP_HEADER(optval_t, sys/socket.h, cw_cv_type_optval_t=exists,
-[CW_TYPE_EXTRACT_FROM(getsockopt, [#include <sys/socket.h>], 5, 4)
+[CW_TYPE_EXTRACT_FROM(getsockopt, [#include <sys/types.h>
+#include <sys/socket.h>], 5, 4)
 eval "cw_cv_type_optval_t=\"$cw_result\""])])
 if test "$cw_cv_type_optval_t" != exists; then
   CW_DEFINE_TYPE(optval_t, [$cw_cv_type_optval_t])
