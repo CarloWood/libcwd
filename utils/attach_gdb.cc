@@ -13,6 +13,20 @@
 
 #include "sys.h"
 #include "cwd_debug.h"
+
+#if _WIN32
+
+namespace libcwd {
+
+void attach_gdb(void)
+{
+  DoutFatal(dc::core, "attach_gdb() is not supported on windows");
+}
+
+}
+
+#else
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -85,3 +99,5 @@ void attach_gdb(void)
 }
 
 } // namespace libcwd
+
+#endif // !_WIN32
