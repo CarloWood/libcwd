@@ -57,6 +57,10 @@ libcwd-0.99.16
 	with LIBCWD_ should NOT be used by the user, they are for internal use
 	by libcwd.
 
+	debug_ct::get_os() has been removed.  Use cwprint or cwprint_using.
+	Reason: the temporary stringstream that was returned was only valid
+	inside a Dout to begin with.  The use of get_os() was dangerous.
+
 	Bug fixes:
 
 	When using .stabs, each first line of code after a source file scope change

@@ -835,7 +835,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       };
 
       // cwbfd::
-      typedef std::vector<my_link_map> ST_shared_libs_vector_ct;
+      // Not really necessary to use the `object_files' allocator here, but it
+      // is used inside that critical area anyway already, so why not.
+      typedef std::vector<my_link_map, _private_::object_files_allocator::rebind<my_link_map>::other> ST_shared_libs_vector_ct;
       ST_shared_libs_vector_ct ST_shared_libs;			// Written to only in `ST_decode_ldd' which is called from
       								// `cwbfd::ST_init' and read from in a later part of `cwbfd::ST_init'.
 

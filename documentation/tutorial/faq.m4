@@ -346,7 +346,7 @@ In the production version of your application all debug code will be removed and
 <H3>20. What is the maximum length of a label?</H3>
 
 <P>The maximum length of the label of a new Debug Channel is given
-by the constant<SPAN class="code"> libcw::debug::max_label_len</SPAN>.&nbsp;
+by the constant<SPAN class="code"> libcw::debug::max_label_len_c</SPAN>.&nbsp;
 At this moment that is 16.</P>
 
 <A name="prefix"></A>

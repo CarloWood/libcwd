@@ -5,6 +5,7 @@ libcwd_HEADERS = \
 	buf2str.h \
 	char2str.h \
 	class_alloc.h \
+	class_always_channel.inl \
 	class_channel.h \
 	class_channel.inl \
 	class_channel_set.h \

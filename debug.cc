@@ -56,38 +56,6 @@ using libcw::debug::_private_::debug_channels_instance;
 #define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK
 #endif // !LIBCWD_THREAD_SAFE
 
-// MULTI THREADING TODO
-//
-// libcw::debug::libcw_do
-
-// Global one-time initialization variables that are initialized before main():
-// libcw::debug::_private_::WST_dummy_laf
-// libcw::debug::debug_ct::NS_init()::WST_very_first_time
-
-// Global variables that are initialized before threads are created and not written to afterwards.
-// libcw::debug::(anonymous namespace)::WST_max_len
-// libcw::debug::ST_initialize_globals()::ST_already_called
-// libcw::debug::WST_debug_object_init_magic
-
-// Global objects that are handled.
-// libcw::debug::_private_::debug_objects
-// libcw::debug::_private_::debug_channels
-// libcw::debug::channels::dc::core
-// libcw::debug::channels::dc::debug
-// libcw::debug::channels::dc::fatal
-// libcw::debug::channels::dc::finish
-// libcw::debug::channels::dc::malloc
-// libcw::debug::channels::dc::notice
-// libcw::debug::channels::dc::system
-// libcw::debug::channels::dc::warning
-// libcw::debug::channels::dc::continued
-
-// Static variable that is handled.
-// libcw::debug::channel_ct::NS_initialize(char const*)::next_index
-
-// Global constants.
-// __libcwd_version
-
 namespace libcw {
   namespace debug {
 
@@ -104,23 +72,36 @@ namespace libcw {
     public:
       void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM)
       {
+	char* buf;
+	bool used_malloc = false;
 	int curlen = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out) - rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
-	for (char c = rdbuf()->sgetc(); --curlen >= 0; c = rdbuf()->snextc())
+	if (curlen > 512 || !(buf = (char*)alloca(curlen)))
 	{
+	  set_alloc_checking_off();
+	  buf = (char*)malloc(curlen);
+	  set_alloc_checking_on();
+	  used_malloc = true;
+	}
+	rdbuf()->sgetn(buf, curlen);
 #ifdef DEBUGMALLOC
-	  // Writing to the final std::ostream (ie std::cerr) must be non-internal!
-	  int saved_internal = __libcwd_tsd.internal;
-	  __libcwd_tsd.internal = 0;
-	  ++__libcwd_tsd.library_call;
-	  ++libcw_do._off;
+	// Writing to the final std::ostream (ie std::cerr) must be non-internal!
+	int saved_internal = __libcwd_tsd.internal;
+	__libcwd_tsd.internal = 0;
+	++__libcwd_tsd.library_call;
+	++LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
 #endif
-	  os->put(c);
+	os->write(buf, curlen);
 #ifdef DEBUGMALLOC
-	  --libcw_do._off;
-	  --__libcwd_tsd.library_call;
-	  __libcwd_tsd.internal = saved_internal;
+	--LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
+	--__libcwd_tsd.library_call;
+	__libcwd_tsd.internal = saved_internal;
 #endif
-        }
+	if (used_malloc)
+	{
+	  set_alloc_checking_off();
+	  free(buf);
+	  set_alloc_checking_on();
+	}
       }
       void store_position(void) {
 	position = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out);
@@ -209,6 +190,16 @@ namespace libcw {
 	    ("WARNING")
 #endif
 	    ;
+
+	/** A special channel that is always turned on.
+	 *
+	 * This channel is <EM>%always</EM> on;
+	 * it can not be turned off.&nbsp;
+	 * It is not in the list of debug channels.&nbsp;
+	 * When used with a label it will print as many '>'
+	 * characters as the size of the largest real channel.
+	 */
+	always_channel_ct always;
 
 	/** A special channel to continue to
 	 * write a previous %debug channel.
@@ -420,14 +411,11 @@ namespace libcw {
       char const* label;
 	// The previous label.
 
-      std::ostream* saved_os;
-	// The previous original ostream.
-
       int err;
 	// The current errno.
 
     public:
-      laf_ct(control_flag_t m, char const* l, std::ostream* os, int e) : mask(m), label(l), saved_os(os), err(e) { }
+      laf_ct(control_flag_t m, char const* l, int e) : mask(m), label(l), err(e) { }
     };
 
     static inline void write_whitespace_to(std::ostream& os, unsigned int size)
@@ -540,13 +528,13 @@ namespace libcw {
      */
     void debug_ct::push_margin(void)
     {
-      debug_string_stack_element_ct* current_margin_stack = M_margin_stack;
       LIBCWD_TSD_DECLARATION
+      debug_string_stack_element_ct* current_margin_stack = LIBCWD_TSD_MEMBER(M_margin_stack);
       set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
-      M_margin_stack = new (new_debug_string) debug_string_stack_element_ct(margin);
+      LIBCWD_TSD_MEMBER(M_margin_stack) = new (new_debug_string) debug_string_stack_element_ct(margin);
       set_alloc_checking_on(LIBCWD_TSD);
-      M_margin_stack->next = current_margin_stack;
+      LIBCWD_TSD_MEMBER(M_margin_stack)->next = current_margin_stack;
     }
 
     /**
@@ -554,15 +542,15 @@ namespace libcw {
      */
     void debug_ct::pop_margin(void)
     {
-      if (!M_margin_stack)
-	DoutFatal(dc::core, "Calling `debug_ct::pop_margin' more often than `debug_ct::push_margin'.");
-      debug_string_stack_element_ct* next = M_margin_stack->next;
       LIBCWD_TSD_DECLARATION
+      if (!LIBCWD_TSD_MEMBER(M_margin_stack))
+	DoutFatal(dc::core, "Calling `debug_ct::pop_margin' more often than `debug_ct::push_margin'.");
+      debug_string_stack_element_ct* next = LIBCWD_TSD_MEMBER(M_margin_stack)->next;
       set_alloc_checking_off(LIBCWD_TSD);
-      margin.internal_swallow(M_margin_stack->debug_string);
-      free(M_margin_stack);
+      margin.internal_swallow(LIBCWD_TSD_MEMBER(M_margin_stack)->debug_string);
+      free(LIBCWD_TSD_MEMBER(M_margin_stack));
       set_alloc_checking_on(LIBCWD_TSD);
-      M_margin_stack = next;
+      LIBCWD_TSD_MEMBER(M_margin_stack) = next;
     }
 
     /**
@@ -570,12 +558,12 @@ namespace libcw {
      */
     void debug_ct::push_marker(void)
     {
-      debug_string_stack_element_ct* current_marker_stack = M_marker_stack;
       LIBCWD_TSD_DECLARATION
+      debug_string_stack_element_ct* current_marker_stack = LIBCWD_TSD_MEMBER(M_marker_stack);
       set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
-      M_marker_stack = new (new_debug_string) debug_string_stack_element_ct(marker);
-      M_marker_stack->next = current_marker_stack;
+      LIBCWD_TSD_MEMBER(M_marker_stack) = new (new_debug_string) debug_string_stack_element_ct(marker);
+      LIBCWD_TSD_MEMBER(M_marker_stack)->next = current_marker_stack;
     }
 
     /**
@@ -583,31 +571,29 @@ namespace libcw {
      */
     void debug_ct::pop_marker(void)
     {
-      if (!M_marker_stack)
-	DoutFatal(dc::core, "Calling `debug_ct::pop_marker' more often than `debug_ct::push_marker'.");
-      debug_string_stack_element_ct* next = M_marker_stack->next;
       LIBCWD_TSD_DECLARATION
+      if (!LIBCWD_TSD_MEMBER(M_marker_stack))
+	DoutFatal(dc::core, "Calling `debug_ct::pop_marker' more often than `debug_ct::push_marker'.");
+      debug_string_stack_element_ct* next = LIBCWD_TSD_MEMBER(M_marker_stack)->next;
       set_alloc_checking_off(LIBCWD_TSD);
-      marker.internal_swallow(M_marker_stack->debug_string);
-      free(M_marker_stack);
+      marker.internal_swallow(LIBCWD_TSD_MEMBER(M_marker_stack)->debug_string);
+      free(LIBCWD_TSD_MEMBER(M_marker_stack));
       set_alloc_checking_on(LIBCWD_TSD);
-      M_marker_stack = next;
+      LIBCWD_TSD_MEMBER(M_marker_stack) = next;
     }
 
     /** \} */
 
-    void debug_ct::start(LIBCWD_TSD_PARAM)
+    void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
-      // It's possible we get here before this debug object is initialized: The order of calling global is undefined :(.
-      if (!WNS_initialized)			// MT: When `WNS_initialized' is false, then `this' is not shared.
-        NS_init();
 #ifdef DEBUGDEBUG
-      else if (init_magic != WST_debug_object_init_magic || !WST_debug_object_init_magic)
-      {
-        FATALDEBUGDEBUG_CERR( "Ack, fatal error in libcwd: `WNS_initialized' true while `init_magic' not set!  "
-	        "Please mail the author of libcwd." );
-	core_dump();
-      }
+#ifdef LIBCWD_THREAD_SAFE
+      // Initialisation of the TSD part should be done from LIBCWD_TSD_DECLARATION inside Dout et al.
+      LIBCWD_ASSERT( tsd_initialized );
+#else
+      if (!tsd_initialized)
+	init();
+#endif
 #endif
 
       set_alloc_checking_off(LIBCWD_TSD);
@@ -618,7 +604,8 @@ namespace libcw {
       {
 	if (!(current->mask & continued_expected_maskbit))
 	{
-	  os->put('\n');
+	  std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
+	  target_os->put('\n');
 	  char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #ifdef DEBUGUSEBFD
 	  DoutFatal(dc::core, "Using `dc::" << channame << "' in " <<
@@ -633,7 +620,7 @@ namespace libcw {
 	// MT: current != _private_::WST_dummy_laf, otherwise we didn't pass the previous if.
 	LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
 #endif
-        current->mask = channel_set.mask;	// New bits might have been added
+        current->mask = channel_set.mask;		// New bits might have been added
 	if ((current->mask & finish_maskbit))
 	  current->mask &= ~continued_expected_maskbit;
 	current->err = errno;			// Always keep the last errno as set at the start of LibcwDout()
@@ -652,19 +639,13 @@ namespace libcw {
 	LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
 #endif
 	// Write out what is in the buffer till now.
-	current->oss.writeto(os LIBCWD_COMMA_TSD);
+	std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
+	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD);
 	// Append <unfinished> to it.
-	os->write("<unfinished>\n", 13);	// Continued debug output should end on a space by itself,
+	target_os->write("<unfinished>\n", 13);		// Continued debug output should end on a space by itself,
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
-	current->oss.restore_position();
-	current->oss.write("<continued> ", 12);		// therefore we repeat the space here.
-      }
-
-      // By putting this here instead of in finish(), all nested debug output will go to std::cerr too.
-      if ((channel_set.mask & cerr_cf))
-      {
-        saved_os = os;
-	os = &std::cerr;
+	static_cast<buffer_ct*>(current_oss)->restore_position();
+	static_cast<buffer_ct*>(current_oss)->write("<continued> ", 12);	// therefore we repeat the space here.
       }
 
       // Is this a nested debug output (the first of a series in the middle of another debug output)?
@@ -677,50 +658,54 @@ namespace libcw {
 
 	// Indent nested debug output with 4 extra spaces.
 	indent += 4;
+
+	// If the previous target was written to cerr, then
+	// write this interrupting output to cerr too.
+	channel_set.mask |= (current->mask & cerr_cf);
       }
-
-      // Without a new nested Dout() call, we expect to see a finish() call: The finish belonging to *this* Dout() call.
-      start_expected = false;	// MT: FIXME: NEEDS LOCK till current is changed (maybe more).
-
-      // If this is a `continued' debug output, then we want to print "<unfinished>" if next we see a start().
-      unfinished_expected = true;
 
       // Create a new laf.
       DEBUGDEBUG_CERR( "creating new laf_ct" );
-      current = new laf_ct(channel_set.mask, channel_set.label, saved_os, errno);
+      current = new laf_ct(channel_set.mask, channel_set.label, errno);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
       current_oss = &current->oss;
       DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
       DEBUGDEBUG_CERR( "laf_ct created" );
 
+      // Without a new nested Dout() call, we expect to see a finish() call: The finish belonging to *this* Dout() call.
+      start_expected = false;
+
+      // If this is a `continued' debug output, then we want to print "<unfinished>" if next we see a start().
+      unfinished_expected = true;
+
       // Print prefix if requested.
       // Handle most common case first: no special flags set
       if (!(channel_set.mask & (noprefix_cf|nolabel_cf|blank_margin_cf|blank_label_cf|blank_marker_cf)))
       {
-	current->oss.write(margin.c_str(), margin.size());
-	current->oss.write(channel_set.label, WST_max_len);
-	current->oss.write(marker.c_str(), marker.size());
-	write_whitespace_to(current->oss, indent);
+	static_cast<buffer_ct*>(current_oss)->write(debug_object.margin.c_str(), debug_object.margin.size());
+	static_cast<buffer_ct*>(current_oss)->write(channel_set.label, WST_max_len);
+	static_cast<buffer_ct*>(current_oss)->write(debug_object.marker.c_str(), debug_object.marker.size());
+	write_whitespace_to(*current_oss, indent);
       }
       else if (!(channel_set.mask & noprefix_cf))
       {
 	if ((channel_set.mask & blank_margin_cf))
-	  write_whitespace_to(current->oss, margin.size());
+	  write_whitespace_to(*current_oss, debug_object.margin.size());
 	else
-	  current->oss.write(margin.c_str(), margin.size());
+	  static_cast<buffer_ct*>(current_oss)->write(debug_object.margin.c_str(), debug_object.margin.size());
 #ifndef DEBUGDEBUGOUTPUT
 	if (!(channel_set.mask & nolabel_cf))
 #endif
 	{
 	  if ((channel_set.mask & blank_label_cf))
-	    write_whitespace_to(current->oss, WST_max_len);
+	    write_whitespace_to(*current_oss, WST_max_len);
 	  else
-	    current->oss.write(channel_set.label, WST_max_len);
+	    static_cast<buffer_ct*>(current_oss)->write(channel_set.label, WST_max_len);
 	  if ((channel_set.mask & blank_marker_cf))
-	    write_whitespace_to(current->oss, marker.size());
+	    write_whitespace_to(*current_oss, debug_object.marker.size());
 	  else
-	    current->oss.write(marker.c_str(), marker.size());
-	  write_whitespace_to(current->oss, indent);
+	    static_cast<buffer_ct*>(current_oss)->write(debug_object.marker.c_str(), debug_object.marker.size());
+	  write_whitespace_to(*current_oss, indent);
 	}
       }
 
@@ -728,18 +713,19 @@ namespace libcw {
       {
 	// If this is continued debug output, then it makes sense to remember the prefix length,
 	// just in case we need indeed to output <continued> data.
-        current->oss.store_position();
+        static_cast<buffer_ct*>(current_oss)->store_position();
       }
 
       --_off;
       DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << _off );
     }
 
-    void debug_ct::finish(LIBCWD_TSD_PARAM)
+    void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
 #ifdef DEBUGDEBUG
       LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
 #endif
+      std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : debug_object.real_os;
 
       // Skip `finish()' for a `continued' debug output.
       if ((current->mask & continued_cf_maskbit) && !(current->mask & finish_maskbit))
@@ -752,11 +738,11 @@ namespace libcw {
 	if ((current->mask & flush_cf))
 	{
 	  // Write buffer to ostream.
-	  current->oss.writeto(os LIBCWD_COMMA_TSD);
+	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD);
 	  // Flush ostream.  Note that in the case of nested debug output this `os' can be an stringstream,
 	  // in that case, no actual flushing is done until the debug output to the real ostream has
 	  // finished.
-	  *os << std::flush;
+	  *target_os << std::flush;
 	}
 	set_alloc_checking_on(LIBCWD_TSD);
         return;
@@ -766,24 +752,23 @@ namespace libcw {
       DEBUGDEBUG_CERR( "Entering debug_ct::finish(), _off became " << _off );
 
       // Write buffer to ostream.
-      current->oss.writeto(os LIBCWD_COMMA_TSD);
+      static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD);
       channel_set.mask = current->mask;
       channel_set.label = current->label;
-      saved_os = current->saved_os;
 
       // Handle control flags, if any:
       if (channel_set.mask == 0)
-	os->put('\n');
+	target_os->put('\n');
       else
       {
 	if ((channel_set.mask & error_cf))
-	  *os << ": " << strerrno(current->err) << " (" << strerror(current->err) << ')';
+	  *target_os << ": " << strerrno(current->err) << " (" << strerror(current->err) << ')';
 	if ((channel_set.mask & coredump_maskbit))
 	{
 	  if (!__libcwd_tsd.recursive_fatal)
 	  {
 	    __libcwd_tsd.recursive_fatal = true;
-	    *os << std::endl;	// First time, try to write a new-line and flush.
+	    *target_os << std::endl;	// First time, try to write a new-line and flush.
 	  }
 	  core_dump();
 	}
@@ -792,7 +777,7 @@ namespace libcw {
 	  if (!__libcwd_tsd.recursive_fatal)
 	  {
 	    __libcwd_tsd.recursive_fatal = true;
-	    *os << std::endl;
+	    *target_os << std::endl;
 	  }
 	  DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
 	  delete current;
@@ -802,19 +787,17 @@ namespace libcw {
 	}
 	if ((channel_set.mask & wait_cf))
 	{
-	  *os << "\n(type return)";
-	  if (interactive)
+	  *target_os << "\n(type return)";
+	  if (debug_object.interactive)
 	  {
-	    *os << std::flush;
+	    *target_os << std::flush;
 	    while(std::cin.get() != '\n');
 	  }
 	}
 	if (!(channel_set.mask & nonewline_cf))
-	  *os << '\n';
+	  *target_os << '\n';
 	if ((channel_set.mask & flush_cf))
-	  *os << std::flush;
-	if ((channel_set.mask & cerr_cf))
-	  os = saved_os;
+	  *target_os << std::flush;
       }
 
       DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
@@ -841,9 +824,8 @@ namespace libcw {
       else
       {
         current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);	// Used (MT: read-only!) in next debug_ct::start().
-									// MT: FIXME: NEEDS LOCK till start_expected is set (maybe more).
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
-	current_oss = &current->oss;					// Used when errornous using dc::continued next.
+	current_oss = target_os;					// Used in start.
 	DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
       }
 
@@ -856,10 +838,27 @@ namespace libcw {
       set_alloc_checking_on(LIBCWD_TSD);
     }
 
-    void debug_ct::fatal_finish(LIBCWD_TSD_PARAM)
+    void debug_tsd_st::fatal_finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
-      finish(LIBCWD_TSD);
+      finish(debug_object, channel_set LIBCWD_COMMA_TSD);
       DoutFatal( dc::core, "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
+    }
+
+    /**
+     * \brief Set output device.
+     * \ingroup group_destination
+     *
+     * Assign a new \c ostream to this %debug object (default is <CODE>std::cerr</CODE>).
+     */
+    void debug_ct::set_ostream(std::ostream* os)
+    {
+      LIBCWD_TSD_DECLARATION
+#ifdef DEBUGDEBUG
+      LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
+#endif
+      real_os = os;
+      if (LIBCWD_TSD_MEMBER(laf_stack).size() == 0)
+	LIBCWD_TSD_MEMBER(current_oss) = real_os;
     }
 
     void debug_ct::NS_init(void)
@@ -871,8 +870,13 @@ namespace libcw {
       if (WNS_initialized)
         return;
 
-      _off = 0;						// Turn off all debugging until initialization is completed.
-      DEBUGDEBUG_CERR( "In debug_ct::NS_init(void), _off set to 0" );
+#ifdef DEBUGDEBUG
+      if (!WST_debug_object_init_magic)
+	init_debug_object_init_magic();
+      init_magic = WST_debug_object_init_magic;
+      DEBUGDEBUG_CERR( "Set init_magic to " << init_magic );
+      DEBUGDEBUG_CERR( "Setting WNS_initialized to true" );
+#endif
 
       LIBCWD_TSD_DECLARATION
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
@@ -883,13 +887,51 @@ namespace libcw {
 	  == _private_::debug_objects.write_locked().end()) // Not added before?
 	_private_::debug_objects.write_locked().push_back(this);
       DEBUG_OBJECTS_RELEASE_WRITE_LOCK
+      new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
+#ifndef LIBCWD_THREAD_SAFE
+      tsd.init();
+#endif
+      margin.NS_internal_init("", 0);
+      marker.NS_internal_init(": ", 2);
       set_alloc_checking_on(LIBCWD_TSD);
 
-      // Initialize this debug object:
+      // This set current_oss and must be called after tsd.init().
       set_ostream(&std::cerr);				// Write to std::cerr by default.
       interactive = true;				// and thus we're interactive.
+
+      WNS_initialized = true;
+
+      // Unlimit core size.
+#ifdef RLIMIT_CORE
+      struct rlimit corelim;
+      if (getrlimit(RLIMIT_CORE, &corelim))
+	DoutFatal(dc::fatal|error_cf, "getrlimit(RLIMIT_CORE, &corelim)");
+      corelim.rlim_cur = corelim.rlim_max;
+      if (corelim.rlim_max != RLIM_INFINITY)
+      {
+	OnOffState state;
+	force_on(state);
+	// The cast is necessary on platforms where corelim.rlim_max is long long
+	// and libstdc++ was not compiled with support for long long.
+	Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
+	restore(state);
+      }
+      if (setrlimit(RLIMIT_CORE, &corelim))
+	  DoutFatal(dc::fatal|error_cf, "unlimit core size failed");
+#else
+      OnOffState state;
+      force_on(state);
+      Dout(dc::warning, "Please unlimit core size manually");
+      restore(state);
+#endif
+    }
+
+    void debug_tsd_st::init(void)
+    {
+      _off = 0;						// Turn off all debugging until initialization is completed.
+      DEBUGDEBUG_CERR( "In debug_tsd_st::NS_init(void), _off set to 0" );
+
       start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
-      continued_channel_set.debug_object = this;	// The owner of this continued_channel_set.
       // Fatal channels need to be marked fatal, otherwise we get into an endless loop
       // when they are used before they are created.
       channels::dc::core.NS_initialize("COREDUMP", coredump_maskbit);
@@ -908,14 +950,10 @@ namespace libcw {
       channels::dc::system.NS_initialize("SYSTEM");
       // `current' needs to be non-zero (saving us a check in start()) and
       // current.mask needs to be 0 to avoid a crash in start():
-      set_alloc_checking_off(LIBCWD_TSD);
-      current = new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), NULL, 0);	// Leaks 24 bytes of memory
+      current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
       current_oss = &current->oss;
       DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
-      margin.NS_internal_init("", 0);
-      marker.NS_internal_init(": ", 2);
-      set_alloc_checking_on(LIBCWD_TSD);
       laf_stack.init();
       continued_stack.init();
 
@@ -926,46 +964,29 @@ namespace libcw {
       _off = 0;			// Don't print debug output till the REAL initialization of the debug system has been performed
       				// (ie, the _application_ start (don't confuse that with the constructor - which does nothing)).
 #endif
-      DEBUGDEBUG_CERR( "After debug_ct::NS_init(void), _off set to " << _off );
+      DEBUGDEBUG_CERR( "After debug_tsd_st::NS_init(void), _off set to " << _off );
+      tsd_initialized = true;
+    }
 
-#ifdef DEBUGDEBUG
-      if (!WST_debug_object_init_magic)
-	init_debug_object_init_magic();
-      init_magic = WST_debug_object_init_magic;
-      DEBUGDEBUG_CERR( "Set init_magic to " << init_magic );
-      DEBUGDEBUG_CERR( "Setting WNS_initialized to true" );
-#endif
-      WNS_initialized = true;
+    debug_tsd_st::~debug_tsd_st()
+    {
+      // Sanity checks:
+      if (continued_stack.size())
+        DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty continued_stack (missing dc::finish?)" );
+      if (laf_stack.size())
+        DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty laf_stack" );
 
-      // We want to do the following only once per application.
-      static bool WST_very_first_time = true;
-      if (WST_very_first_time)
-      {
-        WST_very_first_time = false;
-	// Unlimit core size.
-#ifdef RLIMIT_CORE
-	struct rlimit corelim;
-	if (getrlimit(RLIMIT_CORE, &corelim))
-	  DoutFatal(dc::fatal|error_cf, "getrlimit(RLIMIT_CORE, &corelim)");
-	corelim.rlim_cur = corelim.rlim_max;
-	if (corelim.rlim_max != RLIM_INFINITY)
-	{
-	  OnOffState state;
-	  force_on(state);
-	  // The cast is necessary on platforms where corelim.rlim_max is long long
-	  // and libstdc++ was not compiled with support for long long.
-	  Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
-	  restore(state);
-	}
-	if (setrlimit(RLIMIT_CORE, &corelim))
-	    DoutFatal(dc::fatal|error_cf, "unlimit core size failed");
-#else
-	OnOffState state;
-	force_on(state);
-	Dout(dc::warning, "Please unlimit core size manually");
-	restore(state);
+      ++_off;		// Turn all debug output premanently off, otherwise we might re-initialize
+                        // this object again when we try to write debug output to it!
+      DEBUGDEBUG_CERR( "debug_tsd_st destructed: _off became " << _off );
+#ifdef LIBCWD_THREAD_SAFE
+      LIBCWD_TSD_DECLARATION
+      set_alloc_checking_off(LIBCWD_TSD);
+      marker.ST_internal_deinit();
+      margin.ST_internal_deinit();
+      set_alloc_checking_on(LIBCWD_TSD);
 #endif
-      }
+      tsd_initialized = false;
     }
 
     /**
@@ -973,23 +994,16 @@ namespace libcw {
      */
     debug_ct::~debug_ct()
     {
-      // Sanity checks:
-      if (continued_stack.size())
-        DoutFatal( dc::core|cerr_cf, "Destructing debug_ct with a non-empty continued_stack" );
-      if (laf_stack.size())
-        DoutFatal( dc::core|cerr_cf, "Destructing debug_ct with a non-empty laf_stack" );
-
-      ++_off;		// Turn all debug output premanently off, otherwise we might re-initialize
-                        // this object again when we try to write debug output to it!
-      DEBUGDEBUG_CERR( "debug_ct destructed: _off became " << _off );
       WNS_initialized = false;
 #ifdef DEBUGDEBUG
       init_magic = 0;
 #endif
       LIBCWD_TSD_DECLARATION
       set_alloc_checking_off(LIBCWD_TSD);
+#ifndef LIBCWD_THREAD_SAFE
       marker.ST_internal_deinit();
       margin.ST_internal_deinit();
+#endif
       DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
       {
         _private_::debug_objects_ct::container_type& objects(_private_::debug_objects.write_locked());
@@ -1055,18 +1069,23 @@ namespace libcw {
      *
      * Where FOO and BAR are \link preparation user defined channels \endlink in this example.
      */
-    void list_channels_on(debug_ct const& debug_object)
+    void list_channels_on(debug_ct& debug_object)
     {
-      if (debug_object._off < 0)
+      LIBCWD_TSD_DECLARATION
+      if (LIBCWD_DO_TSD_MEMBER(debug_object, _off) < 0)
       {
         _private_::debug_channels.init();
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK
 	for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	    i != _private_::debug_channels.read_locked().end(); ++i)
 	{
-	  char const* txt = (*i)->is_on() ? ": Enabled" : ": Disabled";
-	  debug_object.get_os().write((*i)->get_label(), WST_max_len);
-	  debug_object.get_os() << txt << '\n';
+	  LibcwDoutScopeBegin(DEBUGCHANNELS, debug_object, dc::always|noprefix_cf);
+	  LibcwDoutStream.write((*i)->get_label(), WST_max_len);
+	  if ((*i)->is_on())
+	    LibcwDoutStream.write(": Enabled", 9);
+	  else
+	    LibcwDoutStream.write(": Disabled", 10);
+	  LibcwDoutScopeEnd;
 	}
 	DEBUG_CHANNELS_RELEASE_READ_LOCK
       }
@@ -1192,6 +1211,8 @@ namespace libcw {
 	WNS_maskbit = maskbit;
     }
 
+    char const always_channel_ct::label[max_label_len_c] = { '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>' };
+
     /**
      * \brief Turn this channel off.
      *
@@ -1236,7 +1257,7 @@ namespace libcw {
     {
 #ifdef DEBUGDEBUG
       DEBUGDEBUG_CERR( "continued_cf detected" );
-      if (!debug_object || !debug_object->WNS_initialized)
+      if (!do_tsd_ptr || !do_tsd_ptr->tsd_initialized)
       {
         FATALDEBUGDEBUG_CERR( "Don't use DoutFatal together with continued_cf, use Dout instead." );
 	core_dump();
@@ -1245,20 +1266,20 @@ namespace libcw {
       mask |= continued_cf_maskbit;
       if (!on)
       {
-	++(debug_object->off_count);
-	DEBUGDEBUG_CERR( "Channel is switched off. Increased off_count to " << debug_object->off_count );
+	++(do_tsd_ptr->off_count);
+	DEBUGDEBUG_CERR( "Channel is switched off. Increased off_count to " << do_tsd_ptr->off_count );
       }
       else
       {
-        debug_object->continued_stack.push(debug_object->off_count);
-        DEBUGDEBUG_CERR( "Channel is switched on. Pushed off_count (" << debug_object->off_count << ") to stack (size now " <<
-	    debug_object->continued_stack.size() << ") and set off_count to 0" );
-        debug_object->off_count = 0;
+        do_tsd_ptr->continued_stack.push(do_tsd_ptr->off_count);
+        DEBUGDEBUG_CERR( "Channel is switched on. Pushed off_count (" << do_tsd_ptr->off_count << ") to stack (size now " <<
+	    do_tsd_ptr->continued_stack.size() << ") and set off_count to 0" );
+        do_tsd_ptr->off_count = 0;
       }
       return *(reinterpret_cast<continued_channel_set_st*>(this));
     }
 
-    continued_channel_set_st& debug_ct::operator|(continued_channel_ct const& cdc)
+    continued_channel_set_st& channel_set_bootstrap_st::operator|(continued_channel_ct const& cdc)
     {
 #ifdef DEBUGDEBUG
       if ((cdc.get_maskbit() & continued_maskbit))
@@ -1267,32 +1288,32 @@ namespace libcw {
         DEBUGDEBUG_CERR( "dc::finish detected" );
 #endif
 
-      if ((continued_channel_set.on = !off_count))
+      if ((on = !do_tsd_ptr->off_count))
       {
         DEBUGDEBUG_CERR( "Channel is switched on (off_count is 0)" );
-	current->mask |= cdc.get_maskbit();					// We continue with the current channel
-	continued_channel_set.mask = current->mask;
-	continued_channel_set.label = current->label;
+	do_tsd_ptr->current->mask |= cdc.get_maskbit();					// We continue with the current channel
+	mask = do_tsd_ptr->current->mask;
+	label = do_tsd_ptr->current->label;
 	if (cdc.get_maskbit() == finish_maskbit)
 	{
-	  off_count = continued_stack.top();
-	  continued_stack.pop();
-	  DEBUGDEBUG_CERR( "Restoring off_count to " << off_count << ". Stack size now " << continued_stack.size() );
+	  do_tsd_ptr->off_count = do_tsd_ptr->continued_stack.top();
+	  do_tsd_ptr->continued_stack.pop();
+	  DEBUGDEBUG_CERR( "Restoring off_count to " << do_tsd_ptr->off_count << ". Stack size now " << do_tsd_ptr->continued_stack.size() );
 	}
       }
       else
       {
-        DEBUGDEBUG_CERR( "Channel is switched off (off_count is " << off_count << ')' );
+        DEBUGDEBUG_CERR( "Channel is switched off (off_count is " << do_tsd_ptr->off_count << ')' );
 	if (cdc.get_maskbit() == finish_maskbit)
 	{
 	  DEBUGDEBUG_CERR( "` decrementing off_count with 1" );
-	  --off_count;
+	  --(do_tsd_ptr->off_count);
         }
       }
-      return continued_channel_set;
+      return *reinterpret_cast<continued_channel_set_st*>(this);
     }
 
-    channel_set_st& debug_ct::operator|(fatal_channel_ct const&)
+    channel_set_st& channel_set_bootstrap_st::operator|(fatal_channel_ct const&)
     {
 #ifdef DEBUGUSEBFD
       DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
@@ -1303,7 +1324,7 @@ namespace libcw {
 #endif
     }
 
-    channel_set_st& debug_ct::operator&(channel_ct const&)
+    channel_set_st& channel_set_bootstrap_st::operator&(channel_ct const&)
     {
 #ifdef DEBUGUSEBFD
       DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
@@ -1336,22 +1357,23 @@ namespace libcw {
     void debug_ct::force_on(debug_ct::OnOffState& state)
     {
       NS_init();
-      state._off = _off;
+      LIBCWD_TSD_DECLARATION
+      state._off = LIBCWD_TSD_MEMBER(_off);
 #ifdef DEBUGDEBUGOUTPUT
-      state.first_time = first_time;
+      state.first_time = LIBCWD_TSD_MEMBER(first_time);
 #endif
-      _off = -1;					// Turn object on.
+      LIBCWD_TSD_MEMBER(_off) = -1;					// Turn object on.
     }
 
     void debug_ct::restore(debug_ct::OnOffState const& state)
     {
 #ifdef DEBUGDEBUGOUTPUT
-      if (state.first_time != first_time)		// state.first_time && !first_time.
-	core_dump();					// on() was called without first a call to off().
+      if (state.first_time != LIBCWD_TSD_MEMBER(first_time))		// state.first_time && !first_time.
+	core_dump();							// on() was called without first a call to off().
 #endif
-      if (_off != -1)
-	core_dump();					// off() and on() where called and not in equal pairs.
-      _off = state._off;				// Restore.
+      if (LIBCWD_TSD_MEMBER(_off) != -1)
+	core_dump();							// off() and on() where called and not in equal pairs.
+      LIBCWD_TSD_MEMBER(_off) = state._off;				// Restore.
     }
 
     void channel_ct::force_on(channel_ct::OnOffState& state, char const* label)

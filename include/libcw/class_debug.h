@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000 - 2001, by
+// Copyright (C) 2000 - 2002, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -24,14 +24,11 @@
 #ifndef LIBCW_CLASS_CHANNEL_SET_H
 #include <libcw/class_channel_set.h>
 #endif
-#ifndef LIBCW_PRIVATE_DEBUG_STACK_H
-#include <libcw/private_debug_stack.h>
-#endif
-#ifndef LIBCW_CLASS_DEBUG_STRING_H
-#include <libcw/class_debug_string.h>
-#endif
 #ifndef LIBCW_PRIVATE_TSD_H
 #include <libcw/private_TSD.h>
+#endif
+#ifndef LIBCW_STRUCT_DEBUG_TSD
+#include <libcw/struct_debug_tsd.h>
 #endif
 #ifndef LIBCW_IOSFWD
 #define LIBCW_IOSFWD
@@ -40,14 +37,6 @@
 
 namespace libcw {
   namespace debug {
-#ifdef DEBUGUSEBFD
-    namespace cwbfd { bool ST_init(void); }
-#endif
-
-class channel_ct;
-class fatal_channel_ct;
-class continued_channel_ct;
-class laf_ct;
 
 //===================================================================================================
 // class debug_ct
@@ -69,73 +58,49 @@ class laf_ct;
  * See \ref group_debug_object.
  */
 class debug_ct {
-#ifdef DOXYGEN
+  friend void debug_tsd_st::start(debug_ct&, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM);
+  friend void debug_tsd_st::finish(debug_ct &, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM);
+#ifdef LIBCW_DOXYGEN
 protected:
 #else
-public: // Direct access needed in macro LibcwDout().  Do not write to these.
+public: // Only public because macro LibcwDout needs acces, don't access this directly.
 #endif
-  int _off;
-    // Debug output is turned on when this variable is -1, otherwise it is off.
+#ifndef LIBCWD_THREAD_SAFE
+  //-------------------------------------------------------------------------------------------------
+  // Put the otherwise Thread Specific Data of this debug object
+  // directly into the object when we don't use threads.
+  //
 
-  laf_ct* current;
-    // Current laf.
-
-  std::ostream* current_oss;
-    // The stringstream of the current laf.  This should *always* be equal to current->oss.
-    // The reason for keeping this copy is to avoid including <sstream> in debug.h.
-
-  union {
-    channel_set_st           channel_set;
-    continued_channel_set_st continued_channel_set;
-  };
-    // Temporary storage for the current (continued) channel set (while being assembled from
-    // operator| calls).  The reason for the union is that the type of this variable is converted
-    // from channel_set_st to continued_channel_set_st by a reinterpret_cast when a continued_cf,
-    // dc::continued or dc::finish is detected. This allows us to make compile-time decisions (using
-    // overloading).
-
-protected:
-  std::ostream* orig_os;
-    // The original output ostream (as set with set_ostream() or set_fd()).
-
-  std::ostream* os;
-    // The current output ostream (may be a temporal stringstream).
-
-  bool start_expected;
-    // Set to true when start() is expected, otherwise we expect a call to finish().
-
-  bool unfinished_expected;
-    // Set to true when start() should cause a <unfinished>.
-
-  _private_::debug_stack_tst<laf_ct*> laf_stack;
-    // Store for nested debug calls.
-
-  friend continued_channel_set_st& channel_set_st::operator|(continued_cf_nt);
-    // Needs access to `initialized', `off_count' and `continued_stack'.
-
-  int off_count;
-    // Number of nested and switched off continued channels till first switched on continued channel.
-
-  _private_::debug_stack_tst<int> continued_stack;
-    // Stores the number of nested and switched off continued channels.
-
-  debug_string_stack_element_ct* M_margin_stack;
-    // Pointer to list of pushed margins.
-
-  debug_string_stack_element_ct* M_marker_stack;
-    // Pointer to list of pushed markers.
+  debug_tsd_st tsd;
+#else
+  int WNS_index;
+#endif
 
 protected:
   //-------------------------------------------------------------------------------------------------
-  // Attributes that determine how the prefix is printed:
+  // Protected attributes.
   //
 
-  unsigned short indent;
-    // Position at which debug message is printed.
-    // A value of 0 means directly behind the marker.
+  std::ostream* real_os;
+    // The original output ostream (as set with set_ostream() or set_fd()).
+
+private:
+  //-------------------------------------------------------------------------------------------------
+  // Private attributes: 
+  //
+
+  bool WNS_initialized;
+    // Set to true when this object is initialized (by a call to NS_init()).
+
+#ifdef DEBUGDEBUG
+  long init_magic;
+    // Used to check if the trick with `WNS_initialized' really works.
+#endif
+
+  bool interactive;
+    // Set true if the last or current debug output is to cerr
 
 public:
-
   /** \addtogroup group_formatting */
   /** \{ */
 
@@ -148,7 +113,14 @@ public:
    * \sa push_margin()
    *  \n pop_margin()
    */
+#if defined(LIBCWD_THREAD_SAFE) && !defined(LIBCW_DOXYGEN)
+  struct TS_margin_st {
+    __inline__ operator debug_string_ct& (void);
+    __inline__ operator debug_string_ct const& (void) const;
+  } margin;
+#else
   debug_string_ct margin;
+#endif
 
   /**
    * \brief The marker
@@ -159,13 +131,20 @@ public:
    * \sa push_marker()
    *  \n pop_marker()
    */
+#if defined(LIBCWD_THREAD_SAFE) && !defined(LIBCW_DOXYGEN)
+  struct TS_marker_st {
+    __inline__ operator debug_string_ct& (void);
+    __inline__ operator debug_string_ct const& (void) const;
+  } marker;
+#else
   debug_string_ct marker;
+#endif
 
   /** \} */
 
 public:
   //-------------------------------------------------------------------------------------------------
-  // Manipulators and accessors for the above "format" attributes:
+  // Manipulators and accessors for the "format" attributes:
   //
 
   void set_indent(unsigned short indentation);
@@ -188,27 +167,7 @@ public:
   // Other accessors
   //
 
-  std::ostream& get_os(void) const;
-  std::ostream* get_ostream(void) const;
-
-private:
-  //-------------------------------------------------------------------------------------------------
-  // Private attributes: 
-  //
-
-  std::ostream* saved_os;
-    // The saved current output ostream while writing forced cerr.
-
-  bool interactive;
-    // Set true if the last or current debug output is to cerr
-
-  bool WNS_initialized;
-    // Set to true when this object is initialized (by a call to NS_init()).
-
-#ifdef DEBUGDEBUG
-  long init_magic;
-    // Used to check if the trick with `WNS_initialized' really works.
-#endif
+  std::ostream* get_ostream(void) const;		// The orignial ostream set with set_ostream.
 
 private:
   //-------------------------------------------------------------------------------------------------
@@ -252,33 +211,6 @@ public:
 
   void force_on(OnOffState& state);
   void restore(OnOffState const& state);
-
-#ifdef DEBUGDEBUGOUTPUT
-  // Since with DEBUGDEBUG defined we start with _off is -1 instead of 0,
-  // we need to ignore the call to on() the first time it is called.
-private:
-  bool first_time;
-#endif
-
-  //=================================================================================================
-public: // Only public because these are accessed from LibcwDout().
-	// You should not call them directly.
-
-  void start(LIBCWD_TSD_PARAM);
-  void finish(LIBCWD_TSD_PARAM);
-  void fatal_finish(LIBCWD_TSD_PARAM) __attribute__ ((__noreturn__));
-
-  //-------------------------------------------------------------------------------------------------
-  // Operators that combine channels/control bits.
-  //
-
-  channel_set_st& operator|(channel_ct const& dc);
-  channel_set_st& operator&(fatal_channel_ct const& fdc);  // Using operator& just to detect
-  							   // that we indeed used LibcwDoutFatal!
-  continued_channel_set_st& operator|(continued_channel_ct const& cdc);
-
-  channel_set_st& operator|(fatal_channel_ct const&);
-  channel_set_st& operator&(channel_ct const&);
 };
 
   }  // namespace debug

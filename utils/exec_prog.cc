@@ -47,7 +47,15 @@ namespace {
     void print_on(std::ostream& os) const;
   };
 
-  void print_poll_array_on(std::ostream& os, struct pollfd const ptr[2], size_t size);
+  class printable_poll_dummy_ct {
+  private:
+    struct pollfd const* M_pollfds;
+    size_t M_number_of_fds;
+  public:
+    printable_poll_dummy_ct(struct pollfd const* pollfds, size_t number_of_fds) : M_pollfds(pollfds), M_number_of_fds(number_of_fds) { }
+    void print_on(std::ostream& os) const;
+  };
+
 } // namespace {anonymous}
 
 // 
@@ -221,11 +229,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
       {
 	Dout(dc::system|continued_cf, "poll(");
 	ret = poll(ufds, number_of_fds, -1);
-	Debug(
-	  if (libcw_do._off < 0)
-	    if ((libcw_do|dc::continued).on)
-	      print_poll_array_on(*libcw_do.current_oss, ufds, number_of_fds);
-	);
+	Dout(dc::continued, cwprint(printable_poll_dummy_ct(ufds, number_of_fds)));
 	Dout(dc::finish|cond_error_cf(ret == -1), ", " << number_of_fds << ", -1) = " << ret);
 	if (ret == -1)
 	{
@@ -409,15 +413,15 @@ namespace {		// Implementation of local functions
   }
 
   // {anonymous}::
-  void print_poll_array_on(std::ostream& os, struct pollfd const ptr[2], size_t size)
+  void printable_poll_dummy_ct::print_on(std::ostream& os) const
   {
     os << " [ ";
-    if (size > 0)
-      print_poll_struct_on(os, ptr[0]);
-    for (size_t i = 1; i < size; ++i)
+    if (M_number_of_fds > 0)
+      print_poll_struct_on(os, M_pollfds[0]);
+    for (size_t i = 1; i < M_number_of_fds; ++i)
     {
       os << ", ";
-      print_poll_struct_on(os, ptr[i]);
+      print_poll_struct_on(os, M_pollfds[i]);
     }
     os << " ]";
   }

@@ -37,6 +37,8 @@ namespace libcw {
 // This class can not have a constructor.
 
 struct debug_string_stack_element_ct;
+struct debug_tsd_st;
+class debug_ct;
 
 /**
  * \brief A string class used for the %debug output margin and marker.
@@ -59,7 +61,11 @@ private:
   void internal_swallow(debug_string_ct const&);
 
 private:
+#ifdef LIBCWD_THREAD_SAFE
+  friend struct debug_tsd_st;
+#else
   friend class debug_ct;
+#endif
   void NS_internal_init(char const* s, size_t l);
   void ST_internal_deinit(void);
   debug_string_ct(void) { }

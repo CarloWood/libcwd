@@ -50,6 +50,7 @@
 #include <libcw/class_channel.h>
 #include <libcw/class_fatal_channel.h>
 #include <libcw/class_continued_channel.h>
+#include <libcw/class_always_channel.h>
 
 #ifndef DEBUGCHANNELS
 /**
@@ -94,6 +95,7 @@ namespace channels {
     extern fatal_channel_ct core;
     extern continued_channel_ct continued;
     extern continued_channel_ct finish;
+    extern always_channel_ct always;
 
   } // namespace dc
 } // namespace channels
@@ -208,7 +210,7 @@ namespace libcw {
   namespace debug {
 
 extern channel_ct* find_channel(char const* label);
-extern void list_channels_on(debug_ct const& debug_object);
+extern void list_channels_on(debug_ct& debug_object);
 
 // Make the inserter functions of std accessible in libcw::debug.
 using std::operator<<;
@@ -229,6 +231,7 @@ using namespace libcw_debug_inserters;
 #include <libcw/class_channel.inl>		// Debug channels.
 #include <libcw/class_fatal_channel.inl>
 #include <libcw/class_continued_channel.inl>
+#include <libcw/class_always_channel.inl>
 #include <libcw/class_debug.inl>		// Debug objects (debug_ct).
 #include <libcw/class_debug_string.inl>		// Public member of debug_ct.
 #include <libcw/class_channel_set.inl>		// Used in macro Dout et al.

@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000 - 2001, by
+// Copyright (C) 2000 - 2002, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -51,6 +51,7 @@
 // Macro LibcwDout
 //
 
+// This is debugging libcwd itself.
 #ifndef DEBUGDEBUGLIBCWDOUTMARKER
 #ifdef DEBUGDEBUGOUTPUT
 extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
@@ -72,31 +73,44 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
  * \sa \ref chapter_custom_debug_h
  */
 #define LibcwDout( dc_namespace, debug_obj, cntrl, data )	\
-  do								\
-  {								\
-    DEBUGDEBUGLIBCWDOUTMARKER					\
-    if (debug_obj._off < 0)					\
-    {								\
-      using namespace ::libcw::debug;				\
-      bool on;							\
-      {								\
-        using namespace dc_namespace;				\
-	on = (debug_obj|cntrl).on;				\
-      }								\
-      if (on)							\
-      {								\
-        LIBCWD_TSD_DECLARATION					\
-	debug_obj.start(LIBCWD_TSD);				\
-	(*debug_obj.current_oss) << data;			\
-	debug_obj.finish(LIBCWD_TSD);				\
-      }								\
-    }								\
+    LibcwDoutScopeBegin(dc_namespace, debug_obj, cntrl)		\
+    LibcwDoutStream << data;					\
+    LibcwDoutScopeEnd
+
+#define LibcwDoutScopeBegin( dc_namespace, debug_obj, cntrl )									\
+  do																\
+  {																\
+    DEBUGDEBUGLIBCWDOUTMARKER													\
+    LIBCWD_TSD_DECLARATION													\
+    if (LIBCWD_DO_TSD_MEMBER(debug_obj, _off) < 0)										\
+    {																\
+      using namespace ::libcw::debug;												\
+      ::libcw::debug::channel_set_bootstrap_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
+      bool on;															\
+      {																\
+        using namespace dc_namespace;												\
+	on = (__libcwd_channel_set|cntrl).on;											\
+      }																\
+      if (on)															\
+      {																\
+	::libcw::debug::debug_ct& __libcwd_debug_object(debug_obj);								\
+	LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);
+
+// Note: LibcwDoutStream is *not* equal to the ostream that was set with set_ostream.  It is a temporary stringstream.
+#define LibcwDoutStream														\
+        (*LIBCWD_DO_TSD_MEMBER(__libcwd_debug_object, current_oss))
+
+#define LibcwDoutScopeEnd													\
+	LIBCWD_DO_TSD(__libcwd_debug_object).finish(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);		\
+      }																\
+    }																\
   } while(0)
 
 //===================================================================================================
 // Macro LibcwDoutFatal
 //
 
+// This is debugging libcwd itself.
 #ifndef DEBUGDEBUGLIBCWDOUTFATALMARKER
 #ifdef DEBUGDEBUGOUTPUT
 #define LIBCWD_STR4 "LibcwDoutFatal at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
@@ -115,18 +129,28 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
  * \sa \ref chapter_custom_debug_h
  */
 #define LibcwDoutFatal( dc_namespace, debug_obj, cntrl, data )	\
-  do								\
-  {								\
-    DEBUGDEBUGLIBCWDOUTFATALMARKER				\
-    using namespace ::libcw::debug;				\
-    {								\
-      using namespace dc_namespace;				\
-      debug_obj&cntrl;						\
-    }								\
-    LIBCWD_TSD_DECLARATION					\
-    debug_obj.start(LIBCWD_TSD);				\
-    (*debug_obj.current_oss) << data;				\
-    debug_obj.fatal_finish(LIBCWD_TSD);				\
+    LibcwDoutFatalScopeBegin(dc_namespace, debug_obj, cntrl)	\
+    LibcwDoutFatalStream << data;				\
+    LibcwDoutFatalScopeEnd
+
+#define LibcwDoutFatalScopeBegin( dc_namespace, debug_obj, cntrl )								\
+  do																\
+  {																\
+    DEBUGDEBUGLIBCWDOUTFATALMARKER												\
+    LIBCWD_TSD_DECLARATION													\
+    using namespace ::libcw::debug;												\
+    ::libcw::debug::channel_set_bootstrap_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
+    {																\
+      using namespace dc_namespace;												\
+      __libcwd_channel_set&cntrl;												\
+    }																\
+    ::libcw::debug::debug_ct& __libcwd_debug_object(debug_obj);									\
+    LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);
+
+#define LibcwDoutFatalStream LibcwDoutStream
+
+#define LibcwDoutFatalScopeEnd													\
+    LIBCWD_DO_TSD(__libcwd_debug_object).fatal_finish(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);		\
   } while(0)
 
 #endif // LIBCW_LIBCWD_MACROS_H

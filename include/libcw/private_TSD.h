@@ -29,33 +29,11 @@
 namespace libcw {
   namespace debug {
     namespace _private_ {
+      struct TSD_st;
+    }
+  }
+}
 
-struct TSD_st {
-#ifdef DEBUGMALLOC
-  int internal;
-  int library_call;
-#ifdef DEBUGDEBUGMALLOC
-  int recursive;        // Used for sanity double checks (also used in debug.cc now).
-  int marker;
-#endif
-#endif // DEBUGMALLOC
-  bool recursive_fatal;
-  int off_cnt_array[256];
-  TSD_st(void) { std::memset(this, 0, sizeof(struct TSD_st)); }
-};
-
-// Thread Specific Data (TSD) is stored in a structure TSD_st
-// and is accessed through a reference to `__libcwd_tsd'.
-#ifndef LIBCWD_THREAD_SAFE
-// When LIBCWD_THREAD_SAFE is not defined then `__libcwd_tsd' is simply a global object in namespace _private_:
-extern TSD_st __libcwd_tsd;
-#endif
-extern int WST_initializing_TSD;
-
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
- 
 // When LIBCWD_THREAD_SAFE is defined then `__libcwd_tsd' is a local variable
 // (see LIBCWD_TSD_DECLARATION) or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
 // This approach means that many function signatures are different because with thread support a
@@ -77,10 +55,50 @@ extern int WST_initializing_TSD;
 #define LIBCWD_TSD_PARAM void
 #define LIBCWD_COMMA_TSD_PARAM
 
+#endif // !LIBCWD_THREAD_SAFE
+
+// This include uses the above macros.
+#ifndef LIBCW_STRUCT_DEBUG_TSD
+#include <libcw/struct_debug_tsd.h>
+#endif
+
+namespace libcw {
+  namespace debug {
+    namespace _private_ {
+
+struct TSD_st {
+#ifdef DEBUGMALLOC
+  int internal;
+  int library_call;
+#ifdef DEBUGDEBUGMALLOC
+  int recursive;        // Used for sanity double checks (also used in debug.cc now).
+  int marker;
+#endif
+#endif // DEBUGMALLOC
+  bool recursive_fatal;
+#ifdef LIBCWD_THREAD_SAFE	// Directly contained in debug_ct when not threaded.
+  debug_tsd_st do_array[16];
+#endif
+  int off_cnt_array[256];
+  TSD_st(void) { std::memset(this, 0, sizeof(struct TSD_st)); }
+};
+
+// Thread Specific Data (TSD) is stored in a structure TSD_st
+// and is accessed through a reference to `__libcwd_tsd'.
+#ifndef LIBCWD_THREAD_SAFE
+// When LIBCWD_THREAD_SAFE is not defined then `__libcwd_tsd' is simply a global object in namespace _private_:
+extern TSD_st __libcwd_tsd;
+#endif
+extern int WST_initializing_TSD;
+
+    } // namespace _private_
+  } // namespace debug
+} // namespace libcw
+ 
+#ifndef LIBCWD_THREAD_SAFE
 // Put __libcwd_tsd in global namespace because anywhere we always refer to it
 // as `__libcwd_tsd' because when LIBCWD_THREAD_SAFE is defined it is local variable.
 using ::libcw::debug::_private_::__libcwd_tsd;
-
-#endif // !LIBCWD_THREAD_SAFE
+#endif
 
 #endif // LIBCW_TSD_H

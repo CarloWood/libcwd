@@ -64,7 +64,8 @@ __inline__
 void
 debug_ct::set_indent(unsigned short i)
 {
-  indent = i;
+  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_MEMBER(indent) = i;
 }
 
 /**
@@ -74,7 +75,8 @@ __inline__
 void
 debug_ct::inc_indent(unsigned short i)
 {
-  indent += i;
+  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_MEMBER(indent) += i;
 }
 
 /**
@@ -84,7 +86,9 @@ __inline__
 void
 debug_ct::dec_indent(unsigned short i)
 {
-  indent = (i > indent) ? 0 : (indent - i);
+  LIBCWD_TSD_DECLARATION
+  int prev_indent = LIBCWD_TSD_MEMBER(indent);
+  LIBCWD_TSD_MEMBER(indent) = (i > prev_indent) ? 0 : (prev_indent - i);
 }
 
 /**
@@ -94,7 +98,8 @@ __inline__
 unsigned short
 debug_ct::get_indent(void) const
 {
-  return indent;
+  LIBCWD_TSD_DECLARATION
+  return LIBCWD_TSD_MEMBER(indent);
 }
 
 // This is here only for backwards compatibility.
@@ -127,17 +132,7 @@ __inline__
 std::ostream*
 debug_ct::get_ostream(void) const
 {
-  return orig_os;
-}
-
-/**
- * \brief Get the \em current ostream device (might be a temporary stringstream).
- */
-__inline__
-std::ostream&
-debug_ct::get_os(void) const
-{
-  return *os;
+  return real_os;
 }
 
 /** \} */
@@ -157,26 +152,14 @@ debug_ct::debug_ct(void)
 }
 
 /**
- * \brief Set output device.
- * \ingroup group_destination
- *
- * Assign a new \c ostream to this %debug object (default is <CODE>std::cerr</CODE>).
- */
-__inline__
-void
-debug_ct::set_ostream(std::ostream* _os)
-{
-  orig_os = os = _os;
-}
-
-/**
  * \brief Turn this %debug object off.
  */
 __inline__
 void
 debug_ct::off(void)
 {
-  ++_off;
+  LIBCWD_TSD_DECLARATION
+  ++LIBCWD_TSD_MEMBER(_off);
 }
 
 /**
@@ -207,34 +190,35 @@ __inline__
 void
 debug_ct::on(void)
 {
+  LIBCWD_TSD_DECLARATION
 #ifdef DEBUGDEBUGOUTPUT
-  if (first_time && _off == -1)
-    first_time = false;
+  if (LIBCWD_TSD_MEMBER(first_time) && LIBCWD_TSD_MEMBER(_off) == -1)
+    LIBCWD_TSD_MEMBER(first_time) = false;
   else
-    --_off;
+    --LIBCWD_TSD_MEMBER(_off);
 #else
-  --_off;
+  --LIBCWD_TSD_MEMBER(_off);
 #endif
 }
 
 __inline__
 channel_set_st&
-debug_ct::operator|(channel_ct const& dc)
+channel_set_bootstrap_st::operator|(channel_ct const& dc)
 {
-  channel_set.mask = 0;
-  channel_set.label = dc.get_label();
-  channel_set.on = dc.is_on();
-  return channel_set;
+  mask = 0;
+  label = dc.get_label();
+  on = dc.is_on();
+  return *reinterpret_cast<channel_set_st*>(this);
 }
 
 __inline__
 channel_set_st&
-debug_ct::operator&(fatal_channel_ct const& fdc)
+channel_set_bootstrap_st::operator&(fatal_channel_ct const& fdc)
 {
-  channel_set.mask = fdc.get_maskbit();
-  channel_set.label = fdc.get_label();
-  channel_set.on = true;
-  return channel_set;
+  mask = fdc.get_maskbit();
+  label = fdc.get_label();
+  on = true;
+  return *reinterpret_cast<channel_set_st*>(this);
 }
 
   } // namespace debug

@@ -886,6 +886,7 @@ AC_SUBST(DEBUGOPTS)
 dnl Other options
 if test "$USE_MAINTAINER_MODE" = yes; then
 EXTRAOPTS=""
+DEBUGOPTS="-ggdb3"
 else
 EXTRAOPTS="-O"
 fi

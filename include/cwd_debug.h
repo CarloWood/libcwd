@@ -93,37 +93,39 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
   return os;
 }
 
-#define LIBCWD_Dout( cntrl, data )				\
-  do								\
-  {								\
-    if (libcw_do._off < 0)					\
-    {								\
-      bool on;							\
-      {								\
-        using namespace channels;				\
-	on = (libcw_do|cntrl).on;				\
-      }								\
-      if (on)							\
-      {								\
-	libcw_do.start(LIBCWD_TSD);				\
-	_private_::no_alloc_ostream_ct no_alloc_ostream(*libcw_do.current_oss);	\
-	no_alloc_ostream << data;				\
-	libcw_do.finish(LIBCWD_TSD);				\
-      }								\
-    }								\
+#define LIBCWD_Dout( cntrl, data )									\
+  do													\
+  {													\
+    if (LIBCWD_DO_TSD_MEMBER(libcw_do, _off) < 0)							\
+    {													\
+      bool on;												\
+      channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);			\
+      {													\
+        using namespace channels;									\
+	on = (channel_set|cntrl).on;									\
+      }													\
+      if (on)												\
+      {													\
+	LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);				\
+	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss));	\
+	no_alloc_ostream << data;									\
+	LIBCWD_DO_TSD(libcw_do).finish(libcw_do, channel_set LIBCWD_COMMA_TSD);				\
+      }													\
+    }													\
   } while(0)
 
-#define LIBCWD_DoutFatal( cntrl, data )			\
-  do							\
-  {							\
-    {							\
-      using namespace dc_namespace;			\
-      libcw_do&cntrl;					\
-    }							\
-    libcw_do.start(LIBCWD_TSD);				\
-    _private_::no_alloc_ostream_ct no_alloc_ostream(*libcw_do.current_oss);	\
-    no_alloc_ostream << data;				\
-    libcw_do.fatal_finish(LIBCWD_TSD);			\
+#define LIBCWD_DoutFatal( cntrl, data )									\
+  do													\
+  {													\
+    channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);			\
+    {													\
+      using namespace dc_namespace;									\
+      channel_set&cntrl;										\
+    }													\
+    LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);				\
+    _private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss));	\
+    no_alloc_ostream << data;										\
+    LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);			\
   } while(0)
 
 #ifdef DEBUGDEBUG

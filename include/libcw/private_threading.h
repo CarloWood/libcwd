@@ -73,11 +73,17 @@ extern bool WST_multi_threaded;
     TSD_st& __libcwd_tsd(::libcw::debug::_private_::\
 	                 thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance());
 	// Declaration of local `__libcwd_tsd' structure reference.
+#define LIBCWD_DO_TSD(debug_object) (__libcwd_tsd.do_array[(debug_object).WNS_index])
+    	// For use inside class debug_ct to access member `m'.
 #else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_TSD_INSTANCE
 #define LIBCWD_COMMA_TSD_INSTANCE
 #define LIBCWD_TSD_DECLARATION
+#define LIBCWD_DO_TSD(debug_object) ((debug_object).tsd)
 #endif // !LIBCWD_THREAD_SAFE
+
+#define LIBCWD_DO_TSD_MEMBER(debug_object, m) (LIBCWD_DO_TSD(debug_object).m)
+#define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
 
 // End of Thread Specific Data
 //===================================================================================================

@@ -24,11 +24,15 @@
 #ifndef LIBCW_CONTROL_FLAG_H
 #include <libcw/control_flag.h>
 #endif
+#ifndef LIBCW_PRIVATE_TSD_H
+#include <libcw/private_TSD.h>
+#endif
 
 namespace libcw {
   namespace debug {
 
 class debug_ct;
+struct debug_tsd_st;
 class channel_ct;
 class fatal_channel_ct;
 
@@ -49,8 +53,12 @@ public:
   bool on;
     // Set if at least one of the provided channels is turned on.
 
-  debug_ct* debug_object;
-    // The owner of this object.
+  debug_tsd_st* do_tsd_ptr;
+    // Thread specific data of current debug object.
+
+#ifdef DEBUGDEBUG
+  channel_set_data_st(void) : do_tsd_ptr(NULL) { }
+#endif
 };
 
 //===================================================================================================
@@ -78,6 +86,34 @@ public:
   channel_set_st& operator|(channel_ct const& dc);
   channel_set_st& operator|(fatal_channel_ct const& fdc);
   continued_channel_set_st& operator|(continued_cf_nt);
+};
+
+//===================================================================================================
+// struct channel_set_bootstrap_st
+//
+// The debug output target; a combination of channels and control bits.
+//
+
+class channel_ct;
+class fatal_channel_ct;
+class continued_channel_ct;
+class always_channel_ct;
+
+struct channel_set_bootstrap_st : public channel_set_data_st {
+  // Warning: This struct may not have attributes of its own!
+public:
+  channel_set_bootstrap_st(debug_tsd_st& do_tsd LIBCWD_COMMA_TSD_PARAM) { do_tsd_ptr = &do_tsd; }
+
+  //-------------------------------------------------------------------------------------------------
+  // Operators that combine channels/control bits.
+  //
+
+  channel_set_st& operator|(channel_ct const& dc);
+  channel_set_st& operator|(always_channel_ct const& adc);
+  channel_set_st& operator&(fatal_channel_ct const& fdc);  // Using operator& just to detect that we indeed used LibcwDoutFatal!
+  continued_channel_set_st& operator|(continued_channel_ct const& cdc);
+  channel_set_st& operator|(fatal_channel_ct const&);
+  channel_set_st& operator&(channel_ct const&);
 };
 
   } // namespace debug
