@@ -34,10 +34,6 @@ class B {
 private:
   char x[64];
   B(void) { }
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-public:
-  B(int hack) { }
-#endif
 };
 
 int main(void)

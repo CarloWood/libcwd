@@ -64,7 +64,7 @@ namespace _internal_ {
     static type_info_ct const value;
   };
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
   // _internal_::
   template<typename T>
     struct sizeof_star {
@@ -109,7 +109,7 @@ template<class T>
   __inline type_info_ct const&
   type_info_of(void)
   {
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
     // In early versions of g++, typeid is broken and doesn't work on a template parameter type.
     // We have to use the following hack.
     if (_internal_::type_info<T>::value.size() == 0)		// Not initialized already?
@@ -135,7 +135,7 @@ template<typename T>
   __inline type_info_ct const&
   type_info_of(T)
   {
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
     return type_info_of<T>();
 #else
     return _internal_::type_info<T>::value;

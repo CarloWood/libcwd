@@ -36,7 +36,6 @@ public:
   no_alloc_checking_stringstream(void);
   ~no_alloc_checking_stringstream();
   std::strstreambuf* rdbuf() { return my_sb; }
-private:
   typedef streampos pos_type;
 };
 
