@@ -44,7 +44,7 @@ dist-hook: documentation
 	for i in `grep '^/' $(srcdir)/example-project/CVS/Entries | cut -d/ -f2`; do \
 	  cp -p $(srcdir)/example-project/$$i $(distdir)/example-project; \
 	done
-	rm $(distdir)/example-project/debug.h.maintainer $(distdir)/example-project/macrotest.cc
+	rm $(distdir)/example-project/debug.h.maintainer
 	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
 	chmod +x $(distdir)/install-sh
 	mkdir $(distdir)/debian
