@@ -9,22 +9,24 @@ libcwd-0.99.23
 	explicitly an allocation annotation (AllocTag et al) has
 	been used [ ooam_filter_ct::hide_untagged_allocations(bool) ].
 
-	An allocation marker (marker_ct) now accepts a filter
-	argument which is subsequently used to move 'hidden'
-	allocations outside of the marker before testing for leaks.
-	Possible leaks are then listed using the show_* flags of the
-	filter.
+	An allocation marker (marker_ct) now accepts a filter (ooam_filter_ct)
+	as second argument which is subsequently used to move 'hidden' allocations
+	outside of the marker before testing for leaks.  Possible leaks are
+	then listed using the show_* flags of the filter.
 
         Bug fixes:
 
-	dlopen() can now be called multiple times for the same module
+	dlopen() can now be called multiple times for the same module;
 	the related symbol table will not be deleted until dlclose()
 	has been called as often as dlopen() was called.
 
 	An allocation done in an object file  that was opened with dlopen()
-	would cause a core dump in list_allocations_on using a filter
-	with show_objectfile, when in the meantime dlclose() was called
+	would cause a core dump in list_allocations_on when using a filter
+	with show_objectfile when in the meantime dlclose() was called
 	for that object file.
+
+	The first part of the full path of a source file location was
+	missing when using gcc 3.x.
 
 libcwd-0.99.22
 

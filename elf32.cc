@@ -1156,6 +1156,28 @@ struct file_name_st {
   uLEB128_t length_in_bytes_of_the_file;
 };
 
+static std::string catenate_path(std::string const& dir, char const* subpath)
+{
+  std::string res;
+  int count = 0;
+  while (subpath[0] == '.' && subpath[1] == '.' && subpath[2] == '/')
+  {
+    ++count;
+    subpath += 3;
+  }
+  if (count > 0)
+  {
+    size_t pos = dir.size() - 1;
+    for(; count > 0; --count)
+      pos = dir.find_last_of('/', pos - 1);
+    res.assign(dir, 0, pos + 1);
+  }
+  else
+    res.assign(dir);
+  res.append(subpath);
+  return res;
+}
+
 void objfile_ct::load_dwarf(void)
 {
 #if __GNUC__ == 2 && __GNUC_MINOR__ == 96
@@ -1171,7 +1193,8 @@ void objfile_ct::load_dwarf(void)
     LIBCWD_ASSERT( M_sections[M_dwarf_debug_line_section_index].section_header().sh_entsize == 0 );
     LIBCWD_ASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
     LIBCWD_ASSERT( M_sections[M_dwarf_debug_abbrev_section_index].section_header().sh_entsize == 0 );
-    LIBCWD_ASSERT( M_dwarf_debug_str_section_index == 0 || M_sections[M_dwarf_debug_str_section_index].section_header().sh_entsize == 0 );
+    // gcc 3.1 sets sh_entsize to 1, previous versions set it to 0.
+    LIBCWD_ASSERT( M_dwarf_debug_str_section_index == 0 || M_sections[M_dwarf_debug_str_section_index].section_header().sh_entsize <= 1 );
     // Initialization of debug variable.
     total_length = 0;
   }
@@ -1346,16 +1369,15 @@ void objfile_ct::load_dwarf(void)
 	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << str << '"');
 	      if (attr->attr == DW_AT_comp_dir)
 	      {
-		if (*str != '/')
-		{
-		  default_dir.assign(str);
-		  default_dir += '/';
-		}
+		default_dir.assign(str);
+		default_dir += '/';
 	      }
 	      else
 	      {
 		if (*str == '/')
 		  default_dir.erase();
+		if (str[0] == '.' && str[1] == '/')
+		  str += 2;
 		default_source.assign(str);
 		default_source += '\0';
 	      }
@@ -1564,7 +1586,14 @@ indirect:
 	    basic_block = false;
 	    end_sequence = false;
 	    cur_dir = default_dir;
-	    cur_source = cur_dir + default_source;
+	    cur_source = catenate_path(cur_dir, default_source.data());
+	    if (default_dir[0] == '.' && default_dir[1] == '.' && default_dir[2] == '/')
+	    {
+	      cur_source.assign(cur_dir, 0, cur_dir.find_last_of('/', cur_dir.size() - 2) + 1);
+	      cur_source.append(default_source, 3, std::string::npos);
+	    }
+	    else
+	      cur_source = cur_dir + default_source;
 
 	    location.invalidate();
 	    location.set_source_iter(M_source_files.insert(cur_source).first);
@@ -1609,6 +1638,8 @@ indirect:
 			unsigned char const* end = debug_line_ptr + size;
 			file_name_st file_name;
 			file_name.name = reinterpret_cast<char const*>(debug_line_ptr);
+			if (file_name.name[0] == '.' && file_name.name[1] == '/')
+			  file_name.name += 2;
 			while(*debug_line_ptr++);
 			dwarf_read(debug_line_ptr, file_name.directory_index);
 			dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
@@ -1664,8 +1695,7 @@ indirect:
 			cur_dir.assign(include_directories[file_names[file].directory_index - 1]);
 			cur_dir += '/';
 		      }
-		      cur_source = cur_dir;
-		      cur_source.append(file_names[file].name);
+		      cur_source = catenate_path(cur_dir, file_names[file].name);
 		    }
 		    cur_source += '\0';
 		    location.set_source_iter(M_source_files.insert(cur_source).first);
@@ -1821,8 +1851,9 @@ void objfile_ct::load_stabs(void)
 	}
 	else
 	{
-	  cur_source = cur_dir;
-	  cur_source += filename;
+	  if (filename[0] == '.' && filename[1] == '/')
+	    filename += 2;
+	  cur_source = catenate_path(cur_dir, filename);
 	}
 	cur_source += '\0';
 	last_source_iter = M_source_files.insert(cur_source).first; 
