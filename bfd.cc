@@ -301,38 +301,52 @@ namespace {	// Local stuff
 #endif
       }
 
-      // Sort the symbol table in order of start address.
-      sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
-
-      // Find the last symbol
       void const* s_end_start_addr = NULL;
-      for (int i = number_of_symbols - 1; i >= 0; --i)
-        if (strcmp(symbol_table[i]->name, "_end") == 0)
+
+      // Throw away symbols that can endanger determining the size of functions
+      // like: local symbols, debugging symbols.  Also throw away all symbols
+      // in uninteresting sections, so safe time with sorting.
+      asymbol** se = &symbol_table[number_of_symbols - 1];
+      for (asymbol** s = symbol_table; s <= se;)
+      {
+	if ((*s)->name == 0
+	    || ((*s)->flags & (BSF_GLOBAL|BSF_FUNCTION|BSF_OBJECT)) == 0
+	    || ((*s)->flags & (BSF_LOCAL|BSF_DEBUGGING|BSF_CONSTRUCTOR|BSF_WARNING|BSF_FILE)) != 0
+	    || bfd_is_abs_section(bfd_get_section(*s))
+	    || bfd_is_com_section(bfd_get_section(*s))
+	    || bfd_is_ind_section(bfd_get_section(*s)))
 	{
-	  s_end_start_addr = symbol_start_addr(symbol_table[i]);
-	  break;
-        }
+	  // Find the start address of the last symbol: "_end".
+	  if ((*s)->name[0] == '_' && (*s)->name[1] == 'e' && (*s)->name[2] == 'n' && (*s)->name[3] == 'd' && (*s)->name[4] == 0)
+	    s_end_start_addr = symbol_start_addr(*s++);
+	  else
+	  {
+	    *s = *se--;
+	    --number_of_symbols;
+	  }
+	}
+	else
+	  ++s;
+      }
+
       if (!s_end_start_addr && number_of_symbols > 0)
         Dout(dc::warning, "Cannot find symbol _end");
+
+      // Sort the symbol table in order of start address.
+      sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
 
       // Calculate sizes for every symbol
       for (int i = 0; i < number_of_symbols - 1; ++i)
 	symbol_size(symbol_table[i]) = (char*)symbol_start_addr(symbol_table[i + 1]) - (char*)symbol_start_addr(symbol_table[i]);
 
-      // Use reasonable size for last one:
+      // Use reasonable size for last one.
+      // This should be "_end", or one behond it, and will be thrown away in the next loop.
       symbol_size(symbol_table[number_of_symbols - 1]) = 100000;
 
-      // Throw away useless or meaningless symbols
-      asymbol** se = &symbol_table[number_of_symbols - 1];
+      // Throw away all symbols that are not a global variable or function, store the rest in a vector.
       for (asymbol** s = symbol_table; s <= se;)
       {
-	if ((*s)->name == 0 || ((*s)->flags & (BSF_LOCAL|BSF_GLOBAL|BSF_FUNCTION|BSF_OBJECT)) == 0
-	    || ((*s)->flags & (BSF_DEBUGGING|BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|
-			       BSF_CONSTRUCTOR|BSF_WARNING|BSF_INDIRECT|BSF_FILE|BSF_DYNAMIC)) != 0
-	    || ((*s)->flags == BSF_LOCAL && (*s)->name[0] == '.')	// Some labels have a size(?!), their flags seem to be always 1
-	    || bfd_is_abs_section(bfd_get_section(*s))
-	    || bfd_is_com_section(bfd_get_section(*s))
-	    || bfd_is_ind_section(bfd_get_section(*s))
+	if (((*s)->flags & (BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|BSF_INDIRECT|BSF_DYNAMIC)) != 0
 	    || (s_end_start_addr != NULL && symbol_start_addr(*s) >= s_end_start_addr))
 	{
 	  *s = *se--;
