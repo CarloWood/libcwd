@@ -778,12 +778,20 @@ location_st libcw_bfd_pc_location(void const* addr) return location
 
     if (file && location.line)	// When line is 0, it turns out that `file' is nonsense.
     {
-      Debug( dc::bfd.off() );	// This get annoying pretty fast
       size_t len = strlen(file);
+      // `file' is allocated by `bfd_find_nearest_line', however - it is also libbfd
+      // that will free `file' again a second call to `bfd_find_nearest_line' (for the
+      // same value of `abfd': the allocated pointer is stored in a structure
+      // that is kept for each bfd seperately).
+      // The call to `new char [len + 1]' below could cause this function (libcw_bfd_pc_location)
+      // to be called again (in order to store the file:line where the allocation
+      // is done) and thus a new call to `bfd_find_nearest_line', which then would
+      // free `file' before we copy it!
+      // Therefore we need to call `set_alloc_checking_off', to prevent this.
+      set_alloc_checking_off();
       char* filename = new char [len + 1];
-      AllocTag(filename, "location_st::file");
+      set_alloc_checking_on();
       location.file = strcpy(filename, file);
-      Debug( dc::bfd.on() );
     }
     else
       location.file = NULL;
