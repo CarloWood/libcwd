@@ -565,10 +565,14 @@ namespace _private_ {
 #if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
 #endif
+#if __GNUC__ == 2 || (__GNUC__ == 3 && __GNUC_MINOR__ < 3)
 #ifndef _GLIBCPP_USE_WCHAR_T
     if (std::cerr.flags() != std::ios_base::unitbuf)		// Still didn't reach the end of std::ios_base::Init::Init()?
 #else
     if (std::wcerr.flags() != std::ios_base::unitbuf)
+#endif
+#else
+    if (!std::ios_base::Init::_S_initialized())			// std::ios_base::Init not initialized yet?
 #endif
       return true;
     WST_ios_base_initialized = true;
