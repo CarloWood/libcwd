@@ -1734,9 +1734,9 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 #endif
 
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc::finish, (void*)(mptr) << " [" << saved_marker << ']' );
+  DoutInternal(dc::finish, (void*)(mptr) << (__libcwd_tsd.invisible ? " (invisible)" : "") << " [" << saved_marker << ']');
 #else
-  DoutInternal( dc::finish, (void*)(mptr) );
+  DoutInternal(dc::finish, (void*)(mptr) << (__libcwd_tsd.invisible ? " (invisible)" : ""));
 #endif
   return mptr;
 }
@@ -3630,7 +3630,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
   bool insertion_succeeded;
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
   __libcwd_tsd.internal = 1;
-  if (__libcwd_tsd.invisible)
+  bool invisible = __libcwd_tsd.invisible || !(*iter).second.has_alloc_node();
+  if (invisible)
   {
     memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(memblk_type_realloc));
 #if LIBCWD_THREAD_SAFE
@@ -3687,6 +3688,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     {
       memblk_info_ct& memblk_info((*(iter2.first)).second);
       memblk_info.change_label(*type_info_ptr, d);
+      memblk_info.lock();	// Lock ownership.
     }
   }
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
@@ -3698,9 +3700,9 @@ void* __libcwd_realloc(void* ptr, size_t size)
     DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
 
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc::finish, (void*)(mptr) << " [" << saved_marker << ']' );
+  DoutInternal(dc::finish, (void*)(mptr) << (invisible ? " (invisible)" : "") << " [" << saved_marker << ']');
 #else
-  DoutInternal( dc::finish, (void*)(mptr) );
+  DoutInternal(dc::finish, (void*)(mptr) << (invisible ? " (invisible)" : ""));
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
   return mptr;

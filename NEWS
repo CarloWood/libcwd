@@ -1,33 +1,45 @@
 libcwd-0.99.35
 
+        Bug fixes:
+
+	It was not possible to make realloc()-ated memory invisible.
+
+	Changes:
+
+	Memory that was invisible and is then realloc()-ated will
+	now stay invisible.  Memory that is allocated that is
+	invisible will have a "(invisible)" remark behind it.
+	For example:
+	MALLOC    : realloc(0x84ad7f8, 64) = 0x849e5f8 (invisible)
+
 	API changes:
 
-	A new setup for libraries that use libcwd has designed.
+	A new setup for libraries that use libcwd has been designed.
 	This new design allows third-party library headers to
 	include <libcwd/libraries_debug.h> (not <libcwd/debug.h>!)
-	and does drop the requirement that (end-application) source
-	files need to include "debug.h" _before_ including a header
-	of such a library.  The new design also requires library
-	authors to define their own ForAllDebugChannels and
-	ForAllDebugObjects macro for use in their headers files,
-	if they need that.  Before, this was only needed for Dout,
-	DoutFatal and Debug, but use of ForAllDebug* was theoretically
-	broken in library headers under very specific circumstances
-	[ involving two libraries that both use libcwd and have a
-	  channel name collision which the end-user resolves in
-	  favour of library1 while library2 uses a ForAllDebug*
-	  macro in its headers and refers to the colliding debug
-	  channel inside this ForAllDebug*; it then would get the
-	  channel of the other library. ]
+	The new design also requires library authors to define their
+	own ForAllDebugChannels and ForAllDebugObjects macro for use
+	in their headers files, if they need that.  Before, this was
+	only needed for Dout, DoutFatal and Debug, but use of
+	ForAllDebug* was theoretically broken in library headers under
+	very specific circumstances [ involving two libraries that
+	  both use libcwd and have a channel name collision which the
+	  end-user resolves in favour of library1 while library2 uses
+	  a ForAllDebug* macro in its headers and refers to the
+	  colliding debug channel inside this ForAllDebug*; it then
+	  would get the channel of the other library. ]
         Moreover, as a result of this design, one should use
 	LIBCWD_DEBUGCHANNELS instead of DEBUGCHANNELS when using
 	this macro.  You still *define* DEBUGCHANNELS, before including
 	<libcwd/debug.h>.
 	The means that the following changes need to be made.
+
 	End-application authors:
-	- Nothing.
+	- Change all occurances of DEBUGCHANNELS, except the one where it
+	  is defined (in your "debug.h"), into LIBCWD_DEBUGCHANNELS.
+
         Library authors:
-	- Change all occurances of DEBUGCHANNELS in your *source* files
+	- Change all occurances of DEBUGCHANNELS in your source files
 	  and local headers, except the one where it is defined (in your
 	  local "debug.h"), into LIBCWD_DEBUGCHANNELS.
 	- Make sure you are not using DEBUGCHANNELS in your headers, if
@@ -37,8 +49,8 @@ libcwd-0.99.35
 	  'LibcwdForAllDebug*(libwhatever::channels, ', where 'ForAllDebug*'
 	  is either ForAllDebugChannels or ForAllDebugObjects and
 	  'libwhatever::channels' is the namespace in which your library
-	  defines its 'dc' namespace with library specific debug channels.
-	  Do not use DEBUGCHANNELS or LIBCWD_DEBUGCHANNELS in your headers.
+	  defines its 'dc' namespace with library specific debug channels,
+	  or use your own macros for this (see url below).
 	- In your headers, replace
 	    #ifndef LIBWHATEVER_DEBUG_H
 	    #error "You need to include the appropriate debug.h in the \
@@ -47,7 +59,7 @@ libcwd-0.99.35
 	  with
 	    #include <libwhatever/debug.h>
 	  And read carefully the page on
-	  http://libcwd.sourceforge.net/reference-manual/group__chapter__custom__debug__h.html#libraries
+	  reference-manual/group__chapter__custom__debug__h.html#libraries
 	  for further instruction on how to set up respective debug header
 	  files.
 
