@@ -24,10 +24,7 @@
 #include <libcwd/private_assert.h>
 #include <libcwd/private_string.h>
 #include <fstream>
-// As of 3.4, this macro has been renamed to __GLIBCXX__.
-#if defined(__GLIBCPP__) || defined(__GLIBCXX__)
 #include <streambuf>
-#endif
 
 namespace libcw {
   namespace debug {
@@ -119,7 +116,6 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
     case 0:
     {
 #ifdef CWDEBUG
-#if defined(__GLIBCPP__) || defined(__GLIBCXX__)
       // Quick and dirty unbuffered file descriptor streambuf.
       class fdbuf : public std::basic_streambuf<char, std::char_traits<char> > {
       public:
@@ -157,9 +153,6 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
       
       // Write debug output to pipe.
       ofdstream debug_stream(debug_filedes[1]);
-#else // !defined(__GLIBCPP__) && !defined(__GLIBCXX__)
-      std::ofstream debug_stream(debug_filedes[1]);
-#endif // !defined(__GLIBCPP__) && !defined(__GLIBCXX__)
       Debug( libcw_do.margin().assign(prog_name, strlen(prog_name)) );
       Debug( libcw_do.margin().append(": ", 2) );
       Debug( libcw_do.set_ostream(&debug_stream) );

@@ -35,13 +35,14 @@
 #include "elf32.h"
 #include <libcwd/private_assert.h>
 #include "cwd_bfd.h"
+#include "compilation_unit.h"
 
 #define DEBUGELF32 0
 #define DEBUGSTABS 0
-#define DEBUGDWARF 1
+#define DEBUGDWARF 0
 
 #if DEBUGELF32 || DEBUGSTABS || DEBUGDWARF
-static bool const default_dout_c = false;
+static bool const default_dout_c = true;
 #endif
 
 #if DEBUGDWARF || DEBUGSTABS
@@ -427,7 +428,6 @@ char const* print_DW_TAG_name(uLEB128_t tag)
     case DW_TAG_lo_user: return "DW_TAG_lo_user";
     case DW_TAG_hi_user: return "DW_TAG_hi_user";
   }
-  LIBCWD_ASSERT(tag >= DW_TAG_lo_user && tag <= DW_TAG_hi_user);
   switch(tag)
   {
     case DW_TAG_dwarf_procedure: return "DW_TAG_dwarf_procedure";
@@ -439,6 +439,7 @@ char const* print_DW_TAG_name(uLEB128_t tag)
     case DW_TAG_partial_unit: return "DW_TAG_partial_unit";
     case DW_TAG_imported_unit: return "DW_TAG_imported_unit";
   }
+  LIBCWD_ASSERT(tag >= DW_TAG_lo_user && tag <= DW_TAG_hi_user);
   switch(tag)
   {
     case DW_TAG_MIPS_loop: return "DW_TAG_MIPS_loop";
@@ -798,8 +799,12 @@ template<>
     x = byte;
     while(byte >= 0x80)
     {
-      byte = (*++in) ^ 1;
-      LIBCWD_ASSERT( byte < (1UL << (number_of_bits_in_uLEB128_t - shift)) );
+      ++in;
+      byte = (*in) ^ 1;
+      // We can't use this assertion because gcc writes constants as
+      // signed integers to debug info (because of a bug in gdb version 4)
+      // and the sign extension can cause more than 32 bits to be set.
+      //LIBCWD_ASSERT( byte < (1UL << (number_of_bits_in_uLEB128_t - shift)));
       x ^= byte << shift;
       shift += 7;
     }
@@ -902,6 +907,10 @@ read_block(unsigned char const*& debug_info_ptr, uLEB128_t const form)
     }
   }
   debug_info_ptr += result.number_of_bytes;
+#if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
+  DoutDwarf(dc::finish, "FIXME");
+#endif
   return result;
 }
 
@@ -942,10 +951,15 @@ read_constant(unsigned char const*& debug_info_ptr, uLEB128_t const form)
       result = data;
       break;
     }
-    case DW_FORM_sdata:
-    case DW_FORM_data8:
+    // case DW_FORM_sdata:
+    // case DW_FORM_data8:
+    default:	// Using default in order to avoid a warning 'result might be used uninitialized'.
       DoutFatal(dc::fatal, "read_constant() cannot handle this FORM");
   }
+#if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
+  DoutDwarf(dc::finish, result);
+#endif
   return result;
 }
 
@@ -957,6 +971,7 @@ read_flag(unsigned char const*& debug_info_ptr, uLEB128_t const DEBUGDWARF_OPT(f
 #endif
   uint8_t result;
   dwarf_read(debug_info_ptr, result);
+  DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << result << '"');
   return result;
 }
 
@@ -1311,6 +1326,8 @@ struct hash_list_st {
 // This object represents an ELF object file.
 //
 
+using _private_::compilation_units_vector_ct;
+
 class objfile_ct : public bfd_st {
 #if DEBUGSTABS || DEBUGDWARF
   friend void ::debug_load_object_file(char const* filename, bool shared);
@@ -1355,7 +1372,7 @@ private:
   static uint32_t const hash_table_size = 2049;		// Lets use a prime number.
   hash_list_st** M_hash_list;
   hash_list_st* M_hash_list_pool;
-  void delete_hash_list(void);
+  compilation_units_vector_ct M_compilation_units;	// Canonical list of compilation units of this DSO.
 public:
   objfile_ct(void);
   void initialize(char const* file_name, bool shared_library);
@@ -1369,6 +1386,7 @@ protected:
   virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM);
   virtual void close(void);
 private:
+  void delete_hash_list(void);
   char* allocate_and_read_section(int i);
   friend class location_ct;	// location_ct::M_store and location_ct::stabs_range need access to `register_range'.
   void register_range(location_st const& location, range_st const& range);
@@ -1378,7 +1396,6 @@ private:
   void eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const& form
                 DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str)
                 DEBUGDWARF_OPT_COMMA(uint32_t debug_info_offset));
-  //bfile_ct* get_bfile(void) { return reinterpret_cast<bfile_ct*>(usrdata); }
 };
 
 #if LIBCWD_THREAD_SAFE
@@ -1577,8 +1594,8 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	}
         else if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
 	  continue;							// Skip Special Sections and Undefined Symbols.
-	else if (symbol.type() > STT_FILE)
-	  continue;							// Skip STT_COMMON and STT_TLS symbols.
+	else if (symbol.type() >= STT_FILE)
+	  continue;							// Skip STT_FILE, STT_COMMON and STT_TLS symbols.
 	else
 	{
 	  new_symbol->section = &M_sections[symbol.st_shndx];
@@ -1620,10 +1637,10 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	  case STT_SECTION:
 	    new_symbol->flags |= cwbfd::BSF_SECTION_SYM;
 	    break;
-	  case STT_FILE:
-	    new_symbol->flags |= cwbfd::BSF_FILE;
-	    break;
 	}
+	// Filter out symbols that could endanger determining the size of a symbol.
+	if ((new_symbol->flags & (cwbfd::BSF_GLOBAL|cwbfd::BSF_FUNCTION|cwbfd::BSF_OBJECT)) == 0)
+          continue;
 	uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(new_symbol->name), (unsigned char)0);
 	hash_list_st** p = &M_hash_list[hash];
 	while(*p)
@@ -1829,6 +1846,9 @@ void objfile_ct::load_dwarf(void)
     Debug( dc::bfd.force_on(state2, "BFD") );
   }
 #if CWDEBUG_ALLOC
+#if !DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
+#endif
   int saved_internal = __libcwd_tsd.internal;
   __libcwd_tsd.internal = false;
 #endif
@@ -1985,6 +2005,10 @@ void objfile_ct::load_dwarf(void)
 	abbrev.attributes = (attr_st*)realloc(abbrev.attributes, abbrev.attributes_size * sizeof(attr_st));
       }
 
+      using _private_::compilation_unit_ct;
+      compilation_unit_ct* current_compilation_unit = 0;
+      int abstract_instances = 0;
+      int abstract_instances_referenced = 0;
       int level = 0;
       unsigned char const* debug_info_ptr_end = debug_info_ptr + length - sizeof(version) - sizeof(abbrev_offset) - sizeof(address_size);
       while(debug_info_ptr < debug_info_ptr_end)
@@ -2014,17 +2038,20 @@ void objfile_ct::load_dwarf(void)
         if (DEBUGDWARF)
 	  Debug(libcw_do.inc_indent(4));
 
-	object_files_string default_dir;
-	object_files_string cur_dir;
-	object_files_string default_source;
-	bool found_stmt_list = false;
-	address_t low_pc = 0;
-	address_t high_pc = 0;
-
 	attr_st* attr = abbrev.attributes;
 
 	if (abbrev.tag == DW_TAG_compile_unit)
 	{
+	  object_files_string default_dir;
+	  object_files_string cur_dir;
+	  object_files_string default_source;
+	  address_t low_pc = 0;
+	  address_t high_pc = 0;
+	  bool found_stmt_list = false;
+
+	  M_compilation_units.push_back(compilation_unit_ct());
+	  current_compilation_unit = &M_compilation_units.back();
+
 	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
 	  {
 	    uLEB128_t form = attr->form;
@@ -2042,6 +2069,7 @@ void objfile_ct::load_dwarf(void)
 	      {
 		default_dir.assign(str);
 		default_dir += '/';
+                current_compilation_unit->set_compilation_directory(default_dir);
 	      }
 	      else
 	      {
@@ -2050,6 +2078,7 @@ void objfile_ct::load_dwarf(void)
 		if (str[0] == '.' && str[1] == '/')
 		  str += 2;
 		default_source.assign(str);
+                current_compilation_unit->set_source_file(default_source);
 		default_source += '\0';
 	      }
 	      continue;
@@ -2058,77 +2087,30 @@ void objfile_ct::load_dwarf(void)
 	    {
 	      address_t address = read_address(debug_info_ptr, form);
 	      if (attr->attr == DW_AT_high_pc)
+	      {
 	        high_pc = address;
+		current_compilation_unit->set_highpc(high_pc);
+	      }
 	      else
+	      {
 		low_pc = address;
+		current_compilation_unit->set_lowpc(low_pc);
+	      }
 	      continue;
 	    }
 	    eat_form(debug_info_ptr, form DEBUGDWARF_OPT_COMMA(debug_str)
 	        DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
 	  }
-        }
-	else if (abbrev.tag == DW_TAG_subprogram)
-	{
-	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
-	  {
-	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
-	    eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
-	        DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
-	  }
-	}
-	else if (abbrev.tag == DW_TAG_inlined_subroutine)
-	{
-	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
-	  {
-	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
-	    eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
-	        DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
-	  }
-	}
-	else
-	{
-	  // The not-so-important tags - scan through them as fast as possible.
-	  if (abbrev.fixed_size)
-	  {
-	    if (abbrev.starts_with_string)
-	      eat_string(debug_info_ptr);
-	    debug_info_ptr += abbrev.fixed_size;
-	  }
-	  else
-	  {
-	    // DW_AT_sibling is always the first attribute.
-	    if (abbrev.attributes_size > 0 && attr->attr == DW_AT_sibling &&
-	        abbrev.tag != DW_TAG_structure_type &&
-	        abbrev.tag != DW_TAG_class_type &&
-		abbrev.tag != DW_TAG_lexical_block 	// Do DW_TAG_lexical_block ever have a DW_AT_sibling?
-	       )
-	    {
-	      LIBCWD_ASSERT(abbrev.has_children);
-	      // Skip the children.
-	      DoutDwarf(dc::bfd|continued_cf, "decoding DW_AT_sibling ");
-	      debug_info_ptr = read_reference(debug_info_ptr, attr->form, debug_info_root, debug_info_start);
-	      if (DEBUGDWARF)
-		Debug(libcw_do.dec_indent(4));
-	      continue;
-	    }
-	    for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
-	    {
-	      DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
-	      eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
-	          DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
-	    }
-	  }
-	}
-        if (DEBUGDWARF)
-	  Debug(libcw_do.dec_indent(4));
-        if (abbrev.has_children)
-	{
-	  ++level;
-          if (DEBUGDWARF)
-	    Debug( libcw_do.marker().append("|", 1) );
-	}
 
-	if (abbrev.tag == DW_TAG_compile_unit)
+	  if (DEBUGDWARF)
+	    Debug(libcw_do.dec_indent(4));
+	  if (abbrev.has_children)
+	  {
+	    ++level;
+	    if (DEBUGDWARF)
+	      Debug( libcw_do.marker().append("|", 1) );
+	  }
+
 	  if (found_stmt_list && debug_line_ptr < debug_line_end && !(low_pc && high_pc && low_pc == high_pc))
 	  {
 	    // ===========================================================================================================================17"
@@ -2136,21 +2118,21 @@ void objfile_ct::load_dwarf(void)
 	    // See paragraph 6.2 of "DWARF Debugging Information Format" document.
 
 	    uLEB128_t file;		// An unsigned integer indicating the identity of the source file corresponding to a machine
-					  // instruction.
+					// instruction.
 	    uLEB128_t column;		// An unsigned integer indicating a column number within a source line.  Columns are numbered
-					  // beginning at 1. The value 0 is reserved to indicate that a statement begins at the left
-					  // edge of the line.
-	    bool is_stmt;			// A boolean indicating that the current instruction is the beginning of a statement.
+					// beginning at 1. The value 0 is reserved to indicate that a statement begins at the left
+					// edge of the line.
+	    bool is_stmt;		// A boolean indicating that the current instruction is the beginning of a statement.
 	    bool basic_block;		// A boolean indicating that the current instruction is the beginning of a basic block.
 	    bool end_sequence;		// A boolean indicating that the current address is that of the first byte after the end of
-					  // a sequence of target machine instructions.
+					// a sequence of target machine instructions.
 	    uint32_t total_length;	// The size in bytes of the statement information for this compilation unit (not including
-					  // the total_length field itself).
+					// the total_length field itself).
 	    uint16_t version;		// Version identifier for the statement information format.
 	    uint32_t prologue_length;	// The number of bytes following the prologue_length field to the beginning of the first
-					  // byte of the statement program itself.
+					// byte of the statement program itself.
 	    unsigned char minimum_instruction_length;	// The size in bytes of the smallest target machine instruction.  Statement
-					  // program opcodes that alter the address register first multiply their operands by this value.
+					// program opcodes that alter the address register first multiply their operands by this value.
 	    unsigned char default_is_stmt;// The initial value of the is_stmt register.
 	    signed char line_base;	// This parameter affects the meaning of the special opcodes.
 	    unsigned char line_range;	// This parameter affects the meaning of the special opcodes.
@@ -2385,8 +2367,417 @@ void objfile_ct::load_dwarf(void)
 	  {
 	    DoutDwarf(dc::bfd, "Skipping compilation unit." << default_dir << default_source.data());
 	  }
+	  continue;
+        }
+#if 0
+	else if (abbrev.tag == DW_TAG_subprogram)
+	{
+	  bool saw_low_pc = false;
+	  bool saw_high_pc = false;
+	  bool saw_declaration = false;
+	  bool saw_specification_declaration = false;
+	  bool saw_specification = false;
+	  bool saw_linkage_name = false;
+	  bool saw_inline = false;
+	  address_t low_pc = 0;
+	  address_t high_pc = 0;
+	  string_t linkage_name = 0;
+	  string_t name = 0;
+	  constant_t inline_attr = 0;
+	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
+	  {
+	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
+	    switch(attr->attr)
+	    {
+	      case DW_AT_inline:
+	        LIBCWD_ASSERT(attr->form == DW_FORM_data1);
+	        inline_attr = read_constant(debug_info_ptr, attr->form);
+		DoutDwarf(dc::bfd, "DW_AT_inline flag is " << inline_attr);
+		((uint8_t*)debug_info_ptr)[-1] |= 16;
+		DoutDwarf(dc::bfd, "DW_AT_inline flag set to " << (unsigned int)(((uint8_t*)debug_info_ptr)[-1]));
+		++abstract_instances;
+		DoutDwarf(dc::bfd, "DW_AT_inline count set to " << abstract_instances);
+	        saw_inline = true;
+	        break;
+	      case DW_AT_low_pc:
+		low_pc =read_address(debug_info_ptr, attr->form);
+		saw_low_pc = true;
+	        break;
+	      case DW_AT_high_pc:
+		high_pc = read_address(debug_info_ptr, attr->form);
+		saw_high_pc = true;
+	        break;
+	      case DW_AT_MIPS_linkage_name:
+		saw_linkage_name = true;
+		linkage_name = read_string(debug_info_ptr, attr->form, debug_str);
+	        break;
+	      case DW_AT_abstract_origin:
+	      {
+	        LIBCWD_ASSERT( attr->form != DW_FORM_ref_addr); // Must be same compilation unit.
+		reference_t abstract_debug_info_ptr =
+		    read_reference(debug_info_ptr, attr->form, debug_info_root, debug_info_start);
+		if (DEBUGDWARF)
+		  Debug(libcw_do.inc_indent(4));
+		dwarf_read(abstract_debug_info_ptr, code);
+		LIBCWD_ASSERT( code < abbrev_entries.size() );
+		abbrev_st& abbrev2(abbrev_entries[code]);
+		LIBCWD_ASSERT(abbrev2.tag == DW_TAG_subprogram);
+		bool saw_inline2 = false;
+		attr_st* attr2 = abbrev2.attributes;
+		for (int i = 0; i < abbrev2.attributes_size; ++i, ++attr2)
+		{
+		  DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr2->attr) << ' ');
+		  switch(attr2->attr)
+		  {
+		    case DW_AT_inline:
+		    {
+		      LIBCWD_ASSERT(attr2->form == DW_FORM_data1);
+		      constant_t inline_attr = read_constant(abstract_debug_info_ptr, attr2->form);
+		      DoutDwarf(dc::bfd, "DW_AT_inline flag is " << inline_attr);
+		      LIBCWD_ASSERT((inline_attr & 16) == 16);
+		      if ((inline_attr & 32) == 0)
+		      {
+			((uint8_t*)abstract_debug_info_ptr)[-1] |= 32;
+			DoutDwarf(dc::bfd, "DW_AT_inline flag set to " << (unsigned int)(((uint8_t*)abstract_debug_info_ptr)[-1]));
+			++abstract_instances_referenced;
+		        DoutDwarf(dc::bfd, "DW_AT_inline reference count set to " << abstract_instances_referenced);
+		      }
+		      saw_inline2 = true;
+		      break;
+		    }
+		    case DW_AT_specification:
+		    {  
+		      LIBCWD_ASSERT( attr2->form != DW_FORM_ref_addr);	// Must be same compilation unit.
+		      reference_t declaration_debug_info_ptr =
+			  read_reference(abstract_debug_info_ptr, attr->form, debug_info_root, debug_info_start);
+		      if (DEBUGDWARF)
+			Debug(libcw_do.inc_indent(4));
+		      dwarf_read(declaration_debug_info_ptr, code);
+		      LIBCWD_ASSERT( code < abbrev_entries.size() );
+		      abbrev_st& abbrev3(abbrev_entries[code]);
+		      LIBCWD_ASSERT(abbrev3.tag == DW_TAG_subprogram);
+		      attr_st* attr3 = abbrev3.attributes;
+		      for (int i = 0; i < abbrev3.attributes_size; ++i, ++attr3)
+		      {
+			DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr3->attr) << ' ');
+			switch(attr3->attr)
+			{
+			  case DW_AT_MIPS_linkage_name:
+			    saw_linkage_name = true;
+			    linkage_name = read_string(declaration_debug_info_ptr, attr3->form, debug_str);
+			    break;
+			  case DW_AT_name:
+			    name = read_string(declaration_debug_info_ptr, attr3->form, debug_str);
+			    break;
+			  case DW_AT_inline:
+			  case DW_AT_abstract_origin:
+			    DoutFatal(dc::core, "Huh? DW_AT_specification contains " << print_DW_AT_name(attr3->attr));
+			  default:
+			    eat_form(declaration_debug_info_ptr, attr3->form DEBUGDWARF_OPT_COMMA(debug_str)
+			      DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
+			    break;
+			}
+		      }
+		      if (DEBUGDWARF)
+			Debug(libcw_do.dec_indent(4));
+		      break;
+		    }
+		    default:
+		      eat_form(abstract_debug_info_ptr, attr2->form DEBUGDWARF_OPT_COMMA(debug_str)
+			DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
+		      break;
+                  }
+		}
+		LIBCWD_ASSERT( saw_inline2 );
+		if (DEBUGDWARF)
+		  Debug(libcw_do.dec_indent(4));
+	        break;
+	      }
+	      case DW_AT_specification:
+	      {  
+	        LIBCWD_ASSERT( attr->form != DW_FORM_ref_addr);	// Must be same compilation unit.
+		saw_specification = true;
+	        reference_t declaration_debug_info_ptr =
+		    read_reference(debug_info_ptr, attr->form, debug_info_root, debug_info_start);
+		if (DEBUGDWARF)
+		  Debug(libcw_do.inc_indent(4));
+                dwarf_read(declaration_debug_info_ptr, code);
+		LIBCWD_ASSERT( code < abbrev_entries.size() );
+		abbrev_st& abbrev2(abbrev_entries[code]);
+                LIBCWD_ASSERT(abbrev2.tag == DW_TAG_subprogram);
+		attr_st* attr2 = abbrev2.attributes;
+		for (int i = 0; i < abbrev2.attributes_size; ++i, ++attr2)
+		{
+		  DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr2->attr) << ' ');
+		  switch(attr2->attr)
+		  {
+		    case DW_AT_MIPS_linkage_name:
+		      saw_linkage_name = true;
+		      linkage_name = read_string(declaration_debug_info_ptr, attr2->form, debug_str);
+		      break;
+		    case DW_AT_name:
+		      name = read_string(declaration_debug_info_ptr, attr2->form, debug_str);
+		      break;
+		    case DW_AT_declaration:
+		      saw_specification_declaration = true;
+		      // Fall through.
+		    default:
+		      eat_form(declaration_debug_info_ptr, attr2->form DEBUGDWARF_OPT_COMMA(debug_str)
+			DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
+		      break;
+		    case DW_AT_inline:
+		    case DW_AT_abstract_origin:
+		      DoutFatal(dc::core, "Huh? DW_AT_specification contains " << print_DW_AT_name(attr2->attr));
+		  }
+		}
+		if (DEBUGDWARF)
+		  Debug(libcw_do.dec_indent(4));
+	        break;
+	      }
+	      case DW_AT_name:
+		name = read_string(debug_info_ptr, attr->form, debug_str);
+                break;
+	      case DW_AT_declaration:
+		saw_declaration = true;
+		// Fall through.
+	      default:
+		eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
+		  DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
+	        break;
+	    }
+	  }
+	  LIBCWD_ASSERT( saw_low_pc == saw_high_pc );
+	  // Dies with DW_AT_inline are abstract.
+	  LIBCWD_ASSERT( saw_inline || saw_low_pc != saw_declaration );
+	  LIBCWD_ASSERT( !saw_low_pc || !saw_declaration );
+	  LIBCWD_ASSERT( saw_specification == saw_specification_declaration );
+	  if(!(saw_declaration || saw_inline || saw_linkage_name))
+	    DoutDwarf(dc::bfd, "Missing DW_AT_MIPS_linkage_name for " << name);
+	  if (saw_low_pc && saw_linkage_name)
+	  {
+	    DoutDwarf(dc::bfd, std::hex << "low_pc = " << low_pc <<
+		std::hex << "; high_pc = " << high_pc << "; linkage_name = " << linkage_name);
+
+	    // Look up the symbol.
+	    bool found = false;
+	    using namespace cwbfd;
+	    function_symbols_ct const& function_symbols(object_file->get_function_symbols());
+	    for(function_symbols_ct::const_iterator i2(function_symbols.begin()); i2 != function_symbols.end(); ++i2)
+	    {
+	      static unsigned int const setflags = BSF_FUNCTION;
+	      symbol_ct const& symbol(*i2);
+	      if (symbol.is_defined() && (symbol.get_symbol()->flags & setflags) == setflags)
+	      {
+		if (!strcmp(linkage_name, symbol.get_symbol()->name))
+		{
+		  DoutDwarf(dc::bfd, "Found symbol at " <<
+		      std::hex << (address_t)symbol_start_addr(symbol.get_symbol()) <<
+		      "; symbol value = " << std::hex << symbol.get_symbol()->value <<
+		      "; symbol value + section offset = " <<
+		      std::hex << symbol.get_symbol()->value + bfd_get_section(symbol.get_symbol())->offset <<
+		      "; low_pc plus symbol size = " <<
+		      std::hex << low_pc + symbol_size(symbol.get_symbol()));
+		  found = true;
+		  LIBCWD_ASSERT( low_pc == symbol.get_symbol()->value + bfd_get_section(symbol.get_symbol())->offset );
+		  if (low_pc + symbol_size(symbol.get_symbol()) != high_pc )
+		  {
+		    // Alignment can cause the next function to start behond the end of this function.
+		    LIBCWD_ASSERT( low_pc + symbol_size(symbol.get_symbol()) > high_pc );
+		    // The alignment is maximal 16.
+		    LIBCWD_ASSERT( low_pc + symbol_size(symbol.get_symbol()) - high_pc < 16 );
+		    // The last instruction is a ret or a jmp.
+		    LIBCWD_ASSERT(*((unsigned char*)symbol_start_addr(symbol.get_symbol()) - 1 + high_pc - low_pc) == 0xc3 ||
+			*((unsigned char*)symbol_start_addr(symbol.get_symbol()) - 3 + high_pc - low_pc) == 0xc2 ||
+			*((unsigned char*)symbol_start_addr(symbol.get_symbol()) - 5 + high_pc - low_pc) == 0xe8 ||
+			*((unsigned char*)symbol_start_addr(symbol.get_symbol()) - 5 + high_pc - low_pc) == 0xe9 ||
+			*((unsigned char*)symbol_start_addr(symbol.get_symbol()) - 2 + high_pc - low_pc) == 0xeb);
+		    // All remaining bytes should be alignment
+		    for (unsigned char* p = (unsigned char*)symbol_start_addr(symbol.get_symbol()) + high_pc - low_pc;
+			 p < (unsigned char*)symbol_start_addr(symbol.get_symbol()) + symbol_size(symbol.get_symbol());
+			 ++p)
+		    {
+		      // nop
+		      if (*p == 0x90)
+			continue;
+		      // lea    0x0(%esi,1),%esi
+		      if (*p == 0x8d && p[1] == 0xb4 && p[2] == 0x26 && p[3] == 0x0 && p[4] == 0x0 && p[5] == 0x0 && p[6] == 0x0)
+		      { p += 6; continue; }
+		      DoutFatal(dc::core, "Unrecognizable alignment");
+		    }
+		  }
+		}
+	      }
+	    }
+	    if (!found)
+	    {
+	      DoutDwarf(dc::bfd, "DSO: " << object_file->get_bfd()->filename);
+	      DoutFatal(dc::core, "Could not find DWARF function symbol in ELF symbol table.");
+	    }
+	  }
+	}
+	else if (abbrev.tag == DW_TAG_inlined_subroutine)
+	{
+	  string_t linkage_name = 0;
+	  string_t name = 0;
+	  bool saw_linkage_name = false;
+	  constant_t inline_attr = 0;
+	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
+	  {
+	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
+	    switch(attr->attr)
+	    {
+	      case DW_AT_inline:
+	        LIBCWD_ASSERT(attr->form == DW_FORM_data1);
+	        inline_attr = read_constant(debug_info_ptr, attr->form);
+		DoutDwarf(dc::bfd, "DW_AT_inline flag is " << inline_attr);
+		((uint8_t*)debug_info_ptr)[-1] |= 16;
+		DoutDwarf(dc::bfd, "DW_AT_inline flag set to " << (unsigned int)(((uint8_t*)debug_info_ptr)[-1]));
+		++abstract_instances;
+		DoutDwarf(dc::bfd, "DW_AT_inline count set to " << abstract_instances);
+	        //saw_inline = true;
+	        break;
+	      case DW_AT_abstract_origin:
+	      {
+	        LIBCWD_ASSERT( attr->form != DW_FORM_ref_addr); // Must be same compilation unit.
+		reference_t abstract_debug_info_ptr =
+		    read_reference(debug_info_ptr, attr->form, debug_info_root, debug_info_start);
+		if (DEBUGDWARF)
+		  Debug(libcw_do.inc_indent(4));
+		dwarf_read(abstract_debug_info_ptr, code);
+		LIBCWD_ASSERT( code < abbrev_entries.size() );
+		abbrev_st& abbrev2(abbrev_entries[code]);
+		LIBCWD_ASSERT(abbrev2.tag == DW_TAG_subprogram);
+		bool saw_inline2 = false;
+		attr_st* attr2 = abbrev2.attributes;
+		for (int i = 0; i < abbrev2.attributes_size; ++i, ++attr2)
+		{
+		  DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr2->attr) << ' ');
+		  switch(attr2->attr)
+		  {
+		    case DW_AT_inline:
+		    {
+		      LIBCWD_ASSERT(attr2->form == DW_FORM_data1);
+		      constant_t inline_attr = read_constant(abstract_debug_info_ptr, attr2->form);
+		      DoutDwarf(dc::bfd, "DW_AT_inline flag is " << inline_attr);
+		      if ((inline_attr & 32) == 0)
+		      {
+			((uint8_t*)abstract_debug_info_ptr)[-1] |= 32;
+			DoutDwarf(dc::bfd, "DW_AT_inline flag set to " << (unsigned int)(((uint8_t*)abstract_debug_info_ptr)[-1]));
+			++abstract_instances_referenced;
+		        DoutDwarf(dc::bfd, "DW_AT_inline reference count set to " << abstract_instances_referenced);
+		      }
+		      saw_inline2 = true;
+		      break;
+		    }
+		    case DW_AT_specification:
+		    {  
+		      LIBCWD_ASSERT( attr2->form != DW_FORM_ref_addr);	// Must be same compilation unit.
+		      reference_t declaration_debug_info_ptr =
+			  read_reference(abstract_debug_info_ptr, attr->form, debug_info_root, debug_info_start);
+		      if (DEBUGDWARF)
+			Debug(libcw_do.inc_indent(4));
+		      dwarf_read(declaration_debug_info_ptr, code);
+		      LIBCWD_ASSERT( code < abbrev_entries.size() );
+		      abbrev_st& abbrev3(abbrev_entries[code]);
+		      LIBCWD_ASSERT(abbrev3.tag == DW_TAG_subprogram);
+		      attr_st* attr3 = abbrev3.attributes;
+		      for (int i = 0; i < abbrev3.attributes_size; ++i, ++attr3)
+		      {
+			DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr3->attr) << ' ');
+			switch(attr3->attr)
+			{
+			  case DW_AT_MIPS_linkage_name:
+			    saw_linkage_name = true;
+			    linkage_name = read_string(declaration_debug_info_ptr, attr3->form, debug_str);
+			    break;
+			  case DW_AT_name:
+			    name = read_string(declaration_debug_info_ptr, attr3->form, debug_str);
+			    break;
+			  case DW_AT_inline:
+			  case DW_AT_abstract_origin:
+			    DoutFatal(dc::core, "Huh? DW_AT_specification contains " << print_DW_AT_name(attr3->attr));
+			  default:
+			    eat_form(declaration_debug_info_ptr, attr3->form DEBUGDWARF_OPT_COMMA(debug_str)
+			      DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
+			    break;
+			}
+		      }
+		      if (DEBUGDWARF)
+			Debug(libcw_do.dec_indent(4));
+		      break;
+		    }
+		    default:
+		      eat_form(abstract_debug_info_ptr, attr2->form DEBUGDWARF_OPT_COMMA(debug_str)
+			DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
+		      break;
+                  }
+		}
+		LIBCWD_ASSERT( saw_inline2 );
+		if (DEBUGDWARF)
+		  Debug(libcw_do.dec_indent(4));
+	        break;
+	      }
+	      default:
+		eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
+		    DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
+	    }
+	  }
+	}
+#endif
+	else
+	{
+	  // The not-so-important tags - scan through them as fast as possible.
+	  if (abbrev.fixed_size)
+	  {
+	    if (abbrev.starts_with_string)
+	      eat_string(debug_info_ptr);
+	    debug_info_ptr += abbrev.fixed_size;
+	  }
+	  else
+	  {
+	    // DW_AT_sibling is always the first attribute.
+	    if (abbrev.attributes_size > 0 && attr->attr == DW_AT_sibling &&
+	        abbrev.tag != DW_TAG_structure_type &&
+	        abbrev.tag != DW_TAG_class_type &&
+		abbrev.tag != DW_TAG_namespace &&
+		abbrev.tag != DW_TAG_lexical_block 	// Do DW_TAG_lexical_block ever have a DW_AT_sibling?
+	       )
+	    {
+	      LIBCWD_ASSERT(abbrev.has_children);
+	      // Skip the children.
+	      DoutDwarf(dc::bfd|continued_cf, "decoding DW_AT_sibling ");
+	      debug_info_ptr = read_reference(debug_info_ptr, attr->form, debug_info_root, debug_info_start);
+	      if (DEBUGDWARF)
+		Debug(libcw_do.dec_indent(4));
+	      continue;
+	    }
+	    for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
+	    {
+	      DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
+	      eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str)
+	          DEBUGDWARF_OPT_COMMA(debug_info_root - debug_info_start));
+	    }
+	  }
+	}
+
+        if (DEBUGDWARF)
+	  Debug(libcw_do.dec_indent(4));
+        if (abbrev.has_children)
+	{
+	  ++level;
+          if (DEBUGDWARF)
+	    Debug( libcw_do.marker().append("|", 1) );
+	}
+
       }
       LIBCWD_ASSERT( debug_info_ptr == debug_info_ptr_end );
+      LIBCWD_ASSERT( abstract_instances >= abstract_instances_referenced );
+      if (abstract_instances > abstract_instances_referenced)
+      {
+	DoutDwarf(dc::bfd|flush_cf, "Redundant abstract instances in " << current_compilation_unit->get_source_file() <<
+	    " : abstract_instances == " << abstract_instances <<
+	    "; abstract_instances_referenced == " << abstract_instances_referenced);
+      }
     }
     else
     {
@@ -2835,6 +3226,8 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 #if DEBUGSTABS || DEBUGDWARF
 	if (doutdwarfon || doutstabson)
 	  Dout(dc::bfd, "WARNING: New range overlaps old range, removing (" << *p.first << "),");
+#else
+	LIBCWD_TSD_DECLARATION;
 #endif
 	save_old_range = old.first;					// Backup.
 	_private_::set_alloc_checking_off(LIBCWD_TSD);
@@ -3059,8 +3452,10 @@ void debug_load_object_file(char const* filename, bool shared)
   else if (!of->M_stabs_section_index && !of->object_file->get_object_file()->has_no_debug_line_sections())
   {
     of->object_file->get_object_file()->set_has_no_debug_line_sections();
+    libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);
     Dout( dc::warning, "Object file " << of->filename << " does not have debug info.  Address lookups inside "
 	"this object file will result in a function name only, not a source file location.");
+    libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
   }
   if (of->M_stabs_section_index)
     of->load_stabs();

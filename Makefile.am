@@ -40,7 +40,8 @@ libcwd_la_SOURCES = \
 	ooam_filter.cc \
 	strerrno.cc \
 	type_info.cc \
-	function.cc
+	function.cc \
+	compilation_unit.cc
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
 libcwd_la_LIBADD = utils/libutils.la
 endif
@@ -58,6 +59,7 @@ libcwd_r_la_SOURCES = \
 	strerrno.cc \
 	type_info.cc \
 	function.cc \
+	compilation_unit.cc \
 	threading.cc \
 	wrapcnclpnts.cc
 libcwd_r_la_LDFLAGS = -version-info $(VERSIONINFO) $(LIB_THREADS_SHARED)

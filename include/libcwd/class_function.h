@@ -75,7 +75,9 @@ operator<(FunctionChunkKey const& chunk1, FunctionChunkKey const& chunk2)
 // uniqueness of the FunctionRootInstance objects.
 
 struct FunctionRootInstanceKey {
-  char const* M_mangled_name;		// The mangled name is what makes a root instance unique.
+  char const* M_mangled_name;		// The mangled name is what makes a root instance unique because we
+  					// only keep functions from the a single compilation unit per map.
+					// See class compilation_unit_ct.
 };
 
 // A sorting algorithm for this key.
@@ -165,7 +167,6 @@ public:
 
 typedef std::map<FunctionRootInstanceKey, FunctionRootInstanceInfo, std::less<FunctionRootInstanceKey>,
     _private_::internal_allocator::rebind<FunctionRootInstance>::other> FunctionRootsMap;
-extern FunctionRootsMap functionRootsMap;
 
 FunctionRootInstance const*
 FunctionInstance::root(void) const

@@ -23,7 +23,7 @@ namespace libcw {
   namespace debug {
 
 namespace cwbfd {
-
+class bfile_ct;
 static int const BSF_LOCAL             = 0x1;
 static int const BSF_GLOBAL            = 0x2;
 static int const BSF_DEBUGGING         = 0x8;

@@ -509,7 +509,6 @@ namespace _private_ {
   //				  one of our allocation routines, do not store in the map
   //				  and do not call any library functions.
 
-#ifdef __GLIBCPP__
   //
   // The following kludge is needed because of a bug in libstdc++-v3.
   //
@@ -540,7 +539,6 @@ namespace _private_ {
     DEBUGDEBUG_CERR( "Standard streams initialized." );
     return false;
   }
-#endif // __GLIBCPP__
 
 #if CWDEBUG_DEBUGM
 // _private_::
@@ -1339,7 +1337,7 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
 	  (alloc->a_time.tv_sec == filter.M_end.tv_sec && alloc->a_time.tv_usec > filter.M_end.tv_usec))
 	continue;
     }
-    struct tm* tbuf_ptr;
+    struct tm* tbuf_ptr = 0;				// Initialize in order to avoid warning.
     if (filter.M_flags & show_time)
     {
       ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);		// localtime() can allocate memory, don't show it.
@@ -1826,7 +1824,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     core_dump();
   }
 #endif
-#if CWDEBUG_DEBUGM && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
+#if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
@@ -1939,9 +1937,9 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
   }
   else
   {
-    dm_alloc_ct* alloc_node;
+    dm_alloc_ct* alloc_node = 0;	// Only used when `visible' is true.  Set to 0 in order to avoid compiler warning.
     memblk_types_nt f = (*iter).second.flags();
-    bool visible = (!__libcwd_tsd.library_call && (*iter).second.has_alloc_node());
+    bool const visible = (!__libcwd_tsd.library_call && (*iter).second.has_alloc_node());
     if (visible)
     {
       // Needed to print description later on.
@@ -2286,12 +2284,7 @@ void init_debugmalloc(void)
       WST_initialization_state = -1;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
-    if (1
-#ifdef __GLIBCPP__
-        // "ios_base" is always initialized for libstdc++ version 2.
-	&& !_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init()
-#endif // __GLIBCPP__
-        )
+    if (!_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init())
     {
       WST_initialization_state = 1;		// ST_initialize_globals() calls malloc again of course.
       int recursive_store = __libcwd_tsd.inside_malloc_or_free;
@@ -3024,7 +3017,7 @@ void register_external_allocation(void const* mptr, size_t size)
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
-#if CWDEBUG_DEBUGM && defined(__GLIBCPP__)
+#if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
 #endif
   if (__libcwd_tsd.internal)
@@ -3143,7 +3136,7 @@ void* __libcwd_malloc(size_t size)
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
 #endif
-#if CWDEBUG_DEBUGM && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
+#if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
@@ -3261,7 +3254,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
 #endif
-#if CWDEBUG_DEBUGM && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
+#if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
@@ -3343,7 +3336,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
 #endif
-#if CWDEBUG_DEBUGM && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
+#if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
@@ -3873,7 +3866,7 @@ void operator delete(void* ptr) throw()
     core_dump();
   }
 #endif
-#if CWDEBUG_DEBUGM && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
+#if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   internal_free(ptr, from_delete LIBCWD_COMMA_TSD);
@@ -3920,7 +3913,7 @@ void operator delete[](void* ptr) throw()
     core_dump();
   }
 #endif
-#if CWDEBUG_DEBUGM && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
+#if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   internal_free(ptr, from_delete_array LIBCWD_COMMA_TSD);	// Note that the standard demands that we call free(), and not delete().

@@ -66,7 +66,9 @@ struct rtld_global {
 #include "match.h"
 #include <libcwd/class_object_file.h>
 #if CWDEBUG_LIBBFD
-#if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
+#if defined(BFD64) && !BFD_HOST_64BIT_LONG &&
+    ((defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)) ||
+     (defined(__GLIBCXX__) && !defined(_GLIBCXX_USE_LONG_LONG)))
 // libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
 // for `long long'.  If you run into this error (and you insist on using libbfd) then either recompile
 // libstdc++ with support for `long long' or recompile libbfd without 64bit support.
@@ -292,6 +294,7 @@ void bfd_close(bfd* abfd)
 	if (bfd_check_format(M_abfd, bfd_archive))
 	{
 	  bfd_close(M_abfd);
+	  M_abfd = NULL;
 #if CWDEBUG_LIBBFD
 	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive: " << bfd_errmsg(bfd_get_error()));
 #else
@@ -316,6 +319,7 @@ void bfd_close(bfd* abfd)
 	{
 	  Dout(dc::warning, filename << " has no symbols, skipping.");
 	  bfd_close(M_abfd);
+	  M_abfd = NULL;
 	  M_number_of_symbols = 0;
 	  return;
 	}
@@ -329,6 +333,7 @@ void bfd_close(bfd* abfd)
 	{
 	  Dout(dc::warning, filename << " has no symbols, skipping.");
 	  bfd_close(M_abfd);
+	  M_abfd = NULL;
 	  M_number_of_symbols = 0;
 	  return;
 	}
@@ -349,8 +354,8 @@ void bfd_close(bfd* abfd)
 #else
 	  size_t s_end_offset = 0;
 	  // Throw away symbols that can endanger determining the size of functions
-	  // like: local symbols, debugging symbols.  Also throw away all symbols
-	  // in uninteresting sections to safe time with sorting.
+	  // like: local symbols, debugging symbols, switch jump-table labels.
+	  // Also throw away all symbols in uninteresting sections to safe time with sorting.
 	  // Also try to find symbol _end to determine the size of the bfd.
 	  asymbol** se = &M_symbol_table[M_number_of_symbols - 1];
 	  for (asymbol** s = M_symbol_table; s <= se;)
@@ -612,6 +617,15 @@ void bfd_close(bfd* abfd)
 #endif
 #endif
 	set_alloc_checking_off(LIBCWD_TSD);
+	LIBCWD_DEFER_CANCEL;
+	BFD_ACQUIRE_WRITE_LOCK;
+	M_function_symbols.erase(M_function_symbols.begin(), M_function_symbols.end());
+	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(),
+	                                    NEEDS_WRITE_LOCK_object_files().end(), this));
+	if (iter != NEEDS_WRITE_LOCK_object_files().end())
+	  NEEDS_WRITE_LOCK_object_files().erase(iter);
+	BFD_RELEASE_WRITE_LOCK;
+	LIBCWD_RESTORE_CANCEL;
 	if (M_abfd)
 	{
 	  bfd_close(M_abfd);
@@ -622,15 +636,6 @@ void bfd_close(bfd* abfd)
 	  free(M_symbol_table);
 	  M_symbol_table  = NULL;
 	}
-	LIBCWD_DEFER_CANCEL;
-	BFD_ACQUIRE_WRITE_LOCK;
-	M_function_symbols.erase(M_function_symbols.begin(), M_function_symbols.end());
-	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(),
-	                                    NEEDS_WRITE_LOCK_object_files().end(), this));
-	if (iter != NEEDS_WRITE_LOCK_object_files().end())
-	  NEEDS_WRITE_LOCK_object_files().erase(iter);
-	BFD_RELEASE_WRITE_LOCK;
-	LIBCWD_RESTORE_CANCEL;
 	set_alloc_checking_on(LIBCWD_TSD);
       }
 
@@ -947,7 +952,7 @@ void bfd_close(bfd* abfd)
 	               std::setw(6) << symbol_size(symbol_table[n]) << ' ' <<
 	               symbol_table[n]->name <<
 		       ' ' << (void*)symbol_table[n]->value <<
-		       ' ' << std::oct << symbol_table[n]->flags <<
+		       ' ' << std::oct << symbol_table[n]->flags << std::dec <<
 		       std::resetiosflags(std::ios::right) << std::endl;
 	}
       }
@@ -1071,45 +1076,25 @@ void bfd_close(bfd* abfd)
 #endif
 
 	// Get the full path and name of executable
-	struct static_string {
-	  _private_::internal_string const* value;
-          static_string(void)
-	      {
-		LIBCWD_TSD_DECLARATION;
-		set_alloc_checking_off(LIBCWD_TSD);
-		value = new _private_::internal_string;
-		set_alloc_checking_on(LIBCWD_TSD);
-	      }
-	  ~static_string()
-	      {
-#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
-		_private_::WST_multi_threaded = false;		// `fullpath' is static and will only be destroyed from exit().
-#endif
-		LIBCWD_TSD_DECLARATION;
-		set_alloc_checking_off(LIBCWD_TSD);
-		delete value;
-		set_alloc_checking_on(LIBCWD_TSD);
-#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
-		_private_::WST_multi_threaded = true;		// Make sure we catch other global strings (in order to avoid a static destructor ordering fiasco).
-#endif
-	      }
-        };
+
+      	// This must be allocated because bfd keeps a pointer to its data().
+	_private_::internal_string const* fullpath = new _private_::internal_string;	// Leaks memory.
+
 	set_alloc_checking_on(LIBCWD_TSD);
 	// End INTERNAL!
 	// ****************************************************************************
 
-	static static_string fullpath;				// Must be static because bfd keeps a pointer to its data()
-	ST_get_full_path_to_executable(*const_cast<_private_::internal_string*>(fullpath.value) LIBCWD_COMMA_TSD);
+	ST_get_full_path_to_executable(*const_cast<_private_::internal_string*>(fullpath) LIBCWD_COMMA_TSD);
 	    // Result is '\0' terminated so we can use data() as a C string.
 
 #if CWDEBUG_LIBBFD
-	bfd_set_error_program_name(fullpath.value->data() + fullpath.value->find_last_of('/') + 1);
+	bfd_set_error_program_name(fullpath->data() + fullpath->find_last_of('/') + 1);
 	bfd_set_error_handler(error_handler);
 #endif
 
 	// Load executable
 	BFD_INITIALIZE_LOCK;
-	load_object_file(fullpath.value->data(), 0);
+	load_object_file(fullpath->data(), 0);
 
 	if (!statically_linked)
 	{
@@ -1121,7 +1106,7 @@ void bfd_close(bfd* abfd)
 
 	  char const* argv[3];
 	  argv[0] = "ldd";
-	  argv[1] = fullpath.value->data();
+	  argv[1] = fullpath->data();
 	  argv[2] = NULL;
 	  ST_exec_prog(ldd_prog, argv, environ, ST_decode_ldd);
 
@@ -1161,17 +1146,6 @@ void bfd_close(bfd* abfd)
 	}
 
 	WST_initialized = true;			// MT: Safe, this function is Single Threaded.
-
-#ifdef LIBCWD_DEBUGBFD
-	LIBCWD_DEFER_CANCEL;
-	BFD_ACQUIRE_READ_LOCK;
-	// Dump all symbols
-	for (object_files_ct::const_reverse_iterator i(NEEDS_READ_LOCK_object_files().rbegin()); i != NEEDS_READ_LOCK_object_files().rend(); ++i)
-          dump_object_file_symbols(*i);
-	BFD_RELEASE_READ_LOCK;
-	LIBCWD_RESTORE_CANCEL;
-#endif
-
 	return true;
       }
 
@@ -1309,7 +1283,6 @@ typedef location_ct bfd_location_ct;
 	//     Therefore it is safe to call ST_* functions.
 
 #if CWDEBUG_ALLOC
-#ifdef __GLIBCPP__	// Pre libstdc++ v3, there is no malloc done for initialization of cerr.
         if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
 	{
 	  M_object_file = NULL;
@@ -1317,7 +1290,6 @@ typedef location_ct bfd_location_ct;
 	  M_initialization_delayed = addr;
 	  return;
 	}
-#endif
 #endif
 	if (!ST_init(LIBCWD_TSD))	// Initialization of BFD code fails?
 	{

@@ -20,10 +20,8 @@ namespace libcw {
   namespace debug {
     namespace _private_ {
 
-#ifdef __GLIBCPP__
 extern bool WST_ios_base_initialized;
 extern bool inside_ios_base_Init_Init(void);
-#endif
 
     } // namespace _private_
   } // namespace debug

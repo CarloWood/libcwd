@@ -86,8 +86,8 @@ int main(void)
   //Debug( attach_gdb() );
   using libcw::debug::Function;
   Function test;
-  debug_load_object_file("foo.o", true);
-  test.init("inline_test", Function::regexp|Function::cpp_linkage|Function::c_linkage);
+  //debug_load_object_file("libcwd.so.0.99.32.O2", true);
+  //test.init("inline_test", Function::regexp|Function::cpp_linkage|Function::c_linkage);
 
   return 0;
 }
