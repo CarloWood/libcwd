@@ -128,7 +128,12 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
 
 #ifdef DEBUGDEBUG
 namespace _private_ {
+#if defined(__FreeBSD__) && __GNUC__ < 3
+  // The other thing is not emitted apparently.
+  enum non_allocating_fake_ostream_using_write_ct { raw_write };
+#else
   static class non_allocating_fake_ostream_using_write_ct { } const raw_write = { };
+#endif
 }
 
 inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, char const* data)
