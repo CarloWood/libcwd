@@ -382,10 +382,12 @@ void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal
 
 void smart_ptr::decrement(LIBCWD_TSD_PARAM)
 {
-  if (M_ptr && M_ptr->decrement())
+  if (M_string_literal)
+    return;
+  if (M_ptr && reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->decrement())
   {
     set_alloc_checking_off(LIBCWD_TSD);
-    delete M_ptr;
+    delete reinterpret_cast<refcnt_charptr_ct*>(M_ptr);
     set_alloc_checking_on(LIBCWD_TSD);
   }
 }
@@ -397,6 +399,7 @@ void smart_ptr::copy_from(smart_ptr const& ptr)
     LIBCWD_TSD_DECLARATION;
     decrement(LIBCWD_TSD);
     M_ptr = ptr.M_ptr;
+    M_string_literal = ptr.M_string_literal;
     increment();
   }
 }
@@ -405,14 +408,8 @@ void smart_ptr::copy_from(char const* ptr)
 {
   LIBCWD_TSD_DECLARATION;
   decrement(LIBCWD_TSD);
-  if (ptr)
-  {
-    set_alloc_checking_off(LIBCWD_TSD);
-    M_ptr = new refcnt_charptr_ct(ptr);
-    set_alloc_checking_on(LIBCWD_TSD);
-  }
-  else
-    M_ptr = NULL;
+  M_string_literal = true;
+  M_ptr = const_cast<char*>(ptr);
 }
 
 void smart_ptr::copy_from(char* ptr)
@@ -424,9 +421,13 @@ void smart_ptr::copy_from(char* ptr)
     set_alloc_checking_off(LIBCWD_TSD);
     M_ptr = new refcnt_charptr_ct(ptr);
     set_alloc_checking_on(LIBCWD_TSD);
+    M_string_literal = false;
   }
   else
+  {
     M_ptr = NULL;
+    M_string_literal = true;
+  }
 }
 
 } // namespace _private_
