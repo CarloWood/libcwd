@@ -524,9 +524,6 @@ void allocator_unlock(void)
       channels::dc::system.NS_initialize("SYSTEM");
 
       libcw_do.NS_init();			// Initialize debug code.
-#ifdef _REENTRANT
-      libcw_do.keep_tsd(true);
-#endif
 
       // Unlimit core size.
 #ifdef RLIMIT_CORE
@@ -560,7 +557,7 @@ void allocator_unlock(void)
 #endif
 #if CWDEBUG_DEBUG && !CWDEBUG_DEBUGOUTPUT
       // Force allocation of a __cxa_eh_globals struct in libsupc++.
-      (void)std::uncaught_exception();
+      (void)std::uncaught_exception();		// Leaks memory.
 #endif
     }
 
@@ -568,6 +565,9 @@ void allocator_unlock(void)
 
 #ifndef _REENTRANT
       TSD_st __libcwd_tsd;
+#endif
+#ifdef _REENTRANT
+      extern bool WST_is_NPTL;
 #endif
 
       debug_channels_ct debug_channels;		// List with all channel_ct objects.
@@ -752,7 +752,7 @@ void allocator_unlock(void)
 #endif
 #endif
 #if defined(_REENTRANT) && CWDEBUG_DEBUG
-      if (pthread_self() == (pthread_t)2049)
+      if (!_private_::WST_is_NPTL && pthread_self() == (pthread_t)2049)
       {
 	::write(1, "WARNING: Thread manager core dumped.  Going into infinite loop.  Please detach process with gdb.\n", 97);
 	while(1);
@@ -782,9 +782,10 @@ void allocator_unlock(void)
       M_str[M_size] = 0;
     }
 
-    void debug_string_ct::ST_internal_deinit(void)
+    debug_string_ct::~debug_string_ct(void)
     {
       free(M_str);
+      M_str = NULL;
     }
 
     void debug_string_ct::internal_assign(char const* str, size_t len)
@@ -1171,7 +1172,7 @@ void allocator_unlock(void)
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdlock(true);
           // Terminate all threads that I know of, so that no locks will remain.
 	  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
-	    if (!pthread_equal((*thread_iter).tid, pthread_self()) && (*thread_iter).tid != 1024)
+	    if (!pthread_equal((*thread_iter).tid, pthread_self()) && (_private_::WST_is_NPTL || (*thread_iter).tid != 1024))
             pthread_cancel((*thread_iter).tid);
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
@@ -1208,6 +1209,7 @@ void allocator_unlock(void)
       DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
       int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
       _private_::set_invisible_on(LIBCWD_TSD);
+      control_flag_t mask = current->mask;	// Keep this.
       delete current;
       _private_::set_invisible_off(LIBCWD_TSD);
       _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
@@ -1223,7 +1225,6 @@ void allocator_unlock(void)
       // Restore previous buffer as being the current one, if any.
       if (laf_stack.size())
       {
-	control_flag_t mask = current->mask;
         current = laf_stack.top();
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
 	current_bufferstream = &current->bufferstream;
@@ -1254,10 +1255,6 @@ void allocator_unlock(void)
 
 #ifdef _REENTRANT
     int debug_ct::S_index_count = 0;
-
-    namespace _private_ {
-      extern bool WST_multi_threaded;
-    }
 #endif
 
     void debug_ct::NS_init(void)
@@ -1305,9 +1302,7 @@ void allocator_unlock(void)
 #ifdef _REENTRANT
       WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
-#ifdef __linux
-      LIBCWD_ASSERT( pthread_self() == PTHREAD_THREADS_MAX );	// Only the initial thread should be initializing debug_ct objects.
-#endif
+      LIBCWD_ASSERT( !_private_::WST_multi_threaded ); // Only the first thread should be initializing debug_ct objects.
 #endif
       LIBCWD_ASSERT( __libcwd_tsd.do_array[WNS_index] == NULL );
       debug_tsd_st& tsd(*(__libcwd_tsd.do_array[WNS_index] =  new debug_tsd_st));
@@ -1795,16 +1790,6 @@ void allocator_unlock(void)
 	core_dump();							// off() and on() where called and not in equal pairs.
       LIBCWD_TSD_MEMBER_OFF = state._off;				// Restore.
     }
-
-#ifdef _REENTRANT
-    bool debug_ct::keep_tsd(bool keep)
-    {
-      LIBCWD_TSD_DECLARATION;
-      bool old = LIBCWD_TSD_MEMBER(tsd_keep);
-      LIBCWD_TSD_MEMBER(tsd_keep) = keep;
-      return old;
-    }
-#endif
 
     void channel_ct::force_on(channel_ct::OnOffState& state, char const* label)
     {

@@ -48,7 +48,7 @@ namespace _private_ {
     size_t len = strlen(encap_mangled_name + 25) - 1;		// Strip "22libcwd_type_info_exactI" from the beginning and "E" from the end.
 #endif
     set_alloc_checking_off(LIBCWD_TSD);
-    char* exact_name = new char[len + 1];
+    char* exact_name = new char[len + 1];			// Leaks memory.
     set_alloc_checking_on(LIBCWD_TSD);
 #if __GXX_ABI_VERSION == 0
     strncpy(exact_name, encap_mangled_name + 27, len);
@@ -74,7 +74,7 @@ namespace _private_ {
     {
       internal_string out;
       demangle_type(mangled_name, out);
-      label = strcpy(new char[out.size() + 1], out.c_str());
+      label = strcpy(new char[out.size() + 1], out.c_str());	// Leaks memory.
     }
     set_alloc_checking_on(LIBCWD_TSD);
     return label;

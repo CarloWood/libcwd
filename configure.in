@@ -113,6 +113,12 @@ AC_ARG_ENABLE(debugt,
                           in libcwd itself.],
     libcwd_config_debugt=$enableval)
 
+AC_ARG_VAR(THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].])
+if test -z "$THREADSMAX"; then
+  THREADSMAX=1024
+fi
+AC_DEFINE_UNQUOTED([CW_THREADSMAX], $THREADSMAX, [The maximum number of simultaneously running threads that are supported.])
+
 dnl Restore the environment variables used when running `configure' when
 dnl `config.status --recheck' was invoked.
 dnl Always let CXX and CXXCPP override cached values

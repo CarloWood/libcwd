@@ -19,6 +19,7 @@
 #include <libcwd/private_mutex.inl>
 #include <libcwd/core_dump.h>
 #include <unistd.h>
+#include <alloca.h>
 #include <map>
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
@@ -32,6 +33,8 @@ namespace libcw {
 
 bool WST_multi_threaded = false;
 bool WST_first_thread_initialized = false;
+bool WST_is_NPTL = false;
+
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 int instance_locked[instance_locked_size];
 pthread_t locked_by[instance_locked_size];
@@ -61,9 +64,11 @@ void initialize_global_mutexes(void)
 }
 
 #if LIBCWD_USE_LINUXTHREADS
-// Specialization.
+// Specializations.
 template <>
   pthread_mutex_t mutex_tct<tsd_initialization_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+template <>
+  pthread_mutex_t mutex_tct<tsd_deinitialization_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
 void mutex_ct::M_initialize(void)
@@ -88,76 +93,106 @@ void fatal_cancellation(void* arg)
 // Thread Specific Data
 //
 
-TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
+// Access to this global array is protected by the lock tsd_deinitialization_instance.
+static size_t old_tid_index;
+static pthread_t old_tid_array[CW_THREADSMAX];
 
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
-pthread_key_t TSD_st::S_exit_key;
-pthread_once_t TSD_st::S_exit_key_once = PTHREAD_ONCE_INIT;
+pthread_key_t TSD_st::S_tsd_key;
+pthread_once_t TSD_st::S_tsd_key_once = PTHREAD_ONCE_INIT;
 
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
 void threading_tsd_init(LIBCWD_TSD_PARAM);
 
-void TSD_st::S_initialize(void)
+TSD_st& TSD_st::S_create(void)
 {
+  TSD_st tmp_tsd;
+
+  // Fill the temporary structure with zeroes.
+  std::memset(&tmp_tsd, 0, sizeof(struct TSD_st));
+
+  tmp_tsd.tid = pthread_self();
+
+  mutex_tct<tsd_deinitialization_instance>::initialize();
+  mutex_tct<tsd_deinitialization_instance>::lock();
+  for (size_t i = 0; i < old_tid_index; ++i)
+  {
+    if (pthread_equal(old_tid_array[i], tmp_tsd.tid))
+      abort();
+  }
+  mutex_tct<tsd_deinitialization_instance>::unlock();
+  pthread_once(&S_tsd_key_once, &S_tsd_key_alloc);
+  pthread_setspecific(S_tsd_key, &tmp_tsd);
+
   int oldtype;
   pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldtype);
   mutex_tct<tsd_initialization_instance>::initialize();
   mutex_tct<tsd_initialization_instance>::lock();
-  debug_tsd_st* old_array[LIBCWD_DO_MAX];
-  std::memcpy(old_array, do_array, sizeof(old_array));
-  threadlist_t::iterator old_thread_iter = thread_iter;
-  bool old_thread_iter_valid = thread_iter_valid;
 
-  // This structure might be reused and therefore already contain data.
-  std::memset(this, 0, sizeof(struct TSD_st));
-
-  tid = pthread_self();
-  pid = getpid();
+  tmp_tsd.pid = getpid();
   mutex_tct<tsd_initialization_instance>::unlock();
   if (!WST_first_thread_initialized)		// Is this the first thread?
   {
     WST_first_thread_initialized = true;
+    size_t n = confstr (_CS_GNU_LIBPTHREAD_VERSION, NULL, 0);
+    if (n > 0)
+    {
+      char* buf = (char*)alloca(n);
+      confstr(_CS_GNU_LIBPTHREAD_VERSION, buf, n);
+      if (strstr (buf, "NPTL"))
+	WST_is_NPTL = true;
+    }
     initialize_global_mutexes();		// This is a good moment to initialize all pthread mutexes.
   }
   else
   {
     WST_multi_threaded = true;
-    set_alloc_checking_off(*this);
-    for (int i = 0; i < LIBCWD_DO_MAX; ++i)
-      if (old_array[i])
-	delete old_array[i];			// Free old objects when this structure is being reused.
-    set_alloc_checking_on(*this);
-    debug_tsd_init(*this);			// Initialize the TSD of existing debug objects.
+    debug_tsd_init(tmp_tsd);			// Initialize the TSD of existing debug objects.
   }
-  if (old_thread_iter_valid)
-    (*old_thread_iter).tsd_destroyed();
-  threading_tsd_init(*this);			// Initialize the TSD of stuff that goes in threading.cc.
-  pthread_once(&S_exit_key_once, &TSD_st::S_exit_key_alloc);
-  pthread_setspecific(S_exit_key, (void*)this);
+  set_alloc_checking_off(tmp_tsd);
+  TSD_st* real_tsd = new TSD_st;
+  std::memcpy(real_tsd, &tmp_tsd, sizeof(TSD_st));
+  pthread_setspecific(S_tsd_key, (void*)real_tsd);
+  set_alloc_checking_on(*real_tsd);
+  threading_tsd_init(*real_tsd);		// Initialize the TSD of stuff that goes in threading.cc.
   pthread_setcanceltype(oldtype, NULL);
+  return *real_tsd;
 }
 
-void TSD_st::S_exit_key_alloc(void)
+void TSD_st::S_tsd_key_alloc(void)
 {
-  pthread_key_create(&S_exit_key, &TSD_st::S_cleanup_routine);
+  pthread_key_create(&S_tsd_key, &TSD_st::S_cleanup_routine);	// Leaks memory, we never destruct this key again.
 }
 
 void TSD_st::cleanup_routine(void)
 {
-  set_alloc_checking_off(*this);
-  for (int i = 0; i < LIBCWD_DO_MAX; ++i)
-    if (do_array[i])
-    {
-      debug_tsd_st* ptr = do_array[i];
-      if (ptr->tsd_keep)
-	continue;
-      do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
-      do_array[i] = NULL;			// So we won't free it again.
-      ptr->tsd_initialized = false;
-      delete ptr;				// Free debug object TSD.
-    }
-  set_alloc_checking_on(*this);
-  terminated = true;
+  if (++tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS)
+  {
+    // Add the key back a number of times in order to schedule our
+    // deinitialization as far as possible after other key destruction
+    // routines.
+    pthread_setspecific(S_tsd_key, (void*)this);
+    if (tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS - 1)
+      return;
+    set_alloc_checking_off(*this);
+    for (int i = 0; i < LIBCWD_DO_MAX; ++i)
+      if (do_array[i])
+      {
+	debug_tsd_st* ptr = do_array[i];
+	do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
+	do_array[i] = NULL;			// So we won't free it again.
+	ptr->tsd_initialized = false;
+	delete ptr;				// Free debug object TSD.
+      }
+    set_alloc_checking_on(*this);
+    terminated = true;
+    int oldtype;
+    pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldtype);
+    mutex_tct<tsd_deinitialization_instance>::lock();
+    old_tid_array[old_tid_index++] = tid;
+    mutex_tct<tsd_deinitialization_instance>::unlock();
+    pthread_setcanceltype(oldtype, NULL);
+  }
 }
 
 void TSD_st::S_cleanup_routine(void* arg)

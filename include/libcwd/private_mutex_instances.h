@@ -35,6 +35,7 @@ namespace libcw {
 enum mutex_instance_nt {
   // Recursive mutexes.
   tsd_initialization_instance,
+  tsd_deinitialization_instance,
   object_files_instance,		// rwlock
   end_recursive_types,
   // Fast mutexes.

@@ -64,8 +64,8 @@ private:
 
 private:
   void NS_internal_init(char const* s, size_t l);
-  void ST_internal_deinit(void);
   debug_string_ct(void) { }
+  ~debug_string_ct(void);
 
 private:
   friend struct debug_string_stack_element_ct;

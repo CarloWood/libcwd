@@ -153,17 +153,21 @@ public:
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
   void cleanup_routine(void);
   int off_cnt_array[LIBCWD_DC_MAX];	// Thread Specific Data of Debug Channels.
+private:
+  int tsd_destructor_count;
 #endif
 
-  void S_initialize(void);
+public:
+  void thread_destructed(void);
 
 #if LIBCWD_THREAD_SAFE
 //-------------------------------------------------------
 // Static data and methods.
 private:
-  static pthread_key_t S_exit_key;
-  static pthread_once_t S_exit_key_once;
-  static void S_exit_key_alloc(void);
+  static TSD_st& S_create(void);
+  static pthread_key_t S_tsd_key;
+  static pthread_once_t S_tsd_key_once;
+  static void S_tsd_key_alloc(void);
   static void S_cleanup_routine(void* arg);
 
 public:
@@ -175,27 +179,17 @@ public:
 // and is accessed through a reference to `__libcwd_tsd'.
 
 #if !LIBCWD_THREAD_SAFE
-// When LIBCWD_THREAD_SAFE is not set then `__libcwd_tsd' is simply a global object in namespace _private_:
+// When LIBCWD_THREAD_SAFE is set then `__libcwd_tsd' is a local variable that references
+// the Thread Specific Data as returned by TSD_st::instance(), otherwise it is simply a
+// global object in namespace _private_:
 extern TSD_st __libcwd_tsd;
 #else
-// Otherwise, __libcwd_tsd is a local variable that references the Thread Specific Data that is stored in this global array.
-extern TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
-
-// This function must return a TSD_st* to an instance that is unique per _running_ thread.
-__inline__
-TSD_st*
-get_tsd_instance(pthread_t tid)
-{
-  return &__libcwd_tsd_array[tid % PTHREAD_THREADS_MAX];
-}
-
 __inline__
 TSD_st& TSD_st::instance(void)
 {
-  pthread_t tid = pthread_self();
-  TSD_st* instance = get_tsd_instance(tid);
-  if (!pthread_equal(tid, instance->tid))
-    instance->S_initialize();
+  TSD_st* instance = (TSD_st*)pthread_getspecific(S_tsd_key);
+  if (!instance || instance->terminated)
+    return S_create();
   return *instance;
 }
 #endif

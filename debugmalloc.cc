@@ -1522,7 +1522,7 @@ char const* diagnose_from(deallocated_from_nt from, bool internal, bool visible 
   return "Huh? Bug in libcwd!";
 }
 
-#define REST_OF_EXPLANATION " with alloc checking OFF (a libcwd 'internal' allocation)."
+#define REST_OF_EXPLANATION ") that is a libcwd internal allocation "
 
 char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 {
@@ -1530,15 +1530,15 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
   {
     case INTERNAL_MAGIC_NEW_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_NEW_END)
-        return ") (while alloc checking is on) that was allocated with 'new'" REST_OF_EXPLANATION;
+        return REST_OF_EXPLANATION "(allocated with 'new').";
       break;
     case INTERNAL_MAGIC_NEW_ARRAY_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_NEW_ARRAY_END)
-        return ") (while alloc checking is on) that was allocated with 'new[]'" REST_OF_EXPLANATION;
+        return REST_OF_EXPLANATION "(allocated with 'new[]).";
       break;
     case INTERNAL_MAGIC_MALLOC_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_MALLOC_END)
-        return ") (while alloc checking is on) that was allocated with 'malloc()'" REST_OF_EXPLANATION;
+        return REST_OF_EXPLANATION "(allocated with 'malloc()').";
       break;
     case MAGIC_NEW_BEGIN:
       if (*magic_end == MAGIC_NEW_END)
@@ -1556,11 +1556,11 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
       switch(magic_begin)
       {
         case ~INTERNAL_MAGIC_NEW_BEGIN:
-	  return ") which appears to be a deleted block that was originally allocated with 'new' internally by libcwd.";
+	  return ") which appears to be a deleted block that was originally a libcwd internal allocation (allocated with 'new').";
         case ~INTERNAL_MAGIC_NEW_ARRAY_BEGIN:
-	  return ") which appears to be a deleted block that was originally allocated with 'new[]' internally by libcwd.";
+	  return ") which appears to be a deleted block that was originally a libcwd internal allocation (allocated with 'new[]).";
 	case ~INTERNAL_MAGIC_MALLOC_BEGIN:
-	  return ") which appears to be a deleted block that was originally allocated with 'malloc()' internally by libcwd.";
+	  return ") which appears to be a deleted block that was originally a libcwd internal allocation (allocated with 'malloc()).";
         case ~MAGIC_NEW_BEGIN:
 	  return ") which appears to be a deleted block that was originally allocated with 'new'.";
         case ~MAGIC_NEW_ARRAY_BEGIN:
@@ -1863,7 +1863,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	((size_t*)ptr)[-2] == INTERNAL_MAGIC_MALLOC_BEGIN)
       DoutFatalInternal( dc::core, "Trying to " <<
           ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) <<
-	  " a pointer (" << ptr << ") that appears to be internally allocated!  The magic number diagnostic gives: " <<
+	  " a pointer (" << ptr << ") that appears to be a libcwd internal allocation!  The magic number diagnostic gives: " <<
 	  diagnose_from(from, false) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
 
 #endif

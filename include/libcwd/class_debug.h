@@ -247,42 +247,6 @@ public:
 
   void force_on(OnOffState& state);
   void restore(OnOffState const& state);
-
-#if LIBCWD_THREAD_SAFE || defined(LIBCWD_DOXYGEN)
-  /**
-   * \brief Keep Thread Specific Data after thread exit.
-   *
-   * Each %debug object has an array (of size PTHREAD_THREADS_MAX (= 1024))
-   * with pointers to the Thread Specific Data (TSD) for each thread id.&nbsp;
-   * The size of this TSD is about 640 bytes.
-   *
-   * When this data would not be freed when a thread exits, and when
-   * an application constantly creates new threads, then all 1024 entries
-   * will become used, causing in total 1024 * 640 bytes of memory to be used
-   * per %debug object instead of <i>number of running threads</i> * 640 bytes.
-   *
-   * However, freeing the Thread Specific Data can not be done at the
-   * very very last moment (for which there is a complicated reason).&nbsp;
-   * Therefore, libcwd deletes the TSD of %debug objects in <code>__pthread_destroy_specifics()</code>,
-   * which is called directly after <code>__pthread_perform_cleanup()</code> in <code>pthread_exit()</code>.&nbsp;
-   * <code>__pthread_destroy_specifics()</code> calls the destruction routines as set
-   * by <code>pthread_key_create()</code>.&nbsp;
-   * As you should know, the order in which these destruction routines
-   * are called is not specified.&nbsp;
-   * Therefore it is possible that additional %debug output done
-   * in other key destruction routines is lost.
-   *
-   * By calling <code>keep_tsd(true)</code>, the TSD is not deleted and %debug output
-   * will stay enabled till the very end.&nbsp;
-   * Because of the disadvantage that this costs about 640 kb of (swappable) memory,
-   * the default is <code>false</code> and the TSD will be freed, except for the
-   * default %debug object \ref libcw_do, allowing for the printing of calls to
-   * <code>%free()</code> done after the key destruction phase.
-   *
-   * \returns The previous value.
-   */
-  bool keep_tsd(bool keep);
-#endif // LIBCWD_THREAD_SAFE
 };
 
 #if LIBCWD_THREAD_SAFE && !defined(LIBCWD_DOXYGEN)

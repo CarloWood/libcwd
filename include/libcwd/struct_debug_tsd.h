@@ -65,10 +65,6 @@ struct debug_tsd_st {
   bool tsd_initialized;
     // Set after initialization is completed.
   
-  bool tsd_keep;
-    // Do not disable debug output and delete the TSD of the this debug object
-    // during the pthread key destruction phase.
-
 #if CWDEBUG_DEBUGOUTPUT
   // Since we start with _off is -1 instead of 0 when CWDEBUG_DEBUG is set,
   // we need to ignore the call to on() the first time it is called.
@@ -124,7 +120,7 @@ struct debug_tsd_st {
 #if !LIBCWD_THREAD_SAFE
       _off(0),
 #endif
-      tsd_initialized(false), tsd_keep(false), current_bufferstream(NULL) { }
+      tsd_initialized(false), current_bufferstream(NULL) { }
   ~debug_tsd_st();
 };
 

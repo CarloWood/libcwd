@@ -1819,6 +1819,7 @@ indirect:
   delete [] debug_line;
   delete [] debug_info;
   delete [] debug_abbrev;
+  delete [] debug_str;
   M_dwarf_debug_line_section_index = 0;
   if (!M_stabs_section_index)
     delete_hash_list();

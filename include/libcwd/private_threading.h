@@ -34,7 +34,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 	} while(0)
 #define LIBCWD_DEBUGDEBUGLOCK_CERR(x) \
 	do { \
-	  if (instance != tsd_initialization_instance) \
+	  if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance) \
 	  { \
 	    pthread_mutex_lock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
 	    ++LIBCWD_DEBUGDEBUGLOCK_CERR_count; \
@@ -252,7 +252,7 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED \
     LibcwDebugThreads( \
-	if (instance != tsd_initialization_instance) \
+	if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance) \
 	{ \
 	  LIBCWD_TSD_DECLARATION; \
 	  /* When entering a critical area, make sure that we have explictely deferred cancellation of this */ \
@@ -313,10 +313,10 @@ template <int instance>
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
-      LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
       LIBCWD_DEBUGDEBUGLOCK_CERR("locking mutex " << instance << " (" << (void*)&S_mutex << ") from " << __builtin_return_address(0) << " from " << __builtin_return_address(1));
 #if CWDEBUG_DEBUGT
-      if (instance != tsd_initialization_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
+      if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
       {
 	LIBCWD_TSD_DECLARATION;
 	__libcwd_tsd.waiting_for_lock = instance;
@@ -386,7 +386,7 @@ template <int instance>
       LIBCWD_ASSERT(res == 0);
 #endif
       LIBCWD_DEBUGDEBUGLOCK_CERR("Lock " << instance << " released (" << (void*)&S_mutex << ").");
-      LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance) { LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area; } );
     }
     // This is used as cleanup handler with LIBCWD_DEFER_CLEANUP_PUSH.
     static void cleanup(void*);
@@ -449,9 +449,13 @@ template <int instance>
       	PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP;
 #endif
 
-// Specialization.
+// Specializations.
 template <>
   extern pthread_mutex_t mutex_tct<tsd_initialization_instance>::S_mutex;
+      // = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+
+template <>
+  extern pthread_mutex_t mutex_tct<tsd_deinitialization_instance>::S_mutex;
       // = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 #else // !LIBCWD_USE_LINUXTHREADS

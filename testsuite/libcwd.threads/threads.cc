@@ -54,20 +54,50 @@
 pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t cerr_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-volatile int heartbeat[32];
-int prev_heartbeat[32];
-int bad[32];
+size_t const heartbeat_size = 1024;
+volatile int heartbeat[heartbeat_size];
+int prev_heartbeat[heartbeat_size];
+int bad[heartbeat_size];
+bool is_NPTL = false;
 
 unsigned long thread_index(pthread_t tid)
 {
+  if (is_NPTL)
+  {
+    unsigned long res = tid >> 23;
+    if (res >= heartbeat_size)
+      abort();
+    return res;
+  }
   return tid % 1024;
+}
+
+pthread_once_t test_keys_once = PTHREAD_ONCE_INIT;
+static pthread_key_t keys[100];
+
+static void cleanup_routine(void* arg)
+{
+  pthread_mutex_lock(&cerr_mutex);
+  std::cerr << "Key destruction routine " << (int)arg << ".\n";
+  pthread_mutex_unlock(&cerr_mutex);
+}
+
+void test_keys_alloc(void)
+{
+  for (unsigned int i = 0; i < sizeof(keys) / sizeof(pthread_key_t); ++i)
+   pthread_key_create(&keys[i], cleanup_routine);
 }
 
 void set_margin(void)
 {
   char margin[32];
-  sprintf(margin, "%-10lu (%04lu) ", pthread_self(), thread_index(pthread_self()));
+  sprintf(margin, "%-10lu ", pthread_self());
   Debug( libcw_do.margin().assign(margin, 18) );
+#if CWDEBUG_DEBUGT
+  pthread_once(&test_keys_once, &test_keys_alloc);
+  for (unsigned int i = 0; i < sizeof(keys) / sizeof(pthread_key_t); ++i)
+    pthread_setspecific(keys[i], (void*)i);
+#endif
 }
 
 #ifdef TWDEBUG
@@ -183,6 +213,15 @@ int main(void)
 {
   Debug( check_configuration() );
 
+  size_t n = confstr (_CS_GNU_LIBPTHREAD_VERSION, NULL, 0);
+  if (n > 0)
+  {
+    char* buf = (char*)alloca(n);
+    confstr(_CS_GNU_LIBPTHREAD_VERSION, buf, n);
+    if (strstr (buf, "NPTL"))
+      is_NPTL = true;
+  }
+
 #if CWDEBUG_ALLOC
   new int;
   libcw::debug::make_all_allocations_invisible_except(NULL);
@@ -221,7 +260,7 @@ int main(void)
   {
     Dout(dc::notice|continued_cf, "main: creating thread " << i << ", ");
     pthread_create(&thread_id[i], NULL, progs[i], NULL);
-    Dout(dc::finish, "id " << thread_id[i] << " (" << thread_index(thread_id[i]) << ").");
+    Dout(dc::finish, "id " << thread_id[i] << ".");
   }
 
   for(;;)
@@ -249,19 +288,16 @@ int main(void)
       {
 	if (++(bad[i]) == 30)
 	{
-	  std::cerr << "No heartbeat for thread " << thread_id[i] << '/' <<
-	    libcw::debug::_private_::__libcwd_tsd_array[ti].pid << '\n';
+	  std::cerr << "No heartbeat for thread " << thread_id[i] << '\n';
 	  raise(6);
 	}
 	else
-	  std::cerr << "\nNO HEARTBEAT for " << thread_id[i] << '/' <<
-	    libcw::debug::_private_::__libcwd_tsd_array[ti].pid <<
+	  std::cerr << "\nNO HEARTBEAT for " << thread_id[i] <<
 	    " since " << bad[i] << " seconds.  Value still: " << heartbeat[ti] << "\n";
       }
       else
       {
-	std::cerr << "\nGot HEARTBEAT for " << thread_id[i] << '/' <<
-	  libcw::debug::_private_::__libcwd_tsd_array[ti].pid <<
+	std::cerr << "\nGot HEARTBEAT for " << thread_id[i] <<
 	  ": " << heartbeat[ti] << " after " << bad[i] << " seconds.\n";
 	bad[i] = 0;
 	++running;

@@ -368,7 +368,7 @@ void bfd_close(bfd* abfd)
 	}
 #endif
 
-	symbol_table = (asymbol**) malloc(storage_needed);
+	symbol_table = (asymbol**) malloc(storage_needed);	// Leaks memory.
 
 	number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
 #if CWDEBUG_LIBBFD
@@ -1040,6 +1040,7 @@ void bfd_close(bfd* abfd)
 	  if (!dl_loaded_ptr)
 	    DoutFatal(dc::core, "Configuration of libcwd detected _dl_loaded, but I can't find it now?!");
 #endif
+	  ::dlclose(handle);
 	}
 #endif // HAVE__DL_LOADED
 
@@ -1280,7 +1281,7 @@ typedef location_ct bfd_location_ct;
     {
       LIBCWD_TSD_DECLARATION;
       set_alloc_checking_off(LIBCWD_TSD);
-      M_filepath = strcpy((char*)malloc(strlen(filepath) + 1), filepath);
+      M_filepath = strcpy((char*)malloc(strlen(filepath) + 1), filepath);	// Leaks memory.
       set_alloc_checking_on(LIBCWD_TSD);
       M_filename = strrchr(M_filepath, '/') + 1;
       if (M_filename == (char const*)1)
