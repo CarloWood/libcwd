@@ -230,20 +230,36 @@ if test "$libcwd_config_bfd" = yes; then
   dnl Check if we have `xmalloc' in libiberty
   AC_CHECK_LIB(iberty, xmalloc,,
     [dnl If that failed, then look if perhaps it is in /usr/local/lib in case we didn't look there.
-    if test "$ac_cv_lib_iberty_xmalloc" = "no"; then
-      if test -f /usr/local/lib/libiberty.a -o -e /usr/local/lib/libiberty.so; then
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	unset ac_cv_lib_iberty_xmalloc
-	AC_CHECK_LIB(iberty, xmalloc)
-	if test "$ac_cv_lib_iberty_xmalloc" != no; then
-	  cw_cv_sys_CPPFLAGS="$cw_cv_sys_CPPFLAGS -I/usr/local/include"
-	  cw_cv_sys_LDFLAGS="$cw_cv_sys_LDFLAGS -L/usr/local/lib"
-	fi
-      fi
-    fi])
+    AC_CACHE_VAL(cw_cv_lib_iberty_xmalloc_usrlocal,
+    [if test -f /usr/local/lib/libiberty.a -o -e /usr/local/lib/libiberty.so; then
+       save_CPPFLAGS="$CPPFLAGS"
+       save_LDFLAGS="$LDFLAGS"
+       save_LIBS="$LIBS"
+       unset ac_cv_lib_iberty_xmalloc
+       AC_CHECK_LIB(iberty, xmalloc)
+       if test "$ac_cv_lib_iberty_xmalloc" != no; then
+         dnl We can not let this cache value stay 'yes', otherwise a re-configure will
+         dnl mistakenly pass successful the first AC_CHECK_LIB!
+         ac_cv_lib_iberty_xmalloc=no
+	 cw_cv_lib_iberty_xmalloc_usrlocal=yes
+       else
+	 cw_cv_lib_iberty_xmalloc_usrlocal=no
+       fi
+       LIBS="$save_LIBS"
+       LDFLAGS="$save_LDFLAGS"
+       CPPFLAGS="$save_CPPFLAGS"
+     fi
+    ])
+    AC_MSG_CHECKING([if there is a working libiberty in /usr/local])
+    if test "$cw_cv_lib_iberty_xmalloc_usrlocal" = "yes"; then
+      CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+      LDFLAGS="$LDFLAGS -L/usr/local/lib"
+      LIBS="$LIBS -liberty"
+    fi
+    AC_MSG_RESULT($cw_cv_lib_iberty_xmalloc_usrlocal)])
+
   dnl If it failed, then abort with an error message.
-  if test "$ac_cv_lib_iberty_xmalloc" = "no"; then
+  if test "$ac_cv_lib_iberty_xmalloc" = "no" -a "set+$cw_cv_lib_iberty_xmalloc_usrlocal" = "set+no"; then
     AC_MSG_ERROR([
 
 * Cannot find a working libiberty.  Perhaps you need to add -L/path
