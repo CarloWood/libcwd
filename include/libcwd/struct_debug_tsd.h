@@ -116,16 +116,14 @@ struct debug_tsd_st {
 
   // Initialization and de-initialization.
   void init(void);
-  debug_tsd_st(void) :
-#if !LIBCWD_THREAD_SAFE
-      _off(0)
-#else
-      // In the non-threaded case, debug_ct contains a debug_tsd_st which
-      // may therefore already be initialized before.  Therefore, don't
-      // initialize these but rely on the global data to be zeroed.
-      tsd_initialized(false), current_bufferstream(NULL)
+#if LIBCWD_THREAD_SAFE
+  // In the non-threaded case, debug_ct contains a debug_tsd_st which
+  // may already be initialized before.  Therefore don't initialize
+  // these in the non-threaded case, but rely on tsd_initialized,
+  // current_bufferstream and _off to be zeroed as a result of being
+  // part of a global object.
+  debug_tsd_st(void) : tsd_initialized(false), current_bufferstream(NULL) { }
 #endif
-      { }
   ~debug_tsd_st();
 };
 
