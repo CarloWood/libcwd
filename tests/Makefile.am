@@ -3,13 +3,12 @@
 AUTOMAKE_OPTIONS = foreign
 
 EXTRA_PROGRAMS = \
+threads \
 hello_world \
 syslog \
 initbug \
 dout_alloc \
 mangling
-
-EXTRA_DIST = threads.cc
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
@@ -18,10 +17,15 @@ syslog_SOURCES = syslog.cc
 initbug_SOURCES = initbug.cc initbug_GlobalObject.cc
 dout_alloc_SOURCES = dout_alloc.cc
 mangling_SOURCES = mangling.cc
+threads_SOURCES = threads.cc
+
+threads_LDFLAGS = -lpthread
 
 include_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h
 
 LDADD = ../libcwd.la
+full_top_builddir := $(shell (cd $(top_builddir); pwd))
+LDFLAGS = -rpath $(full_top_builddir)/.libs
 
 EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
@@ -30,6 +34,3 @@ CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
 INCLUDES = -I. -I- -I$(top_builddir)/include -I$(srcdir)/../include -DCWDEBUG
 
 MAINTAINERCLEANFILES = Makefile.in
-
-threads: threads.o
-	$(CXX) -o  threads threads.o ../.libs/libcwd.so -ldl -lpthread -Wl,--rpath -Wl,../.libs

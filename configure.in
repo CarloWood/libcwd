@@ -144,8 +144,8 @@ test -n "$enable_static" || enable_static=yes
 dnl Note: due to a bug in libtool-1.3c, the language must be C at this point!
 AC_PROG_LIBTOOL
 dnl Configuration needed by the testsuite, extract this from the generated 'libtool'
-enable_shared=`grep '^build_libtool_libs=' libtool | sed -e 's/build_libtool_libs=//'`
-enable_static=`grep '^build_old_libs=' libtool | sed -e 's/build_old_libs=//'`
+enable_shared=`./libtool --config | grep '^build_libtool_libs=' | sed -e 's/build_libtool_libs=//'`
+enable_static=`./libtool --config | grep '^build_old_libs=' | sed -e 's/build_old_libs=//'`
 AC_SUBST(enable_shared)
 AC_SUBST(enable_static)
 if test $enable_shared = yes; then
@@ -158,6 +158,21 @@ Static libraries are supported however, please configure using
 ])
   fi
 fi
+dnl libtool has a bug that it adds an -rpath for the $libdir, we don't want
+dnl that because the only programs we have are test executables that are
+dnl never installed anyway!  There is no option to turn this off other than
+dnl by directly messing with the just generated libtool.  The trick used here
+dnl is to add $libdir (or what it will become later) to `sys_lib_dlsearch_path_spec`,
+dnl causing libtool to think that a hard coded path is not needed.
+sys_lib_dlsearch_path_spec=`./libtool --config | grep '^sys_lib_dlsearch_path_spec=' | sed -e 's/sys_lib_dlsearch_path_spec="\(.*\)"$/\1/'`
+tmp=$libdir
+test "x$tmp" = 'x${exec_prefix}/lib' && tmp=$exec_prefix/lib
+test "x$tmp" = 'xNONE/lib' && tmp=$prefix/lib
+test "x$tmp" = 'xNONE/lib' && tmp=$ac_default_prefix/lib
+dq='"'
+sq="'"
+se='|'
+eval sed -e ${sq}s${se}^sys_lib_dlsearch_path_spec=.*${se}sys_lib_dlsearch_path_spec=${dq}$sys_lib_dlsearch_path_spec $tmp${dq}${se}${sq} libtool > libtool.tmp && mv libtool.tmp libtool
 
 dnl Used in sysd.h to force recompilation
 CC_FINGER_PRINT="$cw_cv_sys_CC_finger_print"
