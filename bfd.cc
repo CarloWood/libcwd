@@ -782,7 +782,8 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    DoutFatal(dc::fatal|error_cf, "Failed to execute \"" << ps_prog << "\"");
 	}
 
-	if (argv0.find('/') == _private_::ST_internal_string::npos)
+	//std::cerr << "argv0 = \"" << argv0 << '"' << std::endl;
+	if (argv0.find('/') != 0)
 	{
 	  _private_::ST_internal_string prog_name(argv0);
 	  _private_::ST_internal_string path_list(getenv("PATH"));

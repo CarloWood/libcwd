@@ -15,7 +15,12 @@ html: styles external
 	      -e 's/"sys\.h"/"<a class="code" href="#preparation_step2">sys.h<\/a>"/' \
 	  > html/preparation.html
 	rm html/preparation.tmp
-
+	for i in `grep -l '<h2>Modules</h2>' html/*.html`; do \
+	  mv $$i $$i.tmp; \
+	  cat $$i.tmp | \
+	  sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' > $$i; \
+	  rm $$i.tmp; \
+	done
 
 external: external/INSTALL external/sys.h external/debug.h external/debug.cc
 
