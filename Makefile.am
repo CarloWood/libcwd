@@ -68,6 +68,7 @@ endif
 dist-hook: documentation
 	cp -pr $(srcdir)/documentation $(distdir)
 	find $(distdir)/documentation -name CVS -print | xargs rm -rf
+	find $(distdir)/documentation -name .cvsignore -print | xargs rm -rf
 	find $(distdir)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
 	mkdir $(distdir)/example-project
 	for i in `grep '^/' $(srcdir)/example-project/CVS/Entries | cut -d/ -f2`; do \

@@ -1,8 +1,8 @@
 
-- Homepage:		www/index.html
+- Homepage:		index.html
 - Reference Manual:	reference-manual/index.html
 - Tutorial:		tutorial/index.html
 
 Please ignore all other files: they are only used to generate
-the documentation in the html directory.
+the documentation in the reference-manual directory.
 
