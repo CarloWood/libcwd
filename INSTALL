@@ -109,8 +109,8 @@ Hackers info
 
 ./configure --help
 
-There is no reason to use libcwd's feature options (--disable-libcwd-alloc,
---disable-libcwd-magic, --disable-libcwd-marker and --disable-libcwd-location).
+There is no reason to use libcwd's feature options (--disable-alloc,
+--disable-magic, --disable-marker and --disable-location).
 Actually, I forgot why they are there :).  You can read more about the
 configuration options and what they do in include/libcw/debug_config.h.
 
@@ -133,7 +133,7 @@ CC="gcc-cvs-3.0" CXX="g++-cvs-3.0" ./configure
 -=iii=-
 
 If you don't have an ELF32 system and therefore need to link with libbfd, then you
-can configure using --enable-libcwd-libbfd.  If libiberty.a or libbfd.so are in an
+can configure using --enable-libbfd.  If libiberty.a or libbfd.so are in an
 unusual directory, then you will have to set LDFLAGS prior to running ./configure:
 
 LDFLAGS="-L/usr/gnu/lib" CPPFLAGS="-I/usr/gnu/include" ./configure

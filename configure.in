@@ -53,57 +53,57 @@ AC_ARG_ENABLE(libcwd, [
 Options of package libcwd:])
 
 libcwd_config_alloc=yes
-AC_ARG_ENABLE(libcwd-alloc,
-    [  --disable-libcwd-alloc  disable memory allocation debugging support.],
+AC_ARG_ENABLE(alloc,
+    [  --disable-alloc  disable memory allocation debugging support.],
     libcwd_config_alloc=$enableval)
 
 libcwd_config_magic=yes
-AC_ARG_ENABLE(libcwd-magic,
-    [  --disable-libcwd-magic  disable magic numbers in memory allocation debugging.],
+AC_ARG_ENABLE(magic,
+    [  --disable-magic  disable magic numbers in memory allocation debugging.],
     libcwd_config_magic=$enableval)
 
 libcwd_config_marker=yes
-AC_ARG_ENABLE(libcwd-marker,
-    [  --disable-libcwd-marker disable memory allocation markers.],
+AC_ARG_ENABLE(marker,
+    [  --disable-marker disable memory allocation markers.],
     libcwd_config_marker=$enableval)
 
 libcwd_config_location=yes
-AC_ARG_ENABLE(libcwd-location,
-    [  --disable-libcwd-location  disable the ability to lookup source file and line
+AC_ARG_ENABLE(location,
+    [  --disable-location  disable the ability to lookup source file and line
                           number, you might need this on a non-ELF32 system.],
     libcwd_config_location=$enableval)
 
 libcwd_config_bfd=no
-AC_ARG_ENABLE(libcwd-libbfd,
-    [  --enable-libcwd-libbfd  try to find and use GNU bfd library,
+AC_ARG_ENABLE(libbfd,
+    [  --enable-libbfd  try to find and use GNU bfd library,
                           this is only needed on a system without ELF.],
     libcwd_config_bfd=$enableval)
 
 libcwd_config_debug=no
-AC_ARG_ENABLE(libcwd-debug,
-    [  --enable-libcwd-debug   enable debugging of libcwd itself.],
+AC_ARG_ENABLE(debug,
+    [  --enable-debug   enable debugging of libcwd itself.],
     libcwd_config_debug=$enableval)
 
 libcwd_config_debug_output=yes
-AC_ARG_ENABLE(libcwd-debug-output,
-    [  --disable-libcwd-debug-output  disable debug output of --enable-libcwd-debug.],
+AC_ARG_ENABLE(debug-output,
+    [  --disable-debug-output  disable debug output of --enable-debug.],
     libcwd_config_debug_output=$enableval)
 
 libcwd_config_debugm=no
-AC_ARG_ENABLE(libcwd-debugm,
-    [  --enable-libcwd-debugm  enable debugging of memory allocation debugging code
+AC_ARG_ENABLE(debugm,
+    [  --enable-debugm  enable debugging of memory allocation debugging code
                           in libcwd itself.],
     libcwd_config_debugm=$enableval)
 
 libcwd_config_threading=no
-AC_ARG_ENABLE(libcwd-threading,
-    [  --enable-libcwd-threading  make libcwd reentrant and add support for
+AC_ARG_ENABLE(threading,
+    [  --enable-threading  make libcwd reentrant and add support for
                           threading where needed.],
     libcwd_config_threading=$enableval)
 
 libcwd_config_debugt=no
-AC_ARG_ENABLE(libcwd-debugt,
-    [  --enable-libcwd-debugt  enable debugging of threading debugging code
+AC_ARG_ENABLE(debugt,
+    [  --enable-debugt  enable debugging of threading debugging code
                           in libcwd itself.],
     libcwd_config_debugt=$enableval)
 
@@ -286,7 +286,7 @@ if test "$libcwd_config_bfd" = yes; then
 * Cannot find a working libiberty.  Perhaps you need to add -L/path
 * to LDFLAGS (read the INSTALL file for more info)?
 * Libiberty is part of binutils (or binutils-devel or binutils-dev).
-* You can skip this check by using configure --disable-libcwd-libbfd.  On an
+* You can skip this check by using configure --disable-libbfd.  On an
 * ELF32 system lookup of function names and source:line information will
 * still work anyway.
 ])
@@ -313,7 +313,7 @@ if test "$libcwd_config_bfd" = yes; then
       [CW_CONFIG_LIBBFD=1
        AC_MSG_WARN([
 
-* You used --enable-libcwd-libbfd: The license of libbfd (GPL) forbids to link
+* You used --enable-libbfd: The license of libbfd (GPL) forbids to link
 * with libraries that are non-GPL.  Therefore you are not allowed to
 * distribute the resulting executable!  See include/libcw/debug_config.ho.in
 * under DEBUGUSEGNULIBBFD for more information.
@@ -324,7 +324,7 @@ if test "$libcwd_config_bfd" = yes; then
 * to CPPFLAGS (read the INSTALL file for more info)?  If your OS uses
 * packages then you need to make sure you have installed both, binutils
 * and the development version of binutils (binutils-devel, or binutils-dev).
-* You can skip this check by using configure --disable-libcwd-libbfd.  On an
+* You can skip this check by using configure --disable-libbfd.  On an
 * ELF32 system lookup of function names and source:line information will
 * still work anyway.
 ])])
@@ -333,7 +333,7 @@ if test "$libcwd_config_bfd" = yes; then
 
 * Cannot find a working libbfd.  Perhaps you need to add -L/path to LDFLAGS
 * (read the INSTALL file for more info)?  Libbfd is part of binutils.
-* You can skip this check by using configure --disable-libcwd-libbfd.  On an
+* You can skip this check by using configure --disable-libbfd.  On an
 * ELF32 system lookup of function names and source:line information will
 * still work anyway.
 ])
@@ -359,14 +359,14 @@ if test "$libcwd_config_threading" = yes; then
       [AC_MSG_ERROR([
 
 * Sorry but libcwd only supports POSIX Threads at the moment and I can't
-* find the header file pthread.h.  Use --disable-libcwd-threading to
+* find the header file pthread.h.  Use --disable-threading to
 * compile a libcwd that is not thread safe.
 ])])],
     [AC_MSG_ERROR([
 
 * Sorry but libcwd only supports POSIX Threads at the moment.  Your libc doesn't
 * include posix threads by itself and I can't find -lpthread.
-* Use --disable-libcwd-threading to compile a libcwd that is not thread safe.
+* Use --disable-threading to compile a libcwd that is not thread safe.
 ])])
   if test "$ac_cv_search_pthread_create" = "none required"; then
     dnl Even if nothing is required, we still need to use -lpthread explicitly

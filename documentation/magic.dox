@@ -11,7 +11,7 @@ crash in a source line far from the point of the actual bug.&nbsp;
 Buffer overruns are an important reason for memory corruption.&nbsp;
 Libcwd tries to help with finding buffer overruns by means of so called <i>magic numbers</i>.
 
-When \ref enable_libcwd_magic is defined, magic numbers are added to
+When \ref enable_magic is defined, magic numbers are added to
 the beginning and the end of each allocated memory block.&nbsp;
 In addition to these two magic numbers, extra memory is allocated to hold the allocated <i>size</i>, this is necessary
 to find back the location of the magic number at the end with only a pointer to the beginning of the allocated memory block.&nbsp;

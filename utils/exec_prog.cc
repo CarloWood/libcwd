@@ -191,7 +191,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
     case -1:
       Debug( libcw_do.on() );
       Dout(dc::system|error_cf, "fork() = -1");
-      DoutFatal(dc::fatal, "Try configuring libcwd with --disable-libcwd-location");
+      DoutFatal(dc::fatal, "Try configuring libcwd with --disable-location");
     default:
     {
       pid_t pid = ret;

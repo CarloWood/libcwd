@@ -22,7 +22,7 @@
 #include <libcw/debug_config.h>
 #endif
 
-#if CWDEBUG_ALLOC		// This file is not used unless --enable-libcwd-alloc was used.
+#if CWDEBUG_ALLOC		// This file is not used unless --enable-alloc was used.
 
 #ifndef LIBCW_PRIVATE_THREADING_H
 #include <libcw/private_threading.h>

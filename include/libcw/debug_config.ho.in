@@ -54,7 +54,7 @@
  * \endcode
  */
 
-/** \defgroup enable_libcwd_alloc --enable-libcwd-alloc (CWDEBUG_ALLOC)
+/** \defgroup enable_alloc --enable-alloc (CWDEBUG_ALLOC)
  * \ingroup group_configuration
  *
  * \par Description
@@ -70,14 +70,14 @@
  * \par Configure option
  *
  * This is enabled by default.&nbsp;
- * Use \shellcommand configure --disable-libcwd-alloc \endshellcommand to disable it.
+ * Use \shellcommand configure --disable-alloc \endshellcommand to disable it.
  *
  * \sa \ref book_allocations
  */
 
 #define CWDEBUG_ALLOC @CW_CONFIG_ALLOC@
 
-/** \defgroup enable_libcwd_magic --enable-libcwd-magic (CWDEBUG_MAGIC)
+/** \defgroup enable_magic --enable-magic (CWDEBUG_MAGIC)
  * \ingroup group_configuration
  *
  * \par Description
@@ -92,15 +92,15 @@
  *
  * \par Configure option
  *
- * This is enabled by default (but \ref enable_libcwd_alloc must be enabled as well).&nbsp;
- * Use \shellcommand configure --disable-libcwd-magic \endshellcommand to disable it.
+ * This is enabled by default (but \ref enable_alloc must be enabled as well).&nbsp;
+ * Use \shellcommand configure --disable-magic \endshellcommand to disable it.
  *
  * \sa \ref chapter_magic_numbers
  */
 
 #define CWDEBUG_MAGIC (CWDEBUG_ALLOC && @CW_CONFIG_MAGIC@)
 
-/** \defgroup enable_libcwd_location --enable-libcwd-location (CWDEBUG_LOCATION)
+/** \defgroup enable_location --enable-location (CWDEBUG_LOCATION)
  * \ingroup group_configuration
  *
  * \par Description
@@ -121,14 +121,14 @@
  * \par Configure option
  *
  * This is enabled by default.&nbsp;
- * Use \shellcommand configure --disable-libcwd-location \endshellcommand to disable it.
+ * Use \shellcommand configure --disable-location \endshellcommand to disable it.
  *
  * \sa \ref chapter_alloc_locations
  */
 
 #define CWDEBUG_LOCATION @CW_CONFIG_LOCATION@
 
-/** \defgroup enable_libcwd_libbfd --enable-libcwd-libbfd (CWDEBUG_LIBBFD)
+/** \defgroup enable_libbfd --enable-libbfd (CWDEBUG_LIBBFD)
  * \ingroup group_configuration
  *
  * \par Description
@@ -148,7 +148,7 @@
  * \par Configure option
  *
  * This is disabled by default.&nbsp;
- * You can enable it by specifying \shellcommand --enable-libcwd-libbfd \endshellcommand during configuration.&nbsp;
+ * You can enable it by specifying \shellcommand --enable-libbfd \endshellcommand during configuration.&nbsp;
  * Of course you'll need a working libbfd installed in that case.
  *
  * \sa \ref chapter_alloc_locations
@@ -180,7 +180,7 @@
 
 #define CWDEBUG_LIBBFD (CWDEBUG_LOCATION && @CW_CONFIG_LIBBFD@)
 
-/** \defgroup enable_libcwd_debug --enable-libcwd-debug (CWDEBUG_DEBUG)
+/** \defgroup enable_debug --enable-debug (CWDEBUG_DEBUG)
  * \ingroup group_configuration
  *
  * \par Description
@@ -195,18 +195,18 @@
  * \par Configure option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-libcwd-debug \endshellcommand to enable it.
+ * Use \shellcommand configure --enable-debug \endshellcommand to enable it.
  */
 
 #define CWDEBUG_DEBUG @CW_CONFIG_DEBUG@
 
-/** \defgroup enable_libcwd_debugoutput --enable-libcwd-debugoutput (CWDEBUG_DEBUGOUTPUT)
+/** \defgroup enable_debug_output --enable-debug-output (CWDEBUG_DEBUGOUTPUT)
  * \ingroup group_configuration
  *
  * \par Description
  *
- * When \ref enable_libcwd_debug is enabled, this turns on a lot of extra debugging
- * output concerning the internal state of libcwd, and when \ref enable_libcwd_alloc
+ * When \ref enable_debug is enabled, this turns on a lot of extra debugging
+ * output concerning the internal state of libcwd, and when \ref enable_alloc
  * is enabled, about internal allocations of libcwd.&nbsp;
  * This will not be usefull to you unless you manage to let the program
  * coredump even before it reaches main().
@@ -218,12 +218,12 @@
  * \par Configure option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-libcwd-debugoutput \endshellcommand to enable it.
+ * Use \shellcommand configure --enable-debug-output \endshellcommand to enable it.
  */
 
 #define CWDEBUG_DEBUGOUTPUT (CWDEBUG_DEBUG && @CW_CONFIG_DEBUGOUTPUT@)
 
-/** \defgroup enable_libcwd_debugm --enable-libcwd-debugm (CWDEBUG_DEBUGM)
+/** \defgroup enable_debugm --enable-debugm (CWDEBUG_DEBUGM)
  * \ingroup group_configuration
  *
  * \par Description
@@ -238,12 +238,12 @@
  * \par Configure option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-libcwd-debug --enable-libcwd-debugm \endshellcommand to enable it.
+ * Use \shellcommand configure --enable-debug --enable-debugm \endshellcommand to enable it.
  */
 
 #define CWDEBUG_DEBUGM (CWDEBUG_DEBUG && @CW_CONFIG_DEBUGM@)
 
-/** \defgroup enable_libcwd_marker --enable-libcwd-marker (CWDEBUG_MARKER)
+/** \defgroup enable_marker --enable-marker (CWDEBUG_MARKER)
  * \ingroup group_configuration
  *
  * \par Description
@@ -257,7 +257,7 @@
  * \par Configure option
  *
  * This is enabled by default.&nbsp;
- * Use \shellcommand configure --disable-libcwd-marker \endshellcommand to disable it.
+ * Use \shellcommand configure --disable-marker \endshellcommand to disable it.
  */
 
 #define CWDEBUG_MARKER (CWDEBUG_ALLOC && @CW_CONFIG_MARKER@)
@@ -287,7 +287,7 @@
 #define LIBCWD_DC_MAX 256                       // Maximal total number of debug channels in a single application.
 						// Costs 4 kb of memory per channel (exclusive the actual channels).
 
-/** \defgroup enable_libcwd_debugt --enable-libcwd-debugt (CWDEBUG_DEBUGT)
+/** \defgroup enable_debugt --enable-debugt (CWDEBUG_DEBUGT)
  * \ingroup group_configuration
  *
  * \par Description
@@ -305,7 +305,7 @@
  * \par Configure option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-libcwd-debugt \endshellcommand to enable it.
+ * Use \shellcommand configure --enable-debugt \endshellcommand to enable it.
  */
 
 #define CWDEBUG_DEBUGT @CW_CONFIG_DEBUGT@

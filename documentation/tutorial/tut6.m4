@@ -24,7 +24,7 @@ Check the headerfile <SPAN class="filename">libcw/debug_config.h</SPAN>
 and make sure that the macro <CODE>CWDEBUG_ALLOC</CODE>
 is set to 1.&nbsp;
 If it is not defined, then you'll have to reconfigure, recompile and install libcwd.&nbsp;
-Use <SPAN class="shell-command">./configure --enable-libcwd-alloc</SPAN> during configure.</P>
+Use <SPAN class="shell-command">./configure --enable-alloc</SPAN> during configure.</P>
 
 <P>You also want the macros <CODE>CWDEBUG_LOCATION</CODE>
 and <CODE>CWDEBUG_MAGIC</CODE> to be defined to 1.</P>

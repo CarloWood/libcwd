@@ -20,7 +20,7 @@
 // /usr/local/beta-gcc/bin/g++ -E STL-pthread-example.C|grep _M_acquire_lock
 
 #ifndef _REENTRANT
-#error "Recompile libcwd with --enable-libcwd-threading"
+#error "Recompile libcwd with --enable-threading"
 #endif
 #include "sys.h"
 #include <list>

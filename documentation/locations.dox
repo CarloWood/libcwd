@@ -8,7 +8,7 @@
 
 <hr><h2>Detailed Description</h2>
 
-When libcwd was configured with \ref enable_libcwd_location "--enable-libcwd-location",
+When libcwd was configured with \ref enable_location "--enable-location",
 then libcw allows one to easily obtain source-file / line-number information of a given address
 using the class \ref libcw::debug::location_ct "location_ct".
 

@@ -27,7 +27,7 @@
 #undef _GNU_SOURCE
 #endif
 
-// Defined when --enable-libcwd-threading is used.
+// Defined when --enable-threading is used.
 #undef LIBCWD_THREAD_SAFE
 @BOTTOM@
 

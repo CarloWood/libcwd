@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 #if CWDEBUG_ALLOC
   Dout(dc::notice, "Finished successfully.");
 #else
-  DoutFatal(dc::fatal, "Please reconfigure libcwd with --enable-libcwd-alloc.");
+  DoutFatal(dc::fatal, "Please reconfigure libcwd with --enable-alloc.");
 #endif
   return 0;
 }

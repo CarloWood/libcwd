@@ -6,7 +6,7 @@
 \page page_allocations_intro
 \ingroup book_allocations_intro
 
-Unless \link enable_libcwd_alloc --disable-libcwd-alloc \endlink was specified during configuration then
+Unless \link enable_alloc --disable-alloc \endlink was specified during configuration then
 the following memory allocation and de-allocation debugging features are provided by libcwd:
 
 -# Checking if a pointer that is passed to a memory de-allocation function is \ref chapter_validation "valid";
@@ -15,7 +15,7 @@ the following memory allocation and de-allocation debugging features are provide
    allocated memory block when given a pointer which points inside of it (see \ref group_finding).
 -# Providing means to add type info and a description to the Allocated memory Overview (using <CODE>AllocTag()</CODE></a>).
 -# Listing \ref group_overview "an overview of allocated memory" to a \ref group_debug_object "Debug Object".
--# Boundary checks of allocated blocks, by means of \ref chapter_magic_numbers "magic numbers" (see also \ref enable_libcwd_magic).
+-# Boundary checks of allocated blocks, by means of \ref chapter_magic_numbers "magic numbers" (see also \ref enable_magic).
 
 Unfortunately it is impossible to support feature 3. in C++ without putting hooks in your code:
 

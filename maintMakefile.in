@@ -103,24 +103,24 @@ example-project/debug.h: example-project/debug.h.maintainer nodebug.h
 full-check: Makefile
 	@( \
 	  for c in \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugt --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
-		'--enable-maintainer-mode --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --compilers=3.0.3,2.96,2.95.3' \
-		'--enable-maintainer-mode --enable-libcwd-debugm --compilers=3.0.3,2.96,2.95.3' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugt --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
-		'--enable-maintainer-mode --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
-		'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --enable-libcwd-debug --compilers=3.0.3,2.96,2.95.3' \
-		'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugt --enable-libcwd-debugm --enable-libcwd-debug --compilers=3.0.3,2.96,2.95.3' \
-		'--enable-maintainer-mode --enable-libcwd-debugm --enable-libcwd-debug --compilers=3.0.3,2.96,2.95.3' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --compilers=3.0.3,3.0.2,3.0.1,2.96,2.95.3,2.95.2' \
+	  	'--enable-maintainer-mode --enable-threading --enable-debugm --enable-debug --disable-debug-output --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-threading --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=3.0.3,2.96,2.95.3' \
+		'--enable-maintainer-mode --enable-debugm --enable-debug --disable-debug-output --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-threading --enable-debugm --compilers=3.0.3,2.96,2.95.3' \
+		'--enable-maintainer-mode --enable-debugm --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-threading --enable-debug --disable-debug-output --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-threading --enable-debugt --enable-debug --disable-debug-output --compilers=3.0.3,2.96,2.95.3' \
+		'--enable-maintainer-mode --enable-debug --disable-debug-output --compilers=3.0.3,2.96,2.95.3' \
+		'--enable-maintainer-mode --enable-threading --enable-debugm --enable-debug --compilers=3.0.3,2.96,2.95.3' \
+		'--enable-maintainer-mode --enable-threading --enable-debugt --enable-debugm --enable-debug --compilers=3.0.3,2.96,2.95.3' \
+		'--enable-maintainer-mode --enable-debugm --enable-debug --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-threading --compilers=3.0.3,3.0.2,3.0.1,2.96,2.95.3,2.95.2' \
 		'--enable-maintainer-mode --compilers=3.0.3,3.0.2,3.0.1,2.96,2.95.3,2.95.2' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
 	    case "$$c" in \
-	      *--disable-libcwd-debug-output*) check=check ;; \
-	      *--enable-libcwd-debug\ *) check=run ;; \
+	      *--disable-debug-output*) check=check ;; \
+	      *--enable-debug\ *) check=run ;; \
 	      *) check=check ;; \
 	    esac; \
 	    compilers=`echo $$c | sed -e 's/.* --compilers=//' -e 's/,/ /g'`; \

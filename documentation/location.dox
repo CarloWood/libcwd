@@ -11,17 +11,17 @@
 Libcwd attempts to determine the source file and line number where memory is allocated.&nbsp;
 It does this by directly reading the .debug_line (DWARF2) or .stabs (STABS) section of the ELF32 object files.&nbsp;
 If you are using an Operating System that isn't ELF32 then you need to enable the use of GNU libbfd for
-this to work by configuring libcwd with \link enable_libcwd_libbfd --enable-libcwd-libbfd \endlink.&nbsp;
+this to work by configuring libcwd with \link enable_libbfd --enable-libbfd \endlink.&nbsp;
 If you don't have an ELF32 system and you don't have GNU libbfd installed and are not able to install it
 yourself (note: you also need libiberty and libdl) then you can disable it
-using \link enable_libcwd_location --disable-libcwd-location \endlink.&nbsp;
+using \link enable_location --disable-location \endlink.&nbsp;
 There is a seperate page that deals with libcwd and \link group_locations location \endlink support.&nbsp;
 This paragraph describes the effect of disabling source file and line number location support in
 relation to the memory allocation debugging support.
 
 \section section_With_location_support With location support
 
-With \link enable_libcwd_location --enable-libcwd-location \endlink, libcwd
+With \link enable_location --enable-location \endlink, libcwd
 will write the source file and line number information about where memory allocations are done to the
 \link group_debug_channels debug channels \endlink \link libcw::debug::channels::dc::bfd dc::bfd \endlink.
 

@@ -240,10 +240,10 @@ using namespace libcw_debug_inserters;
 #include <libcw/class_channel_set.inl>		// Used in macro Dout et al.
 
 // Include optional features.
-#if CWDEBUG_LOCATION				// --enable-libcwd-location
+#if CWDEBUG_LOCATION				// --enable-location
 #include <libcw/bfd.h>
 #endif
-#if CWDEBUG_ALLOC				// --enable-libcwd-alloc
+#if CWDEBUG_ALLOC				// --enable-alloc
 #include <libcw/debugmalloc.h>
 #endif
 

@@ -21,8 +21,10 @@ libcwd-0.99.18
 	DEBUGDEBUGOUTPUT	-->	CWDEBUG_DEBUGOUTPUT
 	DEBUGDEBUGMALLOC	-->	CWDEBUG_DEBUGM
 	DEBUGDEBUGTHREADS	-->	CWDEBUG_DEBUGT
-	The rationaly is that for a configure option
-	--enable-libcwd-xxx, the macro name is now CWDEBUG_XXX.
+	The rationale is that for a configure option
+	--enable-xxx, the macro name is now CWDEBUG_XXX.
+	The configure options are also renamed: the 'libcwd-'
+	part is removed (--enable-libcwd-xxx --> --enable-xxx).
 	You are advised to automate the replacements of the
 	macros (use find and grep and reg.exp replaces);
 	The following substitutions are suggested (only
@@ -60,9 +62,9 @@ libcwd-0.99.18
 			: see documentation/html/group__group__special.html
 	  AllocTag, AllocTag1, AllocTag2, AllocTag_dynamic_description and NEW
 			: see documentation/html/group__group__annotation.html
-	When you don't have __libc_malloc (glibc *does* have that):
+	When you don't have __libc_malloc/_libc_malloc (glibc *does* have that):
 	  malloc, calloc, realloc, free, strdup, wcsdup and RegisterExternalAlloc.
-	These are always defined because there is no accessible __libc_dlopen :/.
+	These are always defined because there is no accessible __libc_dlopen:
 	  dlclose, dlopen : In order to catch those when used.
 
 libcwd-0.99.17

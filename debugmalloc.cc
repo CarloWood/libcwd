@@ -1575,8 +1575,8 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
  * \brief List all current allocations to a given %debug object.
  * \ingroup group_overview
  *
- * With both, \link enable_libcwd_debugm CWDEBUG_ALLOC \endlink and
- * \link enable_libcwd_debug CWDEBUG_DEBUG \endlink set to 1, it is possible
+ * With both, \link enable_alloc CWDEBUG_ALLOC \endlink and
+ * \link enable_debug CWDEBUG_DEBUG \endlink set to 1, it is possible
  * to write the \ref group_overview "overview of allocated memory" to
  * a \ref group_debug_object "Debug Object".&nbsp;
  * The syntax to do this is:

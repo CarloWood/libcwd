@@ -38,7 +38,7 @@ namespace libcw {
  *
  * This is returned by alloc_ct::memblk_type.
  * The flags <CODE>memblk_type_marker</CODE> and <CODE>memblk_type_deleted_marker</CODE>
- * only exist when libcwd was configured with \ref enable_libcwd_marker.
+ * only exist when libcwd was configured with \ref enable_marker.
  *
  * \sa alloc_ct
  */

@@ -38,7 +38,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #endif
 
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
-// when --disable-libcwd-debug-output is used because a fatal error occured anyway, so this can't
+// when --disable-debug-output is used because a fatal error occured anyway, so this can't
 // disturb the testsuite.
 #define FATALDEBUGDEBUG_CERR(x)									\
     do {											\

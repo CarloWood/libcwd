@@ -1,5 +1,5 @@
 #ifndef _REENTRANT
-#error "Recompile libcwd with --enable-libcwd-threading"
+#error "Recompile libcwd with --enable-threading"
 #endif
 //#include "sys.h"
 #include "../include/sys.h"
