@@ -1,3 +1,12 @@
+30 December 2001
+
+  FreeBSD now compiles with g++-2.95.3.
+  It doesn't work however because _dl_loaded doesn't exist, which I need
+  to get a list of currently loaded dynamic libraries.  All in all,
+  you should use linux as developers platform: _dl_loaded doesn't exist,
+  __libc_malloc et al don't exist...  Of course you need to use gmake.
+  No idea why GNU make isn't the default :/
+
 31 Juli 2001
 
   FreeBSD fails to compile libcwd when using g++-2.95.3 (internal compiler error).

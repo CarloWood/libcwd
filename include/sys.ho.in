@@ -45,6 +45,7 @@
 // Word around (if any):
 @CW_REDEFINES_FIX@
 
+#ifdef HAVE__G_CONFIG_H
 // This is to avoid warnings like:
 // /usr/include/g++-3/iostream.h:253:5: "_G_CLOG_CONFLICT" is not defined
 #@CW_CONFIG_G_CONFIG_H_MACROS@ NEED_G_CONFIG_H_MACROS
@@ -56,7 +57,8 @@
 #ifndef _G_HAS_LABS
 #define _G_HAS_LABS @CW_HAVE_LABS@
 #endif
-#endif
+#endif // NEED_G_CONFIG_H_MACROS
+#endif // HAVE__G_CONFIG_H
 
 // Fixes for gcc-2.96 and earlier.
 
