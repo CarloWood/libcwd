@@ -47,7 +47,7 @@ private:
   container_type* WNS_debug_objects;
 public:
   void init(LIBCWD_TSD_PARAM);
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
   void init_and_rdlock(void);
 #endif
   void ST_uninit(void);
@@ -81,17 +81,17 @@ extern debug_objects_ct debug_objects;
   } // namespace debug
 } // namespace libcw
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 #define LIBCWD_ForAllDebugObjects_LOCK \
     LIBCWD_DEFER_CLEANUP_PUSH(&::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_objects_instance>::cleanup, NULL); \
     ::libcw::debug::_private_::debug_objects.init_and_rdlock();
 #define LIBCWD_ForAllDebugObjects_UNLOCK \
     ::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_objects_instance>::rdunlock(); \
     LIBCWD_CLEANUP_POP_RESTORE(false);
-#else // !LIBCWD_THREAD_SAFE
+#else // !_REENTRANT
 #define LIBCWD_ForAllDebugObjects_LOCK ::libcw::debug::_private_::debug_objects.init(LIBCWD_TSD);
 #define LIBCWD_ForAllDebugObjects_UNLOCK
-#endif // !LIBCWD_THREAD_SAFE
+#endif // !_REENTRANT
 
 /**
  * \def ForAllDebugObjects

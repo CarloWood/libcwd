@@ -48,7 +48,7 @@ location_ct::location_ct(void const* addr)
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 /**
  * \brief Construct a location for address \p addr.
  * \internal

@@ -87,8 +87,8 @@ iii)  GNU make
 iv)   GNU m4
 v)    GNU which	version 2.x
 vi)   autoconf	version 2.13 or 2.52 or higher
-vii)  automake	version 1.4pl1 or higher
-viii) libtool	version 1.4 or higher
+vii)  automake	version 1.5 or higher
+viii) libtool	version 1.4.2 or higher
 
 Each of those can be downloaded from your local GNU site.
 

@@ -32,7 +32,7 @@
 #define LIBCW_LIMITS_H
 #include <limits.h>	// For PTHREAD_THREADS_MAX
 #endif
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 #ifdef LIBCWD_HAVE_PTHREAD
 #ifndef LIBCW_PTHREADS_H
 #define LIBCW_PTHREADS_H
@@ -49,11 +49,11 @@ namespace libcw {
   }
 }
 
-// When LIBCWD_THREAD_SAFE is defined then `__libcwd_tsd' is a local variable
+// When _REENTRANT is defined then `__libcwd_tsd' is a local variable
 // (see LIBCWD_TSD_DECLARATION) or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
 // This approach means that many function signatures are different because with thread support a
 // `__libcwd_tsd' reference needs to be passed.  We use several helper macros for this:
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 
 #define LIBCWD_TSD __libcwd_tsd				// Optional `__libcwd_tsd' parameter (foo() or foo(__libcwd_tsd)).
 #define LIBCWD_COMMA_TSD , LIBCWD_TSD			// Idem, but as second or higher parameter.
@@ -72,7 +72,7 @@ namespace libcw {
 #define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) (__libcwd_tsd.do_off_array[(debug_object).WNS_index])
 							// To access member _off of debug object.
 
-#else // !LIBCWD_THREAD_SAFE
+#else // !_REENTRANT
 
 #define LIBCWD_TSD
 #define LIBCWD_COMMA_TSD
@@ -85,7 +85,7 @@ namespace libcw {
 #define LIBCWD_TSD_MEMBER_OFF (tsd._off)
 #define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) ((debug_object).tsd._off)
 
-#endif // !LIBCWD_THREAD_SAFE
+#endif // !_REENTRANT
 
 #define LIBCWD_DO_TSD_MEMBER(debug_object, m) (LIBCWD_DO_TSD(debug_object).m)
 #define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
@@ -98,7 +98,7 @@ namespace libcw {
 namespace libcw {
   namespace debug {
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 // This function must return 0 for the initial thread and an integer smaller than PTHREAD_THREADS_MAX that
 // is unique per _running_ thread.  It can be used as index into an array of size PTHREAD_THREADS_MAX.
 __inline__
@@ -116,15 +116,15 @@ struct TSD_st;
 extern int WST_initializing_TSD;
 // Thread Specific Data (TSD) is stored in a structure TSD_st
 // and is accessed through a reference to `__libcwd_tsd'.
-#ifndef LIBCWD_THREAD_SAFE
-// When LIBCWD_THREAD_SAFE is not defined then `__libcwd_tsd' is simply a global object in namespace _private_:
+#ifndef _REENTRANT
+// When _REENTRANT is not defined then `__libcwd_tsd' is simply a global object in namespace _private_:
 extern TSD_st __libcwd_tsd;
 #else
 // Otherwise, the Thread Specific Data is stored in this global area:
 extern TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
 #endif
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 // Internal structure of a thread description structure.
 struct pthread_descr_struct {
   union {
@@ -160,7 +160,7 @@ public:
   int cleanup_handler_installed;
   int internal_debugging_code;
 #endif
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
   pthread_t tid;
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
@@ -170,7 +170,7 @@ public:
 
   void S_initialize(void) throw();
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 //-------------------------------------------------------
 // Static data and methods.
 private:
@@ -188,16 +188,16 @@ public:
       instance->S_initialize();
     return *instance;
   }
-#endif // LIBCWD_THREAD_SAFE
+#endif // _REENTRANT
 };
 
     } // namespace _private_
   } // namespace debug
 } // namespace libcw
  
-#ifndef LIBCWD_THREAD_SAFE
+#ifndef _REENTRANT
 // Put __libcwd_tsd in global namespace because anywhere we always refer to it
-// as `__libcwd_tsd' because when LIBCWD_THREAD_SAFE is defined it is local variable.
+// as `__libcwd_tsd' because when _REENTRANT is defined it is local variable.
 using ::libcw::debug::_private_::__libcwd_tsd;
 #endif
 

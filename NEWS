@@ -1,5 +1,11 @@
 libcwd-0.99.19
 
+	The package now builds two libraries by default: libcwd.so
+	and libcwd_r.so.  The latter is thread-safe.  Both use the
+	same headerfiles that use the macro _REENTRANT to determine
+	which library is being used.  LIBCWD_THREAD_SAFE is no longer
+	defined.
+
 libcwd-0.99.18
 
 	API changes:

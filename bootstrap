@@ -4,14 +4,17 @@
 # Requires GNU autoconf, GNU automake, GNU libtool and GNU which.
 
 test -n "$ZSH_NAME" && disable which		# zsh has a builtin which that is turned off with this.
-(which --version | grep GNU) >/dev/null 2>/dev/null || (echo "You need GNU which to install from CVS (http://www.xs4all.nl/~carlo17/which/ or ftp://ftp.gnu.org/gnu/which/)"; exit 1) || exit 1
+(which --version | grep GNU) >/dev/null 2>/dev/null || (echo "You need GNU which 2.x to install from CVS (http://www.xs4all.nl/~carlo17/which/ or ftp://ftp.gnu.org/gnu/which/)"; exit 1) || exit 1
 (autoconf --version) >/dev/null 2>/dev/null || (echo "You need GNU autoconf to install from CVS (ftp://ftp.gnu.org/gnu/autoconf/)"; exit 1) || exit 1
-(automake --version) >/dev/null 2>/dev/null || (echo "You need GNU automake to install from CVS (ftp://ftp.gnu.org/gnu/automake/)"; exit 1) || exit 1
-(libtool --version) >/dev/null 2>/dev/null || (echo "You need GNU libtool to install from CVS (ftp://ftp.gnu.org/gnu/libtool/)"; exit 1) || exit 1
+(automake --version) >/dev/null 2>/dev/null || (echo "You need GNU automake 1.5 to install from CVS (ftp://ftp.gnu.org/gnu/automake/)"; exit 1) || exit 1
+(libtool --version) >/dev/null 2>/dev/null || (echo "You need GNU libtool 1.4.2 to install from CVS (ftp://ftp.gnu.org/gnu/libtool/)"; exit 1) || exit 1
 
 # Determine the version of libtool.
 libtool_version=`libtool --version | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
 libtool_develversion=`libtool --version | sed -e 's/.*[12]\.[0-9].*(\([^ ]*\).*/\1/'`
+
+# Determine the version of automake.
+automake_version=`automake --version | head -1 | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
 
 # Determine the installation paths of a few tools.
 # This extracts from the automake script the two lines:
@@ -28,6 +31,7 @@ automake_tmp=`grep '^\(my \)\?\$\(am_\)\?\(lib\)\?dir = ' $automake_path | sed -
 eval "automake_dir=$automake_tmp"
 if test -f $automake_dir/depcomp; then
   automake_files="install-sh missing mkinstalldirs depcomp"
+  # automake 1.5 also uses $automake_dir/compile, but we don't need that because we only support gcc.
 else
   automake_files="install-sh missing mkinstalldirs"
 fi
@@ -78,13 +82,20 @@ if test -f ltmain.sh; then
   fi
 fi
 
+# libcwd requires automake 1.5 because we use libcwd_la_CXXFLAGS.
+if expr "1.5" \> "$automake_version" >/dev/null; then
+  automake --version | head -1
+  echo "Fatal error: automake version 1.5 or higher is required."
+  exit 1
+fi
+
 # Generate automake/autoconf/libtool files:
 
 echo "*** Generating automake/autoconf/libtool files:"
 echo "    aclocal.m4 ..."
 aclocal
 echo "    config.h.in ..."
-autoheader 2>&1 | egrep -v '(config.h.in.* is unchanged|warning: AC_TRY_RUN|warning: do not use m4_(patsubst|regexp):|^WARNING:|^$)'
+autoheader 2>&1 | egrep -v '(config.h.in.* is updated|config.h.in.* is unchanged|warning: AC_TRY_RUN|warning: do not use m4_(patsubst|regexp):|^WARNING:|^$)'
 echo timestamp > stamp-h.in 2> /dev/null
 echo "    configure ..."
 autoconf 2>&1 | grep -v 'warning: AC_TRY_RUN'

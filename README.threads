@@ -1,6 +1,3 @@
-glibc-2.2.4 defines the following cancellable syscalls:
-
-accept close connect fcntl fsync lseek lseek64 msync nanosleep
-open open64 pause pread pread64 pwrite pwrite64 read recv recvfrom
-recvmsg send sendmsg sendto system tcdrain wait waitpid write
+In order to debug a threaded application, you need
+to link with -lcwd_r instead of -lcwd.
 

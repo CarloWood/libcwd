@@ -64,7 +64,7 @@ protected:
 public:
   location_ct(void const* addr);
       // Construct a location object for address `addr'.
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
   location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM);
       // Idem, but with passing the TSD.
 #endif

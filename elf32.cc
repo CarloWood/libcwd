@@ -798,7 +798,7 @@ private:
   object_files_string_set_ct M_source_files;
   object_files_range_location_map_ct M_ranges;
   bool M_debug_info_loaded;
-#ifndef LIBCWD_THREAD_SAFE
+#ifndef _REENTRANT
   bool M_inside_find_nearest_line;
 #else
   static pthread_t S_thread_inside_find_nearest_line;
@@ -831,7 +831,7 @@ private:
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
 };
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 pthread_t object_file_ct::S_thread_inside_find_nearest_line;
 #endif
 
@@ -1891,7 +1891,7 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
   {
     // The call to load_dwarf()/load_stabs() below can call malloc, causing us to recursively enter this function
     // for this object or another object_file_ct.
-#ifndef LIBCWD_THREAD_SAFE
+#ifndef _REENTRANT
     if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
     {
       *file = NULL;
@@ -1937,7 +1937,7 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
     Debug( dc::bfd.restore(state2) );
     Debug( libcw_do.restore(state) );
 #endif
-#ifndef LIBCWD_THREAD_SAFE
+#ifndef _REENTRANT
     M_inside_find_nearest_line = false;
 #else
     S_thread_inside_find_nearest_line = (pthread_t) 0;
@@ -2034,7 +2034,7 @@ object_file_ct::object_file_ct(char const* file_name) :
   if (DEBUGELF32)
     Debug( libcw_do.inc_indent(4) );
   M_debug_info_loaded = false;
-#ifndef LIBCWD_THREAD_SAFE
+#ifndef _REENTRANT
   M_inside_find_nearest_line = false;
 #endif
   M_stabs_section_index = 0;

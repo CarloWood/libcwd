@@ -278,10 +278,9 @@
 #@CW_CONFIG_HAVE_DLOPEN@ LIBCWD_DLOPEN_DEFINED
 #endif
 
-#@CW_CONFIG_THREAD_SAFE@ LIBCWD_THREAD_SAFE
 #@CW_CONFIG_HAVE_PTHREADS@ LIBCWD_HAVE_PTHREAD
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 #define LIBCWD_DO_MAX 8                         // Maximal total number of debug objects in a single application.
                                                 // This costs about 640 kb of memory per object! (640 bytes * PTHREAD_THREADS_MAX).
 #define LIBCWD_DC_MAX 256                       // Maximal total number of debug channels in a single application.
@@ -309,9 +308,9 @@
  */
 
 #define CWDEBUG_DEBUGT @CW_CONFIG_DEBUGT@
-#else // !LIBCWD_THREAD_SAFE
+#else // !_REENTRANT
 #define CWDEBUG_DEBUGT 0
-#endif // !LIBCWD_THREAD_SAFE
+#endif // !_REENTRANT
 
 //
 // Configuration signature

@@ -45,7 +45,7 @@ public:
   container_type* WNS_debug_channels;
 public:
   void init(LIBCWD_TSD_PARAM);
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
   void init_and_rdlock(void);
 #endif
   container_type& write_locked(void);
@@ -78,17 +78,17 @@ extern debug_channels_ct debug_channels;
   } // namespace debug
 } // namespace libcw
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 #define LIBCWD_ForAllDebugChannels_LOCK \
     LIBCWD_DEFER_CLEANUP_PUSH(&::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_channels_instance>::cleanup, NULL); \
     ::libcw::debug::_private_::debug_channels.init_and_rdlock();
 #define LIBCWD_ForAllDebugChannels_UNLOCK \
     ::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_channels_instance>::rdunlock(); \
     LIBCWD_CLEANUP_POP_RESTORE(false);
-#else // !LIBCWD_THREAD_SAFE
+#else // !_REENTRANT
 #define LIBCWD_ForAllDebugChannels_LOCK ::libcw::debug::_private_::debug_channels.init(LIBCWD_TSD);
 #define LIBCWD_ForAllDebugChannels_UNLOCK
-#endif // !LIBCWD_THREAD_SAFE
+#endif // !_REENTRANT
 
 /**
  * \def ForAllDebugChannels

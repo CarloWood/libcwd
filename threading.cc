@@ -21,7 +21,6 @@ namespace libcw {
   namespace debug {
     namespace _private_ {
 
-#ifdef LIBCWD_THREAD_SAFE
 bool WST_multi_threaded = false;
 #if CWDEBUG_DEBUG
 int instance_locked[instance_locked_size];
@@ -57,9 +56,6 @@ void fatal_cancellation(void* arg) throw()
 }
 
 TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
-#else // !LIBCWD_THREAD_SAFE
-TSD_st __libcwd_tsd;
-#endif // !LIBCWD_THREAD_SAFE
 
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 pthread_key_t TSD_st::S_exit_key;
@@ -129,4 +125,3 @@ void TSD_st::S_cleanup_routine(void* arg) throw()
     } // namespace _private_
   } // namespace debug
 } // namespace libcw
-

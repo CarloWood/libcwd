@@ -65,7 +65,7 @@ extern link_map* _dl_loaded;
 #include "elf32.h"
 #endif // !CWDEBUG_LIBBFD
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::object_files_instance;
@@ -79,7 +79,7 @@ using libcw::debug::_private_::dlopen_map_instance;
 #define BFD_ACQUIRE_WRITE2READ_LOCK     rwlock_tct<object_files_instance>::wr2rdlock();
 #define DLOPEN_MAP_ACQUIRE_LOCK	        mutex_tct<dlopen_map_instance>::lock();
 #define DLOPEN_MAP_RELEASE_LOCK	        mutex_tct<dlopen_map_instance>::unlock();
-#else // !LIBCWD_THREAD_SAFE
+#else // !_REENTRANT
 #define BFD_INITIALIZE_LOCK
 #define BFD_ACQUIRE_WRITE_LOCK
 #define BFD_RELEASE_WRITE_LOCK
@@ -89,7 +89,7 @@ using libcw::debug::_private_::dlopen_map_instance;
 #define BFD_ACQUIRE_WRITE2READ_LOCK
 #define DLOPEN_MAP_ACQUIRE_LOCK
 #define DLOPEN_MAP_RELEASE_LOCK
-#endif // !LIBCWD_THREAD_SAFE
+#endif // !_REENTRANT
 
 extern char** environ;
 
@@ -609,7 +609,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // cwbfd::
       object_file_ct::~object_file_ct()
       {
-#if defined(LIBCWD_THREAD_SAFE) && CWDEBUG_DEBUG
+#if defined(_REENTRANT) && CWDEBUG_DEBUG
 	LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
 #endif
 	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(), NEEDS_WRITE_LOCK_object_files().end(), this));
@@ -945,7 +945,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
         // MT: We assume this is called before reaching main().
 	//     Therefore, no synchronisation is required.
-#if CWDEBUG_DEBUG && defined(LIBCWD_THREAD_SAFE)
+#if CWDEBUG_DEBUG && defined(_REENTRANT)
 	if (_private_::WST_multi_threaded)
 	  core_dump();
 #endif
@@ -993,11 +993,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	      {
 		LIBCWD_TSD_DECLARATION
 		set_alloc_checking_off(LIBCWD_TSD);
-#if CWDEBUG_DEBUG && defined(LIBCWD_THREAD_SAFE)
+#if CWDEBUG_DEBUG && defined(_REENTRANT)
 		_private_::WST_multi_threaded = false;		// `fullpath' is static and will only be destroyed from exit().
 #endif
 		delete value;
-#if CWDEBUG_DEBUG && defined(LIBCWD_THREAD_SAFE)
+#if CWDEBUG_DEBUG && defined(_REENTRANT)
 		_private_::WST_multi_threaded = true;		// Make sure we catch other global strings (in order to avoid a static destructor ordering fiasco).
 #endif
 		set_alloc_checking_on(LIBCWD_TSD);
@@ -1444,7 +1444,7 @@ namespace libcw {
       typedef std::map<void*, dlloaded_st, std::less<void*>, userspace_allocator::rebind<void*>::other> dlopen_map_ct;
       static dlopen_map_ct dlopen_map;
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 void dlopen_cleanup1(void* arg)
 {
   TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
@@ -1509,7 +1509,7 @@ extern "C" {
         set_alloc_checking_on(LIBCWD_TSD);
       }
 #endif
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
       // MT: dlopen_map uses a userspace_allocator and might therefore write to dc::malloc.
       // This means that the thread can be cancelled inside the erase() call, leaving
       // dlopen_map in an undefined state.  Therefore we disable cancellation.
@@ -1517,7 +1517,7 @@ extern "C" {
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldstate);
 #endif
       libcw::debug::_private_::dlopen_map.erase(iter);
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
       pthread_setcancelstate(oldstate, NULL);
 #endif
     }

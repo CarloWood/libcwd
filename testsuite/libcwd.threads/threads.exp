@@ -16,7 +16,7 @@ foreach x $srcfiles {
       close $id;
     }
     set resfile "${prefix}.re"
-    set options "regexp_match"
+    set options "regexp_match threading"
 
     if [file exists ${prefix}.inp] {
         set inpfile ${prefix}.inp
@@ -26,6 +26,7 @@ foreach x $srcfiles {
     verbose "inpfile is $inpfile"
 
     if { $SHAREDLIBS != "" } {
+      verbose "Calling test_libcwd $options \"${prefix}.cc\" \"\" $inpfile $resfile $args"
       test_libcwd $options "${prefix}.cc" "" $inpfile $resfile $args
     }
     if { $STATICLIBS != "" } {

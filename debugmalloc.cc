@@ -129,7 +129,7 @@
 #include <string>
 #include <map>
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 
 // We got the C++ config earlier by <bits/stl_alloc.h>.
 
@@ -143,7 +143,7 @@
 
 
 #endif // __STL_THREADS
-#endif // LIBCWD_THREAD_SAFE
+#endif // _REENTRANT
 #include <iostream>
 #include <iomanip>
 #include "cwd_debug.h"
@@ -164,7 +164,7 @@
 // D libcw::debug::dm_alloc_ct::memblks
 // D libcw::debug::dm_alloc_ct::memsize
 //
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::memblk_map_instance;
 // We can't use rwlock_tct here because that leads to a dead lock.
@@ -177,14 +177,14 @@ using libcw::debug::_private_::memblk_map_instance;
 #define RELEASE_READ_LOCK	mutex_tct<memblk_map_instance>::unlock();	// rwlock_tct<memblk_map_instance>::rdunlock();
 #define ACQUIRE_READ2WRITE_LOCK							// rwlock_tct<memblk_map_instance>::rd2wrlock();
 #define ACQUIRE_WRITE2READ_LOCK 						// rwlock_tct<memblk_map_instance>::wr2rdlock();
-#else // !LIBCWD_THREAD_SAFE
+#else // !_REENTRANT
 #define ACQUIRE_WRITE_LOCK
 #define RELEASE_WRITE_LOCK
 #define ACQUIRE_READ_LOCK
 #define RELEASE_READ_LOCK
 #define ACQUIRE_READ2WRITE_LOCK
 #define ACQUIRE_WRITE2READ_LOCK
-#endif // !LIBCWD_THREAD_SAFE
+#endif // !_REENTRANT
 
 #ifdef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 #define __libcwd_malloc malloc
@@ -723,7 +723,12 @@ typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>, _priva
   // The map containing all `memblk_ct' objects.
 
 union memblk_map_t {
-  memblk_map_ct const LIBCWD_MT_VOLATILE* MT_unsafe;
+#ifdef _REENTRANT
+  // See http://www.cuj.com/experts/1902/alexandr.htm?topic=experts
+  memblk_map_ct const volatile* MT_unsafe;
+#else
+  memblk_map_ct const* MT_unsafe;
+#endif
   memblk_map_ct* write;		// Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
   memblk_map_ct const* read;	// Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
 };
@@ -2126,7 +2131,7 @@ void __libcwd_free(void* ptr)
 // malloc(3) and calloc(3) replacements:
 //
 
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && CWDEBUG_DEBUG
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_DEBUG
 #define UNLOCK if (locked) _private_::allocator_unlock();
 #else
 #define UNLOCK

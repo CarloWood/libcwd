@@ -25,13 +25,25 @@ syslog_SOURCES = syslog.cc
 initbug_SOURCES = initbug.cc initbug_GlobalObject.cc
 dout_alloc_SOURCES = dout_alloc.cc
 mangling_SOURCES = mangling.cc
-threads_SOURCES = threads.cc
-threads2_SOURCES = threads2.cc
-threads3_SOURCES = threads3.cc
-threads4_SOURCES = threads4.cc
 allocator_SOURCES = allocator.cc
 stabs_SOURCES = stabs.cc
 lines_SOURCES = lines.cc
+
+threads_CXXFLAGS = -DCWDEBUG -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads_SOURCES = threads.cc
+threads_LDADD = ../libcwd_r.la
+
+threads2_CXXFLAGS = -DCWDEBUG -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads2_SOURCES = threads2.cc
+threads2_LDADD = ../libcwd_r.la
+
+threads3_CXXFLAGS = -DCWDEBUG -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads3_SOURCES = threads3.cc
+threads3_LDADD = ../libcwd_r.la
+
+threads4_CXXFLAGS = -DCWDEBUG -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads4_SOURCES = threads4.cc
+threads4_LDADD = ../libcwd_r.la
 
 noinst_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h
 

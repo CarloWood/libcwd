@@ -81,7 +81,7 @@ protected:
 #else
 public: // Only public because macro LibcwDout needs acces, don't access this directly.
 #endif
-#ifndef LIBCWD_THREAD_SAFE
+#ifndef _REENTRANT
   //-------------------------------------------------------------------------------------------------
   // Put the otherwise Thread Specific Data of this debug object
   // directly into the object when we don't use threads.
@@ -101,7 +101,7 @@ protected:
   std::ostream* real_os;
     // The original output ostream (as set with set_ostream()).
     //
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
   _private_::lock_interface_base_ct* M_mutex;
     // Pointer to the mutex that should be used for `real_os' or NULL when no lock is used.
     // A value of NULL is only allowed prior to creating a second thread.
@@ -220,7 +220,7 @@ public:
   //
 
   void set_ostream(std::ostream* os);
-#if defined(LIBCWD_THREAD_SAFE) || defined(LIBCW_DOXYGEN)
+#if defined(_REENTRANT) || defined(LIBCW_DOXYGEN)
   template<class T>
     void set_ostream(std::ostream* os, T* mutex);
 #ifdef LIBCW_DOXYGEN
@@ -242,7 +242,7 @@ public:
   void force_on(OnOffState& state);
   void restore(OnOffState const& state);
 
-#if defined(LIBCWD_THREAD_SAFE) || defined(LIBCW_DOXYGEN)
+#if defined(_REENTRANT) || defined(LIBCW_DOXYGEN)
   /**
    * \brief Keep Thread Specific Data after thread exit.
    *
@@ -276,10 +276,10 @@ public:
    * \returns The previous value.
    */
   bool keep_tsd(bool keep);
-#endif // LIBCWD_THREAD_SAFE
+#endif // _REENTRANT
 };
 
-#if defined(LIBCWD_THREAD_SAFE) && !defined(LIBCW_DOXYGEN)
+#if defined(_REENTRANT) && !defined(LIBCW_DOXYGEN)
 // Specialization.
 template<>
   void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex);

@@ -29,7 +29,7 @@
 #endif
 extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 #define LIBCWD_CANCELSTATE_DISABLE int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate);
 #define LIBCWD_CANCELSTATE_RESTORE pthread_setcancelstate(__libcwd_oldstate, NULL);
 #else

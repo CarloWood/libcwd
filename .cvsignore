@@ -26,6 +26,7 @@ nodebug.h
 *.lo
 .example-project_debug.h-timestamp
 libcwd.la
+libcwd_r.la
 libcwd.spec
 libcwd.lsm
 rpm

@@ -123,7 +123,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
     if ((__libcwd_tsd.internal > 0) != internal) 
       core_dump();
 #endif
-#if CWDEBUG_DEBUG && defined(LIBCWD_THREAD_SAFE)
+#if CWDEBUG_DEBUG && defined(_REENTRANT)
     if (instance == single_threaded_internal_instance && WST_multi_threaded)
       core_dump();
     if (instance >= 0 && WST_multi_threaded && !is_locked(instance))
@@ -243,32 +243,32 @@ template <class T1, class X1, bool internal1, int inst1,
 			  true									\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 // Our allocator adaptor for the Non-Shared internal cases: Single Threaded
 // (inst = single_threaded_internal_instance) or inside the critical area of the corresponding
 // libcwd mutex instance.  Using a macro here instead of another template in order not to bloat the
 // mangling TOO much.
 #define LIBCWD_NS_INTERNAL_ALLOCATOR(instance)	\
 			  		LIBCWD_DEFAULT_ALLOC_INTERNAL(instance)
-#else // !LIBCWD_THREAD_SAFE
+#else // !_REENTRANT
 // In a single threaded application, the Non_shared case is equivalent to the Single Threaded case.
 #define LIBCWD_NS_INTERNAL_ALLOCATOR(instance) \
 			  		LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
-#endif // !LIBCWD_THREAD_SAFE
+#endif // !_REENTRANT
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 // LIBCWD_MT_*_ALLOCATOR uses an different allocator than the normal default allocator of libstdc++
 // in the case of multi-threading because it can be that the allocator mutex is locked, which would
 // result in a deadlock if we try to use it again here.
 #define LIBCWD_MT_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_INTERNAL(multi_threaded_internal_instance)
 #define LIBCWD_MT_USERSPACE_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_USERSPACE(multi_threaded_userspace_instance)
-#else // !LIBCWD_THREAD_SAFE
+#else // !_REENTRANT
 // LIBCWD_MT_*_ALLOCATOR uses the normal default allocator of libstdc++-v3 (alloc) using locking
 // itself.  The userspace allocator shares it memory pool with everything else (that uses this
 // allocator, which is most of the (userspace) STL).
 #define LIBCWD_MT_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
 #define LIBCWD_MT_USERSPACE_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_USERSPACE(single_threaded_userspace_instance)
-#endif // !LIBCWD_THREAD_SAFE
+#endif // !_REENTRANT
 
 //---------------------------------------------------------------------------------------------------
 // Internal allocator types.

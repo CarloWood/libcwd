@@ -18,7 +18,7 @@
 #ifndef LIBCW_PRIVATE_LOCK_INTERFACE_H
 #define LIBCW_PRIVATE_LOCK_INTERFACE_H
 
-#ifdef LIBCWD_THREAD_SAFE
+#ifdef _REENTRANT
 namespace libcw {
   namespace debug {
     namespace _private_ {
@@ -55,6 +55,6 @@ class pthread_lock_interface_ct : public lock_interface_base_ct {
     } // namespace _private_
   }  // namespace debug
 }  // namespace libcw
-#endif // LIBCWD_THREAD_SAFE
+#endif // _REENTRANT
 #endif // LIBCW_PRIVATE_LOCK_INTERFACE_H
 
