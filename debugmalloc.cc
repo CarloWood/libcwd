@@ -223,7 +223,7 @@ void* __libc_malloc(size_t size) = libcw::debug::malloc_bootstrap1;
 void* __libc_calloc(size_t nmemb, size_t size) = libcw::debug::calloc_bootstrap1;
 void* __libc_realloc(void* ptr, size_t size);
 void __libc_free(void* ptr);
-void (*__libc_free_final)(void* ptr) = (void (*)(void*))0;
+void (*libc_free_final)(void* ptr) = (void (*)(void*))0;
 #endif // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
 
 #else // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
