@@ -1221,6 +1221,10 @@ void allocator_unlock(void)
 
 #ifdef _REENTRANT
     int debug_ct::S_index_count = 0;
+
+    namespace _private_ {
+      extern bool WST_multi_threaded;
+    }
 #endif
 
     void debug_ct::NS_init(void)
@@ -1306,9 +1310,16 @@ void allocator_unlock(void)
       continued_stack.init();
       margin.NS_internal_init("", 0);
       marker.NS_internal_init(": ", 2);
-      int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-      bufferstream = new _private_::bufferstream_ct;
-      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+#ifdef _REENTRANT
+      if (!_private_::WST_multi_threaded)
+#else
+      if (1)
+#endif
+      {
+	int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+	bufferstream = new _private_::bufferstream_ct;
+	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+      }
 
 #if CWDEBUG_DEBUGOUTPUT
       first_time = true;
@@ -1333,6 +1344,16 @@ void allocator_unlock(void)
 	  tsd.init();
 	  set_alloc_checking_on(LIBCWD_TSD);
 	  LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;
+	);
+      }
+
+      void debug_tsd_init_bufferstream(LIBCWD_TSD_PARAM)
+      {
+        LIBCWD_ASSERT(!__libcwd_tsd.internal);
+	ForAllDebugObjects(
+	  debug_tsd_st* tsd(__libcwd_tsd.do_array[(debugObject).WNS_index]);
+	  LIBCWD_ASSERT(tsd->bufferstream == NULL);
+	  tsd->bufferstream = new _private_::bufferstream_ct;
 	);
       }
     } // namespace _private_

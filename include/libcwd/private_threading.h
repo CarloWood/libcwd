@@ -269,7 +269,7 @@ template <int instance>
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
 #if LIBCWD_DEBUGDEBUGRWLOCK
-      if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << instance);
+      if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << instance << " from " << __builtin_return_address(0) << " from " << __builtin_return_address(1));
 #endif
 #if CWDEBUG_DEBUGT
       if (instance != tsd_initialization_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))

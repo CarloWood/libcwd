@@ -16,8 +16,12 @@ libcwd-0.99.29
 	The headerfile debug_config.h was renamed to config.h.
 	This means that will have to update your debug.h and sys.h
 	files for the applications that use libcwd:
-	#include <libcw/sysd.h> --> #include <libcwd/sys.h>
-	#include <libcw/debug.h> --> #include <libcwd/debug.h>
+	#include <libcw/sysd.h>     --> #include <libcwd/sys.h>
+	#include <libcw/debug.h>    --> #include <libcwd/debug.h>
+	And, in case you use these:
+	#include <libcw/cwprint.h>  --> #include <libcwd/cwprint.h>
+	#include <libcw/buf2str.h>  --> #include <libcwd/buf2str.h>
+	#include <libcw/char2str.h> --> #include <libcwd/char2str.h>
 
 	Bug fixes:
 

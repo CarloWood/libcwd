@@ -1358,11 +1358,12 @@ void dm_alloc_ct::printOn(std::ostream& os) const
       ",\n\tnext_list = " << (void*)a_next_list << ", my_list = " << (void*)my_list << "\n\t( = " << (void*)*my_list << " ) }";
 }
 
+#if CWDEBUG_MARKER
+static ooam_filter_ct WST_filter;
+#endif
+
 void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
 {
-#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
-  LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
-#endif
   dm_alloc_copy_ct const* alloc;
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( !__libcwd_tsd.internal );		// localtime() can allocate memory and is a library call.
@@ -1398,9 +1399,10 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
     {
       ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);		// localtime() can allocate memory, don't show it.
 #if CWDEBUG_MARKER
-      ooam_filter_ct filter;
-      filter.hide_untagged_allocations();
-      marker_ct* marker = new marker_ct(filter, true);	// Make all allocations leaked by localtime() invisible.
+      WST_filter.hide_untagged_allocations();		// MT: This is thread-safe, an equivalence of reality is
+      							//     the assumption that only the "first" thread will
+							//     effectively change the flags of WST_filter.
+      marker_ct* marker = new marker_ct(WST_filter, true);	// Make all allocations leaked by localtime() invisible.
 #endif
 #if LIBCWD_THREAD_SAFE
       struct tm tbuf;
@@ -2460,10 +2462,10 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 #if CWDEBUG_LOCATION
       filter.M_check_synchronization();
 #endif
-      list->show_alloc_list(debug_object, 1, channels::dc_malloc, filter);
 #if LIBCWD_THREAD_SAFE
       LIBCWD_CLEANUP_POP_RESTORE(true);
 #endif
+      list->show_alloc_list(debug_object, 1, channels::dc_malloc, filter);
       _private_::set_alloc_checking_off(LIBCWD_TSD);
       delete list;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
@@ -2687,6 +2689,8 @@ marker_ct::~marker_ct()
   Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description.get() << ')' );
   if (marker_alloc_node->next_list())
   {
+    dm_alloc_copy_ct* list;
+    bool memory_leak;
 #if LIBCWD_THREAD_SAFE
     LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
     mutex_tct<list_allocations_instance>::lock();
@@ -2736,11 +2740,16 @@ marker_ct::~marker_ct()
       }
       alloc_node = next_alloc_node;
     }
-    if (marker_alloc_node->next_list())
+    memory_leak = marker_alloc_node->next_list();
+    if (memory_leak)
     {
       _private_::set_alloc_checking_off(LIBCWD_TSD);
-      dm_alloc_copy_ct* list = dm_alloc_copy_ct::deep_copy(marker_alloc_node->next_list());
+      list = dm_alloc_copy_ct::deep_copy(marker_alloc_node->next_list());
       _private_::set_alloc_checking_on(LIBCWD_TSD);
+    }
+    LIBCWD_CLEANUP_POP_RESTORE(true);
+    if (memory_leak)
+    {
       libcw_do.push_margin();
       libcw_do.margin().append("  * ", 4);
       Dout( dc::warning, "Memory leak detected!" );
@@ -2750,7 +2759,6 @@ marker_ct::~marker_ct()
       delete list;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
-    LIBCWD_CLEANUP_POP_RESTORE(true);
   }
 }
 

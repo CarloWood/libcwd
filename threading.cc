@@ -93,6 +93,7 @@ pthread_key_t TSD_st::S_exit_key;
 pthread_once_t TSD_st::S_exit_key_once = PTHREAD_ONCE_INIT;
 
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
+extern void debug_tsd_init_bufferstream(LIBCWD_TSD_PARAM);
 void threading_tsd_init(LIBCWD_TSD_PARAM);
 
 void TSD_st::S_initialize(void)
@@ -112,9 +113,6 @@ void TSD_st::S_initialize(void)
   tid = pthread_self();
   pid = getpid();
   mutex_tct<tsd_initialization_instance>::unlock();
-  // We assume that the main() thread will call malloc() at least
-  // once before it reaches main() and thus before any other thread is created.
-  // When it does we get here; and thus are still single threaded.
   if (!WST_first_thread_initialized)		// Is this the first thread?
   {
     WST_first_thread_initialized = true;
@@ -133,6 +131,8 @@ void TSD_st::S_initialize(void)
   if (old_thread_iter_valid)
     (*old_thread_iter).tsd_destroyed();
   threading_tsd_init(*this);			// Initialize the TSD of stuff that goes in threading.cc.
+  if (WST_multi_threaded)
+    debug_tsd_init_bufferstream(*this);
   pthread_once(&S_exit_key_once, &TSD_st::S_exit_key_alloc);
   pthread_setspecific(S_exit_key, (void*)this);
   pthread_setcanceltype(oldtype, NULL);
