@@ -122,6 +122,7 @@ public:
   bool thread_iter_valid;
   thread_ct* target_thread;
   int terminating;
+  bool pthread_lock_interface_is_locked;// Set while writing debugout to the final ostream.
   bool list_allocations_on_show_allthreads;
   int inside_free;			// Set when entering free().
 #endif

@@ -85,6 +85,10 @@ namespace libcw {
 namespace _private_ {
 
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
+#if (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+__gnu_cxx::_STL_mutex_lock* _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr;
+#endif
+
 // The following tries to take the "node allocator" lock -- the lock of the
 // default allocator for threaded applications.
 __inline__
@@ -104,7 +108,8 @@ bool allocator_trylock(void)
   if (!LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_init_flag)
     LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_initialize();
 #endif
-  return (__gthread_mutex_trylock(&LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_lock) == 0);
+  return (_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr &&
+          __gthread_mutex_trylock(&_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_lock) == 0);
 #endif
 }
 
@@ -126,7 +131,7 @@ void allocator_unlock(void)
   if (!LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_init_flag)
     LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_initialize();
 #endif
-  __gthread_mutex_unlock(&LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_lock);
+  __gthread_mutex_unlock(&_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_lock);
 #endif
 }
 #endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
@@ -253,7 +258,10 @@ void allocator_unlock(void)
 	_private_::mutex_tct<_private_::set_ostream_instance>::lock();
 	bool got_lock = debug_object.M_mutex;
 	if (got_lock)
+	{
 	  debug_object.M_mutex->lock();
+	  __libcwd_tsd.pthread_lock_interface_is_locked = true;
+	}
 	std::ostream* locked_os = os;
 	_private_::mutex_tct<_private_::set_ostream_instance>::unlock();
 	if (!got_lock && _private_::WST_multi_threaded)
@@ -344,7 +352,10 @@ void allocator_unlock(void)
 	    debug_object.unfinished_oss = this;
         }
 	if (got_lock)
+	{
+	  __libcwd_tsd.pthread_lock_interface_is_locked = false;
 	  debug_object.M_mutex->unlock();
+	}
 	LIBCWD_ENABLE_CANCEL;
 #endif // !LIBCWD_THREAD_SAFE
 #if CWDEBUG_ALLOC
