@@ -88,6 +88,7 @@ example-project/debug.h: example-project/debug.h.maintainer nodebug.h
 	cat nodebug.h >> example-project/debug.h
 	awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' example-project/debug.h.maintainer >> example-project/debug.h
 
+
 full-check: Makefile
 	@( \
 	  for c in \
