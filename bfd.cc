@@ -1127,7 +1127,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
     void* dlopen(char const* name, int flags)
     {
 #ifdef HAVE_DLOPEN
-      Dout(dc::bfd, "Calling libcw::debug::dlopen \"" << (name ? "(nil)" : NULL) << "\".");
+      Dout(dc::bfd, "Calling libcw::debug::dlopen \"" << (name ? name : "(nil)") << "\".");
       Debug( libcw_do.inc_indent(4) );
       void* addr = ::dlopen(name, flags);
       Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << "... ");
