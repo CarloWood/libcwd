@@ -1,0 +1,11 @@
+In order to run the testsuite, you will have to install dejagnu-20000518.
+
+You can download the latest dejagnu from:
+ftp://sourceware.cygnus.com/pub/dejagnu/
+
+This includes expect and tcl.
+
+In order to compile it, I had to edit the Makefile
+after running configure and remove every trace to its
+libiberty targets.
+
