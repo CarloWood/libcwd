@@ -315,7 +315,7 @@ cw_cv_system_needwordalignment=no,
 cw_cv_system_needwordalignment=yes,
 cw_cv_system_needwordalignment="why not")])
 if test "$cw_cv_system_needwordalignment" != no; then
-  AC_DEFINE_UNQUOTED([LIBCWD_NEED_WORD_ALIGNMENT], 1)
+  AC_DEFINE_UNQUOTED([LIBCWD_NEED_WORD_ALIGNMENT], 1, [Defined when memory access need to be aligned to sizeof(size_t) bytes alignment.])
 fi
 ])
 
@@ -676,7 +676,7 @@ else
 fi
 rm -f ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
 ])
-AC_DEFINE_UNQUOTED([PS_ARGUMENT], "$cw_cv_sys_ps_wide_pid_option")
+AC_DEFINE_UNQUOTED([PS_ARGUMENT], "$cw_cv_sys_ps_wide_pid_option", [This should be the argument to ps, causing it to print a wide output of a specified PID.])
 ])
 
 dnl --------------------------------------------------------------------------------------------------------------17" monitors are a minimum

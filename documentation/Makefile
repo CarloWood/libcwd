@@ -22,7 +22,13 @@ reference-manual: styles external
 	  rm $$i.tmp; \
 	done
 
+reference-manual-clean:
+	rm -rf reference-manual
+
 external: external/INSTALL external/sys.h external/debug.h external/debug.cc
+
+external-clean:
+	rm -f external/INSTALL external/sys.h external/debug.h external/debug.cc
 
 external/INSTALL: ../INSTALL
 	cp ../INSTALL external/INSTALL
@@ -41,4 +47,8 @@ styles:
 
 tutorial:
 	$(MAKE) -s -C tutorial
+
+maintainer-clean: external-clean reference-manual-clean
+	$(MAKE) -C styles maintainer-clean
+	cd tutorial; rm -f examples5/debug.* examples5/test* tutorial/core examples7/test* tut5.m4 tut7.m4 *.html
 

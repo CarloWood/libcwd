@@ -1,10 +1,10 @@
 #! /bin/sh
 
-# Helps bootstrapping libcwd, when checked out from CVS.
+# Helps bootstrapping a project that was checked out from CVS.
 # Requires GNU autoconf, GNU automake, GNU libtool and GNU which.
 
 if test ! -d CVS -a -f configure; then
-  echo "You only need to run 'bootstrap' when you checked out libcwd using CVS."
+  echo "You only need to run 'bootstrap' when you checked out this project using CVS."
   echo "Just run ./configure [--help]."
   exit 0
 fi
@@ -19,14 +19,14 @@ fi
 test -n "$ZSH_NAME" && disable which		# zsh has a builtin which that is turned off with this.
 (which --version | grep GNU) >/dev/null 2>/dev/null || (echo "You need GNU which 2.x to install from CVS (http://www.xs4all.nl/~carlo17/which/ or ftp://ftp.gnu.org/gnu/which/)"; exit 1) || exit 1
 (autoconf --version) >/dev/null 2>/dev/null || (echo "You need GNU autoconf to install from CVS (ftp://ftp.gnu.org/gnu/autoconf/)"; exit 1) || exit 1
-(automake --version) >/dev/null 2>/dev/null || (echo "You need GNU automake 1.5 to install from CVS (ftp://ftp.gnu.org/gnu/automake/)"; exit 1) || exit 1
+(automake --version) >/dev/null 2>/dev/null || (echo "You need GNU automake 1.6.3 to install from CVS (ftp://ftp.gnu.org/gnu/automake/)"; exit 1) || exit 1
 (libtool --version) >/dev/null 2>/dev/null || (echo "You need GNU libtool $required_libtool_version to install from CVS (ftp://ftp.gnu.org/gnu/libtool/)"; exit 1) || exit 1
 
 # Determine the version of libtool.
 libtool_version=`libtool --version | head -1 | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
 libtool_develversion=`libtool --version | head -1 | sed -e 's/.*[12]\.[0-9].*(\([^ ]*\).*/\1/'`
 
-# libcwd requires version 1.4.2 because previous versions are broken.
+# libtool versions prior to 1.4.2 are broken.
 # On OS other than Linux we require 1.4d or higher because libtool
 # doesn't support shared C++ libraries in earlier versions.
 if expr "$required_libtool_version" \> "$libtool_version" >/dev/null; then
@@ -39,10 +39,10 @@ libtool_files="config.guess config.sub ltmain.sh"
 # Determine the version of automake.
 automake_version=`automake --version | head -1 | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
 
-# libcwd requires automake 1.5 because we use libcwd_la_CXXFLAGS.
-if expr "1.5" \> "$automake_version" >/dev/null; then
+# Require automake 1.6 because 1.5 is broken.
+if expr "1.6" \> "$automake_version" >/dev/null; then
   automake --version | head -1
-  echo "Fatal error: automake version 1.5 or higher is required."
+  echo "Fatal error: automake version 1.6 or higher is required."
   exit 1
 fi
 
@@ -56,14 +56,16 @@ fi
 #   my $libdir = "/usr/share/automake";
 # OR (automake version 1.6):
 #   my $libdir = "${prefix}/share/automake";
+# OR (automake version 1.7):
+#  my $libdir = '/usr/share/automake-1.7';
 # and then puts "/usr/share/automake" into the variable automake_dir.
 automake_path=`which automake`
 automake_prefix=`egrep '(^my |^)\\$prefix = ' $automake_path | sed -e 's/.*"\(.*\)".*/\1/'`
-automake_tmp=`egrep '(^my \\$libdir|^\\$am_dir) = ' $automake_path | sed -e 's/.*"\(\${prefix}\)\(.*\)".*/$automake_prefix\2/' | sed -e 's/.*"\([^"]*\)".*/\1/'`
+automake_tmp=`egrep '(^my \\$libdir|^\\$am_dir) = ' $automake_path | sed -e 's/.*"\(\${prefix}\)\(.*\)".*/$automake_prefix\2/' | sed -e 's/.*['"'"'"]\([^'"'"'"]*\)['"'"'"].*/\1/'`
 eval "automake_dir=$automake_tmp"
 if test -f $automake_dir/depcomp; then
   automake_files="install-sh missing mkinstalldirs depcomp"
-  # automake 1.5/1.6 also use $automake_dir/compile, but we don't need that because we only support gcc.
+  # automake 1.6 also use $automake_dir/compile, but we don't need that because we only support gcc.
 else
   automake_files="install-sh missing mkinstalldirs"
 fi
@@ -99,12 +101,12 @@ fi
 
 echo "*** Generating automake/autoconf/libtool files:"
 echo "    aclocal.m4 ..."
-aclocal
+aclocal #-I aclocal
 echo "    config.h.in ..."
-autoheader 2>&1 | egrep -v '(config.h.in.* is updated|config.h.in.* is unchanged|warning: AC_TRY_RUN|warning: do not use m4_(patsubst|regexp):|^WARNING:|^$)'
+autoheader 2>&1 | egrep -v '(config.h.in.* is (updated|created)|config.h.in.* is unchanged|warning: AC_TRY_RUN|^WARNING:|^$)'
 echo timestamp > stamp-h.in 2> /dev/null
 echo "    configure ..."
-autoconf 2>&1 | grep -v 'warning: AC_TRY_RUN'
+autoconf 2>&1 | egrep -v 'warning: AC_TRY_RUN|warning: do not use m4_(patsubst|regexp):'
 # The --add-missing --copy of automake is broken, so we do it ourselfs.
 # We need to copy install-sh anyway before running libtoolize.
 for i in $automake_files; do	# install-sh, missing, mkinstalldirs[, depcomp]
@@ -114,7 +116,7 @@ for i in $automake_files; do	# install-sh, missing, mkinstalldirs[, depcomp]
   fi
 done
 echo "    config.guess, config.sub, ltmain.sh ..."
-libtoolize --automake --copy	# config.guess, config.sub, ltmain.sh [and ltconfig for version 1.3.x and lower.]
+libtoolize --automake --copy	# config.guess, config.sub, ltmain.sh
 echo "    Makefile.in ..."
 automake			# Makefile.in
 

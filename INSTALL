@@ -15,7 +15,7 @@ Building RPMs
 The released tar file contains a .spec file.
 Therefore you can build an rpm directly from the tar with
 
-rpm -ta libcwd-0.99.26.tar.gz
+rpm -ta libcwd-0.99.27.tar.gz
 
 The resulting rpm will install two libraries:
 libcwd.so and libcwd_r.so.  Be sure to link with -lcwd_r
@@ -170,7 +170,7 @@ If you configured with --enable-maintainer-mode then the following
 targets exist as well:
 
 make dist					// Create tar ball
-make maintainer-clean				// Erase everything that was generated somehow
+make cvs-clean					// Erase everything that was generated somehow
 make check					// Run test suite
 make tar					// Create tar ball
 make rpm					// Create rpms
@@ -185,10 +185,10 @@ It is not garanteed that these work on another machine than mine however.
 Finally, you can also build libcwd in a different directory than the source
 tree is in:
 
-tar xzf libcwd-0.99.26.tar.gz
+tar xzf libcwd-0.99.27.tar.gz
 mkdir libcwd-objdir
 cd libcwd-objdir
-../libcwd-0.99.26/configure --prefix=/usr
+../libcwd-0.99.27/configure --prefix=/usr
 make
 su
 make install

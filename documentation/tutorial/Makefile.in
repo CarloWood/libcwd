@@ -66,3 +66,4 @@ examples5/debug.o: examples5/debug.cc examples5/debug.h examples5/sys.h examples
 examples7/%-bin: examples7/%.cc examples7/sys.h examples7/debug.h ../../.libs/libcwd.so
 	$(CXX) -g -pipe -DCWDEBUG -Iexamples7 -I- -I../../include \
 		$< -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
+

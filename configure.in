@@ -22,7 +22,7 @@ dnl INTERFACE_VERSION_REVISION	: Revision, increment every public release; or se
 dnl INTERFACE_AGE		: Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
 INTERFACE_VERSION=99		dnl 0.99 actually
-INTERFACE_VERSION_REVISION=26
+INTERFACE_VERSION_REVISION=27
 INTERFACE_AGE=99		dnl 0.99 actually
 
 VERSION_MAJOR=`expr $INTERFACE_VERSION - $INTERFACE_AGE`
@@ -151,7 +151,7 @@ AC_PROG_MAKE_SET
 AC_PROG_AWK
 AC_PATH_PROG(PS, ps, /bin/ps, $PATH)
 CW_SYS_PS_WIDE_PID_OPTION
-AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS")
+AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS", [Full path to the 'ps' executable.])
 
 dnl We need to use these options for the tests too
 CXXFLAGS="$DEBUGOPTS $EXTRAOPTS"
@@ -255,7 +255,7 @@ AC_REQUIRE_CPP
 if test "$libcwd_config_location" = yes; then
 
 dnl Check if we have dlopen in libc or libdl
-AC_CHECK_LIB(c, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN)
+AC_CHECK_LIB(c, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN, 1, [Defined if dlopen is available.])
 CW_CONFIG_HAVE_DLOPEN=define],
     [AC_CHECK_LIB(dl, dlopen, [LIBS="-ldl $LIBS"; AC_DEFINE_UNQUOTED(HAVE_DLOPEN)
 CW_CONFIG_HAVE_DLOPEN=define])])
@@ -396,7 +396,7 @@ if test "$libcwd_config_threading" = yes; then
   if test "$libcwd_config_threading" = yes; then
     dnl pthread_kill_other_threads_np is a GNU extension, therefore we need to
     dnl define _GNU_SOURCE.  The extension also needs -lpthread to be available.
-    AC_DEFINE_UNQUOTED(_GNU_SOURCE)
+    AC_DEFINE_UNQUOTED(CW_NEED__GNU_SOURCE, 1, [This is needed when using threading, for example to get 'pthread_kill_other_threads_np'.])
     SAVE_LIBS="$LIBS"
     LIBS="$LIBS $LIB_THREADS $LIB_THREADS_SHARED"
     AC_CHECK_FUNCS(pthread_kill_other_threads_np)

@@ -157,3 +157,8 @@ syncwww: documentation
 	@echo "Synchronizing with www.xs4all.nl..."
 	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=documentation/www/exclude --delete-excluded \
 		/home/carlo/c++/libcwd/documentation/ xs4:"~/WWW/libcwd"
+
+cvs-clean: maintainer-clean
+	$(MAKE) -C documentation maintainer-clean
+	$(MAKE) -C example-project maintainer-clean
+

@@ -87,16 +87,8 @@ dist-hook: documentation
 distclean-local:
 	rm -rf rpm
 
-MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h.in Makefile.in \
+MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h stamp-h.in Makefile.in \
 	install-sh missing mkinstalldirs config.guess config.sub ltmain.sh ltconfig \
-	config.cache config.log depcomp config.status \
-	documentation/tutorial/examples5/debug.* \
-	documentation/tutorial/examples5/test* \
-	documentation/tutorial/core \
-	documentation/tutorial/examples7/test* \
-	documentation/tutorial/tut5.m4 \
-	documentation/tutorial/tut7.m4 \
-	documentation/tutorial/*.html \
-	documentation/tutorial/Makefile
+	config.cache config.log depcomp config.status ChangeLog tags example-project/debug.h
 
 @MAINTAINER_MODE_TRUE@include maintMakefile

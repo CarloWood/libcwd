@@ -23,3 +23,5 @@ all: $(OUTPUT)
 test.html: test.m4 ../definitions.m4
 	m4 -I.. test.m4 > test.html
 
+maintainer-clean:
+	for b in $(BROWSERS); do rm -f $$b/*.css; done

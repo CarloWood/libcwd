@@ -20,7 +20,7 @@
 //
 // Use all GNU extensions.
 //
-#if !defined(_GNU_SOURCE) && defined(_REENTRANT)
+#if !defined(_GNU_SOURCE) && defined(CW_NEED__GNU_SOURCE)
 #define _GNU_SOURCE
 #endif
 

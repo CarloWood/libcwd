@@ -20,6 +20,8 @@ libcw::debug::debug_ct list_allocations_on_test_do;
 
 MAIN_FUNCTION
 { PREFIX_CODE
+  using namespace libcw::debug;
+
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
@@ -47,11 +49,21 @@ MAIN_FUNCTION
   // List all debug channels
   Debug( list_channels_on(libcw_do) );
 
+  ooam_filter_ct filter(0);
+#if CWDEBUG_LOCATION
+  Debug(dc::malloc.off());
+  std::vector<std::string> masks;
+  masks.push_back("lib*");
+  Debug(dc::malloc.on());
+  filter.hide_objectfiles_matching(masks);
+  filter.hide_unknown_locations();
+#endif
+
   char* cp = new char[50];
   AllocTag(cp, "Test of \"new char[50]\"");
 
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
-  // Don't show allocations that are allocated before main()
+  // Don't show allocations that are allocated before main() and while creating the filter.
   libcw::debug::make_all_allocations_invisible_except(cp);
 #endif
 
@@ -85,16 +97,6 @@ MAIN_FUNCTION
 #if CWDEBUG_ALLOC
   do
   {
-    using namespace libcw::debug;
-    ooam_filter_ct filter(0);
-#if CWDEBUG_LOCATION
-    Debug(dc::malloc.off());
-    std::vector<std::string> masks;
-    masks.push_back("lib*");
-    Debug(dc::malloc.on());
-    filter.hide_objectfiles_matching(masks);
-    filter.hide_unknown_locations();
-#endif
     Debug( libcw_do.off() );
 #ifdef THREADTEST
     static bool done = false;
