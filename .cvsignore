@@ -30,4 +30,4 @@ libcwd_r.la
 libcwd.spec
 libcwd.lsm
 rpm
-autom4te-*.cache
+autom4te*.cache
