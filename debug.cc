@@ -338,9 +338,9 @@ namespace libcw {
 	*os << '\n';
 	char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #ifdef DEBUGUSEBFD
-        DoutFatal(dc::core, "Using `dc::" << channame
-	    << "' in " << libcw_bfd_pc_location((char*)__builtin_return_address(0) + libcw_bfd_builtin_return_address_offset)
-	    << " without (first using) a matching `continue_cf'.");
+	location_st return_address;
+        libcw_bfd_pc_location(return_address, (char*)__builtin_return_address(0) + libcw_bfd_builtin_return_address_offset);
+        DoutFatal(dc::core, "Using `dc::" << channame << "' in " << return_address << " without (first using) a matching `continue_cf'.");
 #else
         DoutFatal(dc::core, "Using `dc::" << channame
 	    << "' without (first using) a matching `continue_cf'.");

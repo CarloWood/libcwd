@@ -632,33 +632,6 @@ if test "$ac_cv_prog_rpm" = yes; then
 fi
 fi])
 
-dnl CW_BUG_INPLACE_STRUCT_RETURN
-dnl Check if the compiler can deal with inplace struct returns, a GNU extention.
-AC_DEFUN(CW_BUG_INPLACE_STRUCT_RETURN,
-[changequote(, )dnl
-cw_bug_var=`echo " $CXXFLAGS" | sed -e 's/ [^-][^ ]*//g' -e 's/ -[^Ogf][^ ]*//g' \
-    -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/' -e 's/ //g' -e 's/[^a-z0-9]/_/g'`
-changequote([, ])dnl
-AC_MSG_CHECKING([if compiler crashes when we use an inplace struct return])
-AC_CACHE_VAL(cw_cv_sys_bug_inplace_struct_return$cw_bug_var,
-AC_TRY_COMPILE(
-[struct location_st {
-  char const* file;
-  unsigned int line;
-  char const* func;
-};
-location_st libcw_bfd_pc_location(void const*) return location { }],
-[libcw_bfd_pc_location((void*)0)], eval "cw_cv_sys_bug_inplace_struct_return$cw_bug_var=no", eval "cw_cv_sys_bug_inplace_struct_return$cw_bug_var=yes"))
-if eval "test \"`echo '$cw_cv_sys_bug_inplace_struct_return'$cw_bug_var`\" = no"; then
-CW_CONFIG_INPLACE_STRUCT_RETURN=undef
-AC_MSG_RESULT(no)
-else
-CW_CONFIG_INPLACE_STRUCT_RETURN=define
-AC_MSG_RESULT(yes)
-fi
-AC_SUBST(CW_CONFIG_INPLACE_STRUCT_RETURN)
-])
-
 dnl CW_PIPE_EXTRAOPTS
 dnl If the compiler understands -pipe, add it to EXTRAOPTS if not already.
 AC_DEFUN(CW_PIPE_EXTRAOPTS,

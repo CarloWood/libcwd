@@ -47,7 +47,7 @@ struct location_st {
 };
 
 extern ostream& operator<<(ostream& o, location_st const& loc);
-extern location_st libcw_bfd_pc_location(void const* addr);
+extern void libcw_bfd_pc_location(location_st& result, void const* addr);
 extern char const* libcw_bfd_pc_function_name(void const* addr);
 
 #endif // DEBUGUSEBFD

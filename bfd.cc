@@ -498,7 +498,7 @@ static int decode_ps(char const* buf, size_t len)
 // program.
 // 
 
-static string full_path_to_executable(void) return result
+static void get_full_path_to_executable(string& result)
 {
   size_t const max_proc_path = sizeof("/proc/65535/cmdline\0");
   char proc_path[max_proc_path];
@@ -638,7 +638,8 @@ static int libcw_bfd_init(void)
   bfd_init();
 
   // Get the full path and name of executable
-  static string fullpath(full_path_to_executable());		// Must be static because bfd keeps a pointer to its data()
+  static string fullpath;					// Must be static because bfd keeps a pointer to its data()
+  get_full_path_to_executable(fullpath);
   fullpath += '\0';
 
   bfd_set_error_program_name(fullpath.data() + fullpath.find_last_of('/') + 1);
@@ -778,14 +779,8 @@ char const* libcw_bfd_pc_function_name(void const* addr)
 //
 // Find source file, (mangled) function name and line number of the address `addr'.
 //
-#ifdef BUG_INPLACE_STRUCT_RETURN
-location_st libcw_bfd_pc_location(void const* addr)
+void libcw_bfd_pc_location(location_st& result, void const* addr)
 {
-  location_st location;
-#else
-location_st libcw_bfd_pc_location(void const* addr) return location
-{
-#endif
   if (!initialized)
   {
 #ifdef DEBUGMALLOC
@@ -807,9 +802,9 @@ location_st libcw_bfd_pc_location(void const* addr) return location
     char const* file;
     ASSERT( object_file->get_bfd() == abfd );
     bfd_find_nearest_line(abfd, sect, const_cast<asymbol**>(object_file->get_symbol_table()),
-	(char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &location.func, &location.line);
+	(char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &result.func, &result.line);
 
-    if (file && location.line)	// When line is 0, it turns out that `file' is nonsense.
+    if (file && result.line)	// When line is 0, it turns out that `file' is nonsense.
     {
       size_t len = strlen(file);
       // `file' is allocated by `bfd_find_nearest_line', however - it is also libbfd
@@ -824,21 +819,21 @@ location_st libcw_bfd_pc_location(void const* addr) return location
       set_alloc_checking_off();
       char* filename = new char [len + 1];
       set_alloc_checking_on();
-      location.file = strcpy(filename, file);
+      result.file = strcpy(filename, file);
     }
     else
-      location.file = NULL;
+      result.file = NULL;
 
-    if (p->name && p->name == location.func)	// bfd_find_nearest_line() failed if the latter is not true
+    if (p->name && p->name == result.func)	// bfd_find_nearest_line() failed if the latter is not true
     {
-      location.file = NULL;
-      location.line = 0;
-      location.func = p->name;
+      result.file = NULL;
+      result.line = 0;
+      result.func = p->name;
     }
 
 #ifdef DEBUG
     // Sanity check
-    if (!p->name || location.line == 0)
+    if (!p->name || result.line == 0)
     {
       if (p->name)
       {
@@ -856,24 +851,22 @@ location_st libcw_bfd_pc_location(void const* addr) return location
 	Dout(dc::bfd, "Warning: Address in section " << sect->name << " does not contain a function");
     }
     else
-      Dout(dc::bfd, "address " << hex << addr << dec << " corresponds to " << location);
+      Dout(dc::bfd, "address " << hex << addr << dec << " corresponds to " << result);
 #endif
-    return location;
+    return;
   }
-  location.line = 0;
+  result.line = 0;
   if (symbol)
   {
     Debug( dc::bfd.off() );
     ostrstream os;
     os << "<undefined symbol: " << symbol->get_symbol()->name << '>' << ends;
-    location.func = os.str();
+    result.func = os.str();
     Debug( dc::bfd.on() );
   }
   else
-    location.func = "<unknown function>";
-  location.file = NULL;
-
-  return location;
+    result.func = "<unknown function>";
+  result.file = NULL;
 }
 
 #endif // !DEBUGUSEBFD
