@@ -112,8 +112,8 @@ class thread_ct;
 struct TSD_st {
 public:
 #if CWDEBUG_ALLOC
-  int internal;
-  int library_call;
+  int internal;				// libsysrecord.so relies on this being the first element.
+  int library_call;			// libsysrecord.so relies on this being the second element.
   int inside_malloc_or_free;		// Set when entering a (de)allocation routine non-internal.
   int invisible;			// When set, allocation done must be invisible.
 #endif // CWDEBUG_ALLOC
