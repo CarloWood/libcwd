@@ -23,8 +23,10 @@
 #include <libcw/buf2str.h>
 #include <libcw/cwprint.h>
 #include <fstream>
-#endif
+#ifdef __GLIBCPP__
 #include <streambuf>
+#endif
+#endif
 
 RCSTAG_CC("$Id$")
 

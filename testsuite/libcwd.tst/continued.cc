@@ -33,7 +33,13 @@ namespace libcw {
 }
 
 #ifndef REAL_CERR
+#ifdef LIBCW_USE_STRSTREAM
+// No idea why, but it doesn't work when strstream is dynamic.
+static char ssbuf[1024];
+static strstream ss(ssbuf, sizeof(ssbuf));
+#else
 static stringstream ss;
+#endif
 static streambuf* old_buf;
 #endif
 
