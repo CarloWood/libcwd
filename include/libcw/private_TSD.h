@@ -50,6 +50,7 @@ struct TSD_st {
 // When _REENTRANT is not defined then `__libcwd_tsd' is simply a global object in namespace _private_:
 extern TSD_st __libcwd_tsd;
 #endif
+extern int WST_initializing_TSD;
 
     } // namespace _private_
   } // namespace debug

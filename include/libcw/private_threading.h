@@ -411,6 +411,7 @@ template<class TSD>
     static pthread_key_t S_key;
     static TSD* S_temporary_instance;
     static bool S_initializing;
+    static bool S_WNS_initialized;
     static void S_alloc_key(void) throw();
     static TSD* S_initialize(void) throw();
     static void S_destroy(void* tsd_ptr) throw();
@@ -422,6 +423,7 @@ template<class TSD>
 	instance = S_initialize();
       return *instance;
     }
+    static bool initialized(void) { return S_WNS_initialized; }
   };
 
 template<class TSD>
@@ -435,6 +437,9 @@ template<class TSD>
 
 template<class TSD>
   bool thread_specific_data_tct<TSD>::S_initializing;
+
+template<class TSD>
+  bool thread_specific_data_tct<TSD>::S_WNS_initialized;
 
 template<class TSD>
   void thread_specific_data_tct<TSD>::S_destroy(void* tsd_ptr) throw()
@@ -475,6 +480,7 @@ template<class TSD>
     set_alloc_checking_on(LIBCWD_TSD);
     pthread_setspecific(S_key, instance);
     S_initializing = false;
+    S_WNS_initialized = true;
     mutex_tct<tsd_initialization_instance>::unlock();
     return instance;
   }

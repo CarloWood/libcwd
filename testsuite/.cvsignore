@@ -6,4 +6,6 @@ nodebug_*_shared
 nodebug_*_static
 tst_*_shared
 tst_*_static
+threads_*_shared
+threads_*_static
 module.so
