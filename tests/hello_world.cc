@@ -17,15 +17,14 @@
 //
 // Compile as:
 //
-// gcc -c hello_world.cc -o hello_world.o
-// gcc hello_world.o -lcwd -o hello_world
+// g++ -g -c hello_world.cc
+// g++ hello_world.o -lcwd -o hello_world
+//
+// On less divine operating systems as linux, you might need to
+// link using: g++ hello_world.o -lcwd -lbfd -liberty -o hello_world
 //
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
 #include <libcw/sys.h>
-#include <libcw/h.h>
 #include <libcw/debug.h>
 
 RCSTAG_CC("$Id$")
@@ -47,7 +46,7 @@ namespace libcw {
 #endif
 #endif
 
-int main(int argc, char **argv)
+int main(void)
 {
   //----------------------------------------------------------------------
   // The following calls will be done in almost every program using libcwd
@@ -71,7 +70,7 @@ int main(int argc, char **argv)
   // It starts with 'off' depth 1.
   Debug( libcw_do.on() );
 
-  // List all debug channels (nor very usefull unless you allow to turn
+  // List all debug channels (not very usefull unless you allow to turn
   // channels on and off from the commandline; this is supported in libcw).
   Debug( list_channels_on(libcw_do) );
 
