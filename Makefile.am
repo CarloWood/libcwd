@@ -88,10 +88,6 @@ dist-hook: documentation
 	rm $(distdir)/example-project/debug.h.maintainer
 	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
 	chmod +x $(distdir)/install-sh
-	mkdir $(distdir)/debian
-	for i in `grep '^/' $(srcdir)/debian/CVS/Entries | cut -d/ -f2`; do \
-	  cp -p $(srcdir)/debian/$$i $(distdir)/debian; \
-	done
 
 distclean-local:
 	rm -rf rpm
