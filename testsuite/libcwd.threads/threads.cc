@@ -1,4 +1,4 @@
-#define PREFIX_CODE set_margin(); int __res; for(int __i = 0; __i < 10; ++__i) {
+#define PREFIX_CODE set_margin(); int __res; for(int __i = 0; __i < 1000; ++__i) {
 #define EXIT(res) \
     __res = (res); \
     ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() ); \
@@ -109,10 +109,14 @@ void set_margin(void)
 #define MAIN_FUNCTION void* type_info_prog(void*)
 #include "../libcwd.tst/type_info.cc"
 
+#undef MAIN_FUNCTION
+#define MAIN_FUNCTION void* filter_prog(void*)
+#include "../libcwd.tst/filter.cc"
+
 typedef void* (*thread_func_t)(void*);
 thread_func_t progs[] = { alloctag_prog, basic_prog, location_prog, cf_prog, /*continued_prog,*/ dc_prog,
     demangler_prog, dlopen_prog, do_prog, flush_prog, leak_prog, lockable_auto_ptr_prog, /*magic_prog,*/
-    marker_prog, strdup_prog, test_delete_prog, type_info_prog };
+    marker_prog, strdup_prog, test_delete_prog, type_info_prog, filter_prog };
 int const number_of_threads = sizeof(progs)/sizeof(thread_func_t);
 
 int main(void)

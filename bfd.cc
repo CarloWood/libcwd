@@ -54,6 +54,7 @@ extern link_map* _dl_loaded;
 #undef dlclose
 #endif
 #include "exec_prog.h"
+#include "match.h"
 #include <libcw/class_object_file.h>
 #if CWDEBUG_LIBBFD
 #if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
@@ -1237,7 +1238,8 @@ void bfd_close(bfd* abfd)
     {
       LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
       ACQUIRE_LISTALLOC_LOCK;
-      M_flags = flags;
+      M_flags &= ~format_mask;
+      M_flags |= flags;
       RELEASE_LISTALLOC_LOCK;
       LIBCWD_CLEANUP_POP_RESTORE(false);
     }
@@ -1245,7 +1247,7 @@ void bfd_close(bfd* abfd)
     ooam_format_t ooam_filter_ct::get_flags(void) const
     {
       // Makes little sense to add locking here (ooam_format_t is an atomic type).
-      return M_flags;
+      return (M_flags & format_mask);
     }
 
     void ooam_filter_ct::set_time_interval(struct timeval const& start, struct timeval const& end)
@@ -1291,33 +1293,15 @@ void bfd_close(bfd* abfd)
       return res;
     }
 
-    static bool match(char const* mask, size_t masklen, char const* name)
+    std::vector<std::string> ooam_filter_ct::get_sourcefile_list(void) const
     {
-      char const* m = mask;
-      char const* n = name;
-      
-      for(;;)
-      {
-	if (*n == 0)
-	{
-	  while(masklen-- > 0)
-	    if (*m++ != '*')
-	      return false;
-	  return true;
-	}
-	if (*m == '*')
-	  break;
-	if (*n++ != *m++)
-	  return false;
-	--masklen;
-      }
-      while(--masklen > 0 && *++m == '*');
-      if (masklen == 0)
-	return true;
-      while(*n != *m || !match(m, masklen, n))
-	if (*n++ == 0)
-	  return false;
-      return true;
+      std::vector<std::string> res;
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      res = M_sourcefile_masks;
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+      return res;
     }
 
     void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& masks)
@@ -1325,6 +1309,16 @@ void bfd_close(bfd* abfd)
       LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
       ACQUIRE_LISTALLOC_LOCK;
       M_objectfile_masks = masks;
+      S_id = -1;			// Force resynchronization.
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+    }
+
+    void ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& masks)
+    {
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      M_sourcefile_masks = masks;
       S_id = -1;			// Force resynchronization.
       RELEASE_LISTALLOC_LOCK;
       LIBCWD_CLEANUP_POP_RESTORE(false);
@@ -1342,23 +1336,27 @@ void bfd_close(bfd* abfd)
 	   ++iter)
 	(*iter)->get_object_file()->M_hide = false;
       // Next hide what matches.
-      for (cwbfd::object_files_ct::iterator iter = cwbfd::NEEDS_WRITE_LOCK_object_files().begin();
-	   iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
-	   ++iter)
+      if (!M_objectfile_masks.empty())
       {
-	for (std::vector<std::string>::const_iterator iter2(M_objectfile_masks.begin());
-	    iter2 != M_objectfile_masks.end(); ++iter2)
-	  if (match((*iter2).data(), (*iter2).length(), (*iter)->get_object_file()->M_filename))
-	  {
-	    (*iter)->get_object_file()->M_hide = true;
-	    break;
-	  }
+	for (cwbfd::object_files_ct::iterator iter = cwbfd::NEEDS_WRITE_LOCK_object_files().begin();
+	     iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
+	     ++iter)
+	{
+	  for (std::vector<std::string>::const_iterator iter2(M_objectfile_masks.begin());
+	      iter2 != M_objectfile_masks.end(); ++iter2)
+	    if (_private_::match((*iter2).data(), (*iter2).length(), (*iter)->get_object_file()->M_filename))
+	    {
+	      (*iter)->get_object_file()->M_hide = true;
+	      break;
+	    }
+	}
       }
       BFD_RELEASE_WRITE_LOCK;
+      M_synchronize_locations();
       S_id = M_id;
     }
 
-    ooam_filter_ct::ooam_filter_ct(ooam_format_t flags) : M_flags(flags), M_start(no_time_limit), M_end(no_time_limit)
+    ooam_filter_ct::ooam_filter_ct(ooam_format_t flags) : M_flags(flags & format_mask), M_start(no_time_limit), M_end(no_time_limit)
     {
       LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
       ACQUIRE_LISTALLOC_LOCK;
@@ -1626,6 +1624,7 @@ already_loaded:
       if (M_known)
       {
 	M_known = false;
+	M_hide = true;
 	if (M_filepath.is_owner())
 	{
 	  LIBCWD_TSD_DECLARATION;
@@ -1650,6 +1649,7 @@ already_loaded:
 	M_initialization_delayed = prototype.M_initialization_delayed;
       M_object_file = prototype.M_object_file;
       M_func = prototype.M_func;
+      M_hide = prototype.M_hide;
     }
 
     location_ct& location_ct::operator=(location_ct const &prototype)
@@ -1667,6 +1667,7 @@ already_loaded:
 	  M_initialization_delayed = prototype.M_initialization_delayed;
 	M_object_file = prototype.M_object_file;
 	M_func = prototype.M_func;
+	M_hide = prototype.M_hide;
       }
       return *this;
     }

@@ -28,7 +28,8 @@ libutils_la_CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
 libutils_la_SOURCES = \
 buf2str.cc \
 char2str.cc \
-exec_prog.cc
+exec_prog.cc \
+match.cc
 endif
 
 if ENABLETHREADING
@@ -36,7 +37,8 @@ libutils_r_la_CXXFLAGS = -DCWDEBUG -D_REENTRANT -pthread $(DEBUGOPTS) $(EXTRAOPT
 libutils_r_la_SOURCES = \
 buf2str.cc \
 char2str.cc \
-exec_prog.cc
+exec_prog.cc \
+match.cc
 endif
 
 MAINTAINERCLEANFILES = Makefile.in

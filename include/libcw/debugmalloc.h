@@ -135,8 +135,11 @@ ooam_format_t const show_time = 1;			//!< Show the time at which the allocation 
 ooam_format_t const show_path = 2;			//!< Show the full path of the locations where the allocation was made.
 ooam_format_t const show_objectfile = 4;		//!< Show the name of the shared library that is responsible for the allocation.
 ooam_format_t const show_allthreads = 8;		//!< Show the allocations of all threads, not just the current thread.
+ooam_format_t const format_mask = (show_time|show_path|show_objectfile|show_allthreads);
 
 /** \} */
+
+unsigned int const hide_untagged = 16;			// Call hide_untagged_allocations() to set this flag.
 
 class dm_alloc_base_ct;
 class dm_alloc_copy_ct;
@@ -161,6 +164,7 @@ private:
   struct timeval M_start;
   struct timeval M_end;
   std::vector<std::string> M_objectfile_masks;
+  std::vector<std::string> M_sourcefile_masks;
 public:
   /** The timeval used when there is no actual limit set, either start or end. */
   static struct timeval const no_time_limit;
@@ -174,8 +178,10 @@ public:
   struct timeval get_time_start(void) const;
   /** \brief Returns the end time as passed with set_time_interval. */
   struct timeval get_time_end(void) const;
-  /** \brief Returns the list of masks. */
+  /** \brief Returns the list of object file masks. */
   std::vector<std::string> get_objectfile_list(void) const;
+  /** \brief Returns the list of source file masks. */
+  std::vector<std::string> get_sourcefile_list(void) const;
 
   /** \brief Select the time interval that should be shown.
    *
@@ -197,6 +203,27 @@ public:
    */
   void hide_objectfiles_matching(std::vector<std::string> const& masks);
 
+  /** \brief Select which source files to hide in the Allocated Memory Overview.
+   *
+   * \a masks is a list of wildcard expressions ('*' matches anything) that are matched
+   * against the source file, including path, of the location where the allocation took place.
+   * Locations that match will be hidden from the \link group_overview overview of allocated memory \endlink.
+   *
+   * \sa group_alloc_format
+   */
+  void hide_sourcefiles_matching(std::vector<std::string> const& masks);
+
+  /** \brief Only show the allocations for which a AllocTag was added in the code.
+   *
+   * When \a hide is true, only allocations for which an \link group_annotation AllocTag \endlink
+   * was seen are showed in the \link group_overview overview of allocated memory \endlink
+   * otherwise all allocations are being showed.
+   */
+  void hide_untagged_allocations(bool hide = true) { if (hide) M_flags |= hide_untagged; else M_flags &= ~hide_untagged; }
+
+  // Return true if filepath matches one of the masks in M_source_masks.
+  bool check_hide(char const* filepath) const;
+
 private:
   friend void list_allocations_on(debug_ct&, ooam_filter_ct const&);
 #if CWDEBUG_MARKER
@@ -204,6 +231,7 @@ private:
 #endif
   void M_check_synchronization(void) const { if (M_id != S_id) M_synchronize(); }
   void M_synchronize(void) const;
+  void M_synchronize_locations(void) const;
 };
 
 #if CWDEBUG_ALLOC

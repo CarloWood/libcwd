@@ -69,7 +69,7 @@ MAIN_FUNCTION
   if (libcw::debug::find_alloc(a))
     DoutFatal( dc::core, "Can STILL find that pointer?!" );
   // Test set_alloc_checking_off/set_alloc_checking_on, using test_delete
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
   char* ptr = (char*)malloc(100);
   libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);

@@ -145,6 +145,7 @@
 #include <sys/time.h>		// Needed for gettimeofday(2)
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
+#include "match.h"
 #include <libcw/cwprint.h>
 
 #if LIBCWD_THREAD_SAFE
@@ -908,6 +909,7 @@ public:
       { if (has_alloc_node()) a_alloc_node.get()->change_label(ti, description); }
   void change_label(type_info_ct const& ti, char const* description) const
       { _private_::smart_ptr desc(description); change_label(ti, desc); }
+  void alloctag_called(void) { a_alloc_node.get()->alloctag_called(); }
   void change_flags(memblk_types_nt new_flag)
       { M_memblk_type = new_flag; if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(LIBCWD_TSD_PARAM) const { a_alloc_node.get()->new_list(LIBCWD_TSD); }			// MT-safe: write lock is set.
@@ -1032,6 +1034,43 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
     LIBCWD_RESTORE_CANCEL;
   }
   return location_info;
+}
+
+void ooam_filter_ct::M_synchronize_locations(void) const
+{
+  ACQUIRE_LC_WRITE_LOCK;
+  for (location_cache_map_ct::iterator iter = location_cache_map_write->begin(); iter != location_cache_map_write->end(); ++iter)
+  {
+    (*iter).second.M_hide = false;
+    if (!(*iter).second.M_known)
+      continue;
+    for (std::vector<std::string>::const_iterator iter2(M_sourcefile_masks.begin());
+	iter2 != M_sourcefile_masks.end(); ++iter2)
+      if (_private_::match((*iter2).data(), (*iter2).length(), (*iter).second.M_filepath.get()))
+      {
+	(*iter).second.M_hide = true;
+	break;
+      }
+  }
+  RELEASE_LC_WRITE_LOCK;
+}
+
+bool ooam_filter_ct::check_hide(char const* filepath) const
+{
+  for (std::vector<std::string>::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
+    if (_private_::match((*iter).data(), (*iter).length(), filepath))
+      return true;
+  return false;
+}
+
+void location_ct::handle_delayed_initialization(ooam_filter_ct const& filter)
+{
+  LIBCWD_TSD_DECLARATION;
+  M_pc_location(M_initialization_delayed LIBCWD_COMMA_TSD);
+  if (!M_known)
+    M_hide = false;
+  else
+    M_hide = filter.check_hide(M_filepath.get());
 }
 
 //=============================================================================
@@ -1234,7 +1273,12 @@ void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooa
   LIBCWD_TSD_DECLARATION;
   for (alloc = this; alloc; alloc = alloc->next)
   {
-    const_cast<location_ct*>(&alloc->location())->handle_delayed_initialization();
+    if ((filter.M_flags & hide_untagged) && !alloc->is_tagged())
+      continue;
+    if (alloc->location().initialization_delayed())
+      const_cast<location_ct*>(&alloc->location())->handle_delayed_initialization(filter);
+    if (alloc->location().hide_from_alloc_list())
+      continue;
     object_file_ct const* object_file = alloc->location().object_file();
     if (object_file && object_file->hide_from_alloc_list())
       continue;
@@ -2392,7 +2436,10 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* descri
   ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
   memblk_map_ct::iterator const& iter(memblk_map_write->find(memblk_key_ct(ptr, 0)));
   if (iter != memblk_map_write->end() && (*iter).first.start() == ptr)
+  {
     (*iter).second.change_label(ti, description);
+    (*iter).second.alloctag_called();
+  }
   RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL;
 }
@@ -2403,7 +2450,10 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_p
   ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
   memblk_map_ct::iterator const& iter(memblk_map_write->find(memblk_key_ct(ptr, 0)));
   if (iter != memblk_map_write->end() && (*iter).first.start() == ptr)
+  {
     (*iter).second.change_label(ti, description);
+    (*iter).second.alloctag_called();
+  }
   RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL;
 }

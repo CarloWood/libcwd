@@ -92,5 +92,30 @@ filter.hide_objectfiles_matching(masks);
 Debug( list_allocations_on(libcw_do, filter) );
 \endcode
 
-*/
+In order to hide all allocations that are done from inside the header files
+of installed libraries (like the STL), one could do:
 
+\code
+#ifdef CWDEBUG
+libcw::debug::ooam_filter_ct filter(libcw::debug::show_path);
+std::vector<std::string> masks;
+masks.push_back("/usr/include/*.h");
+filter.hide_sourcefiles_matching(masks);
+#endif
+
+Debug( list_allocations_on(libcw_do, filter) );
+\endcode
+
+In order to hide everything except those allocations that one explicitely
+added an \link group_annotation AllocTag \endlink for, one could do:
+
+\code
+#ifdef CWDEBUG
+libcw::debug::ooam_filter_ct filter;
+filter.hide_untagged_allocations();
+#endif
+
+Debug( list_allocations_on(libcw_do, filter) );
+\endcode
+
+*/

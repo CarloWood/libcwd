@@ -1,3 +1,11 @@
+libcwd-0.99.23
+
+	The "Overview Of Allocated Memory" filter (ooam_filter_ct)
+	has been extended with the ability to discriminate on the
+	source filename of the allocation location.  It now also
+	allows to only show allocations for which explicitely an
+	allocation annotation (AllocTag et al) has been used.
+
 libcwd-0.99.22
 
         Bug fixes:

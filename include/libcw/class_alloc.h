@@ -133,6 +133,7 @@ protected:
 #if CWDEBUG_LOCATION
       , M_location(l)
 #endif
+      , M_tagged(false)
       { }
 
   /**
@@ -143,6 +144,13 @@ protected:
    * objects, objects \em derived from alloc_ct, using <code>operator new</code>.
    */
   virtual ~alloc_ct() { }
+
+  // For internal use:
+private:
+  bool M_tagged;				// Set when AllocTag et al was called.
+public:
+  bool is_tagged(void) const { return M_tagged; }
+  void alloctag_called(void) { M_tagged = true; }
 };
 
   } //namespace debug
