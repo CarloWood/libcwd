@@ -85,6 +85,14 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>21 May 2003</B>
+<P class="news">libcwd-0.99.30 is released.&nbsp;
+This release works with glibc-2.3.2 and RedHat 9.0.&nbsp;
+I found that the glibc that is distributed with rawhide is broken.
+A few threads related bug have been fixed among which a serious one
+that caused allocations done between two <CODE>list_allocations_on()</CODE>'s
+using the same filter (or none at all, which uses the default filter) to be
+randomly filtered (depending on an uninitialized boolean).
 <DT><B>3 May 2003</B>
 <P class="news">libcwd-0.99.29 is released.&nbsp;
 This release contains a few large changes.&nbsp;

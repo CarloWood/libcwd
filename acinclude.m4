@@ -709,9 +709,9 @@ AC_DEFUN(CW_SETUP_RPM_DIRS,
     echo "%_distribution http://sourceforge.net/project/showfiles.php?group_id=47536" >> macros
     echo "%vendor Carlo Wood" >> macros
     echo "%_topdir "$top_builddir"/rpm" >> macros
-    echo "%_pgp_path "$PGPPATH >> macros
-    echo "%_signature pgp5" >> macros
-    echo "%_pgp_name carlo@alinoe.com" >> macros
+    echo "%_gpg_path /home/carlo/.gnupg" >> macros
+    echo "%_signature gpg" >> macros
+    echo "%_gpg_name carlo@alinoe.com" >> macros
     echo "macrofiles: /usr/lib/rpm/macros:"$top_builddir"/rpm/macros" > rpmrc
     echo "buildarchtranslate: i686: i386" >> rpmrc
     cd ..
