@@ -76,7 +76,7 @@ the debug object <CODE>libcw_do</CODE> and the debug channel <CODE>dc::notice</C
 </UL></DIV>
 
 <A NAME="turn_on_channel"></A>
-<H3></CODE>Debug( dc::notice.on() );</CODE></H3>
+<H3><CODE>Debug( dc::notice.on() );</CODE></H3>
 
 <P>This turns on the <I><U>D</U>ebug <U>C</U>hannel</I> <CODE><U>dc</U>::notice</CODE>.&nbsp;
 Without this line, the code <CODE>Dout(dc::notice, "Hello World")</CODE> would output
