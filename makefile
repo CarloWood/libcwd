@@ -5,8 +5,8 @@ PACKAGE=$(shell pwd | sed -e 's%.*/%%g')
 maintainer-startup:
 	libtoolize --copy --force
 ifeq ($(PACKAGE), libcw)
-	ln -sf ../libcwd/maintMakefile.in
 	aclocal -I ../libcwd
+	ln -sf ../libcwd/maintMakefile.in
 else
 	aclocal
 endif
