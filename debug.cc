@@ -1386,6 +1386,7 @@ void allocator_unlock(void)
 
     void debug_tsd_st::init(void)
     {
+      DEBUGDEBUG_CERR( "Entering debug_tsd_st::init (this == " << (void*)this << ")");
 #if CWDEBUG_DEBUGM
       LIBCWD_TSD_DECLARATION;
       LIBCWD_ASSERT( __libcwd_tsd.internal );
@@ -1412,6 +1413,8 @@ void allocator_unlock(void)
 
 
       tsd_initialized = true;
+      DEBUGDEBUG_CERR( "Leaving debug_tsd_st::init (this == " << (void*)this <<
+          "); &tsd_initialized == " << (void*)&tsd_initialized );
     }
 
 #if LIBCWD_THREAD_SAFE
@@ -1737,6 +1740,8 @@ void allocator_unlock(void)
       DEBUGDEBUG_CERR( "continued_cf detected" );
       if (!do_tsd_ptr || !do_tsd_ptr->tsd_initialized)
       {
+        if (do_tsd_ptr)
+	  DEBUGDEBUG_CERR( "&do_tsd_ptr->tsd_initialized == " << (void*)&do_tsd_ptr->tsd_initialized );
         FATALDEBUGDEBUG_CERR( "Don't use DoutFatal together with continued_cf, use Dout instead." );
 	core_dump();
       }
