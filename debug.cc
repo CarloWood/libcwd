@@ -50,6 +50,7 @@ namespace libcw {
 	channel_ct const debug("DEBUG");
 	channel_ct const notice("NOTICE");
 	channel_ct const warning("WARNING");
+	channel_ct const none("");
 	channel_ct const system("SYSTEM");
 	channel_ct const malloc("MALLOC");
 

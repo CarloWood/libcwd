@@ -609,6 +609,7 @@ namespace libcw {
 	extern channel_ct const notice;
 	extern channel_ct const system;
 	extern channel_ct const warning;
+	extern channel_ct const none;
 #ifdef DEBUGMALLOC
 	extern channel_ct const debugmalloc;
 #else
