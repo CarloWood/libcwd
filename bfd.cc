@@ -1279,6 +1279,7 @@ already_loaded:
 	set_alloc_checking_off(LIBCWD_TSD);
 	NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
 	set_alloc_checking_on(LIBCWD_TSD);
+	BFD_ACQUIRE_WRITE2READ_LOCK;
 	object_file = NEEDS_READ_LOCK_find_object_file(addr);
         BFD_RELEASE_WRITE_LOCK;
       }
