@@ -24,11 +24,6 @@
 # - rpm
 #	Generates the $(TARGET).rpm and src.rpm files.
 #
-# - reconfig
-#	Reconfigure the source tree using the same options as last time.
-#	This can be used to switch compiler versions by issuing for example:
-#	make CC="gcc-2.95.3" CXX="g++-2.95.3" reconfig
-#
 # - full-check
 #	Iterate over multiple configurations and compiler versions,
 #	running the test suite for every combination.
@@ -71,16 +66,12 @@ test-values:
 	@echo "PREVTAG  = \"$(PREVTAG)\""
 
 ## Make sure the ChangeLog is up to date in maintainer mode
-.PHONY: tar rpm ChangeLog reconfig documentation
+.PHONY: tar rpm ChangeLog documentation
 
 rpm: dist $(SPECFILE) $(LSMFILE)
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
 	cd rpm; rpmbuild --rcfile=/usr/lib/rpm/rpmrc:rpmrc --sign --clean -ba ../$(SPECFILE)
 
-reconfig: $(top_builddir)/config.status
-	$(top_builddir)/config.status --recheck
-	$(top_builddir)/config.status
-	
 ChangeLog:
 	if test $(CVSREADACCESS) = yes; then \
 	  echo "`which --skip-dot cvs` \`echo \"\$$*\" | sed -e 's%1970%1990%'\`" > cvs; \

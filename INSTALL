@@ -177,7 +177,6 @@ make check					// Run test suite
 make tar					// Create tar ball
 make rpm					// Create rpms
 make ChangeLog					// Generate ChangeLog from cvs database
-make CC="gcc-3.1" CXX="g++-3.1" reconfig	// Switch compilers keeping the same configuration
 make full-check					// Iterate over all configurations and all compiler versions
 
 It is not garanteed that these work on another machine than mine however.
