@@ -34,21 +34,18 @@
 #include "cwd_debug.h"
 #include "elf32.h"
 #include <libcwd/private_assert.h>
+#include "cwd_bfd.h"
 
 #define DEBUGELF32 0
 #define DEBUGSTABS 0
-#define DEBUGDWARF 0
-
-// This assumes that DW_TAG_compile_unit is the first tag for each compile unit
-// which is not strictly garanteed in the standard but seems to be the case.
-// Moreover it assumes that DW_TAG_compile_unit is the first entry in the
-// .debug_info section for each compile unit.
-#define DWARFSPEEDUP
+#define DEBUGDWARF 1
 
 #if DEBUGDWARF
 #define DoutDwarf(cntrl, x) do { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } while(0)
+#define DEBUGDWARF_OPT_COMMA(x) ,x
 #else
 #define DoutDwarf(cntrl, x) do { } while(0)
+#define DEBUGDWARF_OPT_COMMA(x)
 #endif
 
 #if DEBUGSTABS
@@ -341,8 +338,26 @@ static uLEB128_t const DW_TAG_try_block			= 0x32;
 static uLEB128_t const DW_TAG_variant_part		= 0x33;
 static uLEB128_t const DW_TAG_variable			= 0x34;
 static uLEB128_t const DW_TAG_volatile_type		= 0x35;
+// DWARF 3.
+static uLEB128_t const DW_TAG_dwarf_procedure		= 0x36;
+static uLEB128_t const DW_TAG_restrict_type		= 0x37;
+static uLEB128_t const DW_TAG_interface_type		= 0x38;
+static uLEB128_t const DW_TAG_namespace			= 0x39;
+static uLEB128_t const DW_TAG_imported_module		= 0x3a;
+static uLEB128_t const DW_TAG_unspecified_type		= 0x3b;
+static uLEB128_t const DW_TAG_partial_unit		= 0x3c;
+static uLEB128_t const DW_TAG_imported_unit		= 0x3d;
+// User range.
 static uLEB128_t const DW_TAG_lo_user			= 0x4080;
 static uLEB128_t const DW_TAG_hi_user			= 0xffff;
+// SGI/MIPS Extensions.
+static uLEB128_t const DW_TAG_MIPS_loop			= 0x4081;
+// GNU extensions.
+static uLEB128_t const DW_TAG_format_label		= 0x4101;  // For FORTRAN 77 and Fortran 90.
+static uLEB128_t const DW_TAG_function_template		= 0x4102;  // For C++.
+static uLEB128_t const DW_TAG_class_template		= 0x4103;  // For C++.
+static uLEB128_t const DW_TAG_GNU_BINCL			= 0x4104;
+static uLEB128_t const DW_TAG_GNU_EINCL			= 0x4105;
 
 #if DEBUGDWARF
 char const* print_DW_TAG_name(uLEB128_t tag)
@@ -399,7 +414,33 @@ char const* print_DW_TAG_name(uLEB128_t tag)
     case DW_TAG_lo_user: return "DW_TAG_lo_user";
     case DW_TAG_hi_user: return "DW_TAG_hi_user";
   }
-  return "UNKNOWN DW_TAG";
+  LIBCWD_ASSERT(tag >= DW_TAG_lo_user && tag <= DW_TAG_hi_user);
+  switch(tag)
+  {
+    case DW_TAG_dwarf_procedure: return "DW_TAG_dwarf_procedure";
+    case DW_TAG_restrict_type: return "DW_TAG_restrict_type";
+    case DW_TAG_interface_type: return "DW_TAG_interface_type";
+    case DW_TAG_namespace: return "DW_TAG_namespace";
+    case DW_TAG_imported_module: return "DW_TAG_imported_module";
+    case DW_TAG_unspecified_type: return "DW_TAG_unspecified_type";
+    case DW_TAG_partial_unit: return "DW_TAG_partial_unit";
+    case DW_TAG_imported_unit: return "DW_TAG_imported_unit";
+  }
+  switch(tag)
+  {
+    case DW_TAG_MIPS_loop: return "DW_TAG_MIPS_loop";
+  }
+  switch(tag)
+  {
+    case DW_TAG_format_label: return "DW_TAG_format_label";
+    case DW_TAG_function_template: return "DW_TAG_function_template";
+    case DW_TAG_class_template: return "DW_TAG_class_template";
+    case DW_TAG_GNU_BINCL: return "DW_TAG_GNU_BINCL";
+    case DW_TAG_GNU_EINCL: return "DW_TAG_GNU_EINCL";
+  }
+  static char unknown_tag[32];
+  sprintf(unknown_tag, "UNKNOWN DW_TAG 0x%x", tag);
+  return unknown_tag;
 }
 #endif
 
@@ -465,14 +506,51 @@ static uLEB128_t const DW_AT_use_location 	= 0x4a;	// block, constant
 static uLEB128_t const DW_AT_variable_parameter	= 0x4b;	// flag
 static uLEB128_t const DW_AT_virtuality 	= 0x4c;	// constant
 static uLEB128_t const DW_AT_vtable_elem_location = 0x4d; // block, reference
-static uLEB128_t const DW_AT_lo_user		= 0x2000;
-static uLEB128_t const DW_AT_hi_user		= 0x3fff;
+// DWARF 3 values.
+static uLEB128_t const DW_AT_allocated		= 0x4e;
+static uLEB128_t const DW_AT_associated		= 0x4f;
+static uLEB128_t const DW_AT_data_location	= 0x50;
+static uLEB128_t const DW_AT_stride		= 0x51;
+static uLEB128_t const DW_AT_entry_pc		= 0x52;
+static uLEB128_t const DW_AT_use_UTF8		= 0x53;
+static uLEB128_t const DW_AT_extension		= 0x54;
+static uLEB128_t const DW_AT_ranges		= 0x55;
+static uLEB128_t const DW_AT_trampoline		= 0x56;
+static uLEB128_t const DW_AT_call_column	= 0x57;
+static uLEB128_t const DW_AT_call_file		= 0x58;
+static uLEB128_t const DW_AT_call_line		= 0x59;
+// User range.
+static uLEB128_t const DW_AT_lo_user				= 0x2000;
+static uLEB128_t const DW_AT_hi_user				= 0x3fff;
+// SGI/MIPS Extensions.
+static uLEB128_t const DW_AT_MIPS_fde				= 0x2001;
+static uLEB128_t const DW_AT_MIPS_loop_begin			= 0x2002;
+static uLEB128_t const DW_AT_MIPS_tail_loop_begin		= 0x2003;
+static uLEB128_t const DW_AT_MIPS_epilog_begin			= 0x2004;
+static uLEB128_t const DW_AT_MIPS_loop_unroll_factor		= 0x2005;
+static uLEB128_t const DW_AT_MIPS_software_pipeline_depth	= 0x2006;
+static uLEB128_t const DW_AT_MIPS_linkage_name			= 0x2007;
+static uLEB128_t const DW_AT_MIPS_stride			= 0x2008;
+static uLEB128_t const DW_AT_MIPS_abstract_name			= 0x2009;
+static uLEB128_t const DW_AT_MIPS_clone_origin			= 0x200a;
+static uLEB128_t const DW_AT_MIPS_has_inlines			= 0x200b;
+// GNU extensions.
+static uLEB128_t const DW_AT_sf_names				= 0x2101;
+static uLEB128_t const DW_AT_src_info				= 0x2102;
+static uLEB128_t const DW_AT_mac_info				= 0x2103;
+static uLEB128_t const DW_AT_src_coords				= 0x2104;
+static uLEB128_t const DW_AT_body_begin				= 0x2105;
+static uLEB128_t const DW_AT_body_end				= 0x2106;
+static uLEB128_t const DW_AT_GNU_vector				= 0x2107;
+// VMS Extensions.
+static uLEB128_t const DW_AT_VMS_rtnbeg_pd_address		= 0x2201;
 
 #if DEBUGDWARF
 char const* print_DW_AT_name(uLEB128_t attr)
 {
   switch(attr)
   {
+    case 0: return "0";
     case DW_AT_sibling: return "DW_AT_sibling";
     case DW_AT_location: return "DW_AT_location";
     case DW_AT_name: return "DW_AT_name";
@@ -532,11 +610,53 @@ char const* print_DW_AT_name(uLEB128_t attr)
     case DW_AT_variable_parameter: return "DW_AT_variable_parameter";
     case DW_AT_virtuality: return "DW_AT_virtuality";
     case DW_AT_vtable_elem_location: return "DW_AT_vtable_elem_location";
-    case DW_AT_lo_user: return "DW_AT_lo_user";
-    case DW_AT_hi_user: return "DW_AT_hi_user";
-    case 0: return "0";
+    // DWARF 3 attributes
+    case DW_AT_allocated: return "DW_AT_allocated";
+    case DW_AT_associated: return "DW_AT_associated";
+    case DW_AT_data_location: return "DW_AT_data_location";
+    case DW_AT_stride: return "DW_AT_stride";
+    case DW_AT_entry_pc: return "DW_AT_entry_pc";
+    case DW_AT_use_UTF8: return "DW_AT_use_UTF8";
+    case DW_AT_extension: return "DW_AT_extension";
+    case DW_AT_ranges: return "DW_AT_ranges";
+    case DW_AT_trampoline: return "DW_AT_trampoline";
+    case DW_AT_call_column: return "DW_AT_call_column";
+    case DW_AT_call_file: return "DW_AT_call_file";
+    case DW_AT_call_line: return "DW_AT_call_line";
   }
-  return "UNKNOWN DW_AT";
+  LIBCWD_ASSERT(attr >= DW_AT_lo_user && attr <= DW_AT_hi_user);
+  switch(attr)
+  {
+    case DW_AT_lo_user: return "DW_AT_lo_user";
+    case DW_AT_MIPS_fde: return "DW_AT_MIPS_fde";
+    case DW_AT_MIPS_loop_begin: return "DW_AT_MIPS_loop_begin";
+    case DW_AT_MIPS_tail_loop_begin: return "DW_AT_MIPS_tail_loop_begin";
+    case DW_AT_MIPS_epilog_begin: return "DW_AT_MIPS_epilog_begin";
+    case DW_AT_MIPS_loop_unroll_factor: return "DW_AT_MIPS_loop_unroll_factor";
+    case DW_AT_MIPS_software_pipeline_depth: return "DW_AT_MIPS_software_pipeline_depth";
+    case DW_AT_MIPS_linkage_name: return "DW_AT_MIPS_linkage_name";
+    case DW_AT_MIPS_stride: return "DW_AT_MIPS_stride";
+    case DW_AT_MIPS_abstract_name: return "DW_AT_MIPS_abstract_name";
+    case DW_AT_MIPS_clone_origin: return "DW_AT_MIPS_clone_origin";
+    case DW_AT_MIPS_has_inlines: return "DW_AT_MIPS_has_inlines";
+  }
+  switch(attr)
+  {
+    case DW_AT_sf_names: return "DW_AT_sf_names";
+    case DW_AT_src_info: return "DW_AT_src_info";
+    case DW_AT_mac_info: return "DW_AT_mac_info";
+    case DW_AT_src_coords: return "DW_AT_src_coords";
+    case DW_AT_body_begin: return "DW_AT_body_begin";
+    case DW_AT_body_end: return "DW_AT_body_end";
+    case DW_AT_GNU_vector: return "DW_AT_GNU_vector";
+  }
+  switch(attr)
+  {
+    case DW_AT_VMS_rtnbeg_pd_address: return "DW_AT_VMS_rtnbeg_pd_address";
+  }
+  static char unknown_at[32];
+  sprintf(unknown_at, "UNKNOWN DW_AT 0x%x", attr);
+  return unknown_at;
 }
 #endif
 
@@ -604,6 +724,10 @@ static unsigned char const DW_LNS_negate_stmt		= 6;
 static unsigned char const DW_LNS_set_basic_block	= 7;
 static unsigned char const DW_LNS_const_add_pc		= 8;
 static unsigned char const DW_LNS_fixed_advance_pc	= 9;
+// DWARF 3
+static unsigned char const DW_LNS_set_prologue_end	= 10;
+static unsigned char const DW_LNS_set_epilogue_begin	= 11;
+static unsigned char const DW_LNS_set_isa		= 12;
 
 // Extended opcodes.
 static uLEB128_t const DW_LNE_end_sequence	= 1;
@@ -686,6 +810,15 @@ public:
       M_used = false;
     M_flags |= 2;
     M_address = address;
+    if (address == 0x0)		// Happens when the reloc info in the .debug_line
+      M_flags &= ~2;		// section refers to non existing labels because
+				// the corresponding function instantiation is
+				// disregarded (being part of a .gnu.linkonce
+				// section that was not used).  We need to ignore
+				// this debug info.
+				// See the thread of http://gcc.gnu.org/ml/gcc/2003-10/msg00689.html
+				// which is about the fact that GNU as version 2.4.90
+				// contains a bug that causes the address NOT to be set to 0 :(.
 #if DEBUGDWARF
     LIBCWD_TSD_DECLARATION;
 #endif
@@ -702,9 +835,16 @@ public:
     LIBCWD_TSD_DECLARATION;
 #endif
     // Assume valid. if (is_valid())
-    DoutDwarf(dc::bfd, "--> location assumed valid.");
-    M_flags = 3;
-    M_store();
+    if (M_address)
+    {
+      DoutDwarf(dc::bfd, "--> location assumed valid.");
+      M_flags = 3;
+      M_store();
+    }
+#if DEBUGDWARF
+    else
+      DoutDwarf(dc::bfd, "--> location not assumed valid (address is 0x0).");
+#endif
   }
   void set_source_iter(object_files_string_set_ct::iterator const& iter) { M_source_iter = iter; M_used = false; }
   void set_func_iter(object_files_string_set_ct::iterator const& iter) { M_func_iter = iter; }
@@ -732,12 +872,14 @@ public:
   void increment_address(unsigned int increment) {
     if (increment > 0)
       M_used = false;
-    M_address += increment;
+    if (M_address)		// See comment in set_address() above.
+      M_address += increment;
 #if DEBUGDWARF
     LIBCWD_TSD_DECLARATION;
     DoutDwarf(dc::bfd, "--> location.M_address = 0x" << std::hex << M_address);
 #endif
-    M_flags |= 2;
+    if (M_address)
+      M_flags |= 2;
   }
   void sequence_end(void) {
 #if DEBUGDWARF
@@ -840,12 +982,18 @@ private:
   object_files_string_set_ct M_function_names;
   object_files_string_set_ct M_source_files;
   object_files_range_location_map_ct M_ranges;
-  bool M_debug_info_loaded;
+  bool volatile M_debug_info_loaded;
   bool M_brac_relative_to_fun;
-#if !LIBCWD_THREAD_SAFE
-  bool M_inside_find_nearest_line;
-#else
+#if LIBCWD_THREAD_SAFE
   static pthread_t S_thread_inside_find_nearest_line;
+#else
+  bool M_inside_find_nearest_line;
+#endif
+#if DEBUGSTABS
+  bool M_stabs_debug_info_loaded;
+#endif
+#if DEBUGDWARF
+  bool M_dwarf_debug_info_loaded;
 #endif
   Elf32_Word M_stabs_section_index;
   Elf32_Word M_stabstr_section_index;
@@ -878,6 +1026,7 @@ private:
   template<typename T>
     inline void dwarf_read(unsigned char const*& debug_info_ptr, T& x);
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
+  void eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const& form DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str));
 };
 
 #if LIBCWD_THREAD_SAFE
@@ -1195,6 +1344,8 @@ struct abbrev_st {
   attr_st* attributes;
   unsigned short attributes_size;
   unsigned short attributes_capacity;
+  unsigned int fixed_size;
+  bool starts_with_string;
   bool has_children;
   abbrev_st(void) : attributes(NULL), attributes_size(0), attributes_capacity(0) { }
   ~abbrev_st() { if (attributes) /* almost always 0, so test here to speed up */ free(attributes); }
@@ -1243,44 +1394,177 @@ void objfile_ct::delete_hash_list(void)
   }
 }
 
+inline static void
+eat_string(unsigned char const*& debug_info_ptr)
+{
+#ifdef __i386__
+  // The optimization of gcc is horrible.  Lets do it ourselfs.
+  int __d0;
+  asm("cld; repnz; scasb" : "=c" (__d0), "=D" (debug_info_ptr) : "0" (-1), "1" (debug_info_ptr), "a" (0));
+#else
+  // This is the same as 'while(*debug_info_ptr++);', but that results in horribly
+  // inefficient code (tested with g++ 3.4).
+  unsigned char const* tmp = debug_info_ptr;
+  while(*tmp)
+    ++tmp;
+  debug_info_ptr = tmp + 1;
+#endif
+}
+
+static unsigned char address_size;	// Should be sizeof(void*) - at least it is constant,
+					// so it's thread safe to be static.
+
+void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const& form
+                          DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str))
+{
+  DoutDwarf(dc::continued, '(' << print_DW_FORM_name(form) << ") ");
+  switch(form)
+  {
+    case DW_FORM_data1:
+    case DW_FORM_ref1:
+    case DW_FORM_flag:
+      DoutDwarf(dc::finish, (int)*reinterpret_cast<uint8_t const*>(debug_info_ptr));
+      debug_info_ptr += 1;
+      break;
+    case DW_FORM_data2:
+    case DW_FORM_ref2:
+      DoutDwarf(dc::finish, *reinterpret_cast<uint16_t const*>(debug_info_ptr));
+      debug_info_ptr += 2;
+      break;
+    case DW_FORM_data4:
+    case DW_FORM_strp:
+    case DW_FORM_ref4:
+#if DEBUGDWARF
+      if (form == DW_FORM_data4)
+	DoutDwarf(dc::finish, *reinterpret_cast<uint32_t const*>(debug_info_ptr));
+      else if (form == DW_FORM_strp)
+      {
+	unsigned int pos = *reinterpret_cast<uint32_t const*>(debug_info_ptr);
+	DoutDwarf(dc::finish, pos << " (\"" << &debug_str[pos] << "\")");
+      }
+      else
+	DoutDwarf(dc::finish, '<' << std::hex << *reinterpret_cast<uint32_t const*>(debug_info_ptr) << '>');
+#endif
+      debug_info_ptr += 4;
+      break;
+    case DW_FORM_data8:
+    case DW_FORM_ref8:
+      // DoutDwarf(dc::finish, *reinterpret_cast<unsigned long long const*>(debug_info_ptr));
+      debug_info_ptr += 8;
+    case DW_FORM_indirect:
+    {
+      uLEB128_t tmpform = form;
+      DoutDwarf(dc::continued, "-> ");
+      dwarf_read(debug_info_ptr, tmpform);
+      eat_form(debug_info_ptr, tmpform DEBUGDWARF_OPT_COMMA(debug_str));
+      break;
+    }
+    case DW_FORM_string:
+    {
+      DoutDwarf(dc::finish, "\"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
+      eat_string(debug_info_ptr);
+      break;
+    }
+    case DW_FORM_sdata:
+    case DW_FORM_udata:
+    case DW_FORM_ref_udata:
+    {
+      uLEB128_t data;
+      dwarf_read(debug_info_ptr, data);
+      DoutDwarf(dc::finish, data);
+      break;
+    }
+    case DW_FORM_ref_addr:
+    case DW_FORM_addr:
+      DoutDwarf(dc::finish, *reinterpret_cast<void* const*>(debug_info_ptr));
+      debug_info_ptr += address_size;
+      break;
+    case DW_FORM_block1:
+    {
+      unsigned char length;
+      dwarf_read(debug_info_ptr, length);
+      DoutDwarf(dc::finish, "[" << (unsigned int)length << " bytes]");
+      debug_info_ptr += length;
+      break;
+    }
+    case DW_FORM_block2:
+    {
+      uint16_t length;
+      dwarf_read(debug_info_ptr, length);
+      DoutDwarf(dc::finish, "[" << length << " bytes]");
+      debug_info_ptr += length;
+      break;
+    }
+    case DW_FORM_block4:
+    {
+      uint32_t length;
+      dwarf_read(debug_info_ptr, length);
+      DoutDwarf(dc::finish, "[" << length << " bytes]");
+      debug_info_ptr += length;
+      break;
+    }
+    case DW_FORM_block:
+    {
+      uLEB128_t length;
+      dwarf_read(debug_info_ptr, length);
+      DoutDwarf(dc::finish, "[" << length << " bytes]");
+      debug_info_ptr += length;
+      break;
+    }
+  }
+}
+
 void objfile_ct::load_dwarf(void)
 {
 #if DEBUGDWARF
   LIBCWD_TSD_DECLARATION;
 #endif
   uint32_t total_length;
-  if (DEBUGDWARF)
+
+  libcw::debug::debug_ct::OnOffState state;
+  libcw::debug::channel_ct::OnOffState state2;
+  if (_private_::always_print_loading && !_private_::suppress_startup_msgs)
   {
-    static bool dwarf_debug_info_loaded = false;
-    // Not loaded already.
-    LIBCWD_ASSERT( !dwarf_debug_info_loaded );
-    dwarf_debug_info_loaded = true;
-    // Don't have a fixed entry sizes.
-    LIBCWD_ASSERT( M_sections[M_dwarf_debug_line_section_index].section_header().sh_entsize == 0 );
-    LIBCWD_ASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
-    LIBCWD_ASSERT( M_sections[M_dwarf_debug_abbrev_section_index].section_header().sh_entsize == 0 );
-    // gcc 3.1 sets sh_entsize to 1, previous versions set it to 0.
-    LIBCWD_ASSERT( M_dwarf_debug_str_section_index == 0 || M_sections[M_dwarf_debug_str_section_index].section_header().sh_entsize <= 1 );
-    // Initialization of debug variable.
-    total_length = 0;
+    // We want debug output to BFD
+    Debug( libcw_do.force_on(state) );
+    Debug( dc::bfd.force_on(state2, "BFD") );
   }
+  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << this->filename << "... ");
+
+#if DEBUGDWARF
+  // Not loaded already.
+  LIBCWD_ASSERT( !M_dwarf_debug_info_loaded );
+  M_dwarf_debug_info_loaded = true;
+  // Don't have a fixed entry sizes.
+  LIBCWD_ASSERT( M_sections[M_dwarf_debug_line_section_index].section_header().sh_entsize == 0 );
+  LIBCWD_ASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
+  LIBCWD_ASSERT( M_sections[M_dwarf_debug_abbrev_section_index].section_header().sh_entsize == 0 );
+  // gcc 3.1 sets sh_entsize to 1, previous versions set it to 0.
+  LIBCWD_ASSERT( M_dwarf_debug_str_section_index == 0 || M_sections[M_dwarf_debug_str_section_index].section_header().sh_entsize <= 1 );
+  // Initialization of debug variable.
+  total_length = 0;
+#endif
 
   // Start of .debug_abbrev section.
   unsigned char* debug_abbrev = (unsigned char*)allocate_and_read_section(M_dwarf_debug_abbrev_section_index);
   // Start of .debug_info section.
   unsigned char* debug_info = (unsigned char*)allocate_and_read_section(M_dwarf_debug_info_section_index);
+#if DEBUGDWARF
+  unsigned char* const debug_info_start = debug_info;
+#endif
   unsigned char* debug_info_end = debug_info + M_sections[M_dwarf_debug_info_section_index].section_header().sh_size;
   // Start of .debug_line section.
   unsigned char* debug_line = (unsigned char*)allocate_and_read_section(M_dwarf_debug_line_section_index);
   unsigned char* debug_line_end = debug_line + M_sections[M_dwarf_debug_line_section_index].section_header().sh_size;
   unsigned char const* debug_line_ptr;
   // Start of .debug_str section.
-  // Previous compiler versions don't use DW_FORM_strp.
+  // Needed for DW_FORM_strp.
   unsigned char* debug_str = (unsigned char*)allocate_and_read_section(M_dwarf_debug_str_section_index);
 
   // Run over all compilation units.
   for (unsigned char const* debug_info_ptr = debug_info; debug_info_ptr < debug_info_end;)
   {
+    unsigned char const* const debug_info_root = debug_info_ptr;
     uint32_t length;
     dwarf_read(debug_info_ptr, length);
     if (DEBUGDWARF)
@@ -1297,13 +1581,12 @@ void objfile_ct::load_dwarf(void)
     }
     uint16_t version;
     dwarf_read(debug_info_ptr, version);
-    if ( version == 2 )		// DWARF version 2
+    if ( version == 2 )		// DWARF version 2 (and 3)
     {
       uint32_t abbrev_offset;
       dwarf_read(debug_info_ptr, abbrev_offset);
       unsigned char const* debug_abbrev_ptr = debug_abbrev + abbrev_offset;
       DoutDwarf(dc::bfd, "abbrev_offset = " << std::hex << abbrev_offset);
-      unsigned char address_size;
       dwarf_read(debug_info_ptr, address_size);
       LIBCWD_ASSERT( address_size == sizeof(void*) );
 
@@ -1322,16 +1605,21 @@ void objfile_ct::load_dwarf(void)
 	dwarf_read(debug_abbrev_ptr, abbrev.code);
 	if (abbrev.code == 0)
 	  break;
-	DoutDwarf(dc::bfd, "code: " << abbrev.code);
-	LIBCWD_ASSERT( abbrev.code == expected_code );
-	++expected_code;
 
 	dwarf_read(debug_abbrev_ptr, abbrev.tag);
-	DoutDwarf(dc::bfd, "Tag : " << print_DW_TAG_name(abbrev.tag));
 	unsigned char children;
 	dwarf_read(debug_abbrev_ptr, children);
 	abbrev.has_children = (children == DW_CHILDREN_yes);
-	DoutDwarf(dc::bfd, "Has children: " << abbrev.has_children);
+	bool has_fixed_size = !abbrev.has_children;
+	unsigned int fixed_size = 0;
+	bool first_time = true;
+	abbrev.starts_with_string = false;
+
+	DoutDwarf(dc::bfd, "Abbr. " << abbrev.code << " \t" << print_DW_TAG_name(abbrev.tag) <<
+	    " \t[" << (children ? "has" : "no") << " children]");
+
+	LIBCWD_ASSERT( abbrev.code == expected_code );
+	++expected_code;
 
         while(true)
 	{
@@ -1344,37 +1632,64 @@ void objfile_ct::load_dwarf(void)
 	  uLEB128_t& form(abbrev.attributes[abbrev.attributes_size].form);
 	  dwarf_read(debug_abbrev_ptr, attr);
 	  dwarf_read(debug_abbrev_ptr, form);
-	  DoutDwarf(dc::bfd, "Attribute/Form: " << print_DW_AT_name(attr) << ", " << print_DW_FORM_name(form));
+	  DoutDwarf(dc::bfd, "  Attribute/Form: " << print_DW_AT_name(attr) << ", " << print_DW_FORM_name(form));
 	  if (attr == 0 && form == 0)
 	    break;
+	  if (has_fixed_size)
+	  {
+	    switch(form)
+	    {
+	      case DW_FORM_data1:
+	      case DW_FORM_ref1:
+	      case DW_FORM_flag:
+	        fixed_size += 1;
+		break;
+	      case DW_FORM_data2:
+	      case DW_FORM_ref2:
+	        fixed_size += 2;
+		break;
+	      case DW_FORM_data4:
+	      case DW_FORM_ref4:
+	      case DW_FORM_strp:
+	        fixed_size += 4;
+		break;
+	      case DW_FORM_data8:
+	      case DW_FORM_ref8:
+	        fixed_size += 8;
+		break;
+	      case DW_FORM_ref_addr:
+	      case DW_FORM_addr:
+	        fixed_size += address_size;
+		break;
+	      default:
+	        if (first_time)
+		{
+		  first_time = false;
+		  abbrev.starts_with_string = (form == DW_FORM_string);
+		  if (abbrev.starts_with_string)
+		    break;
+		}
+	        has_fixed_size = false;
+            }
+	  }
 	  ++abbrev.attributes_size;
 	}
+	abbrev.fixed_size = has_fixed_size ? fixed_size : 0;
 	abbrev.attributes = (attr_st*)realloc(abbrev.attributes, abbrev.attributes_size * sizeof(attr_st));
-
-#ifdef DWARFSPEEDUP
-	// We only need the DW_TAG_compile_unit abbreviation and this seems to be always the first entry.
-	// In the case that I am mistaken about that, we load it all.
-	if (abbrev.tag == DW_TAG_compile_unit && abbrev.code == 1)
-	  break;
-	else
-	{
-	  LIBCWD_TSD_DECLARATION; 
-	  _private_::set_alloc_checking_on(LIBCWD_TSD);
-	  Dout(dc::warning, "Please mail libcw@alinoe.com that DW_TAG_compile_unit is not the first abbrev in your case.");
-	  _private_::set_alloc_checking_off(LIBCWD_TSD);
-	}
-#endif
       }
 
       int level = 0;
       unsigned char const* debug_info_ptr_end = debug_info_ptr + length - sizeof(version) - sizeof(abbrev_offset) - sizeof(address_size);
-      while(true)
+      while(debug_info_ptr < debug_info_ptr_end)
       {
+#if DEBUGDWARF
+        unsigned int reference = debug_info_ptr - debug_info_start;
+#endif
 	uLEB128_t code;
 	dwarf_read(debug_info_ptr, code);
-	DoutDwarf(dc::bfd, "code: " << code);
 	if (code == 0)
 	{
+	  DoutDwarf(dc::bfd, '<' << std::hex << reference << "> code: 0");
           if (DEBUGDWARF)
 	    Debug( libcw_do.marker().assign(libcw_do.marker().c_str(), libcw_do.marker().size() - 1) );
 	  if (--level <= 0)
@@ -1386,16 +1701,11 @@ void objfile_ct::load_dwarf(void)
 	  continue;
 	}
 	LIBCWD_ASSERT( code < abbrev_entries.size() );
+	abbrev_st& abbrev(abbrev_entries[code]);
+	DoutDwarf(dc::bfd, '<' << std::hex << reference <<
+	    "> Abbrev Number: " << std::dec << code << " (" << print_DW_TAG_name(abbrev.tag) << ')');
         if (DEBUGDWARF)
 	  Debug(libcw_do.inc_indent(4));
-	abbrev_st& abbrev(abbrev_entries[code]);
-	DoutDwarf(dc::bfd, "Tag: " << print_DW_TAG_name(abbrev.tag) << " (children: " << (abbrev.has_children ? "yes" : "no") << ')');
-        if (abbrev.has_children)
-	{
-	  ++level;
-          if (DEBUGDWARF)
-	    Debug( libcw_do.marker().append("|", 1) );
-	}
 
 	object_files_string default_dir;
 	object_files_string cur_dir;
@@ -1405,12 +1715,13 @@ void objfile_ct::load_dwarf(void)
 	void* high_pc = NULL;
 
 	attr_st* attr = abbrev.attributes;
-	for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
+
+	if (abbrev.tag == DW_TAG_compile_unit)
 	{
-	  uLEB128_t form = attr->form;
-	  DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
-	  if (abbrev.tag == DW_TAG_compile_unit)
+	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
 	  {
+	    uLEB128_t form = attr->form;
+	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
 	    if (attr->attr == DW_AT_stmt_list)
 	    {
 	      LIBCWD_ASSERT( form == DW_FORM_data4 );
@@ -1427,14 +1738,14 @@ void objfile_ct::load_dwarf(void)
 	      if (form == DW_FORM_strp)
 	      {
 		LIBCWD_ASSERT( M_dwarf_debug_str_section_index );
-	        str = reinterpret_cast<char const*>(debug_str + *reinterpret_cast<unsigned int const*>(debug_info_ptr));
-	        debug_info_ptr += 4;
+		str = reinterpret_cast<char const*>(debug_str + *reinterpret_cast<unsigned int const*>(debug_info_ptr));
+		debug_info_ptr += 4;
 	      }
 	      else
 	      {
 		LIBCWD_ASSERT( form == DW_FORM_string );
-	        str = reinterpret_cast<char const*>(debug_info_ptr);
-	        while(*debug_info_ptr++);
+		str = reinterpret_cast<char const*>(debug_info_ptr);
+		eat_string(debug_info_ptr);
 	      }
 	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << str << '"');
 	      if (attr->attr == DW_AT_comp_dir)
@@ -1463,127 +1774,64 @@ void objfile_ct::load_dwarf(void)
 		dwarf_read(debug_info_ptr, low_pc);
 	      continue;
 	    }
+	    eat_form(debug_info_ptr, form DEBUGDWARF_OPT_COMMA(debug_str));
 	  }
-indirect:
-	  DoutDwarf(dc::continued, '(' << print_DW_FORM_name(form) << ") ");
-	  switch(form)
+        }
+	else if (abbrev.tag == DW_TAG_subprogram)
+	{
+	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
 	  {
-	    case DW_FORM_data1:
-	      DoutDwarf(dc::finish, (int)*reinterpret_cast<unsigned char const*>(debug_info_ptr));
-	      debug_info_ptr += 1;
-	      break;
-	    case DW_FORM_data2:
-	      DoutDwarf(dc::finish, (int)*reinterpret_cast<unsigned short const*>(debug_info_ptr));
-	      debug_info_ptr += 2;
-	      break;
-	    case DW_FORM_data4:
-	      DoutDwarf(dc::finish, *reinterpret_cast<unsigned int const*>(debug_info_ptr));
-	      debug_info_ptr += 4;
-	      break;
-	    case DW_FORM_data8:
-	      // DoutDwarf(dc::finish, *reinterpret_cast<unsigned long long const*>(debug_info_ptr));
-	      debug_info_ptr += 8;
-	      break;
-	    case DW_FORM_indirect:
-	      DoutDwarf(dc::continued, "-> ");
-	      dwarf_read(debug_info_ptr, form);
-	      goto indirect;
-	    case DW_FORM_string:
-	      DoutDwarf(dc::finish, "\"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
-	      while(*debug_info_ptr++);
-	      break;
-	    case DW_FORM_ref1:
-	      DoutDwarf(dc::finish, (int)*reinterpret_cast<unsigned char const*>(debug_info_ptr));
-	      debug_info_ptr += 1;
-	      break;
-	    case DW_FORM_ref2:
-	      DoutDwarf(dc::finish, (int)*reinterpret_cast<unsigned short const*>(debug_info_ptr));
-	      debug_info_ptr += 2;
-	      break;
-	    case DW_FORM_ref4:
-	      DoutDwarf(dc::finish, *reinterpret_cast<unsigned int const*>(debug_info_ptr));
-	      debug_info_ptr += 4;
-	      break;
-	    case DW_FORM_ref8:
-	      // DoutDwarf(dc::finish, *reinterpret_cast<unsigned long long const*>(debug_info_ptr));
-	      debug_info_ptr += 8;
-	      break;
-	    case DW_FORM_ref_udata:
+	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
+	    eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str));
+	  }
+	}
+	else if (abbrev.tag == DW_TAG_inlined_subroutine)
+	{
+	  for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
+	  {
+	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
+	    eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str));
+	  }
+	}
+	else
+	{
+	  // The not-so-important tags - scan through them as fast as possible.
+	  if (abbrev.fixed_size)
+	  {
+	    if (abbrev.starts_with_string)
+	      eat_string(debug_info_ptr);
+	    debug_info_ptr += abbrev.fixed_size;
+	  }
+	  else
+	  {
+	    // DW_AT_sibling is always the first attribute.
+	    if (abbrev.attributes_size > 0 && attr->attr == DW_AT_sibling &&
+		abbrev.tag != DW_TAG_lexical_block	// Do DW_TAG_lexical_block ever have a DW_AT_sibling?
+	       )
 	    {
-	      uLEB128_t udata;
-	      dwarf_read(debug_info_ptr, udata);
-	      DoutDwarf(dc::finish, udata);
-	      break;
+	      LIBCWD_ASSERT(abbrev.has_children);
+	      LIBCWD_ASSERT(attr->form == DW_FORM_ref4);// unsigned int.
+	      // Skip the children.
+	      debug_info_ptr = *reinterpret_cast<unsigned int const*>(debug_info_ptr) + debug_info_root;
+	      if (DEBUGDWARF)
+		Debug(libcw_do.dec_indent(4));
+	      continue;
 	    }
-	    case DW_FORM_flag:
-	      DoutDwarf(dc::finish, (bool)*reinterpret_cast<unsigned char const*>(debug_info_ptr));
-	      debug_info_ptr += 1;
-	      break;
-	    case DW_FORM_addr:
-	      DoutDwarf(dc::finish, *reinterpret_cast<void* const*>(debug_info_ptr));
-	      debug_info_ptr += address_size;
-	      break;
-	    case DW_FORM_block2:
+	    for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
 	    {
-	      uint16_t length;
-	      dwarf_read(debug_info_ptr, length);
-	      DoutDwarf(dc::finish, "[" << length << " bytes]");
-	      debug_info_ptr += length;
-	      break;
+	      DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
+	      eat_form(debug_info_ptr, attr->form DEBUGDWARF_OPT_COMMA(debug_str));
 	    }
-	    case DW_FORM_block4:
-	    {
-	      uint32_t length;
-	      dwarf_read(debug_info_ptr, length);
-	      DoutDwarf(dc::finish, "[" << length << " bytes]");
-	      debug_info_ptr += length;
-	      break;
-	    }
-	    case DW_FORM_block:
-	    {
-	      uLEB128_t length;
-	      dwarf_read(debug_info_ptr, length);
-	      DoutDwarf(dc::finish, "[" << length << " bytes]");
-	      debug_info_ptr += length;
-	      break;
-	    }
-	    case DW_FORM_block1:
-	    {
-	      unsigned char length;
-	      dwarf_read(debug_info_ptr, length);
-	      DoutDwarf(dc::finish, "[" << (unsigned int)length << " bytes]");
-	      debug_info_ptr += length;
-	      break;
-	    }
-	    case DW_FORM_sdata:
-	    {
-	      LEB128_t sdata;
-	      dwarf_read(debug_info_ptr, sdata);
-	      DoutDwarf(dc::finish, sdata);
-	      break;
-	    }
-	    case DW_FORM_udata:
-	    {
-	      uLEB128_t udata;
-	      dwarf_read(debug_info_ptr, udata);
-	      DoutDwarf(dc::finish, udata);
-	      break;
-	    }
-	    case DW_FORM_ref_addr:
-	      DoutDwarf(dc::finish, *reinterpret_cast<void* const*>(debug_info_ptr));
-	      debug_info_ptr += address_size;
-	      break;
-	    case DW_FORM_strp:
-#if DEBUGDWARF
-	      unsigned int pos = *reinterpret_cast<unsigned int const*>(debug_info_ptr);
-#endif
-	      debug_info_ptr += 4;
-	      DoutDwarf(dc::finish, pos << " (\"" << &debug_str[pos] << "\")");
-	      break;
 	  }
 	}
         if (DEBUGDWARF)
 	  Debug(libcw_do.dec_indent(4));
+        if (abbrev.has_children)
+	{
+	  ++level;
+          if (DEBUGDWARF)
+	    Debug( libcw_do.marker().append("|", 1) );
+	}
 
 	if (abbrev.tag == DW_TAG_compile_unit)
 	  if (found_stmt_list && debug_line_ptr < debug_line_end && !(low_pc && high_pc && low_pc == high_pc))
@@ -1660,13 +1908,13 @@ indirect:
 	    object_files_string cur_source;
 	    location_ct location(this);
 
-	    object_files_string cur_func("-DWARF symbol\0");	// We don't add function names - this is used to see we're
-								  // doing DWARF in find_nearest_line().
+	    object_files_string cur_func("DWARF2 symbol\0");	// We don't add function names - this is used to see we're
+								// doing DWARF in find_nearest_line().
 	    location.set_func_iter(M_function_names.insert(cur_func).first);
 
 	    while( debug_line_ptr < debug_line_ptr_end )
 	    {
-	      file = 0;		// One less than the `file' mentioned in the documentation.
+	      file = 0;			// One less than the `file' mentioned in the documentation.
 	      column = 0;
 	      is_stmt = default_is_stmt;
 	      basic_block = false;
@@ -1844,25 +2092,10 @@ indirect:
 	  }
 	  else
 	  {
-	    DoutDwarf(dc::bfd, "Skipping compilation unit." << default_dir << default_source);
+	    DoutDwarf(dc::bfd, "Skipping compilation unit." << default_dir << default_source.data());
 	  }
-
-#ifdef DWARFSPEEDUP
-	// No need to read more.
-        if (abbrev.tag == DW_TAG_compile_unit)
-	{
-          if (DEBUGDWARF && level > 0)	// Will be 1, but whatever.
-	    Debug( libcw_do.marker().assign(libcw_do.marker().c_str(), libcw_do.marker().size() - level) );
-	  break;
-	}
-#endif
       }
-#ifdef DWARFSPEEDUP
-      // We didn't read till the end (see break above).
-      debug_info_ptr = debug_info_ptr_end;
-#else
       LIBCWD_ASSERT( debug_info_ptr == debug_info_ptr_end );
-#endif
     }
     else
     {
@@ -1882,20 +2115,22 @@ indirect:
   if (!M_stabs_section_index)
     delete_hash_list();
   M_debug_info_loaded = true;
+  Dout(dc::finish, "done");
+  if (_private_::always_print_loading)
+  {
+    Debug( dc::bfd.restore(state2) );
+    Debug( libcw_do.restore(state) );
+  }
 }
 
 void objfile_ct::load_stabs(void)
 {
 #if DEBUGSTABS
   LIBCWD_TSD_DECLARATION;
+  LIBCWD_ASSERT( !M_stabs_debug_info_loaded );
+  M_stabs_debug_info_loaded = true;
+  LIBCWD_ASSERT( M_sections[M_stabs_section_index].section_header().sh_entsize == sizeof(stab_st) );
 #endif
-  if (DEBUGSTABS)
-  {
-    static bool stabs_debug_info_loaded = false;
-    LIBCWD_ASSERT( !stabs_debug_info_loaded );
-    stabs_debug_info_loaded = true;
-    LIBCWD_ASSERT( M_sections[M_stabs_section_index].section_header().sh_entsize == sizeof(stab_st) );
-  }
   stab_st* stabs = (stab_st*)allocate_and_read_section(M_stabs_section_index);
 #ifndef __sun__
   // The native Solaris 2.8 linker (ld) doesn't fill in the value of sh_link and also n_desc seems to have a different meaning.
@@ -2107,16 +2342,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
   {
     // The call to load_dwarf()/load_stabs() below can call malloc, causing us to recursively enter this function
     // for this object or another objfile_ct.
-#if !LIBCWD_THREAD_SAFE
-    if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
-    {
-      *file = NULL;
-      *func = symbol->name;
-      *line = 0;
-      return;
-    }
-    M_inside_find_nearest_line = true;
-#else
+#if LIBCWD_THREAD_SAFE
     // `S_thread_inside_find_nearest_line' is only *changed* inside the critical area
     // of `object_files_instance'.  Therefore, when it is set to our thread id at
     // this moment - then other threads can't change it.
@@ -2138,6 +2364,15 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
       break;
     }
     S_thread_inside_find_nearest_line = pthread_self();
+#else // !LIBCWD_THREAD_SAFE
+    if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
+    {
+      *file = NULL;
+      *func = symbol->name;
+      *line = 0;
+      return;
+    }
+    M_inside_find_nearest_line = true;
 #endif
 #if DEBUGSTABS || DEBUGDWARF
     libcw::debug::debug_ct::OnOffState state;
@@ -2147,6 +2382,12 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
 #endif
     if (M_dwarf_debug_line_section_index)
       load_dwarf();
+    else if (!M_stabs_section_index && !this->object_file->get_object_file()->has_no_debug_line_sections())
+    {
+      this->object_file->get_object_file()->set_has_no_debug_line_sections();
+      Dout( dc::warning, "Object file " << this->filename << " does not have debug info.  Address lookups inside "
+          "this object file will result in a function name only, not a source file location.");
+    }
     if (M_stabs_section_index)
       load_stabs();
 #if DEBUGSTABS || DEBUGDWARF
@@ -2156,11 +2397,11 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
     int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
     M_input_stream->close();
     _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-#if !LIBCWD_THREAD_SAFE
-    M_inside_find_nearest_line = false;
-#else
+#if LIBCWD_THREAD_SAFE
     S_thread_inside_find_nearest_line = (pthread_t) 0;
     _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
+#else
+    M_inside_find_nearest_line = false;
 #endif
     break;
   }
@@ -2201,9 +2442,7 @@ char* objfile_ct::allocate_and_read_section(int i)
 
 void objfile_ct::register_range(location_st const& location, range_st const& range)
 {
-#if !DEBUGSTABS && !DEBUGDWARF
-  M_ranges.insert(std::pair<range_st, location_st>(range, location));
-#else
+#if DEBUGSTABS || DEBUGDWARF
   LIBCWD_TSD_DECLARATION;
   if ((DEBUGDWARF && M_dwarf_debug_line_section_index)
       || (DEBUGSTABS && M_stabs_section_index))
@@ -2212,25 +2451,145 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
     Dout(dc::bfd, std::hex << range.start << " - " << (range.start + range.size) << "; " << location << '.');
     _private_::set_alloc_checking_off(LIBCWD_TSD);
   }
-  std::pair<object_files_range_location_map_ct::iterator, bool> p(M_ranges.insert(std::pair<range_st, location_st>(range, location)));
-  if (!p.second)
+#endif
+  std::pair<object_files_range_location_map_ct::iterator, bool>
+      p(M_ranges.insert(std::pair<range_st, location_st>(range, location)));
+  if (p.second)
+    return;
+  // Do some error recovery.
+  std::pair<range_st, location_st> old(*p.first);		// Currently stored range.
+  std::pair<range_st, location_st> nw(range, location);		// New range.
+#if DEBUGSTABS || DEBUGDWARF
+  Elf32_Addr low = old.first.start;
+  Elf32_Addr high = old.first.start + old.first.size - 1;
+  char const* low_mn = pc_mangled_function_name((void*)(low + (char*)this->object_file->get_lbase()));
+  char const* high_mn = pc_mangled_function_name((void*)(high + (char*)this->object_file->get_lbase()));
+  if (low_mn != high_mn)
   {
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
-    if ((*p.first).second.M_func_iter != location.M_func_iter)
-      Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
-    else
-    {
-      if ((*p.first).first.start != range.start )
-        Dout(dc::bfd, "WARNING: Different start for same function (" << *p.first << ")!?");
-      if ((*p.first).first.size != range.size)
-	Dout(dc::bfd, "WARNING: Different sizes for same function.  Not sure what .stabs entry to use.");
-      if ((*p.first).second.M_line != location.M_line)
-        Dout(dc::bfd, "WARNING: Different line numbers for overlapping range (" << *p.first << ")!?");
-      if ((*p.first).second.M_source_iter != location.M_source_iter)
-        Dout(dc::bfd, "Collision with " << *p.first << ".");
-    }
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
+    Dout(dc::bfd, std::hex << low << " == " << low_mn);
+    Dout(dc::bfd, std::hex << high << " == " << high_mn);
   }
+  else
+    Dout(dc::bfd, "Function: " << low_mn);
+#endif
+  bool need_old_reinsert = false;
+  bool need_restore = false;
+  range_st save_old_range;
+#if DEBUGSTABS || DEBUGDWARF
+  _private_::set_alloc_checking_on(LIBCWD_TSD);
+#endif
+  if ((*p.first).second.M_func_iter != location.M_func_iter)
+#if DEBUGSTABS || DEBUGDWARF
+    Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
+#else
+    ;
+#endif
+  else
+  {
+    bool different_start = (*p.first).first.start != range.start;
+    bool different_lines = (*p.first).second.M_line != location.M_line;
+    if (different_start && different_lines)
+    {
+      // The most important reason for this, is a bug in GNU as version 2.3.90:
+      // The last address increment just prior to the end of a function
+      // is too large.  So, it is the end of the range that we cannot trust.
+      //
+      // Cut off the first range so at least we cover the total.
+      // Before:
+      //          |<--range1-->|
+      //                   |<--range2-->|
+      // After:
+      //          |<range1>|<--range2-->|
+      //
+      // Now GNU as version 2.4.90 does not have this bug, but has another bug.
+      // that bug is a lot harder to recover from, less frequently happening
+      // and at the moment of writing not in use by many people; therefore no
+      // attempt to recover from that has been added but instead this has been
+      // reported as a bug to the binutils people.
+      // See http://sources.redhat.com/ml/binutils/2003-10/msg00456.html
+
+      if (nw.first.start < old.first.start)
+      {
+	//        + |<--old range-->|
+	//      |<--new range------>?
+	nw.first.size = old.first.start - nw.first.start;		// Cut short new range.
+      }
+      else
+      {
+	// |<--old range------>?
+	//   ? |<--new range-->|
+#if DEBUGSTABS || DEBUGDWARF
+	Dout(dc::bfd, "WARNING: New range overlaps old range, removing (" << *p.first << "),");
+#endif
+	save_old_range = old.first;					// Backup.
+	_private_::set_alloc_checking_off(LIBCWD_TSD);
+	M_ranges.erase(p.first);
+	_private_::set_alloc_checking_on(LIBCWD_TSD);
+	need_restore = true;
+	old.first.size = nw.first.start - old.first.start;		// Cut short old range.
+	if (old.first.size > 0)
+	{
+#if DEBUGSTABS || DEBUGDWARF
+	  Dout(dc::bfd, "         ... and adding (" << old << ").");
+#endif
+	  need_old_reinsert = true;
+	}
+      }
+#if DEBUGSTABS || DEBUGDWARF
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      Dout(dc::bfd, "WARNING: New range being added instead: " << nw);
+      LIBCWD_ASSERT( nw.first.size > 0 );
+      // Check that new range falls within one function.
+      char const* nwlow_mn = pc_mangled_function_name((void*)(nw.first.start + (char*)this->object_file->get_lbase()));
+      LIBCWD_ASSERT( nwlow_mn ==
+          pc_mangled_function_name((void*)(nw.first.start + nw.first.size - 1 + (char*)this->object_file->get_lbase())));
+      // This is specific to the (only known) gas bug; check that this is at the end of function.
+      // Note we only get here when the collision was with a range in the same source file, so we can
+      // use the same this->object_file for the next function.
+      LIBCWD_ASSERT( nwlow_mn !=
+          pc_mangled_function_name((void*)(nw.first.start + ((nw.first.start < old.first.start) ? (int)nw.first.size : -1) +
+	    (char*)this->object_file->get_lbase())));
+#endif
+      if (!M_ranges.insert(nw).second)
+      {
+#if DEBUGSTABS || DEBUGDWARF
+	Dout(dc::bfd, "WARNING: Insertion of new range still failed");
+#endif
+	if (need_restore)
+	{
+	  old.first = save_old_range;
+#if DEBUGSTABS || DEBUGDWARF
+	  Dout(dc::bfd, "         ... backing up to old situation (" << old << ").");
+#endif
+	  need_old_reinsert = true;
+	}
+      }
+      if (need_old_reinsert)
+      {
+#if DEBUGSTABS || DEBUGDWARF
+	p =
+#endif
+	  M_ranges.insert(old);
+#if DEBUGSTABS || DEBUGDWARF
+	if (!p.second)
+	  DoutFatal(dc::core, "Re-adding of shortened old range failed.");
+#endif
+      }
+      return;
+    }
+#if DEBUGSTABS || DEBUGDWARF
+    else if ((*p.first).second.M_source_iter != location.M_source_iter)
+      Dout(dc::bfd, "Collision with " << *p.first << ".");
+    else if (different_start)
+      Dout(dc::bfd, "WARNING: Different start for same function (" << *p.first << ")!?");
+    else if (different_lines)
+      Dout(dc::bfd, "WARNING: Different line numbers for overlapping range (" << *p.first << ")!?");
+    else if ((*p.first).first.size != range.size)
+      Dout(dc::bfd, "WARNING: Different sizes for same function!");
+#endif
+  }
+#if DEBUGSTABS || DEBUGDWARF
+  _private_::set_alloc_checking_off(LIBCWD_TSD);
 #endif
 }
 
@@ -2288,6 +2647,12 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
   M_brac_relative_to_fun = false;
 #if !LIBCWD_THREAD_SAFE
   M_inside_find_nearest_line = false;
+#endif
+#if DEBUGSTABS
+  M_stabs_debug_info_loaded = false;
+#endif
+#if DEBUGDWARF
+  M_dwarf_debug_info_loaded = false;
 #endif
   M_stabs_section_index = 0;
   M_dwarf_debug_line_section_index = 0;
