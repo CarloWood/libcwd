@@ -2932,7 +2932,7 @@ extern "C" {
 
 void __libcwd_free(void* ptr)
 {
-#if TWDEBUG
+#ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
   {
@@ -2951,7 +2951,7 @@ void __libcwd_free(void* ptr)
 
 void* __libcwd_malloc(size_t size)
 {
-#if TWDEBUG
+#ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
     return __libtwd_malloc(size);
@@ -3018,7 +3018,7 @@ void* __libcwd_malloc(size_t size)
 
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
-#if TWDEBUG
+#ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
     return __libtwd_calloc(nmemb, size);
@@ -3096,7 +3096,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 
 void* __libcwd_realloc(void* ptr, size_t size)
 {
-#if TWDEBUG
+#ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
     return __libtwd_realloc(ptr, size);
@@ -3353,7 +3353,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 void* operator new(size_t size)
 {
   LIBCWD_TSD_DECLARATION;
-#if TWDEBUG
+#ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
   {
@@ -3430,7 +3430,7 @@ void* operator new(size_t size)
 void* operator new[](size_t size)
 {
   LIBCWD_TSD_DECLARATION;
-#if TWDEBUG
+#ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
   {
@@ -3512,7 +3512,7 @@ void* operator new[](size_t size)
 void operator delete(void* ptr)
 {
   LIBCWD_TSD_DECLARATION;
-#if TWDEBUG
+#ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
   {
@@ -3543,7 +3543,7 @@ void operator delete(void* ptr)
 void operator delete[](void* ptr)
 {
   LIBCWD_TSD_DECLARATION;
-#if TWDEBUG
+#ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
   {
