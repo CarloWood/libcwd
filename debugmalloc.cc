@@ -1545,7 +1545,7 @@ void* malloc_bootstrap2(size_t size)
 
 void free_bootstrap2(void* ptr)
 {
-  for (int i = 0; i < allocation_counter; ++i)
+  for (unsigned int i = 0; i < allocation_counter; ++i)
     if (allocation_ptrs[i] == ptr)
     {
       allocation_ptrs[i] = allocation_ptrs[allocation_counter - 1];
