@@ -46,13 +46,8 @@ namespace libcw {
 
       public:
 	explicit
-	bufferstream_ct(void) : ostream_type(NULL), M_stringbuf(NULL) { }
+	bufferstream_ct(stringbuf_type* sb) : std::basic_ostream<char, std::char_traits<char> >(sb), M_stringbuf(sb) { }
 	~bufferstream_ct() { }
-	void init(stringbuf_type* sb)
-	{
-	   M_stringbuf = sb;
-	   this->std::basic_ostream<char, std::char_traits<char> >::init(sb);
-	}
 
 	stringbuf_type* rdbuf(void) const { return M_stringbuf; }
 	string_type str(void) const { return M_stringbuf->str(); }

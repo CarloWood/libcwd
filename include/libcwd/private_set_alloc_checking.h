@@ -51,11 +51,15 @@ namespace libcw {
 	--__libcwd_tsd.library_call;
       }
 #endif
+  __inline__ void set_invisible_on(LIBCWD_TSD_PARAM) { ++__libcwd_tsd.invisible; }
+  __inline__ void set_invisible_off(LIBCWD_TSD_PARAM) { --__libcwd_tsd.invisible; }
 #else // !CWDEBUG_ALLOC
   __inline__ void set_alloc_checking_off(LIBCWD_TSD_PARAM) { }
   __inline__ void set_alloc_checking_on(LIBCWD_TSD_PARAM) { }
   __inline__ int set_library_call_on(LIBCWD_TSD_PARAM) { return 0; }
   __inline__ void set_library_call_off(int LIBCWD_COMMA_TSD_PARAM) { }
+  __inline__ void set_invisible_on(LIBCWD_TSD_PARAM) { }
+  __inline__ void set_invisible_off(LIBCWD_TSD_PARAM) { }
 #endif // !CWDEBUG_ALLOC
 
     } // namespace _private_

@@ -115,6 +115,7 @@ public:
   int internal;
   int library_call;
   int inside_malloc_or_free;		// Set when entering a (de)allocation routine non-internal.
+  int invisible;			// When set, allocation done must be invisible.
 #endif // CWDEBUG_ALLOC
 #if LIBCWD_THREAD_SAFE
   threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).

@@ -78,9 +78,9 @@ struct debug_tsd_st {
   laf_ct* current;
     // Current laf.
 
-  std::ostream* bufferstream;
+  std::ostream* current_bufferstream;
     // The stringstream of the current laf.
-    // Its rdbuf() should be set to current->buffer at all times.
+    // This should be set to current->bufferstream at all times.
 
   _private_::debug_stack_tst<laf_ct*> laf_stack;
     // Store for nested debug calls.
@@ -124,7 +124,7 @@ struct debug_tsd_st {
 #if !LIBCWD_THREAD_SAFE
       _off(0),
 #endif
-      tsd_initialized(false), tsd_keep(false), bufferstream(NULL) { }
+      tsd_initialized(false), tsd_keep(false), current_bufferstream(NULL) { }
   ~debug_tsd_st();
 };
 

@@ -694,6 +694,9 @@ void allocator_unlock(void)
       buffer_ct buffer;
 	// The temporary output buffer.
 
+      _private_::bufferstream_ct bufferstream;
+        // Our 'stringstream'.
+
       control_flag_t mask;
 	// The previous control bits.
 
@@ -704,7 +707,7 @@ void allocator_unlock(void)
 	// The current errno.
 
     public:
-      laf_ct(control_flag_t m, char const* l, int e) : mask(m), label(l), err(e) { }
+      laf_ct(control_flag_t m, char const* l, int e) : bufferstream(&buffer), mask(m), label(l), err(e) { }
     };
 
     static inline void write_whitespace_to(std::ostream& os, unsigned int size)
@@ -980,7 +983,7 @@ void allocator_unlock(void)
 	    COMMA_IFTHREADS(false));	// The newline is not missing as a result of nonewline_cf.
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
 	current->buffer.restore_position();
-	bufferstream->write("<continued> ", 12);		// therefore we repeat the space here.
+	current_bufferstream->write("<continued> ", 12);	// therefore we repeat the space here.
         errno = saved_errno;
       }
 
@@ -1004,7 +1007,7 @@ void allocator_unlock(void)
       DEBUGDEBUG_CERR( "creating new laf_ct" );
       current = new laf_ct(channel_set.mask, channel_set.label, errno);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
-      static_cast<_private_::bufferstream_ct*>(bufferstream)->init(&current->buffer);
+      current_bufferstream = &current->bufferstream;
       DEBUGDEBUG_CERR( "laf_ct created" );
 
       // Without a new nested Dout() call, we expect to see a finish() call: The finish belonging to *this* Dout() call.
@@ -1017,30 +1020,30 @@ void allocator_unlock(void)
       // Handle most common case first: no special flags set
       if (!(channel_set.mask & (noprefix_cf|nolabel_cf|blank_margin_cf|blank_label_cf|blank_marker_cf)))
       {
-	bufferstream->write(margin.c_str(), margin.size());
-	bufferstream->write(channel_set.label, WST_max_len);
-	bufferstream->write(marker.c_str(), marker.size());
-	write_whitespace_to(*bufferstream, indent);
+	current_bufferstream->write(margin.c_str(), margin.size());
+	current_bufferstream->write(channel_set.label, WST_max_len);
+	current_bufferstream->write(marker.c_str(), marker.size());
+	write_whitespace_to(*current_bufferstream, indent);
       }
       else if (!(channel_set.mask & noprefix_cf))
       {
 	if ((channel_set.mask & blank_margin_cf))
-	  write_whitespace_to(*bufferstream, margin.size());
+	  write_whitespace_to(*current_bufferstream, margin.size());
 	else
-	  bufferstream->write(margin.c_str(), margin.size());
+	  current_bufferstream->write(margin.c_str(), margin.size());
 #if !CWDEBUG_DEBUGOUTPUT
 	if (!(channel_set.mask & nolabel_cf))
 #endif
 	{
 	  if ((channel_set.mask & blank_label_cf))
-	    write_whitespace_to(*bufferstream, WST_max_len);
+	    write_whitespace_to(*current_bufferstream, WST_max_len);
 	  else
-	    bufferstream->write(channel_set.label, WST_max_len);
+	    current_bufferstream->write(channel_set.label, WST_max_len);
 	  if ((channel_set.mask & blank_marker_cf))
-	    write_whitespace_to(*bufferstream, marker.size());
+	    write_whitespace_to(*current_bufferstream, marker.size());
 	  else
-	    bufferstream->write(marker.c_str(), marker.size());
-	  write_whitespace_to(*bufferstream, indent);
+	    current_bufferstream->write(marker.c_str(), marker.size());
+	  write_whitespace_to(*current_bufferstream, indent);
 	}
       }
 
@@ -1109,10 +1112,10 @@ void allocator_unlock(void)
 #if CWDEBUG_ALLOC
 	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #endif
-	*bufferstream << ": " << strerrno(current->err) << " (" << error_text << ')';
+	*current_bufferstream << ": " << strerrno(current->err) << " (" << error_text << ')';
       }
       if (!(current->mask & nonewline_cf))
-	bufferstream->put('\n');
+	current_bufferstream->put('\n');
 
       // Handle control flags, if any:
       if (current->mask != 0)
@@ -1131,6 +1134,8 @@ void allocator_unlock(void)
 	  delete current;
 	  DEBUGDEBUG_CERR( "Done deleting `current'" );
 	  set_alloc_checking_on(LIBCWD_TSD);
+	  if (__libcwd_tsd.internal)			// Still internal?  Are we ever calling DoutFatal while internal?
+	    _private_::set_library_call_on(LIBCWD_TSD);	// Indefinetely turn library call on before terminating threads.
 #ifdef _REENTRANT
 	  LIBCWD_DISABLE_CANCEL;
 	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
@@ -1194,7 +1199,7 @@ void allocator_unlock(void)
 	control_flag_t mask = current->mask;
         current = laf_stack.top();
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
-	static_cast<_private_::bufferstream_ct*>(bufferstream)->init(&current->buffer);
+	current_bufferstream = &current->bufferstream;
 	if ((mask & flush_cf))
 	  current->mask |= flush_cf;	// Propagate flush to real ostream.
       }
@@ -1202,6 +1207,7 @@ void allocator_unlock(void)
       {
         current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);	// Used (MT: read-only!) in next debug_ct::start().
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
+	current_bufferstream = NULL;
       }
 
       start_expected = true;
@@ -1264,7 +1270,6 @@ void allocator_unlock(void)
       LIBCWD_RESTORE_CANCEL;
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
 #endif
-      new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
 #ifdef _REENTRANT
       WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
@@ -1277,6 +1282,7 @@ void allocator_unlock(void)
 #endif
       tsd.init();
       set_alloc_checking_on(LIBCWD_TSD);
+      new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
 
 #if CWDEBUG_DEBUGOUTPUT
       LIBCWD_TSD_MEMBER_OFF = -1;		// Print as much debug output as possible right away.
@@ -1306,21 +1312,11 @@ void allocator_unlock(void)
       // current.mask needs to be 0 to avoid a crash in start():
       current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
+      current_bufferstream = NULL;
       laf_stack.init();
       continued_stack.init();
       margin.NS_internal_init("", 0);
       marker.NS_internal_init(": ", 2);
-#ifdef _REENTRANT
-      if (!_private_::WST_multi_threaded)
-#else
-      if (1)
-#endif
-      {
-	int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-	bufferstream = new _private_::bufferstream_ct;
-	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-      }
-
 #if CWDEBUG_DEBUGOUTPUT
       first_time = true;
 #endif
@@ -1346,16 +1342,6 @@ void allocator_unlock(void)
 	  LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;
 	);
       }
-
-      void debug_tsd_init_bufferstream(LIBCWD_TSD_PARAM)
-      {
-        LIBCWD_ASSERT(!__libcwd_tsd.internal);
-	ForAllDebugObjects(
-	  debug_tsd_st* tsd(__libcwd_tsd.do_array[(debugObject).WNS_index]);
-	  LIBCWD_ASSERT(tsd->bufferstream == NULL);
-	  tsd->bufferstream = new _private_::bufferstream_ct;
-	);
-      }
     } // namespace _private_
 #endif
 
@@ -1369,9 +1355,6 @@ void allocator_unlock(void)
       if (laf_stack.size())
         DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty laf_stack" );
       // Don't actually deinitialize anything.
-      // Except this, which takes a lot of memory.
-      if (bufferstream)
-        delete bufferstream;
     }
 
     /**

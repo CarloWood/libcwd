@@ -99,7 +99,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 
 // Note: LibcwDoutStream is *not* equal to the ostream that was set with set_ostream.  It is a temporary stringstream.
 #define LibcwDoutStream														\
-        (*LIBCWD_DO_TSD_MEMBER(__libcwd_debug_object, bufferstream))
+        (*LIBCWD_DO_TSD_MEMBER(__libcwd_debug_object, current_bufferstream))
 
 #define LibcwDoutScopeEnd													\
 	LIBCWD_DO_TSD(__libcwd_debug_object).finish(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);		\

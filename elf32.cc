@@ -962,7 +962,9 @@ bfd_st* bfd_st::openr(char const* file_name, bool shared_library)
 
 void objfile_ct::close(void)
 {
+  Debug( libcw_do.off() );
   delete M_input_stream;
+  Debug( libcw_do.on() );
 }
 
 objfile_ct::~objfile_ct()
@@ -2199,10 +2201,9 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
   LIBCWD_TSD_DECLARATION;
   int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
   Debug( libcw_do.off() );
+  _private_::set_invisible_on(LIBCWD_TSD);
   M_input_stream = new std::ifstream;
-#if CWDEBUG_ALLOC
-  Debug( make_invisible(M_input_stream) );
-#endif
+  _private_::set_invisible_off(LIBCWD_TSD);
   Debug( libcw_do.on() );
   M_input_stream->open(file_name);
   if (!M_input_stream->good())

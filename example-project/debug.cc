@@ -10,7 +10,7 @@ namespace myproject {		// >
       namespace dc {
 
         // Add new debug channels here.
-	::libcw::debug::channel_ct custom("CUSTOM");
+	libcw::debug::channel_ct custom("CUSTOM");
 
       } // namespace dc
 

@@ -93,7 +93,6 @@ pthread_key_t TSD_st::S_exit_key;
 pthread_once_t TSD_st::S_exit_key_once = PTHREAD_ONCE_INIT;
 
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
-extern void debug_tsd_init_bufferstream(LIBCWD_TSD_PARAM);
 void threading_tsd_init(LIBCWD_TSD_PARAM);
 
 void TSD_st::S_initialize(void)
@@ -131,8 +130,6 @@ void TSD_st::S_initialize(void)
   if (old_thread_iter_valid)
     (*old_thread_iter).tsd_destroyed();
   threading_tsd_init(*this);			// Initialize the TSD of stuff that goes in threading.cc.
-  if (WST_multi_threaded)
-    debug_tsd_init_bufferstream(*this);
   pthread_once(&S_exit_key_once, &TSD_st::S_exit_key_alloc);
   pthread_setspecific(S_exit_key, (void*)this);
   pthread_setcanceltype(oldtype, NULL);
@@ -460,7 +457,9 @@ void test_lock_pair(int instance_first, void const* from_first, int instance_sec
       stored_info.limited++;
       stored_info.from_first[stored_info.limited] = from_first;
       stored_info.from_second[stored_info.limited] = from_second;
-      DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << "; second: " << instance_second << "; groups: " << (void*)(unsigned long)stored_info.state << '\n');
+      DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << (first_is_readonly ? " (read-only lock)" : "")
+          << "; second: " << instance_second << (second_is_high_priority ? " (high priority lock)" : "")
+          << "; groups: " << (void*)(unsigned long)stored_info.state << '\n');
     }
     if (stored_info.state == 0)					// No group left?
     {
@@ -474,8 +473,9 @@ void test_lock_pair(int instance_first, void const* from_first, int instance_sec
   }
   else
   {
-    DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << "; second: " << instance_second << "; groups: " << (void*)(unsigned long)keypair_info.state << '\n');
-
+    DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << (first_is_readonly ? " (read-only lock)" : "")
+	<< "; second: " << instance_second << (second_is_high_priority ? " (high priority lock)" : "")
+	<< "; groups: " << (void*)(unsigned long)keypair_info.state << '\n');
 #if 0
     // X1,W/R2 + Y2,Z3 imply X1,Z3.
     // First assume the new pair is a possible X1,W/R2:

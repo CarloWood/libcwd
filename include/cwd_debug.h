@@ -99,13 +99,13 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
 }
 
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
-	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, bufferstream)); \
+	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)); \
 	no_alloc_ostream << data
 
 #else // !CWDEBUG_ALLOC
 
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
-	(*LIBCWD_DO_TSD_MEMBER(libcw_do, bufferstream)) << data
+	(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)) << data
 
 #endif // !CWDEBUG_ALLOC
 
