@@ -1496,14 +1496,17 @@ using namespace ::libcw::debug;
 // malloc(3) and calloc(3) replacements:
 //
 
+#if defined(DEBUGDEBUG) && defined(CWDEBUG) && defined(DEBUGUSEBFD)
+namespace libcw { namespace debug { namespace cwbfd { bool ios_base_initialization_hack(void); } } }
+#endif
+
 void* __libcwd_malloc(size_t size)
 {
 #if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
 #ifndef HAVE___LIBC_MALLOC
   ASSERT( _internal_::ios_base_initialized );
-#elif CWDEBUG
-  // if (!_internal_::ios_base_initialized && ios_base_initialization_hack())
-  //  Debug( libcw_do.off() );
+#elif defined(CWDEBUG)
+  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
 #endif
 #endif
   if (internal)
@@ -1556,7 +1559,11 @@ void* __libcwd_malloc(size_t size)
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
 #if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
+#ifndef HAVE___LIBC_MALLOC
   ASSERT( _internal_::ios_base_initialized );
+#elif defined(CWDEBUG)
+  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
+#endif
 #endif
   if (internal)
   {
@@ -1619,7 +1626,11 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 void* __libcwd_realloc(void* ptr, size_t size)
 {
 #if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
+#ifndef HAVE___LIBC_MALLOC
   ASSERT( _internal_::ios_base_initialized );
+#elif defined(CWDEBUG)
+  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
+#endif
 #endif
   if (internal)
   {
@@ -1747,6 +1758,8 @@ void __libcwd_free(void* ptr)
 #if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
 #ifndef HAVE___LIBC_MALLOC
   ASSERT( _internal_::ios_base_initialized );
+#elif defined(CWDEBUG)
+  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
 #endif
 #endif
   deallocated_from_nt from = deallocated_from;
