@@ -49,7 +49,7 @@ extern char const* const unknown_function_c;
  * The normal usage of this class is to print file-name:line-number information as follows:
  * \code
  * Dout(dc::notice, "Called from " <<
- *     location_ct((char*)__builtin_return_address(0) + libcw::builtin_return_address_offset) );
+ *     location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) );
  * \endcode
  */
 class location_ct {

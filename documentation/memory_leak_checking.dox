@@ -28,7 +28,7 @@ A \em marker is created by passing it a description:
 Any allocation done \em after the creation of this marker will be reported as a <B>leak</B> at the moment the \em marker is deleted.
 
 Markers are clearly visibly in the Allocated memory Overview.&nbsp;
-They are labeled MARKER (see also table FIXME).&nbsp;
+They are labeled MARKER (see also the <A HREF="group__group__overview.html#AMO_allocator">allocator type</A> table).&nbsp;
 All memory that is allocated after a \em marker, is displayed indented and below that marker in the Allocated memory Overview.
 
 Finally, it is possible to move specific memory blocks outside markers, so they will not cause a memory leak detection.&nbsp;

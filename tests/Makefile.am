@@ -8,6 +8,7 @@ threads2 \
 threads3 \
 threads4 \
 hello_world \
+location \
 syslog \
 initbug \
 dout_alloc \
@@ -19,6 +20,7 @@ lines
 CLEANFILES=$(EXTRA_PROGRAMS)
 
 hello_world_SOURCES = hello_world.cc
+location_SOURCES = location.cc
 syslog_SOURCES = syslog.cc
 initbug_SOURCES = initbug.cc initbug_GlobalObject.cc
 dout_alloc_SOURCES = dout_alloc.cc
