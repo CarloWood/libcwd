@@ -1,19 +1,20 @@
-11 Oct 2000
+16 Oct 2000
 -----------
 
-It will configure and compile, but openbsd has a few terrible linker bugs
-that makes the result unusable.  Firstly, the normal way that libtool
-creates a shared library results in no call the '.init' of loaded shared
-libraries.  As a result, global objects are not initialized (their
-constructor is never called).  This causes a core dump as soon as one of
-these objects are used.
+Only the static library is supported (libcwd.a).
+
+OpenBSD has a few terrible linker bugs that makes the shared library
+unusable.  Firstly, the normal way that libtool creates a shared library
+results in a library that is not initialized (.init).  As a result,
+global objects are not initialized (their constructor is never called).
+This causes a core dump as soon as one of these objects are used.
 
 I found out that using collect2 of GNU gcc works (although not when you
-call it directly(?!) by using `g++ -shared' (instead of ld -Bshareable):
-collect2 seems to find out which are the global constructors (and
-destructors) and adds code to call them.
+call it directly(?!) by using `g++ -shared' (instead of ld -Bshareable,
+as libtool does): collect2 seems to find out which are the global
+constructors (and destructors) and adds code to call them.
 
-However, now a new linker bug surfaced: it seems not possible to overload
+However, then a new linker bug surfaces: it seems not possible to overload
 `operator delete' in a reliable way: calls to `delete' from libstdc++ do
 not call the same function as calls to `delete' from for instance libcwd,
 or the final application that it is linked with.  This is unacceptable
@@ -21,7 +22,7 @@ since the overloaded operator `new' and `delete' need to be called in pairs.
 
 I was able to reproduce this buggy behaviour in a rather small test case,
 using `g++ -shared -nostdlib' (not when using `g++ -shared').  In the case
-of libcwd however it always fails, also when using `g++ -shared'.
+of libcwd however it always failed, also when using `g++ -shared'.
 
 I give up on openbsd for now, the linker is too buggy.  I have reported
 the above problem to the libtool as well as to the openbsd developers and
