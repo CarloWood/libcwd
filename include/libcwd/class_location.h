@@ -75,7 +75,7 @@ protected:
 private:
 #if CWDEBUG_ALLOC
   friend class ooam_filter_ct;
-  bool M_hide;					// Used by ooam_filter_ct::M_sychronize_locations
+  int M_hide;					// Used by ooam_filter_ct::M_sychronize_locations
 #endif
 
 protected:
@@ -199,6 +199,7 @@ public:
 #if CWDEBUG_ALLOC
   void handle_delayed_initialization(ooam_filter_ct const& filter);
   bool hide_from_alloc_list(void) const { return M_hide; }
+  bool hide_initialized(void) const { return M_hide != 123456; }
 #endif
 };
 

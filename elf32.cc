@@ -641,7 +641,7 @@ private:
   objfile_ct* M_object_file;
 
 public:
-  location_ct(objfile_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file) { M_line = 0; M_range.start = 0; }
+  location_ct(objfile_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file) { M_prev_location.M_line = (Elf32_Half)-1; M_line = 0; M_range.start = 0; }
 
   void invalidate(void) {
     M_flags = 0;
@@ -858,7 +858,7 @@ void location_ct::M_store(void)
     DoutDwarf(dc::bfd, "Skipping M_store: M_used is set.");
     return;
   }
-  if (M_prev_location.M_source_iter == M_source_iter && M_prev_location.M_line == M_line)
+  if (M_line == M_prev_location.M_line && M_prev_location.M_source_iter == M_source_iter)
   {
     DoutDwarf(dc::bfd, "Skipping M_store: location didn't change.");
     return;

@@ -336,7 +336,6 @@ namespace _private_ {
 extern bool WST_multi_threaded;
 #endif
 
-#if CWDEBUG_ALLOC
 void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal)
 {
   char buf[32];			// 32 > x where x is the number of digits of the largest unsigned long.
@@ -359,7 +358,6 @@ void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal
   }
   os->write(p, &buf[32] - p);
 }
-#endif
 
 void smart_ptr::decrement(LIBCWD_TSD_PARAM)
 {
@@ -974,8 +972,6 @@ public:
       { M_memblk_type = new_flag; if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(LIBCWD_TSD_PARAM) const { a_alloc_node.get()->new_list(LIBCWD_TSD); }			// MT-safe: write lock is set.
   memblk_types_nt flags(void) const { return M_memblk_type; }
-  void print_description(debug_ct& debug_object, ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
-      { a_alloc_node.get()->print_description(debug_object, filter LIBCWD_COMMA_TSD); }
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, memblk_info_ct const& memblk) { memblk.printOn(os); return os; }
 private:
@@ -1086,7 +1082,8 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
     RELEASE_LC_WRITE_LOCK;
     LIBCWD_RESTORE_CANCEL;
   }
-  else if (location_info->initialization_delayed())
+  // Don't try to resolve a location if we're from a library call, this to avoid possible infinite loops.
+  else if (!__libcwd_tsd.library_call && location_info->initialization_delayed())
     location_info->handle_delayed_initialization(default_ooam_filter);
   return location_info;
 }
@@ -1898,7 +1895,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	    ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	    << ptr << ((from == from_free) ? ") " : " ") );
 	if (channels::dc_malloc.is_on())
-	  (*iter).second.print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
+	  alloc_node->print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
 	DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
 #else
@@ -2728,6 +2725,11 @@ marker_ct::~marker_ct()
 #if CWDEBUG_LOCATION
       object_file_ct const* object_file = alloc_node->location().object_file();
 #endif
+      if (!alloc_node->location().hide_initialized())
+      {
+        Dout(dc::warning, "alloc_node = " << (void*)alloc_node);
+      }
+      LIBCWD_ASSERT(alloc_node->location().hide_initialized());
       if (((M_filter.M_flags & hide_untagged) && !alloc_node->is_tagged()) ||
 #if CWDEBUG_LOCATION
 	  (alloc_node->location().hide_from_alloc_list()) ||

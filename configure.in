@@ -195,6 +195,7 @@ test "x$tmp" = 'x${exec_prefix}/lib' && tmp=$exec_prefix/lib
 test "x$tmp" = 'xNONE/lib' && tmp=$prefix/lib
 test "x$tmp" = 'xNONE/lib' && tmp=$ac_default_prefix/lib
 dq='"'
+dnl " <-- quote needed for vim.
 sq="'"
 se='|'
 eval sed -e ${sq}s${se}^sys_lib_dlsearch_path_spec=.*${se}sys_lib_dlsearch_path_spec=${dq}$sys_lib_dlsearch_path_spec $tmp${dq}${se}${sq} libtool > libtool.tmp && mv libtool.tmp libtool
@@ -429,6 +430,8 @@ fi
 
 AM_CONDITIONAL(ENABLETHREADING, test x$libcwd_config_threading = xyes)
 AM_CONDITIONAL(ENABLENONTHREADING, test x$libcwd_config_nonthreading = xyes)
+AM_CONDITIONAL(ENABLESHARED, test x$enable_shared = xyes)
+AM_CONDITIONAL(ENABLESTATIC, test x$enable_static = xyes)
 
 dnl Checks for header files.
 AC_HEADER_STAT

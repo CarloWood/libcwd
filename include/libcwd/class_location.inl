@@ -41,7 +41,7 @@ namespace libcw {
  * \brief Construct a location for address \p addr.
  */
 __inline__
-location_ct::location_ct(void const* addr) : M_known(false)
+location_ct::location_ct(void const* addr) : M_known(false), M_hide(123456)
 {
   LIBCWD_TSD_DECLARATION;
   M_pc_location(addr LIBCWD_COMMA_TSD);
@@ -53,7 +53,7 @@ location_ct::location_ct(void const* addr) : M_known(false)
  * taking a thread-specific-data argument.
  */
 __inline__
-location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false)
+location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false), M_hide(123456)
 {
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
@@ -69,7 +69,7 @@ location_ct::~location_ct()
 }
 
 __inline__
-location_ct::location_ct(void) : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
+location_ct::location_ct(void) : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false), M_hide(123456)
 {
 }
 

@@ -1,3 +1,5 @@
+libcwd-0.99.30
+
 libcwd-0.99.29
 
         Allocations inside Dout() et al are not 'internal' anymore.

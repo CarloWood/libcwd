@@ -18,7 +18,7 @@
 #ifndef LIBCW_PRIVATE_THREADING_H
 #define LIBCW_PRIVATE_THREADING_H
 
-#define LIBCWD_DEBUGDEBUGRWLOCK 0
+#define LIBCWD_DEBUGDEBUGRWLOCK 1
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
 #define LIBCWD_NO_INTERNAL_STRING
@@ -57,6 +57,10 @@
 #define LIBCWD_USE_LINUXTHREADS 1
 #else
 #define LIBCWD_USE_POSIX_THREADS 1
+#endif
+#else
+#if LIBCWD_THREAD_SAFE
+#error Fatal error: thread support was not detected during configuration of libcwd! How come you are trying to compile a threaded program now?
 #endif
 #endif // LIBCWD_HAVE_PTHREAD
 
@@ -253,6 +257,7 @@ template <int instance>
 	LIBCWD_TSD_DECLARATION;
 	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
+	if (instance == 1) LIBCWD_DEBUGDEBUGRWLOCK_CERR("mutex_tct::trylock(): " << pthread_self() << ": instance_locked[1] == " << instance_locked[instance] << "; incrementing it.");
 	instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
 	locked_by[instance] = pthread_self();
@@ -307,6 +312,10 @@ template <int instance>
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
+      if (instance == 1) LIBCWD_DEBUGDEBUGRWLOCK_CERR("mutex_tct::unlock(): " << pthread_self() << ": instance_locked[1] == " << instance_locked[instance] << "; decrementing it.");
+#if CWDEBUG_DEBUGT
+      LIBCWD_ASSERT( instance_locked[instance] > 0 && locked_by[instance] == pthread_self() );
+#endif
       instance_locked[instance] -= 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = 0;
@@ -574,6 +583,7 @@ template <int instance>
 	    LIBCWD_TSD_DECLARATION;
 	    _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
+	    if (instance == 1) LIBCWD_DEBUGDEBUGRWLOCK_CERR("rwlock_tct::trywrlock(): " << pthread_self() << ": instance_locked[1] == " << instance_locked[instance] << "; incrementing it.");
 	    instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
 	    locked_by[instance] = pthread_self();
@@ -705,6 +715,7 @@ template <int instance>
 #if CWDEBUG_DEBUGT
       _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
+      if (instance == 1) LIBCWD_DEBUGDEBUGRWLOCK_CERR("rwlock_tct::wrlock(): " << pthread_self() << ": instance_locked[1] == " << instance_locked[instance] << "; incrementing it.");
       instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = pthread_self();
@@ -717,6 +728,10 @@ template <int instance>
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
+      if (instance == 1) LIBCWD_DEBUGDEBUGRWLOCK_CERR("rwlock_tct::wrunlock(): " << pthread_self() << ": instance_locked[1] == " << instance_locked[instance] << "; decrementing it.");
+#if CWDEBUG_DEBUGT
+      LIBCWD_ASSERT( instance_locked[instance] > 0 && locked_by[instance] == pthread_self() );
+#endif
       instance_locked[instance] -= 1;
 #endif
 #if CWDEBUG_DEBUGT
@@ -761,6 +776,7 @@ template <int instance>
 #if CWDEBUG_DEBUGT
       _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
+      if (instance == 1) LIBCWD_DEBUGDEBUGRWLOCK_CERR("rwlock_tct::rd2wrlock(): " << pthread_self() << ": instance_locked[1] == " << instance_locked[instance] << "; incrementing it.");
       instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = pthread_self();
@@ -781,6 +797,10 @@ template <int instance>
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
+      if (instance == 1) LIBCWD_DEBUGDEBUGRWLOCK_CERR("rwlock_tct::wr2rdlock(): " << pthread_self() << ": instance_locked[1] == " << instance_locked[instance] << "; decrementing it.");
+#if CWDEBUG_DEBUGT
+      LIBCWD_ASSERT( instance_locked[instance] > 0 && locked_by[instance] == pthread_self() );
+#endif
       instance_locked[instance] -= 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = 0;
