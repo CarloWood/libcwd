@@ -26,11 +26,11 @@ namespace elf32 {
 
 // Figure 1-2: 32-Bit Data Types.
  
-typedef u_int32_t       Elf32_Addr;             // Unsigned program address.
-typedef u_int16_t       Elf32_Half;             // Unsigned medium integer.
-typedef u_int32_t       Elf32_Off;              // Unsigned file offset.
-typedef int32_t         Elf32_Sword;            // Signed large integer.
-typedef u_int32_t       Elf32_Word;             // Unsigned large integer.
+typedef unsigned int32_t	Elf32_Addr;             // Unsigned program address.
+typedef unsigned int16_t	Elf32_Half;             // Unsigned medium integer.
+typedef unsigned int32_t	Elf32_Off;              // Unsigned file offset.
+typedef          int32_t	Elf32_Sword;            // Signed large integer.
+typedef unsigned int32_t	Elf32_Word;             // Unsigned large integer.
 
 struct asection_st;
 struct bfd_st;
