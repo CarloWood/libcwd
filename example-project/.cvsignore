@@ -1,0 +1,15 @@
+aclocal.m4
+configure
+config.h.in
+stamp-h.in
+Makefile.in
+config.log
+config.h
+config.cache
+config.status
+stamp-h
+Makefile
+maintMakefile
+.deps
+nodebug.h
+program
