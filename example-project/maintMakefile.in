@@ -13,7 +13,7 @@ CPPFLAGS=@CPPFLAGS@
 
 nodebug.h: maintMakefile macrotest.cc debug.h
 	g++ -dM -E $(CPPFLAGS) macrotest.cc | sed -e 's/#define \([^ ]*\).*/#undef \1/' > phase1.h
-	g++ -dM -E $(CPPFLAGS) -DPHASE2 macrotest.cc | egrep -v '(#define __|_H *$)' | sort > nodebug.h
+	g++ -dM -E $(CPPFLAGS) -DPHASE2 macrotest.cc 2>/dev/null | egrep -v '(#define __|_H *$$|DEBUG)' | sort > nodebug.h
 	rm -f phase1.h
 
 # See the maintMakefile.in in the libcwd distribution for more
