@@ -1838,7 +1838,7 @@ template<>
   {
     LIBCWD_TSD_DECLARATION;
     _private_::set_alloc_checking_off(LIBCWD_TSD);
-    _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex);
+    _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex);	// A single LEAK of 20 bytes per debug object from here is ok.
     _private_::set_alloc_checking_on(LIBCWD_TSD);
     LIBCWD_DEFER_CANCEL;
     _private_::mutex_tct<_private_::set_ostream_instance>::lock();

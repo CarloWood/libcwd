@@ -94,7 +94,7 @@ void fatal_cancellation(void* arg)
 
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 // Access to these global variables is protected by the lock static_tsd_instance.
-static TSD_st static_tsd_array[4/*CW_THREADSMAX*/];
+static TSD_st static_tsd_array[CW_THREADSMAX];
 
 static TSD_st* find_static_tsd(pthread_t tid)
 {
@@ -118,9 +118,7 @@ static TSD_st* allocate_static_tsd(pthread_t tid)
     }
   if (oldest_terminated == INT_MAX)	// This means that more than CW_THREADSMAX threads are either
   {					// inside free() or initializing after just being created.
-    for (size_t i = 0; i < sizeof(static_tsd_array)/sizeof(static_tsd_array[0]); ++i)
-      static_tsd_array[i].tid = 0;
-    std::cerr << "More threads than THREADSMAX.  Reconfigure libcwd." << std::endl;
+    std::cerr << "\n****** More threads than THREADSMAX.  Reconfigure libcwd ******\n" << std::endl;
     core_dump();
   }
   return &static_tsd_array[oldest_terminated_index];
@@ -255,17 +253,24 @@ void TSD_st::S_tsd_key_alloc(void)
   WST_tsd_key_created = true;
 }
 
+#define VALGRIND 0
+
 void TSD_st::cleanup_routine(void)
 {
+#if !VALGRIND
   if (++tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS)
+#else
+  if (1)	// Valgrind doesn't iterate the key destruction routines.
+#endif
   {
     // Add the key back a number of times in order to schedule our
     // deinitialization as far as possible after other key destruction
     // routines.
     pthread_setspecific(S_tsd_key, (void*)this);
+#if !VALGRIND
     if (tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS - 1)
       return;
-/*
+#endif
     set_alloc_checking_off(*this);
     for (int i = 0; i < LIBCWD_DO_MAX; ++i)
       if (do_array[i])
@@ -277,7 +282,6 @@ void TSD_st::cleanup_routine(void)
 	delete ptr;				// Free debug object TSD.
       }
     set_alloc_checking_on(*this);
-*/
     int oldtype;
     pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldtype);
     mutex_tct<static_tsd_instance>::lock();
@@ -286,6 +290,8 @@ void TSD_st::cleanup_routine(void)
     static_tsd->terminated = ++terminated_count;
     mutex_tct<static_tsd_instance>::unlock();
     pthread_setcanceltype(oldtype, NULL);
+    this->internal = 1;
+    delete this;
   }
 }
 
@@ -633,7 +639,7 @@ void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* fr
 
   // Initialization.
   if (!keypair_map)
-    keypair_map = new keypair_map_t;
+    keypair_map = new keypair_map_t;	// LEAK 28 bytes.  This is never freed anymore.
 
   // We don't use a lock here because we can't.  I hope that in fact this is
   // not a problem because threadlist is a list<> and new elements will be added

@@ -218,6 +218,10 @@ int main(void)
       is_NPTL = true;
   }
 
+  bool is_valgrind = false;
+  if (pthread_equal(pthread_self(), 1))
+    is_valgrind = true;
+
 #if CWDEBUG_ALLOC
   new int;
   libcw::debug::make_all_allocations_invisible_except(NULL);
@@ -263,6 +267,8 @@ int main(void)
   {
     memcpy(prev_heartbeat, (void*)(heartbeat), sizeof(heartbeat));
     struct timespec rqts = { 1, 0 };
+    if (is_valgrind)
+      rqts.tv_sec = 10;
     struct timespec rmts;
     nanosleep(&rqts, &rmts);
     std::cerr << "\nHEARTBEAT --start of new check-----------------------------\n";

@@ -236,12 +236,23 @@ using libcw::debug::_private_::dlclose_instance;
 #define __libcwd_free free
 #define dc_malloc dc::malloc
 
+// This only works with a patched valgrind (So not for you).
+// Also change the macro in threading.cc.
+#define VALGRIND 0
+
 #if defined(LIBCWD_HAVE__LIBC_MALLOC) || defined(LIBCWD_HAVE___LIBC_MALLOC)
+#if VALGRIND
+#define __libc_malloc valgrind_malloc
+#define __libc_calloc valgrind_calloc
+#define __libc_realloc valgrind_realloc
+#define __libc_free valgrind_free
+#else
 #ifdef LIBCWD_HAVE__LIBC_MALLOC
 #define __libc_malloc _libc_malloc
 #define __libc_calloc _libc_calloc
 #define __libc_realloc _libc_realloc
 #define __libc_free _libc_free
+#endif
 #endif
 #else // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
 #ifndef HAVE_DLOPEN
@@ -280,6 +291,14 @@ extern "C" void* __libc_calloc(size_t nmemb, size_t size);
 extern "C" void* __libc_realloc(void* ptr, size_t size);
 extern "C" void __libc_free(void* ptr);
 #endif
+
+#if VALGRIND
+void* valgrind_malloc(size_t) { return 0; }
+void* valgrind_calloc(size_t, size_t) { return 0; }
+void* valgrind_realloc(void*, size_t) { return 0; }
+void valgrind_free(void*) { }
+#endif
+
 
 #ifdef TWDEBUG
 #include <libtw/sys.h>
@@ -3129,13 +3148,13 @@ void* __libcwd_malloc(size_t size)
   return ptr;
 }
 
-#if LIBCWD_THREAD_SAFE
+#if LIBCWD_THREAD_SAFE && !VALGRIND
 static bool WST_libpthread_initialized = false;
 #endif
 
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
-#if LIBCWD_THREAD_SAFE
+#if LIBCWD_THREAD_SAFE && !VALGRIND
   if (!WST_libpthread_initialized)
   {
     // We can't call pthread_self() or any other function of libpthread yet.
@@ -3449,6 +3468,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #if LIBCWD_THREAD_SAFE
     if (other_target_thread)
     {
+      if (__libcwd_tsd.target_thread->is_zombie() && target_memblk_map_write->size() == 0)
+	delete target_memblk_map_write;
       __libcwd_tsd.target_thread = other_target_thread;
       RELEASE_READ_LOCK;
       // We still have the lock for the current thread (set 12 lines above this).
@@ -3477,6 +3498,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #if LIBCWD_THREAD_SAFE
     if (other_target_thread)
     {
+      if (__libcwd_tsd.target_thread->is_zombie() && target_memblk_map_write->size() == 0)
+	delete target_memblk_map_write;
       __libcwd_tsd.target_thread = other_target_thread;
       RELEASE_READ_LOCK;
       // We still have the lock for the current thread (set 12 lines above this).
