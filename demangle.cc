@@ -128,6 +128,7 @@ template<>
   };
 #endif
 #include <cctype>
+#include <strstream>
 #include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/demangle.h>

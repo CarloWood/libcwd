@@ -37,7 +37,7 @@ RCSTAG_H(debug, "$Id$")
 #    endif
 #    define UNUSED_UNLESS_DEBUG(x) x
 #    include <cassert>
-#    define ASSERT(x) assert(x);
+#    define ASSERT(x) assert(x)
 #    define LibcwDebug(dc_namespace, x) do { USING_NAMESPACE_LIBCW_DEBUG using namespace dc_namespace; {x;} } while(0)
 #    define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
 #    define __Debug(x) LibcwDebug(NAMESPACE_LIBCW_DEBUG::channels, x)
@@ -614,6 +614,24 @@ namespace libcw {
     extern channel_ct const* find(char const* label);
     extern void list_channels_on(debug_ct const& debug_object);
 
+    // The following two templates allow us to do something like:
+    // Dout(dc::notice, libcw:debug::print_using(object, &Object::method) );
+    // which then calls object.method(ostream) to print data to the debug ostream.
+
+    template<class T>
+      class printUsing {
+         typedef void (T::* print_on_t)(ostream&) const;
+      private:
+         T const& M_object;
+	 print_on_t M_print_on;
+	 printUsing(T const& object, print_on_t print_on) : M_object(object), M_print_on(print_on) { }
+	 template<class Y> friend printUsing<Y> print_using(Y const&, void (Y::* print_on)(ostream&) const);
+	 friend ostream& operator<<(ostream& os, printUsing<T> what) { (what.M_object.*what.M_print_on)(os); return os; }
+      };
+
+    template<class T>
+      inline printUsing<T> print_using(T const& object, void (T::* print_on)(ostream&) const) { return printUsing<T>(object, print_on); }
+    
 #ifndef DEBUGNONAMESPACE
   };	// namespace debug
 };	// namespace libcw

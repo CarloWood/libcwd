@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
   make_all_allocations_invisible_except(NULL);
 
   // Make sure we initialized the bfd stuff before we turn on WARNING.
-  (void)libcw_bfd_pc_function_name((void*)main);
+  Debug( (void)pc_function_name((void*)main) );
 
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );

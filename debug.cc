@@ -24,6 +24,9 @@
 #include <libcw/debug.h>
 #include <libcw/strerrno.h>
 #include <libcw/no_alloc_checking_ostrstream.h>
+#ifdef DEBUGUSEBFD
+#include <libcw/bfd.h>		// Needed for location_ct
+#endif
 #endif
 
 RCSTAG_CC("$Id$")
@@ -338,12 +341,12 @@ namespace libcw {
 	*os << '\n';
 	char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #ifdef DEBUGUSEBFD
-	location_st return_address;
-        libcw_bfd_pc_location(return_address, (char*)__builtin_return_address(0) + libcw_bfd_builtin_return_address_offset);
-        DoutFatal(dc::core, "Using `dc::" << channame << "' in " << return_address << " without (first using) a matching `continue_cf'.");
+        DoutFatal(dc::core, "Using `dc::" << channame << "' in " <<
+	    debug::location_ct((char*)__builtin_return_address(0) + libcw_bfd_builtin_return_address_offset) <<
+	    " without (first using) a matching `continue_cf'.");
 #else
-        DoutFatal(dc::core, "Using `dc::" << channame
-	    << "' without (first using) a matching `continue_cf'.");
+        DoutFatal(dc::core, "Using `dc::" << channame <<
+	    "' without (first using) a matching `continue_cf'.");
 #endif
       }
       delete current;

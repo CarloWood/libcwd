@@ -83,20 +83,16 @@ void libcw_bfd_test3(void)
 	break;
     }
 
-    location_st loc;
-    libcw_bfd_pc_location(loc, (char*)retadr + libcw_bfd_builtin_return_address_offset);
+    libcw::debug::location_ct loc((char*)retadr + libcw_bfd_builtin_return_address_offset);
     Dout(dc::notice, "called from " << loc);
 
 #ifdef CW_FRAME_ADDRESS_OFFSET
     if (i < 5 && frame_return_address(i) != retadr)
-    {
-      retadr = frame_return_address(i);
-      libcw_bfd_pc_location(loc, (char*)retadr + libcw_bfd_builtin_return_address_offset);
-      DoutFatal(dc::fatal, "frame_return_address(" << i << ") returns " << loc << "!");
-    }
+      DoutFatal(dc::fatal, "frame_return_address(" << i << ") returns " <<
+          libcw::debug::location_ct((char*)frame_return_address(i) + libcw_bfd_builtin_return_address_offset) << "!");
 #endif
 
-    if (loc.line == 0)
+    if (loc.line() == 0)
       break;
   }
 }

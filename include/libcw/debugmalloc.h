@@ -108,11 +108,12 @@ namespace libcw {
     type_info_ct const* type_info_ptr;	// Type info of related object
     lockable_auto_ptr<char, true> a_description;	// A label describing this memblk
 #ifdef DEBUGUSEBFD
-    location_st location;		// Source file, function and line number from where the allocator was called from
+    debug::location_ct M_location;	// Source file, function and line number from where the allocator was called from
 #endif
   public:
 #ifdef DEBUGUSEBFD
-    alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, void* call_addr);
+    alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, void* call_addr) :
+        a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti), M_location(call_addr) { }
 #else
     alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti) :
         a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti) { }
@@ -123,7 +124,7 @@ namespace libcw {
     type_info_ct const& type_info(void) const { return *type_info_ptr; }
     char const* description(void) const { return a_description.get(); }
 #ifdef DEBUGUSEBFD
-    location_st const& get_location(void) const { return location; }
+    debug::location_ct const& location(void) const { return M_location; }
 #endif
 protected:
     virtual ~alloc_ct() {}

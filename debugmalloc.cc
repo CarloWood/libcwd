@@ -270,14 +270,6 @@ ostream& operator<<(ostream& os, memblk_types_ct memblk_type)
   return os;
 }
 
-#ifdef DEBUGUSEBFD
-alloc_ct::alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, void* call_addr) :
-    a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti), a_description(NULL)
-{
-  libcw_bfd_pc_location(location, call_addr); // FIXME
-}
-#endif
-
 //===========================================================================
 //
 // class dm_alloc_ct
@@ -530,19 +522,13 @@ dm_alloc_ct::~dm_alloc_ct()
 void dm_alloc_ct::print_description(void) const
 {
 #ifdef DEBUGUSEBFD
-  if (location.file)
-  {
-    char const* filename = strrchr(location.file, '/');
-    if (!filename)
-      filename = location.file;
-    else
-      ++filename;
-    Dout( dc::continued, setw(20) << filename << ':' << setw(5) << setiosflags(ios::left) << location.line );
-  }
-  else if (location.func)
+  if (M_location.is_known())
+    Dout(dc::continued, setw(20) << NAMESPACE_LIBCW_DEBUG::print_using(M_location, &debug::location_ct::print_filename_on) <<
+        ':' << setw(5) << setiosflags(ios::left) << M_location.line());
+  else if (M_location.function())
   {
     string f;
-    demangle_symbol(location.func, f);
+    demangle_symbol(M_location.function(), f);
     Dout( dc::continued, setw(24) << f << ' ' );
   }
   else
