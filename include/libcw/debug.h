@@ -104,27 +104,30 @@ namespace libcw {
     };
 
     // The control bits:
-    control_flag_t const noprefix_cf       	= 0x01;
-    control_flag_t const nolabel_cf        	= 0x02;
-    control_flag_t const cerr_cf           	= 0x04;
-    control_flag_t const flush_cf          	= 0x08;
-    control_flag_t const wait_cf           	= 0x10;
-    control_flag_t const error_cf	   	= 0x20;
-    control_flag_t const nonewline_cf      	= 0x40;
-    control_flag_t const continued_cf_maskbit	= 0x80;
+    control_flag_t const nonewline_cf      	= 0x0001;
+    control_flag_t const noprefix_cf       	= 0x0002;
+    control_flag_t const nolabel_cf        	= 0x0004;
+    control_flag_t const blank_margin_cf       	= 0x0008;
+    control_flag_t const blank_label_cf       	= 0x0010;
+    control_flag_t const blank_marker_cf       	= 0x0020;
+    control_flag_t const cerr_cf           	= 0x0040;
+    control_flag_t const flush_cf          	= 0x0080;
+    control_flag_t const wait_cf           	= 0x0100;
+    control_flag_t const error_cf	   	= 0x0200;
+    control_flag_t const continued_cf_maskbit	= 0x0400;
     // The bits of all special channels:
-    control_flag_t const fatal_maskbit     	= 0x100;
-    control_flag_t const coredump_maskbit  	= 0x200;
-    control_flag_t const continued_maskbit 	= 0x400;
-    control_flag_t const finish_maskbit    	= 0x800;
+    control_flag_t const fatal_maskbit     	= 0x0800;
+    control_flag_t const coredump_maskbit  	= 0x1000;
+    control_flag_t const continued_maskbit 	= 0x2000;
+    control_flag_t const finish_maskbit    	= 0x4000;
 
     // Its own type for overloading (saves us an `if'):
     continued_cf_st const continued_cf(continued_cf_maskbit);
 
-    inline control_flag_t const cond_noprefix_cf(bool err) { return err ? noprefix_cf : 0; }
-    inline control_flag_t const cond_nolabel_cf(bool err) { return err ? nolabel_cf : 0; }
+    inline control_flag_t const cond_nonewline_cf(bool cond) { return cond ? nonewline_cf : 0; }
+    inline control_flag_t const cond_noprefix_cf(bool cond) { return cond ? noprefix_cf : 0; }
+    inline control_flag_t const cond_nolabel_cf(bool cond) { return cond ? nolabel_cf : 0; }
     inline control_flag_t const cond_error_cf(bool err) { return err ? error_cf : 0; }
-    inline control_flag_t const cond_nonewline_cf(bool err) { return err ? nonewline_cf : 0; }
 
     // The channels:
     class channel_ct;
@@ -609,7 +612,6 @@ namespace libcw {
 	extern channel_ct const notice;
 	extern channel_ct const system;
 	extern channel_ct const warning;
-	extern channel_ct const none;
 #ifdef DEBUGMALLOC
 	extern channel_ct const debugmalloc;
 #else

@@ -79,6 +79,12 @@ namespace libcw {
     }
 #endif
 
+    static inline void write_whitespace_to(ostream& os, unsigned int size)
+    {
+      for (unsigned int i = size; i > 0; --i)
+        os.put(' ');
+    }
+
     void debug_ct::start(void)
     {
       // It's possible we get here before this debug object is initialized: The order of calling global is undefined :(.
@@ -161,17 +167,33 @@ namespace libcw {
 #endif
 
       // Print prefix if requested.
-      if (!(channel_set.mask & noprefix_cf))
+      // Handle most common case first: no special flags set
+      if (!(channel_set.mask & (noprefix_cf|nolabel_cf|blank_margin_cf|blank_label_cf|blank_marker_cf)))
       {
 	current->oss.write(margin.str, margin.len);
+	current->oss.write(channel_set.label, max_len);
+	current->oss.write(marker.str, marker.len);
+	write_whitespace_to(current->oss, indent);
+      }
+      else if (!(channel_set.mask & noprefix_cf))
+      {
+	if ((channel_set.mask & blank_margin_cf))
+	  write_whitespace_to(current->oss, margin.len);
+	else
+	  current->oss.write(margin.str, margin.len);
 #ifndef DEBUGDEBUG
 	if (!(channel_set.mask & nolabel_cf))
 #endif
 	{
-	  current->oss.write(channel_set.label, max_len);
-	  current->oss.write(marker.str, marker.len);
-	  for (unsigned short i = indent; i > 0; --i)
-	    current->oss.put(' ');
+	  if ((channel_set.mask & blank_label_cf))
+	    write_whitespace_to(current->oss, max_len);
+	  else
+	    current->oss.write(channel_set.label, max_len);
+	  if ((channel_set.mask & blank_marker_cf))
+	    write_whitespace_to(current->oss, marker.len);
+	  else
+	    current->oss.write(marker.str, marker.len);
+	  write_whitespace_to(current->oss, indent);
 	}
       }
 
