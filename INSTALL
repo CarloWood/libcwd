@@ -6,7 +6,7 @@ make
 make install
 
 If that doesn't work, mail me: libcw@alinoe.com
-(include as much details as possible).
+(include as many details as possible).
 
 
 Needed tools
@@ -52,8 +52,8 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      for older compilers or to be used as source drop-in
      when you compile g++ (replacing the normal stdc++ with
      an alpha version).  You also don't need libg++.
-     Don't delete those libraries if you have them though,
-     existing binaries might need to link with them.
+     Don't delete those libraries if you have them though
+     since existing binaries might need to link with them.
 
   libcwd-0.99.0 was tested with gcc-2.95.1 and gcc-ss-20000402.
   libcwd-0.99.1
@@ -67,15 +67,15 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      Location: gnu/binutils/binutils-<version>.tar.gz
      Current version: 2.10.1
 
-     This is only needed for libbfd.  On some OS you also
-     need this for libiberty (although on most OS libiberty
+     This is only needed for libbfd.  On some OSes you also
+     need this for libiberty (although on most OSes libiberty
      comes with the GNU compiler).
 
      (If you have any troubles on linux with binutils,
       then first try upgrading to binutils-2.10.1.
       If that solves your problem, please let me know: libcwd
-      should work with binutils-2.9 but I never thoughroughly
-      tested it and would like to know which version gives a
+      should work with binutils-2.9 but I never thoroughly
+      tested it and would like to know which version has a
       problem, if any.)
 
      Packages needed to run the testsuite
@@ -94,7 +94,7 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      --------------------------------------------------------
 
      If you want to generate maintainer files (and you need that when
-     you got this package via CVS) then you also need to have the
+     you get this package via CVS) then you also need to have the
      following tools:
 
      iii) GNU make
