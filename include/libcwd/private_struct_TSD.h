@@ -96,8 +96,10 @@ namespace libcwd {
 #ifndef LIBCWD_STRUCT_DEBUG_TSD_H
 #include <libcwd/struct_debug_tsd.h>
 #endif
+#if LIBCWD_THREAD_SAFE
 #ifndef LIBCWD_PRIVATE_THREAD_H
 #include <libcwd/private_thread.h>
+#endif
 #endif
 
 namespace libcwd {
