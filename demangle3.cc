@@ -38,7 +38,7 @@ The direct use of these functions should be avoided, instead use the function ty
 // http://www.codesourcery.com/cxx-abi/abi.html#mangling
 //
 // To compile a standalone demangler:
-// g++ -DSTANDALONE -DCWDEBUG -Iinclude demangle3.cc -Wl,-rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
+// g++ -g -DSTANDALONE -DCWDEBUG -Iinclude demangle3.cc -Wl,-rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
 //
  
 #undef CPPFILTCOMPATIBLE
@@ -119,7 +119,6 @@ namespace {
     bool M_name_is_template;
     bool M_name_is_conversion_operator;
     bool M_template_args_need_space;
-    bool M_decoding_pointer_to_member_class_type;
     internal_string M_function_name;
     internal_vector<int> M_template_arg_pos;
     int M_template_arg_pos_offset;
@@ -132,7 +131,7 @@ namespace {
     explicit demangler_ct(char const* in) :
         M_str(in), M_pos(0), M_result(true), M_inside_template_args(0), M_inside_type(0), M_inside_substitution(0),
 	M_saw_destructor(false), M_name_is_cdtor(false), M_name_is_template(false), M_name_is_conversion_operator(false),
-	M_template_args_need_space(false), M_decoding_pointer_to_member_class_type(false), M_template_arg_pos_offset(0)
+	M_template_args_need_space(false), M_template_arg_pos_offset(0)
 #ifdef CWDEBUG
         , M_inside_add_substitution(false)
 #endif
@@ -1090,7 +1089,7 @@ namespace {
   // <B> is the bare-function-type without return type.  <I> is the array index.
   //
   //								Substitutions:
-  // <Q>M<Q2><C>F<R><B>E	==> R (C::*Q)B Q2		"<C>", "<Q2><C>", "F<R><B>E" (<R> and <B> recursive), "M<Q2><C>F<R><B>E".
+  // <Q>M<C><Q2>F<R><B>E        ==> R (C::*Q)B Q2               "<C>", "F<R><B>E" (<R> and <B> recursive), "M<C><Q2>F<R><B>E".
   // <Q>F<R><B>E 		==> R (Q)B			"<R>", "<B>" (<B> recursive) and "F<R><B>E".
   // <Q>G<T>     		==> imaginary T Q		"<T>", "G<T>" (<T> recursive).
   // <Q>C<T>     		==> complex T Q			"<T>", "C<T>" (<T> recursive).
@@ -1113,11 +1112,17 @@ namespace {
   // all substitutions only - implicitly finishing them at the end of the type.  Then the output and real
   // substitutions are generated.
   //
+  // The following comment was for the demangling of g++ version 3.0.x.  The mangling (and I believe
+  // even the ABI description) have been fixed now (as of g++ version 3.1).
+  //
+  // g++ 3.0.x only:
   // The ABI specifies for pointer-to-member function types the format <Q>M<T>F<R><B>E.  In other words,
   // the qualifier <Q2> (see above) is implicitely contained in <T> instead of explicitly part of the M
   // format.  I am convinced that this is a bug in the ABI.  Unfortunately, this is how we have to
   // demangle things as it has a direct impact on the order in which substitutions are stored.
   // This ill-formed design results in rather ill-formed demangler code too however :/
+  //
+  // <Q2> is now explicitely part of the M format.
   //
 
   void qualifiers_ct::decode_qualifiers(internal_string& output)
@@ -1169,6 +1174,7 @@ namespace {
 	    break;
 	  }
 	  case 'M':
+	    output += " ";
 	    output += (*iter).optional_type();
 	    output += "::*";
 	    break;
@@ -1270,25 +1276,32 @@ namespace {
 	}
 	case 'M':
 	{
+	  // <Q>M<C> or <Q>M<C><Q2>F<R><B>E
 	  eat_current();
-	  qualifiers_ct* class_type_qualifiers = new qualifiers_ct(*this);
-	  M_decoding_pointer_to_member_class_type = true;
 	  internal_string class_type;
-	  if (!decode_type(class_type, class_type_qualifiers) || !class_type_qualifiers->suppressed())
+	  if (!decode_type(class_type))				// substitution: "<C>".
 	  {
-	    delete class_type_qualifiers;
 	    failure = true;
 	    break;
 	  }
-	  M_decoding_pointer_to_member_class_type = false;
-	  if (M_str[start_pos + 1] != 'S' || M_str[start_pos + 2] == 't')
-	    add_substitution(start_pos + 1, type);					// substitution: "<C>".
-	  if (class_type_qualifiers->size() > 0)	// Must be CV-qualifiers and a member function pointer.
+//	  if (M_str[start_pos + 1] != 'S' || M_str[start_pos + 2] == 't')
+//	    add_substitution(start_pos + 1, type);
+	  char c = current();
+	  if (c == 'F' || c == 'K' || c == 'V' || c == 'r')	// Must be CV-qualifiers and a member function pointer.
 	  {
-	    // <Q>M<Q2><C>F<R><B>E	==> R (C::*Q)B Q2		"<C>", "<Q2><C>", "F<R><B>E" (<R> and <B> recursive), "M<Q2><C>F<R><B>E".
+	    // <Q>M<C><Q2>F<R><B>E      ==> R (C::*Q)B Q2               "<C>", "<C><Q2>", "F<R><B>E" (<R> and <B> recursive), "M<C><Q2>F<R><B>E".
+	    int count = 0;
+	    int Q2_start_pos = M_pos;
+	    while(c == 'K' || c == 'V' || c == 'r')		// Decode <Q2>
+	    {
+	      ++count;
+	      c = next();
+	    }
+	    qualifiers_ct class_type_qualifiers(*this);
+	    if (count)
+	      class_type_qualifiers.add_qualifier_start(cv_qualifier, Q2_start_pos, count, M_inside_substitution);
 	    internal_string member_function_qualifiers;
-	    class_type_qualifiers->decode_qualifiers(member_function_qualifiers);	// substitution(s): "<Q2><C>".
-	    delete class_type_qualifiers;
+	    class_type_qualifiers.decode_qualifiers(member_function_qualifiers);	// substitution(s): "<C><Q2>".
 	    if (eat_current() != 'F')
 	    {
 	      failure = true;
@@ -1310,14 +1323,13 @@ namespace {
 	      failure = true;
 	      break;
 	    }
-	    add_substitution(start_pos, type);					// substitution: "M<Q2><C>F<R><B>E".
+	    add_substitution(start_pos, type);					// substitution: "M<C><Q2>F<R><B>E".
 	    qualifiers->decode_qualifiers(output);				// substitution: all qualified types if any.
 	    output += ")";
 	    output += bare_function_type;
 	    output += member_function_qualifiers;
 	    goto decode_type_exit;
 	  }
-	  delete class_type_qualifiers;
           qualifiers->add_qualifier_start(pointer_to_member, start_pos, class_type, M_inside_substitution);
 	  continue;
 	}
@@ -1380,8 +1392,7 @@ namespace {
 	  if (!recursive_template_param_or_substitution_call && qualifiers->suppressed())
 	  {
 	    add_substitution(start_pos, type);			// substitution: "<template-param>" or "<template-template-param> <template-args>".
-	    if (!M_decoding_pointer_to_member_class_type)
-	      qualifiers->decode_qualifiers(output);		// substitution: all qualified types, if any.
+	    qualifiers->decode_qualifiers(output);		// substitution: all qualified types, if any.
 	  }
 	  break;
 	case 'S':
@@ -1402,7 +1413,7 @@ namespace {
 	      if (!recursive_template_param_or_substitution_call && qualifiers->suppressed())
 		add_substitution(start_pos, type);			// substitution: "<template-template-param> <template-args>".
 	    }
-	    if (!recursive_template_param_or_substitution_call && qualifiers->suppressed() && !M_decoding_pointer_to_member_class_type)
+	    if (!recursive_template_param_or_substitution_call && qualifiers->suppressed())
 	      qualifiers->decode_qualifiers(output);			// substitution: all qualified types, if any.
 	    break;
 	  }

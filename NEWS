@@ -5,6 +5,8 @@ libcwd-1.0.0
 	Bug fixes:
 
 	Configuration with --disable-alloc was still broken on SunOS.
+	Bug fixes for the demangler (mangling changed per g++ 3.1).
+	Bug fixes for DWARF2 location lookup.
 
 libcwd-0.99.27
 

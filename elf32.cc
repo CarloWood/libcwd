@@ -677,8 +677,10 @@ public:
   }
   void copy(void)
   {
-    if (is_valid())
-      M_store();
+    // Assume valid. if (is_valid())
+    DoutDwarf(dc::bfd, "--> location assumed valid.");
+    M_flags = 3;
+    M_store();
   }
   void set_source_iter(object_files_string_set_ct::iterator const& iter) { M_source_iter = iter; M_used = false; }
   void set_func_iter(object_files_string_set_ct::iterator const& iter) { M_func_iter = iter; }
@@ -1718,6 +1720,7 @@ indirect:
 		    LEB128_t line_increment;
 		    dwarf_read(debug_line_ptr, line_increment);
 		    DoutDwarf(dc::bfd, "DW_LNS_advance_line: " << line_increment);
+		    location.invalidate();	// FIXME? Is this ok?
 		    location.increment_line(line_increment);
 		    break;
 		  }

@@ -11,7 +11,7 @@ libcw::debug::cwprint_using_tct<libcw::_private_::GlobalObject> libcw::debug::cw
 (std::)*_Deque_iterator<memory_block_st\*, memory_block_st\* const&, memory_block_st\* const\*>::operator==\((std::)*_Deque_iterator<memory_block_st\*, memory_block_st\* const&, memory_block_st\* const\*> const&\) const
 (std::)*__normal_iterator<option const\*, (std::)*vector<option, (std::)*allocator<option> > >::operator-\((std::)*__normal_iterator<option const\*, (std::)*vector<option, (std::)*allocator<option> > > const&\) const
 char\* (std::)*basic_string<char, (std::)*char_traits<char>, libcw::debug::no_alloc_checking_allocator>::_S_construct<char\*>\(char\*, char\*, libcw::debug::no_alloc_checking_allocator const&\)
-void f<A, A\*, A const\*>\(A, A\*, A const\*, A const\* \(\*\) \[4\], A const\* (\(\*C::\*\) \[4\], A const\* \(&D::\*\) \[3\]|\(\* \(C::\*\)\) \[4\])\)
+void f<A, A\*, A const\*>\(A, A\*, A const\*, A const\* \(\*\) \[4\], A const\* \(\* C::\*\) \[4\]\)
 foo\(int, int\*, int\*\*, int\*\*\*, int\*\*\*\*, int\*\*\*\*\*, int\*\*\*\*\*\*, int\*\*\*\*\*\*\*, int\*\*\*\*\*\*\*\*, int\*\*\*\*\*\*\*\*\*, int\*\*\*\*\*\*\*\*\*\*, int\*\*\*\*\*\*\*\*\*\*\*, int\*\*\*\*\*\*\*\*\*\*\*\*, int\*\*\*\*\*\*\*\*\*\*\*\*\*, int\*\*\*\*\*\*\*\*\*\*\*\*\*\*, int\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\)
 (std::)*D<A\*, A\*&, A\*\*> (std::)*B<(std::)*D<A\*, A\* const&, A\* const\*>, (std::)*D<A\*, A\*&, A\*\*>, A\*>\((std::)*D<A\*, A\* const&, A\* const\*>, (std::)*D<A\*, A\* const&, A\* const\*>, (std::)*D<A\*, A\*&, A\*\*>, A\*\*\)
 (void operator-<42>\(A<\(42\) \+ \(2\)>::T\)|SKIPPED)
