@@ -27,7 +27,7 @@ enable_static = @enable_static@
 INCLUDES = -I- -I$(top_builddir)/include -I$(srcdir)/../include
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
-DISTFILES = Makefile.in config lib libcwd.tst
+DISTFILES = Makefile.in config lib libcwd.tst libcwd.nodebug
 
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
 CXXLINK = $(CXX) $(CXXFLAGS) $(LDFLAGS)
