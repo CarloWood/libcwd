@@ -31,3 +31,5 @@ added.  Example: "cd libcwd; cvs update -dP".  Or add 'update -dP' to your
 
 Current modules are: libcwd
 
+Please realize that the state of CVS is often more broken than functional.
+You should use the last released tar ball instead.

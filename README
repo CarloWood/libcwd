@@ -45,6 +45,10 @@ The debug support can be divided into the following components:
 1) Support for Object Oriented debug output (using ostream and
    debug objects for `channels' and `devices').
 2) Support for memory allocation debugging.
+3) General runtime debugging support (demangling, stack and call
+   traces, break points (starting a gdb session from within the
+   program), tracking and handling existing functions as objects,
+   etc).
 
 Detailed documentation and a tutorial can be found in the
 directory documentation/.
