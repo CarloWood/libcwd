@@ -37,3 +37,6 @@ sys.h: sys.ho
 	  else \
 	    cp sys.ho sys.h; \
 	  fi)
+
+DISTCLEANFILES = debug_config.h sys.h
+

@@ -33,4 +33,4 @@ EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
 CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
-INCLUDES = -I- -I$(srcdir)/../include -DDEBUG
+INCLUDES = -I- -I$(top_builddir)/include -I$(srcdir)/../include -DDEBUG
