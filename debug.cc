@@ -445,8 +445,10 @@ namespace libcw {
       }
       else
       {
-        current = reinterpret_cast<laf_ct*>(dummy_laf);
-	current_oss = NULL;
+        current = reinterpret_cast<laf_ct*>(dummy_laf);			// Used next debug_ct::start().
+	DEBUGDEBUG_CERR( "current = " << (void*)current );
+	current_oss = &current->oss;					// Used when errornous using dc::continued next.
+	DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
       }
 
       start_expected = true;
