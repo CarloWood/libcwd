@@ -269,7 +269,7 @@ namespace {
 	M_part_of_substitution(inside_substitution) { }
     int start_pos(void) const { return M_start_pos; }
     char first_qualifier(void) const { cnt = 1; return M_qualifier1; }
-    char next_qualifier(void) const { return (++cnt == 2) ? M_qualifier2 : M_qualifier3; }
+    char next_qualifier(void) const { return (++cnt == 2) ? M_qualifier2 : (cnt == 3) ? M_qualifier3 : 0; }
     std::string const& optional_type(void) const { return M_optional_type; }
     bool part_of_substitution(void) const { return M_part_of_substitution; }
   };
