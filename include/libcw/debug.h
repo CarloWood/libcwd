@@ -17,20 +17,27 @@
 #endif
 #define LIBCW_DEBUG_H
 
+#ifndef LIBCW_SYS_H
+#error "You need to #include <libcw/sys.h> at the top of every source file."
+#endif
+
 #include <libcw/debugging_defs.h>
 #include <iosfwd>
 
 RCSTAG_H(debug, "$Id$")
 
 #  ifdef DEBUG
-#   ifdef DEBUGNONAMESPACE
-#     define USING_NAMESPACE_LIBCW_DEBUG
-#     define NAMESPACE_LIBCW_DEBUG ::std
-#     define LIBCW
-#   else
-#     define USING_NAMESPACE_LIBCW_DEBUG using namespace ::libcw::debug;
-#     define NAMESPACE_LIBCW_DEBUG ::libcw::debug
-#     define LIBCW ::libcw
+#    ifdef DEBUGNONAMESPACE
+#      define USING_NAMESPACE_LIBCW_DEBUG
+#      define NAMESPACE_LIBCW_DEBUG ::std
+#      define LIBCW
+#    else
+#      define USING_NAMESPACE_LIBCW_DEBUG using namespace ::libcw::debug;
+#      define NAMESPACE_LIBCW_DEBUG ::libcw::debug
+#      define LIBCW ::libcw
+#    endif
+#    ifndef DEBUGNAMESPACE
+#      define DEBUGNAMESPACE NAMESPACE_LIBCW_DEBUG
 #    endif
 #    define UNUSED_UNLESS_DEBUG(x) x
 #    include <assert.h>
@@ -719,23 +726,30 @@ namespace libcw {
     debug_obj.fatal_finish();				\
   } while(0)
 
+// For use in library header files
 #define __Dout(cntrl, data) LibcwDout(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
 #define __Dout_vform(cntrl, format, vl) LibcwDout_vform(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
 #define __DoutFatal(cntrl, data) LibcwDoutFatal(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
 
+// For use in applications
+#define Dout(cntrl, data) LibcwDout(DEBUGNAMESPACE, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define Dout_vform(cntrl, format, vl) LibcwDout_vform(DEBUGNAMESPACE, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
+#define DoutFatal(cntrl, data) LibcwDoutFatal(DEBUGNAMESPACE, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+
 #else // !DEBUG
 
+// No debug output code
 #define LibcwDout(a, b, c)
+#define LibcwDout_vform(a, b, c)
 #define LibcwDoutFatal(a, b, c) do { cerr << c << endl; exit(-1); } while(1)
 #define __Dout(a, b)
 #define __Dout_vform(a, b, c)
 #define __DoutFatal(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)
+#define Dout(a, b)
+#define Dout_vform(a, b, c)
+#define DoutFatal(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)
 
 #endif // DEBUG
-
-#define Dout(cntrl, data) __Dout(cntrl, data)
-#define Dout_vform(cntrl, format, vl) __Dout_vform(cntrl, format, vl)
-#define DoutFatal(cntrl, data) __DoutFatal(cntrl, data)
 
 #include <libcw/debugmalloc.h>
 

@@ -16,4 +16,4 @@
 // This header file is included in all source files, after the includes
 // of the system header and before the includes of the libcw headers.
 
-//using namespace std;
+using namespace std;
