@@ -796,7 +796,7 @@ namespace libcw {
 	  if (i != object_file->get_function_symbols().end())
 	  {
 	    asymbol const* p = (*i).get_symbol();
-	    if (addr < (bfd_vma)symbol_start_addr(p) + symbol_size(p))
+	    if (addr < (bfd_vma)(size_t)symbol_start_addr(p) + symbol_size(p))
 	      return &(*i);
 	  }
 	  Dout(dc::bfd, "No symbol found: " << hex << addr);
@@ -818,7 +818,7 @@ namespace libcw {
       if (!initialized)
 	libcw_bfd_init();
 
-      symbol_ct const* symbol = pc_symbol((bfd_vma)addr, find_object_file(addr));
+      symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, find_object_file(addr));
 
       if (!symbol)
 	return unknown_function_c;
@@ -847,7 +847,7 @@ namespace libcw {
 	libcw_bfd_init();
 
       object_file_ct* object_file = find_object_file(addr);
-      symbol_ct const* symbol = pc_symbol((bfd_vma)addr, object_file);
+      symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, object_file);
       if (symbol && symbol->is_defined())
       {
 	asymbol const* p = symbol->get_symbol();
