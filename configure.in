@@ -249,8 +249,8 @@ dnl Check for system services.
 dnl Set up build directory
 test ! -d include && mkdir include
 
-CW_OUTPUT(Makefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
 exit 0
 
 dnl Keep automake happy
-AC_OUTPUT(Makefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)

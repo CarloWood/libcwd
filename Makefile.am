@@ -29,3 +29,6 @@ libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
 
 libcwd_la_LIBADD = utils/libutils.la
 
+# --------------- Maintainer's Section
+
+@MAINTAINER_MODE_TRUE@include $(srcdir)/maintMakefile
