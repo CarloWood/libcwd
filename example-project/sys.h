@@ -2,6 +2,6 @@
 #include "config.h"
 #endif
 #ifdef CWDEBUG
-#include <libcw/sys.h>
+#include <libcw/sysd.h>
 #endif
 

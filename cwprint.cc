@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#include <libcw/sys.h>
+#include "sys.h"
 #include <iostream>
 #include <libcw/cwprint.h>
 #include <cstring>		// Needed for strlen

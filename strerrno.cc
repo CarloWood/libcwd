@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#include <libcw/sys.h>
+#include "sys.h"
 #include <libcw/debug_config.h>
 #include <libcw/strerrno.h>
 

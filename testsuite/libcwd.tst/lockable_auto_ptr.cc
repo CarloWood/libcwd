@@ -10,10 +10,10 @@
 // version 1.0 as appearing in the file LICENSE.QPL included in the
 // packaging of this file.
 //
-#include "libcw/sys.h"
+#include <libcw/sysd.h>
 #include <iostream>
-#include "libcw/debug.h"
-#include "libcw/lockable_auto_ptr.h"
+#include <libcw/debug.h>
+#include <libcw/lockable_auto_ptr.h>
 
 using namespace libcw;
 using namespace libcw::debug;

@@ -1,0 +1,102 @@
+// @configure_input@
+// $Header$
+//
+// Copyright (C) 2000 - 2001, by
+//
+// Carlo Wood, Run on IRC <carlo@alinoe.com>
+// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
+// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
+//
+// This file may be distributed under the terms of the Q Public License
+// version 1.0 as appearing in the file LICENSE.QPL included in the
+// packaging of this file.
+//
+
+#ifndef SYS_H
+#define SYS_H
+
+//
+// typedefs
+//
+// getgroups_t          : The type of the array argument to getgroups
+//
+@CW_TYPEDEFS@
+
+//
+// __builtin_return_address(x) with x > 0 does or doesn't work.
+//
+ 
+#@CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS@ HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+
+// Bug work arounds
+ 
+// Including certain header files fail with a warning.  For example:
+// /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
+// Word around (if any):
+@CW_REDEFINES_FIX@
+
+// This is to avoid warnings like:
+// /usr/include/g++-3/iostream.h:253:5: "_G_CLOG_CONFLICT" is not defined
+#@CW_CONFIG_G_CONFIG_H_MACROS@ NEED_G_CONFIG_H_MACROS
+#ifdef NEED_G_CONFIG_H_MACROS
+#include <_G_config.h>
+#ifndef _G_CLOG_CONFLICT
+#define _G_CLOG_CONFLICT 0
+#endif
+#ifndef _G_HAS_LABS
+#define _G_HAS_LABS @CW_HAVE_LABS@
+#endif
+#endif
+
+// Fixes for gcc-2.96 and earlier.
+
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#define __GXX_ABI_VERSION 0
+#include <streambuf.h>
+namespace std {
+  class ios_base : private ios {
+  public:
+    using ios::fmtflags;
+    ios::dec;
+    ios::fixed;
+    ios::hex;
+    ios::internal;
+    ios::left;
+    ios::oct;
+    ios::right;
+    ios::scientific;
+    ios::showbase;
+    ios::showpoint;
+    ios::showpos;
+    ios::skipws;
+    ios::unitbuf;
+    ios::uppercase;
+    ios::adjustfield;
+    ios::basefield;
+    ios::floatfield;
+ 
+    using ios::iostate;
+    ios::badbit;
+    ios::eofbit;
+    ios::failbit;
+    ios::goodbit;
+ 
+    using ios::openmode;
+    ios::app;
+    ios::ate;
+    ios::binary;
+    ios::in;
+    ios::out;
+    ios::trunc;
+ 
+    using ios::seekdir;
+    ios::beg;
+    ios::cur;
+    ios::end;
+  };
+}
+#endif
+
+#include <libcw/sysd.h>
+
+#endif // SYS_H

@@ -15,7 +15,7 @@
 #pragma implementation
 #endif
 
-#include <libcw/sys.h>
+#include "sys.h"
 #include <libcw/debug.h>
 #include <libcw/demangle.h>
 #include <libcw/type_info.h>

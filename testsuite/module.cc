@@ -1,5 +1,5 @@
 // A shared library
-#include <libcw/sys.h>
+#include <libcw/sysd.h>
 #include <libcw/debug.h>
 
 #include <sys/types.h>

@@ -2,5 +2,5 @@ Makefile
 Makefile.in
 debug_config.ho
 debug_config.h
-sys.ho
-sys.h
+sysd.ho
+sysd.h

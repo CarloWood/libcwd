@@ -11,12 +11,12 @@
 // packaging of this file.
 //
 
-#include "libcw/sys.h"
+#include <libcw/sysd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <cstdio>
 #include <unistd.h>
-#include "libcw/debug.h"
+#include <libcw/debug.h>
 
 RCSTAG_CC("$Id$")
 

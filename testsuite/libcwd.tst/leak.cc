@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#include <libcw/sys.h>
+#include <libcw/sysd.h>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>

@@ -1,16 +1,43 @@
 libcwd-0.99.13
 
 	Support for dlopen() was added.  Because there seems to be no hook for dlopen,
-	it is being defined as a macro (#define dlopen __libcwd_dlopen).
+	it is being defined as a macro (#define dlopen __libcwd_dlopen).  However,
+	if a dlopen isn't catched (because, for instance, because it is called from
+	another library that is not using libcwd) and when <link.h> is available (as
+	is on all OS that use glibc) then libcwd will automatically post-load any
+	shared libraries as soon as it can not find the address of a location_ct.
+	Actually, the correct usage of the macro is only important in order to assure
+	the correct unloading of symbols when a loaded module is dlclose-ed again
+	(which is also defined as a macro).
 
 	Improvement of the determination of the start of an object file.  Unknown starts
 	are now also correctly determined for very small shared objects.
+
+	Support for the DWARF 2.0 debugging format has been added.
 
 	Bug fix: previously local symbols were all thrown away, including static
 	functions.  Now a source file / line number lookup inside a static function
 	will work too.
 
 	API changes:
+
+	IMPORTANT: sys.h -> sysd.h.
+	The header file sys.h has been renamed to sysd.h and was majorly cleaned up.
+	All macros that are not used in header files of libcwd have been removed.
+	Removed are: __restrict, NEED_SYS_TYPES, NEED_WORD_ALIGNMENT, NBLOCK_*,
+	HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS, HAVE_FRAME_ADDRESS_OFFSET,
+	CW_FRAME_ADDRESS_OFFSET, NO_ATTRIBUTE, NEED_FAKE_RETURN, UNUSED, USE,
+	and __GXX_ABI_VERSION.  No header file is included anymore (it was possible
+	that <sys/types.h>, <_G_config.h> and/or <streambuf.h> were included)
+	and no typedefs are included anymore (removed: socklen_t, optval_t, retsig_t,
+	sighandler_param_t and getgroups_t).  The constant malloc_overhead_c has
+	also been removed from sys.h.
+	YOU SHOULD HAVE been using #include "sys.h", containing:
+	  #ifdef CWDEBUG
+	  #include <libcw/sys.h>
+	  #endif
+	in effect causing the need to edit only one file (your "sys.h") and change
+	<libcw/sys.h> into <libcw/sysd.h>.
 
 	Debug channel WARNING is now on by default.  This means that you can't turn it
 	on at the start of main: remove lines with Debug( dc::warning.on() ).

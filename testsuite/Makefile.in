@@ -79,8 +79,6 @@ module.so: module.cc
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
 
 # Provide rules for manual compilation:
-dummy:
-
 tst_%.o: libcwd.tst/%.cc Makefile $(top_builddir)/include/libcw/*.h
 	$(CXXCOMPILE) -c $< -o $@
 
@@ -100,7 +98,7 @@ endif
 shared: $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS)
 static: $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS)
 
-run: shared static
+run: shared static module.so
 	@for i in $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS); do echo -n "$$i: "; if $$i 2>/dev/null >/dev/null; then echo "OK"; else echo "ERROR"; fi ; done
 
 # Clean rules

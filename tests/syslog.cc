@@ -25,7 +25,7 @@
 // link using: g++ syslog.o -lcwd -lbfd -liberty -o syslog
 //
 
-#include <libcw/sys.h>
+#include <libcw/sysd.h>
 #include <syslog.h>
 #include <libcw/buf2str.h>
 // #include <locale> Not supported by early versions

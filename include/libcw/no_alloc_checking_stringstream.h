@@ -18,7 +18,7 @@
 
 RCSTAG_H(no_alloc_checking_stringstream, "$Id$")
 
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 #include <strstream>
 #else
 #include <sstream>
@@ -29,7 +29,7 @@ namespace libcw {
 
 #ifdef DEBUGMALLOC
 
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 
 class no_alloc_checking_stringstream : public std::strstream {
 private:
@@ -41,7 +41,7 @@ public:
   typedef streampos pos_type;
 };
 
-#else // !LIBCW_USE_STRSTREAM
+#else // !LIBCWD_USE_STRSTREAM
 
 class no_alloc_checking_allocator : public std::allocator<char> {
 public:
@@ -51,11 +51,11 @@ public:
 
 typedef std::basic_stringstream<char, std::char_traits<char>, no_alloc_checking_allocator> no_alloc_checking_stringstream;
 
-#endif // !LIBCW_USE_STRSTREAM
+#endif // !LIBCWD_USE_STRSTREAM
 
 #else // !DEBUGMALLOC
 
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 class no_alloc_checking_stringstream : public strstream {
 public:
   typedef streampos pos_type;

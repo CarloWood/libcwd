@@ -1,7 +1,7 @@
-#include <libcw/sys.h>
+#include "../../sys.h"
 #include <errno.h>
 #include <libcw/debug.h>
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 #include <strstream>
 #else
 #include <sstream>
@@ -9,7 +9,7 @@
 
 int main(void)
 {
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
   std::ostrstream buf;
 #else
   std::ostringstream buf;

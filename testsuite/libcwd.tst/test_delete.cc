@@ -11,10 +11,10 @@
 // packaging of this file.
 //
 
-#include "libcw/sys.h"
+#include <libcw/sysd.h>
 #include <iostream>
 #ifdef CWDEBUG
-#include "libcw/debug.h"
+#include <libcw/debug.h>
 #else
 #define DEBUGMALLOC
 #define Debug(x)

@@ -20,14 +20,16 @@
 
 #ifndef DEBUGUSEGNULIBBFD
 
-#include <libcw/sys.h>
+#include "sys.h"
 #include <inttypes.h>	// ISO C99 header, needed for int32_t etc.
+#include <iomanip>
 #ifdef HAVE_DLOPEN
 #include <dlfcn.h>
 #endif
 #include <fstream>
 #include <set>
 #include <map>
+#include <vector>
 #include <libcw/debug.h>
 #include <libcw/elf32.h>
 
@@ -35,6 +37,7 @@ RCSTAG_CC("$Id$")
 
 #undef DEBUGELF32
 #undef DEBUGSTABS
+#define DEBUGDWARF
 
 namespace libcw {
   namespace debug {
@@ -246,6 +249,153 @@ static unsigned char const N_NBLCS = 0xF8;
 static unsigned char const N_LENG = 0xfe;
 
 //==========================================================================================================================================
+// The information about DWARF was obtained from http://www.eagercon.com/dwarf/dwarf-2.0.0.pdf
+// which is one of the worsed documentations I ever saw :/.
+//
+
+typedef long LEB128_t;
+static int const number_of_bits_in_LEB128_t = 8 * sizeof(LEB128_t);
+typedef unsigned long uLEB128_t;
+static int const number_of_bits_in_uLEB128_t = 8 * sizeof(uLEB128_t);
+
+static uLEB128_t const DW_TAG_array_type		= 0x01;
+static uLEB128_t const DW_TAG_class_type		= 0x02;
+static uLEB128_t const DW_TAG_entry_point		= 0x03;
+static uLEB128_t const DW_TAG_enumeration_type		= 0x04;
+static uLEB128_t const DW_TAG_formal_parameter		= 0x05;
+static uLEB128_t const DW_TAG_imported_declaration	= 0x08;
+static uLEB128_t const DW_TAG_label			= 0x0a;
+static uLEB128_t const DW_TAG_lexical_block		= 0x0b;
+static uLEB128_t const DW_TAG_member			= 0x0d;
+static uLEB128_t const DW_TAG_pointer_type		= 0x0f;
+static uLEB128_t const DW_TAG_reference_type		= 0x10;
+static uLEB128_t const DW_TAG_compile_unit		= 0x11;
+static uLEB128_t const DW_TAG_string_type		= 0x12;
+static uLEB128_t const DW_TAG_structure_type		= 0x13;
+static uLEB128_t const DW_TAG_subroutine_type		= 0x15;
+static uLEB128_t const DW_TAG_typedef			= 0x16;
+static uLEB128_t const DW_TAG_union_type		= 0x17;
+static uLEB128_t const DW_TAG_unspecified_parameters	= 0x18;
+static uLEB128_t const DW_TAG_variant			= 0x19;
+static uLEB128_t const DW_TAG_common_block		= 0x1a;
+static uLEB128_t const DW_TAG_common_inclusion		= 0x1b;
+static uLEB128_t const DW_TAG_inheritance		= 0x1c;
+static uLEB128_t const DW_TAG_inlined_subroutine	= 0x1d;
+static uLEB128_t const DW_TAG_module			= 0x1e;
+static uLEB128_t const DW_TAG_ptr_to_member_type	= 0x1f;
+static uLEB128_t const DW_TAG_set_type			= 0x20;
+static uLEB128_t const DW_TAG_subrange_type		= 0x21;
+static uLEB128_t const DW_TAG_with_stmt			= 0x22;
+static uLEB128_t const DW_TAG_access_declaration	= 0x23;
+static uLEB128_t const DW_TAG_base_type			= 0x24;
+static uLEB128_t const DW_TAG_catch_block		= 0x25;
+static uLEB128_t const DW_TAG_const_type		= 0x26;
+static uLEB128_t const DW_TAG_constant			= 0x27;
+static uLEB128_t const DW_TAG_enumerator		= 0x28;
+static uLEB128_t const DW_TAG_file_type			= 0x29;
+static uLEB128_t const DW_TAG_friend			= 0x2a;
+static uLEB128_t const DW_TAG_namelist			= 0x2b;
+static uLEB128_t const DW_TAG_namelist_item		= 0x2c;
+static uLEB128_t const DW_TAG_packed_type		= 0x2d;
+static uLEB128_t const DW_TAG_subprogram		= 0x2e;
+static uLEB128_t const DW_TAG_template_type_param	= 0x2f;
+static uLEB128_t const DW_TAG_template_value_param	= 0x30;
+static uLEB128_t const DW_TAG_thrown_type		= 0x31;
+static uLEB128_t const DW_TAG_try_block			= 0x32;
+static uLEB128_t const DW_TAG_variant_part		= 0x33;
+static uLEB128_t const DW_TAG_variable			= 0x34;
+static uLEB128_t const DW_TAG_volatile_type		= 0x35;
+static uLEB128_t const DW_TAG_lo_user			= 0x4080;
+static uLEB128_t const DW_TAG_hi_user			= 0xffff;
+
+static unsigned char const DW_CHILDREN_no	= 0;
+static unsigned char const DW_CHILDREN_yes	= 1;
+
+static uLEB128_t const DW_AT_sibling 		= 0x01;	// reference
+static uLEB128_t const DW_AT_location 		= 0x02;	// block, constant
+static uLEB128_t const DW_AT_name 		= 0x03;	// string
+static uLEB128_t const DW_AT_ordering 		= 0x09;	// constant
+static uLEB128_t const DW_AT_byte_size 		= 0x0b;	// constant
+static uLEB128_t const DW_AT_bit_offset 	= 0x0c;	// constant
+static uLEB128_t const DW_AT_bit_size 		= 0x0d;	// constant
+static uLEB128_t const DW_AT_stmt_list 		= 0x10;	// constant
+static uLEB128_t const DW_AT_low_pc 		= 0x11;	// address
+static uLEB128_t const DW_AT_high_pc 		= 0x12;	// address
+static uLEB128_t const DW_AT_language 		= 0x13;	// constant
+static uLEB128_t const DW_AT_discr 		= 0x15;	// reference
+static uLEB128_t const DW_AT_discr_value 	= 0x16;	// constant
+static uLEB128_t const DW_AT_visibility 	= 0x17;	// constant
+static uLEB128_t const DW_AT_import 		= 0x18;	// reference
+static uLEB128_t const DW_AT_string_length 	= 0x19;	// block, constant
+static uLEB128_t const DW_AT_common_reference 	= 0x1a;	// reference
+static uLEB128_t const DW_AT_comp_dir 		= 0x1b;	// string
+static uLEB128_t const DW_AT_const_value 	= 0x1c;	// string, constant, block
+static uLEB128_t const DW_AT_containing_type 	= 0x1d;	// reference
+static uLEB128_t const DW_AT_default_value 	= 0x1e;	// reference
+static uLEB128_t const DW_AT_inline 		= 0x20;	// constant
+static uLEB128_t const DW_AT_is_optional 	= 0x21;	// flag
+static uLEB128_t const DW_AT_lower_bound 	= 0x22;	// constant, reference
+static uLEB128_t const DW_AT_producer 		= 0x25;	// string
+static uLEB128_t const DW_AT_prototyped 	= 0x27;	// flag
+static uLEB128_t const DW_AT_return_addr 	= 0x2a;	// block, constant
+static uLEB128_t const DW_AT_start_scope 	= 0x2c;	// constant
+static uLEB128_t const DW_AT_stride_size 	= 0x2e;	// constant
+static uLEB128_t const DW_AT_upper_bound 	= 0x2f;	// constant, reference
+static uLEB128_t const DW_AT_abstract_origin 	= 0x31;	// reference
+static uLEB128_t const DW_AT_accessibility 	= 0x32;	// constant
+static uLEB128_t const DW_AT_address_class 	= 0x33;	// constant
+static uLEB128_t const DW_AT_artificial 	= 0x34;	// flag
+static uLEB128_t const DW_AT_base_types 	= 0x35;	// reference
+static uLEB128_t const DW_AT_calling_convention	= 0x36;	// constant
+static uLEB128_t const DW_AT_count 		= 0x37;	// constant, reference
+static uLEB128_t const DW_AT_data_member_location = 0x38; // block, reference
+static uLEB128_t const DW_AT_decl_column 	= 0x39;	// constant
+static uLEB128_t const DW_AT_decl_file 		= 0x3a;	// constant
+static uLEB128_t const DW_AT_decl_line 		= 0x3b;	// constant
+static uLEB128_t const DW_AT_declaration 	= 0x3c;	// flag
+static uLEB128_t const DW_AT_discr_list 	= 0x3d;	// block
+static uLEB128_t const DW_AT_encoding 		= 0x3e;	// constant
+static uLEB128_t const DW_AT_external 		= 0x3f;	// flag
+static uLEB128_t const DW_AT_frame_base 	= 0x40;	// block, constant
+static uLEB128_t const DW_AT_friend 		= 0x41;	// reference
+static uLEB128_t const DW_AT_identifier_case 	= 0x42;	// constant
+static uLEB128_t const DW_AT_macro_info 	= 0x43;	// constant
+static uLEB128_t const DW_AT_namelist_item 	= 0x44;	// block
+static uLEB128_t const DW_AT_priority 		= 0x45;	// reference
+static uLEB128_t const DW_AT_segment 		= 0x46;	// block, constant
+static uLEB128_t const DW_AT_specification 	= 0x47;	// reference
+static uLEB128_t const DW_AT_static_link 	= 0x48;	// block, constant
+static uLEB128_t const DW_AT_type 		= 0x49;	// reference
+static uLEB128_t const DW_AT_use_location 	= 0x4a;	// block, constant
+static uLEB128_t const DW_AT_variable_parameter	= 0x4b;	// flag
+static uLEB128_t const DW_AT_virtuality 	= 0x4c;	// constant
+static uLEB128_t const DW_AT_vtable_elem_location = 0x4d; // block, reference
+static uLEB128_t const DW_AT_lo_user		= 0x2000;
+static uLEB128_t const DW_AT_hi_user		= 0x3fff;
+
+static uLEB128_t const DW_FORM_addr		= 0x01; // address
+static uLEB128_t const DW_FORM_block2		= 0x03; // block
+static uLEB128_t const DW_FORM_block4		= 0x04; // block
+static uLEB128_t const DW_FORM_data2		= 0x05; // constant
+static uLEB128_t const DW_FORM_data4		= 0x06; // constant
+static uLEB128_t const DW_FORM_data8		= 0x07; // constant
+static uLEB128_t const DW_FORM_string		= 0x08; // string
+static uLEB128_t const DW_FORM_block		= 0x09; // block
+static uLEB128_t const DW_FORM_block1		= 0x0a; // block
+static uLEB128_t const DW_FORM_data1		= 0x0b; // constant
+static uLEB128_t const DW_FORM_flag		= 0x0c; // flag
+static uLEB128_t const DW_FORM_sdata		= 0x0d; // constant
+static uLEB128_t const DW_FORM_strp		= 0x0e; // string
+static uLEB128_t const DW_FORM_udata		= 0x0f; // constant
+static uLEB128_t const DW_FORM_ref_addr		= 0x10; // reference
+static uLEB128_t const DW_FORM_ref1		= 0x11; // reference
+static uLEB128_t const DW_FORM_ref2		= 0x12; // reference
+static uLEB128_t const DW_FORM_ref4		= 0x13; // reference
+static uLEB128_t const DW_FORM_ref8		= 0x14; // reference
+static uLEB128_t const DW_FORM_ref_udata	= 0x15; // reference
+static uLEB128_t const DW_FORM_indirect		= 0x16; // (see section 7.5.3)
+
+//==========================================================================================================================================
 // struct location_st
 //
 // Internal representation for locations.
@@ -321,8 +471,10 @@ private:
   std::set<std::string> M_function_names;
   std::set<std::string> M_source_files;
   std::map<range_st, location_st, compare_range_st> M_ranges;
+  bool M_debug_info_loaded;
   Elf32_Word M_stabs_section_index;
-  stab_st* M_stabs;
+  Elf32_Word M_dwarf_debug_info_section_index;
+  Elf32_Word M_dwarf_debug_abbrev_section_index;
 public:
   object_file_ct(char const* file_name);
   ~object_file_ct()
@@ -344,6 +496,9 @@ private:
   char* allocate_and_read_section(int i);
   void register_range(location_st const& location, range_st const& range);
   void load_stabs(void);
+  void load_dwarf(void);
+  template<typename T>
+    inline void object_file_ct::dwarf_read(unsigned char const*& debug_info_ptr, T& x);
 };
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
@@ -490,17 +645,182 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
   return M_number_of_symbols;
 }
 
+template<typename T>
+  inline void object_file_ct::dwarf_read(unsigned char const*& in, T& x)
+  {
+    x = *reinterpret_cast<T const*>(in);
+    in += sizeof(T);
+  }
+
+template<>
+  void object_file_ct::dwarf_read(unsigned char const*& in, uLEB128_t& x)
+  {
+    int shift = 7;
+    uLEB128_t byte = *in;
+    x = byte;
+    while(byte >= 0x80)
+    {
+      byte = (*++in) ^ 1;
+      ASSERT( byte < (1UL << (number_of_bits_in_uLEB128_t - shift)) );
+      x ^= byte << shift;
+      shift += 7;
+    }
+    ++in;
+  }
+
+template<>
+  void object_file_ct::dwarf_read(unsigned char const*& in, LEB128_t& x)
+  {
+    int shift = 7;
+    LEB128_t byte = *in;
+    x = byte;
+    while(byte >= 0x80)
+    {
+      byte = (*++in) ^ 1;
+      ASSERT( byte < (1L << (number_of_bits_in_LEB128_t - shift)) );
+      x ^= byte << shift;
+      shift += 7;
+    }
+    if (shift < number_of_bits_in_LEB128_t && (byte & 0x40))
+      x |= - (1L << shift);
+    ++in;
+  }
+
+struct attr_st {
+  uLEB128_t attr;
+  uLEB128_t form;
+};
+
+struct abbrev_st {
+  uLEB128_t code;
+  uLEB128_t tag;
+  attr_st* attributes;
+  unsigned short attributes_size;
+  unsigned short attributes_capacity;
+  bool has_children;
+  abbrev_st(void) : attributes(NULL), attributes_size(0), attributes_capacity(0) { }
+  ~abbrev_st() { free(attributes); }
+};
+
+void object_file_ct::load_dwarf(void)
+{
+#ifdef DEBUGDWARF
+  // Not loaded already.
+  ASSERT( !M_debug_info_loaded && M_dwarf_debug_info_section_index != 0 );
+  // Don't have a fixed entry sizes.
+  ASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
+  ASSERT( M_sections[M_dwarf_debug_abbrev_section_index].section_header().sh_entsize == 0 );
+  // Initialization of debug variable.
+  uint32_t total_length = 0;
+#endif
+
+  // Start of .debug_abbrev section.
+  unsigned char* debug_abbrev = (unsigned char*)allocate_and_read_section(M_dwarf_debug_abbrev_section_index);
+  // Start of .debug_info section.
+  unsigned char* debug_info = (unsigned char*)allocate_and_read_section(M_dwarf_debug_info_section_index);
+  unsigned char* debug_info_end = debug_info + M_sections[M_dwarf_debug_info_section_index].section_header().sh_size;
+
+  // Run over all compilation units.
+  for (unsigned char const* debug_info_ptr = debug_info; debug_info_ptr < debug_info_end;)
+  {
+    uint32_t length;
+    dwarf_read(debug_info_ptr, length);
+#ifdef DEBUGDWARF
+    Dout(dc::bfd, "debug_info_ptr = " << (void*)debug_info_ptr << "; debug_info_end = " << (void*)debug_info_end);
+    Dout(dc::bfd, "length = " << length);
+    total_length += length + 4;
+    Dout(dc::bfd, "total length = " << total_length << " (of " <<
+        M_sections[M_dwarf_debug_info_section_index].section_header().sh_size << ").");
+    ASSERT( total_length <= M_sections[M_dwarf_debug_info_section_index].section_header().sh_size );
+#endif
+    uint16_t version;
+    dwarf_read(debug_info_ptr, version);
+    if ( version == 2 )		// DWARF version 2
+    {
+      uint32_t abbrev_offset;
+      dwarf_read(debug_info_ptr, abbrev_offset);
+      unsigned char const* debug_abbrev_ptr = debug_abbrev + abbrev_offset;
+#ifdef DEBUGDWARF
+      Dout(dc::bfd, "abbrev_offset = " << std::hex << abbrev_offset);
+#endif
+      unsigned char address_size;
+      dwarf_read(debug_info_ptr, address_size);
+      ASSERT( address_size == sizeof(void*) );
+
+      unsigned int expected_code = 1;
+      std::vector<abbrev_st> abbrev_entries(256);
+      while(true)
+      {
+	if (expected_code >= abbrev_entries.size())
+	  abbrev_entries.resize(abbrev_entries.size() + 256);
+	abbrev_st& abbrev(abbrev_entries[expected_code]);
+
+	dwarf_read(debug_abbrev_ptr, abbrev.code);
+	if (abbrev.code == 0)
+	  break;
+#ifdef DEBUGDWARF
+	//Dout(dc::bfd, "code: " << abbrev.code);
+#endif
+	ASSERT( abbrev.code == expected_code );
+	++expected_code;
+
+	dwarf_read(debug_abbrev_ptr, abbrev.tag);
+#ifdef DEBUGDWARF
+	//Dout(dc::bfd, "Tag : " << std::hex << abbrev.tag);
+#endif
+	unsigned char children;
+	dwarf_read(debug_abbrev_ptr, children);
+	abbrev.has_children = (children == DW_CHILDREN_yes);
+#ifdef DEBUGDWARF
+	//Dout(dc::bfd, "Has children: " << abbrev.has_children);
+#endif
+
+        while(true)
+	{
+	  if (abbrev.attributes_size == abbrev.attributes_capacity)
+	  {
+	    abbrev.attributes_capacity += 32;
+	    abbrev.attributes = (attr_st*)realloc(abbrev.attributes, abbrev.attributes_capacity * sizeof(attr_st));
+	  }
+	  uLEB128_t& attr(abbrev.attributes[abbrev.attributes_size].attr);
+	  uLEB128_t& form(abbrev.attributes[abbrev.attributes_size].form);
+	  dwarf_read(debug_abbrev_ptr, attr);
+	  dwarf_read(debug_abbrev_ptr, form);
+#ifdef DEBUGDWARF
+	  //Dout(dc::bfd, "Attribute/Form: " << std::hex << attr << ", " << std::hex << form);
+#endif
+	  if (attr == 0 && form == 0)
+	    break;
+	  ++abbrev.attributes_size;
+	}
+	abbrev.attributes = (attr_st*)realloc(abbrev.attributes, abbrev.attributes_size * sizeof(attr_st));
+      }
+
+      // FIXME, skip debug_info
+      debug_info_ptr += length - sizeof(version) - sizeof(abbrev_offset) - sizeof(address_size);
+    }
+    else
+    {
+      Dout(dc::warning, "DWARF version " << version << " is not understood by libcwd.");
+      debug_info_ptr += length - sizeof(version);
+    }
+  }
+
+  delete [] debug_info;
+  delete [] debug_abbrev;
+  M_debug_info_loaded = true;
+}
+
 void object_file_ct::load_stabs(void)
 {
-  if (M_stabs_section_index == 0)
-    return;
 #ifdef DEBUGSTABS
-  ASSERT( M_sections[i].section_header().sh_entsize == sizeof(stab_st) );
+  ASSERT( !M_debug_info_loaded && M_stabs_section_index != 0 );
+  ASSERT( M_sections[M_stabs_section_index].section_header().sh_entsize == sizeof(stab_st) );
 #endif
   stab_st* stabs = (stab_st*)allocate_and_read_section(M_stabs_section_index);
 #ifdef DEBUGSTABS
-  ASSERT( !strcmp(&M_section_header_string_table[M_sections[M_sections[i].section_header().sh_link].section_header().sh_name], ".stabstr") );
-  ASSERT( stabs->n_desc == (Elf32_Half)(M_sections[i].section_header().sh_size / M_sections[i].section_header().sh_entsize - 1) );
+  ASSERT( !strcmp(&M_section_header_string_table[M_sections[M_sections[M_stabs_section_index].section_header().sh_link].section_header().sh_name], ".stabstr") );
+  ASSERT( stabs->n_desc == (Elf32_Half)(M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize - 1) );
 #endif
   char* stabs_string_table = allocate_and_read_section(M_sections[M_stabs_section_index].section_header().sh_link);
 #ifdef DEBUGSTABS
@@ -592,12 +912,18 @@ void object_file_ct::load_stabs(void)
 #endif
   delete [] stabs;
   delete [] stabs_string_table;
-  M_stabs_section_index = 0;
+  M_debug_info_loaded = true;
 }
 
 void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, char const** file, char const** func, unsigned int* line)
 {
-  load_stabs();
+  if (!M_debug_info_loaded)
+  {
+    if (M_dwarf_debug_info_section_index)
+      load_dwarf();
+    else if (M_stabs_section_index)
+      load_stabs();
+  }
   range_st range;
   range.start = offset;
   range.size = 1;
@@ -665,7 +991,7 @@ object_file_ct::object_file_ct(char const* file_name) :
   filename = file_name;
   M_input_stream.open(file_name);
   if (!M_input_stream)
-    Dout(dc::fatal|error_cf, "std::fstream.open(\"" << file_name << "\")");
+    DoutFatal(dc::fatal|error_cf, "std::fstream.open(\"" << file_name << "\")");
   M_input_stream >> M_header;
   ASSERT(M_header.e_shentsize == sizeof(Elf32_Shdr));
   if (M_header.e_shoff == 0 || M_header.e_shnum == 0)
@@ -686,7 +1012,9 @@ object_file_ct::object_file_ct(char const* file_name) :
 #ifdef DEBUGELF32
   Debug( libcw_do.inc_indent(4) );
 #endif
+  M_debug_info_loaded = false;
   M_stabs_section_index = 0;
+  M_dwarf_debug_info_section_index = 0;
   for(int i = 0; i < M_header.e_shnum; ++i)
   {
 #ifdef DEBUGELF32
@@ -698,8 +1026,15 @@ object_file_ct::object_file_ct(char const* file_name) :
       M_symbol_string_table = allocate_and_read_section(i);
     else if (!strcmp(M_sections[i].name, ".dynstr"))
       M_dyn_symbol_string_table = allocate_and_read_section(i);
-    else if (!strcmp(M_sections[i].name, ".stab"))
+    else if (M_dwarf_debug_info_section_index == 0 && !strcmp(M_sections[i].name, ".stab"))
       M_stabs_section_index = i;
+    else if (!strcmp(M_sections[i].name, ".debug_info"))
+    {
+      M_stabs_section_index = 0;	// Use DWARF if available.
+      M_dwarf_debug_info_section_index = i;
+    }
+    else if (!strcmp(M_sections[i].name, ".debug_abbrev"))
+      M_dwarf_debug_abbrev_section_index = i;
     if ((section_headers[i].sh_type == SHT_SYMTAB || section_headers[i].sh_type == SHT_DYNSYM)
         && section_headers[i].sh_size > 0)
     {
@@ -718,7 +1053,12 @@ object_file_ct::object_file_ct(char const* file_name) :
   Dout(dc::bfd, "Number of symbols: " << M_number_of_symbols);
 #endif
   delete [] section_headers;
-  // load_stabs();	// Preload stabs.
+
+  // Temporally preload them here.
+  if (M_dwarf_debug_info_section_index)
+    load_dwarf();
+  else if (M_stabs_section_index)
+    load_stabs();
 }
 
 } // namespace elf32

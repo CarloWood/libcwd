@@ -11,7 +11,8 @@
 // packaging of this file.
 //
 
-#include <libcw/sys.h>
+#include "sys.h"
+#include "config.h"
 #include <libcw/debug_config.h>
 #ifdef CWDEBUG
 #include <errno.h>
@@ -767,12 +768,14 @@ namespace libcw {
 
     channel_set_st& debug_ct::operator|(fatal_channel_ct const&)
     {
-      DoutFatal(dc::fatal, location_ct(__builtin_return_address(0)) << " : Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
+      DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
+          " : Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
     }
 
     channel_set_st& debug_ct::operator&(channel_ct const&)
     {
-      DoutFatal(dc::fatal, location_ct(__builtin_return_address(0)) << " : Use dc::core or dc::fatal together with DoutFatal.");
+      DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
+          " : Use dc::core or dc::fatal together with DoutFatal.");
     }
 
     void buf_st::init(char const* s, size_t l, bool first_time)
@@ -805,5 +808,8 @@ namespace libcw {
 
   }	// namespace debug
 }	// namespace libcw
+
+// This can be used in configure to see if libcwd exists.
+extern "C" char const* __libcwd_version = VERSION;
 
 #endif // CWDEBUG

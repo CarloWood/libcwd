@@ -1,4 +1,4 @@
-#include <libcw/sys.h>
+#include <libcw/sysd.h>
 #include <iostream>
 #include <libcw/bfd.h>
 #include <libcw/type_info.h>

@@ -17,7 +17,7 @@
 #include <libcw/debug_config.h>
 #ifdef DEBUGUSEBFD
 
-#include <libcw/sys.h>
+#include "sys.h"
 #include <unistd.h>
 #include <cstdarg>
 #include <inttypes.h>
@@ -413,13 +413,23 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  if (lbase == unknown_l_addr)
 	  {
 #ifdef HAVE_DLOPEN
+	    libcw::debug::_internal_::internal = false;
 	    void* handle = ::dlopen(filename, RTLD_LAZY|RTLD_LOCAL|RTLD_NOLOAD);
+	    if (!handle)
+	    {
+	      char const* dlerror_str = dlerror();
+	      DoutFatal(dc::fatal, "::dlopen(" << filename << ", RTLD_LAZY|RTLD_LOCAL|RTLD_NOLOAD): " << dlerror_str);
+	    }
 	    char* val;
 	    if (s_end_vma && (val = (char*)dlsym(handle, "_end")))	// dlsym will fail when _end is a local symbol.
+	    {
+	      libcw::debug::_internal_::internal = true;
 	      lbase = val - s_end_vma;
+	    }
 	    else
 #ifdef HAVE_LINK_H
             {
+	      libcw::debug::_internal_::internal = true;
 	      for(link_map* p = _dl_loaded; p; p = p->l_next)
 	        if (!strcmp(p->l_name, filename))
 		{
@@ -429,6 +439,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    }
 #else // !HAVE_LINK_H
 	    {
+	      libcw::debug::_internal_::internal = true;
 	      // Warning: the following code is black magic.
 	      map<void*, unsigned int> start_values;
 	      unsigned int best_count = 0;
@@ -440,9 +451,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 		asection const* sect = bfd_get_section(*s);
 		if (sect->name[1] == 't' && !strcmp(sect->name, ".text"))
 		{
+		  libcw::debug::_internal_::internal = false;
 		  void* val = dlsym(handle, (*s)->name);
 		  if (dlerror() == NULL)
 		  {
+		    libcw::debug::_internal_::internal = true;
 		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->vma;
 		    pair<map<void*, unsigned int>::iterator, bool> p = start_values.insert(pair<void* const, unsigned int>(start, 0));
 		    if (++(*(p.first)).second > best_count)
@@ -452,6 +465,8 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 			break;			// So if we reach 10 then this is value we are looking for.
 		    }
 		  }
+		  else
+		    libcw::debug::_internal_::internal = true;
 		}
 	      }
 	      if (best_count < 3)
@@ -461,14 +476,18 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 		symbol_table  = NULL;
 		bfd_close(abfd);
 		number_of_symbols = 0;
+		libcw::debug::_internal_::internal = false;
 		::dlclose(handle);
+		libcw::debug::_internal_::internal = true;
 		return;
 	      }
 	      lbase = best_start;
 	    }
 #endif // !HAVE_LINK_H
+	    libcw::debug::_internal_::internal = false;
 	    ::dlclose(handle);
-	    Dout(dc::continued, " (" << lbase << ") ... ");
+	    libcw::debug::_internal_::internal = true;
+	    Dout(dc::continued, '(' << lbase << ") ... ");
 #else // !HAVE_DLOPEN
 	    DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure.");
 #endif
@@ -820,12 +839,13 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       object_file_ct* load_object_file(char const* name, void* l_addr)
       {
 	ASSERT( libcw::debug::_internal_::internal );
-	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name);
-	if (l_addr != unknown_l_addr)
-	  Dout(dc::continued|flush_cf, " (" << l_addr << ") ... ");
-	set_alloc_checking_off();
+        if (l_addr == unknown_l_addr)
+	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << ' ');
+	else if (l_addr == 0)
+	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << "... ");
+	else
+	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << " (" << l_addr << ") ... ");
 	object_file_ct* object_file = new object_file_ct(name, l_addr);
-	set_alloc_checking_on();
 	if (object_file->get_number_of_symbols() > 0)
 	{
 	  Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
@@ -1237,7 +1257,6 @@ already_loaded:
 } // namespace libcw
 
 #ifdef CWDEBUG_DLOPEN_DEFINED
-#undef dlopen
 using namespace libcw::debug;
 
 struct dlloaded_st {
@@ -1252,6 +1271,7 @@ static libcwd_dlopen_map_type libcwd_dlopen_map;
 extern "C" {
   void* __libcwd_dlopen(char const* name, int flags)
   {
+    ASSERT( !libcw::debug::_internal_::internal );
     void* handle = ::dlopen(name, flags);
     if ((flags & RTLD_NOLOAD))
       return handle;
@@ -1268,6 +1288,7 @@ extern "C" {
 
   int __libcwd_dlclose(void *handle)
   {
+    ASSERT( !libcw::debug::_internal_::internal );
     int ret = ::dlclose(handle);
     libcwd_dlopen_map_type::iterator iter(libcwd_dlopen_map.find(handle));
     if (iter != libcwd_dlopen_map.end())

@@ -1,4 +1,4 @@
-#include <libcw/sys.h>
+#include "../../sys.h"
 #include <libcw/debug.h>
 #include <dlfcn.h>
 
@@ -13,20 +13,25 @@ int main(void)
   Debug( dc::bfd.on() );
   Debug( dc::notice.on() );
 
-  void* handle = dlopen("module.so", RTLD_NOW|RTLD_GLOBAL);
+  void* handle = dlopen("./module.so", RTLD_NOW|RTLD_GLOBAL);
 
   if (!handle)
   {
     char* error_str = dlerror();
-    DoutFatal(dc::fatal, "Failed to load \"module.so\": " << error_str);
+    DoutFatal(dc::fatal, "Failed to load \"./module.so\": " << error_str);
   }
 
-  f = (f_type)dlsym(handle, "_Z18global_test_symbolb");
+#if __GXX_ABI_VERSION == 0
+  char const* sym = "global_test_symbol__Fb";
+#else
+  char const* sym = "_Z18global_test_symbolb";
+#endif
+  f = (f_type)dlsym(handle, sym);
 
   if (!f)
   {
     char* error_str = dlerror();
-    DoutFatal(dc::fatal, "Failed find function \"_Z18global_test_symbolb\": " << error_str);
+    DoutFatal(dc::fatal, "Failed find function \"" << sym << "\": " << error_str);
   }
 
   (*f)(false);

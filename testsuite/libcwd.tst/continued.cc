@@ -1,10 +1,10 @@
-#include "libcw/sys.h"
+#include "../../sys.h"
 #include <unistd.h>
 #include <sys/poll.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
-#include "libcw/debug.h"
+#include <libcw/debug.h>
 
 using namespace std;
 
@@ -33,7 +33,7 @@ namespace libcw {
 }
 
 #ifndef REAL_CERR
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 // No idea why, but it doesn't work when strstream is dynamic.
 static char ssbuf[1024];
 static strstream ss(ssbuf, sizeof(ssbuf));
@@ -267,7 +267,6 @@ int main(void)
   for(int i = 0; i < 16; ++i)
   {
     bool a = (i & 8), b = (i & 4), c = (i & 2), d = (i & 1);
-    USE(a);
     cout << "---------------------------------------------------------------------------\n";
     Dout( dc::notice, "`nested_bar(" << a << ", " << b << ", " << c << ", " << d << ")' returns the string \"" << nested_bar(a, b, c, d) << "\" when I call it." );
   }

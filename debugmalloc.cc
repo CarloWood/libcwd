@@ -125,7 +125,7 @@
 //
 
 #define DEBUGMALLOC_INTERNAL
-#include <libcw/sys.h>
+#include "sys.h"
 #include <libcw/debug_config.h>
 
 #ifdef DEBUGMALLOC
@@ -145,6 +145,7 @@
 #include <libcw/iomanip.h>
 #include <libcw/cwprint.h>
 #endif
+#include "config.h"
 
 #ifdef DEBUGMALLOCEXTERNALCLINKAGE
 #define __libcwd_malloc malloc
@@ -796,7 +797,7 @@ void dm_alloc_ct::print_description(void) const
       internal = false;
       DoutInternal_without_DEBUGDEBUG_CERR( dc::continued, buf->str() );
       internal = true;
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
       buf->freeze(0);
 #endif
       delete buf;
@@ -921,10 +922,10 @@ void memblk_info_ct::erase(void)
 // and should therefore end with a call to DoutInternal( dc::finish, ptr ).
 //
 
-#  ifdef NEED_WORD_ALIGNMENT
+#  ifdef LIBCWD_NEED_WORD_ALIGNMENT
 #define SIZE_PLUS_TWELVE(s) ((((s) + sizeof(size_t) - 1) & ~(sizeof(size_t) - 1)) + 3 * sizeof(size_t))
 #define SIZE_PLUS_FOUR(s) ((((s) + sizeof(size_t) - 1) & ~(sizeof(size_t) - 1)) + sizeof(size_t))
-#  else // !NEED_WORD_ALIGNMENT
+#  else // !LIBCWD_NEED_WORD_ALIGNMENT
 #define SIZE_PLUS_TWELVE(s) ((s) + 3 * sizeof(size_t))
 #define SIZE_PLUS_FOUR(s) ((s) + sizeof(size_t))
 #  endif
@@ -2024,6 +2025,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     }
     else
       ptr1 = __libc_malloc(SIZE_PLUS_TWELVE(size));
+    ((size_t*)ptr1)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
     ((size_t*)ptr1)[1] = size;
     ((size_t*)(static_cast<char*>(ptr1) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
 #ifdef DEBUGDEBUGMALLOC

@@ -18,12 +18,12 @@ libcwd_HEADERS = \
 	strerrno.h \
 	type_info.h
 
-BUILT_SOURCES = sys.ho debug_config.ho
-EXTRA_HEADERS = sys.h debug_config.h
+BUILT_SOURCES = sysd.ho debug_config.ho
+EXTRA_HEADERS = sysd.h debug_config.h
 
 EXTRA_DIST = perf.h
 
-DISTCLEANFILES = debug_config.h sys.h
+DISTCLEANFILES = debug_config.h sysd.h
 
 MAINTAINERCLEANFILES = Makefile.in
 

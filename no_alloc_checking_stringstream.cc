@@ -11,8 +11,8 @@
 // packaging of this file.
 //
  
-#include <libcw/sys.h>
-#ifndef LIBCW_USE_STRSTREAM
+#include "sys.h"
+#ifndef LIBCWD_USE_STRSTREAM
 #define _GLIBCPP_FULLY_COMPLIANT_HEADERS
 // This is needed to get the definitions of the template member functions of
 // std::basic_stringbuf<char, std::char_traits<char>, libcw::debug::no_alloc_checking_allocator>
@@ -28,7 +28,7 @@ namespace libcw {
 
 #ifdef DEBUGMALLOC
 
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 typedef void* pointer;
 pointer no_alloc_checking_alloc(size_t size)
 #else
@@ -44,7 +44,7 @@ no_alloc_checking_allocator::allocate(no_alloc_checking_allocator::size_type siz
   return ptr;
 }
 
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 void no_alloc_checking_free(void* p)
 #else
 void no_alloc_checking_allocator::deallocate(no_alloc_checking_allocator::pointer p, no_alloc_checking_allocator::size_type)
@@ -57,7 +57,7 @@ void no_alloc_checking_allocator::deallocate(no_alloc_checking_allocator::pointe
   set_alloc_checking_on();
 }
 
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 no_alloc_checking_stringstream::no_alloc_checking_stringstream(void)
 {
   set_alloc_checking_off();

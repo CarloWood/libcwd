@@ -372,8 +372,8 @@ AC_SUBST(CW_MALLOC_OVERHEAD_C)
 
 dnl CW_NEED_WORD_ALIGNMENT
 dnl
-dnl Defines CW_CONFIG_NEED_WORD_ALIGNMENT to `define' or `undef'
-dnl when the host needs respectively size_t alignment or not.
+dnl Defines LIBCWD_NEED_WORD_ALIGNMENT when the host needs
+dnl respectively size_t alignment or not.
 AC_DEFUN(CW_NEED_WORD_ALIGNMENT,
 [AC_CACHE_CHECK(if machine needs word alignment, cw_cv_system_needwordalignment,
 [CW_TRY_RUN([#include <cstddef>
@@ -387,12 +387,9 @@ int main(void)
 cw_cv_system_needwordalignment=no,
 cw_cv_system_needwordalignment=yes,
 cw_cv_system_needwordalignment="why not")])
-if test "$cw_cv_system_needwordalignment" = no; then
-  CW_CONFIG_NEED_WORD_ALIGNMENT=undef
-else
-  CW_CONFIG_NEED_WORD_ALIGNMENT=define
+if test "$cw_cv_system_needwordalignment" != no; then
+  AC_DEFINE_UNQUOTED([LIBCWD_NEED_WORD_ALIGNMENT])
 fi
-AC_SUBST(CW_CONFIG_NEED_WORD_ALIGNMENT)
 ])
 
 dnl CW_NBLOCK
@@ -901,7 +898,7 @@ dnl Find out which debugging options we need
 AC_CANONICAL_HOST
 case "$host" in
   *freebsd*) DEBUGOPTS=-ggdb ;; dnl FreeBSD needs -ggdb to include sourcefile:linenumber info in its object files.
-  *) DEBUGOPTS=-g ;;
+  *) DEBUGOPTS=-ggdb3 ;; dnl FIXME, use -g!
 esac
 AC_SUBST(DEBUGOPTS)
 

@@ -27,7 +27,7 @@
 
 #undef CPPFILTCOMPATIBLE
 
-#include <libcw/sys.h>
+#include "sys.h"
 
 #if __GXX_ABI_VERSION == 0
 

@@ -1,6 +1,6 @@
-#include <libcw/sys.h>
+#include "../../sys.h"
 #include <libcw/debug.h>
-#ifndef LIBCW_USE_STRSTREAM
+#ifndef LIBCWD_USE_STRSTREAM
 #include <sstream>
 #else
 #include <strstream>
@@ -30,7 +30,7 @@ int main(void)
   Debug( (void)pc_mangled_function_name((void*)main) );
 #endif
 
-#ifndef LIBCW_USE_STRSTREAM
+#ifndef LIBCWD_USE_STRSTREAM
   ostringstream dummy;	// Do this before turning on debug output
 #else
   ostrstream dummy;

@@ -27,7 +27,7 @@ RCSTAG_H(debugmalloc, "$Id$")
 #ifdef DEBUGMALLOC
 #include <libcw/iomanip.h>
 #include <libcw/lockable_auto_ptr.h>
-#ifdef LIBCW_USE_STRSTREAM
+#ifdef LIBCWD_USE_STRSTREAM
 #include <strstream>
 #define STRINGSTREAM std::strstream
 #else
@@ -211,6 +211,12 @@ extern void init_debugmalloc(void);
 
 #ifdef CWDEBUG
 
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#define LIBCWD_GETBUFSIZE(buf) buf.rdbuf()->pubseekoff(0, ios::cur, ios::out)
+#else
+#define LIBCWD_GETBUFSIZE(buf) buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out)
+#endif
+
 #define AllocTag1(p) ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), (char const*)NULL)
 #define AllocTag2(p, desc) ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc))
 #define AllocTag(p, x) \
@@ -222,7 +228,7 @@ extern void init_debugmalloc(void);
 	{ \
 	  STRINGSTREAM buf; \
 	  buf << x << ::std::ends; \
-	  size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
+	  size_t size = LIBCWD_GETBUFSIZE(buf); \
 	  desc = new char [size]; /* This is never deleted anymore */ \
 	  buf.rdbuf()->sgetn(desc, size); \
 	} \
@@ -238,7 +244,7 @@ extern void init_debugmalloc(void);
       { \
 	STRINGSTREAM buf; \
 	buf << x << ::std::ends; \
-	size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
+	size_t size = LIBCWD_GETBUFSIZE(buf); \
 	desc = new char [size]; \
 	buf.rdbuf()->sgetn(desc, size); \
       } \

@@ -1,4 +1,4 @@
-#include <libcw/sys.h>
+#include <libcw/sysd.h>
 #include <libcw/debug.h>
 
 int main(void)

@@ -21,7 +21,7 @@
 #include <libcw/debug_config.h>
 #undef DEBUGMALLOC
 #undef DEBUGMAGICMALLOC
-#define LIBCW_SYS_H
+#define LIBCW_DEBUG_SYSD_H
 #define LIBCW_GENERATION_OF_NODEBUG_H
 #include <libcw/debug.h>
 #include "phase1.h"

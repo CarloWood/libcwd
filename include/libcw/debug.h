@@ -14,8 +14,8 @@
 #ifndef LIBCW_DEBUG_H
 #define LIBCW_DEBUG_H
 
-#ifndef LIBCW_SYS_H
-#error "You need to #include <libcw/sys.h> at the top of every source file."
+#ifndef LIBCW_SYSD_H
+#error "You need to #include "sys.h" at the top of every source file (which in turn should #include <libcw/sysd.h>)."
 #endif
 
 #if !defined(CWDEBUG) && !defined(LIBCW_GENERATION_OF_NODEBUG_H)

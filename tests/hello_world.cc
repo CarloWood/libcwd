@@ -24,7 +24,7 @@
 // link using: g++ hello_world.o -lcwd -lbfd -liberty -o hello_world
 //
 
-#include <libcw/sys.h>
+#include <libcw/sysd.h>
 #include <libcw/debug.h>
 
 RCSTAG_CC("$Id$")
