@@ -158,7 +158,7 @@ namespace libcw {
       // Constructor
       //
 
-      channel_ct(char const* lbl);
+      explicit channel_ct(char const* lbl);
 	// Constructor for an arbitrary new debug channel with label `lbl'.
 	// A newly created channel is off by default.
 
@@ -209,7 +209,7 @@ namespace libcw {
       // Constructor
       //
 
-      fatal_channel_ct(char const* lbl, control_flag_t cb);
+      explicit fatal_channel_ct(char const* lbl, control_flag_t cb);
         // Construct a special debug channel with label `lbl' and control bit `cb'.
     };
 
@@ -235,7 +235,7 @@ namespace libcw {
       // Constructor
       //
 
-      continued_channel_ct(control_flag_t cb) : maskbit(cb) {}
+      explicit continued_channel_ct(control_flag_t cb) : maskbit(cb) { }
         // Construct a continued debug channel with extra control bit `cb'.
     };
 
