@@ -235,6 +235,10 @@ if test "$libcwd_config_bfd" = yes; then
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	unset ac_cv_lib_iberty_xmalloc
 	AC_CHECK_LIB(iberty, xmalloc)
+	if test "$ac_cv_lib_iberty_xmalloc" != no; then
+	  cw_cv_sys_CPPFLAGS="$cw_cv_sys_CPPFLAGS -I/usr/local/include"
+	  cw_cv_sys_LDFLAGS="$cw_cv_sys_LDFLAGS -L/usr/local/lib"
+	fi
       fi
     fi])
   dnl If it failed, then abort with an error message.
@@ -255,7 +259,9 @@ if test "$libcwd_config_bfd" = yes; then
   AC_CHECK_LIB(bfd, bfd_set_start_address,,
       [dnl If that failed, try linking with -lintl:
       unset ac_cv_lib_bfd_bfd_set_start_address
-      AC_CHECK_LIB(bfd, bfd_set_start_address, [LIBS="-lbfd -lintl $LIBS"],, -lintl)])
+      AC_CHECK_LIB(bfd, bfd_set_start_address,
+          [LIBS="-lbfd -lintl $LIBS"
+           cw_cv_sys_LIBS="-lintl $cw_cv_sys_LIBS"],, -lintl)])
 
   dnl If we succeeded so far, then enable DEBUGUSEBFD
   if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no"; then
