@@ -24,14 +24,14 @@ extern char const* make_label(char const* mangled_name);
 
 class type_info_ct {
 protected:
-  type_info const* a_type_info;		// Pointer to type_info of T
+  std::type_info const* a_type_info;	// Pointer to type_info of T
   size_t type_size;			// sizeof(T)
   size_t type_ref_size;			// sizeof(*T) or 0 when T is not a pointer
   char const* dem_name;			// Demangled type name of T
 public:
   type_info_ct(void) :
       a_type_info(0), type_size(0), type_ref_size(0), dem_name("<unknown type>") {}
-  type_info_ct(type_info const& ti, size_t s, size_t rs) :
+  type_info_ct(std::type_info const& ti, size_t s, size_t rs) :
       a_type_info(&ti), type_size(s), type_ref_size(rs), dem_name(make_label(ti.name())) {}
   char const* demangled_name(void) const { return dem_name; }
   char const* name(void) const { return a_type_info->name(); }
