@@ -335,6 +335,7 @@ CW_CONFIG_THREAD_SAFE=undef
 AC_SUBST(CW_CONFIG_HAVE_PTHREADS)
 CW_CONFIG_HAVE_PTHREADS=undef
 AC_SUBST(LIB_THREADS)
+AC_SUBST(LIB_THREADS_SHARED)
 if test "$libcwd_config_threading" = yes; then
 
   dnl Check if we have POSIX threads
@@ -363,6 +364,13 @@ if test "$libcwd_config_threading" = yes; then
   LIBS="$LIBS $LIB_THREADS"
   AC_CHECK_FUNCS(pthread_kill_other_threads_np)
   LIBS="$SAVE_LIBS"
+
+  if test "$ac_cv_search_pthread_create" = "none required"; then
+    dnl Even if nothing is required, we still need to use -lpthread explicitly
+    dnl while linking a shared library, otherwise the versioning info of
+    dnl versioned symbols will be missing!  This is needed for the sem_* calls.
+    AC_CHECK_LIB(pthread, pthread_create, [LIB_THREADS_SHARED=-lpthread])
+  fi
 fi
 
 dnl This test needs the full set of libraries we just determined.

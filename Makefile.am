@@ -26,11 +26,10 @@ libcwd_la_SOURCES = \
 	debugmalloc.cc \
 	demangle.cc \
 	demangle3.cc \
-	semwrapper.cc \
 	strerrno.cc \
 	type_info.cc
 
-libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
+libcwd_la_LDFLAGS = -version-info $(VERSIONINFO) $(LIB_THREADS_SHARED)
 
 libcwd_la_LIBADD = utils/libutils.la
 

@@ -45,7 +45,6 @@ libcwd_HEADERS = \
 	private_set_alloc_checking.h \
 	private_struct_TSD.h \
 	private_threading.h \
-	semwrapper.h \
 	strerrno.h \
 	struct_debug_tsd.h \
 	type_info.h

@@ -13,7 +13,7 @@ namespace debug_channels {
 
 int const loopsize = 1000;
 int const number_of_threads = 2;
-int const number_of_threads2 = 1;
+int const number_of_threads2 = 2;
 
 void* thread_function2(void* arguments)
 {
