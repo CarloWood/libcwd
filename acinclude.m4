@@ -834,4 +834,3 @@ if test x"$CXX" != "x" -o x"$CXXCPP" != "x"; then
   unset ac_cv_prog_gxx_version
 fi
 ])
-

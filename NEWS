@@ -8,6 +8,8 @@ libcwd-0.99.5
 	is required to explicitely add the debug channel and write
 	"DoutFatal(dc::fatal|error_cf, ...".
 
+	Added support for libtool-1.3c and higher (cvs developer version).
+
 libcwd-0.99.4
 
 	A real testsuite was added, based on dejagnu.
