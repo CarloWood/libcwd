@@ -4,7 +4,7 @@ libcwd-0.99.6
 	This template function can be used to print objects to a debug
 	stream using a method like `void print_on(ostream&) const'.
 	Example usage: Dout(dc::notice, "object is: " <<
-            libcw:debug::cwprint_using(object, &Object::method) << '.');
+            cwprint_using(object, &Object::method) << '.');
         which then calls `void object.method(ostream&) const' to print data
 	to the debug ostream.  When variations to this trick are needed
 	then you can obviously add those to your local debug.h file.
