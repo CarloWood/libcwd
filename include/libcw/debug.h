@@ -625,8 +625,8 @@ extern void list_channels_on(debug_ct const& debug_object);
       }								\
       if (on)							\
       {								\
-	ASSERT( !::libcw::debug::_internal_::internal );	\
 	debug_obj.start();					\
+	ASSERT( ::libcw::debug::_internal_::internal == 1 );	\
 	(*debug_obj.current_oss) << data;			\
 	debug_obj.finish();					\
       }								\
@@ -648,8 +648,8 @@ extern void list_channels_on(debug_ct const& debug_object);
       using namespace dc_namespace;			\
       debug_obj|cntrl;					\
     }							\
-    ASSERT( !::libcw::debug::_internal_::internal );	\
     debug_obj.start();					\
+    ASSERT( ::libcw::debug::_internal_::internal == 1 );\
     (*debug_obj.current_oss) << data;			\
     debug_obj.fatal_finish();				\
   } while(0)
