@@ -1745,7 +1745,9 @@ void* __libcwd_realloc(void* ptr, size_t size)
 void __libcwd_free(void* ptr)
 {
 #if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
+#ifndef HAVE___LIBC_MALLOC
   ASSERT( _internal_::ios_base_initialized );
+#endif
 #endif
   deallocated_from_nt from = deallocated_from;
   deallocated_from = from_free;
