@@ -17,6 +17,7 @@ int main(void)
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
   Debug( check_configuration() );
+  libcw::debug::make_all_allocations_invisible_except(NULL);
   Debug( libcw_do.on() );
   Debug( dc::warp.on() );
   Debug( dc::notice.on() );

@@ -26,8 +26,10 @@ int main(int argc, char* argv[])
 
   Debug( check_configuration() );
 
+#ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   libcw::debug::make_all_allocations_invisible_except(NULL);
+#endif
 
 #ifdef DEBUGUSEBFD
   // Make sure we initialized the bfd stuff before we turn on WARNING.

@@ -8,6 +8,12 @@ f_type f;
 int main(void)
 {
   Debug( check_configuration() );
+
+#ifdef DEBUGMALLOC
+  // Don't show allocations that are allocated before main()
+  libcw::debug::make_all_allocations_invisible_except(NULL);
+#endif
+
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
   Debug( dc::bfd.on() );

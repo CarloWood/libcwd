@@ -19,7 +19,7 @@ void generate_tables(void)
   Dout( dc::generate, "Inside generate_tables()" );
   std::cout << std::flush;
   write(1, "<sleeping>", 10);
-  sleep(1);
+  usleep(100000);
   Dout( dc::generate, "Leaving generate_tables()" );
   std::cout << std::flush;
   return;
@@ -29,6 +29,9 @@ int main(void)
 {
   Debug( check_configuration() );
   Debug( libcw_do.set_ostream(&std::cout) );
+#ifdef DEBUGMALLOC
+  libcw::debug::make_all_allocations_invisible_except(NULL);
+#endif
 
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );

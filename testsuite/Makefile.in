@@ -122,6 +122,9 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 
+# Uninstall rule
+uninstall:
+
 # Maintainer rules
 maintainer-clean realclean: distclean
 
