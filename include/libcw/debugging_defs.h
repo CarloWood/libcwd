@@ -58,7 +58,7 @@
 // Add BFD code.
 //
 // You will need libbfd.a and libiberty.a, which are part of GNU binutils.
-// You'll need to add "-lbfd -liberty -ldl" to LDFLAGS in $LIBCWDIR/Makedefs.h.
+// This will only work when you have ELF.
 //
 // Turning this on causes libcw to print source file and line
 // number information about where memory was allocated in the
@@ -67,7 +67,7 @@
 // with libcw to print debugging information using the symbol table.
 //
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(__ELF__)
 #define DEBUGUSEBFD
 #endif
 

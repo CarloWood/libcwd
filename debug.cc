@@ -389,7 +389,7 @@ namespace libcw {
 	debug_objects->push_back(this);
 
       // Initialize this debug object:
-      os = &cerr;					// Write to cerr by default.
+      set_ostream(&cerr);				// Write to cerr by default.
       interactive = true;				// and thus we're interactive.
       start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
       continued_channel_set.debug_object = this;	// The owner of this continued_channel_set.
