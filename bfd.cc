@@ -785,7 +785,6 @@ int const BSF_DYNAMIC = 4096;
 	  ASSERT( !libcw::debug::_internal_::internal );
 	}
 #endif
-	static string fullpath;					// Must be static because bfd keeps a pointer to its data()
 
 	// ****************************************************************************
 	// Start INTERNAL!
@@ -820,24 +819,35 @@ int const BSF_DYNAMIC = 4096;
 #endif
 
 	// Get the full path and name of executable
-	string* tmp_fullpath = new string;
-	get_full_path_to_executable(*tmp_fullpath);
-	*tmp_fullpath += '\0';
-/**/	set_alloc_checking_on();
-/**/    fullpath.assign(tmp_fullpath->data(), tmp_fullpath->size());	// Must be static because bfd keeps a pointer to its data()
-/**/	set_alloc_checking_off();
-        delete tmp_fullpath;
+	struct non_alloc_checking_string_st {
+	  string* value;
+          non_alloc_checking_string_st(void)
+	  {
+	    set_alloc_checking_off();
+	    value = new string;
+	    set_alloc_checking_on();
+	  }
+	  ~non_alloc_checking_string_st()
+	  {
+	    set_alloc_checking_off();
+	    delete value;
+	    set_alloc_checking_on();
+	  }
+        };
+	static non_alloc_checking_string_st fullpath;	// Must be static because bfd keeps a pointer to its data()
+	get_full_path_to_executable(*fullpath.value);
+	*fullpath.value += '\0';
 
 #ifdef DEBUGUSEGNULIBBFD
-	bfd_set_error_program_name(fullpath.data() + fullpath.find_last_of('/') + 1);
+	bfd_set_error_program_name(fullpath.value->data() + fullpath.value->find_last_of('/') + 1);
 	bfd_set_error_handler(error_handler);
 #endif
 
 	// Load executable
 /**/	set_alloc_checking_on();
-/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath << "... ");
+/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << *fullpath.value << "... ");
 /**/	set_alloc_checking_off();
-	object_file_ct* object_file = new object_file_ct(fullpath.data(), 0);
+	object_file_ct* object_file = new object_file_ct(fullpath.value->data(), 0);
 /**/	set_alloc_checking_on();
 /**/	if (object_file->get_number_of_symbols() > 0)
 /**/	  Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
@@ -852,7 +862,7 @@ int const BSF_DYNAMIC = 4096;
 
 	char const* argv[3];
 	argv[0] = "ldd";
-	argv[1] = fullpath.data();
+	argv[1] = fullpath.value->data();
 	argv[2] = NULL;
 	exec_prog(ldd_prog, argv, environ, decode);
 
