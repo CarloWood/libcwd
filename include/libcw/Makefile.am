@@ -25,6 +25,7 @@ debug_config.h: debug_config.ho
 	    echo "debug_config.h is unchanged"; \
 	    touch -r debug_config.h debug_config.ho; \
 	  else \
+	    echo "creating debug_config.h"; \
 	    cp debug_config.ho debug_config.h; \
 	  fi)
 
@@ -33,6 +34,7 @@ sys.h: sys.ho
 	    echo "sys.h is unchanged"; \
 	    touch -r sys.h sys.ho; \
 	  else \
+	    echo "creating sys.h"; \
 	    cp sys.ho sys.h; \
 	  fi)
 

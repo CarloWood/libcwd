@@ -203,12 +203,21 @@ if test "$libcwd_config_bfd" = yes; then
   if test "$ac_cv_lib_iberty_xmalloc" != "no" -a "$ac_cv_lib_bfd_bfd_init" != "no"; then
     AC_CHECK_HEADER(bfd.h,
       [CW_CONFIG_DEBUGUSEBFD=define],
-      [AC_MSG_WARN([You have libbfd, but I cannot find bfd.h!?  Look up of function names and source:line information will be disabled.])])
+      [AC_MSG_WARN([
+
+* WARNING:
+* You have libbfd, but I cannot find bfd.h!  Look up of function names and
+* source:line information will be disabled.  Perhaps you need to add -I/path
+* to CPPFLAGS?
+* Please read the INSTALL for more info.
+])])
   else
     AC_MSG_WARN([
+
+* WARNING:
 * Cannot find a working libbfd;  Lookup of function names and source:line
 * information will be disabled.  Perhaps you need to add -L/path to LDFLAGS?
-* Please read INSTALL for more info.
+* Please read the INSTALL for more info.
 ])
   fi
 
@@ -291,7 +300,8 @@ if test "$USE_MAINTAINER_MODE" = yes; then
   cd ..
 fi
 
-AC_OUTPUT_COMMANDS([$MAKE -C include/libcw debug_config.h sys.h], [MAKE="${MAKE-make}"])
+dnl Generate include/libcw/debug_config.h and include/libcw/sys.h, preserving timestamp when they are not changed.
+AC_OUTPUT_COMMANDS([cd include/libcw; $MAKE debug_config.h sys.h], [MAKE="${MAKE-make}"])
 
 CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
 exit 0
