@@ -223,7 +223,7 @@ void* __libc_malloc(size_t size) = libcw::debug::malloc_bootstrap1;
 void* __libc_calloc(size_t nmemb, size_t size) = libcw::debug::calloc_bootstrap1;
 void* __libc_realloc(void* ptr, size_t size);
 void __libc_free(void* ptr);
-void __libc_free_final(void* ptr) = (void (*)(void*))0;
+void (*__libc_free_final)(void* ptr) = (void (*)(void*))0;
 #endif // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
 
 #else // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
@@ -1545,9 +1545,9 @@ void* realloc_bootstrap2(void* ptr, size_t size)
   // This assumes that allocations during dlopen()/dlclose()
   // never use the fact that decreasing an allocation is
   // garanteed not to relocate it.
-  void* ptr = malloc_bootstrap2(size);
+  void* res = malloc_bootstrap2(size);
   free_bootstrap2(ptr);
-  return ptr;
+  return res;
 }
 
 #undef dlopen
