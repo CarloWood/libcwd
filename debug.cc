@@ -913,6 +913,14 @@ void allocator_unlock(void)
 #endif
 #endif
 
+#if (__GNUC__ == 3 && __GNUC_MINOR__ == 2)
+      if (__VERSION__ [3] == 0)		// g++ 3.2 only, this is not needed for 3.2.1 and higher.
+      {
+        channels::dc::malloc.off();
+        channels::dc::bfd.off();
+      }
+#endif
+
       // Skip `start()' for a `continued' debug output.
       // Generating the "prefix: <continued>" is already taken care
       // of while generating the "<unfinished>" (see next `if' block).
@@ -1068,6 +1076,14 @@ void allocator_unlock(void)
       std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : debug_object.real_os;
 
       set_alloc_checking_off(LIBCWD_TSD);
+
+#if (__GNUC__ == 3 && __GNUC_MINOR__ == 2)
+      if (__VERSION__ [3] == 0)			// g++ 3.2 only.
+      {
+        channels::dc::malloc.on();
+        channels::dc::bfd.on();
+      }
+#endif
 
       // Skip `finish()' for a `continued' debug output.
       if ((current->mask & continued_cf_maskbit) && !(current->mask & finish_maskbit))
@@ -1270,6 +1286,7 @@ void allocator_unlock(void)
       LIBCWD_RESTORE_CANCEL;
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
 #endif
+      new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
 #ifdef _REENTRANT
       WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
@@ -1282,7 +1299,6 @@ void allocator_unlock(void)
 #endif
       tsd.init();
       set_alloc_checking_on(LIBCWD_TSD);
-      new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
 
 #if CWDEBUG_DEBUGOUTPUT
       LIBCWD_TSD_MEMBER_OFF = -1;		// Print as much debug output as possible right away.
@@ -1301,8 +1317,8 @@ void allocator_unlock(void)
 
     void debug_tsd_st::init(void)
     {
-      LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
+      LIBCWD_TSD_DECLARATION;
       LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
       start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
@@ -1428,12 +1444,26 @@ void allocator_unlock(void)
 	    i != _private_::debug_channels.read_locked().end(); ++i)
 	{
 	  LibcwDoutScopeBegin(DEBUGCHANNELS, debug_object, dc::always|noprefix_cf);
+#if (__GNUC__ == 3 && __GNUC_MINOR__ == 2)
+	  if (__VERSION__ [3] == 0)
+	  {
+	    channels::dc::malloc.on();
+	    channels::dc::bfd.on();
+	  }
+#endif
 	  LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(), LIBCWD_DO_TSD_MEMBER(debug_object, margin).size());
 	  LibcwDoutStream.write((*i)->get_label(), WST_max_len);
 	  if ((*i)->is_on())
 	    LibcwDoutStream.write(": Enabled", 9);
 	  else
 	    LibcwDoutStream.write(": Disabled", 10);
+#if (__GNUC__ == 3 && __GNUC_MINOR__ == 2)
+	  if (__VERSION__ [3] == 0)
+	  {
+	    channels::dc::malloc.off();
+	    channels::dc::bfd.off();
+	  }
+#endif
 	  LibcwDoutScopeEnd;
 	}
         DEBUG_CHANNELS_RELEASE_READ_LOCK;

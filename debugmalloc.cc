@@ -1721,8 +1721,10 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
   if (__libcwd_tsd.invisible)
   {
     ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
-    std::pair<memblk_map_ct::iterator, bool> const&
-	iter(memblk_map_write->insert(memblk_ct(memblk_key_ct(mptr, size), memblk_info_ct(flag))));
+#if CWDEBUG_DEBUGM
+    std::pair<memblk_map_ct::iterator, bool> const& iter =
+#endif
+    memblk_map_write->insert(memblk_ct(memblk_key_ct(mptr, size), memblk_info_ct(flag)));
 #if CWDEBUG_DEBUGM
     error = !iter.second;
 #endif
@@ -1749,7 +1751,6 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
   LIBCWD_RESTORE_CANCEL;
 
 #if CWDEBUG_DEBUGM
-  // MT-safe: iter points to an element that is garanteed unique to this thread (we just allocated it).
   if (error)
     DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
 #endif
@@ -2961,14 +2962,24 @@ void register_external_allocation(void const* mptr, size_t size)
   __libcwd_tsd.internal = 1;
 
   // Update our administration:
-  struct timeval alloc_time;
-  gettimeofday(&alloc_time, 0);
   std::pair<memblk_map_ct::iterator, bool> iter;
   LIBCWD_DEFER_CANCEL;
-  ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));	// MT: memblk_info_ct() needs wrlock.
-  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_external, alloc_time LIBCWD_COMMA_LOCATION(loc)));
-  iter = memblk_map_write->insert(memblk);
-  RELEASE_WRITE_LOCK;
+  if (__libcwd_tsd.invisible)
+  {
+    memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(memblk_type_external));
+    ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
+    iter = memblk_map_write->insert(memblk);
+    RELEASE_WRITE_LOCK;
+  }
+  else
+  {
+    struct timeval alloc_time;
+    gettimeofday(&alloc_time, 0);
+    ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));	// MT: visible memblk_info_ct() needs wrlock too.
+    memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_external, alloc_time LIBCWD_COMMA_LOCATION(loc)));
+    iter = memblk_map_write->insert(memblk);
+    RELEASE_WRITE_LOCK;
+  }
   LIBCWD_RESTORE_CANCEL;
 
   DEBUGDEBUG_CERR( "register_external_allocation: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
@@ -2978,8 +2989,11 @@ void register_external_allocation(void const* mptr, size_t size)
   if (!iter.second)
     DoutFatalInternal( dc::core, "register_external_allocation: externally (supposedly newly) allocated block collides with *existing* memblk!  Are you sure this memory block was externally allocated, or did you call RegisterExternalAlloc twice for the same pointer?" );
 
-  memblk_info_ct& memblk_info((*iter.first).second);
-  memblk_info.lock();		// Lock ownership (doesn't call malloc).
+  if (!__libcwd_tsd.invisible)
+  {
+    memblk_info_ct& memblk_info((*iter.first).second);
+    memblk_info.lock();		// Lock ownership (doesn't call malloc).
+  }
   --__libcwd_tsd.inside_malloc_or_free;
 }
 #endif // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
@@ -3365,46 +3379,71 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #endif
 
   // Update administration
+  bool insertion_succeeded;
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
   __libcwd_tsd.internal = 1;
-  type_info_ct const* t = (*iter).second.typeid_ptr();
-  _private_::smart_ptr d((*iter).second.description());
-  struct timeval realloc_time;
-  gettimeofday(&realloc_time, 0);
+  if (__libcwd_tsd.invisible)
+  {
+    memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(memblk_type_realloc));
 #if LIBCWD_THREAD_SAFE
-  if (other_target_thread)
-    ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));			// MT: memblk_info_ct() needs wrlock.
+    if (other_target_thread)
+      ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
+    else
+      ACQUIRE_READ2WRITE_LOCK;
+#endif
+    target_memblk_map_write->erase(memblk_iter_write);
+#if LIBCWD_THREAD_SAFE
+    if (other_target_thread)
+    {
+      __libcwd_tsd.target_thread = other_target_thread;
+      RELEASE_READ_LOCK;
+      // We still have the lock for the current thread (set 12 lines above this).
+      __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);
+    }
+#endif
+    std::pair<memblk_map_ct::iterator, bool> const& iter2(memblk_map_write->insert(memblk));
+    insertion_succeeded = iter2.second;
+  }
   else
-    ACQUIRE_READ2WRITE_LOCK;
-#endif
-  memblk_ct memblk(memblk_key_ct(mptr, size),
-                   memblk_info_ct(mptr, size, memblk_type_realloc,
-		   realloc_time LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(loc)));
-  target_memblk_map_write->erase(memblk_iter_write);
+  {
+    type_info_ct const* type_info_ptr = (*iter).second.typeid_ptr();
+    _private_::smart_ptr d((*iter).second.description());
+    struct timeval realloc_time;
+    gettimeofday(&realloc_time, 0);
 #if LIBCWD_THREAD_SAFE
-  if (other_target_thread)
-  {
-    __libcwd_tsd.target_thread = other_target_thread;
-    RELEASE_READ_LOCK;
-    // We still have the lock for the current thread (set 12 lines above this).
-    __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);
-  }
+    if (other_target_thread)
+      ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));			// MT: visible memblk_info_ct() needs wrlock too.
+    else
+      ACQUIRE_READ2WRITE_LOCK;
 #endif
-  std::pair<memblk_map_ct::iterator, bool> const& iter2(memblk_map_write->insert(memblk));
-  if (!iter2.second)
-  {
-    RELEASE_WRITE_LOCK;
-    LIBCWD_RESTORE_CANCEL_NO_BRACE;
-    DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
-    __libcwd_tsd.internal = 0;
-    DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
+    memblk_ct memblk(memblk_key_ct(mptr, size),
+		     memblk_info_ct(mptr, size, memblk_type_realloc,
+		     realloc_time LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(loc)));
+    target_memblk_map_write->erase(memblk_iter_write);
+#if LIBCWD_THREAD_SAFE
+    if (other_target_thread)
+    {
+      __libcwd_tsd.target_thread = other_target_thread;
+      RELEASE_READ_LOCK;
+      // We still have the lock for the current thread (set 12 lines above this).
+      __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);
+    }
+#endif
+    std::pair<memblk_map_ct::iterator, bool> const& iter2(memblk_map_write->insert(memblk));
+    insertion_succeeded = iter2.second;
+    if (insertion_succeeded)
+    {
+      memblk_info_ct& memblk_info((*(iter2.first)).second);
+      memblk_info.change_label(*type_info_ptr, d);
+    }
   }
-  memblk_info_ct& memblk_info((*(iter2.first)).second);
-  memblk_info.change_label(*t, d);
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
   RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
+
+  if (!insertion_succeeded)
+    DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
 
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
   DoutInternal( dc::finish, (void*)(mptr) << " [" << saved_marker << ']' );

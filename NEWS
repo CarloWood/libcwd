@@ -1,13 +1,15 @@
 libcwd-0.99.29
 
         Allocations inside Dout() et al are not 'internal' anymore.
-	Although it made no sense to allocate memory at all in
-	debug code, there were problems with memory being allocated
-	as part of libstdc++ (like a locale object and a scratch
-	buffer for writing numbers), these allocation should be
-	non-internal - and when performed from within a Dout did
-	sometimes lead to a COREDUMP, complaining about freeing
-	'internal' memory.
+	Although it makes no sense to allocate memory in debug code,
+	there were problems with memory being allocated as part of
+	libstdc++ (like a locale object and a scratch buffer for
+	writing numbers), these allocation should be non-internal -
+	and when performed from within a Dout did sometimes lead
+	to a COREDUMP, complaining about freeing 'internal' memory.
+
+	Libcwd now compiles and works with the (current) CVS branches
+	of g++ 3.3 and 3.4.
 
 	API changes:
 
@@ -25,8 +27,15 @@ libcwd-0.99.29
 
 	Bug fixes:
 
-	Compilation warning fix for g++ 3.3.
-	Compile error fixes for g++ 3.4.
+	It could happen, while writing debug output, that you'd see
+	something like:
+	  COREDUMP:     internal free: You are 'free()'-ing a pointer with alloc 
+	  checking OFF ('internal' allocation) (0x807e570) that was allocated with 
+	  'malloc()'.  Use 'free' instead.
+	  Aborted (core dumped)
+	While in fact you didn't free anything at all (the free is
+	done internally by libstdc++ and out of your control).
+	This should be fixed now.
 
 	When one thread is listing memory allocations and another
 	thread is closing a shared library, it could happen that
