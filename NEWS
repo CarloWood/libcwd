@@ -37,7 +37,7 @@ libcwd-0.99.6
 	libcw/iomanip.h (they are actually part of libcw but also included
 	with libcwd because libcwd uses them internally).
 	[ Use "using namespace libcw::debug;" ]
-	[ "lockable_auto_ptr" -> "libcw::lockable_auto_ptr" ]
+	[ "lockable_auto_ptr"        --> "libcw::lockable_auto_ptr" ]
 
 	The bfd interface has been redesigned:
 	- The global structure `location_st' has been removed and is replaced
@@ -59,13 +59,13 @@ libcwd-0.99.6
 	  `libcw::debug::unknown_function_c' (instead of needing a strcmp()).
 	- `pc_mangled_function_name' also returns `libcw::debug::unknown_function_c'
 	   on failure and not NULL as did `libcw_bfd_pc_function_name'.
-	[ "location_st" --> "libcw::debug::location_ct" ]
+	[ "location_st" --> "libcw::debug::location_ct"               ]
 	[ "libcw_bfd_pc_function_name(addr)" -->
-	  "libcw::debug::pc_mangled_function_name(addr)" (and does not return
-	  NULL anymore) ]
+	               "libcw::debug::pc_mangled_function_name(addr)"
+	               (and doesn't return NULL anymore)              ]
 	[ "location_st location; libcw_bfd_pc_location(location, addr);" -->
-	  "libcw::debug::location_ct location(addr);" ]
-	[ Available interface of location_ct: see libcw/bfd.h ]
+	  "libcw::debug::location_ct location(addr);"                 ]
+	[ Available interface of location_ct: see libcw/bfd.h         ]
 
 	A few functions have been renamed now they were moved inside the
 	libcw::debug namespace:
@@ -73,18 +73,29 @@ libcwd-0.99.6
 	The function libcw_debug_move_outside was renamed to move_outside.
 	The function debug_mem_size was renamed to mem_size;
 	The function debug_memblks was renamed to memblks;
-	[ "debugmalloc_marker_ct" --> "libcw::debug::marker_ct" ]
+	[ "debugmalloc_marker_ct"    --> "libcw::debug::marker_ct"    ]
 	[ "libcw_debug_move_outside" --> "libcw::debug::move_outside" ]
-	[ "debug_mem_size" --> "libcw::debug::mem_size" ]
-	[ "debug_memblks" --> "libcw::debug::memblks" ]
+	[ "debug_mem_size"           --> "libcw::debug::mem_size"     ]
+	[ "debug_memblks"            --> "libcw::debug::memblks"      ]
 
 	The macro ASSERT(x) no longer contains a ';', this might mean that you
 	need to add semi-colons yourself if you have been using it.
-	[ "ASSERT( i == 1 )" --> "ASSERT( i == 1 );" ].
+	[ "ASSERT( i == 1 )"         --> "ASSERT( i == 1 );"          ]
 
 	Bug fixes:
 
 	Fixed demangling `const' member functions aka: void Foo::foo(void) const;
+
+	There was 'static initialisation order fiasco' bug that appeared
+	mainly on solaris (linux always first initializes the shared
+	libraries and only then constructs global objects of the application).
+	The bug occured in most cases when a memory allocation was done in the
+	constructor of a global object while the global objects of libcwd were
+	not initialized yet.  The main problem was that a debub object (libcw_do)
+	was NOT turned off before initialisation.  This fix allows the use of
+	malloc/new (of course), Dout and DoutFatal before libcwd is initialized.
+	Other libcwd functions can cause a core dump when used in constructors
+	of global objects.
 
 libcwd-0.99.5
 

@@ -457,13 +457,6 @@ static memblk_map_ct* memblk_map;
   // The `map' implementation calls `new' when initializing a new `map',
   // therefore this must be a pointer. Or below:
 
-class memblk_map_initializer_ct {
-public:
-  memblk_map_initializer_ct(void) { init_debugmalloc(); }
-};
-
-static memblk_map_initializer_ct memblk_map_initializer;
-
 //=============================================================================
 //
 // dm_alloc_ct methods
@@ -717,6 +710,13 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
     Dout( dc::finish, "NULL" );
     Dout( dc::__libcwd_malloc, "Out of memory ! this is only a pre-detection!" );
     return NULL;	// A fatal error should occur directly after this
+  }
+
+  if (!memblk_map)
+  {
+    set_alloc_checking_off();
+    memblk_map = new memblk_map_ct;
+    set_alloc_checking_on();
   }
 
   // Update our administration:

@@ -163,7 +163,7 @@ namespace libcw {
 	    Dout(dc::system|continued_cf, "poll(");
 	    ret = poll(ufds, number_of_fds, -1);
 	    Debug(
-	      if (!libcw_do._off)
+	      if (libcw_do._off < 0)
 		if ((libcw_do|dc::continued).on)
 		  print_poll_array_on(*libcw_do.current_oss, ufds, number_of_fds);
 	    );

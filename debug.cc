@@ -428,7 +428,7 @@ namespace libcw {
     void debug_ct::fatal_finish(void)
     {
       finish();
-      DoutFatal( dc::core, "Don't use `DoutFatal' together with `continue_cf', use `Dout' instead" );
+      DoutFatal( dc::core, "Don't use `DoutFatal' together with `continue_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
     }
 
     void debug_ct::init(void)
@@ -436,9 +436,9 @@ namespace libcw {
       if (initialized)
         return;
 
-      _off = 1;						// Turn off all debugging until initialization is completed.
+      _off = 0;						// Turn off all debugging until initialization is completed.
 #ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: In debug_ct::init(void), _off set to 1" << endl;
+      cerr << "DEBUGDEBUG: In debug_ct::init(void), _off set to 0" << endl;
 #endif
 
       if (::std::find(debug_objects().begin(), debug_objects().end(), this) == debug_objects().end()) // Not added before?
@@ -476,10 +476,10 @@ namespace libcw {
 #endif
 
 #ifdef DEBUGDEBUG
-      _off = 0;			// Print as much debug output as possible right away.
+      _off = -1;		// Print as much debug output as possible right away.
       first_time = true;	// Needed to ignore the first time we call on().
 #else
-      _off = 1;			// Don't print debug output till the REAL initialization of the debug system has been performed
+      _off = 0;			// Don't print debug output till the REAL initialization of the debug system has been performed
       				// (ie, the _application_ start (don't confuse that with the constructor - which does nothing)).
 #endif
 #ifdef DEBUGDEBUG
@@ -574,7 +574,7 @@ namespace libcw {
 
     void list_channels_on(debug_ct const& debug_object)
     {
-      if (!debug_object._off)
+      if (debug_object._off < 0)
 	for(debug_channels_ct::iterator i(debug_channels().begin()); i != debug_channels().end(); ++i)
 	{
 	  char const* txt = (*i)->is_on() ? ": Enabled" : ": Disabled";
@@ -672,29 +672,19 @@ namespace libcw {
     {
 #ifdef DEBUGDEBUG
       cerr << "DEBUGDEBUG: continued_cf detected" << endl;
+      if (!debug_object || !debug_object->initialized)
+        cerr << "DEBUGDEBUG: Don't use DoutFatal together with continued_cf, use Dout instead." << endl;
 #endif
       mask |= cf.maskbit;
       if (!on)
       {
-        if (debug_object)
-	{
-	  ++(debug_object->off_count);
+	++(debug_object->off_count);
 #ifdef DEBUGDEBUG
-	  cerr << "DEBUGDEBUG: Channel is switched off. Increased off_count to " << debug_object->off_count << endl;
-#endif
-        }
-#ifdef DEBUGDEBUG
-	else
-	  cerr << "DEBUGDEBUG: Attempting to write continued debug output from a global contructor while the debug object(s) is not initialized yet." << endl;
+	cerr << "DEBUGDEBUG: Channel is switched off. Increased off_count to " << debug_object->off_count << endl;
 #endif
       }
       else
       {
-	if (!debug_object->initialized)
-	{
-	  cerr << "Huh!? Please mail the author of libcwd: libcw@alinoe.com\n";
-	  exit(-1);
-	}
         debug_object->continued_stack.push(debug_object->off_count);
 #ifdef DEBUGDEBUG
         cerr << "DEBUGDEBUG: Channel is switched on. Pushed off_count (" << debug_object->off_count << ") to stack (size now " <<
@@ -713,11 +703,6 @@ namespace libcw {
       else
         cerr << "DEBUGDEBUG: dc::finish detected" << endl;
 #endif
-      if (!initialized)
-      {
-        init();					// We need to call this: this is the point where we initialize memblk_map :/
-        return continued_channel_set;		// Do nothing because off_count is incorrectly 0 at this point.
-      }
 
       if ((continued_channel_set.on = !off_count))
       {

@@ -381,7 +381,7 @@ class debug_ct {
 
 public: // Direct access needed in macro LibcwDout().  Do not write to these.
   int _off;
-    // True when the debug output is turned off.
+    // Debug output is turned on when this variable is -1, otherwise it is off.
 
   laf_ct* current;
     // Current laf.
@@ -516,7 +516,7 @@ public:
   void on(void) { --_off; }
     // Cancel last call to off().
 #else
-  // Since with DEBUGDEBUG defined we start with _off is 0 instead of 1,
+  // Since with DEBUGDEBUG defined we start with _off is -1 instead of 0,
   // we need to ignore the call to on() the first time it is called.
 private:
   bool first_time;
@@ -614,7 +614,7 @@ extern void list_channels_on(debug_ct const& debug_object);
 #define LibcwDout( dc_namespace, debug_obj, cntrl, data )	\
   do								\
   { DEBUGDEBUGLIBCWDOUTMARKER					\
-    if (!debug_obj._off)					\
+    if (debug_obj._off < 0)					\
     {								\
       using namespace ::libcw::debug;				\
       bool on;							\
@@ -639,7 +639,7 @@ extern void list_channels_on(debug_ct const& debug_object);
 #define LibcwDout_vform( dc_namespace, debug_obj, cntrl, format, vl )	\
   do								\
   { DEBUGDEBUGLIBCWDOUTMARKER					\
-    if (!debug_obj._off)					\
+    if (debug_obj._off < 0)					\
     {								\
       using namespace ::libcw::debug;				\
       bool on;							\
