@@ -1,3 +1,9 @@
+libcwd-0.99.37
+
+	libcwd::ooam_filter_ct does not allocate normal memory anymore
+	(only `internal' memory) making it better suitable to use it
+	as a filter to show memory leaks at program termination.
+
 libcwd-0.99.36
 
 	Libcwd is now compiled with -O2 by default.

@@ -122,7 +122,8 @@ std::vector<std::string> ooam_filter_ct::get_objectfile_list(void) const
   std::vector<std::string> res;
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
-  res = M_objectfile_masks;
+  for(vector_type::const_iterator iter = M_objectfile_masks.begin(); iter != M_objectfile_masks.end(); ++iter)
+    res.push_back(std::string(iter->data(), iter->length()));
   RELEASE_LISTALLOC_LOCK;
   LIBCWD_CLEANUP_POP_RESTORE(false);
   return res;
@@ -136,7 +137,8 @@ std::vector<std::string> ooam_filter_ct::get_sourcefile_list(void) const
   std::vector<std::string> res;
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
-  res = M_sourcefile_masks;
+  for(vector_type::const_iterator iter = M_sourcefile_masks.begin(); iter != M_sourcefile_masks.end(); ++iter)
+    res.push_back(std::string(iter->data(), iter->length()));
   RELEASE_LISTALLOC_LOCK;
   LIBCWD_CLEANUP_POP_RESTORE(false);
   return res;
@@ -149,7 +151,9 @@ void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& m
 #endif
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
-  M_objectfile_masks = masks;
+  M_objectfile_masks.clear();
+  for(std::vector<std::string>::const_iterator iter = masks.begin(); iter != masks.end(); ++iter)
+    M_objectfile_masks.push_back(string_type(iter->data(), iter->length()));
   S_id = -1;			// Force resynchronization.
   RELEASE_LISTALLOC_LOCK;
   LIBCWD_CLEANUP_POP_RESTORE(false);
@@ -162,7 +166,9 @@ void ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& m
 #endif
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
-  M_sourcefile_masks = masks;
+  M_sourcefile_masks.clear();
+  for(std::vector<std::string>::const_iterator iter = masks.begin(); iter != masks.end(); ++iter)
+    M_sourcefile_masks.push_back(string_type(iter->data(), iter->length()));
   S_id = -1;			// Force resynchronization.
   RELEASE_LISTALLOC_LOCK;
   LIBCWD_CLEANUP_POP_RESTORE(false);
@@ -188,8 +194,7 @@ void ooam_filter_ct::M_synchronize(void) const
 	 iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
 	 ++iter)
     {
-      for (std::vector<std::string>::const_iterator iter2(M_objectfile_masks.begin());
-	  iter2 != M_objectfile_masks.end(); ++iter2)
+      for (vector_type::const_iterator iter2(M_objectfile_masks.begin()); iter2 != M_objectfile_masks.end(); ++iter2)
 	if (_private_::match((*iter2).data(), (*iter2).length(), (*iter)->get_object_file()->M_filename))
 	{
 	  (*iter)->get_object_file()->M_hide = true;

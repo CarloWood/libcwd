@@ -25,6 +25,11 @@
 #include <libcwd/config.h>
 
 #if CWDEBUG_ALLOC
+
+#if CWDEBUG_LOCATION
+#include <libcwd/private_allocator.h>
+#endif
+
 namespace libcwd {
 
 /** \addtogroup group_alloc_format */
@@ -75,8 +80,10 @@ private:
   struct timeval M_start;
   struct timeval M_end;
 #if CWDEBUG_LOCATION
-  std::vector<std::string> M_objectfile_masks;
-  std::vector<std::string> M_sourcefile_masks;
+  typedef std::basic_string<char, std::char_traits<char>, _private_::auto_internal_allocator> string_type;
+  typedef std::vector<string_type, _private_::auto_internal_allocator::rebind<string_type>::other> vector_type;
+  vector_type M_objectfile_masks;
+  vector_type M_sourcefile_masks;
 #endif
 public:
   /** The timeval used when there is no actual limit set, either start or end. */
@@ -92,9 +99,15 @@ public:
   /** \brief Returns the end time as passed with set_time_interval. */
   struct timeval get_time_end(void) const;
 #if CWDEBUG_LOCATION
-  /** \brief Returns the list of object file masks. */
+  /** \brief Returns a copy of the list of object file masks.
+   *
+   * Don't use this function in a loop.
+   */
   std::vector<std::string> get_objectfile_list(void) const;
-  /** \brief Returns the list of source file masks. */
+  /** \brief Returns a copy of the list of source file masks.
+   *
+   * Don't use this function in a loop.
+   */
   std::vector<std::string> get_sourcefile_list(void) const;
 #endif
 

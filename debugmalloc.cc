@@ -1118,7 +1118,7 @@ void location_ct::handle_delayed_initialization(ooam_filter_ct const& filter)
 
 _private_::hidden_st ooam_filter_ct::check_hide(char const* filepath) const
 {
-  for (std::vector<std::string>::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
+  for (vector_type::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
     if (_private_::match((*iter).data(), (*iter).length(), filepath))
       return _private_::filtered_location;
   return _private_::unfiltered_location;
