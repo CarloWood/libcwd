@@ -1,2 +1,3 @@
 SUBDIRS = libcw
 
+MAINTAINERCLEANFILES = Makefile.in

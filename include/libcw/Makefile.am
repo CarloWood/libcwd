@@ -24,3 +24,4 @@ EXTRA_DIST = perf.h
 
 DISTCLEANFILES = debug_config.h sys.h
 
+MAINTAINERCLEANFILES = Makefile.in

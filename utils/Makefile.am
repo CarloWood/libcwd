@@ -18,3 +18,5 @@ char2str.cc \
 exec_prog.cc
 
 EXTRA_DIST = perf.cc
+
+MAINTAINERCLEANFILES = Makefile.in

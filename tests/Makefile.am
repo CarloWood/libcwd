@@ -34,3 +34,5 @@ DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
 CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
 INCLUDES = -I- -I$(top_builddir)/include -I$(srcdir)/../include -DDEBUG
+
+MAINTAINERCLEANFILES = Makefile.in

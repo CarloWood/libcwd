@@ -1,4 +1,4 @@
 -include Makefile
 
 maintainer-startup:
-	aclocal; autoheader; autoconf; automake
+	aclocal; autoheader; autoconf; automake -a

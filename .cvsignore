@@ -4,6 +4,13 @@ config.log
 config.cache
 config.status
 libtool
+install-sh
+mkinstalldirs
+missing
+config.guess
+config.sub
+ltconfig
+ltmain.sh
 config.h.in
 config.h
 stamp-h.in
