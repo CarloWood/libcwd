@@ -808,9 +808,9 @@ location_st libcw_bfd_pc_location(void const* addr) return location
 	Dout(dc::bfd, "Warning: Address " << hex << addr << " in section " << sect->name <<
 	    " does not have a line number, perhaps the unit containing the function");
 #ifdef __FreeBSD__
-	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with CFLAGS=-ggdb");
+	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb");
 #else
-	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with CFLAGS=-g");
+	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g");
 #endif
       }
       else
