@@ -1,4 +1,5 @@
 global srcdir subdir
+global SHAREDLIBS STATICLIBS
 
 catch "glob -nocomplain $srcdir/$subdir/*.cc" srcfiles
 #set srcfiles $srcdir/$subdir/type_info.cc
@@ -23,6 +24,13 @@ foreach x $srcfiles {
         set inpfile ""
     }
     verbose "inpfile is $inpfile"
+    verbose "SHAREDLIBS is \"$SHAREDLIBS\""
+    verbose "STATICLIBS is \"$STATICLIBS\""
 
-    test_libcwd $options "${prefix}.cc" "" $inpfile $resfile $args
+    if { $SHAREDLIBS != "" } {
+      test_libcwd $options "${prefix}.cc" "" $inpfile $resfile $args
+    }
+    if { $STATICLIBS != "" } {
+      test_libcwd "static $options" "${prefix}.cc" "" $inpfile $resfile $args
+    }
 }

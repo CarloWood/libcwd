@@ -7,7 +7,7 @@ load_lib "libgloss.exp"
 #
 proc test_libcwd { options srcfile compile_args inpfile resultfile exec_args } {
     global base_dir
-    global LIBS OPTIONS
+    global SHAREDLIBS STATICLIBS OPTIONS
     global includes
     global srcdir subdir objdir
     global ld_library_path
@@ -20,7 +20,8 @@ verbose "    inpfile = \"$inpfile\""
 verbose "    resultfile = \"$resultfile\""
 verbose "    exec_args = \"$exec_args\""
 verbose "    srcdir = \"$srcdir\""
-verbose "    LIBS = \"$LIBS\""
+verbose "    SHAREDLIBS = \"$SHAREDLIBS\""
+verbose "    STATICLIBS = \"$STATICLIBS\""
 verbose "    OPTIONS = \"$OPTIONS\""
 
     set args ""
@@ -41,7 +42,13 @@ verbose "    out = \"$out\""
       set compiler_options "$OPTIONS"
     }
 
-    lappend args "libs=$LIBS"
+    if { [regexp -- "static" $options] } {
+      lappend args "libs=$STATICLIBS"
+      set staticorshared "static"
+    } else {
+      lappend args "libs=$SHAREDLIBS"
+      set staticorshared "shared"
+    }
     lappend args "additional_flags=$compiler_options -I$path"
     lappend args "c++"
 
@@ -52,14 +59,14 @@ verbose "    out = \"$out\""
     }
 
     if { [target_compile $srcfile "$executable" executable $args] != "" } {
-	fail "$errname compilation"
+	fail "$errname $staticorshared compilation"
 	setup_xfail "*-*-*"
-	fail "$errname execution"
+	fail "$errname $staticorshared execution"
 	setup_xfail "*-*-*"
-	fail "$errname output"
+	fail "$errname $staticorshared output"
 	return;
     }
-    pass "$errname compilation"
+    pass "$errname $staticorshared compilation"
 
     set result [libcwd_load $executable "$exec_args" "$inpfile"];
     set status [lindex $result 0];
@@ -71,7 +78,7 @@ verbose "    out = \"$out\""
     $status "$errname execution"
     if { $status != "pass" } {
 	setup_xfail "*-*-*"
-	fail "$errname output"
+	fail "$errname $staticorshared output"
 	return;
     }
 
@@ -237,9 +244,9 @@ verbose "    out = \"$out\""
 
     # Finish
     if { $passed == 1 } {
-	pass "$errname output"
+	pass "$errname $staticorshared output"
     } else {
-	fail "$errname output"
+	fail "$errname $staticorshared output"
     }
 
     # Close input file

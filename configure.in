@@ -184,6 +184,10 @@ CW_CONFIG_DEBUGDEBUGMALLOC=undef
 AC_SUBST(CW_CONFIG_DEBUGMARKER)
 CW_CONFIG_DEBUGMARKER=undef
 
+dnl Configuration needed by the testsuite
+AC_SUBST(enable_shared)
+AC_SUBST(enable_static)
+
 if test "$libcwd_config_alloc" = yes; then
   CW_CONFIG_DEBUGMALLOC=define
 fi
