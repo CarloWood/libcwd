@@ -159,7 +159,7 @@ dnl Checks for other programs.
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_AWK
-AC_PATH_PROG(PS, ps, /usr/bin/ps, $PATH)
+AC_PATH_PROG(PS, ps, /bin/ps, $PATH)
 AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS")
 
 dnl We need to use these options for the tests too
