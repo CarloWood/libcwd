@@ -21,6 +21,12 @@ with (document)
 	rootpos = location.pathname.lastIndexOf("/tutorial/");
 	if (rootpos != -1) 
 	  rootpath = location.pathname.substring(0,rootpos) + "/";
+	else
+	{
+	  rootpos = location.pathname.lastIndexOf("/libcwd/");
+	  if (rootpos != -1) 
+	    rootpath = location.pathname.substring(0,rootpos) + "/libcwd/";
+	}
       }
     }
   }
