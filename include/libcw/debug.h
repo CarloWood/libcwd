@@ -672,9 +672,11 @@ extern void list_channels_on(debug_ct const& debug_object);
 #define Dout(a, b)
 #define DoutFatal(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)
 
-#endif // CWDEBUG
+#endif // !CWDEBUG
 
 #include <libcw/debugmalloc.h>
+
+#ifdef CWDEBUG
 
 // Make the inserter functions of std accessible in libcw::debug:
 namespace libcw {
@@ -683,10 +685,16 @@ namespace libcw {
   }
 }
 
+#endif // CWDEBUG
+
+#if defined(CWDEBUG) || defined(DEBUGMALLOC)
+
 // Make the inserter functions of libcw::debug accessible in global namespace:
 namespace libcw_debug_inserters {
   using libcw::debug::operator<<;
 }
 using namespace libcw_debug_inserters;
+
+#endif // defined(CWDEBUG) || defined(DEBUGMALLOC)
 
 #endif // LIBCW_DEBUG_H
