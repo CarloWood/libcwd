@@ -38,7 +38,7 @@
 
 #define DEBUGELF32 0
 #define DEBUGSTABS 0
-#define DEBUGDWARF 1
+#define DEBUGDWARF 0
 
 #if DEBUGDWARF
 #define DoutDwarf(cntrl, x) do { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } while(0)
@@ -1908,8 +1908,8 @@ void objfile_ct::load_dwarf(void)
 	    object_files_string cur_source;
 	    location_ct location(this);
 
-	    object_files_string cur_func("DWARF2 symbol\0");	// We don't add function names - this is used to see we're
-								// doing DWARF in find_nearest_line().
+	    object_files_string cur_func("-\0");	// We don't add function names - this is used to see we're
+							// doing DWARF in find_nearest_line().  KEEP THAT '-' thus!
 	    location.set_func_iter(M_function_names.insert(cur_func).first);
 
 	    while( debug_line_ptr < debug_line_ptr_end )
