@@ -212,7 +212,6 @@ int main(void)
   Debug( dc::foo.on() );
   Debug( dc::bar.on() );
   Debug( dc::run.on() );
-  Debug( dc::malloc.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );
