@@ -11,6 +11,8 @@ libcwd-0.99.25
 	list_allocations_on only worked for libcw_do, not for a
 	custom debug object.
 
+	list_allocations_on was leaking memory (since 0.99.20).
+
 libcwd-0.99.24
 
         Bug fixes:
