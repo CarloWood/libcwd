@@ -93,9 +93,9 @@ ChangeLog:
 	fi
 
 example-project/debug.h: example-project/debug.h.maintainer nodebug.h
-	grep -B1000 "@NODEBUGMACROS@" example-project/debug.h.maintainer | grep -v "@NODEBUGMACROS@" > example-project/debug.h
+	awk '/@NODEBUGMACROS@/ { exit } { print }' example-project/debug.h.maintainer > example-project/debug.h
 	cat nodebug.h >> example-project/debug.h
-	grep -A1000 "@NODEBUGMACROS@" example-project/debug.h.maintainer | grep -v "@NODEBUGMACROS@" >> example-project/debug.h
+	awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' example-project/debug.h.maintainer >> example-project/debug.h
 
 full-check: Makefile
 	@( \
