@@ -17,5 +17,7 @@ MARGINblank_marker_cf|nolabel_cf
               MARKER   blank_label_cf|blank_margin_cf
       NOTICE           blank_marker_cf|blank_margin_cf
 MARGIN                 blank_marker_cf|blank_label_cf
-MARGINNOTICE  MARKER   error_cf: EAGAIN (Resource temporarily unavailable)
+// type regexp
+MARGINNOTICE  MARKER   error_cf: E[A-Z]+ \(Resource temporarily unavailable\)
+// type exact
 MARGINNOTICE  MARKER   cerr_cf
