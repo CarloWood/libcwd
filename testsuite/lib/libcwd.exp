@@ -58,6 +58,10 @@ verbose "    out = \"$out\""
     set result [libcwd_load $executable "$exec_args" "$inpfile"];
     set status [lindex $result 0];
     set output [lindex $result 1];
+
+    # Strip pending new-lines from the output, because we do that also from the expected input.
+    regsub "\n*$" $output "" output
+
     $status "$errname execution"
     if { $status != "pass" } {
 	setup_xfail "*-*-*"
@@ -65,62 +69,173 @@ verbose "    out = \"$out\""
 	return;
     }
 
-    regsub "\n*$" $output "" output
     verbose "resultfile is $resultfile"
     set resultid [open $resultfile r];
-    set passed 1;
-    set reline "^("
-    append reline [gets $resultid];
+
+    # Constants
+    set state_parse 1
+    set state_collectinputlines 2
+    set state_compare 3
+    # Initialization
+    set passed 1
+    set state $state_parse
+    set numberofinputlines 1
+    set numberofoutputlines 1
+    if { $options == "regexp_match" } {
+      set regexp_match 1
+    } else {
+      set regexp_match 0
+    }
+
+    # Read first input line
+    set inputline [gets $resultid];
     set done [eof $resultid];
+
+    # Loop over all input lines
     while { $done == 0 } {
-      regsub "\n*$" $reline ")$" reline
-      verbose "reline = \"$reline\""
-      set index [string first "\n" $output];
-      verbose "index = $index" 2
-      if { $index == -1 } {
-        set outline $output
-	set output ""
-      } else {
-	set len [string length $output];
-	verbose "len = $len" 2
-	set outline [string range $output 0 [expr $index - 1]];
-	set output [string range $output [expr $index + 1] end];
-      }
-      verbose "outline = \"$outline\""
-      verbose "output is now \"$output\"" 2
+      verbose "Entering while loop; state = $state" 2
 
-      if {$options == "regexp_match"} {
-	  if { [regexp -- $reline $outline] == 0 } {
-	      clone_output "expected: \"$reline\""
-	      clone_output "got     : \"$outline\""
-	      set passed 0;
-	      set done 1;
+      # Strip newline from input line (if any)
+      regsub "\n" $inputline "" inputline
+      verbose "inputline = \"$inputline\""
+
+      # Decode meaning of current input line based on history
+      if { $state == $state_parse } {
+
+	set inputlines ""
+
+	# Decode input line
+	if { [regexp -- "^// " $inputline] } {
+	  if { "// type regexp" == $inputline } {
+	    set regexp_match 1
 	  }
-      } else {
-	  if { $reline != $outline } {
-	      clone_output "expected: \"$reline\""
-	      clone_output "got     : \"$outline\""
-	      set passed 0;
-	      set done 1;
+	  if { "// type exact" == $inputline } {
+	    set regexp_match 0
 	  }
+	  if { [regexp -- "^// input " $inputline] } {
+	    if { [regexp -- "^// input lines " $inputline] } {
+	      set numberofinputlines [string range $inputline 15 end];
+	    }
+	  }
+	  if { [regexp -- "^// output " $inputline] } {
+	    if { [regexp -- "^// output lines " $inputline] } {
+	      set numberofoutputlines [string range $inputline 16 end];
+	    }
+	    if { [regexp -- "^// output till " $inputline] } {
+	      set numberofoutputlines -1
+	      set matchtill [string range $inputline 15 end];
+	      verbose "matchtill = \"$matchtill\""
+	    }
+	  }
+	  verbose "numberofinputlines = $numberofinputlines"
+	  verbose "numberofoutputlines = $numberofoutputlines"
+	} else {
+	  set state $state_collectinputlines
+	}
       }
 
-      set reline "^("
-      append reline [gets $resultid];
+      # Do we need to collect input lines?
+      if { $state == $state_collectinputlines } {
+        append inputlines $inputline
+        set numberofinputlines [expr $numberofinputlines - 1]
+	if { $numberofinputlines == 0 } {
+	  set state $state_compare
+	  set numberofinputlines 1
+	} else {
+	  append inputlines "\n"
+	}
+      }
+
+      # Did we collect all input?
+      if { $state == $state_compare } {
+
+	# Collect output lines that we need to compare this with
+	set outputlines ""
+	set count 0
+	while { $count != $numberofoutputlines } {
+
+	  # Extract next line from output
+	  set index [string first "\n" $output];
+	  verbose "index = $index" 2
+	  if { $index == -1 } {
+	    set outputline $output
+	    if { $numberofoutputlines == -1 && [regexp -- $matchtill $outputline] } {
+	      set count -1
+	    } else {
+	      set output ""
+	    }
+	  } else {
+	    set len [string length $output];
+	    verbose "len = $len" 2
+	    set outputline [string range $output 0 [expr $index - 1]];
+	    if { $numberofoutputlines == -1 && [regexp -- $matchtill $outputline] } {
+	      set count -1
+	    } else {
+	      set output [string range $output [expr $index + 1] end];
+	    }
+	  }
+	  verbose "outputline = \"$outputline\""
+	  verbose "output is now \"$output\"" 2
+
+	  if { $count != -1 } {
+	    append outputlines $outputline
+	    incr count
+	  }
+	  if { $count != $numberofoutputlines } {
+	    append outputlines "\n"
+	  }
+	}
+	verbose "outputlines = \"$outputlines\""
+	set numberofoutputlines 1
+
+	# Do the actual compare
+	if { $regexp_match == 1 } {
+	  # Construct regular expression
+	  set re "^("
+	  append re $inputlines
+	  append re ")$"
+	  verbose "expected regular expression is: \"$re\""
+	  if { [regexp -- $re $outputlines] == 0 } {
+	    clone_output "expected: \"$re\""
+	    clone_output "got     : \"$outputlines\""
+	    set passed 0;
+	    set done 1;
+	  }
+	} else {
+	  if { $inputlines != $outputlines } {
+	    clone_output "expected: \"$inputlines\""
+	    clone_output "got     : \"$outputlines\""
+	    set passed 0;
+	    set done 1;
+	  }
+	}
+
+        set state $state_parse
+      }
+
+      # Read next input line from file
+      set inputline [gets $resultid];
       if { $done == 0 } {
 	set done [eof $resultid];
       }
+
     }
+
+    # Did we match everything or is there output left?
     if { $output != "" } {
       if { $passed == 1 } {
 	clone_output "output left: \"$output\""
       }
       set passed 0;
     }
+
+    # Finish
     if { $passed == 1 } {
 	pass "$errname output"
     } else {
 	fail "$errname output"
     }
+
+    # Close input file
     close $resultid;
 }

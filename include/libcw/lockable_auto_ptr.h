@@ -91,7 +91,7 @@ public:
   X* get() const { return ptr; }
     // Return the pointer itself.
 
-  bool strict_owner() const { return locked; }
+  bool strict_owner() const { ASSERT(is_owner()); return locked; }
     // Returns `true' when this object is the strict owner.
     // You should only call this when this object is the owner.
 
@@ -133,8 +133,13 @@ lockable_auto_ptr<X, array>& lockable_auto_ptr<X, array>::operator=(lockable_aut
 	delete ptr;
     }
     ptr = r.ptr;
-    owner = r.owner; 
-    r.owner = 0;
+    if (r.locked)
+      owner = 0;
+    else
+    {
+      owner = r.owner; 
+      r.owner = 0;
+    }
   }
   return *this;
 }

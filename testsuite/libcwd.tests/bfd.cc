@@ -18,8 +18,6 @@
 
 RCSTAG_CC("$Id$")
 
-#ifdef DEBUGUSEBFD
-
 void libcw_bfd_test3(void)
 {
   for (int i = 0; i <= 5; ++i)
@@ -93,15 +91,3 @@ int main(int argc, char* argv[])
 
   return 0;
 }
-
-#else
-
-#include <iostream>
-
-int main(void)
-{
-  cout << "DEBUGUSEBFD not defined\n";
-  return 0;
-}
-
-#endif

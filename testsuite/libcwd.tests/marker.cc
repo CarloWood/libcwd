@@ -13,7 +13,6 @@
 
 #include <libcw/sys.h>
 #include <iostream>
-#include <libcw/h.h>
 #include <libcw/debug.h>
 
 // A dummy class
@@ -23,11 +22,10 @@ class A {
   char k;
 };
 
-int main(int argc, char* argv[])
+int main(void)
 {
   Debug( check_configuration() );
 
-#ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
 
@@ -36,7 +34,6 @@ int main(int argc, char* argv[])
   Debug( dc::notice.on() );
   Debug( dc::malloc.on() );
   Debug( dc::warning.on() );
-  // Debug( dc::bfd.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );
@@ -48,10 +45,8 @@ int main(int argc, char* argv[])
   A* a1 = new A;
   AllocTag(a1, "First created");
 
-#ifdef DEBUGMARKER
   // Create marker
   debugmalloc_marker_ct* marker = new debugmalloc_marker_ct("A test marker");
-#endif
 
   // Allocate more objects
   A* a2 = new A[10];
@@ -63,28 +58,19 @@ int main(int argc, char* argv[])
   Debug( list_allocations_on(libcw_do) );
 
   Dout(dc::notice, "Moving the int array outside of the marker...");
-#ifdef DEBUGMARKER
   Debug( move_outside(marker, p) );
-#endif
 
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
-#ifdef DEBUGMARKER
   // Delete the marker
   delete marker;
-#endif
 
   delete [] p;
   delete [] a2;
   delete a1;
+
   Dout(dc::notice, "Finished successfully.");
 
-#else // !DEBUGMALLOC
-  cerr << "`libcwd' does not have memory allocation debugging compiled in.\n"
-          "Configure `libcwd' using the `configure' option --enable-alloc.\n" 
-          "Then recompile libcwd.\n";
-#endif // !DEBUGMALLOC
-
-  return 0;
+  exit(0);
 }

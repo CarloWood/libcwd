@@ -1,3 +1,4 @@
+// type exact
 NOTICE  : Dout Turned on 1
 DEBUG   : Dout Turned on 2
 DEBUG   : MyOwnDout Turned on 1
@@ -15,14 +16,14 @@ NOTICE  : ExampleDout 10
 NOTICE  : MyOwnDout 3
 NOTICE  : ExampleDout 11
 DEBUG   : 2311
-\*\*\*\*\*\*\*\*\*\*\*libcw_do\*DEBUG   \|marker1\|No indent
-\*\*\*\*\*\*\*\*\*\*\*libcw_do\*NOTICE  \|marker1\|No indent
-\*\*\*\*\*\*\*\*\*\*\*libcw_do\*WARNING \|marker1\|No indent
-\*\*\*\*\*\*\*\*\*\*\*libcw_do\*WARNING \|marker1\|        Dout text 8, "\*\*\*\*\*\*\*\*\*\*\*libcw_do\*", "\|marker1\|"\.
-\*\*\*\*\*\*\*\*\*\*my_own_do\*WARNING \|marker2\|           MyOwnDout text 11, "\*\*\*\*\*\*\*\*\*\*my_own_do\*", "\|marker2\|"\.
-\*example::my_own_do\*WARNING \|marker3\|             ExampleDout text 13, "\*example::my_own_do\*", "\|marker3\|"\.
-\* NOTICE  : This is written to cout
+***********libcw_do*DEBUG   |marker1|No indent
+***********libcw_do*NOTICE  |marker1|No indent
+***********libcw_do*WARNING |marker1|No indent
+***********libcw_do*WARNING |marker1|        Dout text 8, "***********libcw_do*", "|marker1|".
+**********my_own_do*WARNING |marker2|           MyOwnDout text 11, "**********my_own_do*", "|marker2|".
+*example::my_own_do*WARNING |marker3|             ExampleDout text 13, "*example::my_own_do*", "|marker3|".
+* NOTICE  : This is written to cout
 > NOTICE  : This is written to cerr
-\* NOTICE  : This is written to cerr
-> WARNING : Was written to ostrstream: "\* NOTICE  : This is written to an ostrstream
+* NOTICE  : This is written to cerr
+> WARNING : Was written to ostrstream: "* NOTICE  : This is written to an ostrstream
 "

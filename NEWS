@@ -1,10 +1,17 @@
 libcwd-0.99.4
 
+	A real testsuite was added, based on dejagnu.
+
 	We depend more on libtool now to handle linking with shared or
 	static libraries.  As a result you can (again) on linux, link
 	with just -lcwd (without having to specify also -lbfd -liberty).
 
 	Bug fixes:
+
+	A locked lockable_auto_ptr would still transfer ownership
+	when using the assignment operator.  IMPORTANT: API change:
+	now a locked lockable_auto_ptr does NOT transfer ownership
+	when using the assignment operator (as was documented).
 
 	Libcwd got into an endless loop when a fatal error occured
 	before the fatal debug channels where initialized.  This

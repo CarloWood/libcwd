@@ -11,9 +11,6 @@
 // packaging of this file.
 //
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
 #include <libcw/sys.h>
 #include <cstdio>
 #include <cstdlib>
@@ -64,24 +61,18 @@ int main(int argc, char* argv[])
 {
   Debug( check_configuration() );
 
-#ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
 
   // Select channels
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
-#ifdef DEBUGUSEBFD
-  Debug( dc::bfd.off() );
-#endif
+  Debug( dc::malloc.on() );
+  Debug( dc::warning.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );
 
   // Turn debug object on
   Debug( libcw_do.on() );
-
-  // List all debug channels
-  Debug( list_channels_on(libcw_do) );
 
   void* ptr1 = malloc(1111U); AllocTag2(ptr1, "ptr1");
   if (test_delete(ptr1))
@@ -98,9 +89,7 @@ int main(int argc, char* argv[])
   if (!test_delete((void*)0x8000000))
     DoutFatal(dc::core, "Huh 5 ?");
 
-#ifdef DEBUGMARKER
   debugmalloc_marker_ct* marker = new debugmalloc_marker_ct("test marker");
-#endif
 
   test_object* t = NEW( test_object );
   void* leak1 = t->leak;
@@ -122,17 +111,13 @@ int main(int argc, char* argv[])
 
   free(ptr1);
   free(ptr4);
-#ifdef DEBUGMARKER
   Debug( move_outside(marker, t) );
-#endif
   delete t;
   free(ptr5);
 
   Debug( list_allocations_on(libcw_do) );
 
-#ifdef DEBUGMARKER
   delete marker;
-#endif
 
   free(leak1);
   Debug( list_allocations_on(libcw_do) );
@@ -148,12 +133,6 @@ int main(int argc, char* argv[])
   Debug( list_allocations_on(libcw_do) );
   free(ptr2);
   free(ptr3);
-
-#else // !DEBUGMALLOC
-  cerr << "`libcwd' does not have memory allocation debugging compiled in.\n"
-          "Configure `libcwd' using the `configure' option --enable-alloc.\n"
-          "Then recompile libcwd.\n";
-#endif // !DEBUGMALLOC
 
   return 0;
 }

@@ -29,10 +29,7 @@ int main(int argc, char *argv[])
 #endif
 
   // Select channels
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
-
-  // Dump selected channels
-  Debug( list_channels_on(libcw_do) );
+  Debug( dc::notice.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );
@@ -40,28 +37,28 @@ int main(int argc, char *argv[])
   // Turn debug object on
   Debug( libcw_do.on() );
 
-  A *a;
+  A* a;
 
   a = new A;
   AllocTag(a, "A1");
   lockable_auto_ptr<A> ap1(a);
 
   ASSERT(ap1.get() == a);
-  ASSERT(ap1.is_owner());
+  ASSERT(ap1.is_owner() && !ap1.strict_owner());
 
   lockable_auto_ptr<A> ap2(ap1);
 
   ASSERT(ap1.get() == a);
   ASSERT(ap2.get() == a);
   ASSERT(!ap1.is_owner());
-  ASSERT(ap2.is_owner());
+  ASSERT(ap2.is_owner() && !ap2.strict_owner());
 
   lockable_auto_ptr<B> bp1(ap2);
 
   ASSERT(ap2.get() == a);
   ASSERT(bp1.get() == a);
   ASSERT(!ap2.is_owner());
-  ASSERT(bp1.is_owner());
+  ASSERT(bp1.is_owner() && !bp1.strict_owner());
 
   a = new A;
   AllocTag(a, "A2");
@@ -72,7 +69,41 @@ int main(int argc, char *argv[])
   ASSERT(ap3.get() == a);
   ASSERT(bp2.get() == a);
   ASSERT(!ap3.is_owner());
-  ASSERT(bp2.is_owner());
+  ASSERT(bp2.is_owner() && !bp2.strict_owner());
+
+  a = new A;
+  AllocTag(a, "A3");
+  lockable_auto_ptr<A> ap4(a);
+  ap4.lock();
+
+  ASSERT(ap4.get() == a);
+  ASSERT(ap4.is_owner() && ap4.strict_owner());
+
+  lockable_auto_ptr<A> ap5(ap4);
+
+  ASSERT(ap4.get() == a);
+  ASSERT(ap5.get() == a);
+  ASSERT(ap4.is_owner() && ap4.strict_owner());
+  ASSERT(!ap5.is_owner());
+
+  lockable_auto_ptr<B> bp3(ap5);
+
+  ASSERT(ap5.get() == a);
+  ASSERT(bp3.get() == a);
+  ASSERT(!ap5.is_owner());
+  ASSERT(!bp3.is_owner());
+
+  a = new A;
+  AllocTag(a, "A4");
+  lockable_auto_ptr<A> ap6(a);
+  ap6.lock();
+  lockable_auto_ptr<B> bp4;
+  bp4 = ap6;
+
+  ASSERT(ap6.get() == a);
+  ASSERT(bp4.get() == a);
+  ASSERT(ap6.is_owner() && ap6.strict_owner());
+  ASSERT(!bp4.is_owner());
 
   Dout(dc::notice, "Test successful");
 }

@@ -1,3 +1,4 @@
+// type regexp
 NOTICE  : Debug channel Test\.
 WARP    : Custom channel Test\.
 DEBUG   : Disabled

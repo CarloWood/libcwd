@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = include utils . tests testsuite
+SUBDIRS = include utils . testsuite
 
 BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec
 EXTRA_DIST = LICENSE.QPL README.CVS README.FreeBSD $(BUILT_SOURCES)

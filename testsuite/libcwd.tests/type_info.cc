@@ -13,7 +13,6 @@
 
 #include <libcw/sys.h>
 #include <iostream>
-#include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/type_info.h>
 
@@ -21,9 +20,9 @@ RCSTAG_CC("$Id$")
 
 class A {
 private:
- char x[64];
+  char x[64];
 public:
- A(void) { }
+  A(void) { }
 };
 
 class B {
@@ -76,5 +75,6 @@ int main(void)
     cout << type_info_of<B const* const*>().demangled_name() << endl;
     cout << type_info_of<B const* const* const*>().demangled_name() << endl;
   }
-  return 0;
+
+  exit(0);
 }

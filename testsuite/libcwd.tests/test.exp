@@ -1,7 +1,7 @@
 global srcdir subdir
 
 catch "glob -nocomplain $srcdir/$subdir/*.cc" srcfiles
-#set srcfiles $srcdir/$subdir/cf.cc
+#set srcfiles $srcdir/$subdir/type_info.cc
 verbose "srcfiles are $srcfiles"
 
 set prefix ""

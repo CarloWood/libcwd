@@ -12,40 +12,45 @@
 //
 
 #include "libcw/sys.h"
-#include "libcw/h.h"
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <cstdio>
+#include <unistd.h>
 #include "libcw/debug.h"
 
 RCSTAG_CC("$Id$")
 
-int main(int UNUSED(argc), char *argv[])
+int main(void)
 {
   Debug( check_configuration() );
 
+  // Don't show allocations that are allocated before main()
+  make_all_allocations_invisible_except(NULL);
+
   // Select channels
-  ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
-  Debug( dc::warning.on() );
-  Debug( dc::notice.on() );
-  Debug( dc::malloc.on() );
+  Debug( dc::malloc.off() );
+
+  // Write debug output to cout
+  Debug( libcw_do.set_ostream(&cout) );
 
   // Turn debug object on
   Debug( libcw_do.on() );
 
-  // Print channels
-  Debug( list_channels_on(libcw_do) );
-
-  int *p = new int[5];
+  int* p = new int[4];
   AllocTag(p, "Test array");
-
-#ifdef DEBUGMALLOC
-  // Print memory allocations
   Debug( list_allocations_on(libcw_do) );
-#else
-  cerr << "`libcwd' does not have memory allocation debugging compiled in.\n"
-          "Configure `libcwd' using the `configure' option --enable-alloc.\n" 
-          "Then recompile libcwd.\n";
-#endif
+  p[4] = 5;
 
-  delete [] p;
-
-  return 0;
+  pid_t pid = fork();
+  if (pid == -1)
+    DoutFatal(error_cf, "fork");
+  if (pid == 0)
+  {
+    // This must core dump:
+    delete[] p;
+    DoutFatal(dc::fatal, "This should not be reached!");
+  }
+  // Parent process
+  int status;
+  exit((pid == wait(&status) && WIFSIGNALED(status)) ? 0 : 1);
 }
