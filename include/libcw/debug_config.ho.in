@@ -309,7 +309,9 @@
  */
 
 #define CWDEBUG_DEBUGT @CW_CONFIG_DEBUGT@
-#endif // LIBCWD_THREAD_SAFE
+#else // !LIBCWD_THREAD_SAFE
+#define CWDEBUG_DEBUGT 0
+#endif // !LIBCWD_THREAD_SAFE
 
 //
 // Configuration signature
