@@ -488,6 +488,8 @@ public:
   //
 
   void set_indent(unsigned short i) { indent = i; }
+  void inc_indent(unsigned short i) { indent += i; }
+  void dec_indent(unsigned short i) { indent = (i > indent) ? 0 : (indent - i); }
   void set_margin(std::string const& s);
   void set_marker(std::string const& s);
 
