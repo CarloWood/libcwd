@@ -3,6 +3,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 EXTRA_PROGRAMS = \
+basic \
 bfd_tst \
 deb \
 debug_tst \
@@ -18,6 +19,7 @@ type_info_tst
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
+basic_SOURCES = basic.cc
 bfd_tst_SOURCES = bfd_tst.cc
 deb_SOURCES = deb.cc
 debug_tst_SOURCES = debug_tst.cc
