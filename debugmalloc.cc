@@ -1530,27 +1530,27 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 //
 static char allocation_heap[128];
 static void* allocation_ptrs[4];
-static int allocation_counter = -1;
+static unsigned int allocation_counter = 0;
 static char* allocation_ptr = allocation_heap;
 
 void* malloc_bootstrap2(size_t size)
 {
-  assert( allocation_counter < sizeof(allocation_ptrs) / sizeof(void*) );
+  assert( allocation_counter <= sizeof(allocation_ptrs) / sizeof(void*) );
   assert( allocation_ptr + size <= allocation_heap + sizeof(allocation_heap) );
   void* ptr = allocation_ptr;
-  allocation_ptrs[++allocation_counter] = ptr;
+  allocation_ptrs[allocation_counter++] = ptr;
   allocation_ptr += size;
   return ptr;
 }
 
 void free_bootstrap2(void* ptr)
 {
-  for (int i = 0; i <= allocation_counter; ++i)
+  for (int i = 0; i < allocation_counter; ++i)
     if (allocation_ptrs[i] == ptr)
     {
-      allocation_ptrs[i] = allocation_ptrs[allocation_counter];
-      allocation_ptrs[allocation_counter] = NULL;
-      if (--allocation_counter < 0 && libc_free_final)	// Done?
+      allocation_ptrs[i] = allocation_ptrs[allocation_counter - 1];
+      allocation_ptrs[allocation_counter - 1] = NULL;
+      if (--allocation_counter == 0 && libc_free_final)	// Done?
 	libc_free = libc_free_final;
       return;
     }
@@ -1624,7 +1624,7 @@ void init_malloc_function_pointers(void)
   libc_malloc = libc_malloc_tmp;
   libc_calloc = libc_calloc_tmp;
   libc_realloc = libc_realloc_tmp;
-  if (allocation_counter == -1)	// Done?
+  if (allocation_counter == 0)	// Done?
     libc_free = libc_free_tmp;
   else
     // There are allocations left, we have to check
