@@ -65,7 +65,16 @@ verbose "    out = \"$out\""
 	set errname "$errname $compile_args"
     }
 
-    if { [target_compile $srcfile "$executable" executable $args] != "" } {
+    set compileroutput "[target_compile $srcfile "$executable" executable $args]"
+    # Kludge to remove linker _warnings_ from output.
+    # The expected from is: /usr/lib/libc.so.4: warning: ...
+    #                   or: /usr/lib/libc.so.4: WARNING! ...
+    regsub -- "\[._/a-zA-Z0-9 :\]*: \[Ww\]\[Aa\]\[Rr\]\[Nn\]\[Ii\]\[Nn\]\[Gg\]\[!:\]\[`'.,!_/a-zA-Z0-9 ():;\]*." "$compileroutput" "" compileroutput
+    # Remove final new-line at the end if any:
+    regsub -- "\[^`'.,!_/a-zA-Z0-9 ():;\]$" "$compileroutput" "" compileroutput
+    verbose "Filtered compiler output is: `$compileroutput'"
+
+    if { "$compileroutput" != "" } {
 	fail "$errname $staticorshared compilation"
 	setup_xfail "*-*-*"
 	fail "$errname $staticorshared execution"
