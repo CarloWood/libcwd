@@ -108,10 +108,13 @@ namespace libcw {
 	      {
 		char cp[1];
 		*cp = c;
-		write(M_fd, cp, 1);
+		if (write(M_fd, cp, 1) != 1)
+		  return traits_type::eof();
 	      }
 	      return 0;
 	    }
+	    // This would be needed if it was buffered.
+	    // virtual std::streamsize xsputn(char const* s, std::streamsize num) { return write(M_fd, s, num); }
 	  };
 
 	  // Unbuffered file descriptor stream.

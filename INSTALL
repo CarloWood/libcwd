@@ -82,13 +82,7 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      ------------------------------------
 
      If you want to run the testsuite then you will have to install
-     dejagnu-20000518.tar.bz2 which can be downloaded from
-     ftp://sourceware.cygnus.com/pub/dejagnu/.  This tar is broken
-     however: after running ./configure you need to edit the Makefile
-     and remove every trace of 'iberty', for example by opening
-     the Makefile in vi and issuing:
-     :1,$s/[-0-9a-zA-Z_]*iberty //g
-     :1,$s/[-0-9a-zA-Z_]*iberty$//
+     dejagnu-1.4 which can be downloaded from ftp://ftp.gnu.org/gnu/dejagnu/.
 
      Packages/versions needed as maintainer or when using CVS
      --------------------------------------------------------
@@ -97,11 +91,12 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      you get this package via CVS) then you also need to have the
      following tools:
 
-     iii) GNU make
-     iv) GNU m4
-     v) autoconf
-     vi) automake
-     vii) libtool
+     iii)  GNU make
+     iv)   GNU m4
+     v)    GNU which
+     vi)   autoconf
+     vii)  automake
+     viii) libtool
 
      Each of those can be downloaded from your local GNU site.
 
@@ -170,10 +165,10 @@ well, ... heh.  Look in the Makefile for more targets ;)
 Finally, you can also build libcwd in a different directory than the source
 tree is in:
 
-tar xzf libcwd-0.99.5.tar.gz
+tar xzf libcwd-0.99.8.tar.gz
 mkdir libcwd-objdir
 cd libcwd-objdir
-../libcwd-0.99.5/configure --prefix=/usr
+../libcwd-0.99.8/configure --prefix=/usr
 make
 su
 make install
