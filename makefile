@@ -1,9 +1,15 @@
 -include Makefile
 
+PACKAGE=$(shell pwd | sed -e 's%.*/%%g')
+
 maintainer-startup:
-	@(lt_dir=`which libtool | sed -e 's%/bin/%/share/%'`; \
-	 for i in config.guess config.sub ltconfig ltmain.sh; do echo "cp $$lt_dir/$$i ."; cp $$lt_dir/$$i .; done)
+	libtoolize --copy --force
+ifeq ($(PACKAGE), libcw)
+	ln -sf ../libcwd/maintMakefile.in
+	aclocal -I ../libcwd
+else
 	aclocal
+endif
 	autoheader
 	autoconf
 	@(automakepath=`which automake`; \
@@ -12,6 +18,6 @@ maintainer-startup:
 	 eval "am_dir=\"$$tmp_am_dir\""; \
 	 for i in install-sh missing mkinstalldirs; do echo "cp $$am_dir/$$i ."; cp $$am_dir/$$i .; done)
 	automake
-	@for i in config.guess config.sub ltconfig ltmain.sh install-sh missing mkinstalldirs; do \
+	@for i in config.guess config.sub ltmain.sh install-sh missing mkinstalldirs; do \
 	  if test ! -f $$i; then echo "Warning: missing \"$$i\" in `pwd`"; fi; \
 	done

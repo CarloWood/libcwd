@@ -682,3 +682,118 @@ else
 fi
 ])
 
+dnl --------------------------------------------------------------------------------------------------------------17" monitors are a minimum
+dnl Everything below isn't really a test but parts that are used in both, libcwd as well as in libcw.
+dnl In order to avoid duplication it is put here as macro.
+
+dnl CW_SETUP_RPM_DIRS
+dnl Set up rpm directory when on linux and in maintainer-mode
+AC_DEFUN(CW_SETUP_RPM_DIRS,
+[SPECCHANGELOG=spec.changelog
+if test "$USE_MAINTAINER_MODE" = yes && expr "$host" : ".*linux.*" >/dev/null; then
+  AC_SUBST_FILE(SPECCHANGELOG)
+  LSMFILE="$PACKAGE.lsm"
+  AC_SUBST(LSMFILE)
+  SPECFILE="$PACKAGE.spec"
+  AC_SUBST(SPECFILE)
+  top_builddir="`pwd`"
+  test -d rpm || mkdir rpm
+  cd rpm
+  test -d BUILD || mkdir BUILD
+  test -d SOURCES || mkdir SOURCES
+  test -d SRPMS || mkdir SRPMS
+  test -d RPMS || mkdir RPMS
+  cd RPMS
+  TARGET=i386
+  AC_SUBST(TARGET)
+  test -d $TARGET || mkdir $TARGET
+  cd ..
+  echo "%_require_vendor 1" > macros
+  echo "%_require_distribution 1" >> macros
+  echo "%_distribution http://sourceforge.net/project/showfiles.php?group_id=354" >> macros
+  echo "%vendor Carlo Wood" >> macros
+  echo "%_topdir "$top_builddir"/rpm" >> macros
+  echo "%_pgp_path "$PGPPATH >> macros
+  echo "%_signature pgp5" >> macros
+  echo "%_pgp_name carlo@alinoe.com" >> macros
+  echo "macrofiles: /usr/lib/rpm/macros:"$top_builddir"/rpm/macros" > rpmrc
+  echo "buildarchtranslate: i686: i386" >> rpmrc
+  cd ..
+fi
+])
+
+dnl CW_CLEAN_CACHE
+AC_DEFUN(CW_CLEAN_CACHE,
+[AC_MSG_CHECKING([if we can use cached results for the tests])
+CW_PROG_CXX_FINGER_PRINTS
+if test "$cw_cv_sys_CXX_finger_print" != "$cw_prog_cxx_finger_print" -o \
+        "$cw_cv_sys_CXXCPP_finger_print" != "$cw_prog_cxxcpp_finger_print" -o \
+        "$cw_cv_sys_CPPFLAGS" != "$CPPFLAGS" -o \
+        "$cw_cv_sys_CXXFLAGS" != "$CXXFLAGS" -o \
+        "$cw_cv_sys_LDFLAGS" != "$LDFLAGS" -o \
+        "$cw_cv_sys_LIBS" != "$LIBS"; then
+changequote(<<, >>)dnl
+for i in `set | grep -v '^ac_cv_prog_[Ccg][Xx]' | grep '^[a-z]*_cv_' | sed -e 's/=.*$//'`; do
+  unset $i
+done
+changequote([, ])dnl
+AC_MSG_RESULT([no])
+else
+AC_MSG_RESULT([yes])
+fi
+dnl Store important environment variables in the cache file
+cw_cv_sys_CXX_finger_print="$cw_prog_cxx_finger_print"
+cw_cv_sys_CXXCPP_finger_print="$cw_prog_cxxcpp_finger_print"
+cw_cv_sys_CPPFLAGS="$CPPFLAGS"
+cw_cv_sys_CXXFLAGS="$CXXFLAGS"
+cw_cv_sys_LDFLAGS="$LDFLAGS"
+cw_cv_sys_LIBS="$LIBS"
+])
+
+dnl CW_DO_OPTIONS
+dnl Chose reasonable default values for WARNOPTS, DEBUGOPTS and EXTRAOPTS
+AC_DEFUN(CW_DO_OPTIONS, [dnl
+dnl Choose warning options to use
+if test "$USE_MAINTAINER_MODE" = yes; then
+WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Winline -Wwrite-strings -Werror"
+else
+WARNOPTS=
+fi
+AC_SUBST(WARNOPTS)
+
+dnl Stop automake from adding the `-I. -I. -I.' nonsense
+AC_SUBST(DEFS)
+
+dnl Find out which debugging options we need
+AC_CANONICAL_HOST
+case "$host" in
+  *freebsd*) DEBUGOPTS=-ggdb ;; dnl FreeBSD needs -ggdb to include sourcefile:linenumber info in its object files.
+  *) DEBUGOPTS=-g ;;
+esac
+AC_SUBST(DEBUGOPTS)
+
+dnl Other options
+EXTRAOPTS="-fno-exceptions"
+AC_SUBST(EXTRAOPTS)
+])
+
+dnl CW_ENVIRONMENT
+dnl Load environment from cache when invoked as config.status --recheck.
+dnl Always let CXX and CXXCPP override cached values
+AC_DEFUN(CW_ENVIRONMENT,
+[if test x"$no_create" = xyes -a x"$no_recursion" = xyes; then
+  eval "CPPFLAGS=\"$cw_cv_sys_CPPFLAGS\""
+  eval "CXXFLAGS=\"$cw_cv_sys_CXXFLAGS\""
+  eval "LDFLAGS=\"$cw_cv_sys_LDFLAGS\""
+  eval "LIBS=\"$cw_cv_sys_LIBS\""
+fi
+if test x"$CXX" != "x" -o x"$CXXCPP" != "x"; then
+  unset ac_cv_prog_CXX
+  unset ac_cv_prog_CXXCPP
+  unset ac_cv_prog_cxx_cross
+  unset ac_cv_prog_cxx_works
+  unset ac_cv_prog_gxx
+  unset ac_cv_prog_gxx_version
+fi
+])
+
