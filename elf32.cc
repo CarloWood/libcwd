@@ -1211,8 +1211,10 @@ void objfile_ct::load_dwarf(void)
   uint32_t total_length;
   if (DEBUGDWARF)
   {
+    static bool dwarf_debug_info_loaded = false;
     // Not loaded already.
-    LIBCWD_ASSERT( !M_debug_info_loaded && M_dwarf_debug_line_section_index != 0 );
+    LIBCWD_ASSERT( !dwarf_debug_info_loaded );
+    dwarf_debug_info_loaded = true;
     // Don't have a fixed entry sizes.
     LIBCWD_ASSERT( M_sections[M_dwarf_debug_line_section_index].section_header().sh_entsize == 0 );
     LIBCWD_ASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
@@ -1233,10 +1235,8 @@ void objfile_ct::load_dwarf(void)
   unsigned char* debug_line_end = debug_line + M_sections[M_dwarf_debug_line_section_index].section_header().sh_size;
   unsigned char const* debug_line_ptr;
   // Start of .debug_str section.
-#if __GNUC__ == 3 && __GNUC_MINOR__ >= 1
   // Previous compiler versions don't use DW_FORM_strp.
   unsigned char* debug_str = (unsigned char*)allocate_and_read_section(M_dwarf_debug_str_section_index);
-#endif
 
   // Run over all compilation units.
   for (unsigned char const* debug_info_ptr = debug_info; debug_info_ptr < debug_info_end;)
@@ -1375,7 +1375,6 @@ void objfile_ct::load_dwarf(void)
 	    else if (attr->attr == DW_AT_name || attr->attr == DW_AT_comp_dir)
 	    {
 	      char const* str;
-#if __GNUC__ == 3 && __GNUC_MINOR__ >= 1
 	      if (form == DW_FORM_strp)
 	      {
 		LIBCWD_ASSERT( M_dwarf_debug_str_section_index );
@@ -1383,7 +1382,6 @@ void objfile_ct::load_dwarf(void)
 	        debug_info_ptr += 4;
 	      }
 	      else
-#endif
 	      {
 		LIBCWD_ASSERT( form == DW_FORM_string );
 	        str = reinterpret_cast<char const*>(debug_info_ptr);
@@ -1538,270 +1536,274 @@ indirect:
         if (DEBUGDWARF)
 	  Debug(libcw_do.dec_indent(4));
 
-	if (abbrev.tag == DW_TAG_compile_unit && found_stmt_list &&
-	    debug_line_ptr < debug_line_end && !(low_pc && high_pc && low_pc == high_pc))
-	{
-	  // ===========================================================================================================================17"
-	  // State machine.
-	  // See paragraph 6.2 of "DWARF Debugging Information Format" document.
+	if (abbrev.tag == DW_TAG_compile_unit)
+	  if (found_stmt_list && debug_line_ptr < debug_line_end && !(low_pc && high_pc && low_pc == high_pc))
+	  {
+	    // ===========================================================================================================================17"
+	    // State machine.
+	    // See paragraph 6.2 of "DWARF Debugging Information Format" document.
 
-	  uLEB128_t file;		// An unsigned integer indicating the identity of the source file corresponding to a machine
-					// instruction.
-	  uLEB128_t column;		// An unsigned integer indicating a column number within a source line.  Columns are numbered
-					// beginning at 1. The value 0 is reserved to indicate that a statement begins at the left
-					// edge of the line.
-	  bool is_stmt;			// A boolean indicating that the current instruction is the beginning of a statement.
-	  bool basic_block;		// A boolean indicating that the current instruction is the beginning of a basic block.
-	  bool end_sequence;		// A boolean indicating that the current address is that of the first byte after the end of
-					// a sequence of target machine instructions.
-	  uint32_t total_length;	// The size in bytes of the statement information for this compilation unit (not including
-				      	// the total_length field itself).
-	  uint16_t version;		// Version identifier for the statement information format.
-	  uint32_t prologue_length;	// The number of bytes following the prologue_length field to the beginning of the first
-				      	// byte of the statement program itself.
-	  unsigned char minimum_instruction_length;	// The size in bytes of the smallest target machine instruction.  Statement
-				      	// program opcodes that alter the address register first multiply their operands by this value.
-	  unsigned char default_is_stmt;// The initial value of the is_stmt register.
-	  signed char line_base;	// This parameter affects the meaning of the special opcodes.
-	  unsigned char line_range;	// This parameter affects the meaning of the special opcodes.
-	  unsigned char opcode_base;	// The number assigned to the first special opcode.
-	  unsigned char const* standard_opcode_lengths;
+	    uLEB128_t file;		// An unsigned integer indicating the identity of the source file corresponding to a machine
+					  // instruction.
+	    uLEB128_t column;		// An unsigned integer indicating a column number within a source line.  Columns are numbered
+					  // beginning at 1. The value 0 is reserved to indicate that a statement begins at the left
+					  // edge of the line.
+	    bool is_stmt;			// A boolean indicating that the current instruction is the beginning of a statement.
+	    bool basic_block;		// A boolean indicating that the current instruction is the beginning of a basic block.
+	    bool end_sequence;		// A boolean indicating that the current address is that of the first byte after the end of
+					  // a sequence of target machine instructions.
+	    uint32_t total_length;	// The size in bytes of the statement information for this compilation unit (not including
+					  // the total_length field itself).
+	    uint16_t version;		// Version identifier for the statement information format.
+	    uint32_t prologue_length;	// The number of bytes following the prologue_length field to the beginning of the first
+					  // byte of the statement program itself.
+	    unsigned char minimum_instruction_length;	// The size in bytes of the smallest target machine instruction.  Statement
+					  // program opcodes that alter the address register first multiply their operands by this value.
+	    unsigned char default_is_stmt;// The initial value of the is_stmt register.
+	    signed char line_base;	// This parameter affects the meaning of the special opcodes.
+	    unsigned char line_range;	// This parameter affects the meaning of the special opcodes.
+	    unsigned char opcode_base;	// The number assigned to the first special opcode.
+	    unsigned char const* standard_opcode_lengths;
 #if CWDEBUG_ALLOC
-	  std::vector<char const*, _private_::object_files_allocator::rebind<char const*>::other> include_directories;
-	  std::vector<file_name_st, _private_::object_files_allocator::rebind<file_name_st>::other> file_names;
+	    std::vector<char const*, _private_::object_files_allocator::rebind<char const*>::other> include_directories;
+	    std::vector<file_name_st, _private_::object_files_allocator::rebind<file_name_st>::other> file_names;
 #else
-	  std::vector<char const*> include_directories;
-	  std::vector<file_name_st> file_names;
+	    std::vector<char const*> include_directories;
+	    std::vector<file_name_st> file_names;
 #endif
-	  dwarf_read(debug_line_ptr, total_length);
-	  unsigned char const* debug_line_ptr_end = debug_line_ptr + total_length;
-	  dwarf_read(debug_line_ptr, version);
-	  dwarf_read(debug_line_ptr, prologue_length);
-	  unsigned char const* statement_program_start = debug_line_ptr + prologue_length;
-	  dwarf_read(debug_line_ptr, minimum_instruction_length);
-	  dwarf_read(debug_line_ptr, default_is_stmt);
-	  dwarf_read(debug_line_ptr, line_base);
-	  dwarf_read(debug_line_ptr, line_range);
-	  dwarf_read(debug_line_ptr, opcode_base);
-	  standard_opcode_lengths = debug_line_ptr;
-	  debug_line_ptr += (opcode_base - 1);
-	  while(*debug_line_ptr)
-	  {
-	    DoutDwarf(dc::bfd, "Include directory: " << reinterpret_cast<char const*>(debug_line_ptr));
-	    include_directories.push_back(reinterpret_cast<char const*>(debug_line_ptr));
-	    while(*debug_line_ptr++);
-	  }
-	  ++debug_line_ptr;
-	  while(true)
-	  {
-	    if (DEBUGDWARF)
-	      LIBCWD_ASSERT( debug_line_ptr < statement_program_start );
-	    file_name_st file_name;
-	    file_name.name = reinterpret_cast<char const*>(debug_line_ptr);
-	    if (!*debug_line_ptr++)
-	      break;
-	    while(*debug_line_ptr++);
-	    dwarf_read(debug_line_ptr, file_name.directory_index);
-	    dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
-	    dwarf_read(debug_line_ptr, file_name.length_in_bytes_of_the_file);
-	    DoutDwarf(dc::bfd, "File name: " << file_name.name);
-	    file_names.push_back(file_name);
-	  }
-	  LIBCWD_ASSERT( debug_line_ptr == statement_program_start );
-
-	  object_files_string cur_dir;
-	  object_files_string cur_source;
-	  location_ct location(this);
-
-	  object_files_string cur_func("-DWARF symbol\0");	// We don't add function names - this is used to see we're
-								// doing DWARF in find_nearest_line().
-	  location.set_func_iter(M_function_names.insert(cur_func).first);
-
-	  while( debug_line_ptr < debug_line_ptr_end )
-	  {
-	    file = 0;		// One less than the `file' mentioned in the documentation.
-	    column = 0;
-	    is_stmt = default_is_stmt;
-	    basic_block = false;
-	    end_sequence = false;
-	    cur_dir = default_dir;
-	    cur_source = catenate_path(cur_dir, default_source.data());
-	    if (default_dir[0] == '.' && default_dir[1] == '.' && default_dir[2] == '/')
+	    dwarf_read(debug_line_ptr, total_length);
+	    unsigned char const* debug_line_ptr_end = debug_line_ptr + total_length;
+	    dwarf_read(debug_line_ptr, version);
+	    dwarf_read(debug_line_ptr, prologue_length);
+	    unsigned char const* statement_program_start = debug_line_ptr + prologue_length;
+	    dwarf_read(debug_line_ptr, minimum_instruction_length);
+	    dwarf_read(debug_line_ptr, default_is_stmt);
+	    dwarf_read(debug_line_ptr, line_base);
+	    dwarf_read(debug_line_ptr, line_range);
+	    dwarf_read(debug_line_ptr, opcode_base);
+	    standard_opcode_lengths = debug_line_ptr;
+	    debug_line_ptr += (opcode_base - 1);
+	    while(*debug_line_ptr)
 	    {
-	      cur_source.assign(cur_dir, 0, cur_dir.find_last_of('/', cur_dir.size() - 2) + 1);
-	      cur_source.append(default_source, 3, object_files_string::npos);
+	      DoutDwarf(dc::bfd, "Include directory: " << reinterpret_cast<char const*>(debug_line_ptr));
+	      include_directories.push_back(reinterpret_cast<char const*>(debug_line_ptr));
+	      while(*debug_line_ptr++);
 	    }
-	    else
-	      cur_source = cur_dir + default_source;
-
-	    location.invalidate();
-	    location.set_source_iter(M_source_files.insert(cur_source).first);
-	    location.set_line(1);
-
-	    while(!end_sequence)
+	    ++debug_line_ptr;
+	    while(true)
 	    {
-	      unsigned char opcode;
-	      dwarf_read(debug_line_ptr, opcode);
-	      if (opcode < opcode_base)					// Standard opcode?
+	      if (DEBUGDWARF)
+		LIBCWD_ASSERT( debug_line_ptr < statement_program_start );
+	      file_name_st file_name;
+	      file_name.name = reinterpret_cast<char const*>(debug_line_ptr);
+	      if (!*debug_line_ptr++)
+		break;
+	      while(*debug_line_ptr++);
+	      dwarf_read(debug_line_ptr, file_name.directory_index);
+	      dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
+	      dwarf_read(debug_line_ptr, file_name.length_in_bytes_of_the_file);
+	      DoutDwarf(dc::bfd, "File name: " << file_name.name);
+	      file_names.push_back(file_name);
+	    }
+	    LIBCWD_ASSERT( debug_line_ptr == statement_program_start );
+
+	    object_files_string cur_dir;
+	    object_files_string cur_source;
+	    location_ct location(this);
+
+	    object_files_string cur_func("-DWARF symbol\0");	// We don't add function names - this is used to see we're
+								  // doing DWARF in find_nearest_line().
+	    location.set_func_iter(M_function_names.insert(cur_func).first);
+
+	    while( debug_line_ptr < debug_line_ptr_end )
+	    {
+	      file = 0;		// One less than the `file' mentioned in the documentation.
+	      column = 0;
+	      is_stmt = default_is_stmt;
+	      basic_block = false;
+	      end_sequence = false;
+	      cur_dir = default_dir;
+	      cur_source = catenate_path(cur_dir, default_source.data());
+	      if (default_dir[0] == '.' && default_dir[1] == '.' && default_dir[2] == '/')
 	      {
-		switch(opcode)
-		{
-		  case 0:						// Extended opcode.
-		  {
-		    uLEB128_t size;					// Size in bytes.
-		    dwarf_read(debug_line_ptr, size);
-		    LIBCWD_ASSERT( size > 0 );
-		    uLEB128_t extended_opcode;
-		    dwarf_read(debug_line_ptr, extended_opcode);
-		    LIBCWD_ASSERT( extended_opcode < 0x80 );		// Then it's size is one:
-		    --size;
-		    switch(extended_opcode)
-		    {
-		      case DW_LNE_end_sequence:
-			LIBCWD_ASSERT( size == 0 );
-			end_sequence = true;
-			DoutDwarf(dc::bfd, "DW_LNE_end_sequence: Address: 0x" << std::hex << location.get_address());
-			location.sequence_end();
-			break;
-		      case DW_LNE_set_address:
-		      {
-			Elf32_Addr address;
-			LIBCWD_ASSERT( size == sizeof(address) );
-			dwarf_read(debug_line_ptr, address);
-			DoutDwarf(dc::bfd, "DW_LNE_set_address: 0x" << std::hex << address);
-			location.set_address(address);
-			break;
-		      }
-		      case DW_LNE_define_file:
-		      {
-			unsigned char const* end = debug_line_ptr + size;
-			file_name_st file_name;
-			file_name.name = reinterpret_cast<char const*>(debug_line_ptr);
-			if (file_name.name[0] == '.' && file_name.name[1] == '/')
-			  file_name.name += 2;
-			while(*debug_line_ptr++);
-			dwarf_read(debug_line_ptr, file_name.directory_index);
-			dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
-			dwarf_read(debug_line_ptr, file_name.length_in_bytes_of_the_file);
-			LIBCWD_ASSERT( debug_line_ptr == end );
-			DoutDwarf(dc::bfd, "DW_LNE_define_file: " << file_name.name);
-			file_names.push_back(file_name);
-			break;
-		      }
-		      default:
-		      {
-			DoutDwarf(dc::bfd, "Unknown extended opcode: " << std::hex << extended_opcode);
-			debug_line_ptr += size;
-			break;
-		      }
-		    }
-		    break;
-		  }
-		  case DW_LNS_copy:
-		    DoutDwarf(dc::bfd, "DW_LNS_copy");
-		    location.copy();
-		    basic_block = false;
-		    break;
-		  case DW_LNS_advance_pc:
-		  {
-		    uLEB128_t address_increment;
-		    dwarf_read(debug_line_ptr, address_increment);
-		    DoutDwarf(dc::bfd, "DW_LNS_advance_pc: " << std::hex << address_increment);
-		    location.increment_address(minimum_instruction_length * address_increment);
-		    break;
-		  }
-		  case DW_LNS_advance_line:
-		  {
-		    LEB128_t line_increment;
-		    dwarf_read(debug_line_ptr, line_increment);
-		    DoutDwarf(dc::bfd, "DW_LNS_advance_line: " << line_increment);
-		    location.invalidate();
-		    location.increment_line(line_increment);
-		    break;
-		  }
-		  case DW_LNS_set_file:
-		    dwarf_read(debug_line_ptr, file);
-		    --file;
-		    DoutDwarf(dc::bfd, "DW_LNS_set_file: \"" << file_names[file].name << '"');
-		    location.invalidate();
-		    if (*file_names[file].name == '/')
-		      cur_source.assign(file_names[file].name);
-		    else
-		    {
-		      if (file_names[file].directory_index == 0)
-			cur_dir = default_dir;
-		      else
-		      {
-			cur_dir.assign(include_directories[file_names[file].directory_index - 1]);
-			cur_dir += '/';
-		      }
-		      cur_source = catenate_path(cur_dir, file_names[file].name);
-		    }
-		    cur_source += '\0';
-		    location.set_source_iter(M_source_files.insert(cur_source).first);
-		    break;
-		  case DW_LNS_set_column:
-		    dwarf_read(debug_line_ptr, column);
-		    DoutDwarf(dc::bfd, "DW_LNS_set_column: " << column);
-		    break;
-		  case DW_LNS_negate_stmt:
-		    is_stmt = !is_stmt;
-		    DoutDwarf(dc::bfd, "DW_LNS_negate_stmt: " << (is_stmt ? "true" : "false"));
-		    break;
-		  case DW_LNS_set_basic_block:
-		    basic_block = true;
-		    DoutDwarf(dc::bfd, "DW_LNS_set_basic_block");
-		    break;
-		  case DW_LNS_const_add_pc:
-		  {
-		    DoutDwarf(dc::bfd, "DW_LNS_const_add_pc");
-		    unsigned int address_increment = (255 - opcode_base) / line_range;
-		    location.increment_address(minimum_instruction_length * address_increment);
-		    break;
-		  }
-		  case DW_LNS_fixed_advance_pc:
-		  {
-		    DoutDwarf(dc::bfd, "DW_LNS_fixed_advance_pc");
-		    unsigned short int address_increment;
-		    dwarf_read(debug_line_ptr, address_increment);
-		    location.increment_address(minimum_instruction_length * address_increment);
-		    break;
-		  }
-		  default:
-		  {
-		    DoutDwarf(dc::bfd, "Unknown standard opcode: " << std::hex << (int)opcode);
-		    uLEB128_t argument;
-		    for (int n = standard_opcode_lengths[opcode - 1]; n > 0; --n)
-		      dwarf_read(debug_line_ptr, argument);
-		    break;
-		  }
-		}
+		cur_source.assign(cur_dir, 0, cur_dir.find_last_of('/', cur_dir.size() - 2) + 1);
+		cur_source.append(default_source, 3, object_files_string::npos);
 	      }
 	      else
+		cur_source = cur_dir + default_source;
+
+	      location.invalidate();
+	      location.set_source_iter(M_source_files.insert(cur_source).first);
+	      location.set_line(1);
+
+	      while(!end_sequence)
 	      {
-		// Special opcode.
-		int line_increment = line_base + ((opcode - opcode_base) % line_range);
-		unsigned int address_increment = (opcode - opcode_base) / line_range;
-		DoutDwarf(dc::bfd, "Special opcode.  Address/Line increments: 0x" <<
-		    std::hex << address_increment << ", " << std::dec << line_increment);
-		location.increment_address(minimum_instruction_length * address_increment);
-		location.increment_line(line_increment);
-		basic_block = false;
+		unsigned char opcode;
+		dwarf_read(debug_line_ptr, opcode);
+		if (opcode < opcode_base)					// Standard opcode?
+		{
+		  switch(opcode)
+		  {
+		    case 0:						// Extended opcode.
+		    {
+		      uLEB128_t size;					// Size in bytes.
+		      dwarf_read(debug_line_ptr, size);
+		      LIBCWD_ASSERT( size > 0 );
+		      uLEB128_t extended_opcode;
+		      dwarf_read(debug_line_ptr, extended_opcode);
+		      LIBCWD_ASSERT( extended_opcode < 0x80 );		// Then it's size is one:
+		      --size;
+		      switch(extended_opcode)
+		      {
+			case DW_LNE_end_sequence:
+			  LIBCWD_ASSERT( size == 0 );
+			  end_sequence = true;
+			  DoutDwarf(dc::bfd, "DW_LNE_end_sequence: Address: 0x" << std::hex << location.get_address());
+			  location.sequence_end();
+			  break;
+			case DW_LNE_set_address:
+			{
+			  Elf32_Addr address;
+			  LIBCWD_ASSERT( size == sizeof(address) );
+			  dwarf_read(debug_line_ptr, address);
+			  DoutDwarf(dc::bfd, "DW_LNE_set_address: 0x" << std::hex << address);
+			  location.set_address(address);
+			  break;
+			}
+			case DW_LNE_define_file:
+			{
+			  unsigned char const* end = debug_line_ptr + size;
+			  file_name_st file_name;
+			  file_name.name = reinterpret_cast<char const*>(debug_line_ptr);
+			  if (file_name.name[0] == '.' && file_name.name[1] == '/')
+			    file_name.name += 2;
+			  while(*debug_line_ptr++);
+			  dwarf_read(debug_line_ptr, file_name.directory_index);
+			  dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
+			  dwarf_read(debug_line_ptr, file_name.length_in_bytes_of_the_file);
+			  LIBCWD_ASSERT( debug_line_ptr == end );
+			  DoutDwarf(dc::bfd, "DW_LNE_define_file: " << file_name.name);
+			  file_names.push_back(file_name);
+			  break;
+			}
+			default:
+			{
+			  DoutDwarf(dc::bfd, "Unknown extended opcode: " << std::hex << extended_opcode);
+			  debug_line_ptr += size;
+			  break;
+			}
+		      }
+		      break;
+		    }
+		    case DW_LNS_copy:
+		      DoutDwarf(dc::bfd, "DW_LNS_copy");
+		      location.copy();
+		      basic_block = false;
+		      break;
+		    case DW_LNS_advance_pc:
+		    {
+		      uLEB128_t address_increment;
+		      dwarf_read(debug_line_ptr, address_increment);
+		      DoutDwarf(dc::bfd, "DW_LNS_advance_pc: " << std::hex << address_increment);
+		      location.increment_address(minimum_instruction_length * address_increment);
+		      break;
+		    }
+		    case DW_LNS_advance_line:
+		    {
+		      LEB128_t line_increment;
+		      dwarf_read(debug_line_ptr, line_increment);
+		      DoutDwarf(dc::bfd, "DW_LNS_advance_line: " << line_increment);
+		      location.invalidate();
+		      location.increment_line(line_increment);
+		      break;
+		    }
+		    case DW_LNS_set_file:
+		      dwarf_read(debug_line_ptr, file);
+		      --file;
+		      DoutDwarf(dc::bfd, "DW_LNS_set_file: \"" << file_names[file].name << '"');
+		      location.invalidate();
+		      if (*file_names[file].name == '/')
+			cur_source.assign(file_names[file].name);
+		      else
+		      {
+			if (file_names[file].directory_index == 0)
+			  cur_dir = default_dir;
+			else
+			{
+			  cur_dir.assign(include_directories[file_names[file].directory_index - 1]);
+			  cur_dir += '/';
+			}
+			cur_source = catenate_path(cur_dir, file_names[file].name);
+		      }
+		      cur_source += '\0';
+		      location.set_source_iter(M_source_files.insert(cur_source).first);
+		      break;
+		    case DW_LNS_set_column:
+		      dwarf_read(debug_line_ptr, column);
+		      DoutDwarf(dc::bfd, "DW_LNS_set_column: " << column);
+		      break;
+		    case DW_LNS_negate_stmt:
+		      is_stmt = !is_stmt;
+		      DoutDwarf(dc::bfd, "DW_LNS_negate_stmt: " << (is_stmt ? "true" : "false"));
+		      break;
+		    case DW_LNS_set_basic_block:
+		      basic_block = true;
+		      DoutDwarf(dc::bfd, "DW_LNS_set_basic_block");
+		      break;
+		    case DW_LNS_const_add_pc:
+		    {
+		      DoutDwarf(dc::bfd, "DW_LNS_const_add_pc");
+		      unsigned int address_increment = (255 - opcode_base) / line_range;
+		      location.increment_address(minimum_instruction_length * address_increment);
+		      break;
+		    }
+		    case DW_LNS_fixed_advance_pc:
+		    {
+		      DoutDwarf(dc::bfd, "DW_LNS_fixed_advance_pc");
+		      unsigned short int address_increment;
+		      dwarf_read(debug_line_ptr, address_increment);
+		      location.increment_address(minimum_instruction_length * address_increment);
+		      break;
+		    }
+		    default:
+		    {
+		      DoutDwarf(dc::bfd, "Unknown standard opcode: " << std::hex << (int)opcode);
+		      uLEB128_t argument;
+		      for (int n = standard_opcode_lengths[opcode - 1]; n > 0; --n)
+			dwarf_read(debug_line_ptr, argument);
+		      break;
+		    }
+		  }
+		}
+		else
+		{
+		  // Special opcode.
+		  int line_increment = line_base + ((opcode - opcode_base) % line_range);
+		  unsigned int address_increment = (opcode - opcode_base) / line_range;
+		  DoutDwarf(dc::bfd, "Special opcode.  Address/Line increments: 0x" <<
+		      std::hex << address_increment << ", " << std::dec << line_increment);
+		  location.increment_address(minimum_instruction_length * address_increment);
+		  location.increment_line(line_increment);
+		  basic_block = false;
+		}
 	      }
 	    }
-	  }
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
 #if CWDEBUG_DEBUG	// Play safe.
-	  // g++ bug work around.
-	  LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end || debug_line_ptr == debug_line_ptr_end + 1 );
+	    // g++ bug work around.
+	    LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end || debug_line_ptr == debug_line_ptr_end + 1 );
 #endif
 #else
-	  LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end );
+	    LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end );
 #endif
 
-	  // End state machine code.
-	  // ===========================================================================================================================17"
-	}
+	    // End state machine code.
+	    // ===========================================================================================================================17"
+	  }
+	  else
+	  {
+	    DoutDwarf(dc::bfd, "Skipping compilation unit." << default_dir << default_source);
+	  }
 
 #ifdef DWARFSPEEDUP
 	// No need to read more.
@@ -1830,7 +1832,9 @@ indirect:
   delete [] debug_line;
   delete [] debug_info;
   delete [] debug_abbrev;
-  delete_hash_list();
+  M_dwarf_debug_line_section_index = 0;
+  if (!M_stabs_section_index)
+    delete_hash_list();
   M_debug_info_loaded = true;
 }
 
@@ -1838,7 +1842,9 @@ void objfile_ct::load_stabs(void)
 {
   if (DEBUGSTABS)
   {
-    LIBCWD_ASSERT( !M_debug_info_loaded && M_stabs_section_index != 0 );
+    static bool stabs_debug_info_loaded = false;
+    LIBCWD_ASSERT( !stabs_debug_info_loaded );
+    stabs_debug_info_loaded = true;
     LIBCWD_ASSERT( M_sections[M_stabs_section_index].section_header().sh_entsize == sizeof(stab_st) );
   }
   stab_st* stabs = (stab_st*)allocate_and_read_section(M_stabs_section_index);
@@ -2032,7 +2038,7 @@ void objfile_ct::load_stabs(void)
 	    source_file_changed_but_line_number_not_yet = false;
 	    break;
 	  }
-	  if (!skip_function)
+	  if (!skip_function && !source_file_changed_and_we_didnt_copy_it_yet)
 	    location.stabs_range(range);
 	  range.start += range.size;
 	}
@@ -2048,7 +2054,9 @@ void objfile_ct::load_stabs(void)
     Debug( libcw_do.dec_indent(4) );
   delete [] stabs;
   delete [] stabs_string_table;
-  delete_hash_list();
+  M_stabs_section_index = 0;
+  if (!M_dwarf_debug_line_section_index)
+    delete_hash_list();
   M_debug_info_loaded = true;
 }
 
@@ -2098,7 +2106,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
 #endif
     if (M_dwarf_debug_line_section_index)
       load_dwarf();
-    else if (M_stabs_section_index)
+    if (M_stabs_section_index)
       load_stabs();
 #if DEBUGSTABS || DEBUGDWARF
     Debug( dc::bfd.restore(state2) );
@@ -2248,10 +2256,7 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
     else if (!strcmp(M_sections[i].name, ".stabstr"))
       M_stabstr_section_index = i;
     else if (!strcmp(M_sections[i].name, ".debug_line"))
-    {
       M_dwarf_debug_line_section_index = i;
-      M_stabs_section_index = 0;	// Use DWARF if available.
-    }
     else if (!strcmp(M_sections[i].name, ".debug_abbrev"))
       M_dwarf_debug_abbrev_section_index = i;
     else if (!strcmp(M_sections[i].name, ".debug_info"))

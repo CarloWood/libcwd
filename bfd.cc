@@ -586,7 +586,7 @@ void bfd_close(bfd* abfd)
 	  }
 
 #if 0
-	  if (function_symbols.size() < 100)
+	  if (function_symbols.size() < 200)
 	    for(function_symbols_ct::iterator i(function_symbols.begin()); i != function_symbols.end(); ++i)
 	    {
 	      asymbol const* s = i->get_symbol();

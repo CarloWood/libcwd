@@ -45,6 +45,15 @@ libcwd-0.99.28
 	precisely, libcwd assumes that the handle that is returned by
 	dlopen() is actually a link_map pointer).
 
+	If an object file has both stabs and DWARF2 debugging information
+	then the stabs information was ignored.  This turns out not to be
+	correct because it is possible that there is line number information
+	in the .stabs section that is not in the .debug_line section when
+	the latter is part of the usual crt*.o object files of g++-2.95.x
+	in the case that this compiler was compiled with -gdwarf-2 or with
+	gcc-3.x.  Libcwd now reads and combines the debugging info from
+	both kinds.
+
 libcwd-0.99.27
 
 	Bug fixes:

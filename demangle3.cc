@@ -298,7 +298,7 @@ namespace {
         { M_qualifier_starts.push_back(qualifier_ct(start_pos, qualifier, &M_demangler.M_str[start_pos], count, inside_substitution)); }
     void add_qualifier_start(param_qualifier_nt qualifier, int start_pos, internal_string optional_type, int inside_substitution)
         { M_qualifier_starts.push_back(qualifier_ct(start_pos, qualifier, optional_type, inside_substitution)); }
-    void decode_qualifiers(internal_string& output);
+    void decode_qualifiers(internal_string& output, bool member_function_pointer_qualifiers);
     bool suppressed(void) const { return M_printing_suppressed; }
     void printing_suppressed(void) { M_printing_suppressed = true; }
     size_t size(void) const { return M_qualifier_starts.size(); }
@@ -1123,14 +1123,16 @@ namespace {
   // This ill-formed design results in rather ill-formed demangler code too however :/
   //
   // <Q2> is now explicitely part of the M format.
+  // For some weird reason, g++ (3.2.1) does not add substitutions for qualified member function pointers.
+  // I think that is another bug.
   //
 
-  void qualifiers_ct::decode_qualifiers(internal_string& output)
+  void qualifiers_ct::decode_qualifiers(internal_string& output, bool member_function_pointer_qualifiers = false)
   {
     internal_string postfix;
     for(internal_vector<qualifier_ct>::reverse_iterator iter = M_qualifier_starts.rbegin(); iter != M_qualifier_starts.rend();)
     {
-      if (!(*iter).part_of_substitution())
+      if (!member_function_pointer_qualifiers && !(*iter).part_of_substitution())
       {
 	int saved_inside_substitution = M_demangler.M_inside_substitution;
         M_demangler.M_inside_substitution = 0;
@@ -1284,12 +1286,10 @@ namespace {
 	    failure = true;
 	    break;
 	  }
-//	  if (M_str[start_pos + 1] != 'S' || M_str[start_pos + 2] == 't')
-//	    add_substitution(start_pos + 1, type);
 	  char c = current();
 	  if (c == 'F' || c == 'K' || c == 'V' || c == 'r')	// Must be CV-qualifiers and a member function pointer.
 	  {
-	    // <Q>M<C><Q2>F<R><B>E      ==> R (C::*Q)B Q2               "<C>", "<C><Q2>", "F<R><B>E" (<R> and <B> recursive), "M<C><Q2>F<R><B>E".
+	    // <Q>M<C><Q2>F<R><B>E      ==> R (C::*Q)B Q2               "<C>", "F<R><B>E" (<R> and <B> recursive), "M<C><Q2>F<R><B>E".
 	    int count = 0;
 	    int Q2_start_pos = M_pos;
 	    while(c == 'K' || c == 'V' || c == 'r')		// Decode <Q2>
@@ -1301,7 +1301,9 @@ namespace {
 	    if (count)
 	      class_type_qualifiers.add_qualifier_start(cv_qualifier, Q2_start_pos, count, M_inside_substitution);
 	    internal_string member_function_qualifiers;
-	    class_type_qualifiers.decode_qualifiers(member_function_qualifiers);	// substitution(s): "<C><Q2>".
+            // It is unclear why g++ doesn't add a substitution for "<Q2>F<R><B>E" as it should I think.
+            class_type_qualifiers.decode_qualifiers(member_function_qualifiers, true /* suppress adding a substitution */);
+	    int function_pos = M_pos;
 	    if (eat_current() != 'F')
 	    {
 	      failure = true;
@@ -1309,7 +1311,7 @@ namespace {
 	    }
 	    // Return type.
 	    // Constructors, destructors and conversion operators don't have a return type, but seem to never get here.
-	    if (!decode_type(output))						// substitution: "F<R><B>E" (<R> and <B> recursive).
+	    if (!decode_type(output))							// substitution: <R> recursive
 	    {
 	      failure = true;
 	      break;
@@ -1318,11 +1320,13 @@ namespace {
 	    output += class_type;
 	    output += "::*";
 	    internal_string bare_function_type;
-	    if (!decode_bare_function_type(bare_function_type) || eat_current() != 'E')
+	    if (!decode_bare_function_type(bare_function_type) || eat_current() != 'E')	// substitution: <B> recursive
 	    {
 	      failure = true;
 	      break;
 	    }
+            // I don't think this substitution is actually ever used.
+            add_substitution(function_pos, type);				// substitution: "F<R><B>E".
 	    add_substitution(start_pos, type);					// substitution: "M<C><Q2>F<R><B>E".
 	    qualifiers->decode_qualifiers(output);				// substitution: all qualified types if any.
 	    output += ")";

@@ -1034,7 +1034,7 @@ namespace _private_ {
 	// P[M<scope-type>][C]F<types>_<type>			<type> ([<scope-type>::]*		)(<type>, <type>, ..., <type>) [const]
 	// R[M<scope-type>][C]F<types>_<type>			<type> ([<scope-type>::]&		)(<type>, <type>, ..., <type>) [const]
 	// [<other-qualifiers>]A<digits>_			[(<other-qualifiers>			)] \[<digits>\]
-	// O<scope-type>_					PREFIX (<scope-type>::			) POSTFIX
+	// O<scope-type>_					PREFIX <scope-type>::			POSTFIX
 	//
 	// scope types:
 	// <digits><class-name>					<class-name>
@@ -1267,12 +1267,7 @@ namespace _private_ {
 		if (eat_type_internal(current, input, prefix, postfix, NULL))
 		  return true;
 		if (*prefix.rbegin() != '(')
-		{
-		  prefix += " (";
-		  postfix2 = postfix;
-		  postfix = ')';
-		  postfix += postfix2;
-		}
+		  prefix += " ";
 		prefix += member_scope;
 		return false;
 	      }

@@ -1,8 +1,8 @@
 // input lines 2
-// output till Loading debug info from \./module\.so
+// output till Loading debug info from .*module\.so
 (.*
 )*
-BFD     : Loading debug info from \./module\.so \(0x[a-f0-9]*\) \.\.\. done \([0-9]* symbols\)
+BFD     : Loading debug info from .*module\.so \(0x[a-f0-9]*\) \.\.\. done \([0-9]* symbols\)
 // input lines 2
 // output till malloc\(310\)
 (.*

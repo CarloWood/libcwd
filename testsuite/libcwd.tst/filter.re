@@ -8,7 +8,7 @@ MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
           0x[a-f0-9]* tst_filter_shared:/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
 MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
           0x[a-f0-9]* tst_filter_shared:/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
-MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:157|          stl_alloc.h:(103|109) ) <unknown type>; \(sz = 4096\)  
+MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:157|          stl_alloc.h:(103|109)) *<unknown type>; \(sz = 4096\)  
 MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc 
 MALLOC  : malloc\(12\) = 0x[a-f0-9]*
 MALLOC  : calloc\(54[4|8], 1\) = 0x[a-f0-9]*
