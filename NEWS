@@ -1,3 +1,14 @@
+libcwd-0.99.14
+
+	Bug fixes:
+
+	On systems where a 'char' is unsigned, the line number lookup of DWARF
+	failed.
+
+	Systems with old binutils produce incorrect .stabs entries, causing
+	the line number lookup of stabs to fail.  Libcwd now detects this and
+	then aborts.
+
 libcwd-0.99.13
 
 	Support for dlopen() was added.  Because there seems to be no hook for
