@@ -56,7 +56,7 @@ extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const*
     // For static descriptions
 extern void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description LIBCWD_COMMA_TSD_PARAM);
     // For dynamic descriptions
-																		    // allocated with new[]
+    // allocated with new[]
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 extern void register_external_allocation(void const* ptr, size_t size);
 #endif
@@ -181,7 +181,9 @@ extern void register_external_allocation(void const* ptr, size_t size);
 	  ::libcw::debug::_private_::auto_internal_stringstream buf; \
 	  buf << x << ::std::ends; \
 	  size_t size = LIBCWD_GETBUFSIZE(buf); \
+	  ::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	  WS_desc = new char [size]; /* This is never deleted anymore */ \
+	  ::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
 	  buf.rdbuf()->sgetn(WS_desc, size); \
 	} \
       } \
@@ -201,7 +203,9 @@ extern void register_external_allocation(void const* ptr, size_t size);
 	::libcw::debug::_private_::auto_internal_stringstream buf; \
 	buf << x << ::std::ends; \
 	size_t size = LIBCWD_GETBUFSIZE(buf); \
+	::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	desc = new char [size]; \
+	::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
 	buf.rdbuf()->sgetn(desc, size); \
       } \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), \

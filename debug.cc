@@ -910,8 +910,6 @@ void allocator_unlock(void)
 #endif
 #endif
 
-      set_alloc_checking_off(LIBCWD_TSD);
-
       // Skip `start()' for a `continued' debug output.
       // Generating the "prefix: <continued>" is already taken care
       // of while generating the "<unfinished>" (see next `if' block).
@@ -958,6 +956,8 @@ void allocator_unlock(void)
 	  current->mask &= ~continued_expected_maskbit;
         return;
       }
+
+      set_alloc_checking_off(LIBCWD_TSD);
 
       ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
       DEBUGDEBUG_CERR( "Entering debug_ct::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
@@ -1053,6 +1053,8 @@ void allocator_unlock(void)
 
       --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
       DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
+
+      set_alloc_checking_on(LIBCWD_TSD);
     }
 
     void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
@@ -1061,6 +1063,8 @@ void allocator_unlock(void)
       LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
 #endif
       std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : debug_object.real_os;
+
+      set_alloc_checking_off(LIBCWD_TSD);
 
       // Skip `finish()' for a `continued' debug output.
       if ((current->mask & continued_cf_maskbit) && !(current->mask & finish_maskbit))

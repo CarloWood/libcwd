@@ -1232,6 +1232,7 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
 #endif
 #if CWDEBUG_LOCATION
   LibcwDoutScopeBegin(channels, debug_object, dc::continued);
+  _private_::set_alloc_checking_off(LIBCWD_TSD);			// FIXME is it ok to turn it off here?
   if (filter.M_flags & show_objectfile)
   {
     object_file_ct const* object_file = M_location->object_file();
@@ -1279,6 +1280,7 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
   }
   else
     LibcwDoutStream.write(twentyfive_spaces_c, 25);
+  _private_::set_alloc_checking_on(LIBCWD_TSD);
   LibcwDoutScopeEnd;
 #endif
 
@@ -1363,6 +1365,7 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
 #endif
   dm_alloc_copy_ct const* alloc;
   LIBCWD_TSD_DECLARATION;
+  LIBCWD_ASSERT( !__libcwd_tsd.internal );		// localtime() can allocate memory and is a library call.
   for (alloc = this; alloc; alloc = alloc->M_next)
   {
     if ((filter.M_flags & hide_untagged) && !alloc->is_tagged())
@@ -1390,18 +1393,33 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
 	  (alloc->a_time.tv_sec == filter.M_end.tv_sec && alloc->a_time.tv_usec > filter.M_end.tv_usec))
 	continue;
     }
-    LibcwDoutScopeBegin(channels, debug_object, channel|nolabel_cf|continued_cf);
-    for (int i = depth; i > 1; i--)
-      LibcwDoutStream << "    ";
+    struct tm* tbuf_ptr;
     if (filter.M_flags & show_time)
     {
-      struct tm* tbuf_ptr;
+      ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);	// localtime() can allocate memory, don't show it.
+      // Maybe we should show it because it will turn up in allocation overviews and even memory leaks.
+      // The user should be able to see where it was allocated in the debug output.
+#if CWDEBUG_MARKER
+      ooam_filter_ct filter;
+      filter.hide_untagged_allocations();
+      marker_ct* marker = new marker_ct(filter, true);	// Make all allocations leaked by localtime() invisible.
+#endif
 #if LIBCWD_THREAD_SAFE
       struct tm tbuf;
       tbuf_ptr = localtime_r(&alloc->a_time.tv_sec, &tbuf);
 #else
       tbuf_ptr = localtime(&alloc->a_time.tv_sec);
 #endif
+#if CWDEBUG_MARKER
+      delete marker;
+#endif
+      --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
+    }
+    LibcwDoutScopeBegin(channels, debug_object, channel|nolabel_cf|continued_cf);
+    for (int i = depth; i > 1; i--)
+      LibcwDoutStream << "    ";
+    if (filter.M_flags & show_time)
+    {
       print_integer(LibcwDoutStream, tbuf_ptr->tm_hour, 2);
       LibcwDoutStream << ':';
       print_integer(LibcwDoutStream, tbuf_ptr->tm_min, 2);
@@ -2696,22 +2714,27 @@ marker_ct::~marker_ct()
 	    (alloc_node->time().tv_sec > M_filter.M_end.tv_sec ||
 	        (alloc_node->time().tv_sec == M_filter.M_end.tv_sec && alloc_node->time().tv_usec > M_filter.M_end.tv_usec))))
       {
-	// Delink it:
-	ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
-	if (alloc_node->next)
-	  alloc_node->next->prev = alloc_node->prev;
-	if (alloc_node->prev)
-	  alloc_node->prev->next = alloc_node->next;
-	else if (!(*alloc_node->my_list = alloc_node->next) && alloc_node->my_owner_node->is_deleted())
-	  delete alloc_node->my_owner_node;
-	// Relink it:
-	alloc_node->prev = NULL;
-	alloc_node->next = *marker_alloc_node->my_list;
-	*marker_alloc_node->my_list = alloc_node;
-	alloc_node->next->prev = alloc_node;
-	alloc_node->my_list = marker_alloc_node->my_list;
-	alloc_node->my_owner_node = marker_alloc_node->my_owner_node;
-	RELEASE_WRITE_LOCK;
+        if (M_make_invisible)
+	  make_invisible(alloc_node->start());
+	else
+	{
+	  // Delink it:
+	  ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
+	  if (alloc_node->next)
+	    alloc_node->next->prev = alloc_node->prev;
+	  if (alloc_node->prev)
+	    alloc_node->prev->next = alloc_node->next;
+	  else if (!(*alloc_node->my_list = alloc_node->next) && alloc_node->my_owner_node->is_deleted())
+	    delete alloc_node->my_owner_node;
+	  // Relink it:
+	  alloc_node->prev = NULL;
+	  alloc_node->next = *marker_alloc_node->my_list;
+	  *marker_alloc_node->my_list = alloc_node;
+	  alloc_node->next->prev = alloc_node;
+	  alloc_node->my_list = marker_alloc_node->my_list;
+	  alloc_node->my_owner_node = marker_alloc_node->my_owner_node;
+	  RELEASE_WRITE_LOCK;
+	}
       }
       alloc_node = next_alloc_node;
     }

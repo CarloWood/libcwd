@@ -35,6 +35,7 @@ class marker_ct {
 private:
   void register_marker(char const* label);
   ooam_filter_ct const& M_filter;
+  bool M_make_invisible;
 public:
   /** \brief Construct a marker with label \p label.
    *
@@ -43,11 +44,15 @@ public:
    * placed outside the marker.  Allocations done after the creation of the marker
    * which are not deleted when the marker gets destructed and which are not hidden
    * by the filter will be listed.
+   *
+   * If \a make_invisible is set true then all filtered allocations will not only
+   * be placed outside the marker but also made \ref group_invisible "invisible".
    */
-  marker_ct(char const* label, ooam_filter_ct const& filter) : M_filter(filter) { register_marker(label); }
+  marker_ct(char const* label, ooam_filter_ct const& filter, bool make_invisible = false) :
+      M_filter(filter), M_make_invisible(make_invisible) { register_marker(label); }
 
   /** \brief Construct a marker with label \p label. */
-  marker_ct(char const* label) : M_filter(default_ooam_filter) { register_marker(label); }
+  marker_ct(char const* label) : M_filter(default_ooam_filter), M_make_invisible(false) { register_marker(label); }
 
   /** \brief Construct a marker with label "An allocation marker".
    *
@@ -56,11 +61,15 @@ public:
    * placed outside the marker.  Allocations done after the creation of the marker
    * which are not deleted when the marker gets destructed and which are not hidden
    * by the filter will be listed.
+   *
+   * If \a make_invisible is set true then all filtered allocations will not only
+   * be placed outside the marker but also made \ref group_invisible "invisible".
    */
-  marker_ct(ooam_filter_ct const& filter) : M_filter(filter) { register_marker("An allocation marker"); }
+  marker_ct(ooam_filter_ct const& filter, bool make_invisible = false) :
+      M_filter(filter), M_make_invisible(make_invisible) { register_marker("An allocation marker"); }
 
   /** \brief Construct a marker with label "An allocation marker". */
-  marker_ct(void) : M_filter(default_ooam_filter) { register_marker("An allocation marker"); }
+  marker_ct(void) : M_filter(default_ooam_filter), M_make_invisible(false) { register_marker("An allocation marker"); }
 
   ~marker_ct();
 };

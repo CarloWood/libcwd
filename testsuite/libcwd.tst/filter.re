@@ -17,32 +17,32 @@ MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]*
 MALLOC  : calloc\([3-6], 16\) = 0x[a-f0-9]*
 MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]*
 NOTICE  : dlopen\(\./module\.so, RTLD_NOW\|RTLD_GLOBAL\) == 0x[a-f0-9]*
-MALLOC  : operator new \(size = 4\) = 0x[a-f0-9]*
+MALLOC  : operator new \(size = 8\) = 0x[a-f0-9]*
 MALLOC  : New libcw::debug::marker_ct at 0x[a-f0-9]*
 MALLOC  : malloc\(500\) = 0x[a-f0-9]*
 MALLOC  : malloc\(123\) = 0x[a-f0-9]*
-MALLOC  : operator new \(size = 4\) = 0x[a-f0-9]*
+MALLOC  : operator new \(size = 8\) = 0x[a-f0-9]*
 MALLOC  : New libcw::debug::marker_ct at 0x[a-f0-9]*
 MALLOC  : realloc\(0x[a-f0-9]*, 1000\) = 0x[a-f0-9]*
 MALLOC  : malloc\(600\) = 0x[a-f0-9]*
 MALLOC  : realloc\(0x[a-f0-9]*, 1000\) = 0x[a-f0-9]*
 MALLOC  : operator new\[\] \(size = 1000\) = 0x[a-f0-9]*
 MALLOC  : Allocated memory: [0-9]* bytes in 1[0-9] blocks:
-[0-9:.]* \(MARKER\)  0x[a-f0-9]* tst_filter_shared:           filter\.cc:181  <marker>; \(sz = 4\)  marker1
-    [0-9:.]* \(MARKER\)  0x[a-f0-9]* tst_filter_shared:           filter\.cc:187  <marker>; \(sz = 4\)  marker2
+[0-9:.]* \(MARKER\)  0x[a-f0-9]* tst_filter_shared:           filter\.cc:181  <marker>; \(sz = 8\)  marker1
+    [0-9:.]* \(MARKER\)  0x[a-f0-9]* tst_filter_shared:           filter\.cc:187  <marker>; \(sz = 8\)  marker2
         [0-9:.]* new\[\]     0x[a-f0-9]* module\.so:           module\.cc:38   char\[1000\]; \(sz = 1000\)  new1000
         [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:31   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* malloc    0x[a-f0-9]* tst_filter_shared:           filter\.cc:184  void\*; \(sz = 123\)  Allocated between the two markers
 MALLOC  : Removing libcw::debug::marker_ct at 0x[a-f0-9]* \(marker2\)
-MALLOC  : delete 0x[a-f0-9]*            filter\.cc:187  <marker>; \(sz = 4\)  marker2 
+MALLOC  : delete 0x[a-f0-9]*            filter\.cc:187  <marker>; \(sz = 8\)  marker2 
 MALLOC  : Removing libcw::debug::marker_ct at 0x[a-f0-9]* \(marker1\)
   \* WARNING : Memory leak detected!
   \* realloc   0x[a-f0-9]* module\.so:/.*/testsuite/module\.cc:31   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
   \* new\[\]     0x[a-f0-9]* module\.so:/.*/testsuite/module\.cc:38   char\[1000\]; \(sz = 1000\)  new1000
   \* malloc    0x[a-f0-9]* tst_filter_shared:/.*/testsuite/libcwd\.tst/filter\.cc:184  void\*; \(sz = 123\)  Allocated between the two markers
-MALLOC  : delete 0x[a-f0-9]*            filter\.cc:181  <marker>; \(sz = 4\)  marker1 
+MALLOC  : delete 0x[a-f0-9]*            filter\.cc:181  <marker>; \(sz = 8\)  marker1 
 MALLOC  : Allocated memory: [0-9]* bytes in 1[0-9] blocks:
-[0-9:.]* \(deleted\) 0x[a-f0-9]* tst_filter_shared:           filter\.cc:181  <marker>; \(sz = 4\)  marker1
+[0-9:.]* \(deleted\) 0x[a-f0-9]* tst_filter_shared:           filter\.cc:181  <marker>; \(sz = 8\)  marker1
     [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:31   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* new\[\]     0x[a-f0-9]* module\.so:           module\.cc:38   char\[1000\]; \(sz = 1000\)  new1000
     [0-9:.]* malloc    0x[a-f0-9]* tst_filter_shared:           filter\.cc:184  void\*; \(sz = 123\)  Allocated between the two markers
@@ -62,7 +62,7 @@ MALLOC  : (Trying to free NULL - ignored\.|free\(0x[a-f0-9]*\) <pre libcwd initi
 )*|(MALLOC  : delete 0x[a-f0-9]* <pre ios initialization>  <unknown type>.*
 ))
 MALLOC  : Allocated memory: [0-9]* bytes in [5-9] blocks:
-[0-9:.]* \(deleted\) 0x[a-f0-9]* tst_filter_shared:           filter\.cc:181  <marker>; \(sz = 4\)  marker1
+[0-9:.]* \(deleted\) 0x[a-f0-9]* tst_filter_shared:           filter\.cc:181  <marker>; \(sz = 8\)  marker1
     [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:31   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* malloc    0x[a-f0-9]* tst_filter_shared:           filter\.cc:184  void\*; \(sz = 123\)  Allocated between the two markers
 MALLOC  : free\(0x[a-f0-9]*\)            module\.cc:31   void\*; \(sz = 1000\)  realloc1000_with_AllocTag 
