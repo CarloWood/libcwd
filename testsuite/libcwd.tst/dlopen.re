@@ -8,7 +8,7 @@
 BFD     :     address 0x[0-9a-f]* corresponds to dl-[a-z]*\.c:[0-9]*
 MALLOC  : <continued> 0x[0-9a-f]*
 )+
-BFD     : Loading debug info from module\.so \(0x[0-9a-f]*\) \.\.\. done \([0-9]* symbols\)
+BFD     : Loading debug info from \./module\.so \(0x[0-9a-f]*\) \.\.\. done \([0-9]* symbols\)
 MALLOC  : malloc\(310\) = <unfinished>
 BFD     :     address 0x[0-9a-f]* corresponds to module.cc:19
 MALLOC  : <continued> 0x[0-9a-f]*
