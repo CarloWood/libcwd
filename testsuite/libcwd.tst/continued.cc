@@ -1,4 +1,4 @@
-#include "../../sys.h"
+#include "sys.h"
 #include <unistd.h>
 #include <sys/poll.h>
 #include <fcntl.h>

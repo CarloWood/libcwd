@@ -1,4 +1,4 @@
-#include "../../sys.h"
+#include "sys.h"
 #include <iostream>
 #include <libcw/debug.h>
 #include <libcw/demangle.h>

@@ -1,4 +1,4 @@
-#include "../../sys.h"
+#include "sys.h"
 #include <errno.h>
 #include <libcw/debug.h>
 #ifdef LIBCWD_USE_STRSTREAM
