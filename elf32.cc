@@ -1886,23 +1886,18 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
     M_inside_find_nearest_line = true;
 #if DEBUGSTABS || DEBUGDWARF
     int off = libcw::debug::libcw_do._off;
-    libcw::debug::libcw_do._off = -1;	// Force debug output on.
-    int cnt = 0;
-    Debug(
-      while(!dc::bfd.is_on())
-      {
-	++cnt;
-	dc::bfd.on();
-      }
-    );
+    libcw::debug::debug_ct::OnOffState state;
+    Debug( libcw_do.force_on(state) );
+    libcw::debug::channel_ct::OnOffState state2;
+    Debug( dc::bfd.force_on(state2, "BFD") );
 #endif
     if (M_dwarf_debug_line_section_index)
       load_dwarf();
     else if (M_stabs_section_index)
       load_stabs();
 #if DEBUGSTABS || DEBUGDWARF
-    Debug( while(cnt) { --cnt; dc::bfd.off(); } );
-    libcw::debug::libcw_do._off = off;
+    Debug( dc::bfd.restore(state2) );
+    Debug( libcw_do.restore(state) );
 #endif
     M_inside_find_nearest_line = false;
 #ifdef LIBCWD_THREAD_SAFE

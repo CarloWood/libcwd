@@ -159,8 +159,6 @@ AM_PROG_LIBTOOL
 dnl Configuration needed by the testsuite, extract this from the generated 'libtool'
 enable_shared=`./libtool --config | grep '^build_libtool_libs=' | sed -e 's/build_libtool_libs=//'`
 enable_static=`./libtool --config | grep '^build_old_libs=' | sed -e 's/build_old_libs=//'`
-AC_SUBST(enable_shared)
-AC_SUBST(enable_static)
 if test $enable_shared = yes; then
   if expr "$host" : ".*openbsd.*" >/dev/null; then
     AC_MSG_ERROR([
@@ -220,6 +218,7 @@ CW_CONFIG_HAVE_DLOPEN=undef
 dnl Configuration needed by the testsuite
 AC_SUBST(enable_shared)
 AC_SUBST(enable_static)
+AC_SUBST(libcwd_config_threading)
 
 if test "$libcwd_config_alloc" = yes; then
   CW_CONFIG_DEBUGMALLOC=define

@@ -123,6 +123,13 @@ public:
   void off(void);
   void on(void);
 
+  struct OnOffState {
+    int off_cnt;
+  };
+
+  void force_on(OnOffState& state, char const* label);
+  void restore(OnOffState const& state);
+
 public:
   //---------------------------------------------------------------------------
   // Accessors

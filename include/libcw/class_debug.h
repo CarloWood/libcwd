@@ -236,6 +236,16 @@ public:
   void set_ostream(std::ostream* os);
   void off(void);
   void on(void);
+  
+  struct OnOffState {
+    int _off;
+#ifdef DEBUGDEBUGOUTPUT
+    bool first_time;
+#endif
+  };
+
+  void force_on(OnOffState& state);
+  void restore(OnOffState const& state);
 
 #ifdef DEBUGDEBUGOUTPUT
   // Since with DEBUGDEBUG defined we start with _off is -1 instead of 0,

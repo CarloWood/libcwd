@@ -956,18 +956,10 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
 #ifdef ALWAYS_PRINT_LOADING
 	// We want debug output to BFD
-	bool const libcwd_was_off =
-#ifdef DEBUGDEBUG
-	  false;
-#else
-	  true;
-#endif
-	if (libcwd_was_off)
-	  Debug( libcw_do.on() );
-	bool bfd_was_off;
-	Debug( bfd_was_off = !dc::bfd.is_on() );
-	if (bfd_was_off)
-	  Debug( dc::bfd.on() );
+	libcw::debug::debug_ct::OnOffState state;
+	Debug( libcw_do.force_on(state) );
+	libcw::debug::channel_ct::OnOffState state2;
+	Debug( dc::bfd.force_on(state2, "BFD") );
 #endif
 
 	// Initialize object files list, we don't really need the
@@ -1043,10 +1035,8 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	BFD_RELEASE_WRITE_LOCK
 
 #ifdef ALWAYS_PRINT_LOADING
-	if (libcwd_was_off)
-	  Debug( libcw_do.off() );
-	if (bfd_was_off)
-	  Debug( dc::bfd.off() );
+	Debug( dc::bfd.restore(state2) );
+	Debug( libcw_do.restore(state) );
 #endif
 
 	WST_initialized = true;			// MT: Safe, this function is Single Threaded.

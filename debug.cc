@@ -950,22 +950,20 @@ namespace libcw {
 	corelim.rlim_cur = corelim.rlim_max;
 	if (corelim.rlim_max != RLIM_INFINITY)
 	{
-	  _off = -1;
+	  OnOffState state;
+	  force_on(state);
 	  // The cast is necessary on platforms where corelim.rlim_max is long long
 	  // and libstdc++ was not compiled with support for long long.
 	  Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
-#ifndef DEBUGDEBUGOUTPUT
-	  _off = 0;
-#endif
+	  restore(state);
 	}
 	if (setrlimit(RLIMIT_CORE, &corelim))
 	    DoutFatal(dc::fatal|error_cf, "unlimit core size failed");
 #else
-	_off = -1;
+	OnOffState state;
+	force_on(state);
 	Dout(dc::warning, "Please unlimit core size manually");
-#ifndef DEBUGDEBUGOUTPUT
-	_off = 0;
-#endif
+	restore(state);
 #endif
       }
     }
@@ -1106,10 +1104,10 @@ namespace libcw {
 
       LIBCWD_TSD_DECLARATION
 #ifdef LIBCWD_THREAD_SAFE
-      // MT: Take advantage of the `write_max_len_instance' lock to prevend simultaneous access
+      // MT: Take advantage of the `write_max_len_instance' lock to prefend simultaneous access
       //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
       static int next_index;
-      WNS_index = next_index++;
+      WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
        
       _private_::mutex_tct<_private_::write_max_len_instance>::unlock();
 
@@ -1334,6 +1332,49 @@ namespace libcw {
       }
 
     } // namespace _private_
+
+    void debug_ct::force_on(debug_ct::OnOffState& state)
+    {
+      NS_init();
+      state._off = _off;
+#ifdef DEBUGDEBUGOUTPUT
+      state.first_time = first_time;
+#endif
+      _off = -1;					// Turn object on.
+    }
+
+    void debug_ct::restore(debug_ct::OnOffState const& state)
+    {
+#ifdef DEBUGDEBUGOUTPUT
+      if (state.first_time != first_time)		// state.first_time && !first_time.
+	core_dump();					// on() was called without first a call to off().
+#endif
+      if (_off != -1)
+	core_dump();					// off() and on() where called and not in equal pairs.
+      _off = state._off;				// Restore.
+    }
+
+    void channel_ct::force_on(channel_ct::OnOffState& state, char const* label)
+    {
+      NS_initialize(label);
+#ifdef LIBCWD_THREAD_SAFE
+      LIBCWD_TSD_DECLARATION
+      int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
+#endif
+      state.off_cnt = off_cnt;
+      off_cnt = -1;					// Turn channel on.
+    }
+
+    void channel_ct::restore(channel_ct::OnOffState const& state)
+    {
+#ifdef LIBCWD_THREAD_SAFE
+      LIBCWD_TSD_DECLARATION
+      int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
+#endif
+      if (off_cnt != -1)
+	core_dump();					// off() and on() where called and not in equal pairs.
+      off_cnt = state.off_cnt;				// Restore.
+    }
 
   }	// namespace debug
 }	// namespace libcw

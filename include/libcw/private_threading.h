@@ -474,11 +474,15 @@ template<class TSD>
     TSD new_TSD;
     S_temporary_instance = &new_TSD;
     S_initializing = true;
-    LIBCWD_TSD_DECLARATION
-    set_alloc_checking_off(LIBCWD_TSD);
+    set_alloc_checking_off(new_TSD);
     TSD* instance = new TSD;
-    set_alloc_checking_on(LIBCWD_TSD);
+    set_alloc_checking_on(new_TSD);
     pthread_setspecific(S_key, instance);
+    // Because pthread_setspecific calls calloc, it is possible that in
+    // the mean time all of libcwd was initialized.  Therefore we need
+    // to copy the temporary TSD to the real TSD because it might
+    // contain relevant information.
+    *instance = new_TSD;		// This will not call malloc() et al, and thus not change new_TSD while we're copying it.
     S_initializing = false;
     S_WNS_initialized = true;
     mutex_tct<tsd_initialization_instance>::unlock();
