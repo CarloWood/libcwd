@@ -17,6 +17,8 @@
 #include "libcw/sys.h"
 #include <cstdio>
 #include <getopt.h>
+#include <cstdlib>
+#include <iostream>
 #include "libcw/h.h"
 #include "libcw/debug.h"
 
@@ -61,6 +63,7 @@ public:
 
 int main(int argc, char **argv)
 {
+#ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
 
@@ -136,6 +139,10 @@ int main(int argc, char **argv)
   Debug( list_allocations_on(libcw_do) );
   free(ptr2);
   free(ptr3);
+
+#else // !DEBUGMALLOC
+  cerr << "Define DEBUGMALLOC in libcw/debugging_defs.h\n";
+#endif // !DEBUGMALLOC
 
   return 0;
 }

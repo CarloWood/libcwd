@@ -21,6 +21,7 @@ RCSTAG_H(type_info, "$Id$")
 
 #include <typeinfo>		// Needed for typeid()
 #include <cstddef>		// Needed for size_t
+#include <cstring>		// Needed for strncpy()
 
 extern char const* make_label(char const* mangled_name);
 
@@ -105,7 +106,9 @@ namespace libcw {
       static type_info_ct const* type_info_singleton = 0;
       if (!type_info_singleton)
       {
+#ifdef DEBUGMALLOC
 	set_alloc_checking_off();
+#endif
 	T* tp;					// Create pointer to object
 	char const* tp_name = typeid(tp).name();
 	size_t len = strlen(tp_name);
@@ -114,7 +117,9 @@ namespace libcw {
 	t_name[len - 1] = 0;
 	libcw::_internal_::type_info ti(t_name);
 	type_info_singleton = new type_info_ct(ti, sizeof(T), 0);
+#ifdef DEBUGMALLOC
 	set_alloc_checking_on();
+#endif
       }
       return *type_info_singleton;
     }

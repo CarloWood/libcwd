@@ -21,8 +21,10 @@ class A : public B {};
 
 int main(int argc, char *argv[])
 {
+#ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
+#endif
 
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
@@ -69,4 +71,6 @@ int main(int argc, char *argv[])
   ASSERT(bp2.get() == a);
   ASSERT(!ap3.is_owner());
   ASSERT(bp2.is_owner());
+
+  Dout(dc::notice, "Test successful");
 }

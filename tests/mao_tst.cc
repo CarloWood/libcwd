@@ -34,8 +34,12 @@ int main(int UNUSED(argc), char *argv[])
   int *p = new int[5];
   AllocTag(p, "Test array");
 
+#ifdef DEBUGMALLOC
   // Print memory allocations
   Debug( list_allocations_on(libcw_do) );
+#else
+  cerr << "Define DEBUGMALLOC in libcw/debugging_defs.h\n";
+#endif
 
   delete [] p;
 

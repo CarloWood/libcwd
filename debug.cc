@@ -11,9 +11,6 @@
 // packaging of this file.
 //
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
 #include "libcw/sys.h"
 #include "libcw/debugging_defs.h"
 #ifdef DEBUG
@@ -27,6 +24,7 @@
 #include "libcw/h.h"
 #include "libcw/debug.h"
 #include "libcw/strerrno.h"
+#include "libcw/no_alloc_checking_ostrstream.h"
 #endif
 
 RCSTAG_CC("$Id$")
@@ -50,7 +48,6 @@ namespace libcw {
 	channel_ct const debug("DEBUG");
 	channel_ct const notice("NOTICE");
 	channel_ct const warning("WARNING");
-	channel_ct const none("");
 	channel_ct const system("SYSTEM");
 	channel_ct const malloc("MALLOC");
 
@@ -78,6 +75,33 @@ namespace libcw {
       cerr << "DEBUGDEBUG: Set debug_object_init_magic to " << debug_object_init_magic << endl; 
     }
 #endif
+
+    class laf_ct {
+    public:
+      no_alloc_checking_ostrstream oss;
+	// The temporary output buffer.
+
+      int prefix_end;
+	// Number of characters in oss that make up the prefix.
+
+      size_t flushed;
+	// Number of character in the buffer that are already flushed.
+
+      control_flag_t mask;
+	// The previous control bits.
+
+      char const* label;
+	// The previous label.
+
+      ostream* saved_os;
+	// The previous original ostream.
+
+      int err;
+	// The current errno.
+
+    public:
+      laf_ct(control_flag_t m, char const* l, ostream* os, int e) : flushed(0), mask(m), label(l), saved_os(os), err(e) {}
+    };
 
     static inline void write_whitespace_to(ostream& os, unsigned int size)
     {
@@ -159,6 +183,7 @@ namespace libcw {
       cerr << "DEBUGDEBUG: creating new laf_ct\n";
 #endif
       current = new laf_ct(channel_set.mask, channel_set.label, saved_os, errno);
+      current_oss = &current->oss;
 #ifdef DEBUGDEBUG
       cerr << "DEBUGDEBUG: laf_ct created\n";
 #endif
@@ -313,6 +338,7 @@ namespace libcw {
       if (laf_stack.size())
       {
         current = laf_stack.top();
+	current_oss = &current->oss;
 	if ((channel_set.mask & flush_cf))
 	  current->mask |= flush_cf;	// Propagate flush to real ostream.
       }
@@ -370,9 +396,14 @@ namespace libcw {
       // `current' needs to be non-zero (saving us a check in start()) and
       // current.mask needs to be 0 to avoid a crash in start():
       static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
+#ifdef DEBUGMALLOC
       set_alloc_checking_off();
-      current = new (dummy_laf) laf_ct(0, channels::dc::debug.label, NULL, 0);	// Leaks memory 24 bytes of memory
+#endif
+      current = new (dummy_laf) laf_ct(0, channels::dc::debug.label, NULL, 0);	// Leaks 24 bytes of memory
+      current_oss = &current->oss;
+#ifdef DEBUGMALLOC
       set_alloc_checking_on();
+#endif
       laf_stack.init();
       continued_stack.init();
       margin.init("", 0, true);				// Note: These first time strings need to be static/const.
@@ -536,9 +567,13 @@ namespace libcw {
 
       if (!debug_channels)
       {
+#ifdef DEBUGMALLOC
         set_alloc_checking_off();
+#endif
         debug_channels = new debug_channels_ct;		// Leaks 12 bytes of memory
+#ifdef DEBUGMALLOC
         set_alloc_checking_on();
+#endif
       }
 
       debug_channels->push_back(this);
@@ -720,6 +755,7 @@ namespace libcw {
 #endif
     }
 
+#ifdef DEBUGMALLOC
     no_alloc_checking_ostrstream::no_alloc_checking_ostrstream(void)
     {
       set_alloc_checking_off();
@@ -734,6 +770,7 @@ namespace libcw {
       delete my_sb;
       set_alloc_checking_on();
     }
+#endif
 
 #ifndef DEBUGNONAMESPACE
   };	// namespace debug

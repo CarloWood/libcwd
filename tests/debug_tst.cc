@@ -16,6 +16,7 @@
 #include <sys/poll.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <iostream>
 #include "libcw/h.h"
 #include "libcw/debug.h"
 
@@ -178,6 +179,7 @@ const char *nested_bar(bool bar_with_error, bool bar_to_cerr, bool foo_with_erro
 
 int main(void)
 {
+#ifdef DEBUG
   grab_cerr();
 
   // Select channels
@@ -241,6 +243,7 @@ int main(void)
   for(int i = 0; i < 16; ++i)
   {
     bool a = (i & 8), b = (i & 4), c = (i & 2), d = (i & 1);
+    USE(a);
     cout << "---------------------------------------------------------------------------\n";
     Dout( dc::notice, "`nested_bar(" << a << ", " << b << ", " << c << ", " << d << ")' returns the string \"" << nested_bar(a, b, c, d) << "\" when I call it." );
   }
@@ -343,6 +346,10 @@ int main(void)
 
   cout << "===========================================================================\n";
   cout << " Continued tests, depth 2\n\n";
+
+#else // !DEBUG
+  cerr << "Define DEBUG in libcw/debugging_defs.h\n";
+#endif // !DEBUG
 
   return 0;
 }

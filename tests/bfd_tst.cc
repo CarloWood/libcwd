@@ -93,6 +93,8 @@ int main(int argc, char* argv[])
 
 #else
 
+#include <iostream>
+
 int main(void)
 {
   cout << "DEBUGUSEBFD not defined\n";

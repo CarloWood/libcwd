@@ -18,6 +18,7 @@
 
 RCSTAG_CC("$Id$")
 
+#ifdef DEBUG
 #ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
@@ -30,6 +31,7 @@ namespace libcw {
 #ifndef DEBUGNONAMESPACE
   };
 };
+#endif
 #endif
 
 void generate_tables(void)

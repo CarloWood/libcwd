@@ -12,9 +12,6 @@
 //
 
 #ifndef LIBCW_DEBUG_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_DEBUG_H
 
 #ifndef LIBCW_SYS_H
@@ -22,7 +19,6 @@
 #endif
 
 #include <libcw/debugging_defs.h>
-#include <iosfwd>
 
 RCSTAG_H(debug, "$Id$")
 
@@ -40,7 +36,7 @@ RCSTAG_H(debug, "$Id$")
 #      define DEBUGCHANNELS NAMESPACE_LIBCW_DEBUG::channels
 #    endif
 #    define UNUSED_UNLESS_DEBUG(x) x
-#    include <assert.h>
+#    include <cassert>
 #    define ASSERT(x) assert(x);
 #    define LibcwDebug(dc_namespace, x) do { USING_NAMESPACE_LIBCW_DEBUG using namespace dc_namespace; (x); } while(0)
 #    define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
@@ -77,7 +73,7 @@ RCSTAG_H(debug, "$Id$")
 #  endif
 
 #ifdef DEBUG
-#include <strstream>
+#include <iostream>
 #include <vector>
 #include <string>
 #ifdef DEBUGDEBUG
@@ -338,74 +334,35 @@ namespace libcw {
     //                    notice: Do NOT use them outside libcw itself!
     //
 
-#ifdef DEBUGMALLOC
-    class no_alloc_checking_ostrstream : public ostrstream {
-    private:
-      strstreambuf* my_sb;
-    public:
-      no_alloc_checking_ostrstream(void);
-      ~no_alloc_checking_ostrstream();
-      strstreambuf* rdbuf() { return my_sb; }
-    };    
-#endif
-
-    class laf_ct {
-    public:
-#ifndef DEBUGMALLOC
-      ostrstream oss;
-        // The temporary output buffer.
-#else
-      no_alloc_checking_ostrstream oss;
-#endif
-      int prefix_end;
-        // Number of characters in oss that make up the prefix.
-
-      size_t flushed;
-        // Number of character in the buffer that are already flushed.
-
-      control_flag_t mask;
-        // The previous control bits.
-
-      char const* label;
-        // The previous label.
-
-      ostream* saved_os;
-        // The previous original ostream.
-
-      int err;
-        // The current errno.
-
-    public:
-      laf_ct(control_flag_t m, char const* l, ostream* os, int e) : flushed(0), mask(m), label(l), saved_os(os), err(e) {}
-    };
+    class laf_ct;
 
     // My own stack implementation, one that doesn't have a constructor.
     // The size of 64 should be MORE then enough.
 
     template<typename T>		// T must be a builtin type.
-    struct debug_stack_tst {
-    private:
-      T st[64];
-      T* p;
-      T* end;
-    public:
-      void init(void) {
-        p = &st[-1];
-	end = &st[63];
-      }
-      void push(T ptr) {
-        if (p == end)
-	  raise(3);	// This is really not normal, if you core here you probably did something wrong.
-	  		// Doing a back trace in gdb should reveal an `infinite' debug output re-entrance loop.
-			// This means that you while printing debug output you call a function that makes
-			// your program return to the same line, starting to print out that debug output
-			// again. Try to break this loop some how.
-        *++p = ptr;
-      }
-      void pop(void) { --p; }
-      T top(void) { return *p; }
-      size_t size(void) { return p - &st[-1]; }
-    };
+      struct debug_stack_tst {
+      private:
+	T st[64];
+	T* p;
+	T* end;
+      public:
+	void init(void) {
+	  p = &st[-1];
+	  end = &st[63];
+	}
+	void push(T ptr) {
+	  if (p == end)
+	    raise(3);	// This is really not normal, if you core here you probably did something wrong.
+			  // Doing a back trace in gdb should reveal an `infinite' debug output re-entrance loop.
+			  // This means that while printing debug output you call a function that makes
+			  // your program return to the same line, starting to print out that debug output
+			  // again. Try to break this loop some how.
+	  *++p = ptr;
+	}
+	void pop(void) { --p; }
+	T top(void) { return *p; }
+	size_t size(void) { return p - &st[-1]; }
+      };
 
     // string place holder (we can't use a string because that has a constructor).
 
@@ -434,12 +391,16 @@ namespace libcw {
       // Attributes 
       //
 
-    public: // Direct access needed in macro LibcwDout(). Do not write to these.
+    public: // Direct access needed in macro LibcwDout().  Do not write to these.
       int _off;
 	// True when the debug output is turned off.
 
       laf_ct* current;
         // Current laf.
+
+      ostream* current_oss;
+        // The ostrstream of the current laf.  This should *always* be equal to current->oss.
+	// The reason for keeping this copy is to avoid including <strstream> in debug.h.
 
       union {
 	channel_set_st           channel_set;
@@ -657,7 +618,7 @@ namespace libcw {
       if (on)							\
       {								\
 	debug_obj.start();					\
-	debug_obj.current->oss << data;				\
+	(*debug_obj.current_oss) << data;			\
 	debug_obj.finish();					\
       }								\
     }								\
@@ -682,7 +643,7 @@ namespace libcw {
       if (on)							\
       {								\
 	debug_obj.start();					\
-	debug_obj.current->oss.vform(format, vl);		\
+	debug_obj.current_oss->vform(format, vl);		\
 	debug_obj.finish();					\
       }								\
     }								\
@@ -703,7 +664,7 @@ namespace libcw {
       debug_obj|cntrl;					\
     }							\
     debug_obj.start();					\
-    debug_obj.current->oss << data;			\
+    (*debug_obj.current_oss) << data;			\
     debug_obj.fatal_finish();				\
   } while(0)
 
@@ -720,9 +681,9 @@ namespace libcw {
 #else // !DEBUG
 
 // No debug output code
-#define LibcwDout(a, b, c)
-#define LibcwDout_vform(a, b, c)
-#define LibcwDoutFatal(a, b, c) do { cerr << c << endl; exit(-1); } while(1)
+#define LibcwDout(a, b, c, d)
+#define LibcwDout_vform(a, b, c, d)
+#define LibcwDoutFatal(a, b, c, d) do { cerr << d << endl; exit(-1); } while(1)
 #define __Dout(a, b)
 #define __Dout_vform(a, b, c)
 #define __DoutFatal(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)

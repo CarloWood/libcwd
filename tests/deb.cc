@@ -16,29 +16,35 @@
 #endif
 #include "libcw/sys.h"
 #include <unistd.h>
+#include <cstdlib>
+#include <iostream>
 #include "libcw/h.h"
 #include "libcw/debug.h"
 
 RCSTAG_CC("$Id$")
 
+#ifdef DEBUG
 #ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
 #endif
     namespace channels {
       namespace dc {
-	channel_ct const alt("ALT");
+	::libcw::debug::channel_ct const alt("ALT");
       };
     };
 #ifndef DEBUGNONAMESPACE
   };
 };
 #endif
+#endif
 
 int main(int argc, char **argv)
 {
+#ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
+#endif
 
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
@@ -141,5 +147,13 @@ int main(int argc, char **argv)
 
   Debug( list_allocations_on(libcw_do) );
 
+  delete [] cp;
+  delete i;
+  free(vp);
+  free(vpi);
+  free(cp2);
+  free(cp2i);
+  free(rp);
+  free(rpi);
   return 0;
 }

@@ -19,7 +19,8 @@
 
 //
 //
-// DEBUG
+// Add to CFLAGS and CXXFLAGS: -DDEBUG
+// Then link with -lcwd
 //
 // In general, this enables debug output and adds several
 // double checking in the code. The level of output can
@@ -27,8 +28,6 @@
 // In general, this should be defined as long as you are
 // develloping the program, unless you want to do
 // speed tests.
-
-#define DEBUG
 
 //
 //
@@ -113,7 +112,7 @@
 //
 // DEBUGNONAMESPACE
 //
-// Puts everything of ::libcw::debug in ::std, needed when debugging
+// Puts everything of ::libcw::debug in global namespace, needed when debugging
 // the debug code because gdb can't deal with namespaces correctly yet.
 //
 

@@ -11,6 +11,7 @@
 // packaging of this file.
 //
 #include "libcw/sys.h"
+#include <iostream>
 #include "libcw/h.h"
 #include "libcw/debug.h"
 
@@ -18,6 +19,7 @@ class A {};
 
 int main(int argc, char *argv[])
 {
+#ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
 
@@ -61,5 +63,10 @@ int main(int argc, char *argv[])
     Dout( dc::core, "Can STILL find that pointer?!" );
 
   Dout( dc::notice, "Finished successfully." );
+
+#else // !DEBUGMALLOC
+  cerr << "Define DEBUGMALLOC in libcw/debugging_defs.h\n";
+#endif // !DEBUGMALLOC
+
   return 0;
 }

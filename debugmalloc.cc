@@ -607,7 +607,7 @@ void dm_alloc_ct::printOn(ostream& os) const
 void dm_alloc_ct::show_alloc_list(int depth, const NAMESPACE_LIBCW_DEBUG::channel_ct& channel) const
 {
   dm_alloc_ct const* alloc;
-  Dout( channel|nolabel_cf|nonewline_cf, memblk_types_ct::setlabel(true) );
+  Dout( channel|noprefix_cf|nonewline_cf, memblk_types_ct::setlabel(true) );
   for (alloc = this; alloc; alloc = alloc->next)
   {
     Dout( channel|nolabel_cf|continued_cf, "" ); // Only prints prefix
@@ -619,7 +619,7 @@ void dm_alloc_ct::show_alloc_list(int depth, const NAMESPACE_LIBCW_DEBUG::channe
     if (alloc->a_next_list)
       alloc->a_next_list->show_alloc_list(depth + 1, channel);
   }
-  Dout( channel|nolabel_cf|nonewline_cf, memblk_types_ct::setlabel(false) );
+  Dout( channel|noprefix_cf|nonewline_cf, memblk_types_ct::setlabel(false) );
 }
 
 #endif // DEBUG
@@ -1597,14 +1597,15 @@ debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
     DoutFatal( dc::core, "Trying to delete an invalid marker" );
 
 #ifdef DEBUG
-  Dout( dc::debugmalloc|continued_cf, "Removing debugmalloc_marker_ct at " << this << " (" );
-  (*i).second.print_description();
-  Dout( dc::finish, ')' );
+  Dout( dc::debugmalloc, "Removing debugmalloc_marker_ct at " << this << " (" << (*i).second.description() << ')' );
 
   if ((*i).second.a_alloc_node.get()->next_list())
   {
+    string margin = ::libcw::debug::libcw_do.get_margin();
+    Debug( libcw_do.set_margin(margin + "  * ") );
     Dout( dc::warning, "Memory leak detected!" );
     (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::channels::dc::warning);
+    Debug( libcw_do.set_margin(margin) );
   }
 #endif
 

@@ -22,6 +22,9 @@
 #include "libcw/sys.h"
 #include <unistd.h>
 #include <stdarg.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <new>
 #include <set>
 #include <list>
@@ -372,17 +375,26 @@ static int libcw_bfd_init(void)
 
   bfd_init();
 
-  // Get the full path to executable
-  ostrstream proc_exe;
-  proc_exe << "/proc/" << getpid() << "/exe" << ends;
-  string fullpath = proc_exe.str();			// FIXME
+  // Get the full path and name of executable
+  char fullpath[512];
+  int cmdline = open("/proc/self/cmdline", O_RDONLY);
+  int len = read(cmdline, fullpath, sizeof(fullpath));
+  if (len == -1)
+    DoutFatal( error_cf, "libcw_bfd_init: read" );
+  fullpath[len] = 0;
+  bfd_set_error_program_name(fullpath);
+  len = readlink("/proc/self/exe", fullpath, sizeof(fullpath) - 1);
+  if (len == -1)
+    DoutFatal( error_cf, "libcw_bfd_init: readlink" );
+  fullpath[len] = 0;
+  if (len == sizeof(fullpath) - 1)
+    DoutFatal( dc::fatal, "libcw_bfd_init: executable name too long (\"" << fullpath << "\")" );
 
-  bfd_set_error_program_name("program");	// FIXME
   bfd_set_error_handler(libcw_bfd_error_handler);
 
   // Load executable
-  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath.c_str() << "... ");
-  new object_file_ct(fullpath.c_str(), 0);
+  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath << "... ");
+  new object_file_ct(fullpath, 0);
   Dout(dc::finish, "done");
 
   // Load all shared objects
@@ -415,7 +427,6 @@ static int libcw_bfd_init(void)
     }
 #endif
 
-  proc_exe.freeze(0);
   return 0;
 }
 
@@ -454,9 +465,13 @@ char const* libcw_bfd_pc_function_name(void const* addr)
 {
   if (!initialized)
   {
+#ifdef DEBUGMALLOC
     set_alloc_checking_off();
+#endif
     libcw_bfd_init();
+#ifdef DEBUGMALLOC
     set_alloc_checking_on();
+#endif
   }
 
   asymbol const* p = libcw_bfd_pc_symbol(addr, find_object_file(addr));
@@ -474,9 +489,13 @@ location_st libcw_bfd_pc_location(void const* addr) return location
 {
   if (!initialized)
   {
+#ifdef DEBUGMALLOC
     set_alloc_checking_off();
+#endif
     libcw_bfd_init();
+#ifdef DEBUGMALLOC
     set_alloc_checking_on();
+#endif
   }
 
   object_file_ct const* object_file = find_object_file(addr);
@@ -514,7 +533,9 @@ location_st libcw_bfd_pc_location(void const* addr) return location
       {
 	char* demangled_name = cplus_demangle(p->name, DMGL_PARAMS | DMGL_ANSI);
 	Dout(dc::bfd, "Warning: Address " << hex << addr << " in section " << sect->name <<
-	    " does not have a line number, perhaps " << (demangled_name ? demangled_name : p->name) << " is inlined?");
+	    " does not have a line number, perhaps the unit containing the function");
+	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << (demangled_name ? demangled_name : p->name) <<
+	    "' wasn't compiled with CFLAGS=-g");
       }
       else
 	Dout(dc::bfd, "Warning: Address in section " << sect->name << " does not contain a function");

@@ -12,6 +12,7 @@
 //
 
 #include <libcw/sys.h>
+#include <iostream>
 #include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/type_info.h>

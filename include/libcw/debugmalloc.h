@@ -12,18 +12,19 @@
 //
 
 #ifndef LIBCW_DEBUGMALLOC_H
-#ifdef __GNUG__
-#pragma interface
-#endif
 #define LIBCW_DEBUGMALLOC_H
 
 RCSTAG_H(debugmalloc, "$Id$")
 
+#ifndef LIBCW_DEBUG_H
+#error "Don't include <libcw/debugmalloc.h> directly, include the appropriate \"debug.h\" instead."
+#endif
+
 #ifdef DEBUGMALLOC
 
-#include <iosfwd>
 #include <libcw/iomanip.h>
 #include <libcw/lockable_auto_ptr.h>
+#include <libcw/no_alloc_checking_ostrstream.h>
 #ifdef DEBUGUSEBFD
 #include <libcw/bfd.h>
 #endif
@@ -178,16 +179,6 @@ extern void init_debugmalloc(void);
 
 #  ifdef DEBUG
 
-#    ifndef DEBUGNONAMESPACE
-namespace libcw {
-  namespace debug {
-#    endif
-    extern void list_allocations_on(debug_ct& debug_object);
-#    ifndef DEBUGNONAMESPACE
-  };
-};
-#    endif
-
 #    define AllocTag1(p) set_alloc_label(p, type_info_of(p), (char const*)NULL)
 #    define AllocTag2(p, desc) set_alloc_label(p, type_info_of(p), const_cast<char const*>(desc))
 #    define AllocTag(p, x) \
@@ -229,7 +220,7 @@ inline TYPE* __libcw_allocCatcher(TYPE* new_ptr) {
   return new_ptr;
 };
      
-#    define New(x) __libcw_allocCatcher(new x)
+#    define NEW(x) __libcw_allocCatcher(new x)
 
 #include <libcw/type_info.h>
 
@@ -239,7 +230,7 @@ inline TYPE* __libcw_allocCatcher(TYPE* new_ptr) {
 #    define AllocTag_dynamic_description(p, x)
 #    define AllocTag1(p)
 #    define AllocTag2(p, desc)
-#    define New(x) new x
+#    define NEW(x) new x
 
 #  endif // !DEBUG
 
@@ -249,9 +240,25 @@ inline TYPE* __libcw_allocCatcher(TYPE* new_ptr) {
 #  define AllocTag_dynamic_description(p, x)
 #  define AllocTag1(p)
 #  define AllocTag2(p, desc)
-#  define New(x) new x
+#  define NEW(x) new x
 
 #endif // !DEBUGMALLOC
+
+#ifdef DEBUG
+#  ifndef DEBUGNONAMESPACE
+namespace libcw {
+  namespace debug {
+#  endif // DEBUGNONAMESPACE
+#  ifdef DEBUGMALLOC
+    extern void list_allocations_on(debug_ct& debug_object);
+#  else // !DEBUGMALLOC
+    inline void list_allocations_on(debug_ct&) { }
+#  endif // !DEBUGMALLOC
+#  ifndef DEBUGNONAMESPACE
+  };
+};
+#  endif // DEBUGNONAMESPACE
+#endif // DEBUG
 
 #ifndef DEBUGMALLOC_INTERNAL
 #  ifdef DEBUGMALLOC

@@ -28,7 +28,7 @@ char const* bcd2str(char const* buf, int len)
   Dout( dc::debug, "bcd2str(\"" << buf << "\", " << len << ")" );
   if (internal_buf)
     delete [] internal_buf;
-  if ((internal_buf = New( char [2 * len + 1] )))
+  if ((internal_buf = NEW( char [2 * len + 1] )))
   {
     for (int i = 0; i < len; i++)
     {
