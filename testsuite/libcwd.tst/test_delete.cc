@@ -15,32 +15,32 @@
 #include <libcw/debug.h>
 #include <iostream>
 
-class A {};
+class At {};
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
 #if !CWDEBUG_ALLOC || (!CWDEBUG_LOCATION && defined(CWDEBUG))
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
   Debug( check_configuration() );
-
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
   new int;							// Make sure initialization of libcwd is done.
   libcw::debug::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
-
+#endif
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
   Debug( dc::notice.on() );
   Debug( dc::malloc.on() );
-
+#ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
-
+#endif
   // Turn debug object on
   Debug( libcw_do.on() ); 
 
   // Allocate new object
-  A* a = new A;
+  At* a = new At;
   AllocTag(a, "Test object that we will make invisible");
 
 #if CWDEBUG_ALLOC
@@ -86,5 +86,6 @@ int main(void)
 #endif
 
   Debug( libcw_do.off() );
-  exit(0);
+
+  EXIT(0);
 }

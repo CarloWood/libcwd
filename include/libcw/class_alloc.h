@@ -35,6 +35,9 @@
 #define LIBCW_CSTDDEF
 #include <cstddef>				// Needed for size_t.
 #endif
+#ifndef LIBCW_SMART_PTR_H
+#include <libcw/smart_ptr.h>
+#endif
 
 namespace libcw {
   namespace debug {
@@ -57,7 +60,7 @@ protected:
   size_t a_size;              			//!< Duplicate of (original) memblk_key_ct.
   memblk_types_nt a_memblk_type;		//!< A flag which indicates the type of allocation.
   type_info_ct const* type_info_ptr;		//!< Type info of related object.
-  lockable_auto_ptr<char, true> a_description;	//!< A label describing this memblk.
+  _private_::smart_ptr a_description;		//!< A label describing this memblk.
   struct timeval a_time;			//!< The time at which the memory was allocated.
 #if CWDEBUG_LOCATION
   location_ct M_location;			//!< Source file, function and line number from where the allocator was called from.
@@ -93,7 +96,7 @@ public:
    *
    * This is a character string that is the result of writing the second parameter of \ref AllocTag() to an ostrstream.
    */
-  char const* description(void) const { return a_description.get(); }
+  char const* description(void) const { return a_description; }
 
   /**
    * \brief The time at which this allocation was made.

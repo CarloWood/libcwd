@@ -133,7 +133,11 @@ ooam_format_t const show_objectfile = 4;		//!< Show the name of the shared libra
 
 /** \} */
 
-class dm_alloc_ct;
+class dm_alloc_base_ct;
+class dm_alloc_copy_ct;
+#if CWDEBUG_MARKER
+class marker_ct;
+#endif
 
 /** \class ooam_filter_ct debugmalloc.h libcw/debug.h
  * \ingroup group_alloc_format
@@ -146,7 +150,8 @@ private:
   static int S_next_id;		// MT: protected by list_allocations_instance
   static int S_id;		// MT: protected by list_allocations_instance
   int M_id;
-  friend class ::libcw::debug::dm_alloc_ct;
+  friend class ::libcw::debug::dm_alloc_base_ct;
+  friend class ::libcw::debug::dm_alloc_copy_ct;
   ooam_format_t M_flags;
   struct timeval M_start;
   struct timeval M_end;
@@ -189,6 +194,9 @@ public:
 
 private:
   friend void list_allocations_on(debug_ct&, ooam_filter_ct const&);
+#if CWDEBUG_MARKER
+  friend class marker_ct;
+#endif
   void M_check_synchronization(void) const { if (M_id != S_id) M_synchronize(); }
   void M_synchronize(void) const;
 };

@@ -5,11 +5,11 @@
 typedef void* (*f_type)(bool);
 f_type f;
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
   Debug( check_configuration() );
 
-#if CWDEBUG_ALLOC
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
   new int;							// Make sure initialization of libcwd is done.
   libcw::debug::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
 #endif
@@ -19,13 +19,27 @@ int main(void)
   Debug( dc::bfd.on() );
   Debug( dc::notice.on() );
 
-  void* handle = dlopen("./module.so", RTLD_NOW|RTLD_GLOBAL);
-
-  if (!handle)
+  void* handle;
+  
+  do
   {
-    char const* error_str = dlerror();
-    DoutFatal(dc::fatal, "Failed to load \"./module.so\": " << error_str);
+#ifdef THREADTEST
+    char const* module_name = "./module_r.so";
+#else
+    char const* module_name = "./module.so";
+#endif
+    handle = dlopen(module_name, RTLD_NOW|RTLD_GLOBAL);
+
+    if (!handle)
+    {
+      if (errno != EINTR && errno != EAGAIN)
+      {
+	char const* error_str = dlerror();
+	DoutFatal(dc::fatal, "Failed to load \"" << module_name << "\": " << error_str);
+      }
+    }
   }
+  while (!handle);
 
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97
   char const* sym = "global_test_symbol__Fb";
@@ -47,5 +61,6 @@ int main(void)
   Dout(dc::notice, "Finished");
 
   Debug( dc::malloc.off() );
-  exit(0);
+
+  EXIT(0);
 }

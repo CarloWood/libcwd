@@ -60,29 +60,29 @@ test_object::test_object(void)
   AllocTag(b, "test_object::b");
 }
 
-int main(int argc, char* argv[])
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION || !CWDEBUG_MARKER
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
   Debug( check_configuration() );
-
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
   new int;							// Make sure initialization of libcwd is done.
   libcw::debug::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
-
+#endif
 #if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
-  Debug( (void)pc_mangled_function_name((void*)main) );
+  Debug( (void)pc_mangled_function_name((void*)exit) );
 #endif
 
   // Select channels
   // warning is already on.
   Debug( dc::malloc.on() );
-
+#ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
-
+#endif
   // Turn debug object on
   Debug( libcw_do.on() );
 
@@ -161,5 +161,6 @@ int main(int argc, char* argv[])
   free(ptr3);
 
   Debug( libcw_do.off() );
-  return 0;
+
+  EXIT(0);
 }

@@ -11,13 +11,15 @@ namespace example {
   }
 }
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
   Debug( check_configuration() );
+#ifndef THREADTEST
   libcw::debug::make_all_allocations_invisible_except(NULL);
+#endif
   Debug( libcw_do.on() );
   Debug( dc::warp.on() );
   Debug( dc::notice.on() );
@@ -49,5 +51,5 @@ int main(void)
   Debug( dc::warning.off() );
   Dout( dc::notice|dc::system|dc::warning, "Hello World (not)" );
 
-  exit(0);
+  EXIT(0);
 }

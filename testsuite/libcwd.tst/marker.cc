@@ -16,26 +16,26 @@
 #include <iostream>
 
 // A dummy class
-class A {
+class Am {
   int i;
   int j;
   char k;
 };
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION || !CWDEBUG_MARKER
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
   Debug( check_configuration() );
-
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
   new int;							// Make sure initialization of libcwd is done.
   libcw::debug::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
-
+#endif
 #if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
-  Debug( (void)pc_mangled_function_name((void*)main) );
+  Debug( (void)pc_mangled_function_name((void*)exit) );
 #endif
 
   // Select channels
@@ -43,15 +43,15 @@ int main(void)
   Debug( dc::notice.on() );
   Debug( dc::malloc.on() );
   Debug( dc::warning.on() );
-
+#ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
-
+#endif
   // Turn debug object on
   Debug( libcw_do.on() ); 
 
   // Allocate new object
-  A* a1 = new A;
+  Am* a1 = new Am;
   AllocTag(a1, "First created");
 
 #if CWDEBUG_MARKER
@@ -60,7 +60,7 @@ int main(void)
 #endif
 
   // Allocate more objects
-  A* a2 = new A[10];
+  Am* a2 = new Am[10];
   AllocTag(a2, "Created after the marker");
   int* p = new int[30];
   AllocTag(p, "Created after the marker");
@@ -88,5 +88,6 @@ int main(void)
   Dout(dc::notice, "Finished successfully.");
 
   Debug( libcw_do.off() );
-  exit(0);
+
+  EXIT(0);
 }

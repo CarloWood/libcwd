@@ -31,4 +31,12 @@
 #endif
 #endif // HAVE__G_CONFIG_H
 
+#ifndef THREADTEST
+#define MAIN_FUNCTION int main(void)
+#define EXIT(res) exit(res)
+#define PREFIX_CODE
+#define THREADED(x)
+#define COMMA_THREADED(x)
+#endif
+
 #endif // TESTSUITE_SYS_H

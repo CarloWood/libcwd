@@ -4,7 +4,7 @@
 )*(BFD     : Loading debug info from.*
 )*)
 MALLOC  : operator new\[\] \(size = 400\) = <unfinished>
-BFD     :     Warning: Address 0x[a-f0-9]+ in section \.text of object file "nodebug_nodebug_shared"
+BFD     :     Warning: Address 0x[a-f0-9]+ in section \.text of object file "nodebug_nodebug_(shared|static)"
               does not have a line number, perhaps the unit containing the function
               `_*main' wasn't compiled with flag -(g|ggdb)\?
 MALLOC  : <continued> 0x[a-f0-9]+

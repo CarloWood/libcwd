@@ -34,8 +34,8 @@ private:
   B(void) { }
 };
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
   Debug( check_configuration() );
   {
     int i;
@@ -78,5 +78,5 @@ int main(void)
     cout << type_info_of<B const* const* const*>().demangled_name() << endl;
   }
 
-  exit(0);
+  EXIT(0);
 }

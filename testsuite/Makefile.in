@@ -1,6 +1,6 @@
 NODEBUGCHECK = nodebug
 TSTCHECK = alloctag basic bfd cf continued dc demangler dlopen do flush leak lockable_auto_ptr magic marker strdup test_delete type_info
-THREADSCHECK = keys
+THREADSCHECK = keys threads
 
 srcdir = @srcdir@
 top_builddir = ..
@@ -95,11 +95,14 @@ site.exp: Makefile
 	@cat site.bak | sed -e '1,/^## All variables above are.*##/ d' >> site.exp
 	-@rm -f ./tmp?
 
-check: site.exp module.so
+check: site.exp module.so module_r.so
 	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS) $(EXPECT_SCRIPTS)
 
 module.so: module.cc $(top_builddir)/.libs/libcwd.so.*
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
+
+module_r.so: module.cc $(top_builddir)/.libs/libcwd.so.*
+	$(CXXCOMPILE) -D_REENTRANT -pthread -shared -fpic -DPIC -w $< -o $@
 
 # Provide rules for manual compilation:
 tst_%.o: libcwd.tst/%.cc Makefile $(top_builddir)/include/libcw/*.h
@@ -142,9 +145,9 @@ run: shared static module.so
 
 # Clean rules
 mostlyclean:
-	rm -f site.bak core *.core *.o
+	rm -f site.bak core core.* *.core *.o
 clean: mostlyclean
-	rm -f site.exp *.log *.sum *_*_shared *_*_static module.so .\#* */.\#*
+	rm -f site.exp *.log *.sum *_*_shared *_*_static module*.so .\#* */.\#*
 distclean: clean
 	rm -f Makefile
 

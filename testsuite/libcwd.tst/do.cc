@@ -22,13 +22,17 @@ namespace example { libcw::debug::debug_ct my_own_do; }
 #define MyOwnDout(cntrl, data) LibcwDout(::libcw::debug::channels, my_own_do, cntrl, data)
 #define ExampleDout(cntrl, data) LibcwDout(::libcw::debug::channels, example::my_own_do, cntrl, data)
 
-int main(void)
-{
+#ifdef THREADTEST
+pthread_mutex_t dummy_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+MAIN_FUNCTION
+{ PREFIX_CODE
   Debug( check_configuration() );
 
 #if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
-  Debug( (void)pc_mangled_function_name((void*)main) );
+  Debug( (void)pc_mangled_function_name((void*)exit) );
 #endif
 
 #ifndef LIBCWD_USE_STRSTREAM
@@ -36,6 +40,22 @@ int main(void)
 #else
   ostrstream dummy;
 #endif
+
+  // Test initial ostreams.
+  ostream* my_own_os = my_own_do.get_ostream();
+  ostream* libcw_os = libcw::debug::libcw_do.get_ostream();
+  ostream* coutp = &cout;
+  ostream* cerrp = &cerr;
+
+  if (my_own_os != cerrp
+#ifndef THREADTEST
+     || libcw_os != cerrp	// Already set to cout in threads_threads.cc
+#endif
+     )
+    DoutFatal(dc::fatal, "Initial ostream not cerr");
+
+  THREADED( Debug( my_own_do.set_ostream(cerrp, &cerr_mutex) ) );
+  THREADED( Debug( example::my_own_do.set_ostream(cerrp, &cerr_mutex) ) );
 
   Debug( libcw_do.on() );
 #if CWDEBUG_DEBUG
@@ -191,32 +211,28 @@ int main(void)
   Debug( my_own_do.set_indent(0) );
   Debug( example::my_own_do.set_indent(0) );
 
-  ostream* my_own_os = my_own_do.get_ostream();
-  ostream* libcw_os = libcw::debug::libcw_do.get_ostream();
-  ostream* coutp = &cout;
-  ostream* cerrp = &cerr;
-
-  if (my_own_os != cerrp || libcw_os != cerrp)
-    DoutFatal(dc::fatal, "Initial ostream not cerr");
-
-  my_own_do.set_ostream(&cout);
+  my_own_do.set_ostream(&cout COMMA_THREADED(&cout_mutex));
   my_own_os = my_own_do.get_ostream();
   libcw_os = libcw::debug::libcw_do.get_ostream();
 
-  if (my_own_os != coutp || libcw_os != cerrp)
+  if (my_own_os != coutp
+#ifndef THREADTEST
+      || libcw_os != cerrp
+#endif
+      )
     DoutFatal(dc::fatal, "set_ostream failed");
 
   MyOwnDout(dc::notice, "This is written to cout");
-  my_own_do.set_ostream(&dummy);
+  my_own_do.set_ostream(&dummy COMMA_THREADED(&dummy_mutex));
   MyOwnDout(dc::notice, "This is written to an ostringstream");
   cout << flush;
   Dout(dc::notice, "This is written to cerr");
-  my_own_do.set_ostream(cerrp);
+  my_own_do.set_ostream(cerrp COMMA_THREADED(&cerr_mutex));
   MyOwnDout(dc::notice, "This is written to cerr");
 #ifdef LIBCWD_USE_STRSTREAM
   dummy << ends;
 #endif
   Dout(dc::warning, "Was written to ostringstream: \"" << dummy.str() << '"');
 
-  exit(0);
+  EXIT(0);
 }

@@ -28,6 +28,47 @@ libcwd-0.99.20
 	and although only used with alloc checking off this DID lead,
 	under special circumstances, to a deadlock in list_allocations_on.
 
+	When an error occured during a call to dlopen (a macro to
+	__libcwd_dlopen) the call to dlerror would cause a deadlock
+	because it calls malloc which causes a location lookup
+	which uses the same mutex as is already set in __libcwd_dlopen.
+	This lock is now released prior to calling dlerror.
+
+	Commented out the call to pthread_kill_other_threads_np prior
+	to raising SIGABRT because it is buggy (it only makes my
+	application hang here).  Hopefully this won't cause a core
+	dump for the wrong thread too often :/
+
+        When using error_cf, the call to strerror was done with
+	alloc checking off, but it calls malloc and is a library
+	(libc) function, so that allocation should be done in
+	'user space'; not doing so would cause an error when the
+	next call to strerror is done by the user.  More over,
+	strerror is not reentrant.
+
+	The call to dm_alloc_ct::print_description in internal_free
+	that prints the description of the allocation that is being
+	freed was errornously passed a '0' instead of the constant
+	default_ooam_filter; that in turn caused the synchronization id
+	of the filter object to be increased every time, which caused
+	a dead lock the mutex used for the filter id was already set
+	(something that could easily happen because free is called in
+	the critical area of that mutex).
+
+	list_allocations_on could also easily cause a dead lock
+	because it was printing the allocation list directly from
+	the map<> that is being used to administrate the allocations
+	and thus kept a lock for allocations during printing.
+	Because obviously we can't print to stdout or a file etc
+	without using user-space allocations, the only solution is
+	to first make a copy of the information that needs to be
+	printed before actually printing it.  In the next version
+	I will use a seperate administration per thread so that
+	memory that is allocated and freed by the same thread
+	won't block other threads (much like glibcs malloc) and
+	that in turn will make it possible to make an important
+	improvement here that also will make markers thread-safe.
+
 libcwd-0.99.19
 
 	The package now builds two libraries by default: libcwd.so

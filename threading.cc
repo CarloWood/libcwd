@@ -25,6 +25,10 @@ bool WST_multi_threaded = false;
 bool WST_first_thread_initialized = false;
 #if CWDEBUG_DEBUG
 int instance_locked[instance_locked_size];
+#if CWDEBUG_DEBUGT
+pthread_t locked_by[instance_locked_size];
+void const* locked_from[instance_locked_size];
+#endif
 #endif
 
 void initialize_global_mutexes(void) throw()
@@ -34,6 +38,7 @@ void initialize_global_mutexes(void) throw()
   rwlock_tct<object_files_instance>::initialize();
   mutex_tct<dlopen_map_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
+  mutex_tct<kill_threads_instance>::initialize();
 #if CWDEBUG_ALLOC
   mutex_tct<alloc_tag_desc_instance>::initialize();
   mutex_tct<memblk_map_instance>::initialize();
@@ -115,6 +120,7 @@ void TSD_st::cleanup_routine(void) throw()
 	continue;
       do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
       do_array[i] = NULL;			// So we won't free it again.
+      ptr->tsd_initialized = false;
       delete ptr;				// Free debug object TSD.
     }
   set_alloc_checking_on(*this);

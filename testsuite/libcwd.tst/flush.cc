@@ -26,11 +26,13 @@ void generate_tables(void)
   return;
 }
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
   Debug( check_configuration() );
+#ifndef THREADTEST
   Debug( libcw_do.set_ostream(&std::cout) );
-#if CWDEBUG_ALLOC
+#endif
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
 
@@ -48,4 +50,6 @@ int main(void)
   Dout( dc::finish, "done" );
 
   Debug( libcw_do.off() );
+
+  EXIT(0);
 }

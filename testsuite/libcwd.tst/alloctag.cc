@@ -16,8 +16,8 @@
 #include <cstdlib>
 #include <iostream>
 
-int main(int argc, char* argv[])
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 
 #if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
-  Debug( (void)pc_mangled_function_name((void*)main) );
+  Debug( (void)pc_mangled_function_name((void*)exit) );
 #endif
 
   // Select channels
@@ -35,10 +35,10 @@ int main(int argc, char* argv[])
 #if CWDEBUG_LOCATION
   Debug( dc::bfd.off() );
 #endif
-
+#ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
-
+#endif
   // Turn debug object on
   Debug( libcw_do.on() );
 
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   char* cp = new char[50];
   AllocTag(cp, "Test of \"new char[50]\"");
 
-#if CWDEBUG_ALLOC
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
   // Don't show allocations that are allocated before main()
   libcw::debug::make_all_allocations_invisible_except(cp);
 #endif
@@ -98,5 +98,6 @@ int main(int argc, char* argv[])
   free(rpi);
 
   Debug( libcw_do.off() );
-  return 0;
+
+  EXIT(0);
 }

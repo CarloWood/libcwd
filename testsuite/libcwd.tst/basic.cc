@@ -1,13 +1,13 @@
 #include "sys.h"
 #include <libcw/debug.h>
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
   Debug( check_configuration() );
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
 
   Dout(dc::notice, "Basic Test.");
 
-  exit(0);
+  EXIT(0);
 }

@@ -19,8 +19,8 @@
 #include <unistd.h>
 #include <libcw/debug.h>
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
 #if !CWDEBUG_ALLOC
   DoutFatal(dc::fatal, "Failure Expected.");
 #endif
@@ -32,10 +32,10 @@ int main(void)
 
   // Select channels
   Debug( dc::malloc.off() );
-
+#ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
-
+#endif
   // Turn debug object on
   Debug( libcw_do.on() );
 
@@ -55,5 +55,5 @@ int main(void)
   }
   // Parent process
   int status;
-  exit((pid == wait(&status) && WIFSIGNALED(status)) ? 0 : 1);
+  EXIT((pid == wait(&status) && WIFSIGNALED(status)) ? 0 : 1);
 }

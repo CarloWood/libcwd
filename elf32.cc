@@ -30,6 +30,7 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <cerrno>
 #include "cwd_debug.h"
 #include "elf32.h"
 #include <libcw/private_assert.h>
@@ -2089,10 +2090,16 @@ objfile_ct::objfile_ct(char const* file_name) :
   M_input_stream = new std::ifstream;
   Debug( make_invisible(M_input_stream) );
   Debug( libcw_do.on() );
-  M_input_stream->open(file_name);
+  for(;;)
+  {
+    M_input_stream->open(file_name);
+    if (M_input_stream->good())
+      break;
+    if (errno != EINTR)
+      DoutFatal(dc::fatal|error_cf, "std::ifstream.open(\"" << file_name << "\")");
+    M_input_stream->clear();
+  }
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-  if (!*M_input_stream)
-    DoutFatal(dc::fatal|error_cf, "std::ifstream.open(\"" << file_name << "\")");
   _private_::set_library_call_on(LIBCWD_TSD);
   *M_input_stream >> M_header;
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);

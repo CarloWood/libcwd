@@ -199,8 +199,8 @@ char const* continued_func(unsigned int what)
   return ":";
 }
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
 #if !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
@@ -216,10 +216,10 @@ int main(void)
   Debug( dc::foo.on() );
   Debug( dc::bar.on() );
   Debug( dc::run.on() );
-
+#ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );
-
+#endif
   // Turn debug object on
   Debug( libcw_do.on() );
 
@@ -378,5 +378,5 @@ int main(void)
 
   release_cerr();
 
-  return 0;
+  EXIT(0);
 }

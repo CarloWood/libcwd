@@ -32,8 +32,8 @@
 #define LIBCW_CSTDDEF
 #include <cstddef>		// Needed for size_t.
 #endif
-#ifndef LIBCW_LOCKABLE_AUTO_PTR_H
-#include <libcw/lockable_auto_ptr.h>
+#ifndef LIBCW_SMART_PTR_H
+#include <libcw/smart_ptr.h>
 #endif
 #ifndef LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
 #include <libcw/private_set_alloc_checking.h>
@@ -54,7 +54,7 @@ namespace libcw {
 // Undocumented (used inside AllocTag, AllocTag_dynamic_description, AllocTag1 and AllocTag2):
 extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description);
     // For static descriptions
-extern void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<char, true> description);
+extern void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description);
     // For dynamic descriptions
 																		    // allocated with new[]
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
@@ -187,7 +187,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
       } \
       ::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), \
-	  			      ::libcw::lockable_auto_ptr<char, true>(desc)); \
+	  			      ::libcw::debug::_private_::smart_ptr(desc)); \
     } while(0)
 
 template<typename TYPE>

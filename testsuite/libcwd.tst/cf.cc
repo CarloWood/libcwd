@@ -7,8 +7,15 @@
 #include <sstream>
 #endif
 
-int main(void)
-{
+libcw::debug::debug_ct local_debug_object;
+#define MyDout(cntrl, data) LibcwDout(DEBUGCHANNELS, local_debug_object, cntrl, data)
+
+#ifdef THREADTEST
+pthread_mutex_t buf_mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+MAIN_FUNCTION
+{ PREFIX_CODE
 #ifdef LIBCWD_USE_STRSTREAM
   std::ostrstream buf;
 #else
@@ -20,12 +27,16 @@ int main(void)
 #endif
 
   Debug( check_configuration() );
+  Debug( local_debug_object.on() );
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
 
   Debug( libcw_do.set_margin("MARGIN") );
   Debug( libcw_do.set_marker("MARKER") );
   Debug( libcw_do.set_indent(3) );
+  Debug( local_debug_object.set_margin("MARGIN") );
+  Debug( local_debug_object.set_marker("MARKER") );
+  Debug( local_debug_object.set_indent(3) );
 
   Dout(dc::notice|nonewline_cf, "x");
   Dout(dc::notice|nonewline_cf, "y");
@@ -62,14 +73,14 @@ int main(void)
   errno = EAGAIN;
   Dout(dc::notice|error_cf, "error_cf");
 
-  Debug( libcw_do.set_ostream(&buf) );
-  Dout(dc::notice, "This is written to buf");
-  Dout(dc::notice|cerr_cf, "cerr_cf");
+  Debug( local_debug_object.set_ostream(&buf COMMA_THREADED(&buf_mutex)) );
+  MyDout(dc::notice, "This is written to buf");
+  MyDout(dc::notice|cerr_cf, "cerr_cf");
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97
   buf.rdbuf()->pubseekoff(0, std::ios::end);
 #else
   buf.rdbuf()->pubseekoff(0, std::ios_base::end);
 #endif
 
-  exit(0);
+  EXIT(0);
 }

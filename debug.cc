@@ -614,10 +614,35 @@ void allocator_unlock(void)
      */
     void core_dump(void)
     {
-#if defined(_REENTRANT) && defined(HAVE_PTHREAD_KILL_OTHER_THREADS_NP)
-      pthread_kill_other_threads_np();
+#ifdef _REENTRANT
+      // Are we the first thread that tries to generate a core?
+      LIBCWD_DISABLE_CANCEL;
+      if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
+      {
+	LIBCWD_TSD_DECLARATION
+	__libcwd_tsd.internal = 0;	// Dunno if this is needed, but it looks consistant.
+	++__libcwd_tsd.library_call;;	// So our sanity checks allow us to call free() again in
+					// pthread_exit when we get here from malloc et al.
+	// Another thread is already trying to generate a core dump.
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	pthread_exit(PTHREAD_CANCELED); 
+      }
+      // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
+#ifdef HAVE_PTHREAD_KILL_OTHER_THREADS_NP
+      // For the same reason, kill other threads prior to generating the core.
+      //pthread_kill_other_threads_np(); // Only causes a dead lock.
 #endif
+#endif
+      if (pthread_self() == (pthread_t)2049)
+      {
+	::write(1, "WARNING: Thread manager core dumped.  Going into infinite loop.  Please detach process with gdb.\n", 97);
+	while(1);
+      }
       raise(6);
+#ifdef _REENTRANT
+      LIBCWD_ENABLE_CANCEL;
+#endif
       exit(6);		// Never reached.
     }
 
@@ -950,7 +975,22 @@ void allocator_unlock(void)
 
       // Handle control flags, if any:
       if ((current->mask & error_cf))
-	*current_oss << ": " << strerrno(current->err) << " (" << strerror(current->err) << ')';
+      {
+	// strerror[_r] can call malloc (in gettext()).
+#if CWDEBUG_ALLOC
+	int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+#endif
+#if !LIBCWD_THREAD_SAFE
+	char const* error_text = strerror(current->err);
+#else // LIBCWD_THREAD_SAFE
+	char error_text_buf[512];
+	char const* error_text = strerror_r(current->err, error_text_buf, sizeof(error_text_buf));
+#endif
+#if CWDEBUG_ALLOC
+	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+#endif
+	*current_oss << ": " << strerrno(current->err) << " (" << error_text << ')';
+      }
       if (!(current->mask & nonewline_cf))
 	current_oss->put('\n');
 
@@ -972,10 +1012,25 @@ void allocator_unlock(void)
 	  }
 	  if ((current->mask & coredump_maskbit))
 	    core_dump();
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
 	  delete current;
 	  DEBUGDEBUG_CERR( "Done deleting `current'" );
 	  set_alloc_checking_on(LIBCWD_TSD);
+#ifdef _REENTRANT
+	  LIBCWD_DISABLE_CANCEL;
+	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
+	  {
+	    // Another thread is already trying to generate a core dump.
+	    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	    pthread_exit(PTHREAD_CANCELED); 
+	  }
+	  LIBCWD_ENABLE_CANCEL;
+#ifdef HAVE_PTHREAD_KILL_OTHER_THREADS_NP
+          pthread_kill_other_threads_np();
+#endif
+#endif
 	  exit(254);
 	}
 	if ((current->mask & wait_cf))

@@ -39,8 +39,8 @@ char const* test_cases [] = {
 };
 #endif
 
-int main(void)
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
   std::string result;
   for (size_t i = 0; i < sizeof(test_cases)/sizeof(char const*); ++i)
   {
@@ -48,7 +48,7 @@ int main(void)
     std::cout << result << '\n';
     result.erase();
   }
-  return 0;
+  EXIT(0);
 }
 
 #else // INSTANTIATE

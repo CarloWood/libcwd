@@ -49,6 +49,7 @@ libcwd_HEADERS = \
 	private_struct_TSD.h \
 	private_threading.h \
 	set_ostream.inl \
+	smart_ptr.h \
 	strerrno.h \
 	struct_debug_tsd.h \
 	type_info.h

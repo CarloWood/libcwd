@@ -115,6 +115,7 @@ enum mutex_instance_nt {
   dlopen_map_instance,
   write_max_len_instance,
   set_ostream_instance,
+  kill_threads_instance,
   debug_objects_instance,	// rwlock
   debug_channels_instance,	// rwlock
   list_allocations_instance,
@@ -132,6 +133,10 @@ enum mutex_instance_nt {
 #if CWDEBUG_DEBUG
 extern int instance_locked[instance_locked_size];	// MT: Each element is locked by the
 							//     corresponding instance.
+#if CWDEBUG_DEBUGT
+extern pthread_t locked_by[instance_locked_size];	// The id of the thread that last locked it, or 0 when that thread unlocked it.
+extern void const* locked_from[instance_locked_size];	// and where is was locked.
+#endif
 __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; }
 #endif
 
@@ -258,7 +263,13 @@ template <int instance>
       bool success = (pthread_mutex_trylock(&S_mutex) == 0);
 #if CWDEBUG_DEBUG
       if (success)
+      {
 	instance_locked[instance] += 1;
+#if CWDEBUG_DEBUGT
+	locked_by[instance] = pthread_self();
+	locked_from[instance] = __builtin_return_address(0);
+#endif
+      }
 #endif
       LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
       return success;
@@ -281,6 +292,10 @@ template <int instance>
 #endif
 #if CWDEBUG_DEBUG
       instance_locked[instance] += 1;
+#if CWDEBUG_DEBUGT
+      locked_by[instance] = pthread_self();
+      locked_from[instance] = __builtin_return_address(0);
+#endif
 #endif
     }
     static void unlock(void) throw()
@@ -288,6 +303,9 @@ template <int instance>
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG
       instance_locked[instance] -= 1;
+#if CWDEBUG_DEBUGT
+      locked_by[instance] = 0;
+#endif
 #endif
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": unlocking mutex " << instance);
@@ -596,6 +614,10 @@ template <int instance>
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrlock()");
 #if CWDEBUG_DEBUG
       instance_locked[instance] += 1;
+#if CWDEBUG_DEBUGT
+      locked_by[instance] = pthread_self();
+      locked_from[instance] = __builtin_return_address(0);
+#endif
 #endif
     }
     static void wrunlock(void) throw()
@@ -603,6 +625,9 @@ template <int instance>
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG
       instance_locked[instance] -= 1;
+#endif
+#if CWDEBUG_DEBUGT
+      locked_by[instance] = 0;
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wrunlock()");
       LibcwDebugThreads( LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area) ;
@@ -635,6 +660,10 @@ template <int instance>
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rd2wrlock()");
 #if CWDEBUG_DEBUG
       instance_locked[instance] += 1;
+#if CWDEBUG_DEBUGT
+      locked_by[instance] = pthread_self();
+      locked_from[instance] = __builtin_return_address(0);
+#endif
 #endif
     }
     static void wr2rdlock(void) throw()
@@ -642,6 +671,9 @@ template <int instance>
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG
       instance_locked[instance] -= 1;
+#if CWDEBUG_DEBUGT
+      locked_by[instance] = 0;
+#endif
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wr2rdlock()");
       if (instance < end_recursive_types)

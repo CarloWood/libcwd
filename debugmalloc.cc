@@ -297,6 +297,55 @@ void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal
   os->write(p, &buf[32] - p);
 }
 
+void smart_ptr::decrement(LIBCWD_TSD_PARAM)
+{
+  if (M_ptr && M_ptr->decrement())
+  {
+    set_alloc_checking_off(LIBCWD_TSD);
+    delete M_ptr;
+    set_alloc_checking_on(LIBCWD_TSD);
+  }
+}
+
+void smart_ptr::copy_from(smart_ptr const& ptr)
+{
+  if (M_ptr != ptr.M_ptr)
+  {
+    LIBCWD_TSD_DECLARATION
+    decrement(LIBCWD_TSD);
+    M_ptr = ptr.M_ptr;
+    increment();
+  }
+}
+
+void smart_ptr::copy_from(char const* ptr)
+{
+  LIBCWD_TSD_DECLARATION
+  decrement(LIBCWD_TSD);
+  if (ptr)
+  {
+    set_alloc_checking_off(LIBCWD_TSD);
+    M_ptr = new refcnt_charptr_ct(ptr);
+    set_alloc_checking_on(LIBCWD_TSD);
+  }
+  else
+    M_ptr = NULL;
+}
+
+void smart_ptr::copy_from(char* ptr)
+{
+  LIBCWD_TSD_DECLARATION
+  decrement(LIBCWD_TSD);
+  if (ptr)
+  {
+    set_alloc_checking_off(LIBCWD_TSD);
+    M_ptr = new refcnt_charptr_ct(ptr);
+    set_alloc_checking_on(LIBCWD_TSD);
+  }
+  else
+    M_ptr = NULL;
+}
+
 } // namespace _private_
 
 extern void ST_initialize_globals(void);
@@ -626,6 +675,13 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 }
 #endif
 
+class dm_alloc_base_ct : public alloc_ct {
+public:
+  dm_alloc_base_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, struct timeval const& t) :
+    alloc_ct(s, sz, type, ti, t) { }
+  void print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const;
+};
+
 //===========================================================================
 //
 // class dm_alloc_ct
@@ -639,7 +695,9 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 // Unfortunately the STL doesn't allow an object to be simultaneously a map and
 // a list, therefore we have to implement our own list (prev/next pointers).
 
-class dm_alloc_ct : public alloc_ct {
+class dm_alloc_copy_ct;				// A class to temporarily copy dm_alloc_ct objects to in order to print them.
+class dm_alloc_ct : public dm_alloc_base_ct {
+  friend class dm_alloc_copy_ct;
 #if CWDEBUG_MARKER
   friend class marker_ct;
   friend void move_outside(marker_ct* marker, void const* ptr);
@@ -659,11 +717,12 @@ private:
 
 public:
   dm_alloc_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t) :		// MT-safe: write lock is set.
-      alloc_ct(s, sz , f, unknown_type_info_c, t),
+      dm_alloc_base_ct(s, sz , f, unknown_type_info_c, t),
       next(*dm_alloc_ct::current_alloc_list), prev(NULL), a_next_list(NULL),
       my_list(dm_alloc_ct::current_alloc_list), my_owner_node(dm_alloc_ct::current_owner_node)
       {
-        *dm_alloc_ct::current_alloc_list = this;
+	dm_alloc_ct** foo = dm_alloc_ct::current_alloc_list;
+        *foo = this;
         if (next)
           next->prev = this;
 	memsize += sz;
@@ -671,7 +730,7 @@ public:
       }
     // Constructor: Add `node' at the start of `list'
 #if CWDEBUG_DEBUGM
-  dm_alloc_ct(dm_alloc_ct const& __dummy) : alloc_ct(__dummy) { LIBCWD_TSD_DECLARATION DoutFatalInternal( dc::fatal, "Calling dm_alloc_ct::dm_alloc_ct(dm_alloc_ct const&)" ); }
+  dm_alloc_ct(dm_alloc_ct const& __dummy) : dm_alloc_base_ct(__dummy) { LIBCWD_TSD_DECLARATION DoutFatalInternal( dc::fatal, "Calling dm_alloc_ct::dm_alloc_ct(dm_alloc_ct const&)" ); }
     // No copy constructor allowed.
 #endif
   ~dm_alloc_ct();
@@ -680,9 +739,9 @@ public:
         dm_alloc_ct::current_owner_node = this; }
     // Start a new list in this node.
   void change_flags(memblk_types_nt new_memblk_type) { a_memblk_type = new_memblk_type; }
-  void change_label(type_info_ct const& ti, lockable_auto_ptr<char, true> description) { type_info_ptr = &ti; a_description = description; }
+  void change_label(type_info_ct const& ti, _private_::smart_ptr description) { type_info_ptr = &ti; a_description = description; }
   type_info_ct const* typeid_ptr(void) const { return type_info_ptr; }
-  char const* description(void) const { return a_description.get(); }
+  _private_::smart_ptr description(void) const { return a_description; }
   dm_alloc_ct const* next_node(void) const { return next; }
   dm_alloc_ct const* prev_node(void) const { return prev; }
   dm_alloc_ct const* next_list(void) const { return a_next_list; }
@@ -702,12 +761,31 @@ public:
     // Set `current_alloc_list' back to its parent list.
   static unsigned long get_memblks(void) { return memblks; }		// MT-safe: read lock is set.
   static size_t get_memsize(void) { return memsize; }			// MT-safe: read lock is set.
-  void print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const;
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, dm_alloc_ct const& alloc) { alloc.printOn(os); return os; }
   friend inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, dm_alloc_ct const& alloc) { alloc.printOn(os.M_os); return os; }
+};
+
+class dm_alloc_copy_ct : public dm_alloc_base_ct {
+private:
+  dm_alloc_copy_ct* next;
+  dm_alloc_copy_ct* a_next_list;
+public:
+  dm_alloc_copy_ct(dm_alloc_ct const& alloc);
   void show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
 };
+
+dm_alloc_copy_ct::dm_alloc_copy_ct(dm_alloc_ct const& alloc) : dm_alloc_base_ct(alloc)
+{
+  if (alloc.next)
+    next = new dm_alloc_copy_ct(*alloc.next);
+  else
+    next = NULL;
+  if (alloc.a_next_list)
+    a_next_list = new dm_alloc_copy_ct(*alloc.a_next_list);
+  else
+    a_next_list = NULL;
+}
 
 typedef dm_alloc_ct const const_dm_alloc_ct;
 
@@ -772,17 +850,16 @@ public:
   memblk_info_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t);
   void erase(LIBCWD_TSD_PARAM);
   void lock(void) { a_alloc_node.lock(); }
-  void make_invisible(void) { a_alloc_node.reset(); }			// MT-safe: write lock is set (needed for ~dm_alloc_ct).
+  void make_invisible(void);
   bool has_alloc_node(void) const { return a_alloc_node.get(); }
   alloc_ct* get_alloc_node(void) const
       { if (has_alloc_node()) return a_alloc_node.get(); return NULL; }
   type_info_ct const* typeid_ptr(void) const { return a_alloc_node.get()->typeid_ptr(); }
-  char const* description(void) const { return a_alloc_node.get()->description(); }
-  void change_label(type_info_ct const& ti, lockable_auto_ptr<char, true> description) const
+  _private_::smart_ptr description(void) const { return a_alloc_node.get()->description(); }
+  void change_label(type_info_ct const& ti, _private_::smart_ptr description) const
       { if (has_alloc_node()) a_alloc_node.get()->change_label(ti, description); }
   void change_label(type_info_ct const& ti, char const* description) const
-      { lockable_auto_ptr<char, true> desc(const_cast<char*>(description));
-        /* Make sure we won't delete it: */ if (description) desc.release(); change_label(ti, desc); }
+      { _private_::smart_ptr desc(description); change_label(ti, desc); }
   void change_flags(memblk_types_nt new_flag)
       { M_memblk_type = new_flag; if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(void) const { a_alloc_node.get()->new_list(); }			// MT-safe: write lock is set.
@@ -991,7 +1068,7 @@ static void print_integer(std::ostream& os, unsigned int val, int width)
     os << *p++;
 }
 
-void dm_alloc_ct::print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
+void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal && !__libcwd_tsd.library_call );
@@ -1094,21 +1171,26 @@ void dm_alloc_ct::print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TS
 
   DoutInternal( dc::continued, " (sz = " << a_size << ") " );
 
-  if (a_description.get())
-    DoutInternal( dc::continued, ' ' << a_description.get() );
+  if (!a_description.is_null())
+    DoutInternal( dc::continued, ' ' << a_description );
 }
 
 void dm_alloc_ct::printOn(std::ostream& os) const
 {
   _private_::no_alloc_ostream_ct no_alloc_ostream(os); 
-  no_alloc_ostream << "{ start = " << a_start << ", size = " << a_size << ", a_memblk_type = " << a_memblk_type << ",\n\ttype = \"" << type_info_ptr->demangled_name() << "\", description = \"" << (a_description.get() ? a_description.get() : "NULL") <<
+  no_alloc_ostream << "{ start = " << a_start << ", size = " << a_size << ", a_memblk_type = " << a_memblk_type <<
+      ",\n\ttype = \"" << type_info_ptr->demangled_name() <<
+      "\", description = \"" << (a_description.is_null() ? "NULL" : static_cast<char const*>(a_description)) <<
       "\", next = " << (void*)next << ", prev = " << (void*)prev <<
       ",\n\tnext_list = " << (void*)a_next_list << ", my_list = " << (void*)my_list << "\n\t( = " << (void*)*my_list << " ) }";
 }
 
-void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
+void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
 {
-  dm_alloc_ct const* alloc;
+#if defined(_REENTRANT) && CWDEBUG_DEBUG
+  LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
+#endif
+  dm_alloc_copy_ct const* alloc;
   LIBCWD_TSD_DECLARATION
   for (alloc = this; alloc; alloc = alloc->next)
   {
@@ -1223,6 +1305,23 @@ void memblk_info_ct::erase(LIBCWD_TSD_PARAM)
   }
 }
 
+void memblk_info_ct::make_invisible(void)
+{
+#ifdef _REENTRANT
+  LIBCWD_ASSERT( _private_::is_locked(_private_::memblk_map_instance) ); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
+#endif
+  LIBCWD_ASSERT( a_alloc_node.strict_owner() );
+
+  if (a_alloc_node.get()->next_list())
+#if LIBCWD_THREAD_SAFE
+    DoutFatal(dc::core, "Trying to make a memory block invisible that has allocation \"children\" (like a marker has).  "
+	"Did you call 'make_invisible' for an allocation that was allocated by another thread?");
+#else
+    DoutFatal(dc::core, "Trying to make a memory block invisible that has allocation \"children\" (like a marker has).");
+#endif
+
+  a_alloc_node.reset(); 
+}
 
 #if CWDEBUG_MAGIC
 
@@ -1449,6 +1548,7 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
   return mptr;
 }
 
+static ooam_filter_ct const default_ooam_filter(0);
 static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUGM
@@ -1552,7 +1652,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	  << ptr << ((from == from_free) ? ") " : " ") );
       if (channels::dc_malloc.is_on())
-	(*iter).second.print_description(0 LIBCWD_COMMA_TSD);
+	(*iter).second.print_description(default_ooam_filter LIBCWD_COMMA_TSD);
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
       DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
 #else
@@ -1927,52 +2027,46 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
  */
 void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 {
+  LIBCWD_TSD_DECLARATION
 #if CWDEBUG_DEBUGM
-  {
-    LIBCWD_TSD_DECLARATION
-    LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
-  }
+  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
 
-  if (0)
-  {
-    LIBCWD_TSD_DECLARATION
-    // Print out the entire `map':
-    memblk_map_ct const* memblk_map_copy;
-    LIBCWD_DEFER_CANCEL;
-    __libcwd_tsd.internal = 1;
-    ACQUIRE_READ_LOCK
-    memblk_map_copy = new memblk_map_ct(*memblk_map_read);
-    __libcwd_tsd.internal = 0;
-    LibcwDout( channels, debug_object, dc_malloc, "map:" );
-    int cnt = 0;
-    for(memblk_map_ct::const_iterator iter(memblk_map_copy->begin()); iter != memblk_map_copy->end(); ++iter)
-      LibcwDout( channels, debug_object, dc_malloc|nolabel_cf, ++cnt << ":\t(*iter).first = " << (*iter).first << '\n' << "\t(*iter).second = " << (*iter).second );
-    RELEASE_READ_LOCK
-    LIBCWD_RESTORE_CANCEL;
-    __libcwd_tsd.internal = 1;
-    delete memblk_map_copy;
-    __libcwd_tsd.internal = 0;
-  }
-
+  dm_alloc_copy_ct* list = NULL;
+  size_t memsize;
+  unsigned long memblks;
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<memblk_map_instance>::cleanup /* &rwlock_tct<memblk_map_instance>::cleanup */, NULL);
-#if LIBCWD_THREAD_SAFE
-  pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(&mutex_tct<list_allocations_instance>::cleanup), NULL);
-  mutex_tct<list_allocations_instance>::lock();
-#endif
-  filter.M_check_synchronization();
   ACQUIRE_READ_LOCK
-  LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << const_dm_alloc_ct::get_memsize() << " bytes in " << const_dm_alloc_ct::get_memblks() << " blocks." );
+  memsize = const_dm_alloc_ct::get_memsize();
+  memblks = const_dm_alloc_ct::get_memblks();
   if (base_alloc_list)
-    const_cast<dm_alloc_ct const*>(base_alloc_list)->show_alloc_list(1, channels::dc_malloc, filter);
+  {
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+    list = new dm_alloc_copy_ct(*base_alloc_list);
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
+  }
   RELEASE_READ_LOCK
-#if LIBCWD_THREAD_SAFE
-  pthread_cleanup_pop(1);
-#endif
   LIBCWD_CLEANUP_POP_RESTORE(false);
+  LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << memsize << " bytes in " << memblks << " blocks." );
+  if (list)
+  {
+#if LIBCWD_THREAD_SAFE
+    LIBCWD_DEFER_CANCEL;
+    pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(&mutex_tct<list_allocations_instance>::cleanup), NULL);
+    mutex_tct<list_allocations_instance>::lock();
+#endif
+    filter.M_check_synchronization();
+    list->show_alloc_list(1, channels::dc_malloc, filter);
+#if LIBCWD_THREAD_SAFE
+    pthread_cleanup_pop(1);
+    LIBCWD_RESTORE_CANCEL;
+#endif
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+    delete list;
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
+  }
 }
 
-static ooam_filter_ct const default_ooam_filter(0);
 /**
  * \brief List all current allocations to a given %debug object.
  * \ingroup group_overview
@@ -2075,6 +2169,16 @@ void make_all_allocations_invisible_except(void const* ptr)
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
+  if (_private_::WST_multi_threaded)
+  {
+    location_ct loc(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset);
+    DoutFatal(dc::core, loc <<
+	": You cannot call 'make_all_allocations_invisible_except' while there are already other threads running.  "
+	"This function is actually only provided to make it easier to write the testsuite of libcwd.  "
+        "Only use it at the top of main in order to get rid of allocations done as part of the initialization of the Operating System.");
+  }
+#endif
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
   for (memblk_map_ct::iterator iter(memblk_map_write->begin()); iter != memblk_map_write->end(); ++iter)
@@ -2102,7 +2206,7 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* descri
   LIBCWD_RESTORE_CANCEL;
 }
 
-void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<char, true> description)
+void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description)
 {
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
@@ -2161,10 +2265,13 @@ void marker_ct::register_marker(char const* label)
  */
 marker_ct::~marker_ct(void)
 {
-#if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION
+#if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
+
+  dm_alloc_copy_ct* list = NULL;
+  _private_::smart_ptr description;
 
   LIBCWD_DEFER_CANCEL_NO_BRACE;
   ACQUIRE_READ_LOCK
@@ -2176,15 +2283,13 @@ marker_ct::~marker_ct(void)
     DoutFatal( dc::core, "Trying to delete an invalid marker" );
   }
 
-  Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << (*iter).second.description() << ')' );
+  description = (*iter).second.description();		// This won't call malloc.
 
   if ((*iter).second.a_alloc_node.get()->next_list())
   {
-    libcw_do.push_margin();
-    libcw_do.margin().append("  * ", 4);
-    Dout( dc::warning, "Memory leak detected!" );
-    (*iter).second.a_alloc_node.get()->next_list()->show_alloc_list(1, channels::dc::warning, 0);
-    libcw_do.pop_margin();
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+    list = new dm_alloc_copy_ct(*(*iter).second.a_alloc_node.get()->next_list());
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
   }
 
   // Set `current_alloc_list' one list back
@@ -2192,12 +2297,37 @@ marker_ct::~marker_ct(void)
   {
     RELEASE_READ_LOCK
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
-    DoutFatal( dc::core, "Deleting a marker must be done in the same \"scope\" as where it was allocated" );
+    Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description << ')' );
+    DoutFatal( dc::core, "Deleting a marker must be done in the same \"scope\" as where it was allocated; for example, "
+	"you cannot allocate marker A, then allocate marker B and then delete marker A before deleting first marker B." );
   }
   ACQUIRE_READ2WRITE_LOCK
   dm_alloc_ct::descend_current_alloc_list();			// MT: needs write lock.
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
+
+  Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description << ')' );
+  if (list)
+  {
+#if LIBCWD_THREAD_SAFE
+    LIBCWD_DEFER_CANCEL;
+    pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(&mutex_tct<list_allocations_instance>::cleanup), NULL);
+    mutex_tct<list_allocations_instance>::lock();
+#endif
+    default_ooam_filter.M_check_synchronization();
+    libcw_do.push_margin();
+    libcw_do.margin().append("  * ", 4);
+    Dout( dc::warning, "Memory leak detected!" );
+    list->show_alloc_list(1, channels::dc::warning, default_ooam_filter);
+    libcw_do.pop_margin();
+#if LIBCWD_THREAD_SAFE
+    pthread_cleanup_pop(1);
+    LIBCWD_RESTORE_CANCEL;
+#endif
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+    delete list;
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
+  }
 }
 
 /**

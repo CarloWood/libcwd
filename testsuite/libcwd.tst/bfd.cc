@@ -126,8 +126,8 @@ void libcw_bfd_test(void)
   libcw_bfd_test1();
 }
 
-int main(int argc, char* argv[])
-{
+MAIN_FUNCTION
+{ PREFIX_CODE
 #if !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
@@ -144,10 +144,10 @@ int main(int argc, char* argv[])
 #endif
   Debug( dc::notice.on() );
   Debug( dc::system.on() );
-
+#ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
-
+#endif
   // Turn debug object on
   Debug( libcw_do.on() );
 
@@ -158,5 +158,6 @@ int main(int argc, char* argv[])
   libcw_bfd_test();
 
   Debug( libcw_do.off() );
-  return 0;
+
+  EXIT(0);
 }

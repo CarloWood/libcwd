@@ -478,7 +478,17 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    void* handle = ::dlopen(filename, RTLD_LAZY);
 	    if (!handle)
 	    {
-	      char const* dlerror_str = dlerror();
+#if defined(_REENTRANT) && CWDEBUG_DEBUG
+	      LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
+#endif
+	      char const* dlerror_str;
+	      LIBCWD_DISABLE_CANCEL;	// When called from __libcwd_dlopen(), we have a cleanup handler installed.
+	      BFD_RELEASE_WRITE_LOCK	// dlerror() can call malloc(), which can need to lookup a location which would
+					// result in a deadlock when we leave this locked.
+	      dlerror_str = dlerror();
+	      BFD_ACQUIRE_WRITE_LOCK	// The idea is that DoutFatal terminates the thread, which will call the
+					// cleanup handler.
+	      LIBCWD_ENABLE_CANCEL;
 	      DoutFatal(dc::fatal, "::dlopen(" << filename << ", RTLD_LAZY): " << dlerror_str);
 	    }
 	    char* val;
@@ -1612,7 +1622,9 @@ namespace libcw {
 void dlopen_cleanup1(void* arg)
 {
   TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
-  set_alloc_checking_on(LIBCWD_TSD);
+  // We can get here from DoutFatal, in which case alloc checking is already turned on.
+  if (__libcwd_tsd.internal)
+    set_alloc_checking_on(LIBCWD_TSD);
   BFD_RELEASE_WRITE_LOCK
 }
 #endif
