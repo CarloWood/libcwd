@@ -157,7 +157,11 @@ if test "$libcwd_config_bfd" = yes; then
       [CW_CONFIG_DEBUGUSEBFD=define],
       [AC_MSG_WARN([You have libbfd, but I cannot find bfd.h!?  Look up of function names and source:line information will be disabled.])])
   else
-    AC_MSG_WARN([Cannot find a working libbfd;  Look up of function names and source:line information will be disabled.])
+    AC_MSG_WARN([
+* Cannot find a working libbfd;  Lookup of function names and source:line
+* information will be disabled.  Perhaps you need to add -L/path to LDFLAGS?
+* Please read INSTALL for more info.
+])
   fi
 
 fi

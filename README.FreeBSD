@@ -1,17 +1,36 @@
-24 Aug 2000
+29 Aug 2000
 
   Make sure to use `gmake' and not `make'; libcwd only works with GNU make.
 
-  FreeBSD seems not to include source file / line number information in
+  FreeBSD seems not to include source-file/line-number information in
   its object files when compiling with -g.  Instead, you need to compile
   your programs with -ggdb.  ./configure detects FreeBSD and will use
   -ggdb instead of -g, but you need to use it also for your own programs
-  of course, or else no source-file:line-no information will be available.
+  or else no source-file:line-no information will be available.
 
-  FreeBSD doesn't seem to come with libbfd be default.  Make sure to
-  compile the port of binutils for your architecture (don't use the
-  linux library!).  You will have to do a 'make install' in
-  /usr/ports/devel/i386-rtems-binutils.
+  FreeBSD doesn't seem to come with libbfd by default.  Make sure to
+  compile the port of binutils for your architecture, i.e. i386 (and don't
+  try to use the linux compatibility library).  You will have to do a
+  'make install' in /usr/ports/devel/i386-rtems-binutils.  Even then it
+  doesn't install a shared version of libbfd, nor does it install it in
+  a place where it is found by default.  On my system libbfd.a was
+  installed in /usr/local/lib, this means that you need to configure
+  libcwd with: "LDFLAGS=-L/usr/local/lib ./configure".  See also the
+  INSTALL file.  This still doesn't work however because no shared library
+  is installed and libtool fails to produce a library (which is probably
+  a bug in libtool).  There is also no bfd.h installed by a `make install'
+  in /usr/ports/devel/i386-rtems-binutils, so you can't compile it anyway.
+  If someone knows how to fix this on FreeBSD, please tell me and I'll
+  add it here.  Till then I advise to simply download binutils-2.10.x.tar.gz
+  and install everything manually; then use LDFLAGS to let configure
+  find whereever you installed it.  You might also need to add a
+  CPPFLAGS=-I/use/local/include (or whereever you installed bfd.h).
+
+  If you are trying to compile this package from a CVS check-out then
+  you'll have to install autoconf, automake and libtool prior to running
+  `aclocal' in src/libcwd (see src/libcwd/README.CVS in that directory).
+  Please make sure you have these tools installed.  This is not needed
+  when you are using the tar ball.
 
   libcwd-0.99.2 was tested on FreeBSD-4.0-RELEASE
 

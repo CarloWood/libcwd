@@ -26,14 +26,20 @@
 // Currently this file has been tested with gcc-2.95.2 and gcc-ss-20000813.
 //
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 #include <libcw/sys.h>
 #ifdef HAVE_LIMITS
 #include <limits>
 #else
 #include <limits.h>
+#ifndef LONG_LONG_MIN
+#define LONG_LONG_MIN (1LL << (8 * sizeof(long long) - 1))
+#endif
+#ifndef LONG_LONG_MAX
+#define LONG_LONG_MAX (-(LONG_LONG_MIN + 1LL))
+#endif
+#ifndef ULONG_LONG_MAX
+#define ULONG_LONG_MAX ((unsigned long long)-1)
+#endif
 template<typename T>
   struct numeric_limits {
     static const bool is_signed = false;
@@ -339,10 +345,10 @@ static bool symbol_type(char const* input, cdtor_nt cdtor, string& prefix, strin
       for (int count = number_of_template_parameters; count > 0; --count)
       {
 	template_parameters->push_back(input);
-	template_type.clear();
+	template_type.erase();
 	if (eat_template_type(input, template_type))
 	{
-	  postfix.clear();
+	  postfix.erase();
 	  return true;
 	}
 	postfix += template_type;
@@ -353,7 +359,7 @@ static bool symbol_type(char const* input, cdtor_nt cdtor, string& prefix, strin
       // The next must be an '_', eat it.
       if (*input != '_')
       {
-	postfix.clear();
+	postfix.erase();
 	return true;
       }
       ++input;
@@ -373,8 +379,8 @@ process_parameter_list:
     previous_types->push_back(input);
     if (eat_type(input, postfix))
     {
-      postfix.clear();
-      prefix.clear();	// Can be non-empty if we got here via a jump to 'process_parameter_list:'.
+      postfix.erase();
+      prefix.erase();	// Can be non-empty if we got here via a jump to 'process_parameter_list:'.
       return true;
     }
 
@@ -385,8 +391,8 @@ process_parameter_list:
       previous_types->push_back(input);
       if (eat_type(input, postfix))
       {
-        postfix.clear();
-	prefix.clear();
+        postfix.erase();
+	prefix.erase();
 	return true;
       }
     }
@@ -399,8 +405,8 @@ process_parameter_list:
       ++input;
       if (eat_type(input, prefix))
       {
-        postfix.clear();
-	prefix.clear();
+        postfix.erase();
+	prefix.erase();
 	return true;
       }
       prefix += ' ';
@@ -409,8 +415,8 @@ process_parameter_list:
     // We must have reached the end of the string now
     if (*input != 0)
     {
-      postfix.clear();
-      prefix.clear();
+      postfix.erase();
+      prefix.erase();
       return true;
     }
 
@@ -428,8 +434,8 @@ process_parameter_list:
   {
     if (cdtor != normal_symbol)
     {
-      postfix.clear();
-      prefix.clear();
+      postfix.erase();
+      prefix.erase();
       return true;
     }
     // Must be a <nonscope-type> then.
@@ -453,8 +459,8 @@ process_parameter_list:
       prefix += '~' + last_class_name + "()";
       if (*input != 0)
       {
-	postfix.clear();
-	prefix.clear();
+	postfix.erase();
+	prefix.erase();
 	return true;
       }
       break;
@@ -1002,7 +1008,7 @@ static bool eat_type_internal(char const*& input, string& prefix, string& postfi
     string template_type;
     while(count--)
     {
-      template_type.clear();
+      template_type.erase();
       if (eat_template_type(input, template_type))
         return true;
       prefix += template_type;
@@ -1085,7 +1091,7 @@ static bool eat_scope_type(char const*& input, string& type, string& last_class_
   string postfix;
   if (eat_type_internal(input, type, postfix, &last_class_name))
   {
-    type.clear();
+    type.erase();
     return true;
   }
   type += postfix;
