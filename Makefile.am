@@ -1,11 +1,10 @@
 ## Process this file with automake to generate Makefile.in
-.PHONY: example-project_debug.h
 
 AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = include utils . tests testsuite
 
-BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec example-project_debug.h
+BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec .example-project_debug.h-timestamp
 EXTRA_DIST = LICENSE.QPL README.FreeBSD README.openbsd nodebug.h $(BUILT_SOURCES)
 DISTCLEANFILES = libcwd-@VERSION@.tar.gz
 

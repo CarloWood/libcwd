@@ -151,5 +151,6 @@ full-check: Makefile
 documentation: example-project/debug.h
 	$(MAKE) -C documentation
 
-example-project_debug.h: example-project/debug.h
+.example-project_debug.h-timestamp: example-project/debug.h
+	touch .example-project_debug.h-timestamp
 
