@@ -20,43 +20,41 @@ RCSTAG_CC("$Id$")
 
 namespace libcw {
   namespace debug {
-    namespace pu {
 
-      namespace {
-	char const c2s_tab[7] = { 'a', 'b', 't', 'n', 'v', 'f', 'r' };
-      }
+    namespace {
+      char const c2s_tab[7] = { 'a', 'b', 't', 'n', 'v', 'f', 'r' };
+    }
 
-      void char2str::print_char_to(ostream& os) const
+    void char2str::print_char_to(ostream& os) const
+    {
+      os.put(c);
+    }
+
+    void char2str::print_escaped_char_to(ostream& os) const
+    {
+      os.put('\\');
+      if (c > 6 && c < 14)
       {
-	os.put(c);
+	os.put(c2s_tab[c - 7]);
+	return;
       }
-
-      void char2str::print_escaped_char_to(ostream& os) const
+      else if (c == '\e')
+      {
+	os.put('e');
+	return;
+      }
+      else if (c == '\\')
       {
 	os.put('\\');
-	if (c > 6 && c < 14)
-	{
-	  os.put(c2s_tab[c - 7]);
-	  return;
-	}
-	else if (c == '\e')
-	{
-	  os.put('e');
-	  return;
-	}
-	else if (c == '\\')
-	{
-	  os.put('\\');
-	  return;
-	}
-	short old_fill = os.fill('0');
-	ios::fmtflags old_flgs = os.flags();
-	os.width(3);
-	os << oct << (int)((unsigned char)c);
-	os.setf(old_flgs);
-	os.fill(old_fill);
+	return;
       }
+      short old_fill = os.fill('0');
+      ios::fmtflags old_flgs = os.flags();
+      os.width(3);
+      os << oct << (int)((unsigned char)c);
+      os.setf(old_flgs);
+      os.fill(old_fill);
+    }
 
-    } // namespace pu
   } // namespace debug
 } // namespace libcw

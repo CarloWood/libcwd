@@ -602,9 +602,6 @@ extern debug_channels_singleton_ct debug_channels;
 extern channel_ct const* find(char const* label);
 extern void list_channels_on(debug_ct const& debug_object);
 
-namespace pu {	// print utils
-}
-
   }	// namespace debug
 }	// namespace libcw
 
@@ -619,15 +616,14 @@ namespace pu {	// print utils
   { DEBUGDEBUGLIBCWDOUTMARKER					\
     if (!debug_obj._off)					\
     {								\
+      using namespace ::libcw::debug;				\
       bool on;							\
       {								\
-        using namespace ::libcw::debug;				\
         using namespace dc_namespace;				\
 	on = (debug_obj|cntrl).on;				\
       }								\
       if (on)							\
       {								\
-        using namespace ::libcw::debug::pu;			\
 	debug_obj.start();					\
 	(*debug_obj.current_oss) << data;			\
 	debug_obj.finish();					\
@@ -645,15 +641,14 @@ namespace pu {	// print utils
   { DEBUGDEBUGLIBCWDOUTMARKER					\
     if (!debug_obj._off)					\
     {								\
+      using namespace ::libcw::debug;				\
       bool on;							\
       {								\
-        using namespace ::libcw::debug;				\
         using namespace dc_namespace;				\
 	on = (debug_obj|cntrl).on;				\
       }								\
       if (on)							\
       {								\
-        using namespace ::libcw::debug::pu;			\
 	debug_obj.start();					\
 	debug_obj.current_oss->vform(format, vl);		\
 	debug_obj.finish();					\
@@ -670,12 +665,11 @@ namespace pu {	// print utils
 #define LibcwDoutFatal( dc_namespace, debug_obj, cntrl, data )	\
   do							\
   { DEBUGDEBUGLIBCWDOUTFATALMARKER			\
+    using namespace ::libcw::debug;			\
     {							\
-      using namespace ::libcw::debug;			\
       using namespace dc_namespace;			\
       debug_obj|cntrl;					\
     }							\
-    using namespace ::libcw::debug::pu;			\
     debug_obj.start();					\
     (*debug_obj.current_oss) << data;			\
     debug_obj.fatal_finish();				\

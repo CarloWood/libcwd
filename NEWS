@@ -1,6 +1,6 @@
 libcwd-0.99.6
 
-	A little gadget was added to namespace libcw::debug::pu: `cwprint_using'.
+	A little gadget was added to namespace libcw::debug `cwprint_using'.
 	This template function can be used to print objects to a debug
 	stream using a method like `void print_on(ostream&) const'.
 	Example usage: Dout(dc::notice, "object is: " <<
@@ -18,7 +18,8 @@ libcwd-0.99.6
 	Almost everything was moved to namespace libcw::debug.
 	This means that you probably will need to add a
 	`using namespace libcw::debug;' to your local debug.h file.
-	Note that namespace libcw::debug is automatically included in Debug().
+	Note that namespace libcw::debug is automatically included in Debug()
+	and Dout() et al.
 	The following functions are still in global namespace when DEBUGMALLOC
 	is defined:
 	  __libcwd_malloc(unsigned int)
@@ -33,9 +34,6 @@ libcwd-0.99.6
 	These are defined in the header files libcw/lockable_auto_ptr.h and
 	libcw/iomanip.h (they are actually part of libcw but also included
 	with libcwd because libcwd uses them internally).
-	The following 'print utilities' are defined in namespace libcw::debug::pu:
-	bcd2str, buf2str, char2str, cwprint() and cwprint_using().
-	Namespace libcw::debug::pu is automatically included in Dout() et al.
 
 	The bfd interface has been redesigned:
 	- The global structure `location_st' has been removed and is replaced

@@ -19,9 +19,7 @@ RCSTAG_H(bcd2str, "$Id$")
 namespace libcw {
   namespace debug {
 
-namespace pu {
-  extern char const* bcd2str(char const*, int);
-}
+extern char const* bcd2str(char const*, int);
 
   } // namespace debug
 } // namespace libcw

@@ -21,27 +21,22 @@ RCSTAG_H(char2str, "$Id$")
 namespace libcw {
   namespace debug {
 
-namespace pu {
-
-  // pu::
-  class char2str {
-  private:
-    char c;
-    void print_char_to(ostream&) const;
-    void print_escaped_char_to(ostream&) const;
-  public:
-    char2str(char ci) : c(ci) { }
-    friend inline ostream& operator<<(ostream& os, char2str const c2s)
-    {
-      if ((c2s.c > 31 && c2s.c != 92 && c2s.c != 127) || (unsigned char)c2s.c > 159)
-	c2s.print_char_to(os);
-      else
-	c2s.print_escaped_char_to(os);
-      return os;
-    }
-  };
-
-} // namespace pu
+class char2str {
+private:
+  char c;
+  void print_char_to(ostream&) const;
+  void print_escaped_char_to(ostream&) const;
+public:
+  char2str(char ci) : c(ci) { }
+  friend inline ostream& operator<<(ostream& os, char2str const c2s)
+  {
+    if ((c2s.c > 31 && c2s.c != 92 && c2s.c != 127) || (unsigned char)c2s.c > 159)
+      c2s.print_char_to(os);
+    else
+      c2s.print_escaped_char_to(os);
+    return os;
+  }
+};
 
   } // namespace debug
 } // namespace libcw
