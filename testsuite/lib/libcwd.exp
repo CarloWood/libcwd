@@ -69,9 +69,9 @@ verbose "    out = \"$out\""
     # Kludge to remove linker _warnings_ from output.
     # The expected from is: /usr/lib/libc.so.4: warning: ...
     #                   or: /usr/lib/libc.so.4: WARNING! ...
-    regsub -- "\[._/a-zA-Z0-9 :\]*: \[Ww\]\[Aa\]\[Rr\]\[Nn\]\[Ii\]\[Nn\]\[Gg\]\[!:\]\[`'.,!_/a-zA-Z0-9 ():;\]*." "$compileroutput" "" compileroutput
-    # Remove final new-line at the end if any:
-    regsub -- "\[^`'.,!_/a-zA-Z0-9 ():;\]$" "$compileroutput" "" compileroutput
+    regsub -all -line -nocase -- "^.*: warning\[!:\].*$" "$compileroutput" "" compileroutput
+    # Finally remove all new-lines if any:
+    regsub -- "^\[^`'.,!_/a-zA-Z0-9 ():;\]*$" "$compileroutput" "" compileroutput
     verbose "Filtered compiler output is: `$compileroutput'"
 
     if { "$compileroutput" != "" } {
