@@ -304,6 +304,17 @@ namespace {	// Local stuff
       // Sort the symbol table in order of start address.
       sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
 
+      // Find the last symbol
+      void const* s_end_start_addr = NULL;
+      for (int i = number_of_symbols - 1; i >= 0; --i)
+        if (strcmp(symbol_table[i]->name, "_end") == 0)
+	{
+	  s_end_start_addr = symbol_start_addr(symbol_table[i]);
+	  break;
+        }
+      if (!s_end_start_addr && number_of_symbols > 0)
+        Dout(dc::warning, "Cannot find symbol _end");
+
       // Calculate sizes for every symbol
       for (int i = 0; i < number_of_symbols - 1; ++i)
 	symbol_size(symbol_table[i]) = (char*)symbol_start_addr(symbol_table[i + 1]) - (char*)symbol_start_addr(symbol_table[i]);
@@ -321,7 +332,8 @@ namespace {	// Local stuff
 	    || ((*s)->flags == BSF_LOCAL && (*s)->name[0] == '.')	// Some labels have a size(?!), their flags seem to be always 1
 	    || bfd_is_abs_section(bfd_get_section(*s))
 	    || bfd_is_com_section(bfd_get_section(*s))
-	    || bfd_is_ind_section(bfd_get_section(*s)))
+	    || bfd_is_ind_section(bfd_get_section(*s))
+	    || (s_end_start_addr != NULL && symbol_start_addr(*s) >= s_end_start_addr))
 	{
 	  *s = *se--;
 	  --number_of_symbols;
