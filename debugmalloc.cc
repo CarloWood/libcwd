@@ -1885,16 +1885,28 @@ namespace _private_ {
 
 void* new_memblk_map(void)
 {
-  return new memblk_map_ct;
+  // Already internal.  Called from TSD_st::S_initialize()
+  void* memblk_map;
+  LIBCWD_DEFER_CANCEL;
+  ACQUIRE_WRITE_LOCK
+  memblk_map = new memblk_map_ct;
+  RELEASE_WRITE_LOCK
+  LIBCWD_RESTORE_CANCEL;
+  return memblk_map;
 }
 
 void delete_memblk_map(void* ptr)
 {
+  // Already internal.  Called from TSD_st::S_initialize()
   memblk_map_ct* memblk_map = reinterpret_cast<memblk_map_ct*>(ptr);
+  LIBCWD_DEFER_CANCEL;
+  ACQUIRE_WRITE_LOCK
   if (memblk_map->size() == 0)
     delete memblk_map;
   else
     core_dump();	// FIXME, map needs to be kept somehow.
+  RELEASE_WRITE_LOCK
+  LIBCWD_RESTORE_CANCEL;
 }
 
 } // namespace _private_
