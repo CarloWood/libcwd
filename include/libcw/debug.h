@@ -221,7 +221,9 @@ using std::operator<<;
 
 // Make the inserter functions of libcw::debug accessible in global namespace.
 #ifndef HIDE_FROM_DOXYGEN
-namespace libcw_debug_inserters { using libcw::debug::operator<<; }
+namespace libcw_debug_inserters {
+  using libcw::debug::operator<<;
+} // namespace libcw_debug_inserters
 using namespace libcw_debug_inserters;
 #endif
 

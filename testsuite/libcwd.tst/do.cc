@@ -220,7 +220,7 @@ MAIN_FUNCTION
       || libcw_os != cerrp
 #endif
       )
-    DoutFatal(dc::fatal, "set_ostream failed");
+    DoutFatal(dc::core, "set_ostream failed");
 
   MyOwnDout(dc::notice, "This is written to cout");
   my_own_do.set_ostream(&dummy COMMA_THREADED(&dummy_mutex));

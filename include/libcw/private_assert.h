@@ -32,9 +32,9 @@ namespace libcw {
 
 void assert_fail(char const* expr, char const* file, int line, char const* function);
 
-    }
-  }
-}
+    } // namespace _private_
+  } // namespace debug
+} // namespace libcw
 
 // Solaris8 doesn't define __STRING().
 #define LIBCWD_STRING(x) #x

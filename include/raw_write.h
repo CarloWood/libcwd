@@ -71,7 +71,7 @@ namespace libcw {
 namespace _private_ {
   // Dummy type used as fake 'ostream' to write to write(2).
   enum raw_write_nt { raw_write };
-}
+} // namespace _private_
 
 _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, char const* data);
 _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, void const* data);
@@ -82,7 +82,7 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, int data);
 _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, unsigned int data);
 
-  }  // namespace debug
+  } // namespace debug
 } // namespace libcw
 #endif // CWDEBUG_DEBUG
 

@@ -38,7 +38,9 @@ namespace libcw {
   namespace debug {
 
 #if CWDEBUG_LOCATION
-    namespace cwbfd { bool ST_init(void); }
+    namespace cwbfd {
+      bool ST_init(void);
+    } // namespace cwbfd
 #endif
 
 class debug_ct;

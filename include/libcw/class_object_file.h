@@ -28,7 +28,9 @@ namespace libcw {
 
 // Forward declarations.
 class ooam_filter_ct;
-namespace cwbfd { class object_file_ct; }
+namespace cwbfd {
+  class object_file_ct;
+} // namespace cwbfd
 
 /** \addtogroup group_locations */
 /** \{ */

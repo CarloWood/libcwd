@@ -10,15 +10,15 @@ threads.  Only the core dumping thread is dumped
 and the other threads continue to run for a while.
 There exists a kernel patch written by Intel/IBM
 that fixes this problem; please read
-http://www.xs4all.nl/~carlo17/tcore.diff
-(the original for 2.4.17 is available (but html mangled) from
-http://www.cs.helsinki.fi/linux/linux-kernel/2002-10/1310.html)
+http://www-124.ibm.com/developer/opensource/linux/projects/mtcoredumps/
 
 You are strongly advised to use gdb 5.2 for multithreaded
-debugging.  Try not to use -O2 if you want source file
-and line numbers that make sense ;).
+debugging.  Try not to use -O2 or -fomit-frame-pointer if
+you want source file and line numbers that make sense ;).
 
 Be aware that gdb does hardly support namespaces and
 will therefore frequently not find types or variables
 in namespaces.  It doesn't look like that this will be
-fixed very soon (2002-05-27).
+fixed very soon (2002-05-27) (see the thread that belongs
+to http://sources.redhat.com/ml/gdb/2002-05/msg00278.html)
+

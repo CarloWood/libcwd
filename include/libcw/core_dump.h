@@ -27,8 +27,8 @@ namespace libcw {
 
 extern void core_dump(void) __attribute__ ((__noreturn__));
 
-  }
-}
+  } // namespace debug
+} // namespace libcw
 
 #endif // LIBCW_CORE_DUMP_H
 

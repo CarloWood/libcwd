@@ -45,9 +45,45 @@ template<class T>
 class pthread_lock_interface_ct : public lock_interface_base_ct {
   private:
     pthread_mutex_t* ptr;
-    virtual int trylock(void) { return pthread_mutex_trylock(ptr); }
-    virtual void lock(void) { pthread_mutex_lock(ptr); }
-    virtual void unlock(void) { pthread_mutex_unlock(ptr); }
+    virtual int trylock(void)
+    {
+#if CWDEBUG_DEBUGT
+      bool success = pthread_mutex_trylock(ptr);
+      if (success)
+      {
+	LIBCWD_TSD_DECLARATION
+	__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
+	__libcwd_tsd.rdlocked_by[pthread_lock_interface_instance] = pthread_self();
+        __libcwd_tsd.rdlocked_from[pthread_lock_interface_instance] = __builtin_return_address(0); 
+      }
+      return success;
+#else
+      return pthread_mutex_trylock(ptr);
+#endif
+    }
+    virtual void lock(void)
+    {
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION
+      __libcwd_tsd.waiting_for_rdlock = pthread_lock_interface_instance;
+#endif
+      pthread_mutex_lock(ptr);
+#if CWDEBUG_DEBUGT
+      __libcwd_tsd.waiting_for_rdlock = 0;
+      __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
+      __libcwd_tsd.rdlocked_by[pthread_lock_interface_instance] = pthread_self();
+      __libcwd_tsd.rdlocked_from[pthread_lock_interface_instance] = __builtin_return_address(0); 
+#endif
+    }
+    virtual void unlock(void)
+    {
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION
+      __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] -= 1;
+      __libcwd_tsd.rdlocked_by[pthread_lock_interface_instance] = 0;
+#endif
+      pthread_mutex_unlock(ptr);
+    }
   public:
     pthread_lock_interface_ct(pthread_mutex_t* mutex) : ptr(mutex) { }
 };

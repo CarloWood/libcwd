@@ -241,8 +241,8 @@ namespace libcw {
   namespace debug {
 void* malloc_bootstrap1(size_t size);
 void* calloc_bootstrap1(size_t nmemb, size_t size);
-  }
-}
+  } // namespace debug
+} // namespace libcw
 void* __libc_malloc(size_t size) = libcw::debug::malloc_bootstrap1;
 void* __libc_calloc(size_t nmemb, size_t size) = libcw::debug::calloc_bootstrap1;
 void* __libc_realloc(void* ptr, size_t size);

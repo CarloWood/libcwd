@@ -17,6 +17,7 @@
 #include "cwd_debug.h"
 #include <libcw/private_threading.h>
 #include <libcw/private_mutex.inl>
+#include <unistd.h>
 
 namespace libcw {
   namespace debug {
@@ -102,6 +103,7 @@ void TSD_st::S_initialize(void) throw()
   bool old_thread_iter_valid = thread_iter_valid;
   std::memset(this, 0, sizeof(struct TSD_st));	// This structure might be reused and therefore already contain data.
   tid = pthread_self();
+  pid = getpid();
   mutex_tct<tsd_initialization_instance>::unlock();
   // We assume that the main() thread will call malloc() at least
   // once before it reaches main() and thus before any other thread is created.
@@ -248,6 +250,7 @@ void thread_ct::tsd_destroyed(void) throw()
   // Must lock the threadlist because we might delete the map (if it is empty)
   // at which point another thread shouldn't be trying to search that map,
   // looping over all elements of threadlist.
+  // Cancel is already defered (we're called from TSD_st::S_initialize).
   rwlock_tct<threadlist_instance>::wrlock();
   // delete_memblk_map will delete memblk_map (which is actually a
   // pointer to the type memblk_map_ct) if the map is empty and

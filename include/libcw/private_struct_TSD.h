@@ -46,9 +46,9 @@ namespace libcw {
   namespace debug {
     namespace _private_ {
       struct TSD_st;
-    }
-  }
-}
+    } // namespace _private_
+  } // namespace debug
+} // namespace libcw
 
 // When LIBCWD_THREAD_SAFE is set then `__libcwd_tsd' is a local variable
 // (see LIBCWD_TSD_DECLARATION) or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
@@ -132,9 +132,16 @@ public:
   int inside_critical_area;
   int cleanup_handler_installed;
   int internal_debugging_code;
+  mutex_ct* waiting_for_mutex;		// mutex_ct that this thread is waiting for.
+  int waiting_for_lock;			// The instance of the lock that this thread is waiting for.
+  int waiting_for_rdlock;		// The instance of the rdlock that this thread is waiting for.
+  int instance_rdlocked[instance_rdlocked_size];
+  pthread_t rdlocked_by[instance_rdlocked_size];
+  void const* rdlocked_from[instance_rdlocked_size];
 #endif
 #if LIBCWD_THREAD_SAFE
-  pthread_t tid;
+  pthread_t tid;			// Thread ID.
+  pid_t pid;				// Process ID.
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
   void cleanup_routine(void) throw();

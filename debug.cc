@@ -114,19 +114,11 @@ void allocator_unlock(void)
       pos_type position;
 #endif
     public:
-#ifdef _REENTRANT
-      void writeto(std::ostream* os, _private_::lock_interface_base_ct* mutex LIBCWD_COMMA_TSD_PARAM, debug_ct&
-#if CWDEBUG_ALLOC
-	  debug_object
-#endif
-	  )
-#else
       void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct&
 #if CWDEBUG_ALLOC
 	  debug_object
 #endif
 	  )
-#endif // _REENTRANT
       {
 #if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
 	typedef debug_message_st* msgbuf_t;
@@ -162,27 +154,6 @@ void allocator_unlock(void)
 #else
 	rdbuf()->sgetn(msgbuf, curlen);
 #endif
-#if CWDEBUG_ALLOC
-	// Writing to the final std::ostream (ie std::cerr) must be non-internal!
-	// LIBCWD_DISABLE_CANCEL/LIBCWD_ENABLE_CANCEL must be done non-internal too.
-	int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
-#endif
-#ifdef _REENTRANT
-	LIBCWD_DISABLE_CANCEL;			// We don't want Dout() to be a cancellation point.
-	if (mutex)
-	  mutex->lock();
-	else if (_private_::WST_multi_threaded)
-	{
-	  static bool WST_second_time = false;	// Break infinite loop.
-	  if (!WST_second_time)
-	  {
-	    WST_second_time = true;
-	    DoutFatal(dc::core, "When using multiple threads, you must provide a locking mechanism for the debug output stream.  "
-		"You can pass a pointer to a mutex with `debug_ct::set_ostream' (see documentation/reference-manual/group__group__destination.html).");
-	  }
-	}
-#endif // !_REENTRANT
 #if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
 	if (queue_msg)			// Inside a call to malloc and possibly owning lock of std::__default_alloc_template<true, 0>?
 	{
@@ -200,6 +171,33 @@ void allocator_unlock(void)
 	}
 	else
 	{
+#endif
+#if CWDEBUG_ALLOC
+	  // Writing to the final std::ostream (ie std::cerr) must be non-internal!
+	  // LIBCWD_DISABLE_CANCEL/LIBCWD_ENABLE_CANCEL must be done non-internal too.
+	  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+	  ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+#endif
+#ifdef _REENTRANT
+	  LIBCWD_DISABLE_CANCEL;			// We don't want Dout() to be a cancellation point.
+	  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
+	  bool got_lock = debug_object.M_mutex;
+	  if (got_lock)
+	    debug_object.M_mutex->lock();
+	  std::ostream* locked_os = os;
+	  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+	  if (!got_lock && _private_::WST_multi_threaded)
+	  {
+	    static bool WST_second_time = false;	// Break infinite loop.
+	    if (!WST_second_time)
+	    {
+	      WST_second_time = true;
+	      DoutFatal(dc::core, "When using multiple threads, you must provide a locking mechanism for the debug output stream.  "
+		  "You can pass a pointer to a mutex with `debug_ct::set_ostream' (see documentation/reference-manual/group__group__destination.html).");
+	    }
+	  }
+#endif // !_REENTRANT
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
 	  debug_message_st* message = debug_object.queue_top;
 	  if (message)
 	  {
@@ -208,7 +206,7 @@ void allocator_unlock(void)
 	    do
 	    {
 	      next_message = message->prev;
-	      os->write(message->buf, message->curlen);
+	      locked_os->write(message->buf, message->curlen);
 	      __libcwd_tsd.internal = 1;
 	      free(message);
 	      __libcwd_tsd.internal = 0;
@@ -217,19 +215,25 @@ void allocator_unlock(void)
 	    debug_object.queue_top = debug_object.queue = NULL;
 	  }
 	  // Then write the new message.
-	  os->write(msgbuf->buf, curlen);
-	}
+	  locked_os->write(msgbuf->buf, curlen);
 #else // !(CWDEBUG_ALLOC && defined(_REENTRANT))
-	os->write(msgbuf, curlen);
-#endif // !CWDEBUG_ALLOC
 #ifdef _REENTRANT
-	if (mutex)
-	  mutex->unlock();
-	LIBCWD_ENABLE_CANCEL;
+	  locked_os->write(msgbuf, curlen);
+#else // !_REENTRANT
+	  os->write(msgbuf, curlen);
+#endif // !_REENTRANT
+#endif // !(CWDEBUG_ALLOC && defined(_REENTRANT))
+#ifdef _REENTRANT
+	  if (got_lock)
+	    debug_object.M_mutex->unlock();
+	  LIBCWD_ENABLE_CANCEL;
 #endif // !_REENTRANT
 #if CWDEBUG_ALLOC
-	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
-	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+	  --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+	  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+#endif
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+	}
 #endif
 	if (free_msgbuf)
 	  free(msgbuf);
@@ -269,7 +273,7 @@ void allocator_unlock(void)
     namespace {
       unsigned short int WST_max_len = 8;	// The length of the longest label.  Is adjusted automatically
     						// if a custom channel has a longer label.
-    }
+    } // namespace
 
     namespace channels {
       namespace dc {
@@ -375,11 +379,13 @@ void allocator_unlock(void)
 	    ;
 
 	/** \} */
-      }
-    }
+      } // namespace dc
+    } // namespace channels
 
 #if CWDEBUG_LOCATION
-    namespace cwbfd { extern bool ST_init(void); }
+    namespace cwbfd {
+      extern bool ST_init(void);
+    } // namespace cwbfd
 #endif
 
     void ST_initialize_globals(void)
@@ -606,7 +612,7 @@ void allocator_unlock(void)
 
     namespace _private_ {
       static char WST_dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
-    }
+    } // namespace _private_
 
     /**
      * \fn void core_dump(void)
@@ -787,12 +793,6 @@ void allocator_unlock(void)
 
     /** \} */
 
-#ifdef _REENTRANT
-#define LIBCWD_COMMA_MUTEX ,debug_object.M_mutex
-#else
-#define LIBCWD_COMMA_MUTEX
-#endif
-
     void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
 #if CWDEBUG_DEBUG
@@ -868,7 +868,7 @@ void allocator_unlock(void)
 	current_oss->write("<unfinished>\n", 13);		// Continued debug output should end on a space by itself,
 	// And write out what is in the buffer till now.
 	std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
-	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD, debug_object);
+	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object);
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
 	static_cast<buffer_ct*>(current_oss)->restore_position();
 	current_oss->write("<continued> ", 12);		// therefore we repeat the space here.
@@ -964,7 +964,7 @@ void allocator_unlock(void)
 	if ((current->mask & flush_cf))
 	{
 	  // Write buffer to ostream.
-	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD, debug_object);
+	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object);
 	  // Flush ostream.  Note that in the case of nested debug output this `os' can be an stringstream,
 	  // in that case, no actual flushing is done until the debug output to the real ostream has
 	  // finished.
@@ -999,7 +999,7 @@ void allocator_unlock(void)
 	current_oss->put('\n');
 
       // Write buffer to ostream.
-      static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD, debug_object);
+      static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object);
 
       // Handle control flags, if any:
       if (current->mask != 0)
@@ -1030,10 +1030,13 @@ void allocator_unlock(void)
 	    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	    pthread_exit(PTHREAD_CANCELED); 
 	  }
+	  _private_::rwlock_tct<_private_::threadlist_instance>::rdlock();
+          // Terminate all threads that I know of, so that no locks will remain.
+	  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
+	    if (!pthread_equal((*thread_iter).tid, pthread_self()))
+            pthread_cancel((*thread_iter).tid);
+	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
-#ifdef HAVE_PTHREAD_KILL_OTHER_THREADS_NP
-          pthread_kill_other_threads_np();
-#endif
 #endif
 	  exit(254);
 	}
@@ -1226,7 +1229,7 @@ void allocator_unlock(void)
 	  LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;
 	);
       }
-    }
+    } // namespace _private_
 #endif
 
     debug_tsd_st::~debug_tsd_st()
@@ -1731,8 +1734,8 @@ void debug_ct::set_ostream(std::ostream* os)
 #endif
 }
 
-  }	// namespace debug
-}	// namespace libcw
+  } // namespace debug
+} // namespace libcw
 
 // This can be used in configure to see if libcwd exists.
 extern "C" char const* const __libcwd_version = VERSION;

@@ -58,9 +58,14 @@ void mutex_ct::lock(void) throw()
   LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << (void*)this);
 #endif
 #if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION
+  __libcwd_tsd.waiting_for_mutex = this;
   int res =
 #endif
   pthread_mutex_lock(&M_mutex);
+#if CWDEBUG_DEBUGT
+  __libcwd_tsd.waiting_for_mutex = 0;
+#endif
   LibcwDebugThreads( LIBCWD_ASSERT( res == 0 ) );
 #if LIBCWD_DEBUGDEBUGRWLOCK
   LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << (void*)this << " locked");

@@ -35,7 +35,7 @@ namespace libcw {
 
 namespace _private_ {
   extern char const* make_label(char const* mangled_name);
-}
+} // namespace _private_
 
 /**
  * \brief Class that holds type information for debugging purposes.&nbsp;

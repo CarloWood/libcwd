@@ -1,15 +1,18 @@
-#define PREFIX_CODE set_margin(); int __res; for(int __i = 0; __i < 100; ++__i) {
+#define PREFIX_CODE set_margin(); int __res; for(;;) {
 #define EXIT(res) \
     __res = (res); \
     ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() ); \
     ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() ); \
-    ForAllDebugObjects( debugObject.set_ostream(&std::cerr, &cerr_mutex) ); \
     { \
       LIBCWD_TSD_DECLARATION; \
       ForAllDebugObjects( while (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) >= 0) debugObject.on() ); \
       ForAllDebugObjects( if (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) < 0) debugObject.off() ); \
     } \
-    if (__res) break; } return (void*)(__res == 0)
+    ++heartbeat[thread_index(pthread_self())]; \
+    pthread_testcancel(); \
+    if (__res) break; } \
+    heartbeat[thread_index(pthread_self())] = 0; \
+    return (void*)(__res == 0)
 #define THREADED(x) x
 #define COMMA_THREADED(x) , x
 #define THREADTEST
@@ -21,6 +24,10 @@
 
 pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t cerr_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+int heartbeat[32];
+int prev_heartbeat[32];
+int bad[32];
 
 unsigned long thread_index(pthread_t tid)
 {
@@ -124,6 +131,9 @@ int main(void)
   Debug( dc::notice.on() );
   Debug( libcw_do.on() );
 
+  for (int i = 0; i < number_of_threads; ++i)
+    ++heartbeat[i];
+
   pthread_t thread_id[number_of_threads];
   for (int i = 0; i < number_of_threads; ++i)
   {
@@ -132,11 +142,47 @@ int main(void)
     Dout(dc::finish, "id " << thread_id[i] << " (" << thread_index(thread_id[i]) << ").");
   }
 
-  for (int i = 0; i < number_of_threads; ++i)
+  for(;;)
   {
-    void* status;
-    pthread_join(thread_id[i], &status);
-    Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] << " (" << thread_index(thread_id[i]) << "), returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
+    memcpy(prev_heartbeat, heartbeat, sizeof(heartbeat));
+    struct timespec rqts = { 1, 0 };
+    struct timespec rmts;
+    nanosleep(&rqts, &rmts);
+    std::cerr << "\nHEARTBEAT --start of new check-----------------------------\n";
+    int running = 0;
+    for (int i = 0; i < number_of_threads; ++i)
+    {
+      if (heartbeat[i] == 0)
+      {
+	void* status;
+	pthread_join(thread_id[i], &status);
+	Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] << " (" << thread_index(thread_id[i]) << "), returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
+      }
+      else if (prev_heartbeat[i] == heartbeat[i])
+      {
+	if (++(bad[i]) == 30)
+	{
+	  std::cerr << "No heartbeat for thread " << thread_id[i] << '/' <<
+	    libcw::debug::_private_::__libcwd_tsd_array[thread_index(thread_id[i])].pid << '\n';
+	  raise(6);
+	}
+	else
+	  std::cerr << "\nNO HEARTBEAT for " << thread_id[i] << '/' <<
+	    libcw::debug::_private_::__libcwd_tsd_array[thread_index(thread_id[i])].pid <<
+	    " since " << bad[i] << " seconds.\n";
+      }
+      else
+      {
+	std::cerr << "\nGot HEARTBEAT for " << thread_id[i] << '/' <<
+	  libcw::debug::_private_::__libcwd_tsd_array[thread_index(thread_id[i])].pid <<
+	  ": " << heartbeat[i] << " after " << bad[i] << " seconds.\n";
+	bad[i] = 0;
+	++running;
+      }
+    }
+    if (running == 0)
+      break;
+    std::cerr << "\nHEARTBEAT ----end of check---------------------------------\n";
   }
 
   Debug( dc::malloc.on() );

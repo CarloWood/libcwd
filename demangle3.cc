@@ -59,10 +59,10 @@ namespace libcw {
     namespace channels {
       namespace dc {
         channel_ct demangler("DEMANGLER");
-      }
-    }
-  }
-}
+      } // namespace dc
+    } // namespace channels
+  } // namespace debug
+} // namespace libcw
 #endif
 #define DoutEntering(x) Dout(dc::demangler|continued_cf|flush_cf, "Entering " x "(\"" << &M_str[M_pos] << "\", \"" << output << "\") ")
 #define RETURN do { if (M_result) Dout(dc::finish, '[' << M_pos << "; \"" << output << "\"]" ); else Dout(dc::finish, "(failed)"); return M_result; } while(0)

@@ -115,8 +115,8 @@ namespace libcw {
 	  ;
 
 	/** \} */
-      }
-    }
+      } // namespace dc
+    } // namespace channels
 
     using _private_::set_alloc_checking_on;
     using _private_::set_alloc_checking_off;
@@ -1081,6 +1081,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #else
 	for(link_map const* l = _dl_loaded; l; l = l->l_next)
 	{
+#if 0
+	}
+#endif
 #endif
 	  if (l->l_addr)
 	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
@@ -1662,9 +1665,9 @@ void dlclose_cleanup2(void* arg)
 }
 #endif
 
-    }
-  }
-}
+    } // namespace _private_
+  } // namespace debug
+} // namespace libcw
 
 extern "C" {
   void* __libcwd_dlopen(char const* name, int flags)

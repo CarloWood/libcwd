@@ -148,10 +148,10 @@ namespace libcw {
     namespace channels {
       namespace dc {
 	channel_ct demangler("DEMANGLER");
-      }
-    }
-  }
-}
+      } // namespace dc
+    } // namespace channels
+  } // namespace debug
+} // namespace libcw
 #endif
 #else // !STANDALONE
 #undef CWDEBUG
@@ -166,7 +166,8 @@ namespace libcw {
 namespace libcw {
   namespace debug {
 
-    namespace {	// Local definitions
+    namespace {
+
       using _private_::internal_string;
       using _private_::internal_vector;
 
@@ -191,7 +192,7 @@ namespace libcw {
       int eat_digits(char const*& input);
       bool eat_type_internal(char const*&, internal_string&, internal_string&, internal_string*, bool = false);
 
-    } // namespace {anonymous}
+    } // namespace
 
 #ifdef STANDALONE
     static char const* main_in;
@@ -438,7 +439,8 @@ namespace libcw {
 #endif
     }
 
-    namespace {	// Implementation of local functions
+    namespace {
+      // Implementation of local functions
 
       // Returns the length of a mangled internal_string or the number of template parameters by reading the digits from the input internal_string.
       // {anonymous}::
@@ -1413,7 +1415,7 @@ namespace libcw {
 	return false;
       }
 
-    } // namespace {anonymous}
+    } // namespace
 
   } // namespace debug
 } // namespace libcw

@@ -28,12 +28,18 @@ namespace libcw {
 enum mutex_instance_nt {
   // Recursive mutexes.
   tsd_initialization_instance,
-  object_files_instance,	// rwlock
+  object_files_instance,		// rwlock
   end_recursive_types,
   // Fast mutexes.
   memblk_map_instance,
-  location_cache_instance,	// rwlock
-  threadlist_instance,
+  location_cache_instance,		// rwlock
+  threadlist_instance,			// rwlock
+  debug_objects_instance,		// rwlock
+  debug_channels_instance,		// rwlock
+#if CWDEBUG_DEBUGT
+  pthread_lock_interface_instance,	// Dummy instance that is used to store who locked the ostream.
+  instance_rdlocked_size,		// Must come after last rwlock and pthread_lock_interface_instance.
+#endif
   mutex_initialization_instance,
   ids_singleton_tct_S_ids_instance,
   alloc_tag_desc_instance,
@@ -42,8 +48,6 @@ enum mutex_instance_nt {
   write_max_len_instance,
   set_ostream_instance,
   kill_threads_instance,
-  debug_objects_instance,	// rwlock
-  debug_channels_instance,	// rwlock
   list_allocations_instance,
   // Values reserved for read/write locks.
   reserved_instance_low,
@@ -53,7 +57,7 @@ enum mutex_instance_nt {
   test_instance1,
   test_instance2,
   test_instance3,
-  instance_locked_size		// Must be last in list
+  instance_locked_size			// Must be last in list
 };
 
 #if CWDEBUG_DEBUG

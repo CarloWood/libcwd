@@ -41,6 +41,8 @@
 namespace libcw {
   namespace debug {
 
+class buffer_ct;
+
 #if CWDEBUG_ALLOC
 namespace _private_ {
 
@@ -51,7 +53,7 @@ struct debug_message_st {
   char buf[sizeof(int)];
 };
 
-}
+} // namespace _private_
 #endif
 
 //===================================================================================================
@@ -102,6 +104,7 @@ protected:
     // The original output ostream (as set with set_ostream()).
     //
 #if LIBCWD_THREAD_SAFE
+  friend class libcw::debug::buffer_ct;		// buffer_ct::writeto() needs access.
   _private_::lock_interface_base_ct* M_mutex;
     // Pointer to the mutex that should be used for `real_os' or NULL when no lock is used.
     // A value of NULL is only allowed prior to creating a second thread.
