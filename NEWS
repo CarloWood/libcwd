@@ -1,7 +1,7 @@
 libcwd-0.99.38
 
 	Configuration with --disable-location has been fixed and
-	is not supported.
+	is now supported.
 
 	Cygwin is now supported when configuring with --disable-alloc
 	and --disable-location (only debug output).
@@ -19,6 +19,11 @@ libcwd-0.99.38
 
 	Configuration with --disable-alloc caused problems with
 	using libcwd with another library.
+
+	On fedora core 2 it has happened that unnamed 'shared
+	libraries' are being mapped and listed in the dl_loaded
+	list.  This caused libcwd to crash with the error:
+	FATAL  : std::ifstream.open(""): ENOENT (No such file or directory)
 
 libcwd-0.99.37
 
