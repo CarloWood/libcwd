@@ -86,7 +86,7 @@ distclean-local:
 
 MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h.in Makefile.in \
 	install-sh missing mkinstalldirs config.guess config.sub ltmain.sh ltconfig \
-	config.cache config.log depcomp \
+	config.cache config.log depcomp config.status \
 	documentation/tutorial/examples5/debug.* \
 	documentation/tutorial/examples5/test* \
 	documentation/tutorial/core \

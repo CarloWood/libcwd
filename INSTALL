@@ -15,7 +15,7 @@ Building RPMs
 The released tar file contains a .spec file.
 Therefore you can build an rpm directly from the tar with
 
-rpm -ta libcwd-0.99.22.tar.gz
+rpm -ta libcwd-0.99.23.tar.gz
 
 The resulting rpm will install two libraries:
 libcwd.so and libcwd_r.so.  Be sure to link with -lcwd_r
@@ -66,7 +66,7 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.22 was tested with gcc-2.95.3, gcc-2.96-98 (RedHat),
+libcwd-0.99.23 was tested with gcc-2.95.3, gcc-2.96-98 (RedHat),
 gcc-3.0.4 and gcc-3.1.
 
 Packages needed to run the testsuite
@@ -185,10 +185,10 @@ It is not garanteed that these work on another machine than mine however.
 Finally, you can also build libcwd in a different directory than the source
 tree is in:
 
-tar xzf libcwd-0.99.22.tar.gz
+tar xzf libcwd-0.99.23.tar.gz
 mkdir libcwd-objdir
 cd libcwd-objdir
-../libcwd-0.99.22/configure --prefix=/usr
+../libcwd-0.99.23/configure --prefix=/usr
 make
 su
 make install

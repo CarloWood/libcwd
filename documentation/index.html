@@ -85,6 +85,17 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>17 July 2002</B>
+<P class="news">libcwd-0.99.23 is released.&nbsp;
+This release adds two possibilities to the filter the overview of allocated memory:
+<CODE STYLE="font-size: smaller">ooam_filter_ct::hide_sourcefiles_matching(std::vector&lt;std::string&gt;&nbsp;const&amp;)</CODE>
+and <CODE STYLE="font-size: smaller">ooam_filter_ct::hide_untagged_allocations(bool)</CODE>.<BR>
+You now can pass a filter to a <CODE>marker_ct</CODE> in order to
+specifiy which allocations are to be considered outside the marker
+area as well as how to list the allocations that were leaked.&nbsp;
+Three minor bug fixes have been fixed; two related to the use
+of dlclose() and one that caused the full path of location source
+files to be incomplete when using gcc 3.x.</P>
 <DT><B>21 June 2002</B>
 <P class="news">libcwd-0.99.22 is released.&nbsp;
 Fixes a horrible bug that was introduced in 0.99.20, causing
