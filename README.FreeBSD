@@ -10,11 +10,9 @@
 
   FreeBSD doesn't seem to come with libbfd be default.  Make sure to
   compile the port of binutils for your architecture (don't use the
-  linux library!).  Libiberty is less of a problem since it comes with
-  the compiler, it isn't compiled with -ggdb however, so allocations
-  done from libbfd (using xmalloc) won't show up with line number info.
-  This is not problem in practise.
+  linux library!).  You will have to do a 'make install' in
+  /usr/ports/devel/i386-rtems-binutils.
 
-  libcwd-0.99.3 was tested on FreeBSD-4.0-RELEASE
+  libcwd-0.99.2 was tested on FreeBSD-4.0-RELEASE
 
 Carlo Wood

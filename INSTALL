@@ -11,41 +11,44 @@ If that doesn't work, mail me: libcw@alinoe.com
 Hackers info
 ------------
 
-`configure' has a few interesting option.
-You can list them by issuing:
+-=i=-
+
+`configure' has a few interesting options.  You can list them by issuing:
 
 ./configure --help
 
-There is no reason to `libcwd' feature options
-(--disable-libcwd-alloc, --disable-libcwd-magic,
---disable-libcwd-marker and --disable-libcwd-bfd).
-Actually, I forgot why they are there :).
-You can read more about what they do in Chapter 4
-"Debugging compile options" here:
+There is no reason to `libcwd' feature options (--disable-libcwd-alloc,
+--disable-libcwd-magic, --disable-libcwd-marker and --disable-libcwd-bfd).
+Actually, I forgot why they are there :).  You can read more about what
+they do in Chapter 4 "Debugging compile options" here:
 http://libcw.sourceforge.net/templates/index.html?debugging
-If you want to change Makefile.am files and the-like
-then you'll need to use --enable-maintainer-mode.
+If you want to change Makefile.am files and the-like then you'll need to
+use --enable-maintainer-mode.
 
-The configure script looks for a GNU C++ compiler version
-2.95.1 or higher.  If it can't find one (it will only
-find one when there is a g++ or c++ in your PATH), then
-you can specify the right path during configuration.
-For example, I configure libcwd as follows to compile
-with the latest CVS version of g++, which I installed
-in /usr/local/bin/g++-cvs (and /usr/local/bin is in my
-PATH):
+-=ii=-
+
+The configure script looks for a GNU C++ compiler version 2.95.1 or higher.
+If it can't find one (it will only find one when there is a g++ or c++ in
+your PATH), then you can specify the right path during configuration.
+For example, I configure libcwd as follows to compile with the latest CVS
+version of g++, which I installed in /usr/local/bin/g++-cvs (and
+/usr/local/bin is in my PATH):
 
 CXX="g++-cvs -D_G_CLOG_CONFLICT=0 -D_G_HAS_LABS=1" ./configure
 
+IMPORTANT: If you change CXX or CXXFLAGS, remove config.cache before
+running ./configure: A lot of tests depend on the compiler and flags
+that are being used!
 
-You can install libcwd in a `staging' directory
-by issuing
+-=iii=-
+
+You can install libcwd in a `staging' directory by issuing
 
 make DESTDIR=/tmp/staging install
 
-this can come in handy when you want to build an rpm
-for instance.
+this can come in handy when you want to build an rpm for instance.
 
+-=iv=-
 
 The Makefile has the following targets:
 
@@ -62,9 +65,10 @@ make maintainer-clean
 
 well, ... heh.  Look in the Makefile for more targets ;)
 
+-=v=-
 
-Finally, you can also build libcwd in a different directory
-than the source tree is in:
+Finally, you can also build libcwd in a different directory than the source
+tree is in:
 
 tar xzf libcwd-0.99.2.tar.gz
 mkdir libcwd-objdir

@@ -12,6 +12,14 @@ libcwd-0.99.2
 	it to assure that the configuration of the linked library matches
 	the configuration of the header files used.
 
+	demangle.cc was completely rewritten.  It now exports two functions:
+	`demangle_type' and `demangle_symbol', the latter is a replacement
+	for the `cplus_demangle' from libiberty.  This allows to link with
+	the shared version of libiberty (needed by libbfd) which was needed
+	on FreeBSD.  This also gets rid of any direct dependence of libcwd
+	on libiberty, which wasn't good because libiberty is not compiled
+	with -fPIC.
+
 libcwd-0.99.1
 
 	Support for FreeBSD (4.0)
