@@ -1742,15 +1742,15 @@ void objfile_ct::load_stabs(void)
     LIBCWD_ASSERT( M_sections[M_stabs_section_index].section_header().sh_entsize == sizeof(stab_st) );
   }
   stab_st* stabs = (stab_st*)allocate_and_read_section(M_stabs_section_index);
+#ifndef __sun__
+  // The native Solaris 2.8 linker (ld) doesn't fill in the value of sh_link and also n_desc seems to have a different meaning.
   if (DEBUGSTABS)
   {
-#ifdef __linux
-    // The native Solaris 2.8 linker (ld) doesn't fill in the value of sh_link.
     LIBCWD_ASSERT( M_stabstr_section_index == M_sections[M_stabs_section_index].section_header().sh_link );
-#endif
     LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[M_sections[M_stabstr_section_index].section_header().sh_name], ".stabstr") );
     LIBCWD_ASSERT( stabs->n_desc == (Elf32_Half)(M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize - 1) );
   }
+#endif
   char* stabs_string_table = allocate_and_read_section(M_stabstr_section_index);
   if (DEBUGSTABS)
     Debug( libcw_do.inc_indent(4) );
