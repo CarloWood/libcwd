@@ -60,6 +60,16 @@
 
 #define VOIDSIG void
 
+// Bug work arounds
+
+#ifdef __linux
+// Including sys/resource.h fails with a warning:
+// /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
+// Work around:
+#include <asm/resource.h>
+#undef RLIM_INFINITY
+#endif
+
 // GNU CC improvements: We can only use this if we have a gcc/g++ compiler
 #ifdef __GNUC__
 
@@ -106,9 +116,9 @@
   #define NEED_FAKE_RETURN(x)
 #endif
 
-#define RCSTAG_CC(string) static char rcs_ident[] __attribute__ ((__unused__)) = string;
-#define RCSTAG_H(name, string) static char const rcs_ident_##name##_h[] __attribute__ ((__unused__)) = string;
-#define RCSTAG_INL(name, string) static char rcs_ident##name##_inl[] __attribute__ ((__unused__)) = string;
+#define RCSTAG_CC(string) static char const* const rcs_ident __attribute__ ((__unused__)) = string;
+#define RCSTAG_H(name, string) static char const* const rcs_ident_##name##_h __attribute__ ((__unused__)) = string;
+#define RCSTAG_INL(name, string) static char const* const rcs_ident##name##_inl __attribute__ ((__unused__)) = string;
 
 #define UNUSED(x)
 #define USE(var) static void* use_##var = (use_##var = (void*)&use_##var, (void*)&var)
