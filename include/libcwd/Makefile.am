@@ -63,10 +63,7 @@ libcwd_HEADERS = \
 	struct_debug_tsd.h \
 	type_info.h
 
-BUILT_SOURCES = sys.ho config.ho
-EXTRA_HEADERS = sys.h config.h
-
-DISTCLEANFILES = config.h sys.h
+BUILT_SOURCES = sys.ho config.ho sys.h config.h
 
 MAINTAINERCLEANFILES = Makefile.in
 
@@ -78,3 +75,5 @@ uninstall-local:
 	cd $(DESTDIR)$(libcwddir); rm -f $(EXTRA_HEADERS)
 	rmdir $(DESTDIR)$(libcwddir)
 
+@MAINTAINER_MODE_TRUE@sys.h: timestamp-sys.h
+@MAINTAINER_MODE_TRUE@config.h: timestamp-config.h

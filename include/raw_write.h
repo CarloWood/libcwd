@@ -29,6 +29,13 @@
 extern "C" ssize_t write(int fd, const void *buf, size_t count);
 
 #ifdef _REENTRANT
+namespace libcw {
+  namespace debug {
+    namespace _private_ {
+      extern pthread_mutex_t raw_write_mutex;
+    }
+  }
+}
 #define LIBCWD_CANCELSTATE_DISABLE int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate)
 #define LIBCWD_CANCELSTATE_RESTORE pthread_setcancelstate(__libcwd_oldstate, NULL)
 #else
@@ -54,9 +61,12 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
 	LIBCWD_CANCELSTATE_DISABLE;								\
 	LIBCWD_TSD_DECLARATION;									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
+	LibcwDebugThreads( pthread_mutex_lock(&::libcw::debug::_private_::raw_write_mutex) );	\
 	::write(2, "CWDEBUG_DEBUG: ", 15);							\
 	LIBCWD_LIBRARY_CALL_INDENTATION;							\
+	LibcwDebugThreads( ::libcw::debug::_private_::raw_write << pthread_self() << ": ");	\
 	::libcw::debug::_private_::raw_write << x << '\n';					\
+	LibcwDebugThreads( pthread_mutex_unlock(&::libcw::debug::_private_::raw_write_mutex) );	\
 	LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );				\
 	LIBCWD_CANCELSTATE_RESTORE;								\
       }												\

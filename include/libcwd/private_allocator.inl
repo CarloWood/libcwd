@@ -29,11 +29,7 @@ template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   void allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::sanity_check(void)
   {
 #if CWDEBUG_DEBUGM || (CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE)
-#if !CWDEBUG_DEBUGT
     LIBCWD_TSD_DECLARATION;
-#elif LIBCWD_THREAD_SAFE
-    TSD_st& __libcwd_tsd(TSD_st::instance_any());
-#endif
 #endif
 #if CWDEBUG_DEBUGM
     if ((__libcwd_tsd.internal > 0) != (internal != userspace_pool))

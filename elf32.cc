@@ -46,9 +46,21 @@
 #define DWARFSPEEDUP
 
 #if DEBUGDWARF
-#define DoutDwarf(cntrl, x) Dout(cntrl, x)
+#define DoutDwarf(cntrl, x) do { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } while(0)
 #else
-#define DoutDwarf(cntrl, x)
+#define DoutDwarf(cntrl, x) do { } while(0)
+#endif
+
+#if DEBUGSTABS
+#define DoutStabs(cntrl, x) do { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } while(0)
+#else
+#define DoutStabs(cntrl, x) do { } while(0)
+#endif
+
+#if DEBUGELF32
+#define DoutElf32(cntrl, x) do { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } while(0)
+#else
+#define DoutElf32(cntrl, x) do { } while(0)
 #endif
 
 namespace libcw {
@@ -208,6 +220,10 @@ static int const STT_OBJECT = 1;		// Symbol is associated with a data object, su
 static int const STT_FUNC = 2;			// The symbol is associated with a function or other executable code.
 static int const STT_SECTION = 3;		// The symbol is associated with a section (primarily used for relocation entries).
 static int const STT_FILE = 4;			// The filename of the source file associated with the object file.
+static int const STT_COMMON = 5;		// An uninitialised common block.
+static int const STT_TLS = 6;			// Thread local data object.
+static int const STT_LOOS = 10;			// OS-specific semantics, low value.
+static int const STT_HIOS = 12;			// OS-specific semantics, high value.
 static int const STT_LOPROC = 13;		// Start of range reserved for processor-specific semantics.
 static int const STT_HIPROC = 15;		// End of range reserved for processor-specific semantics.
 
@@ -645,14 +661,20 @@ public:
 
   void invalidate(void) {
     M_flags = 0;
+#if DEBUGDWARF
+    LIBCWD_TSD_DECLARATION;
     DoutDwarf(dc::bfd, "--> location invalidated.");
+#endif
   }
   void set_line(Elf32_Half line) {
     if (!(M_flags & 1) || M_line != line)
       M_used = false;
     M_flags |= 1;
     M_line = line;
+#if DEBUGDWARF
+    LIBCWD_TSD_DECLARATION;
     DoutDwarf(dc::bfd, "--> location.M_line = " << M_line);
+#endif
     if (is_valid())
     {
       DoutDwarf(dc::bfd, "--> location now valid.");
@@ -664,6 +686,9 @@ public:
       M_used = false;
     M_flags |= 2;
     M_address = address;
+#if DEBUGDWARF
+    LIBCWD_TSD_DECLARATION;
+#endif
     DoutDwarf(dc::bfd, "--> location.M_address = 0x" << std::hex << address);
     if (is_valid())
     {
@@ -673,6 +698,9 @@ public:
   }
   void copy(void)
   {
+#if DEBUGDWARF
+    LIBCWD_TSD_DECLARATION;
+#endif
     // Assume valid. if (is_valid())
     DoutDwarf(dc::bfd, "--> location assumed valid.");
     M_flags = 3;
@@ -687,6 +715,7 @@ public:
       M_used = false;
 #if DEBUGDWARF
     bool was_not_valid = !(M_flags & 1);
+    LIBCWD_TSD_DECLARATION;
 #endif
     M_flags |= 1;
     M_line += increment;
@@ -704,11 +733,17 @@ public:
     if (increment > 0)
       M_used = false;
     M_address += increment;
+#if DEBUGDWARF
+    LIBCWD_TSD_DECLARATION;
     DoutDwarf(dc::bfd, "--> location.M_address = 0x" << std::hex << M_address);
+#endif
     M_flags |= 2;
   }
   void sequence_end(void) {
+#if DEBUGDWARF
+    LIBCWD_TSD_DECLARATION;
     DoutDwarf(dc::bfd, "--> Sequence end.");
+#endif
     if (is_valid())
     {
       M_line = 0;	// Force storing of range, no range catenation is needed.
@@ -820,6 +855,7 @@ private:
   Elf32_Word M_dwarf_debug_str_section_index;
   static uint32_t const hash_table_size = 2049;		// Lets use a prime number.
   hash_list_st** M_hash_list;
+  hash_list_st* M_hash_list_pool;
   void delete_hash_list(void);
 public:
   objfile_ct(void);
@@ -853,6 +889,9 @@ pthread_t objfile_ct::S_thread_inside_find_nearest_line;
 
 void location_ct::M_store(void)
 {
+#if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
+#endif
   if (M_used)
   {
     DoutDwarf(dc::bfd, "Skipping M_store: M_used is set.");
@@ -999,8 +1038,12 @@ uint32_t objfile_ct::elf_hash(unsigned char const* name, unsigned char delim) co
 
 long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 {
+#if DEBUGELF32
+  LIBCWD_TSD_DECLARATION;
+#endif
   M_symbols = new asymbol_st[M_number_of_symbols];
   M_hash_list = new hash_list_st* [hash_table_size];
+  M_hash_list_pool = NULL;
   std::memset(M_hash_list, 0, hash_table_size * sizeof(hash_list_st*));
   asymbol_st* new_symbol = M_symbols;
   int table_entries = 0;
@@ -1010,9 +1053,10 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
         && M_sections[i].section_header().sh_size > 0)
     {
       int number_of_symbols = M_sections[i].section_header().sh_size / sizeof(Elf32_sym);
-      if (DEBUGELF32)
-	Dout(dc::bfd, "Found symbol table " << M_sections[i].name << " with " << number_of_symbols << " symbols.");
+      DoutElf32(dc::bfd, "Found symbol table " << M_sections[i].name << " with " << number_of_symbols << " symbols.");
       Elf32_sym* symbols = (Elf32_sym*)allocate_and_read_section(i);
+      M_hash_list_pool = (hash_list_st*)malloc(sizeof(hash_list_st) * number_of_symbols);
+      hash_list_st* hash_list_pool_next = M_hash_list_pool;
       for(int s = 0; s < number_of_symbols; ++s)
       {
 	Elf32_sym& symbol(symbols[s]);
@@ -1032,6 +1076,8 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	}
         else if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
 	  continue;							// Skip Special Sections and Undefined Symbols.
+	else if (symbol.type() > STT_FILE)
+	  continue;							// Skip STT_COMMON and STT_TLS symbols.
 	else
 	{
 	  new_symbol->section = &M_sections[symbol.st_shndx];
@@ -1043,8 +1089,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	    M_s_end_offset = symbol.st_value;
 #endif
 	  									// to start of section.
-          if (DEBUGELF32)
-	    Dout(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
+	  DoutElf32(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
         }
 	new_symbol->bfd_ptr = this;
 	new_symbol->udata.p = symbol.st_size;
@@ -1082,13 +1127,14 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	hash_list_st** p = &M_hash_list[hash];
 	while(*p)
 	  p = &(*p)->next;
-	*p = new hash_list_st;
+	*p = hash_list_pool_next++;
         (*p)->next = NULL;
         (*p)->name = new_symbol->name;
         (*p)->addr = symbol.st_value;
 	(*p)->already_added = false;
 	symbol_table[table_entries++] = new_symbol++;
       }
+      realloc(M_hash_list_pool, (hash_list_pool_next - M_hash_list_pool) * sizeof(hash_list_st));
       delete [] symbols;
       break;							// There *should* only be one symbol table section.
     }
@@ -1188,13 +1234,11 @@ void objfile_ct::delete_hash_list(void)
 {
   if (M_hash_list)
   {
-    for(unsigned int i = 0; i < hash_table_size; ++i)
-      for(hash_list_st* p = M_hash_list[i]; p;)
-      {
-	hash_list_st* np = p->next;
-	delete p;
-	p = np;
-      }
+    if (M_hash_list_pool)
+    {
+      free(M_hash_list_pool);
+      M_hash_list_pool = NULL;
+    }
     delete [] M_hash_list;
     M_hash_list = NULL;
   }
@@ -1202,6 +1246,9 @@ void objfile_ct::delete_hash_list(void)
 
 void objfile_ct::load_dwarf(void)
 {
+#if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
+#endif
   uint32_t total_length;
   if (DEBUGDWARF)
   {
@@ -1239,12 +1286,15 @@ void objfile_ct::load_dwarf(void)
     dwarf_read(debug_info_ptr, length);
     if (DEBUGDWARF)
     {
+      LIBCWD_TSD_DECLARATION;
+      _private_::set_alloc_checking_on(LIBCWD_TSD);	// Needed for Dout().
       Dout(dc::bfd, "debug_info_ptr = " << (void*)debug_info_ptr << "; debug_info_end = " << (void*)debug_info_end);
       Dout(dc::bfd, "length = " << length);
       total_length += length + 4;
       Dout(dc::bfd, "total length = " << total_length << " (of " <<
 	  M_sections[M_dwarf_debug_info_section_index].section_header().sh_size << ").");
       LIBCWD_ASSERT( total_length <= M_sections[M_dwarf_debug_info_section_index].section_header().sh_size );
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
     }
     uint16_t version;
     dwarf_read(debug_info_ptr, version);
@@ -1307,7 +1357,13 @@ void objfile_ct::load_dwarf(void)
 	// In the case that I am mistaken about that, we load it all.
 	if (abbrev.tag == DW_TAG_compile_unit && abbrev.code == 1)
 	  break;
-        Dout(dc::warning, "Please mail libcw@alinoe.com that DW_TAG_compile_unit is not the first abbrev in your case.");
+	else
+	{
+	  LIBCWD_TSD_DECLARATION; 
+	  _private_::set_alloc_checking_on(LIBCWD_TSD);
+	  Dout(dc::warning, "Please mail libcw@alinoe.com that DW_TAG_compile_unit is not the first abbrev in your case.");
+	  _private_::set_alloc_checking_off(LIBCWD_TSD);
+	}
 #endif
       }
 
@@ -1811,7 +1867,10 @@ indirect:
     }
     else
     {
+      LIBCWD_TSD_DECLARATION;
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
       Dout(dc::warning, "DWARF version " << version << " is not understood by libcwd.");
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
       debug_info_ptr += length - sizeof(version);
     }
   }
@@ -1828,6 +1887,9 @@ indirect:
 
 void objfile_ct::load_stabs(void)
 {
+#if DEBUGSTABS
+  LIBCWD_TSD_DECLARATION;
+#endif
   if (DEBUGSTABS)
   {
     static bool stabs_debug_info_loaded = false;
@@ -1872,8 +1934,7 @@ void objfile_ct::load_stabs(void)
 	  if (filename[strlen(filename) - 1] == '/')
 	  {
 	    cur_dir.assign(filename);
-	    if (DEBUGSTABS)
-	      Dout(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_dir << "\".");
+	    DoutStabs(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_dir << "\".");
 	    break;
 	  }
 	  else
@@ -1889,14 +1950,12 @@ void objfile_ct::load_stabs(void)
 	last_source_iter = M_source_files.insert(cur_source).first; 
 	source_file_changed_and_we_didnt_copy_it_yet = source_file_changed_but_line_number_not_yet = true;
 	last_source_change_start = range.start;
-	if (DEBUGSTABS)
-	  Dout(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
+	DoutStabs(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
 	break;
       }
       case N_LBRAC:
       {
-	if (DEBUGSTABS)
-	  Dout(dc::bfd, "N_LBRAC: " << std::hex << stabs[j].n_value << '.');
+        DoutStabs(dc::bfd, "N_LBRAC: " << std::hex << stabs[j].n_value << '.');
 	if (stabs[j].n_value == 0)		// Fix me: shouldn't be done (yet) while function start == source file start.
 	  M_brac_relative_to_fun = true;
 	break;
@@ -1904,12 +1963,10 @@ void objfile_ct::load_stabs(void)
       case N_RBRAC:	// We assume that the first N_RBRACE comes AFTER the last N_SLINE,
       			// see http://www.informatik.uni-frankfurt.de/doc/texi/stabs_2.html#SEC14
       {
-	if (DEBUGSTABS)
-	  Dout(dc::bfd, "N_RBRAC: " << std::hex << stabs[j].n_value << '.');
+	DoutStabs(dc::bfd, "N_RBRAC: " << std::hex << stabs[j].n_value << '.');
 	if (location.is_valid_stabs())
 	{
-	  if (DEBUGSTABS)
-	    Dout(dc::bfd, "N_RBRAC: " << "end at " << std::hex << stabs[j].n_value << '.');
+	  DoutStabs(dc::bfd, "N_RBRAC: " << "end at " << std::hex << stabs[j].n_value << '.');
 	  range.size = 0;			// The closing brace has size 0...
 	  if (!skip_function)
 	    location.stabs_range(range);
@@ -1935,8 +1992,7 @@ void objfile_ct::load_stabs(void)
 	{
 	  if (location.is_valid_stabs())	// Location is invalidated when we already processed the end of the function by N_RBRAC.
 	  {
-	    if (DEBUGSTABS)
-	      Dout(dc::bfd, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
+	    DoutStabs(dc::bfd, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
 	    range.size = func_addr + stabs[j].n_value - range.start;
 	    if (!skip_function)
 	      location.stabs_range(range);
@@ -1957,8 +2013,7 @@ void objfile_ct::load_stabs(void)
 	  cur_func.assign(fn, fn_len);
 	  cur_func += '\0';
 	  range.start = func_addr = stabs[j].n_value;
-          if (DEBUGSTABS)
-	    Dout(dc::bfd, "N_FUN: " << std::hex << func_addr << " : \"" << &stabs_string_table[stabs[j].n_strx] << "\".");
+	  DoutStabs(dc::bfd, "N_FUN: " << std::hex << func_addr << " : \"" << &stabs_string_table[stabs[j].n_strx] << "\".");
 	  if (func_addr == 0 && location.is_valid_stabs())
 	  {
 	    // Start of function is not given (bug in assembler?), try to find it by name:
@@ -1983,8 +2038,8 @@ void objfile_ct::load_stabs(void)
 	      location.invalidate();
 	      break;
 	    }
-	    else if (DEBUGSTABS)
-	      Dout(dc::bfd, "Hash lookup: " << std::hex << range.start << '.');
+	    else
+	      DoutStabs(dc::bfd, "Hash lookup: " << std::hex << range.start << '.');
 	  }
 #if DEBUGSTABS
 	  else
@@ -2010,8 +2065,7 @@ void objfile_ct::load_stabs(void)
 	break;
       }
       case N_SLINE:
-        if (DEBUGSTABS)
-	  Dout(dc::bfd, "N_SLINE: " << stabs[j].n_desc << " at " << std::hex << stabs[j].n_value << '.');
+	DoutStabs(dc::bfd, "N_SLINE: " << stabs[j].n_desc << " at " << std::hex << stabs[j].n_value << '.');
 	if (stabs[j].n_value != 0)
 	{
 	  // Always false when function was changed since last line because location.invalidate() was called in that case.
@@ -2151,13 +2205,18 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 #if !DEBUGSTABS && !DEBUGDWARF
   M_ranges.insert(std::pair<range_st, location_st>(range, location));
 #else
+  LIBCWD_TSD_DECLARATION;
   if ((DEBUGDWARF && M_dwarf_debug_line_section_index)
       || (DEBUGSTABS && M_stabs_section_index))
+  {
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
     Dout(dc::bfd, std::hex << range.start << " - " << (range.start + range.size) << "; " << location << '.');
-
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+  }
   std::pair<object_files_range_location_map_ct::iterator, bool> p(M_ranges.insert(std::pair<range_st, location_st>(range, location)));
   if (!p.second)
   {
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
     if ((*p.first).second.M_func_iter != location.M_func_iter)
       Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
     else
@@ -2171,6 +2230,7 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
       if ((*p.first).second.M_source_iter != location.M_source_iter)
         Dout(dc::bfd, "Collision with " << *p.first << ".");
     }
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
   }
 #endif
 }
@@ -2209,7 +2269,11 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
   M_input_stream->read(reinterpret_cast<char*>(section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   if (DEBUGELF32)
+  {
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
     Dout(dc::bfd, "Number of section headers: " << M_header.e_shnum);
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+  }
   LIBCWD_ASSERT( section_headers[M_header.e_shstrndx].sh_size > 0
       && section_headers[M_header.e_shstrndx].sh_size >= section_headers[M_header.e_shstrndx].sh_name );
   M_section_header_string_table = new char[section_headers[M_header.e_shstrndx].sh_size]; 
@@ -2232,7 +2296,11 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
   for(int i = 0; i < M_header.e_shnum; ++i)
   {
     if (DEBUGELF32 && section_headers[i].sh_name)
+    {
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
       Dout(dc::bfd, "Section name: \"" << &M_section_header_string_table[section_headers[i].sh_name] << '"');
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+    }
     M_sections[i].init(M_section_header_string_table, section_headers[i], shared_library);
     if (!strcmp(M_sections[i].name, ".strtab"))
       M_symbol_string_table = allocate_and_read_section(i);
@@ -2265,8 +2333,10 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
   }
   if (DEBUGELF32)
   {
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
     Debug( libcw_do.dec_indent(4) );
     Dout(dc::bfd, "Number of symbols: " << M_number_of_symbols);
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
   }
   delete [] section_headers;
 }

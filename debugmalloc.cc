@@ -1170,7 +1170,6 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
 #endif
 #if CWDEBUG_LOCATION
   LibcwDoutScopeBegin(channels, debug_object, dc::continued);
-  _private_::set_alloc_checking_off(LIBCWD_TSD);			// FIXME is it ok to turn it off here?
   if (filter.M_flags & show_objectfile)
   {
     object_file_ct const* object_file = M_location->object_file();
@@ -1208,17 +1207,25 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
   }
   else if (M_location->mangled_function_name() != unknown_function_c)
   {
-    _private_::internal_string f;
-    _private_::demangle_symbol(M_location->mangled_function_name(), f);
-    size_t s = f.size();
-    LibcwDoutStream.write(f.data(), s);
+    size_t s;
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+    do
+    {
+      _private_::internal_string f;
+      _private_::demangle_symbol(M_location->mangled_function_name(), f);
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+      s = f.size();
+      LibcwDoutStream.write(f.data(), s);
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+    }
+    while(0);
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
     if (s < 25)
       LibcwDoutStream.write(twentyfive_spaces_c, 25 - s);
     LibcwDoutStream.put(' ');
   }
   else
     LibcwDoutStream.write(twentyfive_spaces_c, 25);
-  _private_::set_alloc_checking_on(LIBCWD_TSD);
   LibcwDoutScopeEnd;
 #endif
 
@@ -1718,6 +1725,7 @@ static bool search_in_maps_of_other_threads(void const* ptr, memblk_map_ct::cons
     if (thread_iter == __libcwd_tsd.thread_iter)
       continue;	// Already searched.
     ACQUIRE_READ_LOCK(&(*thread_iter));
+    DEBUGDEBUG_CERR("Looking inside memblk_map " << (void*)target_memblk_map_read << "(thread_ct at  " << (void*)__libcwd_tsd.target_thread << ", thread_iter at " << (void*)&thread_iter << ')');
     iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
     found = (iter != target_memblk_map_read->end());
     if (found)
@@ -1726,6 +1734,82 @@ static bool search_in_maps_of_other_threads(void const* ptr, memblk_map_ct::cons
   }
   rwlock_tct<threadlist_instance>::rdunlock();
   return found;
+}
+#endif
+
+#if CWDEBUG_DEBUGM && CWDEBUG_MAGIC
+#if LIBCWD_THREAD_SAFE
+static pthread_mutex_t annotation_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+static size_t internal_size;
+static size_t max_internal_size;
+static int internal_size_count;
+static int sizes[100000];
+static int max_size_nr[8];
+static size_t max_size_nr_size[8];
+static void annotation_alloc(size_t size)
+{
+#if LIBCWD_THREAD_SAFE
+  pthread_mutex_lock(&annotation_lock);
+#endif
+  internal_size += size;
+  if (size < 100000)
+  {
+    sizes[size] += 1;
+    for (int i = 0; i < 8; ++i)
+    {
+      if (sizes[size] > max_size_nr[i])
+      {
+	max_size_nr[i] = sizes[size];
+	int j = i;
+	while (j > 0)
+	{
+	  if (max_size_nr[j] < max_size_nr[j - 1])
+	    break;
+	  int t = max_size_nr[j];
+	  max_size_nr[j - 1] = max_size_nr[j];
+	  max_size_nr[j] = t;
+	  size_t s = max_size_nr_size[j];
+	  max_size_nr_size[j - 1] = max_size_nr_size[j];
+	  max_size_nr_size[j] = s;
+	  --j;
+	}
+	DEBUGDEBUG_CERR("ANNOTATION: Got " << max_size_nr[i] << " blocks of size " << size << " (from " << (void*)__builtin_return_address(1) << ")");
+	max_size_nr_size[i] = size;
+      }
+      if (size == max_size_nr_size[i])
+        break;
+    }
+  }
+  if (internal_size > max_internal_size || ++internal_size_count > 4000)
+  {
+    if (internal_size_count > 4000)
+    {
+      DEBUGDEBUG_CERR("ANNOTATION: Resetting internal allocation annotations.");
+      memset(max_size_nr, 0 , sizeof(max_size_nr));
+      memset(max_size_nr_size, 0 , sizeof(max_size_nr_size));
+    }
+    internal_size_count = 0;
+    max_internal_size = internal_size;
+    DEBUGDEBUG_CERR("ANNOTATION: max_internal_size now " << max_internal_size);
+  }
+#if LIBCWD_THREAD_SAFE
+  pthread_mutex_unlock(&annotation_lock);
+#endif
+}
+
+static void annotation_free(size_t size)
+{
+#if LIBCWD_THREAD_SAFE
+  pthread_mutex_lock(&annotation_lock);
+#endif
+  internal_size -= size;
+  if (size < 100000)
+    sizes[size] -= 1;
+#if LIBCWD_THREAD_SAFE
+  pthread_mutex_unlock(&annotation_lock);
+#endif
 }
 #endif
 
@@ -1786,6 +1870,14 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     }
     ((size_t*)ptr)[0] ^= (size_t)-1;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] ^= (size_t)-1;
+#if CWDEBUG_DEBUGM
+    if (!__libcwd_tsd.annotation)
+    {
+      __libcwd_tsd.annotation = 1;
+      annotation_free(((size_t*)ptr)[1]);
+      __libcwd_tsd.annotation = 0;
+    }
+#endif
 #endif // CWDEBUG_MAGIC
     __libc_free(ptr);
     return;
@@ -2134,15 +2226,22 @@ void* new_memblk_map(LIBCWD_TSD_PARAM)
 
 bool delete_memblk_map(void* ptr LIBCWD_COMMA_TSD_PARAM)
 {
-  // Already internal.  Called from thread_ct::tsd_destroyed()
+  DEBUGDEBUG_CERR("Entering delete_memblk_map()");
+  // Already internal.  Called from thread_ct::terminated()
   memblk_map_ct* memblk_map = reinterpret_cast<memblk_map_ct*>(ptr);
-  bool deleted = false;
+  bool deleted;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
   if (memblk_map->size() == 0)
   {
+    DEBUGDEBUG_CERR("Destroying memblk_map " << (void*)memblk_map);
     delete memblk_map;
     deleted = true;
+  }
+  else
+  {
+    DEBUGDEBUG_CERR("Terminated thread with " << memblk_map->size() << " blocks still allocated.");
+    deleted = false;
   }
   RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL;
@@ -2415,7 +2514,7 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
     ACQUIRE_READ_LOCK(&(*thread_iter));
     total_memsize += MEMSIZE;
     total_memblks += MEMBLKS;
-    if ((MEMBLKS == 0 && ((*thread_iter).is_zombie() || (*thread_iter).tsd->terminated)) ||
+    if ((MEMBLKS == 0 && (*thread_iter).is_terminating()) ||
 	(!(filter.M_flags & show_allthreads) && thread_iter != __libcwd_tsd.thread_iter))
     {
       RELEASE_READ_LOCK;
@@ -3055,6 +3154,14 @@ void* __libcwd_malloc(size_t size)
     ((size_t*)ptr)[1] = size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
     LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_malloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+#if CWDEBUG_DEBUGM
+    if (!__libcwd_tsd.annotation)
+    {
+      __libcwd_tsd.annotation = 1;
+      annotation_alloc(size);
+      __libcwd_tsd.annotation = 0;
+    }
+#endif
     return static_cast<size_t*>(ptr) + 2;
 #endif // CWDEBUG_MAGIC
 
@@ -3166,6 +3273,14 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
     ((size_t*)ptr)[1] = nmemb * size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(nmemb * size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
     LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_calloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+#if CWDEBUG_DEBUGM
+    if (!__libcwd_tsd.annotation)
+    {
+      __libcwd_tsd.annotation = 1;
+      annotation_alloc(nmemb * size);
+      __libcwd_tsd.annotation = 0;
+    }
+#endif
     return static_cast<size_t*>(ptr) + 2;
 #endif // CWDEBUG_MAGIC
 
@@ -3239,6 +3354,14 @@ void* __libcwd_realloc(void* ptr, size_t size)
       if (((size_t*)ptr)[0] != INTERNAL_MAGIC_MALLOC_BEGIN ||
 	  ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
 	DoutFatalInternal( dc::core, "internal realloc: magic number corrupt!" );
+#if CWDEBUG_DEBUGM
+      if (!__libcwd_tsd.annotation)
+      {
+	__libcwd_tsd.annotation = 1;
+	annotation_free(((size_t*)ptr)[1]);
+	__libcwd_tsd.annotation = 0;
+      }
+#endif
       if (size == 0)
       {
         __libc_free(ptr);
@@ -3253,6 +3376,14 @@ void* __libcwd_realloc(void* ptr, size_t size)
     ((size_t*)ptr1)[1] = size;
     ((size_t*)(static_cast<char*>(ptr1) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
     LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_realloc': " << static_cast<size_t*>(ptr1) + 2 << " [" << saved_marker << ']' );
+#if CWDEBUG_DEBUGM
+    if (!__libcwd_tsd.annotation)
+    {
+      __libcwd_tsd.annotation = 1;
+      annotation_alloc(size);
+      __libcwd_tsd.annotation = 0;
+    }
+#endif
     return static_cast<size_t*>(ptr1) + 2;
 #endif // CWDEBUG_MAGIC
 
@@ -3528,6 +3659,14 @@ void* operator new(size_t size) throw (std::bad_alloc)
     ((size_t*)ptr)[1] = size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_NEW_END;
     LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `operator new': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+#if CWDEBUG_DEBUGM
+    if (!__libcwd_tsd.annotation)
+    {
+      __libcwd_tsd.annotation = 1;
+      annotation_alloc(size);
+      __libcwd_tsd.annotation = 0;
+    }
+#endif
     return static_cast<size_t*>(ptr) + 2;
 #endif // CWDEBUG_MAGIC
 
@@ -3629,6 +3768,14 @@ void* operator new[](size_t size) throw (std::bad_alloc)
     ((size_t*)ptr)[1] = size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_NEW_ARRAY_END;
     LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `operator new[]': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+#if CWDEBUG_DEBUGM
+    if (!__libcwd_tsd.annotation)
+    {
+      __libcwd_tsd.annotation = 1;
+      annotation_alloc(size);
+      __libcwd_tsd.annotation = 0;
+    }
+#endif
     return static_cast<size_t*>(ptr) + 2;
 #endif // CWDEBUG_MAGIC
 

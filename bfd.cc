@@ -941,21 +941,37 @@ void bfd_close(bfd* abfd)
       // cwbfd::
       void dump_object_file_symbols(bfile_ct const* object_file)
       {
-	std::cout << std::setiosflags(std::ios_base::left) << std::setw(15) << "Start address" << std::setw(50) << "File name" << std::setw(20) << "Number of symbols\n";
-	std::cout << "0x" << std::setfill('0') << std::setiosflags(std::ios_base::right) << std::setw(8) << std::hex << (unsigned long)object_file->get_lbase() << "     ";
-	std::cout << std::setfill(' ') << std::setiosflags(std::ios_base::left) << std::setw(50) << object_file->get_bfd()->filename;
-	std::cout << std::dec << std::setiosflags(std::ios_base::left);
-	std::cout << object_file->get_number_of_symbols() << std::endl;
-
-	std::cout << std::setiosflags(std::ios_base::left) << std::setw(12) << "Start";
-	std::cout << ' ' << std::setiosflags(std::ios_base::right) << std::setw(6) << "Size" << ' ';
+	std::cout << std::setiosflags(std::ios::left) <<
+	             std::setw(15) << "Start address" <<
+	             std::setw(50) << "File name" <<
+		     std::setw(20) << "Number of symbols" <<
+		     std::resetiosflags(std::ios::left) << '\n';
+	std::cout << "0x" << std::setfill('0') << std::setiosflags(std::ios::right) <<
+	             std::setw(8) << std::hex << (unsigned long)object_file->get_lbase() <<
+		     std::resetiosflags(std::ios::right) << "     ";
+	std::cout << std::setfill(' ') << std::setiosflags(std::ios::left) <<
+	             std::setw(50) << object_file->get_bfd()->filename <<
+	             std::dec << object_file->get_number_of_symbols() <<
+		     std::resetiosflags(std::ios::left) << '\n';
+	std::cout << std::setiosflags(std::ios::left) <<
+	             std::setw(12) << "Start" <<
+		     std::resetiosflags(std::ios::left) <<
+	             ' ' << std::setiosflags(std::ios::right) <<
+		     std::setw(6) << "Size" << ' ' <<
+		     std::resetiosflags(std::ios::right);
 	std::cout << "Name value flags\n";
 	asymbol** symbol_table = object_file->get_symbol_table();
 	for (long n = object_file->get_number_of_symbols() - 1; n >= 0; --n)
 	{
-	  std::cout << std::setiosflags(std::ios_base::left) << std::setw(12) << (void*)symbol_start_addr(symbol_table[n]);
-	  std::cout << ' ' << std::setiosflags(std::ios_base::right) << std::setw(6) << symbol_size(symbol_table[n]) << ' ';
-	  std::cout << symbol_table[n]->name << ' ' << (void*)symbol_table[n]->value << ' ' << std::oct << symbol_table[n]->flags << std::endl;
+	  std::cout << std::setiosflags(std::ios::left) <<
+	               std::setw(12) << (void*)symbol_start_addr(symbol_table[n]) <<
+		       std::resetiosflags(std::ios::left);
+	  std::cout << ' ' << std::setiosflags(std::ios::right) <<
+	               std::setw(6) << symbol_size(symbol_table[n]) << ' ' <<
+	               symbol_table[n]->name <<
+		       ' ' << (void*)symbol_table[n]->value <<
+		       ' ' << std::oct << symbol_table[n]->flags <<
+		       std::resetiosflags(std::ios::right) << std::endl;
 	}
       }
 #endif
@@ -1036,7 +1052,7 @@ void bfd_close(bfd* abfd)
 	    DoutFatal(dc::core, "Configuration of libcwd detected _rtld_global, but I can't find it now?!");
           dl_loaded_ptr = &rtld_global_ptr->_dl_loaded;
 #else
-	  dl_loaded_ptr = ::dlsym(handle, "_dl_loaded");
+	  dl_loaded_ptr = (link_map**)::dlsym(handle, "_dl_loaded");
 	  if (!dl_loaded_ptr)
 	    DoutFatal(dc::core, "Configuration of libcwd detected _dl_loaded, but I can't find it now?!");
 #endif

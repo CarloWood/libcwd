@@ -2,10 +2,10 @@ libcwd-0.99.31
 
 	Support for the Native POSIX Threads Library (NPTL)
 	was added.  0.99.30 did work with glibc-2.3.2 but
-	only with LD_ASSUME_KERNEL set to a kernel that
-	didn't support NPTL.  The development kernel 2.5
-	and the kernel that is distributed with RedHat 9
-	do support NPTL and therefore need this version.
+	only with LD_ASSUME_KERNEL set to "2.2.5" (no NPTL).
+	The development kernel 2.5 and the kernel that is
+	distributed with RedHat 9 do support NPTL and therefore
+	need this version.
 
 	API changes:
 
@@ -14,11 +14,15 @@ libcwd-0.99.31
 
 	Bug fixes:
 
-        debug_tsd_st::finish accessed a bit in just a memory
-	block that was just freed.  As a result the 'flush_cf'
+        debug_tsd_st::finish accessed a bit in a memory block
+	that was just freed.  As a result the 'flush_cf'
 	control flag could be propagated wrongly from an
 	'interupted' debug output to the output that it
 	interupted.
+
+	TLS symbols in a TLS enabled library (i.e. glibc-2.3.2 
+	of RedHat 9) did confuse libcwd and could lead to a
+	wrong function name being resolved for a given address.
 
 libcwd-0.99.30
 

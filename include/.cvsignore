@@ -2,3 +2,4 @@ Makefile
 Makefile.in
 sys.ho
 sys.h
+timestamp-sys.h

@@ -2,5 +2,7 @@ Makefile
 Makefile.in
 config.ho
 config.h
+timestamp-config.h
 sys.ho
 sys.h
+timestamp-sys.h

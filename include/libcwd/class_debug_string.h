@@ -64,6 +64,7 @@ private:
 
 private:
   void NS_internal_init(char const* s, size_t l);
+  void debug_string_ct::deinitialize(void);
   debug_string_ct(void) { }
   ~debug_string_ct(void);
 

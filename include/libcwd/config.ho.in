@@ -320,7 +320,6 @@
 namespace libcw {
   namespace debug {
 
-extern unsigned long const config_signature_lib_c;
 static unsigned long const config_signature_header_c =
 	(
 #if CWDEBUG_ALLOC
@@ -347,8 +346,12 @@ static unsigned long const config_signature_header_c =
 #if CWDEBUG_MARKER
 	128|
 #endif
-	(256 * (@VERSION_MAJOR@ + 256 * (@VERSION_MINOR@ + 256 * @VERSION_REVISION@))));
+#if CWDEBUG_DEBUGOUTPUT
+	256|
+#endif
+	(512 * (@VERSION_MAJOR@ + 128 * (@VERSION_MINOR@ + 128 * @VERSION_REVISION@))));
 
+extern unsigned long get_config_signature_lib_c(void) __attribute__((const));
 extern void conf_check_failed(void);
 extern void version_check_failed(void);
 
@@ -368,9 +371,9 @@ extern void version_check_failed(void);
 __inline__
 void
 check_configuration(void) {
-  if (config_signature_lib_c != config_signature_header_c)
+  if (get_config_signature_lib_c() != config_signature_header_c)
   {
-    if (config_signature_lib_c / 128 != config_signature_header_c / 128)
+    if (get_config_signature_lib_c() / 512 != config_signature_header_c / 512)
       version_check_failed();
     else
       conf_check_failed();

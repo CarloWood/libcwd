@@ -67,55 +67,6 @@
 #endif // NEED_G_CONFIG_H_MACROS
 #endif // HAVE__G_CONFIG_H
 
-// Fixes for gcc-2.96 and earlier.
-
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-#define __GXX_ABI_VERSION 0
-#include <streambuf.h>
-namespace std {
-  class ios_base : private ios {
-  public:
-    using ios::fmtflags;
-    ios::dec;
-    ios::fixed;
-    ios::hex;
-    ios::internal;
-    ios::left;
-    ios::oct;
-    ios::right;
-    ios::scientific;
-    ios::showbase;
-    ios::showpoint;
-    ios::showpos;
-    ios::skipws;
-    ios::unitbuf;
-    ios::uppercase;
-    ios::adjustfield;
-    ios::basefield;
-    ios::floatfield;
- 
-    using ios::iostate;
-    ios::badbit;
-    ios::eofbit;
-    ios::failbit;
-    ios::goodbit;
- 
-    using ios::openmode;
-    ios::app;
-    ios::ate;
-    ios::binary;
-    ios::in;
-    ios::out;
-    ios::trunc;
- 
-    using ios::seekdir;
-    ios::beg;
-    ios::cur;
-    ios::end;
-  };
-}
-#endif
-
 #include <libcwd/sys.h>
 
 #endif // SYS_H

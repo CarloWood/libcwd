@@ -46,8 +46,15 @@ struct TSD_st;
 //
 
 class thread_ct {
+
 public:
-  TSD_st* tsd;                  	// Pointer to thread specific data of this thread or NULL when thread is no longer running.
+#if CWDEBUG_ALLOC
+typedef std::list<thread_ct, internal_allocator::rebind<thread_ct>::other> threadlist_type;
+#else
+typedef std::list<thread_ct> threadlist_type;
+#endif
+
+public:
   mutex_ct thread_mutex;		// Mutex for the attributes of this object.
 #if CWDEBUG_ALLOC
   void* memblk_map;             	// Pointer to memblk_map_ct of this thread.
@@ -58,21 +65,21 @@ public:
   size_t memsize;			// Total number of allocated bytes (excluding internal allocations).
   unsigned long memblks;		// Total number of allocated blocks (excluding internal allocations).
 #endif
-  pthread_t tid;			// Thread ID.
+  pthread_t tid;			// Thread ID.  This is only used to print the ID list_allocations_on, and to
+  					// terminate all threads in a DoutFatal(dc::fatal, ...).
+  bool M_zombie;
+  bool M_terminating;
 
-  thread_ct(TSD_st* tsd_ptr);
-  void initialize(TSD_st* tsd_ptr);
-  void tsd_destroyed(void);
-  bool is_zombie(void) const { return !tsd; }
+  void initialize(LIBCWD_TSD_PARAM);	// May only be called after the object reached its final place in memory.
+  void terminated(threadlist_type::iterator LIBCWD_COMMA_TSD_PARAM);
+  bool is_zombie(void) const { return M_zombie; }
+  void terminating(void) { M_terminating = true; }
+  bool is_terminating(void) const { return M_terminating; }
 };
 
 // The list of threads.
 // New thread objects are added in TSD_st::S_initialize.
-#if CWDEBUG_ALLOC
-typedef std::list<thread_ct, internal_allocator::rebind<thread_ct>::other> threadlist_t;
-#else
-typedef std::list<thread_ct> threadlist_t;
-#endif
+typedef thread_ct::threadlist_type threadlist_t;
 extern threadlist_t* threadlist;
 
     } // namespace _private_

@@ -354,6 +354,12 @@ void allocator_unlock(void)
     // Configuration signature
     unsigned long const config_signature_lib_c = config_signature_header_c;
 
+    // Return the configuration signature of the .so file.
+    unsigned long get_config_signature_lib_c(void)
+    {
+      return config_signature_lib_c;
+    }
+
     // Put this here to decrease the code size of `check_configuration'
     void conf_check_failed(void)
     {
@@ -784,10 +790,19 @@ void allocator_unlock(void)
       M_str[M_size] = 0;
     }
 
-    debug_string_ct::~debug_string_ct(void)
+    // This is called with alloc checking off.
+    void debug_string_ct::deinitialize(void)
     {
       free(M_str);
       M_str = NULL;
+    }
+
+    // This is called with alloc checking on (or off).
+    debug_string_ct::~debug_string_ct(void)
+    {
+#if CWDEBUG_DEBUG
+      LIBCWD_ASSERT(M_str == NULL);	// Need to call debug_string_ct::deinitialize() before destructor.
+#endif
     }
 
     void debug_string_ct::internal_assign(char const* str, size_t len)
@@ -1175,7 +1190,7 @@ void allocator_unlock(void)
           // Terminate all threads that I know of, so that no locks will remain.
 	  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
 	    if (!pthread_equal((*thread_iter).tid, pthread_self()) && (_private_::WST_is_NPTL || (*thread_iter).tid != 1024))
-            pthread_cancel((*thread_iter).tid);
+              pthread_cancel((*thread_iter).tid);
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
 #endif
@@ -1374,14 +1389,22 @@ void allocator_unlock(void)
 
     debug_tsd_st::~debug_tsd_st()
     {
-      if (!tsd_initialized)	// Skip when it wasn't initialized.
+#ifndef _REENTRANT
+      // In the threaded case, we are called with `internal' set already.
+      set_alloc_checking_off();
+#endif
+      margin.deinitialize();
+      marker.deinitialize();
+#ifndef _REENTRANT
+      set_alloc_checking_on();
+#endif
+      if (!tsd_initialized)	// Skip the rest when it wasn't initialized.
 	return;
       // Sanity checks:
       if (continued_stack.size())
         DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty continued_stack (missing dc::finish?)" );
       if (laf_stack.size())
         DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty laf_stack" );
-      // Don't actually deinitialize anything.
     }
 
     /**

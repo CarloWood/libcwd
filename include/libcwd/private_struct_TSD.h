@@ -121,12 +121,15 @@ public:
   threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).
   bool thread_iter_valid;
   thread_ct* target_thread;
-  bool terminated;
+  int terminating;
   bool list_allocations_on_show_allthreads;
   int inside_free;			// Set when entering free().
 #endif
 #if CWDEBUG_DEBUGM
   int marker;
+#if CWDEBUG_MAGIC
+  int annotation;
+#endif
 #endif
   bool recursive_fatal;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
@@ -175,9 +178,6 @@ public:
   static TSD_st& instance(void);
   static TSD_st& instance_free(void);
   static void free_instance(TSD_st&);
-#ifdef CWDEBUG_DEBUGT
-  static TSD_st& instance_any(void);
-#endif
 #endif // LIBCWD_THREAD_SAFE
 };
 
@@ -210,15 +210,6 @@ TSD_st& TSD_st::instance_free(void)
     return S_create(1);
   else
     instance->inside_free++;
-  return *instance;
-}
-
-__inline__
-TSD_st& TSD_st::instance_any(void)
-{
-  TSD_st* instance;
-  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
-    return S_create(2);
   return *instance;
 }
 #endif

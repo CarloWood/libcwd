@@ -481,33 +481,37 @@ dnl Set up rpm directory when in maintainer mode
 CW_SETUP_RPM_DIRS
 
 dnl Generate include/libcwd/config.h, include/libcwd/sys.h and include/sys.h, preserving timestamp when they are not changed.
-AC_OUTPUT_COMMANDS([
+AC_CONFIG_FILES(include/libcwd/timestamp-config.h:include/libcwd/config.ho, [
 cd include/libcwd
-if echo "$CONFIG_FILES" | grep config.ho > /dev/null; then
-  if cmp -s config.h config.ho 2> /dev/null; then
-    echo "config.h is unchanged"
-  else
-    echo "creating config.h"
-    cp config.ho config.h
-  fi
+if cmp -s config.h config.ho 2> /dev/null; then
+  echo "config.h is unchanged"
+else
+  echo "creating config.h"
+  cp config.ho config.h
 fi
-if echo "$CONFIG_FILES" | grep sys.ho >/dev/null; then
-  if cmp -s sys.h sys.ho 2> /dev/null; then
-    echo "sys.h is unchanged"
-  else
-    echo "creating sys.h"
-    cp sys.ho sys.h
-  fi
+touch timestamp-config.h
+cd ../..
+])
+AC_CONFIG_FILES(include/libcwd/timestamp-sys.h:include/libcwd/sys.ho, [
+cd include/libcwd
+if cmp -s sys.h sys.ho 2> /dev/null; then
+  echo "sys.h is unchanged"
+else
+  echo "creating sys.h"
+  cp sys.ho sys.h
 fi
-cd ..
-if echo "$CONFIG_FILES" | grep sys.ho >/dev/null; then
-  if cmp -s sys.h sys.ho 2> /dev/null; then
-    echo "sys.h is unchanged"
-  else
-    echo "creating sys.h"
-    cp sys.ho sys.h
-  fi
+touch timestamp-sys.h
+cd ../..
+])
+AC_CONFIG_FILES(include/timestamp-sys.h:include/sys.ho, [
+cd include
+if cmp -s sys.h sys.ho 2> /dev/null; then
+  echo "sys.h is unchanged"
+else
+  echo "creating sys.h"
+  cp sys.ho sys.h
 fi
+touch timestamp-sys.h
 cd ..
 ])
 

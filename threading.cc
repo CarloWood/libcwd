@@ -104,29 +104,30 @@ static TSD_st* find_static_tsd(pthread_t tid)
   return NULL;
 }
 
-static TSD_st* allocate_static_tsd(pthread_t tid)
+static TSD_st* allocate_static_tsd(void)
 {
-  int oldest_terminated = INT_MAX;
-  size_t oldest_terminated_index;
+  int oldest_terminating = INT_MAX;
+  size_t oldest_terminating_index;
   for (size_t i = 0; i < sizeof(static_tsd_array)/sizeof(static_tsd_array[0]); ++i)
     if (static_tsd_array[i].tid == 0)
       return &static_tsd_array[i];
-    else if (static_tsd_array[i].terminated && !static_tsd_array[i].inside_free && static_tsd_array[i].terminated < oldest_terminated)
+    else if (static_tsd_array[i].terminating && !static_tsd_array[i].inside_free && static_tsd_array[i].terminating < oldest_terminating)
     {
-      oldest_terminated = static_tsd_array[i].terminated;
-      oldest_terminated_index = i;
+      oldest_terminating = static_tsd_array[i].terminating;
+      oldest_terminating_index = i;
     }
-  if (oldest_terminated == INT_MAX)	// This means that more than CW_THREADSMAX threads are either
+  if (oldest_terminating == INT_MAX)	// This means that more than CW_THREADSMAX threads are either
   {					// inside free() or initializing after just being created.
     std::cerr << "\n****** More threads than THREADSMAX.  Reconfigure libcwd ******\n" << std::endl;
     core_dump();
   }
-  return &static_tsd_array[oldest_terminated_index];
+  return &static_tsd_array[oldest_terminating_index];
 }
 
 static void release_static_tsd(TSD_st* tsd)
 {
   tsd->tid = 0;
+  tsd->thread_iter_valid = false;
 }
 
 pthread_key_t TSD_st::S_tsd_key;
@@ -135,7 +136,7 @@ pthread_once_t TSD_st::S_tsd_key_once = PTHREAD_ONCE_INIT;
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
 void threading_tsd_init(LIBCWD_TSD_PARAM);
 static TSD_st terminating_thread_tsd;
-static int terminated_count;
+static int terminating_count;
 
 extern bool WST_ios_base_initialized;
 
@@ -154,20 +155,18 @@ TSD_st& TSD_st::S_create(int from_free)
   {
     if (from_free == 1)
       static_tsd->inside_free++;
-    if (static_tsd->inside_free || !static_tsd->terminated)
+    if (static_tsd->inside_free || !static_tsd->terminating)
     {
       mutex_tct<static_tsd_instance>::unlock();
       pthread_setcanceltype(oldtype, NULL);
       return *static_tsd;
     }
   }
-  else if (from_free == 2)
-    // This is impossible because instance_any() can only be called while
-    // a (static) tsd was already allocated and marked as reserved; therefore
-    // we will always find it with the `find_static_tsd' above.
-    abort();
   else
-    static_tsd = allocate_static_tsd(_tid);
+    static_tsd = allocate_static_tsd();
+
+  bool old_thread_iter_valid = static_tsd->thread_iter_valid;
+  threadlist_t::iterator old_thread_iter = static_tsd->thread_iter;
 
   // Fill the temporary structure with zeroes.
   std::memset(static_tsd, 0, sizeof(struct TSD_st));
@@ -210,6 +209,8 @@ TSD_st& TSD_st::S_create(int from_free)
   {
     // Time to put the real TSD into place.
     set_alloc_checking_off(*static_tsd);
+    if (old_thread_iter_valid)
+      old_thread_iter->terminated(old_thread_iter, *static_tsd);
     real_tsd = new TSD_st;
     set_alloc_checking_on(*static_tsd);
     std::memcpy(real_tsd, static_tsd, sizeof(TSD_st));
@@ -231,9 +232,10 @@ TSD_st& TSD_st::S_create(int from_free)
     // static tsd was overwritten by another thread.  Just keep the current
     // static tsd instead of installing a pthread key.
     mutex_tct<static_tsd_instance>::lock();
-    static_tsd->terminated = ++terminated_count;
+    static_tsd->terminating = ++terminating_count;
     mutex_tct<static_tsd_instance>::unlock();
     real_tsd = static_tsd;
+    real_tsd->thread_iter->terminating();		// FIXME - what about the old thread_ct?
   }
 
   pthread_setcanceltype(oldtype, NULL);
@@ -276,7 +278,6 @@ void TSD_st::cleanup_routine(void)
     if (tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS - 1)
       return;
 #endif
-    set_alloc_checking_off(*this);
     for (int i = 0; i < LIBCWD_DO_MAX; ++i)
       if (do_array[i])
       {
@@ -284,19 +285,28 @@ void TSD_st::cleanup_routine(void)
 	do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
 	do_array[i] = NULL;			// So we won't free it again.
 	ptr->tsd_initialized = false;
+	internal = 1;
 	delete ptr;				// Free debug object TSD.
+	internal = 0;
       }
-    set_alloc_checking_on(*this);
+
     int oldtype;
     pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldtype);
     mutex_tct<static_tsd_instance>::lock();
-    TSD_st* static_tsd = allocate_static_tsd(tid);
-    std::memcpy(static_tsd, this, sizeof(TSD_st));		// Save a copy of the TSD.
-    static_tsd->terminated = ++terminated_count;
+    TSD_st* static_tsd = allocate_static_tsd();
+    std::memcpy(static_tsd, this, sizeof(TSD_st));	// Move tsd to the static array.
+    static_tsd->terminating = ++terminating_count;
+    static_tsd->thread_iter->terminating();
     mutex_tct<static_tsd_instance>::unlock();
     pthread_setcanceltype(oldtype, NULL);
-    this->internal = 1;
+
+    pthread_setspecific(S_tsd_key, (void*)0);	// Make sure that instance_free() won't use the KEY anymore!
+    // Then we can savely delete the current TSD.
+    static_tsd->internal = 1;			// We can't call set_alloc_checking_off, because with --enable-debugm
+    						// that will do a LIBCWD_TSD_DECLARATION, causing a new key
+						// to be generated.
     delete this;
+    static_tsd->internal = 0;
   }
 }
 
@@ -403,13 +413,13 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
 {
   LIBCWD_DEFER_CANCEL;
   rwlock_tct<threadlist_instance>::wrlock();
-  set_alloc_checking_off(__libcwd_tsd);
+  set_alloc_checking_off(LIBCWD_TSD);
   if (!threadlist)
     threadlist = new threadlist_t;
-  __libcwd_tsd.thread_iter = threadlist->insert(threadlist->end(), thread_ct(&__libcwd_tsd));
+  __libcwd_tsd.thread_iter = threadlist->insert(threadlist->end(), thread_ct());
   __libcwd_tsd.thread_iter_valid = true;
-  (*__libcwd_tsd.thread_iter).initialize(&__libcwd_tsd);
-  set_alloc_checking_on(__libcwd_tsd);
+  __libcwd_tsd.thread_iter->initialize(LIBCWD_TSD);
+  set_alloc_checking_on(LIBCWD_TSD);
   rwlock_tct<threadlist_instance>::wrunlock();
   LIBCWD_RESTORE_CANCEL;
 }
@@ -420,72 +430,74 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
 // (see thread_ct::initialize) will use allocator_adaptor<> which will
 // try to dereference TSD_st::thread_iter which is not initialized yet because
 // this object isn't yet added to threadlist at the moment of its construction.
-thread_ct::thread_ct(TSD_st* tsd_ptr)
-{
-  std::memset(this, 0 , sizeof(thread_ct));		// This is ok: we have no virtual table or base classes.
-  tsd = tsd_ptr;
-  tid = tsd->tid;
-}
-
-// Initialization of a freshly added thread_ct.
 // The threadlist_instance mutex needs to be locked
 // before insertion of the thread_ct takes place and
-// not be unlocked untill initialization of the object
+// not be unlocked until initialization of the object
 // has finished.
 #if CWDEBUG_ALLOC
 extern void* new_memblk_map(LIBCWD_TSD_PARAM);
 #endif
-void thread_ct::initialize(TSD_st* tsd_ptr)
+void thread_ct::initialize(LIBCWD_TSD_PARAM)
 {
 #if CWDEBUG_ALLOC
 #if CWDEBUG_DEBUGT
-  if (!tsd_ptr->internal || !is_locked(threadlist_instance))
+  if (!__libcwd_tsd.internal || !is_locked(threadlist_instance))
     core_dump();
 #endif
-  current_alloc_list =  &base_alloc_list;
+  std::memset(this, 0 , sizeof(thread_ct));		// This is ok: we have no virtual table or base classes.
+  current_alloc_list =  &base_alloc_list;		// This is why we may only initialize thread_ct after
+  							// it reached it final place, and may not move the object
+							// anymore after that!
 #endif
   thread_mutex.initialize();
 #if CWDEBUG_ALLOC
-  thread_mutex.lock();			// Need to be lock because the othewise sanity_check() of the maps allocator will fail.
-  					// Its not really necessary to lock of course, because threadlist_instance is locked as
-					// well and thus this is the only thread that could possibly access the map.
+  thread_mutex.lock();		// Need to be locked because otherwise sanity_check() of the maps allocator will fail.
+  				// Its not really necessary to lock of course, because threadlist_instance is locked as
+				// well and thus this is the only thread that could possibly access the map.
   // new_memblk_map allocates a new map<> for the current thread.
   // The implementation of new_memblk_map resides in debugmalloc.cc.
-  memblk_map = new_memblk_map(*tsd_ptr);
+  memblk_map = new_memblk_map(LIBCWD_TSD);
+  DEBUGDEBUG_CERR("My memblk_map is " << (void*)memblk_map << " (thread_ct at " << (void*)this << ", thread_iter at " << (void*)&__libcwd_tsd.thread_iter << ", __libcwd_tsd at " << (void*)&__libcwd_tsd << ')');
   thread_mutex.unlock();
 #endif
+  tid = __libcwd_tsd.tid;
 }
 
 // This member function is called when the TSD_st structure
 // is being reused, which is currently our only way to know
 // for sure that the corresponding thread has terminated.
 extern bool delete_memblk_map(void* memblk_map LIBCWD_COMMA_TSD_PARAM);
-void thread_ct::tsd_destroyed(void)
+void thread_ct::terminated(threadlist_t::iterator thread_iter LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_ALLOC
+  set_alloc_checking_off(LIBCWD_TSD);
 #if CWDEBUG_DEBUGT
-  if (!tsd->internal)
-    core_dump();
+  // Cancel is already defered (we're called from TSD_st::S_create).
+  __libcwd_tsd.cancel_explicitely_deferred++;
 #endif
   // Must lock the threadlist because we might delete the map (if it is empty)
   // at which point another thread shouldn't be trying to search that map,
   // looping over all elements of threadlist.
-  // Cancel is already defered (we're called from TSD_st::S_initialize).
   rwlock_tct<threadlist_instance>::wrlock();
   // delete_memblk_map will delete memblk_map (which is actually a
   // pointer to the type memblk_map_ct) if the map is empty and
   // return true, or it does nothing and returns false.
   // Also this function is implemented in debugmalloc.cc because
   // memblk_map_ct is undefined here.
-  if (delete_memblk_map(memblk_map, *tsd))	// Returns true if memblk_map was deleted.
+  if (delete_memblk_map(memblk_map, LIBCWD_TSD))	// Returns true if memblk_map was deleted.
   {
-    threadlist->erase(tsd->thread_iter);	// We're done with this thread object.
-    tsd->thread_iter_valid = false;
+    DEBUGDEBUG_CERR("Erasing from threadlist memblk_map " << (void*)thread_iter->memblk_map << " (thread_ct at " << (void*)&(*thread_iter) << " which should be equal to " << (void*)this << ", [old_]thread_iter at " << (void*)&thread_iter << ')');
+    threadlist->erase(thread_iter);			// We're done with this thread object.
   }
-  rwlock_tct<threadlist_instance>::wrunlock();
-#endif
-  tsd = NULL;					// This causes the memblk_map to be deleted as soon as the last
+  else
+    M_zombie = true;				// This causes the memblk_map to be deleted as soon as the last
   						// allocation belonging to this thread is freed.
+  rwlock_tct<threadlist_instance>::wrunlock();
+#if CWDEBUG_DEBUGT
+  __libcwd_tsd.cancel_explicitely_deferred--;
+#endif
+  set_alloc_checking_on(LIBCWD_TSD);
+#endif
 }
 
 #if CWDEBUG_DEBUGT
@@ -649,7 +661,7 @@ void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* fr
   // We don't use a lock here because we can't.  I hope that in fact this is
   // not a problem because threadlist is a list<> and new elements will be added
   // to the end.  None of the new items will be of interest to us.  It is possible
-  // that an item is *removed* from the list (see thread_ct::tsd_destroyed above)
+  // that an item is *removed* from the list (see thread_ct::terminated above)
   // but that is very unlikely in the cases where this test is actually being
   // used (we don't test with more than 1024 threads).
   for (threadlist_t::iterator iter = threadlist->begin(); iter != threadlist->end(); ++iter)
@@ -674,7 +686,10 @@ void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* fr
 
   set_alloc_checking_on(__libcwd_tsd);
 }
-#endif
+
+pthread_mutex_t raw_write_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+#endif // CWDEBUG_DEBUGT
 
     } // namespace _private_
   } // namespace debug
