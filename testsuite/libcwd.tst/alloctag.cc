@@ -54,8 +54,8 @@ MAIN_FUNCTION
   Debug(dc::malloc.off());
   std::vector<std::string> masks;
   masks.push_back("lib*");
-  Debug(dc::malloc.on());
   filter.hide_objectfiles_matching(masks);
+  Debug(dc::malloc.on());
   filter.hide_unknown_locations();
 #endif
 

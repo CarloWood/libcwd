@@ -22,8 +22,8 @@ malloc    0x[0-9a-f]*            module\.cc:19   void\*; \(sz = 310\)  Allocated
           does not have a line number, perhaps the unit containing the function
           `streambuf::streambuf\(int\)' wasn't compiled with flag -(g|ggdb)\?
           0x[0-9a-f]* *streambuf::streambuf\(int\) <unknown type>; \(sz = [0-9]*\) 
-)|(BFD     : address 0x[0-9a-f]* corresponds to streambuf.cc:211
-          0x[0-9a-f]* *streambuf.cc:211 *<unknown type>; \(sz = [0-9]*\) 
+)|(BFD     : address 0x[0-9a-f]* corresponds to (streambuf\.cc:211|ios\.cc:326|memory:183)
+          0x[0-9a-f]* *(streambuf.cc:211|ios.cc:326|memory:183) *<unknown type>; \(sz = [0-9]*\) 
 ))*(((malloc |realloc)   0x[0-9a-f]* *((dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]*|add_to_global|open_path|_dl_[a-z_]*) *<unknown type>; \(sz = [0-9]*\) 
 )|(BFD     : Warning: Address 0x[0-9a-f]* in section \.text of object file "ld-linux.so\.2"
           does not have a line number, perhaps the unit containing the function
@@ -40,7 +40,7 @@ MALLOC  : free\(0x[0-9a-f]*\) *(dl-object.c:[0-9]*|_dl_new_object) *<unknown typ
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-deps.c:[0-9]*|_dl_map_object_deps) *<unknown type>; \(sz = [0-9]*\)  
 // input lines 3
 // output till ^NOTICE
-(MALLOC  : delete 0x[0-9a-f]* *(streambuf::streambuf\(int\)|streambuf\.cc:211) *<unknown type>; \(sz = [0-9]*\)  
+(MALLOC  : delete 0x[0-9a-f]* *(streambuf::streambuf\(int\)|streambuf\.cc:211|ios\.cc:326|memory:183) *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : Trying to free NULL - ignored\.
 )*
 NOTICE  : Finished
