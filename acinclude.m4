@@ -957,7 +957,7 @@ AC_DEFUN(CW_SYS_BFD_NEEDS_GLIBCPP_USE_LONG_LONG,
 [AC_CACHE_CHECK([if libbfd needs support for long long], cw_cv_sys_bfd_needs_glibcpp_use_long_long,
 [AC_EGREP_CPP(NEEDS_GLIBCPP_USE_LONG_LONG,
 [#include <bfd.h>
-#if defined(BFD64) && !defined(BFD_HOST_64_BIT) && !BFD_HOST_64BIT_LONG
+#if defined(BFD64) && !BFD_HOST_64BIT_LONG
 NEEDS_GLIBCPP_USE_LONG_LONG
 #endif
 ], cw_cv_sys_bfd_needs_glibcpp_use_long_long=yes, cw_cv_sys_bfd_needs_glibcpp_use_long_long=no)])
