@@ -582,6 +582,24 @@ eval "CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET=\"$cw_cv_sys_builtin_return_addres
 AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
 ])
 
+dnl CW_SYS_BUILTIN_RETURN_ADDRESS_ONE
+dnl
+dnl Determines if __buitin_return_address(1) is supported by compiler.
+AC_DEFUN(CW_SYS_BUILTIN_RETURN_ADDRESS_ONE,
+[AC_CACHE_CHECK([whether __builtin_return_address(1) works], cw_cv_sys_builtin_return_address_one,
+[AC_TRY_COMPILE(,
+[void* addr = __builtin_return_address(1)],
+cw_cv_sys_builtin_return_address_one=yes,
+cw_cv_sys_builtin_return_address_one=no
+)])
+if test "$cw_cv_sys_builtin_return_address_one" = "no"; then
+CW_CONFIG_BUILTIN_RETURN_ADDRESS_ONE=undef
+else
+CW_CONFIG_BUILTIN_RETURN_ADDRESS_ONE=define
+fi
+AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_ONE)
+])
+
 dnl CW_BUG_G_CONFIG_H
 dnl Check if /usr/include/_G_config.h forgets to define a few macros
 AC_DEFUN(CW_BUG_G_CONFIG_H,

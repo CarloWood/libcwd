@@ -71,6 +71,12 @@ unsigned int const malloc_overhead_c = @CW_MALLOC_OVERHEAD_C@;
 
 int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET@;
 
+//
+// __builtin_return_address(x) with x > 0 does or doesn't work.
+//
+
+#@CW_CONFIG_BUILTIN_RETURN_ADDRESS_ONE@ HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+
 // Bug work arounds
 
 // Including certain header files fail with a warning.  For example:
