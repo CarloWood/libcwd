@@ -7,7 +7,7 @@ To generate two .deb files, type:
 
 dpkg-buildpackage -rfakeroot
 
-in de directory containing this debian directory.
+in the directory containing this debian directory.
 Both .deb files need to be installed.
 
 Carlo Wood <libcw@alinoe.com>
