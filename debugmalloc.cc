@@ -1216,38 +1216,41 @@ void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COM
   {
     char const* a_type = type_info_ptr->demangled_name();
     size_t s = a_type ? strlen(a_type) : 0;		// Can be 0 while deleting a qualifiers_ct object in demangle3.cc
-    if (s > 0 && a_type[s - 1] == '*' && type_info_ptr->ref_size() != 0)
+    if (s > 0)
     {
-      __libcwd_tsd.internal = 1;
-      _private_::internal_stringstream* buf = new _private_::internal_stringstream;
-      if (a_memblk_type == memblk_type_new || a_memblk_type == memblk_type_deleted)
+      if (a_type[s - 1] == '*' && type_info_ptr->ref_size() != 0)
       {
-	if (s > 1 && a_type[s - 2] == ' ')
-	  buf->write(a_type, s - 2);
-	else
+	__libcwd_tsd.internal = 1;
+	_private_::internal_stringstream* buf = new _private_::internal_stringstream;
+	if (a_memblk_type == memblk_type_new || a_memblk_type == memblk_type_deleted)
+	{
+	  if (s > 1 && a_type[s - 2] == ' ')
+	    buf->write(a_type, s - 2);
+	  else
+	    buf->write(a_type, s - 1);
+	}
+	else /* if (a_memblk_type == memblk_type_new_array || a_memblk_type == memblk_type_deleted_array) */
+	{
 	  buf->write(a_type, s - 1);
-      }
-      else /* if (a_memblk_type == memblk_type_new_array || a_memblk_type == memblk_type_deleted_array) */
-      {
-	buf->write(a_type, s - 1);
-	// We can't use operator<<(ostream&, int) because that uses std::alloc.
-	buf->put('[');
-	_private_::no_alloc_print_int_to(buf, a_size / type_info_ptr->ref_size(), false);
-	buf->put(']');
-      }
+	  // We can't use operator<<(ostream&, int) because that uses std::alloc.
+	  buf->put('[');
+	  _private_::no_alloc_print_int_to(buf, a_size / type_info_ptr->ref_size(), false);
+	  buf->put(']');
+	}
 #ifdef LIBCWD_USE_STRSTREAM
-      buf->put('\0');
-      DoutInternal( dc::continued, buf->str() );
-      buf->freeze(0);
+	buf->put('\0');
+	DoutInternal( dc::continued, buf->str() );
+	buf->freeze(0);
 #else
-      buf->put('\0');
-      DoutInternal( dc::continued, buf->str().data() );
+	buf->put('\0');
+	DoutInternal( dc::continued, buf->str().data() );
 #endif
-      delete buf;
-      __libcwd_tsd.internal = 0;
+	delete buf;
+	__libcwd_tsd.internal = 0;
+      }
+      else
+	DoutInternal( dc::continued, a_type );
     }
-    else
-      DoutInternal( dc::continued, a_type );
 
     DoutInternal( dc::continued, ';' );
   }
