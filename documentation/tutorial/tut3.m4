@@ -23,7 +23,7 @@ int main(void)
   Debug( libcw_do.on() );
 
 #ifdef CWDEBUG
-  ofstream file;
+  std::ofstream file;
   file.open("log");
 #endif
 
