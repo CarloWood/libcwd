@@ -125,6 +125,7 @@
 #include <string>
 #include <map>
 #include <new>
+#include <csignal>
 
 #if LIBCWD_THREAD_SAFE
 
@@ -763,8 +764,7 @@ private:
   dm_alloc_ct* prev;		// Previous memblk in list `my_list'
   dm_alloc_ct* a_next_list;	// First element of my childeren (if any)
   dm_alloc_ct** my_list;	// Pointer to my list, never NULL except after deinitialization.
-  dm_alloc_ct* my_owner_node;	// Pointer to node who's a_next_list contains
-  				// this object.
+  dm_alloc_ct* my_owner_node;	// Pointer to node who's a_next_list contains this object.
 
 public:
   dm_alloc_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t
@@ -909,13 +909,29 @@ public:
     // Never use this.  It's needed for the implementation of the std::pair<>.
 };
 
-class memblk_info_ct {
+uint16_t const memblk_info_flag_watch = 1;
+
+class memblk_info_base_ct {
+protected:
+  uint16_t M_memblk_type;
+  mutable uint16_t M_flags;	// Warning: the mutable needs special attention with locking,
+  				// or else this is not thread safe.
+public:
+  memblk_info_base_ct() { }
+  memblk_info_base_ct(memblk_types_nt memblk_type) : M_memblk_type(memblk_type), M_flags(0) { }
+  memblk_info_base_ct(memblk_info_base_ct const& memblk_info_base) :
+      M_memblk_type(memblk_info_base.M_memblk_type), M_flags(memblk_info_base.M_flags) { }
+  memblk_types_nt flags(void) const { return (memblk_types_nt)M_memblk_type; }
+  void set_watch(void) const { M_flags |= memblk_info_flag_watch; }
+  bool is_watched(void) const { return (M_flags & memblk_info_flag_watch); }
+};
+
+class memblk_info_ct : public memblk_info_base_ct {
 #if CWDEBUG_MARKER
   friend class marker_ct;
   friend void move_outside(marker_ct* marker, void const* ptr);
 #endif
 private:
-  memblk_types_nt M_memblk_type;
   lockable_auto_ptr<dm_alloc_ct> a_alloc_node;
     // The associated `dm_alloc_ct' object.
     // This must be a pointer because the allocated `dm_alloc_ct' can persist
@@ -941,7 +957,6 @@ public:
   void change_flags(memblk_types_nt new_flag)
       { M_memblk_type = new_flag; if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(LIBCWD_TSD_PARAM) const { a_alloc_node.get()->new_list(LIBCWD_TSD); }			// MT-safe: write lock is set.
-  memblk_types_nt flags(void) const { return M_memblk_type; }
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, memblk_info_ct const& memblk) { memblk.printOn(os); return os; }
 private:
@@ -1170,7 +1185,7 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
 #endif
 #if CWDEBUG_LOCATION
   LibcwDoutScopeBegin(channels, debug_object, dc::continued);
-  if (filter.M_flags & show_objectfile)
+  if ((filter.M_flags & show_objectfile))
   {
     object_file_ct const* object_file = M_location->object_file();
     if (object_file)
@@ -1180,7 +1195,7 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
   }
   if (M_location->is_known())
   {
-    if (filter.M_flags & show_path)
+    if ((filter.M_flags & show_path))
     {
       size_t len = M_location->filepath_length();
       if (len < 20)
@@ -1338,7 +1353,7 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
 	continue;
     }
     struct tm* tbuf_ptr = 0;				// Initialize in order to avoid warning.
-    if (filter.M_flags & show_time)
+    if ((filter.M_flags & show_time))
     {
       ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);		// localtime() can allocate memory, don't show it.
       _private_::set_invisible_on(LIBCWD_TSD);
@@ -1354,7 +1369,7 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
     LibcwDoutScopeBegin(channels, debug_object, channel|nolabel_cf|continued_cf);
     for (int i = depth; i > 1; i--)
       LibcwDoutStream << "    ";
-    if (filter.M_flags & show_time)
+    if ((filter.M_flags & show_time))
     {
       print_integer(LibcwDoutStream, tbuf_ptr->tm_hour, 2);
       LibcwDoutStream << ':';
@@ -1383,10 +1398,10 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
 
 inline memblk_info_ct::memblk_info_ct(void const* s, size_t sz,
     memblk_types_nt f, struct timeval const& t LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_LOCATION(location_ct const* l))
-  : M_memblk_type(f), a_alloc_node(new dm_alloc_ct(s, sz, f, t LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(l))) { }	// MT-safe: write lock is set.
+  : memblk_info_base_ct(f), a_alloc_node(new dm_alloc_ct(s, sz, f, t LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(l))) { }	// MT-safe: write lock is set.
 
 // Used for invisible memory blocks:
-inline memblk_info_ct::memblk_info_ct(memblk_types_nt f) : M_memblk_type(f), a_alloc_node(NULL) { }
+inline memblk_info_ct::memblk_info_ct(memblk_types_nt f) : memblk_info_base_ct(f), a_alloc_node(NULL) { }
 
 void memblk_key_ct::printOn(std::ostream& os) const
 {
@@ -1939,6 +1954,8 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
   {
     dm_alloc_ct* alloc_node = 0;	// Only used when `visible' is true.  Set to 0 in order to avoid compiler warning.
     memblk_types_nt f = (*iter).second.flags();
+    if ((*iter).second.is_watched())
+      raise(SIGTRAP);
     bool const visible = (!__libcwd_tsd.library_call && (*iter).second.has_alloc_node());
     if (visible)
     {
@@ -2942,6 +2959,42 @@ void move_outside(marker_ct* marker, void const* ptr)
 }
 #endif // CWDEBUG_MARKER
 
+static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, void const* ptr LIBCWD_COMMA_TSD_PARAM)
+{ 
+  alloc_ct* alloc;
+#if LIBCWD_THREAD_SAFE
+  LIBCWD_DEFER_CANCEL;
+  ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+#else
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+#endif
+  bool found = (iter != target_memblk_map_read->end());
+#if LIBCWD_THREAD_SAFE
+  if (!found)
+  {
+    RELEASE_READ_LOCK;
+    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
+  }
+#endif
+  if (!found)
+  {
+    LIBCWD_RESTORE_CANCEL_NO_BRACE;
+    return NULL;
+  }
+  result = iter->second;
+  if (set_watch)
+  {
+    ACQUIRE_READ2WRITE_LOCK;
+    iter->second.set_watch();
+    ACQUIRE_WRITE2READ_LOCK;
+  }
+  alloc = iter->second.get_alloc_node();
+  RELEASE_READ_LOCK;
+  LIBCWD_RESTORE_CANCEL;
+  return alloc;
+}
+
 /**
  * \brief Find information about a memory allocation.
  * \ingroup group_finding
@@ -2976,31 +3029,8 @@ alloc_ct const* find_alloc(void const* ptr)
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
 
-  alloc_ct const* res;
-#if LIBCWD_THREAD_SAFE
-  LIBCWD_DEFER_CANCEL;
-  ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
-#else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
-#endif
-  bool found = (iter != target_memblk_map_read->end());
-#if LIBCWD_THREAD_SAFE
-  if (!found)
-  {
-    RELEASE_READ_LOCK;
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
-  }
-#endif
-  if (!found)
-  {
-    LIBCWD_RESTORE_CANCEL_NO_BRACE;
-    return NULL;
-  }
-  res = (*iter).second.get_alloc_node();
-  RELEASE_READ_LOCK;
-  LIBCWD_RESTORE_CANCEL;
-  return res;
+  memblk_info_base_ct memblk_info_dummy;
+  return find_memblk_info(memblk_info_dummy, false, ptr LIBCWD_COMMA_TSD);
 }
 
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
@@ -3952,5 +3982,107 @@ void operator delete[](void* ptr, std::nothrow_t const&) throw()
   libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif
 }
+
+extern "C" {
+
+static void const* debug_watch(void const* ptr) __attribute__ ((unused));
+
+static void const* debug_watch(void const* ptr)
+{
+  using namespace libcw::debug;
+  LIBCWD_TSD_DECLARATION;
+  ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+  _private_::set_invisible_on(LIBCWD_TSD);
+  memblk_info_base_ct memblk_info_dummy;
+  alloc_ct const* alloc = find_memblk_info(memblk_info_dummy, true, ptr LIBCWD_COMMA_TSD);
+  void const* start;
+  if (!alloc)
+    std::cout << ptr << " is not (part of) a dynamic allocation.\n";
+  else
+  {
+    start = alloc->start();
+    if (start != ptr)
+      std::cout << ptr << "WARNING: points inside a memory allocation that starts at " << start << "\n";
+    std::cout << "Added watch for freeing of allocation starting at " << start << "\n";
+  }
+  std::cout << std::flush;
+  _private_::set_invisible_off(LIBCWD_TSD);
+  --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+  return start;
+}
+
+static int debug_alloc(void const* ptr) __attribute__ ((unused));
+
+static int debug_alloc(void const* ptr)
+{
+  using namespace libcw::debug;
+  LIBCWD_TSD_DECLARATION;
+  ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+  _private_::set_invisible_on(LIBCWD_TSD);
+  memblk_info_base_ct memblk_info;
+  alloc_ct const* alloc = find_memblk_info(memblk_info, false, ptr LIBCWD_COMMA_TSD);
+  if (!alloc)
+    std::cout << ptr << " is not (part of) a dynamic allocation.\n";
+  else
+  {
+    void const* start = alloc->start();
+    if (start != ptr)
+      std::cout << ptr << " points inside a memory allocation that starts at " << start << "\n";
+    std::cout << "      start: " << start << '\n';
+    std::cout << "       size: " << alloc->size() << '\n';
+    type_info_ct const& type_info = alloc->type_info();
+    std::cout << "       type: " << ((&type_info != &unknown_type_info_c) ?
+	type_info.demangled_name() : "<No AllocTag>") << '\n';
+    char const* desc = alloc->description();
+    std::cout << "description: " << (desc ? desc : "<No AllocTag>") << '\n';
+    std::cout << "   location: " << alloc->location() << '\n';
+    char const* function_name = alloc->location().mangled_function_name();
+    if (function_name != unknown_function_c)
+    {
+      std::cout << "in function: ";
+      size_t s;
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      do
+      {
+	_private_::internal_string f;
+	_private_::demangle_symbol(function_name, f);
+	_private_::set_alloc_checking_on(LIBCWD_TSD);
+	s = f.size();
+	std::cout.write(f.data(), s);
+	_private_::set_alloc_checking_off(LIBCWD_TSD);
+      }
+      while(0);
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+      std::cout << '\n';
+    }
+    struct tm* tbuf_ptr;
+    struct timeval const& a_time(alloc->time());
+#if LIBCWD_THREAD_SAFE
+    struct tm tbuf;
+    tbuf_ptr = localtime_r(&a_time.tv_sec, &tbuf);
+#else
+    tbuf_ptr = localtime(&a_time.tv_sec);
+#endif
+    char prev_fill = std::cout.fill('0');
+    std::cout << "       when: ";
+    std::cout.width(2);
+    std::cout << tbuf_ptr->tm_hour << ':';
+    std::cout.width(2);
+    std::cout << tbuf_ptr->tm_min << ':';
+    std::cout.width(2);
+    std::cout << tbuf_ptr->tm_sec << '.';
+    std::cout.width(6);
+    std::cout << a_time.tv_usec << '\n';
+    std::cout.fill(prev_fill);
+    if (memblk_info.is_watched())
+      std::cout << "This memory block is being watched for deletion.\n";
+  }
+  std::cout << std::flush;
+  _private_::set_invisible_off(LIBCWD_TSD);
+  --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+  return 0;
+}
+
+} // extern "C"
 
 #endif // CWDEBUG_ALLOC

@@ -1,3 +1,7 @@
+libcwd-0.99.33
+
+	New function debug_watch().
+
 libcwd-0.99.32
 
 	Support for a runtime configuration file (.libcwdrc) has been
