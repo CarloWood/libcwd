@@ -35,10 +35,10 @@ http://www.gnu.org/order/ftp.html
 Packages/versions needed
 ------------------------
 
-i) The GNU compiler, version 3.0 or higher.
+i) The GNU compiler, version 3.2 or higher.
 
     Location: gnu/gcc/
-    Current version: 3.4.0
+    Current version: 3.4.1
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -49,7 +49,7 @@ the source tree of gcc/g++.  Please try to upgrade your
 compiler the usual way if needed.
 If you are using rpm's then you will need to
 install/upgrade the following:
-    gcc (3.0 or higher),
+    gcc (3.2 or higher),
     gcc-c++ (of same version),
     libstdc++ (of same version) and
     cpp (of same version).
@@ -66,9 +66,8 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.37 was tested with gcc-3.0.4, gcc-3.2.1,
-gcc-3.2.2, gcc-3.2.3, gcc-3.3.2, gcc-3.3.3, gcc-3.4.0
-and gcc version 3.5.0 20040530 (experimental).
+libcwd-0.99.37 was tested with gcc-3.2.3, gcc-3.3.3,
+gcc-3.4.0, gcc-3.4.1 and gcc version 3.5.0 20040530 (experimental).
 
 Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
 making the use of threading with NPTL impossible.
@@ -78,6 +77,7 @@ distribution with NPTL at the moment).  The current
 development version of NPTL has this fixed.  It tries
 to free a pointer that is really a global struct -
 libcwd will CORE when it detects that.
+Other 3.x versions should work but that is not garanteed.
 
 Packages needed to run the testsuite
 ------------------------------------
@@ -113,7 +113,7 @@ Moreover, in order to generate the documentation, you need to
 have the following installed:
 
 ix)  GNU grep	version 2.4.2 is known to work.
-x)   doxygen	version 1.2.12 or higher (http://www.doxygen.org/)
+x)   doxygen	version 1.3.6 or higher (http://www.doxygen.org/)
 xi)  graphviz	http://www.research.att.com/sw/tools/graphviz/
 
 
