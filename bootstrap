@@ -3,7 +3,7 @@
 # Helps bootstrapping libcwd, when checked out from CVS.
 # Requires GNU autoconf, GNU automake, GNU libtool and GNU which.
 
-if test ! -d CVS; then
+if test ! -d CVS -a -f configure; then
   echo "You only need to run 'bootstrap' when you checked out libcwd using CVS."
   echo "Just run ./configure [--help]."
   exit 0
@@ -27,7 +27,7 @@ libtool_version=`libtool --version | head -1 | sed -e 's/[^12]*\([12]\.[0-9][^ ]
 libtool_develversion=`libtool --version | head -1 | sed -e 's/.*[12]\.[0-9].*(\([^ ]*\).*/\1/'`
 
 # libcwd requires version 1.4.2 because previous versions are broken.
-# On OS other then Linux we require 1.4d or higher because libtool
+# On OS other than Linux we require 1.4d or higher because libtool
 # doesn't support shared C++ libraries in earlier versions.
 if expr "$required_libtool_version" \> "$libtool_version" >/dev/null; then
   libtool --version
