@@ -2052,7 +2052,11 @@ void* operator new[](size_t size)
 void operator delete(void* ptr)
 {
 #if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
+#ifndef HAVE___LIBC_MALLOC
   ASSERT( _internal_::ios_base_initialized );
+#elif defined(CWDEBUG)
+  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
+#endif
 #endif
   deallocated_from = from_delete;
   __libcwd_free(ptr);
@@ -2061,7 +2065,11 @@ void operator delete(void* ptr)
 void operator delete[](void* ptr)
 {
 #if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
+#ifndef HAVE___LIBC_MALLOC
   ASSERT( _internal_::ios_base_initialized );
+#elif defined(CWDEBUG)
+  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
+#endif
 #endif
   deallocated_from = from_delete_array;
   __libcwd_free(ptr);			// Note that the standard demands that we call free(), and not delete().
