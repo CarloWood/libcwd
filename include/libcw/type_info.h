@@ -69,6 +69,11 @@ namespace _internal_ {
     static type_info_ct const value;
   };
 
+  // NOTE:
+  // Compiler versions 2.95.x will terminate with an "Internal compiler error"
+  // in the line below if you use the option '-fno-rtti'.  Either upgrade to version
+  // 2.96 or higher, or don't use '-fno-rtti'.  The exact reason for the compiler
+  // crash is the use of `typeid'.
   // _internal_::
   template<typename T>
     type_info_ct const type_info<T>::value(typeid(T).name(), sizeof(T), 0);
