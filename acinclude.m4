@@ -488,12 +488,9 @@ cw_cv_sys_recursive_builtin_return_address=no,
 cw_cv_sys_recursive_builtin_return_address=unknown)
 CFLAGS="$save_CFLAGS"
 AC_LANG_RESTORE])
-if test "$cw_cv_sys_recursive_builtin_return_address" = "no"; then
-CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS=undef
-else
-CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS=define
+if test "$cw_cv_sys_recursive_builtin_return_address" != "no"; then
+AC_DEFINE([RECURSIVE_BUILTIN_RETURN_ADDRESS], 1, [Defined when __builtin_return_address(1) is supported by compiler.])
 fi
-AC_SUBST(CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS)
 ])
 
 dnl CW_SYS_FRAME_ADDRESS_OFFSET
@@ -546,7 +543,7 @@ void calculate_offset(void)
 int main(int argc, char* argv[])
 {
   if (argc == 1)
-    exit(0);	// This wasn't the real rest yet
+    exit(0);	// This wasn't the real test yet
   calculate_offset();
   exit(255);	// Failure
 }],

@@ -1345,7 +1345,7 @@ typedef location_ct bfd_location_ct;
 	// MT: `WST_initialized' is only false when we're still Single Threaded.
 	//     Therefore it is safe to call ST_* functions.
 
-#if CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ < 3
+#if CWDEBUG_ALLOC && LIBCWD_IOSBASE_INIT_ALLOCATES
         if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
 	{
 	  M_object_file = NULL;

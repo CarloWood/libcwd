@@ -137,8 +137,6 @@ void threading_tsd_init(LIBCWD_TSD_PARAM);
 static TSD_st terminating_thread_tsd;
 static int terminating_count;
 
-extern bool WST_ios_base_initialized;
-
 TSD_st& TSD_st::S_create(int from_free)
 {
   int oldtype;

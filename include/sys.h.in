@@ -39,12 +39,6 @@
 #include <sys/types.h>		// Needed for getgroups_t.
 @CW_TYPEDEFS@
 
-//
-// __builtin_return_address(x) with x > 0 does or doesn't work.
-//
- 
-#@CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS@ HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
-
 // Bug work arounds
  
 // Including certain header files fail with a warning.  For example:

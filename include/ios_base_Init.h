@@ -19,7 +19,10 @@
 namespace libcwd {
   namespace _private_ {
 
-#if __GNUC__ == 3 && __GNUC_MINOR__ < 3
+// Initialization 3.3 and later is allocation free (emperically) if this condition is met:
+#define LIBCWD_IOSBASE_INIT_ALLOCATES 1
+
+#if LIBCWD_IOSBASE_INIT_ALLOCATES
 extern bool WST_ios_base_initialized;
 extern bool inside_ios_base_Init_Init(void);
 #endif
