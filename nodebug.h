@@ -11,3 +11,12 @@
 #define LibcwDout(a, b, c, d)
 #define LibcwDoutFatal(a, b, c, d) do { ::std::cerr << d << ::std::endl; ::std::exit(254); } while(1)
 #define NEW(x) new x
+#define CWDEBUG_ALLOC 0
+#define CWDEBUG_MAGIC 0
+#define CWDEBUG_LOCATION 0
+#define CWDEBUG_LIBBFD 0
+#define CWDEBUG_DEBUG 0
+#define CWDEBUG_DEBUGOUTPUT 0
+#define CWDEBUG_DEBUGM 0
+#define CWDEBUG_DEBUGT 0
+#define CWDEBUG_MARKER 0
