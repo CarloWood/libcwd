@@ -1,7 +1,7 @@
 // input lines 3
 // output till ^BAR     : Enabled
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug info from.*
+)*(BFD     : Loading debug symbols from.*
 )*)
 BAR     : Enabled
 BFD     : Disabled

@@ -1,13 +1,14 @@
 // input lines 2
-// output till Loading debug info from .*module\.so
+// output till Loading debug symbols from .*module\.so
 (.*
 )*
-BFD     : Loading debug info from .*module\.so \(0x[a-f0-9]*\) \.\.\. done \([0-9]* symbols\)
+BFD     : Loading debug symbols from .*module\.so \(0x[a-f0-9]*\) \.\.\. done \([0-9]* symbols\)
 // input lines 2
 // output till malloc\(310\)
 (.*
 )*
 MALLOC  : malloc\(310\) = <unfinished>
+BFD     :     Loading debug info from module\.so\.\.\. done
 BFD     :     address 0x[0-9a-f]* corresponds to module.cc:24
 MALLOC  : <continued> 0x[0-9a-f]*
 MALLOC  : malloc\(300\) = <unfinished>

@@ -5,25 +5,6 @@
 #include <libcwd/demangle.h>
 #include <iostream>
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-char const* test_cases [] = {
-   "add_option__H1Z12libcw_app_ct_12libcw_app_ctPMX01FPX01PCc_vPCccT2T2_v",
-   "_Q35libcw17_GLOBAL_.N.fn__Fvt23compiler_bug_workaround1Zt6vector2ZQ25libcwt13omanip_id_tct1ZQ35libcw5debug32memblk_types_manipulator_data_ctZt9allocator1ZQ25libcwt13omanip_id_tct1ZQ35libcw5debug32memblk_types_manipulator_data_ct.ids",
-   "cwprint_using__H1ZQ35libcw9_private_12GlobalObject_Q25libcw5debugRCX01PMX01CFPCX01R7ostream_v_Q35libcw5debugt17cwprint_using_tct1ZX01",
-   "top__Ct14priority_queue3ZP27timer_event_request_base_ctZt5deque2ZP27timer_event_request_base_ctZt9allocator1ZP27timer_event_request_base_ctZ13timer_greater",
-   "__eq__Ct15_Deque_iterator3ZP15memory_block_stZRCP15memory_block_stZPCP15memory_block_stRCt15_Deque_iterator3ZP15memory_block_stZRCP15memory_block_stZPCP15memory_block_st",
-   "__mi__Ct17__normal_iterator2ZPC6optionZt6vector2Z6optionZt9allocator1Z6optionRCt17__normal_iterator2ZPC6optionZt6vector2Z6optionZt9allocator1Z6option",
-   "_S_construct__H1ZPc_t12basic_string3ZcZt11char_traits1ZcZQ35libcw5debug27no_alloc_checking_allocatorX00X00RCQ35libcw5debug27no_alloc_checking_allocator_Pc",
-   "f__H3Z1AZP1AZPC1A_X01X11X21PA4_PC1APO1C_PA4_PC1A_v",
-   "foo__FiPiPPiPPPiPPPPiPPPPPiPPPPPPiPPPPPPPiPPPPPPPPiPPPPPPPPPiPPPPPPPPPPiPPPPPPPPPPPiPPPPPPPPPPPPiPPPPPPPPPPPPPiPPPPPPPPPPPPPPiPPPPPPPPPPPPPPPi",
-   "B__H3Zt1D3ZP1AZRCP1AZPCP1AZt1D3ZP1AZRP1AZPP1AZP1A_X01X01X11PX21_t1D3ZX21ZRX21ZPX21",
-   "SKIPPED",
-   "_X11TransParseAddress",
-   "_t13_Alloc_traits2Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1ZQ45libcw5debug9_private_t17allocator_adaptor3Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1Zt24__default_alloc_template2b0i327664b1._S_instanceless",
-   "_GLOBAL_.I.fn__Fv",
-   "r__FPM1GFP1G_iPM1GCFPC1G_iG1GPM1HFP1H_iT0Gt4what1ZC1GGt5what21ZC1GT1"
-};
-#else
 char const* test_cases [] = {
    "_ZN12libcw_app_ct10add_optionIS_EEvMT_FvPKcES3_cS3_S3_",
    "_ZGVN5libcw24_GLOBAL__N_cbll.cc0ZhUKa23compiler_bug_workaroundISt6vectorINS_13omanip_id_tctINS_5debug32memblk_types_manipulator_data_ctEEESaIS6_EEE3idsE",
@@ -39,9 +20,18 @@ char const* test_cases [] = {
    "_X11TransParseAddress",
    "_ZNSt13_Alloc_traitsISbIcSt18string_char_traitsIcEN5libcw5debug9_private_17allocator_adaptorIcSt24__default_alloc_templateILb0ELi327664EELb1EEEENS5_IS9_S7_Lb1EEEE15_S_instancelessE",
    "_GLOBAL__I__Z2fnv",
-   "_Z1rM1GFivEMS_KFivES_M1HFivES1_4whatIKS_E5what2IS8_ES3_"
+   "_Z1rM1GFivEMS_KFivES_M1HFivES1_4whatIKS_E5what2IS8_ES3_",
+   "_Z1xINiEE",
+   "_Z3fooIA6_KiEvA9_KT_rVPrS4_",
+   "_Z1fILi5E1AEvN1CIXqugtT_Li0ELi1ELi2EEE1qE",
+   "_Z1fILi5EEvN1AIXcvimlT_Li22EEE1qE",
+   "_Z1fPFYPFiiEiE",
+   "_Z1fI1XENT_1tES2_",
+   "_Z1fILi5E1AEvN1CIXstN1T1tEEXszsrS2_1tEE1qE",
+   "_Z1fILi1ELc120EEv1AIXplT_cviLd4028ae147ae147aeEEE",
+   "_Z1fILi1ELc120EEv1AIXplT_cviLf3f800000EEE",
+   "_Z9hairyfuncM1YKFPVPFrPA2_PM1XKFKPA3_ilEPcEiE"
 };
-#endif
 
 MAIN_FUNCTION
 { PREFIX_CODE
@@ -328,8 +318,6 @@ void o(void)
   std::B(dummy1, dummy1, dummy2, &dummy3);
 }
 
-#if __GNUC__ > 2
-
 // _ZngILi42EEvN1QIXplT_Li2EEE1TE
 
 template<int i>
@@ -347,8 +335,6 @@ void p(void)
   Q<42 + 2>::T z;
   operator-<42>(z);
 }
-
-#endif
 
 namespace std {
   template<bool b, int i>

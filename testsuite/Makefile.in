@@ -10,13 +10,12 @@ VPATH = @srcdir@
 SHELL = @SHELL@
 
 CXX = @CXX@
-EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
 TESTOPTS = @TESTOPTS@
 DEFS = -DHAVE_CONFIG_H -DCWDEBUG
-CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS) $(TESTOPTS)
-CXXFLAGSNODEBUG = $(EXTRAOPTS) $(WARNOPTS) $(TESTOPTS)
+CXXFLAGS = $(DEBUGOPTS) $(WARNOPTS) $(TESTOPTS)
+CXXFLAGSNODEBUG = $(WARNOPTS) $(TESTOPTS)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 RPATH_OPTION = @RPATH_OPTION@
@@ -113,14 +112,14 @@ check: site.exp $(MODULETARGETS)
 ifeq ($(enable_nonthreading), yes)
 ifeq ($(enable_shared), yes)
 module.so: module.cc $(top_builddir)/include/libcwd/*.h
-	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
+	$(CXXCOMPILE) -shared -fPIC -DPIC -w $< -o $@
 endif
 endif
 
 ifeq ($(enable_threading), yes)
 ifeq ($(enable_shared), yes)
 module_r.so: module.cc $(top_builddir)/include/libcwd/*.h
-	$(CXXCOMPILE) -D_REENTRANT -pthread -shared -fpic -DPIC -w $< -o $@
+	$(CXXCOMPILE) -D_REENTRANT -pthread -shared -fPIC -DPIC -w $< -o $@
 endif
 endif
 

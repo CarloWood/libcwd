@@ -71,11 +71,7 @@ gcc-3.1.1, gcc-3.2, gcc-3.2.1, gcc-3.2.2, gcc-3.2.3,
 gcc-3.3, gcc-3.3.1 and gcc version 3.4 20030816 (experimental).
 
 Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
-making the use of dlclose() and/or threading with NPTL
-impossible.  The problem of dlclose() is that it
-closes the standard streams; libcwd works around this
-problem but without libcwd your program will still
-suffer from it, you should upgrade your compiler.
+making the use of threading with NPTL impossible.
 The problem of nptl is actually a bug in the version
 of nptl that is distributed with RedHat 9 (the only
 distribution with NPTL at the moment).  The current

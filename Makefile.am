@@ -36,7 +36,6 @@ libcwd_la_SOURCES = \
 	bfd.cc \
 	debug.cc \
 	debugmalloc.cc \
-	demangle.cc \
 	demangle3.cc \
 	ooam_filter.cc \
 	strerrno.cc \
@@ -54,7 +53,6 @@ libcwd_r_la_SOURCES = \
 	bfd.cc \
 	debug.cc \
 	debugmalloc.cc \
-	demangle.cc \
 	demangle3.cc \
 	ooam_filter.cc \
 	strerrno.cc \

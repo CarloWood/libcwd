@@ -618,29 +618,6 @@ if test "$ac_cv_prog_rpm" = yes; then
 fi
 fi])
 
-dnl CW_PIPE_EXTRAOPTS
-dnl If the compiler understands -pipe, add it to EXTRAOPTS if not already.
-AC_DEFUN(CW_PIPE_EXTRAOPTS,
-[AC_MSG_CHECKING([if the compiler understands -pipe])
-AC_CACHE_VAL(cw_cv_pipe_flag,
-[save_CXXFLAGS="$CXXFLAGS"
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
-CXXFLAGS="-pipe"
-AC_TRY_COMPILE(,,cw_cv_pipe_flag=yes,cw_cv_pipe_flag=no)
-AC_LANG_RESTORE
-CXXFLAGS="$save_CXXFLAGS"])
-if test "$cw_cv_pipe_flag" = yes ; then
-  AC_MSG_RESULT(yes)
-  x=`echo "$EXTRAOPTS" | grep 'pipe' 2>/dev/null`
-  if test "$x" = "" ; then
-    EXTRAOPTS="$EXTRAOPTS -pipe"
-  fi
-else
-  AC_MSG_RESULT(no)
-fi
-])
-
 dnl CW_SYS_PS_WIDE_PID_OPTION
 dnl Determines the options needed for `ps' to print the full command of a specified PID
 AC_DEFUN(CW_SYS_PS_WIDE_PID_OPTION,
@@ -757,9 +734,9 @@ dnl -fno-exceptions is really only needed when using a compiler that was configu
 dnl with --enable-slsj-exceptions, in order to avoid calls to calloc() from
 dnl __pthread_setspecific when being 'internal'.
 if test "$USE_MAINTAINER_MODE" = yes; then
-EXTRAOPTS="-fno-exceptions"
+EXTRAOPTS="-pipe -fno-exceptions"
 else
-EXTRAOPTS="-O -fno-exceptions"
+EXTRAOPTS="-O -pipe -fno-exceptions"
 fi
 AC_SUBST(EXTRAOPTS)
 
@@ -787,7 +764,7 @@ esac
 AC_SUBST(DEBUGOPTS)
 
 dnl Test options
-TESTOPTS=""
+TESTOPTS="-pipe"
 AC_SUBST(TESTOPTS)
 ])
 
@@ -849,5 +826,32 @@ AC_LANG_RESTORE
 CXXFLAGS="$save_CXXFLAGS"])
 RPATH_OPTION="$cw_cv_rpath_option"
 AC_SUBST(RPATH_OPTION)
+])
+
+dnl CW_ATEXITTEST
+dnl Test if g++ was configured with --enable-__cxa_atexit,
+dnl otherwise a call to dlopen() will destruct all global
+dnl objects and might cause a segfault in libcwd, for which
+dnl we don't want to get the blame.
+AC_DEFUN(CW_ATEXITTEST,
+[AC_CACHE_CHECK([if the compiler was configured for __cxa_atexit], cw_cv_cxa_atexit,
+[if $CXX -v 2>&1 >/dev/null | grep -- '--enable-__cxa_atexit' >/dev/null; then
+  cw_cv_cxa_atexit=yes
+else
+  cw_cv_cxa_atexit=no
+fi])
+if test "$cw_cv_cxa_atexit" = no; then
+dnl Without --enable-__cxa_atexit a call to dlclose() for
+dnl any shared library will cause ALL shared libraries to
+dnl to be destructed, and thus all global objects to be
+dnl destructed.
+dnl See also http://gcc.gnu.org/bugzilla/show_bug.cgi?id=13227
+AC_MSG_ERROR([
+
+* This C++ compiler was not configured with --enable-__cxa_atexit!
+* You need to fix this; reconfigure and recompile your compiler.
+* See also http://gcc.gnu.org/gcc-3.2/c++-abi.html
+])
+fi
 ])
 

@@ -1,21 +1,33 @@
 // input lines 3
 // output till ^MALLOC
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug info from.*
+)*(BFD     : Loading debug symbols from.*
 )*)
 // type regexp
 MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
-          0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
+          0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
 MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
-          0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
+          0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
 MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:(115|157)|          stl_alloc.h:(103|108|109)|          stl-inst.cc:104|      new_allocator.h:50|                     ) *<unknown type>; \(sz = 4096\)  
-MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc 
-MALLOC  : malloc\(12\) = 0x[a-f0-9]*
+MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc 
+// input lines 5
+// output till ^MALLOC  : calloc
+(MALLOC  : malloc\(12\) = <unfinished>
+WARNING :     Object file /lib/ld-linux\.so\.2 does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
+MALLOC  : <continued> 0x[a-f0-9]*
+)|(MALLOC  : malloc\(12\) = 0x[a-f0-9]*
+)
 MALLOC  : calloc\((572|544|548), 1\) = 0x[a-f0-9]*
 MALLOC  : (malloc\(140\)|realloc\(0x0, 140\)) = 0x[a-f0-9]*
 MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]*
-MALLOC  : calloc\([3-6], 16\) = 0x[a-f0-9]*
-MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]*
+MALLOC  : calloc\([3-7], 16\) = 0x[a-f0-9]*
+// input lines 5
+// output till ^NOTICE  : dlopen
+(MALLOC  : malloc\([0-9]*\) = <unfinished>
+WARNING :     Object file .*/libc\.so\.6 does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
+MALLOC  : <continued> 0x[a-f0-9]*
+)|(MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]*
+)
 NOTICE  : dlopen\(\./module\.so, RTLD_NOW\|RTLD_GLOBAL\) == 0x[a-f0-9]*
 MALLOC  : operator new \(size = 8\) = 0x[a-f0-9]*
 MALLOC  : New libcw::debug::marker_ct at 0x[a-f0-9]*

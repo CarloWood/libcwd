@@ -1799,14 +1799,6 @@ void objfile_ct::load_dwarf(void)
   uint32_t total_length;
 #endif
 
-  libcw::debug::debug_ct::OnOffState state;
-  libcw::debug::channel_ct::OnOffState state2;
-  if (_private_::always_print_loading && !_private_::suppress_startup_msgs)
-  {
-    // We want debug output to BFD
-    Debug( libcw_do.force_on(state) );
-    Debug( dc::bfd.force_on(state2, "BFD") );
-  }
 #if CWDEBUG_ALLOC
   int saved_internal = __libcwd_tsd.internal;
   __libcwd_tsd.internal = false;
@@ -2397,11 +2389,6 @@ void objfile_ct::load_dwarf(void)
 #if CWDEBUG_ALLOC
   __libcwd_tsd.internal = saved_internal;
 #endif
-  if (_private_::always_print_loading)
-  {
-    Debug( dc::bfd.restore(state2) );
-    Debug( libcw_do.restore(state) );
-  }
 }
 
 void objfile_ct::load_stabs(void)

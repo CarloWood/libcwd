@@ -3,9 +3,9 @@
 
 #ifdef CWDEBUG
 
-#ifndef DEBUGCHANNELS
+//#ifndef DEBUGCHANNELS
 #define DEBUGCHANNELS ::example::debug::channels
-#endif
+//#endif
 #include <libcwd/debug.h>
 
 namespace example {
