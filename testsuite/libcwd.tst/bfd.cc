@@ -24,12 +24,18 @@ static void* return_address[6];
 extern "C" int _start();
 #endif
 
-#ifdef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+#ifdef CW_FRAME_ADDRESS_OFFSET
 static void* frame_return_address(unsigned int frame)
 {
-  for (void* frame_ptr = *reinterpret_cast<void**>(__builtin_frame_address(0)); frame_ptr; frame_ptr = *reinterpret_cast<void**>(frame_ptr))
+  void* frame_ptr = __builtin_frame_address(0);
+  do
+  {
+    void** frame_ptr_ptr = reinterpret_cast<void**>(frame_ptr) + CW_FRAME_ADDRESS_OFFSET;
     if (frame-- == 0)
-      return reinterpret_cast<void**>(frame_ptr)[1];
+      return frame_ptr_ptr[1];
+    frame_ptr = *frame_ptr_ptr;
+  }
+  while (frame_ptr);
   return NULL;
 }
 #endif
@@ -78,7 +84,7 @@ void libcw_bfd_test3(void)
     libcw_bfd_pc_location(loc, (char*)retadr + libcw_bfd_builtin_return_address_offset);
     Dout(dc::notice, "called from " << loc);
 
-#ifdef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+#ifdef CW_FRAME_ADDRESS_OFFSET
     if (i < 5 && frame_return_address(i) != retadr)
     {
       retadr = frame_return_address(i);
