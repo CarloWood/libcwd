@@ -3987,10 +3987,10 @@ void operator delete[](void* ptr, std::nothrow_t const&) throw()
 
 extern "C" {
 
-static void const* debug_watch(void const* ptr) __attribute__ ((unused));
+void const* cwdebug_watch(void const* ptr) __attribute__ ((unused));
 
 /**
- * \fn void const* debug_watch(void const* ptr)
+ * \fn void const* cwdebug_watch(void const* ptr)
  * \ingroup chapter_gdb
  *
  * \brief Add a watch point for freeing \a ptr
@@ -3999,7 +3999,7 @@ static void const* debug_watch(void const* ptr) __attribute__ ((unused));
  * application, gdb will stop when the memory that \a ptr is pointing
  * to is being freed.
  */
-static void const* debug_watch(void const* ptr)
+void const* cwdebug_watch(void const* ptr)
 {
   using namespace libcwd;
   LIBCWD_TSD_DECLARATION;
@@ -4023,10 +4023,10 @@ static void const* debug_watch(void const* ptr)
   return start;
 }
 
-static int debug_alloc(void const* ptr) __attribute__ ((unused));
+int cwdebug_alloc(void const* ptr) __attribute__ ((unused));
 
 /**
- * \fn int debug_alloc(void const* ptr)
+ * \fn int cwdebug_alloc(void const* ptr)
  * \ingroup chapter_gdb
  *
  * \brief Print information about the memory at the location \a ptr
@@ -4036,7 +4036,7 @@ static int debug_alloc(void const* ptr) __attribute__ ((unused));
  * This is especially handy in large applications where about everything
  * is dynamically allocated, like GUI applications.
  */
-static int debug_alloc(void const* ptr)
+int cwdebug_alloc(void const* ptr)
 {
   using namespace libcwd;
   LIBCWD_TSD_DECLARATION;

@@ -19,9 +19,27 @@
 #ifndef LIBCWD_PRIVATE_THREAD_H
 #include <libcwd/private_thread.h>
 #endif
+#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
+#include <libcwd/private_struct_TSD.h>
+#endif
+#ifndef LIBCWD_MACRO_ALLOCTAG_H
+#include <libcwd/macro_AllocTag.h>
+#endif
 
 namespace libcwd {
   namespace _private_ {
+
+#if __GNUC__ > 3
+template<class __pool_type>
+  void static_pool_instance<__pool_type>::create(void)
+  {
+    LIBCWD_TSD_DECLARATION;
+    M_internal = __libcwd_tsd.internal;
+    ptr = new __pool_type;
+    if (!M_internal)
+      AllocTag(ptr, "Memory pool base of libcwd::_private_::userspace_allocator, used in libcwd::_private_::string.  Will never be freed again.");
+  }
+#endif
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
 template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>

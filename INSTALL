@@ -67,7 +67,7 @@ Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
 libcwd-0.99.38 was tested with gcc-3.2.3, gcc-3.3.2, gcc-3.3.3,
-gcc-3.4.0, gcc-3.4.1, gcc-3.4.2 and gcc version 4.0.0 20040922 (experimental)
+gcc-3.4.0, gcc-3.4.1, gcc-3.4.2 and gcc version 4.0.0 20041008 (experimental)
 
 Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
 making the use of threading with NPTL impossible.

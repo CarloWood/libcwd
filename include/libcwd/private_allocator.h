@@ -52,6 +52,10 @@
    Note that each critical area (if any) uses its own lock and
    therefore no (additional) lock will be needed for the allocator.
    Otherwise a lock is always needed (in the multi-threaded case).
+   As of gcc 4.0, the used pool allocator doesn't use locks anymore
+   but separates the pools per thread (except for one common pool),
+   this need is equivalent for us to needing a lock or not: if we
+   don't need a lock then there is also no need to separate per thread.
 
    There are five different allocators in use by libcwd:
 
@@ -87,6 +91,11 @@ namespace libcwd {
 // This is a random number in the hope nobody else uses it.
 int const random_salt = 327665;
 
+// Dummy mutex instance numbers, these must be negative.
+int const multi_threaded_internal_instance = -1;
+int const single_threaded_internal_instance = -2;
+int const userspace_instance = -3;
+
 #if __GNUC__ == 3 && __GNUC_MINOR__ < 4
 template<bool needs_lock, int pool_instance>
   struct CharPoolAlloc : public std::__default_alloc_template<needs_lock, random_salt + pool_instance> {
@@ -97,7 +106,7 @@ template<bool needs_lock, int pool_instance>
   struct CharPoolAlloc : public __gnu_cxx::__pool_alloc<needs_lock, random_salt + pool_instance> {
     typedef char* pointer;
   };
-#else // 3.4.1 and higher.
+#else // gcc 3.4.1 and higher.
 template<int pool_instance>
   struct char_wrapper {
     char c;
@@ -106,17 +115,82 @@ template<int pool_instance>
 // gcc 3.4.1 and 3.4.2 always use a lock, in the threaded case.
 template<bool needs_lock, int pool_instance>
   class CharPoolAlloc : public __gnu_cxx::__pool_alloc<char_wrapper<pool_instance> > { };
-#else
-// gcc 4.0 never uses a lock, but doesn't need it.
-template<bool needs_lock, int pool_instance>
-  class CharPoolAlloc : public __gnu_cxx::__mt_alloc<char_wrapper<pool_instance> > { };
-#endif
-#endif
+#else // gcc 4.0 and higher.
+// A wrapper around a pointer to the actual pool type (__gnu_cxx::__pool<>)
+// that automatically deletes its pointer on destruction.
+// This class does not need a reference counter because we only use it for static objects.
+template<class __pool_type>
+  struct static_pool_instance {
+    __pool_type* ptr;
+    bool M_internal;
+    static_pool_instance(void) { }	// Do NOT initialize `ptr'! It is automatically initialized
+    					// to NULL because this is a static POD object and ptr might
+					// already be initialized before the global constructor of
+					// this object would be called.
+    void create(void);			// This does the initialization.
+  };
+// The class that holds the actual pool instance.
+// This class also defines policies (so far only whether or not threading is used).
+template<int pool_instance, bool needs_lock>
+  struct pool_instance_and_policy {
+    typedef __gnu_cxx::__pool<needs_lock> __pool_type;		// Underlaying pool type.
+    static static_pool_instance<__pool_type> _S_pool_instance;	// The actual pool instance.
 
-// Dummy mutex instance numbers, these must be negative.
-int const multi_threaded_internal_instance = -1;
-int const single_threaded_internal_instance = -2;
-int const userspace_instance = -3;
+    // The following is needed as interface of a 'pool_policy' class as used by __gnu_cxx::__mt_alloc.
+    static __pool_type& _S_get_pool(void)			// Accessor to the __pool_type singleton.
+        { return *_S_pool_instance.ptr; }
+    static void _S_initialize_once(void) 			// This is called every time a new allocation is done.
+    { 
+      static bool __init;
+      if (__builtin_expect(__init == false, false))
+      {
+        _S_pool_instance.create();
+	_S_pool_instance.ptr->_M_initialize_once(); 
+	__init = true;
+      }
+    }
+  };
+
+#ifdef __GTHREADS
+// Specialization, needed because in this case more interface is needed for the
+// 'pool_policy' class as used by __gnu_cxx::__mt_alloc.
+template<int pool_instance>
+  struct pool_instance_and_policy<pool_instance, true>
+  {
+    typedef __gnu_cxx::__pool<true> __pool_type;		// Underlaying pool type.
+    static static_pool_instance<__pool_type> _S_pool_instance;	// The actual pool instance.
+    
+    // The following is needed as interface of a 'pool_policy' class as used by __gnu_cxx::__mt_alloc.
+    static __pool_type& _S_get_pool(void)			// Accessor to the __pool_type singleton.
+        { return *_S_pool_instance.ptr; }
+    static void _S_initialize_once(void) 			// This is called every time a new allocation is done.
+    { 
+      static bool __init;
+      if (__builtin_expect(__init == false, false))
+      {
+        _S_pool_instance.create();
+	_S_pool_instance.ptr->_M_initialize_once(_S_initialize);	// Passes _S_initialize in this case.
+	__init = true;
+      }
+    }
+    // And the extra interface:
+    static void _S_destroy_thread_key(void* __freelist_pos) { _S_get_pool()._M_destroy_thread_key(__freelist_pos); }
+    static void _S_initialize(void) { _S_get_pool()._M_initialize(_S_destroy_thread_key); }
+  };
+
+template<int pool_instance>
+  static_pool_instance<typename pool_instance_and_policy<pool_instance, true>::__pool_type>
+      pool_instance_and_policy<pool_instance, true>::_S_pool_instance;
+#endif // __GTHREADS
+
+template<int pool_instance, bool needs_lock>
+  static_pool_instance<typename pool_instance_and_policy<pool_instance, needs_lock>::__pool_type>
+      pool_instance_and_policy<pool_instance, needs_lock>::_S_pool_instance;
+
+template<bool needs_lock, int pool_instance>
+  class CharPoolAlloc : public __gnu_cxx::__mt_alloc<char, pool_instance_and_policy<pool_instance, needs_lock> > { };
+#endif // gcc 4.0 and higher.
+#endif // gcc 3.4.1 and higher.
 
 // Convenience macros.
 #if CWDEBUG_DEBUG
@@ -211,9 +285,9 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
 #if LIBCWD_THREAD_SAFE
 // We normally would be able to use the default allocator, but... libcwd functions can
 // at all times be called from malloc which might be called from std::allocator with its
-// lock set.  Therefore we also use a seperate allocator pool for the userspace, in the
+// lock set.  Therefore we also use a separate allocator pool for the userspace, in the
 // threaded case.
-#define LIBCWD_CHARALLOCATOR_USERSPACE(instance) ::libcwd::_private_::			\
+#define LIBCWD_CHARALLOCATOR_USERSPACE(instance) ::libcwd::_private_::				\
 	allocator_adaptor<char,									\
 	  		  CharPoolAlloc<true, userspace_instance>,				\
 			  userspace_pool							\

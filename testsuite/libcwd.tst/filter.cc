@@ -232,5 +232,9 @@ MAIN_FUNCTION
   free(p4);
 #endif // !STATIC
 
+#if CWDEBUG_ALLOC
+  // Suppress the deallocations of mt_allocator.cc.
+  Debug( dc::malloc.off() );
+#endif
   EXIT(0);
 }

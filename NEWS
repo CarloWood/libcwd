@@ -1,5 +1,13 @@
 libcwd-0.99.39
 
+	Updated support for g++ 4.0.0.
+
+	The gdb functions debug_alloc and debug_watch have been
+	renamed to cwdebug_alloc and cwdebug_watch respectively
+	because they could no longer be static (gdb didn't see
+	them anymore) and otherwise would polute namespace too
+	much.
+
         Bug fixes:
 
 	debug_ct::push_marker was broken. It left allocations
