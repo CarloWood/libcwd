@@ -46,7 +46,8 @@ void libcw_bfd_test3(void)
 	break;
     }
 
-    location_st loc = libcw_bfd_pc_location((char*)retadr + libcw_bfd_builtin_return_address_offset);
+    location_st loc;
+    libcw_bfd_pc_location(loc, (char*)retadr + libcw_bfd_builtin_return_address_offset);
     Dout(dc::notice, "called from " << loc);
 
     if (loc.line == 0)
