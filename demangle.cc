@@ -29,6 +29,12 @@
 #undef CPPFILTCOMPATIBLE
 
 #include <libcw/sys.h>
+#include <cctype>
+#include <strstream>
+#include <libcw/h.h>
+#include <libcw/debug.h>
+#include <libcw/demangle.h>
+
 #ifdef HAVE_LIMITS
 #include <limits>
 #else
@@ -42,96 +48,95 @@
 #ifndef ULONG_LONG_MAX
 #define ULONG_LONG_MAX ((unsigned long long)-1)
 #endif
-template<typename T>
-  struct numeric_limits {
-    static const bool is_signed = false;
-    static T min() { return 0; }
-    static T max() { return 0; }
-  };
-template<>
-  struct numeric_limits<bool> {
-    static const bool is_signed = false;
-    static bool min() { return 0; }
-    static bool max() { return 0; }
-  };
-template<>
-  struct numeric_limits<char> {
-    static const bool is_signed = (CHAR_MIN < 0);
-    static char min() { return CHAR_MIN; }
-    static char max() { return CHAR_MAX; }
-  };
-template<>
-  struct numeric_limits<unsigned char> {
-    static const bool is_signed = false;
-    static unsigned char min() { return 0; }
-    static unsigned char max() { return UCHAR_MAX; }
-  };
-template<>
-  struct numeric_limits<signed char> {
-    static const bool is_signed = true;
-    static signed char min() { return SCHAR_MIN; }
-    static signed char max() { return SCHAR_MAX; }
-  };
-template<>
-  struct numeric_limits<short> {
-    static const bool is_signed = true;
-    static short min() { return SHRT_MIN; }
-    static short max() { return SHRT_MAX; }
-  };
-template<>
-  struct numeric_limits<unsigned short> {
-    static const bool is_signed = false;
-    static unsigned short min() { return 0; }
-    static unsigned short max() { return USHRT_MAX; }
-  };
-template<>
-  struct numeric_limits<int> {
-    static const bool is_signed = true;
-    static int min() { return INT_MIN; }
-    static int max() { return INT_MAX; }
-  };
-template<>
-  struct numeric_limits<unsigned int> {
-    static const bool is_signed = false;
-    static unsigned int min() { return 0; }
-    static unsigned int max() { return UINT_MAX; }
-  };
-template<>
-  struct numeric_limits<long> {
-    static const bool is_signed = true;
-    static long min() { return LONG_MIN; }
-    static long max() { return LONG_MAX; }
-  };
-template<>
-  struct numeric_limits<unsigned long> {
-    static const bool is_signed = false;
-    static unsigned long min() { return 0; }
-    static unsigned long max() { return ULONG_MAX; }
-  };
-template<>
-  struct numeric_limits<long long> {
-    static const bool is_signed = true;
-    static long long min() { return LONG_LONG_MIN; }
-    static long long max() { return LONG_LONG_MAX; }
-  };
-template<>
-  struct numeric_limits<unsigned long long> {
-    static const bool is_signed = false;
-    static unsigned long long min() { return 0; }
-    static unsigned long long max() { return ULONG_LONG_MAX; }
-  };
-template<>
-  struct numeric_limits<wchar_t> {
-    static const bool is_signed = true;
-    static wchar_t min() { return (1 << (8 * sizeof(wchar_t) - 1)); }
-    static wchar_t max() { return -((1 << (8 * sizeof(wchar_t) - 1)) + 1); }
-  };
-#endif
-#include <cctype>
-#include <strstream>
-#include <libcw/h.h>
-#include <libcw/debug.h>
-#include <libcw/demangle.h>
+namespace libcw {
+  namespace debug {
+    template<typename T>
+      struct numeric_limits {
+	static const bool is_signed = false;
+	static T min() { return 0; }
+	static T max() { return 0; }
+      };
+    template<>
+      struct numeric_limits<bool> {
+	static const bool is_signed = false;
+	static bool min() { return 0; }
+	static bool max() { return 0; }
+      };
+    template<>
+      struct numeric_limits<char> {
+	static const bool is_signed = (CHAR_MIN < 0);
+	static char min() { return CHAR_MIN; }
+	static char max() { return CHAR_MAX; }
+      };
+    template<>
+      struct numeric_limits<unsigned char> {
+	static const bool is_signed = false;
+	static unsigned char min() { return 0; }
+	static unsigned char max() { return UCHAR_MAX; }
+      };
+    template<>
+      struct numeric_limits<signed char> {
+	static const bool is_signed = true;
+	static signed char min() { return SCHAR_MIN; }
+	static signed char max() { return SCHAR_MAX; }
+      };
+    template<>
+      struct numeric_limits<short> {
+	static const bool is_signed = true;
+	static short min() { return SHRT_MIN; }
+	static short max() { return SHRT_MAX; }
+      };
+    template<>
+      struct numeric_limits<unsigned short> {
+	static const bool is_signed = false;
+	static unsigned short min() { return 0; }
+	static unsigned short max() { return USHRT_MAX; }
+      };
+    template<>
+      struct numeric_limits<int> {
+	static const bool is_signed = true;
+	static int min() { return INT_MIN; }
+	static int max() { return INT_MAX; }
+      };
+    template<>
+      struct numeric_limits<unsigned int> {
+	static const bool is_signed = false;
+	static unsigned int min() { return 0; }
+	static unsigned int max() { return UINT_MAX; }
+      };
+    template<>
+      struct numeric_limits<long> {
+	static const bool is_signed = true;
+	static long min() { return LONG_MIN; }
+	static long max() { return LONG_MAX; }
+      };
+    template<>
+      struct numeric_limits<unsigned long> {
+	static const bool is_signed = false;
+	static unsigned long min() { return 0; }
+	static unsigned long max() { return ULONG_MAX; }
+      };
+    template<>
+      struct numeric_limits<long long> {
+	static const bool is_signed = true;
+	static long long min() { return LONG_LONG_MIN; }
+	static long long max() { return LONG_LONG_MAX; }
+      };
+    template<>
+      struct numeric_limits<unsigned long long> {
+	static const bool is_signed = false;
+	static unsigned long long min() { return 0; }
+	static unsigned long long max() { return ULONG_LONG_MAX; }
+      };
+    template<>
+      struct numeric_limits<wchar_t> {
+	static const bool is_signed = true;
+	static wchar_t min() { return (1 << (8 * sizeof(wchar_t) - 1)); }
+	static wchar_t max() { return -((1 << (8 * sizeof(wchar_t) - 1)) + 1); }
+      };
+  } // namespace debug
+} // namespace libcw
+#endif	// HAVE_LIMITS
 
 RCSTAG_CC("$Id$")
 
@@ -159,1130 +164,1176 @@ namespace libcw {
 #define Debug(x)
 #endif // !STANDALONE
 
-enum cdtor_nt {
-  constructor,
-  destructor,
-  normal_symbol
-};
+namespace libcw {
+  namespace debug {
 
-static bool symbol_type(char const*, cdtor_nt, string&, string&);
-static string symbol_name(char const*, size_t);
-static bool eat_template_type(char const*&, string&, string*);
-static bool eat_scope_type(char const*&, string&, string&);
-static bool eat_type(char const*&, string&);
-static int eat_digits(char const*& input);
-static bool eat_type_internal(char const*&, string&, string&, string*);
+    namespace {	// Local definitions
 
-void demangle_symbol(char const* input, string& output)
-{
-  Dout(dc::demangler, "Entering demangle_symbol(\"" << input << "\", string& output)");
+      // {anonymous}::
+      enum cdtor_nt {
+	constructor,
+	destructor,
+	normal_symbol
+      };
 
-  if (input == NULL)
-  {
-    output += "(null)";
-    return;
-  }
+      // {anonymous}::
+      vector<char const*>* template_parameters;
+      // {anonymous}::
+      vector<char const*>* previous_types;
 
-  // `input' is of the form:
-  //
-  // <symbol>				--> <symbol>
-  // <symbol>__<types>			--> <symbol>(<type1>, <type2>, ..., <typeN>)
-  // <symbol>__[C]<scope-type>		--> <scope-type>::<symbol>(void) [const]
-  // <symbol>__[C]<scope-type><types>	--> <scope-type>::<symbol>(<type1>, <type2>, ..., <typeN>) [const]
-  // __<scope-type><types>		--> <scope-type>::<class-name>(<type1>, <type2>, ..., <typeN>)
-  // __<scope-type>			--> <scope-type>::<class-name>(void)
-  // _._<scope-type>			--> <scope-type>::~<class-name>()
-  // _<scope-type>.<symbol>		--> <scope-type>::<symbol>
-  // __vt_<scope-type>			--> <scope-type> virtual table
-  // __vt_<scope-type>.symbol		--> <scope-type>::<symbol> virtual table
-  // __ti<type>				--> <type> type_info node
-  // __tf<type>				--> <type> type_info function
-  //
-  // <symbol> may contain "__", only the first "__" that is followed by a
-  // valid <symbol-type> is interpreted as the start of that <symbol-type>.
-  //
-  // <symbol-type> exists of a part that is prepended to <symbol> and
-  // a part that is appended to <symbol>.
-  //
-  // If <symbol> is empty, then it is a constructor.  If `input' starts
-  // with "_._" then it is a destructor.  In both cases only a sub set
-  // of <symbol-type> is allowed (only the ones that start with a <scope-type>).
+      // {anonymous} prototypes.
+      bool symbol_type(char const*, cdtor_nt, string&, string&);
+      string symbol_name(char const*, size_t);
+      bool eat_template_type(char const*&, string&, string*);
+      bool eat_scope_type(char const*&, string&, string&);
+      bool eat_type(char const*&, string&);
+      int eat_digits(char const*& input);
+      bool eat_type_internal(char const*&, string&, string&, string*);
 
-  size_t symbol_len = 0;
-  char const* symbol = input;
-  string prefix;
-  string postfix;
-  char const* p = input;
+    } // namespace {anonymous}
 
-  if (p[0] == '_' && p[1] == 'G' && !strncmp(p, "_GLOBAL_.", 9) && (p[9] == 'D' || p[9] == 'I') && p[10] == '.')
-  {
-    if (p[9] == 'D')
-      prefix = "global destructors keyed to ";
-    else
-      prefix = "global constructors keyed to ";
-    p += 11;
-    symbol += 11;
-  }
-  if (p[0] == '_' && p[1] == '_' && (p[2] == 't' || p[2] == 'v'))
-  {
-    char const* q = p + 5;
-    if (p[2] == 'v' && p[3] == 't' && p[4] == '_' && !eat_type(q, prefix))
+    //
+    // demangle_symbol
+    //
+    // Demangle `input' and append to `output'.
+    // `input' should be a mangled_function_name as for instance returned
+    // by `libcw::debug::pc_mangled_function_name'.
+    //
+    void demangle_symbol(char const* input, string& output)
     {
-      if (*q == '.')
+      Dout(dc::demangler, "Entering demangle_symbol(\"" << input << "\", string& output)");
+
+      if (input == NULL)
       {
-        size_t original_length = prefix.size();
-        ++q;
-	prefix += "::";
-	if (eat_type(q, prefix) || *q != 0)
-	{
-	  --q;
-	  prefix.erase(original_length);
-        }
-      }
-      if (*q == 0)
-      {
-	output += prefix;
-	output += " virtual table";
+	output += "(null)";
 	return;
       }
-    }
-    --q;
-    if (p[2] == 't' && (p[3] == 'i' || p[3] == 'f') && !eat_type(q, prefix) && *q == 0)
-    {
+
+      // `input' is of the form:
+      //
+      // <symbol>				--> <symbol>
+      // <symbol>__<types>			--> <symbol>(<type1>, <type2>, ..., <typeN>)
+      // <symbol>__[C]<scope-type>		--> <scope-type>::<symbol>(void) [const]
+      // <symbol>__[C]<scope-type><types>	--> <scope-type>::<symbol>(<type1>, <type2>, ..., <typeN>) [const]
+      // __<scope-type><types>		--> <scope-type>::<class-name>(<type1>, <type2>, ..., <typeN>)
+      // __<scope-type>			--> <scope-type>::<class-name>(void)
+      // _._<scope-type>			--> <scope-type>::~<class-name>()
+      // _<scope-type>.<symbol>		--> <scope-type>::<symbol>
+      // __vt_<scope-type>			--> <scope-type> virtual table
+      // __vt_<scope-type>.symbol		--> <scope-type>::<symbol> virtual table
+      // __ti<type>				--> <type> type_info node
+      // __tf<type>				--> <type> type_info function
+      //
+      // <symbol> may contain "__", only the first "__" that is followed by a
+      // valid <symbol-type> is interpreted as the start of that <symbol-type>.
+      //
+      // <symbol-type> exists of a part that is prepended to <symbol> and
+      // a part that is appended to <symbol>.
+      //
+      // If <symbol> is empty, then it is a constructor.  If `input' starts
+      // with "_._" then it is a destructor.  In both cases only a sub set
+      // of <symbol-type> is allowed (only the ones that start with a <scope-type>).
+
+      size_t symbol_len = 0;
+      char const* symbol = input;
+      string prefix;
+      string postfix;
+      char const* p = input;
+
+      if (p[0] == '_' && p[1] == 'G' && !strncmp(p, "_GLOBAL_.", 9) && (p[9] == 'D' || p[9] == 'I') && p[10] == '.')
+      {
+	if (p[9] == 'D')
+	  prefix = "global destructors keyed to ";
+	else
+	  prefix = "global constructors keyed to ";
+	p += 11;
+	symbol += 11;
+      }
+      if (p[0] == '_' && p[1] == '_' && (p[2] == 't' || p[2] == 'v'))
+      {
+	char const* q = p + 5;
+	if (p[2] == 'v' && p[3] == 't' && p[4] == '_' && !eat_type(q, prefix))
+	{
+	  if (*q == '.')
+	  {
+	    size_t original_length = prefix.size();
+	    ++q;
+	    prefix += "::";
+	    if (eat_type(q, prefix) || *q != 0)
+	    {
+	      --q;
+	      prefix.erase(original_length);
+	    }
+	  }
+	  if (*q == 0)
+	  {
+	    output += prefix;
+	    output += " virtual table";
+	    return;
+	  }
+	}
+	--q;
+	if (p[2] == 't' && (p[3] == 'i' || p[3] == 'f') && !eat_type(q, prefix) && *q == 0)
+	{
+	  output += prefix;
+	  if (p[3] == 'i')
+	    output += " type_info node";
+	  else
+	    output += " type_info function";
+	  return;
+	}
+	char const* p2 = &p[8];
+	if (p[2] == 't' && !strncmp(p, "__thunk_", 8) && eat_digits(p2) >= 0 && *p2 == '_')
+	{
+	  prefix += "virtual function thunk (delta:-";
+	  prefix += string(p + 8, p2 - p - 8);
+	  prefix += ") for ";
+	  p = p2 + 1;
+	  symbol = p;
+	}
+      }
+      if (p[0] != '_'
+	  || (p[1] != '_' && (p[1] != '.' || p[2] != '_'))
+	  || symbol_type(p + (p[1] == '_' ? 2 : 3), p[1] == '_' ? constructor : destructor, prefix, postfix))
+      {
+	bool double_underscore = false;
+	do
+	{
+	  ++p;
+	  ++symbol_len;
+
+	  // Continue until we found the next "__" in the input string.
+	  if (p[0] == '_' && p[1] == '_')
+	  {
+	    double_underscore = true;
+	    // If the rest is a valid <symbol-type> (or an error occured) then break out of the loop.
+	    if (!symbol_type(p + 2, normal_symbol, prefix, postfix))
+	      break;
+	  }
+	}
+	while (*p);
+
+	// If this failed then try _<scope-type>.<symbol>, otherwise reset prefix and symbol when we saw at least one "__".
+	if (!*p)
+	{
+	  size_t original_size = prefix.size();
+	  p = symbol + 1;
+	  if (*symbol == '_' && !eat_type(p, prefix) && *p == '.')
+	  {
+	    symbol_len -= (p + 1 - symbol);
+	    symbol = p + 1;
+	    prefix += "::";
+	  }
+	  else if (double_underscore)
+	  {
+	    symbol_len += (symbol - input);
+	    symbol = input;
+	    prefix.erase();
+	  }
+	  else
+	    prefix.erase(original_size);
+	}
+      }
+
+      // Write the result out, translate the symbol string if needed.
+
+      Dout(dc::demangler, "symbol_len = " << symbol_len);
+      Dout(dc::demangler, "prefix = \"" << prefix << '"');
+      Dout(dc::demangler, "symbol = \"" << string(symbol, symbol_len) << '"');
+      Dout(dc::demangler, "postfix = \"" << postfix << '"');
+
       output += prefix;
-      if (p[3] == 'i')
-        output += " type_info node";
-      else
-        output += " type_info function";
-      return;
-    }
-    char const* p2 = &p[8];
-    if (p[2] == 't' && !strncmp(p, "__thunk_", 8) && eat_digits(p2) >= 0 && *p2 == '_')
-    {
-      prefix += "virtual function thunk (delta:-";
-      prefix += string(p + 8, p2 - p - 8);
-      prefix += ") for ";
-      p = p2 + 1;
-      symbol = p;
-    }
-  }
-  if (p[0] != '_'
-      || (p[1] != '_' && (p[1] != '.' || p[2] != '_'))
-      || symbol_type(p + (p[1] == '_' ? 2 : 3), p[1] == '_' ? constructor : destructor, prefix, postfix))
-  {
-    bool double_underscore = false;
-    do
-    {
-      ++p;
-      ++symbol_len;
+      output += symbol_name(symbol, symbol_len);
 
-      // Continue until we found the next "__" in the input string.
-      if (p[0] == '_' && p[1] == '_')
+      // Put a space between operator<< or operator< and their template parameter list.
+      if (symbol[0] == '_' && symbol_len == 4 && symbol[1] == '_'
+	  && symbol[2] == 'l' && (symbol[3] == 's' || symbol[3] == 't')
+	  && postfix.size() > 0 && postfix[0] == '<')
+	output += ' ';
+
+      output += postfix;
+    }
+
+    //
+    // demangle_type
+    //
+    // Demangle `input' and append to `output'.
+    // `input' should be a mangled type as for returned
+    // by the stdc++ `typeinfo::name()'.
+    // 
+    void demangle_type(char const* input, string& output)
+    {
+      Dout(dc::demangler, "Entering demangle_type(\"" << input << "\", string& output)");
+
+      if (input == NULL)
       {
-        double_underscore = true;
-	// If the rest is a valid <symbol-type> (or an error occured) then break out of the loop.
-	if (!symbol_type(p + 2, normal_symbol, prefix, postfix))
-	  break;
+	output += "(null)";
+	return;
       }
+
+      // Initialize list of previous types and template parameters.
+      vector<char const*> current_template_parameters;
+      vector<char const*> current_previous_types;
+      vector<char const*>* previous_template_parameters = template_parameters;
+      vector<char const*>* previous_previous_types = previous_types;
+      template_parameters = &current_template_parameters;
+      previous_types = &current_previous_types;
+
+      if (eat_type(input, output) || *input != 0)
+	output.assign(input, strlen(input));
+
+      template_parameters = previous_template_parameters;
+      previous_types = previous_previous_types;
     }
-    while (*p);
 
-    // If this failed then try _<scope-type>.<symbol>, otherwise reset prefix and symbol when we saw at least one "__".
-    if (!*p)
-    {
-      size_t original_size = prefix.size();
-      p = symbol + 1;
-      if (*symbol == '_' && !eat_type(p, prefix) && *p == '.')
+    namespace {	// Implementation of local functions
+
+      // Returns the length of a mangled string or the number of template parameters by reading the digits from the input string.
+      // {anonymous}::
+      int eat_digits(char const*& input)
       {
-	symbol_len -= (p + 1 - symbol);
-	symbol = p + 1;
-	prefix += "::";
+	Dout(dc::demangler, "Entering eat_digits(\"" << input << "\")");
+	// Skip a possible seperator.
+	if (*input == '_')
+	{
+	  // If a previous <type> did end on a digit then that was seperated from this with an underscore.
+	  if (!isdigit(input[-1]) || !isdigit(input[1]))
+	    return -1;
+	  ++input;
+	}
+	else if (!isdigit(*input))
+	  return -1;
+	int len = *input - '0';
+	while (isdigit(*++input))
+	  len = 10 * len + *input - '0';
+	return len;
       }
-      else if (double_underscore)
+
+      // {anonymous}::
+      bool symbol_type(char const* input, cdtor_nt cdtor, string& prefix, string& postfix)
       {
-	symbol_len += (symbol - input);
-	symbol = input;
-	prefix.erase();
-      }
-      else
-	prefix.erase(original_size);
-    }
-  }
+	Dout(dc::demangler, "Entering symbol_type(\"" << input << "\", string& prefix, string& postfix)");
 
-  // Write the result out, translate the symbol string if needed.
+	// `input' is of the form:
+	//
+	// when `cdtor' is `normal_symbol':
+	//
+	// <scope-type>				-> <scope-type>::SYMBOL(void)
+	// <scope-type><types>			-> <scope-type>::SYMBOL(<type1>, <type2>, ..., <typeN>)
+	// <nonscope-type>[<types>]			-> SYMBOL(<nonscope-type>[, <type1>, <type2>, ..., <typeN>])
+	// F<types>					-> SYMBOL(<type1>, <type2>, ..., <typeN>)
+	// H<digits><template-types>_[C]<types>[_<type>]	-> [<type> ]SYMBOL<<ttype1>, <ttype2>, ..., <ttypeN>[ ]>(<type1>, <type2>, ..., <typeN>) [const]
+	//
+	// if any of the above is prepended with a 'C', then the postfix is appended " const".
+	// Note that a pointer and reference are non-scope types, so none of the above except <nonscope-type>
+	// can start with a 'P' or 'R'.
+	//
+	// when `cdtor' is `constructor':
+	//
+	// <scope-type>				-> <scope-type>::<class-name>(void)
+	// <scope-type><types>			-> <scope-type>::<class-name>(<type1>, <type2>, ..., <typeN>)
+	// 
+	// when `cdtor' is `destructor':
+	//
+	// <scope-type>				-> <scope-type>::~<class-name>()
+	// <scope-type><types>			-> <scope-type>::~<class-name>(<type1>, <type2>, ..., <typeN>)
+	// 
+	// where <class-name> is the last qualifier of <scope-type>.
 
-  Dout(dc::demangler, "symbol_len = " << symbol_len);
-  Dout(dc::demangler, "prefix = \"" << prefix << '"');
-  Dout(dc::demangler, "symbol = \"" << string(symbol, symbol_len) << '"');
-  Dout(dc::demangler, "postfix = \"" << postfix << '"');
+	// Initialize list of previous types and template parameters.
+	vector<char const*> current_template_parameters;
+	vector<char const*> current_previous_types;
+	template_parameters = &current_template_parameters;
+	previous_types = &current_previous_types;
 
-  output += prefix;
-  output += symbol_name(symbol, symbol_len);
+	bool is_const = (*input == 'C');
+	bool is_template_function = (*input == 'H');
 
-  // Put a space between operator<< or operator< and their template parameter list.
-  if (symbol[0] == '_' && symbol_len == 4 && symbol[1] == '_'
-      && symbol[2] == 'l' && (symbol[3] == 's' || symbol[3] == 't')
-      && postfix.size() > 0 && postfix[0] == '<')
-    output += ' ';
+	if (is_const)
+	  ++input;
 
-  output += postfix;
-}
+	if (*input == 'H' || *input == 'F')
+	{
+	  if (cdtor != normal_symbol)
+	    return true;
 
-// Returns the length of a mangled string or the number of template parameters by reading the digits from the input string.
-static int eat_digits(char const*& input)
-{
-  Dout(dc::demangler, "Entering eat_digits(\"" << input << "\")");
-  // Skip a possible seperator.
-  if (*input == '_')
-  {
-    // If a previous <type> did end on a digit then that was seperated from this with an underscore.
-    if (!isdigit(input[-1]) || !isdigit(input[1]))
-      return -1;
-    ++input;
-  }
-  else if (!isdigit(*input))
-    return -1;
-  int len = *input - '0';
-  while (isdigit(*++input))
-    len = 10 * len + *input - '0';
-  return len;
-}
+	  ++input;
 
-static vector<char const*>* template_parameters;
-static vector<char const*>* previous_types;
+	  if (is_template_function)
+	  {
+	    // Process <digits><template-types>
 
-static bool symbol_type(char const* input, cdtor_nt cdtor, string& prefix, string& postfix)
-{
-  Dout(dc::demangler, "Entering symbol_type(\"" << input << "\", string& prefix, string& postfix)");
+	    int number_of_template_parameters = eat_digits(input);
+	    if (number_of_template_parameters <= 0)
+	      return true;
 
-  // `input' is of the form:
-  //
-  // when `cdtor' is `normal_symbol':
-  //
-  // <scope-type>				-> <scope-type>::SYMBOL(void)
-  // <scope-type><types>			-> <scope-type>::SYMBOL(<type1>, <type2>, ..., <typeN>)
-  // <nonscope-type>[<types>]			-> SYMBOL(<nonscope-type>[, <type1>, <type2>, ..., <typeN>])
-  // F<types>					-> SYMBOL(<type1>, <type2>, ..., <typeN>)
-  // H<digits><template-types>_[C]<types>[_<type>]	-> [<type> ]SYMBOL<<ttype1>, <ttype2>, ..., <ttypeN>[ ]>(<type1>, <type2>, ..., <typeN>) [const]
-  //
-  // if any of the above is prepended with a 'C', then the postfix is appended " const".
-  // Note that a pointer and reference are non-scope types, so none of the above except <nonscope-type>
-  // can start with a 'P' or 'R'.
-  //
-  // when `cdtor' is `constructor':
-  //
-  // <scope-type>				-> <scope-type>::<class-name>(void)
-  // <scope-type><types>			-> <scope-type>::<class-name>(<type1>, <type2>, ..., <typeN>)
-  // 
-  // when `cdtor' is `destructor':
-  //
-  // <scope-type>				-> <scope-type>::~<class-name>()
-  // <scope-type><types>			-> <scope-type>::~<class-name>(<type1>, <type2>, ..., <typeN>)
-  // 
-  // where <class-name> is the last qualifier of <scope-type>.
+	    postfix += '<';
 
-  // Initialize list of previous types and template parameters.
-  vector<char const*> current_template_parameters;
-  vector<char const*> current_previous_types;
-  template_parameters = &current_template_parameters;
-  previous_types = &current_previous_types;
+	    string template_type;
+	    for (int count = number_of_template_parameters; count > 0; --count)
+	    {
+	      template_parameters->push_back(input);
+	      template_type.erase();
+	      if (eat_template_type(input, template_type, NULL))
+	      {
+		postfix.erase();
+		return true;
+	      }
+	      postfix += template_type;
+	      if (count > 1)
+		postfix += ", ";
+	    }
 
-  bool is_const = (*input == 'C');
-  bool is_template_function = (*input == 'H');
+	    // The next must be an '_', eat it.
+	    if (*input != '_')
+	    {
+	      postfix.erase();
+	      return true;
+	    }
+	    ++input;
 
-  if (is_const)
-    ++input;
+	    if (template_type[template_type.size() - 1] == '>')
+	      postfix += ' ';
 
-  if (*input == 'H' || *input == 'F')
-  {
-    if (cdtor != normal_symbol)
-      return true;
+	    postfix += '>';
+	  }
+	}
 
-    ++input;
+	if (*input == 'C')
+	{
+	  is_const = true;
+	  ++input;
+	}
 
-    if (is_template_function)
-    {
-      // Process <digits><template-types>
-
-      int number_of_template_parameters = eat_digits(input);
-      if (number_of_template_parameters <= 0)
-	return true;
-
-      postfix += '<';
-
-      string template_type;
-      for (int count = number_of_template_parameters; count > 0; --count)
-      {
-	template_parameters->push_back(input);
-	template_type.erase();
-	if (eat_template_type(input, template_type, NULL))
+	if (*input == 0)
 	{
 	  postfix.erase();
 	  return true;
 	}
-	postfix += template_type;
-	if (count > 1)
-	  postfix += ", ";
-      }
 
-      // The next must be an '_', eat it.
-      if (*input != '_')
-      {
-	postfix.erase();
-	return true;
-      }
-      ++input;
+	// Process <scope-type>, if any.
+	string last_class_name;
+	string scope_type;
+	char const* input_store = input;
+	if (!eat_scope_type(input, scope_type, last_class_name))
+	{
+	  previous_types->push_back(input_store);
+	  scope_type += "::";
+	  switch(cdtor)
+	  {
+	    case constructor:
+	      postfix += last_class_name;
+	      break;
+	    case normal_symbol:
+	      break;
+	    case destructor:
+	      if (*input != 0)
+	      {
+		postfix.erase();
+		return true;
+	      }
+	      prefix += scope_type + '~' + last_class_name +
+    #ifdef CPPFILTCOMPATIBLE
+		  "(void)";
+    #else
+		  "()";
+    #endif
+	      if (is_const)
+		prefix += " const";
+	      return false;
+	  }
+	}
+	else if (cdtor != normal_symbol)
+	{
+	  postfix.erase();
+	  return true;
+	}
+	else
+	  input = input_store;
 
-      if (template_type[template_type.size() - 1] == '>')
-	postfix += ' ';
+	// Must be a <nonscope-type> then.
+	// Process <types>
 
-      postfix += '>';
-    }
-  }
+	postfix += '(';
 
-  if (*input == 'C')
-  {
-    is_const = true;
-    ++input;
-  }
+	// There must be at least one <type>.
+	if (*input == 0)
+	  postfix += "void";
+	else
+	{
+	  previous_types->push_back(input);
+	  if (eat_type(input, postfix))
+	  {
+	    postfix.erase();
+	    return true;
+	  }
 
-  if (*input == 0)
-  {
-    postfix.erase();
-    return true;
-  }
+	  // Eat optional other <type>s.
+	  while (*input && *input != '_')
+	  {
+	    postfix += ", ";
+	    previous_types->push_back(input);
+	    if (eat_type(input, postfix))
+	    {
+	      postfix.erase();
+	      return true;
+	    }
+	  }
+	}
 
-  // Process <scope-type>, if any.
-  string last_class_name;
-  string scope_type;
-  char const* input_store = input;
-  if (!eat_scope_type(input, scope_type, last_class_name))
-  {
-    previous_types->push_back(input_store);
-    scope_type += "::";
-    switch(cdtor)
-    {
-      case constructor:
-	postfix += last_class_name;
-	break;
-      case normal_symbol:
-	break;
-      case destructor:
+	postfix += ')';
+
+	// Process [_<type>], if any.
+	if (cdtor == normal_symbol && is_template_function && *input == '_')
+	{
+	  ++input;
+	  if (eat_type(input, prefix))
+	  {
+	    postfix.erase();
+	    prefix.erase();
+	    return true;
+	  }
+	  prefix += ' ';
+	}
+
+	prefix += scope_type;
+
+	// We must have reached the end of the string now
 	if (*input != 0)
 	{
 	  postfix.erase();
+	  prefix.erase();
 	  return true;
 	}
-	prefix += scope_type + '~' + last_class_name +
-#ifdef CPPFILTCOMPATIBLE
-	    "(void)";
-#else
-	    "()";
-#endif
+
 	if (is_const)
-	  prefix += " const";
-        return false;
-    }
-  }
-  else if (cdtor != normal_symbol)
-  {
-    postfix.erase();
-    return true;
-  }
-  else
-    input = input_store;
+	  postfix += " const";
 
-  // Must be a <nonscope-type> then.
-  // Process <types>
-
-  postfix += '(';
-
-  // There must be at least one <type>.
-  if (*input == 0)
-    postfix += "void";
-  else
-  {
-    previous_types->push_back(input);
-    if (eat_type(input, postfix))
-    {
-      postfix.erase();
-      return true;
-    }
-
-    // Eat optional other <type>s.
-    while (*input && *input != '_')
-    {
-      postfix += ", ";
-      previous_types->push_back(input);
-      if (eat_type(input, postfix))
-      {
-	postfix.erase();
-	return true;
-      }
-    }
-  }
-
-  postfix += ')';
-
-  // Process [_<type>], if any.
-  if (cdtor == normal_symbol && is_template_function && *input == '_')
-  {
-    ++input;
-    if (eat_type(input, prefix))
-    {
-      postfix.erase();
-      prefix.erase();
-      return true;
-    }
-    prefix += ' ';
-  }
-
-  prefix += scope_type;
-
-  // We must have reached the end of the string now
-  if (*input != 0)
-  {
-    postfix.erase();
-    prefix.erase();
-    return true;
-  }
-
-  if (is_const)
-    postfix += " const";
-
-  return false;
-}
-
-//
-// Symbol operator codes exist of two characters, we need to find a
-// quick hash so that their names can be looked up in a table.
-//
-// The puzzle :)
-// Shift the rows so that there is at most one character per column.
-//
-// A near perfect solution:
-//                                              horizontal
-//    .....................................     offset + 'a'
-// a, |||a||d||||||||||||||s                      3
-// c, ||||||||||||||||||||||||||||||||||||lmno   25
-// d, ||||l|||||||||v                            -7
-// e, |||||||||||||||||||||||||||||||||qr        17
-// g, ||e||||||||||||||t                         -2
-// l, |||||||||||e|||||||||||||st                 7
-// m, d||||i||lmn|||||||||x                      -3
-// n, |e||||||||||||||t||w                       -3
-// o, |||||||||||||||||||||||||||||o||r          15
-// p, |||||||||||||||||||||||||||l|||p|||t       16
-// r, |||||||||||||||f||||||m|||||s              10
-// s, ||||||||||||||||||||||||z                  -1
-// v, ||||||||||||cd|||||||||n                   10
-//    .....................................
-// ^            ^__ second character
-// |___ first character
-//
-
-// Putting that solution in tables:
-
-static char offset_table[1 + CHAR_MAX - CHAR_MIN /* ascii value of first character */ ] = {
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-#if (CHAR_MIN<0)
-  // Add -CHAR_MIN extra zeroes (128):
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-  //   a    b    c    d    e    f    g    h    i    j    k    l    m    n    o    p    q    r    s    t    u    v
-  0, -94,   0, -72,-104, -80,   0, -99,   0,   0,   0,   0, -90,-100,-100, -82, -81,   0, -87, -98,   0,   0, -87,
-#else
-  0, 162,   0, 184, 152, 176,   0, 157,   0,   0,   0,   0, 166, 156, 156, 174, 175,   0, 169, 158,   0,   0, 169,
-#endif
-  // ... more zeros
-};
-
-struct entry_st { char const* opcode; char const* symbol_name; } symbol_name_table[40] = {
-  { "md=", "operator%" },
-  { "ne",  "operator!=" },
-  { "ge",  "operator>=" },
-  { "aa",  "operator&&" },
-  { "dl",  "operator delete" },
-  { "mi=", "operator-" },
-  { "ad=", "operator&" },
-  {   "",   NULL },
-  { "ml=", "operator*" },
-  { "mm",  "operator--" },
-  { "mn",  "operator<?" },
-  { "le",  "operator<=" },
-  { "vc",  "operator[]" },
-  { "vd",  "operator delete []" },
-  { "dv=", "operator/" },
-  { "rf",  "operator->" },
-  { "nt",  "operator!" },
-  { "gt",  "operator>" },
-  {   "",   NULL },
-  { "nw",  "operator new" },
-  { "mx",  "operator>?" },
-  { "as",  "operator=" },
-  { "rm",  "operator->*" },
-  { "vn",  "operator new []" },
-  { "sz",  "sizeof" },
-  { "ls=", "operator<<" },
-  { "lt",  "operator<" },
-  { "pl=", "operator+" },
-  { "rs=", "operator>>" },
-  { "oo",  "operator||" },
-  {   "",   NULL },
-  { "pp",  "operator++" },
-  { "or=", "operator|" },
-  { "eq",  "operator==" },
-  { "er=", "operator^" },
-  { "pt",  "operator->" },
-  { "cl",  "operator()" },
-  { "cm",  "operator," },
-  { "cn",  "operator?:" },
-  { "co",  "operator~" }
-};
-
-static string symbol_name(char const* symbol, size_t symbol_len)
-{
-  // Only consider symbols of the form /__../ and /__a../.
-  if (symbol_len > 3 && symbol[0] == '_' && symbol[1] == '_' && symbol_len < 6 && (symbol_len == 4 || symbol[2] == 'a'))
-  {
-    char const* opcode = symbol + 2;
-
-    // Skip the 'a' in /__a../.
-    if (symbol_len == 5)
-      ++opcode;
-
-    register char hash;
-    if ((hash = offset_table[*opcode - CHAR_MIN]))
-    {
-      hash += opcode[1];
-      if (
-#if (CHAR_MIN<0)
-	  hash >= 0 &&
-#endif
-	  hash < 40)
-      {
-	entry_st entry = symbol_name_table[hash];
-	if (entry.opcode[0] == opcode[0] && entry.opcode[1] == opcode[1] && (symbol_len == 4 || entry.opcode[2] == '='))
-	{
-	  string operator_name(entry.symbol_name);
-	  if (symbol_len == 5)
-	    operator_name += '=';
-	  return operator_name;
-	}
-      }
-    }
-  }
-  return string(symbol, symbol_len);
-}
-
-template<class INTEGRAL_TYPE>
-  static bool eat_integral_type(char const*& input, string& output)
-  {
-    Dout(dc::demangler, "Entering eat_integral_type<" << type_info_of(INTEGRAL_TYPE(0)).demangled_name() << ">(\"" << input << "\", string& output)");
-
-    // `input' is of the form
-    //
-    // [m]<digit>
-    // _[m]<digit>[<digit>...]_
-    //
-
-    bool just_one_digit = (*input != '_');
-    if (!just_one_digit)
-      ++input;
-    bool is_negative = (*input == 'm' && numeric_limits<INTEGRAL_TYPE>::is_signed);
-    if (is_negative)
-    {
-      ++input;
-      output += '-';
-    }
-
-    if (!isdigit(*input))
-      return true;
-
-    INTEGRAL_TYPE const pre_max = numeric_limits<INTEGRAL_TYPE>::max() / 10;
-    INTEGRAL_TYPE const pre_min = numeric_limits<INTEGRAL_TYPE>::min() / 10;
-    char const pre_max_last_digit = '0' + numeric_limits<INTEGRAL_TYPE>::max() % 10;
-    char const pre_min_last_digit = '0' - numeric_limits<INTEGRAL_TYPE>::min() % 10;
-
-    INTEGRAL_TYPE x = 0;
-
-    if (is_negative)
-      do
-      {
-	if (x < pre_min || (x == pre_min && *input > pre_min_last_digit))
-	  return true;
-	x = x * 10 - (*input - '0');
-	output += *input;
-      }
-      while (isdigit(*++input) && !just_one_digit);
-    else
-      do
-      {
-	if (x > pre_max || (x == pre_max && *input > pre_max_last_digit))
-	  return true;
-	x = x * 10 + (*input - '0');
-	output += *input;
-      }
-      while (isdigit(*++input) && !just_one_digit);
-
-#ifndef CPPFILTCOMPATIBLE
-    if (!numeric_limits<INTEGRAL_TYPE>::is_signed)
-      output += 'U';
-    if (sizeof(INTEGRAL_TYPE) > sizeof(int))
-      output += 'L';
-#endif
-
-    return false;
-  }
-
-static bool eat_float_type(char const*& input, string& output)
-{
-  Dout(dc::demangler, "Entering eat_float_type(\"" << input << "\", string& output)");
-  if (*input == 'm')
-  {
-    ++input;
-    output += '-';
-  }
-  if (!isdigit(*input))
-    return true;
-  output += *input++;
-  if (*input != '.')
-    return true;
-  output += *input++;
-  while(isdigit(*input))
-    output += *input++;
-  if (*input != 'e')
-    return true;
-  output += *input++;
-  if (*input == 'm')
-  {
-    ++input;
-    output += '-';
-  }
-  while(isdigit(*input))
-    output += *input++;
-  return false;
-}
-
-static bool eat_template_type(char const*& input, string& template_type, string* last_class_name)
-{
-  Dout(dc::demangler, "Entering eat_template_type(\"" << input << "\", string& template_type, " << (last_class_name ? "\", string* last_class_name" : "\", NULL") << ')');
-  // `input' is of the form
-  //
-  // Z<type>
-  // <integral-type><value>
-  //
-  // where <integral-type> is one of:
-  //
-  //                            <value>
-  // b	boolean			0 (false) or 1 (true)
-  // f  float			<float-type>
-  // d  double			<float-type>
-  // r  long double		<float-type>
-  // w  wchar_t			<integral-type>
-  // Sc signed char		<integral-type>
-  // Uc unsigned char		<integral-type>
-  // c  char			<integral-type>
-  // Us unsigned short		<integral-type>
-  // s  short			<integral-type>
-  // Ui unsigned int		<integral-type>
-  // i  int			<integral-type>
-  // Ul unsigned long		<integral-type>
-  // l  long			<integral-type>
-  // Ux unsigned long long	<integral-type>
-  // x  long long		<integral-type>
-  // PF<types>_<type><digits><symbol>	--> &<symbol>
-  //
-
-  if (*input == 'Z')
-  {
-    ++input;
-    // Process Z<type>
-    string postfix;
-    if (last_class_name && *input == 't')
-      return true;	// Don't ask me why, but this is not a scope_type when it is a template parameter.
-    if (eat_type_internal(input, template_type, postfix, last_class_name))
-      return true;
-    template_type += postfix;
-  }
-  else if (!last_class_name)
-  {
-    // Process <type><value>
-    switch (*input)
-    {
-      case 'b':
-	if (input[1] == '0')
-	  template_type = "false";
-	else if (input[1] == '1')
-	  template_type = "true";
-	else
-	  return true;
-	input += 2;
-        break;
-      case 'f':
-      case 'd':
-        return eat_float_type(input, template_type);
-      case 'r':
-        if (eat_float_type(input, template_type))
-          return true;
-        template_type += 'L';
-        break;
-      case 'w':
-        return eat_integral_type<wchar_t>(++input, template_type);
-      case 'P':
-      {
-        string tmp;
-        if (eat_type(input, tmp))
-	  return true;
-	int len = eat_digits(input);
-	if (len <= 0)
-	  return true;
-	tmp.assign(input, len);
-	input += len;
-	tmp += '\0';
-	template_type = "&";
-        demangle_symbol(tmp.data(), template_type);
-	break;
-      }
-      default:
-      {
-	bool is_unsigned = (*input == 'U');
-        if (*input == 'U' || (*input == 'S' && input[1] == 'c'))
-	  ++input;
-	++input;
-	if (is_unsigned)
-	  switch (input[-1])
-	  {
-	    case 'c':
-	      return eat_integral_type<unsigned char>(input, template_type);
-	    case 's':
-	      return eat_integral_type<unsigned short>(input, template_type);
-            case 'i':
-	      return eat_integral_type<unsigned int>(input, template_type);
-            case 'l':
-	      return eat_integral_type<unsigned long>(input, template_type);
-	    case 'x':
-	      return eat_integral_type<unsigned long long>(input, template_type);
-	    default:
-	      return true;
-	  }
-        else
-	  switch (input[-1])
-	  {
-	    case 'c':
-	      if (input[-2] == 'S')
-	        return eat_integral_type<signed char>(input, template_type);
-              else
-		return eat_integral_type<char>(input, template_type);
-	    case 's':
-	      return eat_integral_type<short>(input, template_type);
-            case 'i':
-	      return eat_integral_type<int>(input, template_type);
-            case 'l':
-	      return eat_integral_type<long>(input, template_type);
-	    case 'x':
-	      return eat_integral_type<long long>(input, template_type);
-	    default:
-	      return true;
-	  }
-      }
-    }
-  }
-  return false;
-}
-
-static bool eat_type_internal(char const*& input, string& prefix, string& postfix, string* last_class_name = NULL)
-{
-  Dout(dc::demangler, "Entering eat_type_internal(\"" << input << "\", \"" << prefix << "\", \"" << postfix << (last_class_name ? "\", string* last_class_name" : "\", NULL") << ')');
-
-  // `input' is of the form:
-  //
-  // non-scope types:
-  //							PREFIX					POSTFIX
-  // v							void
-  // e							...
-  // b							bool
-  // f							float
-  // d							double
-  // r							long double
-  // w							wchar_t
-  // Sc							signed char
-  // Uc							unsigned char
-  // c							char
-  // Us							unsigned short
-  // s							short
-  // Ui							unsigned
-  // i							int
-  // Ul							unsigned long
-  // l							long
-  // Ux							unsigned long long
-  // x							long long
-  // G<digits><global-name>				<global-name>
-  // P<type>						PREFIX*					POSTFIX
-  // R<type>						PREFIX&					POSTFIX
-  // P[M<scope-type>]F<types>_<type>			<type> ([<scope-type>::]*		)(<type>, <type>, ..., <type>)
-  // R[M<scope-type>]F<types>_<type>			<type> ([<scope-type>::]&		)(<type>, <type>, ..., <type>)
-  //
-  // scope types:
-  // <digits><class-name>				<class-name>
-  // t<digits><name><digits><ttype><ttype>...<ttype>	<name><<ttype>, <ttype>, ..., <ttype>>
-  //
-  // possible scope types:
-  // C<type>						PREFIX const				POSTFIX
-  // Q<number><scope-type><scope-type>...<type>		<scope-type>::<scope-type>::...::<type>
-  //
-  // Recursive input:
-  // X<digit><digit>
-  // X_<digits>_<digit>
-  // T<digit>
-  // T<digits>_
-  // N<digit><digit>
-  // N_<digits>_<digit>
-  //
-  // If `last_class_name' is non-NULL then the found type must be a <scope-type> and
-  // is also written to `last_class_name'.  If `input' starts with a 'Q' then the
-  // found type is only a scope type if the last <type> in the list is a <scope-type>,
-  // only that type is written to `last_class_name' in that case.  Same thing when
-  // `input' starts with a 'C'.
-  // The only other scope types are <digits><class-name> and t<digits><name><digits><ttype><ttype>...<ttype>.
-  //
-  // If `input' starts with 'X' then this type refers to the last 'H' in the mangled name.
-  // The first digit (or digits if it starts with a '_') is the template parameter that is being refered to,
-  // the second <digit> seems to be ignored.  If `input' starts with 'T', then this type refers to a previous
-  // type that was processed during this call to demangle_symbol.  If `input' starts with 'N', then this type
-  // also refers to a previous type that was processed during this call to demangle_symbol, but needs to be
-  // repeated as often as the first digit (or digits if it starts with a '_').
-
-  if (!last_class_name)
-  {
-    if (*input == 'N')
-    {
-      int count;
-      ++input;
-      if (isdigit(*input))
-	count = *input++ - '0';
-      else if (*input != '_')
-	return true;
-      else if ((count = eat_digits(++input)) < 0)
-	return true;
-      if (!isdigit(*input))
-	return true;
-      int index = eat_digits(input);
-      if (index < 0 || (size_t)(index + 1) >= previous_types->size())
-	return true;
-      char const* const previous_type((*previous_types)[index]);
-      for (int i = 0; i < count; ++i)
-      {
-	if (i != 0)
-	  postfix += ", ";
-	char const* recursive_input = previous_type;
-	previous_types->push_back(recursive_input);
-	if (eat_type(recursive_input, postfix))
-	  return true;
-      }
-      return false;
-    }
-    if (*input == 'S')
-    {
-      ++input;
-      if (*input != 'c')
-        return true;
-      prefix += "signed ";
-    }
-    if (*input == 'U')
-    {
-      ++input;
-      if (*input != 'c' && *input != 's' && *input != 'i' && *input != 'l' && *input != 'x')
-        return true;
-      prefix += "unsigned ";
-    }
-    for(;;)	// Skip all G's.
-    {
-      switch(*input++)
-      {
-	case 'c':
-	  prefix += "char";
-	  return false;
-	case 'i':
-	  prefix += "int";
-	  return false;
-	case 'b':
-	  prefix += "bool";
-	  return false;
-	case 'v':
-	  prefix += "void";
-	  return false;
-	case 'e':
-	  prefix += "...";
-	  return false;
-	case 'f':
-	  prefix += "float";
-	  return false;
-	case 'd':
-	  prefix += "double";
-	  return false;
-	case 'r':
-	  prefix += "long double";
-	  return false;
-	case 'w':
-	  prefix += "wchar_t";
-	  return false;
-	case 's':
-	  prefix += "short";
-	  return false;
-	case 'l':
-	  prefix += "long";
-	  return false;
-	case 'x':
-	  prefix += "long long";
-	  return false;
-	case 'P':
-	case 'R':
-	{
-	  char what = (input[-1] == 'P') ? '*' : '&';
-	  string member_function_pointer_scope;
-	  if (*input == 'M')
-	  {
-	    ++input;
-	    string last_class_name_dummy;
-	    if (eat_type_internal(input, member_function_pointer_scope, postfix, &last_class_name_dummy))
-	      return true;
-	    member_function_pointer_scope += postfix;
-	    member_function_pointer_scope += "::";
-	  }
-	  if (*input == 'F')
-	  {
-	    ++input;
-	    postfix += ")(";
-
-	    // There must be at least one <type>.
-	    if (eat_type(input, postfix))
-	      return true;
-	    // Eat optional other <type>s.
-	    while (*input && *input != '_')
-	    {
-	      postfix += ", ";
-	      if (eat_type(input, postfix))
-		return true;
-	    }
-
-	    postfix += ')';
-
-	    // Process _<type>.
-	    if (*input++ != '_')
-	      return true;
-	    if (eat_type(input, prefix))
-	      return true;
-	    prefix += " (";
-	    prefix += member_function_pointer_scope;
-	    prefix += what;
-	    return false;
-	  }
-	  bool is_const = (*input == 'C');	// This happens so often, its put here to speed it up
-	  if (is_const)
-	    ++input;
-	  if (eat_type_internal(input, prefix, postfix, NULL))
-	    return true;
-	  if (is_const)
-	    prefix += " const";
-	  prefix += what;
-	  return false;
-	}
-	default:
-	  --input;
-	  break;
-      }
-      if (*input != 'G')
-        break;
-      if (isdigit(*++input))
-      {
-	int len = eat_digits(input);
-	if (len <= 0)
-	  return true;
-	prefix.append(input, len);
-	input += len;
 	return false;
       }
-    }
-  }
-  if (*input == 'X')
-  {
-    int index;
-    ++input;
-    if (isdigit(*input))
-      index = *input++ - '0';
-    else if (*input != '_')
-      return true;
-    else if ((index = eat_digits(++input)) < 0)
-      return true;
-    if (!isdigit(*input++))
-      return true;
-    if ((size_t)index >= template_parameters->size())
-      return true;
-    char const* recursive_input = (*template_parameters)[index];
-    return eat_template_type(recursive_input, prefix, last_class_name);
-  }
-  else if (*input == 'T')
-  {
-    ++input;
-    int index = eat_digits(input);
-    if (index < 0 || (index > 9 && *input++ != '_'))
-      return true;
-    if ((size_t)index >= previous_types->size())
-    {
-      char buf[32];
-      ostrstream s(buf, sizeof(buf));
-      s << index << ends;
-      prefix += 'T';
-      prefix += buf;
-      return false;
-    }
-    char const* recursive_input = (*previous_types)[index];
-    return eat_type_internal(recursive_input, prefix, postfix, last_class_name);
-  }
-  else if (*input == 'Q')
-  {
-    // Process <number>
-    input += 2;
-    int number;
-    if (input[-1] >= '1' && input[-1] <= '9')
-      number = input[-1] - '0';
-    else if (input[-1] != '_' || (number = eat_digits(input)) <= 0)
-      return true;
-    // Process <scope-type><scope-type>...
-    string last_class_name_dummy;
-    while (--number)
-    {
-      if (eat_type_internal(input, prefix, postfix, &last_class_name_dummy))
+
+      //
+      // Symbol operator codes exist of two characters, we need to find a
+      // quick hash so that their names can be looked up in a table.
+      //
+      // The puzzle :)
+      // Shift the rows so that there is at most one character per column.
+      //
+      // A near perfect solution:
+      //                                              horizontal
+      //    .....................................     offset + 'a'
+      // a, |||a||d||||||||||||||s                      3
+      // c, ||||||||||||||||||||||||||||||||||||lmno   25
+      // d, ||||l|||||||||v                            -7
+      // e, |||||||||||||||||||||||||||||||||qr        17
+      // g, ||e||||||||||||||t                         -2
+      // l, |||||||||||e|||||||||||||st                 7
+      // m, d||||i||lmn|||||||||x                      -3
+      // n, |e||||||||||||||t||w                       -3
+      // o, |||||||||||||||||||||||||||||o||r          15
+      // p, |||||||||||||||||||||||||||l|||p|||t       16
+      // r, |||||||||||||||f||||||m|||||s              10
+      // s, ||||||||||||||||||||||||z                  -1
+      // v, ||||||||||||cd|||||||||n                   10
+      //    .....................................
+      // ^            ^__ second character
+      // |___ first character
+      //
+
+      // Putting that solution in tables:
+
+      // {anonymous}::
+      char offset_table[1 + CHAR_MAX - CHAR_MIN /* ascii value of first character */ ] = {
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+    #if (CHAR_MIN<0)
+	// Add -CHAR_MIN extra zeroes (128):
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
+	//   a    b    c    d    e    f    g    h    i    j    k    l    m    n    o    p    q    r    s    t    u    v
+	0, -94,   0, -72,-104, -80,   0, -99,   0,   0,   0,   0, -90,-100,-100, -82, -81,   0, -87, -98,   0,   0, -87,
+    #else
+	0, 162,   0, 184, 152, 176,   0, 157,   0,   0,   0,   0, 166, 156, 156, 174, 175,   0, 169, 158,   0,   0, 169,
+    #endif
+	// ... more zeros
+      };
+
+      // {anonymous}::
+      struct entry_st { char const* opcode; char const* symbol_name; } symbol_name_table[40] = {
+	{ "md=", "operator%" },
+	{ "ne",  "operator!=" },
+	{ "ge",  "operator>=" },
+	{ "aa",  "operator&&" },
+	{ "dl",  "operator delete" },
+	{ "mi=", "operator-" },
+	{ "ad=", "operator&" },
+	{   "",   NULL },
+	{ "ml=", "operator*" },
+	{ "mm",  "operator--" },
+	{ "mn",  "operator<?" },
+	{ "le",  "operator<=" },
+	{ "vc",  "operator[]" },
+	{ "vd",  "operator delete []" },
+	{ "dv=", "operator/" },
+	{ "rf",  "operator->" },
+	{ "nt",  "operator!" },
+	{ "gt",  "operator>" },
+	{   "",   NULL },
+	{ "nw",  "operator new" },
+	{ "mx",  "operator>?" },
+	{ "as",  "operator=" },
+	{ "rm",  "operator->*" },
+	{ "vn",  "operator new []" },
+	{ "sz",  "sizeof" },
+	{ "ls=", "operator<<" },
+	{ "lt",  "operator<" },
+	{ "pl=", "operator+" },
+	{ "rs=", "operator>>" },
+	{ "oo",  "operator||" },
+	{   "",   NULL },
+	{ "pp",  "operator++" },
+	{ "or=", "operator|" },
+	{ "eq",  "operator==" },
+	{ "er=", "operator^" },
+	{ "pt",  "operator->" },
+	{ "cl",  "operator()" },
+	{ "cm",  "operator," },
+	{ "cn",  "operator?:" },
+	{ "co",  "operator~" }
+      };
+
+      // {anonymous}::
+      string symbol_name(char const* symbol, size_t symbol_len)
+      {
+	// Only consider symbols of the form /__../ and /__a../.
+	if (symbol_len > 3 && symbol[0] == '_' && symbol[1] == '_' && symbol_len < 6 && (symbol_len == 4 || symbol[2] == 'a'))
+	{
+	  char const* opcode = symbol + 2;
+
+	  // Skip the 'a' in /__a../.
+	  if (symbol_len == 5)
+	    ++opcode;
+
+	  register char hash;
+	  if ((hash = offset_table[*opcode - CHAR_MIN]))
+	  {
+	    hash += opcode[1];
+	    if (
+    #if (CHAR_MIN<0)
+		hash >= 0 &&
+    #endif
+		hash < 40)
+	    {
+	      entry_st entry = symbol_name_table[hash];
+	      if (entry.opcode[0] == opcode[0] && entry.opcode[1] == opcode[1] && (symbol_len == 4 || entry.opcode[2] == '='))
+	      {
+		string operator_name(entry.symbol_name);
+		if (symbol_len == 5)
+		  operator_name += '=';
+		return operator_name;
+	      }
+	    }
+	  }
+	}
+	return string(symbol, symbol_len);
+      }
+
+      // {anonymous}::
+      template<class INTEGRAL_TYPE>
+	static bool eat_integral_type(char const*& input, string& output)
+	{
+	  Dout(dc::demangler, "Entering eat_integral_type<" << type_info_of(INTEGRAL_TYPE(0)).demangled_name() << ">(\"" << input << "\", string& output)");
+
+	  // `input' is of the form
+	  //
+	  // [m]<digit>
+	  // _[m]<digit>[<digit>...]_
+	  //
+
+	  bool just_one_digit = (*input != '_');
+	  if (!just_one_digit)
+	    ++input;
+	  bool is_negative = (*input == 'm' && numeric_limits<INTEGRAL_TYPE>::is_signed);
+	  if (is_negative)
+	  {
+	    ++input;
+	    output += '-';
+	  }
+
+	  if (!isdigit(*input))
+	    return true;
+
+	  INTEGRAL_TYPE const pre_max = numeric_limits<INTEGRAL_TYPE>::max() / 10;
+	  INTEGRAL_TYPE const pre_min = numeric_limits<INTEGRAL_TYPE>::min() / 10;
+	  char const pre_max_last_digit = '0' + numeric_limits<INTEGRAL_TYPE>::max() % 10;
+	  char const pre_min_last_digit = '0' - numeric_limits<INTEGRAL_TYPE>::min() % 10;
+
+	  INTEGRAL_TYPE x = 0;
+
+	  if (is_negative)
+	    do
+	    {
+	      if (x < pre_min || (x == pre_min && *input > pre_min_last_digit))
+		return true;
+	      x = x * 10 - (*input - '0');
+	      output += *input;
+	    }
+	    while (isdigit(*++input) && !just_one_digit);
+	  else
+	    do
+	    {
+	      if (x > pre_max || (x == pre_max && *input > pre_max_last_digit))
+		return true;
+	      x = x * 10 + (*input - '0');
+	      output += *input;
+	    }
+	    while (isdigit(*++input) && !just_one_digit);
+
+    #ifndef CPPFILTCOMPATIBLE
+	  if (!numeric_limits<INTEGRAL_TYPE>::is_signed)
+	    output += 'U';
+	  if (sizeof(INTEGRAL_TYPE) > sizeof(int))
+	    output += 'L';
+    #endif
+
+	  return false;
+	}
+
+      // {anonymous}::
+      bool eat_float_type(char const*& input, string& output)
+      {
+	Dout(dc::demangler, "Entering eat_float_type(\"" << input << "\", string& output)");
+	if (*input == 'm')
+	{
+	  ++input;
+	  output += '-';
+	}
+	if (!isdigit(*input))
+	  return true;
+	output += *input++;
+	if (*input != '.')
+	  return true;
+	output += *input++;
+	while(isdigit(*input))
+	  output += *input++;
+	if (*input != 'e')
+	  return true;
+	output += *input++;
+	if (*input == 'm')
+	{
+	  ++input;
+	  output += '-';
+	}
+	while(isdigit(*input))
+	  output += *input++;
+	return false;
+      }
+
+      // {anonymous}::
+      bool eat_template_type(char const*& input, string& template_type, string* last_class_name)
+      {
+	Dout(dc::demangler, "Entering eat_template_type(\"" << input << "\", string& template_type, " << (last_class_name ? "\", string* last_class_name" : "\", NULL") << ')');
+	// `input' is of the form
+	//
+	// Z<type>
+	// <integral-type><value>
+	//
+	// where <integral-type> is one of:
+	//
+	//                            <value>
+	// b	boolean			0 (false) or 1 (true)
+	// f  float			<float-type>
+	// d  double			<float-type>
+	// r  long double		<float-type>
+	// w  wchar_t			<integral-type>
+	// Sc signed char		<integral-type>
+	// Uc unsigned char		<integral-type>
+	// c  char			<integral-type>
+	// Us unsigned short		<integral-type>
+	// s  short			<integral-type>
+	// Ui unsigned int		<integral-type>
+	// i  int			<integral-type>
+	// Ul unsigned long		<integral-type>
+	// l  long			<integral-type>
+	// Ux unsigned long long	<integral-type>
+	// x  long long		<integral-type>
+	// PF<types>_<type><digits><symbol>	--> &<symbol>
+	//
+
+	if (*input == 'Z')
+	{
+	  ++input;
+	  // Process Z<type>
+	  string postfix;
+	  if (last_class_name && *input == 't')
+	    return true;	// Don't ask me why, but this is not a scope_type when it is a template parameter.
+	  if (eat_type_internal(input, template_type, postfix, last_class_name))
+	    return true;
+	  template_type += postfix;
+	}
+	else if (!last_class_name)
+	{
+	  // Process <type><value>
+	  switch (*input)
+	  {
+	    case 'b':
+	      if (input[1] == '0')
+		template_type = "false";
+	      else if (input[1] == '1')
+		template_type = "true";
+	      else
+		return true;
+	      input += 2;
+	      break;
+	    case 'f':
+	    case 'd':
+	      return eat_float_type(input, template_type);
+	    case 'r':
+	      if (eat_float_type(input, template_type))
+		return true;
+	      template_type += 'L';
+	      break;
+	    case 'w':
+	      return eat_integral_type<wchar_t>(++input, template_type);
+	    case 'P':
+	    {
+	      string tmp;
+	      if (eat_type(input, tmp))
+		return true;
+	      int len = eat_digits(input);
+	      if (len <= 0)
+		return true;
+	      tmp.assign(input, len);
+	      input += len;
+	      tmp += '\0';
+	      template_type = "&";
+	      demangle_symbol(tmp.data(), template_type);
+	      break;
+	    }
+	    default:
+	    {
+	      bool is_unsigned = (*input == 'U');
+	      if (*input == 'U' || (*input == 'S' && input[1] == 'c'))
+		++input;
+	      ++input;
+	      if (is_unsigned)
+		switch (input[-1])
+		{
+		  case 'c':
+		    return eat_integral_type<unsigned char>(input, template_type);
+		  case 's':
+		    return eat_integral_type<unsigned short>(input, template_type);
+		  case 'i':
+		    return eat_integral_type<unsigned int>(input, template_type);
+		  case 'l':
+		    return eat_integral_type<unsigned long>(input, template_type);
+		  case 'x':
+		    return eat_integral_type<unsigned long long>(input, template_type);
+		  default:
+		    return true;
+		}
+	      else
+		switch (input[-1])
+		{
+		  case 'c':
+		    if (input[-2] == 'S')
+		      return eat_integral_type<signed char>(input, template_type);
+		    else
+		      return eat_integral_type<char>(input, template_type);
+		  case 's':
+		    return eat_integral_type<short>(input, template_type);
+		  case 'i':
+		    return eat_integral_type<int>(input, template_type);
+		  case 'l':
+		    return eat_integral_type<long>(input, template_type);
+		  case 'x':
+		    return eat_integral_type<long long>(input, template_type);
+		  default:
+		    return true;
+		}
+	    }
+	  }
+	}
+	return false;
+      }
+
+      // {anonymous}::
+      bool eat_type_internal(char const*& input, string& prefix, string& postfix, string* last_class_name = NULL)
+      {
+	Dout(dc::demangler, "Entering eat_type_internal(\"" << input << "\", \"" << prefix << "\", \"" << postfix << (last_class_name ? "\", string* last_class_name" : "\", NULL") << ')');
+
+	// `input' is of the form:
+	//
+	// non-scope types:
+	//							PREFIX					POSTFIX
+	// v							void
+	// e							...
+	// b							bool
+	// f							float
+	// d							double
+	// r							long double
+	// w							wchar_t
+	// Sc							signed char
+	// Uc							unsigned char
+	// c							char
+	// Us							unsigned short
+	// s							short
+	// Ui							unsigned
+	// i							int
+	// Ul							unsigned long
+	// l							long
+	// Ux							unsigned long long
+	// x							long long
+	// G<digits><global-name>				<global-name>
+	// P<type>						PREFIX*					POSTFIX
+	// R<type>						PREFIX&					POSTFIX
+	// P[M<scope-type>][C]F<types>_<type>		<type> ([<scope-type>::]*		)(<type>, <type>, ..., <type>) [const]
+	// R[M<scope-type>][C]F<types>_<type>		<type> ([<scope-type>::]&		)(<type>, <type>, ..., <type>) [const]
+	//
+	// scope types:
+	// <digits><class-name>				<class-name>
+	// t<digits><name><digits><ttype><ttype>...<ttype>	<name><<ttype>, <ttype>, ..., <ttype>>
+	//
+	// possible scope types:
+	// C<type>						PREFIX const				POSTFIX
+	// Q<number><scope-type><scope-type>...<type>		<scope-type>::<scope-type>::...::<type>
+	//
+	// Recursive input:
+	// X<digit><digit>
+	// X_<digits>_<digit>
+	// T<digit>
+	// T<digits>_
+	// N<digit><digit>
+	// N_<digits>_<digit>
+	//
+	// If `last_class_name' is non-NULL then the found type must be a <scope-type> and
+	// is also written to `last_class_name'.  If `input' starts with a 'Q' then the
+	// found type is only a scope type if the last <type> in the list is a <scope-type>,
+	// only that type is written to `last_class_name' in that case.  Same thing when
+	// `input' starts with a 'C'.
+	// The only other scope types are <digits><class-name> and t<digits><name><digits><ttype><ttype>...<ttype>.
+	//
+	// If `input' starts with 'X' then this type refers to the last 'H' in the mangled name.
+	// The first digit (or digits if it starts with a '_') is the template parameter that is being refered to,
+	// the second <digit> seems to be ignored.  If `input' starts with 'T', then this type refers to a previous
+	// type that was processed during this call to demangle_symbol.  If `input' starts with 'N', then this type
+	// also refers to a previous type that was processed during this call to demangle_symbol, but needs to be
+	// repeated as often as the first digit (or digits if it starts with a '_').
+
+	if (!last_class_name)
+	{
+	  if (*input == 'N')
+	  {
+	    int count;
+	    ++input;
+	    if (isdigit(*input))
+	      count = *input++ - '0';
+	    else if (*input != '_')
+	      return true;
+	    else if ((count = eat_digits(++input)) < 0)
+	      return true;
+	    if (!isdigit(*input))
+	      return true;
+	    int index = eat_digits(input);
+	    if (index < 0 || (size_t)(index + 1) >= previous_types->size())
+	      return true;
+	    char const* const previous_type((*previous_types)[index]);
+	    for (int i = 0; i < count; ++i)
+	    {
+	      if (i != 0)
+		postfix += ", ";
+	      char const* recursive_input = previous_type;
+	      previous_types->push_back(recursive_input);
+	      if (eat_type(recursive_input, postfix))
+		return true;
+	    }
+	    return false;
+	  }
+	  if (*input == 'S')
+	  {
+	    ++input;
+	    if (*input != 'c')
+	      return true;
+	    prefix += "signed ";
+	  }
+	  if (*input == 'U')
+	  {
+	    ++input;
+	    if (*input != 'c' && *input != 's' && *input != 'i' && *input != 'l' && *input != 'x')
+	      return true;
+	    prefix += "unsigned ";
+	  }
+	  for(;;)	// Skip all G's.
+	  {
+	    switch(*input++)
+	    {
+	      case 'c':
+		prefix += "char";
+		return false;
+	      case 'i':
+		prefix += "int";
+		return false;
+	      case 'b':
+		prefix += "bool";
+		return false;
+	      case 'v':
+		prefix += "void";
+		return false;
+	      case 'e':
+		prefix += "...";
+		return false;
+	      case 'f':
+		prefix += "float";
+		return false;
+	      case 'd':
+		prefix += "double";
+		return false;
+	      case 'r':
+		prefix += "long double";
+		return false;
+	      case 'w':
+		prefix += "wchar_t";
+		return false;
+	      case 's':
+		prefix += "short";
+		return false;
+	      case 'l':
+		prefix += "long";
+		return false;
+	      case 'x':
+		prefix += "long long";
+		return false;
+	      case 'P':
+	      case 'R':
+	      {
+		char what = (input[-1] == 'P') ? '*' : '&';
+		string member_function_pointer_scope;
+		if (*input == 'M')
+		{
+		  ++input;
+		  string last_class_name_dummy;
+		  if (eat_type_internal(input, member_function_pointer_scope, postfix, &last_class_name_dummy))
+		    return true;
+		  member_function_pointer_scope += postfix;
+		  member_function_pointer_scope += "::";
+		}
+		bool is_const = (*input == 'C');
+		if (is_const)
+		  ++input;
+		if (*input == 'F')
+		{
+		  ++input;
+		  postfix += ")(";
+
+		  // There must be at least one <type>.
+		  if (eat_type(input, postfix))
+		    return true;
+		  // Eat optional other <type>s.
+		  while (*input && *input != '_')
+		  {
+		    postfix += ", ";
+		    if (eat_type(input, postfix))
+		      return true;
+		  }
+
+		  postfix += ')';
+		  if (is_const)
+		    postfix += " const";
+
+		  // Process _<type>.
+		  if (*input++ != '_')
+		    return true;
+		  if (eat_type(input, prefix))
+		    return true;
+		  prefix += " (";
+		  prefix += member_function_pointer_scope;
+		  prefix += what;
+		  return false;
+		}
+		if (eat_type_internal(input, prefix, postfix, NULL))
+		  return true;
+		if (is_const)
+		  prefix += " const";
+		prefix += what;
+		return false;
+	      }
+	      default:
+		--input;
+		break;
+	    }
+	    if (*input != 'G')
+	      break;
+	    if (isdigit(*++input))
+	    {
+	      int len = eat_digits(input);
+	      if (len <= 0)
+		return true;
+	      prefix.append(input, len);
+	      input += len;
+	      return false;
+	    }
+	  }
+	}
+	if (*input == 'X')
+	{
+	  int index;
+	  ++input;
+	  if (isdigit(*input))
+	    index = *input++ - '0';
+	  else if (*input != '_')
+	    return true;
+	  else if ((index = eat_digits(++input)) < 0)
+	    return true;
+	  if (!isdigit(*input++))
+	    return true;
+	  if ((size_t)index >= template_parameters->size())
+	    return true;
+	  char const* recursive_input = (*template_parameters)[index];
+	  return eat_template_type(recursive_input, prefix, last_class_name);
+	}
+	else if (*input == 'T')
+	{
+	  ++input;
+	  int index = eat_digits(input);
+	  if (index < 0 || (index > 9 && *input++ != '_'))
+	    return true;
+	  if ((size_t)index >= previous_types->size())
+	  {
+	    char buf[32];
+	    ostrstream s(buf, sizeof(buf));
+	    s << index << ends;
+	    prefix += 'T';
+	    prefix += buf;
+	    return false;
+	  }
+	  char const* recursive_input = (*previous_types)[index];
+	  return eat_type_internal(recursive_input, prefix, postfix, last_class_name);
+	}
+	else if (*input == 'Q')
+	{
+	  // Process <number>
+	  input += 2;
+	  int number;
+	  if (input[-1] >= '1' && input[-1] <= '9')
+	    number = input[-1] - '0';
+	  else if (input[-1] != '_' || (number = eat_digits(input)) <= 0)
+	    return true;
+	  // Process <scope-type><scope-type>...
+	  string last_class_name_dummy;
+	  while (--number)
+	  {
+	    if (eat_type_internal(input, prefix, postfix, &last_class_name_dummy))
+	      return true;
+	    prefix += "::";
+	  }
+	  // Process last <type>
+	  return eat_type_internal(input, prefix, postfix, last_class_name);
+	}
+	else if (*input == 't')
+	{
+	  ++input;
+	  int len = eat_digits(input);
+	  if (len <= 0)
+	    return true;
+	  prefix.append(input, len);
+	  if (last_class_name)
+	    last_class_name->assign(input, len);
+	  input += len;
+	  int count = eat_digits(input);
+	  if (count <= 0)
+	    return true;
+	  prefix += '<';
+	  string template_type;
+	  while(count--)
+	  {
+	    template_type.erase();
+	    if (eat_template_type(input, template_type, NULL))
+	      return true;
+	    prefix += template_type;
+	    if (count > 0)
+	      prefix += ", ";
+	  }
+	  if (template_type[template_type.size() - 1] == '>')
+	    prefix += ' ';
+	  prefix += '>';
+	  return false;
+	}
+	// Process <digits><class-name>
+	int len = eat_digits(input);
+	if (len > 0)
+	{
+	  if (len >= 11 && !strncmp(input, "_GLOBAL_", 8) && input[9] == 'N' && input[8] == input[10])
+	  {
+	    prefix += "{anonymous}";
+	    if (last_class_name)
+	      *last_class_name = "{anonymous}";
+	  }
+	  else
+	  {
+	    prefix.append(input, len);
+	    if (last_class_name)
+	      last_class_name->assign(input, len);
+	  }
+	  input += len;
+	  return false;
+	}
+	if (*input == 'C' && !eat_type_internal(++input, prefix, postfix, last_class_name))
+	{
+	  prefix += " const";
+	  return false;
+	}
+	// This isn't a valid mangled type name.
 	return true;
-      prefix += "::";
-    }
-    // Process last <type>
-    return eat_type_internal(input, prefix, postfix, last_class_name);
-  }
-  else if (*input == 't')
-  {
-    ++input;
-    int len = eat_digits(input);
-    if (len <= 0)
-      return true;
-    prefix.append(input, len);
-    if (last_class_name)
-      last_class_name->assign(input, len);
-    input += len;
-    int count = eat_digits(input);
-    if (count <= 0)
-      return true;
-    prefix += '<';
-    string template_type;
-    while(count--)
-    {
-      template_type.erase();
-      if (eat_template_type(input, template_type, NULL))
-        return true;
-      prefix += template_type;
-      if (count > 0)
-	prefix += ", ";
-    }
-    if (template_type[template_type.size() - 1] == '>')
-      prefix += ' ';
-    prefix += '>';
-    return false;
-  }
-  // Process <digits><class-name>
-  int len = eat_digits(input);
-  if (len > 0)
-  {
-    if (len >= 11 && !strncmp(input, "_GLOBAL_", 8) && input[9] == 'N' && input[8] == input[10])
-    {
-      prefix += "{anonymous}";
-      if (last_class_name)
-	*last_class_name = "{anonymous}";
-    }
-    else
-    {
-      prefix.append(input, len);
-      if (last_class_name)
-	last_class_name->assign(input, len);
-    }
-    input += len;
-    return false;
-  }
-  if (*input == 'C' && !eat_type_internal(++input, prefix, postfix, last_class_name))
-  {
-    prefix += " const";
-    return false;
-  }
-  // This isn't a valid mangled type name.
-  return true;
-}
+      }
 
-static bool eat_scope_type(char const*& input, string& type, string& last_class_name)
-{
-  Dout(dc::demangler, "Entering eat_scope_type(\"" << input << "\", string& type, string& last_class_name)");
-  string postfix;
-  if (eat_type_internal(input, type, postfix, &last_class_name))
-  {
-    type.erase();
-    return true;
-  }
-  type += postfix;
-  return false;
-}
+      // {anonymous}::
+      bool eat_scope_type(char const*& input, string& type, string& last_class_name)
+      {
+	Dout(dc::demangler, "Entering eat_scope_type(\"" << input << "\", string& type, string& last_class_name)");
+	string postfix;
+	if (eat_type_internal(input, type, postfix, &last_class_name))
+	{
+	  type.erase();
+	  return true;
+	}
+	type += postfix;
+	return false;
+      }
 
-static bool eat_type(char const*& input, string& type)
-{
-  Dout(dc::demangler, "Entering eat_type(\"" << input << "\", string& type)");
-  string postfix;
-  size_t original_length = type.size();
-  if (eat_type_internal(input, type, postfix, NULL))
-  {
-    type.erase(original_length);
-    return true;
-  }
-  type += postfix;
-  return false;
-}
+      // {anonymous}::
+      bool eat_type(char const*& input, string& type)
+      {
+	Dout(dc::demangler, "Entering eat_type(\"" << input << "\", string& type)");
+	string postfix;
+	size_t original_length = type.size();
+	if (eat_type_internal(input, type, postfix, NULL))
+	{
+	  type.erase(original_length);
+	  return true;
+	}
+	type += postfix;
+	return false;
+      }
 
-void demangle_type(char const* input, string& output)
-{
-  Dout(dc::demangler, "Entering demangle_type(\"" << input << "\", string& output)");
+    } // namespace {anonymous}
 
-  if (input == NULL)
-  {
-    output += "(null)";
-    return;
-  }
-
-  // Initialize list of previous types and template parameters.
-  vector<char const*> current_template_parameters;
-  vector<char const*> current_previous_types;
-  vector<char const*>* previous_template_parameters = template_parameters;
-  vector<char const*>* previous_previous_types = previous_types;
-  template_parameters = &current_template_parameters;
-  previous_types = &current_previous_types;
-
-  if (eat_type(input, output) || *input != 0)
-    output.assign(input, strlen(input));
-
-  template_parameters = previous_template_parameters;
-  previous_types = previous_previous_types;
-}
+  } // namespace debug
+} // namespace libcw
 
 #ifdef STANDALONE
 
 #include <iostream>
+using namespace ::libcw::debug;
 
 int main(int argc, char* argv[])
 {
@@ -1295,4 +1346,4 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-#endif
+#endif // STANDALONE

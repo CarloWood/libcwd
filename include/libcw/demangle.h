@@ -18,7 +18,13 @@ RCSTAG_H(demangle, "$Id$")
 
 #include <string>
 
+namespace libcw {
+  namespace debug {
+
 extern void demangle_type(char const* in, string& out);
 extern void demangle_symbol(char const* in, string& out);
+
+  } // namespace debug
+} // namespace libcw
 
 #endif // LIBCW_DEMANGLE_H

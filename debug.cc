@@ -44,12 +44,12 @@ namespace libcw {
       DoutFatal(dc::fatal, "check_configuration: This version of libcwd was compiled with a different configuration than is currently used in libcw/debug_config.h!");
     }
 
-    debug_ct libcw_do;				// The Debug Object that is used by default by Dout(), the only debug object used
-    						// by libcw itself.
+    debug_ct libcw_do;			// The Debug Object that is used by default by Dout(), the only debug object used
+					     // by libcw itself.
 
     namespace {
-      unsigned short int max_len = 8;		// The length of the longest label. Is adjusted automatically
-    						// if a custom channel has a longer label.
+      unsigned short int max_len = 8;	// The length of the longest label. Is adjusted automatically
+    					// if a custom channel has a longer label.
     }
 
     namespace channels {

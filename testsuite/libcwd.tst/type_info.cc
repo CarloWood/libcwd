@@ -18,6 +18,8 @@
 
 RCSTAG_CC("$Id$")
 
+using namespace libcw::debug;
+
 class A {
 private:
   char x[64];

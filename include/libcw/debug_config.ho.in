@@ -147,8 +147,8 @@ inline void check_configuration(void) {
     conf_check_failed();
 }
 
-  }	// namespace debug
-}	// namespace libcw
+  } // namespace debug
+} // namespace libcw
 #endif // DEBUG
 
 #endif // LIBCW_DEBUGGING_DEFS_H

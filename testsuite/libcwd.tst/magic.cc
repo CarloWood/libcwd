@@ -25,7 +25,7 @@ int main(void)
   Debug( check_configuration() );
 
   // Don't show allocations that are allocated before main()
-  make_all_allocations_invisible_except(NULL);
+  libcw::debug::make_all_allocations_invisible_except(NULL);
 
   // Select channels
   Debug( dc::malloc.off() );

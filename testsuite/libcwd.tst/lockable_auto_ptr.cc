@@ -16,6 +16,9 @@
 #include "libcw/debug.h"
 #include "libcw/lockable_auto_ptr.h"
 
+using namespace libcw;
+using namespace libcw::debug;
+
 class B {};
 class A : public B {};
 

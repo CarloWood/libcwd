@@ -37,7 +37,7 @@ void environment_ct::print_on(ostream& os) const
   char const* const* p = __envp;
   while(*p)
   {
-    os << '"' << buf2str(*p, strlen(*p)) << "\", ";
+    os << '"' << pu::buf2str(*p, strlen(*p)) << "\", ";
     ++p;
   }
   os << "NULL ]";

@@ -27,7 +27,7 @@ int main(void)
   Debug( check_configuration() );
 
   // Don't show allocations that are allocated before main()
-  make_all_allocations_invisible_except(NULL);
+  libcw::debug::make_all_allocations_invisible_except(NULL);
 
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
@@ -49,7 +49,7 @@ int main(void)
   AllocTag(a1, "First created");
 
   // Create marker
-  debugmalloc_marker_ct* marker = new debugmalloc_marker_ct("A test marker");
+  libcw::debug::debugmalloc_marker_ct* marker = new libcw::debug::debugmalloc_marker_ct("A test marker");
 
   // Allocate more objects
   A* a2 = new A[10];

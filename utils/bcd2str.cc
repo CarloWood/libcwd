@@ -18,21 +18,29 @@
 
 RCSTAG_CC("$Id$")
 
-char const* bcd2str(char const* buf, int len)
-{
-  static char* internal_buf;
+namespace libcw {
+  namespace debug {
+    namespace pu {
 
-  Dout( dc::debug, "bcd2str(\"" << buf << "\", " << len << ")" );
-  if (internal_buf)
-    delete [] internal_buf;
-  if ((internal_buf = NEW( char [2 * len + 1] )))
-  {
-    for (int i = 0; i < len; i++)
-    {
-      internal_buf[2 * i] = (buf[i] >> 8) + '0';
-      internal_buf[2 * i + 1] = (buf[i] & 0xf) + '0';
-    }
-    internal_buf[2 * len] = '\0';
-  }
-  return internal_buf;
-}
+      char const* bcd2str(char const* buf, int len)
+      {
+	static char* internal_buf;
+
+	Dout(dc::debug, "bcd2str(\"" << buf << "\", " << len << ")");
+	if (internal_buf)
+	  delete [] internal_buf;
+	if ((internal_buf = NEW( char [2 * len + 1] )))
+	{
+	  for (int i = 0; i < len; i++)
+	  {
+	    internal_buf[2 * i] = (buf[i] >> 8) + '0';
+	    internal_buf[2 * i + 1] = (buf[i] & 0xf) + '0';
+	  }
+	  internal_buf[2 * len] = '\0';
+	}
+	return internal_buf;
+      }
+
+    } // namespace pu
+  } // namespace debug
+} // namespace libcw

@@ -20,6 +20,8 @@
 
 RCSTAG_CC("$Id$")
 
+using namespace libcw::debug;
+
 class AA {
 private:
   void* ptr;

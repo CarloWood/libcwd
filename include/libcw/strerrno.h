@@ -17,7 +17,13 @@
 RCSTAG_H(strerrno, "$Id$")
 
 #ifdef DEBUG
+namespace libcw {
+  namespace debug {
+
 extern char const* strerrno(unsigned int err);
+
+  } // namespace debug
+} // namespace libcw
 #endif
 
 #endif // LIBCW_STRERRNO_H

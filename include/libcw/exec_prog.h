@@ -17,7 +17,13 @@
 RCSTAG_H(exec_prog, "$Id$")
 
 #ifdef DEBUG
+namespace libcw {
+  namespace debug {
+
 extern int exec_prog(char const* prog_name, char const* const argv[], char const* const envp[], int (*decode_stdout)(char const*, size_t));
+
+  } // namespace debug
+} // namespace libcw
 #endif
 
 #endif // LIBCW_EXEC_PROG_H

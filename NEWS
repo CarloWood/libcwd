@@ -1,23 +1,42 @@
 libcwd-0.99.6
 
-	A little gadget was added to namespace libcw:debug: `print_using'.
+	A little gadget was added to namespace libcw::debug::pu: `cwprint_using'.
 	This template function can be used to print objects to a debug
-	stream using a `void print_on(ostream&) const' method.
+	stream using a method like `void print_on(ostream&) const'.
 	Example usage: Dout(dc::notice, "object is: " <<
-            libcw:debug::print_using(object, &Object::method) << '.');
+            libcw:debug::cwprint_using(object, &Object::method) << '.');
         which then calls `void object.method(ostream&) const' to print data
 	to the debug ostream.  When variations to this trick are needed
 	then you can obviously add those to your local debug.h file.
 
 	API changes:
 
-	The macro ASSERT(x) no longer contains a ';', this might mean that you
-	need to add semi-colons yourself if you have been using it.
-	[ "ASSERT( i == 1 )" --> "ASSERT( i == 1 );" ].
+	Major namespace changes:
+	Almost everything was moved to namespace libcw::debug.
+	This means that you probably will need to add a
+	`using namespace libcw::debug;' to your local debug.h file.
+	Note that namespace libcw::debug is automatically included in Debug().
+	The following functions are still in global namespace when DEBUGMALLOC
+	is defined:
+	  __libcwd_malloc(unsigned int)
+	  __libcwd_calloc(unsigned int, unsigned int)
+	  __libcwd_realloc(void*, unsigned int)
+	  __libcwd_free(void*)
+	  template<typename T> T* __libcwd_allocCatcher<T>
+	and it still redefines operators new and delete of course.
+	The following templates are defined in namespace libcw:
+	lockable_auto_ptr<>, manip1_tct<>, manip2_tct<>, imanip_id_tct<>,
+	get_imanip_data<>, get_omanip_data<> and omanip_id_tct<>.
+	These are defined in the header files libcw/lockable_auto_ptr.h and
+	libcw/iomanip.h (they are actually part of libcw but also included
+	with libcwd because libcwd uses them internally).
+	The following 'print utilities' are defined in namespace libcw::debug::pu:
+	bcd2str, buf2str, char2str, cwprint() and cwprint_using().
+	Namespace libcw::debug::pu is automatically included in Dout() et al.
 
 	The bfd interface has been redesigned:
 	- The global structure `location_st' has been removed and is replaced
-	  by a class `location_ct' in namespace `libcw::debug'.
+	  by a class `location_ct' (in namespace `libcw::debug', see above).
 	- The function `libcw_bfd_pc_function_name' has been renamed to
 	  `libcw::debug::pc_mangled_function_name'.
         - The function `libcw_bfd_pc_location' has been completely removed.
@@ -42,6 +61,10 @@ libcwd-0.99.6
 	[ "location_st location; libcw_bfd_pc_location(location, addr);" -->
 	  "libcw::debug::location_ct location(addr);" ]
 	[ Available interface of location_ct: see libcw/bfd.h ]
+
+	The macro ASSERT(x) no longer contains a ';', this might mean that you
+	need to add semi-colons yourself if you have been using it.
+	[ "ASSERT( i == 1 )" --> "ASSERT( i == 1 );" ].
 
 	Bug fixes:
 

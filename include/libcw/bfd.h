@@ -28,14 +28,7 @@ namespace libcw {
   namespace debug {
 
 class location_ct;
-
-  }	// namespace debug
-}	// namespace libcw
-
-extern ostream& operator<<(ostream& os, libcw::debug::location_ct const& location);
-
-namespace libcw {
-  namespace debug {
+extern ostream& operator<<(ostream& os, location_ct const& location);
 
 namespace channels {
   namespace dc {
@@ -100,11 +93,11 @@ public:
   // Printing
   void print_filepath_on(ostream& os) const { ASSERT( M_filepath != NULL ); os << M_filepath; }
   void print_filename_on(ostream& os) const { ASSERT( M_filepath != NULL ); os << M_filename; }
-  friend ostream& ::operator<<(ostream& os, location_ct const& location);		// Prints a default "M_filename:M_line".
+  friend ostream& operator<<(ostream& os, location_ct const& location);		// Prints a default "M_filename:M_line".
 };
 
-  }	// namespace debug
-}	// namespace libcw
+  } // namespace debug
+} // namespace libcw
 
 #endif // DEBUGUSEBFD
 

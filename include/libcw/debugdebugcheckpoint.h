@@ -18,7 +18,13 @@
 
 RCSTAG_H(debugdebugcheckpoint, "$Id$")
 
+namespace libcw {
+  namespace debug {
+
 extern void debugdebugcheckpoint(void);
+
+  } // namespace debug
+} // namespace libcw
 
 #endif // LIBCW_DEBUGDEBUGCHECKPOINT_H
 

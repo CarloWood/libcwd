@@ -23,32 +23,40 @@
 
 RCSTAG_CC("$Id$")
 
-type_info_ct unknown_type_info;
+namespace libcw {
+  namespace debug {
 
-// Warning: This LEAKS memory!
-// For internal use only
+    type_info_ct unknown_type_info;
 
-char const* make_label(char const* mangled_name)
-{
-  char const* demangled_name;
-  size_t len;
-  string out;
-  demangle_type(mangled_name, out);
-  demangled_name = out.c_str();
-  len = out.size();
+    // Warning: This LEAKS memory!
+    // For internal use only
+
+    char const* make_label(char const* mangled_name)
+    {
+      char const* demangled_name;
+      size_t len;
+      string out;
+      demangle_type(mangled_name, out);
+      demangled_name = out.c_str();
+      len = out.size();
 #ifdef DEBUGMALLOC
-  set_alloc_checking_off();
+      set_alloc_checking_off();
 #endif
-  char* label = new char[len + 1];
-#ifdef DEBUGMALLOC
-  set_alloc_checking_on();
-#endif
-  strcpy(label, demangled_name);
-  return label;
-}
+      char* label = new char[len + 1];
+    #ifdef DEBUGMALLOC
+      set_alloc_checking_on();
+    #endif
+      strcpy(label, demangled_name);
+      return label;
+    }
 
-type_info_ct const& libcw::_internal_::type_info_of(void const* obj, int)
-{ 
-  static type_info_ct const type_info_singleton(typeid(const_cast<void*>(obj)), sizeof(void*), 0 /* unknown */);
-  return type_info_singleton;
-}
+    namespace _internal_ {
+      type_info_ct const& type_info_of(void const* obj, int)
+      { 
+	static type_info_ct const type_info_singleton(typeid(const_cast<void*>(obj)), sizeof(void*), 0 /* unknown */);
+	return type_info_singleton;
+      }
+    } // namespace _internal_
+
+  } // namespace debug
+} // namespace libcw

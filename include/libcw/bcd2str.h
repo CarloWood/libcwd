@@ -16,6 +16,14 @@
 
 RCSTAG_H(bcd2str, "$Id$")
 
-extern char const* bcd2str(char const*, int);
+namespace libcw {
+  namespace debug {
+
+namespace pu {
+  extern char const* bcd2str(char const*, int);
+}
+
+  } // namespace debug
+} // namespace libcw
 
 #endif // LIBCW_BCD2STR_H
