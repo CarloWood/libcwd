@@ -85,6 +85,7 @@ MAIN_FUNCTION
   std::cout << "Finished successfully.\n";
 #endif
 
+  delete a;
   Debug( libcw_do.off() );
 
   EXIT(0);
