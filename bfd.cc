@@ -34,13 +34,19 @@
 #ifdef __FreeBSD__
 #include <stdlib.h>             // Needed for realpath(3)
 #endif
+#include "config.h"
+#ifdef HAVE_LIBDL
+#include <map>
+#include <dlfcn.h>
+#include <cstring>
+#include <cstdlib>
+#endif
 #include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
 #include <libcw/exec_prog.h>
 #include <libcw/cwprint.h>
 #include <libcw/demangle.h>
-#include "config.h"
 
 #undef DEBUGDEBUGBFD
 #ifdef DEBUGDEBUGBFD
@@ -99,7 +105,7 @@ namespace {	// Local stuff
   class object_file_ct {
   private:
     bfd* abfd;
-    void* const lbase;
+    void* lbase;
     asymbol** symbol_table;
     long number_of_symbols;
     function_symbols_ct function_symbols;
@@ -201,6 +207,8 @@ namespace {	// Local stuff
     }
   };
 
+  void* const unknown_l_addr = (void*)-1;
+
   object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
   {
     abfd = bfd_openr(filename, NULL);
@@ -244,6 +252,43 @@ namespace {	// Local stuff
 
     if (number_of_symbols > 0)
     {
+      // Guess the start of the shared object when ldd didn't return it.
+      // Warning: the following code is black magic.
+      if (lbase == unknown_l_addr)
+      {
+#ifdef HAVE_LIBDL
+        map<void*, unsigned int> start_values;
+	unsigned int best_count = 0;
+	void* best_start = 0;
+        void* handle = dlopen(NULL, RTLD_LAZY);
+	for (asymbol** s = symbol_table; s <= &symbol_table[number_of_symbols - 1]; ++s)
+	{
+	  if ((*s)->name == 0 || ((*s)->flags & BSF_FUNCTION) == 0 || ((*s)->flags & (BSF_GLOBAL|BSF_WEAK)) == 0)
+	    continue;
+	  asection* sect = bfd_get_section(*s);
+	  if (sect->name[1] == 't' && !strcmp(sect->name, ".text"))
+	  {
+	    void* val = dlsym(handle, (*s)->name);
+	    if (dlerror() == NULL)
+	    {
+	      void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->vma;
+	      pair<map<void*, unsigned int>::iterator, bool> p = start_values.insert(pair<void* const, unsigned int>(start, 0));
+	      if (++(*(p.first)).second > best_count)
+	      {
+		best_start = start;
+		if (++best_count == 10)	// Its unlikely that even more than 2 wrong values will have the same value.
+		  break;		// So if we reach 10 then this is value we are looking for.
+              }
+	    }
+	  }
+	}
+        lbase = best_start;
+	Dout(dc::continued, " (" << hex << lbase << ')');
+#else // !HAVE_LIBDL
+	DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure");
+#endif
+      }
+
       // Sort the symbol table in order of start address.
       sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
 
@@ -525,6 +570,11 @@ static int decode(char const* buf, size_t len)
 	break;
       char const* q;
       for (q = p; q < &buf[len] && *q > ' '; ++q);
+      if (*q == '\n')	// This ldd doesn't return an offset (ie, on solaris).
+      {
+        shared_libs.push_back(my_link_map(p, q - p, unknown_l_addr));
+	break;
+      }
       for (char const* r = q; r < &buf[len]; ++r)
         if (r[0] == '(' && r[1] == '0' && r[2] == 'x')
         {
@@ -599,9 +649,15 @@ static int libcw_bfd_init(void)
 #endif
     if (l->l_addr)
     {
-      Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << " (" << hex << l->l_addr << ") ... ");
-      object_file_ct* object_file = new object_file_ct(l->l_name, reinterpret_cast<void*>(l->l_addr));
 #ifdef DEBUG
+      Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name);
+      if (l->l_addr != unknown_l_addr)
+	Dout(dc::continued, " (" << hex << l->l_addr << ") ... ");
+#endif
+      object_file_ct* object_file = new object_file_ct(l->l_name, l->l_addr);
+#ifdef DEBUG
+      if (l->l_addr == unknown_l_addr)
+	Dout(dc::continued, " ... ");
       if (object_file->get_number_of_symbols() > 0)
 	Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
       else

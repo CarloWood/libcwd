@@ -190,11 +190,11 @@ if test "$libcwd_config_bfd" = yes; then
   dnl Checks for libraries.
   save_LIBS="$LIBS"
 
+  dnl Check if we have dlopen in libdl
+  AC_CHECK_LIB(dl, dlopen)
+
   dnl Check if we have `xmalloc' in libiberty.a
-  CW_CHECK_STATICLIB(libiberty.a, xmalloc,,
-      [dnl If that failed, try linking with -ldl:
-      unset ac_cv_lib_static_libiberty_a_xmalloc
-      CW_CHECK_STATICLIB(libiberty.a, xmalloc,,, -ldl)])
+  CW_CHECK_STATICLIB(libiberty.a, xmalloc)
   STATICLIBS="$ac_cv_lib_static_libiberty_a_xmalloc"
   AC_SUBST(STATICLIBS)
 
