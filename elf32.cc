@@ -854,15 +854,9 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	}
 	uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(new_symbol->name), (unsigned char)0);
 	hash_list_st** p = &M_hash_list[hash];
-        hash_list_st** q = NULL;
 	while(*p)
-        {
-	  q = p;
 	  p = &(*p)->next;
-	}
 	*p = new hash_list_st;
-	if (q)
-	  (*q)->next = *p;
         (*p)->next = NULL;
         (*p)->name = new_symbol->name;
         (*p)->addr = symbol.st_value;
@@ -1570,6 +1564,7 @@ void object_file_ct::load_stabs(void)
   std::string cur_func;
   location_st location;
   range_st range;
+  bool skip_function = false;
   for (unsigned int j = 0; j < M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize; ++j)
   {
     switch(stabs[j].n_type)
@@ -1609,7 +1604,9 @@ void object_file_ct::load_stabs(void)
           if (DEBUGSTABS)
 	    Dout(dc::bfd, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
 	  range.size = func_addr + stabs[j].n_value - range.start;
-	  register_range(location, range);
+	  if (!skip_function)
+	    register_range(location, range);
+	  skip_function = false;
 	}
 	else
 	{
@@ -1638,8 +1635,17 @@ void object_file_ct::load_stabs(void)
 		  break;
 	        }
 	      }
-	    ASSERT( func_addr );
-	    if (DEBUGSTABS)
+	    if (func_addr == 0)
+	    {
+	      // This can happen for .gnu.link_once section symbols: it might be that
+	      // a function is present in the current object file but is not used;
+	      // the dynamic linker has put it in the 'undefined' section and no
+	      // address it known even while there is still this N_FUN entry.
+	      skip_function = true;
+	      location.line = 0;
+	      break;
+	    }
+	    else if (DEBUGSTABS)
 	      Dout(dc::bfd, "Hash lookup: " << std::hex << range.start << '.');
 	  }
 #if DEBUGSTABS
@@ -1674,7 +1680,8 @@ void object_file_ct::load_stabs(void)
 	  if (location.line == stabs[j].n_desc)	// Catenate ranges with same location.
 	    break;
 	  range.size = func_addr + stabs[j].n_value - range.start;
-	  register_range(location, range);
+	  if (!skip_function)
+	    register_range(location, range);
 	  range.start += range.size;
 	}
 	location.line = stabs[j].n_desc;

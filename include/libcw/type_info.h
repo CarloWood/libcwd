@@ -45,7 +45,11 @@ public:
 
 namespace _internal_ {
 
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
   extern char const* extract_exact_name(char const*);
+#else
+  extern char const* extract_exact_name(char const*, char const*);
+#endif
 
   //------------------------------------------------------------------------------------
   // type_info_of
@@ -82,36 +86,6 @@ namespace _internal_ {
   template<typename T>
     type_info_ct const type_info<T*>::value(typeid(T*).name(), sizeof(T*), sizeof(T));
 
-  //------------------------------------------------------------------------------------
-  // type_info_exact
-
-  // _internal_::
-  template<typename T>
-    struct type_info_exact {
-      static type_info_ct const value;
-    };
-
-  // Specialization for general pointers.
-  // _internal_::
-  template<typename T>
-    struct type_info_exact<T*> {
-      static type_info_ct const value;
-    };
-
-  // Specialization for `void*'.
-  // _internal_::
-  struct type_info_exact<void*> {
-    static type_info_ct const value;
-  };
-
-  // _internal_::
-  template<typename T>
-    type_info_ct const type_info_exact<T>::value(extract_exact_name(typeid(type_info_exact<T>).name()), sizeof(T), 0);
-
-  // _internal_::
-  template<typename T>
-    type_info_ct const type_info_exact<T*>::value(extract_exact_name(typeid(type_info_exact<T*>).name()), sizeof(T*), sizeof(T));
-
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
   //------------------------------------------------------------------------------------
   // sizeof_star
@@ -134,7 +108,45 @@ namespace _internal_ {
   };
 #endif
 
-} // namespace _internal_
+    } // namespace _internal_
+  } // namespace debug
+} // namespace libcw
+
+//------------------------------------------------------------------------------------
+// libcwd_type_info_exact
+
+template<typename T>
+  struct libcwd_type_info_exact {
+    static ::libcw::debug::type_info_ct const value;
+  };
+
+// Specialization for general pointers.
+template<typename T>
+  struct libcwd_type_info_exact<T*> {
+    static ::libcw::debug::type_info_ct const value;
+  };
+
+// Specialization for `void*'.
+struct libcwd_type_info_exact<void*> {
+  static ::libcw::debug::type_info_ct const value;
+};
+
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+template<typename T>
+  ::libcw::debug::type_info_ct const libcwd_type_info_exact<T>::value(::libcw::debug::_internal_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name()), sizeof(T), 0);
+
+template<typename T>
+  ::libcw::debug::type_info_ct const libcwd_type_info_exact<T*>::value(::libcw::debug::_internal_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name()), sizeof(T*), sizeof(T));
+#else
+template<typename T>
+  ::libcw::debug::type_info_ct const libcwd_type_info_exact<T>::value(::libcw::debug::_internal_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(), typeid(T).name()), sizeof(T), 0);
+
+template<typename T>
+  ::libcw::debug::type_info_ct const libcwd_type_info_exact<T*>::value(::libcw::debug::_internal_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name()), sizeof(T*), sizeof(T));
+#endif
+
+namespace libcw {
+  namespace debug {
 
 // Prototype of `type_info_of'.
 template<typename T>
@@ -151,14 +163,14 @@ template<class T>
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
     // In early versions of g++, typeid is broken and doesn't work on a template parameter type.
     // We have to use the following hack.
-    if (_internal_::type_info_exact<T>::value.size() == 0)		// Not initialized already?
+    if (::libcwd_type_info_exact<T>::value.size() == 0)			// Not initialized already?
     {
       // T* tp;                                  			// Create pointer to object.
-      new (const_cast<type_info_ct*>(&_internal_::type_info_exact<T>::value))
-          type_info_ct(_internal_::extract_exact_name(typeid(_internal_::type_info_exact<T>).name()), sizeof(T), _internal_::sizeof_star<T>::value);	// In place initialize the static type_info_ct object.
+      new (const_cast<type_info_ct*>(&::libcwd_type_info_exact<T>::value))
+          type_info_ct(_internal_::extract_exact_name(typeid(::libcwd_type_info_exact<T>).name()), sizeof(T), _internal_::sizeof_star<T>::value);	// In place initialize the static type_info_ct object.
     }
 #endif
-    return _internal_::type_info_exact<T>::value;
+    return ::libcwd_type_info_exact<T>::value;
   }
 
 // We could/should have used type_info_of<typeof(obj)>(), but typeof(obj) doesn't

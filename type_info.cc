@@ -32,20 +32,29 @@ namespace _internal_ {
   // Warning: This LEAKS memory!
   // For internal use only
 
-  char const* extract_exact_name(char const* mangled_name)
+#if __GXX_ABI_VERSION == 0
+  char const* extract_exact_name(char const* encap_mangled_name)
+#else
+  char const* extract_exact_name(char const* encap_mangled_name, char const* stripped_mangled_name)
+#endif
   {
 #if __GXX_ABI_VERSION == 0
-    size_t len = strlen(mangled_name) - 46;	// Strip "Q45libcw5debug10_internal_t15type_info_exact1Z" from the beginning.
+    size_t len = strlen(encap_mangled_name + 27);		// Strip "Q22libcwd_type_info_exact1Z" from the beginning.
 #else
-    size_t len = strlen(mangled_name) - 45;
+    size_t len = strlen(encap_mangled_name + 25) - 1;		// Strip "22libcwd_type_info_exactI" from the beginning and "E" from the end.
 #endif
     set_alloc_checking_off();
     char* exact_name = new char[len + 1];
     set_alloc_checking_on();
 #if __GXX_ABI_VERSION == 0
-    strncpy(exact_name, mangled_name + 46, len);
+    strncpy(exact_name, encap_mangled_name + 27, len);
 #else
-    strncpy(exact_name, mangled_name + 43, len);
+    // The substitution offset in encap_mangled_name is wrong, but in stripped_mangled_name
+    // there are leading qualifiers missing.  Construct the real mangled name:
+    size_t qlen = len - strlen(stripped_mangled_name);
+    if (qlen)
+      strncpy(exact_name, encap_mangled_name + 25, qlen);
+    strncpy(exact_name + qlen, stripped_mangled_name, len - qlen);
 #endif
     exact_name[len] = 0;
     return exact_name;
@@ -69,9 +78,15 @@ namespace _internal_ {
   }
 
   type_info_ct const type_info<void*>::value(typeid(void*).name(), sizeof(void*), 0 /* unknown */);
-  type_info_ct const type_info_exact<void*>::value(extract_exact_name(typeid(type_info_exact<void*>).name()), sizeof(void*), 0 /* unknown */);
 
 } // namespace _internal_
 
   } // namespace debug
 } // namespace libcw
+
+#if __GXX_ABI_VERSION == 0
+::libcw::debug::type_info_ct const libcwd_type_info_exact<void*>::value(::libcw::debug::_internal_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name()), sizeof(void*), 0 /* unknown */);
+#else
+::libcw::debug::type_info_ct const libcwd_type_info_exact<void*>::value(::libcw::debug::_internal_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(), typeid(void*).name()), sizeof(void*), 0 /* unknown */);
+#endif
+

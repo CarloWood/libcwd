@@ -157,6 +157,7 @@ namespace {
 	int saved_pos = M_pos;
 	M_pos = start_pos;
 	M_inside_add_substitution = true;
+	Debug( dc::demangler.off() );
 	switch(sub_type)
 	{
 	  case type:
@@ -190,6 +191,7 @@ namespace {
 	    break;
 	}
 	M_pos = saved_pos;
+	Debug( dc::demangler.on() );
 	Dout(dc::demangler, "\e[31mAdding substitution " << substitution_name
 	    << " : " << subst
 	    << " (from " << location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset)
@@ -1876,6 +1878,10 @@ decode_type_exit:
 
 } // namespace
 
+#ifdef STANDALONE
+static char const* main_in;
+#endif
+
 //
 // demangle_symbol
 //
@@ -1885,11 +1891,20 @@ decode_type_exit:
 //
 void demangle_symbol(char const* input, std::string& output)
 {
+#ifdef STANDALONE
+  if (input != main_in)
+    Debug( dc::demangler.off() );
+#endif
+
   Dout(dc::demangler, "Entering demangle_symbol(\"" << input << "\")");
 
   if (input == NULL)
   {
     output += "(null)";
+#ifdef STANDALONE
+    if (input != main_in)
+      Debug( dc::demangler.on() );
+#endif
     return;
   }
 
@@ -1899,6 +1914,11 @@ void demangle_symbol(char const* input, std::string& output)
   int pos;
   if (input[0] != '_' || input[1] != 'Z' || (pos = demangler_ct::decode_encoding(input + 2, output) + 2) < 0 || input[pos] != 0)
     output.assign(input, strlen(input));	// Failure to demangle, return the mangled name.
+
+#ifdef STANDALONE
+  if (input != main_in)
+    Debug( dc::demangler.on() );
+#endif
 }
 
 //
@@ -1910,15 +1930,27 @@ void demangle_symbol(char const* input, std::string& output)
 //
 void demangle_type(char const* in, std::string& output)
 {
+#ifdef STANDALONE
+  if (in != main_in)
+    Debug( dc::demangler.off() );
+#endif
   Dout(dc::demangler, "Entering demangle_type(\"" << in << "\")");
   if (in == NULL)
   {
     output += "(null)";
+#ifdef STANDALONE
+    if (in != main_in)
+      Debug( dc::demangler.on() );
+#endif
     return;
   }
   demangler_ct demangler(in);
   if (!demangler.decode_type(output))
     output.assign(in, strlen(in));
+#ifdef STANDALONE
+  if (in != main_in)
+    Debug( dc::demangler.on() );
+#endif
 }
 
   } // namespace debug
@@ -1931,9 +1963,9 @@ int main(int argc, char* argv[])
 {
   Debug( libcw_do.on() );
   Debug( dc::demangler.on() );
- 
   std::string out;
-  libcw::debug::demangle_symbol(argv[1], out);
+  libcw::debug::main_in = argv[1];
+  libcw::debug::demangle_type(argv[1], out);
   std::cout << out << std::endl;
   return 0;
 }
