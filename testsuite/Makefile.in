@@ -76,7 +76,7 @@ ifeq ($(enable_shared), yes)
 endif
 
 ifeq ($(enable_static), yes)
-%_static: %.o
+%_static: %.o $(top_builddir)/.libs/libcwd.a
 	$(CXXLINK) $< -o $@ $(STATICLIBS)
 endif
 
