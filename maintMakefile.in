@@ -67,7 +67,8 @@ tar:
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
 
 rpm: tar $(srcdir)/$(SPECFILE)
-	cd rpm; rpm --rcfile /usr/lib/rpm/rpmrc:rpmrc --target $(TARGET) --sign --clean -ba $(srcdir)/$(SPECFILE)
+	abssrcdir=`cd $(srcdir); pwd`; \
+	cd rpm; rpm --rcfile /usr/lib/rpm/rpmrc:rpmrc --target $(TARGET) --sign --clean -ba $$abssrcdir/$(SPECFILE)
 
 $(srcdir)/$(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
 	if test $(CVSWRITEACCESS) = yes; then \
