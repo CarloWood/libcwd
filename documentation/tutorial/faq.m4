@@ -81,7 +81,7 @@ collision in that case.</P>
 <H3>5. What is defined <EM>exactly</EM> in <SPAN class="H3code">libcw/debug.h</SPAN>?</H3>
 
 <P>Everything.&nbsp;
-Go and read the <A HREF="../html/reference.html">Reference Manual</A> to get <EM>all</EM> gory details if you dare.</P>
+Go and read the <A HREF="../html/index.html">Reference Manual</A> to get <EM>all</EM> gory details if you dare.</P>
 
 <A name="macros"></A>
 <H3>6. Why are you using macros for <SPAN class="H3code">Debug</SPAN> and <SPAN class="H3code">Dout</SPAN>?</H3>

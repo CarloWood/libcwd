@@ -9,7 +9,7 @@ __PAGESTART
 
 <P>For an introduction please read chapter
 <A HREF="../html/group__book__allocations__intro.html">Memory Allocation Debug Support: Introduction</A>
-of the <A HREF="../html/reference.html">Reference Manual</A>.</P>
+of the <A HREF="../html/index.html">Reference Manual</A>.</P>
 
 <H3>Conventions</H3>
 
@@ -49,7 +49,7 @@ of all memory allocations to a debug object (to channel <CODE>dc::malloc</CODE>)
 or to an arbitrary ostream.&nbsp;
 All details of the Allocated memory Overview are described in chapter
 <A HREF="../html/group__group__overview.html">Overview Of Allocated Memory</A> of
-the <A HREF="../html/reference.html">Reference Manual</A>.</P>
+the <A HREF="../html/index.html">Reference Manual</A>.</P>
 
 <P>The following example program writes the Allocated memory Overview to
 the default debug object <CODE>libcw_do</CODE>:</P>

@@ -318,7 +318,7 @@ int main(void)
 </PRE>
 
 <P>There are in total eleven <EM>control flags</EM>,
-see the <A HREF="../html/reference.html">Reference Manual</A>
+see the <A HREF="../html/index.html">Reference Manual</A>
 for an <A HREF="../html/group__group__control__flags.html">overview</A>.</P>
 
 <P>Lets get a little bit more practical now.&nbsp;
