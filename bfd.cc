@@ -39,6 +39,7 @@
 #include <cstdlib>
 #endif
 #include <cstdio>		// Needed for vsnprintf.
+#include <algorithm>
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
 #include <libcw/exec_prog.h>
@@ -698,7 +699,9 @@ namespace libcw {
 	// This should catch it when we call new or malloc while 'internal'.
 	if (being_initialized)
 	{
+#ifdef DEBUGMALLOC
 	  libcw::debug::_internal_::internal = false;
+#endif
 	  DoutFatal(dc::core, "Bug in libcwd: libcw_bfd_init() called twice or recursively entering itself!  Please submit a full bug report to libcw@alinoe.com.");
 	}
 	being_initialized = true;
@@ -707,8 +710,10 @@ namespace libcw {
 	// Start INTERNAL!
 	set_alloc_checking_off();
 
+#ifdef DEBUGMALLOC
 	// Initialize the malloc library if not done yet.
 	init_debugmalloc();
+#endif
 
 	// Initialize object files list
 	new (object_files_instance_) object_files_ct;

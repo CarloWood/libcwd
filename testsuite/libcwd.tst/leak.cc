@@ -60,7 +60,7 @@ public:
 
 int main(int argc, char* argv[])
 {
-#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD)
+#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD) || !defined(DEBUGMARKER)
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 

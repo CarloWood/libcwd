@@ -19,7 +19,7 @@ class A {};
 
 int main(void)
 {
-#if !defined(DEBUGMALLOC)
+#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD)
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 

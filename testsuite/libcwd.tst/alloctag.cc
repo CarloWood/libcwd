@@ -20,7 +20,7 @@ RCSTAG_CC("$Id$")
 
 int main(int argc, char* argv[])
 {
-#if !defined(DEBUGMALLOC)
+#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD)
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
   // Don't show allocations that are allocated before main()
   libcw::debug::make_all_allocations_invisible_except(NULL);
 
-#ifdef DEBUGMALLOC
+#ifdef DEBUGUSEBFD
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
 #endif

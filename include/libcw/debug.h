@@ -673,6 +673,9 @@ extern void list_channels_on(debug_ct const& debug_object);
 #endif // !CWDEBUG
 
 #include <libcw/debugmalloc.h>
+#if !defined(DEBUGMALLOC) && defined(DEBUGUSEBFD)
+#include <libcw/bfd.h>
+#endif
 
 #ifdef CWDEBUG
 

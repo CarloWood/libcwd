@@ -22,6 +22,10 @@ RCSTAG_CC("$Id$")
 
 int main(void)
 {
+#if !defined(DEBUGMALLOC)
+  DoutFatal(dc::fatal, "Failure Expected.");
+#endif
+
   Debug( check_configuration() );
 
   // Don't show allocations that are allocated before main()
@@ -48,11 +52,7 @@ int main(void)
   {
     // This must core dump:
     delete[] p;
-#ifdef DEBUGMALLOC
     DoutFatal(dc::fatal, "This should not be reached!");
-#else
-    DoutFatal(dc::core, "Expected Failure.");
-#endif
   }
   // Parent process
   int status;
