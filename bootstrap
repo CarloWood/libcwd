@@ -13,7 +13,7 @@ os=`uname -s`
 if test "$os" = "Linux"; then
   required_libtool_version="1.4.2";
 else
-  required_libtool_version="1.4d";	# Use the current CVS version, or 1.5 once it is released.
+  required_libtool_version="1.4.3";	# Version 1.4.2 will not work.  1.4d should work (cvs version).
 fi
 
 test -n "$ZSH_NAME" && disable which		# zsh has a builtin which that is turned off with this.
