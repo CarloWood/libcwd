@@ -427,6 +427,8 @@ CW_SETUP_RPM_DIRS
 
 dnl Generate include/libcw/debug_config.h, include/libcw/sysd.h and include/sys.h, preserving timestamp when they are not changed.
 AC_OUTPUT_COMMANDS([
+# Sanity: remove old versions.
+rm -f sys.h sys.ho include/libcw/sys.h include/libcw/sys.ho
 cd include/libcw
 if echo "$CONFIG_FILES" | grep debug_config.ho > /dev/null; then
   if cmp -s debug_config.h debug_config.ho 2> /dev/null; then
