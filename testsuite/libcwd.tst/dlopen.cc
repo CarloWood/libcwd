@@ -35,7 +35,7 @@ MAIN_FUNCTION
 
     if (!handle)
     {
-      if (errno != EINTR && errno != EAGAIN)
+      if (errno != EAGAIN)
       {
 	char const* error_str = dlerror();
 	DoutFatal(dc::fatal, "Failed to load \"" << module_name << "\": " << error_str);

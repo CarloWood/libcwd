@@ -41,11 +41,51 @@ char const* test_cases [] = {
 
 MAIN_FUNCTION
 { PREFIX_CODE
+  Debug( check_configuration() );
+  Debug( libcw_do.on() );
+
   std::string result;
   for (size_t i = 0; i < sizeof(test_cases)/sizeof(char const*); ++i)
   {
     libcw::debug::demangle_symbol(test_cases[i], result);
+#ifndef _REENTRANT
     std::cout << result << '\n';
+#else
+// We could do this:
+//
+//  pthread_mutex_lock(&cout_mutex);
+//  std::cout << result << '\n';
+//  pthread_mutex_unlock(&cout_mutex);
+//
+// but that would cause this output to
+// follow 'continued' debug output and
+// debug output that uses nonewline_cf
+// on the same line:
+//
+// Thread1&2: NOTICE Loading a file... _X11TransParseAddress
+// Thread1  : done.
+//
+// While using the below will result in the
+// better readable:
+//
+// Thread1  : NOTICE Loading a file... <unfinised>
+// Thread2  : _X11TransParseAddress
+// Thread1  : NOTICE <continued> done.
+//
+//
+// Or (although the use of nonewline_cf is discouraged in the multi-threaded case!)
+//
+// Thread1&2: NOTICE This line does not end on a newline_X11TransParseAddress
+// Thread1  :  , but this does.
+//
+// will instead look like:
+//
+// Thread1  : NOTICE This line does not end on a newline<no newline>
+// Thread2  : _X11TransParseAddress
+// Thread1  :  , but this does.
+//
+    Dout(dc::always|noprefix_cf, result);
+#endif
     result.erase();
   }
   EXIT(0);

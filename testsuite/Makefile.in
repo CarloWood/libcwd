@@ -119,7 +119,7 @@ threads_%.o: libcwd.threads/%.cc Makefile $(top_builddir)/include/libcw/*.h
 	$(CXXCOMPILE) -D_REENTRANT -pthread -c $< -o $@
 
 ifeq ($(enable_shared), yes)
-threads_threads_shared: threads_threads.o $(top_builddir)/.libs/libcwd_r.so.*
+threads_threads_shared: threads_threads.o $(top_builddir)/.libs/libcwd_r.so.* module_r.so
 	$(CXXLINK) -pthread $< -o $@ $(THREADS_SHAREDLIBS) -ldl
 
 threads_%_shared: threads_%.o $(top_builddir)/.libs/libcwd_r.so.*

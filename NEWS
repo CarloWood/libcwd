@@ -25,6 +25,33 @@ libcwd-0.99.24
 	adds 12 to the size for the magic numbers.  Now it will detect
 	large sizes and generate an Out Of Memory.
 
+	A possible core dump with a backtrace like:
+	#0  0x403cb4f1 in strlen () at strlen:-1
+	#1  0x400abbe9 in operator<< (os=@0x85a3748, data=0xbf7ff9dc "\002\001") at include/cwd_debug.h:55
+	#2  0x4008295f in libcw::debug::dm_alloc_base_ct::print_description(libcw::debug::ooam_filter_ct const&,
+	                  libcw::debug::_private_::TSD_st&) const (this=0x85a3748, filter=@0xbf7ff9dc,
+			  __libcwd_tsd=@0x807ccc8) at debugmalloc.cc:1250
+        where 'a_type' (see debugmalloc.cc in frame #2) is NULL was fixed.
+	This could occur in multi-threaded applications when one thread
+	is using list_allocations_on() while another thread is demangling
+	a C++ type with demangle_type() or demangle_symbol().
+
+	Continued debug output now also works with multithreading,
+	printing <unfinished> and <continued> as expected with a
+	different thread is writing output in the mean time.
+	The use of nonewline_cf in combination with other threads
+	will result in "<no newline>\n" being appended to unfinised
+	output, for example:
+	Thread1 NOTICE abcd<no newline>
+	Thread2 NOTICE interrupt
+	efgh
+	Note that in this case the prefix is not repeated. The use
+	of nonewline_cf in a multithreaded application is therefore
+	dissuaded; use continued_cf instead to get for example:
+	Thread1 NOTICE abcd <unfinished>
+	Thread2 NOTICE interrupt
+	Thread1 NOTICE <continued> efgh
+
 libcwd-0.99.23
 
 	The "Overview Of Allocated Memory" filter (ooam_filter_ct)

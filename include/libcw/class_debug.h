@@ -108,6 +108,9 @@ protected:
   _private_::lock_interface_base_ct* M_mutex;
     // Pointer to the mutex that should be used for `real_os' or NULL when no lock is used.
     // A value of NULL is only allowed prior to creating a second thread.
+
+  buffer_ct* unfinished_oss;
+  void const* newlineless_tsd;
 #endif
 
 private:
