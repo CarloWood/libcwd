@@ -1,3 +1,8 @@
+#include <libcw/sys.h>
+#include <iostream>
+#include <libcw/bfd.h>
+#include <libcw/type_info.h>
+
 // Used helper types.
 class prefix { };
 class return_type { };
@@ -112,6 +117,10 @@ int main(void)
   template_name<ttypeI, ttypeII, ttypeIII> instantiate;
   instantiate.scopetype_template_name_ttypes();
   possiblescopetype_const(st);
+
+  void* ptr = (void*)nonscopetype_void;
+  std::cout << libcw::debug::pc_mangled_function_name(ptr) << '\n';
+  std::cout << libcw::debug::type_info_of(instantiate).demangled_name() << '\n';
   return 0;
 }
 

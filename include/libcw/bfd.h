@@ -11,10 +11,13 @@
 // packaging of this file.
 //
 
+#ifndef LIBCW_DEBUG_H
+// This header must be included first.
+#include <libcw/debug.h>
+#endif
+
 #ifndef LIBCW_BFD_H
 #define LIBCW_BFD_H
-
-#include <libcw/debug_config.h>
 
 #ifndef DEBUGUSEBFD
 
