@@ -31,3 +31,28 @@ include $(PROTODIR)/lib/PTMakefile
 #clean::
 #depend::
 #build::
+
+include .cwd.version
+
+CWD_MAJOR:=$(VERSION_MAJOR)
+CWD_MINOR:=$(VERSION_MINOR)
+CWD_PATCH:=$(VERSION_PATCH)
+CWD_VERSION:=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
+
+install:
+	@( if [ -f $(BASEDIR)/lib/libcwd.so.$(CWD_VERSION) ]; then \
+	  make .cwd.install.timestamp; \
+	else \
+	  echo "libcwd.so.$(CWD_VERSION) wasn't compiled yet"; \
+	fi )
+
+.cwd.install.timestamp: $(BASEDIR)/lib/libcwd.so.$(CWD_VERSION)
+	$(INSTALL) -g $(INSTALL_GROUP) -m 755 -o $(INSTALL_OWNER) $(BASEDIR)/lib/libcwd.so.$(CWD_VERSION) $(LIB_DIR)
+	touch .cwd.install.timestamp
+	/sbin/ldconfig
+	ln -sf $(LIB_DIR)/libcwd.so.$(CWD_MAJOR) $(LIB_DIR)/libcwd.so
+	$(INSTALL) -d $(PREFIX)/include/libcw
+	$(INSTALL) -g $(INSTALL_GROUP) -m 644 -o $(INSTALL_OWNER) include/libcw/*.h $(PREFIX)/include/libcw
+	@echo "VERSION_MAJOR=$(CWD_MAJOR)" > .cwd.version
+	@echo "VERSION_MINOR=$(CWD_MINOR)" >> .cwd.version
+	@echo "$(CWD_PATCH)" | awk -- '{ printf ("VERSION_PATCH=%d\n", $$0 + 1) }' >> .cwd.version
