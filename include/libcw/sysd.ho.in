@@ -51,7 +51,7 @@ namespace libcw {
 
 // Include an ident for this header file
 
-RCSTAG_H(sys, "$Id$")
+RCSTAG_H(sysd, "$Id$")
 
 //
 // Compilers and preprocessor used.  Put here to cause a recompile when changed.
