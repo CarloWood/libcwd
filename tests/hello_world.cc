@@ -17,7 +17,7 @@
 //
 // Compile as:
 //
-// g++ -g -c hello_world.cc
+// g++ -g -DDEBUG -c hello_world.cc
 // g++ hello_world.o -lcwd -o hello_world
 //
 // On less divine operating systems as linux, you might need to
