@@ -21,7 +21,7 @@
 #include <libcw/private_threading.h>
 #endif
 
-#if defined(_REENTRANT) || defined(LIBCWD_DOXYGEN)
+#if LIBCWD_THREAD_SAFE || defined(LIBCWD_DOXYGEN)
 namespace libcw {
   namespace debug {
 
@@ -71,6 +71,6 @@ template<class T>
   }  // namespace debug
 }  // namespace libcw
 
-#endif // _REENTRANT
+#endif // LIBCWD_THREAD_SAFE
 #endif // LIBCW_SET_OSTREAM_INL
 

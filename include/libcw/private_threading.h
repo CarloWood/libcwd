@@ -74,7 +74,7 @@
 #endif
 #endif
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 
 namespace libcw {
   namespace debug {
@@ -710,7 +710,7 @@ extern void fatal_cancellation(void*) throw();
   } // namespace debug
 } // namespace libcw
 
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_DISABLE_CANCEL
 #define LIBCWD_DISABLE_CANCEL_NO_BRACE
 #define LIBCWD_ENABLE_CANCEL_NO_BRACE
@@ -725,6 +725,6 @@ extern void fatal_cancellation(void*) throw();
 #define LIBCWD_DEFER_PUSH_LOCKMUTEX(instance, unlock_routine)
 #define LIBCWD_UNLOCKMUTEX_POP_RESTORE(instance)
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
-#endif // _REENTRANT
+#endif // LIBCWD_THREAD_SAFE
 #endif // LIBCW_PRIVATE_THREADING_H
 

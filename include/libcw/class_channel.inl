@@ -38,7 +38,7 @@ channel_ct::channel_ct(char const* label)
   NS_initialize(label);
 }
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 __inline__
 bool
 channel_ct::is_on(LIBCWD_TSD_PARAM) const
@@ -55,11 +55,11 @@ __inline__
 bool
 channel_ct::is_on(void) const
 {
-#ifndef _REENTRANT
-  return (off_cnt < 0);
-#else
+#if LIBCWD_THREAD_SAFE
   LIBCWD_TSD_DECLARATION
   return is_on(LIBCWD_TSD);
+#else
+  return (off_cnt < 0);
 #endif
 }
 

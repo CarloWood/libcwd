@@ -25,6 +25,13 @@
 #endif
 
 //
+// Some OS use _THREAD_SAFE instead of _REENTRANT
+//
+#ifdef _REENTRANT
+#define _THREAD_SAFE
+#endif
+
+//
 // typedefs
 //
 // getgroups_t          : The type of the array argument to getgroups

@@ -219,7 +219,7 @@ template<typename T>
     if (::libcwd_type_info_exact<T>::value_c.size() == 0)		// Not initialized already?
     {
       LIBCWD_TSD_DECLARATION
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       LIBCWD_DEFER_CANCEL
       _private_::mutex_tct<_private_::type_info_of_instance>::initialize();
       _private_::mutex_tct<_private_::type_info_of_instance>::lock();
@@ -233,7 +233,7 @@ template<typename T>
 	new (const_cast<type_info_ct*>(&::libcwd_type_info_exact<T>::value_c))	// MT: const_cast is safe: we are locked.
 	    type_info_ct(_private_::extract_exact_name(typeid(::libcwd_type_info_exact<T>).name() LIBCWD_COMMA_TSD), sizeof(T), _private_::sizeof_star<T>::value_c);	// In place initialize the static type_info_ct object.
       }
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       spin_lock = false;
       LIBCWD_RESTORE_CANCEL
 #endif
