@@ -1,6 +1,7 @@
 global srcdir subdir
 
 catch "glob -nocomplain $srcdir/$subdir/*.cc" srcfiles
+#set srcfiles $srcdir/$subdir/cf.cc
 verbose "srcfiles are $srcfiles"
 
 set prefix ""
@@ -13,7 +14,7 @@ foreach x $srcfiles {
       set args [read -nonewline $id];
       close $id;
     }
-    set resfile "${prefix}.out"
+    set resfile "${prefix}.re"
     set options "regexp_match"
 
     if [file exists ${prefix}.inp] {
