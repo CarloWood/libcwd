@@ -29,6 +29,7 @@
 #include <new>
 #include "cwd_debug.h"
 #include <libcw/strerrno.h>
+#include <libcw/private_internal_stringstream.h>
 #include "private_debug_stack.inl"
 
 extern "C" int raise(int);
@@ -104,7 +105,9 @@ void allocator_unlock(void)
 
     using _private_::set_alloc_checking_on;
     using _private_::set_alloc_checking_off;
+#if CWDEBUG_ALLOC
     using _private_::debug_message_st;
+#endif
 
     class buffer_ct : public _private_::internal_stringstream {
     private:
@@ -114,11 +117,7 @@ void allocator_unlock(void)
       pos_type position;
 #endif
     public:
-      void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct&
-#if CWDEBUG_ALLOC
-	  debug_object
-#endif
-	  )
+      void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object)
       {
 #if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
 	typedef debug_message_st* msgbuf_t;
@@ -627,10 +626,12 @@ void allocator_unlock(void)
       LIBCWD_DISABLE_CANCEL;
       if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
       {
+#if CWDEBUG_ALLOC
 	LIBCWD_TSD_DECLARATION;
 	__libcwd_tsd.internal = 0;	// Dunno if this is needed, but it looks consistant.
 	++__libcwd_tsd.library_call;;	// So our sanity checks allow us to call free() again in
 					// pthread_exit when we get here from malloc et al.
+#endif
 	// Another thread is already trying to generate a core dump.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
@@ -1725,7 +1726,11 @@ void debug_ct::set_ostream(std::ostream* os)
 {
 #ifdef _REENTRANT
   if (_private_::WST_multi_threaded)
+#if CWDEBUG_LOCATION
     Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << ": You should passing a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
+#else
+    Dout(dc::core, "You must passing a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
+#endif
   LIBCWD_DEFER_CANCEL;
   _private_::mutex_tct<_private_::set_ostream_instance>::lock();
 #endif

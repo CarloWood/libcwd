@@ -23,8 +23,6 @@
 namespace libcw {
   namespace debug {
 
-extern void demangle_type(char const* in, _private_::internal_string& out);
-
 /**
  * \brief Returned by type_info_of() for unknown types.
  * \ingroup group_type_info
@@ -32,6 +30,8 @@ extern void demangle_type(char const* in, _private_::internal_string& out);
 type_info_ct const unknown_type_info_c;
 
 namespace _private_ {
+
+  extern void demangle_type(char const* in, _private_::internal_string& out);
 
   // Warning: This LEAKS memory!
   // For internal use only

@@ -17,7 +17,7 @@
 #include <cstdio>
 #include <iostream>
 #include <unistd.h>
-#include <libcw/debug.h>
+#include "alloctag_debug.h"
 
 MAIN_FUNCTION
 { PREFIX_CODE

@@ -195,8 +195,10 @@ int main(void)
   }
 
   Debug( dc::malloc.on() );
+#if CWDEBUG_ALLOC
   libcw::debug::ooam_filter_ct filter(libcw::debug::show_allthreads);
   Debug( list_allocations_on(libcw_do, filter) );
+#endif
   Dout(dc::notice, "Exiting from main()");
   return 0;
 }

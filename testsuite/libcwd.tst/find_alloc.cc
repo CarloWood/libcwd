@@ -37,6 +37,7 @@ MAIN_FUNCTION
   // Turn debug object on
   Debug( libcw_do.on() ); 
 
+#if CWDEBUG_ALLOC
   char* p1 = new char[4];
   char* p2 = new char[5];
 
@@ -46,6 +47,7 @@ MAIN_FUNCTION
     DoutFatal( dc::core, "find_alloc should have returned NULL" );
   if (!libcw::debug::find_alloc(p2 + 4))
     DoutFatal( dc::core, "find_alloc should have returned non-NULL" );
+#endif
 
   Dout( dc::notice, "Finished successfully." );
   Debug( libcw_do.off() );

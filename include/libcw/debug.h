@@ -246,9 +246,7 @@ using namespace libcw_debug_inserters;
 #if CWDEBUG_LOCATION				// --enable-location
 #include <libcw/bfd.h>
 #endif
-#if CWDEBUG_ALLOC				// --enable-alloc
-#include <libcw/debugmalloc.h>
-#endif
+#include <libcw/debugmalloc.h>			// --enable-alloc
 
 #endif // CWDEBUG
 #endif // LIBCW_DEBUG_H

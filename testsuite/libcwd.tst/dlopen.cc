@@ -17,7 +17,9 @@ MAIN_FUNCTION
 
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
+#if CWDEBUG_LOCATION
   Debug( dc::bfd.on() );
+#endif
   Debug( dc::notice.on() );
 
   void* handle;

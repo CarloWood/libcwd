@@ -67,42 +67,15 @@ extern link_map* _dl_loaded;
 #include "elf32.h"
 #endif // !CWDEBUG_LIBBFD
 #include <libcw/private_string.h>
-
-#ifdef _REENTRANT
-using libcw::debug::_private_::rwlock_tct;
-using libcw::debug::_private_::mutex_tct;
-using libcw::debug::_private_::object_files_instance;
-using libcw::debug::_private_::dlopen_map_instance;
-using libcw::debug::_private_::list_allocations_instance;
-#define BFD_INITIALIZE_LOCK		rwlock_tct<object_files_instance>::initialize()
-#define BFD_ACQUIRE_WRITE_LOCK	        rwlock_tct<object_files_instance>::wrlock()
-#define BFD_RELEASE_WRITE_LOCK	        rwlock_tct<object_files_instance>::wrunlock()
-#define BFD_ACQUIRE_READ_LOCK	        rwlock_tct<object_files_instance>::rdlock()
-#define BFD_ACQUIRE_HP_READ_LOCK        rwlock_tct<object_files_instance>::rdlock(true)
-#define BFD_RELEASE_READ_LOCK	        rwlock_tct<object_files_instance>::rdunlock()
-#define BFD_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<object_files_instance>::rd2wrlock()
-#define BFD_ACQUIRE_WRITE2READ_LOCK     rwlock_tct<object_files_instance>::wr2rdlock()
-#define DLOPEN_MAP_ACQUIRE_LOCK	        mutex_tct<dlopen_map_instance>::lock()
-#define DLOPEN_MAP_RELEASE_LOCK	        mutex_tct<dlopen_map_instance>::unlock()
-#else // !_REENTRANT
-#define BFD_INITIALIZE_LOCK
-#define BFD_ACQUIRE_WRITE_LOCK
-#define BFD_RELEASE_WRITE_LOCK
-#define BFD_ACQUIRE_READ_LOCK
-#define BFD_ACQUIRE_HP_READ_LOCK
-#define BFD_RELEASE_READ_LOCK
-#define BFD_ACQUIRE_READ2WRITE_LOCK
-#define BFD_ACQUIRE_WRITE2READ_LOCK
-#define DLOPEN_MAP_ACQUIRE_LOCK
-#define DLOPEN_MAP_RELEASE_LOCK
-#endif // !_REENTRANT
+#include "cwd_bfd.h"
 
 extern char** environ;
 
 namespace libcw {
   namespace debug {
-
-    extern void demangle_symbol(char const* in, _private_::internal_string& out);
+    namespace _private_ {
+      extern void demangle_symbol(char const* in, _private_::internal_string& out);
+    } // namespace _private_
 
     // New debug channel
     namespace channels {
@@ -132,12 +105,6 @@ namespace libcw {
 //----------------------------------------------------------------------------------------
 // Interface Adaptor
 
-typedef char* PTR;
-typedef elf32::bfd_st bfd;
-typedef elf32::Elf32_Addr bfd_vma;
-typedef elf32::asection_st asection;
-typedef elf32::asymbol_st asymbol;
-
 int const bfd_archive = 0;
 uint32_t const HAS_SYMS = 0xffffffff;
 
@@ -157,7 +124,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 void bfd_close(bfd* abfd)
 {
   LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( __libcwd_tsd.internal == 1 );
+#endif
   set_alloc_checking_on(LIBCWD_TSD);
   abfd->close();
   LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct<_private_::object_files_instance>::cleanup, NULL); // The delete calls close().
@@ -200,65 +169,6 @@ void bfd_close(bfd* abfd)
       }
 
       // cwbfd::
-      class symbol_ct {
-      private:
-	asymbol* symbol;
-	bool defined;
-      public:
-	symbol_ct(asymbol* p, bool def) : symbol(p), defined(def) { }
-	asymbol const* get_symbol(void) const { return symbol; }
-	bool is_defined(void) const { return defined; }
-	bool operator==(symbol_ct const&) const { DoutFatal(dc::core, "Calling operator=="); }
-	friend struct symbol_key_greater;
-      };
-
-      // cwbfd::
-      struct symbol_key_greater {
-	// Returns true when the start of a lays behond the end of b (ie, no overlap).
-	bool operator()(symbol_ct const& a, symbol_ct const& b) const;
-      };
-
-      // cwbfd::
-      typedef std::set<symbol_ct, symbol_key_greater, _private_::object_files_allocator::rebind<symbol_ct>::other> function_symbols_ct;
-
-      // cwbfd::
-      class bfile_ct;
-
-      // cwbfd::
-      typedef std::list<bfile_ct*, _private_::object_files_allocator::rebind<bfile_ct*>::other> object_files_ct;
-
-      // cwbfd::
-      class bfile_ct {					// All allocations related to bfile_ct must be `internal'.
-      private:
-	bfd* abfd;
-	void* lbase;
-	size_t M_size;
-	asymbol** symbol_table;
-	long number_of_symbols;
-	function_symbols_ct function_symbols;
-	libcw::debug::object_file_ct M_object_file;
-      public:
-	bfile_ct(char const* filename, void* base);
-        void initialize(char const* filename, void* base LIBCWD_COMMA_TSD_PARAM);
-	~bfile_ct();
-        void deinitialize(LIBCWD_TSD_PARAM);
-
-	bfd* get_bfd(void) const { return abfd; }
-	void* const get_lbase(void) const { return lbase; }
-	size_t size(void) const { return M_size; }
-	asymbol** get_symbol_table(void) const { return symbol_table; }
-	long get_number_of_symbols(void) const { return number_of_symbols; }
-	libcw::debug::object_file_ct const* get_object_file(void) const { return &M_object_file; }
-	libcw::debug::object_file_ct* get_object_file(void) { return &M_object_file; }
-	function_symbols_ct& get_function_symbols(void) { return function_symbols; }
-	function_symbols_ct const& get_function_symbols(void) const { return function_symbols; }
-      private:
-	friend object_files_ct const& NEEDS_READ_LOCK_object_files(void);	// Need access to `ST_list_instance'.
-	friend object_files_ct& NEEDS_WRITE_LOCK_object_files(void);		// Need access to `ST_list_instance'.
-	static char ST_list_instance[sizeof(object_files_ct)];
-      };
-
-      // cwbfd::
       typedef PTR addr_ptr_t;
 
       // cwbfd::
@@ -296,26 +206,6 @@ void bfd_close(bfd* abfd)
 
       // cwbfd::
       char bfile_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
-
-      // cwbfd::
-      inline object_files_ct const& NEEDS_READ_LOCK_object_files(void)
-      {
-#if CWDEBUG_DEBUGT
-	LIBCWD_TSD_DECLARATION;
-	LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] == __libcwd_tsd.tid || __libcwd_tsd.rdlocked_by2[object_files_instance] == __libcwd_tsd.tid );
-#endif
-	return *reinterpret_cast<object_files_ct const*>(bfile_ct::ST_list_instance);
-      }
-
-      // cwbfd::
-      inline object_files_ct& NEEDS_WRITE_LOCK_object_files(void)
-      {
-#if CWDEBUG_DEBUGT
-	LIBCWD_TSD_DECLARATION;
-	LIBCWD_ASSERT( _private_::locked_by[object_files_instance] == __libcwd_tsd.tid );
-#endif
-	return *reinterpret_cast<object_files_ct*>(bfile_ct::ST_list_instance);
-      }
 
       // cwbfd::
       bfile_ct* NEEDS_READ_LOCK_find_object_file(void const* addr)
@@ -512,9 +402,11 @@ void bfd_close(bfd* abfd)
 	  if (lbase == unknown_l_addr)
 	  {
 #ifdef HAVE_DLOPEN
+#if CWDEBUG_ALLOC
 	    LIBCWD_TSD_DECLARATION;
 	    int saved_internal = __libcwd_tsd.internal;
 	    __libcwd_tsd.internal = 0;
+#endif
 	    void* handle = ::dlopen(filename, RTLD_LAZY);
 	    if (!handle)
 	    {
@@ -528,13 +420,17 @@ void bfd_close(bfd* abfd)
 	    char* val;
 	    if (s_end_vma && (val = (char*)dlsym(handle, "_end")))	// dlsym will fail when _end is a local symbol.
 	    {
+#if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
+#endif
 	      lbase = val - s_end_vma;
 	    }
 	    else
 #ifdef HAVE__DL_LOADED
             {
+#if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
+#endif
 	      for(link_map* p = _dl_loaded; p; p = p->l_next)
 	        if (!strcmp(p->l_name, filename))
 		{
@@ -544,10 +440,14 @@ void bfd_close(bfd* abfd)
 	    }
 #else // !HAVE_LINK_H
 	    {
+#if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
-	      // The following code uses a heuristic approach to guess the start of an object file.
 	      typedef std::map<void*, unsigned int, std::less<void*>,
 	                       _private_::internal_allocator::rebind<std::pair<void* const, unsigned int> >::other> start_values_map_ct;
+#else
+	      typedef std::map<void*, unsigned int, std::less<void*> > start_values_map_ct;
+#endif
+	      // The following code uses a heuristic approach to guess the start of an object file.
 	      start_values_map_ct start_values;
 	      unsigned int best_count = 0;
 	      void* best_start = 0;
@@ -595,9 +495,13 @@ void bfd_close(bfd* abfd)
 	      lbase = best_start;
 	    }
 #endif // !HAVE_LINK_H
+#if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = 0;
+#endif
 	    ::dlclose(handle);
+#if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = saved_internal;
+#endif
 	    Dout(dc::continued, '(' << lbase << ") ... ");
 #else // !HAVE_DLOPEN
 	    DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure.");
@@ -939,7 +843,11 @@ void bfd_close(bfd* abfd)
       // cwbfd::
       // Not really necessary to use the `object_files' allocator here, but it
       // is used inside that critical area anyway already, so why not.
+#if CWDEBUG_ALLOC
       typedef std::vector<my_link_map, _private_::object_files_allocator::rebind<my_link_map>::other> ST_shared_libs_vector_ct;
+#else
+      typedef std::vector<my_link_map> ST_shared_libs_vector_ct;
+#endif
       ST_shared_libs_vector_ct ST_shared_libs;			// Written to only in `ST_decode_ldd' which is called from
       								// `cwbfd::ST_init' and read from in a later part of `cwbfd::ST_init'.
 
@@ -1006,7 +914,9 @@ void bfd_close(bfd* abfd)
       bfile_ct* load_object_file(char const* name, void* l_addr)
       {
 	LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_DEBUGM
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
+#endif
         if (l_addr == unknown_l_addr)
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << ' ');
 	else if (l_addr == 0)
@@ -1108,7 +1018,9 @@ void bfd_close(bfd* abfd)
           static_string(void)
 	      {
 		value = new _private_::ST_string;
+#if CWDEBUG_ALLOC
 		AllocTag2(value, "Full path and name of executable");
+#endif
 	      }
 	  ~static_string()
 	      {
@@ -1221,153 +1133,6 @@ void bfd_close(bfd* abfd)
 
     } // namespace cwbfd
 
-#if LIBCWD_THREAD_SAFE
-#define ACQUIRE_LISTALLOC_LOCK mutex_tct<list_allocations_instance>::lock()
-#define RELEASE_LISTALLOC_LOCK mutex_tct<list_allocations_instance>::unlock()
-#else
-#define ACQUIRE_LISTALLOC_LOCK
-#define RELEASE_LISTALLOC_LOCK
-#endif
-
-    int ooam_filter_ct::S_id = 0;		// Id of ooam_filter_ct object that is currently synchronized with the other
-    						// global variables of the critical area(s) of list_allocations_instance.
-    int ooam_filter_ct::S_next_id = 0;		// Id of the last ooam_filter_ct object that was created.
-
-    // Use '1' instead of '0' because 0 is more likely to be used by the user
-    // as an extreme but real limit.
-    struct timeval const ooam_filter_ct::no_time_limit = { 1, 0 };
-
-    void ooam_filter_ct::set_flags(ooam_format_t flags)
-    {
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      M_flags &= ~format_mask;
-      M_flags |= flags;
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-    }
-
-    ooam_format_t ooam_filter_ct::get_flags(void) const
-    {
-      // Makes little sense to add locking here (ooam_format_t is an atomic type).
-      return (M_flags & format_mask);
-    }
-
-    void ooam_filter_ct::set_time_interval(struct timeval const& start, struct timeval const& end)
-    {
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      M_start = start;
-      M_end = end;
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-    }
-
-    struct timeval ooam_filter_ct::get_time_start(void) const
-    {
-      struct timeval res;
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      res = M_start;
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-      return res;
-    }
-
-    struct timeval ooam_filter_ct::get_time_end(void) const
-    {
-      struct timeval res;
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      res = M_end;
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-      return res;
-    }
-
-    std::vector<std::string> ooam_filter_ct::get_objectfile_list(void) const
-    {
-      std::vector<std::string> res;
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      res = M_objectfile_masks;
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-      return res;
-    }
-
-    std::vector<std::string> ooam_filter_ct::get_sourcefile_list(void) const
-    {
-      std::vector<std::string> res;
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      res = M_sourcefile_masks;
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-      return res;
-    }
-
-    void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& masks)
-    {
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      M_objectfile_masks = masks;
-      S_id = -1;			// Force resynchronization.
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-    }
-
-    void ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& masks)
-    {
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      M_sourcefile_masks = masks;
-      S_id = -1;			// Force resynchronization.
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-    }
-
-    void ooam_filter_ct::M_synchronize(void) const
-    {
-#if defined(_REENTRANT) && CWDEBUG_DEBUG
-      LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
-#endif
-      BFD_ACQUIRE_WRITE_LOCK;
-      // First clear the list, unhiding everything.
-      for (cwbfd::object_files_ct::iterator iter = cwbfd::NEEDS_WRITE_LOCK_object_files().begin();
-	   iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
-	   ++iter)
-	(*iter)->get_object_file()->M_hide = false;
-      // Next hide what matches.
-      if (!M_objectfile_masks.empty())
-      {
-	for (cwbfd::object_files_ct::iterator iter = cwbfd::NEEDS_WRITE_LOCK_object_files().begin();
-	     iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
-	     ++iter)
-	{
-	  for (std::vector<std::string>::const_iterator iter2(M_objectfile_masks.begin());
-	      iter2 != M_objectfile_masks.end(); ++iter2)
-	    if (_private_::match((*iter2).data(), (*iter2).length(), (*iter)->get_object_file()->M_filename))
-	    {
-	      (*iter)->get_object_file()->M_hide = true;
-	      break;
-	    }
-	}
-      }
-      BFD_RELEASE_WRITE_LOCK;
-      M_synchronize_locations();
-      S_id = M_id;
-    }
-
-    ooam_filter_ct::ooam_filter_ct(ooam_format_t flags) : M_flags(flags & format_mask), M_start(no_time_limit), M_end(no_time_limit)
-    {
-      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
-      ACQUIRE_LISTALLOC_LOCK;
-      M_id = ++S_next_id;
-      RELEASE_LISTALLOC_LOCK;
-      LIBCWD_CLEANUP_POP_RESTORE(false);
-    }
-
     char const* const location_ct::S_uninitialized_location_ct_c = "<uninitialized location_ct>";
     char const* const location_ct::S_pre_ios_initialization_c = "<pre ios initialization>";
     char const* const location_ct::S_pre_libcwd_initialization_c = "<pre libcwd initialization>";
@@ -1407,6 +1172,7 @@ void bfd_close(bfd* abfd)
 
     /** \} */	// End of group 'group_locations'.
 
+#if CWDEBUG_ALLOC
     struct bfd_location_ct : public location_ct {
       friend _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, bfd_location_ct const& data);
     };
@@ -1419,8 +1185,14 @@ void bfd_close(bfd* abfd)
 	os << "<unknown location>";
       return os;
     }
+#else
+typedef location_ct bfd_location_ct;
+#endif
 
-    libcw::debug::object_file_ct::object_file_ct(char const* filepath) : M_hide(false)
+    libcw::debug::object_file_ct::object_file_ct(char const* filepath)
+#if CWDEBUG_ALLOC
+        : M_hide(false)
+#endif
     {
       LIBCWD_TSD_DECLARATION;
       set_alloc_checking_off(LIBCWD_TSD);
@@ -1578,7 +1350,7 @@ already_loaded:
 	      set_alloc_checking_off(LIBCWD_TSD);
 	      {
 		_private_::internal_string demangled_name;		// Alloc checking must be turned off already for this string.
-		demangle_symbol(p->name, demangled_name);
+		_private_::demangle_symbol(p->name, demangled_name);
 		set_alloc_checking_on(LIBCWD_TSD);
 		char const* ofn = strrchr(abfd->filename, '/');
 		LIBCWD_Dout(dc::bfd, "Warning: Address " << addr << " in section " << sect->name <<
@@ -1627,7 +1399,9 @@ already_loaded:
       if (M_known)
       {
 	M_known = false;
+#if CWDEBUG_ALLOC
 	M_hide = true;
+#endif
 	if (M_filepath.is_owner())
 	{
 	  LIBCWD_TSD_DECLARATION;
@@ -1652,7 +1426,9 @@ already_loaded:
 	M_initialization_delayed = prototype.M_initialization_delayed;
       M_object_file = prototype.M_object_file;
       M_func = prototype.M_func;
+#if CWDEBUG_ALLOC
       M_hide = prototype.M_hide;
+#endif
     }
 
     location_ct& location_ct::operator=(location_ct const &prototype)
@@ -1670,7 +1446,9 @@ already_loaded:
 	  M_initialization_delayed = prototype.M_initialization_delayed;
 	M_object_file = prototype.M_object_file;
 	M_func = prototype.M_func;
+#if CWDEBUG_ALLOC
 	M_hide = prototype.M_hide;
+#endif
       }
       return *this;
     }
@@ -1707,25 +1485,33 @@ struct dlloaded_st {
 namespace libcw {
   namespace debug {
     namespace _private_ {
+#if CWDEBUG_ALLOC
       typedef std::map<void*, dlloaded_st, std::less<void*>,
                        internal_allocator::rebind<std::pair<void* const, dlloaded_st> >::other> dlopen_map_ct;
+#else
+      typedef std::map<void*, dlloaded_st, std::less<void*> > dlopen_map_ct;
+#endif
       static dlopen_map_ct* dlopen_map;
 
 #ifdef _REENTRANT
 void dlopenclose_cleanup(void* arg)
 {
+#if CWDEBUG_ALLOC
   TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
   // We can get here from DoutFatal, in which case alloc checking is already turned on.
   if (__libcwd_tsd.internal)
     set_alloc_checking_on(LIBCWD_TSD);
+#endif
   rwlock_tct<object_files_instance>::cleanup(arg);
 }
 
 void dlopen_map_cleanup(void* arg)
 {
+#if CWDEBUG_ALLOC
   TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
   if (__libcwd_tsd.internal)
     set_alloc_checking_on(LIBCWD_TSD);
+#endif
   DLOPEN_MAP_RELEASE_LOCK;
 }
 #endif
@@ -1739,7 +1525,9 @@ extern "C" {
   void* __libcwd_dlopen(char const* name, int flags)
   {
     LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
+#endif
     void* handle = ::dlopen(name, flags);
     if (handle == NULL)
       return handle;
@@ -1784,7 +1572,9 @@ extern "C" {
   int __libcwd_dlclose(void *handle)
   {
     LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
+#endif
     int ret = ::dlclose(handle);
     if (ret != 0)
       return ret;

@@ -12,7 +12,7 @@
 //
 
 #include "sys.h"
-#include <libcw/debug.h>
+#include "alloctag_debug.h"
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>

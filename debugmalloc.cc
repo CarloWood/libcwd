@@ -959,6 +959,7 @@ static memblk_map_ct* ST_memblk_map;
 #define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
 #define target_memblk_iter_write memblk_iter_write
 
+#if CWDEBUG_LOCATION
 //=============================================================================
 //
 // The location_cache map:
@@ -987,16 +988,6 @@ static location_cache_map_t location_cache_map;		// MT-safe: initialized before 
 #define location_cache_map_write (location_cache_map.write)
 #define location_cache_map_read  (location_cache_map.read)
 #define location_cache_iter_write reinterpret_cast<location_cache_map_ct::iterator&>(const_cast<location_cache_map_ct::const_iterator&>(iter))
-
-//=============================================================================
-
-static int WST_initialization_state;		// MT-safe: We will reach state '1' the first call to malloc.
-						// We *assume* that the first call to malloc is before we reach
-						// main(), or at least before threads are created.
-
-  //  0: memblk_map, location_cache_map and libcwd both not initialized yet.
-  //  1: memblk_map, location_cache_map and libcwd both initialized.
-  // -1: memblk_map and location_cache_map initialized but libcwd not initialized yet.
 
 //=============================================================================
 //
@@ -1056,14 +1047,6 @@ void ooam_filter_ct::M_synchronize_locations(void) const
   RELEASE_LC_WRITE_LOCK;
 }
 
-bool ooam_filter_ct::check_hide(char const* filepath) const
-{
-  for (std::vector<std::string>::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
-    if (_private_::match((*iter).data(), (*iter).length(), filepath))
-      return true;
-  return false;
-}
-
 void location_ct::handle_delayed_initialization(ooam_filter_ct const& filter)
 {
   LIBCWD_TSD_DECLARATION;
@@ -1073,6 +1056,23 @@ void location_ct::handle_delayed_initialization(ooam_filter_ct const& filter)
   else
     M_hide = filter.check_hide(M_filepath.get());
 }
+
+bool ooam_filter_ct::check_hide(char const* filepath) const
+{
+  for (std::vector<std::string>::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
+    if (_private_::match((*iter).data(), (*iter).length(), filepath))
+      return true;
+  return false;
+}
+#endif // CWDEBUG_LOCATION
+
+static int WST_initialization_state;		// MT-safe: We will reach state '1' the first call to malloc.
+						// We *assume* that the first call to malloc is before we reach
+						// main(), or at least before threads are created.
+
+  //  0: memblk_map, location_cache_map and libcwd both not initialized yet.
+  //  1: memblk_map, location_cache_map and libcwd both initialized.
+  // -1: memblk_map and location_cache_map initialized but libcwd not initialized yet.
 
 //=============================================================================
 //
@@ -1128,7 +1128,9 @@ inline std::ostream& operator<<(std::ostream& os, smanip<unsigned long> const& s
 #endif
 #endif
 
-extern void demangle_symbol(char const* in, _private_::internal_string& out);
+namespace _private_ {
+  extern void demangle_symbol(char const* in, _private_::internal_string& out);
+} // namespace _private_
 
 static char const* const twentyfive_spaces_c = "                         ";
 
@@ -1193,7 +1195,7 @@ void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COM
   else if (M_location->mangled_function_name() != unknown_function_c)
   {
     _private_::internal_string f;
-    demangle_symbol(M_location->mangled_function_name(), f);
+    _private_::demangle_symbol(M_location->mangled_function_name(), f);
     size_t s = f.size();
     LibcwDoutStream.write(f.data(), s);
     if (s < 25)
@@ -1276,6 +1278,7 @@ void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooa
   {
     if ((filter.M_flags & hide_untagged) && !alloc->is_tagged())
       continue;
+#if CWDEBUG_LOCATION
     if (alloc->location().initialization_delayed())
       const_cast<location_ct*>(&alloc->location())->handle_delayed_initialization(filter);
     if (alloc->location().hide_from_alloc_list())
@@ -1283,6 +1286,7 @@ void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooa
     object_file_ct const* object_file = alloc->location().object_file();
     if (object_file && object_file->hide_from_alloc_list())
       continue;
+#endif
     if (filter.M_start.tv_sec != 1)
     {
       if (alloc->a_time.tv_sec < filter.M_start.tv_sec || 
@@ -2053,7 +2057,9 @@ void init_debugmalloc(void)
     {
       _private_::set_alloc_checking_off(LIBCWD_TSD);
       // MT-safe: There are no threads created yet when we get here.
+#if CWDEBUG_LOCATION
       location_cache_map.MT_unsafe = new location_cache_map_ct;
+#endif
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
       LIBCWD_ASSERT( !_private_::WST_multi_threaded );
 #endif
@@ -2319,7 +2325,9 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
       LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
       mutex_tct<list_allocations_instance>::lock();
 #endif
+#if CWDEBUG_LOCATION
       filter.M_check_synchronization();
+#endif
       list->show_alloc_list(1, channels::dc_malloc, filter);
 #if LIBCWD_THREAD_SAFE
       LIBCWD_CLEANUP_POP_RESTORE(true);
@@ -2551,14 +2559,20 @@ marker_ct::~marker_ct()
     LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
     mutex_tct<list_allocations_instance>::lock();
 #endif
+#if CWDEBUG_LOCATION
     M_filter.M_check_synchronization();
+#endif
     for (dm_alloc_ct* alloc_node = marker_alloc_node->a_next_list; alloc_node;)
     {
       dm_alloc_ct* next_alloc_node = alloc_node->next;
+#if CWDEBUG_LOCATION
       object_file_ct const* object_file = alloc_node->location().object_file();
+#endif
       if (((M_filter.M_flags & hide_untagged) && !alloc_node->is_tagged()) ||
+#if CWDEBUG_LOCATION
 	  (alloc_node->location().hide_from_alloc_list()) ||
 	  (object_file && object_file->hide_from_alloc_list()) ||
+#endif
           ((M_filter.M_start.tv_sec != 1) &&
 	   (alloc_node->time().tv_sec < M_filter.M_start.tv_sec || 
 	       (alloc_node->time().tv_sec == M_filter.M_start.tv_sec && alloc_node->time().tv_usec < M_filter.M_start.tv_usec))) ||

@@ -11,6 +11,9 @@
 // packaging of this file.
 //
 
+#ifndef MATCH_H
+#define MATCH_H
+
 namespace libcw {
   namespace debug {
     namespace _private_ {
@@ -20,3 +23,5 @@ extern bool match(char const* mask, size_t masklen, char const* name);
     } // namespace _private_
   } // namespace debug
 } // namespace libcw
+
+#endif

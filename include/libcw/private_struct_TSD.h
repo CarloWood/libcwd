@@ -24,6 +24,9 @@
 #ifndef LIBCW_PRIVATE_ASSERT_H
 #include <libcw/private_assert.h>
 #endif
+#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#include <libcw/private_mutex_instances.h>
+#endif
 #ifndef LIBCW_CSTRING
 #define LIBCW_CSTRING
 #include <cstring>	// Needed for std::memset.
@@ -35,8 +38,8 @@
 #if LIBCWD_THREAD_SAFE
 #include <libcw/private_mutex.h>
 #ifdef LIBCWD_HAVE_PTHREAD
-#ifndef LIBCW_PTHREADS_H
-#define LIBCW_PTHREADS_H
+#ifndef LIBCW_PTHREAD_H
+#define LIBCW_PTHREAD_H
 #include <pthread.h>
 #endif
 #endif
@@ -112,6 +115,7 @@ public:
   int internal;
   int library_call;
   int inside_malloc_or_free;		// Set when entering a (de)allocation routine non-internal.
+#endif // CWDEBUG_ALLOC
 #if LIBCWD_THREAD_SAFE
   threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).
   bool thread_iter_valid;
@@ -121,7 +125,6 @@ public:
 #if CWDEBUG_DEBUGM
   int marker;
 #endif
-#endif // CWDEBUG_ALLOC
   bool recursive_fatal;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
   bool recursive_assert;		// Detect loop involving LIBCWD_ASSERT.

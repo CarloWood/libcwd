@@ -17,7 +17,7 @@ MAIN_FUNCTION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
   Debug( check_configuration() );
-#ifndef THREADTEST
+#if !defined(THREADTEST) && CWDEBUG_ALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
   Debug( libcw_do.on() );

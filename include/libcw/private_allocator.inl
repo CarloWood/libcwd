@@ -14,6 +14,8 @@
 #ifndef LIBCW_PRIVATE_ALLOCATOR_INL
 #define LIBCW_PRIVATE_ALLOCATOR_INL
 
+#if CWDEBUG_ALLOC
+
 #ifndef LIBCW_PRIVATE_THREAD_H
 #include <libcw/private_thread.h>
 #endif
@@ -144,5 +146,6 @@ template <class T1, class X1, bool internal1, int inst1,
   } // namespace debug
 } // namespace libcw
  
+#endif // CWDEBUG_ALLOC
 #endif // LIBCW_PRIVATE_ALLOCATOR_INL
 

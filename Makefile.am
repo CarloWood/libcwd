@@ -39,6 +39,7 @@ libcwd_la_SOURCES = \
         debugmalloc.cc \
         demangle.cc \
         demangle3.cc \
+	ooam_filter.cc \
         strerrno.cc \
         type_info.cc
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
@@ -55,6 +56,7 @@ libcwd_r_la_SOURCES = \
         debugmalloc.cc \
         demangle.cc \
         demangle3.cc \
+	ooam_filter.cc \
         strerrno.cc \
         type_info.cc \
         threading.cc \

@@ -18,7 +18,10 @@
 #ifndef LIBCW_PRIVATE_MUTEX_H
 #define LIBCW_PRIVATE_MUTEX_H
 
+#ifndef LIBCW_PTHREAD_H
+#define LIBCW_PTHREAD_H
 #include <pthread.h>
+#endif
 
 namespace libcw {
   namespace debug {

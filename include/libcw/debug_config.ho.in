@@ -241,7 +241,7 @@
  * Use \shellcommand configure --enable-debug --enable-debugm \endshellcommand to enable it.
  */
 
-#define CWDEBUG_DEBUGM (CWDEBUG_DEBUG && @CW_CONFIG_DEBUGM@)
+#define CWDEBUG_DEBUGM (CWDEBUG_ALLOC && CWDEBUG_DEBUG && @CW_CONFIG_DEBUGM@)
 
 /** \defgroup enable_marker --enable-marker (CWDEBUG_MARKER)
  * \ingroup group_configuration

@@ -198,6 +198,8 @@ namespace libcw {
     static char const* main_in;
 #endif
 
+namespace _private_ {
+
     //
     // demangle_symbol
     //
@@ -438,6 +440,8 @@ namespace libcw {
 	Debug( dc::demangler.on() );
 #endif
     }
+
+} // namespace _private_
 
     namespace {
       // Implementation of local functions
@@ -968,7 +972,7 @@ namespace libcw {
 	      input += len;
 	      tmp += '\0';
 	      template_type = "&";
-	      demangle_symbol(tmp.data(), template_type);
+	      _private_::demangle_symbol(tmp.data(), template_type);
 	      break;
 	    }
 	    default:

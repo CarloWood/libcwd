@@ -72,7 +72,11 @@ public:
 };
 #endif // CWDEBUG_ALLOC
 #else // !LIBCWD_USE_STRSTREAM
+#if !CWDEBUG_ALLOC
 typedef ::std::basic_stringstream<char, ::std::char_traits<char>, ::libcw::debug::_private_::internal_allocator> internal_stringstream;
+#else
+typedef ::std::stringstream internal_stringstream;
+#endif
 #endif
 
     } // namespace _private_

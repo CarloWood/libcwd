@@ -1889,6 +1889,8 @@ decode_type_exit:
 static char const* main_in;
 #endif
 
+namespace _private_ {
+
 //
 // demangle_symbol
 //
@@ -1969,6 +1971,7 @@ void demangle_type(char const* in, internal_string& output)
 #endif
 }
 
+    } // namespace _private_
   } // namespace debug
 } // namespace libcw
 
@@ -1992,9 +1995,12 @@ int main(int argc, char* argv[])
 
 namespace libcw {
   namespace debug {
+    namespace _private_ {
 
 extern void demangle_symbol(char const* input, _private_::internal_string& output);
 extern void demangle_type(char const* input, _private_::internal_string& output);
+
+    } // namespace _private_
 
 /** \addtogroup group_demangle */
 /** \{ */
@@ -2008,7 +2014,7 @@ void demangle_symbol(char const* input, std::string& output)
   _private_::set_alloc_checking_off(LIBCWD_TSD);
   {
     _private_::internal_string result;
-    demangle_symbol(input, result);
+    _private_::demangle_symbol(input, result);
     _private_::set_alloc_checking_on(LIBCWD_TSD);
     output.append(result.data(), result.size());
     _private_::set_alloc_checking_off(LIBCWD_TSD);
@@ -2025,7 +2031,7 @@ void demangle_type(char const* input, std::string& output)
   _private_::set_alloc_checking_off(LIBCWD_TSD);
   {
     _private_::internal_string result;
-    demangle_type(input, result);
+    _private_::demangle_type(input, result);
     _private_::set_alloc_checking_on(LIBCWD_TSD);
     output.append(result.data(), result.size());
     _private_::set_alloc_checking_off(LIBCWD_TSD);

@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 #include "sys.h"
-#include <libcw/debug.h>
+#include "alloctag_debug.h"
 #include <iostream>
 #include <libcw/lockable_auto_ptr.h>
 

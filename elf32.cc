@@ -600,12 +600,17 @@ static uLEB128_t const DW_LNE_define_file	= 3;
 // the object_files_instance mutex should be write locked, so we will use `object_files_string'.
 // Also, define a replacement type for set<string> here.
 
+#if CWDEBUG_ALLOC
 #if __GNUC__ < 3
 typedef std::basic_string<char, ::string_char_traits<char>, _private_::object_files_allocator> object_files_string;
 #else
 typedef std::basic_string<char, std::char_traits<char>, _private_::object_files_allocator> object_files_string;
 #endif
 typedef std::set<object_files_string, std::less<object_files_string>, _private_::object_files_allocator::rebind<object_files_string>::other> object_files_string_set_ct;
+#else
+typedef std::string object_files_string;
+typedef std::set<object_files_string, std::less<object_files_string> > object_files_string_set_ct;
+#endif
 
 //==========================================================================================================================================
 // struct location_ct
@@ -792,7 +797,11 @@ struct hash_list_st {
 //
 
 class objfile_ct : public bfd_st {
+#if CWDEBUG_ALLOC
   typedef std::map<range_st, location_st, compare_range_st, _private_::object_files_allocator::rebind<std::pair<range_st const, location_st> >::other> object_files_range_location_map_ct;
+#else
+  typedef std::map<range_st, location_st, compare_range_st> object_files_range_location_map_ct;
+#endif
 private:
   std::ifstream* M_input_stream;
   Elf32_Ehdr M_header;
@@ -1240,7 +1249,11 @@ void objfile_ct::load_dwarf(void)
       LIBCWD_ASSERT( address_size == sizeof(void*) );
 
       unsigned int expected_code = 1;
+#if CWDEBUG_ALLOC
       std::vector<abbrev_st, _private_::object_files_allocator::rebind<abbrev_st>::other> abbrev_entries(256);
+#else
+      std::vector<abbrev_st> abbrev_entries(256);
+#endif
       while(true)
       {
 	if (expected_code >= abbrev_entries.size())
@@ -1532,8 +1545,13 @@ indirect:
 	  unsigned char line_range;	// This parameter affects the meaning of the special opcodes.
 	  unsigned char opcode_base;	// The number assigned to the first special opcode.
 	  unsigned char const* standard_opcode_lengths;
+#if CWDEBUG_ALLOC
 	  std::vector<char const*, _private_::object_files_allocator::rebind<char const*>::other> include_directories;
 	  std::vector<file_name_st, _private_::object_files_allocator::rebind<file_name_st>::other> file_names;
+#else
+	  std::vector<char const*> include_directories;
+	  std::vector<file_name_st> file_names;
+#endif
 	  dwarf_read(debug_line_ptr, total_length);
 	  unsigned char const* debug_line_ptr_end = debug_line_ptr + total_length;
 	  dwarf_read(debug_line_ptr, version);
@@ -2156,7 +2174,9 @@ void objfile_ct::initialize(char const* file_name)
   int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
   Debug( libcw_do.off() );
   M_input_stream = new std::ifstream;
+#if CWDEBUG_ALLOC
   Debug( make_invisible(M_input_stream) );
+#endif
   Debug( libcw_do.on() );
   M_input_stream->open(file_name);
   if (!M_input_stream->good())

@@ -11,6 +11,14 @@
 // packaging of this file.
 //
 
+#ifndef ELF32_H
+#define ELF32_H
+
+#ifndef LIBCW_INTTYPES_H
+#define LIBCW_INTTYPES_H
+#include <inttypes.h>
+#endif
+
 namespace libcw {
   namespace debug {
 
@@ -94,3 +102,5 @@ extern asection_st const* const absolute_section_c;
 
   } // namespace debug
 } // namespace libcw
+
+#endif // ELF32_H

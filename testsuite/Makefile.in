@@ -119,8 +119,14 @@ threads_%.o: libcwd.threads/%.cc Makefile $(top_builddir)/include/libcw/*.h
 	$(CXXCOMPILE) -D_REENTRANT -pthread -c $< -o $@
 
 ifeq ($(enable_shared), yes)
+threads_threads_shared: threads_threads.o $(top_builddir)/.libs/libcwd_r.so.*
+	$(CXXLINK) -pthread $< -o $@ $(THREADS_SHAREDLIBS) -ldl
+
 threads_%_shared: threads_%.o $(top_builddir)/.libs/libcwd_r.so.*
 	$(CXXLINK) -pthread $< -o $@ $(THREADS_SHAREDLIBS)
+
+tst_dlopen_shared: tst_dlopen.o $(top_builddir)/.libs/libcwd.so.*
+	$(CXXLINK) $< -o $@ $(SHAREDLIBS) -ldl
 
 tst_%_shared: tst_%.o $(top_builddir)/.libs/libcwd.so.*
 	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
@@ -130,8 +136,14 @@ nodebug_%_shared: nodebug_%.o $(top_builddir)/.libs/libcwd.so.*
 endif
 
 ifeq ($(enable_static), yes)
+threads_threads_static: threads_threads.o $(top_builddir)/.libs/libcwd_r.a
+	$(CXXLINK) -pthread $< -o $@ $(THREADS_STATICLIBS) -ldl
+
 threads_%_static: threads_%.o $(top_builddir)/.libs/libcwd_r.a
 	$(CXXLINK) -pthread $< -o $@ $(THREADS_STATICLIBS)
+
+tst_dlopen_static: tst_dlopen.o $(top_builddir)/.libs/libcwd.a
+	$(CXXLINK) $< -o $@ $(STATICLIBS) -ldl
 
 tst_%_static: tst_%.o $(top_builddir)/.libs/libcwd.a
 	$(CXXLINK) $< -o $@ $(STATICLIBS)

@@ -5,6 +5,11 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
+#ifdef LIBCWD_USE_STRSTREAM
+#include <strstream>
+#else
+#include <sstream>
+#endif
 
 using namespace std;
 

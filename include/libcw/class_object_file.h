@@ -27,7 +27,9 @@ namespace libcw {
   namespace debug {
 
 // Forward declarations.
+#if CWDEBUG_ALLOC
 class ooam_filter_ct;
+#endif
 namespace cwbfd {
   class bfile_ct;
 } // namespace cwbfd
@@ -43,7 +45,9 @@ class object_file_ct {
 private:
   char const* M_filepath;	// The full path to the object file (internally allocated and leaking memory).
   char const* M_filename;	// Points inside M_filepath just after the last '/' or to the beginning.
+#if CWDEBUG_ALLOC
   friend class ooam_filter_ct;
+#endif
   bool M_hide;
 
 protected:

@@ -70,8 +70,10 @@ protected:
   object_file_ct const* M_object_file;		//!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
   bool M_known;					//!< Set when M_filepath (and M_filename) point to valid data and M_line contains a valid line number.
 private:
+#if CWDEBUG_ALLOC
   friend class ooam_filter_ct;
   bool M_hide;					// Used by ooam_filter_ct::M_sychronize_locations
+#endif
 
 protected:
   // M_func can point to one of these constants, or to libcw::debug::unknown_function_c
@@ -191,8 +193,10 @@ public:
 
   // This is used in list_allocations_on.
   bool initialization_delayed(void) const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
+#if CWDEBUG_ALLOC
   void handle_delayed_initialization(ooam_filter_ct const& filter);
   bool hide_from_alloc_list(void) const { return M_hide; }
+#endif
 };
 
 /** \} */ // End of group 'group_locations'

@@ -18,6 +18,10 @@
 #ifndef LIBCW_CLASS_MARKER_H
 #define LIBCW_CLASS_MARKER_H
 
+#ifndef LIBCW_OOAM_FILTER_H
+#include <libcw/class_ooam_filter.h>
+#endif
+
 namespace libcw {
   namespace debug {
 

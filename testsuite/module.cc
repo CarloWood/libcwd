@@ -3,7 +3,7 @@
 #define _GNU_SOURCE
 #endif
 #include <libcw/sysd.h>
-#include <libcw/debug.h>
+#include "alloctag_debug.h"
 
 static void* static_test_symbol(void)
 {

@@ -17,6 +17,7 @@
 #include "cwd_debug.h"
 #include <libcw/private_threading.h>
 #include <libcw/private_mutex.inl>
+#include <libcw/core_dump.h>
 #include <unistd.h>
 #include <map>
 
@@ -290,22 +291,28 @@ thread_ct::thread_ct(TSD_st* tsd_ptr) throw()
 // before insertion of the thread_ct takes place and
 // not be unlocked untill initialization of the object
 // has finished.
+#if CWDEBUG_ALLOC
 extern void* new_memblk_map(LIBCWD_TSD_PARAM);
+#endif
 void thread_ct::initialize(TSD_st* tsd_ptr) throw()
 {
+#if CWDEBUG_ALLOC
 #if CWDEBUG_DEBUGT
   if (!tsd_ptr->internal || !is_locked(threadlist_instance))
     core_dump();
 #endif
   current_alloc_list =  &base_alloc_list;
+#endif
   thread_mutex.initialize();
+#if CWDEBUG_ALLOC
   thread_mutex.lock();			// Need to be lock because the othewise sanity_check() of the maps allocator will fail.
-  						// Its not really necessary to lock of course, because threadlist_instance is locked as
-						// well and thus this is the only thread that could possibly access the map.
+  					// Its not really necessary to lock of course, because threadlist_instance is locked as
+					// well and thus this is the only thread that could possibly access the map.
   // new_memblk_map allocates a new map<> for the current thread.
   // The implementation of new_memblk_map resides in debugmalloc.cc.
   memblk_map = new_memblk_map(*tsd_ptr);
   thread_mutex.unlock();
+#endif
 }
 
 // This member function is called when the TSD_st structure
@@ -314,6 +321,7 @@ void thread_ct::initialize(TSD_st* tsd_ptr) throw()
 extern bool delete_memblk_map(void* memblk_map LIBCWD_COMMA_TSD_PARAM);
 void thread_ct::tsd_destroyed(void) throw()
 {
+#if CWDEBUG_ALLOC
 #if CWDEBUG_DEBUGT
   if (!tsd->internal)
     core_dump();
@@ -334,6 +342,7 @@ void thread_ct::tsd_destroyed(void) throw()
     tsd->thread_iter_valid = false;
   }
   rwlock_tct<threadlist_instance>::wrunlock();
+#endif
   tsd = NULL;					// This causes the memblk_map to be deleted as soon as the last
   						// allocation belonging to this thread is freed.
 }
@@ -369,7 +378,11 @@ struct keypair_compare_st {
 
 // Definition of the map<> that holds the key instance pairs that are ever locked simultaneously by the same thread.
 typedef std::pair<keypair_key_st const, keypair_info_st> keypair_map_value_t;
+#if CWDEBUG_ALLOC
 typedef std::map<keypair_key_st, keypair_info_st, keypair_compare_st, internal_allocator::rebind<keypair_map_value_t>::other> keypair_map_t;
+#else
+typedef std::map<keypair_key_st, keypair_info_st, keypair_compare_st> keypair_map_t;
+#endif
 static keypair_map_t* keypair_map;
 
 // Bring some arbitrary ordering into the map with key pairs.

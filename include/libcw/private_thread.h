@@ -49,6 +49,7 @@ class thread_ct {
 public:
   TSD_st* tsd;                  	// Pointer to thread specific data of this thread or NULL when thread is no longer running.
   mutex_ct thread_mutex;		// Mutex for the attributes of this object.
+#if CWDEBUG_ALLOC
   void* memblk_map;             	// Pointer to memblk_map_ct of this thread.
   dm_alloc_ct* base_alloc_list;		// The base list with `dm_alloc_ct' objects.  Each of these objects has a list of it's own.
   dm_alloc_ct** current_alloc_list;	// The current list to which newly allocated memory blocks are added.
@@ -56,6 +57,7 @@ public:
 					// points to the dm_alloc_ct node who owns the current list.
   size_t memsize;			// Total number of allocated bytes (excluding internal allocations).
   unsigned long memblks;		// Total number of allocated blocks (excluding internal allocations).
+#endif
   pthread_t tid;			// Thread ID.
 
   thread_ct(TSD_st* tsd_ptr) throw();
@@ -66,7 +68,11 @@ public:
 
 // The list of threads.
 // New thread objects are added in TSD_st::S_initialize.
+#if CWDEBUG_ALLOC
 typedef std::list<thread_ct, internal_allocator::rebind<thread_ct>::other> threadlist_t;
+#else
+typedef std::list<thread_ct> threadlist_t;
+#endif
 extern threadlist_t* threadlist;
 
     } // namespace _private_

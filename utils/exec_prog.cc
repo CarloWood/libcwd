@@ -83,8 +83,10 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
   Dout(dc::debug|continued_cf, "exec_prog(\"" << prog_name << "\", " <<
       cwprint(argv_ct(argv)) << ", " << cwprint(environment_ct(envp)) << ", decode) = ");
 
+#if CWDEBUG_ALLOC
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( !__libcwd_tsd.internal );	// Lots of userspace allocators in this function.
+#endif
 
   int stdout_filedes[2];
   int stderr_filedes[2];

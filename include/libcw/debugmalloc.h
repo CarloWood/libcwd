@@ -133,7 +133,6 @@ extern void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& fo
 extern void list_allocations_on(debug_ct& debug_object);
 #else // !CWDEBUG_ALLOC
 __inline__ void list_allocations_on(debug_ct&) { }
-__inline__ void list_allocations_on(debug_ct&, ooam_filter_ct const&) { }
 #endif // !CWDEBUG_ALLOC
 
   } // namespace debug

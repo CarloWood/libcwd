@@ -12,7 +12,7 @@
 //
 
 #include "sys.h"
-#include <libcw/debug.h>
+#include "alloctag_debug.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -80,13 +80,20 @@ MAIN_FUNCTION
   int* rpi = (int*)realloc(mpi, 1000);
   AllocTag(rpi, "Test of \"(int*)realloc(mpi, 1000)\"");
 
-  Debug(
+#if CWDEBUG_ALLOC
+  do
+  {
+    using namespace libcw::debug;
     ooam_filter_ct filter(0);
+#if CWDEBUG_LOCATION
     std::vector<std::string> masks;
     masks.push_back("lib*");
     filter.hide_objectfiles_matching(masks);
-    list_allocations_on(libcw_do, filter)
-  );
+#endif
+    list_allocations_on(libcw_do, filter);
+  }
+  while(0);
+#endif
 
   delete [] cp;
   delete i;

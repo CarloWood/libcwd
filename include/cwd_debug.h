@@ -31,6 +31,7 @@ extern "C" size_t strlen(const char *s) throw();
 namespace libcw {
   namespace debug {
 
+#if CWDEBUG_ALLOC
 namespace _private_ {
 
 extern void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal);
@@ -97,10 +98,21 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
   return os;
 }
 
+#define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
+	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss)); \
+	no_alloc_ostream << data
+
+#else // !CWDEBUG_ALLOC
+
+#define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
+	(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss)) << data
+
+#endif // !CWDEBUG_ALLOC
+
 #define LIBCWD_Dout( cntrl, data )									\
   do													\
   {													\
-    if (LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0)							\
+    if (LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0)								\
     {													\
       bool on;												\
       channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);			\
@@ -111,8 +123,7 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
       if (on)												\
       {													\
 	LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);				\
-	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss));	\
-	no_alloc_ostream << data;									\
+	LIBCWD_WRITE_TO_CURRENT_OSS(data);								\
 	LIBCWD_DO_TSD(libcw_do).finish(libcw_do, channel_set LIBCWD_COMMA_TSD);				\
       }													\
     }													\
@@ -127,8 +138,7 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
       channel_set&cntrl;										\
     }													\
     LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);				\
-    _private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss));	\
-    no_alloc_ostream << data;										\
+    LIBCWD_WRITE_TO_CURRENT_OSS(data);									\
     LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);			\
   } while(0)
 
