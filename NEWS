@@ -1,3 +1,24 @@
+libcwd-0.99.13
+
+	Support for dlopen() was added.  Because there seems to be no hook for dlopen,
+	it is being defined as a macro (#define dlopen __libcwd_dlopen).
+
+	Improvement of the determination of the start of an object file.  Unknown starts
+	are now also correctly determined for very small shared objects.
+
+	Bug fix: previously local symbols were all thrown away, including static
+	functions.  Now a source file / line number lookup inside a static function
+	will work too.
+
+	API changes:
+
+	Debug channel WARNING is now on by default.  This means that you can't turn it
+	on at the start of main: remove lines with Debug( dc::warning.on() ).
+
+libcwd-0.99.12
+
+	Bug fix release.
+
 libcwd-0.99.11
 
 	I changed my mind and renamed 'dc::stabs' back to 'dc::bfd'.  The label also is

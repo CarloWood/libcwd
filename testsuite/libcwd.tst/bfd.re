@@ -17,6 +17,7 @@ NOTICE  : called from bfd\.cc:159
 (BFD     : address 0x[0-9a-f]+ corresponds to .*
 NOTICE  : called from .*
 )*
-BFD     : Warning: Address 0x[0-9a-f]+ in section \.text does not have a line number, perhaps the unit containing the function
-          `_*start' wasn't compiled with flag -(g|ggdb)
+BFD     : Warning: Address 0x[0-9a-f]+ in section \.text of object file "tst_bfd_shared"
+          does not have a line number, perhaps the unit containing the function
+          `_*start' wasn't compiled with flag -(g|ggdb)\?
 NOTICE  : called from <unknown location>

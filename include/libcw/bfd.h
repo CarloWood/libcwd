@@ -104,10 +104,16 @@ public:
   friend std::ostream& operator<<(std::ostream& os, location_ct const& location);		// Prints a default "M_filename:M_line".
 };
 
-void* dlopen(char const*, int);
-
   } // namespace debug
 } // namespace libcw
+
+#ifdef CWDEBUG_DLOPEN_DEFINED
+#include <dlfcn.h>
+#define dlopen __libcwd_dlopen
+#define dlclose __libcwd_dlclose
+extern "C" void* dlopen(char const*, int);
+extern "C" int dlclose(void*);
+#endif // CWDEBUG_DLOPEN_DEFINED
 
 #endif // DEBUGUSEBFD
 

@@ -75,8 +75,8 @@ int main(int argc, char* argv[])
 #endif
 
   // Select channels
+  // warning is already on.
   Debug( dc::malloc.on() );
-  Debug( dc::warning.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );

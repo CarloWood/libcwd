@@ -1,5 +1,5 @@
 NODEBUGCHECK = nodebug
-TSTCHECK = alloctag basic bfd cf continued dc demangler do flush leak lockable_auto_ptr magic marker strdup test_delete type_info undef
+TSTCHECK = alloctag basic bfd cf continued dc demangler dlopen do flush leak lockable_auto_ptr magic marker strdup test_delete type_info undef
 
 srcdir = @srcdir@
 top_builddir = ..
@@ -72,8 +72,11 @@ site.exp: Makefile
 	@cat site.bak | sed -e '1,/^## All variables above are.*##/ d' >> site.exp
 	-@rm -f ./tmp?
 
-check: site.exp
+check: site.exp module.so
 	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS)
+
+module.so: module.cc
+	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
 
 # Provide rules for manual compilation:
 dummy:
@@ -104,7 +107,7 @@ run: shared static
 mostlyclean:
 	rm -f site.bak core *.core *.o
 clean: mostlyclean
-	rm -f libcwd.log libcwd.sum *_*_shared *_*_static
+	rm -f libcwd.log libcwd.sum *_*_shared *_*_static module.so
 distclean: clean
 	rm -f Makefile site.exp *.log *.sum
 

@@ -659,6 +659,10 @@ namespace libcw {
 	  break;
       debug_channels().insert(i, this);
 
+      // Turn debug channel "WARNING" on by default.
+      if (strncmp(label, "WARNING", lbl_len) == 0)
+        off_cnt = -1;
+
       DEBUGDEBUG_CERR( "Leaving `channel_ct::channel_ct(\"" << lbl << "\")" );
     }
 

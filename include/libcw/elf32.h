@@ -41,7 +41,7 @@ struct udata_st {
 
 struct asymbol_st {
   bfd_st* bfd_ptr;
-  asection_st* section;
+  asection_st const* section;
   Elf32_Off value;
   udata_st udata;
   Elf32_Word flags;
@@ -61,6 +61,7 @@ struct bfd_st {
   };
   bool cacheable;
   bool M_has_syms;
+  size_t M_s_end_vma;
 public:
   bfd_st(void) : M_has_syms(false) { }
   virtual ~bfd_st() { }
@@ -72,6 +73,8 @@ public:
   virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int*) = 0;
   bool has_syms(void) const { return M_has_syms; }
 };
+
+extern asection_st const* const absolute_section;
 
 } // namespace elf32
 

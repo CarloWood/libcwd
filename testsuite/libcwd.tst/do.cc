@@ -81,8 +81,6 @@ int main(void)
 
   // 1.1.2.2 Setting the prefix formatting attributes
 
-  Debug( dc::warning.on() );
-
   Debug( libcw_do.set_margin("***********libcw_do*") );
   Debug( my_own_do.set_margin("**********my_own_do*") );
   Debug( example::my_own_do.set_margin("*example::my_own_do*") );

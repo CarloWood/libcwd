@@ -349,6 +349,9 @@ private:
 //-------------------------------------------------------------------------------------------------------------------------------------------
 // Implementation
 
+static asection_st const abs_section = { 0, "*ABS*" };
+asection_st const* const absolute_section = &abs_section;
+
 bool Elf32_Ehdr::check_format(void) const
 {
   if (e_ident[EI_MAG0] != 0x7f ||
@@ -419,20 +422,32 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
       for(int s = 0; s < number_of_symbols; ++s)
       {
 	Elf32_sym& symbol(symbols[s]);
-        if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
-	  continue;							// Skip Special Sections and Undefined Symbols.
-	new_symbol->bfd_ptr = this;
-	new_symbol->section = &M_sections[symbol.st_shndx];
 	if (M_sections[i].section_header().sh_type == SHT_SYMTAB)
 	  new_symbol->name = &M_symbol_string_table[symbol.st_name];
 	else
 	  new_symbol->name = &M_dyn_symbol_string_table[symbol.st_name];
 	if (!*new_symbol->name)
-	  continue;							// Skip Symbols that do not have a name.
+	  continue;								// Skip Symbols that do not have a name.
+	if (symbol.st_shndx == SHN_ABS)
+	{
+	  // Skip all absolute symbols except "_end".
+	  if (new_symbol->name[1] != 'e' || new_symbol->name[0] != '_' || new_symbol->name[2] != 'n' || new_symbol->name[3] != 'd' || new_symbol->name[4] != 0)
+	    continue;
+	  new_symbol->section = absolute_section;
+          M_s_end_vma = new_symbol->value = symbol.st_value;
+	}
+        else if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
+	  continue;							// Skip Special Sections and Undefined Symbols.
+	else
+	{
+	  new_symbol->section = &M_sections[symbol.st_shndx];
+	  new_symbol->value = symbol.st_value - new_symbol->section->vma;	// Is not an absolute value: make value relative
+	  									// to start of section.
 #ifdef DEBUGELF32
-	Dout(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
+	  Dout(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
 #endif
-	new_symbol->value = symbol.st_value - new_symbol->section->vma;	// Is not an absolute value: make value relative to start of section.
+        }
+	new_symbol->bfd_ptr = this;
 	new_symbol->udata.p = symbol.st_size;
 	new_symbol->flags = 0;
 	switch(symbol.bind())
