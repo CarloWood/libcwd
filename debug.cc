@@ -29,8 +29,10 @@ extern "C" char* getenv(char const* name);	// Needed before including ext/pool_a
 #include <cerrno>
 #include <iostream>
 #include <algorithm>
+#ifdef HAVE_SYS_RESOURCE_H
 #include <sys/time.h>     	// Needed for setrlimit()
 #include <sys/resource.h>	// Needed for setrlimit()
+#endif
 #include <cstdlib>		// Needed for Exit() (C99)
 #include <new>
 #include "cwd_debug.h"
