@@ -4,7 +4,7 @@
 #define AllocTag(p, data)
 #define Debug(STATEMENT...)
 #define Dout(cntrl, data)
-#define DoutFatal(cntrl, data) LibcwDoutFatal(/**/, /**/, cntrl, data)
+#define DoutFatal(cntrl, data) LibcwDoutFatal(, , cntrl, data)
 #define ForAllDebugChannels(STATEMENT...)
 #define ForAllDebugObjects(STATEMENT...)
 #define LibcwDebug(dc_namespace, STATEMENT...)
