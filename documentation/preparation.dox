@@ -11,7 +11,7 @@ Binary distributions should be installed the usual way.
 
 If you are installing libcwd from source then please read the
 \htmlonly<A HREF="../external/INSTALL">\endhtmlonly
-INSTALL\htmlonly</A>\endhtmlonly
+INSTALL\htmlonly</A> \endhtmlonly
 file that is included in the source distribution.<BR>
 See also: \ref group_configuration
 
@@ -19,7 +19,7 @@ See also: \ref group_configuration
 \subsection header_files Step 2: Creating the custom header files
 
 You need to add two custom header files to your application.<BR>
-The recommended names are "%debug.h" and "sys.h".
+The recommended names are "debug.h" and "sys.h".
 
 You can use the following templates for a quick start:
 
@@ -37,7 +37,7 @@ for library developers who want to use libcwd, please also read \ref chapter_cus
 \subsection custom_debug_cc Step 3: Creating the custom source file
 
 If you added one or more custom %debug %channels to your namespace
-<CODE>DEBUGCHANNELS</CODE> in your custom "%debug.h", then of course you
+<CODE>DEBUGCHANNELS</CODE> in your custom "debug.h", then of course you
 also need to add the definition somewhere.&nbsp;
 You can do that anywhere, or you could add a special source file for it.&nbsp;
 

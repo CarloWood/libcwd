@@ -30,7 +30,15 @@ namespace libcw {
 #define ACQUIRE_LISTALLOC_LOCK mutex_tct<list_allocations_instance>::lock()
 #define RELEASE_LISTALLOC_LOCK mutex_tct<list_allocations_instance>::unlock()
 using _private_::mutex_tct;
+
+#if __GNUC_MINOR__ != 5
 using _private_::list_allocations_instance;
+#else
+// gcc version 3.5.0 20040420 (experimental) ICEs on the above.
+namespace workaround_20040420 = ::libcw::debug::_private_::workaround_20040420;
+#define list_allocations_instance workaround_20040420::list_allocations_instance
+#endif
+
 #else
 #define ACQUIRE_LISTALLOC_LOCK
 #define RELEASE_LISTALLOC_LOCK

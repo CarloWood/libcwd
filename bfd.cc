@@ -146,7 +146,7 @@ void bfd_close(bfd* abfd)
 #endif
   set_alloc_checking_on(LIBCWD_TSD);
   abfd->close();
-  LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct<_private_::object_files_instance>::cleanup, NULL); // The delete calls close().
+  LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct<object_files_instance>::cleanup, NULL); // The delete calls close().
   BFD_ACQUIRE_WRITE_LOCK;
   set_alloc_checking_off(LIBCWD_TSD);
   delete abfd;
@@ -566,7 +566,13 @@ void bfd_close(bfd* abfd)
 	  for (asymbol** s = M_symbol_table; s <= se2;)
 	  {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-	    if (is_libstdcpp && strcmp((*s)->name, "_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE") == 0)
+	    if (is_libstdcpp && strcmp((*s)->name,
+#if __GNUC_MINOR__ == 4
+	    "_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE"
+#else
+	    "_ZN9__gnu_cxx12__pool_allocIcE7_S_lockE"
+#endif
+	    ) == 0)
 	      S_lock_value = bfd_get_section(*s)->vma + (*s)->value;
 #endif
 	    if (((*s)->name[0] == '.' && (*s)->name[1] == 'L')
@@ -704,9 +710,9 @@ void bfd_close(bfd* abfd)
       }
 
       // cwbfd::
-      _private_::ST_string* ST_argv0_ptr;		// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
+      _private_::string* ST_argv0_ptr;			// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
       // cwbfd::
-      _private_::ST_string const* ST_pidstr_ptr;	// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
+      _private_::string const* ST_pidstr_ptr;		// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
 
       // cwbfd::
       int ST_decode_ps(char const* buf, size_t len)	// MT: Single Threaded function.
@@ -722,7 +728,7 @@ void bfd_close(bfd* abfd)
 	bool found_PID = false;
 	bool eating_token = false;
 	size_t current_column = 1;
-	_private_::ST_string token;
+	_private_::string token;
 
 	for (char const* p = buf; p < &buf[len]; ++p, ++current_column)
 	{
@@ -787,7 +793,7 @@ void bfd_close(bfd* abfd)
       // cwbfd::
       void ST_get_full_path_to_executable(_private_::internal_string& result LIBCWD_COMMA_TSD_PARAM)
       {
-	_private_::ST_string argv0;		// Like main()s argv[0], thus must be zero terminated.
+	_private_::string argv0;		// Like main()s argv[0], thus must be zero terminated.
 	char buf[6];
 	char* p = &buf[5];
 	*p = 0;
@@ -807,7 +813,7 @@ void bfd_close(bfd* abfd)
 	}
 	else
 	{
-	  _private_::ST_string pidstr;
+	  _private_::string pidstr;
 
 	  size_t const max_pidstr = sizeof("65535\0");
 	  char pidstr_buf[max_pidstr];
@@ -826,7 +832,7 @@ void bfd_close(bfd* abfd)
 	  argv[2] = p;
 	  argv[3] = NULL;
 
-	  ST_argv0_ptr = &argv0;	// Ugly way to pass these ST_strings to ST_decode_ps:
+	  ST_argv0_ptr = &argv0;	// Ugly way to pass these strings to ST_decode_ps:
 	  ST_pidstr_ptr = &pidstr;	// pidstr is input, argv0 is output.
 
 	  if (ST_exec_prog(ps_prog, argv, environ, ST_decode_ps) == -1 || argv0.empty())
@@ -838,10 +844,10 @@ void bfd_close(bfd* abfd)
 	// arguments (which is why we can't use argv0.find('/') here), all seperated by the 0 character.
 	if (!strchr(argv0.data(), '/'))
 	{
-	  _private_::ST_string prog_name(argv0);
-	  _private_::ST_string path_list(getenv("PATH"));
-	  _private_::ST_string::size_type start_pos = 0, end_pos;
-	  _private_::ST_string path;
+	  _private_::string prog_name(argv0);
+	  _private_::string path_list(getenv("PATH"));
+	  _private_::string::size_type start_pos = 0, end_pos;
+	  _private_::string path;
 	  struct stat finfo;
 	  for (;;)
 	  {
@@ -859,7 +865,7 @@ void bfd_close(bfd* abfd)
 		break;
 	      }
 	    }
-	    if (end_pos == _private_::ST_string::npos)
+	    if (end_pos == _private_::string::npos)
 	      break;
 	    start_pos = end_pos + 1;
 	  }

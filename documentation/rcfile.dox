@@ -44,6 +44,7 @@ If that fails too then it will fall back to reading
 \endhtmlonly
 .&nbsp;
 You can use the latter as a template and/or \htmlonly<A HREF="../external/libcwdrc">\endhtmlonly
-example\htmlonly</A>\endhtmlonly file for writing your own rcfile.
+example\htmlonly</A>\endhtmlonly\n
+file for writing your own rcfile.
 
 */

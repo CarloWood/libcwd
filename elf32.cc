@@ -1504,11 +1504,11 @@ void section_ct::init(char const* section_header_string_table, Elf32_Shdr const&
 bfd_st* bfd_st::openr(char const* file_name, bool shared_library)
 {
 #if LIBCWD_THREAD_SAFE
-  _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
+  _private_::rwlock_tct<object_files_instance>::wrlock();
 #endif
   objfile_ct* objfile = new objfile_ct;
 #if LIBCWD_THREAD_SAFE
-  _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
+  _private_::rwlock_tct<object_files_instance>::wrunlock();
 #endif
   objfile->initialize(file_name, shared_library);
   return objfile;
@@ -3065,8 +3065,8 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
     // Ok, now we are sure that THIS thread doesn't hold the following lock, try to acquire it.
     // `object_files_string' and the STL containers using `_private_::object_files_allocator' in the following functions need this lock.
     int saved_internal;
-    LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct< _private_::object_files_instance>::cleanup, NULL);
-    _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
+    LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct<object_files_instance>::cleanup, NULL);
+    _private_::rwlock_tct<object_files_instance>::wrlock();
     // Now we acquired the lock, check again if another thread not already read the debug info.
     if (!M_debug_info_loaded)
     {
@@ -3105,7 +3105,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
 #if LIBCWD_THREAD_SAFE
       S_thread_inside_find_nearest_line = (pthread_t) 0;
     }
-    _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
+    _private_::rwlock_tct<object_files_instance>::wrunlock();
 #if CWDEBUG_ALLOC
     saved_internal = __libcwd_tsd.internal;
     __libcwd_tsd.internal = false;

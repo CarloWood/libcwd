@@ -1,12 +1,26 @@
 libcwd-0.99.33
 
-	New function debug_watch().
+	New function debug_watch(ptr).  You can call this from within
+	gdb and it will cause a breakpoint when the memory pointer
+	ptr that is passed to it is being freed.
 
 	Added support for pkg-config(1).
 	See http://www.freedesktop.org/software/pkgconfig
 	This means you can use `pkg-config --cflags` and
 	`pkg-config --libs` in your configure script in order
 	to get the flags that libcwd needs.
+
+	The allocator implementation has been adjusted in order
+	to work again with the latest __pool_alloc of g++ 3.5 cvs.
+
+	Bug fixes:
+
+	The tar ball distribution was missing include/pch-source.h,
+	making it fail to compile with g++ 3.4 or higher.
+
+	Compilation failed when configured with --enable-maintainer-mode
+	because example-project/debug.h.maintainer is not distributed.
+	A workaround for this has been added.
 
 libcwd-0.99.32
 

@@ -62,7 +62,7 @@
 #ifndef LIBCWD_LibcwDoutScopeBegin_MARKER
 #if CWDEBUG_DEBUGOUTPUT
 #include <sys/types.h>
-extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
+extern "C" ssize_t write(int fd, const void *buf, size_t count);
 #define LIBCWD_STR1(x) #x
 #define LIBCWD_STR2(x) LIBCWD_STR1(x)
 #define LIBCWD_STR3 "LibcwDout at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"

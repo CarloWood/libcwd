@@ -8,7 +8,7 @@ BFD     : Loading debug symbols from .*module\.so \(0x[a-f0-9]*\) \.\.\. done \(
 (.*
 )*
 MALLOC  : malloc\(310\) = <unfinished>
-BFD     :     Loading debug info from module\.so\.\.\. done
+BFD     :     Loading debug info from .*module\.so\.\.\. done
 BFD     :     address 0x[0-9a-f]* corresponds to module.cc:24
 MALLOC  : <continued> 0x[0-9a-f]*
 MALLOC  : malloc\(300\) = <unfinished>

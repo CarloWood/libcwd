@@ -44,9 +44,25 @@
 #if LIBCWD_THREAD_SAFE
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
+
+#if __GNUC_MINOR__ != 5
 using libcw::debug::_private_::object_files_instance;
 using libcw::debug::_private_::dlopen_map_instance;
 using libcw::debug::_private_::dlclose_instance;
+#else
+// gcc version 3.5.0 20040420 (experimental) ICEs on the above.
+namespace libcw { namespace debug { namespace _private_ { namespace workaround_20040420 {
+  static mutex_instance_nt const object_files_instance = _private_::object_files_instance;
+  static mutex_instance_nt const dlopen_map_instance = _private_::dlopen_map_instance;
+  static mutex_instance_nt const dlclose_instance = _private_::dlclose_instance;
+  static mutex_instance_nt const list_allocations_instance = _private_::list_allocations_instance;
+}}}}
+namespace workaround_20040420 = libcw::debug::_private_::workaround_20040420;
+#define object_files_instance workaround_20040420::object_files_instance
+#define dlopen_map_instance workaround_20040420::dlopen_map_instance
+#define dlclose_instance workaround_20040420::dlclose_instance
+#endif
+
 #define BFD_INITIALIZE_LOCK             rwlock_tct<object_files_instance>::initialize()
 #define BFD_ACQUIRE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrlock()
 #define BFD_RELEASE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrunlock()

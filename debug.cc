@@ -43,20 +43,22 @@ extern "C" int raise(int);
 
 #if LIBCWD_THREAD_SAFE
 using libcw::debug::_private_::rwlock_tct;
+#if __GNUC_MINOR__ != 5
 using libcw::debug::_private_::debug_objects_instance;
 using libcw::debug::_private_::debug_channels_instance;
-#define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK	rwlock_tct<debug_objects_instance>::wrlock()
-#define DEBUG_OBJECTS_RELEASE_WRITE_LOCK	rwlock_tct<debug_objects_instance>::wrunlock()
-#define DEBUG_OBJECTS_ACQUIRE_READ_LOCK		rwlock_tct<debug_objects_instance>::rdlock()
-#define DEBUG_OBJECTS_RELEASE_READ_LOCK		rwlock_tct<debug_objects_instance>::rdunlock()
-#define DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<debug_objects_instance>::rd2wrlock()
-#define DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<debug_objects_instance>::wr2rdlock()
-#define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK	rwlock_tct<debug_channels_instance>::wrlock()
-#define DEBUG_CHANNELS_RELEASE_WRITE_LOCK	rwlock_tct<debug_channels_instance>::wrunlock()
-#define DEBUG_CHANNELS_ACQUIRE_READ_LOCK	rwlock_tct<debug_channels_instance>::rdlock()
-#define DEBUG_CHANNELS_RELEASE_READ_LOCK	rwlock_tct<debug_channels_instance>::rdunlock()
-#define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<debug_channels_instance>::rd2wrlock()
-#define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<debug_channels_instance>::wr2rdlock()
+#endif
+#define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_objects_instance>::wrlock()
+#define DEBUG_OBJECTS_RELEASE_WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_objects_instance>::wrunlock()
+#define DEBUG_OBJECTS_ACQUIRE_READ_LOCK		rwlock_tct<libcw::debug::_private_::debug_objects_instance>::rdlock()
+#define DEBUG_OBJECTS_RELEASE_READ_LOCK		rwlock_tct<libcw::debug::_private_::debug_objects_instance>::rdunlock()
+#define DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_objects_instance>::rd2wrlock()
+#define DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<libcw::debug::_private_::debug_objects_instance>::wr2rdlock()
+#define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::wrlock()
+#define DEBUG_CHANNELS_RELEASE_WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::wrunlock()
+#define DEBUG_CHANNELS_ACQUIRE_READ_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::rdlock()
+#define DEBUG_CHANNELS_RELEASE_READ_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::rdunlock()
+#define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::rd2wrlock()
+#define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::wr2rdlock()
 #define COMMA_IFTHREADS(x) ,x
 #else // !LIBCWD_THREAD_SAFE
 #define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
@@ -602,7 +604,7 @@ void allocator_unlock(void)
       void debug_channels_ct::init(LIBCWD_TSD_PARAM)
       {
 #if LIBCWD_THREAD_SAFE
-	_private_::rwlock_tct<_private_::debug_channels_instance>::initialize();
+	_private_::rwlock_tct<libcw::debug::_private_::debug_channels_instance>::initialize();
 #endif
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
@@ -623,7 +625,7 @@ void allocator_unlock(void)
       // _private_::
       void debug_channels_ct::init_and_rdlock(void)
       {
-	_private_::rwlock_tct<_private_::debug_channels_instance>::initialize();
+	_private_::rwlock_tct<libcw::debug::_private_::debug_channels_instance>::initialize();
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
@@ -641,7 +643,7 @@ void allocator_unlock(void)
       void debug_objects_ct::init(LIBCWD_TSD_PARAM)
       {
 #if LIBCWD_THREAD_SAFE
-	_private_::rwlock_tct<_private_::debug_objects_instance>::initialize();
+	_private_::rwlock_tct<libcw::debug::_private_::debug_objects_instance>::initialize();
 #endif
         DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
@@ -667,7 +669,7 @@ void allocator_unlock(void)
       // _private_::
       void debug_objects_ct::init_and_rdlock(void)
       {
-	_private_::rwlock_tct<_private_::debug_objects_instance>::initialize();
+	_private_::rwlock_tct<libcw::debug::_private_::debug_objects_instance>::initialize();
 	DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
@@ -1513,7 +1515,7 @@ void allocator_unlock(void)
 	LIBCWD_DEFER_CANCEL;
         _private_::debug_channels.init(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
-	LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<debug_channels_instance>::cleanup, NULL);
+	LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<libcw::debug::_private_::debug_channels_instance>::cleanup, NULL);
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	    i != _private_::debug_channels.read_locked().end(); ++i)
@@ -1584,7 +1586,7 @@ void allocator_unlock(void)
       set_alloc_checking_on(LIBCWD_TSD);
 
 #if LIBCWD_THREAD_SAFE
-      // MT: Take advantage of the `debug_channels_instance' lock to prefend simultaneous access
+      // MT: Take advantage of the `libcw::debug::_private_::debug_channels_instance' lock to prefend simultaneous access
       //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
       static int next_index;
       WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.

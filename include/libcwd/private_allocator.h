@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2001 - 2003, by
+// Copyright (C) 2001 - 2004, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -35,42 +35,93 @@
 #include <cstddef>		// Needed for size_t
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
-
 //===================================================================================================
 // Allocators
 //
 //
 
-#if __GNUC_MINOR__ < 4
-#define LIBCWD_POOL_ALLOC std::__default_alloc_template
-#else
-#include <ext/pool_allocator.h>	// If you don't have this, upgrade your gcc 3.4 from CVS.  FIXME: remove comment after release of 3.4
-#define LIBCWD_POOL_ALLOC __gnu_cxx::__pool_alloc
+/* The allocators used by libcwd have the following characteristics:
+
+   1) The type T that is being allocated and deallocated.
+   2) Whether or not the allocation is internal, auto-internal or in userspace.
+   3) The pool instance from which the allocation should be drawn.
+   4) Whether or not a lock is needed for this pool.
+   5) Whether or not this allocation belongs to a libcwd
+      critical area and if so, which one.
+
+   Note that each critical area (if any) uses its own lock and
+   therefore no (additional) lock will be needed for the allocator.
+   Otherwise a lock is always needed (in the multi-threaded case).
+
+   There are five different allocators in use by libcwd:
+
+Multi-threaded case:
+
+   Allocator name		| internal | Pool instance         		| Needs lock
+   ----------------------------------------------------------------------------------------------------
+   memblk_map_allocator		| yes      | memblk_map_instance		| no (memblk_map_instance critical area)
+   object_files_allocator	| yes      | object_files_instance		| no (object_files_instance critical area)
+   internal_allocator		| yes      | multi_threaded_internal_instance	| yes
+   auto_internal_allocator	| auto     | multi_threaded_internal_instance	| yes
+   userspace_allocator		| no       | userspace_instance			| yes
+
+Single-threaded case:
+
+   Allocator name		| internal | Pool instance         		| Needs lock
+   ----------------------------------------------------------------------------------------------------
+   memblk_map_allocator		| yes      | single_threaded_internal_instance  | no
+   object_files_allocator	| yes      | single_threaded_internal_instance	| no
+   internal_allocator		| yes      | single_threaded_internal_instance	| no
+   auto_internal_allocator	| auto     | single_threaded_internal_instance	| no
+   userspace_allocator		| no       | std::alloc				| -
+
+*/
+
+#if __GNUC_MINOR__ >= 4
+#include <ext/pool_allocator.h>		// __gnu_cxx::__pool_alloc
 #endif
+
+namespace libcw {
+  namespace debug {
+    namespace _private_ {
 
 // This is a random number in the hope nobody else uses it.
 int const random_salt = 327665;
+
+#if __GNUC_MINOR__ < 4
+template<bool needs_lock, int pool_instance>
+  struct CharPoolAlloc : public std::__default_alloc_template<needs_lock, random_salt + pool_instance> {
+    typedef char* pointer;
+  };
+#elif __GNUC_MINOR__ == 4
+template<bool needs_lock, int pool_instance>
+  struct CharPoolAlloc : public __gnu_cxx::__pool_alloc<needs_lock, random_salt + pool_instance> {
+    typedef char* pointer;
+  };
+#else
+template<int pool_instance>
+  struct char_wrapper {
+    char c;
+  };
+// gcc 3.5.0 and higher always use a lock, in the threaded case.
+template<bool needs_lock, int pool_instance>
+  class CharPoolAlloc : public __gnu_cxx::__pool_alloc<char_wrapper<pool_instance> > { };
+#endif
+
 // Dummy mutex instance numbers, these must be negative.
 int const multi_threaded_internal_instance = -1;
-int const multi_threaded_userspace_instance = -random_salt;		// Use LIBCWD_POOL_ALLOC<true, 0>
 int const single_threaded_internal_instance = -2;
-int const single_threaded_userspace_instance = multi_threaded_userspace_instance;
+int const userspace_instance = -3;
 
-// An allocator that doesn't use the same lock as LIBCWD_POOL_ALLOC<true, 0>
-// We normally would be able to use the default allocator, but... libcwd functions can
-// at all times be called from malloc which might be called from LIBCWD_POOL_ALLOC<true, 0>
-// with its lock set.
-typedef LIBCWD_POOL_ALLOC<true, random_salt - 3> our_userspace_allocator;
-
+// Convenience macros.
 #if CWDEBUG_DEBUG
 #define LIBCWD_COMMA_INT_INSTANCE , int instance
 #define LIBCWD_COMMA_INSTANCE , instance
+#define LIBCWD_DEBUGDEBUG_COMMA(x) , x
 #else
 #define LIBCWD_COMMA_INT_INSTANCE
 #define LIBCWD_COMMA_INSTANCE
+#define LIBCWD_DEBUGDEBUG_COMMA(x)
 #endif
 
 enum pool_nt {
@@ -79,64 +130,90 @@ enum pool_nt {
   auto_internal_pool
 };
 
-template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
-  struct allocator_adaptor {
-    typedef T*		pointer;
-    typedef T const*	const_pointer;
-    typedef T&		reference;
-    typedef T const&	const_reference;
-    typedef T		value_type;
-    typedef size_t	size_type;
-    typedef ptrdiff_t	difference_type;
-    typedef T*		deallocate_pointer;
+// This wrapper adds sanity checks to the allocator use (like testing if
+// 'internal' allocators are indeed only used while in internal mode, and
+// critical area allocators are only used when the related lock is indeed
+// locked etc.
+template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
+    class allocator_adaptor {
+    private:
+      // The underlying allocator.
+      CharAlloc M_char_allocator;
 
-    template <class T1> struct rebind {
-      typedef allocator_adaptor<T1, X, internal LIBCWD_COMMA_INSTANCE> other;
-    };
+    public:
+      // Type definitions.
+      typedef T		value_type;
+      typedef size_t	size_type;
+      typedef ptrdiff_t	difference_type;
+      typedef T*		pointer;
+      typedef T const*	const_pointer;
+      typedef T&		reference;
+      typedef T const&	const_reference;
 
-    X M_underlying_alloc;
+      // Rebind allocator to type U.
+      template <class U>
+	struct rebind {
+	  typedef allocator_adaptor<U, CharAlloc, internal LIBCWD_COMMA_INSTANCE> other;
+	};
 
-    pointer address(reference r) const { return &r; }
-    const_pointer address(const_reference r) const { return &r; }
+      // Return address of values.
+      pointer address(reference value) const { return &value; }
+      const_pointer address(const_reference value) const { return &value; }
 
-    static T* allocate(size_t n);
-    static T* allocate(void);
-    static void deallocate(deallocate_pointer p, size_t n);
-    static void deallocate(deallocate_pointer p);
+      // Constructors and destructor.
+      allocator_adaptor(void) throw() { }
+      allocator_adaptor(allocator_adaptor const& a) : M_char_allocator(a.M_char_allocator) { }
+      template<class U>
+	allocator_adaptor(allocator_adaptor<U, CharAlloc, internal LIBCWD_COMMA_INSTANCE> const& a) :
+	    M_char_allocator(a.M_char_allocator) { }
+      template<class T2, class CharAlloc2, pool_nt internal2 LIBCWD_DEBUGDEBUG_COMMA(int instance2)>
+	friend class allocator_adaptor;
+      ~allocator_adaptor() throw() { }
 
-    allocator_adaptor(void) { }
-    allocator_adaptor(allocator_adaptor const& a) :
-        M_underlying_alloc(a.M_underlying_alloc) { }
-    template <class T1>
-      allocator_adaptor(allocator_adaptor<T1, X, internal LIBCWD_COMMA_INSTANCE> const& a) :
-          M_underlying_alloc(a.M_underlying_alloc) { }
-    ~allocator_adaptor() { }
+      // Return maximum number of elements that can be allocated.
+      size_type max_size(void) const { return M_char_allocator.max_size() / sizeof(T); }
 
-    size_type max_size(void) const { return size_t(-1) / sizeof(T); }
-       
-    void construct(pointer p, const_reference t) { new((void*)p) T(t); }
-    void destroy(pointer p) { p->~T(); }
+      // Allocate but don't initialize num elements of type T.
+      pointer allocate(size_type num);
+      pointer allocate(size_type num, void const* hint);
+
+      // Deallocate storage p of deleted elements.
+      void deallocate(pointer p, size_type num);
+
+      // Initialize elements of allocated storage p with value value.
+      void construct(pointer p, T const& value) { new ((void*)p) T(value); }
+
+      // Destroy elements of initialized storage p.
+      void destroy(pointer p) { p->~T(); }
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
-  private:
-    static void sanity_check(void);
-#endif
-  };
-
-#if CWDEBUG_DEBUG
-#define LIBCWD_DEBUGDEBUG_COMMA(x) , x
-#else
-#define LIBCWD_DEBUGDEBUG_COMMA(x)
+    private:
+      static void sanity_check(void);
 #endif
 
-// LIBCWD_POOL_ALLOC<true, 0> is the default thread-safe STL allocator std::__alloc,
-// but we use the longer type because in gcc 3.0.x the underscores were missing and it would be
-// std::alloc.  See also http://gcc.gnu.org/onlinedocs/libstdc++/ext/howto.html#3.
-#define LIBCWD_DEFAULT_ALLOC_USERSPACE(instance) ::libcw::debug::_private_::			\
+      template <class T1, class CharAlloc1, pool_nt internal1 LIBCWD_DEBUGDEBUG_COMMA(int inst1),
+		class T2, class CharAlloc2, pool_nt internal2 LIBCWD_DEBUGDEBUG_COMMA(int inst2)>
+	friend inline
+	bool operator==(allocator_adaptor<T1, CharAlloc1, internal1 LIBCWD_DEBUGDEBUG_COMMA(inst1)> const& a1,
+			allocator_adaptor<T2, CharAlloc2, internal2 LIBCWD_DEBUGDEBUG_COMMA(inst2)> const& a2);
+      template <class T1, class CharAlloc1, pool_nt internal1 LIBCWD_DEBUGDEBUG_COMMA(int inst1),
+		class T2, class CharAlloc2, pool_nt internal2 LIBCWD_DEBUGDEBUG_COMMA(int inst2)>
+	friend inline
+	bool operator!=(allocator_adaptor<T1, CharAlloc1, internal1 LIBCWD_DEBUGDEBUG_COMMA(inst1)> const& a1,
+			allocator_adaptor<T2, CharAlloc2, internal2 LIBCWD_DEBUGDEBUG_COMMA(inst2)> const& a2);
+    };
+
+#if LIBCWD_THREAD_SAFE
+// We normally would be able to use the default allocator, but... libcwd functions can
+// at all times be called from malloc which might be called from std::allocator with its
+// lock set.  Therefore we also use a seperate allocator pool for the userspace, in the
+// threaded case.
+#define LIBCWD_CHARALLOCATOR_USERSPACE(instance) ::libcw::debug::_private_::			\
 	allocator_adaptor<char,									\
-	  		  our_userspace_allocator,						\
+	  		  CharPoolAlloc<true, userspace_instance>,				\
 			  userspace_pool							\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
+#endif
 
 // Both, multi_threaded_internal_instance and memblk_map_instance use also locks for
 // the allocator pool itself because they (the memory pools) are being shared between
@@ -154,61 +231,48 @@ template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
 #define LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance) false
 #endif // !LIBCWD_THREAD_SAFE
 
-#define LIBCWD_DEFAULT_ALLOC_INTERNAL(instance) ::libcw::debug::_private_::			\
+#define LIBCWD_CHARALLOCATOR_INTERNAL(instance) ::libcw::debug::_private_::			\
 	allocator_adaptor<char,									\
-			  LIBCWD_POOL_ALLOC							\
-			      <LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),			\
-			        ::libcw::debug::_private_::random_salt +			\
-				::libcw::debug::_private_::instance >,				\
+			  CharPoolAlloc<LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),		\
+					::libcw::debug::_private_::instance >,			\
 			  internal_pool								\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
 
-#define LIBCWD_DEFAULT_ALLOC_AUTO_INTERNAL(instance) ::libcw::debug::_private_::		\
+#define LIBCWD_CHARALLOCATOR_AUTO_INTERNAL(instance) ::libcw::debug::_private_::		\
 	allocator_adaptor<char,									\
-			  LIBCWD_POOL_ALLOC							\
-			      <LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),			\
-			        ::libcw::debug::_private_::random_salt +			\
-				::libcw::debug::_private_::instance >,				\
+			  CharPoolAlloc<LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),		\
+					::libcw::debug::_private_::instance >,			\
 			  auto_internal_pool							\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
 
 #if LIBCWD_THREAD_SAFE
 // Our allocator adaptor for the Non-Shared internal cases: Single Threaded
 // (inst = single_threaded_internal_instance) or inside the critical area of the corresponding
-// libcwd mutex instance.  Using a macro here instead of another template in order not to bloat the
-// mangling TOO much.
-#define LIBCWD_NS_INTERNAL_ALLOCATOR(instance)	\
-			  		LIBCWD_DEFAULT_ALLOC_INTERNAL(instance)
+// libcwd mutex instance.
+#define LIBCWD_NS_INTERNAL_ALLOCATOR(instance)	LIBCWD_CHARALLOCATOR_INTERNAL(instance)
 #else // !LIBCWD_THREAD_SAFE
-// In a single threaded application, the Non_shared case is equivalent to the Single Threaded case.
-#define LIBCWD_NS_INTERNAL_ALLOCATOR(instance) \
-			  		LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
+// In a single threaded application, the Non-Shared case is equivalent to the Single Threaded case.
+#define LIBCWD_NS_INTERNAL_ALLOCATOR(instance)	LIBCWD_CHARALLOCATOR_INTERNAL(single_threaded_internal_instance)
 #endif // !LIBCWD_THREAD_SAFE
-// The Non-Shared userspace allocator is the same whether libcwd is thread-safe or not.
-#define LIBCWD_NS_USERSPACE_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_USERSPACE(single_threaded_userspace_instance)
 
 #if LIBCWD_THREAD_SAFE
 // LIBCWD_MT_*_ALLOCATOR uses a different allocator than the normal default allocator of libstdc++
 // in the case of multi-threading because it can be that the allocator mutex is locked, which would
 // result in a deadlock if we try to use it again here.
-#define LIBCWD_MT_USERSPACE_ALLOCATOR		LIBCWD_DEFAULT_ALLOC_USERSPACE(multi_threaded_userspace_instance)
-#define LIBCWD_MT_INTERNAL_ALLOCATOR		LIBCWD_DEFAULT_ALLOC_INTERNAL(multi_threaded_internal_instance)
-#define LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_AUTO_INTERNAL(multi_threaded_internal_instance)
+#define LIBCWD_MT_USERSPACE_ALLOCATOR		LIBCWD_CHARALLOCATOR_USERSPACE(userspace_instance)
+#define LIBCWD_MT_INTERNAL_ALLOCATOR		LIBCWD_CHARALLOCATOR_INTERNAL(multi_threaded_internal_instance)
+#define LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR	LIBCWD_CHARALLOCATOR_AUTO_INTERNAL(multi_threaded_internal_instance)
 #else // !LIBCWD_THREAD_SAFE
 // LIBCWD_MT_*_ALLOCATOR uses the normal default allocator of libstdc++-v3 (alloc) using locking
 // itself.  The userspace allocator shares it memory pool with everything else (that uses this
 // allocator, which is most of the (userspace) STL).
-#define LIBCWD_MT_USERSPACE_ALLOCATOR		LIBCWD_DEFAULT_ALLOC_USERSPACE(single_threaded_userspace_instance)
-#define LIBCWD_MT_INTERNAL_ALLOCATOR		LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
-#define LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_AUTO_INTERNAL(single_threaded_internal_instance)
+#define LIBCWD_MT_USERSPACE_ALLOCATOR		std::allocator<char>
+#define LIBCWD_MT_INTERNAL_ALLOCATOR		LIBCWD_CHARALLOCATOR_INTERNAL(single_threaded_internal_instance)
+#define LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR	LIBCWD_CHARALLOCATOR_AUTO_INTERNAL(single_threaded_internal_instance)
 #endif // !LIBCWD_THREAD_SAFE
 
 //---------------------------------------------------------------------------------------------------
 // Internal allocator types.
-
-// In Single Threaded functions (ST_* functions) we can use an allocator type that doesn't need
-// locking.
-typedef LIBCWD_NS_INTERNAL_ALLOCATOR(single_threaded_internal_instance) ST_internal_allocator;
 
 // This allocator is used in critical areas that are already locked by memblk_map_instance.
 typedef LIBCWD_NS_INTERNAL_ALLOCATOR(memblk_map_instance) memblk_map_allocator;
@@ -226,10 +290,6 @@ typedef LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR auto_internal_allocator;
 
 //---------------------------------------------------------------------------------------------------
 // User space allocator type.
-
-// This allocator can be used outside libcwd-specific critical areas but inside Single Threaded
-// functions.
-typedef LIBCWD_NS_USERSPACE_ALLOCATOR ST_userspace_allocator;
 
 // This general allocator can be used outside libcwd-specific critical areas.
 typedef LIBCWD_MT_USERSPACE_ALLOCATOR userspace_allocator;

@@ -1,5 +1,8 @@
 // $Header$
 //
+// \file debugmalloc.cc
+// This file contains the memory allocations related debugging code.
+//
 // Copyright (C) 2000 - 2003, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
@@ -161,12 +164,31 @@
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::mutex_ct;
+using libcw::debug::_private_::threadlist_t;
+using libcw::debug::_private_::threadlist;
+
+#if __GNUC_MINOR__ != 5
 using libcw::debug::_private_::location_cache_instance;
 using libcw::debug::_private_::list_allocations_instance;
 using libcw::debug::_private_::threadlist_instance;
-using libcw::debug::_private_::threadlist_t;
-using libcw::debug::_private_::threadlist;
 using libcw::debug::_private_::dlclose_instance;
+#else
+// gcc version 3.5.0 20040420 (experimental) ICEs on the above.
+namespace libcw { namespace debug { namespace _private_ {
+  namespace workaround_20040420 {
+    static mutex_instance_nt const location_cache_instance = _private_::location_cache_instance;
+    static mutex_instance_nt const list_allocations_instance = _private_::list_allocations_instance;
+    static mutex_instance_nt const threadlist_instance = _private_::threadlist_instance;
+    static mutex_instance_nt const dlclose_instance = _private_::dlclose_instance;
+  }
+}}}
+namespace workaround_20040420 = ::libcw::debug::_private_::workaround_20040420;
+#define location_cache_instance workaround_20040420::location_cache_instance
+#define list_allocations_instance workaround_20040420::list_allocations_instance
+#define threadlist_instance workaround_20040420::threadlist_instance
+#define dlclose_instance workaround_20040420::dlclose_instance
+#endif
+
 // We can't use a read/write lock here because that leads to a deadlock.
 // rwlocks have to use condition variables or semaphores and both try to get a
 // (libpthread internal) self-lock that is already set by libthread when it calls
@@ -3988,6 +4010,13 @@ extern "C" {
 
 static void const* debug_watch(void const* ptr) __attribute__ ((unused));
 
+/**
+ * \brief Add a watch point for freeing \a ptr
+ *
+ * This function can be called from inside gdb.  After continuing the
+ * application, gdb will stop when the memory that \a ptr is pointing
+ * to is being freed.
+ */
 static void const* debug_watch(void const* ptr)
 {
   using namespace libcw::debug;
@@ -4014,6 +4043,14 @@ static void const* debug_watch(void const* ptr)
 
 static int debug_alloc(void const* ptr) __attribute__ ((unused));
 
+/**
+ * \brief Print information about the memory at the location \a ptr
+ *
+ * This function can be called from inside gdb.  It can be used
+ * to figure out what/where some memory location was allocated.
+ * This is especially handy in large application where about everything
+ * is dynamically allocated, like GUI applications.
+ */
 static int debug_alloc(void const* ptr)
 {
   using namespace libcw::debug;

@@ -56,8 +56,6 @@ MAIN_FUNCTION
   for(int i = 0; i < 1000; ++i)
     p->push_back(3);
 
-  Debug( dc::malloc.on() );
-
 #if CWDEBUG_ALLOC
   do
   {
@@ -75,10 +73,14 @@ MAIN_FUNCTION
     filter.hide_sourcefiles_matching(masks);
 #endif
     filter.hide_untagged_allocations(true);
+    Debug( dc::malloc.on() );
     list_allocations_on(libcw_do, filter);
+    Debug( dc::malloc.off() );
   }
   while(0);
 #endif
+
+  Debug( dc::malloc.on() );
 
 #if CWDEBUG_ALLOC
   do
@@ -110,9 +112,11 @@ MAIN_FUNCTION
 #endif
       libcw::debug::show_time);
 #if CWDEBUG_LOCATION
+  Debug( dc::malloc.off() );
   std::vector<std::string> list_masks;
   list_masks.push_back("*/dl-*");
   list_filter.hide_sourcefiles_matching(list_masks);
+  Debug( dc::malloc.on() );
 #endif
   list_filter.hide_untagged_allocations(true);
 #endif
@@ -175,9 +179,11 @@ MAIN_FUNCTION
 #endif
       );
 #if CWDEBUG_LOCATION
+  Debug( dc::malloc.off() );
   std::vector<std::string> masks;
   masks.push_back("module*");
   marker2_filter.hide_objectfiles_matching(masks);
+  Debug( dc::malloc.on() );
 #endif
 #endif // CWDEBUG_ALLOC
 #if CWDEBUG_MARKER
