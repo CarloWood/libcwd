@@ -62,12 +62,15 @@
 // Bug work arounds
 
 #ifdef __linux
-// Including sys/resource.h fails with a warning:
-// /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
-// Work around:
-#include <asm/resource.h>
-#undef RLIM_INFINITY
+  // Including sys/resource.h fails with a warning:
+  // /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
+  // Work around:
+  #include <asm/resource.h>
+  #undef RLIM_INFINITY
 #endif
+
+// Also linux has this bug, but then we don't compile with -ggdb
+#define DWARF2OUT_BUG (defined(__FreeBSD__) && defined(__GNUG__) && __GNUC__ == 2 && __GNUC_MINOR__ == 95)
 
 // GNU CC improvements: We can only use this if we have a gcc/g++ compiler
 #ifdef __GNUC__
@@ -94,7 +97,7 @@
 
 #endif // !__GNUC__
 
-#ifdef __GNUG__
+#ifdef __GNUC__
   #ifdef __linux
 
     #if defined(__FDSET_INTS)
@@ -104,7 +107,7 @@
     #endif
 
   #endif // __linux
-#endif // __GNUG__
+#endif // __GNUC__
 
 #ifdef NO_ATTRIBUTE
   #define __attribute__(x)

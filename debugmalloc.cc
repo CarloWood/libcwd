@@ -185,6 +185,7 @@ static deallocated_from_nt expected_from[] = {
   error
 };
 
+using namespace libcw;
 ostream& operator<<(ostream& os, memblk_types_ct memblk_type)
 {
 #ifdef DEBUG
