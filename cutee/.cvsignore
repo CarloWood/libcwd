@@ -1,4 +1,7 @@
 .libs
+.deps
 Makefile
 Makefile.in
 cutee
+runtest.cc
+t.*.cutee.cc
