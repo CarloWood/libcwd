@@ -1,1 +1,13 @@
 .depend-timestamp
+bfd_tst
+deb
+debug_tst
+debugmalloc_tst
+flush_tst
+hello_world
+lockable_auto_ptr_tst
+magic_tst
+mao_tst
+marker
+test_delete
+type_info_tst
