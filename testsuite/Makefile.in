@@ -82,7 +82,7 @@ endif
 
 # Clean rules
 mostlyclean:
-	rm -f site.bak core *.o
+	rm -f site.bak core *.core *.o
 clean: mostlyclean
 	rm -f libcwd.log libcwd.sum *_*_shared *_*_static
 distclean: clean
