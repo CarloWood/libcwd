@@ -686,23 +686,23 @@ dnl CW_SYS_PS_WIDE_PID_OPTION
 dnl Determines the options needed for `ps' to print the full command of a specified PID
 AC_DEFUN(CW_SYS_PS_WIDE_PID_OPTION,
 [AC_CACHE_CHECK([for option of ps to print the full command of a specified PID], cw_cv_sys_ps_wide_pid_option,
-[if $PS -ww >/dev/null; then
+[if $PS -ww >/dev/null 2>/dev/null; then
 cw_cv_sys_ps_wide_pid_option="-ww"
-elif $PS -w >/dev/null; then
+elif $PS -w >/dev/null 2>/dev/null; then
 cw_cv_sys_ps_wide_pid_option="-w"
 else
 cw_cv_sys_ps_wide_pid_option="-f"
 fi
-cw_var_ps=
-$PS $cw_cv_sys_ps_wide_pid_option 1 > ./ps.out.$$
+$PS $cw_cv_sys_ps_wide_pid_option 1 > ./ps.out.$$ 2>/dev/null
 if grep init ./ps.out.$$ >/dev/null; then
   :
 else
-$PS $cw_cv_sys_ps_wide_pid_option\p 1 > ./ps.out.$$
+$PS $cw_cv_sys_ps_wide_pid_option\p 1 > ./ps.out.$$ 2>/dev/null
 if grep init ./ps.out.$$ >/dev/null; then
   cw_cv_sys_ps_wide_pid_option="$cw_cv_sys_ps_wide_pid_option"p
 fi
 fi
+rm -f ./ps.out.$$
 echo "#! /bin/sh" > ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
 echo "$PS $cw_cv_sys_ps_wide_pid_option \$\$" >> ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
 chmod 700 ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
@@ -710,12 +710,12 @@ if ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_an
   :
 else
   if ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise | grep that_should_be_longer >/dev/null; then
-    AC_MSG_WARN([ps cuts off long path names, this will break running executables with a long full path using libcwd!])
+    AC_MSG_WARN([ps cuts off long path names, this will break executables with a long path or name that use libcwd!])
   else
     AC_MSG_ERROR([Cannot determine the correct ps arguments])
   fi
 fi
-rm -f ./ps.out.$$ ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
+rm -f ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
 ])
 AC_DEFINE_UNQUOTED([PS_ARGUMENT], "$cw_cv_sys_ps_wide_pid_option")
 ])
