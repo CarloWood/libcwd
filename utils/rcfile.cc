@@ -100,9 +100,9 @@ std::string rcfile_ct::M_determine_rcfile_name(void)
 void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& mask, action_nt const action)
 {
   std::string label = debugChannel.get_label();
-  int pos2 = label.find_first_of(" ");
-  if (pos2 != -1)
-    label.erase(pos2);
+  std::string::size_type pos = label.find(' ');
+  if (pos != std::string::npos)
+    label.erase(pos);
   std::transform(label.begin(), label.end(), label.begin(), (int(*)(int)) toupper);
   if (_private_::match(mask.data(), mask.length(), label.c_str()))
   {
@@ -116,6 +116,7 @@ void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& m
       else if (M_malloc_on && (action == off || action == toggle))
       {
         M_malloc_on = false;
+	debugChannel.off();
 	Dout(dc::rcfile, "Turned off MALLOC");
       }
     }
@@ -129,6 +130,7 @@ void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& m
       else if (M_bfd_on && (action == off || action == toggle))
       {
         M_bfd_on = false;
+	debugChannel.off();
 	Dout(dc::rcfile, "Turned off BFD");
       }
     }
@@ -242,6 +244,9 @@ void rcfile_ct::read(void)
 	{
 	  ForAllDebugChannels(
 	    std::string label = debugChannel.get_label();
+	    std::string::size_type pos = label.find(' ');
+	    if (pos != std::string::npos)
+	      label.erase(pos);
 	    while (!debugChannel.is_on() && label != "MALLOC" && label != "BFD")
 	      debugChannel.on()
 	  );
