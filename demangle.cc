@@ -532,11 +532,11 @@ namespace libcw {
 		return true;
 	      }
 	      prefix += scope_type + '~' + last_class_name +
-    #ifdef CPPFILTCOMPATIBLE
+#ifdef CPPFILTCOMPATIBLE
 		  "(void)";
-    #else
+#else
 		  "()";
-    #endif
+#endif
 	      if (is_const)
 		prefix += " const";
 	      return false;
@@ -649,7 +649,7 @@ namespace libcw {
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
-    #if (CHAR_MIN<0)
+#if (CHAR_MIN<0)
 	// Add -CHAR_MIN extra zeroes (128):
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
@@ -661,9 +661,9 @@ namespace libcw {
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
 	//   a    b    c    d    e    f    g    h    i    j    k    l    m    n    o    p    q    r    s    t    u    v
 	0, -94,   0, -72,-104, -80,   0, -99,   0,   0,   0,   0, -90,-100,-100, -82, -81,   0, -87, -98,   0,   0, -87,
-    #else
+#else
 	0, 162,   0, 184, 152, 176,   0, 157,   0,   0,   0,   0, 166, 156, 156, 174, 175,   0, 169, 158,   0,   0, 169,
-    #endif
+#endif
 	// ... more zeros
       };
 
@@ -728,9 +728,9 @@ namespace libcw {
 	  {
 	    hash += opcode[1];
 	    if (
-    #if (CHAR_MIN<0)
+#if (CHAR_MIN<0)
 		hash >= 0 &&
-    #endif
+#endif
 		hash < 40)
 	    {
 	      entry_st entry = symbol_name_table[hash];
@@ -798,12 +798,12 @@ namespace libcw {
 	    }
 	    while (isdigit(*++input) && !just_one_digit);
 
-    #ifndef CPPFILTCOMPATIBLE
+#ifndef CPPFILTCOMPATIBLE
 	  if (!numeric_limits<INTEGRAL_TYPE>::is_signed)
 	    output += 'U';
 	  if (sizeof(INTEGRAL_TYPE) > sizeof(int))
 	    output += 'L';
-    #endif
+#endif
 
 	  return false;
 	}

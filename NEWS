@@ -1,4 +1,4 @@
-libcwd-1.0
+libcwd-0.99.7
 
 	This version compiles with g++ 3.0 20010224 (prerelease).  That is of
 	little use however because it still doesn't work with libstdc++ version 3
@@ -20,6 +20,9 @@ libcwd-1.0
 	libcw::debug::find was renamed to libcw::debug::find_channel.
 
 	Bug fixes:
+
+	g++-2.95.x core dumped on lockable_auto_ptr.h.  This is the reason
+	for the release of 0.99.7.
 
 	Improvements in acinclude.m4: some tests where done with the C++
 	compiler and failed when using a compiler in a non standard place.
