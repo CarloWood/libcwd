@@ -171,7 +171,14 @@ AC_DISABLE_STATIC
 case "$host" in
   *openbsd*)
     # Work around for a bug in libtool/openbsd
-    LD="g++ -shared -nostdlib"
+    # If we use libtools method (using ld -Bshareable) then the constructors of the global objects are not called.
+    # Using `g++ -shared' works but will result in a lot of warnings of the type:
+    # ld: /usr/lib/gcc-lib/i386-unknown-openbsd2.7/2.95.3/libgcc.a(tinfo.o): RRS text relocation at 0x331e for "___builtin_delete"
+    # But when one would add -nostdlib here (even when -lstdc++ -lc is added in that case)
+    # in order to suppress these warnings from libgcc (which isn't needed) then another openbsd bug occurs:
+    # calls from libstdc++ to __builtin_delete will call the one in libstdc++ instead the one in libcwd.
+    # That in turn results in core dumps when libcwd was compiled with --enable-libcwd-magic
+    LD="g++ -shared"
     export LD
     ;;
 esac
