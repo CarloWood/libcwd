@@ -1,4 +1,7 @@
-The Reference Manual can be found in html/.
+
+- Homepage:		www/index.html
+- Reference Manual:	html/index.html
+- Tutorial:		tutorial/index.html
 
 Please ignore all other files: they are only used to generate
 the documentation in the html directory.
