@@ -11,12 +11,12 @@
 // packaging of this file.
 // 
 
-/** \file libcw/private_TSD.h
+/** \file libcw/private_struct_TSD.h
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_TSD_H
-#define LIBCW_TSD_H
+#ifndef LIBCW_STRUCT_TSD_H
+#define LIBCW_STRUCT_TSD_H
 
 #ifndef LIBCW_DEBUG_CONFIG_H
 #include <libcw/debug_config.h>
@@ -104,4 +104,4 @@ extern int WST_initializing_TSD;
 using ::libcw::debug::_private_::__libcwd_tsd;
 #endif
 
-#endif // LIBCW_TSD_H
+#endif // LIBCW_STRUCT_TSD_H

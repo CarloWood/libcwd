@@ -173,6 +173,7 @@
 #ifdef LIBCWD_THREAD_SAFE
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::memblk_map_instance;
+#define INITIALIZE_RWLOCK	rwlock_tct<memblk_map_instance>::initialize();
 #define ACQUIRE_WRITE_LOCK	rwlock_tct<memblk_map_instance>::wrlock();
 #define RELEASE_WRITE_LOCK	rwlock_tct<memblk_map_instance>::wrunlock();
 #define ACQUIRE_READ_LOCK	rwlock_tct<memblk_map_instance>::rdlock();
@@ -180,6 +181,7 @@ using libcw::debug::_private_::memblk_map_instance;
 #define ACQUIRE_READ2WRITE_LOCK	rwlock_tct<memblk_map_instance>::rd2wrlock();
 #define ACQUIRE_WRITE2READ_LOCK rwlock_tct<memblk_map_instance>::wr2rdlock();
 #else // !LIBCWD_THREAD_SAFE
+#define INITIALIZE_RWLOCK
 #define ACQUIRE_WRITE_LOCK
 #define RELEASE_WRITE_LOCK
 #define ACQUIRE_READ_LOCK
@@ -1487,6 +1489,7 @@ void init_debugmalloc(void)
     // This block is Single Threaded.
     if (WST_initialization_state == 0)			// Only true once.
     {
+      INITIALIZE_RWLOCK
       _private_::set_alloc_checking_off(LIBCWD_TSD);
       memblk_map.MT_unsafe = new memblk_map_ct;		// MT-safe: There are no threads created yet when we get here.
       WST_initialization_state = -1;

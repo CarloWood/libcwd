@@ -36,7 +36,6 @@ libcwd_HEADERS = \
 	macro_Libcwd_macros.h \
 	max_label_len.h \
 	pc_mangled_function_name.h \
-	private_TSD.h \
 	private_allocator.h \
 	private_assert.h \
 	private_debug_stack.h \
@@ -44,6 +43,7 @@ libcwd_HEADERS = \
 	private_internal_stringstream.h \
 	private_internal_vector.h \
 	private_set_alloc_checking.h \
+	private_struct_TSD.h \
 	private_threading.h \
 	strerrno.h \
 	struct_debug_tsd.h \

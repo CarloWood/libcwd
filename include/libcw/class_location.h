@@ -21,8 +21,8 @@
 #ifndef LIBCW_DEBUG_CONFIG_H
 #include <libcw/debug_config.h>
 #endif
-#ifndef LIBCW_PRIVATE_TSD_H
-#include <libcw/private_TSD.h>
+#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#include <libcw/private_struct_TSD.h>
 #endif
 #ifndef LIBCW_STRING
 #define LIBCW_STRING

@@ -26,8 +26,8 @@
 #ifndef LIBCW_CLASS_DEBUG_STRING_H
 #include <libcw/class_debug_string.h>
 #endif
-#ifndef LIBCW_PRIVATE_TSD_H
-#include <libcw/private_TSD.h>
+#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#include <libcw/private_struct_TSD.h>
 #endif
 #ifndef LIBCW_IOSFWD
 #define LIBCW_IOSFWD

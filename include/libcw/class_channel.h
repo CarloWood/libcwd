@@ -27,8 +27,8 @@
 #ifndef LIBCW_CONTROL_FLAG_H
 #include <libcw/control_flag.h>
 #endif
-#ifndef LIBCW_PRIVATE_TSD_H
-#include <libcw/private_TSD.h>
+#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#include <libcw/private_struct_TSD.h>
 #endif
 
 namespace libcw {

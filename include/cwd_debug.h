@@ -15,14 +15,19 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include <libcw/debug.h>
-#include <libcw/private_internal_string.h>
+#ifndef RAW_WRITE_H
+#include <raw_write.h>
+#endif
+#ifndef RAW_WRITE_INL
+#include <raw_write.inl>
+#endif
 #include <iostream>
+#ifndef LIBCW_PRIVATE_INTERNAL_STRING_H
+#include <libcw/private_internal_string.h>
+#endif
+#include <libcw/debug.h>
 
 extern "C" size_t strlen(const char *s) throw();
-#ifdef DEBUGDEBUG
-extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
-#endif
 
 namespace libcw {
   namespace debug {
@@ -128,120 +133,7 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
     LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);			\
   } while(0)
 
-#ifdef DEBUGDEBUG
-namespace _private_ {
-  // Dummy type used as fake 'ostream' to write to write(2).
-  enum raw_write_nt { raw_write };
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, char const* data)
-{
-  write(2, data, strlen(data));
-  return raw_write;
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, void const* data)
-{
-  size_t dat = (size_t)data;
-  write(2, "0x", 2);
-  char c[11];
-  char* p = &c[11];
-  do
-  {
-    int d = (dat % 16);
-    *--p = ((d < 10) ? '0' : ('a' - 10)) + d;
-    dat /= 16;
-  }
-  while(dat > 0);
-  write(2, p, &c[11] - p);
-  return raw_write;
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, bool data)
-{
-  if (data)
-    write(2, "true", 4);
-  else
-    write(2, "false", 5);
-  return raw_write;
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, char data)
-{
-  char c[1];
-  c[0] = data;
-  write(2, c, 1);
-  return raw_write;
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, unsigned long data)
-{
-  char c[11];
-  char* p = &c[11];
-  do
-  {
-    *--p = '0' + (data % 10);
-    data /= 10;
-  }
-  while(data > 0);
-  write(2, p, &c[11] - p);
-  return raw_write;
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, long data)
-{
-  if (data < 0)
-  {
-    write(2, "-", 1);
-    data = -data;
-  }
-  return operator<<(raw_write, (unsigned long)data);
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, int data)
-{
-  return operator<<(raw_write, (long)data);
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, unsigned int data)
-{
-  return operator<<(raw_write, static_cast<unsigned long>(data));
-}
-
-inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, libcw::debug::_private_::internal_string const& data)
-{
-  write(2, data.data(), data.size());
-  return raw_write;
-}
-
-#endif // DEBUGDEBUG
-
   }  // namespace debug
 } // namespace libcw
-
-#ifdef DEBUGDEBUG
-// The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
-// when --disable-libcwd-debug-output is used because a fatal error occured anyway, so this can't
-// disturb the testsuite.
-#define FATALDEBUGDEBUG_CERR(x)									\
-    do {											\
-      if (1/*::libcw::debug::_private_::WST_ios_base_initialized FIXME: uncomment again*/) {			\
-	::write(2, "DEBUGDEBUG: ", 12);								\
-	LIBCWD_TSD_DECLARATION									\
-	/*  __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning. */ \
-	for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
-	  ::write(2, "    ", 4);								\
-	::libcw::debug::_private_::raw_write << x << '\n';					\
-      }												\
-    } while(0)
-#else // !DEBUGDEBUG
-#define FATALDEBUGDEBUG_CERR(x)
-#endif // !DEBUGDEBUG
-
-#ifdef DEBUGDEBUGOUTPUT
-#define DEBUGDEBUG_CERR(x) FATALDEBUGDEBUG_CERR(x)
-#else // !DEBUGDEBUGOUTPUT
-#define DEBUGDEBUG_CERR(x)
-#endif // !DEBUGDEBUGOUTPUT
 
 #endif // DEBUG_H
