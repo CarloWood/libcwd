@@ -44,7 +44,7 @@ public:
   typedef internal_vector<channel_ct*> container_type;
   container_type* WNS_debug_channels;
 public:
-  void internal_init(LIBCWD_TSD_PARAM);
+  void init(LIBCWD_TSD_PARAM);
 #ifdef LIBCWD_THREAD_SAFE
   void init_and_rdlock(void);
 #endif

@@ -46,7 +46,7 @@ public:
 private:
   container_type* WNS_debug_objects;
 public:
-  void internal_init(LIBCWD_TSD_PARAM);
+  void init(LIBCWD_TSD_PARAM);
 #ifdef LIBCWD_THREAD_SAFE
   void init_and_rdlock(void);
 #endif

@@ -14,6 +14,7 @@
 //
 
 #include "sys.h"
+#include "cwd_debug.h"
 #include <libcw/private_threading.h>
 
 namespace libcw {
@@ -53,6 +54,12 @@ template <>
 #else // !LIBCWD_THREAD_SAFE
 TSD_st __libcwd_tsd;
 #endif // !LIBCWD_THREAD_SAFE
+
+void fatal_cancellation(void* arg) throw()
+{
+  char* text = static_cast<char*>(arg);
+  Dout(dc::core, "Cancelling a thread " << text << ".  This is not supported by libcwd, sorry.");
+}
 
     } // namespace _private_
   } // namespace debug

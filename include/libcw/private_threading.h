@@ -35,10 +35,6 @@
 #ifndef LIBCW_PRIVATE_STRUCT_TSD_H
 #include <libcw/private_struct_TSD.h>
 #endif
-#ifndef LIBCW_CASSERT
-#define LIBCW_CASSERT
-#include <cassert>
-#endif
 #ifndef LIBCW_CSTRING
 #define LIBCW_CSTRING
 #include <cstring>			// Needed for std::memset and std::memcpy.
@@ -56,7 +52,6 @@
 
 #ifndef LIBCWD_USE_LINUXTHREADS
 #define LIBCWD_USE_LINUXTHREADS 0
-#undef HAVE__PTHREAD_CLEANUP_BUFFER
 #endif
 #ifndef LIBCWD_USE_POSIX_THREADS
 #define LIBCWD_USE_POSIX_THREADS 0
@@ -68,10 +63,9 @@
 #define LibcwDebugThreads(x)
 #endif
 
-#ifdef DEBUGDEBUGTHREADS
-#ifndef LIBCW_CASSERT
-#define LIBCW_CASSERT
-#include <cassert>
+#if defined(DEBUGDEBUGTHREADS) || defined(DEBUGDEBUG)
+#ifndef LIBCW_PRIVATE_ASSERT_H
+#include <libcw/private_assert.h>
 #endif
 #endif
 
@@ -203,13 +197,12 @@ __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; 
       LibcwDebugThreads(\
 	  { \
 	    LIBCWD_TSD_DECLARATION; \
-	    if (--__libcwd_tsd.cancel_explicitely_disabled < 0) \
-	      ::libcw::debug::core_dump(); \
+	    LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_disabled > 0 ); \
+	    --__libcwd_tsd.cancel_explicitely_disabled; \
 	    /* pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL) can call      */ \
 	    /* __pthread_do_exit() when the thread is cancelled in the meantime. */ \
 	    /* This might free allocations that are allocated in userspace.      */ \
-	    if (__libcwd_tsd.internal) \
-	      ::libcw::debug::core_dump(); \
+	    LIBCWD_ASSERT( !__libcwd_tsd.internal || __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.cancel_explicitely_deferred ); \
 	  } ) \
       pthread_setcancelstate(__libcwd_oldstate, NULL);
 #define LIBCWD_ENABLE_CANCEL \
@@ -231,13 +224,12 @@ __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; 
       LibcwDebugThreads(\
 	  { \
 	    LIBCWD_TSD_DECLARATION; \
-	    if (--__libcwd_tsd.cancel_explicitely_deferred < 0) \
-	      ::libcw::debug::core_dump(); \
+	    LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred > 0 ); \
+	    --__libcwd_tsd.cancel_explicitely_deferred; \
 	    /* pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL) will calls */ \
 	    /* __pthread_do_exit() when the thread is cancelled in the meantime.   */ \
 	    /* This might free allocations that are allocated in userspace.        */ \
-	    if (__libcwd_tsd.internal) \
-	      ::libcw::debug::core_dump(); \
+	    LIBCWD_ASSERT( !__libcwd_tsd.internal || __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.cancel_explicitely_deferred ); \
 	  } ) \
       pthread_setcanceltype(__libcwd_oldtype, NULL);
 #define LIBCWD_RESTORE_CANCEL \
@@ -251,22 +243,33 @@ __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; 
 	  { \
 	    LIBCWD_TSD_DECLARATION; \
 	    ++__libcwd_tsd.cancel_explicitely_deferred; \
+	    ++__libcwd_tsd.cleanup_handler_installed; \
 	  } )
 #define LIBCWD_CLEANUP_POP_RESTORE(execute) \
       LibcwDebugThreads(\
 	  { \
 	    LIBCWD_TSD_DECLARATION; \
-	    if (--__libcwd_tsd.cancel_explicitely_deferred < 0) \
-	      ::libcw::debug::core_dump(); \
-	    if (__libcwd_tsd.internal) \
-	      ::libcw::debug::core_dump(); \
+	    --__libcwd_tsd.cleanup_handler_installed; \
+	    LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred > 0 ); \
+	    --__libcwd_tsd.cancel_explicitely_deferred; \
+	    LIBCWD_ASSERT( !__libcwd_tsd.internal ); \
 	  } ) \
     pthread_cleanup_pop_restore_np(static_cast<int>(execute))
 #else // !LIBCWD_USE_LINUXTHREADS
 #define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg) \
       LIBCWD_DEFER_CANCEL \
+      LibcwDebugThreads( \
+	  { \
+	    LIBCWD_TSD_DECLARATION; \
+	    ++__libcwd_tsd.cleanup_handler_installed; \
+	  } ) \
       pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(routine), reinterpret_cast<void*>(arg))
 #define LIBCWD_CLEANUP_POP_RESTORE(execute) \
+      LibcwDebugThreads( \
+	  { \
+	    LIBCWD_TSD_DECLARATION; \
+	    --__libcwd_tsd.cleanup_handler_installed; \
+	  } ) \
       pthread_cleanup_pop(static_cast<int>(execute)); \
       LIBCWD_RESTORE_CANCEL
 #endif // !LIBCWD_USE_LINUXTHREADS
@@ -289,8 +292,7 @@ __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; 
 	  /* When entering a critical area, make sure that we have explictely deferred cancellation of this */ \
 	  /* thread (or disabled that) because when cancellation would happen in the middle of the critical */ \
 	  /* area then the lock would stay locked.                                                          */ \
-	  if (!__libcwd_tsd.cancel_explicitely_deferred && !__libcwd_tsd.cancel_explicitely_disabled) \
-	    ::libcw::debug::core_dump(); \
+	  LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ); \
 	} )
 
 template <int instance>
@@ -317,19 +319,21 @@ template <int instance>
   public:
     static bool trylock(void) throw()
     {
-      LibcwDebugThreads( assert( S_initialized ) );
+      LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
       bool success = (pthread_mutex_trylock(&S_mutex) == 0);
 #ifdef DEBUGDEBUG
       if (success)
 	instance_locked[instance] += 1;
 #endif
+      LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
       return success;
     }
     static void lock(void) throw()
     {
-      LibcwDebugThreads( assert( S_initialized ) );
+      LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
+      LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION ++__libcwd_tsd.inside_critical_area; } );
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << instance);
 #endif
@@ -337,9 +341,7 @@ template <int instance>
       int res =
 #endif
       pthread_mutex_lock(&S_mutex);
-#ifdef DEBUGDEBUGTHREADS
-      assert( res == 0 );
-#endif
+      LibcwDebugThreads( LIBCWD_ASSERT( res == 0 ) );
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << instance << " locked");
 #endif
@@ -360,6 +362,7 @@ template <int instance>
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << instance << " unlocked");
 #endif
+      LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION --__libcwd_tsd.inside_critical_area; } );
     }
   };
 
@@ -454,7 +457,7 @@ template <int instance>
   public:
     void wait(void) {
 #ifdef DEBUGDEBUG
-      assert( is_locked(instance) );
+      LIBCWD_ASSERT( is_locked(instance) );
 #endif
       pthread_cond_wait(&S_condition, &S_mutex);
     }
@@ -545,7 +548,7 @@ template <int instance>
     }
     static bool tryrdlock(void) throw()
     {
-      LibcwDebugThreads( assert( S_initialized ) );
+      LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::tryrdlock()");
       if (instance < end_recursive_types && pthread_equal(S_writer_id, pthread_self()))
@@ -560,12 +563,13 @@ template <int instance>
       if (success)
 	++S_holders_count;				// Add one reader.
       S_no_holders_condition.unlock();
+      LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::tryrdlock()");
       return success;
     }
     static bool trywrlock(void) throw()
     {
-      LibcwDebugThreads( assert( S_initialized ) );
+      LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::trywrlock()");
       bool success = mutex_tct<readers_instance>::trylock();		// Block new readers,
@@ -588,12 +592,13 @@ template <int instance>
 	if (instance < end_recursive_types)
 	  S_writer_id = pthread_self();
       }
+      LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::trywrlock()");
       return success;
     }
     static void rdlock(void) throw()
     {
-      LibcwDebugThreads( assert( S_initialized ) );
+      LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::rdlock()");
       if (instance < end_recursive_types && pthread_equal(S_writer_id, pthread_self()))
@@ -612,6 +617,7 @@ template <int instance>
 	S_no_holders_condition.wait();			// Wait for writer to finish.
       ++S_holders_count;				// Add one reader.
       S_no_holders_condition.unlock();
+      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdlock()");
     }
     static void rdunlock(void) throw()
@@ -623,6 +629,7 @@ template <int instance>
 	LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdunlock() (skipped: thread has write lock)");
 	return;						// No error checking is done.
       }
+      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area );
       S_no_holders_condition.lock();
       if (--S_holders_count == 0)			// Was this the last reader?
         S_no_holders_condition.signal();		// Tell waiting threads.
@@ -631,7 +638,7 @@ template <int instance>
     }
     static void wrlock(void) throw()
     {
-      LibcwDebugThreads( assert( S_initialized ) );
+      LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wrlock()");
       mutex_tct<readers_instance>::lock();		// Block new readers,
@@ -645,6 +652,7 @@ template <int instance>
       S_no_holders_condition.unlock();
       if (instance < end_recursive_types)
         S_writer_id = pthread_self();
+      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrlock()");
 #ifdef DEBUGDEBUG
       instance_locked[instance] += 1;
@@ -657,6 +665,7 @@ template <int instance>
       instance_locked[instance] -= 1;
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wrunlock()");
+      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area) ;
       if (instance < end_recursive_types)
         S_writer_id = 0;
       S_no_holders_condition.lock();
@@ -756,10 +765,8 @@ template<class TSD>
     LIBCWD_TSD_DECLARATION
     set_alloc_checking_off(LIBCWD_TSD);
     delete instance;
-#ifdef DEBUGDEBUGTHREADS
     // Hopefully S_destroy doesn't get called in the thread itself!
-    assert( instance != &thread_specific_data_tct<TSD>::instance() );
-#endif
+    LibcwDebugThreads( LIBCWD_ASSERT( instance != &thread_specific_data_tct<TSD>::instance() ) );
     set_alloc_checking_on(LIBCWD_TSD);
   }
 
@@ -815,10 +822,27 @@ template<class TSD>
 // End of Thread Specific Data
 //===================================================================================================
 
+extern void fatal_cancellation(void*) throw();
+
     } // namespace _private_
   } // namespace debug
 } // namespace libcw
 
+#else // !LIBCWD_THREAD_SAFE
+#define LIBCWD_DISABLE_CANCEL
+#define LIBCWD_DISABLE_CANCEL_NO_BRACE
+#define LIBCWD_ENABLE_CANCEL_NO_BRACE
+#define LIBCWD_ENABLE_CANCEL
+#define LIBCWD_DEFER_CANCEL
+#define LIBCWD_DEFER_CANCEL_NO_BRACE
+#define LIBCWD_RESTORE_CANCEL_NO_BRACE
+#define LIBCWD_RESTORE_CANCEL
+#define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg)
+#define LIBCWD_CLEANUP_POP_RESTORE(execute)
+#define LIBCWD_PUSH_DEFER_TRYLOCK_MUTEX(instance, unlock_routine)
+#define LIBCWD_DEFER_PUSH_LOCKMUTEX(instance, unlock_routine)
+#define LIBCWD_UNLOCKMUTEX_POP_RESTORE(instance)
+#define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
 #endif // LIBCWD_THREAD_SAFE
 #endif // LIBCW_PRIVATE_THREADING_H
 

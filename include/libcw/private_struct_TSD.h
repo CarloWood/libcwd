@@ -84,6 +84,9 @@ struct TSD_st {
 #ifdef DEBUGDEBUGTHREADS
   int cancel_explicitely_deferred;
   int cancel_explicitely_disabled;
+  int inside_critical_area;
+  int cleanup_handler_installed;
+  int internal_debugging_code;
 #endif
 #endif
   int off_cnt_array[256];

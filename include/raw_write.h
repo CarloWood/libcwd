@@ -22,6 +22,11 @@
 #include <libcw/debug_config.h>
 
 #ifdef DEBUGDEBUG
+#ifdef DEBUGDEBUGTHREADS
+#define WRITE __libc_write
+#else
+#define WRITE write
+#endif
 extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 
 #ifdef LIBCWD_THREAD_SAFE
@@ -39,12 +44,14 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
     do {											\
       if (1/*::libcw::debug::_private_::WST_ios_base_initialized FIXME: uncomment again*/) {	\
 	LIBCWD_CANCELSTATE_DISABLE								\
-	::write(2, "DEBUGDEBUG: ", 12);								\
 	LIBCWD_TSD_DECLARATION									\
+	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
+	::write(2, "DEBUGDEBUG: ", 12);								\
 	/*  __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning. */ \
 	for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
 	  ::write(2, "    ", 4);								\
 	::libcw::debug::_private_::raw_write << x << '\n';					\
+	LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );				\
 	LIBCWD_CANCELSTATE_RESTORE								\
       }												\
     } while(0)

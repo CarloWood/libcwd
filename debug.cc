@@ -75,7 +75,7 @@ namespace libcw {
 	char* buf;
 	bool used_malloc = false;
 	int curlen = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out) - rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
-	if (curlen > 512 || !(buf = (char*)alloca(curlen)))
+	if (curlen > 512 || !(buf = (char*)__builtin_alloca(curlen)))
 	{
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  buf = (char*)malloc(curlen);
@@ -90,7 +90,9 @@ namespace libcw {
 	++__libcwd_tsd.library_call;
 	++LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
 #endif
+	LIBCWD_DISABLE_CANCEL			// We don't want Dout() to be a cancellation point.
 	os->write(buf, curlen);
+	LIBCWD_ENABLE_CANCEL
 #ifdef DEBUGMALLOC
 	--LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
 	--__libcwd_tsd.library_call;
@@ -300,11 +302,8 @@ namespace libcw {
       debug_objects_ct debug_objects;		// List with all debug devices.
 
       // _private_::
-      void debug_channels_ct::internal_init(LIBCWD_TSD_PARAM)
+      void debug_channels_ct::init(LIBCWD_TSD_PARAM)
       {
-#ifdef DEBUGDEBUGMALLOC
-	LIBCWD_ASSERT( __libcwd_tsd.internal );
-#endif
 #ifdef LIBCWD_THREAD_SAFE
 	_private_::rwlock_tct<_private_::debug_channels_instance>::initialize();
 #endif
@@ -312,7 +311,9 @@ namespace libcw {
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
 	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  WNS_debug_channels = new debug_channels_ct::container_type;
+	  set_alloc_checking_on(LIBCWD_TSD);
 	  DEBUG_CHANNELS_RELEASE_WRITE_LOCK
 	}
 #ifdef LIBCWD_THREAD_SAFE
@@ -340,7 +341,7 @@ namespace libcw {
 #endif
 
       // _private_::
-      void debug_objects_ct::internal_init(LIBCWD_TSD_PARAM)
+      void debug_objects_ct::init(LIBCWD_TSD_PARAM)
       {
 #ifdef LIBCWD_THREAD_SAFE
 	_private_::rwlock_tct<_private_::debug_objects_instance>::initialize();
@@ -354,7 +355,9 @@ namespace libcw {
 	  init_debugmalloc();
 #endif
 	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  WNS_debug_objects = new debug_objects_ct::container_type;
+	  set_alloc_checking_on(LIBCWD_TSD);
 	  DEBUG_OBJECTS_RELEASE_WRITE_LOCK
 	}
 #ifdef LIBCWD_THREAD_SAFE
@@ -762,53 +765,53 @@ namespace libcw {
       ++_off;
       DEBUGDEBUG_CERR( "Entering debug_ct::finish(), _off became " << _off );
 
+      // Handle control flags, if any:
+      if ((current->mask & error_cf))
+	*current_oss << ": " << strerrno(current->err) << " (" << strerror(current->err) << ')';
+      if (!(current->mask & nonewline_cf))
+	current_oss->put('\n');
+
       // Write buffer to ostream.
       static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD);
-      channel_set.mask = current->mask;
-      channel_set.label = current->label;
 
       // Handle control flags, if any:
-      if (channel_set.mask == 0)
-	target_os->put('\n');
-      else
+      if (current->mask != 0)
       {
-	if ((channel_set.mask & error_cf))
-	  *target_os << ": " << strerrno(current->err) << " (" << strerror(current->err) << ')';
-	if ((channel_set.mask & coredump_maskbit))
+	if ((current->mask & (coredump_maskbit|fatal_maskbit)))
 	{
+	  set_alloc_checking_on(LIBCWD_TSD);
 	  if (!__libcwd_tsd.recursive_fatal)
 	  {
 	    __libcwd_tsd.recursive_fatal = true;
-	    *target_os << std::endl;	// First time, try to write a new-line and flush.
+	    LIBCWD_DISABLE_CANCEL
+	    *target_os << std::flush;	// First time, try to flush.
+	    LIBCWD_ENABLE_CANCEL
 	  }
-	  core_dump();
-	}
-	if ((channel_set.mask & fatal_maskbit))
-	{
-	  if (!__libcwd_tsd.recursive_fatal)
-	  {
-	    __libcwd_tsd.recursive_fatal = true;
-	    *target_os << std::endl;
-	  }
+	  if ((current->mask & coredump_maskbit))
+	    core_dump();
 	  DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
 	  delete current;
 	  DEBUGDEBUG_CERR( "Done deleting `current'" );
 	  set_alloc_checking_on(LIBCWD_TSD);
 	  exit(254);
 	}
-	if ((channel_set.mask & wait_cf))
+	if ((current->mask & wait_cf))
 	{
-	  *target_os << "\n(type return)";
+	  *target_os << "(type return)";
 	  if (debug_object.interactive)
 	  {
 	    *target_os << std::flush;
 	    while(std::cin.get() != '\n');
 	  }
 	}
-	if (!(channel_set.mask & nonewline_cf))
-	  *target_os << '\n';
-	if ((channel_set.mask & flush_cf))
+	if ((current->mask & flush_cf))
+	{
+	  set_alloc_checking_on(LIBCWD_TSD);
+	  LIBCWD_DISABLE_CANCEL
 	  *target_os << std::flush;
+	  LIBCWD_ENABLE_CANCEL
+	  set_alloc_checking_off(LIBCWD_TSD);
+	}
       }
 
       DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
@@ -825,11 +828,12 @@ namespace libcw {
       // Restore previous buffer as being the current one, if any.
       if (laf_stack.size())
       {
+	control_flag_t mask = current->mask;
         current = laf_stack.top();
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
 	current_oss = &current->oss;
 	DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
-	if ((channel_set.mask & flush_cf))
+	if ((mask & flush_cf))
 	  current->mask |= flush_cf;	// Propagate flush to real ostream.
       }
       else
@@ -857,7 +861,9 @@ namespace libcw {
       DoutFatal( dc::core, "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
     }
 
+#ifdef LIBCWD_THREAD_SAFE
     int debug_ct::S_index_count = 0;
+#endif
 
     void debug_ct::NS_init(void)
     {
@@ -878,8 +884,8 @@ namespace libcw {
 
       LIBCWD_TSD_DECLARATION
       LIBCWD_DEFER_CANCEL
+      _private_::debug_objects.init(LIBCWD_TSD);
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
-      _private_::debug_objects.internal_init(LIBCWD_TSD);
       DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
       if (find(_private_::debug_objects.write_locked().begin(),
 	       _private_::debug_objects.write_locked().end(), this)
@@ -1037,9 +1043,7 @@ namespace libcw {
       channel_ct* tmp = NULL;
       LIBCWD_TSD_DECLARATION
       LIBCWD_DEFER_CANCEL
-      set_alloc_checking_off(LIBCWD_TSD);
-      _private_::debug_channels.internal_init(LIBCWD_TSD);
-      set_alloc_checking_on(LIBCWD_TSD);
+      _private_::debug_channels.init(LIBCWD_TSD);
       DEBUG_CHANNELS_ACQUIRE_READ_LOCK
       for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	  i != _private_::debug_channels.read_locked().end(); ++i)
@@ -1087,9 +1091,9 @@ namespace libcw {
       if (LIBCWD_DO_TSD_MEMBER(debug_object, _off) < 0)
       {
 	LIBCWD_DEFER_CANCEL
-	set_alloc_checking_off(LIBCWD_TSD);
-        _private_::debug_channels.internal_init(LIBCWD_TSD);
-	set_alloc_checking_on(LIBCWD_TSD);
+        _private_::debug_channels.init(LIBCWD_TSD);
+	LIBCWD_RESTORE_CANCEL
+	LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<debug_channels_instance>::cleanup, NULL)
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK
 	for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	    i != _private_::debug_channels.read_locked().end(); ++i)
@@ -1102,8 +1106,8 @@ namespace libcw {
 	    LibcwDoutStream.write(": Disabled", 10);
 	  LibcwDoutScopeEnd;
 	}
-	DEBUG_CHANNELS_RELEASE_READ_LOCK
-	LIBCWD_RESTORE_CANCEL
+        DEBUG_CHANNELS_RELEASE_READ_LOCK
+	LIBCWD_CLEANUP_POP_RESTORE(false)
       }
     }
 
@@ -1167,19 +1171,19 @@ namespace libcw {
       // dependent on the order in which these global objects are
       // initialized.
       LIBCWD_DEFER_CANCEL
-      set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
-      _private_::debug_channels.internal_init(LIBCWD_TSD);
+      _private_::debug_channels.init(LIBCWD_TSD);
       DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK
       {
+	set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
 	_private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
 	_private_::debug_channels_ct::container_type::iterator i(channels.begin());
 	for(; i != channels.end(); ++i)
 	  if (strncmp((*i)->get_label(), WNS_label, max_label_len_c) > 0)
 	    break;
         channels.insert(i, this);
+	set_alloc_checking_on(LIBCWD_TSD);
       }
       DEBUG_CHANNELS_RELEASE_WRITE_LOCK
-      set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_RESTORE_CANCEL
 
       // Turn debug channel "WARNING" on by default.
@@ -1378,6 +1382,9 @@ namespace libcw {
 	  core_dump();
 	}
 	__libcwd_tsd.recursive_assert = true;
+#ifdef DEBUGDEBUGTHREADS
+	__libcwd_tsd.internal_debugging_code = true;
+#endif
 #endif
 	DoutFatal(dc::core, file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
       }

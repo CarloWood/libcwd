@@ -1660,13 +1660,13 @@ void list_allocations_on(debug_ct& debug_object)
     __libcwd_tsd.internal = 0;
   }
 
-  LIBCWD_DEFER_CANCEL
+  LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<memblk_map_instance>::cleanup, NULL);
   ACQUIRE_READ_LOCK
   LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << const_dm_alloc_ct::get_memsize() << " bytes in " << const_dm_alloc_ct::get_memblks() << " blocks." );
   if (base_alloc_list)
     const_cast<dm_alloc_ct const*>(base_alloc_list)->show_alloc_list(1, channels::dc_malloc);
   RELEASE_READ_LOCK
-  LIBCWD_RESTORE_CANCEL
+  LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
 //=============================================================================
