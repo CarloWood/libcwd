@@ -26,8 +26,7 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      i) The GNU compiler, version 2.95.1 or higher.
 
      Location: gnu/gcc/
-     Current version: 2.95.3
-     The development versions are supported.
+     Current version: 3.0
 
      Alternatively you can install only
      ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -55,31 +54,7 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      Don't delete those libraries if you have them though
      since existing binaries might need to link with them.
 
-  libcwd-0.99.0 was tested with gcc-2.95.1 and gcc-ss-20000402.
-  libcwd-0.99.1
-    through
-  libcwd-0.99.3 were tested with gcc-2.95.2 and gcc-ss-20000813.
-  libcwd-0.99.3 was also tested with gcc-ss-20000724 on linux/RH6.9.
-  libcwd-0.99.4 was tested with gcc-2.95.2.
-  libcwd-0.99.8 was tested with gcc-2.95.1, gcc-2.95.3, gcc-2.95.3,
-                gcc-2.96 (RedHat) and gcc-3.0 20010523 (prerelease).
-		gcc-3.0 snapshot 20010521 and earlier will likely fail.
-
-     ii) GNU binutils, version 2.9 or higher.
-
-     Location: gnu/binutils/binutils-<version>.tar.gz
-     Current version: 2.11
-
-     This is only needed for libbfd.  On some OSes you also
-     need this for libiberty (although on most OSes libiberty
-     comes with the GNU compiler).
-
-     (If you have any troubles on linux with binutils,
-      then first try upgrading to binutils-2.10.1.
-      If that solves your problem, please let me know: libcwd
-      should work with binutils-2.9 but I never thoroughly
-      tested it and would like to know which version has a
-      problem, if any.)
+  libcwd-0.99.10 was tested with gcc-2.95.x, gcc-2.96 (RedHat) and gcc-3.0.
 
      Packages needed to run the testsuite
      ------------------------------------
@@ -122,7 +97,7 @@ Hackers info
 ./configure --help
 
 There is no reason to use libcwd's feature options (--disable-libcwd-alloc,
---disable-libcwd-magic, --disable-libcwd-marker and --disable-libcwd-bfd).
+--disable-libcwd-magic, --disable-libcwd-marker and --disable-libcwd-location).
 Actually, I forgot why they are there :).  You can read more about what
 they do in Chapter 4 "Debugging compile options" here:
 http://libcw.sourceforge.net/templates/index.html?debugging
@@ -142,10 +117,16 @@ version of g++, which I installed in /usr/local/bin/g++-cvs (and
 
 CC="gcc-cvs" CXX="g++-cvs" ./configure
 
-If libiberty.a or libbfd.so are in an unusual directory, then you
-will have to set LDFLAGS prior to running ./configure:
+-=iii=-
+
+If you don't have an ELF32 system and therefore need to link with libbfd, then you
+can configure using --enable-libcwd-bfd.  If libiberty.a or libbfd.so are in an
+unusual directory, then you will have to set LDFLAGS prior to running ./configure:
 
 LDFLAGS="-L/usr/gnu/lib" CPPFLAGS="-I/usr/gnu/include" ./configure
+
+Please note that the libbfd that comes with binutils-2.11.x is not compatible
+with the libiberty that comes with with gcc-2.95.x.
 
 -=iii=-
 
@@ -177,10 +158,10 @@ well, ... heh.  Look in the Makefile for more targets ;)
 Finally, you can also build libcwd in a different directory than the source
 tree is in:
 
-tar xzf libcwd-0.99.8.tar.gz
+tar xzf libcwd-0.99.10.tar.gz
 mkdir libcwd-objdir
 cd libcwd-objdir
-../libcwd-0.99.8/configure --prefix=/usr
+../libcwd-0.99.10/configure --prefix=/usr
 make
 su
 make install
