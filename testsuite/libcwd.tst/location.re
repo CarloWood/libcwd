@@ -9,8 +9,8 @@ BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:118
 NOTICE  : called from tst_location_shared:_Z16libcwd_bfd_test1v:location\.cc:118
 BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:126
 NOTICE  : called from tst_location_shared:_Z15libcwd_bfd_testv:location\.cc:126
-BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:160
-NOTICE  : called from tst_location_shared:main:location\.cc:160
+BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:162
+NOTICE  : called from tst_location_shared:main:location\.cc:162
 // input lines 3
 // output till ^(WARNING|NOTICE  : Program end)
 (BFD     : address 0x[0-9a-f]+ corresponds to .*

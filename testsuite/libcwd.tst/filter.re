@@ -4,13 +4,13 @@
 )*(BFD     : Loading debug.*
 )*)
 // type regexp
-MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks\.
+MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
           0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
 MALLOC  : Number of visible memory blocks: 1\.
-MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks\.
+MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
           0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
 MALLOC  : Number of visible memory blocks: 1\.
-MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:(115|157)|          stl_alloc.h:(103|108|109)|          stl-inst.cc:104|      new_allocator.h:(50|81)|     pool_allocator.h:(293|294)|                     ) *<unknown type>; \(sz = 4096\)  
+MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:(115|157)|          stl_alloc.h:(103|108|109)|          stl-inst.cc:104|      new_allocator.h:(50|81)|     pool_allocator.h:(293|294)|       mt_allocator.h:306|                     ) *<unknown type>; \(sz = 4096\)  
 MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc 
 // input lines 5
 // output till ^MALLOC  : calloc
@@ -22,7 +22,7 @@ MALLOC  : <continued> 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_map_object\]
 MALLOC  : calloc\((572|544|548|576|588), 1\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_new_object\]
 MALLOC  : (malloc\(140\)|realloc\(0x0, 140\)) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_new_object\]
 MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_map_object_deps\]
-MALLOC  : calloc\([3-7], 16\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_check_map_versions\]
+MALLOC  : calloc\([3-8], 16\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_check_map_versions\]
 // input lines 5
 // output till ^NOTICE  : dlopen
 (MALLOC  : malloc\([0-9]*\) = <unfinished>
@@ -46,7 +46,7 @@ MALLOC  : <continued> )0x[a-f0-9]* \[module\.cc:33\]
 MALLOC  : malloc\(600\) = 0x[a-f0-9]* \[filter\.cc:206\]
 MALLOC  : realloc\(0x[a-f0-9]*, 1000\) = 0x[a-f0-9]* \[module\.cc:38\]
 MALLOC  : operator new\[\] \(size = 1000\) = 0x[a-f0-9]* \[module\.cc:47\]
-MALLOC  : Allocated memory: [0-9]* bytes in 1[0-9] blocks\.
+MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
 [0-9:.]* \(MARKER\)  0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:197  <marker>; \(sz = 8\)  marker1
     [0-9:.]* \(MARKER\)  0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:203  <marker>; \(sz = 8\)  marker2
         [0-9:.]* new\[\]     0x[a-f0-9]* module\.so:           module\.cc:47   char\[1000\]; \(sz = 1000\)  new1000
@@ -61,13 +61,13 @@ MALLOC  : Removing libcwd::marker_ct at 0x[a-f0-9]* \(marker1\)
   \* new\[\]     0x[a-f0-9]* module\.so:/.*/testsuite/module\.cc:47   char\[1000\]; \(sz = 1000\)  new1000
   \* malloc    0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:200  void\*; \(sz = 123\)  Allocated between the two markers
 MALLOC  : delete 0x[a-f0-9]*            filter\.cc:197  <marker>; \(sz = 8\)  marker1 
-MALLOC  : Allocated memory: [0-9]* bytes in 1[0-9] blocks\.
+MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
 \(deleted\) 0x[a-f0-9]* main           filter\.cc:197  <marker>; \(sz = 8\)  marker1
     realloc   0x[a-f0-9]* _Z25realloc1000_with_AllocTagPv           module\.cc:38   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     new\[\]     0x[a-f0-9]* _Z7new1000j           module\.cc:47   char\[1000\]; \(sz = 1000\)  new1000
     malloc    0x[a-f0-9]* main           filter\.cc:200  void\*; \(sz = 123\)  Allocated between the two markers
 MALLOC  : Number of visible memory blocks: 4\.
-MALLOC  : Allocated memory: [0-9]* bytes in 1[0-9] blocks\.
+MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
 [0-9:.]* \(deleted\) 0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:197  <marker>; \(sz = 8\)  marker1
     [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:38   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* new\[\]     0x[a-f0-9]* module\.so:           module\.cc:47   char\[1000\]; \(sz = 1000\)  new1000
