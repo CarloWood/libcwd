@@ -1666,7 +1666,10 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 }
 
 struct attr_st {
-  uLEB128_t attr;
+  union {
+    uLEB128_t attr;
+    unsigned char count;
+  };
   uLEB128_t form;
 };
 
@@ -1679,9 +1682,20 @@ struct abbrev_st {
   unsigned int fixed_size;
   bool starts_with_string;
   bool has_children;
+  abbrev_st(abbrev_st const& abbrev);
   abbrev_st(void) : attributes(NULL), attributes_size(0), attributes_capacity(0) { }
-  ~abbrev_st() { if (attributes) /* almost always 0, so test here to speed up */ free(attributes); }
+  ~abbrev_st() { if (attributes && --attributes[attributes_capacity].count == 0) free(attributes); }
 };
+
+abbrev_st::abbrev_st(abbrev_st const& abbrev)
+{
+  if (&abbrev != this)
+  {
+    std::memcpy(this, &abbrev, sizeof(abbrev_st));
+    if (attributes)
+      ++attributes[attributes_capacity].count;
+  }
+}
 
 struct file_name_st {
   char const* name;
@@ -1953,7 +1967,8 @@ void objfile_ct::load_dwarf(void)
 	  if (abbrev.attributes_size == abbrev.attributes_capacity)
 	  {
 	    abbrev.attributes_capacity += 32;
-	    abbrev.attributes = (attr_st*)realloc(abbrev.attributes, abbrev.attributes_capacity * sizeof(attr_st));
+	    abbrev.attributes = (attr_st*)realloc(abbrev.attributes, (abbrev.attributes_capacity + 1) * sizeof(attr_st));
+	    abbrev.attributes[abbrev.attributes_capacity].count = 1;
 	  }
 	  uLEB128_t& attr(abbrev.attributes[abbrev.attributes_size].attr);
 	  uLEB128_t& form(abbrev.attributes[abbrev.attributes_size].form);
@@ -2003,7 +2018,9 @@ void objfile_ct::load_dwarf(void)
 	  ++abbrev.attributes_size;
 	}
 	abbrev.fixed_size = has_fixed_size ? fixed_size : 0;
-	abbrev.attributes = (attr_st*)realloc(abbrev.attributes, abbrev.attributes_size * sizeof(attr_st));
+	abbrev.attributes_capacity = abbrev.attributes_size;
+	abbrev.attributes = (attr_st*)realloc(abbrev.attributes, (abbrev.attributes_capacity + 1) * sizeof(attr_st));
+	abbrev.attributes[abbrev.attributes_capacity].count = 1;
       }
 
       using _private_::compilation_unit_ct;
