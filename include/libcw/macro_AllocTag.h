@@ -153,26 +153,42 @@ extern void register_external_allocation(void const* ptr, size_t size);
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc) LIBCWD_COMMA_TSD); \
     } while(0)
 
+#if LIBCWD_THREAD_SAFE
+#define LIBCWD_ALLOCTAG_LOCK \
+    if (!WS_desc) \
+    { \
+      static pthread_mutex_t WS_desc_mutex = PTHREAD_MUTEX_INITIALIZER; \
+      pthread_mutex_lock(&WS_desc_mutex);
+#define LIBCWD_ALLOCTAG_UNLOCK \
+      pthread_mutex_unlock(&WS_desc_mutex); \
+    }
+#else
+#define LIBCWD_ALLOCTAG_LOCK
+#define LIBCWD_ALLOCTAG_UNLOCK
+#endif
+
 /**
  * \brief Annotate <I>type</I> of \a p with a static description.
  */
 #define AllocTag(p, x) \
     do { \
       LIBCWD_TSD_DECLARATION; \
-      static char* WNS_desc; /* MT-safe because 'p' is unshared at this moment (it was *just* allocated by the current thread) */ \
-      if (!WNS_desc) { \
+      static char* WS_desc; \
+      LIBCWD_ALLOCTAG_LOCK; \
+      if (!WS_desc) { \
 	::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	if (1) \
 	{ \
 	  ::libcw::debug::_private_::internal_stringstream buf; \
 	  buf << x << ::std::ends; \
 	  size_t size = LIBCWD_GETBUFSIZE(buf); \
-	  WNS_desc = new char [size]; /* This is never deleted anymore */ \
-	  buf.rdbuf()->sgetn(WNS_desc, size); \
+	  WS_desc = new char [size]; /* This is never deleted anymore */ \
+	  buf.rdbuf()->sgetn(WS_desc, size); \
 	} \
 	::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
       } \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), WNS_desc LIBCWD_COMMA_TSD); \
+      LIBCWD_ALLOCTAG_UNLOCK; \
+      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), WS_desc LIBCWD_COMMA_TSD); \
     } while(0)
 
 /**

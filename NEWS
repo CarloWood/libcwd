@@ -14,6 +14,12 @@ libcwd-0.99.29
 	this can still happen when a shared library is closed that
 	leaked memory.
 
+	Two threads reaching the same AllocTag at the same time,
+	and for the first time that it is reached (very unlikely
+	thus) caused a race condition on the static description
+	pointer.  A critical area for the (one time) initialization
+	of the description has been added.
+
 libcwd-0.99.28
 
 	Bug fixes:
