@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#include "../sys.h"
+#include "sys.h"
 #include <libcw/char2str.h>
 #include <iostream>
 

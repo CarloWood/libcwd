@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#include "../sys.h"
+#include "sys.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>

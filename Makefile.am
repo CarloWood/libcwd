@@ -4,9 +4,10 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = include utils . tests testsuite
 
-BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec nodebug.h
+BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec nodebug.h sys.ho
 EXTRA_DIST = sys.ho.in LICENSE.QPL README.FreeBSD README.openbsd README.nodebug.h debian $(BUILT_SOURCES)
 DISTCLEANFILES = sys.h sys.ho libcwd-@VERSION@.tar.gz
+EXTRA_HEADERS = sys.h
 
 VERSIONINFO=@VERSIONINFO@
 EXTRAOPTS = @EXTRAOPTS@

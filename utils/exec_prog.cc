@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#include "../sys.h"
+#include "sys.h"
 #include <sys/poll.h>		// Needed for poll(2)
 #include <unistd.h>		// Needed for pipe(2), dup2(2), fork(2), read(2) and close(2)
 #include <errno.h>		// Needed for errno
