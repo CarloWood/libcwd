@@ -3,5 +3,6 @@ Makefile.in
 hello_world
 initbug
 syslog
+dout_alloc
 .deps
 .libs

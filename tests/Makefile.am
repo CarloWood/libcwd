@@ -5,13 +5,15 @@ AUTOMAKE_OPTIONS = foreign
 EXTRA_PROGRAMS = \
 hello_world \
 syslog \
-initbug
+initbug \
+dout_alloc
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
 hello_world_SOURCES = hello_world.cc
 syslog_SOURCES = syslog.cc
 initbug_SOURCES = initbug.cc initbug_GlobalObject.cc
+dout_alloc_SOURCES = dout_alloc.cc
 
 include_HEADERS = syslog_debug.h
 
