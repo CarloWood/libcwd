@@ -208,16 +208,9 @@ if test "$libcwd_config_bfd" = yes; then
 	AC_CHECK_LIB(iberty, xmalloc)
       fi
     fi])
- 
-  dnl If it failed, then abort with an error message.
-  if test "$ac_cv_lib_iberty_xmalloc" = "no"; then
-    AC_MSG_ERROR([
-
-* Cannot find a working libiberty;  Lookup of function names and source:line
-* information will be disabled.  Perhaps you need to add -L/path to LDFLAGS?
-* Please read the INSTALL file for more info.
-* You can skip this check by using configure --disable-libcwd-bfd.
-])
+    dnl If this failed then perhaps things still work: we don't need libiberty
+    dnl ourself, only libbfd needs it.  However, on debian for instance, libbfd
+    dnl works without linking with libiberty.
   fi
 
   dnl Check if we have libbfd.
@@ -234,19 +227,35 @@ if test "$libcwd_config_bfd" = yes; then
       [CW_CONFIG_DEBUGUSEBFD=define],
       [AC_MSG_ERROR([
 
-* You have libbfd, but I cannot find bfd.h!  Look up of function names and
-* source:line information will be disabled.  Perhaps you need to add -I/path
-* to CPPFLAGS?
-* Please read the INSTALL file for more info.
-* You can skip this check by using configure --disable-libcwd-bfd.
+* You have libbfd, but I cannot find bfd.h.  Perhaps you need to add -I/path
+* to CPPFLAGS (read the INSTALL file for more info)?  If your OS uses
+* packages then you need to make sure you have installed both, binutils
+* and the development version of binutils (binutils-devel, or binutils-dev).
+* You can skip this check by using configure --disable-libcwd-bfd, but
+* then lookup of function names and source:line information will be disabled.
 ])])
   else
+    dnl If it failed, then abort with an error message.
+    dnl If we also failed in finding libiberty, then assume that was the problem
+    dnl and demand liberty to be installed.
+    if test "$ac_cv_lib_iberty_xmalloc" = "no"; then
+      AC_MSG_ERROR([
+
+* Cannot find a working libiberty.  Perhaps you need to add -L/path
+* to LDFLAGS (read the INSTALL file for more info)?  It is possible that
+* you don't need libiberty if on your OS libbfd works without it.  This
+* is the case on Debian.  In most cases libbfd will fail when libiberty
+* is not installed however.  Both are part of binutils[-dev[el]].
+* You can skip this check by using configure --disable-libcwd-bfd, but
+* then lookup of function names and source:line information will be disabled.
+])
+    fi
     AC_MSG_ERROR([
 
-* Cannot find a working libbfd;  Lookup of function names and source:line
-* information will be disabled.  Perhaps you need to add -L/path to LDFLAGS?
-* Please read the INSTALL file for more info.
-* You can skip this check by using configure --disable-libcwd-bfd.
+* Cannot find a working libbfd.  Perhaps you need to add -L/path
+* to LDFLAGS (read the INSTALL file for more info)?
+* You can skip this check by using configure --disable-libcwd-bfd, but
+* then lookup of function names and source:line information will be disabled.
 ])
   fi
 
