@@ -14,6 +14,7 @@
 #undef LIBCWD_DEBUGBFD		// Define to add debug code for this file.
 
 #include <libcwd/config.h>
+
 #if CWDEBUG_LOCATION
 
 #include "sys.h"
@@ -33,23 +34,21 @@
 #include <stdlib.h>             // Needed for realpath(3)
 #endif
 #ifdef HAVE_DLOPEN
-#include <map>
 #include <dlfcn.h>
 #include <cstring>
 #include <cstdlib>
+#include <map>
 #endif
 #if defined(HAVE__DL_LOADED) || defined(HAVE__RTLD_GLOBAL)
 #include <link.h>
-#ifdef HAVE__RTLD_GLOBAL
-#define DL_LOADED _rtld_global._dl_loaded
+static link_map** dl_loaded_ptr;
+#ifndef HAVE__DL_LOADED
 #define HAVE__DL_LOADED 1
+#endif
+#ifdef HAVE__RTLD_GLOBAL
 struct rtld_global {
   link_map* _dl_loaded;
 };
-extern struct rtld_global _rtld_global;
-#else
-#define DL_LOADED _dl_loaded
-extern link_map* _dl_loaded;
 #endif
 #endif // HAVE__DL_LOADED || HAVE__RTLD_GLOBAL
 #include <cstdio>		// Needed for vsnprintf.
@@ -110,6 +109,8 @@ namespace libcw {
 
     // Local stuff
     namespace cwbfd {
+
+bool statically_linked;
 
 #if !CWDEBUG_LIBBFD
 
@@ -436,13 +437,13 @@ void bfd_close(bfd* abfd)
 #endif
 	      lbase = val - s_end_offset;
 	    }
-	    else
+	    else if (!statically_linked)
 #ifdef HAVE__DL_LOADED
             {
 #if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
 #endif
-	      for(link_map* p = DL_LOADED; p; p = p->l_next)
+	      for(link_map* p = *dl_loaded_ptr; p; p = p->l_next)
 	        if (!strcmp(p->l_name, filename))
 		{
 		  lbase = reinterpret_cast<void*>(p->l_addr);		// No idea why they use unsigned int for a load address.
@@ -881,8 +882,11 @@ void bfd_close(bfd* abfd)
 #else
       typedef std::vector<my_link_map> ST_shared_libs_vector_ct;
 #endif
-      ST_shared_libs_vector_ct ST_shared_libs;			// Written to only in `ST_decode_ldd' which is called from
-      								// `cwbfd::ST_init' and read from in a later part of `cwbfd::ST_init'.
+      typedef char fake_shared_libs_type[sizeof(ST_shared_libs_vector_ct)];
+      fake_shared_libs_type fake_ST_shared_libs;		// Written to only in `ST_decode_ldd' which is called from
+      								// `cwbfd::ST_init' and read from in a later part of
+								// `cwbfd::ST_init'.  Initialization is done in ST_init too.
+      ST_shared_libs_vector_ct& ST_shared_libs = *reinterpret_cast<ST_shared_libs_vector_ct*>(&fake_ST_shared_libs);
 
       // cwbfd::
       int ST_decode_ldd(char const* buf, size_t len)
@@ -1007,6 +1011,25 @@ void bfd_close(bfd* abfd)
 	  core_dump();
 #endif
 
+#ifdef HAVE__DL_LOADED
+	// Initialize dl_loaded_ptr.
+	void* handle = ::dlopen(NULL, RTLD_LAZY);
+	statically_linked = (handle == NULL);
+	if (!statically_linked)
+	{
+#ifdef HAVE__RTLD_GLOBAL
+	  rtld_global* rtld_global_ptr = (rtld_global*)::dlsym(handle, "_rtld_global");
+	  if (!rtld_global_ptr)
+	    DoutFatal(dc::core, "Configuration of libcwd detected _rtld_global, but I can't find it now?!");
+          dl_loaded_ptr = &rtld_global_ptr->_dl_loaded;
+#else
+	  dl_loaded_ptr = ::dlsym(handle, "_dl_loaded");
+	  if (!dl_loaded_ptr)
+	    DoutFatal(dc::core, "Configuration of libcwd detected _dl_loaded, but I can't find it now?!");
+#endif
+	}
+#endif // HAVE__DL_LOADED
+
 	LIBCWD_TSD_DECLARATION;
 
 #if CWDEBUG_DEBUG && CWDEBUG_ALLOC
@@ -1021,6 +1044,7 @@ void bfd_close(bfd* abfd)
 	// Initialize the malloc library if not done yet.
 	init_debugmalloc();
 #endif
+        new (fake_ST_shared_libs) ST_shared_libs_vector_ct;
 
 	libcw::debug::debug_ct::OnOffState state;
 	libcw::debug::channel_ct::OnOffState state2;
@@ -1083,38 +1107,46 @@ void bfd_close(bfd* abfd)
 	BFD_INITIALIZE_LOCK;
 	load_object_file(fullpath.value->data(), 0);
 
-	// Load all shared objects
-#ifndef HAVE__DL_LOADED
-	// Path to `ldd'
-	char const ldd_prog[] = "/usr/bin/ldd";
-
-	char const* argv[3];
-	argv[0] = "ldd";
-	argv[1] = fullpath.value->data();
-	argv[2] = NULL;
-	ST_exec_prog(ldd_prog, argv, environ, ST_decode_ldd);
-
-	for(ST_shared_libs_vector_ct::const_iterator iter = ST_shared_libs.begin(); iter != ST_shared_libs.end(); ++iter)
+	if (!statically_linked)
 	{
-	  my_link_map const* l = &(*iter);
-#else
-	for(link_map const* l = DL_LOADED; l; l = l->l_next)
-	{
-#if 0
+
+	  // Load all shared objects
+  #ifndef HAVE__DL_LOADED
+	  // Path to `ldd'
+	  char const ldd_prog[] = "/usr/bin/ldd";
+
+	  char const* argv[3];
+	  argv[0] = "ldd";
+	  argv[1] = fullpath.value->data();
+	  argv[2] = NULL;
+	  ST_exec_prog(ldd_prog, argv, environ, ST_decode_ldd);
+
+	  for(ST_shared_libs_vector_ct::const_iterator iter = ST_shared_libs.begin(); iter != ST_shared_libs.end(); ++iter)
+	  {
+	    my_link_map const* l = &(*iter);
+  #else
+	  for(link_map const* l = *dl_loaded_ptr; l; l = l->l_next)
+	  {
+  #if 0
+	  }
+  #endif
+  #endif
+	    if (l->l_addr)
+	      load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+	    else if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
+	      load_object_file(l->l_name, unknown_l_addr);
+	  }
+	  LIBCWD_DEFER_CANCEL;
+	  BFD_ACQUIRE_WRITE_LOCK;
+	  set_alloc_checking_off(LIBCWD_TSD);
+	  NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
+	  set_alloc_checking_on(LIBCWD_TSD);
+	  BFD_RELEASE_WRITE_LOCK;
 	}
-#endif
-#endif
-	  if (l->l_addr)
-	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
-	  else if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
-	    load_object_file(l->l_name, unknown_l_addr);
-	}
-	LIBCWD_DEFER_CANCEL;
-	BFD_ACQUIRE_WRITE_LOCK;
+
 	set_alloc_checking_off(LIBCWD_TSD);
-	NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
+	ST_shared_libs.~ST_shared_libs_vector_ct();
 	set_alloc_checking_on(LIBCWD_TSD);
-	BFD_RELEASE_WRITE_LOCK;
 
 	// End INTERNAL!
 	// ****************************************************************************
@@ -1293,10 +1325,10 @@ typedef location_ct bfd_location_ct;
       object_file = NEEDS_READ_LOCK_find_object_file(addr);
       BFD_RELEASE_READ_LOCK;
 #ifdef HAVE__DL_LOADED
-      if (!object_file)
+      if (!object_file && !statically_linked)
       {
         // Try to load everything again... previous loaded libraries are skipped based on load address.
-	for(link_map* l = DL_LOADED; l;)
+	for(link_map* l = *dl_loaded_ptr; l;)
 	{
 	  if (l->l_addr)
 	  {
@@ -1321,7 +1353,7 @@ already_loaded:
 	set_alloc_checking_on(LIBCWD_TSD);
 	BFD_ACQUIRE_WRITE2READ_LOCK;
 	object_file = NEEDS_READ_LOCK_find_object_file(addr);
-        BFD_RELEASE_WRITE_LOCK;
+        BFD_RELEASE_READ_LOCK;
       }
 #endif
       LIBCWD_RESTORE_CANCEL;
@@ -1455,7 +1487,7 @@ already_loaded:
       M_func = S_cleared_location_ct_c;
     }
 
-    location_ct::location_ct(location_ct const &prototype)
+    location_ct::location_ct(location_ct const &prototype) : M_hide(123456)
     {
       if ((M_known = prototype.M_known))
       {
@@ -1513,7 +1545,7 @@ already_loaded:
   } // namespace debug
 } // namespace libcw
 
-#ifdef LIBCWD_DLOPEN_DEFINED
+#if defined(LIBCWD_DLOPEN_DEFINED) && defined(HAVE_DLOPEN)
 using namespace libcw::debug;
 
 struct dlloaded_st {
@@ -1565,16 +1597,24 @@ extern "C" {
 
   void* __libcwd_dlopen(char const* name, int flags)
   {
-    LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
+    LIBCWD_TSD_DECLARATION;
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
     void* handle = ::dlopen(name, flags);
+    if (libcw::debug::cwbfd::statically_linked)
+    {
+      Dout(dc::warning, "Calling dlopen(3) from statically linked application; this is not going to work if the loaded module uses libcwd too or when it allocates any memory!");
+      return handle;
+    }
     if (handle == NULL)
       return handle;
 #ifdef RTLD_NOLOAD
     if ((flags & RTLD_NOLOAD))
       return handle;
+#endif
+#if !CWDEBUG_DEBUGM
+    LIBCWD_TSD_DECLARATION;
 #endif
     LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlopen_map_cleanup, &__libcwd_tsd);
     DLOPEN_MAP_ACQUIRE_LOCK;
@@ -1630,7 +1670,7 @@ extern "C" {
     ret = ::dlclose(handle);
     DLCLOSE_RELEASE_LOCK;
     LIBCWD_CLEANUP_POP_RESTORE(false);
-    if (ret != 0)
+    if (ret != 0 || libcw::debug::cwbfd::statically_linked)
       return ret;
     LIBCWD_DEFER_CLEANUP_PUSH(_private_::dlopen_map_cleanup, &__libcwd_tsd);
     DLOPEN_MAP_ACQUIRE_LOCK;
