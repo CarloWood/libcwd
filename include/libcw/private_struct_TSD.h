@@ -32,6 +32,14 @@
 #define LIBCW_LIMITS_H
 #include <limits.h>	// For PTHREAD_THREADS_MAX
 #endif
+#ifdef LIBCWD_THREAD_SAFE
+#ifdef LIBCWD_HAVE_PTHREAD
+#ifndef LIBCW_PTHREADS_H
+#define LIBCW_PTHREADS_H
+#include <pthread.h>
+#endif
+#endif
+#endif
 
 namespace libcw {
   namespace debug {
