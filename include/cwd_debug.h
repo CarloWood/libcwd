@@ -130,7 +130,6 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
 namespace _private_ {
   // Dummy type used as fake 'ostream' to write to write(2).
   enum raw_write_nt { raw_write };
-#endif
 }
 
 inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, char const* data)
