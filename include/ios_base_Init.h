@@ -14,6 +14,8 @@
 #ifndef IOS_BASE_INIT_H
 #define IOS_BASE_INIT_H
 
+#if CWDEBUG_ALLOC
+
 namespace libcw {
   namespace debug {
     namespace _private_ {
@@ -26,5 +28,7 @@ extern bool inside_ios_base_Init_Init(void);
     } // namespace _private_
   } // namespace debug
 } // namespace libcw
+
+#endif // CWDEBUG_ALLOC
 
 #endif // IOS_BASE_INIT__H

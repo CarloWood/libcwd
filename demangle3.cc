@@ -1925,9 +1925,39 @@ void demangle_symbol(char const* input, internal_string& output)
 
   //
   // <mangled-name> ::= _Z <encoding>
+  // <mangled-name> ::= _GLOBAL_ _<type>_ _Z <encoding>		// GNU extension, <type> can be I or D.
   //
-  int pos;
-  if (input[0] != '_' || input[1] != 'Z' || (pos = demangler_ct::decode_encoding(input + 2, output) + 2) < 0 || input[pos] != 0)
+  bool failure = (input[0] != '_');
+
+  if (!failure)
+  {
+    if (input[1] == 'G')
+    {
+      if (!strncmp(input, "_GLOBAL__", 9) && (input[9] == 'D' || input[9] == 'I') && input[10] == '_' &&
+	  input[11] == '_' && input[12] == 'Z')
+      {
+	if (input[9] == 'D')
+	  output.assign("global destructors keyed to ", 28);
+	else
+	  output.assign("global constructors keyed to ", 29);
+	int pos = demangler_ct::decode_encoding(input + 13, output) + 13;
+	if (pos < 0 || input[pos] != 0)
+	  failure = true;
+      }
+      else
+	failure = true;
+    }
+    else if (input[1] == 'Z')
+    {
+      int pos = demangler_ct::decode_encoding(input + 2, output) + 2;
+      if (pos < 0 || input[pos] != 0)
+	failure = true;
+    }
+    else
+      failure = true;
+  }
+
+  if (failure)
     output.assign(input, strlen(input));	// Failure to demangle, return the mangled name.
 
 #ifdef STANDALONE

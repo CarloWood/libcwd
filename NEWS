@@ -6,6 +6,12 @@ libcwd-0.99.27
 	a library whose last compilation unit did not contain a
 	.debug_line section.
 
+	Configuration with --disable-alloc was broken.
+
+	The demangler for the new ABI didn't demangle global
+	constructors/destructors keyed to functions (mangled names
+	starting with _GLOBAL__[ID]_, a GNU extension).
+
 libcwd-0.99.26
 
 	Changes:

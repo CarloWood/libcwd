@@ -19,7 +19,8 @@ char const* test_cases [] = {
    "B__H3Zt1D3ZP1AZRCP1AZPCP1AZt1D3ZP1AZRP1AZPP1AZP1A_X01X01X11PX21_t1D3ZX21ZRX21ZPX21",
    "SKIPPED",
    "_X11TransParseAddress",
-   "_t13_Alloc_traits2Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1ZQ45libcw5debug9_private_t17allocator_adaptor3Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1Zt24__default_alloc_template2b0i327664b1._S_instanceless"
+   "_t13_Alloc_traits2Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1ZQ45libcw5debug9_private_t17allocator_adaptor3Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1Zt24__default_alloc_template2b0i327664b1._S_instanceless",
+   "_GLOBAL_.I.fn__Fv"
 };
 #else
 char const* test_cases [] = {
@@ -35,7 +36,8 @@ char const* test_cases [] = {
    "_ZSt1BISt1DIP1ARKS2_PS3_ES0_IS2_RS2_PS2_ES2_ET0_T_SB_SA_PT1_",
    "_ZngILi42EEvN1AIXplT_Li2EEE1TE",
    "_X11TransParseAddress",
-   "_ZNSt13_Alloc_traitsISbIcSt18string_char_traitsIcEN5libcw5debug9_private_17allocator_adaptorIcSt24__default_alloc_templateILb0ELi327664EELb1EEEENS5_IS9_S7_Lb1EEEE15_S_instancelessE"
+   "_ZNSt13_Alloc_traitsISbIcSt18string_char_traitsIcEN5libcw5debug9_private_17allocator_adaptorIcSt24__default_alloc_templateILb0ELi327664EELb1EEEENS5_IS9_S7_Lb1EEEE15_S_instancelessE",
+   "_GLOBAL__I__Z2fnv"
 };
 #endif
 
@@ -243,7 +245,7 @@ namespace std {
     class basic_string {
     public:
       template<typename T2>
-	char* _S_construct(T2, T2, _Alloc const&) { return ""; }
+	char* _S_construct(T2, T2, _Alloc const&) { return (char*)0; }
     };
 }
 
@@ -369,6 +371,7 @@ namespace libcw {
   }
 }
 
+char x;
 void q(void)
 {
   std::_Alloc_traits<
@@ -395,7 +398,7 @@ void q(void)
       true
     >
   > dummy1;
-  char x = dummy1._S_instanceless;
+  x = dummy1._S_instanceless;
 }
 
 #endif // INSTANTIATE

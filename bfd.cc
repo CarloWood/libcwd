@@ -1239,6 +1239,7 @@ typedef location_ct bfd_location_ct;
 	// MT: `WST_initialized' is only false when we're still Single Threaded.
 	//     Therefore it is safe to call ST_* functions.
 
+#if CWDEBUG_ALLOC
 #ifdef __GLIBCPP__	// Pre libstdc++ v3, there is no malloc done for initialization of cerr.
         if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
 	{
@@ -1247,6 +1248,7 @@ typedef location_ct bfd_location_ct;
 	  M_initialization_delayed = addr;
 	  return;
 	}
+#endif
 #endif
 	if (!ST_init())	// Initialization of BFD code fails?
 	{
