@@ -66,10 +66,9 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.29 was tested with gcc-3.0.4, gcc-3.1,
+libcwd-0.99.30 was tested with gcc-3.0.4, gcc-3.1,
 gcc-3.1.1, gcc-3.2, gcc-3.2.1, gcc-3.2.2, gcc-3.2.3,
-gcc version 3.3 20030502 (prerelease) and
-gcc version 3.4 20030416 (experimental)
+gcc-3.3 and gcc version 3.4 20030515 (experimental)
 
 Packages needed to run the testsuite
 ------------------------------------

@@ -1,5 +1,11 @@
 libcwd-0.99.30
 
+	Libcwd now works with glibc-2.3.2 (RedHat 9).
+
+	Bug fixes:
+
+	Several minor thread related bug fixes.
+
 libcwd-0.99.29
 
         Allocations inside Dout() et al are not 'internal' anymore.

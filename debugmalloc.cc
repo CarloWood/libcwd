@@ -2725,10 +2725,7 @@ marker_ct::~marker_ct()
 #if CWDEBUG_LOCATION
       object_file_ct const* object_file = alloc_node->location().object_file();
 #endif
-      if (!alloc_node->location().hide_initialized())
-      {
-        Dout(dc::warning, "alloc_node = " << (void*)alloc_node);
-      }
+      // FIXME: This bug still seems to exist, but I can't reproduce it anymore all of a sudden:
       LIBCWD_ASSERT(alloc_node->location().hide_initialized());
       if (((M_filter.M_flags & hide_untagged) && !alloc_node->is_tagged()) ||
 #if CWDEBUG_LOCATION

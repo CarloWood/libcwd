@@ -88,26 +88,17 @@ example-project/debug.h: example-project/debug.h.maintainer nodebug.h
 	cat nodebug.h >> example-project/debug.h
 	awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' example-project/debug.h.maintainer >> example-project/debug.h
 
-# 	  	'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.4,cvs-3.3,3.2.2' \
-# 		'--enable-maintainer-mode --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-3.4,cvs-3.3,3.2.2' \
-# 	  	'--enable-maintainer-mode                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.4,cvs-3.3,3.2.2' \
-# 	  	'--enable-maintainer-mode                                 --enable-debug --disable-debug-output --compilers=cvs-3.4,cvs-3.3,3.2.2' \
-# 	  	'--enable-maintainer-mode                 --enable-debugm                                       --compilers=cvs-3.4,cvs-3.3,3.2.2' \
-#		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --compilers=cvs-3.4,cvs-3.3,3.2.2' \
-# 		'--enable-maintainer-mode                 --enable-debugm --enable-debug --compilers=cvs-3.4,cvs-3.3,3.2.2' \
-#		'--enable-maintainer-mode --compilers=cvs-3.4,cvs-3.3,3.2.2,3.2.1,3.2,3.1.1,3.1,3.0.4,2.96,2.95.3,2.95.2' \
-
 full-check: Makefile
 	@( \
 	  for c in \
- 	  	'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.4,cvs-3.3,3.2.3' \
- 		'--enable-maintainer-mode --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-3.4,cvs-3.3,3.2.3' \
- 	  	'--enable-maintainer-mode                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.4,cvs-3.3,3.2.3' \
- 	  	'--enable-maintainer-mode                                 --enable-debug --disable-debug-output --compilers=cvs-3.4,cvs-3.3,3.2.3' \
- 	  	'--enable-maintainer-mode                 --enable-debugm                                       --compilers=cvs-3.4,cvs-3.3,3.2.3' \
-		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --compilers=cvs-3.4,cvs-3.3,3.2.3' \
- 		'--enable-maintainer-mode                 --enable-debugm --enable-debug --compilers=cvs-3.4,cvs-3.3,3.2.3' \
-		'--enable-maintainer-mode --compilers=cvs-3.4,cvs-3.3,3.2.3,3.2.2,3.2.1,3.2,3.1.1,3.1,3.0.4' \
+ 	  	'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.4,3.3,3.2.3' \
+ 		'--enable-maintainer-mode --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-3.4,3.3,3.2.3' \
+ 	  	'--enable-maintainer-mode                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.4,3.3,3.2.3' \
+ 	  	'--enable-maintainer-mode                                 --enable-debug --disable-debug-output --compilers=cvs-3.4,3.3,3.2.3' \
+ 	  	'--enable-maintainer-mode                 --enable-debugm                                       --compilers=cvs-3.4,3.3,3.2.3' \
+		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --compilers=cvs-3.4,3.3,3.2.3' \
+ 		'--enable-maintainer-mode                 --enable-debugm --enable-debug --compilers=cvs-3.4,3.3,3.2.3' \
+		'--enable-maintainer-mode --compilers=cvs-3.4,3.3,3.2.3,3.2.2,3.2.1,3.2,3.1.1,3.1,3.0.4' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
 	    case "$$c" in \

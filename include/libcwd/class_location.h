@@ -75,7 +75,11 @@ protected:
 private:
 #if CWDEBUG_ALLOC
   friend class ooam_filter_ct;
-  int M_hide;					// Used by ooam_filter_ct::M_sychronize_locations
+#if !CWDEBUG_DEBUG
+  bool M_hide;					// Used by ooam_filter_ct::M_sychronize_locations
+#else
+  int M_hide;					// We use a third value to indicate 'uninitialized'.
+#endif
 #endif
 
 protected:
@@ -199,7 +203,9 @@ public:
 #if CWDEBUG_ALLOC
   void handle_delayed_initialization(ooam_filter_ct const& filter);
   bool hide_from_alloc_list(void) const { return M_hide; }
+#if CWDEBUG_DEBUG
   bool hide_initialized(void) const { return M_hide != 123456; }
+#endif
 #endif
 };
 

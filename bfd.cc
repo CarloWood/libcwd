@@ -1488,7 +1488,10 @@ already_loaded:
       M_func = S_cleared_location_ct_c;
     }
 
-    location_ct::location_ct(location_ct const &prototype) : M_hide(123456)
+    location_ct::location_ct(location_ct const &prototype)
+#if CWDEBUG_ALLOC && CWDEBUG_DEBUG
+        : M_hide(123456)	// Initialization should not be needed.
+#endif
     {
       if ((M_known = prototype.M_known))
       {
