@@ -18,6 +18,13 @@ libcwd-0.99.25
 
 	location_ct was leaking memory (the filename was never deleted).
 
+	When using a third party library (like libMagick++), it is
+	possible that the first allocation - as part of the initialization
+	of that library - is from std::allocator.  The vector that is
+	being using to store all debug objects was erroneously using
+	std::allocator as well, causing a dead lock during the initialization
+	of libcwd for threaded applications in such a case.
+
 libcwd-0.99.24
 
         Bug fixes:

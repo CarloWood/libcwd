@@ -24,9 +24,8 @@
 #ifndef LIBCW_PRIVATE_ASSERT_H
 #include <libcw/private_assert.h>
 #endif
-#ifndef LIBCW_VECTOR
-#define LIBCW_VECTOR
-#include <vector>
+#ifndef LIBCW_PRIVATE_INTERNAL_VECTOR_H
+#include <libcw/private_internal_vector.h>
 #endif
 
 //===================================================================================================
@@ -42,7 +41,7 @@ namespace libcw {
 
 class debug_objects_ct {
 public:
-  typedef std::vector<debug_ct*> container_type;
+  typedef internal_vector<debug_ct*> container_type;
 private:
   container_type* WNS_debug_objects;
 public:
