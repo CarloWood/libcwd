@@ -16,6 +16,8 @@
 #include <cstdlib>
 #include <iostream>
 
+libcw::debug::debug_ct list_allocations_on_test_do;
+
 MAIN_FUNCTION
 { PREFIX_CODE
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
@@ -90,7 +92,20 @@ MAIN_FUNCTION
     masks.push_back("lib*");
     filter.hide_objectfiles_matching(masks);
 #endif
-    list_allocations_on(libcw_do, filter);
+    Debug( libcw_do.off() );
+#ifdef THREADTEST
+    static bool done = false;
+    if (!done)
+    {
+      done = true;
+      Debug( list_allocations_on_test_do.set_ostream(&std::cout, &cout_mutex) );
+    }
+#else
+    Debug( list_allocations_on_test_do.set_ostream(&std::cout) );
+#endif
+    Debug( list_allocations_on_test_do.on() );
+    list_allocations_on(list_allocations_on_test_do, filter);
+    Debug( libcw_do.on() );
   }
   while(0);
 #endif
