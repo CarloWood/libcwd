@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#undef ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading debug info from ..." lines.
+#define ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading debug info from ..." lines.
 #undef DEBUGDEBUGBFD		// Define to add debug code for this file.
 
 #include <libcw/debug_config.h>
@@ -1135,9 +1135,32 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
       cwbfd::object_file_ct* object_file = new cwbfd::object_file_ct(name, cwbfd::unknown_l_addr);
       set_alloc_checking_on();
       if (object_file->get_number_of_symbols() > 0)
+      {
         Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+#ifdef DEBUGDEBUGBFD
+	cout << setiosflags(ios_base::left) << setw(15) << "Start address" << setw(50) << "File name" << setw(20) << "Number of symbols" << endl;
+	cout << "0x" << setfill('0') << setiosflags(ios_base::right) << setw(8) << hex << (unsigned long)object_file->get_lbase() << "     ";
+	cout << setfill(' ') << setiosflags(ios_base::left) << setw(50) << object_file->get_bfd()->filename;
+	cout << dec << setiosflags(ios_base::left);
+	cout << object_file->get_number_of_symbols() << endl;
+
+	cout << setiosflags(ios_base::left) << setw(12) << "Start";
+	cout << ' ' << setiosflags(ios_base::right) << setw(6) << "Size" << ' ';
+	cout << "Name value flags\n";
+	cwbfd::asymbol** symbol_table = object_file->get_symbol_table();
+	for (long n = object_file->get_number_of_symbols() - 1; n >= 0; --n)
+	{
+	  cout << setiosflags(ios_base::left) << hex << setw(12) << (void*)cwbfd::symbol_start_addr(symbol_table[n]);
+	  cout << ' ' << setiosflags(ios_base::right) << setw(6) << cwbfd::symbol_size(symbol_table[n]) << ' ';
+	  cout << symbol_table[n]->name << ' ' << hex << symbol_table[n]->value << ' ' << oct << symbol_table[n]->flags << endl;
+	}
+#endif
+      }
       else
         Dout(dc::finish, "No symbols found");
+
+      cwbfd::object_files().sort(cwbfd::object_file_greater());
+
       Debug( libcw_do.dec_indent(4) );
       return addr;
 #else
