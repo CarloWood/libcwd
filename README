@@ -12,14 +12,13 @@ those are not compiled with -fPIC) therefore libtool drops
 any inter-library dependency if you only have a static
 library installed and will print something like:
 
- *** Warning: This library needs some functionality provided by -liberty.
+ *** Warning: This library needs some functionality provided by -lXXX.
  *** I have the capability to make that library automatically link in when
  *** you link to this library.  But I can only do this if you have a
  *** shared version of the library, which you do not appear to have.
 
 If this happens, then this means that you will need to
-link your programs with -lcwd -lbfd -liberty, rather than
-just -lcwd.
+link your programs with -lcwd -lXXX, rather than just -lcwd.
 
 The directory `example-project' contains a fully functional
 example project that uses autoconf, automake and libcwd.
@@ -36,21 +35,6 @@ The debug support can be divided into the following components:
    debug objects for `channels' and `devices').
 2) Support for memory allocation debugging.
 
-
-Anonymous CVS Access 
---------------------
-
-This project's SourceForge CVS repository can be checked out through anonymous
-(pserver) CVS with the following instruction set.  The module of libcwd is called
-"libcwd" (not "libcw" !).  When prompted for a password for anonymous, simply
-press the Enter key. 
-
-cvs -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw login 
-
-cvs -z3 -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw co libcwd
-
-You don't need the -d parameter inside the module's directory.  (Note that you
-do need -d after 'update' to savely update new directories that might have been
-added.  Example: "cd libcw; cvs update -dP". Or add 'update -dP' to your
-~/.cvsrc file.)
+Detailed documentation and a tutorial can be found in the
+directory documentation/.
 
