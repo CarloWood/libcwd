@@ -246,7 +246,7 @@ template <int instance>
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       bool success = (pthread_mutex_trylock(&S_mutex) == 0);
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       if (success)
       {
 #if CWDEBUG_DEBUGT
@@ -295,7 +295,7 @@ template <int instance>
 #else // !CWDEBUG_DEBUGT
       pthread_mutex_lock(&S_mutex);
 #endif // !CWDEBUG_DEBUGT
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = pthread_self();
@@ -306,7 +306,7 @@ template <int instance>
     static void unlock(void)
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       instance_locked[instance] -= 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = 0;
@@ -422,7 +422,7 @@ template <int instance>
 #endif
   public:
     void wait(void) {
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_ASSERT( is_locked(instance) );
 #endif
       pthread_cond_wait(&S_condition, &S_mutex);
@@ -569,7 +569,7 @@ template <int instance>
 	    S_holders_count = -1;						// Mark that we have a writer.
 	    if (instance < end_recursive_types)
 	      S_writer_id = pthread_self();
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUGT
 	    _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
@@ -700,7 +700,7 @@ template <int instance>
       if (instance < end_recursive_types)
         S_writer_id = pthread_self();
       LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area );
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUGT
       _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
@@ -715,7 +715,7 @@ template <int instance>
     static void wrunlock(void)
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       instance_locked[instance] -= 1;
 #endif
 #if CWDEBUG_DEBUGT
@@ -756,7 +756,7 @@ template <int instance>
       S_no_holders_condition.unlock();
       if (instance < end_recursive_types)
 	S_writer_id = pthread_self();
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUGT
       _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
@@ -779,7 +779,7 @@ template <int instance>
     static void wr2rdlock(void)
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       instance_locked[instance] -= 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = 0;

@@ -72,16 +72,15 @@ enum mutex_instance_nt {
   instance_locked_size			// Must be last in list
 };
 
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 extern int instance_locked[instance_locked_size];	// MT: Each element is locked by the
-							//     corresponding instance.
+__inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; }
+#endif
 #if CWDEBUG_DEBUGT
 extern pthread_t locked_by[instance_locked_size];	// The id of the thread that last locked it, or 0 when that thread unlocked it.
 extern void const* locked_from[instance_locked_size];	// and where is was locked.
 int const read_lock_offset = instance_locked_size;
 int const high_priority_read_lock_offset = 2 * instance_locked_size;
-#endif
-__inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; }
 #endif
 
     } // namespace _private_

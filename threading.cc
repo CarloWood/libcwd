@@ -27,12 +27,10 @@ namespace libcw {
 
 bool WST_multi_threaded = false;
 bool WST_first_thread_initialized = false;
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 int instance_locked[instance_locked_size];
-#if CWDEBUG_DEBUGT
 pthread_t locked_by[instance_locked_size];
 void const* locked_from[instance_locked_size];
-#endif
 #endif
 
 void initialize_global_mutexes(void)

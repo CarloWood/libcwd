@@ -881,7 +881,7 @@ void allocator_unlock(void)
 
     void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #ifdef _REENTRANT
       // Initialisation of the TSD part should be done from LIBCWD_TSD_DECLARATION inside Dout et al.
       LIBCWD_ASSERT( tsd_initialized );

@@ -31,12 +31,12 @@ class mutex_ct {
 private:
   pthread_mutex_t M_mutex;
 public:
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
   int M_instance_locked;
+#endif
 #if CWDEBUG_DEBUGT
   pthread_t M_locked_by;
   void const* M_locked_from;
-#endif
 #endif
 protected:
   bool M_initialized;
@@ -47,7 +47,7 @@ public:
   bool trylock(void);
   void lock(void);
   void unlock(void);
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
   bool is_locked(void);
 #endif
 };
