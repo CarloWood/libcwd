@@ -541,7 +541,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    if (symbol_size(last_symbol) == 100000)
 	      Dout( dc::warning, "Unknown size of symbol " << last_symbol->name);
 	    if (!M_size)
-	      M_size = symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)lbase;
+	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)lbase;
 	  }
 	}
 
