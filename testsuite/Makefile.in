@@ -1,5 +1,5 @@
 NODEBUGCHECK = nodebug
-TSTCHECK = alloctag basic bfd cf continued dc demangler do flush leak lockable_auto_ptr magic marker test_delete type_info undef
+TSTCHECK = alloctag basic bfd cf continued dc demangler do flush leak lockable_auto_ptr magic marker strdup test_delete type_info undef
 
 srcdir = @srcdir@
 top_builddir = ..
