@@ -102,7 +102,7 @@
 //		(Those that are shown by `list_allocations_on').
 // - std::ostream& operator<<(std::ostream& o, debugmalloc_report_ct)
 //		Allows to write a memory allocation report to std::ostream `o'.
-// - unsigned long list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
+// - unsigned long list_allocations_on(debug_ct& debug_object, alloc_filter_ct const& filter)
 //		Prints out all visible allocated memory blocks and labels.
 //
 // The current 'manipulator' functions are:
@@ -729,7 +729,7 @@ public:
   dm_alloc_base_ct(void const* s, size_t sz, memblk_types_nt type,
       type_info_ct const& ti, struct timeval const& t LIBCWD_COMMA_LOCATION(location_ct const* l))
     : alloc_ct(s, sz, type, ti, t LIBCWD_COMMA_LOCATION(l)) { }
-  void print_description(debug_ct& debug_object, ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const;
+  void print_description(debug_ct& debug_object, alloc_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const;
 };
 
 #if LIBCWD_THREAD_SAFE
@@ -843,7 +843,7 @@ public:
   dm_alloc_copy_ct(dm_alloc_ct const& alloc) : dm_alloc_base_ct(alloc), M_next(NULL), M_next_list(NULL) { }
   ~dm_alloc_copy_ct();
   static dm_alloc_copy_ct* deep_copy(dm_alloc_ct const* alloc);
-  unsigned long show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
+  unsigned long show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, alloc_filter_ct const& filter) const;
   dm_alloc_copy_ct const* next(void) const { return M_next; }
 };
 
@@ -1047,7 +1047,7 @@ static location_cache_map_t location_cache_map;		// MT-safe: initialized before 
 #define location_cache_map_read  (location_cache_map.read)
 #define location_cache_iter_write reinterpret_cast<location_cache_map_ct::iterator&>(const_cast<location_cache_map_ct::const_iterator&>(iter))
 
-ooam_filter_ct const default_ooam_filter(0);
+alloc_filter_ct const default_ooam_filter(0);
 
 //=============================================================================
 //
@@ -1094,7 +1094,7 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
 }
 
 // Synchronize filtering in regard with filter.M_sourcefile_masks and filter.M_function_masks (only).
-void location_ct::synchronize_with(ooam_filter_ct const& filter) const
+void location_ct::synchronize_with(alloc_filter_ct const& filter) const
 {
   if (!M_object_file)					// Then also !M_known.
     M_hide = _private_::unfiltered_location;
@@ -1117,7 +1117,7 @@ void location_ct::synchronize_with(ooam_filter_ct const& filter) const
   }
 }
 
-void ooam_filter_ct::M_synchronize_locations(void) const
+void alloc_filter_ct::M_synchronize_locations(void) const
 {
   ACQUIRE_LC_WRITE_LOCK;
   for (location_cache_map_ct::iterator iter = location_cache_map_write->begin(); iter != location_cache_map_write->end(); ++iter)
@@ -1125,7 +1125,7 @@ void ooam_filter_ct::M_synchronize_locations(void) const
   RELEASE_LC_WRITE_LOCK;
 }
 
-void location_ct::handle_delayed_initialization(ooam_filter_ct const& filter)
+void location_ct::handle_delayed_initialization(alloc_filter_ct const& filter)
 {
   LIBCWD_TSD_DECLARATION;
   M_pc_location(M_initialization_delayed LIBCWD_COMMA_TSD);
@@ -1204,7 +1204,7 @@ static void print_integer(std::ostream& os, unsigned int val, int width)
     os << *p++;
 }
 
-void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
+void dm_alloc_base_ct::print_description(debug_ct& debug_object, alloc_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal && !__libcwd_tsd.library_call );
@@ -1356,7 +1356,7 @@ void dm_alloc_ct::printOn(std::ostream& os) const
       ",\n\tnext_list = " << (void*)a_next_list << ", my_list = " << (void*)my_list << "\n\t( = " << (void*)*my_list << " ) }";
 }
 
-unsigned long dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
+unsigned long dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, alloc_filter_ct const& filter) const
 {
   unsigned long printed_memblks = 0;
   dm_alloc_copy_ct const* alloc;
@@ -2494,7 +2494,7 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
  *
  * \code
  * Debug(
- *     ooam_filter_ct format(0);
+ *     alloc_filter_ct format(0);
  *     list_allocations_on(debug_object, format)
  * );
  * \endcode
@@ -2530,13 +2530,13 @@ static void list_allocations_cleanup(void)
  *
  * \code
  * Debug(
- *   ooam_filter_ct ooam_filter(show_objectfile);
+ *   alloc_filter_ct alloc_filter(show_objectfile);
  *   std::vector<std::string> masks;
  *   masks.push_back("libc.so*");
  *   masks.push_back("libstdc++*");
- *   ooam_filter.hide_objectfiles_matching(masks);
- *   ooam_filter.hide_unknown_locations();
- *   list_allocations_on(libcw_do, ooam_filter)
+ *   alloc_filter.hide_objectfiles_matching(masks);
+ *   alloc_filter.hide_unknown_locations();
+ *   list_allocations_on(libcw_do, alloc_filter)
  * );
  * \endcode
  *
@@ -2550,7 +2550,7 @@ static void list_allocations_cleanup(void)
  *
  * \sa group_alloc_format
  */
-unsigned long list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
+unsigned long list_allocations_on(debug_ct& debug_object, alloc_filter_ct const& filter)
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM

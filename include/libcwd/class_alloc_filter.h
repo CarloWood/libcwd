@@ -11,15 +11,15 @@
 // packaging of this file.
 //
 
-/** \file libcwd/class_ooam_filter.h
+/** \file libcwd/class_alloc_filter.h
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCWD_CLASS_OOAM_FILTER_H
-#define LIBCWD_CLASS_OOAM_FILTER_H
+#ifndef LIBCWD_CLASS_ALLOC_FILTER_H
+#define LIBCWD_CLASS_ALLOC_FILTER_H
 
 #ifndef LIBCWD_LIBRARIES_DEBUG_H
-#error "Don't include <libcwd/class_ooam_filter.h> directly, include the appropriate \"debug.h\" instead."
+#error "Don't include <libcwd/class_alloc_filter.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 
 #include <libcwd/config.h>
@@ -35,20 +35,20 @@ namespace libcwd {
 /** \addtogroup group_alloc_format */
 /** \{ */
 
-/** \brief The type used for the formatting flags of an ooam_filter_ct object. */
-typedef unsigned short int ooam_format_t;
+/** \brief The type used for the formatting flags of an alloc_filter_ct object. */
+typedef unsigned short int alloc_format_t;
 
-ooam_format_t const show_time = 1;			//!< Show the time at which the allocation was made.
+alloc_format_t const show_time = 1;			//!< Show the time at which the allocation was made.
 #if CWDEBUG_LOCATION
-ooam_format_t const show_path = 2;			//!< Show the full path of the locations where the allocation was made.
-ooam_format_t const show_objectfile = 4;		//!< Show the name of the shared library that is responsible for the allocation.
-ooam_format_t const show_function = 8;			//!< Show the mangled name of the function that allocated the memory.
+alloc_format_t const show_path = 2;			//!< Show the full path of the locations where the allocation was made.
+alloc_format_t const show_objectfile = 4;		//!< Show the name of the shared library that is responsible for the allocation.
+alloc_format_t const show_function = 8;			//!< Show the mangled name of the function that allocated the memory.
 #endif
-ooam_format_t const show_allthreads = 16;		//!< Show the allocations of all threads, not just the current thread.
+alloc_format_t const show_allthreads = 16;		//!< Show the allocations of all threads, not just the current thread.
 #if CWDEBUG_LOCATION
-ooam_format_t const format_mask = (show_time|show_path|show_objectfile|show_function|show_allthreads);
+alloc_format_t const format_mask = (show_time|show_path|show_objectfile|show_function|show_allthreads);
 #else
-ooam_format_t const format_mask = (show_time|show_allthreads);
+alloc_format_t const format_mask = (show_time|show_allthreads);
 #endif
 
 /** \} */
@@ -62,14 +62,16 @@ class dm_alloc_copy_ct;
 class marker_ct;
 #endif
 
-/** \class ooam_filter_ct debugmalloc.h libcwd/debug.h
- * \brief An allocated memory overview filter class.
+/** \class alloc_filter_ct debugmalloc.h libcwd/debug.h
+ * \brief An allocated-memory filter class.
  * \ingroup group_alloc_format
  *
- * The object passed to \ref list_allocations_on containing formatting information
+ * An object of this type can be passed to \ref list_allocations_on containing formatting information
  * for the \link group_overview Overview Of Allocated Memory \endlink.
+ * It can also be passed as argument to the constructor of a \ref marker_ct object in order to specify
+ * which allocations should not be capatured by the marker (and optionally made invisible).
  */
-class ooam_filter_ct {
+class alloc_filter_ct {
 private:
 #if CWDEBUG_LOCATION		// No synchronization needed when not defined.
   static int S_next_id;		// MT: protected by list_allocations_instance
@@ -78,7 +80,7 @@ private:
 #endif
   friend class ::libcwd::dm_alloc_base_ct;
   friend class ::libcwd::dm_alloc_copy_ct;
-  ooam_format_t M_flags;
+  alloc_format_t M_flags;
   struct timeval M_start;
   struct timeval M_end;
 #if CWDEBUG_LOCATION
@@ -94,11 +96,11 @@ public:
   /** The timeval used when there is no actual limit set, either start or end. */
   static struct timeval const no_time_limit;
   /** \brief Construct a formatting object */
-  ooam_filter_ct(ooam_format_t flags = 0);
+  alloc_filter_ct(alloc_format_t flags = 0);
   /** \brief Set the general formatting flags. */
-  void set_flags(ooam_format_t flags);
+  void set_flags(alloc_format_t flags);
   /** \brief Returns the flags as set with set_flags */
-  ooam_format_t get_flags(void) const;
+  alloc_format_t get_flags(void) const;
   /** \brief Returns the start time as passed with set_time_interval. */
   struct timeval get_time_start(void) const;
   /** \brief Returns the end time as passed with set_time_interval. */
@@ -199,7 +201,7 @@ public:
 #endif
 
 private:
-  friend unsigned long list_allocations_on(debug_ct&, ooam_filter_ct const&);
+  friend unsigned long list_allocations_on(debug_ct&, alloc_filter_ct const&);
 #if CWDEBUG_MARKER
   friend class marker_ct;
 #endif
@@ -213,4 +215,4 @@ private:
 } // namespace libcwd
 
 #endif // CWDEBUG_ALLOC
-#endif // LIBCWD_CLASS_OOAM_FILTER_H
+#endif // LIBCWD_CLASS_ALLOC_FILTER_H

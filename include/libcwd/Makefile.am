@@ -25,7 +25,7 @@ libcwd_HEADERS = \
 	class_location.inl \
 	class_marker.h \
 	class_object_file.h \
-	class_ooam_filter.h \
+	class_alloc_filter.h \
 	class_rcfile.h \
 	control_flag.h \
 	core_dump.h \

@@ -18,13 +18,13 @@
 #ifndef LIBCWD_CLASS_MARKER_H
 #define LIBCWD_CLASS_MARKER_H
 
-#ifndef LIBCWD_CLASS_OOAM_FILTER_H
-#include <libcwd/class_ooam_filter.h>
+#ifndef LIBCWD_CLASS_ALLOC_FILTER_H
+#include <libcwd/class_alloc_filter.h>
 #endif
 
 namespace libcwd {
 
-extern ooam_filter_ct const default_ooam_filter;
+extern alloc_filter_ct const default_ooam_filter;
 
 /**
  * \brief A memory allocation marker.
@@ -33,7 +33,7 @@ extern ooam_filter_ct const default_ooam_filter;
 class marker_ct {
 private:
   void register_marker(char const* label);
-  ooam_filter_ct const& M_filter;
+  alloc_filter_ct const& M_filter;
   bool M_make_invisible;
 public:
   /** \brief Construct a marker with label \p label.
@@ -47,7 +47,7 @@ public:
    * If \a make_invisible is set true then all filtered allocations will be made
    * \ref group_invisible "invisible" at the destruction of the marker.
    */
-  marker_ct(char const* label, ooam_filter_ct const& filter, bool make_invisible = false) :
+  marker_ct(char const* label, alloc_filter_ct const& filter, bool make_invisible = false) :
       M_filter(filter), M_make_invisible(make_invisible) { register_marker(label); }
 
   /** \brief Construct a marker with label \p label. */
@@ -64,7 +64,7 @@ public:
    * If \a make_invisible is set true then all filtered allocations will be made
    * \ref group_invisible "invisible" at the destruction of the marker.
    */
-  marker_ct(ooam_filter_ct const& filter, bool make_invisible = false) :
+  marker_ct(alloc_filter_ct const& filter, bool make_invisible = false) :
       M_filter(filter), M_make_invisible(make_invisible) { register_marker("An allocation marker"); }
 
   /** \brief Construct a marker with label "An allocation marker". */

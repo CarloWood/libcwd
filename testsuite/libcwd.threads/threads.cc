@@ -101,7 +101,7 @@ void set_margin(void)
 libtw::debug::debug_ct leak_do;
 
 struct timeval start;
-libtw::debug::ooam_filter_ct leak_filter(libtw::debug::show_time);
+libtw::debug::alloc_filter_ct leak_filter(libtw::debug::show_time);
 #endif
 
 #undef MAIN_FUNCTION
@@ -315,7 +315,7 @@ int main(void)
 
   Debug( dc::malloc.on() );
 #if CWDEBUG_ALLOC
-  libcwd::ooam_filter_ct filter(libcwd::show_allthreads);
+  libcwd::alloc_filter_ct filter(libcwd::show_allthreads);
   Debug( list_allocations_on(libcw_do, filter) );
 #endif
   Dout(dc::notice, "Exiting from main()");

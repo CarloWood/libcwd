@@ -9,9 +9,9 @@
 <hr><h2>Detailed Description</h2>
 
 The format of the \link group_overview Overview Of Allocated Memory \endlink can be altered
-and/or the content can be filtered by passing an object of type libcwd::ooam_filter_ct 
+and/or the content can be filtered by passing an object of type libcwd::alloc_filter_ct 
 to the function \ref list_allocations_on.  This object is constructed out of
-\c ooam_format_t constants which act as bits in a bit-mask.
+\c alloc_format_t constants which act as bits in a bit-mask.
 
 It is possible to include the time at which each allocation
 was made by passing the bit \c show_time.  This
@@ -43,7 +43,7 @@ The flags can be combined with the bit-wise OR operator.
 
 \code
 #ifdef CWDEBUG
-libcwd::ooam_filter_ct filter(libcwd::show_time | libcwd::show_path);
+libcwd::alloc_filter_ct filter(libcwd::show_time | libcwd::show_path);
 #endif
 
 Debug( list_allocations_on(libcw_do, filter) );
@@ -57,7 +57,7 @@ from which an allocation was made and whether or not an AllocTag was used for th
 allocation.
 
 It is possible to give a time interval of the allocations that should be shown.
-For each of the limits (start and end) one can use the constant struct timeval libcwd::ooam_filter_ct::no_time_limit
+For each of the limits (start and end) one can use the constant struct timeval libcwd::alloc_filter_ct::no_time_limit
 to indicate that there is no limit required.
 
 It is also possible to specify a list of wildcard masks (of the kind where a '*' matches anything) that
@@ -78,11 +78,11 @@ In order to show all allocations that were done one hour or more ago, one could 
 
 \code
 #ifdef CWDEBUG
-libcwd::ooam_filter_ct filter(libcwd::show_time);
+libcwd::alloc_filter_ct filter(libcwd::show_time);
 struct timeval end;
 gettimeofday(&end, 0);
 end.tv_sec -= 3600;
-filter.set_time_interval(libcwd::ooam_filter_ct::no_time_limit, end);
+filter.set_time_interval(libcwd::alloc_filter_ct::no_time_limit, end);
 #endif
 
 Debug( list_allocations_on(libcw_do, filter) );
@@ -93,7 +93,7 @@ leaving the allocations that belong to the executable), one could do:
 
 \code
 #ifdef CWDEBUG
-libcwd::ooam_filter_ct filter(libcwd::show_objectfile);
+libcwd::alloc_filter_ct filter(libcwd::show_objectfile);
 std::vector<std::string> masks;
 masks.push_back("lib*");
 filter.hide_objectfiles_matching(masks);
@@ -107,7 +107,7 @@ of installed libraries (like the STL), one could do:
 
 \code
 #ifdef CWDEBUG
-libcwd::ooam_filter_ct filter(libcwd::show_path);
+libcwd::alloc_filter_ct filter(libcwd::show_path);
 std::vector<std::string> masks;
 masks.push_back("/usr/include/*.h");
 filter.hide_sourcefiles_matching(masks);
@@ -121,7 +121,7 @@ added an \link group_annotation AllocTag \endlink for, one could do:
 
 \code
 #ifdef CWDEBUG
-libcwd::ooam_filter_ct filter;
+libcwd::alloc_filter_ct filter;
 filter.hide_untagged_allocations();
 #endif
 

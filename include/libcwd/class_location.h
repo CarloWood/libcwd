@@ -84,7 +84,7 @@ protected:
   bool M_known;					//!< Set when M_filepath (and M_filename) point to valid data and M_line contains a valid line number.
 private:
 #if CWDEBUG_ALLOC
-  friend class ooam_filter_ct;
+  friend class alloc_filter_ct;
   mutable _private_::hidden_st M_hide;		// Indicates if this location is filtered by the current filter.
 #endif
 
@@ -208,10 +208,10 @@ public:
   bool initialization_delayed(void) const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
   void const* unknown_pc(void) const { return (!M_object_file && M_func == unknown_function_c) ? M_unknown_pc : initialization_delayed() ? M_initialization_delayed : 0; }
 #if CWDEBUG_ALLOC
-  void handle_delayed_initialization(ooam_filter_ct const& filter);
+  void handle_delayed_initialization(alloc_filter_ct const& filter);
   bool hide_from_alloc_list(void) const { return M_hide == _private_::filtered_location; }
   bool new_location(void) const { return M_hide == _private_::new_location; }
-  void synchronize_with(ooam_filter_ct const&) const;
+  void synchronize_with(alloc_filter_ct const&) const;
 #endif
 };
 

@@ -49,7 +49,7 @@ MAIN_FUNCTION
   // List all debug channels
   Debug( list_channels_on(libcw_do) );
 
-  ooam_filter_ct filter(0);
+  alloc_filter_ct filter(0);
 #if CWDEBUG_LOCATION
   Debug(dc::malloc.off());
   std::vector<std::string> masks;

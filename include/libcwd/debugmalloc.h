@@ -50,8 +50,8 @@
 #ifndef LIBCWD_MACRO_ALLOCTAG_H
 #include <libcwd/macro_AllocTag.h>
 #endif
-#ifndef LIBCWD_CLASS_OOAM_FILTER_H
-#include <libcwd/class_ooam_filter.h>
+#ifndef LIBCWD_CLASS_ALLOC_FILTER_H
+#include <libcwd/class_alloc_filter.h>
 #endif
 #ifndef LIBCW_SYS_TIME_H
 #define LIBCW_SYS_TIME_H
@@ -156,7 +156,7 @@ __inline__ void set_invisible_off(void) { }
 namespace libcwd {
 
 #if CWDEBUG_ALLOC
-extern unsigned long list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& format);
+extern unsigned long list_allocations_on(debug_ct& debug_object, alloc_filter_ct const& format);
 extern unsigned long list_allocations_on(debug_ct& debug_object);
 #else // !CWDEBUG_ALLOC
 __inline__ void list_allocations_on(debug_ct&) { }

@@ -84,13 +84,32 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
-<DT><B>27 Jun 2004</B>
+<DT><B>12 Jul 2004</B>
 <P class="news">libcwd-0.99.37 is released.&nbsp;
-This release makes it possible to filter the list of allocated memory blocks on the
-function that an allocation was done from.&nbsp; This makes it in principle possible
-to print a precise overview of leaked memory at process termination by suppressing
-a list of "leaks" that are not really leaks.&nbsp;
-Mail me if you want to know how that is done.</P>
+This release concentrates on improving memory leak detection.&nbsp;
+It contains unfortunately another major API change: <code>ooam_filter_ct</code> was
+renamed to <code>alloc_filter_ct</code> and <code>ooam_format_t</code> has likewise
+been renamed to <code>alloc_format_ct</code>.</P>
+<P class="news">With this release it is possible to filter the list
+of printed allocations on allocation-function.&nbsp;
+This makes it in principle possible to print a precise overview of leaked memory
+at process termination by suppressing a list of "leaks" that are not really leaks.&nbsp;
+Memory allocations now print the location where they are done at the moment they
+are done - and not only when they are freed.&nbsp;
+The memory allocation filter got a new flag <code>show_function</code> which causes
+the mangled allocation-function to be shown (even when the sourcefile and line
+number are known).&nbsp; I left this deliberately in mangled form because it
+is more likely to be used in a regular expression search in your debug output
+log file than to be understood by a human (and you can always use c++filt to
+demangle it).&nbsp;
+Finally, the function <code>list_allocations_on</code> now returns the number
+of visible, non-filtered allocations; a value larger than 0 can then be
+interpreted as 'memory leak'.&nbsp;
+A pair of functions has been added to more easily control whether third-party
+allocations are invisible or not: <code>libcwd::set_invisible_on</code> and
+<code>libcwd::set_invisible_off</code>.&nbsp;
+Memory allocated while this flag is set will be invisible and the <tt>MALLOC</tt>
+showing the allocation will have '(invisible)' appended.</P>
 <DT><B>24 Jun 2004</B>
 <P class="news">libcwd-0.99.36 is released.&nbsp;
 A very minor bug fix release.</P>

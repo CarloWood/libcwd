@@ -1,16 +1,11 @@
 libcwd-0.99.37
 
-	Two new function have been added to namespace libcwd:
-	set_invisible_on() and set_invisible_off().  These should
-	be called in pairs, just like turning off and on the
-	debug channels.  Any memory that is allocated while
-	invisibility is turned on will be invisible (hidden
-	from the allocated memory overview and any leak detection
-	you might have) automatically.
-
-	libcwd::ooam_filter_ct does not allocate normal memory anymore
-	(only `internal' memory) making it better suitable to use it
-	as a filter to show memory leaks at program termination.
+	The location at which memory is allocated is now also
+	printed at the moment the memory is allocated and not only
+	when it is being deleted. It is appended after the
+	return value of the allocation function in square brackets.
+	For example:
+	MALLOC  : malloc(52) = 0x8076528 [ld-linux.so.2:_dl_map_object_deps]
 
 	list_allocations_on now returns the number of printed
 	allocations (unfiltered and not invisible). If that number
@@ -23,16 +18,42 @@ libcwd-0.99.37
 	being filtered by the ooam_filter_ct object that was passed).
 
 	Added was a function ooam_filter_ct::hide_functions_matching
-	that allows to hide allocations from the overview of allocated
-	memory that was allocated from a certain function (and shared
-        library if appropriate).
+	that allows to hide allocations from the Overview Of Allocated
+	Memory that were allocated from a certain function (and a
+	certain shared library, if needed).
 
-	A new flag ooam_filter_ct::show_function was added, causing
+	A new flag alloc_filter_ct::show_function was added, causing
 	list_allocations_on to print the mangled function name from
 	which an allocation was done, even when the sourcefile and
 	line number is known.
 
+	Two new functions have been added to namespace libcwd:
+	set_invisible_on() and set_invisible_off().  These should
+	be called in pairs, just like turning off and on the
+	debug channels.  Any memory that is allocated while
+	invisibility is turned on will be invisible (hidden
+	from the allocated memory overview and any leak detection
+	you might have) automatically. Note that using this is
+	merely a special case of using a memory marker with
+	<code>invisible</code> set and using a filter that filters
+	everything; you might still want to use a marker and
+	use its filter for fine tuning, instead.
+
+	libcwd::ooam_filter_ct does not allocate normal memory anymore
+	(only `internal' memory) making it better suitable to use it
+	as a filter to show memory leaks at program termination.
+
 	Support for automake version 1.8 has been added.
+
+	API changes:
+
+	Two classes have been renamed:
+	ooam_filter_ct --> alloc_filter_ct
+	ooam_format_t  --> alloc_format_ct
+	Where 'alloc' means 'memory allocation(s)'.
+	The reason for the change is that the filter is being used
+	in more and more places that are not directly related to the
+	Overview Of Allocated Memory (ooam).
 
 libcwd-0.99.36
 

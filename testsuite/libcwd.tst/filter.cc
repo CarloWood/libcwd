@@ -60,7 +60,7 @@ MAIN_FUNCTION
   do
   {
     using namespace libcwd;
-    ooam_filter_ct filter(
+    alloc_filter_ct filter(
 #if CWDEBUG_LOCATION
       show_objectfile|show_path
 #else
@@ -86,7 +86,7 @@ MAIN_FUNCTION
   do
   {
     using namespace libcwd;
-    ooam_filter_ct filter(
+    alloc_filter_ct filter(
 #if CWDEBUG_LOCATION
       show_objectfile|show_path
 #else
@@ -106,7 +106,7 @@ MAIN_FUNCTION
 #else // !STATIC
 
 #if CWDEBUG_ALLOC
-  libcwd::ooam_filter_ct list_filter(
+  libcwd::alloc_filter_ct list_filter(
 #if CWDEBUG_LOCATION
       libcwd::show_objectfile|
 #endif
@@ -163,7 +163,7 @@ MAIN_FUNCTION
   f3 = (f2_type)dlsym(handle, sym3);
 
 #if CWDEBUG_ALLOC
-  libcwd::ooam_filter_ct marker1_filter(
+  libcwd::alloc_filter_ct marker1_filter(
 #if CWDEBUG_LOCATION
       libcwd::show_objectfile|libcwd::show_path
 #else
@@ -171,7 +171,7 @@ MAIN_FUNCTION
 #endif
       );
   marker1_filter.hide_untagged_allocations(true);
-  libcwd::ooam_filter_ct marker2_filter(
+  libcwd::alloc_filter_ct marker2_filter(
 #if CWDEBUG_LOCATION
       libcwd::show_objectfile|libcwd::show_path
 #else

@@ -19,8 +19,8 @@
 #ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
-#ifndef LIBCWD_CLASS_OOAM_FILTER_H
-#include <libcwd/class_ooam_filter.h>
+#ifndef LIBCWD_CLASS_ALLOC_FILTER_H
+#include <libcwd/class_alloc_filter.h>
 #endif
 
 namespace libcwd {
@@ -44,16 +44,16 @@ namespace workaround_20040420 = ::libcwd::_private_::workaround_20040420;
 #endif
 
 #if CWDEBUG_LOCATION
-int ooam_filter_ct::S_id = 0;			// Id of ooam_filter_ct object that is currently synchronized with the other
+int alloc_filter_ct::S_id = 0;			// Id of alloc_filter_ct object that is currently synchronized with the other
 						// global variables of the critical area(s) of list_allocations_instance.
-int ooam_filter_ct::S_next_id = 0;		// Id of the last ooam_filter_ct object that was created.
+int alloc_filter_ct::S_next_id = 0;		// Id of the last alloc_filter_ct object that was created.
 #endif
 
 // Use '1' instead of '0' because 0 is more likely to be used by the user
 // as an extreme but real limit.
-struct timeval const ooam_filter_ct::no_time_limit = { 1, 0 };
+struct timeval const alloc_filter_ct::no_time_limit = { 1, 0 };
 
-void ooam_filter_ct::set_flags(ooam_format_t flags)
+void alloc_filter_ct::set_flags(alloc_format_t flags)
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -66,13 +66,13 @@ void ooam_filter_ct::set_flags(ooam_format_t flags)
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
-ooam_format_t ooam_filter_ct::get_flags(void) const
+alloc_format_t alloc_filter_ct::get_flags(void) const
 {
-  // Makes little sense to add locking here (ooam_format_t is an atomic type).
+  // Makes little sense to add locking here (alloc_format_t is an atomic type).
   return (M_flags & format_mask);
 }
 
-void ooam_filter_ct::set_time_interval(struct timeval const& start, struct timeval const& end)
+void alloc_filter_ct::set_time_interval(struct timeval const& start, struct timeval const& end)
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -85,7 +85,7 @@ void ooam_filter_ct::set_time_interval(struct timeval const& start, struct timev
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
-struct timeval ooam_filter_ct::get_time_start(void) const
+struct timeval alloc_filter_ct::get_time_start(void) const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -99,7 +99,7 @@ struct timeval ooam_filter_ct::get_time_start(void) const
   return res;
 }
 
-struct timeval ooam_filter_ct::get_time_end(void) const
+struct timeval alloc_filter_ct::get_time_end(void) const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -114,7 +114,7 @@ struct timeval ooam_filter_ct::get_time_end(void) const
 }
 
 #if CWDEBUG_LOCATION
-std::vector<std::string> ooam_filter_ct::get_objectfile_list(void) const
+std::vector<std::string> alloc_filter_ct::get_objectfile_list(void) const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -129,7 +129,7 @@ std::vector<std::string> ooam_filter_ct::get_objectfile_list(void) const
   return res;
 }
 
-std::vector<std::string> ooam_filter_ct::get_sourcefile_list(void) const
+std::vector<std::string> alloc_filter_ct::get_sourcefile_list(void) const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -144,7 +144,7 @@ std::vector<std::string> ooam_filter_ct::get_sourcefile_list(void) const
   return res;
 }
 
-std::vector<std::pair<std::string, std::string> > ooam_filter_ct::get_function_list(void) const
+std::vector<std::pair<std::string, std::string> > alloc_filter_ct::get_function_list(void) const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -160,7 +160,7 @@ std::vector<std::pair<std::string, std::string> > ooam_filter_ct::get_function_l
   return res;
 }
 
-void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& masks)
+void alloc_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& masks)
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -175,7 +175,7 @@ void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& m
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
-void ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& masks)
+void alloc_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& masks)
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -190,7 +190,7 @@ void ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& m
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
-void ooam_filter_ct::hide_functions_matching(std::vector<std::pair<std::string, std::string> > const& masks)
+void alloc_filter_ct::hide_functions_matching(std::vector<std::pair<std::string, std::string> > const& masks)
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -206,7 +206,7 @@ void ooam_filter_ct::hide_functions_matching(std::vector<std::pair<std::string, 
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
-_private_::hidden_st ooam_filter_ct::check_hide(char const* filepath) const
+_private_::hidden_st alloc_filter_ct::check_hide(char const* filepath) const
 {
   for (vector_type::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
     if (_private_::match(iter->data(), iter->length(), filepath))
@@ -214,7 +214,7 @@ _private_::hidden_st ooam_filter_ct::check_hide(char const* filepath) const
   return _private_::unfiltered_location;
 }
 
-_private_::hidden_st ooam_filter_ct::check_hide(object_file_ct const* object_file, char const* mangled_function_name) const
+_private_::hidden_st alloc_filter_ct::check_hide(object_file_ct const* object_file, char const* mangled_function_name) const
 {
   char const* file_path = object_file->filepath();
   char const* file_name = object_file->filename();
@@ -237,7 +237,7 @@ _private_::hidden_st ooam_filter_ct::check_hide(object_file_ct const* object_fil
 #endif // CWDEBUG_LOCATION
 
 #if CWDEBUG_LOCATION
-void ooam_filter_ct::M_synchronize(void) const
+void alloc_filter_ct::M_synchronize(void) const
 {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
   LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
@@ -269,7 +269,7 @@ void ooam_filter_ct::M_synchronize(void) const
 }
 #endif
 
-ooam_filter_ct::ooam_filter_ct(ooam_format_t flags) : M_flags(flags & format_mask), M_start(no_time_limit), M_end(no_time_limit)
+alloc_filter_ct::alloc_filter_ct(alloc_format_t flags) : M_flags(flags & format_mask), M_start(no_time_limit), M_end(no_time_limit)
 {
 #if CWDEBUG_LOCATION
 #if CWDEBUG_DEBUGT

@@ -39,7 +39,7 @@ libcwd_la_SOURCES = \
 	debug.cc \
 	debugmalloc.cc \
 	demangle3.cc \
-	ooam_filter.cc \
+	alloc_filter.cc \
 	strerrno.cc \
 	type_info.cc \
 	function.cc \
@@ -57,7 +57,7 @@ libcwd_r_la_SOURCES = \
 	debug.cc \
 	debugmalloc.cc \
 	demangle3.cc \
-	ooam_filter.cc \
+	alloc_filter.cc \
 	strerrno.cc \
 	type_info.cc \
 	function.cc \
