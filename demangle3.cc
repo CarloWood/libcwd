@@ -1294,7 +1294,8 @@ namespace {
 	      failure = true;
 	      break;
 	    }
-	    // Return type.  FIXME: constructors, destructors and conversion operators don't have a return type.
+	    // Return type.
+	    // Constructors, destructors and conversion operators don't have a return type, but seem to never get here.
 	    if (!decode_type(output))						// substitution: "F<R><B>E" (<R> and <B> recursive).
 	    {
 	      failure = true;
@@ -1342,7 +1343,7 @@ namespace {
 	{
 	  // <Q>F<R><B>E 		==> R (Q)B			"<R>", "<B>" (<B> recursive) and "F<R><B>E".
 	  eat_current();
-	  // Return type.  FIXME: constructors, destructors and conversion operators don't have a return type.
+	  // Return type.
 	  if (!decode_type(output))				// substitution: "<R>".
 	  {
 	    failure = true;
