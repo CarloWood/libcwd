@@ -450,3 +450,4 @@ void PERFstats_plot(int certainty_index)
       count_array[event].erase(count_array[event].begin(), count_array[event].end());
   }
 }
+
