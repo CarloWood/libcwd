@@ -1607,7 +1607,7 @@ debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
 
   if ((*i).second.a_alloc_node.get()->next_list())
   {
-    string margin = ::libcw::debug::libcw_do.get_margin();
+    string margin = NAMESPACE_LIBCW_DEBUG::libcw_do.get_margin();
     Debug( libcw_do.set_margin(margin + "  * ") );
     Dout( dc::warning, "Memory leak detected!" );
     (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::channels::dc::warning);

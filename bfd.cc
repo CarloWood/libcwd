@@ -226,7 +226,7 @@ namespace {	// Local stuff
     {
       if (bfd_get_error() == bfd_error_file_ambiguously_recognized)
       {
-        Dout(dc::warning, "bfd_check_format_matches: ambiguously object format, recognized formats: " << cwprint(::libcw::debug::environment_ct(matching)));
+        Dout(dc::warning, "bfd_check_format_matches: ambiguously object format, recognized formats: " << cwprint(NAMESPACE_LIBCW_DEBUG::environment_ct(matching)));
 	free(matching);
       }
       DoutFatal(dc::fatal, filename << ": can not get addresses from object file: " << bfd_errmsg(bfd_get_error()));

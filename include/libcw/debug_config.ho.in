@@ -117,8 +117,10 @@
 //
 
 #ifdef DEBUG
+#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
+#endif
 
 extern unsigned long config_signature_lib;
 static unsigned long const config_signature_header = (0
@@ -147,8 +149,10 @@ inline void check_configuration(void) {
     conf_check_failed();
 }
 
+#ifndef DEBUGNONAMESPACE
   } // namespace ::libw::debug
 }
-#endif
+#endif // DEBUGNONAMESPACE
+#endif // DEBUG
 
 #endif // LIBCW_DEBUGGING_DEFS_H

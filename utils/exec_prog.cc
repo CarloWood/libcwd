@@ -51,7 +51,7 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
     if (!dc::debug.is_on())
       libcw_do.off()
   );
-  Dout(dc::debug|continued_cf, "exec_prog(\"" << prog_name << "\", " << cwprint(::libcw::debug::argv_ct(argv)) << ", " << cwprint(::libcw::debug::environment_ct(envp)) << ", decode) = ");
+  Dout(dc::debug|continued_cf, "exec_prog(\"" << prog_name << "\", " << cwprint(NAMESPACE_LIBCW_DEBUG::argv_ct(argv)) << ", " << cwprint(NAMESPACE_LIBCW_DEBUG::environment_ct(envp)) << ", decode) = ");
 
   int stdout_filedes[2];
   int stderr_filedes[2];
@@ -157,9 +157,9 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
 	Dout(dc::system|continued_cf, "poll(");
 	ret = poll(ufds, number_of_fds, -1);
 #ifdef DEBUG
-	if (!::libcw::debug::libcw_do._off)
-	  if ((::libcw::debug::libcw_do|::libcw::debug::channels::dc::continued).on)
-	    print_poll_array_on(*::libcw::debug::libcw_do.current_oss, ufds, number_of_fds);
+	if (!NAMESPACE_LIBCW_DEBUG::libcw_do._off)
+	  if ((NAMESPACE_LIBCW_DEBUG::libcw_do|NAMESPACE_LIBCW_DEBUG::channels::dc::continued).on)
+	    print_poll_array_on(*NAMESPACE_LIBCW_DEBUG::libcw_do.current_oss, ufds, number_of_fds);
 	Dout(dc::finish|cond_error_cf(ret == -1), ", " << number_of_fds << ", -1) = " << ret);
 #endif
 	if (ret == -1)
