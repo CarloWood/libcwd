@@ -4,8 +4,8 @@ libcwd-0.99.3
 	in iomanip.h has been used.  It turned out that not only
 	gcc-2.95.2 but even snap shot 2.96-20000724 has problems with
 	the (ISO C++ correct) construct that was used.  The new
-	workaround works better and is not any longer dependend on the
-	CXXFLAGS being used.
+	work around works better and is not any longer dependend on the
+	value of CXXFLAGS.
 
 	Support for solaris has been added.  Tests were done on a 
 	sparc-sun-solaris2.7.
