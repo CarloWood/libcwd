@@ -850,6 +850,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // cwbfd::
       int ST_decode_ldd(char const* buf, size_t len)
       {
+	LIBCWD_TSD_DECLARATION
 	for (char const* p = buf; p < &buf[len]; ++p)
 	  if (p[0] == '=' && p[1] == '>' && p[2] == ' ' || p[2] == '\t')
 	  {
@@ -862,7 +863,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    for (q = p; q < &buf[len] && *q > ' '; ++q);
 	    if (*q == '\n')	// This ldd doesn't return an offset (ie, on solaris).
 	    {
+	      set_alloc_checking_off(LIBCWD_TSD);
 	      ST_shared_libs.push_back(my_link_map(p, q - p, unknown_l_addr));
+	      set_alloc_checking_on(LIBCWD_TSD);
 	      break;
 	    }
 	    for (char const* r = q; r < &buf[len]; ++r)
@@ -870,7 +873,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	      {
 		char* s;
 		void* addr = reinterpret_cast<void*>(strtol(++r, &s, 0));
+		set_alloc_checking_off(LIBCWD_TSD);
 		ST_shared_libs.push_back(my_link_map(p, q - p, addr));
+		set_alloc_checking_on(LIBCWD_TSD);
 		break;
 	      }
 	    break;
