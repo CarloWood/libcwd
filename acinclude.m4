@@ -701,35 +701,37 @@ dnl CW_SETUP_RPM_DIRS
 dnl Set up rpm directory when on linux and in maintainer-mode
 AC_DEFUN(CW_SETUP_RPM_DIRS,
 [SPECCHANGELOG=spec.changelog
-if test "$USE_MAINTAINER_MODE" = yes && expr "$host" : ".*linux.*" >/dev/null; then
+if test "$USE_MAINTAINER_MODE" = yes; then
   AC_SUBST_FILE(SPECCHANGELOG)
   LSMFILE="$PACKAGE.lsm"
   AC_SUBST(LSMFILE)
   SPECFILE="$PACKAGE.spec"
   AC_SUBST(SPECFILE)
-  top_builddir="`pwd`"
-  test -d rpm || mkdir rpm
-  cd rpm
-  test -d BUILD || mkdir BUILD
-  test -d SOURCES || mkdir SOURCES
-  test -d SRPMS || mkdir SRPMS
-  test -d RPMS || mkdir RPMS
-  cd RPMS
-  TARGET=i386
-  AC_SUBST(TARGET)
-  test -d $TARGET || mkdir $TARGET
-  cd ..
-  echo "%_require_vendor 1" > macros
-  echo "%_require_distribution 1" >> macros
-  echo "%_distribution http://sourceforge.net/project/showfiles.php?group_id=354" >> macros
-  echo "%vendor Carlo Wood" >> macros
-  echo "%_topdir "$top_builddir"/rpm" >> macros
-  echo "%_pgp_path "$PGPPATH >> macros
-  echo "%_signature pgp5" >> macros
-  echo "%_pgp_name carlo@alinoe.com" >> macros
-  echo "macrofiles: /usr/lib/rpm/macros:"$top_builddir"/rpm/macros" > rpmrc
-  echo "buildarchtranslate: i686: i386" >> rpmrc
-  cd ..
+  if expr "$host" : ".*linux.*" >/dev/null; then
+    top_builddir="`pwd`"
+    test -d rpm || mkdir rpm
+    cd rpm
+    test -d BUILD || mkdir BUILD
+    test -d SOURCES || mkdir SOURCES
+    test -d SRPMS || mkdir SRPMS
+    test -d RPMS || mkdir RPMS
+    cd RPMS
+    TARGET=i386
+    AC_SUBST(TARGET)
+    test -d $TARGET || mkdir $TARGET
+    cd ..
+    echo "%_require_vendor 1" > macros
+    echo "%_require_distribution 1" >> macros
+    echo "%_distribution http://sourceforge.net/project/showfiles.php?group_id=354" >> macros
+    echo "%vendor Carlo Wood" >> macros
+    echo "%_topdir "$top_builddir"/rpm" >> macros
+    echo "%_pgp_path "$PGPPATH >> macros
+    echo "%_signature pgp5" >> macros
+    echo "%_pgp_name carlo@alinoe.com" >> macros
+    echo "macrofiles: /usr/lib/rpm/macros:"$top_builddir"/rpm/macros" > rpmrc
+    echo "buildarchtranslate: i686: i386" >> rpmrc
+    cd ..
+  fi
 fi
 ])
 
