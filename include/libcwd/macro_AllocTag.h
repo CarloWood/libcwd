@@ -79,13 +79,13 @@ extern void register_external_allocation(void const* ptr, size_t size);
  * 
  * \code
  * char* buf = (char*)malloc(BUFSIZE);
- * AllocTag(buf, "Temporal buffer");
+ * AllocTag(buf, "Temporary buffer");
  * \endcode
  * 
  * would result, in the Allocated memory Overview, in a line like:
  * 
  * \exampleoutput <PRE>
- * malloc    0x804ff38 char [512], (size = 512); Temporal buffer</PRE>
+ * malloc    0x804ff38 char [512], (size = 512); Temporary buffer</PRE>
  * \endexampleoutput
  * 
  * And,
