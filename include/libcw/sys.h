@@ -21,7 +21,7 @@
 // Type of optval
 //
 
-#ifdef __linux
+#if defined(__linux) || defined(__FreeBSD__)
   typedef void* optval_t;
 #endif
 
@@ -29,30 +29,32 @@
 // malloc overhead
 //
 
-#ifdef __linux			// All OS's that use gnu malloc
+#if defined(__linux) || defined(__FreeBSD__)		// All OS's that use gnu malloc
   unsigned int const malloc_overhead_c = 0;
-#endif // __linux
+#endif
 
 //
 // Need word alignment or not
 //
 
-#ifdef __linux
+#ifdef __i386__
   #undef NEED_WORD_ALIGNMENT
+#else
+  #error "Unknown architecture"
 #endif
 
 //
 // Define blocking method
 //
 
-#ifdef __linux
+#if defined(__linux) || defined(__FreeBSD__)
   #define NBLOCK_POSIX
 #endif
 
 #if !defined(NBLOCK_POSIX) && !defined(NBLOCK_BSD) && !defined(NBLOCK_SYSV)
   // You must determine what is the correct non-blocking type for your
   // operating system. Please adjust the lines above to fix this and
-  // mail the author (carlo@runaway.xs4all.nl).
+  // mail the author (libcw@alinoe.com).
   #error "Undefined NBLOCK_... macro"
 #endif
 

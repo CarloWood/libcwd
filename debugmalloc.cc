@@ -729,7 +729,7 @@ size_t const MAGIC_MALLOC_END = 0x335bc0fa;
 
 #  ifdef NEED_WORD_ALIGNMENT
 #define SIZE_PLUS_TWELVE(s) ((((s) + sizeof(size_t) - 1) & ~(sizeof(size_t) - 1)) + 3 * sizeof(size_t))
-#define SIZE_PLUS_FOUR(s) ((((s) + sizeof(size_t)) & ~(sizeof(size_t) - 1)) + sizeof(size_t))
+#define SIZE_PLUS_FOUR(s) ((((s) + sizeof(size_t) - 1) & ~(sizeof(size_t) - 1)) + sizeof(size_t))
 #  else // !NEED_WORD_ALIGNMENT
 #define SIZE_PLUS_TWELVE(s) ((s) + 3 * sizeof(size_t))
 #define SIZE_PLUS_FOUR(s) ((s) + sizeof(size_t))
