@@ -168,6 +168,13 @@ AC_REQUIRE_CPP
 
 dnl Disable building static libraries by default
 AC_DISABLE_STATIC
+case "$host" in
+  *openbsd*)
+    # Work around for a bug in libtool/openbsd
+    LD="g++ -shared -nostdlib"
+    export LD
+    ;;
+esac
 AM_PROG_LIBTOOL
 
 dnl Configuration defines of debug_config.h

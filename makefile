@@ -2,7 +2,7 @@
 
 maintainer-startup:
 	(lt_dir=`which libtool | sed -e 's%/bin/%/share/%'`; \
-	 for i in config.guess config.sub ltmain.sh; do cp $$lt_dir/$$i .; done)
+	 for i in config.guess config.sub ltconfig ltmain.sh; do cp $$lt_dir/$$i .; done)
 	aclocal
 	autoheader
 	autoconf
@@ -13,6 +13,6 @@ maintainer-startup:
 	 eval "am_dir=\"$$tmp_am_dir\""; \
 	 for i in install-sh missing mkinstalldirs; do cp $$am_dir/$$i .; done; \
 	 automake)
-	@for i in config.guess config.sub ltmain.sh install-sh missing mkinstalldirs; do \
+	@for i in config.guess config.sub ltconfig ltmain.sh install-sh missing mkinstalldirs; do \
 	  if test ! -e $$i; then echo "Warning: missing \"$$i\" in `pwd`"; fi; \
 	done
