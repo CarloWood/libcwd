@@ -128,21 +128,18 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
 
 #ifdef DEBUGDEBUG
 namespace _private_ {
-#if defined(__FreeBSD__) && __GNUC__ < 3
-  // The other thing is not emitted apparently.
-  enum non_allocating_fake_ostream_using_write_ct { raw_write };
-#else
-  static class non_allocating_fake_ostream_using_write_ct { } const raw_write = { };
+  // Dummy type used as fake 'ostream' to write to write(2).
+  enum raw_write_nt { raw_write };
 #endif
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, char const* data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, char const* data)
 {
   write(2, data, strlen(data));
   return raw_write;
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, void const* data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, void const* data)
 {
   size_t dat = (size_t)data;
   write(2, "0x", 2);
@@ -159,7 +156,7 @@ inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_
   return raw_write;
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, bool data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, bool data)
 {
   if (data)
     write(2, "true", 4);
@@ -168,7 +165,7 @@ inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_
   return raw_write;
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, char data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, char data)
 {
   char c[1];
   c[0] = data;
@@ -176,7 +173,7 @@ inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_
   return raw_write;
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, unsigned long data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, unsigned long data)
 {
   char c[11];
   char* p = &c[11];
@@ -190,7 +187,7 @@ inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_
   return raw_write;
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, long data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, long data)
 {
   if (data < 0)
   {
@@ -200,17 +197,17 @@ inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_
   return operator<<(raw_write, (unsigned long)data);
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, int data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, int data)
 {
   return operator<<(raw_write, (long)data);
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, unsigned int data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, unsigned int data)
 {
   return operator<<(raw_write, static_cast<unsigned long>(data));
 }
 
-inline _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, libcw::debug::_private_::internal_string const& data)
+inline _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, libcw::debug::_private_::internal_string const& data)
 {
   write(2, data.data(), data.size());
   return raw_write;

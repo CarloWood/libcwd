@@ -559,7 +559,7 @@ void memblk_types_label_ct::print_on(std::ostream& os) const
 }
 
 #ifdef DEBUGDEBUGMALLOC
-_private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, memblk_key_ct const& data)
+_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, memblk_key_ct const& data)
 {
   write(2, "<memblk_key_ct>", 15);
   return raw_write;
@@ -844,7 +844,7 @@ struct dm_location_ct : public location_ct {
   void print_on(std::ostream& os) const;
   friend _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, dm_location_ct const& data);
 #ifdef DEBUGDEBUGOUTPUT
-  friend _private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& os, dm_location_ct const& data);
+  friend _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& os, dm_location_ct const& data);
 #endif
 };
 #endif // DEBUGUSEBFD
@@ -872,7 +872,7 @@ _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, d
 }
 
 #ifdef DEBUGDEBUGOUTPUT
-_private_::non_allocating_fake_ostream_using_write_ct const& operator<<(_private_::non_allocating_fake_ostream_using_write_ct const& raw_write, dm_location_ct const& data)
+_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, dm_location_ct const& data)
 {
   size_t len = strlen(data.M_filename);
   if (len < 20)
