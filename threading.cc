@@ -175,7 +175,7 @@ int pthread_lock_interface_ct::trylock(void)
   bool success = pthread_mutex_trylock(ptr);
   if (success)
   {
-    LIBCWD_TSD_DECLARATION
+    LIBCWD_TSD_DECLARATION;
     _private_::test_for_deadlock(pthread_lock_interface_instance, __libcwd_tsd, __builtin_return_address(0));
     __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
     if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
@@ -200,7 +200,7 @@ int pthread_lock_interface_ct::trylock(void)
 void pthread_lock_interface_ct::lock(void)
 {
 #if CWDEBUG_DEBUGT
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   __libcwd_tsd.waiting_for_rdlock = pthread_lock_interface_instance;
 #endif
   pthread_mutex_lock(ptr);
@@ -226,7 +226,7 @@ void pthread_lock_interface_ct::lock(void)
 void pthread_lock_interface_ct::unlock(void)
 {
 #if CWDEBUG_DEBUGT
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
     __libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = 0;
   else

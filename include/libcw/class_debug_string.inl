@@ -50,7 +50,7 @@ __inline__
 void
 debug_string_ct::assign(char const* str, size_t len)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   _private_::set_alloc_checking_off(LIBCWD_TSD);
   internal_assign(str, len);
   _private_::set_alloc_checking_on(LIBCWD_TSD);
@@ -63,7 +63,7 @@ __inline__
 void
 debug_string_ct::append(char const* str, size_t len) 
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   _private_::set_alloc_checking_off(LIBCWD_TSD);
   internal_append(str, len);
   _private_::set_alloc_checking_on(LIBCWD_TSD);
@@ -76,7 +76,7 @@ __inline__
 void
 debug_string_ct::prepend(char const* str, size_t len)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   _private_::set_alloc_checking_off(LIBCWD_TSD);
   internal_prepend(str, len);
   _private_::set_alloc_checking_on(LIBCWD_TSD);

@@ -64,7 +64,7 @@ namespace libcw {
 #define LIBCWD_TSD_INSTANCE ::libcw::debug::_private_::TSD_st::instance()
 							// For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
 #define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE	// Idem, but as second or higher parameter.
-#define LIBCWD_TSD_DECLARATION ::libcw::debug::_private_::TSD_st& __libcwd_tsd(::libcw::debug::_private_::TSD_st::instance());
+#define LIBCWD_TSD_DECLARATION ::libcw::debug::_private_::TSD_st& __libcwd_tsd(::libcw::debug::_private_::TSD_st::instance())
 							// Declaration of local `__libcwd_tsd' structure reference.
 #define LIBCWD_DO_TSD(debug_object) (*__libcwd_tsd.do_array[(debug_object).WNS_index])
     							// For use inside class debug_ct to access member `m'.

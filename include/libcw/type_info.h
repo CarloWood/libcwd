@@ -218,7 +218,7 @@ template<typename T>
     // We have to use the following hack.
     if (::libcwd_type_info_exact<T>::value_c.size() == 0)		// Not initialized already?
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
 #if LIBCWD_THREAD_SAFE
       LIBCWD_DEFER_CANCEL;
       _private_::mutex_tct<_private_::type_info_of_instance>::initialize();

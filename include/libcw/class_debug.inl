@@ -43,7 +43,7 @@ __inline__
 debug_string_ct&
 debug_ct::margin(void)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(margin);
 }
 
@@ -51,7 +51,7 @@ __inline__
 debug_string_ct const&
 debug_ct::margin(void) const
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(margin);
 }
 
@@ -59,7 +59,7 @@ __inline__
 debug_string_ct&
 debug_ct::marker(void)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(marker);
 }
 
@@ -67,7 +67,7 @@ __inline__
 debug_string_ct const&
 debug_ct::marker(void) const
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(marker);
 }
 
@@ -96,7 +96,7 @@ __inline__
 void
 debug_ct::set_indent(unsigned short i)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   LIBCWD_TSD_MEMBER(indent) = i;
 }
 
@@ -107,7 +107,7 @@ __inline__
 void
 debug_ct::inc_indent(unsigned short i)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   LIBCWD_TSD_MEMBER(indent) += i;
 }
 
@@ -118,7 +118,7 @@ __inline__
 void
 debug_ct::dec_indent(unsigned short i)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   int prev_indent = LIBCWD_TSD_MEMBER(indent);
   LIBCWD_TSD_MEMBER(indent) = (i > prev_indent) ? 0 : (prev_indent - i);
 }
@@ -130,7 +130,7 @@ __inline__
 unsigned short
 debug_ct::get_indent(void) const
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(indent);
 }
 
@@ -173,7 +173,7 @@ debug_ct::private_set_ostream(std::ostream* os)
 {
   real_os = os;
 #if CWDEBUG_DEBUG
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
   if (LIBCWD_TSD_MEMBER(laf_stack).size() == 0)
     LIBCWD_TSD_MEMBER(current_oss) = NULL;
@@ -203,7 +203,7 @@ __inline__
 void
 debug_ct::off(void)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   ++LIBCWD_TSD_MEMBER_OFF;
 }
 
@@ -235,7 +235,7 @@ __inline__
 void
 debug_ct::on(void)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGOUTPUT
   if (LIBCWD_TSD_MEMBER(first_time) && LIBCWD_TSD_MEMBER_OFF == -1)
     LIBCWD_TSD_MEMBER(first_time) = false;

@@ -141,7 +141,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
  */
 #define AllocTag1(p) \
     do { \
-      LIBCWD_TSD_DECLARATION \
+      LIBCWD_TSD_DECLARATION; \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), (char const*)NULL LIBCWD_COMMA_TSD); \
     } while(0)
 /**
@@ -149,7 +149,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
  */
 #define AllocTag2(p, desc) \
     do { \
-      LIBCWD_TSD_DECLARATION \
+      LIBCWD_TSD_DECLARATION; \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc) LIBCWD_COMMA_TSD); \
     } while(0)
 
@@ -158,7 +158,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
  */
 #define AllocTag(p, x) \
     do { \
-      LIBCWD_TSD_DECLARATION \
+      LIBCWD_TSD_DECLARATION; \
       static char* WNS_desc; /* MT-safe because 'p' is unshared at this moment (it was *just* allocated by the current thread) */ \
       if (!WNS_desc) { \
 	::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
@@ -181,7 +181,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
 #define AllocTag_dynamic_description(p, x) \
     do { \
       char* desc; \
-      LIBCWD_TSD_DECLARATION \
+      LIBCWD_TSD_DECLARATION; \
       ::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
       if (1) \
       { \

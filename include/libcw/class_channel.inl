@@ -56,7 +56,7 @@ bool
 channel_ct::is_on(void) const
 {
 #if LIBCWD_THREAD_SAFE
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   return is_on(LIBCWD_TSD);
 #else
   return (off_cnt < 0);

@@ -44,7 +44,7 @@ namespace libcw {
 __inline__
 location_ct::location_ct(void const* addr) : M_known(false)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
 
@@ -82,7 +82,7 @@ void
 location_ct::pc_location(void const* addr)
 {
   clear();
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
 
@@ -92,7 +92,7 @@ location_ct::handle_delayed_initialization(void)
 {
   if (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c))
   {
-    LIBCWD_TSD_DECLARATION
+    LIBCWD_TSD_DECLARATION;
     M_pc_location(M_initialization_delayed LIBCWD_COMMA_TSD);
   }
 }
@@ -109,7 +109,7 @@ std::string
 location_ct::file(void) const
 {
 #if CWDEBUG_DEBUGM
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( !__libcwd_tsd.internal );		// Returning a string, using a userspace allocator!
 #endif
   LIBCWD_ASSERT( M_known );

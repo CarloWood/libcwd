@@ -29,11 +29,11 @@
 extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 
 #ifdef _REENTRANT
-#define LIBCWD_CANCELSTATE_DISABLE int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate);
-#define LIBCWD_CANCELSTATE_RESTORE pthread_setcancelstate(__libcwd_oldstate, NULL);
+#define LIBCWD_CANCELSTATE_DISABLE int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate)
+#define LIBCWD_CANCELSTATE_RESTORE pthread_setcancelstate(__libcwd_oldstate, NULL)
 #else
-#define LIBCWD_CANCELSTATE_DISABLE
-#define LIBCWD_CANCELSTATE_RESTORE
+#define LIBCWD_CANCELSTATE_DISABLE do { } while(0)
+#define LIBCWD_CANCELSTATE_RESTORE do { } while(0)
 #endif
 
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
@@ -42,8 +42,8 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define FATALDEBUGDEBUG_CERR(x)									\
     do {											\
       if (1/*::libcw::debug::_private_::WST_ios_base_initialized FIXME: uncomment again*/) {	\
-	LIBCWD_CANCELSTATE_DISABLE								\
-	LIBCWD_TSD_DECLARATION									\
+	LIBCWD_CANCELSTATE_DISABLE;								\
+	LIBCWD_TSD_DECLARATION;									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
 	::write(2, "CWDEBUG_DEBUG: ", 15);								\
 	/*  __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning. */ \
@@ -51,7 +51,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 	  ::write(2, "    ", 4);								\
 	::libcw::debug::_private_::raw_write << x << '\n';					\
 	LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );				\
-	LIBCWD_CANCELSTATE_RESTORE								\
+	LIBCWD_CANCELSTATE_RESTORE;								\
       }												\
     } while(0)
 #else // !CWDEBUG_DEBUG

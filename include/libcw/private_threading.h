@@ -238,7 +238,7 @@ template <int instance>
       if (success)
       {
 #if CWDEBUG_DEBUGT
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
 	instance_locked[instance] += 1;
@@ -255,14 +255,14 @@ template <int instance>
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
-      LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION ++__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << instance);
 #endif
 #if CWDEBUG_DEBUGT
       if (instance != tsd_initialization_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
       {
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	__libcwd_tsd.waiting_for_lock = instance;
         int res = pthread_mutex_lock(&S_mutex);
 	LIBCWD_ASSERT( res == 0 );
@@ -307,7 +307,7 @@ template <int instance>
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << instance << " unlocked");
 #endif
-      LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION --__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area; } );
     }
     // This is used as cleanup handler with LIBCWD_DEFER_CLEANUP_PUSH.
     static void cleanup(void*) throw();
@@ -597,7 +597,7 @@ template <int instance>
 	}
       }
 #if CWDEBUG_DEBUGT
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.waiting_for_rdlock = instance;
 #endif
       S_no_holders_condition.lock();
@@ -672,7 +672,7 @@ template <int instance>
       mutex_tct<readers_instance>::lock();		// Block new readers,
       S_writer_is_waiting = true;			// from this moment on.
 #if CWDEBUG_DEBUGT
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.waiting_for_lock = instance;
 #endif
       S_no_holders_condition.lock();
@@ -724,7 +724,7 @@ template <int instance>
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::rd2wrlock()");
 #if CWDEBUG_DEBUGT
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.waiting_for_lock = instance;
 #endif
       S_no_holders_condition.lock();

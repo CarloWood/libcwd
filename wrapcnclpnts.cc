@@ -43,7 +43,7 @@ extern "C" {
 return_t __libc_##name arg_list;							\
 return_t __attribute__ ((weak)) name arg_list						\
 {											\
-  LIBCWD_TSD_DECLARATION								\
+  LIBCWD_TSD_DECLARATION;								\
   LIBCWD_ASSERT( __libcwd_tsd.inside_critical_area == __libcwd_tsd.cleanup_handler_installed || __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.internal_debugging_code );	\
   int oldtype;										\
   pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);			\
@@ -56,7 +56,7 @@ return_t __attribute__ ((weak)) name arg_list						\
 return_t __libc_##name arg_list;							\
 return_t __attribute__ ((weak)) name arg_list						\
 {											\
-  LIBCWD_TSD_DECLARATION								\
+  LIBCWD_TSD_DECLARATION;								\
   LIBCWD_ASSERT( __libcwd_tsd.inside_critical_area == __libcwd_tsd.cleanup_handler_installed || __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.internal_debugging_code );	\
   int oldtype;										\
   pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);			\

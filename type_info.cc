@@ -69,7 +69,7 @@ namespace _private_ {
   char const* make_label(char const* mangled_name)
   {
     char const* label;
-    LIBCWD_TSD_DECLARATION
+    LIBCWD_TSD_DECLARATION;
     set_alloc_checking_off(LIBCWD_TSD);
     {
       internal_string out;

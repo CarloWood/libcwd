@@ -27,7 +27,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
   void allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::sanity_check(void)
   {
 #if CWDEBUG_DEBUGM || (CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE)
-    LIBCWD_TSD_DECLARATION
+    LIBCWD_TSD_DECLARATION;
 #endif
 #if CWDEBUG_DEBUGM
     if ((__libcwd_tsd.internal > 0) != internal) 

@@ -37,18 +37,18 @@ extern "C" int raise(int);
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::debug_objects_instance;
 using libcw::debug::_private_::debug_channels_instance;
-#define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK	rwlock_tct<debug_objects_instance>::wrlock();
-#define DEBUG_OBJECTS_RELEASE_WRITE_LOCK	rwlock_tct<debug_objects_instance>::wrunlock();
-#define DEBUG_OBJECTS_ACQUIRE_READ_LOCK		rwlock_tct<debug_objects_instance>::rdlock();
-#define DEBUG_OBJECTS_RELEASE_READ_LOCK		rwlock_tct<debug_objects_instance>::rdunlock();
-#define DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<debug_objects_instance>::rd2wrlock();
-#define DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<debug_objects_instance>::wr2rdlock();
-#define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK	rwlock_tct<debug_channels_instance>::wrlock();
-#define DEBUG_CHANNELS_RELEASE_WRITE_LOCK	rwlock_tct<debug_channels_instance>::wrunlock();
-#define DEBUG_CHANNELS_ACQUIRE_READ_LOCK	rwlock_tct<debug_channels_instance>::rdlock();
-#define DEBUG_CHANNELS_RELEASE_READ_LOCK	rwlock_tct<debug_channels_instance>::rdunlock();
-#define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<debug_channels_instance>::rd2wrlock();
-#define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<debug_channels_instance>::wr2rdlock();
+#define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK	rwlock_tct<debug_objects_instance>::wrlock()
+#define DEBUG_OBJECTS_RELEASE_WRITE_LOCK	rwlock_tct<debug_objects_instance>::wrunlock()
+#define DEBUG_OBJECTS_ACQUIRE_READ_LOCK		rwlock_tct<debug_objects_instance>::rdlock()
+#define DEBUG_OBJECTS_RELEASE_READ_LOCK		rwlock_tct<debug_objects_instance>::rdunlock()
+#define DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<debug_objects_instance>::rd2wrlock()
+#define DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<debug_objects_instance>::wr2rdlock()
+#define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK	rwlock_tct<debug_channels_instance>::wrlock()
+#define DEBUG_CHANNELS_RELEASE_WRITE_LOCK	rwlock_tct<debug_channels_instance>::wrunlock()
+#define DEBUG_CHANNELS_ACQUIRE_READ_LOCK	rwlock_tct<debug_channels_instance>::rdlock()
+#define DEBUG_CHANNELS_RELEASE_READ_LOCK	rwlock_tct<debug_channels_instance>::rdunlock()
+#define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<debug_channels_instance>::rd2wrlock()
+#define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<debug_channels_instance>::wr2rdlock()
 #else // !_REENTRANT
 #define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
 #define DEBUG_OBJECTS_RELEASE_WRITE_LOCK
@@ -475,18 +475,18 @@ void allocator_unlock(void)
 #ifdef _REENTRANT
 	_private_::rwlock_tct<_private_::debug_channels_instance>::initialize();
 #endif
-	DEBUG_CHANNELS_ACQUIRE_READ_LOCK
+	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
-	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK
+	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  WNS_debug_channels = new debug_channels_ct::container_type;
 	  set_alloc_checking_on(LIBCWD_TSD);
-	  DEBUG_CHANNELS_RELEASE_WRITE_LOCK
+	  DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
 	}
 #ifdef _REENTRANT
 	else
-	  DEBUG_CHANNELS_RELEASE_READ_LOCK
+	  DEBUG_CHANNELS_RELEASE_READ_LOCK;
 #endif
       }
 
@@ -495,14 +495,14 @@ void allocator_unlock(void)
       void debug_channels_ct::init_and_rdlock(void)
       {
 	_private_::rwlock_tct<_private_::debug_channels_instance>::initialize();
-	DEBUG_CHANNELS_ACQUIRE_READ_LOCK
+	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
-	  LIBCWD_TSD_DECLARATION
+	  LIBCWD_TSD_DECLARATION;
 	  set_alloc_checking_off(LIBCWD_TSD);
-	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK
+	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
 	  WNS_debug_channels = new debug_channels_ct::container_type;
-	  DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK
+	  DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK;
 	  set_alloc_checking_on(LIBCWD_TSD);
 	}
       }
@@ -514,7 +514,7 @@ void allocator_unlock(void)
 #ifdef _REENTRANT
 	_private_::rwlock_tct<_private_::debug_objects_instance>::initialize();
 #endif
-        DEBUG_OBJECTS_ACQUIRE_READ_LOCK
+        DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
 	  DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
@@ -522,15 +522,15 @@ void allocator_unlock(void)
 	  // It is possible that malloc is not initialized yet.
 	  init_debugmalloc();
 #endif
-	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK
+	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  WNS_debug_objects = new debug_objects_ct::container_type;
 	  set_alloc_checking_on(LIBCWD_TSD);
-	  DEBUG_OBJECTS_RELEASE_WRITE_LOCK
+	  DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
 	}
 #ifdef _REENTRANT
 	else
-	  DEBUG_OBJECTS_RELEASE_READ_LOCK
+	  DEBUG_OBJECTS_RELEASE_READ_LOCK;
 #endif
       }
 
@@ -539,7 +539,7 @@ void allocator_unlock(void)
       void debug_objects_ct::init_and_rdlock(void)
       {
 	_private_::rwlock_tct<_private_::debug_objects_instance>::initialize();
-	DEBUG_OBJECTS_ACQUIRE_READ_LOCK
+	DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
 	  DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
@@ -547,11 +547,11 @@ void allocator_unlock(void)
 	  // It is possible that malloc is not initialized yet.
 	  init_debugmalloc();
 #endif
-	  LIBCWD_TSD_DECLARATION
+	  LIBCWD_TSD_DECLARATION;
 	  set_alloc_checking_off(LIBCWD_TSD);
-	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK
+	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK;
 	  WNS_debug_objects = new debug_objects_ct::container_type;
-	  DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK
+	  DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK;
 	  set_alloc_checking_on(LIBCWD_TSD);
 	}
       }
@@ -562,7 +562,7 @@ void allocator_unlock(void)
       {
 	if (WNS_debug_objects)
 	{
-	  LIBCWD_TSD_DECLARATION
+	  LIBCWD_TSD_DECLARATION;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  delete WNS_debug_objects;
 	  set_alloc_checking_on(LIBCWD_TSD);
@@ -627,7 +627,7 @@ void allocator_unlock(void)
       LIBCWD_DISABLE_CANCEL;
       if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
       {
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	__libcwd_tsd.internal = 0;	// Dunno if this is needed, but it looks consistant.
 	++__libcwd_tsd.library_call;;	// So our sanity checks allow us to call free() again in
 					// pthread_exit when we get here from malloc et al.
@@ -712,7 +712,7 @@ void allocator_unlock(void)
     {
       if (size < M_size)
 	return;
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       set_alloc_checking_off(LIBCWD_TSD);
       M_default_capacity = min_capacity_c;
       M_str = (char*)realloc(M_str, (M_default_capacity = M_capacity = calculate_capacity(size)) + 1);
@@ -737,7 +737,7 @@ void allocator_unlock(void)
      */
     void debug_ct::push_margin(void)
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       debug_string_stack_element_ct* current_margin_stack = LIBCWD_TSD_MEMBER(M_margin_stack);
       set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
@@ -751,7 +751,7 @@ void allocator_unlock(void)
      */
     void debug_ct::pop_margin(void)
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       if (!LIBCWD_TSD_MEMBER(M_margin_stack))
 	DoutFatal(dc::core, "Calling `debug_ct::pop_margin' more often than `debug_ct::push_margin'.");
       debug_string_stack_element_ct* next = LIBCWD_TSD_MEMBER(M_margin_stack)->next;
@@ -767,7 +767,7 @@ void allocator_unlock(void)
      */
     void debug_ct::push_marker(void)
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       debug_string_stack_element_ct* current_marker_stack = LIBCWD_TSD_MEMBER(M_marker_stack);
       set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
@@ -780,7 +780,7 @@ void allocator_unlock(void)
      */
     void debug_ct::pop_marker(void)
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       if (!LIBCWD_TSD_MEMBER(M_marker_stack))
 	DoutFatal(dc::core, "Calling `debug_ct::pop_marker' more often than `debug_ct::push_marker'.");
       debug_string_stack_element_ct* next = LIBCWD_TSD_MEMBER(M_marker_stack)->next;
@@ -1139,16 +1139,16 @@ void allocator_unlock(void)
       DEBUGDEBUG_CERR( "Setting WNS_initialized to true" );
 #endif
 
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       LIBCWD_DEFER_CANCEL;
       _private_::debug_objects.init(LIBCWD_TSD);
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
-      DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
+      DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK;
       if (find(_private_::debug_objects.write_locked().begin(),
 	       _private_::debug_objects.write_locked().end(), this)
 	  == _private_::debug_objects.write_locked().end()) // Not added before?
 	_private_::debug_objects.write_locked().push_back(this);
-      DEBUG_OBJECTS_RELEASE_WRITE_LOCK
+      DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
 #ifdef _REENTRANT
       set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_RESTORE_CANCEL;
@@ -1187,7 +1187,7 @@ void allocator_unlock(void)
     void debug_tsd_st::init(void)
     {
 #if CWDEBUG_DEBUGM
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
       start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
@@ -1259,17 +1259,17 @@ void allocator_unlock(void)
     channel_ct* find_channel(char const* label)
     {
       channel_ct* tmp = NULL;
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       LIBCWD_DEFER_CANCEL;
       _private_::debug_channels.init(LIBCWD_TSD);
-      DEBUG_CHANNELS_ACQUIRE_READ_LOCK
+      DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
       for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	  i != _private_::debug_channels.read_locked().end(); ++i)
       {
         if (!strncasecmp(label, (*i)->get_label(), strlen(label)))
           tmp = (*i);
       }
-      DEBUG_CHANNELS_RELEASE_READ_LOCK
+      DEBUG_CHANNELS_RELEASE_READ_LOCK;
       LIBCWD_RESTORE_CANCEL;
       return tmp;
     }
@@ -1305,14 +1305,14 @@ void allocator_unlock(void)
      */
     void list_channels_on(debug_ct& debug_object)
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       if (LIBCWD_DO_TSD_MEMBER_OFF(debug_object) < 0)
       {
 	LIBCWD_DEFER_CANCEL;
         _private_::debug_channels.init(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
 	LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<debug_channels_instance>::cleanup, NULL);
-	DEBUG_CHANNELS_ACQUIRE_READ_LOCK
+	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	    i != _private_::debug_channels.read_locked().end(); ++i)
 	{
@@ -1325,7 +1325,7 @@ void allocator_unlock(void)
 	    LibcwDoutStream.write(": Disabled", 10);
 	  LibcwDoutScopeEnd;
 	}
-        DEBUG_CHANNELS_RELEASE_READ_LOCK
+        DEBUG_CHANNELS_RELEASE_READ_LOCK;
 	LIBCWD_CLEANUP_POP_RESTORE(false);
       }
     }
@@ -1344,7 +1344,7 @@ void allocator_unlock(void)
       if (label_len > max_label_len_c)	// Only happens for customized channels
 	DoutFatal( dc::core, "strlen(\"" << label << "\") > " << max_label_len_c );
 
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
 
 #ifdef _REENTRANT
       _private_::mutex_tct<_private_::write_max_len_instance>::initialize();
@@ -1391,7 +1391,7 @@ void allocator_unlock(void)
       // initialized.
       LIBCWD_DEFER_CANCEL;
       _private_::debug_channels.init(LIBCWD_TSD);
-      DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK
+      DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK;
       {
 	set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
 	_private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
@@ -1402,7 +1402,7 @@ void allocator_unlock(void)
         channels.insert(i, this);
 	set_alloc_checking_on(LIBCWD_TSD);
       }
-      DEBUG_CHANNELS_RELEASE_WRITE_LOCK
+      DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
       LIBCWD_RESTORE_CANCEL;
 
       // Turn debug channel "WARNING" on by default.
@@ -1469,7 +1469,7 @@ void allocator_unlock(void)
     void channel_ct::off(void)
     {
 #ifdef _REENTRANT
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.off_cnt_array[WNS_index] += 1;
 #else
       ++off_cnt;
@@ -1484,7 +1484,7 @@ void allocator_unlock(void)
     void channel_ct::on(void)
     {
 #ifdef _REENTRANT
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       if (__libcwd_tsd.off_cnt_array[WNS_index] == -1)
 #else
       if (off_cnt == -1)
@@ -1588,7 +1588,7 @@ void allocator_unlock(void)
       void assert_fail(char const* expr, char const* file, int line, char const* function)
       {
 #if CWDEBUG_DEBUG
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	if (__libcwd_tsd.recursive_assert
 #if CWDEBUG_DEBUGM
 	    || __libcwd_tsd.inside_malloc_or_free
@@ -1613,7 +1613,7 @@ void allocator_unlock(void)
     void debug_ct::force_on(debug_ct::OnOffState& state)
     {
       NS_init();
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       state._off = LIBCWD_TSD_MEMBER_OFF;
 #if CWDEBUG_DEBUGOUTPUT
       state.first_time = LIBCWD_TSD_MEMBER(first_time);
@@ -1623,7 +1623,7 @@ void allocator_unlock(void)
 
     void debug_ct::restore(debug_ct::OnOffState const& state)
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGOUTPUT
       if (state.first_time != LIBCWD_TSD_MEMBER(first_time))		// state.first_time && !first_time.
 	core_dump();							// on() was called without first a call to off().
@@ -1636,7 +1636,7 @@ void allocator_unlock(void)
 #ifdef _REENTRANT
     bool debug_ct::keep_tsd(bool keep)
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       bool old = LIBCWD_TSD_MEMBER(tsd_keep);
       LIBCWD_TSD_MEMBER(tsd_keep) = keep;
       return old;
@@ -1647,7 +1647,7 @@ void allocator_unlock(void)
     {
       NS_initialize(label);
 #ifdef _REENTRANT
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
 #endif
       state.off_cnt = off_cnt;
@@ -1657,7 +1657,7 @@ void allocator_unlock(void)
     void channel_ct::restore(channel_ct::OnOffState const& state)
     {
 #ifdef _REENTRANT
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
 #endif
       if (off_cnt != -1)
@@ -1691,7 +1691,7 @@ void allocator_unlock(void)
 template<>
   void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
   {
-    LIBCWD_TSD_DECLARATION
+    LIBCWD_TSD_DECLARATION;
     _private_::set_alloc_checking_off(LIBCWD_TSD);
     _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex);
     _private_::set_alloc_checking_on(LIBCWD_TSD);

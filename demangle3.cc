@@ -1899,7 +1899,7 @@ static char const* main_in;
 void demangle_symbol(char const* input, internal_string& output)
 {
 #if CWDEBUG_DEBUGM
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
 
@@ -1943,7 +1943,7 @@ void demangle_symbol(char const* input, internal_string& output)
 void demangle_type(char const* in, internal_string& output)
 {
 #if CWDEBUG_DEBUGM
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
 #ifdef STANDALONE
@@ -2004,7 +2004,7 @@ extern void demangle_type(char const* input, _private_::internal_string& output)
  */
 void demangle_symbol(char const* input, std::string& output)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   _private_::set_alloc_checking_off(LIBCWD_TSD);
   {
     _private_::internal_string result;
@@ -2021,7 +2021,7 @@ void demangle_symbol(char const* input, std::string& output)
  */
 void demangle_type(char const* input, std::string& output)
 {
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   _private_::set_alloc_checking_off(LIBCWD_TSD);
   {
     _private_::internal_string result;

@@ -59,7 +59,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LIBCWD_STR1(x) #x
 #define LIBCWD_STR2(x) LIBCWD_STR1(x)
 #define LIBCWD_STR3 "LibcwDout at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
-#define LIBCWD_LibcwDoutScopeBegin_MARKER LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code ); ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3) - 1); LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );
+#define LIBCWD_LibcwDoutScopeBegin_MARKER LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code ); ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3) - 1); LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code )
 #else // !CWDEBUG_DEBUGOUTPUT
 #define LIBCWD_LibcwDoutScopeBegin_MARKER
 #endif // !CWDEBUG_DEBUGOUTPUT
@@ -81,8 +81,8 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LibcwDoutScopeBegin( dc_namespace, debug_obj, cntrl )									\
   do																\
   {																\
-    LIBCWD_TSD_DECLARATION													\
-    LIBCWD_LibcwDoutScopeBegin_MARKER													\
+    LIBCWD_TSD_DECLARATION;													\
+    LIBCWD_LibcwDoutScopeBegin_MARKER;												\
     if (LIBCWD_DO_TSD_MEMBER_OFF(debug_obj) < 0)										\
     {																\
       using namespace ::libcw::debug;												\
@@ -115,7 +115,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #ifndef LIBCWD_LibcwDoutFatalScopeBegin_MARKER
 #if CWDEBUG_DEBUGOUTPUT
 #define LIBCWD_STR4 "LibcwDoutFatal at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
-#define LIBCWD_LibcwDoutFatalScopeBegin_MARKER LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code ); ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4) - 1); LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );
+#define LIBCWD_LibcwDoutFatalScopeBegin_MARKER LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code ); ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4) - 1); LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code )
 #else
 #define LIBCWD_LibcwDoutFatalScopeBegin_MARKER
 #endif
@@ -137,8 +137,8 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LibcwDoutFatalScopeBegin( dc_namespace, debug_obj, cntrl )								\
   do																\
   {																\
-    LIBCWD_TSD_DECLARATION													\
-    LIBCWD_LibcwDoutFatalScopeBegin_MARKER												\
+    LIBCWD_TSD_DECLARATION;													\
+    LIBCWD_LibcwDoutFatalScopeBegin_MARKER;											\
     using namespace ::libcw::debug;												\
     ::libcw::debug::channel_set_bootstrap_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
     {																\

@@ -62,8 +62,8 @@ protected:
 class internal_stringstream : public internal_strstreambase, public iostream {
 public:
 #if CWDEBUG_DEBUGM
-  internal_stringstream(void) { LIBCWD_TSD_DECLARATION LIBCWD_ASSERT( __libcwd_tsd.internal ); }
-  ~internal_stringstream(void) { LIBCWD_TSD_DECLARATION LIBCWD_ASSERT( __libcwd_tsd.internal ); }
+  internal_stringstream(void) { LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( __libcwd_tsd.internal ); }
+  ~internal_stringstream(void) { LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( __libcwd_tsd.internal ); }
 #endif
   _IO_ssize_t pcount(void) { return ((strstreambuf*)_strbuf)->pcount(); }
   char* str(void) { return ((strstreambuf*)_strbuf)->str(); }

@@ -85,7 +85,7 @@ struct Elf32_Ehdr {
   friend std::istream& operator>>(std::istream& is, Elf32_Ehdr& header)
   {
 #if CWDEBUG_DEBUGM
-    LIBCWD_TSD_DECLARATION
+    LIBCWD_TSD_DECLARATION;
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
     is.read(reinterpret_cast<char*>(&header), sizeof(Elf32_Ehdr));
@@ -2073,7 +2073,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
 char* objfile_ct::allocate_and_read_section(int i)
 {
   char* p = new char[M_sections[i].section_header().sh_size];
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   int saved_internal = _private_::set_library_call_on(LIBCWD_TSD); 
   LIBCWD_DISABLE_CANCEL;
   M_input_stream->rdbuf()->pubseekpos(M_sections[i].section_header().sh_offset);
@@ -2121,7 +2121,7 @@ objfile_ct::objfile_ct(void) :
 void objfile_ct::initialize(char const* file_name)
 {
   filename = file_name;
-  LIBCWD_TSD_DECLARATION
+  LIBCWD_TSD_DECLARATION;
   int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
   Debug( libcw_do.off() );
   M_input_stream = new std::ifstream;

@@ -81,12 +81,12 @@ extern debug_channels_ct debug_channels;
 #if LIBCWD_THREAD_SAFE
 #define LIBCWD_ForAllDebugChannels_LOCK \
     LIBCWD_DEFER_CLEANUP_PUSH(&::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_channels_instance>::cleanup, NULL); \
-    ::libcw::debug::_private_::debug_channels.init_and_rdlock();
+    ::libcw::debug::_private_::debug_channels.init_and_rdlock()
 #define LIBCWD_ForAllDebugChannels_UNLOCK \
     ::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_channels_instance>::rdunlock(); \
     LIBCWD_CLEANUP_POP_RESTORE(false);
 #else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_ForAllDebugChannels_LOCK ::libcw::debug::_private_::debug_channels.init(LIBCWD_TSD);
+#define LIBCWD_ForAllDebugChannels_LOCK ::libcw::debug::_private_::debug_channels.init(LIBCWD_TSD)
 #define LIBCWD_ForAllDebugChannels_UNLOCK
 #endif // !LIBCWD_THREAD_SAFE
 
@@ -115,7 +115,7 @@ extern debug_channels_ct debug_channels;
  */
 #define ForAllDebugChannels(STATEMENT) \
        do { \
-	 LIBCWD_ForAllDebugChannels_LOCK \
+	 LIBCWD_ForAllDebugChannels_LOCK; \
 	 for( ::libcw::debug::_private_::debug_channels_ct::container_type::\
 	     const_iterator __libcw_i(::libcw::debug::_private_::debug_channels.read_locked().begin());\
 	     __libcw_i != ::libcw::debug::_private_::debug_channels.read_locked().end(); ++__libcw_i) \

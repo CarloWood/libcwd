@@ -184,7 +184,7 @@ void bfd_close(bfd* abfd)
 	va_end(vl);
 	if (len >= buf_size)
 	{
-	  LIBCWD_TSD_DECLARATION
+	  LIBCWD_TSD_DECLARATION;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  char* bufp = new char[len + 1];
 	  set_alloc_checking_on(LIBCWD_TSD);
@@ -300,7 +300,7 @@ void bfd_close(bfd* abfd)
       inline object_files_ct const& NEEDS_READ_LOCK_object_files(void)
       {
 #if CWDEBUG_DEBUGT
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] == __libcwd_tsd.tid || __libcwd_tsd.rdlocked_by2[object_files_instance] == __libcwd_tsd.tid );
 #endif
 	return *reinterpret_cast<object_files_ct const*>(bfile_ct::ST_list_instance);
@@ -310,7 +310,7 @@ void bfd_close(bfd* abfd)
       inline object_files_ct& NEEDS_WRITE_LOCK_object_files(void)
       {
 #if CWDEBUG_DEBUGT
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	LIBCWD_ASSERT( _private_::locked_by[object_files_instance] == __libcwd_tsd.tid );
 #endif
 	return *reinterpret_cast<object_files_ct*>(bfile_ct::ST_list_instance);
@@ -388,7 +388,7 @@ void bfd_close(bfd* abfd)
       bfile_ct::bfile_ct(char const* filename, void* base) : lbase(base), M_object_file(filename)
       {
 #if CWDEBUG_DEBUGM
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	LIBCWD_ASSERT( __libcwd_tsd.internal );
 #if CWDEBUG_DEBUGT
         LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
@@ -511,7 +511,7 @@ void bfd_close(bfd* abfd)
 	  if (lbase == unknown_l_addr)
 	  {
 #ifdef HAVE_DLOPEN
-	    LIBCWD_TSD_DECLARATION
+	    LIBCWD_TSD_DECLARATION;
 	    int saved_internal = __libcwd_tsd.internal;
 	    __libcwd_tsd.internal = 0;
 	    void* handle = ::dlopen(filename, RTLD_LAZY);
@@ -671,7 +671,7 @@ void bfd_close(bfd* abfd)
       bfile_ct::~bfile_ct()
       {
 #if CWDEBUG_DEBUGM
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	LIBCWD_ASSERT( __libcwd_tsd.internal );
 #if CWDEBUG_DEBUGT
         LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
@@ -753,7 +753,7 @@ void bfd_close(bfd* abfd)
       int ST_decode_ps(char const* buf, size_t len)	// MT: Single Threaded function.
       {
 #if CWDEBUG_DEBUGM
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
 	static int pid_token = 0;
@@ -942,7 +942,7 @@ void bfd_close(bfd* abfd)
       // cwbfd::
       int ST_decode_ldd(char const* buf, size_t len)
       {
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	for (char const* p = buf; p < &buf[len]; ++p)
 	  if (p[0] == '=' && p[1] == '>' && p[2] == ' ' || p[2] == '\t')
 	  {
@@ -1001,7 +1001,7 @@ void bfd_close(bfd* abfd)
       // cwbfd::
       bfile_ct* load_object_file(char const* name, void* l_addr)
       {
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
         if (l_addr == unknown_l_addr)
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << ' ');
@@ -1060,7 +1060,7 @@ void bfd_close(bfd* abfd)
 	  core_dump();
 #endif
 
-	LIBCWD_TSD_DECLARATION
+	LIBCWD_TSD_DECLARATION;
 
 #if CWDEBUG_DEBUG && CWDEBUG_ALLOC
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
@@ -1421,7 +1421,7 @@ void bfd_close(bfd* abfd)
 
     libcw::debug::object_file_ct::object_file_ct(char const* filepath) : M_hide(false)
     {
-      LIBCWD_TSD_DECLARATION
+      LIBCWD_TSD_DECLARATION;
       set_alloc_checking_off(LIBCWD_TSD);
       M_filepath = strcpy((char*)malloc(strlen(filepath) + 1), filepath);
       set_alloc_checking_on(LIBCWD_TSD);
@@ -1628,7 +1628,7 @@ already_loaded:
 	M_known = false;
 	if (M_filepath.is_owner())
 	{
-	  LIBCWD_TSD_DECLARATION
+	  LIBCWD_TSD_DECLARATION;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  M_filepath.release();
 	  set_alloc_checking_on(LIBCWD_TSD);
@@ -1732,7 +1732,7 @@ void dlclose_cleanup1(void* arg)
 extern "C" {
   void* __libcwd_dlopen(char const* name, int flags)
   {
-    LIBCWD_TSD_DECLARATION
+    LIBCWD_TSD_DECLARATION;
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
     void* handle = ::dlopen(name, flags);
 #ifdef RTLD_NOLOAD
@@ -1767,7 +1767,7 @@ extern "C" {
 
   int __libcwd_dlclose(void *handle)
   {
-    LIBCWD_TSD_DECLARATION
+    LIBCWD_TSD_DECLARATION;
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
     int ret = ::dlclose(handle);
     LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlclose_cleanup1, &__libcwd_tsd); // The delete calls close().
