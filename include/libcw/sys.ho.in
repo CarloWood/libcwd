@@ -91,11 +91,6 @@ int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_AD
 #endif
 #endif
 
-// On at least IRIX-6.2 (mips64), g++-2.95.2 crashes when we
-// return a structure `in place'.  ./configure checks for this
-// bug.
-#@CW_CONFIG_INPLACE_STRUCT_RETURN@ BUG_INPLACE_STRUCT_RETURN
-
 // This package needs GNU gcc-2.95 or higher, period.
 // However, I'll leave this in for now.
 

@@ -13,7 +13,7 @@ Maintained-by: libcw at alinoe.com (Carlo Wood)
 Primary-site: http://libcw.sourceforge.net/debugging/
 Original-site:
 Alternate-site: http://www.alinoe.com/debugging/
-Platforms: linux freebsd
+Platforms: linux freebsd openbsd
 Copying-policy: QPL
 End
 
