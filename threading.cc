@@ -16,6 +16,7 @@
 #include "sys.h"
 #include "cwd_debug.h"
 #include <libcw/private_threading.h>
+#include <libcw/private_mutex.inl>
 
 namespace libcw {
   namespace debug {
@@ -57,6 +58,18 @@ template <>
   pthread_mutex_t mutex_tct<tsd_initialization_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
+void mutex_ct::M_initialize(void) throw()
+{
+  pthread_mutexattr_t mutex_attr;
+#if CWDEBUG_DEBUGT
+  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
+#else
+  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
+#endif
+  pthread_mutex_init(&M_mutex, &mutex_attr);
+  M_initialized = true;
+}
+
 void fatal_cancellation(void* arg) throw()
 {
   char* text = static_cast<char*>(arg);
@@ -85,6 +98,7 @@ void TSD_st::S_initialize(void) throw()
   std::memset(this, 0, sizeof(struct TSD_st));	// This structure might be reused and therefore already contain data.
   tid = pthread_self();
   mutex_tct<tsd_initialization_instance>::unlock();
+  memblk_map_mutex.initialize();		// Initialize the mutex that will be used for memblk_map.
   // We assume that the main() thread will call malloc() at least
   // once before it reaches main() and thus before any other thread is created.
   // When it does we get here; and thus are still single threaded.

@@ -4,6 +4,9 @@ libcwd-0.99.21
 	was fixed to understand the changes in the DWARF2
 	format of gcc 3.1.
 
+	README.threads has been updated with important
+	information.
+
 	API changes:
 
 	location_ct::location_reference() has been removed.

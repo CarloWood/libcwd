@@ -33,6 +33,7 @@
 #include <limits.h>	// For PTHREAD_THREADS_MAX
 #endif
 #if LIBCWD_THREAD_SAFE
+#include <libcw/private_mutex.h>
 #ifdef LIBCWD_HAVE_PTHREAD
 #ifndef LIBCW_PTHREADS_H
 #define LIBCW_PTHREADS_H
@@ -129,6 +130,7 @@ public:
 #endif
 #if LIBCWD_THREAD_SAFE
   pthread_t tid;
+  mutex_ct memblk_map_mutex;		// Mutex for memblk_map.
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
   void cleanup_routine(void) throw();

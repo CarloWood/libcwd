@@ -118,15 +118,22 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
 template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
   void allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::sanity_check(void)
   {
-#if CWDEBUG_DEBUGM
+#if CWDEBUG_DEBUGM || (CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE)
     LIBCWD_TSD_DECLARATION
+#endif
+#if CWDEBUG_DEBUGM
     if ((__libcwd_tsd.internal > 0) != internal) 
       core_dump();
 #endif
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
     if (instance == single_threaded_internal_instance && WST_multi_threaded)
       core_dump();
-    if (instance >= 0 && WST_multi_threaded && !is_locked(instance))
+    if (instance == memblk_map_instance)
+    {
+      if (WST_multi_threaded && !__libcwd_tsd.memblk_map_mutex.is_locked())
+	core_dump();
+    }
+    else if (instance >= 0 && WST_multi_threaded && !is_locked(instance))
       core_dump();
 #endif
   }
@@ -236,11 +243,26 @@ template <class T1, class X1, bool internal1, int inst1,
 			  false									\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
 
+// Both, multi_threaded_internal_instance and memblk_map_instance use also locks for
+// the allocator pool itself because they (the memory pools) are being shared between
+// threads from within critical areas with different mutexes.
+// Other instances (> 0) are supposed to only use the allocator instance from within
+// the critical area of the corresponding mutex_tct<instance>, and thus only by one
+// thread at a time.
+#if LIBCWD_THREAD_SAFE
+#define LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance)						\
+			        ::libcw::debug::_private_::instance ==				\
+			        ::libcw::debug::_private_::multi_threaded_internal_instance ||	\
+			        ::libcw::debug::_private_::instance ==				\
+			        ::libcw::debug::_private_::memblk_map_instance
+#else // !LIBCWD_THREAD_SAFE
+#define LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance) false
+#endif // !LIBCWD_THREAD_SAFE
+
 #define LIBCWD_DEFAULT_ALLOC_INTERNAL(instance) ::libcw::debug::_private_::			\
 	allocator_adaptor<char,									\
 			  ::std::__default_alloc_template					\
-			      < ::libcw::debug::_private_::instance ==				\
-			        ::libcw::debug::_private_::multi_threaded_internal_instance,	\
+			      <LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),			\
 			        ::libcw::debug::_private_::random_salt +			\
 				::libcw::debug::_private_::instance >,				\
 			  true									\

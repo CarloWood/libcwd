@@ -318,7 +318,7 @@ template <int instance>
       LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION --__libcwd_tsd.inside_critical_area; } );
     }
     // This is used as cleanup handler with LIBCWD_DEFER_CLEANUP_PUSH.
-    static void cleanup(void*);
+    static void cleanup(void*) throw();
   };
 
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
@@ -388,7 +388,7 @@ template <>
 #endif // !LIBCWD_USE_LINUXTHREADS
 
 template <int instance>
-  void mutex_tct<instance>::cleanup(void*)
+  void mutex_tct<instance>::cleanup(void*) throw()
   {
     unlock();
   }

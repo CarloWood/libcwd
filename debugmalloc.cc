@@ -152,21 +152,22 @@
 #include <sys/time.h>		// Needed for gettimeofday(2)
 
 #if LIBCWD_THREAD_SAFE
+#include <libcw/private_mutex.inl>
 using libcw::debug::_private_::mutex_tct;
-using libcw::debug::_private_::memblk_map_instance;
+using libcw::debug::_private_::mutex_ct;
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::location_cache_instance;
 using libcw::debug::_private_::list_allocations_instance;
-// We can't use rwlock_tct here because that leads to a dead lock.
+// We can't use a read/write lock here because that leads to a dead lock.
 // rwlocks have to use condition variables or semaphores and both try to get a
 // (libpthread internal) self-lock that is already set by libthread when it calls
 // free() in order to destroy thread specific data 1st level arrays.
-#define ACQUIRE_WRITE_LOCK	mutex_tct<memblk_map_instance>::lock();		// rwlock_tct<memblk_map_instance>::wrlock();
-#define RELEASE_WRITE_LOCK	mutex_tct<memblk_map_instance>::unlock();	// rwlock_tct<memblk_map_instance>::wrunlock();
-#define ACQUIRE_READ_LOCK	mutex_tct<memblk_map_instance>::lock();		// rwlock_tct<memblk_map_instance>::rdlock();
-#define RELEASE_READ_LOCK	mutex_tct<memblk_map_instance>::unlock();	// rwlock_tct<memblk_map_instance>::rdunlock();
-#define ACQUIRE_READ2WRITE_LOCK							// rwlock_tct<memblk_map_instance>::rd2wrlock();
-#define ACQUIRE_WRITE2READ_LOCK 						// rwlock_tct<memblk_map_instance>::wr2rdlock();
+#define ACQUIRE_WRITE_LOCK	__libcwd_tsd.memblk_map_mutex.lock();
+#define RELEASE_WRITE_LOCK	__libcwd_tsd.memblk_map_mutex.unlock();
+#define ACQUIRE_READ_LOCK	__libcwd_tsd.memblk_map_mutex.lock();
+#define RELEASE_READ_LOCK	__libcwd_tsd.memblk_map_mutex.unlock();
+#define ACQUIRE_READ2WRITE_LOCK
+#define ACQUIRE_WRITE2READ_LOCK
 // We can rwlock_tct here, because this lock is never used from free(),
 // only from new, new[], malloc and realloc.
 #define ACQUIRE_LC_WRITE_LOCK		rwlock_tct<location_cache_instance>::wrlock();
@@ -1310,7 +1311,8 @@ void memblk_info_ct::erase(LIBCWD_TSD_PARAM)
 void memblk_info_ct::make_invisible(void)
 {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
-  LIBCWD_ASSERT( _private_::is_locked(_private_::memblk_map_instance) ); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
+  LIBCWD_TSD_DECLARATION
+  LIBCWD_ASSERT( __libcwd_tsd.memblk_map_mutex.is_locked() ); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
 #endif
   LIBCWD_ASSERT( a_alloc_node.strict_owner() );
 
@@ -1998,6 +2000,7 @@ bool test_delete(void const* ptr)
 size_t mem_size(void)
 {
   size_t memsize;
+  LIBCWD_TSD_DECLARATION
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK
   memsize = const_dm_alloc_ct::get_memsize();
@@ -2013,6 +2016,7 @@ size_t mem_size(void)
 unsigned long mem_blocks(void)
 {
   unsigned long memblks;
+  LIBCWD_TSD_DECLARATION
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK
   memblks = const_dm_alloc_ct::get_memblks();
@@ -2031,6 +2035,7 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
 {
   size_t memsize;
   unsigned long memblks;
+  LIBCWD_TSD_DECLARATION
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK
   memsize = const_dm_alloc_ct::get_memsize();
@@ -2080,7 +2085,7 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
   dm_alloc_copy_ct* list = NULL;
   size_t memsize;
   unsigned long memblks;
-  LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<memblk_map_instance>::cleanup /* &rwlock_tct<memblk_map_instance>::cleanup */, NULL);
+  LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK
   memsize = const_dm_alloc_ct::get_memsize();
   memblks = const_dm_alloc_ct::get_memblks();
@@ -2091,7 +2096,7 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
     _private_::set_alloc_checking_on(LIBCWD_TSD);
   }
   RELEASE_READ_LOCK
-  LIBCWD_CLEANUP_POP_RESTORE(false);
+  LIBCWD_RESTORE_CANCEL;
   LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << memsize << " bytes in " << memblks << " blocks." );
   if (list)
   {

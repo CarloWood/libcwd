@@ -3,3 +3,24 @@ to link with -lcwd_r instead of -lcwd.
 
 Threading only works on linux so far.
 Use ./configure --disable-threading on other OS.
+
+A core dump produced by a kernel 2.4 does not
+contain enough information for gdb to debug all
+threads.  Only the core dumping thread is dumped
+and the other threads continue to run for a while.
+There exists a kernel patch written by Intel/IBM
+that fixes this problem; please read
+http://www.xs4all.nl/~carlo17/tcore.diff
+(the original for 2.4.17 is available (but html mangled) from
+http://www.cs.helsinki.fi/linux/linux-kernel/2002-10/1310.html)
+
+You are strongly advised to use gdb 5.2 for multithreaded
+debugging; however, it may be possible that the released
+gdb 5.2 is not capable of reading the debug information
+that is used by gcc 3.1, I heard (libcwd needed to be fixed
+too), the latest CVS version of gdb works though.
+
+Be aware that gdb does hardly support namespaces and
+will therefore frequently not find types or variables
+in namespaces.  It doesn't look like that this will be
+fixed very soon (2002-05-27).
