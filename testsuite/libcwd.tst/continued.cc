@@ -22,23 +22,41 @@ namespace libcw {
 
 int filedes[2];
 
+#if __GXX_ABI_VERSION >= 100
+#include <fstream>
+
+// You wanna see a hack?  Here is a hack.
+int get_fd(std::ios const& s)
+{
+  std::filebuf const* fb = dynamic_cast<std::filebuf const*>(s.rdbuf());
+  return fb ? (*reinterpret_cast<std::filebuf::__file_type* const*>((char const*)fb + sizeof(std::streambuf)))->get_fileno() : -1;
+}
+#endif
+
 void grab_cerr(void)
 {
-  // Close fd of cerr.
-  close(2);
+  int cerr_fd =
+#if __GXX_ABI_VERSION >= 100
+      get_fd(cerr);
+#else
+      2;
+#endif
 
-  // Create pipe that reads from fd 2
+  // Close fd of cerr.
+  close(cerr_fd);
+
+  // Create pipe that reads from cerr_fd
   if (pipe(filedes) == -1)
     DoutFatal( dc::core|error_cf, "pipe" );
-  if (filedes[0] == 2)
+  if (filedes[0] == cerr_fd)
   {
-    filedes[0] = dup(2);
-    close(2);
+    filedes[0] = dup(cerr_fd);
+    close(cerr_fd);
   }
-  if (filedes[1] != 2)
+  if (filedes[1] != cerr_fd)
   {
-    if (dup2(filedes[1], 2) == -1)
-      DoutFatal( dc::core|error_cf, "dup2(" << filedes[1] << ", 2)" );
+    if (dup2(filedes[1], cerr_fd) == -1)
+      DoutFatal( dc::core|error_cf, "dup2(" << filedes[1] << ", cerr_fd)" );
     close(filedes[1]);
   }
 
@@ -48,6 +66,11 @@ void grab_cerr(void)
     DoutFatal( dc::core|error_cf, "fcntl(" << filedes[0] << ", F_GETFL)" );
   else if (fcntl(filedes[0], F_SETFL, res | O_NONBLOCK) == -1)
     DoutFatal( dc::core|error_cf, "fcntl(" << filedes[0] << ", F_SETL, O_NONBLOCK)" );
+}
+
+void flush_cout(void)
+{
+  std::cout << flush;
 }
 
 void flush_cerr(void)
@@ -88,19 +111,24 @@ char const* nested_foo(bool with_error, bool to_cerr)
 {
   if (with_error)
   {
-    errno = 0;
     if (to_cerr)
     {
+      flush_cout();
+      errno = 0;
       Dout( dc::foo|cerr_cf|error_cf, "Inside `nested_foo()'" );
       flush_cerr();
     }
     else
+    {
+      errno = 0;
       Dout( dc::foo|error_cf, "Inside `nested_foo()'" );
+    }
   }
   else
   {
     if (to_cerr)
     {
+      flush_cout();
       Dout( dc::foo|cerr_cf, "Inside `nested_foo()'" );
       flush_cerr();
     }
@@ -116,12 +144,15 @@ char const* nested_bar(bool bar_with_error, bool bar_to_cerr, bool foo_with_erro
   {
     if (bar_to_cerr)
     {
+      flush_cout();
       errno = EINVAL;
       Dout( dc::bar|cerr_cf|error_cf, "Entering `nested_bar()'" );
       flush_cerr();
+      flush_cout();
       errno = EINVAL;
       Dout( dc::bar|cerr_cf|error_cf, "`nested_foo(" << foo_with_error << ", " << foo_to_cerr << ")' returns the string \"" << nested_foo(foo_with_error, foo_to_cerr) << "\" when I call it." );
       flush_cerr();
+      flush_cout();
       errno = EINVAL;
       Dout( dc::bar|cerr_cf|error_cf, "Leaving `nested_bar()'" );
       flush_cerr();
@@ -140,10 +171,13 @@ char const* nested_bar(bool bar_with_error, bool bar_to_cerr, bool foo_with_erro
   {
     if (bar_to_cerr)
     {
+      flush_cout();
       Dout( dc::bar|cerr_cf, "Entering `nested_bar()'" );
       flush_cerr();
+      flush_cout();
       Dout( dc::bar|cerr_cf, "`nested_foo(" << foo_with_error << ", " << foo_to_cerr << ")' returns the string \"" << nested_foo(foo_with_error, foo_to_cerr) << "\" when I call it." );
       flush_cerr();
+      flush_cout();
       Dout( dc::bar|cerr_cf, "Leaving `nested_bar()'" );
       flush_cerr();
     }
@@ -217,6 +251,7 @@ int main(void)
 
   // Test writing forced to cerr
   cout << "---------------------------------------------------------------------------\n";
+  flush_cout();
   errno = 0;
   Dout( dc::notice|error_cf|cerr_cf, "This is a single line with an error message behind it written to cerr" );
   flush_cerr();
