@@ -2,24 +2,25 @@ with (document)
 {
   var styles_path;
   var rootpath;
-  var rootpos = location.href.lastIndexOf("libcw.sourceforge.net");
+  var rootpos;
+  rootpos = location.pathname.lastIndexOf("/documentation/");
   if (rootpos != -1)
-    rootpath = location.href.substring(0,rootpos) + "libcw.sourceforge.net/";
+    rootpath = location.pathname.substring(0,rootpos) + "/documentation/";
   else
   {
-    rootpos = location.pathname.lastIndexOf("/html/");
-    if (rootpos != -1) 
-      rootpath = location.pathname.substring(0,rootpos) + "/";
+    rootpos = location.href.lastIndexOf("libcw.sourceforge.net");
+    if (rootpos != -1)
+      rootpath = location.href.substring(0,rootpos) + "libcw.sourceforge.net/";
     else
     {
-      rootpos = location.pathname.lastIndexOf("/tutorial/");
+      rootpos = location.pathname.lastIndexOf("/html/");
       if (rootpos != -1) 
 	rootpath = location.pathname.substring(0,rootpos) + "/";
       else
       {
-        rootpos = location.pathname.lastIndexOf("/documentation/");
-	if (rootpos != -1)
-	  rootpath = location.pathname.substring(0,rootpos) + "/documentation/";
+	rootpos = location.pathname.lastIndexOf("/tutorial/");
+	if (rootpos != -1) 
+	  rootpath = location.pathname.substring(0,rootpos) + "/";
       }
     }
   }
