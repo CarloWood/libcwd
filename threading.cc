@@ -206,9 +206,9 @@ void TSD_st::cleanup_routine(void)
     old_tid_array[old_tid_index].tid = tid;				// Make sure we can find it back.
     old_tid_array[old_tid_index].tsd_index = old_tsd_index;
     // Wrap the arrays around.  This is not 100% safe - but will work in practise.
-    if (++old_tid_index == sizeof(old_tid_array)/sizeof(old_tid_index[0]))
+    if (++old_tid_index == sizeof(old_tid_array)/sizeof(old_tid_array[0]))
       old_tid_index = 0;
-    if (++old_tsd_index == sizeof(old_tsd_array)/sizeof(old_tsd_index[0]))
+    if (++old_tsd_index == sizeof(old_tsd_array)/sizeof(old_tsd_array[0]))
       old_tsd_index = 0;
     if (old_tsd_index > max_old_tid_index)
       max_old_tid_index = old_tid_index;
