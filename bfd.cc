@@ -1583,6 +1583,10 @@ extern "C" {
     else
     {
       cwbfd::bfile_ct* object_file;
+#ifdef HAVE__DL_LOADED
+      name = ((link_map*)handle)->l_name;	// This is dirty, but its the only reasonable way to get
+      						// the full path to the loaded library.
+#endif
       object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
       if (object_file)
       {

@@ -39,6 +39,12 @@ libcwd-0.99.28
 	  cwprint_using_tct<T_OR_BASE_OF_T>
 	  cwprint_using(T const&, void (T_OR_BASE_OF_T::*)(std::ostream&) const);
 
+	dlopen() failed when not an absolute path was given. It now
+	also works when the filename is somewhere in LD_LIBRARY_PATH,
+	or /etc/ld.so.cache etc. but only when glibc is used (more
+	precisely, I assume that the handle that is returned by
+	dlopen is actually a link_map pointer).
+
 libcwd-0.99.27
 
 	Bug fixes:
