@@ -37,10 +37,11 @@ in the system header files.&nbsp; The only way it can do this is when it
 is included before <EM>any</EM> other header file, including system header
 files.</P>
 
-<P>This header file defines also a few very important operating system
-dependend macros like the ones used for inclusion of the ident string.
-Therefore <EM>nothing</EM> will compile without this header file.&nbsp;
-Because it must be included in <EM>every</EM> source file as very first
+<P>Any project should have one header file that is included at the top of every source file.&nbsp;
+If you already have one then you can add <CODE>#include&nbsp;&lt;libcw/sysd.h&gt;</CODE> to that file.&nbsp;
+Otherwise you should add such a header file: its a Good Thing(tm) to have.</P>
+
+<P>Because this must be included in <EM>every</EM> source file as very first
 header file, it would make no sense to include it also in another
 header file; so it isn't.&nbsp; As a result, forgetting this header file
 or including any other libcw header file before including libcw/sysd.h,
