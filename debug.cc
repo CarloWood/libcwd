@@ -522,8 +522,6 @@ void allocator_unlock(void)
 	return;
       ST_already_called = true;
 #if CWDEBUG_ALLOC
-      _private_::__exit_funcs_ptr = NULL;	// This is a workaround for a very weird bug; on a friends machine,
-      						// this .bss segment variable is never initialized!?
       init_debugmalloc();
 #endif
 #if LIBCWD_THREAD_SAFE
