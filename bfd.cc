@@ -20,7 +20,7 @@
 #include <libcw/sys.h>
 #include <unistd.h>
 #include <cstdarg>
-#include <sys/types.h>
+#include <inttypes.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <new>
@@ -93,7 +93,7 @@ typedef elf32::asection_st asection;
 typedef elf32::asymbol_st asymbol;
 
 int const bfd_archive = 0;
-u_int32_t const HAS_SYMS = 0xffffffff;
+uint32_t const HAS_SYMS = 0xffffffff;
 
 inline asection* bfd_get_section(asymbol const* s) { return s->section; }
 inline bfd*& bfd_asymbol_bfd(asymbol* s) { return s->bfd_ptr; }
@@ -101,7 +101,7 @@ inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
 inline bfd* bfd_openr(char const* filename, void*) { return bfd::openr(filename); }
 inline void bfd_close(bfd* abfd) { delete abfd; }
 inline bool bfd_check_format(bfd const* abfd, int) { return abfd->check_format(); }
-inline u_int32_t bfd_get_file_flags(bfd const* abfd) { return abfd->has_syms() ? HAS_SYMS : 0; }
+inline uint32_t bfd_get_file_flags(bfd const* abfd) { return abfd->has_syms() ? HAS_SYMS : 0; }
 inline long bfd_get_symtab_upper_bound(bfd* abfd) { return abfd->get_symtab_upper_bound(); }
 inline long bfd_canonicalize_symtab(bfd* abfd, asymbol** symbol_table) { return abfd->canonicalize_symtab(symbol_table); }
 inline bool bfd_is_abs_section(asection* sect) { return false; }
