@@ -1406,7 +1406,7 @@ already_loaded:
 	{
 	  LIBCWD_TSD_DECLARATION;
 	  set_alloc_checking_off(LIBCWD_TSD);
-	  M_filepath.release();
+	  M_filepath.reset();
 	  set_alloc_checking_on(LIBCWD_TSD);
 	}
       }

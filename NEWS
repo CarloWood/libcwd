@@ -11,7 +11,12 @@ libcwd-0.99.25
 	list_allocations_on only worked for libcw_do, not for a
 	custom debug object.
 
-	AllocTag and list_allocations_on were leaking memory (since 0.99.20).
+	Memory leaks that were introduced in 0.99.20 have been fixed
+	for AllocTag (leaked 20 bytes, now does not allocate anything
+	at all to begin with) and list_allocations_on (the copy of the
+	memory allocation administration was never freed, ugh).
+
+	location_ct was leaking memory (the filename was never deleted).
 
 libcwd-0.99.24
 
