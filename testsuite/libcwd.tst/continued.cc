@@ -8,6 +8,18 @@
 
 using namespace std;
 
+#ifdef REAL_CERR
+#define DEBUG_CERR
+#define USE_REAL_CERR
+#endif
+#ifdef WITHOUT_CERR
+#define DEBUG_CERR
+#define cerr_cf 0
+#endif
+#ifdef WITH_CERR
+#define DEBUG_CERR
+#endif
+
 namespace libcw {
   namespace debug {
     namespace channels {
@@ -20,52 +32,24 @@ namespace libcw {
   }
 }
 
-int filedes[2];
-
-#if __GXX_ABI_VERSION >= 100
-#include <fstream>
-
-// You wanna see a hack?  Here is a hack.
-int get_fd(std::ios const& s)
-{
-  std::filebuf const* fb = dynamic_cast<std::filebuf const*>(s.rdbuf());
-  return fb ? (*reinterpret_cast<std::filebuf::__file_type* const*>((char const*)fb + sizeof(std::streambuf)))->get_fileno() : -1;
-}
+#ifndef REAL_CERR
+static stringstream ss;
+static streambuf* old_buf;
 #endif
 
 void grab_cerr(void)
 {
-  int cerr_fd =
-#if __GXX_ABI_VERSION >= 100
-      get_fd(cerr);
-#else
-      2;
+#ifndef REAL_CERR
+  old_buf = cerr.rdbuf();
+  cerr.rdbuf(ss.rdbuf());
 #endif
+}
 
-  // Close fd of cerr.
-  close(cerr_fd);
-
-  // Create pipe that reads from cerr_fd
-  if (pipe(filedes) == -1)
-    DoutFatal( dc::core|error_cf, "pipe" );
-  if (filedes[0] == cerr_fd)
-  {
-    filedes[0] = dup(cerr_fd);
-    close(cerr_fd);
-  }
-  if (filedes[1] != cerr_fd)
-  {
-    if (dup2(filedes[1], cerr_fd) == -1)
-      DoutFatal( dc::core|error_cf, "dup2(" << filedes[1] << ", cerr_fd)" );
-    close(filedes[1]);
-  }
-
-  // Make the reading end non-blocking
-  int res;
-  if ((res = fcntl(filedes[0], F_GETFL, 0)) == -1)
-    DoutFatal( dc::core|error_cf, "fcntl(" << filedes[0] << ", F_GETFL)" );
-  else if (fcntl(filedes[0], F_SETFL, res | O_NONBLOCK) == -1)
-    DoutFatal( dc::core|error_cf, "fcntl(" << filedes[0] << ", F_SETL, O_NONBLOCK)" );
+void release_cerr(void)
+{
+#ifndef REAL_CERR
+  cerr.rdbuf(old_buf);
+#endif
 }
 
 void flush_cout(void)
@@ -75,36 +59,35 @@ void flush_cout(void)
 
 void flush_cerr(void)
 {
-  // Prepare a buffer
-  char cbuf[2048];
-  size_t cbuflen;
-  strcpy(cbuf, "[31m");
-
-  // Read from the pipe into the buffer
-  int len;
-  for(cbuflen = strlen(cbuf);
-      (len = read(filedes[0], &cbuf[cbuflen], sizeof(cbuf) - cbuflen));
-      cbuflen += len)
+#ifdef REAL_CERR
+  cerr << flush;
+#else
+  size_t curlen = ss.rdbuf()->pubseekoff(0, std::ios_base::cur, std::ios_base::out) - ss.rdbuf()->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
+  std::string buf;
+  buf.append(ss.str(), 0, curlen);
+#ifdef DEBUG_CERR
+  cout << buf;
+#else
+  bool color = false;
+  char const* p = buf.data();
+  for (size_t i = 0; i < curlen; ++i)
   {
-    if (len == -1)
+    if (!color)
     {
-      if (errno == EAGAIN)
-        break;
-      DoutFatal( dc::core|error_cf, "read" );
+      cout << "\e[31m";
+      color = true;
+    }
+    cout.put(*p);
+    if (*p++ == '\n')
+    {
+      cout << "\e[0m";
+      color = false;
     }
   }
-  // Filter away any ANSI color escape sequences
-  char *p1, *p2;
-  for(p1 = p2 = &cbuf[5]; p1 < &cbuf[cbuflen];)
-  {
-    if (p1[0] == '\e' && p1[1] == '[')
-      while(*p1++ != 'm');
-    *p2++ = *p1++;
-  }
-
-  strcpy(p2, "[0m");
-
-  Debug( libcw_do.get_os() << cbuf );
+#endif
+  cout << flush;
+  ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::in|std::ios_base::out);
+#endif
 }
 
 char const* nested_foo(bool with_error, bool to_cerr)
@@ -115,7 +98,7 @@ char const* nested_foo(bool with_error, bool to_cerr)
     {
       flush_cout();
       errno = 0;
-      Dout( dc::foo|cerr_cf|error_cf, "Inside `nested_foo()'" );
+      Dout( dc::foo|cerr_cf|error_cf, "CERR: Inside `nested_foo()'" );
       flush_cerr();
     }
     else
@@ -129,7 +112,7 @@ char const* nested_foo(bool with_error, bool to_cerr)
     if (to_cerr)
     {
       flush_cout();
-      Dout( dc::foo|cerr_cf, "Inside `nested_foo()'" );
+      Dout( dc::foo|cerr_cf, "CERR: Inside `nested_foo()'" );
       flush_cerr();
     }
     else
@@ -146,15 +129,15 @@ char const* nested_bar(bool bar_with_error, bool bar_to_cerr, bool foo_with_erro
     {
       flush_cout();
       errno = EINVAL;
-      Dout( dc::bar|cerr_cf|error_cf, "Entering `nested_bar()'" );
+      Dout( dc::bar|cerr_cf|error_cf, "CERR: Entering `nested_bar()'" );
       flush_cerr();
       flush_cout();
       errno = EINVAL;
-      Dout( dc::bar|cerr_cf|error_cf, "`nested_foo(" << foo_with_error << ", " << foo_to_cerr << ")' returns the string \"" << nested_foo(foo_with_error, foo_to_cerr) << "\" when I call it." );
+      Dout( dc::bar|cerr_cf|error_cf, "CERR: `nested_foo(" << foo_with_error << ", " << foo_to_cerr << ")' returns the string \"" << nested_foo(foo_with_error, foo_to_cerr) << "\" when I call it." );
       flush_cerr();
       flush_cout();
       errno = EINVAL;
-      Dout( dc::bar|cerr_cf|error_cf, "Leaving `nested_bar()'" );
+      Dout( dc::bar|cerr_cf|error_cf, "CERR: Leaving `nested_bar()'" );
       flush_cerr();
     }
     else
@@ -172,13 +155,13 @@ char const* nested_bar(bool bar_with_error, bool bar_to_cerr, bool foo_with_erro
     if (bar_to_cerr)
     {
       flush_cout();
-      Dout( dc::bar|cerr_cf, "Entering `nested_bar()'" );
+      Dout( dc::bar|cerr_cf, "CERR: Entering `nested_bar()'" );
       flush_cerr();
       flush_cout();
-      Dout( dc::bar|cerr_cf, "`nested_foo(" << foo_with_error << ", " << foo_to_cerr << ")' returns the string \"" << nested_foo(foo_with_error, foo_to_cerr) << "\" when I call it." );
+      Dout( dc::bar|cerr_cf, "CERR: `nested_foo(" << foo_with_error << ", " << foo_to_cerr << ")' returns the string \"" << nested_foo(foo_with_error, foo_to_cerr) << "\" when I call it." );
       flush_cerr();
       flush_cout();
-      Dout( dc::bar|cerr_cf, "Leaving `nested_bar()'" );
+      Dout( dc::bar|cerr_cf, "CERR: Leaving `nested_bar()'" );
       flush_cerr();
     }
     else
@@ -257,7 +240,7 @@ int main(void)
   cout << "---------------------------------------------------------------------------\n";
   flush_cout();
   errno = 0;
-  Dout( dc::notice|error_cf|cerr_cf, "This is a single line with an error message behind it written to cerr" );
+  Dout( dc::notice|error_cf|cerr_cf, "CERR: This is a single line with an error message behind it written to cerr" );
   flush_cerr();
 
   //===================================================================================
@@ -384,5 +367,6 @@ int main(void)
 
   Dout( dc::notice, continued_func(5) );
 
+  release_cerr();
   return 0;
 }
