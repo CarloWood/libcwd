@@ -2085,8 +2085,10 @@ objfile_ct::objfile_ct(char const* file_name) :
   filename = file_name;
   LIBCWD_TSD_DECLARATION
   int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+  Debug( libcw_do.off() );
   M_input_stream = new std::ifstream;
-  AllocTag(M_input_stream, "ifstream for reading debug symbols from object file");
+  Debug( make_invisible(M_input_stream) );
+  Debug( libcw_do.on() );
   M_input_stream->open(file_name);
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   if (!*M_input_stream)
