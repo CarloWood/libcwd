@@ -35,8 +35,8 @@ The suffix field could become for example ":&nbsp;EAGAIN&nbsp;(Try&nbsp;again)\\
 <b>Example:</b>
 
 \code
-Debug( libcw_do.margin.assign("*** ", 4) );
-Debug( libcw_do.marker.assign(": | ", 4) );
+Debug( libcw_do.margin().assign("*** ", 4) );
+Debug( libcw_do.marker().assign(": | ", 4) );
 Dout(dc::notice, "This line is not indented");
 Debug( libcw_do.set_indent(4) );
 Dout(dc::notice, "This line is indented 4 spaces");
