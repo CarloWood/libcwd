@@ -127,7 +127,7 @@ void allocator_unlock(void)
     using _private_::debug_message_st;
 #endif
 
-    class buffer_ct : public _private_::internal_stringstream {
+    class buffer_ct : public _private_::auto_internal_stringstream {
     private:
 #if __GNUC__ < 3
       typedef streampos streampos_t;

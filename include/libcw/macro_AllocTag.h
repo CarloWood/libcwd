@@ -176,16 +176,14 @@ extern void register_external_allocation(void const* ptr, size_t size);
       static char* WS_desc; \
       LIBCWD_ALLOCTAG_LOCK; \
       if (!WS_desc) { \
-	::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	if (1) \
 	{ \
-	  ::libcw::debug::_private_::internal_stringstream buf; \
+	  ::libcw::debug::_private_::auto_internal_stringstream buf; \
 	  buf << x << ::std::ends; \
 	  size_t size = LIBCWD_GETBUFSIZE(buf); \
 	  WS_desc = new char [size]; /* This is never deleted anymore */ \
 	  buf.rdbuf()->sgetn(WS_desc, size); \
 	} \
-	::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
       } \
       LIBCWD_ALLOCTAG_UNLOCK; \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), WS_desc LIBCWD_COMMA_TSD); \
@@ -198,16 +196,14 @@ extern void register_external_allocation(void const* ptr, size_t size);
     do { \
       char* desc; \
       LIBCWD_TSD_DECLARATION; \
-      ::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
       if (1) \
       { \
-	::libcw::debug::_private_::internal_stringstream buf; \
+	::libcw::debug::_private_::auto_internal_stringstream buf; \
 	buf << x << ::std::ends; \
 	size_t size = LIBCWD_GETBUFSIZE(buf); \
 	desc = new char [size]; \
 	buf.rdbuf()->sgetn(desc, size); \
       } \
-      ::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), \
 	  			      ::libcw::debug::_private_::smart_ptr(desc) LIBCWD_COMMA_TSD); \
     } while(0)

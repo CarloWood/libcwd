@@ -79,7 +79,13 @@ typedef std::LIBCWD_POOL_ALLOC<true, random_salt - 3> our_userspace_allocator;
 #define LIBCWD_COMMA_INSTANCE
 #endif
 
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
+enum pool_nt {
+  userspace_pool,
+  internal_pool,
+  auto_internal_pool
+};
+
+template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   struct allocator_adaptor {
     typedef T*		pointer;
     typedef T const*	const_pointer;
@@ -139,7 +145,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
 #define LIBCWD_DEFAULT_ALLOC_USERSPACE(instance) ::libcw::debug::_private_::			\
 	allocator_adaptor<char,									\
 	  		  our_userspace_allocator,						\
-			  false									\
+			  userspace_pool							\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
 
 // Both, multi_threaded_internal_instance and memblk_map_instance use also locks for
@@ -164,7 +170,16 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
 			      <LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),			\
 			        ::libcw::debug::_private_::random_salt +			\
 				::libcw::debug::_private_::instance >,				\
-			  true									\
+			  internal_pool								\
+			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
+
+#define LIBCWD_DEFAULT_ALLOC_AUTO_INTERNAL(instance) ::libcw::debug::_private_::		\
+	allocator_adaptor<char,									\
+			  ::std::LIBCWD_POOL_ALLOC						\
+			      <LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),			\
+			        ::libcw::debug::_private_::random_salt +			\
+				::libcw::debug::_private_::instance >,				\
+			  auto_internal_pool							\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
 
 #if LIBCWD_THREAD_SAFE
@@ -186,14 +201,16 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
 // LIBCWD_MT_*_ALLOCATOR uses a different allocator than the normal default allocator of libstdc++
 // in the case of multi-threading because it can be that the allocator mutex is locked, which would
 // result in a deadlock if we try to use it again here.
-#define LIBCWD_MT_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_INTERNAL(multi_threaded_internal_instance)
-#define LIBCWD_MT_USERSPACE_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_USERSPACE(multi_threaded_userspace_instance)
+#define LIBCWD_MT_USERSPACE_ALLOCATOR		LIBCWD_DEFAULT_ALLOC_USERSPACE(multi_threaded_userspace_instance)
+#define LIBCWD_MT_INTERNAL_ALLOCATOR		LIBCWD_DEFAULT_ALLOC_INTERNAL(multi_threaded_internal_instance)
+#define LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_AUTO_INTERNAL(multi_threaded_internal_instance)
 #else // !LIBCWD_THREAD_SAFE
 // LIBCWD_MT_*_ALLOCATOR uses the normal default allocator of libstdc++-v3 (alloc) using locking
 // itself.  The userspace allocator shares it memory pool with everything else (that uses this
 // allocator, which is most of the (userspace) STL).
-#define LIBCWD_MT_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
-#define LIBCWD_MT_USERSPACE_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_USERSPACE(single_threaded_userspace_instance)
+#define LIBCWD_MT_USERSPACE_ALLOCATOR		LIBCWD_DEFAULT_ALLOC_USERSPACE(single_threaded_userspace_instance)
+#define LIBCWD_MT_INTERNAL_ALLOCATOR		LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
+#define LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_AUTO_INTERNAL(single_threaded_internal_instance)
 #endif // !LIBCWD_THREAD_SAFE
 
 //---------------------------------------------------------------------------------------------------
@@ -209,8 +226,13 @@ typedef LIBCWD_NS_INTERNAL_ALLOCATOR(memblk_map_instance) memblk_map_allocator;
 // This allocator is used in critical areas that are already locked by object_files_instance.
 typedef LIBCWD_NS_INTERNAL_ALLOCATOR(object_files_instance) object_files_allocator;
 
-// This general allocator can be used outside libcwd-specific critical areas.
+// This general allocator can be used outside libcwd-specific critical areas,
+// but inside a set_alloc_checking_off() .. set_alloc_checking_on() pair.
 typedef LIBCWD_MT_INTERNAL_ALLOCATOR internal_allocator;
+
+// This general allocator can be used outside libcwd-specific critical areas,
+// in "user space" but that will cause internal memory to be allocated.
+typedef LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR auto_internal_allocator;
 
 //---------------------------------------------------------------------------------------------------
 // User space allocator type.

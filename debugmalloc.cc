@@ -337,7 +337,7 @@ extern bool WST_multi_threaded;
 #endif
 
 #ifdef LIBCWD_USE_STRSTREAM
-void* internal_strstreambuf_alloc(size_t size)
+void* auto_internal_strstreambuf_alloc(size_t size)
 {
   LIBCWD_TSD_DECLARATION;
   set_alloc_checking_off(LIBCWD_TSD);
@@ -346,7 +346,7 @@ void* internal_strstreambuf_alloc(size_t size)
   return ptr;
 }
 
-void internal_strstreambuf_free(void* ptr)
+void auto_internal_strstreambuf_free(void* ptr)
 {
   LIBCWD_TSD_DECLARATION;
   set_alloc_checking_off(LIBCWD_TSD);

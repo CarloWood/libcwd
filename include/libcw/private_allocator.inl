@@ -25,14 +25,14 @@ namespace libcw {
     namespace _private_ {
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
+template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   void allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::sanity_check(void)
   {
 #if CWDEBUG_DEBUGM || (CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE)
     LIBCWD_TSD_DECLARATION;
 #endif
 #if CWDEBUG_DEBUGM
-    if ((__libcwd_tsd.internal > 0) != internal) 
+    if ((__libcwd_tsd.internal > 0) != (internal != userspace_pool))
       core_dump();
 #endif
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
@@ -53,54 +53,132 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
   }
 #endif
 
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
+template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   __inline__
   T*
   allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::allocate(size_t n)
   {
+#if LIBCWD_THREAD_SAFE
+    TSD_st* tsd;
+#endif
+    if (internal == auto_internal_pool)
+    {
+#if LIBCWD_THREAD_SAFE
+      LIBCWD_TSD_DECLARATION;
+      tsd = &(LIBCWD_TSD);
+#endif
+      set_alloc_checking_off(LIBCWD_TSD);
+    }
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
-    return (T*) X::allocate(n * sizeof(T));
+    T* ret = (T*) X::allocate(n * sizeof(T));
+    if (internal == auto_internal_pool)
+    {
+#if LIBCWD_THREAD_SAFE
+      set_alloc_checking_on(*tsd);
+#else
+      set_alloc_checking_on(LIBCWD_TSD);
+#endif
+    }
+    return ret;
   }
 
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
+template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   __inline__
   T*
   allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::allocate(void)
   {
+#if LIBCWD_THREAD_SAFE
+    TSD_st* tsd;
+#endif
+    if (internal == auto_internal_pool)
+    {
+#if LIBCWD_THREAD_SAFE
+      LIBCWD_TSD_DECLARATION;
+      tsd = &(LIBCWD_TSD);
+#endif
+      set_alloc_checking_off(LIBCWD_TSD);
+    }
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
-    return (T*) X::allocate(sizeof(T));
+    T* ret = (T*) X::allocate(sizeof(T));
+    if (internal == auto_internal_pool)
+    {
+#if LIBCWD_THREAD_SAFE
+      set_alloc_checking_on(*tsd);
+#else
+      set_alloc_checking_on(LIBCWD_TSD);
+#endif
+    }
+    return ret;
   }
 
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
+template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   __inline__
   void
   allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::
   deallocate(deallocate_pointer p, size_t n)
   {
+#if LIBCWD_THREAD_SAFE
+    TSD_st* tsd;
+#endif
+    if (internal == auto_internal_pool)
+    {
+#if LIBCWD_THREAD_SAFE
+      LIBCWD_TSD_DECLARATION;
+      tsd = &(LIBCWD_TSD);
+#endif
+      set_alloc_checking_off(LIBCWD_TSD);
+    }
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
     X::deallocate(p, n * sizeof(T));
+    if (internal == auto_internal_pool)
+    {
+#if LIBCWD_THREAD_SAFE
+      set_alloc_checking_on(*tsd);
+#else
+      set_alloc_checking_on(LIBCWD_TSD);
+#endif
+    }
   }
 
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
+template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   __inline__
   void
   allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::deallocate(deallocate_pointer p)
   {
+#if LIBCWD_THREAD_SAFE
+    TSD_st* tsd;
+#endif
+    if (internal == auto_internal_pool)
+    {
+#if LIBCWD_THREAD_SAFE
+      LIBCWD_TSD_DECLARATION;
+      tsd = &(LIBCWD_TSD);
+#endif
+      set_alloc_checking_off(LIBCWD_TSD);
+    }
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
     X::deallocate(p, sizeof(T));
+    if (internal == auto_internal_pool)
+    {
+#if LIBCWD_THREAD_SAFE
+      set_alloc_checking_on(*tsd);
+#else
+      set_alloc_checking_on(LIBCWD_TSD);
+#endif
+    }
   }
 
 #if !CWDEBUG_DEBUG
-template <class T1, class X1, bool internal1,
-          class T2, class X2, bool internal2>
+template <class T1, class X1, pool_nt internal1,
+          class T2, class X2, pool_nt internal2>
   __inline__
   bool
   operator==(allocator_adaptor<T1, X1, internal1> const& a1,
@@ -109,8 +187,8 @@ template <class T1, class X1, bool internal1,
     return (internal1 == internal2 && a1.M_underlying_alloc == a2.M_underlying_alloc);
   }
  
-template <class T1, class X1, bool internal1,
-          class T2, class X2, bool internal2>
+template <class T1, class X1, pool_nt internal1,
+          class T2, class X2, pool_nt internal2>
   __inline__
   bool
   operator!=(allocator_adaptor<T1, X1, internal1> const& a1,
@@ -119,8 +197,8 @@ template <class T1, class X1, bool internal1,
     return (internal1 != internal2 || a1.M_underlying_alloc != a2.M_underlying_alloc);
   }
 #else
-template <class T1, class X1, bool internal1, int inst1,
-          class T2, class X2, bool internal2, int inst2>
+template <class T1, class X1, pool_nt internal1, int inst1,
+          class T2, class X2, pool_nt internal2, int inst2>
   __inline__
   bool
   operator==(allocator_adaptor<T1, X1, internal1, inst1> const& a1,
@@ -130,8 +208,8 @@ template <class T1, class X1, bool internal1, int inst1,
 	    && a1.M_underlying_alloc == a2.M_underlying_alloc);
   }
  
-template <class T1, class X1, bool internal1, int inst1,
-          class T2, class X2, bool internal2, int inst2>
+template <class T1, class X1, pool_nt internal1, int inst1,
+          class T2, class X2, pool_nt internal2, int inst2>
   __inline__
   bool
   operator!=(allocator_adaptor<T1, X1, internal1, inst1> const& a1,
