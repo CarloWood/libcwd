@@ -291,6 +291,8 @@ namespace libcw {
 #endif
     }
 
+    static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
+
     void debug_ct::finish(void)
     {
       // Skip `finish()' for a `continued' debug output.
@@ -331,6 +333,19 @@ namespace libcw {
 #ifdef DEBUGDEBUG
       cerr << "DEBUGDEBUG: Deleting `current'\n";
 #endif
+      if (current == reinterpret_cast<laf_ct*>(dummy_laf))
+      {
+	*os << '\n';
+#ifdef DEBUGUSEBFD
+	char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
+        DoutFatal(dc::core, "Using `dc::" << channame
+	    << "' in " << libcw_bfd_pc_location((char*)__builtin_return_address(0) + libcw_bfd_builtin_return_address_offset)
+	    << " without (first using) a matching `continue_cf'.");
+#else
+        DoutFatal(dc::core, "Using `dc::" << channame
+	    << "' without (first using) a matching `continue_cf'.");
+#endif
+      }
       delete current;
 #ifdef DEBUGDEBUG
       cerr << "DEBUGDEBUG: Done deleting `current'\n";
@@ -432,9 +447,12 @@ namespace libcw {
       interactive = true;				// and thus we're interactive.
       start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
       continued_channel_set.debug_object = this;	// The owner of this continued_channel_set.
+      // Fatal channels need to be marked fatal, otherwise we get into an endless loop
+      // when they are used before they are created.
+      new (const_cast<fatal_channel_ct*>(&channels::dc::fatal)) fatal_channel_ct const ("FATAL", fatal_maskbit);
+      new (const_cast<fatal_channel_ct*>(&channels::dc::core)) fatal_channel_ct const ("COREDUMP", coredump_maskbit);
       // `current' needs to be non-zero (saving us a check in start()) and
       // current.mask needs to be 0 to avoid a crash in start():
-      static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
 #ifdef DEBUGMALLOC
       set_alloc_checking_off();
 #endif
@@ -605,6 +623,11 @@ namespace libcw {
     fatal_channel_ct::fatal_channel_ct(char const* lbl, control_flag_t cb) : maskbit(cb)
     {
        // This is pretty much identical to channel_ct::channel_ct().
+
+       // This constructor is called *twice* (once from debug_ct::init()).
+       // Lets play safe and return the second time.
+       if (*label)
+         return;
 
 #ifdef DEBUGDEBUG
       cerr << "DEBUGDEBUG: Entering `fatal_channel_ct::fatal_channel_ct(\"" << lbl << "\")'" << endl;
