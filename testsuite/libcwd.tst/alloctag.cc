@@ -24,11 +24,6 @@ int main(int argc, char* argv[])
 
   Debug( check_configuration() );
 
-#if CWDEBUG_ALLOC
-  // Don't show allocations that are allocated before main()
-  libcw::debug::make_all_allocations_invisible_except(NULL);
-#endif
-
 #if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
@@ -52,6 +47,11 @@ int main(int argc, char* argv[])
 
   char* cp = new char[50];
   AllocTag(cp, "Test of \"new char[50]\"");
+
+#if CWDEBUG_ALLOC
+  // Don't show allocations that are allocated before main()
+  libcw::debug::make_all_allocations_invisible_except(cp);
+#endif
 
   int* i = new int;
   AllocTag(i, "Test of \"new int\"");

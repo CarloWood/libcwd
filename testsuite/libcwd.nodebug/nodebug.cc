@@ -13,9 +13,9 @@ int main(void)
   Debug( dc::bfd.on() );
 #endif
 
-  Debug( make_all_allocations_invisible_except(NULL) );
-
   int* p = new int [100];
+
+  Debug( make_all_allocations_invisible_except(p) );
 
   Debug( list_allocations_on(libcw_do) );
 

@@ -10,8 +10,8 @@ int main(void)
   Debug( check_configuration() );
 
 #if CWDEBUG_ALLOC
-  // Don't show allocations that are allocated before main()
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  new int;							// Make sure initialization of libcwd is done.
+  libcw::debug::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
 #endif
 
   Debug( libcw_do.on() );
