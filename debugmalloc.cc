@@ -102,7 +102,7 @@
 //		(Those that are shown by `list_allocations_on').
 // - std::ostream& operator<<(std::ostream& o, debugmalloc_report_ct)
 //		Allows to write a memory allocation report to std::ostream `o'.
-// - void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
+// - unsigned long list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 //		Prints out all visible allocated memory blocks and labels.
 //
 // The current 'manipulator' functions are:
@@ -843,7 +843,7 @@ public:
   dm_alloc_copy_ct(dm_alloc_ct const& alloc) : dm_alloc_base_ct(alloc), M_next(NULL), M_next_list(NULL) { }
   ~dm_alloc_copy_ct();
   static dm_alloc_copy_ct* deep_copy(dm_alloc_ct const* alloc);
-  void show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
+  unsigned long show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
   dm_alloc_copy_ct const* next(void) const { return M_next; }
 };
 
@@ -1093,12 +1093,28 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
   return location_info;
 }
 
+// Synchronize filtering in regard with filter.M_sourcefile_masks and filter.M_function_masks (only).
 void location_ct::synchronize_with(ooam_filter_ct const& filter) const
 {
-  if (!M_known)
+  if (!M_object_file)					// Then also !M_known.
     M_hide = _private_::unfiltered_location;
+  else if (!M_known)
+  {
+    if (M_func == unknown_function_c ||
+        M_func == S_uninitialized_location_ct_c ||
+	M_func == S_pre_ios_initialization_c ||
+	M_func == S_pre_libcwd_initialization_c ||
+	M_func == S_cleared_location_ct_c)
+      M_hide = _private_::unfiltered_location;
+    else
+      M_hide = filter.check_hide(M_object_file, M_func);
+  }
   else
+  {
     M_hide = filter.check_hide(M_filepath.get());
+    if (M_hide != _private_::filtered_location)
+      M_hide = filter.check_hide(M_object_file, M_func);
+  }
 }
 
 void ooam_filter_ct::M_synchronize_locations(void) const
@@ -1114,14 +1130,6 @@ void location_ct::handle_delayed_initialization(ooam_filter_ct const& filter)
   LIBCWD_TSD_DECLARATION;
   M_pc_location(M_initialization_delayed LIBCWD_COMMA_TSD);
   synchronize_with(filter);
-}
-
-_private_::hidden_st ooam_filter_ct::check_hide(char const* filepath) const
-{
-  for (vector_type::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
-    if (_private_::match((*iter).data(), (*iter).length(), filepath))
-      return _private_::filtered_location;
-  return _private_::unfiltered_location;
 }
 #endif // CWDEBUG_LOCATION
 
@@ -1211,6 +1219,9 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
     else
       LibcwDoutStream << "<unknown object file> (at " << (void*)M_location->unknown_pc() << ") :";
   }
+  bool print_mangled_function_name = filter.M_flags & show_function;
+  if (print_mangled_function_name)
+    LibcwDoutStream << M_location->mangled_function_name();
   if (M_location->is_known())
   {
     if ((filter.M_flags & show_path))
@@ -1218,6 +1229,8 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
       size_t len = M_location->filepath_length();
       if (len < 20)
 	LibcwDoutStream.write(twentyfive_spaces_c, 20 - len);
+      else if (print_mangled_function_name)
+        LibcwDoutStream.put(':');
       M_location->print_filepath_on(LibcwDoutStream);
     }
     else
@@ -1225,6 +1238,8 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
       size_t len = M_location->filename_length();
       if (len < 20)
 	LibcwDoutStream.write(twentyfive_spaces_c, 20 - len);
+      else if (print_mangled_function_name)
+        LibcwDoutStream.put(':');
       M_location->print_filename_on(LibcwDoutStream);
     }
     LibcwDoutStream.put(':');
@@ -1238,27 +1253,32 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
     }
     LibcwDoutStream.write(twentyfive_spaces_c, cnt);
   }
-  else if (M_location->mangled_function_name() != unknown_function_c)
-  {
-    size_t s;
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
-    do
-    {
-      _private_::internal_string f;
-      _private_::demangle_symbol(M_location->mangled_function_name(), f);
-      _private_::set_alloc_checking_on(LIBCWD_TSD);
-      s = f.size();
-      LibcwDoutStream.write(f.data(), s);
-      _private_::set_alloc_checking_off(LIBCWD_TSD);
-    }
-    while(0);
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
-    if (s < 25)
-      LibcwDoutStream.write(twentyfive_spaces_c, 25 - s);
-    LibcwDoutStream.put(' ');
-  }
   else
-    LibcwDoutStream.write(twentyfive_spaces_c, 25);
+  {
+    char const* mangled_function_name = M_location->mangled_function_name();
+    if (mangled_function_name != unknown_function_c &&
+      (!print_mangled_function_name || (mangled_function_name[0] == '_' && mangled_function_name[1] == 'Z')))
+    {
+      size_t s;
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      do
+      {
+	_private_::internal_string f;
+	_private_::demangle_symbol(mangled_function_name, f);
+	_private_::set_alloc_checking_on(LIBCWD_TSD);
+	s = f.size();
+	LibcwDoutStream.write(f.data(), s);
+	_private_::set_alloc_checking_off(LIBCWD_TSD);
+      }
+      while(0);
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+      if (s < 25)
+	LibcwDoutStream.write(twentyfive_spaces_c, 25 - s);
+      LibcwDoutStream.put(' ');
+    }
+    else
+      LibcwDoutStream.write(twentyfive_spaces_c, 25);
+  }
   LibcwDoutScopeEnd;
 #endif
 
@@ -1336,8 +1356,9 @@ void dm_alloc_ct::printOn(std::ostream& os) const
       ",\n\tnext_list = " << (void*)a_next_list << ", my_list = " << (void*)my_list << "\n\t( = " << (void*)*my_list << " ) }";
 }
 
-void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
+unsigned long dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
 {
+  unsigned long printed_memblks = 0;
   dm_alloc_copy_ct const* alloc;
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( !__libcwd_tsd.internal );		// localtime() can allocate memory and is a library call.
@@ -1404,9 +1425,11 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
     LibcwDoutScopeEnd;
     alloc->print_description(debug_object, filter LIBCWD_COMMA_TSD);
     LibcwDout(LIBCWD_DEBUGCHANNELS, debug_object, dc::finish, "");
+    ++printed_memblks;
     if (alloc->M_next_list)
-      alloc->M_next_list->show_alloc_list(debug_object, depth + 1, channel, filter);
+      printed_memblks += alloc->M_next_list->show_alloc_list(debug_object, depth + 1, channel, filter);
   }
+  return printed_memblks;
 }
 
 //=============================================================================
@@ -2494,10 +2517,12 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
  * \endcode
  *
  * meaning that all allocations are shown without time, without path and without to which library they belong to.
+ *
+ * \returns the number of actually printed allocations.
  */
-void list_allocations_on(debug_ct& debug_object)
+unsigned long list_allocations_on(debug_ct& debug_object)
 {
-  list_allocations_on(debug_object, default_ooam_filter);
+  return list_allocations_on(debug_object, default_ooam_filter);
 }
 
 #if LIBCWD_THREAD_SAFE
@@ -2538,15 +2563,18 @@ static void list_allocations_cleanup(void)
  * The remaining items would show which object file (shared library name or the executable name)
  * they belong to, because we used \c show_objectfile as flag.
  *
+ * \returns the number of unfiltered (listed) allocations.
+ *
  * \sa group_alloc_format
  */
-void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
+unsigned long list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
 
+  unsigned long printed_memblks = 0;
 #if LIBCWD_THREAD_SAFE
   size_t total_memsize = 0;
   unsigned long total_memblks = 0;
@@ -2582,7 +2610,7 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
     RELEASE_READ_LOCK;
     LibcwDout( channels, debug_object, dc_malloc, "Allocated memory by thread " << tid << ": " << memsize << " bytes in " << memblks << " blocks:" );
 #else
-    LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << memsize << " bytes in " << memblks << " blocks:" );
+    LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << memsize << " bytes in " << memblks << " blocks." );
 #endif
     if (list)
     {
@@ -2596,7 +2624,7 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 #if LIBCWD_THREAD_SAFE
       LIBCWD_CLEANUP_POP_RESTORE(true);
 #endif
-      list->show_alloc_list(debug_object, 1, channels::dc_malloc, filter);
+      printed_memblks += list->show_alloc_list(debug_object, 1, channels::dc_malloc, filter);
       _private_::set_alloc_checking_off(LIBCWD_TSD);
       delete list;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
@@ -2604,8 +2632,12 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 #if LIBCWD_THREAD_SAFE
   }
   LIBCWD_CLEANUP_POP_RESTORE(true);
-  LibcwDout( channels, debug_object, dc_malloc, "Total allocated memory: " << total_memsize << " bytes in " << total_memblks << " blocks." );
+  LibcwDout(channels, debug_object, dc_malloc, "Total allocated memory: " << total_memsize << " bytes in " << total_memblks << " blocks (" << printed_memblks << " shown).");
+#else
+  if (printed_memblks > 0)
+    LibcwDout(channels, debug_object, dc_malloc, "Number of visible memory blocks: " << printed_memblks << ".");
 #endif
+  return printed_memblks;
 }
 
 //=============================================================================

@@ -35,25 +35,26 @@ namespace libcwd {
 /** \addtogroup group_alloc_format */
 /** \{ */
 
-/** \brief The type used for the formatting flags of an ooam_filter_ct object */
+/** \brief The type used for the formatting flags of an ooam_filter_ct object. */
 typedef unsigned short int ooam_format_t;
 
 ooam_format_t const show_time = 1;			//!< Show the time at which the allocation was made.
 #if CWDEBUG_LOCATION
 ooam_format_t const show_path = 2;			//!< Show the full path of the locations where the allocation was made.
 ooam_format_t const show_objectfile = 4;		//!< Show the name of the shared library that is responsible for the allocation.
+ooam_format_t const show_function = 8;			//!< Show the mangled name of the function that allocated the memory.
 #endif
-ooam_format_t const show_allthreads = 8;		//!< Show the allocations of all threads, not just the current thread.
+ooam_format_t const show_allthreads = 16;		//!< Show the allocations of all threads, not just the current thread.
 #if CWDEBUG_LOCATION
-ooam_format_t const format_mask = (show_time|show_path|show_objectfile|show_allthreads);
+ooam_format_t const format_mask = (show_time|show_path|show_objectfile|show_function|show_allthreads);
 #else
 ooam_format_t const format_mask = (show_time|show_allthreads);
 #endif
 
 /** \} */
 
-unsigned int const hide_untagged = 16;			// Call hide_untagged_allocations() to set this flag.
-unsigned int const hide_unknown_loc = 32;		// Call hide_unknown_locations() to set this flag.
+unsigned int const hide_untagged = 32;			// Call hide_untagged_allocations() to set this flag.
+unsigned int const hide_unknown_loc = 64;		// Call hide_unknown_locations() to set this flag.
 
 class dm_alloc_base_ct;
 class dm_alloc_copy_ct;
@@ -62,6 +63,7 @@ class marker_ct;
 #endif
 
 /** \class ooam_filter_ct debugmalloc.h libcwd/debug.h
+ * \brief An allocated memory overview filter class.
  * \ingroup group_alloc_format
  *
  * The object passed to \ref list_allocations_on containing formatting information
@@ -84,6 +86,9 @@ private:
   typedef std::vector<string_type, _private_::auto_internal_allocator::rebind<string_type>::other> vector_type;
   vector_type M_objectfile_masks;
   vector_type M_sourcefile_masks;
+  typedef std::vector<std::pair<string_type, string_type>,
+      _private_::auto_internal_allocator::rebind<std::pair<string_type, string_type> >::other> vector_pair_type;
+  vector_pair_type M_function_masks;
 #endif
 public:
   /** The timeval used when there is no actual limit set, either start or end. */
@@ -104,11 +109,18 @@ public:
    * Don't use this function in a loop.
    */
   std::vector<std::string> get_objectfile_list(void) const;
+
   /** \brief Returns a copy of the list of source file masks.
    *
    * Don't use this function in a loop.
    */
   std::vector<std::string> get_sourcefile_list(void) const;
+
+  /** \brief Return a copy of the list of object-file/function pair masks.
+   *
+   * Don't use this function in a loop.
+   */
+  std::vector<std::pair<std::string, std::string> > get_function_list(void) const;
 #endif
 
   /** \brief Select the time interval that should be shown.
@@ -141,6 +153,25 @@ public:
    * \sa group_alloc_format
    */
   void hide_sourcefiles_matching(std::vector<std::string> const& masks);
+
+  /** \brief Select which object-file/function pairs to hide in the Allocator Memory Overview.
+   *
+   * \a masks is a list of pairs of masks.  The first mask is matched against the object-file name
+   * of the location of the allocation, while the second mask is matched against the mangled
+   * function name of that location.&nbsp;
+   * An unknown object-file or \link libcwd::unknown_function_c function \endlink
+   * does \em not cause a match.&nbsp;
+   * If the object-file mask start with a '/' or with a '*' then it is matched against the
+   * full path of the object file (including possible "<tt>../</tt>" parts, it is matched against what is
+   * returned by <code>location_ct::objectfile()-&gt;filepath()</code>.&nbsp;
+   * Otherwise it is matched against just the name of the loaded executable or shared library
+   * (with path stripped off).
+   *
+   * \sa libcwd::location_ct::mangled_function_name,
+   *     libcwd::location_ct::object_file,
+   *     libcwd::object_file_ct
+   */
+  void hide_functions_matching(std::vector<std::pair<std::string, std::string> > const& masks);
 #endif
 
   /** \brief Only show the allocations for which a AllocTag was added in the code.
@@ -162,10 +193,13 @@ public:
 #if CWDEBUG_LOCATION
   // Return true if filepath matches one of the masks in M_source_masks.
   _private_::hidden_st check_hide(char const* filepath) const;
+
+  // Return true if object_file/mangled_function_name matches one of the mask pairs in M_function_masks.
+  _private_::hidden_st check_hide(object_file_ct const* object_file, char const* mangled_function_name) const;
 #endif
 
 private:
-  friend void list_allocations_on(debug_ct&, ooam_filter_ct const&);
+  friend unsigned long list_allocations_on(debug_ct&, ooam_filter_ct const&);
 #if CWDEBUG_MARKER
   friend class marker_ct;
 #endif

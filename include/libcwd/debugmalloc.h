@@ -125,8 +125,8 @@ __inline__ void make_all_allocations_invisible_except(void const*) { }
 namespace libcwd {
 
 #if CWDEBUG_ALLOC
-extern void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& format);
-extern void list_allocations_on(debug_ct& debug_object);
+extern unsigned long list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& format);
+extern unsigned long list_allocations_on(debug_ct& debug_object);
 #else // !CWDEBUG_ALLOC
 __inline__ void list_allocations_on(debug_ct&) { }
 #endif // !CWDEBUG_ALLOC

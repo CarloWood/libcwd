@@ -144,6 +144,22 @@ std::vector<std::string> ooam_filter_ct::get_sourcefile_list(void) const
   return res;
 }
 
+std::vector<std::pair<std::string, std::string> > ooam_filter_ct::get_function_list(void) const
+{
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
+  std::vector<std::pair<std::string, std::string> > res;
+  LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+  ACQUIRE_LISTALLOC_LOCK;
+  for(vector_pair_type::const_iterator iter = M_function_masks.begin(); iter != M_function_masks.end(); ++iter)
+    res.push_back(std::pair<std::string, std::string>(std::string(iter->first.data(), iter->first.length()),
+                                                      std::string(iter->second.data(), iter->second.length())));
+  RELEASE_LISTALLOC_LOCK;
+  LIBCWD_CLEANUP_POP_RESTORE(false);
+  return res;
+}
+
 void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& masks)
 {
 #if CWDEBUG_DEBUGT
@@ -173,7 +189,52 @@ void ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& m
   RELEASE_LISTALLOC_LOCK;
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
+
+void ooam_filter_ct::hide_functions_matching(std::vector<std::pair<std::string, std::string> > const& masks)
+{
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
 #endif
+  LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+  ACQUIRE_LISTALLOC_LOCK;
+  M_sourcefile_masks.clear();
+  for(std::vector<std::pair<std::string, std::string> >::const_iterator iter = masks.begin(); iter != masks.end(); ++iter)
+    M_function_masks.push_back(std::pair<string_type, string_type>
+        (string_type(iter->first.data(), iter->first.length()), string_type(iter->second.data(), iter->second.length())));
+  S_id = -1;			// Force resynchronization.
+  RELEASE_LISTALLOC_LOCK;
+  LIBCWD_CLEANUP_POP_RESTORE(false);
+}
+
+_private_::hidden_st ooam_filter_ct::check_hide(char const* filepath) const
+{
+  for (vector_type::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
+    if (_private_::match(iter->data(), iter->length(), filepath))
+      return _private_::filtered_location;
+  return _private_::unfiltered_location;
+}
+
+_private_::hidden_st ooam_filter_ct::check_hide(object_file_ct const* object_file, char const* mangled_function_name) const
+{
+  char const* file_path = object_file->filepath();
+  char const* file_name = object_file->filename();
+  for (vector_pair_type::const_iterator iter = M_function_masks.begin(); iter != M_function_masks.end(); ++iter)
+  {
+    char const* objectfile_mask = iter->first.data();
+    size_t objectfile_mask_length = iter->first.length();
+    char c;
+    if ((objectfile_mask_length == 0 ||
+          (((c = *objectfile_mask) == '/' || c == '*') &&
+	    _private_::match(objectfile_mask, objectfile_mask_length, file_path)) ||
+	  (!(c == '/' || c == '*') &&
+	    _private_::match(objectfile_mask, objectfile_mask_length, file_name))) &&
+        (iter->second.length() == 0 ||
+          _private_::match(iter->second.data(), iter->second.length(), mangled_function_name)))
+      return _private_::filtered_location;
+  }
+  return _private_::unfiltered_location;
+}
+#endif // CWDEBUG_LOCATION
 
 #if CWDEBUG_LOCATION
 void ooam_filter_ct::M_synchronize(void) const

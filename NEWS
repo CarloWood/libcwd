@@ -4,6 +4,19 @@ libcwd-0.99.37
 	(only `internal' memory) making it better suitable to use it
 	as a filter to show memory leaks at program termination.
 
+	list_allocations_on now returns the number of actually
+	printed allocations (unfilter and not invisible).
+
+	Added was a function ooam_filter_ct::hide_functions_matching
+	that allows to hide allocations from the overview of allocated
+	memory that was allocated from a certain function (and shared
+        library if appropriate).
+
+	A new flag ooam_filter_ct::show_function was added, causing
+	list_allocations_on to print the mangled function name from
+	which an allocation was done, even when the sourcefile and
+	line number is known.
+
 libcwd-0.99.36
 
 	Libcwd is now compiled with -O2 by default.
