@@ -30,7 +30,7 @@
 //
 
 // Allow people to use just -DDEBUG instead of -DCWDEBUG in the command line.
-#if DEBUG == 1
+#if defined(DEBUG) && (DEBUG == 1)
 #define CWDEBUG
 #endif
 
