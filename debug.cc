@@ -969,7 +969,9 @@ void allocator_unlock(void)
       if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
       {
         channels::dc::malloc.off();
+#if CWDEBUG_LOCATION
         channels::dc::bfd.off();
+#endif
       }
 
       // Skip `start()' for a `continued' debug output.
@@ -1135,7 +1137,9 @@ void allocator_unlock(void)
       if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
       {
         channels::dc::malloc.on();
+#if CWDEBUG_LOCATION
         channels::dc::bfd.on();
+#endif
       }
 
       // Skip `finish()' for a `continued' debug output.
@@ -1527,7 +1531,9 @@ void allocator_unlock(void)
 	  if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
 	  {
 	    channels::dc::malloc.on();
+#if CWDEBUG_LOCATION
 	    channels::dc::bfd.on();
+#endif
 	  }
 	  LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(), LIBCWD_DO_TSD_MEMBER(debug_object, margin).size());
 	  LibcwDoutStream.write((*i)->get_label(), WST_max_len);
@@ -1538,7 +1544,9 @@ void allocator_unlock(void)
 	  if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
 	  {
 	    channels::dc::malloc.off();
+#if CWDEBUG_LOCATION
 	    channels::dc::bfd.off();
+#endif
 	  }
 	  LibcwDoutScopeEnd;
 	}

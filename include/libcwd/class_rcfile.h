@@ -55,7 +55,9 @@ private:
   bool M_read_called;
 
   bool M_malloc_on;					// Used on rcfile_ct::read.
+#if CWDEBUG_LOCATION
   bool M_bfd_on;
+#endif
 
 public:
   /**

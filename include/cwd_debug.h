@@ -100,11 +100,13 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
   return os;
 }
 
+#if CWDEBUG_LOCATION
 inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, location_ct const& location)
 {
   _private_::print_location_on(os, location);
   return os;
 }
+#endif
 
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
 	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)); \

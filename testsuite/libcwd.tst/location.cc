@@ -150,8 +150,10 @@ MAIN_FUNCTION
 #endif
   // Turn debug object on
   Debug( libcw_do.on() );
+#if CWDEBUG_LOCATION
   // Choose location format
   Debug( location_format(show_objectfile|show_function) );
+#endif
 
   // Run test
 #ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS

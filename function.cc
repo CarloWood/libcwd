@@ -14,6 +14,8 @@
 #include "sys.h"
 #include <libcwd/config.h>
 
+#if CWDEBUG_LOCATION
+
 #include "cwd_debug.h"
 #include "cwd_bfd.h"
 #ifndef LIBCWD_PRIVATE_THREADING_H
@@ -215,3 +217,5 @@ void Function::M_init(char const* expr, unsigned int flags)
 }
 
 } // namespace libcwd
+
+#endif // CWDEBUG_LOCATION

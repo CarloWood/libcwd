@@ -119,6 +119,7 @@ void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& m
 	Dout(dc::rcfile, "Turned off MALLOC");
       }
     }
+#if CWDEBUG_LOCATION
     else if (label == "BFD")
     {
       if (!M_bfd_on && (action == on || action == toggle))
@@ -133,6 +134,7 @@ void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& m
 	Dout(dc::rcfile, "Turned off BFD");
       }
     }
+#endif
     else if (!debugChannel.is_on() && (action == on || action == toggle))
     {
       do
@@ -188,7 +190,9 @@ void rcfile_ct::read(void)
   int channels_default_set = 0;
   bool syntax_error = false;
   M_malloc_on = libcwd::channels::dc::malloc.is_on();
+#if CWDEBUG_LOCATION
   M_bfd_on = libcwd::channels::dc::bfd.is_on();
+#endif
   while(getline(rc, line))
   {
     lines_read++;
@@ -249,7 +253,10 @@ void rcfile_ct::read(void)
 	    while (!debugChannel.is_on() && label != "MALLOC" && label != "BFD")
 	      debugChannel.on()
 	  );
-	  M_malloc_on = M_bfd_on = true;
+	  M_malloc_on = true;
+#if CWDEBUG_LOCATION
+	  M_bfd_on = true;
+#endif
 	}
         else if (value == "off")
 	{
@@ -257,7 +264,10 @@ void rcfile_ct::read(void)
 	    if (debugChannel.is_on())
 	      debugChannel.off()
 	  );
-	  M_malloc_on = M_bfd_on = false;
+	  M_malloc_on = false;
+#if CWDEBUG_LOCATION
+	  M_bfd_on = false;
+#endif
 	}
 	else
 	{
@@ -294,9 +304,11 @@ void rcfile_ct::read(void)
   if (M_malloc_on)
     while (!channels::dc::malloc.is_on())
       channels::dc::malloc.on();
+#if CWDEBUG_LOCATION
   if (M_bfd_on)
     while (!channels::dc::bfd.is_on())
       channels::dc::bfd.on();
+#endif
   M_read_called = true;
 }
 

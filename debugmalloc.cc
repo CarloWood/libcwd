@@ -153,6 +153,7 @@
 #include "ios_base_Init.h"
 #include "match.h"
 #include <libcwd/cwprint.h>
+#include <libcwd/bfd.h>
 
 #if LIBCWD_THREAD_SAFE
 #if CWDEBUG_DEBUGT
@@ -1023,6 +1024,8 @@ static memblk_map_ct* ST_memblk_map;
 #define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
 #define target_memblk_iter_write memblk_iter_write
 
+alloc_filter_ct const default_ooam_filter(0);
+
 #if CWDEBUG_LOCATION
 //=============================================================================
 //
@@ -1052,8 +1055,6 @@ static location_cache_map_t location_cache_map;		// MT-safe: initialized before 
 #define location_cache_map_write (location_cache_map.write)
 #define location_cache_map_read  (location_cache_map.read)
 #define location_cache_iter_write reinterpret_cast<location_cache_map_ct::iterator&>(const_cast<location_cache_map_ct::const_iterator&>(iter))
-
-alloc_filter_ct const default_ooam_filter(0);
 
 //=============================================================================
 //
@@ -4080,6 +4081,7 @@ static int debug_alloc(void const* ptr)
 	type_info.demangled_name() : "<No AllocTag>") << '\n';
     char const* desc = alloc->description();
     std::cout << "description: " << (desc ? desc : "<No AllocTag>") << '\n';
+#if CWDEBUG_LOCATION
     std::cout << "   location: " << alloc->location() << '\n';
     char const* function_name = alloc->location().mangled_function_name();
     if (function_name != unknown_function_c)
@@ -4100,6 +4102,7 @@ static int debug_alloc(void const* ptr)
       _private_::set_alloc_checking_on(LIBCWD_TSD);
       std::cout << '\n';
     }
+#endif
     struct tm* tbuf_ptr;
     struct timeval const& a_time(alloc->time());
 #if LIBCWD_THREAD_SAFE
