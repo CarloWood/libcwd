@@ -41,19 +41,19 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 #define ForAllDebugObjects(STATEMENT)
 #define LibcwDebug(dc_namespace, x)
 #define LibcwDout(a, b, c, d)
-#define LibcwDoutFatal(a, b, c, d) do { ::std::cerr << d << ::std::endl; ::std::exit(254); } while(1)
+#define LibcwDoutFatal(a, b, c, d) do { ::std::cerr &lt;&lt; d &lt;&lt; ::std::endl; ::std::exit(254); } while(1)
 #define NEW(x) new x
 
 #else // CWDEBUG
 
 #ifndef DEBUGCHANNELS
-// This must be defined before <libcw/debug.h> is included and must be the
+// This must be defined before &lt;libcw/debug.h&gt; is included and must be the
 // name of the namespace containing your `dc' namespace (see below).
 // You can use any namespace(s) you like, except existing namespaces
 // (like ::, ::std and ::libcw).
 #define DEBUGCHANNELS ::myproject::debug::channels
 #endif
-#include <libcw/debug.h>
+#include &lt;libcw/debug.h&gt;
 
 namespace myproject {
   namespace debug {

@@ -295,7 +295,7 @@ whitespace but still has to be a statement: it must be a single semi-colon then.
     Dout(dc::notice, "An error occured");
 
   exit(0);
-  cerr << "We should never reach this\n";
+  cerr &lt;&lt; "We should never reach this\n";
 </PRE>
 
 <P>If the complete line <SPAN class="code">Dout(dc::notice, "An error occured");</SPAN>,
@@ -309,7 +309,7 @@ looks so much better), which would break code like:</P>
   if (error)
     Dout(dc::notice, "An error occured");
   else
-    cout << "Everything is ok\n";
+    cout &lt;&lt; "Everything is ok\n";
 </PRE>
 
 <P>because after macro expansion that would become:</P>
@@ -318,8 +318,8 @@ looks so much better), which would break code like:</P>
   if (error)
     ;
     ;
-  else		// <-- syntax error
-    cout << "Everything is ok\n";
+  else		// &lt;-- syntax error
+    cout &lt;&lt; "Everything is ok\n";
 </PRE>
 
 <A name="LibcwDout"></A>
@@ -341,7 +341,7 @@ In pseudo-code the macro expansion looks something like</P>
 
 <PRE class="code">
   if (debug object and any of the debug channels are turned on)
-    the_ostream << your message;
+    the_ostream &lt;&lt; your message;
 </PRE>
 
 <P>and so, &quot;your message&quot; is <EM>not</EM> evaluated when it isn't also

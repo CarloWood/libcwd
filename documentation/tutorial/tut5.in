@@ -552,12 +552,12 @@ int main(void)
   Debug( libcw_do.on() );
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
 
-  Debug( libcw_do.<SPAN class="highlight">set_margin</SPAN>("<-- margin -->") );
-  Debug( libcw_do.<SPAN class="highlight">set_marker</SPAN>("<-- marker -->") );
+  Debug( libcw_do.<SPAN class="highlight">set_margin</SPAN>("&lt;-- margin --&gt;") );
+  Debug( libcw_do.<SPAN class="highlight">set_marker</SPAN>("&lt;-- marker --&gt;") );
   Dout( dc::cat|dc::mouse, "The cat chases the mouse." );
   Dout( dc::mouse|dc::elephant, "The mouse chases the elephant." );
   Dout( dc::notice|<SPAN class="highlight">nolabel_cf</SPAN>, "Setting indentation to 8 spaces:" );
-  Dout( dc::notice|<SPAN class="highlight">blank_label_cf</SPAN>, "<------>" );
+  Dout( dc::notice|<SPAN class="highlight">blank_label_cf</SPAN>, "&lt;------&gt;" );
   Debug( libcw_do.<SPAN class="highlight">set_indent(8)</SPAN> );
   Dout( dc::cat, "The cat sleeps." );
   Dout( dc::elephant, "The elephant looks around:" );

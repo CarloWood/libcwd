@@ -114,7 +114,7 @@ Using the macro <CODE>Dout</CODE> causes debug output to be written to <CODE>lib
 <CODE>dc::notice</CODE> is turned on.</P>
 
 <P>Output is written as if everything in the second field of the macro <CODE>Dout</CODE> is
-written to an ostream; It is "equivalent" with: <CODE>cerr << "Hello World" << '\n';</CODE></P>
+written to an ostream; It is "equivalent" with: <CODE>cerr &lt;&lt; "Hello World" &lt;&lt; '\n';</CODE></P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
 <LI><A HREF="faq.html#macros">Why is <CODE>Dout</CODE> a macro and not a template?</A></LI>
