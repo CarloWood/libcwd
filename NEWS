@@ -1,3 +1,16 @@
+libcwd-0.99.4
+
+	Bug fixes:
+
+	Libcwd got into an endless loop when a fatal error occured
+	before the fatal debug channels where initialized.  This
+	happened for instance when a hard limit for the core size
+	was set.
+
+	When a hard limit for the core size is set, the call to
+	setrlimit failed, and libcwd terminated with a fatal
+	error (and got into a loop, see above).
+
 libcwd-0.99.3
 
 	A different bug work around for the compiler bug that surfaces
