@@ -13,5 +13,5 @@ maintainer-startup:
 	 for i in install-sh missing mkinstalldirs; do echo "cp $$am_dir/$$i ."; cp $$am_dir/$$i .; done)
 	automake
 	@for i in config.guess config.sub ltconfig ltmain.sh install-sh missing mkinstalldirs; do \
-	  if test ! -e $$i; then echo "Warning: missing \"$$i\" in `pwd`"; fi; \
+	  if test ! -f $$i; then echo "Warning: missing \"$$i\" in `pwd`"; fi; \
 	done
