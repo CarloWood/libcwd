@@ -85,6 +85,12 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>16 November 2002</B>
+<P class="news">libcwd-0.99.27 is released.&nbsp;
+This release fixes a few minor bugs.  Well, minor unless you run into them of course: libcwd would core dump
+when reading a shared library whose last compilation unit did not contain a .debug_line section.
+And linking with a libcwd that was configured with --disable-alloc would lead to an undefined reference.
+Finally, demangling of _GLOBAL_* functions have been fixed.</P>
 <DT><B>13 September 2002</B>
 <P class="news">libcwd-0.99.26 is released.&nbsp;
 This release contains some bug fixes and a new 'overview of allocated memory' filter class extension:
