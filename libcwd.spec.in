@@ -61,6 +61,7 @@ echo
 %dir %{__prefix}/include/libcwd
 %{__prefix}/lib/*
 %{__prefix}/include/libcwd/*
+%{__prefix}/share/libcwd/libcwdrc
 
 %changelog
 * Sat May  3 2003 Carlo Wood <libcw@alinoe.com>
