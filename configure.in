@@ -250,13 +250,13 @@ dnl Set up build directory
 test ! -d include && mkdir include
 
 dnl Set up rpm directory when in maintainer mode
+SPECCHANGELOG=spec.changelog
 if test "$USE_MAINTAINER_MODE" = yes; then
+  AC_SUBST_FILE(SPECCHANGELOG)
   LSMFILE="$PACKAGE.lsm"
   AC_SUBST(LSMFILE)
   SPECFILE="$PACKAGE.spec"
   AC_SUBST(SPECFILE)
-  SPECCHANGELOG=spec.changelog
-  AC_SUBST_FILE(SPECCHANGELOG)
   top_builddir="`pwd`"
   test -d rpm || mkdir rpm
   cd rpm
