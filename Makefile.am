@@ -44,7 +44,7 @@ libcwd_la_SOURCES = \
 	type_info.cc \
 	function.cc \
 	compilation_unit.cc
-libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
+libcwd_la_LDFLAGS = -version-info $(VERSIONINFO) -no-undefined
 libcwd_la_LIBADD = utils/libutils.la
 endif
 
@@ -64,7 +64,7 @@ libcwd_r_la_SOURCES = \
 	compilation_unit.cc \
 	threading.cc \
 	wrapcnclpnts.cc
-libcwd_r_la_LDFLAGS = -version-info $(VERSIONINFO) $(LIB_THREADS_SHARED)
+libcwd_r_la_LDFLAGS = -version-info $(VERSIONINFO) -no-undefined $(LIB_THREADS_SHARED)
 libcwd_r_la_LIBADD = utils/libutils_r.la
 endif
 

@@ -41,6 +41,7 @@ extern "C" char* getenv(char const* name);	// Needed before including ext/pool_a
 #include <libcwd/class_location.inl>
 
 extern "C" int raise(int);
+extern "C" void _exit(int);
 
 #if LIBCWD_THREAD_SAFE
 using libcwd::_private_::rwlock_tct;
@@ -803,7 +804,7 @@ void allocator_unlock(void)
 #if LIBCWD_THREAD_SAFE
       LIBCWD_ENABLE_CANCEL;
 #endif
-      _Exit(6);		// Never reached.
+      _exit(6);		// Never reached.
     }
 
     size_t debug_string_ct::calculate_capacity(size_t size)
@@ -1232,7 +1233,7 @@ void allocator_unlock(void)
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
 #endif
-	  _Exit(254);	// Exit without calling global destructors.
+	  _exit(254);	// Exit without calling global destructors.
 	}
 	if ((current->mask & wait_cf))
 	{
@@ -1306,7 +1307,7 @@ void allocator_unlock(void)
     {
       finish(debug_object, channel_set LIBCWD_COMMA_TSD);
       DoutFatal( dc::core, "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
-      _Exit(1);	// This is never reached, but g++ 3.3.x -O2 thinks it is.
+      _exit(1);	// This is never reached, but g++ 3.3.x -O2 thinks it is.
     }
 
 #if LIBCWD_THREAD_SAFE
