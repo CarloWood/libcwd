@@ -58,6 +58,8 @@ template<typename T>
     *++p = ptr;
   }
 
+extern void print_pop_error(void);
+
 template<typename T>
   __inline__
   void
@@ -65,8 +67,9 @@ template<typename T>
   {
 #if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end != NULL );
-    LIBCWD_ASSERT( p != &st[-1] );
 #endif
+    if (p == &st[-1])
+      print_pop_error();
     --p;
   }
 

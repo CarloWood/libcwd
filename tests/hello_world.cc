@@ -86,9 +86,9 @@ int main(void)
   //Debug( attach_gdb() );
   using libcw::debug::Function;
   Function test;
-//  test.init("init", Function::regexp|Function::cpp_linkage|Function::c_linkage);
+  test.init("init", Function::regexp|Function::cpp_linkage|Function::c_linkage);
 
-  debug_load_object_file("dwarf-die3.o", true);
+//  debug_load_object_file("dwarf-die3.o", true);
 
   return 0;
 }

@@ -22,14 +22,16 @@ endif
 
 sys.h: $(global_dependencies)
 
-include ./.deps/pch.po
+@AMDEP_TRUE@ifeq (./$(DEPDIR)/pch.po, $(wildcard ./$(DEPDIR)/pch.po))
+@AMDEP_TRUE@@am__include@ ./$(DEPDIR)/pch.po
+@AMDEP_TRUE@endif
 
 timestamp-pch.h pch.h.gch:
 	rm -f pch.h.gch
-	test -d .deps || mkdir .deps
+	test -d $(DEPDIR) || mkdir $(DEPDIR)
 	if $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) -DCWDEBUG $(WARNOPTS) $(CXXFLAGS) \
-	    -M -MT timestamp-pch.h -MF .deps/pch.Tpo -DPIC -fPIC pch.h; then \
-	  cmp -s .deps/pch.Tpo .deps/pch.po || mv .deps/pch.Tpo .deps/pch.po; \
+	    -M -MT timestamp-pch.h -MF $(DEPDIR)/pch.Tpo -DPIC -fPIC pch.h; then \
+	  cmp -s $(DEPDIR)/pch.Tpo $(DEPDIR)/pch.po || mv $(DEPDIR)/pch.Tpo $(DEPDIR)/pch.po; \
 	fi
 	if $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) -DCWDEBUG $(WARNOPTS) $(CXXFLAGS) \
 	    -DPIC -fPIC -c -o pch.h.gch pch.h; then \

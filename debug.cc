@@ -31,6 +31,7 @@ extern "C" char* getenv(char const* name);	// Needed before including ext/pool_a
 #include <algorithm>
 #include <sys/time.h>     	// Needed for setrlimit()
 #include <sys/resource.h>	// Needed for setrlimit()
+#include <cstdlib>		// Needed for Exit() (C99)
 #include <new>
 #include "cwd_debug.h"
 #include <libcwd/strerrno.h>
@@ -790,7 +791,7 @@ void allocator_unlock(void)
 #if LIBCWD_THREAD_SAFE
       LIBCWD_ENABLE_CANCEL;
 #endif
-      _exit(6);		// Never reached.
+      _Exit(6);		// Never reached.
     }
 
     size_t debug_string_ct::calculate_capacity(size_t size)
@@ -1214,7 +1215,7 @@ void allocator_unlock(void)
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
 #endif
-	  _exit(254);	// Exit without calling global destructors.
+	  _Exit(254);	// Exit without calling global destructors.
 	}
 	if ((current->mask & wait_cf))
 	{
@@ -1698,6 +1699,15 @@ void allocator_unlock(void)
     //----------------------------------------------------------------------------------------
     // Handle continued channel flags and update `off_count' and `continued_stack'.
     //
+
+    namespace _private_ {
+      void print_pop_error(void) {
+        DoutFatal(dc::core, "Using \"dc::finish\" without corresponding \"continued_cf\" or "
+	    "calling the Dout(dc::finish, ...) more often than its corresponding "
+	    "Dout(dc::channel|continued_cf, ...).  Note that the wrong \"dc::finish\" doesn't "
+	    "have to be the one that we core dumped on, if two or more are nested.");
+      }
+    }
 
     continued_channel_set_st& channel_set_st::operator|(continued_cf_nt)
     {

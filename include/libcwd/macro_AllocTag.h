@@ -225,7 +225,7 @@ template<typename TYPE>
   {
     AllocTag1(new_ptr);
     return new_ptr;
-  };
+  }
 
 /**
  * \brief Like operator \c new, but automatically annotates the \em type of \a x.

@@ -11,5 +11,6 @@ threads4
 stabs
 dout_alloc
 location
+inlined
 .deps
 .libs
