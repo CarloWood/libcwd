@@ -235,9 +235,6 @@ namespace libcw {
   namespace debug {
 
 namespace _internal_ {
-#if 0 //def DEBUGDEBUG
-  bool ios_base_initialized = false;
-#endif
   //
   // The following is about tackling recursive calls.
   //
@@ -283,9 +280,6 @@ namespace _internal_ {
   int library_call = 0;
 } // namespace _internal_
 
-#if 0 //def DEBUGDEBUG
-using _internal_::ios_base_initialized;
-#endif
 using _internal_::internal;
 using _internal_::library_call;
 
@@ -655,7 +649,9 @@ void dm_alloc_ct::print_description(void) const
   {
     string f;
     demangle_symbol(M_location.mangled_function_name(), f);
-    Dout( dc::continued, setw(24) << f << ' ' );
+    if (f.size() < 25)
+      f.append(25 - f.size(), ' ');
+    Dout( dc::continued, f << ' ' );
   }
   else
     Dout( dc::continued, setw(25) << ' ' );
@@ -849,6 +845,13 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
     return NULL;	// A fatal error should occur directly after this
   }
 
+  if (!memblk_map)
+  {
+    internal = true;
+    memblk_map = new memblk_map_ct;
+    internal = false;
+  }
+
 #ifdef DEBUGUSEBFD
   if (library_call++)
     libcw_do._off++;	// Otherwise debug output will be generated from bfd.cc (location_ct)
@@ -859,9 +862,6 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
 
   DEBUGDEBUG_CERR( "internal_debugmalloc: internal == " << internal << "; setting it to true." );
   internal = true;
-
-  if (!memblk_map)
-    memblk_map = new memblk_map_ct;
 
   // Update our administration:
   pair<memblk_map_ct::iterator, bool> const& i(memblk_map->insert(memblk_ct(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, flag))));
@@ -1282,43 +1282,6 @@ bool memblk_key_ct::selftest(void)
 
 using namespace ::libcw::debug;
 
-#if 0 // FIXME: Is this needed at all now we use write(2) in DEBUGDEBUG_CERR?
-//=============================================================================
-//
-// Hack to detect when the standard streams are initialized.
-// The initialization is done from std::ios_base::Init() which
-// calls both operator new and operator new[].
-//
-
-#ifdef DEBUGDEBUG
-namespace {
-  bool ios_base_initialisation_hack(void)
-  {
-    static bool not_very_first_time = false;
-    if (!not_very_first_time)
-    {
-      // This is the very first time that operator new was called.
-      // KLUDGE: set ios_base::Init::_S_synced_with_stdio to false.
-      // It will be set to true at the end of ios_base::Init().
-      bool prev = std::ios_base::sync_with_stdio(false);
-      ASSERT( prev );
-      not_very_first_time = true;
-      return true;
-    }
-    if (!std::ios_base::sync_with_stdio(false))	// Still didn't reach the end of ios_base::Init()?
-      return true;
-    std::ios_base::sync_with_stdio(true);
-    ios_base_initialized = true;
-    // Now stop these object from ever being deallocated, create a dummy Init that will increment the reference counter indefinitely.
-    new std::ios_base::Init;
-    DEBUGDEBUG_CERR( "Standard streams initialized." );
-    return false;
-  }
-
-}
-#endif // DEBUGDEBUG
-#endif // 0
-
 #ifdef DEBUGMAGICMALLOC
 size_t const INTERNAL_MAGIC_NEW_BEGIN = 0x7af45b1c;
 size_t const INTERNAL_MAGIC_NEW_END = 0x3b9f018a;
@@ -1423,8 +1386,8 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 
 void* __libcwd_malloc(size_t size)
 {
-#if 0 //def DEBUGDEBUG
-  ASSERT( ios_base_initialized );
+#ifdef DEBUGDEBUG
+  ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
   {
@@ -1475,8 +1438,8 @@ void* __libcwd_malloc(size_t size)
 
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
-#if 0 //def DEBUGDEBUG
-  ASSERT( ios_base_initialized );
+#ifdef DEBUGDEBUG
+  ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
   {
@@ -1538,8 +1501,8 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 
 void* __libcwd_realloc(void* ptr, size_t size)
 {
-#if 0 //def DEBUGDEBUG
-  ASSERT( ios_base_initialized );
+#ifdef DEBUGDEBUG
+  ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
   {
@@ -1664,8 +1627,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
 
 void __libcwd_free(void* ptr)
 {
-#if 0 //def DEBUGDEBUG
-  ASSERT( ios_base_initialized );
+#ifdef DEBUGDEBUG
+  ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from_nt from = deallocated_from;
   deallocated_from = from_free;
@@ -1837,10 +1800,6 @@ void __libcwd_free(void* ptr)
 
 void* operator new(size_t size)
 {
-#if 0 //def DEBUGDEBUG
-  if (!ios_base_initialized && ios_base_initialisation_hack())
-    return malloc(size);
-#endif
   if (internal)
   {
     DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `operator new', size = " << size );
@@ -1892,10 +1851,6 @@ void* operator new(size_t size)
 
 void* operator new[](size_t size)
 {
-#if 0 //def DEBUGDEBUG
-  if (!ios_base_initialized && ios_base_initialisation_hack())
-    return malloc(size);
-#endif
   if (internal)
   {
     DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `operator new[]', size = " << size );
@@ -1952,8 +1907,8 @@ void* operator new[](size_t size)
 
 void operator delete(void* ptr)
 {
-#if 0 //def DEBUGDEBUG
-  ASSERT( ios_base_initialized );
+#ifdef DEBUGDEBUG
+  ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from = from_delete;
   __libcwd_free(ptr);
@@ -1961,8 +1916,8 @@ void operator delete(void* ptr)
 
 void operator delete[](void* ptr)
 {
-#if 0 //def DEBUGDEBUG
-  ASSERT( ios_base_initialized );
+#ifdef DEBUGDEBUG
+  ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from = from_delete_array;
   __libcwd_free(ptr);			// Note that the standard demands that we call free(), and not delete().

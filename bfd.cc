@@ -71,8 +71,39 @@ namespace libcw {
       }
     }
 
+#ifdef __GLIBCPP__
+    namespace _internal_ {
+      bool ios_base_initialized = false;
+    }
+#endif
+
     // Local stuff
     namespace {
+
+#ifdef __GLIBCPP__
+      // {anonymous}::
+      bool ios_base_initialization_hack(void)
+      {
+	static bool not_very_first_time = false;
+	if (!not_very_first_time)
+	{
+	  // This is the very first time that operator new was called.
+	  // KLUDGE: set ios_base::Init::_S_synced_with_stdio to false.
+	  // It will be set to true at the end of ios_base::Init().
+	  bool prev = std::ios_base::sync_with_stdio(false);
+	  ASSERT( prev );
+	  not_very_first_time = true;
+	  return true;
+	}
+	if (!std::ios_base::sync_with_stdio(false)) // Still didn't reach the end of ios_base::Init()?
+	  return true;
+	std::ios_base::sync_with_stdio(true);
+	_internal_::ios_base_initialized = true;
+	make_all_allocations_invisible_except(NULL);	// Get rid of the <pre ios initialization> allocation list.
+	DEBUGDEBUG_CERR( "Standard streams initialized." );
+	return false;
+      }
+#endif // __GLIBCPP__
 
       // {anonymous}::
       void error_handler(char const* format, ...)
@@ -841,7 +872,17 @@ namespace libcw {
     void location_ct::M_pc_location(void const* addr)
     {
       if (!initialized)
+      {
+#ifdef __GLIBCPP__	// Pre libstdc++ v3, there is no malloc done for initialization of cerr.
+        if (!_internal_::ios_base_initialized && ios_base_initialization_hack())
+	{
+	  M_filepath = NULL;
+	  M_func = "<pre ios initialization>";
+	  return;
+	}
+#endif
 	libcw_bfd_init();
+      }
 
       object_file_ct* object_file = find_object_file(addr);
       symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, object_file);

@@ -34,6 +34,9 @@ RCSTAG_CC("$Id$")
 using namespace std;
 
 #ifdef CWDEBUG
+
+extern "C" ssize_t write(int fd, const void *buf, size_t count);
+
 namespace libcw {
   namespace debug {
 
