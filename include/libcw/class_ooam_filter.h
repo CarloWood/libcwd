@@ -49,6 +49,7 @@ ooam_format_t const format_mask = (show_time|show_allthreads);
 /** \} */
 
 unsigned int const hide_untagged = 16;			// Call hide_untagged_allocations() to set this flag.
+unsigned int const hide_unknown_loc = 32;		// Call hide_unknown_locations() to set this flag.
 
 class dm_alloc_base_ct;
 class dm_alloc_copy_ct;
@@ -137,6 +138,14 @@ public:
    * otherwise all allocations are being showed.
    */
   void hide_untagged_allocations(bool hide = true) { if (hide) M_flags |= hide_untagged; else M_flags &= ~hide_untagged; }
+
+  /** \brief Only show the allocations for which a source file and line number could be found.
+   *
+   * When \a hide is true, only allocations for which a location could be resolved
+   * are shown.  This is the only way to get rid of allocations done in libraries
+   * without debugging information like a stripped glibc.
+   */
+  void hide_unknown_locations(bool hide = true) { if (hide) M_flags |= hide_unknown_loc; else M_flags &= ~hide_unknown_loc; }
 
 #if CWDEBUG_LOCATION
   // Return true if filepath matches one of the masks in M_source_masks.

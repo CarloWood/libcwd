@@ -437,7 +437,7 @@ AC_CHECK_HEADERS(_G_config.h link.h)
 
 dnl Check for global variable.
 if test "$ac_cv_header_link_h" = yes; then
-  AC_CHECK_FUNCS(_dl_loaded)
+  AC_CHECK_FUNCS(_dl_loaded _rtld_global)
 fi
 
 dnl Check for typedefs.

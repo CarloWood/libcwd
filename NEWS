@@ -1,3 +1,27 @@
+libcwd-0.99.26
+
+	Changes:
+
+	It is now possible to hide allocations from the Overview Of
+	Allocated Memory whose allocation location could not be determined.
+	Those allocations would always show up, using the function name
+	of the function where the allocation was done.
+	[ ooam_filter_ct::hide_unknown_locations(bool) ].
+
+	Support for glibc-2.2.5 has been added.  This means that the
+	testsuite should not report errors anymore and that _dl_loaded
+	is detected and used again (as member of _rtdl_global).
+
+	Bug fixes:
+
+	The demangler was decoding 's' into "internal_string" instead of
+	"std::string".  A left-over from an old find & replace.
+
+	There was still a problem with third party C++ libraries whose
+	first allocation - as part of the initialization of that library -
+	is from std::allocator.  The initialization of libcwd now also
+	uses a private memory pool for 'userspace' allocations.
+
 libcwd-0.99.25
 
 	Changes:

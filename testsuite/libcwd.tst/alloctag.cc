@@ -88,9 +88,12 @@ MAIN_FUNCTION
     using namespace libcw::debug;
     ooam_filter_ct filter(0);
 #if CWDEBUG_LOCATION
+    Debug(dc::malloc.off());
     std::vector<std::string> masks;
     masks.push_back("lib*");
+    Debug(dc::malloc.on());
     filter.hide_objectfiles_matching(masks);
+    filter.hide_unknown_locations();
 #endif
     Debug( libcw_do.off() );
 #ifdef THREADTEST

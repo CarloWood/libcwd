@@ -38,10 +38,20 @@
 #include <cstring>
 #include <cstdlib>
 #endif
-#ifdef HAVE__DL_LOADED
+#if defined(HAVE__DL_LOADED) || defined(HAVE__RTLD_GLOBAL)
 #include <link.h>
+#ifdef HAVE__RTLD_GLOBAL
+#define DL_LOADED _rtld_global._dl_loaded
+#define HAVE__DL_LOADED 1
+struct rtld_global {
+  link_map* _dl_loaded;
+};
+extern struct rtld_global _rtld_global;
+#else
+#define DL_LOADED _dl_loaded
 extern link_map* _dl_loaded;
 #endif
+#endif // HAVE__DL_LOADED || HAVE__RTLD_GLOBAL
 #include <cstdio>		// Needed for vsnprintf.
 #include <algorithm>
 #ifdef LIBCWD_DEBUGBFD
@@ -431,7 +441,7 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
 #endif
-	      for(link_map* p = _dl_loaded; p; p = p->l_next)
+	      for(link_map* p = DL_LOADED; p; p = p->l_next)
 	        if (!strcmp(p->l_name, filename))
 		{
 		  lbase = reinterpret_cast<void*>(p->l_addr);		// No idea why they use unsigned int for a load address.
@@ -1062,7 +1072,7 @@ void bfd_close(bfd* abfd)
 	{
 	  my_link_map const* l = &(*iter);
 #else
-	for(link_map const* l = _dl_loaded; l; l = l->l_next)
+	for(link_map const* l = DL_LOADED; l; l = l->l_next)
 	{
 #if 0
 	}
@@ -1256,7 +1266,7 @@ typedef location_ct bfd_location_ct;
       if (!object_file)
       {
         // Try to load everything again... previous loaded libraries are skipped based on load address.
-	for(link_map* l = _dl_loaded; l;)
+	for(link_map* l = DL_LOADED; l;)
 	{
 	  if (l->l_addr)
 	  {

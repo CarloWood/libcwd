@@ -1348,6 +1348,8 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
 #if CWDEBUG_LOCATION
     if (alloc->location().initialization_delayed())
       const_cast<location_ct*>(&alloc->location())->handle_delayed_initialization(filter);
+    if ((filter.M_flags & hide_unknown_loc) && !alloc->location().is_known())
+      continue;
     if (alloc->location().hide_from_alloc_list())
       continue;
     object_file_ct const* object_file = alloc->location().object_file();
@@ -2343,6 +2345,7 @@ void list_allocations_on(debug_ct& debug_object)
  *   masks.push_back("libc.so*");
  *   masks.push_back("libstdc++*");
  *   ooam_filter.hide_objectfiles_matching(masks);
+ *   ooam_filter.hide_unknown_locations();
  *   list_allocations_on(libcw_do, ooam_filter)
  * );
  * \endcode
