@@ -1,6 +1,8 @@
 #ifndef EXAMPLE_DEBUG_H
 #define EXAMPLE_DEBUG_H
 
+#ifdef CWDEBUG
+
 #ifndef DEBUGCHANNELS
 #define DEBUGCHANNELS ::example::debug::channels
 #endif
@@ -20,14 +22,17 @@ namespace example {
 #undef Dout
 #undef Dout_vform
 #undef DoutFatal
-#ifdef DEBUG
+
 #define Dout(cntrl, data) LibcwDout(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
 #define Dout_vform(cntrl, format, vl) LibcwDout_vform(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, format, vl)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+
 #else
+
 #define Dout(cntrl, data)
 #define Dout_vform(cntrl, format, vl)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(::std, /*nothing*/, cntrl, data)
+
 #endif
 
 #endif // EXAMPLE_DEBUG_H

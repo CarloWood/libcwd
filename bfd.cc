@@ -423,9 +423,9 @@ namespace libcw {
       }
 
       // {anonymous}::
-      static string argv0;	// Like main()'s argv[0], must be zero terminated!
+      string* argv0_ptr;
       // {anonymous}::
-      static string pidstr;
+      string const* pidstr_ptr;
 
       // {anonymous}::
       int decode_ps(char const* buf, size_t len)
@@ -459,11 +459,11 @@ namespace libcw {
 	  {
 	    if (*p == ' ' || *p == '\t' || *p == '\n')
 	    {
-	      if (pid_token == current_token && token == pidstr)
+	      if (pid_token == current_token && token == *pidstr_ptr)
 		found_PID = true;
 	      else if (found_PID && (command_token == current_token || current_column >= command_column))
 	      {
-		argv0 = token + '\0';
+		*argv0_ptr = token + '\0';
 		return 0;
 	      }
 	      else if (pid_token == 0 && token == "PID")
@@ -502,6 +502,7 @@ namespace libcw {
       // {anonymous}::
       void get_full_path_to_executable(string& result)
       {
+	string argv0;		// Like main()s argv[0], thus must be zero terminated.
 	size_t const max_proc_path = sizeof("/proc/65535/cmdline\0");
 	char proc_path[max_proc_path];
 	ostrstream proc_path_str(proc_path, max_proc_path);
@@ -516,6 +517,8 @@ namespace libcw {
 	}
 	else
 	{
+	  string pidstr;
+
 	  size_t const max_pidstr = sizeof("65535\0");
 	  char pidstr_buf[max_pidstr];
 	  ostrstream pidstr_stream(pidstr_buf, max_pidstr);
@@ -530,6 +533,10 @@ namespace libcw {
 	  argv[1] = PS_ARGUMENT;
 	  argv[2] = pidstr_buf;
 	  argv[3] = NULL;
+
+	  argv0_ptr = &argv0;		// Ugly way to pass these strings to decode_ps:
+	  pidstr_ptr = &pidstr;		// pidstr is input, argv0 is output.
+
 	  if (exec_prog(ps_prog, argv, environ, decode_ps) == -1 || argv0.empty())
 	    DoutFatal(dc::fatal|error_cf, "Failed to execute \"" << ps_prog << "\"");
 	}

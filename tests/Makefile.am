@@ -4,12 +4,14 @@ AUTOMAKE_OPTIONS = foreign
 
 EXTRA_PROGRAMS = \
 hello_world \
-syslog
+syslog \
+initbug
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
 hello_world_SOURCES = hello_world.cc
 syslog_SOURCES = syslog.cc
+initbug_SOURCES = initbug.cc initbug_GlobalObject.cc
 
 include_HEADERS = syslog_debug.h
 
@@ -19,6 +21,6 @@ EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
 CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
-INCLUDES = -I- -I$(top_builddir)/include -I$(srcdir)/../include -DDEBUG
+INCLUDES = -I. -I- -I$(top_builddir)/include -I$(srcdir)/../include -DCWDEBUG
 
 MAINTAINERCLEANFILES = Makefile.in

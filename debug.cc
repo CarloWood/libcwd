@@ -676,19 +676,25 @@ namespace libcw {
       mask |= cf.maskbit;
       if (!on)
       {
+        if (debug_object)
+	{
+	  ++(debug_object->off_count);
 #ifdef DEBUGDEBUG
-        if (!debug_object)
-	  cerr << "DEBUGDEBUG: The order in which the global contructors of the debug channels are called is wrong.  Try putting debug.cc on the other end of SRC in libcw/src/debugging/Makefile\n" << endl;
+	  cerr << "DEBUGDEBUG: Channel is switched off. Increased off_count to " << debug_object->off_count << endl;
 #endif
-	++(debug_object->off_count);
+        }
 #ifdef DEBUGDEBUG
-        cerr << "DEBUGDEBUG: Channel is switched off. Increased off_count to " << debug_object->off_count << endl;
+	else
+	  cerr << "DEBUGDEBUG: Attempting to write continued debug output from a global contructor while the debug object(s) is not initialized yet." << endl;
 #endif
       }
       else
       {
 	if (!debug_object->initialized)
-	  debug_object->init();
+	{
+	  cerr << "Huh!? Please mail the author of libcwd: libcw@alinoe.com\n";
+	  exit(-1);
+	}
         debug_object->continued_stack.push(debug_object->off_count);
 #ifdef DEBUGDEBUG
         cerr << "DEBUGDEBUG: Channel is switched on. Pushed off_count (" << debug_object->off_count << ") to stack (size now " <<
@@ -707,6 +713,12 @@ namespace libcw {
       else
         cerr << "DEBUGDEBUG: dc::finish detected" << endl;
 #endif
+      if (!initialized)
+      {
+        init();					// We need to call this: this is the point where we initialize memblk_map :/
+        return continued_channel_set;		// Do nothing because off_count is incorrectly 0 at this point.
+      }
+
       if ((continued_channel_set.on = !off_count))
       {
 #ifdef DEBUGDEBUG

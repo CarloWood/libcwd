@@ -19,6 +19,9 @@
 #ifdef DEBUGDEBUG
 RCSTAG_CC("$Id$")
 
+namespace libcw {
+  namespace debug {
+
 void debugdebugcheckpoint(void)
 {
   static int counter = 0;
@@ -53,5 +56,8 @@ void debugdebugcheckpoint(void)
 #endif
   counter++;
 }
+
+  } // namespace debug
+} // namespace libcw
 
 #endif // DEBUGDEBUG
