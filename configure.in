@@ -185,42 +185,53 @@ fi
 if test "$libcwd_config_bfd" = yes; then
 
   dnl Checks for libraries.
-  save_LIBS=$LIBS
+  save_LIBS="$LIBS"
 
   dnl Check if we have `xmalloc' in libiberty.a
-  AC_CHECK_LIB(iberty, xmalloc,,
+  CW_CHECK_STATICLIB(libiberty.a, xmalloc,,
       [dnl If that failed, try linking with -ldl:
-      unset ac_cv_lib_iberty_xmalloc
-      AC_CHECK_LIB(iberty, xmalloc, [LIBS="-liberty -ldl $LIBS"],, -ldl)])
+      unset ac_cv_lib_static_libiberty_a_xmalloc
+      CW_CHECK_STATICLIB(libiberty.a, xmalloc,,, -ldl)])
+  STATICLIBS="$ac_cv_lib_static_libiberty_a_xmalloc"
+  AC_SUBST(STATICLIBS)
 
-  dnl Check if we have `bfd_init' in -lbfd
-  AC_CHECK_LIB(bfd, bfd_init,,
+  dnl Check if we have libbfd.
+  dnl We look for `bfd_set_start_address' because that function might use dcgettext__
+  dnl which is part of -lintl (it does on FreeBSD).
+  AC_CHECK_LIB(bfd, bfd_set_start_address,,
       [dnl If that failed, try linking with -lintl:
-      unset ac_cv_lib_bfd_bfd_init
-      AC_CHECK_LIB(bfd, bfd_init, [LIBS="-lbfd -lintl $LIBS"],, -lintl)])
+      unset ac_cv_lib_bfd_bfd_set_start_address
+      AC_CHECK_LIB(bfd, bfd_set_start_address, [LIBS="-lbfd -lintl $LIBS"],, -lintl)])
 
   dnl If both succeeded, then enable DEBUGUSEBFD
-  if test "$ac_cv_lib_iberty_xmalloc" != "no" -a "$ac_cv_lib_bfd_bfd_init" != "no"; then
+  if test "$ac_cv_lib_static_libiberty_a_xmalloc" != "no" -a "$ac_cv_lib_bfd_bfd_set_start_address" != "no"; then
     AC_CHECK_HEADER(bfd.h,
       [CW_CONFIG_DEBUGUSEBFD=define],
-      [AC_MSG_WARN([
+      [AC_MSG_ERROR([
 
-* WARNING:
 * You have libbfd, but I cannot find bfd.h!  Look up of function names and
 * source:line information will be disabled.  Perhaps you need to add -I/path
 * to CPPFLAGS?
 * Please read the INSTALL for more info.
+* You can skip this check by using configure --disable-libcwd-bfd.
 ])])
   else
-    AC_MSG_WARN([
+    AC_MSG_ERROR([
 
-* WARNING:
 * Cannot find a working libbfd;  Lookup of function names and source:line
 * information will be disabled.  Perhaps you need to add -L/path to LDFLAGS?
 * Please read the INSTALL for more info.
+* You can skip this check by using configure --disable-libcwd-bfd.
 ])
   fi
 
+  dnl We don't want to link with static libraries that are not compiled with -fPIC
+  dnl while linking our shared library.
+changequote(, )dnl
+  final_LIBS="`echo $LIBS | sed -e 's/[^ ]*libiberty\.a//' -e 's/  / /g'`"
+changequote([, ])dnl
+  dnl We can't link with -lbfd without libiberty.a while running the test programs below.
+  LIBS="$save_LIBS"
 fi
 
 if test "$libcwd_config_debug" = yes; then
@@ -264,6 +275,11 @@ AC_CHECK_FUNCS(getgid getegid getgroups)
 
 dnl Check for system services.
 
+dnl Tests are finished.  Set LIBS to the final value.
+if test "$libcwd_config_bfd" = yes; then
+  LIBS="$final_LIBS"
+fi
+
 dnl Set up build directory
 test ! -d include && mkdir include
 
@@ -301,7 +317,22 @@ if test "$USE_MAINTAINER_MODE" = yes; then
 fi
 
 dnl Generate include/libcw/debug_config.h and include/libcw/sys.h, preserving timestamp when they are not changed.
-AC_OUTPUT_COMMANDS([cd include/libcw; $MAKE debug_config.h sys.h], [MAKE="${MAKE-make}"])
+AC_OUTPUT_COMMANDS([
+cd include/libcw
+if cmp -s debug_config.h debug_config.ho 2> /dev/null; then
+  echo "debug_config.h is unchanged"
+else
+  echo "creating debug_config.h"
+  cp debug_config.ho debug_config.h
+fi
+if cmp -s sys.h sys.ho 2> /dev/null; then
+  echo "sys.h is unchanged"
+else
+  echo "creating sys.h"
+  cp sys.ho sys.h
+fi
+cd ../..
+])
 
 CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
 exit 0

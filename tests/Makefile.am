@@ -27,7 +27,7 @@ marker_SOURCES = marker.cc
 test_delete_SOURCES = test_delete.cc
 type_info_tst_SOURCES = type_info_tst.cc
 
-LDADD = ../libcwd.la
+LDADD = ../libcwd.la @STATICLIBS@
 
 EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@

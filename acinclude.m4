@@ -16,6 +16,11 @@ AC_CACHE_VAL(ac_cv_lib_static_$ac_lib_var,
 else
   ld_so_paths="/lib /usr/lib"
 fi
+for path in x $LDFLAGS; do
+  case "$path" in
+  -L*) ld_so_paths="`echo $path | sed -e 's/^-L//'` $ld_so_paths" ;;
+  esac
+done
 for path in $ld_so_paths; do
   ac_save_LIBS="$LIBS"
   LIBS="$path/$1 $5 $LIBS"
