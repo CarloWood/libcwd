@@ -60,5 +60,6 @@ DISTCLEANFILES = debug_config.h sysd.h
 MAINTAINERCLEANFILES = Makefile.in
 
 install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(libcwddir)
 	$(INSTALL_DATA) $(EXTRA_HEADERS) $(DESTDIR)$(libcwddir)
 

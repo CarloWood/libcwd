@@ -11,7 +11,7 @@ Copyright: QPL
 Requires: gcc-c++ >= 2.95.1, binutils >= 2.9
 %endif
 Buildroot: %{_tmppath}/%{name}-root
-BuildPrereq: make, m4, which >= 2.5, autoconf = 2.13, automake >= 1.4p1, libtool >= 1.4
+BuildPrereq: make, m4, which >= 2.5, autoconf >= 2.13, automake >= 1.4p1, libtool >= 1.4
 URL: http://libcw.sourceforge.net/debugging/
 
 %description
