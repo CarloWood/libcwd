@@ -87,11 +87,12 @@ information and demangled type names.
 <DT><B>12 Jul 2004</B>
 <P class="news">libcwd-0.99.37 is released.&nbsp;
 This release concentrates on improving memory leak detection.&nbsp;
-It contains unfortunately another major API change: <code>ooam_filter_ct</code> was
-renamed to <code>alloc_filter_ct</code> and <code>ooam_format_t</code> has likewise
-been renamed to <code>alloc_format_ct</code>.</P>
+Unfortunately it had to contain again an API change: <code>ooam_filter_ct</code> has
+been renamed to <code>alloc_filter_ct</code> and <code>ooam_format_t</code> has likewise
+been renamed to <code>alloc_format_t</code>.</P>
 <P class="news">With this release it is possible to filter the list
-of printed allocations on allocation-function.&nbsp;
+of printed allocations on <I>allocation-function</I> (the function from which
+the allocation is done).&nbsp;
 This makes it in principle possible to print a precise overview of leaked memory
 at process termination by suppressing a list of "leaks" that are not really leaks.&nbsp;
 Memory allocations now print the location where they are done at the moment they

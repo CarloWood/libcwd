@@ -111,14 +111,21 @@ MAIN_FUNCTION
       libcwd::show_objectfile|
 #endif
       libcwd::show_time);
+  libcwd::alloc_filter_ct list_filter2(
+#if CWDEBUG_LOCATION
+      libcwd::show_function
+#endif
+      );
 #if CWDEBUG_LOCATION
   Debug( dc::malloc.off() );
   std::vector<std::string> list_masks;
   list_masks.push_back("*/dl-*");
   list_filter.hide_sourcefiles_matching(list_masks);
+  list_filter2.hide_sourcefiles_matching(list_masks);
   Debug( dc::malloc.on() );
 #endif
   list_filter.hide_untagged_allocations(true);
+  list_filter2.hide_untagged_allocations(true);
 #endif
 
   void* handle;
@@ -207,6 +214,7 @@ MAIN_FUNCTION
   delete marker1;
 #endif
 #if CWDEBUG_ALLOC
+  Debug( list_allocations_on(libcw_do, list_filter2));
   Debug( list_allocations_on(libcw_do, list_filter));
 #endif
 

@@ -29,12 +29,20 @@ look like:
 malloc    0x8078648 /home/carlo/c++/libcwd/testsuite/libcwd.tst/alloctag.cc:65   void*; (sz = 220)
 \endcode
 
-Finally, it is possible to show the name of the object file (shared library or
+It is also possible to show the name of the object file (shared library or
 executable name) to which the allocation belongs by using the bit \c show_objectfile.
 The name of the corresponding object file is prepended to the location:
 
 \code
 malloc    0x8078648 tst_alloctag_shared:         alloctag.cc:65   void*; (sz = 220)
+\endcode
+
+Finally, it is possible to show the mangled function name where the allocation
+was done by using the bit \c show_function.
+The mangled name of the corresponding function is prepended to the location:
+
+\code
+new[]     0x8199158 _Z7new1000j           module.cc:47   char[1000]; (sz = 1000)
 \endcode
 
 The flags can be combined with the bit-wise OR operator.
@@ -101,6 +109,23 @@ filter.hide_objectfiles_matching(masks);
 
 Debug( list_allocations_on(libcw_do, filter) );
 \endcode
+
+In order to hide allocations done from a specific function in a specific
+shared library, one could do:
+
+\code
+#ifdef CWDEBUG
+libcwd::alloc_filter_ct filter(libcwd::show_objectfile|libcwd::show_function);
+std::vector<std::pair<std::string, std::string> > hide_list;
+hide_list.push_back(std::pair<std::string, std::string>("libdl.so.2", "_dlerror_run"));
+hide_list.push_back(std::pair<std::string, std::string>("libstdc++.so.6", "__cxa_get_globals"));
+filter.hide_functions_matching(hide_list);
+#endif
+
+Debug( list_allocations_on(libcw_do, filter) );
+\endcode
+
+Note that also here it is allowed to use masks, for both the object file as well as the mangled function name.
 
 In order to hide all allocations that are done from inside the header files
 of installed libraries (like the STL), one could do:
