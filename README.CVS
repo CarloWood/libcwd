@@ -20,9 +20,9 @@ This project's SourceForge CVS repository can be checked out through anonymous
 out must be specified as the modulename. When prompted for a password for
 anonymous, simply press the Enter key. 
 
-cvs -d:pserver:anonymous@cvs.libcwd.sourceforge.net:/cvsroot/libcwd login 
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/libcwd login 
 
-cvs -z3 -d:pserver:anonymous@cvs.libcwd.sourceforge.net:/cvsroot/libcwd co libcwd
+cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/libcwd co libcwd
 
 You don't need the -d parameter inside the module's directory.  (Note that you
 do need -d after 'update' to savely update new directories that might have been
