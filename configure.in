@@ -238,14 +238,7 @@ if test "$libcwd_config_bfd" = yes; then
        CPPFLAGS="$CPPFLAGS -I/usr/local/include"
        LDFLAGS="$LDFLAGS -L/usr/local/lib"
        LIBS="-liberty $LIBS"
-       AC_TRY_LINK(dnl
-[#ifdef __cplusplus
-extern "C"
-#endif
-char xmalloc();],
-       [xmalloc()],
-       cw_cv_lib_iberty_xmalloc_usrlocal=yes,
-       cw_cv_lib_iberty_xmalloc_usrlocal=no)
+       AC_TRY_LINK([extern "C" void* xmalloc();], [(void)xmalloc()], cw_cv_lib_iberty_xmalloc_usrlocal=yes, cw_cv_lib_iberty_xmalloc_usrlocal=no)
        LIBS="$save_LIBS"
        LDFLAGS="$save_LDFLAGS"
        CPPFLAGS="$save_CPPFLAGS"
@@ -273,14 +266,19 @@ char xmalloc();],
   dnl We look for `bfd_set_start_address' because that function might use dcgettext__
   dnl which is part of -lintl (it does on FreeBSD).
   AC_CHECK_LIB(bfd, bfd_set_start_address,,
-      [dnl If that failed, try linking with -lintl:
-      unset ac_cv_lib_bfd_bfd_set_start_address
-      AC_CHECK_LIB(bfd, bfd_set_start_address,
-          [LIBS="-lbfd -lintl $LIBS"
-           cw_cv_sys_LIBS="-lintl $cw_cv_sys_LIBS"],, -lintl)])
+    [dnl If that failed, try linking with -lintl:
+    AC_CACHE_CHECK([for bfd_set_start_address in -lbfd -lintl], cw_cv_lib_bfd_set_start_address_with_intl,
+    [save_LIBS="$LIBS"
+     LIBS="-lbfd -lintl $LIBS"
+     AC_TRY_LINK([extern "C" char set_start_address();], [set_start_address()], cw_cv_lib_bfd_set_start_address_with_intl=yes, cw_cv_lib_bfd_set_start_address_with_intl=no)
+     LIBS="$save_LIBS"
+    ])dnl
+    if test "$cw_cv_lib_bfd_set_start_address_with_intl" = "yes"; then
+      LIBS="-lbfd -lintl $LIBS"
+    fi])
 
   dnl If we succeeded so far, then enable DEBUGUSEBFD
-  if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no"; then
+  if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no" -a "set+$cw_cv_lib_bfd_set_start_address_with_intl" != "set+no"; then
     AC_CHECK_HEADER(bfd.h,
       [CW_CONFIG_DEBUGUSEBFD=define],
       [AC_MSG_ERROR([
