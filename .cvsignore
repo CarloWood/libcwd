@@ -26,5 +26,3 @@ libcwd.la
 libcwd.spec
 libcwd.lsm
 rpm
-sys.ho
-sys.h

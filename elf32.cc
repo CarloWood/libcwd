@@ -36,7 +36,7 @@
 RCSTAG_CC("$Id$")
 
 #define DEBUGELF32 0
-#define DEBUGSTABS 1
+#define DEBUGSTABS 0
 #define DEBUGDWARF 0
 
 // This assumes that DW_TAG_compile_unit is the first tag for each compile unit

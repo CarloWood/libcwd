@@ -15,7 +15,7 @@
 #ifndef SYS_H
 #define SYS_H
 
-#include "config.h"
+#include "../config.h"
 
 //
 // Define _REENTRANT to make sure that the glibc functions are thread safe too.

@@ -371,7 +371,7 @@ test ! -d include && mkdir include
 dnl Set up rpm directory when in maintainer mode
 CW_SETUP_RPM_DIRS
 
-dnl Generate include/libcw/debug_config.h, include/libcw/sysd.h and sys.h, preserving timestamp when they are not changed.
+dnl Generate include/libcw/debug_config.h, include/libcw/sysd.h and include/sys.h, preserving timestamp when they are not changed.
 AC_OUTPUT_COMMANDS([
 cd include/libcw
 if echo "$CONFIG_FILES" | grep debug_config.ho > /dev/null; then
@@ -390,7 +390,7 @@ if echo "$CONFIG_FILES" | grep sysd.ho >/dev/null; then
     cp sysd.ho sysd.h
   fi
 fi
-cd ../..
+cd ..
 if echo "$CONFIG_FILES" | grep sys.ho >/dev/null; then
   if cmp -s sys.h sys.ho 2> /dev/null; then
     echo "sys.h is unchanged"
@@ -399,10 +399,11 @@ if echo "$CONFIG_FILES" | grep sys.ho >/dev/null; then
     cp sys.ho sys.h
   fi
 fi
+cd ..
 ])
 
-CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile utils/Makefile tests/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sysd.ho sys.ho)
+CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile utils/Makefile tests/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sysd.ho include/sys.ho)
 exit 0
 
 dnl Keep automake happy
-AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile utils/Makefile tests/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sysd.ho sys.ho)
+AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile utils/Makefile tests/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sysd.ho include/sys.ho)
