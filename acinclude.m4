@@ -709,7 +709,11 @@ chmod 700 ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_
 if ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise | grep real_in_practise >/dev/null; then
   :
 else
-  AC_MSG_ERROR([Cannot determine the correct ps arguments])
+  if ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise | grep that_should_be_longer >/dev/null; then
+    AC_MSG_WARN([ps cuts off long path names, this will break running executables with a long full path using libcwd!])
+  else
+    AC_MSG_ERROR([Cannot determine the correct ps arguments])
+  fi
 fi
 rm -f ./ps.out.$$ ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
 ])
