@@ -1280,7 +1280,9 @@ extern "C" {
     set_alloc_checking_on();
     if (object_file)
     {
+      set_alloc_checking_off();
       cwbfd::object_files().sort(cwbfd::object_file_greater());
+      set_alloc_checking_on();
       libcwd_dlopen_map.insert(pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
     }
     return handle;

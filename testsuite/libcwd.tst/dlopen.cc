@@ -46,5 +46,6 @@ int main(void)
   Debug( list_allocations_on(libcw_do) );
   Dout(dc::notice, "Finished");
 
+  Debug( dc::malloc.off() );
   exit(0);
 }

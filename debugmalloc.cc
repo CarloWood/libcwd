@@ -1479,21 +1479,23 @@ char const* diagnose_from(deallocated_from_nt from, bool internal, bool visible 
   return "Huh? Bug in libcwd!";
 }
 
+#define REST_OF_EXPLANATION " with alloc checking OFF (a libcwd 'internal' allocation).  This might be a bug in libcwd, or you are using set_alloc_checking_on()/off() unbalanced.  Please note that allocations done inside a 'Dout()' are 'internal': don't allocate memory while writing debug output!";
+
 char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 {
   switch(magic_begin)
   {
     case INTERNAL_MAGIC_NEW_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_NEW_END)
-        return ") that was allocated with 'new' with alloc checking OFF ('internal' allocation).  This might be a bug in libcwd, or you are using set_alloc_checking_on()/off() unbalanced.";
+        return ") (while alloc checking is on) that was allocated with 'new'" REST_OF_EXPLANATION;
       break;
     case INTERNAL_MAGIC_NEW_ARRAY_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_NEW_ARRAY_END)
-        return ") that was allocated with 'new[]' with alloc checking OFF ('internal' allocation).  This might be a bug in libcwd, or you are using set_alloc_checking_on()/off() unbalanced.";
+        return ") (while alloc checking is on) that was allocated with 'new[]'" REST_OF_EXPLANATION;
       break;
     case INTERNAL_MAGIC_MALLOC_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_MALLOC_END)
-        return ") that was allocated with 'malloc()' with alloc checking OFF ('internal' allocation).  This might be a bug in libcwd, or you are using set_alloc_checking_on()/off() unbalanced.";
+        return ") (while alloc checking is on) that was allocated with 'malloc()'" REST_OF_EXPLANATION;
       break;
     case MAGIC_NEW_BEGIN:
       if (*magic_end == MAGIC_NEW_END)
