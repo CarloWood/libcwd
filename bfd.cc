@@ -366,7 +366,7 @@ void bfd_close(bfd* abfd)
 	  Elf32_Off S_lock_value;
 #endif
 #if CWDEBUG_ALLOC
-	  Elf32_Off exit_funcs;
+	  Elf32_Off exit_funcs = 0;
 #endif
 #if !CWDEBUG_LIBBFD
 	  size_t s_end_offset = M_abfd->M_s_end_offset;
