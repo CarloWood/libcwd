@@ -30,7 +30,7 @@ int instance_locked[instance_locked_size];
 
 void initialize_global_mutexes(void) throw()
 {
-#if !LIBCWD_USE_LINUXTHREADS || LIBCWD_DEBUGTHREADS
+#if !LIBCWD_USE_LINUXTHREADS || defined(DEBUGDEBUGTHREADS)
   mutex_tct<mutex_initialization_instance>::initialize();
   rwlock_tct<object_files_instance>::initialize();
   mutex_tct<dlopen_map_instance>::initialize();
@@ -41,7 +41,7 @@ void initialize_global_mutexes(void) throw()
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
   mutex_tct<type_info_of_instance>::initialize();
 #endif
-#endif // !LIBCWD_USE_LINUXTHREADS || LIBCWD_DEBUGTHREADS
+#endif // !LIBCWD_USE_LINUXTHREADS || defined(DEBUGDEBUGTHREADS)
 }
 
 #ifdef LIBCWD_USE_LINUXTHREADS

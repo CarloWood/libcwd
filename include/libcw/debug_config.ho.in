@@ -263,9 +263,50 @@
 #endif
 
 //
+// autoconf defines that are needed.
+//
+
+#ifdef DEBUGMALLOC
+#@CW_CONFIG_HAVE___LIBC_MALLOC@ DEBUGMALLOCEXTERNALCLINKAGE
+#endif
+
+#ifdef DEBUGUSEBFD
+#@CW_CONFIG_HAVE_DLOPEN@ CWDEBUG_DLOPEN_DEFINED
+#endif
+
+#@CW_CONFIG_THREAD_SAFE@ LIBCWD_THREAD_SAFE
+#@CW_CONFIG_HAVE_PTHREADS@ LIBCWD_HAVE_PTHREAD
+
+#ifdef LIBCWD_THREAD_SAFE
+/** \defgroup enable_libcwd_debugt --enable-libcwd-debugt (DEBUGDEBUGTHREADS)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * Turns on sanity checks related to libcwds critical areas and cancellation points.&nbsp;
+ * The checks test if cancellation has been explicitely deferred or disabled at the entrance
+ * of a critical area and that no cancellation point is called from within critical areas
+ * without cleanup handler.
+ *
+ * \par When to use it
+ *
+ * Never, unless you are a developer of libcwd.
+ * If someone requests it then I might extend this to a user interface however.
+ *
+ * \par Configure option
+ *
+ * This is disabled by default.&nbsp;
+ * Use \shellcommand configure --enable-libcwd-debugt \endshellcommand to enable it.
+ */
+
+#@CW_CONFIG_DEBUGDEBUGTHREADS@ DEBUGDEBUGTHREADS
+#endif // LIBCWD_THREAD_SAFE
+
+//
 // Configuration signature
 //
 
+#ifdef __cplusplus
 namespace libcw {
   namespace debug {
 
@@ -325,21 +366,6 @@ check_configuration(void) {
 
   } // namespace debug
 } // namespace libcw
-
-//
-// autoconf defines that are needed.
-//
-
-#ifdef DEBUGMALLOC
-#@CW_CONFIG_HAVE___LIBC_MALLOC@ DEBUGMALLOCEXTERNALCLINKAGE
-#endif
-
-#ifdef DEBUGUSEBFD
-#@CW_CONFIG_HAVE_DLOPEN@ CWDEBUG_DLOPEN_DEFINED
-#endif
-
-#@CW_CONFIG_THREAD_SAFE@ LIBCWD_THREAD_SAFE
-#@CW_CONFIG_HAVE_PTHREADS@ LIBCWD_HAVE_PTHREAD
-#@CW_CONFIG_HAVE__PTHREAD_CLEANUP_BUFFER@ HAVE__PTHREAD_CLEANUP_BUFFER
+#endif // __cplusplus
 
 #endif // LIBCW_DEBUG_CONFIG_H

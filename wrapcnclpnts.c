@@ -1,6 +1,6 @@
-#include <libcw/debug_config.h>		// Needed for LIBCWD_DEBUG_THREADS
+#include <libcw/debug_config.h>		// Needed for DEBUGDEBUGTHREADS
 
-#if LIBCWD_DEBUG_THREADS
+#ifdef DEBUGDEBUGTHREADS
 
 #define _LARGEFILE64_SOURCE
 #include <unistd.h>
@@ -116,4 +116,4 @@ CANCELABLE_SYSCALL (ssize_t, sendmsg, (int fd, const struct msghdr *message, int
 
 CANCELABLE_SYSCALL (ssize_t, sendto, (int fd, const __ptr_t buf, size_t n, int flags, __CONST_SOCKADDR_ARG addr, socklen_t addr_len), (fd, buf, n, flags, addr, addr_len))
 
-#endif // LIBCWD_DEBUG_THREADS
+#endif // DEBUGDEBUGTHREADS

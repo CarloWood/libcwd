@@ -1023,7 +1023,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	BFD_INITIALIZE_LOCK
 	LIBCWD_DEFER_CANCEL
         BFD_ACQUIRE_WRITE_LOCK
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
 	--__libcwd_tsd.cancel_explicitely_deferred;
 #endif
 	load_object_file(fullpath.value->data(), 0);
@@ -1052,7 +1052,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	}
 	NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
 	++__libcwd_tsd.cancel_explicitely_deferred;
 #endif
 	BFD_RELEASE_WRITE_LOCK

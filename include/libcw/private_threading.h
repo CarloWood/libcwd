@@ -62,13 +62,13 @@
 #define LIBCWD_USE_POSIX_THREADS 0
 #endif
 
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
 #define LibcwDebugThreads(x) x
 #else
 #define LibcwDebugThreads(x)
 #endif
 
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
 #ifndef LIBCW_CASSERT
 #define LIBCW_CASSERT
 #include <cassert>
@@ -297,14 +297,14 @@ template <int instance>
   class mutex_tct {
   public:
     static pthread_mutex_t S_mutex;
-#if !LIBCWD_USE_LINUXTHREADS || LIBCWD_DEBUGTHREADS
+#if !LIBCWD_USE_LINUXTHREADS || defined(DEBUGDEBUGTHREADS)
   protected:
     static bool S_initialized;
     static void S_initialize(void) throw();
 #endif
   public:
     static void initialize(void) throw()
-#if LIBCWD_USE_LINUXTHREADS && !LIBCWD_DEBUGTHREADS
+#if LIBCWD_USE_LINUXTHREADS && !defined(DEBUGDEBUGTHREADS)
 	{ }
 #else
 	{
@@ -333,11 +333,11 @@ template <int instance>
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << instance);
 #endif
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
       int res =
 #endif
       pthread_mutex_lock(&S_mutex);
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
       assert( res == 0 );
 #endif
 #if LIBCWD_DEBUGDEBUGRWLOCK
@@ -363,7 +363,7 @@ template <int instance>
     }
   };
 
-#if !LIBCWD_USE_LINUXTHREADS || LIBCWD_DEBUGTHREADS
+#if !LIBCWD_USE_LINUXTHREADS || defined(DEBUGDEBUGTHREADS)
 template <int instance>
   bool mutex_tct<instance>::S_initialized = false;
 
@@ -374,7 +374,7 @@ template <int instance>
     {
 #if !LIBCWD_USE_LINUXTHREADS
       pthread_mutexattr_t mutex_attr;
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
       pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
 #else
       pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
@@ -395,7 +395,7 @@ template <int instance>
 	  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
 	else
 	{
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
 	  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
 #else
 	  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
@@ -408,13 +408,13 @@ template <int instance>
       /* LIBCWD_UNLOCKMUTEX_POP_RESTORE(mutex_initialization_instance); */
     }
   }
-#endif // !LIBCWD_USE_LINUXTHREADS || LIBCWD_DEBUGTHREADS
+#endif // !LIBCWD_USE_LINUXTHREADS || defined(DEBUGDEBUGTHREADS)
 
 template <int instance>
   pthread_mutex_t mutex_tct<instance>::S_mutex
 #if LIBCWD_USE_LINUXTHREADS
       =
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
       	PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
 #else
       	PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP;
@@ -436,13 +436,13 @@ template <int instance>
   class cond_tct : public mutex_tct<instance> {
   private:
     static pthread_cond_t S_condition;
-#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
+#if defined(DEBUGDEBUGTHREADS) || !LIBCWD_USE_LINUXTHREADS
   private:
     static void S_initialize(void) throw();
 #endif
   public:
     static void initialize(void) throw()
-#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
+#if defined(DEBUGDEBUGTHREADS) || !LIBCWD_USE_LINUXTHREADS
 	{
 	  if (S_initialized)
 	    return;
@@ -462,7 +462,7 @@ template <int instance>
     void broadcast(void) { pthread_cond_broadcast(&S_condition); }
   };
 
-#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
+#if defined(DEBUGDEBUGTHREADS) || !LIBCWD_USE_LINUXTHREADS
 template <int instance>
   void cond_tct<instance>::S_initialize(void) throw()
   {
@@ -527,13 +527,13 @@ template <int instance>
     static int S_holders_count;				// Number of readers or -1 if a writer locked this object.
     static bool S_writer_is_waiting;
     static pthread_t S_writer_id;
-#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
+#if defined(DEBUGDEBUGTHREADS) || !LIBCWD_USE_LINUXTHREADS
     static bool S_initialized;				// Set when initialized.
 #endif
   public:
     static void initialize(void) throw()
     {
-#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
+#if defined(DEBUGDEBUGTHREADS) || !LIBCWD_USE_LINUXTHREADS
       if (S_initialized)
 	return;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling initialize() instance " << instance);
@@ -713,7 +713,7 @@ template <int instance>
 template <int instance>
   pthread_t rwlock_tct<instance>::S_writer_id = 0;
 
-#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
+#if defined(DEBUGDEBUGTHREADS) || !LIBCWD_USE_LINUXTHREADS
 template <int instance>
   bool rwlock_tct<instance>::S_initialized = 0;
 #endif
@@ -756,7 +756,7 @@ template<class TSD>
     LIBCWD_TSD_DECLARATION
     set_alloc_checking_off(LIBCWD_TSD);
     delete instance;
-#if LIBCWD_DEBUGTHREADS
+#ifdef DEBUGDEBUGTHREADS
     // Hopefully S_destroy doesn't get called in the thread itself!
     assert( instance != &thread_specific_data_tct<TSD>::instance() );
 #endif
