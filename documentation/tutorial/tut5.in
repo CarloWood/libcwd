@@ -70,17 +70,17 @@ Nevertheless, it is not necessary to type</P>
 
 <P>By default, the macro <CODE>Dout</CODE> et al. automatically include a<CODE> using&nbsp;namespace libcw::debug::channels</CODE>.&nbsp;
 It is possible to change this default namespace by defining <CODE>DEBUGCHANNELS</CODE>
-<EM>before</EM> including the header file <CODE>libcw/debug.h</CODE>.&nbsp;
+<EM>before</EM> including the header file <CODE>libcwd/debug.h</CODE>.&nbsp;
 This is will be shown below.</P>
 
 <P>Of course, you can put your own debug channels also in namespace<CODE> libcw::debug::channels</CODE>
-but that wouldn't garantee not to collide with a new debug channel added to libcw in the future, or
+but that wouldn't garantee not to collide with a new debug channel added to libcwd in the future, or
 with debug channels of other libraries that would do the same.</P>
 
 <A NAME="debug.h"></A>
 <P>In the following example we will define four new debug channels in their own
 name space<CODE> example::debug::channels </CODE> by creating a project specific header file &quot;debug.h&quot;
-which needs to be included instead of the debug.h from libcw.</P>
+which needs to be included instead of the debug.h from libcwd.</P>
 
 <P>The example application below uses the fictitious libraries <SPAN STYLE="font-family: courier">libbooster</SPAN>
 and <SPAN STYLE="font-family: courier">libturbo</SPAN>, both of which use libcwd themselfs and declare their own debug
@@ -100,7 +100,7 @@ the rules as mentioned in the <A HREF="../reference-manual/group__chapter__custo
 #define DEBUGCHANNELS ::example::debug::channels
 #endif
 #include &lt;libbooster/debug.h&gt;			// Note that these will include
-#include &lt;libturbo/debug.h&gt;			//   libcw/debug.h for us.
+#include &lt;libturbo/debug.h&gt;			//   libcwd/debug.h for us.
 
 namespace example {
   namespace debug {
@@ -121,7 +121,7 @@ namespace example {
 
 	// When the libraries use the same name for any debug channels,
 	// then here is the place to `hide' these channels by redefining them.
-	// For example, if `libbooster' defined `notice' too (as does libcw)
+	// For example, if `libbooster' defined `notice' too (as does libcwd)
 	// then we have to redefine it again:
 	static channel_ct&amp; notice(libcw::debug::channels::dc::notice)
 	    __attribute__ ((unused));

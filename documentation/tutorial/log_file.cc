@@ -5,9 +5,9 @@
 #ifndef _GNU_SOURCE		// g++ 3.0 and higher already defines this.
 #define _GNU_SOURCE
 #endif
-#include <libcw/sysd.h>		// This must be the first header file
+#include <libcwd/sys.h>		// This must be the first header file
 // "debug.h"
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 //-------------------------------------------------------------------------------
 
 #include <fstream>

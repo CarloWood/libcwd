@@ -1,7 +1,7 @@
 #ifndef ALLOCTAG_DEBUG_H
 #define ALLOCTAG_DEBUG_H
 
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 #if !CWDEBUG_ALLOC
 #define AllocTag1(p)

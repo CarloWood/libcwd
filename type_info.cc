@@ -17,8 +17,8 @@
 
 #include "sys.h"
 #include "cwd_debug.h"
-#include <libcw/demangle.h>
-#include <libcw/type_info.h>
+#include <libcwd/demangle.h>
+#include <libcwd/type_info.h>
 
 namespace libcw {
   namespace debug {

@@ -158,7 +158,6 @@ CXXFLAGS="$DEBUGOPTS $EXTRAOPTS"
 
 dnl This block cannot be replaced by a macro because the DISABLE_* and the
 dnl AM_PROG_LIBTOOL macro need to be in configure.in itself for some reason.
-dnl This block is also present in src/libcw/configure.in!
 dnl Generate libtool (also checks shared/static prerequisites)
 if expr "$host" : ".*openbsd.*" >/dev/null; then
   dnl openBSD has a buggy ld, no way that a shared library will work.
@@ -200,7 +199,7 @@ sq="'"
 se='|'
 eval sed -e ${sq}s${se}^sys_lib_dlsearch_path_spec=.*${se}sys_lib_dlsearch_path_spec=${dq}$sys_lib_dlsearch_path_spec $tmp${dq}${se}${sq} libtool > libtool.tmp && mv libtool.tmp libtool
 
-dnl Used in sysd.h to force recompilation
+dnl Used in sys.h to force recompilation
 CC_FINGER_PRINT="$cw_cv_sys_CC_finger_print"
 AC_SUBST([CC_FINGER_PRINT])
 CXX_FINGER_PRINT="$cw_cv_sys_CXX_finger_print"
@@ -208,7 +207,7 @@ AC_SUBST([CXX_FINGER_PRINT])
 CXXCPP_FINGER_PRINT="$cw_cv_sys_CXXCPP_finger_print"
 AC_SUBST([CXXCPP_FINGER_PRINT])
 
-dnl Configuration defines of debug_config.h
+dnl Configuration defines of config.h
 AC_SUBST(CW_CONFIG_ALLOC)
 CW_CONFIG_ALLOC=0
 AC_SUBST(CW_CONFIG_MAGIC)
@@ -325,7 +324,7 @@ if test "$libcwd_config_bfd" = yes; then
 
 * You used --enable-libbfd: The license of libbfd (GPL) forbids to link
 * with libraries that are non-GPL.  Therefore you are not allowed to
-* distribute the resulting executable!  See include/libcw/debug_config.ho.in
+* distribute the resulting executable!  See include/libcwd/config.ho.in
 * under DEBUGUSEGNULIBBFD for more information.
 ])],
       [AC_MSG_ERROR([
@@ -472,25 +471,23 @@ test ! -d include && mkdir include
 dnl Set up rpm directory when in maintainer mode
 CW_SETUP_RPM_DIRS
 
-dnl Generate include/libcw/debug_config.h, include/libcw/sysd.h and include/sys.h, preserving timestamp when they are not changed.
+dnl Generate include/libcwd/config.h, include/libcwd/sys.h and include/sys.h, preserving timestamp when they are not changed.
 AC_OUTPUT_COMMANDS([
-# Sanity: remove old versions.
-rm -f sys.h sys.ho include/libcw/sys.h include/libcw/sys.ho
-cd include/libcw
-if echo "$CONFIG_FILES" | grep debug_config.ho > /dev/null; then
-  if cmp -s debug_config.h debug_config.ho 2> /dev/null; then
-    echo "debug_config.h is unchanged"
+cd include/libcwd
+if echo "$CONFIG_FILES" | grep config.ho > /dev/null; then
+  if cmp -s config.h config.ho 2> /dev/null; then
+    echo "config.h is unchanged"
   else
-    echo "creating debug_config.h"
-    cp debug_config.ho debug_config.h
+    echo "creating config.h"
+    cp config.ho config.h
   fi
 fi
-if echo "$CONFIG_FILES" | grep sysd.ho >/dev/null; then
-  if cmp -s sysd.h sysd.ho 2> /dev/null; then
-    echo "sysd.h is unchanged"
+if echo "$CONFIG_FILES" | grep sys.ho >/dev/null; then
+  if cmp -s sys.h sys.ho 2> /dev/null; then
+    echo "sys.h is unchanged"
   else
-    echo "creating sysd.h"
-    cp sysd.ho sysd.h
+    echo "creating sys.h"
+    cp sys.ho sys.h
   fi
 fi
 cd ..
@@ -505,5 +502,5 @@ fi
 cd ..
 ])
 
-AC_OUTPUT(libcwd.spec libcwd.lsm Makefile maintMakefile include/sys.ho include/Makefile include/libcw/debug_config.ho include/libcw/sysd.ho include/libcw/Makefile utils/Makefile tests/Makefile testsuite/Makefile documentation/tutorial/Makefile)
+AC_OUTPUT(libcwd.spec libcwd.lsm Makefile maintMakefile include/sys.ho include/Makefile include/libcwd/config.ho include/libcwd/sys.ho include/libcwd/Makefile utils/Makefile tests/Makefile testsuite/Makefile documentation/tutorial/Makefile)
 

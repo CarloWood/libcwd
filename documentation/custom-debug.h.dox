@@ -16,7 +16,7 @@
 User applications have less strict requirements than libraries, because nobody else will link with it.&nbsp;
 The developer of an application directly controls and checks and resolves name collisions when needed.&nbsp;
 If you are writing an end-application then you are still urged to create a header file
-called %debug.h and use \em that in your source files, instead of including <libcw/debug.h> directly.&nbsp;
+called %debug.h and use \em that in your source files, instead of including <libcwd/debug.h> directly.&nbsp;
 You will benefit greatly from this in terms on flexibility (trust me).
 
 \sa \ref preparation
@@ -49,7 +49,7 @@ Then provide a debug header file (%debug.h) with the following:
 #ifndef DEBUGCHANNELS
 #define DEBUGCHANNELS ::libexample::channels
 #endif
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 namespace libexample {
   namespace channels {

@@ -1,0 +1,63 @@
+// @configure_input@
+// $Header$
+//
+// Copyright (C) 2000 - 2003, by
+// 
+// Carlo Wood, Run on IRC <carlo@alinoe.com>
+// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
+// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
+//
+// This file may be distributed under the terms of the Q Public License
+// version 1.0 as appearing in the file LICENSE.QPL included in the
+// packaging of this file.
+//
+
+//
+// NOTE:
+//
+// This header file was generated with the `configure' script of libcwd-@VERSION@
+// If you change your system header files (like glibc or kernel header)
+// it might be needed to regenerate it.
+//
+
+/** \file libcwd/sys.h
+ * Do not include this header file directly, instead include a custom \link preparation "sys.h" \endlink.
+ */
+
+#ifndef LIBCW_SYS_H
+#define LIBCW_SYS_H
+
+namespace libcw {
+  namespace debug {
+    /**
+     * \brief Offset to __builtin_return_address() needed to get the correct line number from location_ct.
+     *
+     * \par Example
+     * \code
+     * libcw::debug::location_ct loc((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset);
+     * \endcode
+     */
+    int const builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET@;
+  }
+}
+
+// When to use <strstream> instead of <sstream>.
+
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#define LIBCWD_USE_STRSTREAM
+#endif
+
+//
+// Compilers and preprocessor used.  Put here to cause a recompile when changed.
+// CC    : @CC_FINGER_PRINT@
+// CXX   : @CXX_FINGER_PRINT@
+// CXXCPP: @CXXCPP_FINGER_PRINT@
+//
+
+#if (defined(_REENTRANT) || defined(_THREAD_SAFE)) && !defined(_GNU_SOURCE)
+#error Sorry, libcwd_r uses GNU extensions, also in the header files.
+#error Therefore you must also define _GNU_SOURCE when you are linking with -lcwd_r.
+#error Please add #define _GNU_SOURCE to your "sys.h", see reference-manual/preparation.html#preparation_step2.
+#endif
+
+#endif /* LIBCW_SYS_H */

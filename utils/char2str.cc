@@ -12,7 +12,7 @@
 //
 
 #include "sys.h"
-#include <libcw/char2str.h>
+#include <libcwd/char2str.h>
 #include <iostream>
 
 namespace libcw {

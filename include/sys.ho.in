@@ -116,6 +116,6 @@ namespace std {
 }
 #endif
 
-#include <libcw/sysd.h>
+#include <libcwd/sys.h>
 
 #endif // SYS_H

@@ -15,11 +15,11 @@ to <CODE>cerr</CODE> is:</P>
 <PRE>
 // These four lines should actually be part of a custom &quot;sys.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
 #ifndef _GNU_SOURCE                     // Already defined by g++ 3.0 and higher.
-#define _GNU_SOURCE                     // This must be defined before including &lt;libcw/sysd.h&gt;
+#define _GNU_SOURCE                     // This must be defined before including &lt;libcwd/sys.h&gt;
 #endif
-#include &lt;libcw/sysd.h&gt;                 // This must be the first header file
+#include &lt;libcwd/sys.h&gt;                 // This must be the first header file
 // This line should actually be part of a custom &quot;debug.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
-#include &lt;libcw/debug.h&gt;
+#include &lt;libcwd/debug.h&gt;
 
 int main(void)
 {
@@ -39,39 +39,36 @@ int main(void)
 <P>This define is necessary to tell the system headers that you
 want to use the GNU extensions (see /usr/include/features.h).&nbsp;
 In order to make you explicitely aware of the fact that it is
-defined, libcwd does not define this macro itself (which it could do inside &lt;libcw/sysd.h&gt;),
+defined, libcwd does not define this macro itself (which it could do inside &lt;libcwd/sys.h&gt;),
 but forces you to define it when using libcwd.&nbsp;
 Note that you only really have to define it when you compiled libcwd with
 threading support.&nbsp;
 If you do not define this macro and libcwd needs it, then you will get
-a compile error in &lt;libcw/sysd.h&gt; telling you so.</P>
+a compile error in &lt;libcwd/sys.h&gt; telling you so.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
 <LI><A HREF="faq.html#GNU_SOURCE">Won't this define make my code non-portable?</A></LI>
 </UL></DIV>
 
-<H3><CODE>#include &lt;libcw/sysd.h&gt;</CODE></H3>
+<H3><CODE>#include &lt;libcwd/sys.h&gt;</CODE></H3>
 
 <P>This must be the very first header file that is included; even before system header files.&nbsp;
 Every source file that includes other libcwd headers must include it.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
-<LI><A HREF="faq.html#sysd.h">Why?</A></LI>
-<LI><A HREF="faq.html#libcwd">What is this <TT>libcw</TT> talk?
-Aren't you forgetting the <U><TT>d</TT></U> of
-<TT>libcw<U>d</U></TT>?</A></LI>
-<LI><A HREF="faq.html#dir">Why do I need to type "<CODE>libcw/sysd.h</CODE>"
-and not just "<CODE>sysd.h</CODE>"?</LI></A>
+<LI><A HREF="faq.html#sys.h">Why?</A></LI>
+<LI><A HREF="faq.html#dir">Why do I need to type "<CODE>libcwd/sys.h</CODE>"
+and not just "<CODE>sys.h</CODE>"?</LI></A>
 </UL></DIV>
 
-<H3><CODE>#include &lt;libcw/debug.h&gt;</CODE></H3>
+<H3><CODE>#include &lt;libcwd/debug.h&gt;</CODE></H3>
 
 <P>This header file contains all definitions and declarations that are needed for debug output.&nbsp;
 For example, it defines the macros <CODE>Debug</CODE> and <CODE>Dout</CODE> and declares
 the debug object <CODE>libcw_do</CODE> and the debug channel <CODE>dc::notice</CODE>.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
-<LI><A HREF="faq.html#debug.h">What is defined <EM>exactly</EM> in <CODE>libcw/debug.h</CODE>?</A></LI>
+<LI><A HREF="faq.html#debug.h">What is defined <EM>exactly</EM> in <CODE>libcwd/debug.h</CODE>?</A></LI>
 <LI><A HREF="faq.html#macros">Why are you using macros for <CODE>Debug</CODE> and <CODE>Dout</CODE>?</A></LI>
 </UL></DIV>
 

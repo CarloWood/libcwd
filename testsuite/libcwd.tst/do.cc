@@ -1,5 +1,5 @@
 #include "sys.h"
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 #ifndef LIBCWD_USE_STRSTREAM
 #include <sstream>
 #else
@@ -43,13 +43,13 @@ MAIN_FUNCTION
 
   // Test initial ostreams.
   ostream* my_own_os = my_own_do.get_ostream();
-  ostream* libcw_os = libcw::debug::libcw_do.get_ostream();
+  ostream* libcwd_os = libcw::debug::libcw_do.get_ostream();
   ostream* coutp = &cout;
   ostream* cerrp = &cerr;
 
   if (my_own_os != cerrp
 #ifndef THREADTEST
-     || libcw_os != cerrp	// Already set to cout in threads_threads.cc
+     || libcwd_os != cerrp	// Already set to cout in threads_threads.cc
 #endif
      )
     DoutFatal(dc::fatal, "Initial ostream not cerr");
@@ -213,11 +213,11 @@ MAIN_FUNCTION
 
   my_own_do.set_ostream(&cout COMMA_THREADED(&cout_mutex));
   my_own_os = my_own_do.get_ostream();
-  libcw_os = libcw::debug::libcw_do.get_ostream();
+  libcwd_os = libcw::debug::libcw_do.get_ostream();
 
   if (my_own_os != coutp
 #ifndef THREADTEST
-      || libcw_os != cerrp
+      || libcwd_os != cerrp
 #endif
       )
     DoutFatal(dc::core, "set_ostream failed");

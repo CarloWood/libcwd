@@ -20,7 +20,7 @@ debugging of dynamic memory allocations.</P>
 <H3>Environment</H3>
 
 <P>First make sure that support is compiled in.&nbsp;
-Check the headerfile <SPAN class="filename">libcw/debug_config.h</SPAN>
+Check the headerfile <SPAN class="filename">libcwd/config.h</SPAN>
 and make sure that the macro <CODE>CWDEBUG_ALLOC</CODE>
 is set to 1.&nbsp;
 If it is not defined, then you'll have to reconfigure, recompile and install libcwd.&nbsp;
@@ -34,8 +34,8 @@ and <CODE>CWDEBUG_MAGIC</CODE> to be defined to 1.</P>
 <P>There is no special header file needed.&nbsp;
 You will need to include <CODE>&quot;debug.h&quot;</CODE> in the same
 way as is described in <A HREF="tut5.html#debug.h">tutorial 5</A>
-and everything needed will be included from <CODE>libcw/debug.h</CODE>.&nbsp;
-In the remainder of this tutorial we will simple include <CODE>libcw/debug.h</CODE> directly
+and everything needed will be included from <CODE>libcwd/debug.h</CODE>.&nbsp;
+In the remainder of this tutorial we will simple include <CODE>libcwd/debug.h</CODE> directly
 and not create any custom debug channels.</P>
 
 <H3>The Allocated memory Overview</H3>

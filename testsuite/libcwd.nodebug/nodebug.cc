@@ -1,5 +1,5 @@
 #include "sys.h"
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 int main(void)
 {

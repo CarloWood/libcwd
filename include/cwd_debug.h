@@ -22,9 +22,9 @@
 #endif
 #include <iostream>
 #ifndef LIBCW_PRIVATE_INTERNAL_STRING_H
-#include <libcw/private_internal_string.h>
+#include <libcwd/private_internal_string.h>
 #endif
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 extern "C" size_t strlen(const char *s) throw();
 
@@ -99,13 +99,13 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
 }
 
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
-	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss)); \
+	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, bufferstream)); \
 	no_alloc_ostream << data
 
 #else // !CWDEBUG_ALLOC
 
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
-	(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss)) << data
+	(*LIBCWD_DO_TSD_MEMBER(libcw_do, bufferstream)) << data
 
 #endif // !CWDEBUG_ALLOC
 

@@ -3,6 +3,6 @@
 #ifndef CWDEBUG
 #include "../nodebug.h"
 #else // CWDEBUG
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 #endif // CWDEBUG
 #endif // DEBUG_H

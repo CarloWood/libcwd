@@ -45,8 +45,8 @@ The direct use of these functions should be avoided, instead use the function ty
   
 #include "sys.h"
 #include "cwd_debug.h"
-#include <libcw/demangle.h>
-#include <libcw/private_assert.h>
+#include <libcwd/demangle.h>
+#include <libcwd/private_assert.h>
 
 #if __GXX_ABI_VERSION > 0
 

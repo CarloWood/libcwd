@@ -14,15 +14,15 @@
 #define _LARGEFILE64_SOURCE
 
 #include "sys.h"
-#include <libcw/debug_config.h>		// Needed for CWDEBUG_DEBUGT
+#include <libcwd/config.h>		// Needed for CWDEBUG_DEBUGT
 
 #if CWDEBUG_DEBUGT && defined(__linux)
 
 #ifndef LIBCW_PRIVATE_THREADING_H
-#include <libcw/private_threading.h>
+#include <libcwd/private_threading.h>
 #endif
 #ifndef LIBCW_PRIVATE_ASSERT_H
-#include <libcw/private_assert.h>
+#include <libcwd/private_assert.h>
 #endif
 
 extern "C" {

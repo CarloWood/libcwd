@@ -2,7 +2,7 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include <libcw/sysd.h>
+#include <libcwd/sys.h>
 #endif
 
 // Bug workaround for libstdc++, avoid warnings like

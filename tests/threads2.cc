@@ -25,7 +25,7 @@
 #include "sys.h"
 #include <list>
 #include <pthread.h>
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 using namespace std;
 

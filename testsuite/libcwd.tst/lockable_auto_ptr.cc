@@ -13,7 +13,7 @@
 #include "sys.h"
 #include "alloctag_debug.h"
 #include <iostream>
-#include <libcw/lockable_auto_ptr.h>
+#include <libcwd/lockable_auto_ptr.h>
 
 using namespace libcw;
 using namespace libcw::debug;

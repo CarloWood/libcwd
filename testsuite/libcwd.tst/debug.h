@@ -6,7 +6,7 @@
 #ifndef DEBUGCHANNELS
 #define DEBUGCHANNELS ::example::debug::channels
 #endif
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 namespace example {
   namespace debug {

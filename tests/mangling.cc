@@ -1,8 +1,8 @@
 #include "sys.h"
 #include <iostream>
-#include <libcw/bfd.h>
-#include <libcw/type_info.h>
-#include <libcw/demangle.h>
+#include <libcwd/bfd.h>
+#include <libcwd/type_info.h>
+#include <libcwd/demangle.h>
 
 // Used helper types.
 class prefix { };

@@ -12,7 +12,7 @@
 //
 
 #include "sys.h"
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 #include <iostream>
 
 MAIN_FUNCTION

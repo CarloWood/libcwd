@@ -19,10 +19,10 @@
 #include <sys/wait.h>		// Needed for waitpid(2)
 #include "exec_prog.h"
 #include "cwd_debug.h"
-#include <libcw/buf2str.h>
-#include <libcw/cwprint.h>
-#include <libcw/private_assert.h>
-#include <libcw/private_string.h>
+#include <libcwd/buf2str.h>
+#include <libcwd/cwprint.h>
+#include <libcwd/private_assert.h>
+#include <libcwd/private_string.h>
 #include <fstream>
 #ifdef __GLIBCPP__
 #include <streambuf>

@@ -7,5 +7,5 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE		// Libcwd uses GNU extensions.
 #endif
-#include <libcw/sysd.h>
+#include <libcwd/sys.h>
 #endif

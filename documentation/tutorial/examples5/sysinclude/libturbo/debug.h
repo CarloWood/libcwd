@@ -1,4 +1,4 @@
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 namespace turbo {
   namespace debug {

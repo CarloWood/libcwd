@@ -1,5 +1,5 @@
 #ifdef TWDEBUG
-#include <libtw/sysd.h>
+#include <libtw/sys.h>
 #include <libtw/debug.h>
 
 #define LIBTWD_LEAKTEST \

@@ -19,7 +19,7 @@
 #define set_alloc_checking_off()
 #define set_alloc_checking_on()
 #else
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 #endif
 
 #endif

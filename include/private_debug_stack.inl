@@ -15,10 +15,10 @@
 #define LIBCW_PRIVATE_DEBUG_STACK_INL
 
 #ifndef LIBCW_PRIVATE_DEBUG_STACK_H
-#include <libcw/private_debug_stack.h>
+#include <libcwd/private_debug_stack.h>
 #endif
 #ifndef LIBCW_PRIVATE_ASSERT_H
-#include <libcw/private_assert.h>
+#include <libcwd/private_assert.h>
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF

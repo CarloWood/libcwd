@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
-#include <libcw/sysd.h>
-#include <libcw/debug.h>
+#include <libcwd/sys.h>
+#include <libcwd/debug.h>
 
 void print_line(void)
 {

@@ -1,8 +1,8 @@
 #ifndef INSTANTIATE
 
 #include "sys.h"
-#include <libcw/debug.h>
-#include <libcw/demangle.h>
+#include <libcwd/debug.h>
+#include <libcwd/demangle.h>
 #include <iostream>
 
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97

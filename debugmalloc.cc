@@ -117,7 +117,7 @@
 
 #define LIBCWD_DEBUGMALLOC_INTERNAL
 #include "sys.h"
-#include <libcw/debug_config.h>
+#include <libcwd/config.h>
 
 #if CWDEBUG_ALLOC || defined(LIBCW_DOXYGEN)
 
@@ -147,7 +147,7 @@
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
 #include "match.h"
-#include <libcw/cwprint.h>
+#include <libcwd/cwprint.h>
 
 #if LIBCWD_THREAD_SAFE
 #if CWDEBUG_DEBUGT
@@ -155,7 +155,7 @@
 #else
 #define UNSET_TARGETHREAD
 #endif
-#include <libcw/private_mutex.inl>
+#include <libcwd/private_mutex.inl>
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::mutex_ct;
@@ -275,7 +275,7 @@ extern "C" void __libc_free(void* ptr);
 #endif
 
 #ifdef TWDEBUG
-#include <libtw/sysd.h>
+#include <libtw/sys.h>
 #include <libtw/debug.h>
 namespace libtw {
   namespace debug {
@@ -466,7 +466,7 @@ extern void ST_initialize_globals(void);
       {																\
         LIBCWD_DO_TSD(debug_object).start(debug_object, channel_set LIBCWD_COMMA_TSD);						\
 	++ LIBCWD_DO_TSD_MEMBER_OFF(debug_object);										\
-	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(debug_object, current_oss)); 			\
+	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(debug_object, bufferstream)); 			\
         no_alloc_ostream << data;												\
 	-- LIBCWD_DO_TSD_MEMBER_OFF(debug_object);										\
         LIBCWD_DO_TSD(debug_object).finish(debug_object, channel_set LIBCWD_COMMA_TSD);						\
@@ -494,7 +494,7 @@ extern void ST_initialize_globals(void);
       }																\
       LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);							\
       ++ LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
-      _private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss)); 				\
+      _private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, bufferstream)); 				\
       no_alloc_ostream << data;													\
       -- LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
       LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);	/* Never returns */			\

@@ -12,7 +12,7 @@
 //
 
 #include "sys.h"
-#include <libcw/debug_config.h>
+#include <libcwd/config.h>
 
 #if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
 // This has to be very early (must not have been included elsewhere already).
@@ -28,8 +28,9 @@
 #include <sys/resource.h>	// Needed for setrlimit()
 #include <new>
 #include "cwd_debug.h"
-#include <libcw/strerrno.h>
-#include <libcw/private_internal_stringstream.h>
+#include <libcwd/strerrno.h>
+#include <libcwd/private_internal_stringbuf.h>
+#include <libcwd/private_bufferstream.h>
 #include "private_debug_stack.inl"
 
 extern "C" int raise(int);
@@ -127,7 +128,7 @@ void allocator_unlock(void)
     using _private_::debug_message_st;
 #endif
 
-    class buffer_ct : public _private_::auto_internal_stringstream {
+    class buffer_ct : public _private_::auto_internal_stringbuf {
     private:
 #if __GNUC__ < 3
       typedef streampos streampos_t;
@@ -145,30 +146,32 @@ void allocator_unlock(void)
       buffer_ct(void) : unfinished_already_printed(false), continued_needed(false) { }
 #endif
       void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object,
-	  bool request_unfinished, bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf));
+	  bool request_unfinished, bool do_flush COMMA_IFTHREADS(bool ends_on_newline)
+	  COMMA_IFTHREADS(bool possible_nonewline_cf));
       void store_position(void) {
-	position = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out);
+	position = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out);
       }
       void restore_position(void) {
-	rdbuf()->pubseekoff(position, ios_base::beg, ios_base::out);
-	rdbuf()->pubseekoff(0, ios_base::beg, ios_base::in);
+	this->pubseekoff(position, std::ios_base::beg, std::ios_base::out);
+	this->pubseekoff(0, std::ios_base::beg, std::ios_base::in);
 #ifdef _REENTRANT
 	continued_needed = false;
 #endif
       }
       void write_prefix_to(std::ostream* os)
       {
-	streampos_t old_in_pos = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
-	rdbuf()->pubseekoff(0, ios_base::beg, ios_base::in);
-	os->put(rdbuf()->sgetc());
+	streampos_t old_in_pos = this->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
+	this->pubseekoff(0, std::ios_base::beg, std::ios_base::in);
+	os->put(this->sgetc());
 	for (int c = 1; c < position; ++c)
-	  os->put(rdbuf()->snextc());
-        rdbuf()->pubseekoff(old_in_pos, ios_base::beg, ios_base::in);
+	  os->put(this->snextc());
+        this->pubseekoff(old_in_pos, std::ios_base::beg, std::ios_base::in);
       }
     };
 
     void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object,
-	bool request_unfinished, bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf))
+	bool request_unfinished, bool do_flush COMMA_IFTHREADS(bool ends_on_newline)
+	COMMA_IFTHREADS(bool possible_nonewline_cf))
     {
       // os			: The ostream that we need to write to.
       // __libcwd_tsd		: The Thread Specific context.
@@ -199,7 +202,7 @@ void allocator_unlock(void)
       int const extra_size = 0;
 #endif
       int curlen;
-      curlen = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out) - rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
+      curlen = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out) - this->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
       bool free_msgbuf = false;
       if (queue_msg)
 	msgbuf = (msgbuf_t)malloc(curlen + extra_size);
@@ -209,9 +212,9 @@ void allocator_unlock(void)
 	free_msgbuf = true;
       }
 #if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
-      rdbuf()->sgetn(msgbuf->buf, curlen);
+      this->sgetn(msgbuf->buf, curlen);
 #else
-      rdbuf()->sgetn(msgbuf, curlen);
+      this->sgetn(msgbuf, curlen);
 #endif
 #if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
       if (queue_msg)	// Inside a call to malloc and possibly owning lock of std::LIBCWD_POOL_ALLOC<true, 0>?
@@ -353,12 +356,12 @@ void allocator_unlock(void)
     // Put this here to decrease the code size of `check_configuration'
     void conf_check_failed(void)
     {
-      DoutFatal(dc::fatal, "check_configuration: This version of libcwd was compiled with a different configuration than is currently used in libcw/debug_config.h!");
+      DoutFatal(dc::fatal, "check_configuration: This version of libcwd was compiled with a different configuration than is currently used in libcwd/config.h!");
     }
 
     void version_check_failed(void)
     {
-      DoutFatal(dc::fatal, "check_configuration: This version of libcwd does not match the version of libcw/debug_config.h!  Are your paths correct?");
+      DoutFatal(dc::fatal, "check_configuration: This version of libcwd does not match the version of libcwd/config.h!  Are your paths correct?");
     }
 
     /**
@@ -688,7 +691,7 @@ void allocator_unlock(void)
 
     class laf_ct {
     public:
-      buffer_ct oss;
+      buffer_ct buffer;
 	// The temporary output buffer.
 
       control_flag_t mask;
@@ -970,14 +973,14 @@ void allocator_unlock(void)
         int saved_errno = errno;				// The writeto below changes errno.
 	// And write out what is in the buffer till now.
 	std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
-	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object,
+	current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
 	    true,			// This thread requests an <unfinished> because of previous, unfinished 'continued' output.
 	    false			// Don't flush.
 	    COMMA_IFTHREADS(true)	// This output ends on a newline by itself.
 	    COMMA_IFTHREADS(false));	// The newline is not missing as a result of nonewline_cf.
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
-	static_cast<buffer_ct*>(current_oss)->restore_position();
-	current_oss->write("<continued> ", 12);			// therefore we repeat the space here.
+	current->buffer.restore_position();
+	bufferstream->write("<continued> ", 12);		// therefore we repeat the space here.
         errno = saved_errno;
       }
 
@@ -1001,8 +1004,7 @@ void allocator_unlock(void)
       DEBUGDEBUG_CERR( "creating new laf_ct" );
       current = new laf_ct(channel_set.mask, channel_set.label, errno);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
-      current_oss = &current->oss;
-      DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
+      static_cast<_private_::bufferstream_ct*>(bufferstream)->init(&current->buffer);
       DEBUGDEBUG_CERR( "laf_ct created" );
 
       // Without a new nested Dout() call, we expect to see a finish() call: The finish belonging to *this* Dout() call.
@@ -1015,30 +1017,30 @@ void allocator_unlock(void)
       // Handle most common case first: no special flags set
       if (!(channel_set.mask & (noprefix_cf|nolabel_cf|blank_margin_cf|blank_label_cf|blank_marker_cf)))
       {
-	current_oss->write(margin.c_str(), margin.size());
-	current_oss->write(channel_set.label, WST_max_len);
-	current_oss->write(marker.c_str(), marker.size());
-	write_whitespace_to(*current_oss, indent);
+	bufferstream->write(margin.c_str(), margin.size());
+	bufferstream->write(channel_set.label, WST_max_len);
+	bufferstream->write(marker.c_str(), marker.size());
+	write_whitespace_to(*bufferstream, indent);
       }
       else if (!(channel_set.mask & noprefix_cf))
       {
 	if ((channel_set.mask & blank_margin_cf))
-	  write_whitespace_to(*current_oss, margin.size());
+	  write_whitespace_to(*bufferstream, margin.size());
 	else
-	  current_oss->write(margin.c_str(), margin.size());
+	  bufferstream->write(margin.c_str(), margin.size());
 #if !CWDEBUG_DEBUGOUTPUT
 	if (!(channel_set.mask & nolabel_cf))
 #endif
 	{
 	  if ((channel_set.mask & blank_label_cf))
-	    write_whitespace_to(*current_oss, WST_max_len);
+	    write_whitespace_to(*bufferstream, WST_max_len);
 	  else
-	    current_oss->write(channel_set.label, WST_max_len);
+	    bufferstream->write(channel_set.label, WST_max_len);
 	  if ((channel_set.mask & blank_marker_cf))
-	    write_whitespace_to(*current_oss, marker.size());
+	    write_whitespace_to(*bufferstream, marker.size());
 	  else
-	    current_oss->write(marker.c_str(), marker.size());
-	  write_whitespace_to(*current_oss, indent);
+	    bufferstream->write(marker.c_str(), marker.size());
+	  write_whitespace_to(*bufferstream, indent);
 	}
       }
 
@@ -1046,7 +1048,7 @@ void allocator_unlock(void)
       {
 	// If this is continued debug output, then it makes sense to remember the prefix length,
 	// just in case we need indeed to output <continued> data.
-        static_cast<buffer_ct*>(current_oss)->store_position();
+        current->buffer.store_position();
       }
 
       --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
@@ -1074,7 +1076,7 @@ void allocator_unlock(void)
 	  // Flush ostream.  Note that in the case of nested debug output this `os' can be an stringstream,
 	  // in that case, no actual flushing is done until the debug output to the real ostream has
 	  // finished.
-	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object,
+	  current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
 	      false,			// This thread requests <unfinished> because of previous, unfinished 'continued' output.
 	      true			// Flush ostream after printing this.
 	      COMMA_IFTHREADS(false)	// This output does not end on a newline.
@@ -1103,17 +1105,17 @@ void allocator_unlock(void)
 #if CWDEBUG_ALLOC
 	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #endif
-	*current_oss << ": " << strerrno(current->err) << " (" << error_text << ')';
+	*bufferstream << ": " << strerrno(current->err) << " (" << error_text << ')';
       }
       if (!(current->mask & nonewline_cf))
-	current_oss->put('\n');
+	bufferstream->put('\n');
 
       // Handle control flags, if any:
       if (current->mask != 0)
       {
 	if ((current->mask & (coredump_maskbit|fatal_maskbit)))
 	{
-	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object,
+	  current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
 	      false,			// This thread requests <unfinished> because of previous, unfinished 'continued' output.
 	      !__libcwd_tsd.recursive_fatal	// Flush ostream after printing this when there is no recursive loop yet.
 	      COMMA_IFTHREADS(!(current->mask & nonewline_cf))	// Whether or not this output ends on a newline.
@@ -1146,7 +1148,7 @@ void allocator_unlock(void)
 	}
 	if ((current->mask & wait_cf))
 	{
-	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object,
+	  current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
 	      false, debug_object.interactive COMMA_IFTHREADS(!(current->mask & nonewline_cf))
 	      COMMA_IFTHREADS(true));
 #ifdef _REENTRANT
@@ -1163,12 +1165,12 @@ void allocator_unlock(void)
 #endif
 	}
 	else
-	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object,
+	  current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
 	      false, (current->mask & flush_cf) COMMA_IFTHREADS(!(current->mask & nonewline_cf))
 	      COMMA_IFTHREADS(true));
       }
       else
-	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD, debug_object,
+	current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
 	    false, false COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
 
       DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
@@ -1188,8 +1190,7 @@ void allocator_unlock(void)
 	control_flag_t mask = current->mask;
         current = laf_stack.top();
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
-	current_oss = &current->oss;
-	DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
+	static_cast<_private_::bufferstream_ct*>(bufferstream)->init(&current->buffer);
 	if ((mask & flush_cf))
 	  current->mask |= flush_cf;	// Propagate flush to real ostream.
       }
@@ -1197,10 +1198,6 @@ void allocator_unlock(void)
       {
         current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);	// Used (MT: read-only!) in next debug_ct::start().
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
-#if CWDEBUG_DEBUG
-	current_oss = NULL;
-	DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
-#endif
       }
 
       start_expected = true;
@@ -1282,7 +1279,6 @@ void allocator_unlock(void)
 #endif
       DEBUGDEBUG_CERR( "debug_ct::NS_init(void), _off set to " << LIBCWD_TSD_MEMBER_OFF );
 
-      // This sets current_oss and must be called after tsd.init().
       set_ostream(&std::cerr);				// Write to std::cerr by default.
       interactive = true;				// and thus we're interactive.
 
@@ -1291,8 +1287,8 @@ void allocator_unlock(void)
 
     void debug_tsd_st::init(void)
     {
-#if CWDEBUG_DEBUGM
       LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_DEBUGM
       LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
       start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
@@ -1302,14 +1298,13 @@ void allocator_unlock(void)
       // current.mask needs to be 0 to avoid a crash in start():
       current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
-#if CWDEBUG_DEBUG
-      current_oss = NULL;
-      DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
-#endif
       laf_stack.init();
       continued_stack.init();
       margin.NS_internal_init("", 0);
       marker.NS_internal_init(": ", 2);
+      int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+      bufferstream = new _private_::bufferstream_ct;
+      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 
 #if CWDEBUG_DEBUGOUTPUT
       first_time = true;
@@ -1349,6 +1344,9 @@ void allocator_unlock(void)
       if (laf_stack.size())
         DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty laf_stack" );
       // Don't actually deinitialize anything.
+      // Except this, which takes a lot of memory.
+      if (bufferstream)
+        delete bufferstream;
     }
 
     /**

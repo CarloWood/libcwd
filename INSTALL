@@ -121,7 +121,7 @@ Hackers info
 There is no reason to use libcwd's feature options (--disable-alloc,
 --disable-magic, --disable-marker and --disable-location).
 Actually, I forgot why they are there :).  You can read more about the
-configuration options and what they do in include/libcw/debug_config.h.
+configuration options and what they do in include/libcwd/config.h.
 
 If you want to change Makefile.am files and the like then you'll need to
 use --enable-maintainer-mode.  If you enable maintainer-mode then you

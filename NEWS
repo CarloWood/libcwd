@@ -1,5 +1,24 @@
 libcwd-0.99.29
 
+        Allocations inside Dout() et al are not 'internal' anymore.
+	Although it made no sense to allocate memory at all in
+	debug code, there were problems with memory being allocated
+	as part of libstdc++ (like a locale object and a scratch
+	buffer for writing numbers), these allocation should be
+	non-internal - and when performed from within a Dout did
+	sometimes lead to a COREDUMP, complaining about freeing
+	'internal' memory.
+
+	API changes:
+
+	The directory include/libcw was renamed to include/libcwd.
+	The headerfile sysd.h was renamed to sys.h.
+	The headerfile debug_config.h was renamed to config.h.
+	This means that will have to update your debug.h and sys.h
+	files for the applications that use libcwd:
+	#include <libcw/sysd.h> --> #include <libcwd/sys.h>
+	#include <libcw/debug.h> --> #include <libcwd/debug.h>
+
 	Bug fixes:
 
 	Compilation warning fix for g++ 3.3.

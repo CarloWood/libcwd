@@ -12,8 +12,8 @@
 //
 
 #include "sys.h"
-#include <libcw/debug_config.h>
-#include <libcw/strerrno.h>
+#include <libcwd/config.h>
+#include <libcwd/strerrno.h>
 
 namespace libcw {
   namespace debug {

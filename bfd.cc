@@ -13,7 +13,7 @@
 
 #undef LIBCWD_DEBUGBFD		// Define to add debug code for this file.
 
-#include <libcw/debug_config.h>
+#include <libcwd/config.h>
 #if CWDEBUG_LOCATION
 
 #include "sys.h"
@@ -65,7 +65,7 @@ extern link_map* _dl_loaded;
 #endif
 #include "exec_prog.h"
 #include "match.h"
-#include <libcw/class_object_file.h>
+#include <libcwd/class_object_file.h>
 #if CWDEBUG_LIBBFD
 #if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
 // libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
@@ -76,7 +76,7 @@ extern link_map* _dl_loaded;
 #else // !CWDEBUG_LIBBFD
 #include "elf32.h"
 #endif // !CWDEBUG_LIBBFD
-#include <libcw/private_string.h>
+#include <libcwd/private_string.h>
 #include "cwd_bfd.h"
 
 extern char** environ;
@@ -990,14 +990,14 @@ void bfd_close(bfd* abfd)
       // cwbfd::
       bool ST_init(void)
       {
-	// This must be called before calling ST_init().
-	libcw_do.NS_init();
-
 	static bool WST_being_initialized = false;
 	// This should catch it when we call new or malloc while 'internal'.
 	if (WST_being_initialized)
 	  return false;
 	WST_being_initialized = true;
+
+	// This must be called before calling ST_init().
+	libcw_do.NS_init();
 
         // MT: We assume this is called before reaching main().
 	//     Therefore, no synchronisation is required.

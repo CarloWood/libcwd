@@ -2,7 +2,7 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include <libcw/sysd.h>
+#include <libcwd/sys.h>
 #include "alloctag_debug.h"
 
 static void* static_test_symbol(void)

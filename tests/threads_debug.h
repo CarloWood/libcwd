@@ -15,7 +15,7 @@
 // Define the namespace where you will put your debug channels.
 // This can be any arbitrary namespace except std:: or ::.
 #define DEBUGCHANNELS debug_channels
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 namespace debug_channels {    // This is namespace DEBUGCHANNELS
   namespace dc {

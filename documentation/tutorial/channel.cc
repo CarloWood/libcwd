@@ -9,10 +9,10 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include <libcw/sysd.h>
+#include <libcwd/sys.h>
 #define DEBUGCHANNELS ::example		      // Where we'll put our namespace dc
 // "debug.h":
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 //-------------------------------------------------------------------------------
 
 namespace example {                           // namespace dc cannot be put in ::

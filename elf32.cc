@@ -16,7 +16,7 @@
 // ELF32 object files.
 //
 
-#include <libcw/debug_config.h>
+#include <libcwd/config.h>
 
 #if CWDEBUG_LOCATION && !CWDEBUG_LIBBFD
 
@@ -33,7 +33,7 @@
 #include <cerrno>
 #include "cwd_debug.h"
 #include "elf32.h"
-#include <libcw/private_assert.h>
+#include <libcwd/private_assert.h>
 
 #define DEBUGELF32 0
 #define DEBUGSTABS 0

@@ -60,9 +60,12 @@ echo
 %doc documentation/index.html
 %dir %{__prefix}/include/libcw
 %{__prefix}/lib/*
-%{__prefix}/include/libcw/*
+%{__prefix}/include/libcwd/*
 
 %changelog
+* Mon Apr 14 2003 Carlo Wood <libcw@alinoe.com>
+- Renamed include/libcw to include/libcwd.
+
 * Tue Mar 19 2002 Carlo Wood <libcw@alinoe.com>
 - Corrected URL and source url.
 - Reference manual sits in documentation/reference-manual as of 0.99.19.

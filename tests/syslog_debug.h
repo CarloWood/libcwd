@@ -6,7 +6,7 @@
 #ifndef DEBUGCHANNELS
 #define DEBUGCHANNELS ::syslog_example::debug::channels
 #endif
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 namespace syslog_example {
   namespace debug {

@@ -15,9 +15,9 @@
 
 #include "sys.h"
 #include "cwd_debug.h"
-#include <libcw/private_threading.h>
-#include <libcw/private_mutex.inl>
-#include <libcw/core_dump.h>
+#include <libcwd/private_threading.h>
+#include <libcwd/private_mutex.inl>
+#include <libcwd/core_dump.h>
 #include <unistd.h>
 #include <map>
 
@@ -105,7 +105,10 @@ void TSD_st::S_initialize(void)
   std::memcpy(old_array, do_array, sizeof(old_array));
   threadlist_t::iterator old_thread_iter = thread_iter;
   bool old_thread_iter_valid = thread_iter_valid;
-  std::memset(this, 0, sizeof(struct TSD_st));	// This structure might be reused and therefore already contain data.
+
+  // This structure might be reused and therefore already contain data.
+  std::memset(this, 0, sizeof(struct TSD_st));
+
   tid = pthread_self();
   pid = getpid();
   mutex_tct<tsd_initialization_instance>::unlock();

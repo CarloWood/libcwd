@@ -36,7 +36,7 @@
 
 #include <cctype>
 #include "cwd_debug.h"
-#include <libcw/demangle.h>
+#include <libcwd/demangle.h>
 
 #ifdef HAVE_LIMITS
 #include <limits>

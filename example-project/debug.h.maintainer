@@ -8,13 +8,13 @@
 #else // CWDEBUG
 
 #ifndef DEBUGCHANNELS
-// This must be defined before <libcw/debug.h> is included and must be the
+// This must be defined before <libcwd/debug.h> is included and must be the
 // name of the namespace containing your `dc' (Debug Channels) namespace
 // (see below).  You can use any namespace(s) you like, except existing
 // namespaces (like ::, ::std and ::libcwd).
 #define DEBUGCHANNELS ::myproject::debug::channels
 #endif
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 
 namespace myproject {		// >
   namespace debug {		//  >---> This part must match DEBUGCHANNELS

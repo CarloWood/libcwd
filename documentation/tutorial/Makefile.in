@@ -60,7 +60,7 @@ examples5/%-bin: examples5/%.cc examples5/debug.o examples5/debug.h examples5/sy
 	$(CXX) -g -pipe -DCWDEBUG -Iexamples5 -I- -Iexamples5/sysinclude -I../../include \
 		$< examples5/debug.o -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
 
-examples5/debug.o: examples5/debug.cc examples5/debug.h examples5/sys.h examples5/sysinclude/libbooster/debug.h examples5/sysinclude/libturbo/debug.h ../../include/libcw/sysd.h
+examples5/debug.o: examples5/debug.cc examples5/debug.h examples5/sys.h examples5/sysinclude/libbooster/debug.h examples5/sysinclude/libturbo/debug.h ../../include/libcwd/sys.h
 	$(CXX) -g -pipe -DCWDEBUG -Iexamples5 -Iexamples5/sysinclude -I../../include -c $< -o $@
 
 examples7/%-bin: examples7/%.cc examples7/sys.h examples7/debug.h ../../.libs/libcwd.so

@@ -2,7 +2,7 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include <libcw/sysd.h>
+#include <libcwd/sys.h>
 #endif
 #include <_G_config.h>
 #ifndef _G_CLOG_CONFLICT

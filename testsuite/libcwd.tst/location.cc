@@ -12,7 +12,7 @@
 //
 
 #include "sys.h"
-#include <libcw/debug.h>
+#include <libcwd/debug.h>
 #include <iostream>
 
 #ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
@@ -41,7 +41,7 @@ static void* frame_return_address(unsigned int frame)
 }
 #endif
 
-void libcw_bfd_test3(void)
+void libcwd_bfd_test3(void)
 {
   for (int i = 0; i <= 5; ++i)
   {
@@ -102,28 +102,28 @@ void libcw_bfd_test3(void)
   }
 }
  
-void libcw_bfd_test2(void)
+void libcwd_bfd_test2(void)
 {
 #ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(1);
 #endif
-  libcw_bfd_test3();
+  libcwd_bfd_test3();
 }
 
-void libcw_bfd_test1(void)
+void libcwd_bfd_test1(void)
 {
 #ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(2);
 #endif
-  libcw_bfd_test2();
+  libcwd_bfd_test2();
 }
 
-void libcw_bfd_test(void)
+void libcwd_bfd_test(void)
 {
 #ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(3);
 #endif
-  libcw_bfd_test1();
+  libcwd_bfd_test1();
 }
 
 MAIN_FUNCTION
@@ -155,7 +155,7 @@ MAIN_FUNCTION
 #ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(4);
 #endif
-  libcw_bfd_test();
+  libcwd_bfd_test();
 
   Debug( libcw_do.off() );
 

@@ -109,13 +109,13 @@ module_r.so: module.cc $(top_builddir)/.libs/libcwd_r.so.*
 endif
 
 # Provide rules for manual compilation:
-tst_%.o: libcwd.tst/%.cc Makefile $(top_builddir)/include/libcw/*.h
+tst_%.o: libcwd.tst/%.cc Makefile $(top_builddir)/include/libcwd/*.h
 	$(CXXCOMPILE) -c $< -o $@
 
-nodebug_%.o: libcwd.nodebug/%.cc Makefile $(top_builddir)/include/libcw/*.h
+nodebug_%.o: libcwd.nodebug/%.cc Makefile $(top_builddir)/include/libcwd/*.h
 	$(CXXCOMPILE) -c $< -o $@
 
-threads_%.o: libcwd.threads/%.cc Makefile $(top_builddir)/include/libcw/*.h
+threads_%.o: libcwd.threads/%.cc Makefile $(top_builddir)/include/libcwd/*.h
 	$(CXXCOMPILE) -D_REENTRANT -pthread -c $< -o $@
 
 ifeq ($(enable_shared), yes)

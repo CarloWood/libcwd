@@ -14,7 +14,7 @@
 #ifndef BFD_H
 #define BFD_H
 
-#include <libcw/debug_config.h>
+#include <libcwd/config.h>
 #if CWDEBUG_LOCATION
 
 #ifndef LIBCW_LIST
@@ -26,19 +26,19 @@
 #include <set>
 #endif
 #ifndef LIBCW_PRIVATE_ALLOCATOR_H
-#include <libcw/private_allocator.h>
+#include <libcwd/private_allocator.h>
 #endif
 #ifndef ELF32_H
 #include "elf32.h"
 #endif
 #ifndef LIBCW_CLASS_OBJECT_FILE_H
-#include <libcw/class_object_file.h>
+#include <libcwd/class_object_file.h>
 #endif
 #ifndef MATCH_H
 #include "match.h"
 #endif
 #ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
-#include <libcw/private_mutex_instances.h>
+#include <libcwd/private_mutex_instances.h>
 #endif
 
 #ifdef _REENTRANT

@@ -12,8 +12,8 @@
 //
 
 #include "sys.h"
-#include <libcw/debug.h>
-#include <libcw/type_info.h>
+#include <libcwd/debug.h>
+#include <libcwd/type_info.h>
 #include <iostream>
 
 using std::cout;

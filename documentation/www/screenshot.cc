@@ -1,6 +1,6 @@
-#include <libcw/sysd.h>
-#include <libcw/debug.h>
-#include <libcw/type_info.h>
+#include <libcwd/sys.h>
+#include <libcwd/debug.h>
+#include <libcwd/type_info.h>
 
 #define builtin_return_address(addr) ((char*)__builtin_return_address(addr) + libcw::debug::builtin_return_address_offset)
 

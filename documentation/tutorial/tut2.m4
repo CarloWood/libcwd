@@ -19,7 +19,7 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 #ifndef _GNU_SOURCE		// Already defined by g++ 3.0 and higher.
 #define _GNU_SOURCE		// Needed for libpthread extensions.
 #endif
-#include &lt;libcw/sysd.h&gt
+#include &lt;libcwd/sys.h&gt
 #endif
 </PRE>
 <P>Create a file <CODE>"debug.h"</CODE> that is part of your application and put in it:</P>
@@ -46,13 +46,13 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 #else // CWDEBUG
 
 #ifndef DEBUGCHANNELS
-// This must be defined before &lt;libcw/debug.h&gt; is included and must be the
+// This must be defined before &lt;libcwd/debug.h&gt; is included and must be the
 // name of the namespace containing your `dc' namespace (see below).
 // You can use any namespace(s) you like, except existing namespaces
 // (like ::, ::std and ::libcw).
 #define DEBUGCHANNELS ::myproject::debug::channels
 #endif
-#include &lt;libcw/debug.h&gt;
+#include &lt;libcwd/debug.h&gt;
 
 namespace myproject {
   namespace debug {

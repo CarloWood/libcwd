@@ -1,8 +1,8 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#include <libcw/sysd.h>
-#include <libcw/debug.h>
+#include <libcwd/sys.h>
+#include <libcwd/debug.h>
 
 // A dummy class
 class A {

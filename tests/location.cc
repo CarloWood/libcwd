@@ -14,7 +14,7 @@
 #include "sys.h"
 #include <iostream>
 #include "debug.h"
-#include <libcw/demangle.h>
+#include <libcwd/demangle.h>
 
 void test(void)
 {

@@ -27,7 +27,7 @@
 
 #include "sys.h"
 #include <syslog.h>
-#include <libcw/buf2str.h>
+#include <libcwd/buf2str.h>
 // #include <locale> Not supported by early versions
 #include "syslog_debug.h"
 #include <iostream>

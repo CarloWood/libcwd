@@ -11,16 +11,16 @@
 // packaging of this file.
 //
 
-#include <libcw/debug_config.h>
+#include <libcwd/config.h>
 #if CWDEBUG_ALLOC
 #include "sys.h"
 #include "cwd_debug.h"
 #include "cwd_bfd.h"
 #ifndef LIBCW_PRIVATE_THREADING_H
-#include <libcw/private_threading.h>
+#include <libcwd/private_threading.h>
 #endif
 #ifndef LIBCW_CLASS_OOAM_FILTER_H
-#include <libcw/class_ooam_filter.h>
+#include <libcwd/class_ooam_filter.h>
 #endif
 
 namespace libcw {
