@@ -642,10 +642,13 @@ public:
   Elf32_Shdr const& section_header(void) const { return M_section_header; }
 };
 
+class object_file_ct;
+
 struct hash_list_st {
   char const* name;
   Elf32_Addr addr;
   hash_list_st* next;
+  bool already_added;
 };
 
 //
@@ -699,7 +702,7 @@ private:
   void load_dwarf(void);
   template<typename T>
     inline void object_file_ct::dwarf_read(unsigned char const*& debug_info_ptr, T& x);
-  uint32_t elf_hash(unsigned char const* name, size_t len) const;
+  uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
 };
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
@@ -760,11 +763,11 @@ long object_file_ct::get_symtab_upper_bound(void)
   return M_number_of_symbols * sizeof(asymbol_st*);
 }
 
-uint32_t object_file_ct::elf_hash(unsigned char const* name, size_t len) const
+uint32_t object_file_ct::elf_hash(unsigned char const* name, unsigned char delim) const
 {
   uint32_t h = 0;
   uint32_t g;
-  while (len--)
+  while (*name != delim)
   {
     h = (h << 4) + *name++;
     if ((g = (h & 0xf0000000)))
@@ -849,6 +852,21 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	    new_symbol->flags |= cwbfd::BSF_FILE;
 	    break;
 	}
+	uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(new_symbol->name), (unsigned char)0);
+	hash_list_st** p = &M_hash_list[hash];
+        hash_list_st** q = NULL;
+	while(*p)
+        {
+	  q = p;
+	  p = &(*p)->next;
+	}
+	*p = new hash_list_st;
+	if (q)
+	  (*q)->next = *p;
+        (*p)->next = NULL;
+        (*p)->name = new_symbol->name;
+        (*p)->addr = symbol.st_value;
+	(*p)->already_added = false;
 	symbol_table[table_entries++] = new_symbol++;
       }
       delete [] symbols;
@@ -1609,16 +1627,39 @@ void object_file_ct::load_stabs(void)
 	  if (func_addr == 0 && location.line)
 	  {
 	    // Start of function is not given (bug in assembler?), try to find it by name:
-	    uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(fn), fn_len);
-	    hash_list_st* p = M_hash_list[hash];
-	    while(p && strncmp(p->name, fn, fn_len))
-	      p = p->next;
-	    if (p)
-	      range.start = func_addr =  p->addr;
+	    uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(fn), (unsigned char)':');
+	    for(hash_list_st* p = M_hash_list[hash]; p; p = p->next)
+	      if (!strncmp(p->name, fn, fn_len))
+	      {
+		range.start = func_addr = p->addr;
+		if (!p->already_added)
+		{
+		  p->already_added = true;
+		  break;
+	        }
+	      }
 	    ASSERT( func_addr );
 	    if (DEBUGSTABS)
 	      Dout(dc::bfd, "Hash lookup: " << std::hex << range.start << '.');
 	  }
+#if DEBUGSTABS
+	  else
+	  {
+	    Elf32_Addr func_addr_test = 0;
+	    uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(fn), (unsigned char)':');
+	    for(hash_list_st* p = M_hash_list[hash]; p; p = p->next)
+	      if (!strncmp(p->name, fn, fn_len))
+	      {
+		func_addr_test = p->addr;
+		if (!p->already_added || func_addr_test == func_addr)
+		{
+		  p->already_added = true;
+		  break;
+	        }
+	      }
+	    ASSERT( func_addr_test == func_addr );
+	  }
+#endif
 	  location.func_iter = M_function_names.insert(cur_func).first;
 	  location.line = 0;
 	}
