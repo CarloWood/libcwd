@@ -466,7 +466,7 @@ static int decode_ps(char const* buf, size_t len)
 	}
 	else if (pid_token == 0 && token == "PID")
 	  pid_token = current_token;
-	else if (command_token == 0 && token == "COMMAND")
+	else if (command_token == 0 && (token == "COMMAND") || (token == "CMD"))
 	{
 	  command_token = current_token;
 	  command_column = current_column;
