@@ -1620,12 +1620,208 @@ void register_external_allocation(void const* mptr, size_t size)
 
 using namespace ::libcw::debug;
 
+extern "C" {
+
+//=============================================================================
+//
+// __libcwd_free, replacement for free(3)
+//
+// frees a block and updates the internal administration.
+//
+
+void __libcwd_free(void* ptr)
+{
+#ifdef DEBUGDEBUGMALLOC
+  ASSERT( !recursive || internal );
+  ++recursive;
+#endif
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
+  ASSERT( _internal_::ios_base_initialized );
+#endif
+  deallocated_from_nt from = deallocated_from;
+  deallocated_from = from_free;
+  if (internal)
+  {
+#ifdef DEBUGDEBUGMALLOC
+    if (from == from_delete)
+    {
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")'" );
+    }
+    else if (from == from_delete_array)
+    {
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")'" );
+    }
+    else
+    {
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")'" );
+    }
+#endif // DEBUGDEBUGMALLOC
+#ifdef DEBUGMAGICMALLOC
+    if (!ptr)
+    {
+#ifdef DEBUGDEBUGMALLOC
+      --recursive;
+#endif
+      return;
+    }
+    ptr = static_cast<size_t*>(ptr) - 2;
+    if (from == from_delete)
+    {
+      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_NEW_BEGIN ||
+          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_END)
+        DoutFatalInternal( dc::core, "internal delete: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
+	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
+    }
+    else if (from == from_delete_array)
+    {
+      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_NEW_ARRAY_BEGIN ||
+          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_ARRAY_END)
+        DoutFatalInternal( dc::core, "internal delete[]: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
+	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
+    }
+    else
+    {
+      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_MALLOC_BEGIN ||
+          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
+        DoutFatalInternal( dc::core, "internal free: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
+	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
+    }
+    ((size_t*)ptr)[0] ^= (size_t)-1;
+    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] ^= (size_t)-1;
+#endif // DEBUGMAGICMALLOC
+    __libc_free(ptr);
+#ifdef DEBUGDEBUGMALLOC
+    --recursive;
+#endif
+    return;
+  } // internal
+
+  if (!ptr)
+  {
+    DoutInternal( dc_malloc, "Trying to free NULL - ignored." );
+#ifdef DEBUGDEBUGMALLOC
+    --recursive;
+#endif
+    return;
+  }
+
+  memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
+  if (i == memblk_map->end() || (*i).first.start() != ptr)
+  {
+#ifdef DEBUGMAGICMALLOC
+    if (((size_t*)ptr)[-2] == INTERNAL_MAGIC_NEW_BEGIN ||
+        ((size_t*)ptr)[-2] == INTERNAL_MAGIC_NEW_ARRAY_BEGIN ||
+	((size_t*)ptr)[-2] == INTERNAL_MAGIC_MALLOC_BEGIN)
+      DoutFatalInternal( dc::core, "Trying to " <<
+          ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) <<
+	  " a pointer (" << ptr << ") that appears to be internally allocated!  The magic number diagnostic gives: " <<
+	  diagnose_from(from, false) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+
+#endif
+    DoutFatalInternal( dc::core, "Trying to " <<
+        ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) << " an invalid pointer (" << ptr << ')' );
+  }
+  else
+  {
+    memblk_types_nt f = (*i).second.flags();
+#ifdef CWDEBUG
+    bool visible = (!library_call && (*i).second.has_alloc_node());
+    if (visible)
+    {
+      DoutInternal( dc_malloc|continued_cf,
+	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
+	  << ptr << ((from == from_free) ? ") " : " ") );
+      (*i).second.print_description();
+      DoutInternal( dc::continued, ' ' );
+    }
+#endif // CWDEBUG
+    if (expected_from[f] != from)
+    {
+      if (from == from_delete)
+      {
+	if (f == memblk_type_malloc)
+	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was allocated with `malloc()'!  Use `free()' instead." );
+	else if (f == memblk_type_external)
+	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was externally allocated!  Use `free()' instead." );
+	else if (f == memblk_type_realloc)
+	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was returned by `realloc()'!  Use `free()' instead." );
+	else if (f == memblk_type_new_array)
+	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was allocated with `new[]'!  Use `delete[]' instead." );
+      }
+      else if (from == from_delete_array)
+      {
+	if (f == memblk_type_malloc)
+	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was allocated with `malloc()'!  Use `free()' instead." );
+	else if (f == memblk_type_external)
+	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that externally allocated!  Use `free()' instead." );
+	else if (f == memblk_type_realloc)
+	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was returned by `realloc()'!  Use `free()' instead." );
+	else if (f == memblk_type_new)
+	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was allocated with `new'!  Use `delete' instead." );
+      }
+      else if (from == from_free)
+      {
+	if (f == memblk_type_new)
+	  DoutFatalInternal( dc::core, "You are `free()'-ing a block that was allocated with `new'!  Use `delete' instead." );
+	else if (f == memblk_type_new_array)
+	  DoutFatalInternal( dc::core, "You are `free()'-ing a block that was allocated with `new[]'!  Use `delete[]' instead." );
+      }
+      DoutFatalInternal( dc::core, "Huh? Bug in libcw" );
+    }
+
+    DEBUGDEBUG_CERR( "__libcwd_free: internal == " << internal << "; setting it to true." );
+    internal = true;
+    (*i).second.erase();	// Update flags and optional decouple
+    memblk_map->erase(i);	// Update administration
+    DEBUGDEBUG_CERR( "__libcwd_free: internal == " << internal << "; setting it to false." );
+    internal = false;
+
+#ifdef DEBUGMAGICMALLOC
+    if (f == memblk_type_external)
+      __libc_free(ptr);
+    else
+    {
+      if (from == from_delete)
+      {
+	if (((size_t*)ptr)[-2] != MAGIC_NEW_BEGIN ||
+	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_NEW_END)
+	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+      }
+      else if (from == from_delete_array)
+      {
+	if (((size_t*)ptr)[-2] != MAGIC_NEW_ARRAY_BEGIN ||
+	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_NEW_ARRAY_END)
+	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+      }
+      else
+      {
+	if (((size_t*)ptr)[-2] != MAGIC_MALLOC_BEGIN ||
+	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_MALLOC_END)
+	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+      }
+      ((size_t*)ptr)[-2] ^= (size_t)-1;
+      ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] ^= (size_t)-1;
+      __libc_free(static_cast<size_t*>(ptr) - 2);		// Free memory block
+    }
+#else // !DEBUGMAGICMALLOC
+    __libc_free(ptr);			// Free memory block
+#endif // !DEBUGMAGICMALLOC
+
+#ifdef CWDEBUG
+    if (visible)
+      DoutInternal( dc::finish, "" );
+#endif // CWDEBUG
+
+  }
+#ifdef DEBUGDEBUGMALLOC
+  --recursive;
+#endif
+}
+
 //=============================================================================
 //
 // malloc(3) and calloc(3) replacements:
 //
-
-extern "C" {
 
 void* __libcwd_malloc(size_t size)
 {
@@ -1969,202 +2165,6 @@ void* __libcwd_realloc(void* ptr, size_t size)
   --recursive;
 #endif
   return mptr;
-}
-
-//=============================================================================
-//
-// __libcwd_free, replacement for free(3)
-//
-// frees a block and updates the internal administration.
-//
-
-void __libcwd_free(void* ptr)
-{
-#ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal );
-  ++recursive;
-#endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  ASSERT( _internal_::ios_base_initialized );
-#endif
-  deallocated_from_nt from = deallocated_from;
-  deallocated_from = from_free;
-  if (internal)
-  {
-#ifdef DEBUGDEBUGMALLOC
-    if (from == from_delete)
-    {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")'" );
-    }
-    else if (from == from_delete_array)
-    {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")'" );
-    }
-    else
-    {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")'" );
-    }
-#endif // DEBUGDEBUGMALLOC
-#ifdef DEBUGMAGICMALLOC
-    if (!ptr)
-    {
-#ifdef DEBUGDEBUGMALLOC
-      --recursive;
-#endif
-      return;
-    }
-    ptr = static_cast<size_t*>(ptr) - 2;
-    if (from == from_delete)
-    {
-      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_NEW_BEGIN ||
-          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_END)
-        DoutFatalInternal( dc::core, "internal delete: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
-	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
-    }
-    else if (from == from_delete_array)
-    {
-      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_NEW_ARRAY_BEGIN ||
-          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_ARRAY_END)
-        DoutFatalInternal( dc::core, "internal delete[]: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
-	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
-    }
-    else
-    {
-      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_MALLOC_BEGIN ||
-          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
-        DoutFatalInternal( dc::core, "internal free: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
-	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
-    }
-    ((size_t*)ptr)[0] ^= (size_t)-1;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] ^= (size_t)-1;
-#endif // DEBUGMAGICMALLOC
-    __libc_free(ptr);
-#ifdef DEBUGDEBUGMALLOC
-    --recursive;
-#endif
-    return;
-  } // internal
-
-  if (!ptr)
-  {
-    DoutInternal( dc_malloc, "Trying to free NULL - ignored." );
-#ifdef DEBUGDEBUGMALLOC
-    --recursive;
-#endif
-    return;
-  }
-
-  memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
-  if (i == memblk_map->end() || (*i).first.start() != ptr)
-  {
-#ifdef DEBUGMAGICMALLOC
-    if (((size_t*)ptr)[-2] == INTERNAL_MAGIC_NEW_BEGIN ||
-        ((size_t*)ptr)[-2] == INTERNAL_MAGIC_NEW_ARRAY_BEGIN ||
-	((size_t*)ptr)[-2] == INTERNAL_MAGIC_MALLOC_BEGIN)
-      DoutFatalInternal( dc::core, "Trying to " <<
-          ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) <<
-	  " a pointer (" << ptr << ") that appears to be internally allocated!  The magic number diagnostic gives: " <<
-	  diagnose_from(from, false) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
-
-#endif
-    DoutFatalInternal( dc::core, "Trying to " <<
-        ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) << " an invalid pointer (" << ptr << ')' );
-  }
-  else
-  {
-    memblk_types_nt f = (*i).second.flags();
-#ifdef CWDEBUG
-    bool visible = (!library_call && (*i).second.has_alloc_node());
-    if (visible)
-    {
-      DoutInternal( dc_malloc|continued_cf,
-	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
-	  << ptr << ((from == from_free) ? ") " : " ") );
-      (*i).second.print_description();
-      DoutInternal( dc::continued, ' ' );
-    }
-#endif // CWDEBUG
-    if (expected_from[f] != from)
-    {
-      if (from == from_delete)
-      {
-	if (f == memblk_type_malloc)
-	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was allocated with `malloc()'!  Use `free()' instead." );
-	else if (f == memblk_type_external)
-	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was externally allocated!  Use `free()' instead." );
-	else if (f == memblk_type_realloc)
-	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was returned by `realloc()'!  Use `free()' instead." );
-	else if (f == memblk_type_new_array)
-	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was allocated with `new[]'!  Use `delete[]' instead." );
-      }
-      else if (from == from_delete_array)
-      {
-	if (f == memblk_type_malloc)
-	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was allocated with `malloc()'!  Use `free()' instead." );
-	else if (f == memblk_type_external)
-	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that externally allocated!  Use `free()' instead." );
-	else if (f == memblk_type_realloc)
-	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was returned by `realloc()'!  Use `free()' instead." );
-	else if (f == memblk_type_new)
-	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was allocated with `new'!  Use `delete' instead." );
-      }
-      else if (from == from_free)
-      {
-	if (f == memblk_type_new)
-	  DoutFatalInternal( dc::core, "You are `free()'-ing a block that was allocated with `new'!  Use `delete' instead." );
-	else if (f == memblk_type_new_array)
-	  DoutFatalInternal( dc::core, "You are `free()'-ing a block that was allocated with `new[]'!  Use `delete[]' instead." );
-      }
-      DoutFatalInternal( dc::core, "Huh? Bug in libcw" );
-    }
-
-    DEBUGDEBUG_CERR( "__libcwd_free: internal == " << internal << "; setting it to true." );
-    internal = true;
-    (*i).second.erase();	// Update flags and optional decouple
-    memblk_map->erase(i);	// Update administration
-    DEBUGDEBUG_CERR( "__libcwd_free: internal == " << internal << "; setting it to false." );
-    internal = false;
-
-#ifdef DEBUGMAGICMALLOC
-    if (f == memblk_type_external)
-      __libc_free(ptr);
-    else
-    {
-      if (from == from_delete)
-      {
-	if (((size_t*)ptr)[-2] != MAGIC_NEW_BEGIN ||
-	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_NEW_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
-      }
-      else if (from == from_delete_array)
-      {
-	if (((size_t*)ptr)[-2] != MAGIC_NEW_ARRAY_BEGIN ||
-	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_NEW_ARRAY_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
-      }
-      else
-      {
-	if (((size_t*)ptr)[-2] != MAGIC_MALLOC_BEGIN ||
-	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_MALLOC_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
-      }
-      ((size_t*)ptr)[-2] ^= (size_t)-1;
-      ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] ^= (size_t)-1;
-      __libc_free(static_cast<size_t*>(ptr) - 2);		// Free memory block
-    }
-#else // !DEBUGMAGICMALLOC
-    __libc_free(ptr);			// Free memory block
-#endif // !DEBUGMAGICMALLOC
-
-#ifdef CWDEBUG
-    if (visible)
-      DoutInternal( dc::finish, "" );
-#endif // CWDEBUG
-
-  }
-#ifdef DEBUGDEBUGMALLOC
-  --recursive;
-#endif
 }
 
 } // extern "C"
