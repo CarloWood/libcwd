@@ -40,6 +40,9 @@
 #include <cstring>
 #include <cstdlib>
 #endif
+#ifdef HAVE_LINK_H
+#include <link.h>
+#endif
 #include <cstdio>		// Needed for vsnprintf.
 #include <algorithm>
 #include <libcw/debug.h>
@@ -168,6 +171,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       private:
 	bfd* abfd;
 	void* lbase;
+	size_t M_size;
 	asymbol** symbol_table;
 	long number_of_symbols;
 	function_symbols_ct function_symbols;
@@ -178,6 +182,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
 	bfd* get_bfd(void) const { return abfd; }
 	void* const get_lbase(void) const { return lbase; }
+	size_t size(void) const { return M_size; }
 	asymbol** get_symbol_table(void) const { return symbol_table; }
 	long get_number_of_symbols(void) const { return number_of_symbols; }
 	function_symbols_ct& get_function_symbols(void) { return function_symbols; }
@@ -233,7 +238,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       {
 	object_files_ct::iterator i(object_files().begin());
 	for(; i != object_files().end(); ++i)
-	  if ((*i)->get_lbase() < addr)
+	  if ((*i)->get_lbase() < addr && (char*)(*i)->get_lbase() + (*i)->size() > addr)
 	    break;
 	return (i != object_files().end()) ? (*i) : NULL;
       }
@@ -408,13 +413,20 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  {
 #ifdef HAVE_DLOPEN
 	    void* handle = ::dlopen(filename, RTLD_LAZY|RTLD_LOCAL|RTLD_NOLOAD);
-	    if (s_end_vma)
-	    {
-	      char* val = (char*)dlsym(handle, "_end");
-	      if (dlerror() == NULL)
-	        lbase = val - s_end_vma;
-	    }
+	    char* val;
+	    if (s_end_vma && (val = (char*)dlsym(handle, "_end")))	// dlsym will fail when _end is a local symbol.
+	      lbase = val - s_end_vma;
 	    else
+#ifdef HAVE_LINK_H
+            {
+	      for(link_map* p = _dl_loaded; p; p = p->l_next)
+	        if (!strcmp(p->name, filename))
+		{
+		  lbase = p->l_addr;
+		  break;
+		}
+	    }
+#else // !HAVE_LINK_H
 	    {
 	      // Warning: the following code is black magic.
 	      map<void*, unsigned int> start_values;
@@ -453,6 +465,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	      }
 	      lbase = best_start;
 	    }
+#endif // !HAVE_LINK_H
 	    ::dlclose(handle);
 	    Dout(dc::continued, '(' << lbase << ") ");
 #else // !HAVE_DLOPEN
@@ -460,7 +473,18 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #endif
 	  }
 
-	  void const* s_end_start_addr = s_end_vma ? ((char*)lbase + s_end_vma) : NULL;
+	  void const* s_end_start_addr;
+	  
+	  if (s_end_vma)
+	  {
+	    s_end_start_addr = (char*)lbase + s_end_vma;
+	    M_size = s_end_vma;
+          }
+	  else
+	  {
+	    s_end_start_addr = NULL;
+	    M_size = 0;			// We will determine this later.
+	  }
 
 	  // Sort the symbol table in order of start address.
 	  sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
@@ -491,8 +515,14 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    }
 	  }
 
-	  if (symbol_size(symbol_table[number_of_symbols - 1]) == 100000)
-	    Dout( dc::warning, "Unknown size of symbol " << symbol_table[number_of_symbols - 1]->name);
+	  if (function_symbols.size() > 0)
+	  {
+	    asymbol const* last_symbol = (*function_symbols.rbegin()).get_symbol();
+	    if (symbol_size(last_symbol) == 100000)
+	      Dout( dc::warning, "Unknown size of symbol " << last_symbol->name);
+	    if (!M_size)
+	      M_size = symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)lbase;
+	  }
 	}
 
 	if (number_of_symbols > 0)
@@ -786,6 +816,30 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #endif
 
       // cwbfd::
+      object_file_ct* load_object_file(char const* name, void* l_addr)
+      {
+	ASSERT( libcw::debug::_internal_::internal );
+	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << "... ");
+	set_alloc_checking_off();
+	object_file_ct* object_file = new object_file_ct(name, l_addr);
+	set_alloc_checking_on();
+	if (object_file->get_number_of_symbols() > 0)
+	{
+	  Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+#ifdef DEBUGDEBUGBFD
+	  dump_object_file_symbols(object_file);
+#endif
+	}
+	else
+	{
+	  Dout(dc::finish, "No symbols found");
+	  delete object_file;
+	  return NULL;
+        }
+	return object_file;
+      }
+
+      // cwbfd::
       int init(void)
       {
 	static bool being_initialized = false;
@@ -870,6 +924,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
 	// Load all shared objects
 
+#ifndef HAVE_LINK_H
 	// Path to `ldd'
 	char const ldd_prog[] = "/usr/bin/ldd";
 
@@ -882,31 +937,13 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	for(vector<my_link_map>::iterator iter = shared_libs.begin(); iter != shared_libs.end(); ++iter)
 	{
 	  my_link_map* l = &(*iter);
+#else
+	for(link_map* l = _dl_loaded; l; l = l->l_next)
+	{
+#endif
 	  if (l->l_addr)
-	  {
-/**/	    set_alloc_checking_on();
-/**/	    Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << l->l_name << ' ');
-/**/	    if (l->l_addr != unknown_l_addr)
-/**/	      Dout(dc::continued, '(' << (void*)l->l_addr << ") ... ");
-/**/	    set_alloc_checking_off();
-
-	    object_file_ct* object_file = new object_file_ct(l->l_name, l->l_addr);
-/**/	    set_alloc_checking_on();
-/**/	    if (l->l_addr == unknown_l_addr)
-/**/	      Dout(dc::continued, "... ");
-/**/	    if (object_file->get_number_of_symbols() == 0)
-/**/	    {
-/**/	      set_alloc_checking_off();
-	      delete object_file;
-/**/	      set_alloc_checking_on();
-/**/	      Dout(dc::finish, "No symbols found");
-/**/	    }
-/**/	    else
-/**/	      Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
-/**/	    set_alloc_checking_off();
-	  }
+	    load_object_file(l->l_name, l->l_addr);
 	}
-
 	object_files().sort(object_file_greater());
 
 #ifdef ALWAYS_PRINT_LOADING
@@ -1012,6 +1049,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       object_file_ct* object_file = find_object_file(addr);
+      if (!object_file)
+      {
+        DoutFatal(dc::core, "Ok, can't find object file for address " << addr);
+      }
+
       symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, object_file);
       if (symbol && symbol->is_defined())
       {
@@ -1189,21 +1231,12 @@ extern "C" {
     void* handle = ::dlopen(name, flags);
     if ((flags & RTLD_NOLOAD))
       return handle;
-    Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << "... ");
-    set_alloc_checking_off();
-    cwbfd::object_file_ct* object_file = new cwbfd::object_file_ct(name, cwbfd::unknown_l_addr);
-    set_alloc_checking_on();
-    if (object_file->get_number_of_symbols() > 0)
+    cwbfd::object_file_ct* object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
+    if (object_file)
     {
-      Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
-#ifdef DEBUGDEBUGBFD
-      cwbfd::dump_object_file_symbols(object_file);
-#endif
+      cwbfd::object_files().sort(cwbfd::object_file_greater());
+      libcwd_dlopen_map.insert(pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
     }
-    else
-      Dout(dc::finish, "No symbols found");
-    cwbfd::object_files().sort(cwbfd::object_file_greater());
-    libcwd_dlopen_map.insert(pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
     return handle;
   }
 
