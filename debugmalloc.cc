@@ -982,7 +982,13 @@ void dm_alloc_ct::print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TS
   {
     LibcwDoutScopeBegin(channels, libcw_do, dc::continued);
     if (filter.M_flags & show_objectfile)
-      LibcwDoutStream << M_location.object_file()->filename() << ':';
+    {
+      object_file_ct const* object_file = M_location.object_file();
+      if (object_file)
+	LibcwDoutStream << object_file->filename() << ':';
+      else
+	LibcwDoutStream << "<unknown object file>:";
+    }
     if (filter.M_flags & show_path)
     {
       size_t len = M_location.filepath_length();
@@ -1090,7 +1096,8 @@ void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel, ooam_fil
   for (alloc = this; alloc; alloc = alloc->next)
   {
     const_cast<location_ct*>(&alloc->location())->handle_delayed_initialization();
-    if (alloc->location().object_file()->hide_from_alloc_list())
+    object_file_ct const* object_file = alloc->location().object_file();
+    if (object_file && object_file->hide_from_alloc_list())
       continue;
     if (filter.M_start.tv_sec != 1)
     {
