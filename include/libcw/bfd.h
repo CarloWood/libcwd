@@ -28,16 +28,8 @@ RCSTAG_H(nobfd, "$Id$")
 RCSTAG_H(bfd, "$Id$")
 
 #ifdef DEBUGUSEGNULIBBFD
-
-// The GPL of libbfd does not allow us to use it.
-// So be warned: if you link with -lbfd, the resulting executable may not be distributed.
-// The following warning will result in a compile error because we compile with -Wall.
-// Remove the -Wall from the CXXFLAGS in order to get past this point anyway.
-#warning "The license of libbfd (GPL) forbids to link with libraries that are non-GPL."
-#warning "Therefore you are not allowed to distribute the resulting executable!"
 #include <bfd.h>
-
-#endif // DEBUGUSEGNULIBBFD
+#endif
 
 namespace libcw {
   namespace debug {

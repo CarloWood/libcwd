@@ -251,7 +251,13 @@ if test "$libcwd_config_bfd" = yes; then
   dnl If we succeeded so far, then enable DEBUGUSEGNULIBBFD
   if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no" -o "set+$cw_cv_lib_bfd_bfd_set_start_address_with_intl" = "set+yes"; then
     AC_CHECK_HEADER(bfd.h,
-      [CW_CONFIG_DEBUGUSEGNULIBBFD=define],
+      [CW_CONFIG_DEBUGUSEGNULIBBFD=define
+       AC_MSG_WARN([
+
+* You used --enable-libcwd-bfd: The license of libbfd (GPL) forbids to link with libraries
+* that are non-GPL.  Therefore you are not allowed to distribute the resulting executable!
+* See include/libcw/debug_config.ho.in under DEBUGUSEGNULIBBFD for more information.
+])],
       [AC_MSG_ERROR([
 
 * You have libbfd, but I cannot find bfd.h.  Perhaps you need to add -I/path
