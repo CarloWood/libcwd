@@ -52,9 +52,9 @@ namespace libcw {
 /** \{ */
 
 // Undocumented (used inside AllocTag, AllocTag_dynamic_description, AllocTag1 and AllocTag2):
-extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description);
+extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description LIBCWD_COMMA_TSD_PARAM);
     // For static descriptions
-extern void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description);
+extern void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description LIBCWD_COMMA_TSD_PARAM);
     // For dynamic descriptions
 																		    // allocated with new[]
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
@@ -139,22 +139,28 @@ extern void register_external_allocation(void const* ptr, size_t size);
 /**
  * \brief Annotate <I>type</I> of \a p.
  */
-#define AllocTag1(p) ::libcw::debug::\
-    set_alloc_label(p, ::libcw::debug::type_info_of(p), (char const*)NULL)
+#define AllocTag1(p) \
+    do { \
+      LIBCWD_TSD_DECLARATION \
+      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), (char const*)NULL LIBCWD_COMMA_TSD); \
+    } while(0)
 /**
  * \brief Annotate <I>type</I> of \a p with string literal \a desc as description.
  */
-#define AllocTag2(p, desc) ::libcw::debug::\
-    set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc))
+#define AllocTag2(p, desc) \
+    do { \
+      LIBCWD_TSD_DECLARATION \
+      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc) LIBCWD_COMMA_TSD); \
+    } while(0)
 
 /**
  * \brief Annotate <I>type</I> of \a p with a static description.
  */
 #define AllocTag(p, x) \
     do { \
+      LIBCWD_TSD_DECLARATION \
       static char* WNS_desc; /* MT-safe because 'p' is unshared at this moment (it was *just* allocated by the current thread) */ \
       if (!WNS_desc) { \
-	LIBCWD_TSD_DECLARATION \
 	::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	if (1) \
 	{ \
@@ -166,7 +172,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
 	} \
 	::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
       } \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), WNS_desc); \
+      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), WNS_desc LIBCWD_COMMA_TSD); \
     } while(0)
 
 /**
@@ -187,7 +193,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
       } \
       ::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), \
-	  			      ::libcw::debug::_private_::smart_ptr(desc)); \
+	  			      ::libcw::debug::_private_::smart_ptr(desc) LIBCWD_COMMA_TSD); \
     } while(0)
 
 template<typename TYPE>

@@ -70,6 +70,8 @@ pthread_key_t TSD_st::S_exit_key;
 pthread_once_t TSD_st::S_exit_key_once = PTHREAD_ONCE_INIT;
 
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
+extern void* new_memblk_map(void);
+extern void delete_memblk_map(void*);
 
 void TSD_st::S_initialize(void) throw()
 {
@@ -79,6 +81,7 @@ void TSD_st::S_initialize(void) throw()
   mutex_tct<tsd_initialization_instance>::lock();
   debug_tsd_st* old_array[LIBCWD_DO_MAX];
   std::memcpy(old_array, do_array, sizeof(old_array));
+  void* old_memblk_map = memblk_map;
   std::memset(this, 0, sizeof(struct TSD_st));	// This structure might be reused and therefore already contain data.
   tid = pthread_self();
   mutex_tct<tsd_initialization_instance>::unlock();
@@ -97,6 +100,9 @@ void TSD_st::S_initialize(void) throw()
     for (int i = 0; i < LIBCWD_DO_MAX; ++i)
       if (old_array[i])
 	delete old_array[i];			// Free old objects when this structure is being reused.
+    if (old_memblk_map)
+      delete_memblk_map(old_memblk_map);	// Free old memblk_map when this structure is being reused.
+    memblk_map = new_memblk_map();
     set_alloc_checking_on(*this);
     debug_tsd_init(*this);			// Initialize the TSD of existing debug objects.
   }

@@ -111,6 +111,7 @@ public:
   int internal;
   int library_call;
   int inside_malloc_or_free;	// Set when entering a (de)allocation routine non-internal.
+  void* memblk_map;		// Pointer to the memblk_map_ct of this thread.
 #if CWDEBUG_DEBUGM
   int marker;
 #endif

@@ -129,7 +129,7 @@
 #include <string>
 #include <map>
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 
 // We got the C++ config earlier by <bits/stl_alloc.h>.
 
@@ -143,7 +143,7 @@
 
 
 #endif // __STL_THREADS
-#endif // _REENTRANT
+#endif // LIBCWD_THREAD_SAFE
 #include <iostream>
 #include <iomanip>
 #include "cwd_debug.h"
@@ -151,21 +151,7 @@
 #include <libcw/cwprint.h>
 #include <sys/time.h>		// Needed for gettimeofday(2)
 
-// MULTI THREADING
-//
-// Global one-time initialization variables that are initialized before main():
-// b libcw::debug::memblk_map
-// b libcw::debug::WST_initialization_state
-// D libcw::debug::_private_::WST_ios_base_initialized
-//
-// Global variables that are protected with the same rwlock as memblk_map.
-// d libcw::debug::base_alloc_list
-// D libcw::debug::dm_alloc_ct::current_alloc_list
-// D libcw::debug::dm_alloc_ct::current_owner_node
-// D libcw::debug::dm_alloc_ct::memblks
-// D libcw::debug::dm_alloc_ct::memsize
-//
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::memblk_map_instance;
 using libcw::debug::_private_::rwlock_tct;
@@ -189,7 +175,7 @@ using libcw::debug::_private_::list_allocations_instance;
 #define RELEASE_LC_READ_LOCK		rwlock_tct<location_cache_instance>::rdunlock();
 #define ACQUIRE_LC_READ2WRITE_LOCK	rwlock_tct<location_cache_instance>::rd2wrlock();
 #define ACQUIRE_LC_WRITE2READ_LOCK	rwlock_tct<location_cache_instance>::wr2rdlock();
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 #define ACQUIRE_WRITE_LOCK
 #define RELEASE_WRITE_LOCK
 #define ACQUIRE_READ_LOCK
@@ -202,7 +188,7 @@ using libcw::debug::_private_::list_allocations_instance;
 #define RELEASE_LC_READ_LOCK
 #define ACQUIRE_LC_READ2WRITE_LOCK
 #define ACQUIRE_LC_WRITE2READ_LOCK
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 
 #if CWDEBUG_LOCATION
 #define LIBCWD_COMMA_LOCATION(x) , x
@@ -276,6 +262,10 @@ namespace libcw {
   namespace debug {
     
 namespace _private_ {
+
+#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUGM
+extern bool WST_multi_threaded;
+#endif
 
 #ifdef LIBCWD_USE_STRSTREAM
 void* internal_strstreambuf_alloc(size_t size)
@@ -907,23 +897,10 @@ typedef std::pair<memblk_key_ct const, memblk_info_ct> memblk_ct;
 typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>, _private_::memblk_map_allocator> memblk_map_ct;
   // The map containing all `memblk_ct' objects.
 
-union memblk_map_t {
-#ifdef _REENTRANT
-  // See http://www.cuj.com/experts/1902/alexandr.htm?topic=experts
-  memblk_map_ct const volatile* MT_unsafe;
-#else
-  memblk_map_ct const* MT_unsafe;
-#endif
-  // The `map' implementation calls `new' when initializing a new `map',
-  // therefore this must be a pointer.
-  memblk_map_ct* write;		// Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
-  memblk_map_ct const* read;	// Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
-};
-
-static memblk_map_t memblk_map;		// MT-safe: initialized before WST_initialization_state == 1.
-
-#define memblk_map_write (memblk_map.write)
-#define memblk_map_read  (memblk_map.read)
+// Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
+#define memblk_map_write (reinterpret_cast<memblk_map_ct*>(__libcwd_tsd.memblk_map))
+// Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
+#define memblk_map_read  (reinterpret_cast<memblk_map_ct const*>(__libcwd_tsd.memblk_map))
 #define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
 
 //=============================================================================
@@ -938,7 +915,8 @@ typedef std::map<void const*, location_ct, std::less<void const*>, _private_::in
   // The map used to cache locations at which memory was allocated.
 
 union location_cache_map_t {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
+  // See http://www.cuj.com/experts/1902/alexandr.htm?topic=experts
   location_cache_map_ct const volatile* MT_unsafe;
 #else
   location_cache_map_ct const* MT_unsafe;
@@ -1210,7 +1188,7 @@ void dm_alloc_ct::printOn(std::ostream& os) const
 
 void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
 {
-#if defined(_REENTRANT) && CWDEBUG_DEBUG
+#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
   LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
 #endif
   dm_alloc_copy_ct const* alloc;
@@ -1331,7 +1309,7 @@ void memblk_info_ct::erase(LIBCWD_TSD_PARAM)
 
 void memblk_info_ct::make_invisible(void)
 {
-#if defined(_REENTRANT) && CWDEBUG_DEBUG
+#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
   LIBCWD_ASSERT( _private_::is_locked(_private_::memblk_map_instance) ); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
 #endif
   LIBCWD_ASSERT( a_alloc_node.strict_owner() );
@@ -1903,6 +1881,20 @@ void* calloc_bootstrap1(size_t nmemb, size_t size)
 //---------------------------------------------------------------------------------------------
 #endif // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
 
+void* new_memblk_map(void)
+{
+  return new memblk_map_ct;
+}
+
+void delete_memblk_map(void* ptr)
+{
+  memblk_map_ct* memblk_map = reinterpret_cast<memblk_map_ct*>(ptr);
+  if (memblk_map->size() == 0)
+    delete memblk_map;
+  else
+    core_dump();	// FIXME, map needs to be kept somehow.
+}
+
 void init_debugmalloc(void)
 {
   if (WST_initialization_state <= 0)
@@ -1914,7 +1906,11 @@ void init_debugmalloc(void)
       _private_::set_alloc_checking_off(LIBCWD_TSD);
       // MT-safe: There are no threads created yet when we get here.
       location_cache_map.MT_unsafe = new location_cache_map_ct;
-      memblk_map.MT_unsafe = new memblk_map_ct;
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
+      LIBCWD_ASSERT( !_private_::WST_multi_threaded );
+#endif
+      // The memblk_map of the second and later threads are initialized in 'LIBCWD_TSD_DECLARATION' (by calling new_memblk_map()).
+      __libcwd_tsd.memblk_map = new memblk_map_ct;
       WST_initialization_state = -1;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
@@ -1927,7 +1923,7 @@ void init_debugmalloc(void)
     {
       WST_initialization_state = 1;		// ST_initialize_globals() calls malloc again of course.
       int recursive_store = __libcwd_tsd.inside_malloc_or_free;
-      __libcwd_tsd.inside_malloc_or_free = 0;		// Allow that (this call to malloc will not have done from STL allocator).
+      __libcwd_tsd.inside_malloc_or_free = 0;	// Allow that (this call to malloc will not have done from STL allocator).
       libcw::debug::ST_initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
 						// to be a function that is called _very_ early - and hence this is a good moment
 						// to initialize ALL of libcwd.
@@ -1953,6 +1949,7 @@ void init_debugmalloc(void)
  */
 bool test_delete(void const* ptr)
 {
+  LIBCWD_TSD_DECLARATION
   bool res;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK
@@ -2217,7 +2214,7 @@ void make_all_allocations_invisible_except(void const* ptr)
 }
 
 // Undocumented (used in macro AllocTag)
-void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description)
+void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description LIBCWD_COMMA_TSD_PARAM)
 {
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
@@ -2228,7 +2225,7 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* descri
   LIBCWD_RESTORE_CANCEL;
 }
 
-void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description)
+void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description LIBCWD_COMMA_TSD_PARAM)
 {
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
@@ -2594,7 +2591,11 @@ void register_external_allocation(void const* mptr, size_t size)
   {
     __libcwd_tsd.internal = 1;
     location_cache_map.MT_unsafe = new location_cache_map_ct;
-    memblk_map.MT_unsafe = new memblk_map_ct;
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
+    LIBCWD_ASSERT( !_private_::WST_multi_threaded );
+#endif
+    // The memblk_map of the second and later threads are initialized in 'LIBCWD_TSD_DECLARATION' (by calling new_memblk_map()).
+    __libcwd_tsd.memblk_map = new memblk_map_ct;
     WST_initialization_state = -1;
     __libcwd_tsd.internal = 0;
   }
@@ -2659,7 +2660,7 @@ void __libcwd_free(void* ptr)
 // malloc(3) and calloc(3) replacements:
 //
 
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_DEBUG
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
 #define UNLOCK if (locked) _private_::allocator_unlock();
 #else
 #define UNLOCK
