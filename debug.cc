@@ -1825,19 +1825,27 @@ void allocator_unlock(void)
 #endif
 	    ) 
 	{
-	  if (!__libcwd_tsd.recursive_assert && __libcwd_tsd.library_call < 6)
+	  if (!__libcwd_tsd.recursive_assert
+#if CWDEBUG_ALLOC
+	      && __libcwd_tsd.library_call < 6
+#endif
+              )
 	  {
+#if CWDEBUG_ALLOC
 	    int saved_internal;
 	    bool is_internal = __libcwd_tsd.internal;
 	    if (is_internal)
 	      saved_internal = _private_::set_library_call_on(LIBCWD_TSD);	// flush is a library call.
             else
 	      ++__libcwd_tsd.library_call;
+#endif
 	    Debug( libcw_do.get_ostream()->flush() );
+#if CWDEBUG_ALLOC
 	    if (is_internal)
 	      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
             else
 	      --__libcwd_tsd.library_call;
+#endif
 	  }
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  FATALDEBUGDEBUG_CERR(file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
