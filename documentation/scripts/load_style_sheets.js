@@ -17,7 +17,13 @@ with (document)
       if (rootpos != -1) 
 	rootpath = location.pathname.substring(0,rootpos) + "/";
       else
-	rootpath = "/";
+      {
+	rootpos = location.pathname.lastIndexOf("/documentation/");
+	if (rootpos != -1) 
+	  rootpath = location.pathname.substring(0,rootpos) + "/documentation/";
+	else
+	  rootpath = "/";
+      }
     }
   }
 
