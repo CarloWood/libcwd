@@ -835,7 +835,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       };
 
       // cwbfd::
-      typedef _private_::internal_vector<my_link_map> ST_shared_libs_vector_ct;
+      typedef std::vector<my_link_map> ST_shared_libs_vector_ct;
       ST_shared_libs_vector_ct ST_shared_libs;			// Written to only in `ST_decode_ldd' which is called from
       								// `cwbfd::ST_init' and read from in a later part of `cwbfd::ST_init'.
 
@@ -942,13 +942,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	LIBCWD_TSD_DECLARATION
 
 #if defined(DEBUGDEBUG) && defined(DEBUGMALLOC)
-	// First time we get here, this string is intialized - this must be with `internal' off!
-	static bool second_time = false;
-	if (!second_time)
-	{
-	  second_time = true;
-	  LIBCWD_ASSERT( !__libcwd_tsd.internal );
-	}
+	LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
 
 	// ****************************************************************************
@@ -1031,13 +1025,15 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	argv[0] = "ldd";
 	argv[1] = fullpath.value->data();
 	argv[2] = NULL;
+	set_alloc_checking_on(LIBCWD_TSD);
 	ST_exec_prog(ldd_prog, argv, environ, ST_decode_ldd);
+	set_alloc_checking_off(LIBCWD_TSD);
 
-	for(ST_shared_libs_vector_ct::iterator iter = ST_shared_libs.begin(); iter != ST_shared_libs.end(); ++iter)
+	for(ST_shared_libs_vector_ct::const_iterator iter = ST_shared_libs.begin(); iter != ST_shared_libs.end(); ++iter)
 	{
-	  my_link_map* l = &(*iter);
+	  my_link_map const* l = &(*iter);
 #else
-	for(link_map* l = _dl_loaded; l; l = l->l_next)
+	for(link_map const* l = _dl_loaded; l; l = l->l_next)
 	{
 #endif
 	  if (l->l_addr)
