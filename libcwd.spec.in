@@ -35,13 +35,15 @@ rm -rf "$RPM_BUILD_ROOT"
 
 %post
 echo
-echo "Please read %{__prefix}/doc/example-project for an example of how to write an application that uses libcwd."
+echo "Please look in the directory %{__prefix}/doc/libcwd-%{version}/example-project"
+echo "for an example of how to write an application that uses libcwd."
 echo "Detailed documentation can be found on-line at http://libcw.sourceforge.net/debugging/"
+echo
 
 %files
 %defattr(-,root,root)
 %doc README
-%doc example-project
+%doc example-project/*
 %dir %{__prefix}/include/libcw
 %{__prefix}/lib/*
 %{__prefix}/include/libcw/*
