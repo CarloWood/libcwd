@@ -9,6 +9,7 @@
 // "debug.h"
 #include <libcw/debug.h>
 //-------------------------------------------------------------------------------
+
 #include <fstream>
 
 int main(void)
@@ -24,7 +25,7 @@ int main(void)
   // Set the ostream related with libcw_do to `file':  
   Debug( libcw_do.set_ostream(&file) );
 
-  Dout( dc::notice, "Hippopotamus are heavy" );
+  Dout(dc::notice, "Hippopotamus are heavy");
 
   return 0;
 }

@@ -9,8 +9,6 @@ __PAGESTART
 In the example below we create a debug channel <CODE>dc::ghost</CODE>
 that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 
-<P class="download">[<A HREF="channel.cc">download</A>]</P>
-
 <P>Create a file <CODE>"sys.h"</CODE> that is part of your application and put in it:</P>
 <PRE>
 #ifdef HAVE_CONFIG_H		// This is just an example of what you could do
@@ -75,6 +73,7 @@ namespace myproject {
 #endif // DEBUG_H
 </PRE>
 <P>Finally write the program:</P>
+<P class="download">[<A HREF="channel.cc">download</A>]</P>
 <PRE>
 #include "sys.h"
 #include "debug.h"
@@ -92,8 +91,8 @@ int main(void)
   Debug( libcw_do.on() );			//   the debug Channel and Object on!
 
   for (int i = 0; i &lt; 4; ++i)
-    Dout( <SPAN class="highlight">dc::ghost</SPAN>, "i = " &lt;&lt; i );		// We can write more than just
-					      // "Hello World" to the ostream :)
+    Dout(<SPAN class="highlight">dc::ghost</SPAN>, "i = " &lt;&lt; i);		// We can write more than just
+						// "Hello World" to the ostream :)
   return 0;
 }
 </PRE>

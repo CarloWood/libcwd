@@ -24,11 +24,10 @@ much compiler support as you can get, allowing the compiler to tell you
 what could possibly be wrong with your code.&nbsp;
 Once the application works, you don't have to define _GNU_SOURCE
 because you won't be including the debug code anymore, nor link with
-libcwd.&nbsp;  If you need to write 100% ANSI code and you are not sure
-whether or not new code that you added is an extension or not, you
-should try to compile it with CWDEBUG undefined <EM>and</EM> using -ansi as
-command line option to g++; without -ansi g++-3.0 and higher defines
-_GNU_SOURCE itself by default.</P>
+libcwd.&nbsp;
+Note that GNU g++ 3.x already defines this macro currently itself as a hack
+to get the libstdc++ headers work properly, hence the test with <CODE>#ifndef</CODE>
+is always needed (see <A HREF="http://gcc.gnu.org/ml/gcc/2002-02/msg00996.html">http://gcc.gnu.org/ml/gcc/2002-02/msg00996.html</A>).</P>
 
 <A name="sysd.h"></A>
 <H3>2. Why do I have to include &quot;libcw/sysd.h&quot; as first header file?</H3>
@@ -82,7 +81,7 @@ collision in that case.</P>
 <H3>5. What is defined <EM>exactly</EM> in <SPAN class="H3code">libcw/debug.h</SPAN>?</H3>
 
 <P>Everything.&nbsp;
-Go and read the <A HREF="../html/reference.html>Reference Manual</A> to get <EM>all</EM> gory details if you dare.</P>
+Go and read the <A HREF="../html/reference.html">Reference Manual</A> to get <EM>all</EM> gory details if you dare.</P>
 
 <A name="macros"></A>
 <H3>6. Why are you using macros for <SPAN class="H3code">Debug</SPAN> and <SPAN class="H3code">Dout</SPAN>?</H3>

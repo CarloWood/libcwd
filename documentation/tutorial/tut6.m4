@@ -157,6 +157,9 @@ new[]     0x804e898             &lt;unknown type&gt;; (sz = 400)
 <A HREF="tut5.html#interrupted">interrupting</A> the debug output of the first allocation.</LI>
 <LI>The allocation is done somewhere inside a function <CODE>main</CODE></A> but
 no <A HREF="../html/group__group__locations.html">Source-file:Line-number Information</A> information is found.</LI>
+<LI>Likely the 'Loading debug symbols from..' is done <EM>before</EM> the application reaches <CODE>main()</CODE>
+and is hence invisible (because the debug object, <CODE>libcw_do</CODE>, is still turned off).&nbsp;
+You can force libcwd to print it nevertheless by setting the environment variable <CODE>LIBCWD_PRINT_LOADING</CODE>.</LI>
 </UL>
 
 <TABLE>

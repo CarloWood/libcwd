@@ -13,12 +13,13 @@
 #define DEBUGCHANNELS ::example		      // Where we'll put our namespace dc
 // "debug.h":
 #include <libcw/debug.h>
+//-------------------------------------------------------------------------------
+
 namespace example {                           // namespace dc cannot be put in ::
   namespace dc {
     libcw::debug::channel_ct ghost("GHOST");  // Create our own Debug Channel
   }
 }
-//-------------------------------------------------------------------------------
 
 int main(void)
 {
@@ -26,7 +27,7 @@ int main(void)
   Debug( libcw_do.on() );                     // the debug Channel and Object on!  
 
   for (int i = 0; i < 4; ++i)
-    Dout( dc::ghost, "i = " << i );           // We can write more than just
+    Dout(dc::ghost, "i = " << i);             // We can write more than just
 					      // "Hello World" to the ostream :)
   return 0;
 }

@@ -26,7 +26,7 @@ int main(void)
   Debug( dc::notice.on() );             // Turn on the NOTICE Debug Channel.
   Debug( libcw_do.on() );               // Turn on the default Debug Object.
 
-  Dout( dc::notice, "Hello World" );
+  Dout(dc::notice, "Hello World");
 
   return 0;
 }
@@ -44,10 +44,7 @@ but forces you to define it when using libcwd.&nbsp;
 Note that you only really have to define it when you compiled libcwd with
 threading support.&nbsp;
 If you do not define this macro and libcwd needs it, then you will get
-a compile error in &lt;libcw/sysd.h&gt; telling you so.&nbsp;
-GNU gcc 3.0 (and higher) already defines this macro by itself, so there is
-no need to include it if you intend to only compile your application with
-this version.</P>
+a compile error in &lt;libcw/sysd.h&gt; telling you so.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
 <LI><A HREF="faq.html#GNU_SOURCE">Won't this define make my code non-portable?</A></LI>
@@ -81,8 +78,8 @@ the debug object <CODE>libcw_do</CODE> and the debug channel <CODE>dc::notice</C
 <A NAME="turn_on_channel"></A>
 <H3></CODE>Debug( dc::notice.on() );</CODE></H3>
 
-<P>This turns on the <I><U>D</U>ebug <U>C</U>hannel</I>&nbsp; <CODE> <U>dc</U>::notice</CODE>.&nbsp;
-Without this line, the code <CODE>Dout(&nbsp;dc::notice, "Hello World"&nbsp;)</CODE> would output
+<P>This turns on the <I><U>D</U>ebug <U>C</U>hannel</I> <CODE><U>dc</U>::notice</CODE>.&nbsp;
+Without this line, the code <CODE>Dout(dc::notice, "Hello World")</CODE> would output
 nothing: all <I>Debug Channels</I> are <EM>off</EM> by default, at start up.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
@@ -95,7 +92,7 @@ nothing: all <I>Debug Channels</I> are <EM>off</EM> by default, at start up.</P>
 <H3><CODE>Debug( libcw_do.on() );</CODE></H3>
 
 <P>This turns on the <I><U>D</U>ebug <U>O</U>bject</I> <CODE>libcw_<U>do</U></CODE>.&nbsp;
-Without this line, the code <CODE>Dout( dc::notice, "Hello World" )</CODE> would output
+Without this line, the code <CODE>Dout(dc::notice, "Hello World")</CODE> would output
 nothing: all <I>Debug Objects</I> are <EM>off</EM> by default, at start up.</P>
 
 <P>A <I>Debug Object</I> is related to exactly one <CODE>ostream</CODE>.&nbsp;
@@ -114,7 +111,7 @@ Using the macro <CODE>Dout</CODE> causes debug output to be written to <CODE>lib
 <LI><A HREF="faq.html#Object">Why do you call it a Debug <EM>Object</EM>? What <EM>is</EM> a Debug Object?</A></LI>
 </UL></DIV>
 
-<H3><CODE>Dout( dc::notice, "Hello World" );</CODE></H3>
+<H3><CODE>Dout(dc::notice, "Hello World");</CODE></H3>
 
 <P>This outputs "Hello World" to the <CODE>ostream</CODE> currently related to
 <CODE>libcw_do</CODE> provided that the <I>Debug Channel</I>

@@ -30,7 +30,7 @@ int main(void)
   // Set the ostream related with libcw_do to `file':&nbsp;&nbsp;
   <SPAN class="highlight">Debug( libcw_do.set_ostream(&amp;file) );</SPAN>
 
-  Dout( dc::notice, "Hippopotamus are heavy" );
+  Dout(dc::notice, "Hippopotamus are heavy");
 
   return 0;
 }

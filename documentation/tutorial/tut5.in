@@ -66,7 +66,7 @@ in <A HREF="tut2.html">tutorial 2</A> was put in <CODE>namespace&nbsp;debug_chan
 The debug channels of libcw are put in namespace <CODE>libcw::debug::channels</CODE>.&nbsp;
 Nevertheless, it is not necessary to type</P>
 
-<PRE>Dout( libcw::debug::channels::dc::notice, "Hello World" );</PRE>
+<PRE>Dout(libcw::debug::channels::dc::notice, "Hello World");</PRE>
 
 <P>By default, the macro <CODE>Dout</CODE> et al. automatically include a<CODE> using&nbsp;namespace libcw::debug::channels</CODE>.&nbsp;
 It is possible to change this default namespace by defining <CODE>DEBUGCHANNELS</CODE>
@@ -204,7 +204,7 @@ int main(void)
   Debug( libcw_do.on() );
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
 
-  Dout( dc::elephant|dc::owl, "The elephant is called Dumbo, the owl is called Einstein." );
+  Dout(dc::elephant|dc::owl, "The elephant is called Dumbo, the owl is called Einstein.");
 
   return 0;
 }
@@ -234,7 +234,7 @@ int main(void)
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
 
   <SPAN class="highlight">Debug( dc::elephant.off() );</SPAN>
-  Dout( dc::elephant|dc::owl, "The elephant is called Dumbo, the owl is called Einstein." );
+  Dout(dc::elephant|dc::owl, "The elephant is called Dumbo, the owl is called Einstein.");
 
   return 0;
 }
@@ -275,8 +275,8 @@ int main(void)
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
 
-  Dout( dc::notice|nonewline_cf, "Hello, " );
-  Dout( dc::notice, "World" );
+  Dout(dc::notice|nonewline_cf, "Hello, ");
+  Dout(dc::notice, "World");
 
   return 0;
 }
@@ -303,8 +303,8 @@ int main(void)
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
 
-  Dout( dc::notice|nonewline_cf, "Hello, " );
-  Dout( dc::notice|<SPAN class="highlight">noprefix_cf</SPAN>, "World" );
+  Dout(dc::notice|nonewline_cf, "Hello, ");
+  Dout(dc::notice|<SPAN class="highlight">noprefix_cf</SPAN>, "World");
 
   return 0;
 }
@@ -361,13 +361,13 @@ int main(int argc, char* argv[])
   struct stat buf;
 
   // Warning: this is NOT the correct way to do this (see below)
-  Dout( dc::notice|nonewline_cf,
-	&quot;stat(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot; );
+  Dout(dc::notice|nonewline_cf,
+       &quot;stat(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot;);
 
   int ret = stat(file_name, &amp;buf);
 
-  Dout( dc::notice|noprefix_cf|cond_error_cf(ret != 0),
-	&amp;buf &lt;&lt; &quot;) = &quot; &lt;&lt; ret );
+  Dout(dc::notice|noprefix_cf|cond_error_cf(ret != 0),
+       &amp;buf &lt;&lt; &quot;) = &quot; &lt;&lt; ret);
 
   return 0;
 }
@@ -442,13 +442,13 @@ int main(int argc, char* argv[])
   struct stat<SPAN class="highlight">*</SPAN> buf<SPAN class="highlight">p</SPAN>;
 
   // This is NOT the correct way to do this.
-  Dout( dc::notice|nonewline_cf,
-	&quot;stat_with_buf_alloc(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot; );
+  Dout(dc::notice|nonewline_cf,
+       &quot;stat_with_buf_alloc(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot;);
 
   int ret = stat<SPAN class="highlight">_with_buf_alloc</SPAN>(file_name, buf<SPAN class="highlight">p</SPAN>);
 
-  Dout( dc::notice|noprefix_cf|cond_error_cf(ret != 0),
-	bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret );
+  Dout(dc::notice|noprefix_cf|cond_error_cf(ret != 0),
+       bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret);
 
   <SPAN class="highlight">
   Debug( dc::malloc.off() );
@@ -514,13 +514,13 @@ int main(int argc, char* argv[])
   char const* file_name = argv[1];
   struct stat* bufp;
 
-  Dout( dc::notice|<SPAN class="highlight">continued_cf</SPAN>,
-	&quot;stat_with_buf_alloc(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot; );
+  Dout(dc::notice|<SPAN class="highlight">continued_cf</SPAN>,
+       &quot;stat_with_buf_alloc(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot;);
 
   int ret = stat_with_buf_alloc(file_name, bufp);
 
-  Dout( <SPAN class="highlight">dc::finish</SPAN>|cond_error_cf(ret != 0),
-	bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret );
+  Dout(<SPAN class="highlight">dc::finish</SPAN>|cond_error_cf(ret != 0),
+       bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret);
 
   Debug( dc::malloc.off() );
   delete bufp;
@@ -554,14 +554,14 @@ int main(void)
 
   Debug( libcw_do.<SPAN class="highlight">set_margin</SPAN>("&lt;-- margin --&gt;") );
   Debug( libcw_do.<SPAN class="highlight">set_marker</SPAN>("&lt;-- marker --&gt;") );
-  Dout( dc::cat|dc::mouse, "The cat chases the mouse." );
-  Dout( dc::mouse|dc::elephant, "The mouse chases the elephant." );
-  Dout( dc::notice|<SPAN class="highlight">nolabel_cf</SPAN>, "Setting indentation to 8 spaces:" );
-  Dout( dc::notice|<SPAN class="highlight">blank_label_cf</SPAN>, "&lt;------&gt;" );
+  Dout(dc::cat|dc::mouse, "The cat chases the mouse.");
+  Dout(dc::mouse|dc::elephant, "The mouse chases the elephant.");
+  Dout(dc::notice|<SPAN class="highlight">nolabel_cf</SPAN>, "Setting indentation to 8 spaces:");
+  Dout(dc::notice|<SPAN class="highlight">blank_label_cf</SPAN>, "&lt;------&gt;");
   Debug( libcw_do.<SPAN class="highlight">set_indent(8)</SPAN> );
-  Dout( dc::cat, "The cat sleeps." );
-  Dout( dc::elephant, "The elephant looks around:" );
-  Dout( dc::elephant|<SPAN class="highlight">blank_label_cf|blank_marker_cf</SPAN>, "where did the mouse go?" );
+  Dout(dc::cat, "The cat sleeps.");
+  Dout(dc::elephant, "The elephant looks around:");
+  Dout(dc::elephant|<SPAN class="highlight">blank_label_cf|blank_marker_cf</SPAN>, "where did the mouse go?");
 
   return 0;
 }

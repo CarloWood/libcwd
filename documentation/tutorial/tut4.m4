@@ -21,8 +21,9 @@ You also don't need to link with libcwd in that case.</P>
 <P>Because the final application doesn't need libcwd, we can afford to use features of g++ and
 third party libraries that developers are able to install but that would be impractical as demand for
 the end-user of the application.&nbsp; The <EM>developer</EM> that uses libcwd will have to use
-g++ as compiler and install libraries like libbfd and libiberty, but gets a lot of developing
-advantages in return.</P>
+g++ as compiler and perhaps use a linux box for the development of the application, but gets a lot
+of developing advantages in return.&nbsp; Afterwards it is relatively easy to port the bug-free
+code to other platforms/compilers.</P>
 
 <P>As a developer you need to know two things:</P>
 <OL TYPE="1">

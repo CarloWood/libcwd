@@ -212,7 +212,7 @@ PRE, PRE.output {
 }
 
 .shell-command {
-  font-family		: ludica;
+  font-family		: fixed, monospace;
   font-size		: NORMAL_SIZE;
 }
 
