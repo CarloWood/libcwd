@@ -126,7 +126,7 @@ void allocator_unlock(void)
 	  )
 #endif // LIBCWD_THREAD_SAFE
       {
-#if defined(DEBUGMALLOC) && defined(LIBCWD_THREAD_SAFE)
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
 	typedef debug_message_st* msgbuf_t;
 	msgbuf_t msgbuf;
 	// Queue the message when the default (STL) allocator is locked and it could be that we
@@ -155,7 +155,7 @@ void allocator_unlock(void)
 	  msgbuf = (msgbuf_t)malloc(curlen + extra_size);
 	  free_msgbuf = true;
 	}
-#if defined(DEBUGMALLOC) && defined(LIBCWD_THREAD_SAFE)
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
 	rdbuf()->sgetn(msgbuf->buf, curlen);
 #else
 	rdbuf()->sgetn(msgbuf, curlen);
@@ -183,7 +183,7 @@ void allocator_unlock(void)
 	  }
 	}
 #endif // !LIBCWD_THREAD_SAFE
-#if defined(DEBUGMALLOC) && defined(LIBCWD_THREAD_SAFE)
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
 	if (queue_msg)			// Inside a call to malloc and possibly owning lock of std::__default_alloc_template<true, 0>?
 	{
 	  // We don't write debug output to the final ostream when inside malloc and std::__default_alloc_template<true, 0> is locked.

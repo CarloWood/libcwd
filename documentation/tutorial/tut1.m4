@@ -14,7 +14,7 @@ to <CODE>cerr</CODE> is:</P>
 
 <PRE>
 // These four lines should actually be part of a custom &quot;sys.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
-#ifndef _GNU_SOURCE                     // Already defined by g++ 3.0.3 and higher.
+#ifndef _GNU_SOURCE                     // Already defined by g++ 3.0 and higher.
 #define _GNU_SOURCE                     // This must be defined before including &lt;libcw/sysd.h&gt;
 #endif
 #include &lt;libcw/sysd.h&gt;                 // This must be the first header file
@@ -45,7 +45,7 @@ Note that you only really have to define it when you compiled libcwd with
 threading support.&nbsp;
 If you do not define this macro and libcwd needs it, then you will get
 a compile error in &lt;libcw/sysd.h&gt; telling you so.&nbsp;
-GNU gcc 3.0.3 (and higher) already defines this macro by itself, so there is
+GNU gcc 3.0 (and higher) already defines this macro by itself, so there is
 no need to include it if you intend to only compile your application with
 this version.</P>
 

@@ -14,13 +14,13 @@
 #ifndef TESTSUITE_SYS_H
 #define TESTSUITE_SYS_H
 
+#include "../../config.h"
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
 #include <libcw/sysd.h>
 
-#undef _GNU_SOURCE
-#include "../../config.h"
 #ifdef HAVE__G_CONFIG_H
 #include <_G_config.h>
 #ifndef _G_CLOG_CONFLICT

@@ -27,7 +27,7 @@ because you won't be including the debug code anymore, nor link with
 libcwd.&nbsp;  If you need to write 100% ANSI code and you are not sure
 whether or not new code that you added is an extension or not, you
 should try to compile it with CWDEBUG undefined <EM>and</EM> using -ansi as
-command line option to g++; without -ansi g++-3.0.3 and higher define
+command line option to g++; without -ansi g++-3.0 and higher defines
 _GNU_SOURCE itself by default.</P>
 
 <A name="sysd.h"></A>
