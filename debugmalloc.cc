@@ -168,6 +168,8 @@
 #ifdef _REENTRANT
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::memblk_map_instance;
+using libcw::debug::_private_::rwlock_tct;
+using libcw::debug::_private_::location_cache_instance;
 using libcw::debug::_private_::list_allocations_instance;
 // We can't use rwlock_tct here because that leads to a dead lock.
 // rwlocks have to use condition variables or semaphores and both try to get a
@@ -179,6 +181,14 @@ using libcw::debug::_private_::list_allocations_instance;
 #define RELEASE_READ_LOCK	mutex_tct<memblk_map_instance>::unlock();	// rwlock_tct<memblk_map_instance>::rdunlock();
 #define ACQUIRE_READ2WRITE_LOCK							// rwlock_tct<memblk_map_instance>::rd2wrlock();
 #define ACQUIRE_WRITE2READ_LOCK 						// rwlock_tct<memblk_map_instance>::wr2rdlock();
+// We can rwlock_tct here, because this lock is never used from free(),
+// only from new, new[], malloc and realloc.
+#define ACQUIRE_LC_WRITE_LOCK		rwlock_tct<location_cache_instance>::wrlock();
+#define RELEASE_LC_WRITE_LOCK		rwlock_tct<location_cache_instance>::wrunlock();
+#define ACQUIRE_LC_READ_LOCK		rwlock_tct<location_cache_instance>::rdlock();
+#define RELEASE_LC_READ_LOCK		rwlock_tct<location_cache_instance>::rdunlock();
+#define ACQUIRE_LC_READ2WRITE_LOCK	rwlock_tct<location_cache_instance>::rd2wrlock();
+#define ACQUIRE_LC_WRITE2READ_LOCK	rwlock_tct<location_cache_instance>::wr2rdlock();
 #else // !_REENTRANT
 #define ACQUIRE_WRITE_LOCK
 #define RELEASE_WRITE_LOCK
@@ -186,6 +196,12 @@ using libcw::debug::_private_::list_allocations_instance;
 #define RELEASE_READ_LOCK
 #define ACQUIRE_READ2WRITE_LOCK
 #define ACQUIRE_WRITE2READ_LOCK
+#define ACQUIRE_LC_WRITE_LOCK
+#define RELEASE_LC_WRITE_LOCK
+#define ACQUIRE_LC_READ_LOCK
+#define RELEASE_LC_READ_LOCK
+#define ACQUIRE_LC_READ2WRITE_LOCK
+#define ACQUIRE_LC_WRITE2READ_LOCK
 #endif // !_REENTRANT
 
 #ifdef LIBCW_DOXYGEN
@@ -911,7 +927,7 @@ static memblk_map_t memblk_map;		// MT-safe: initialized before WST_initializati
 typedef std::pair<void const* const, location_ct> location_cache_ct;
   // The value type of the map (location_cache_map_ct::value_type).
 
-typedef std::map<void const*, location_ct, std::less<void const*>, _private_::memblk_map_allocator> location_cache_map_ct;
+typedef std::map<void const*, location_ct, std::less<void const*>, _private_::internal_allocator> location_cache_map_ct;
   // The map used to cache locations at which memory was allocated.
 
 union location_cache_map_t {
@@ -920,8 +936,8 @@ union location_cache_map_t {
 #else
   location_cache_map_ct const* MT_unsafe;
 #endif
-  location_cache_map_ct* write;		// Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
-  location_cache_map_ct const* read;	// Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
+  location_cache_map_ct* write;		// Should only be used after an ACQUIRE_LC_WRITE_LOCK and before the corresponding RELEASE_LC_WRITE_LOCK.
+  location_cache_map_ct const* read;	// Should only be used after an ACQUIRE_LC_READ_LOCK and before the corresponding RELEASE_LC_READ_LOCK.
 };
 
 static location_cache_map_t location_cache_map;		// MT-safe: initialized before WST_initialization_state == 1.
@@ -951,18 +967,18 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
   bool found;
   location_ct* location_info;
   LIBCWD_DEFER_CANCEL;
-  ACQUIRE_READ_LOCK;
+  ACQUIRE_LC_READ_LOCK;
   location_cache_map_ct::const_iterator const_iter(location_cache_map_read->find(addr));
   found = (const_iter != location_cache_map_read->end());
   if (found)
     location_info = const_cast<location_ct*>(&(*const_iter).second);
-  RELEASE_READ_LOCK;
+  RELEASE_LC_READ_LOCK;
   LIBCWD_RESTORE_CANCEL;
   if (!found)
   {
     location_ct loc(addr);	// This construction must be done with no lock set at all.
     LIBCWD_DEFER_CANCEL;
-    ACQUIRE_WRITE_LOCK;
+    ACQUIRE_LC_WRITE_LOCK;
     DEBUGDEBUG_CERR( "location_cache: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
     __libcwd_tsd.internal = 1;
     std::pair<location_cache_map_ct::iterator, bool> const&
@@ -971,9 +987,9 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
     __libcwd_tsd.internal = 0;
     location_info = &(*iter.first).second;
     if (iter.second)		// Test for insertion because another thread could have added this location
-				  // to the cache between RELEASE_READ_LOCK and ACQUIRE_WRITE_LOCK above.
+				// to the cache between RELEASE_LC_READ_LOCK and ACQUIRE_LC_WRITE_LOCK above.
       location_info->lock_ownership();
-    RELEASE_WRITE_LOCK;
+    RELEASE_LC_WRITE_LOCK;
     LIBCWD_RESTORE_CANCEL;
   }
   return location_info;

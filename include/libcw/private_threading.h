@@ -108,6 +108,7 @@ enum mutex_instance_nt {
   end_recursive_types,
   // Fast mutexes.
   memblk_map_instance,
+  location_cache_instance,	// rwlock
   mutex_initialization_instance,
   ids_singleton_tct_S_ids_instance,
   alloc_tag_desc_instance,
