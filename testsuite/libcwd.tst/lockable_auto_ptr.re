@@ -1,2 +1,0 @@
-NOTICE  : Test successful
-

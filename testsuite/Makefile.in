@@ -1,4 +1,6 @@
-CHECK = basic
+CHECK = nodebug alloctag basic bfd cf continued dc do flush leak lockable_auto_ptr magic marker test_delete type_info
+SHAREDTSTTARGETS := $(patsubst %,tst_%_shared,$(CHECK))
+STATICTSTTARGETS := $(patsubst %,tst_%_static,$(CHECK))
 
 srcdir = @srcdir@
 top_builddir = ..
@@ -22,7 +24,7 @@ enable_static = @enable_static@
 INCLUDES = -I- -I$(top_builddir)/include -I$(srcdir)/../include
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
-DISTFILES = Makefile.in config lib libcwd.tests
+DISTFILES = Makefile.in config lib libcwd.tst
 
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
 CXXLINK = $(CXX) $(CXXFLAGS) $(LDFLAGS)
@@ -57,11 +59,26 @@ site.exp: Makefile
 check: site.exp
 	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS)
 
+# Provide rules for manual compilation:
+
+tst_%.o: libcwd.tst/%.cc
+	$(CXXCOMPILE) -c $< -o $@
+
+ifeq ($(enable_shared), yes)
+tst_%_shared: tst_%.o
+	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
+endif
+
+ifeq ($(enable_static), yes)
+tst_%_static: tst_%.o
+	$(CXXLINK) $< -o $@ $(STATICLIBS)
+endif
+
 # Clean rules
 mostlyclean:
 	rm -f site.bak
 clean: mostlyclean
-	rm -f libcwd.log libcwd.sum $(CHECK)
+	rm -f libcwd.log libcwd.sum $(SHAREDTESTTARGETS) $(STATICTESTTARGETS) *.o
 distclean: clean
 	rm -f Makefile site.exp
 
