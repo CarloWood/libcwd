@@ -121,21 +121,6 @@ Now the program has been built without debugging support.
 It did not link with libcwd, nor does libcwd need to be installed.
 
 
-There are files that are generated in maintainer-mode (and later put
-into the distribution) ONLY when you issue a `make' and when configured
-with --enable-maintainer-mode.  Therefore, the following will not work:
-
-	make maintainer-clean
-	aclocal
-	autoheader
-	autoconf
-	automake -a
-	./configure
-	make
-
-Because now the file `nodebug.h' was never generated.
-
-
 We have three different types of makefiles:
 
 1) makefile		: The makefile for the master himself in order to
@@ -153,9 +138,7 @@ We have three different types of makefiles:
 			  when the package is configured with
 			  --enable-maintainer-mode.
 			  Note that also Makefile.{am|in} can contain
-			  maintainer specific rules.  In this example
-			  project `maintMakefile.in' is used to generate
-			  the file `nodebug.h'.
+			  maintainer specific rules.
 
 3) Makefile.am		: The makefile that describes how to build the
 			  application.
@@ -184,6 +167,8 @@ cd project-0.0.1
 ./configure
 make
 
-Now this did work (of course), because 'nodebug.h' is part of the
-distribution.
+
+PS If you see a file 'debug.h.maintainer' then you probably checked
+   out this directory from the libcwd CVS repository.  That file
+   is not supposed to be a part of your project, just remove it.
 
