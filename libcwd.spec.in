@@ -1,18 +1,18 @@
-Summary: C++ Debugging Support library for writing debug output and memory allocation debugging.
+Summary: The C++ Debugging Support Library, for ostream debug output and memory allocation debugging.
 Name: libcwd
 %define __prefix /usr
 %define version @VERSION@
 Version: %{version}
 Release: 1
 Group: Development/Libraries
-Source: http://download.sourceforge.net/libcw/libcwd-%{version}.tar.gz
+Source: http://download.sourceforge.net/libcwd/libcwd-%{version}.tar.gz
 Copyright: QPL
 %ifos linux
 Requires: gcc-c++ >= 2.95.1, binutils >= 2.9
 %endif
 Buildroot: %{_tmppath}/%{name}-root
-BuildPrereq: make, m4, which >= 2.5, autoconf >= 2.13, automake >= 1.4p1, libtool >= 1.4
-URL: http://libcw.sourceforge.net/debugging/
+BuildPrereq: make, m4, which >= 2.5, autoconf >= 2.13, automake >= 1.5, libtool >= 1.4.2
+URL: http://libcwd.sourceforge.net/
 
 %description
 Libcwd is a full-featured, professional, well documented library to support
@@ -50,7 +50,7 @@ echo
 %doc example-project.tar.gz
 %doc documentation/README
 %doc documentation/tutorial
-%doc documentation/html
+%doc documentation/reference-manual
 %doc documentation/scripts
 %doc documentation/styles
 %doc documentation/images
@@ -63,6 +63,15 @@ echo
 %{__prefix}/include/libcw/*
 
 %changelog
+* Tue Mar 19 2002 Carlo Wood <libcw@alinoe.com>
+- Corrected URL and source url.
+- Reference manual sits in documentation/reference-manual as of 0.99.19.
+- Require libtool 1.4.2 or higher.
+- Improved summary.
+
+* Mon Mar 18 2002 Carlo Wood <libcw@alinoe.com>
+- Require automake 1.5 or higher.
+
 * Wed Mar 14 2002 Carlo Wood <libcw@alinoe.com>
 - Added documentation/www and documentation/index.html as main page.
 
