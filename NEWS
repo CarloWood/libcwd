@@ -1,0 +1,23 @@
+libcwd-0.99.2
+
+	Configuration is now automated, using autoconf.  This removes
+	the need to install the prototype package.
+
+	The Internal Compiler Error in debugmalloc.cc has been isolated
+	and a workaround has been added.  Whether or not the workaround
+	is needed is detected by ./configure (but be warned: it depends
+	on the CXXFLAGS you use, this bug only occurs when using -ggdb).
+
+	A new function `Debug( check_configuration() )' was added.  Use
+	it to assure that the configuration of the linked library matches
+	the configuration of the header files used.
+
+libcwd-0.99.1
+
+	Support for FreeBSD (4.0)
+	Improved bfd.cc a little (lookup of symbols and source:line info)
+	Minor bug fixes
+
+libcwd-0.99.0
+
+	First public release

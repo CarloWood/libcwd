@@ -1,0 +1,20 @@
+24 Aug 2000
+
+  Make sure to use `gmake' and not `make'; libcwd only works with GNU make.
+
+  FreeBSD seems not to include source file / line number information in
+  its object files when compiling with -g.  Instead, you need to compile
+  your programs with -ggdb.  ./configure detects FreeBSD and will use
+  -ggdb instead of -g, but you need to use it also for your own programs
+  of course, or else no source-file:line-no information will be available.
+
+  FreeBSD doesn't seem to come with libbfd be default.  Make sure to
+  compile the port of binutils for your architecture (don't use the
+  linux library!).  Libiberty is less of a problem since it comes with
+  the compiler, it isn't compiled with -ggdb however, so allocations
+  done from libbfd (using xmalloc) won't show up with line number info.
+  This is not problem in practise.
+
+  libcwd-0.99.3 was tested on FreeBSD-4.0-RELEASE
+
+Carlo Wood

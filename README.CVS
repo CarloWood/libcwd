@@ -1,0 +1,18 @@
+If you checked out this source tree using CVS
+(see http://sourceforge.net/cvs/?group_id=354)
+then you will need to generate a few files that
+are normally included in the release.
+
+In order to generate these files you will need
+to have installed the tools `automake', `autoconf'
+and `libtool'.
+
+cd into src/libcwd and issue the following commands:
+
+aclocal
+autoheader
+autoconf
+automake
+
+After that, you can continue as usual with
+./configure, see the INSTALL file for details.

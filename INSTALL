@@ -1,0 +1,48 @@
+Quick start
+-----------
+
+./configure --prefix=/usr
+make
+make install
+
+If that doesn't work, mail me: libcw@alinoe.com
+(include as much details as possible).
+
+Hackers info
+------------
+
+`configure' has a few interesting option.
+You can list them by issuing:
+
+./configure --help
+
+There is no reason to `libcwd' feature options
+(--disable-libcwd-alloc, --disable-libcwd-magic,
+--disable-libcwd-marker and --disable-libcwd-bfd).
+Actually, I forgot why they are there :).
+You can read more about what they do in Chapter 4
+"Debugging compile options" here:
+http://libcw.sourceforge.net/templates/index.html?debugging
+
+You can install libcwd in a `staging' directory
+by issuing
+
+make DESTDIR=/tmp/staging install
+
+this can come in handy when you want to build an rpm
+for instance.
+
+The Makefile has the following targets:
+
+make [all-recursive]
+make install
+make uninstall
+make clean
+make distclean
+
+If you feel brave you might even want to try
+
+make dist
+make maintainer-clean
+
+well, ... heh.  Look in the Makefile for more targets ;)

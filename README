@@ -1,0 +1,51 @@
+Introduction
+------------
+
+Libcwd is for use by developers while still developing: end
+applications don't need it.  While still developing, you
+will compile with -DDEBUG and link with -lcwd (and add its
+install path to LD_LIBRARY_PATH).  A production version is then
+simply compiled without -DDEBUG and not linked with -lcwd.
+
+The debug support can be divided into the following components:
+
+1) Support for Object Oriented debug output (using ostream and
+   debug objects for `channels' and `devices').
+2) Support for memory allocation debugging.
+
+Documentation
+-------------
+
+You can find extensive documentation online at
+http://libcw.sourceforge.net/debugging/.  There you will find
+a reference manual, a tutorial and many examples.
+
+It is highly recommended that you download and install the html
+files locally for greater speed.  At the moment you can only
+download the documentation by using `cvs':
+
+Install cvs (after all, you are a developer) and issue the
+following command once:
+
+cvs -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw login
+
+When prompted for a password for anonymous, simply press the
+Enter key.  Next download the documentation with the following
+commandline:
+
+cvs -z3 -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw co www
+
+At any later time you can update the documentation by changing
+directory into the www directory and issuing:
+
+cvs update
+
+A European mirror has been set up in Amsterdam (the Netherlands)
+at http://www.alinoe.com/.  This is my home PC (cable) and
+therefore only contains the front page, using www.xs4all.nl
+(my other provider) for all the rest of the pages and images.
+Feel free to try this when sourceforge is too slow.
+
+Note this documentation includes the documentation of libcw
+(without a `d' at the end), libcw is not released to the public
+yet.  You can ignore everything not in the debugging/ directory.
