@@ -63,4 +63,4 @@ if ENABLETHREADING
 endif
 
 clean-local:
-	rm -f pch.h.gch/*
+	rm -f pch.h.gch/* $(DEPDIR)/libcwd_*.*po
