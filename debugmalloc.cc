@@ -2236,7 +2236,7 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 #if LIBCWD_THREAD_SAFE
   size_t total_memsize = 0;
   unsigned long total_memblks = 0;
-  LIBCWD_DEFER_CANCEL;
+  LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<threadlist_instance>::cleanup, NULL);
   rwlock_tct<threadlist_instance>::rdlock();
   // See comment in search_in_maps_of_other_threads.
   for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)
@@ -2270,15 +2270,13 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
     if (list)
     {
 #if LIBCWD_THREAD_SAFE
-      LIBCWD_DEFER_CANCEL;
-      pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(&mutex_tct<list_allocations_instance>::cleanup), NULL);
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
       mutex_tct<list_allocations_instance>::lock();
 #endif
       filter.M_check_synchronization();
       list->show_alloc_list(1, channels::dc_malloc, filter);
 #if LIBCWD_THREAD_SAFE
-      pthread_cleanup_pop(1);
-      LIBCWD_RESTORE_CANCEL;
+      LIBCWD_CLEANUP_POP_RESTORE(true);
 #endif
       _private_::set_alloc_checking_off(LIBCWD_TSD);
       delete list;
@@ -2286,8 +2284,7 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
     }
 #if LIBCWD_THREAD_SAFE
   }
-  rwlock_tct<threadlist_instance>::rdunlock();
-  LIBCWD_RESTORE_CANCEL;
+  LIBCWD_CLEANUP_POP_RESTORE(true);
   LibcwDout( channels, debug_object, dc_malloc, "Total allocated memory: " << total_memsize << " bytes in " << total_memblks << " blocks." );
 #endif
 }
