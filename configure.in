@@ -152,17 +152,13 @@ if test "$libcwd_config_bfd" = yes; then
       AC_CHECK_LIB(bfd, bfd_init, [LIBS="-lbfd -lintl $LIBS"],, -lintl)])
 
   dnl If both succeeded, then enable DEBUGUSEBFD
-  if test "$ac_cv_lib_static_libiberty_a_cplus_demangle" != "no" -a "ac_cv_lib_bfd_bfd_init" != "no"; then
+  if test "$ac_cv_lib_iberty_cplus_demangle" != "no" -a "$ac_cv_lib_bfd_bfd_init" != "no"; then
     AC_CHECK_HEADER(bfd.h,
       [CW_CONFIG_DEBUGUSEBFD=define],
       [AC_MSG_WARN([You have libbfd, but I cannot find bfd.h!?  Look up of function names and source:line information will be disabled.])])
   else
     AC_MSG_WARN([Cannot find a working libbfd;  Look up of function names and source:line information will be disabled.])
   fi
-
-  dnl Now remove those libraries again: we can't link our shared library
-  dnl with the static libiberty.a because that wasn't compiled with -fPIC
-  dnl LIBS=$save_LIBS
 
 fi
 
