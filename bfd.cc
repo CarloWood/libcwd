@@ -25,7 +25,6 @@
 #include <set>
 #include <list>
 #include <algo.h>
-#include <link.h>
 #include <strstream>
 #include <string>
 #include <fstream>
@@ -551,7 +550,6 @@ static string full_path_to_executable(void) return result
 
 static bool initialized = false;
 
-#if 1 //ndef __linux /* See below */
 namespace {
 
 struct my_link_map {
@@ -599,7 +597,6 @@ static int decode(char const* buf, size_t len)
 }
 
 }; // anonymous namespace
-#endif
 
 static int libcw_bfd_init(void)
 {
@@ -633,15 +630,6 @@ static int libcw_bfd_init(void)
 #endif
 
   // Load all shared objects
-#if 0 //def __linux /* Commented out because it gives different results than ldd ?! */
-  // This is faster because we don't start a child process
-  extern struct link_map* _dl_loaded;
-  for (struct link_map* l = _dl_loaded; l; l = l->l_next)
-  {
-#if 0	// Balance bracket
-  }
-#endif
-#else
   extern char **environ;
 
   // Path to `ldd'
@@ -656,7 +644,6 @@ static int libcw_bfd_init(void)
   for(vector<my_link_map>::iterator iter = shared_libs.begin(); iter != shared_libs.end(); ++iter)
   {
     my_link_map* l = &(*iter);
-#endif
     if (l->l_addr)
     {
 #ifdef DEBUG
