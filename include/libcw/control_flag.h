@@ -74,7 +74,7 @@ control_flag_t const finish_maskbit    		= 0x8000;
 
 //! \a continued_cf has its own type for overloading purposes.
 enum continued_cf_nt {
-  continued_cf	//!< Start a \e \ref using_continued "continued" %debug output.
+  continued_cf	//!< Start a \ref using_continued "continued" %debug output.
 };
 
 //! Returns nonewline_cf when \a cond is true.

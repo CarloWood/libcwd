@@ -17,8 +17,8 @@
 <DIV class="normal">
 
 <center>
-<a class="qindex" href="index.html">Main Page</a> &nbsp;
-<a class="qindex" href="reference.html">Reference Manual</a> &nbsp;
+<a class="qindex" href="../index.html">Main Page</a> &nbsp;
+<a class="qindex" href="index.html">Reference Manual</a> &nbsp;
 <a class="qindex" href="namespaces.html">Namespace List</a> &nbsp;
 <a class="qindex" href="annotated.html">Compound List</a> &nbsp;
 <a class="qindex" href="namespacemembers.html">Namespace Members</a> &nbsp;

@@ -1,51 +1,57 @@
 /*!
 
-\mainpage An Object Oriented Debugging library
+\mainpage Reference Manual: Table Of Contents
 
-\section intro Introduction
+<h2>Writing Debug Output</h2>
+<ul>
+  <li>\ref book_writing_intro
+  <li>\ref group_destination
+  <li>\ref group_debug_object
+  <ul>
+    <li>\ref chapter_custom_do
+  </ul>
+  <li>\ref group_debug_channels
+  <ul>
+    <li>\ref group_default_dc
+  </ul>
+  <li>\ref group_control_flags
+  <li>\ref group_formatting
+  <li>\ref group_fatal_output
+  <li>\ref chapter_nesting
+  <li>\ref group_special
+</ul>
 
-Libcwd is a full-featured debugging support library for C++ developers.&nbsp;
-It includes ostream-based debug output with custom debug channels
-and devices, powerful memory allocation debugging support, as
-well as run-time support for printing source-%file:line-number information
-and demangled type names.
+<h2>Memory Allocation Debug Support</h2>
+<ul>
+  <li>\ref book_allocations_intro
+  <li>\ref chapter_validation
+  <li>\ref chapter_magic_numbers
+  <li>\ref group_annotation
+  <li>\ref group_overview
+  <ul>
+    <li>\ref group_invisible
+  </ul>
+  <li>\ref group_finding
+  <li>\ref group_markers
+</ul>
 
-\section mainpage_links Links
+<h2>Program Symbols Access And Interpretation</h2>
+<ul>
+  <li>\ref chapter_symbols_intro
+  <li>\ref group_locations
+  <li>\ref group_type_info
+  <ul>
+    <li>\ref group_demangle
+  </ul>
+</ul>
 
-\li \ref downloading
-\li \ref preparation
-\htmlonly
-<li> <a href="../tutorial/index.html">Tutorial</a>
-\endhtmlonly
-\li \ref reference
-
-\section output_example Example output
-
-\htmlonly
-<PRE class="example-output">
-MALLOC  : malloc(72) = &lt;unfinished&gt;
-BFD     :     address 0x402ad017 corresponds to dl-open.c:114
-MALLOC  : &lt;continued&gt; 0x81c1330
-BFD     : Loading debug info from ./module.so (0x4031f000) ... done (206 symbols)
-MALLOC  : malloc(310) = &lt;unfinished&gt;
-BFD     :     address 0x40325943 corresponds to module.cc:16
-MALLOC  : &lt;continued&gt; 0x81bfb68
-MALLOC  : malloc(300) = &lt;unfinished&gt;
-BFD     :     address 0x40325490 corresponds to module.cc:7
-MALLOC  : &lt;continued&gt; 0x817c490
-MALLOC  : Allocated memory: 1518 bytes in 10 blocks.
-malloc    0x817c490            module.cc:7    void*; (sz = 300)  Allocated inside static_test_symbol
-malloc    0x81bfb68            module.cc:16   void*; (sz = 310)  Allocated inside global_test_symbol
-malloc    0x81c1330            dl-open.c:114  &lt;unknown type&gt;; (sz = 72)
-malloc    0x81f52a8         dl-version.c:287  &lt;unknown type&gt;; (sz = 96)
-malloc    0x804f410            dl-deps.c:495  &lt;unknown type&gt;; (sz = 52)
-malloc    0x81c1290          dl-object.c:107  &lt;unknown type&gt;; (sz = 140)
-malloc    0x81c0d30          dl-object.c:41   &lt;unknown type&gt;; (sz = 24)
-malloc    0x81c05f8          dl-object.c:40   &lt;unknown type&gt;; (sz = 496)
-malloc    0x81f5288            dl-load.c:164  &lt;unknown type&gt;; (sz = 12)
-malloc    0x81c00a0            dlerror.c:108  &lt;unknown type&gt;; (sz = 16)
-NOTICE  : Finished
-</PRE>
-\endhtmlonly
+<h2>Configuration, Installation And Getting Started</h2>
+<ul>
+  <li>\ref chapter_custom_debug_h
+  <li>\ref chapter_alloc_locations
+  <li>\ref group_configuration
+  <li>\ref chapter_environment
+</ul>
 
 */
+

@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML LANG="en-us">
+<!-- $Id$ -->
+
+<HEAD>
+<META name="Author" content="Carlo Wood">
+<META http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<TITLE>libcwd: The C++ Debugging Support Library - Quick Reference</TITLE>
+<SCRIPT TYPE="text/javascript" SRC="../scripts/break_out_of_frame.js"></SCRIPT>
+<SCRIPT TYPE="text/javascript" SRC="../scripts/detect_browser.js"></SCRIPT>
+<SCRIPT TYPE="text/javascript">need_style_tag_cw=1;</SCRIPT>
+<SCRIPT TYPE="text/javascript" SRC="../scripts/load_style_sheets.js"></SCRIPT>
+</HEAD>
+
+<BODY>
+
+<TABLE border=0 cellspacing=15 cellpadding=0 width=100%>
+
+<!-- *** Page Header *** -->
+<TR><TD class="tag-cw-main-header" colspan=2>
+<table border=0 cellspacing=0 cellpadding=0 width=100%>
+<tr><td width=88>&nbsp;</td>
+    <td class="tag-cw-main-header" align=middle><B><SPAN class="H1code">libcw<FONT color=red>d</FONT></SPAN></B></td>
+    <td width=88><IMG width=88 height=31 src="http://24.132.80.10/tracker/alinoe.png" border=0 alt="an alinoe production" width=88 height=31 align=right></td>
+</tr></table>
+</TD></TR>
+
+<!-- *** Left column width *** -->
+<TR><TD width=25% valign=top>
+
+<table class="tag-cw" border=0 cellspacing=0 cellpadding=0 width=100%><tr><td>
+
+<!-- *** Table Header bottom-left *** -->
+<table width=100% cellpadding=5 border=0><tr><td class=tag-cw-header>
+<span class="tag-cw-header-first">L</span>INKS
+</td></tr></table>
+
+</td></tr><tr><td>
+
+<!-- *** Table Contents bottom-left *** -->
+<table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<A href="../index.html">Home Page</A><BR>
+<A href="features.html">Features</A><BR>
+<A href="features.html#screenshot">&quot;Screenshot&quot;</A><BR>
+<A href="../tutorial/index.html">Tutorial</A><BR>
+<A href="../html/index.html">Reference Manual</A><BR>
+Quick Reference<BR>
+<A href="http://sourceforge.net/project/showfiles.php?group_id=47536">Download</A><BR>
+<A href="http://sourceforge.net/mail/?group_id=47536">Mailinglists</A>
+</td></tr></table>
+
+</td></tr></TABLE>
+
+<!-- *** Right column width *** -->
+</TD><TD rowspan=2 width=75% valign=top>
+<table class="tag-cw" border=0 cellspacing=0 cellpadding=0 width=100%><tr><td>
+
+<!-- *** Table Header top-right *** -->
+<table width=100% cellpadding=5 border=0><tr><td class=tag-cw-header>
+<span class=tag-cw-header-first>Q</span>uick Reference
+</td></tr></table>
+
+</td></tr><tr><td>
+
+<!-- *** Table Contents top-right *** -->
+<table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<h4>Installation</h4>
+<UL TYPE="circle">
+<LI class="quickref">Read the <a href="../external/INSTALL">INSTALL </a> file.</LI>
+</UL>
+<h4>Using libcwd with a new project</h4>
+<UL TYPE="circle">
+<LI class="quickref">Add <a href="../external/sys.h">sys.h</a> and <a href="../external/debug.h">debug.h</a> as header files to your application.</LI>
+<LI class="quickref">Add <a href="../external/debug.cc">debug.cc</a> as source file to your application.</LI>
+<LI class="quickref">Add <CODE>#include &quot;sys.h&quot;</CODE> to the top of every source file in your application.</LI>
+<LI class="quickref">Add <CODE>#include &quot;debug.h&quot;</CODE> to every source file needing debug output/code.</LI>
+<LI class="quickref">Dump <a href="../doxygen-examples/main-examples.cc">this</a> at the start of your <CODE>main()</CODE> function.</LI>
+</UL>
+<h4>Debug Output</h4>
+<UL TYPE="circle">
+<LI class="quickref"><CODE>Dout(dc::notice, "Hello World");</CODE>
+<LI class="quickref"><CODE>Dout(dc::notice|blank_label_cf|error_cf, "Hello World");</CODE>
+<LI class="quickref">Other <a href="../html/group__group__control__flags.html">Control flags</a>
+</UL>
+<h4>Memory Allocations</h4>
+<UL TYPE="circle">
+<LI class="quickref"><CODE>MyClass* p = new MyClass;<br>
+AllocTag(p, "This is an example");</CODE></LI>
+<LI class="quickref">Other <a href="../html/group__group__annotation.html">AllocTag</a> memory allocation annotation macros.</LI>
+<LI class="quickref"><CODE>Debug( list_allocations_on(libcw_do) );</CODE></LI>
+</UL>
+
+</td></tr></table>
+
+</td></tr></TABLE>
+
+</TD></TR><TR><TD>
+&nbsp;
+</TD></TR>
+</TABLE>
+
+<BR>
+<HR SIZE=1 NOSHADE>
+<TABLE BORDER=0><TR>
+<TD VALIGN=top><A class="image-link" href="http://sourceforge.net"><IMG width="88" height="31" src="../images/sflogo.png" border="0"></A></TD>
+<TD VALIGN=top><A class="image-link" href="http://www.w3.org/Style/CSS/Buttons" target="_blank"><IMG width=88 height=31 src="../images/css.gif" border=0 alt="Cascading Style Sheets" align=top></A></TD>
+<TD VALIGN=bottom width=0><A class="image-link" href="http://sourceforge.net"><IMG width="1" height="1" src="http://sourceforge.net/sflogo.php?group_id=354&type=1" border="0"></A></TD>
+</TR></TABLE>
+
+</BODY>
+</HTML>
+</BODY>
+</HTML>
