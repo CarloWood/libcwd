@@ -45,7 +45,7 @@ if test "$project_config_debugging" = yes; then
   Or perhaps you need to add its location to LDFLAGS and CPPFLAGS, for example:
   LDFLAGS=\"-L/usr/local/lib\" CPPFLAGS=\"-I/usr/local/include\" ./configure])])], -lbfd -liberty)
 
-  CXXFLAGS="-DDEBUG $CXXFLAGS"
+  CXXFLAGS="-DCWDEBUG $CXXFLAGS"
 fi
 
 dnl Generate output files.

@@ -10,7 +10,8 @@ libcwd-0.99.6
 	then you can obviously add those to your local debug.h file.
 
 	It is now allowed to use -DCWDEBUG instead of -DDEBUG while compiling
-	files.  This allows to use the macro DEBUG for something else.
+	files.  This allows to use the macro DEBUG for something else.  The
+	use of -DDEBUG is deprecated, please switch to CWDEBUG.
 
 	API changes:
 

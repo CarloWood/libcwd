@@ -1,9 +1,10 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#ifndef DEBUG
+#ifndef CWDEBUG
 #include "nodebug.h"
-#else // DEBUG
+
+#else // CWDEBUG
 
 #ifndef DEBUGCHANNELS
 #define DEBUGCHANNELS ::myproject::debug::channels
@@ -24,6 +25,6 @@ namespace myproject {
   }
 }
 
-#endif // DEBUG
+#endif // CWDEBUG
 
 #endif // DEBUG_H

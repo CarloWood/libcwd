@@ -1,7 +1,7 @@
 #include "sys.h"
 #include "debug.h"
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 
 namespace myproject {
   namespace debug {
