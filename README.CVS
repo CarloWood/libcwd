@@ -16,3 +16,14 @@ automake
 
 After that, you can continue as usual with
 ./configure, see the INSTALL file for details.
+
+If you just did a `cvs update' (as opposed to a
+fresh checkout) and thus you already have a
+Makefile, then you don't need to rerun these
+commands again if last time you configured using
+the --enable-maintainer-mode option.  It is not 100%
+garanteed that this will work corrected however.
+If you didn't use --enable-maintainer-mode then
+you will certainly have to rerun the aclocal/
+autoheader/autoconf/automake commands.
+

@@ -202,6 +202,13 @@ if test "$libcwd_config_bfd" = yes; then
 
   dnl Check if we have `xmalloc' in libiberty.a
   CW_CHECK_STATICLIB(libiberty.a, xmalloc)
+  dnl If that failed, then look if perhaps it is in /usr/local/lib in case we didn't look there.
+  if test "$ac_cv_lib_static_libiberty_a_xmalloc" = "no" -a -f /usr/local/lib/libiberty.a; then
+    CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+    LDFLAGS="$LDFLAGS -L/usr/local/lib"
+    unset ac_cv_lib_static_libiberty_a_xmalloc
+    CW_CHECK_STATICLIB(libiberty.a, xmalloc)
+  fi
   STATICLIBS="$ac_cv_lib_static_libiberty_a_xmalloc"
   AC_SUBST(STATICLIBS)
 
