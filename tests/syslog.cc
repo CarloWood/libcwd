@@ -25,15 +25,13 @@
 // link using: g++ syslog.o -lcwd -lbfd -liberty -o syslog
 //
 
-#include <libcw/sysd.h>
+#include "sys.h"
 #include <syslog.h>
 #include <libcw/buf2str.h>
 // #include <locale> Not supported by early versions
 #include "syslog_debug.h"
 
 using namespace std;
-
-RCSTAG_CC("$Id$")
 
 // New debug object which will write to syslog(3)
 libcw::debug::debug_ct syslog_do;
@@ -58,10 +56,10 @@ class syslog_streambuf_ct : public streambuf {
   typedef int int_type;
   struct traits { static int_type const eof(void) { return static_cast<int_type>(-1); } };
 private:
-  char buf[256];	// Tiny buffer, doesn't need to contain more than one line.
-  int _priority;
+  char M_buf[256];	// Tiny buffer, doesn't need to contain more than one line.
+  int M_priority;
 public:
-  syslog_streambuf_ct(int priority) : _priority(priority) { setbuf(buf, sizeof(buf)); }
+  syslog_streambuf_ct(int priority) : M_priority(priority) { setbuf(M_buf, sizeof(M_buf)); }
 protected:
   // The ANSI/ISO C++ virtual streambuf interface:
 // Not supported by early versions of libstdc++: virtual void imbue(locale const&);
@@ -80,13 +78,13 @@ protected:
 
 class syslog_stream_ct : public ostream {
 private:
-  syslog_streambuf_ct buf;
+  syslog_streambuf_ct M_buf;
 public:
   syslog_stream_ct(char const* ident, int option, int  facility, int priority);
   ~syslog_stream_ct();
 };
 
-syslog_stream_ct::syslog_stream_ct(char const* ident, int option, int  facility, int priority) : ostream(&buf), buf(priority)
+syslog_stream_ct::syslog_stream_ct(char const* ident, int option, int  facility, int priority) : ostream(&M_buf), M_buf(priority)
 {
   // Note: because of this, syslog_stream_ct should actually be a singleton, but I am lazy now.
   openlog(const_cast<char*>(ident), option, facility);
@@ -97,7 +95,7 @@ syslog_stream_ct::~syslog_stream_ct()
   closelog();
 }
 
-int main(int UNUSED(argc), char* argv[])
+int main(int, char* argv[])
 {
   //----------------------------------------------------------------------
   // The following calls will be done in almost every program using libcwd
@@ -238,9 +236,9 @@ int syslog_streambuf_ct::sync(void)
     if (*p == '\n')
     {
       *p = 0;
-      syslog(_priority, "%s", gptr());
+      syslog(M_priority, "%s", gptr());
       if (p == pptr() - 1)		// Was the newline the last in the buffer?
-	setbuf(buf, sizeof(buf));	// Reset buffer pointers (buffer is now empty), to avoid buffer overrun
+	setbuf(M_buf, sizeof(M_buf));	// Reset buffer pointers (buffer is now empty), to avoid buffer overrun
       break;
     }
   return 0;

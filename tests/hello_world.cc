@@ -24,23 +24,19 @@
 // link using: g++ hello_world.o -lcwd -lbfd -liberty -o hello_world
 //
 
-#include <libcw/sysd.h>
-#include <libcw/debug.h>
+#include "sys.h"
+#include "debug.h"
 
-RCSTAG_CC("$Id$")
-
-// Define our own debug channel:
+// Define our own debug channel (see also "debug.h"):
 #ifdef CWDEBUG
-namespace libcw {
-  namespace debug {
-    namespace channels {
-      namespace dc {
-	channel_ct const hello("HELLO");
-      }
-    }
+namespace debug_channels {
+  namespace dc {
+    libcw::debug::channel_ct const hello("HELLO");
   }
 }
 #endif
+
+RCSTAG_CC("$Id$")
 
 int main(void)
 {
@@ -74,7 +70,7 @@ int main(void)
   //----------------------------------------------------------------------
 
   // Write "Hello World" to our own channel:
-  Dout( dc::hello, "Hello World!" );
+  Dout(dc::hello, "Hello World!");
 
   return 0;
 }
