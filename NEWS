@@ -14,6 +14,12 @@ libcwd-0.99.26
 
 	Bug fixes:
 
+	Several README files that should have been part of the distribution
+	were not!  Added: README.CVS (explains how to download libcwd
+	from cvs), README.solaris (explains that threading doesn't work
+	on solaris), README.threads (general information on how to debug
+	threaded applications).
+
 	The demangler was decoding 's' into "internal_string" instead of
 	"std::string".  A left-over from an old find & replace.
 
