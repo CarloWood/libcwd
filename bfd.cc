@@ -142,7 +142,7 @@ namespace {	// Local stuff
     symbol_key_ct(asymbol* p) : symbol(p) { }
     asymbol const* get_symbol(void) const { return symbol; }
     bool operator==(symbol_key_ct const& UNUSED(b)) const
-	{ DoutFatal(bfd_core, "Calling operator=="); }
+	{ DoutFatal(dc::core, "Calling operator=="); }
     friend struct symbol_key_greater;
   };
 
