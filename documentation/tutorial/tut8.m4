@@ -117,12 +117,12 @@ int main(void)
 <P>Which outputs something like:</P>
 
 <PRE class="output">
-BFD     : Enabled
-DEBUG   : Enabled
-MALLOC  : Enabled
-NOTICE  : Enabled
-SYSTEM  : Enabled
-WARNING : Enabled
+1024       BFD     : Enabled
+1024       DEBUG   : Enabled
+1024       MALLOC  : Enabled
+1024       NOTICE  : Enabled
+1024       SYSTEM  : Enabled
+1024       WARNING : Enabled
 1024       NOTICE  : main: creating thread 0, &lt;unfinished&gt;
 1024       MALLOC  :     malloc(8160) = &lt;unfinished&gt;
 1024       BFD     :         address 0x401fbbd8 corresponds to pthread.c:533

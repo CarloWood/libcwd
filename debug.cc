@@ -1250,6 +1250,7 @@ void allocator_unlock(void)
 	    i != _private_::debug_channels.read_locked().end(); ++i)
 	{
 	  LibcwDoutScopeBegin(DEBUGCHANNELS, debug_object, dc::always|noprefix_cf);
+	  LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(), LIBCWD_DO_TSD_MEMBER(debug_object, margin).size());
 	  LibcwDoutStream.write((*i)->get_label(), WST_max_len);
 	  if ((*i)->is_on())
 	    LibcwDoutStream.write(": Enabled", 9);

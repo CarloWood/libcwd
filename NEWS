@@ -27,6 +27,8 @@ libcwd-0.99.17
 	that is defined under preferences -> appearance -> fonts.
 	This should be set to -adobe-helvetica-*-.
 
+	list_channels_on didn't print the margin.
+
 	Fixed a dead lock in object_file_ct::find_nearest_line().
 	The dead lock occured when debug output written from
 	load_dwarf/load_stabs, which must be done with userspace
