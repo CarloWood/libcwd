@@ -10,3 +10,7 @@ stamp-h.in
 stamp-h
 Makefile.in
 Makefile
+.deps
+.libs
+*.lo
+libcwd.la
