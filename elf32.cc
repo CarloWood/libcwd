@@ -1806,7 +1806,8 @@ void objfile_ct::load_stabs(void)
 	  M_brac_relative_to_fun = true;
 	break;
       }
-      case N_RBRAC:	// We assume that the first N_RBRACE comes AFTER the last N_SLINE (unlike what the document says).
+      case N_RBRAC:	// We assume that the first N_RBRACE comes AFTER the last N_SLINE,
+      			// see http://www.informatik.uni-frankfurt.de/doc/texi/stabs_2.html#SEC14
       {
 	if (DEBUGSTABS)
 	  Dout(dc::bfd, "N_RBRAC: " << std::hex << stabs[j].n_value << '.');
@@ -1824,7 +1825,18 @@ void objfile_ct::load_stabs(void)
       }
       case N_FUN:
       {
-	if (stabs[j].n_strx == 0 || stabs_string_table[stabs[j].n_strx] == 0)
+	char const* fn;
+	char const* fn_end;
+	if (stabs[j].n_strx == 0
+#ifdef __sun__
+	    // A function should always be represented by an `F' symbol descriptor for a global (extern) function,
+	    // and `f' for a static (local) function.  See http://www.informatik.uni-frankfurt.de/doc/texi/stabs_2.html#SEC12
+	    // But on solaris there turn out to be non-standard N_FUN stabs that mean I don't know what.  Skip them here.
+	    || *(fn = &stabs_string_table[stabs[j].n_strx]) == 0
+	    || !(fn_end = strchr(fn, ':'))
+	    || (fn_end[1] != 'F' && fn_end[1] != 'f')
+#endif
+	   )
 	{
 	  if (location.is_valid_stabs())	// Location is invalidated when we already processed the end of the function by N_RBRAC.
 	  {
@@ -1839,12 +1851,14 @@ void objfile_ct::load_stabs(void)
 	}
 	else
 	{
-	  char const* fn = &stabs_string_table[stabs[j].n_strx];
-	  char const* fn_end = strchr(fn, ':');
-	  size_t fn_len = fn_end - fn;
+#ifndef __sun__
+	  fn = &stabs_string_table[stabs[j].n_strx];
+	  fn_end = strchr(fn, ':');
 #if DEBUGSTABS
 	  LIBCWD_ASSERT( fn_end && (fn_end[1] == 'F' || fn_end[1] == 'f') );
 #endif
+#endif
+	  size_t fn_len = fn_end - fn;
 	  cur_func.assign(fn, fn_len);
 	  cur_func += '\0';
 	  range.start = func_addr = stabs[j].n_value;
