@@ -14,6 +14,8 @@
 #ifndef LIBCW_NO_ALLOC_CHECKING_STRSTREAM_H
 #define LIBCW_NO_ALLOC_CHECKING_STRSTREAM_H
 
+#include <libcw/debug_config.h>
+
 RCSTAG_H(no_alloc_checking_stringstream, "$Id$")
 
 #ifdef LIBCW_USE_STRSTREAM

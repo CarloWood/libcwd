@@ -11,10 +11,12 @@
 // packaging of this file.
 //
 
-#ifdef DEBUGDEBUG
-
 #ifndef LIBCW_DEBUGDEBUGCHECKPOINT_H
 #define LIBCW_DEBUGDEBUGCHECKPOINT_H
+
+#include <libcw/debug_config.h>
+
+#ifdef DEBUGDEBUG
 
 RCSTAG_H(debugdebugcheckpoint, "$Id$")
 
@@ -26,6 +28,6 @@ extern void debugdebugcheckpoint(void);
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_DEBUGDEBUGCHECKPOINT_H
-
 #endif // DEBUGDEBUG
+
+#endif // LIBCW_DEBUGDEBUGCHECKPOINT_H

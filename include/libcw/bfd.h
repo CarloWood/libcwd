@@ -14,6 +14,8 @@
 #ifndef LIBCW_BFD_H
 #define LIBCW_BFD_H
 
+#include <libcw/debug_config.h>
+
 #ifndef DEBUGUSEBFD
 
 RCSTAG_H(nobfd, "$Id$")
