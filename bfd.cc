@@ -1368,7 +1368,7 @@ already_loaded:
     }
 
     /**
-     * \brief Move \p prototype to this location object;
+     * \brief Move \p prototype to this location object
      *
      * \p prototype must be \ref is_known "known" and the current object \ref is_known "unknown";
      * \p prototype is clear()-ed afterwards.

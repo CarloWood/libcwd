@@ -1,0 +1,18 @@
+/*!
+\defgroup chapter_environment Environment Variables
+\ingroup book_start
+*/
+/*!
+\page page_environment
+\ingroup chapter_environment
+
+<dl compact>
+<dt>LIBCWD_NO_STARTUP_MSGS<dd>Don't print anything before main().
+
+<dt>LIBCWD_ALWAYS_PRINT_LOADING<dd>Print messages about loading
+the shared libraries, even when this is done before libcw_do
+is turned on (except when LIBCWD_NO_STARTUP_MSGS is defined).
+</dl>
+
+*/
+

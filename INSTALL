@@ -27,7 +27,7 @@ Packages/versions needed
 i) The GNU compiler, version 2.95.1 or higher.
 
     Location: gnu/gcc/
-    Current version: 3.0.2
+    Current version: 3.0.4
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -55,7 +55,7 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.16 was tested with gcc-2.95.x, gcc-2.96-97 (RedHat)
+libcwd-0.99.16 was tested with gcc-2.95.x, gcc-2.96-98 (RedHat)
 and gcc-3.0.x.
 
 Packages needed to run the testsuite
@@ -125,10 +125,10 @@ The configure script looks for a GNU C++ compiler version 2.95.1 or higher.
 If it can't find one (it will only find one when there is a g++ or c++ in
 your PATH), then you can specify the right path during configuration.
 For example, I configure libcwd as follows to compile with the latest CVS
-version of g++, which I installed in /usr/local/bin/g++-cvs (and
+version of g++, which I installed in /usr/local/bin/g++-cvs-3.0 (and
 /usr/local/bin is in my PATH):
 
-CC="gcc-cvs" CXX="g++-cvs" ./configure
+CC="gcc-cvs-3.0" CXX="g++-cvs-3.0" ./configure
 
 -=iii=-
 
@@ -168,7 +168,7 @@ make check					// Run test suite
 make tar					// Create tar ball
 make rpm					// Create rpms
 make ChangeLog					// Generate ChangeLog from cvs database
-make CC="gcc-3.0.2" CXX="g++-3.0.2" reconfig	// Switch compilers keeping the same configuration
+make CC="gcc-3.0.4" CXX="g++-3.0.4" reconfig	// Switch compilers keeping the same configuration
 make full-check					// Iterate over all configurations and all compiler versions
 
 It is not garanteed that these work on another machine than mine however.

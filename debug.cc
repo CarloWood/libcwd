@@ -131,7 +131,7 @@ namespace libcw {
     /**
      * \brief The default %debug object.
      *
-     * The %debug object that is used by default by Dout and DoutFatal, the only %debug object used by libcwd itself.
+     * The %debug object that is used by default by \ref Dout and \ref DoutFatal, the only %debug object used by libcwd itself.
      * \sa \ref chapter_custom_do
      */
 
@@ -197,7 +197,7 @@ namespace libcw {
 	 *
 	 * This channel is <EM>%always</EM> on;
 	 * it can not be turned off.&nbsp;
-	 * It is not in the list of debug channels.&nbsp;
+	 * It is not in the list of \ref ForAllDebugChannels "debug channels".&nbsp;
 	 * When used with a label it will print as many '>'
 	 * characters as the size of the largest real channel.
 	 */
