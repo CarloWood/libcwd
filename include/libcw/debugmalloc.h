@@ -212,7 +212,7 @@ extern void init_debugmalloc(void);
 	  ::libcw::debug::set_alloc_checking_on(); \
 	  buf << x << ::std::ends; \
 	  ::libcw::debug::set_alloc_checking_off(); \
-	  size_t size = buf.rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out); \
+	  size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	  desc = new char [size]; /* This is never deleted anymore */ \
 	  buf.rdbuf()->sgetn(desc, size); \
 	} \
@@ -230,7 +230,7 @@ extern void init_debugmalloc(void);
 	::libcw::debug::set_alloc_checking_on(); \
 	buf << x << ::std::ends; \
 	::libcw::debug::set_alloc_checking_off(); \
-	size_t size = buf.rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out); \
+	size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	desc = new char [size]; \
 	buf.rdbuf()->sgetn(desc, size); \
       } \
