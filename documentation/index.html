@@ -85,6 +85,15 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>27 May 2004</B>
+<P class="news">libcwd-0.99.34 is released.&nbsp;
+Although this is mainly a bug fix release, it also contains a major API change:
+the namespace </code>libcw::debug</code> was renamed to namespace <code>libcwd</code>.
+Libcwd is now an official debian package and see, as a result I got some bug reports (finally!).&nbsp;
+It turned out that libcwd had problems with certain shared libraries that used more than 256 entries
+in the .debug_abbrev section.&nbsp; Finally there turned out to exist two global initialization
+order fiasco bugs for the non-threaded case; one showing on debian and one showing on gentoo.&nbsp;
+All reported bugs have been fixed.</P>
 <DT><B>23 Apr 2004</B>
 <P class="news">libcwd-0.99.33 is released.&nbsp;
 Added support for gcc version 3.4.0.  The latest gcc CVS version 3.5 is working again.&nbsp;
