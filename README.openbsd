@@ -1,45 +1,31 @@
-8 Sep 2000
+11 Oct 2000
+-----------
 
-openbsd is not supported.
+It will configure and compile, but openbsd has a few terrible linker bugs
+that makes the result unusable.  Firstly, the normal way that libtool
+creates a shared library results in no call the '.init' of loaded shared
+libraries.  As a result, global objects are not initialized (their
+constructor is never called).  This causes a core dump as soon as one of
+these objects are used.
 
-It will configure and compile, but openbsd has a terrible bug: it doesn't
-call the '.init' of loaded shared libraries.  As a result, global objects
-are not initialized (their constructor is never called).  This causes a
-core dump as soon as one of these objects are used.
+I found out that using collect2 of GNU gcc works (although not when you
+call it directly(?!) by using `g++ -shared' (instead of ld -Bshareable):
+collect2 seems to find out which are the global constructors (and
+destructors) and adds code to call them.
 
-A solution would be to remove the need to call any global constructor by
-using singletons for everything (which get initialized on first use).
-A good platform for global objects (and singletons) has been designed
-(see http://libcw.sourceforge.net/templates/index.html?global); the reason
-that libcwd didn't use it till now was that it wasn't needed, it is still
-part of libcw.  It doesn't really belong in a debugging library imho.
-However, the research on this topic was done and the result is that there
-is the Need to call a "hook" function when main() is entered.  Unless
-thousands of people using openbsd mail me, asking to support their broken
-openbsd - I don't want to force everyone else to add that extra hook to
-their programs.
+However, now a new linker bug surfaced: it seems not possible to overload
+`operator delete' in a reliable way: calls to `delete' from libstdc++ do
+not call the same function as calls to `delete' from for instance libcwd,
+or the final application that it is linked with.  This is unacceptable
+since the overloaded operator `new' and `delete' need to be called in pairs.
 
-Support for openbsd might be added in the future when I get a better
-idea (or when you tell me how to fix this problem!).
+I was able to reproduce this buggy behaviour in a rather small test case,
+using `g++ -shared -nostdlib' (not when using `g++ -shared').  In the case
+of libcwd however it always fails, also when using `g++ -shared'.
 
-29 Sep 2000
-
-I found out that using collect2 of GNU gcc does work (although not when
-you call it directly(?!?).  Using `g++ -shared' (instead of ld -Bshareable)
-creates a shared library that DOES initialize the global objects.
-
-However, now a new linker bug surfaced: It seems not possible to overload
-operator delete in a reliable way: calls to `delete' from libstdc++ do
-not call the same function as calls to `delete' from for instance libcwd.
-This is unacceptable since the overloaded operator new and delete in
-libcwd need to be called in pairs obviously.  I was able to reproduce
-this buggy behaviour in a rather small test case, using `g++ -shared -nostdlib',
-but not using `g++ -shared'.  In the case of libcwd however, it always
-fails (also with `g++ -shared').
-
-I give up on openbsd now, it is too buggy.  If you're using openbsd then
-I strongly suggest you try linux.  Your alternative (next to not using libcwd)
-is to fix it yourself: get libcwd to work on openbsd, then I'll have another
-look at it.
+I give up on openbsd for now, the linker is too buggy.  I have reported
+the above problem to the libtool as well as to the openbsd developers and
+received no reaction at all.  Gigni de nihilo nihil; in nihilum nil posse
+reverti.
 
 Carlo Wood
