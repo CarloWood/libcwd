@@ -79,11 +79,15 @@ dist-hook: documentation
 	cat $(distdir)/Makefile.in | \
 	  sed -e 's/^\(CONFIG_CLEAN_FILES =.*\) libcwd\.spec libcwd\.lsm\(.*\)/\1\2/' > $(distdir)/Makefile.in.new && \
 	  mv $(distdir)/Makefile.in.new $(distdir)/Makefile.in
-	cp -pr $(srcdir)/documentation $(distdir)
+	cp -pr $(top_builddir)/documentation $(distdir)
+	if test "$(srcdir)" != "."; then \
+	  rm -f $(distdir)/documentation/images $(distdir)/documentation/scripts $(distdir)/documentation/index.html; \
+	  tar -C $(srcdir) -cf - documentation | tar -C $(distdir) -xf - ; \
+	fi
 	find $(distdir)/documentation -name CVS -print | xargs rm -rf
 	find $(distdir)/documentation -name .cvsignore -print | xargs rm -rf
 	find $(distdir)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
-	rm -f $(distdir)/documentation/tutorial/Makefile
+	rm -f $(distdir)/documentation/tutorial/Makefile $(distdir)/documentation/styles/Makefile
 	mkdir $(distdir)/example-project
 	for i in `grep '^/' $(srcdir)/example-project/CVS/Entries | cut -d/ -f2`; do \
 	  cp -p $(srcdir)/example-project/$$i $(distdir)/example-project; \
@@ -93,7 +97,7 @@ dist-hook: documentation
 	  cp -p $(srcdir)/example-project/m4/$$i $(distdir)/example-project/m4; \
 	done
 	rm $(distdir)/example-project/debug.h.maintainer $(distdir)/example-project/.cvsignore
-	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
+	cp -p $(top_builddir)/example-project/debug.h $(distdir)/example-project
 	chmod +x $(distdir)/install-sh
 
 distclean-local:
