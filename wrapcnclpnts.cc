@@ -11,7 +11,9 @@
 // packaging of this file.
 //
 
+#ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
+#endif
 
 #include "sys.h"
 #include <libcwd/config.h>		// Needed for CWDEBUG_DEBUGT

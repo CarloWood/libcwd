@@ -1,19 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision$)dnl
 
-dnl General intialization of `autoconf' varaibles.
-dnl Ensure that the directory specified with --srcdir was correct
-dnl by demanding that it contains `debugmalloc.cc'.
-AC_INIT(debugmalloc.cc)
+dnl General intialization of `autoconf' variables.
 
-dnl Include maintainer mode targets
-AM_MAINTAINER_MODE
-
-dnl Put resulting configuration defines in this header file.
-AM_CONFIG_HEADER(config.h)
-
-dnl Demand at least version 2.13 of autoconf.
-AC_PREREQ(2.13)
+dnl Package name and version
+AC_INIT(libcwd, [0.99.32])
 
 dnl Version info
 dnl
@@ -25,12 +16,25 @@ INTERFACE_VERSION=99		dnl 0.99 actually
 INTERFACE_VERSION_REVISION=32
 INTERFACE_AGE=99		dnl 0.99 actually
 
+dnl Ensure that the directory specified with --srcdir was correct
+dnl by demanding that it contains `debugmalloc.cc'.
+AC_CONFIG_SRCDIR(debugmalloc.cc)
+
+dnl Automake options.
+AM_INIT_AUTOMAKE
+
+dnl Include maintainer mode targets
+AM_MAINTAINER_MODE
+
+dnl Put resulting configuration defines in this header file.
+AM_CONFIG_HEADER(config.h)
+
+dnl Demand at least version 2.57 of autoconf.
+AC_PREREQ(2.57)
+
 VERSION_MAJOR=`expr $INTERFACE_VERSION - $INTERFACE_AGE`
 VERSION_MINOR=$INTERFACE_AGE
 VERSION_REVISION=$INTERFACE_VERSION_REVISION
-
-dnl Automake package name and version
-AM_INIT_AUTOMAKE(libcwd, [$VERSION_MAJOR.$VERSION_MINOR.$VERSION_REVISION])
 
 dnl Libtool version info
 VERSIONINFO="$INTERFACE_VERSION:$INTERFACE_VERSION_REVISION:$INTERFACE_AGE"
@@ -40,6 +44,10 @@ dnl For version code used in check_configuration().
 AC_SUBST(VERSION_MAJOR)
 AC_SUBST(VERSION_MINOR)
 AC_SUBST(VERSION_REVISION)
+
+dnl Workaround
+true=
+AC_SUBST(true)
 
 dnl Set a decent default value in case we don't have the right libraries
 case "$host" in
@@ -513,10 +521,11 @@ libcwd_datadir=`eval echo "$datadir/$PACKAGE" | sed -e 's|NONE|'$ac_default_pref
 AC_DEFINE_UNQUOTED([CW_DATADIR], "$libcwd_datadir", [Data directory where the default rcfile is read from.])
 
 dnl These options are needed, but cannot be used during the configure tests.
+PCHOPTS=
 if test "$cw_cv_prog_CXX_pch" = "yes"; then
-  WARNOPTS="$WARNOPTS -Winvalid-pch"
-  EXTRAOPTS="-include pch.h $EXTRAOPTS"
+  PCHOPTS="-include pch.h"
 fi
+AC_SUBST(PCHOPTS)
 
 dnl Generate include/libcwd/config.h, include/libcwd/sys.h and include/sys.h, preserving timestamp when they are not changed.
 AC_CONFIG_FILES(include/libcwd/timestamp-config.h:include/libcwd/config.h.in, [

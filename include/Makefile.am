@@ -1,6 +1,14 @@
 SUBDIRS = libcwd
 
 BUILT_SOURCES = sys.h
+if BUILD_PCH
+if ENABLENONTHREADING
+BUILT_SOURCES += pch.h.gch/libcwd_pch.h
+endif
+if ENABLETHREADING
+BUILT_SOURCES += pch.h.gch/libcwd_r_pch.h
+endif
+endif
 EXTRA_DIST = sys.h.in cwd_debug.h cwd_bfd.h raw_write.h raw_write.inl ios_base_Init.h elf32.h exec_prog.h \
              match.h private_debug_stack.inl compilation_unit.h
 
@@ -9,35 +17,50 @@ WARNOPTS = @WARNOPTS@
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 DEFAULT_INCLUDES =
 
-SOURCES = pch.h.gch
-
 MAINTAINERCLEANFILES = Makefile.in
 
 global_dependencies=
 if MAINTAINER_MODE
 global_dependencies += timestamp-sys.h
 endif
-if BUILD_PCH
-global_dependencies += timestamp-pch.h
-endif
 
 sys.h: $(global_dependencies)
 
-@AMDEP_TRUE@ifeq (./$(DEPDIR)/pch.po, $(wildcard ./$(DEPDIR)/pch.po))
-@AMDEP_TRUE@@am__include@ ./$(DEPDIR)/pch.po
-@AMDEP_TRUE@endif
+if ENABLENONTHREADING
+@true@ifeq (./$(DEPDIR)/libcwd_pch.po, $(wildcard ./$(DEPDIR)/libcwd_pch.po))
+@true@include ./$(DEPDIR)/libcwd_pch.po
+@true@endif
+endif
+if ENABLETHREADING
+@true@ifeq (./$(DEPDIR)/libcwd_r_pch.po, $(wildcard ./$(DEPDIR)/libcwd_r_pch.po))
+@true@include ./$(DEPDIR)/libcwd_r_pch.po
+@true@endif
+endif
 
-timestamp-pch.h pch.h.gch:
-	rm -f pch.h.gch
+pch.h.gch/libcwd_pch.h pch.h.gch/libcwd_r_pch.h: pch-source.h Makefile
+	test -d pch.h.gch || mkdir -p pch.h.gch
+	rm -f $@
 	test -d $(DEPDIR) || mkdir $(DEPDIR)
-	if $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) -DCWDEBUG $(WARNOPTS) $(CXXFLAGS) \
-	    -M -MT timestamp-pch.h -MF $(DEPDIR)/pch.Tpo -DPIC -fPIC pch.h; then \
-	  cmp -s $(DEPDIR)/pch.Tpo $(DEPDIR)/pch.po || mv $(DEPDIR)/pch.Tpo $(DEPDIR)/pch.po; \
+if ENABLENONTHREADING
+	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	    -DCWDEBUG $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
+	    -M -MT pch.h.gch/libcwd_pch.h -MF $(DEPDIR)/libcwd_pch.Tpo -DPIC -fPIC pch-source.h >/dev/null; then \
+	  cmp -s $(DEPDIR)/libcwd_pch.Tpo $(DEPDIR)/libcwd_pch.po || mv $(DEPDIR)/libcwd_pch.Tpo $(DEPDIR)/libcwd_pch.po; \
 	fi
-	if $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) -DCWDEBUG $(WARNOPTS) $(CXXFLAGS) \
-	    -DPIC -fPIC -c -o pch.h.gch pch.h; then \
-	  touch timestamp-pch.h; \
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	    -DCWDEBUG $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
+	    -c -o pch.h.gch/libcwd_pch.h pch-source.h
+endif
+if ENABLETHREADING
+	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	    -DCWDEBUG -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
+	    -M -MT pch.h.gch/libcwd_r_pch.h -MF $(DEPDIR)/libcwd_r_pch.Tpo -DPIC -fPIC pch-source.h >/dev/null; then \
+	  cmp -s $(DEPDIR)/libcwd_r_pch.Tpo $(DEPDIR)/libcwd_r_pch.po || mv $(DEPDIR)/libcwd_r_pch.Tpo $(DEPDIR)/libcwd_r_pch.po; \
 	fi
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	    -DCWDEBUG -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
+	    -c -o pch.h.gch/libcwd_r_pch.h pch-source.h
+endif
 
 clean-local:
-	rm -f pch.h.gch timestamp-pch.h
+	rm -f pch.h.gch/*

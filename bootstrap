@@ -65,7 +65,9 @@ automake_prefix=`egrep '(^my |^)\\$prefix = ' $automake_path | sed -e 's/.*"\(.*
 automake_tmp=`egrep '(^my \\$libdir|^\\$am_dir) = ' $automake_path | sed -e 's/.*"\(\${prefix}\)\(.*\)".*/$automake_prefix\2/' | sed -e 's/.*['"'"'"]\([^'"'"'"]*\)['"'"'"].*/\1/'`
 eval "automake_dir=$automake_tmp"
 if test -f $automake_dir/depcomp; then
-  automake_files="install-sh missing mkinstalldirs depcomp"
+  #automake_files="install-sh missing mkinstalldirs depcomp"
+  # libcwd uses its own depcomp!
+  automake_files="install-sh missing mkinstalldirs"
   # automake 1.6 also use $automake_dir/compile, but we don't need that because we only support gcc.
 else
   automake_files="install-sh missing mkinstalldirs"
