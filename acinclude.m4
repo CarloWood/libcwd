@@ -547,3 +547,59 @@ AC_REQUIRE([CW_PROG_CXXCPP])
 cw_prog_cxx_finger_print="`$CXX -v 2>&1 | grep version | head -n 1`"
 cw_prog_cxxcpp_finger_print="`echo | $CXXCPP -v 2>&1 | grep version | head -n 1`"
 ])
+
+dnl CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
+dnl
+dnl Determines if an offset of -1 works or not.
+dnl Assumed is that the test program compiles and works,
+dnl if anything fails then an offset of -1 is assumed.
+AC_DEFUN(CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET,
+[AC_CACHE_CHECK(needed offset to __builtin_return_address(), cw_cv_sys_builtin_return_address_offset,
+[AC_TRY_RUN(
+changequote(<<, >>)dnl
+<<#include <cstdlib>
+#include <bfd.h>
+void* addr2;
+void test2(void)
+{
+  addr2 = __builtin_return_address(0);
+}
+
+unsigned int const realline = __LINE__ + 3;
+void test(void)
+{
+  test2();
+}
+
+int main(int argc, char* argv[])
+{
+  bfd_init();
+  bfd* abfd = bfd_openr(argv[0], NULL);
+  bfd_check_format (abfd, bfd_archive);
+  char** matching;
+  bfd_check_format_matches (abfd, bfd_object, &matching);
+  long storage_needed = bfd_get_symtab_upper_bound (abfd);
+  asymbol** symbol_table = (asymbol**) malloc(storage_needed);
+  long number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
+  asymbol** se = &symbol_table[number_of_symbols - 1];
+  for (asymbol** s = symbol_table; s <= se; ++s)
+    if (!strcmp((*s)->name, "main"))
+    {
+      asection* sect = bfd_get_section(*s);
+      char const* file;
+      char const* func;
+      unsigned int line;
+      test();
+      bfd_find_nearest_line(abfd, sect, symbol_table, (unsigned int)((char*)addr2 - sect->vma) - 1, &file, &func, &line);
+      exit((line == realline) ? 1 : 0);
+    }
+  exit(1);
+}
+>>,
+changequote([, ])dnl
+cw_cv_sys_builtin_return_address_offset=0,
+cw_cv_sys_builtin_return_address_offset=-1,
+cw_cv_sys_builtin_return_address_offset=-1)])
+eval "CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET=\"$cw_cv_sys_builtin_return_address_offset\""
+AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
+])

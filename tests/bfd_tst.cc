@@ -48,7 +48,7 @@ void libcw_bfd_test3(void)
 	break;
     }
 
-    location_st loc = libcw_bfd_pc_location((char*)retadr);
+    location_st loc = libcw_bfd_pc_location((char*)retadr + libcw_bfd_builtin_return_address_offset);
     Dout(dc::notice, "called from " << loc);
 
     if (loc.line == 0)
@@ -81,7 +81,6 @@ int main(int argc, char* argv[])
   Debug( dc::bfd.on() );
   Debug( dc::notice.on() );
   Debug( dc::system.on() );
-  Debug( dc::debug.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );

@@ -729,8 +729,8 @@ size_t const MAGIC_MALLOC_END = 0x335bc0fa;
 
 #undef CALL_ADDRESS
 #ifdef DEBUGUSEBFD
-// The address we called from is a bit less then the address we will return to:
-#define CALL_ADDRESS , reinterpret_cast<char*>(__builtin_return_address(0)) - 1
+// The address we called from has a (negative) offset from the address we will return to, on most OS:
+#define CALL_ADDRESS , reinterpret_cast<char*>(__builtin_return_address(0)) + libcw_bfd_builtin_return_address_offset
 static void* internal_debugmalloc(size_t size, memblk_types_nt flag, void* call_addr);
 #else
 #define CALL_ADDRESS

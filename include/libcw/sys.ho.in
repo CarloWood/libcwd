@@ -61,6 +61,16 @@ unsigned int const malloc_overhead_c = @CW_MALLOC_OVERHEAD_C@;
 
 #define NBLOCK_@CW_CONFIG_NBLOCK@
 
+//
+// Offset to __builtin_return_address() needed to get
+// the correct line number from bfd_find_nearest_line().
+// Usage:
+// libcw_bfd_pc_location((char*)__builtin_return_address(0) + libcw_bfd_builtin_return_address_offset)
+// returns the location of the previous function call.
+//
+
+int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET@;
+
 // Bug work arounds
 
 // Including certain header files fail with a warning.  For example:
