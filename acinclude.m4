@@ -358,6 +358,9 @@ AC_CHECK_LIB(c, socket, [true],
 AC_CACHE_CHECK(non-blocking socket flavour, cw_cv_system_nblock,
 [AC_REQUIRE([AC_TYPE_SIGNAL])
 AC_REQUIRE([CW_TYPE_SIGHANDLER_PARAM_T])
+CW_TYPE_EXTRACT_FROM(recvfrom, [#include <sys/types.h>
+#include <sys/socket.h>], 6, 6)
+cw_recvfrom_param_six_t="$cw_result"
 AC_TRY_RUN([#include <sys/types.h>
 #include <sys/socket.h>
 #include <fcntl.h>
@@ -378,7 +381,7 @@ int main(int argc, char* argv[])
   {
     signal(SIGALRM, alarmed);
     alarm(2);
-    recvfrom(f, b, 12, 0, &x, &l);
+    recvfrom(f, b, 12, 0, &x, ($cw_recvfrom_param_six_t)&l);
     alarm(0);
     exit(0);
   }
