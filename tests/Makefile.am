@@ -3,11 +3,15 @@
 AUTOMAKE_OPTIONS = foreign
 
 EXTRA_PROGRAMS = \
-hello_world
+hello_world \
+syslog
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
 hello_world_SOURCES = hello_world.cc
+syslog_SOURCES = syslog.cc
+
+include_HEADERS = syslog_debug.h
 
 LDADD = ../libcwd.la
 
