@@ -19,7 +19,7 @@ int main(void)
   Debug( check_configuration() );
 
   // Make sure we initialized the bfd stuff before we turn on WARNING.
-  (void)libcw_bfd_pc_function_name(main);
+  (void)libcw_bfd_pc_function_name((void*)main);
 
   ostrstream dummy;	// Do this before turning on debug output
 

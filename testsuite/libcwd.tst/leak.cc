@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
   make_all_allocations_invisible_except(NULL);
 
   // Make sure we initialized the bfd stuff before we turn on WARNING.
-  (void)libcw_bfd_pc_function_name(main);
+  (void)libcw_bfd_pc_function_name((void*)main);
 
   // Select channels
   Debug( dc::malloc.on() );
