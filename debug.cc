@@ -169,7 +169,7 @@ void allocator_unlock(void)
 	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
 #ifdef _REENTRANT
-	LIBCWD_DISABLE_CANCEL			// We don't want Dout() to be a cancellation point.
+	LIBCWD_DISABLE_CANCEL;			// We don't want Dout() to be a cancellation point.
 	if (mutex)
 	  mutex->lock();
 	else if (_private_::WST_multi_threaded)
@@ -225,7 +225,7 @@ void allocator_unlock(void)
 #ifdef _REENTRANT
 	if (mutex)
 	  mutex->unlock();
-	LIBCWD_ENABLE_CANCEL
+	LIBCWD_ENABLE_CANCEL;
 #endif // !_REENTRANT
 #if CWDEBUG_ALLOC
 	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
@@ -969,9 +969,9 @@ void allocator_unlock(void)
 	  if (!__libcwd_tsd.recursive_fatal)
 	  {
 	    __libcwd_tsd.recursive_fatal = true;
-	    LIBCWD_DISABLE_CANCEL
+	    LIBCWD_DISABLE_CANCEL;
 	    *target_os << std::flush;	// First time, try to flush.
-	    LIBCWD_ENABLE_CANCEL
+	    LIBCWD_ENABLE_CANCEL;
 	  }
 	  if ((current->mask & coredump_maskbit))
 	    core_dump();
@@ -999,9 +999,9 @@ void allocator_unlock(void)
 	if ((current->mask & flush_cf))
 	{
 	  set_alloc_checking_on(LIBCWD_TSD);
-	  LIBCWD_DISABLE_CANCEL
+	  LIBCWD_DISABLE_CANCEL;
 	  *target_os << std::flush;
-	  LIBCWD_ENABLE_CANCEL
+	  LIBCWD_ENABLE_CANCEL;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	}
       }
@@ -1079,7 +1079,7 @@ void allocator_unlock(void)
 #endif
 
       LIBCWD_TSD_DECLARATION
-      LIBCWD_DEFER_CANCEL
+      LIBCWD_DEFER_CANCEL;
       _private_::debug_objects.init(LIBCWD_TSD);
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
       DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
@@ -1090,7 +1090,7 @@ void allocator_unlock(void)
       DEBUG_OBJECTS_RELEASE_WRITE_LOCK
 #ifdef _REENTRANT
       set_alloc_checking_on(LIBCWD_TSD);
-      LIBCWD_RESTORE_CANCEL
+      LIBCWD_RESTORE_CANCEL;
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
 #endif
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
@@ -1199,7 +1199,7 @@ void allocator_unlock(void)
     {
       channel_ct* tmp = NULL;
       LIBCWD_TSD_DECLARATION
-      LIBCWD_DEFER_CANCEL
+      LIBCWD_DEFER_CANCEL;
       _private_::debug_channels.init(LIBCWD_TSD);
       DEBUG_CHANNELS_ACQUIRE_READ_LOCK
       for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
@@ -1209,7 +1209,7 @@ void allocator_unlock(void)
           tmp = (*i);
       }
       DEBUG_CHANNELS_RELEASE_READ_LOCK
-      LIBCWD_RESTORE_CANCEL
+      LIBCWD_RESTORE_CANCEL;
       return tmp;
     }
 
@@ -1247,10 +1247,10 @@ void allocator_unlock(void)
       LIBCWD_TSD_DECLARATION
       if (LIBCWD_DO_TSD_MEMBER_OFF(debug_object) < 0)
       {
-	LIBCWD_DEFER_CANCEL
+	LIBCWD_DEFER_CANCEL;
         _private_::debug_channels.init(LIBCWD_TSD);
-	LIBCWD_RESTORE_CANCEL
-	LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<debug_channels_instance>::cleanup, NULL)
+	LIBCWD_RESTORE_CANCEL;
+	LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<debug_channels_instance>::cleanup, NULL);
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK
 	for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	    i != _private_::debug_channels.read_locked().end(); ++i)
@@ -1265,7 +1265,7 @@ void allocator_unlock(void)
 	  LibcwDoutScopeEnd;
 	}
         DEBUG_CHANNELS_RELEASE_READ_LOCK
-	LIBCWD_CLEANUP_POP_RESTORE(false)
+	LIBCWD_CLEANUP_POP_RESTORE(false);
       }
     }
 
@@ -1287,7 +1287,7 @@ void allocator_unlock(void)
 
 #ifdef _REENTRANT
       _private_::mutex_tct<_private_::write_max_len_instance>::initialize();
-      LIBCWD_DEFER_CANCEL
+      LIBCWD_DEFER_CANCEL;
       _private_::mutex_tct<_private_::write_max_len_instance>::lock();
       // MT: This critical area does not contain cancellation points.
       // When this thread is cancelled later, there is no need to take action:
@@ -1314,7 +1314,7 @@ void allocator_unlock(void)
       WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
        
       _private_::mutex_tct<_private_::write_max_len_instance>::unlock();
-      LIBCWD_RESTORE_CANCEL
+      LIBCWD_RESTORE_CANCEL;
 
       __libcwd_tsd.off_cnt_array[WNS_index] = 0;
 #else
@@ -1328,7 +1328,7 @@ void allocator_unlock(void)
       // order in which they appear in the ForAllDebugChannels is not
       // dependent on the order in which these global objects are
       // initialized.
-      LIBCWD_DEFER_CANCEL
+      LIBCWD_DEFER_CANCEL;
       _private_::debug_channels.init(LIBCWD_TSD);
       DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK
       {
@@ -1342,7 +1342,7 @@ void allocator_unlock(void)
 	set_alloc_checking_on(LIBCWD_TSD);
       }
       DEBUG_CHANNELS_RELEASE_WRITE_LOCK
-      LIBCWD_RESTORE_CANCEL
+      LIBCWD_RESTORE_CANCEL;
 
       // Turn debug channel "WARNING" on by default.
       if (strncmp(WNS_label, "WARNING", label_len) == 0)
@@ -1375,7 +1375,7 @@ void allocator_unlock(void)
 
 #ifdef _REENTRANT
       _private_::mutex_tct<_private_::write_max_len_instance>::initialize();
-      LIBCWD_DEFER_CANCEL
+      LIBCWD_DEFER_CANCEL;
       _private_::mutex_tct<_private_::write_max_len_instance>::lock();
 #endif
       // MT: See comments in channel_ct::NS_initialize above.
@@ -1383,7 +1383,7 @@ void allocator_unlock(void)
 	WST_max_len = label_len;
 #ifdef _REENTRANT
       _private_::mutex_tct<_private_::write_max_len_instance>::unlock();
-      LIBCWD_RESTORE_CANCEL
+      LIBCWD_RESTORE_CANCEL;
 #endif
 
       strncpy(WNS_label, label, label_len);
@@ -1631,7 +1631,7 @@ template<>
   void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
   {
     _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex);
-    LIBCWD_DEFER_CANCEL
+    LIBCWD_DEFER_CANCEL;
     _private_::mutex_tct<_private_::set_ostream_instance>::lock();
     _private_::lock_interface_base_ct* old_mutex = M_mutex;
     if (old_mutex)
@@ -1644,7 +1644,7 @@ template<>
     }
     private_set_ostream(os);
     _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
-    LIBCWD_RESTORE_CANCEL
+    LIBCWD_RESTORE_CANCEL;
   }
 #endif // _REENTRANT
 
@@ -1660,13 +1660,13 @@ void debug_ct::set_ostream(std::ostream* os)
 #ifdef _REENTRANT
   if (_private_::WST_multi_threaded)
     Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << ": You should passing a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
-  LIBCWD_DEFER_CANCEL
+  LIBCWD_DEFER_CANCEL;
   _private_::mutex_tct<_private_::set_ostream_instance>::lock();
 #endif
   private_set_ostream(os);
 #ifdef _REENTRANT
   _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
-  LIBCWD_RESTORE_CANCEL
+  LIBCWD_RESTORE_CANCEL;
 #endif
 }
 

@@ -1019,7 +1019,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	// that we keep the lock a long time (during the execution of ldd_prog).
 	// Same thing for the LIBCWD_DEFER_CANCEL, needed for the sanity checks.
 	BFD_INITIALIZE_LOCK
-	LIBCWD_DEFER_CLEANUP_PUSH(_private_::fatal_cancellation, const_cast<char*>("while reading debug information from a shared library"))
+	LIBCWD_DEFER_CLEANUP_PUSH(_private_::fatal_cancellation, const_cast<char*>("while reading debug information from a shared library"));
         BFD_ACQUIRE_WRITE_LOCK
 	load_object_file(fullpath.value->data(), 0);
 
@@ -1054,7 +1054,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	// ****************************************************************************
 
 	// We put this outside the 'internal' region because it might call __pthread_do_exit.
-	LIBCWD_CLEANUP_POP_RESTORE(false)
+	LIBCWD_CLEANUP_POP_RESTORE(false);
 
         if (_private_::always_print_loading)
 	{
@@ -1065,13 +1065,13 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	WST_initialized = true;			// MT: Safe, this function is Single Threaded.
 
 #ifdef LIBCWD_DEBUGBFD
-	LIBCWD_DEFER_CANCEL
+	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_READ_LOCK
 	// Dump all symbols
 	for (object_files_ct::const_reverse_iterator i(NEEDS_READ_LOCK_object_files().rbegin()); i != NEEDS_READ_LOCK_object_files().rend(); ++i)
           dump_object_file_symbols(*i);
 	BFD_RELEASE_READ_LOCK
-	LIBCWD_RESTORE_CANCEL
+	LIBCWD_RESTORE_CANCEL;
 #endif
 
 	return true;
@@ -1127,11 +1127,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	return unknown_function_c;
 
       symbol_ct const* symbol;
-      LIBCWD_DEFER_CANCEL
+      LIBCWD_DEFER_CANCEL;
       BFD_ACQUIRE_READ_LOCK;
       symbol = pc_symbol((bfd_vma)(size_t)addr, NEEDS_READ_LOCK_find_object_file(addr));
       BFD_RELEASE_READ_LOCK;
-      LIBCWD_RESTORE_CANCEL
+      LIBCWD_RESTORE_CANCEL;
 
       if (!symbol)
 	return unknown_function_c;
@@ -1195,7 +1195,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       object_file_ct* object_file;
-      LIBCWD_DEFER_CANCEL
+      LIBCWD_DEFER_CANCEL;
       BFD_ACQUIRE_READ_LOCK;
       object_file = NEEDS_READ_LOCK_find_object_file(addr);
 #ifdef HAVE__DL_LOADED
@@ -1230,7 +1230,7 @@ already_loaded:
 #else
       BFD_RELEASE_READ_LOCK;
 #endif
-      LIBCWD_RESTORE_CANCEL
+      LIBCWD_RESTORE_CANCEL;
       if (!object_file)
       {
         LIBCWD_Dout(dc::bfd, "No object file for address " << addr);
@@ -1247,7 +1247,7 @@ already_loaded:
 	asection const* sect = bfd_get_section(p);
 	char const* file;
 	LIBCWD_ASSERT( object_file->get_bfd() == abfd );
-	LIBCWD_DEFER_CANCEL
+	LIBCWD_DEFER_CANCEL;
 	set_alloc_checking_off(LIBCWD_TSD);
 #if CWDEBUG_LIBBFD
 	bfd_find_nearest_line(abfd, const_cast<asection*>(sect), const_cast<asymbol**>(object_file->get_symbol_table()),
@@ -1256,7 +1256,7 @@ already_loaded:
         abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line);
 #endif
 	set_alloc_checking_on(LIBCWD_TSD);
-	LIBCWD_RESTORE_CANCEL
+	LIBCWD_RESTORE_CANCEL;
 	LIBCWD_ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
 	M_func = p->name;
 
@@ -1468,7 +1468,7 @@ extern "C" {
       return handle;
 #endif
     cwbfd::object_file_ct* object_file;
-    LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlopen_cleanup1, &__libcwd_tsd)	// In case we are cancelled inside cwbfd::load_object_file().
+    LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlopen_cleanup1, &__libcwd_tsd);	// In case we are cancelled inside cwbfd::load_object_file().
     BFD_ACQUIRE_WRITE_LOCK;
     set_alloc_checking_off(LIBCWD_TSD);
     object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
@@ -1476,17 +1476,17 @@ extern "C" {
       cwbfd::NEEDS_WRITE_LOCK_object_files().sort(cwbfd::object_file_greater());
     set_alloc_checking_on(LIBCWD_TSD);
     BFD_RELEASE_WRITE_LOCK;
-    LIBCWD_CLEANUP_POP_RESTORE(false)
+    LIBCWD_CLEANUP_POP_RESTORE(false);
     if (object_file)
     {
       // MT: dlopen_map uses a userspace_allocator and might therefore write to dc::malloc.
       // This means that the thread can be cancelled inside the insert() call, leaving
       // dlopen_map in an undefined state.  Therefore we disable cancellation.
-      LIBCWD_DISABLE_CANCEL
+      LIBCWD_DISABLE_CANCEL;
       DLOPEN_MAP_ACQUIRE_LOCK
       libcw::debug::_private_::dlopen_map.insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
       DLOPEN_MAP_RELEASE_LOCK
-      LIBCWD_ENABLE_CANCEL
+      LIBCWD_ENABLE_CANCEL;
     }
     return handle;
   }
@@ -1496,7 +1496,7 @@ extern "C" {
     LIBCWD_TSD_DECLARATION
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
     int ret = ::dlclose(handle);
-    LIBCWD_DEFER_CANCEL
+    LIBCWD_DEFER_CANCEL;
     DLOPEN_MAP_ACQUIRE_LOCK
     libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map.find(handle));
     if (iter != libcw::debug::_private_::dlopen_map.end())
@@ -1522,7 +1522,7 @@ extern "C" {
 #endif
     }
     DLOPEN_MAP_RELEASE_LOCK
-    LIBCWD_RESTORE_CANCEL
+    LIBCWD_RESTORE_CANCEL;
     return ret;
   }
 } // extern "C"

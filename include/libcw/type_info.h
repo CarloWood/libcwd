@@ -220,7 +220,7 @@ template<typename T>
     {
       LIBCWD_TSD_DECLARATION
 #if LIBCWD_THREAD_SAFE
-      LIBCWD_DEFER_CANCEL
+      LIBCWD_DEFER_CANCEL;
       _private_::mutex_tct<_private_::type_info_of_instance>::initialize();
       _private_::mutex_tct<_private_::type_info_of_instance>::lock();
       volatile static bool spin_lock = false;
@@ -235,7 +235,7 @@ template<typename T>
       }
 #if LIBCWD_THREAD_SAFE
       spin_lock = false;
-      LIBCWD_RESTORE_CANCEL
+      LIBCWD_RESTORE_CANCEL;
 #endif
     }
 #endif // __GNUC__ == 2 && __GNUC_MINOR__ < 97

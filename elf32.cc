@@ -1971,10 +1971,10 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
 char* object_file_ct::allocate_and_read_section(int i)
 {
   char* p = new char[M_sections[i].section_header().sh_size];
-  LIBCWD_DISABLE_CANCEL
+  LIBCWD_DISABLE_CANCEL;
   M_input_stream.rdbuf()->pubseekpos(M_sections[i].section_header().sh_offset);
   M_input_stream.read(p, M_sections[i].section_header().sh_size);
-  LIBCWD_ENABLE_CANCEL
+  LIBCWD_ENABLE_CANCEL;
   return p;
 }
 

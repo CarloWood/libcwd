@@ -52,7 +52,7 @@ template<class T>
   void debug_ct::set_ostream(std::ostream* os, T* mutex)
   {
     _private_::lock_interface_base_ct* new_mutex = new _private_::lock_interface_tct<T>(mutex);
-    LIBCWD_DEFER_CANCEL
+    LIBCWD_DEFER_CANCEL;
     _private_::mutex_tct<_private_::set_ostream_instance>::lock();
     _private_::lock_interface_base_ct* old_mutex = M_mutex;
     if (old_mutex)
@@ -65,7 +65,7 @@ template<class T>
     }
     private_set_ostream(os);
     _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
-    LIBCWD_RESTORE_CANCEL
+    LIBCWD_RESTORE_CANCEL;
   }
 
   }  // namespace debug

@@ -11,7 +11,10 @@ namespace debug_channels {
   }
 }
 
-using libcw::debug::thread_index;
+unsigned long thread_index(pthread_t tid)
+{
+  return tid % 1024;
+}
 #endif
 
 int const loopsize = 1000;
