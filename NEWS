@@ -10,6 +10,9 @@ libcwd-0.99.32
 	Documentation for both functions above has been added to the
 	reference manual.
 
+	The code was adjusted to support the latest CVS version of
+	the gcc-3_4-branch (20040220).
+
 	Code has been added to correct wrong debug info as outputted
 	by the commonly used GNU assembler version 2.3.90 as result
 	of a frequently occuring bug.  Before this correction is was
