@@ -627,7 +627,7 @@ struct location_st {
 #endif
 };
 
-class object_file_ct;
+class objfile_ct;
 
 class location_ct : private location_st {
 private:
@@ -636,10 +636,10 @@ private:
   range_st M_range;
   int M_flags;
   bool M_used;
-  object_file_ct* M_object_file;
+  objfile_ct* M_object_file;
 
 public:
-  location_ct(object_file_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file) { M_line = 0; M_range.start = 0; }
+  location_ct(objfile_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file) { M_line = 0; M_range.start = 0; }
 
   void invalidate(void) {
     M_flags = 0;
@@ -785,12 +785,12 @@ struct hash_list_st {
 };
 
 //
-// class object_file_ct
+// class objfile_ct
 //
 // This object represents an ELF object file.
 //
 
-class object_file_ct : public bfd_st {
+class objfile_ct : public bfd_st {
   typedef std::map<range_st, location_st, compare_range_st, _private_::object_files_allocator::rebind<std::pair<range_st const, location_st> >::other> object_files_range_location_map_ct;
 private:
   std::ifstream* M_input_stream;
@@ -818,8 +818,8 @@ private:
   static uint32_t const hash_table_size = 2049;		// Lets use a prime number.
   hash_list_st** M_hash_list;
 public:
-  object_file_ct(char const* file_name);
-  ~object_file_ct();
+  objfile_ct(char const* file_name);
+  ~objfile_ct();
   char const* get_section_header_string_table(void) const { return M_section_header_string_table; }
   section_ct const& get_section(int index) const { LIBCWD_ASSERT( index < M_header.e_shnum ); return M_sections[index]; }
 protected:
@@ -835,12 +835,12 @@ private:
   void load_stabs(void);
   void load_dwarf(void);
   template<typename T>
-    inline void object_file_ct::dwarf_read(unsigned char const*& debug_info_ptr, T& x);
+    inline void objfile_ct::dwarf_read(unsigned char const*& debug_info_ptr, T& x);
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
 };
 
 #ifdef _REENTRANT
-pthread_t object_file_ct::S_thread_inside_find_nearest_line;
+pthread_t objfile_ct::S_thread_inside_find_nearest_line;
 #endif
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
@@ -936,10 +936,10 @@ void section_ct::init(char const* section_header_string_table, Elf32_Shdr const&
 
 bfd_st* bfd_st::openr(char const* file_name)
 {
-  return new object_file_ct(file_name);
+  return new objfile_ct(file_name);
 }
 
-object_file_ct::~object_file_ct()
+objfile_ct::~objfile_ct()
 {
   LIBCWD_TSD_DECLARATION
   int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
@@ -952,17 +952,17 @@ object_file_ct::~object_file_ct()
   delete [] M_symbols;
 }
 
-long object_file_ct::get_symtab_upper_bound(void)
+long objfile_ct::get_symtab_upper_bound(void)
 {
   return M_number_of_symbols * sizeof(asymbol_st*);
 }
 
-bool object_file_ct::check_format(void) const
+bool objfile_ct::check_format(void) const
 {
   return M_header.check_format();
 }
 
-uint32_t object_file_ct::elf_hash(unsigned char const* name, unsigned char delim) const
+uint32_t objfile_ct::elf_hash(unsigned char const* name, unsigned char delim) const
 {
   uint32_t h = 0;
   uint32_t g;
@@ -976,7 +976,7 @@ uint32_t object_file_ct::elf_hash(unsigned char const* name, unsigned char delim
   return (h % hash_table_size);
 }
 
-long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
+long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 {
   M_symbols = new asymbol_st[M_number_of_symbols];
   M_hash_list = new hash_list_st* [hash_table_size];
@@ -1078,14 +1078,14 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
 }
 
 template<typename T>
-  inline void object_file_ct::dwarf_read(unsigned char const*& in, T& x)
+  inline void objfile_ct::dwarf_read(unsigned char const*& in, T& x)
   {
     x = *reinterpret_cast<T const*>(in);
     in += sizeof(T);
   }
 
 template<>
-  void object_file_ct::dwarf_read(unsigned char const*& in, uLEB128_t& x)
+  void objfile_ct::dwarf_read(unsigned char const*& in, uLEB128_t& x)
   {
     int shift = 7;
     uLEB128_t byte = *in;
@@ -1101,7 +1101,7 @@ template<>
   }
 
 template<>
-  void object_file_ct::dwarf_read(unsigned char const*& in, LEB128_t& x)
+  void objfile_ct::dwarf_read(unsigned char const*& in, LEB128_t& x)
   {
     int shift = 7;
     LEB128_t byte = *in;
@@ -1141,7 +1141,7 @@ struct file_name_st {
   uLEB128_t length_in_bytes_of_the_file;
 };
 
-void object_file_ct::load_dwarf(void)
+void objfile_ct::load_dwarf(void)
 {
 #if __GNUC__ == 2 && __GNUC_MINOR__ == 96
   Dout(dc::warning, "gcc/g++ 2.96 has broken DWARF2 debug information.  Source file / Line number lookups will fail frequently.  "
@@ -1732,7 +1732,7 @@ indirect:
   M_debug_info_loaded = true;
 }
 
-void object_file_ct::load_stabs(void)
+void objfile_ct::load_stabs(void)
 {
   if (DEBUGSTABS)
   {
@@ -1903,12 +1903,12 @@ void object_file_ct::load_stabs(void)
   M_debug_info_loaded = true;
 }
 
-void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, char const** file, char const** func, unsigned int* line LIBCWD_COMMA_TSD_PARAM)
+void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, char const** file, char const** func, unsigned int* line LIBCWD_COMMA_TSD_PARAM)
 {
   while (!M_debug_info_loaded)	// So we can use 'break'.
   {
     // The call to load_dwarf()/load_stabs() below can call malloc, causing us to recursively enter this function
-    // for this object or another object_file_ct.
+    // for this object or another objfile_ct.
 #ifndef _REENTRANT
     if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
     {
@@ -1988,7 +1988,7 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
   return;
 }
 
-char* object_file_ct::allocate_and_read_section(int i)
+char* objfile_ct::allocate_and_read_section(int i)
 {
   char* p = new char[M_sections[i].section_header().sh_size];
   LIBCWD_TSD_DECLARATION
@@ -2001,7 +2001,7 @@ char* object_file_ct::allocate_and_read_section(int i)
   return p;
 }
 
-void object_file_ct::register_range(location_st const& location, range_st const& range)
+void objfile_ct::register_range(location_st const& location, range_st const& range)
 {
 #if !DEBUGSTABS && !DEBUGDWARF
   M_ranges.insert(std::pair<range_st, location_st>(range, location));
@@ -2030,7 +2030,7 @@ void object_file_ct::register_range(location_st const& location, range_st const&
 #endif
 }
 
-object_file_ct::object_file_ct(char const* file_name) :
+objfile_ct::objfile_ct(char const* file_name) :
     M_section_header_string_table(NULL), M_sections(NULL), M_symbol_string_table(NULL),  M_dyn_symbol_string_table(NULL),
     M_symbols(NULL), M_number_of_symbols(0), M_symbol_table_type(0)
 {
