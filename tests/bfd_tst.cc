@@ -78,6 +78,7 @@ int main(int argc, char* argv[])
   Debug( dc::warning.on() );
   Debug( dc::bfd.on() );
   Debug( dc::notice.on() );
+  Debug( dc::system.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );

@@ -28,9 +28,16 @@
 #include <link.h>
 #include <strstream>
 #include <string>
+#include <fstream>
+#include <sys/param.h>          // Needed for realpath(3)
+#include <unistd.h>             // Needed for getpid(2) and realpath(3)
+#ifdef __FreeBSD__
+#include <stdlib.h>             // Needed for realpath(3)
+#endif
 #include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
+#include <libcw/exec_prog.h>
 
 RCSTAG_CC("$Id$")
 
@@ -362,46 +369,141 @@ ostream& operator<<(ostream& o, location_st const& loc)
   return o;
 }
 
+// 
+// Find the full path to the current running process.
+// This needs to work before we reach main, therefore
+// it uses the /proc filesystem.  In order to be as
+// portable as possible the most general trick is used:
+// reading "/proc/PID/cmdline".  It expects that the
+// name of the program (argv[0] in main()) is returned
+// as a zero terminated string when reading this file.
+// 
+
+string full_path_to_executable(void) return result
+{
+  size_t const max_proc_path = sizeof("/proc/65535/cmdline\0");
+  char proc_path[max_proc_path];
+  ostrstream proc_path_str(proc_path, max_proc_path);
+
+  proc_path_str << "/proc/" << getpid() << "/cmdline" << ends;
+  ifstream proc_file(proc_path);
+
+  if (!proc_file)
+    DoutFatal(error_cf, "ifstream proc_file(\"" << proc_path << "\")");
+
+  string argv0;
+  proc_file >> argv0;
+  proc_file.close();
+
+  char full_path_buf[MAXPATHLEN];
+  char* full_path = realpath(argv0.data(), full_path_buf);
+
+  if (!full_path)
+    DoutFatal(error_cf, "realpath(\"" << argv0.data() << "\", full_path_buf)");
+
+  result = full_path;
+}
+
 static bool initialized = false;
+
+#if 1 //ndef __linux /* See below */
+namespace {
+
+struct my_link_map {
+  void* l_addr;
+  char l_name[MAXPATHLEN];
+  my_link_map(char const* start, size_t len, void* addr) : l_addr(addr)
+  {
+    if (len >= MAXPATHLEN)
+      len = MAXPATHLEN - 1;
+    strncpy(l_name, start, len);
+    l_name[len] = 0;
+  }
+};
+
+vector<my_link_map> shared_libs;
+
+int decode(char const* buf, size_t len)
+{
+  for (char const* p = buf; p < &buf[len]; ++p)
+    if (p[0] == '=' && p[1] == '>' && p[2] == ' ' && p[3] == '/')
+    {
+      p += 3;
+      char const* q;
+      for (q = p; q < &buf[len] && *q > ' '; ++q);
+      for (char const* r = q; r < &buf[len]; ++r)
+        if (r[0] == '(' && r[1] == '0' && r[2] == 'x')
+        {
+          char* s;
+          void* addr = reinterpret_cast<void*>(strtol(++r, &s, 0));
+          shared_libs.push_back(my_link_map(p, q - p, addr));
+	  break;
+        }
+      break;
+    }
+  return 0;
+}
+
+}; // anonymous namespace
+#endif
 
 static int libcw_bfd_init(void)
 {
+#ifdef DEBUGDEBUG
+  static bool entered = false;
+  if (entered)
+    DoutFatal(dc::core, "Bug in libcwd: libcw_bfd_init() called twice or recursively entering itself!  Please submit a full bug report to libcw@alinoe.com.");
+  entered = true;
+#endif
+
   // Initialize object files list
   new (object_files_instance_) object_files_ct;
 
   bfd_init();
 
   // Get the full path and name of executable
-  char fullpath[512];
-  int cmdline = open("/proc/self/cmdline", O_RDONLY);
-  int len = read(cmdline, fullpath, sizeof(fullpath));
-  if (len == -1)
-    DoutFatal( error_cf, "libcw_bfd_init: read" );
-  fullpath[len] = 0;
-  bfd_set_error_program_name(fullpath);
-  len = readlink("/proc/self/exe", fullpath, sizeof(fullpath) - 1);
-  if (len == -1)
-    DoutFatal( error_cf, "libcw_bfd_init: readlink" );
-  fullpath[len] = 0;
-  if (len == sizeof(fullpath) - 1)
-    DoutFatal( dc::fatal, "libcw_bfd_init: executable name too long (\"" << fullpath << "\")" );
+  string const fullpath(full_path_to_executable());
 
+  bfd_set_error_program_name(fullpath.data() + fullpath.find_last_of('/') + 1);
   bfd_set_error_handler(libcw_bfd_error_handler);
 
   // Load executable
   Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath << "... ");
-  new object_file_ct(fullpath, 0);
+  new object_file_ct(fullpath.data(), 0);
   Dout(dc::finish, "done");
 
   // Load all shared objects
+#if 0 //def __linux /* Commented out because it gives different results than ldd ?! */
+  // This is faster because we don't start a child process
   extern struct link_map* _dl_loaded;
   for (struct link_map* l = _dl_loaded; l; l = l->l_next)
+  {
+#if 0	// Balance bracket
+  }
+#endif
+#else
+  extern char **environ;
+
+  // Path to `ldd'
+  char const ldd_prog[] = "/usr/bin/ldd";
+
+  char const* argv[3];
+  argv[0] = "ldd";
+  argv[1] = fullpath.data();
+  argv[2] = NULL;
+  exec_prog(ldd_prog, argv, environ, decode);
+
+  for(vector<my_link_map>::iterator iter = shared_libs.begin(); iter != shared_libs.end(); ++iter)
+  {
+    my_link_map* l = &(*iter);
+#endif
     if (l->l_addr)
     {
       Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << " (" << hex << l->l_addr << ") ... ");
       new object_file_ct(l->l_name, reinterpret_cast<void*>(l->l_addr));
       Dout(dc::finish, "done");
     }
+  }
 
   object_files().sort(object_file_greater());
 

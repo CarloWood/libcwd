@@ -15,11 +15,14 @@
 #include <sys/poll.h>		// Needed for poll(2)
 #include <unistd.h>		// Needed for pipe(2), dup2(2), fork(2), read(2) and close(2)
 #include <errno.h>		// Needed for errno
+#include <signal.h>		// Needed for kill(2) and SIGKILL
+#include <sys/wait.h>		// Needed for waitpid(2)
 #include <libcw/h.h>
 #include <libcw/exec_prog.h>
 #ifdef DEBUG
 #include <libcw/debug.h>
 #include <libcw/buf2str.h>
+#include <libcw/cwprint.h>
 #include <fstream>
 #endif
 
@@ -44,8 +47,11 @@ static void print_poll_array_on(ostream& os, struct pollfd const ptr[2], size_t 
 
 int exec_prog(char const* prog_name, char const* const argv[], char const* const envp[], int (*decode_stdout)(char const*, size_t))
 {
-  Dout(dc::notice, "Entering exec_prog()");
-  Debug( libcw_do.set_indent(libcw_do.get_indent() + 8) );
+  Dout(dc::debug|continued_cf, "exec_prog(\"" << prog_name << "\", " << cwprint(::libcw::debug::argv_ct(argv)) << ", " << cwprint(::libcw::debug::environment_ct(envp)) << ", decode) = ");
+  Debug({
+    if (!dc::debug.is_on())
+      libcw_do.off();
+  });
 
   int stdout_filedes[2];
   int stderr_filedes[2];
@@ -77,7 +83,7 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
     case 0:
     {
 #ifdef DEBUG
-      Debug( libcw_do.set_margin("child: ") );
+      Debug( libcw_do.set_margin(string(prog_name) + ": ") );
       ofstream debug_stream(debug_filedes[1]);
       Debug( libcw_do.set_ostream(&debug_stream) );
       Debug( libcw_do.on() );
@@ -114,6 +120,8 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
       Dout(dc::system|error_cf, "fork() = -1");
       DoutFatal(dc::fatal, "Try undefining DEBUGUSEBFD");
     default:
+    {
+      pid_t pid = ret;
       Debug( libcw_do.on() );
       // Parent process
       Dout(dc::system, "fork() = " << ret << " [parent process]");
@@ -144,7 +152,7 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
       ufds[2].fd = debug_filedes[0];
       ufds[2].events = POLLIN;
 #endif
-      while(number_of_fds > 0)
+      do
       {
 	Dout(dc::system|continued_cf, "poll(");
 	ret = poll(ufds, number_of_fds, -1);
@@ -194,12 +202,19 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
 		    if (decode_stdout(decodebuf[fd].begin(), decodebuf[fd].size()) == -1)
 		    {
 		      Dout(dc::notice, "decode_stdout() returned -1, terminating child process.");
+		      Dout(dc::system, "kill(" << pid << ", SIGKILL) = ");
+		      ret = kill(pid, SIGKILL);
+		      Dout(dc::finish|cond_error_cf(ret == -1), ret);
 		      for (int fd = 0; fd < number_of_fds; ++fd)
 		      {
 		        ret = close(ufds[fd].fd);
 			Dout(dc::system|cond_error_cf(ret == -1), "close(" << ufds[fd].fd << ") = " << ret);
 		      }
 		      number_of_fds = 0;
+		      ret = 256;
+		      len = 1;
+		      readbuf[len - 1] = '\n';
+		      break;
 		    }
 		  }
 		  else if (ufds[fd].fd == stderr_filedes[0])
@@ -221,21 +236,40 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
 	  else if ((ufds[fd].revents & (POLLERR|POLLHUP|POLLNVAL)))
 	  {
 	    --number_of_fds;
-	    if (fd <number_of_fds)
+	    if (fd < number_of_fds)
 	    {
 	      ufds[fd] = ufds[number_of_fds];
 	      decodebuf[fd] = decodebuf[number_of_fds];
+	    }
+	    if (number_of_fds == 0)
+	    {
+	      int status;
+	      Dout(dc::system|continued_cf, "waitpid(" << pid << ", { ");
+	      ret = waitpid(pid, &status, 0);
+	      Dout(dc::finish|cond_error_cf(ret == -1), hex << status << " }, 0) = " << dec << ret);
+	      if (WIFEXITED(status))
+	        ret = WEXITSTATUS(status);
+	      else
+	      {
+	        Dout(dc::warning, "exec_prog: Child process \"" << prog_name << "\" terminated abnormally.");
+	        ret = -1;
+	      }
 	    }
 	    break;
 	  }
         }
       }
+      while(number_of_fds > 0);
       break;
+    }
   }
 
-  Debug( libcw_do.set_indent(libcw_do.get_indent() - 8) );
-  Dout(dc::notice, "Leaving exec_prog()");
-  return 0;
+  Dout(dc::finish, ret);
+  Debug({
+    if (!dc::debug.is_on())
+      libcw_do.on();
+  });
+  return ret;
 }
 
 #ifdef DEBUG
