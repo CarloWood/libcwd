@@ -17,6 +17,28 @@ libcwd-0.99.17
 	that is defined under preferences -> appearance -> fonts.
 	This should be set to -adobe-helvetica-*-.
 
+	Fixed a dead lock in object_file_ct::find_nearest_line().
+	The dead lock occured when debug output written from
+	load_dwarf/load_stabs, which must be done with userspace
+	allocations, caused a recursive entry into this function.
+
+	Fixed a dead lock in std::__default_allocator<true, 0>, the
+	default userspace allocator of the STL.  The problem here
+	is that this lock is set when it calls malloc() to increase
+	its internal memory pool, causing a dead lock when memory
+	needs to be allocated during the writing of debug output
+	to dc::malloc or dc::bfd (this happens *extremely* seldom,
+	I even knew about this when I released 0.99.16).  The solution
+	is to queue messages instead of writing them to the final
+	ostream when we find that the std::__default_allocator<true, 0>
+	is set and we are printing debug output from within malloc()
+	et al (then we assume we took the lock).  The queued messages
+	are flushed the first time this condition is not true.  The
+	queue is debug object specific which means that if you use
+	two or more different debug objects that write to the same
+	ostream, the ordering of messages could become non chronologic,
+	but then again - we could also put a man on Pluto next year.
+
 libcwd-0.99.16
 
 	* libcwd is now thread-safe *

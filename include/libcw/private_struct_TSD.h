@@ -136,9 +136,9 @@ public:
 #ifdef DEBUGMALLOC
   int internal;
   int library_call;
+  int inside_malloc_or_free;	// Set when entering a (de)allocation routine non-internal.
 #ifdef DEBUGDEBUGMALLOC
   int marker;
-  int recursive;        	// Used for sanity double checks in debugmalloc.cc.
 #endif
 #endif // DEBUGMALLOC
   bool recursive_fatal;		// Detect loop involving dc::fatal or dc::core.

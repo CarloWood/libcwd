@@ -13,6 +13,14 @@
 
 #include "sys.h"
 #include <libcw/debug_config.h>
+
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+// This has to be very early (must not have been included elsewhere already).
+#define private public  // Ugly, I know.
+#include <bits/stl_alloc.h>
+#undef private
+#endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+
 #include <errno.h>
 #include <iostream>
 #include <sys/time.h>     	// Needed for setrlimit()
@@ -59,8 +67,42 @@ using libcw::debug::_private_::debug_channels_instance;
 namespace libcw {
   namespace debug {
 
+namespace _private_ {
+
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+// The following tries to take the "node allocator" lock -- the lock of the
+// default allocator for threaded applications. The parameter is the value to
+// return when no lock exist. This should probably be implemented as a macro
+// test instead.
+__inline__
+bool allocator_trylock(void)
+{
+  if (!(__NODE_ALLOCATOR_THREADS)) return true;
+#if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
+  if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
+    std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
+#endif
+  return (__gthread_mutex_trylock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock) == 0);
+}
+
+// The following unlocks the node allocator.
+__inline__
+void allocator_unlock(void)
+{
+  if (!(__NODE_ALLOCATOR_THREADS)) return;
+#if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
+  if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
+    std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
+#endif
+  __gthread_mutex_unlock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
+}
+#endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+
+} // namespace _private_
+
     using _private_::set_alloc_checking_on;
     using _private_::set_alloc_checking_off;
+    using _private_::debug_message_st;
 
     class buffer_ct : public _private_::internal_stringstream {
     private:
@@ -71,24 +113,56 @@ namespace libcw {
 #endif
     public:
 #ifdef LIBCWD_THREAD_SAFE
-      void writeto(std::ostream* os, _private_::lock_interface_base_ct* mutex LIBCWD_COMMA_TSD_PARAM)
-#else
-      void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM)
+      void writeto(std::ostream* os, _private_::lock_interface_base_ct* mutex LIBCWD_COMMA_TSD_PARAM, debug_ct&
+#ifdef DEBUGMALLOC
+	  debug_object
 #endif
+	  )
+#else
+      void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct&
+#ifdef DEBUGMALLOC
+	  debug_object
+#endif
+	  )
+#endif // LIBCWD_THREAD_SAFE
       {
-	char* buf;
-	bool used_malloc = false;
-	int curlen = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out) - rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
-	if (curlen > 512 || !(buf = (char*)__builtin_alloca(curlen)))
+#if defined(DEBUGMALLOC) && defined(LIBCWD_THREAD_SAFE)
+	typedef debug_message_st* msgbuf_t;
+	msgbuf_t msgbuf;
+	// Queue the message when the default (STL) allocator is locked and it could be that we
+	// did that (because we got here via malloc or free).  At least as important: if
+	// this is the last thread, just prior to exiting the application, and we CAN
+	// get the lock - then DON'T queue the message (and thus flush all possibly queued
+	// messages); this garantees that there will never messages be left in the queue
+	// when the application exits.
+        bool const queue_msg = __libcwd_tsd.inside_malloc_or_free && !_private_::allocator_trylock();
+	if (__libcwd_tsd.inside_malloc_or_free && !queue_msg)
+	  _private_::allocator_unlock();	// Always immedeately release the lock again.
+	int const extra_size = sizeof(debug_message_st) - sizeof(msgbuf->buf);
+#else
+	typedef char* msgbuf_t;
+	msgbuf_t msgbuf;
+        bool const queue_msg = false;
+	int const extra_size = 0;
+#endif
+	int curlen;
+	curlen = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out) - rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
+	bool free_msgbuf = false;
+	if (queue_msg)
+	  msgbuf = (msgbuf_t)malloc(curlen + extra_size);
+	else if (curlen > 512 || !(msgbuf = (msgbuf_t)__builtin_alloca(curlen + extra_size)))
 	{
-	  set_alloc_checking_off(LIBCWD_TSD);
-	  buf = (char*)malloc(curlen);
-	  set_alloc_checking_on(LIBCWD_TSD);
-	  used_malloc = true;
+	  msgbuf = (msgbuf_t)malloc(curlen + extra_size);
+	  free_msgbuf = true;
 	}
-	rdbuf()->sgetn(buf, curlen);
+#if defined(DEBUGMALLOC) && defined(LIBCWD_THREAD_SAFE)
+	rdbuf()->sgetn(msgbuf->buf, curlen);
+#else
+	rdbuf()->sgetn(msgbuf, curlen);
+#endif
 #ifdef DEBUGMALLOC
 	// Writing to the final std::ostream (ie std::cerr) must be non-internal!
+	// LIBCWD_DISABLE_CANCEL/LIBCWD_ENABLE_CANCEL must be done non-internal too.
 	int saved_internal = __libcwd_tsd.internal;
 	__libcwd_tsd.internal = 0;
 	++__libcwd_tsd.library_call;
@@ -97,40 +171,69 @@ namespace libcw {
 #ifdef LIBCWD_THREAD_SAFE
 	LIBCWD_DISABLE_CANCEL			// We don't want Dout() to be a cancellation point.
 	if (mutex)
-	{
 	  mutex->lock();
-	  os->write(buf, curlen);
-	  mutex->unlock();
-	}
 	else if (_private_::WST_multi_threaded)
 	{
 	  static bool WST_second_time = false;	// Break infinite loop.
-	  if (WST_second_time)
-	    os->write(buf, curlen);
-	  else
+	  if (!WST_second_time)
 	  {
 	    WST_second_time = true;
 	    DoutFatal(dc::core, "When using multiple threads, you must provide a locking mechanism for the debug output stream.  "
 		"You can pass a pointer to a mutex with `debug_ct::set_ostream' (see documentation/html/group__group__destination.html).");
 	  }
 	}
+#endif // !LIBCWD_THREAD_SAFE
+#if defined(DEBUGMALLOC) && defined(LIBCWD_THREAD_SAFE)
+	if (queue_msg)			// Inside a call to malloc and possibly owning lock of std::__default_alloc_template<true, 0>?
+	{
+	  // We don't write debug output to the final ostream when inside malloc and std::__default_alloc_template<true, 0> is locked.
+	  // It is namely possible that this will again try to acquire the lock in std::__default_alloc_template<true, 0>, resulting
+	  // in a dead lock.  Append it to the queue instead.
+	  msgbuf->curlen = curlen;
+	  msgbuf->prev = NULL;
+	  msgbuf->next = debug_object.queue;
+	  if (debug_object.queue)
+	    debug_object.queue->prev = msgbuf;
+	  else
+	    debug_object.queue_top = msgbuf;
+	  debug_object.queue = msgbuf;
+	}
 	else
-	  os->write(buf, curlen);
+	{
+	  debug_message_st* message = debug_object.queue_top;
+	  if (message)
+	  {
+	    // First empty the whole queue.
+	    debug_message_st* next_message;
+	    do
+	    {
+	      next_message = message->prev;
+	      os->write(message->buf, message->curlen);
+	      __libcwd_tsd.internal = 1;
+	      free(message);
+	      __libcwd_tsd.internal = 0;
+	    }
+	    while ((message = next_message));
+	    debug_object.queue_top = debug_object.queue = NULL;
+	  }
+	  // Then write the new message.
+	  os->write(msgbuf->buf, curlen);
+	}
+#else // !(defined(DEBUGMALLOC) && defined(LIBCWD_THREAD_SAFE))
+	os->write(msgbuf, curlen);
+#endif // !DEBUGMALLOC
+#ifdef LIBCWD_THREAD_SAFE
+	if (mutex)
+	  mutex->unlock();
 	LIBCWD_ENABLE_CANCEL
-#else // !LIBCWD_THREAD_SAFE
-	os->write(buf, curlen);
 #endif // !LIBCWD_THREAD_SAFE
 #ifdef DEBUGMALLOC
 	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	--__libcwd_tsd.library_call;
 	__libcwd_tsd.internal = saved_internal;
 #endif
-	if (used_malloc)
-	{
-	  set_alloc_checking_off(LIBCWD_TSD);
-	  free(buf);
-	  set_alloc_checking_on(LIBCWD_TSD);
-	}
+	if (free_msgbuf)
+	  free(msgbuf);
       }
       void store_position(void) {
 	position = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out);
@@ -735,7 +838,7 @@ namespace libcw {
 	current_oss->write("<unfinished>\n", 13);		// Continued debug output should end on a space by itself,
 	// And write out what is in the buffer till now.
 	std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
-	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD);
+	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD, debug_object);
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
 	static_cast<buffer_ct*>(current_oss)->restore_position();
 	current_oss->write("<continued> ", 12);		// therefore we repeat the space here.
@@ -831,7 +934,7 @@ namespace libcw {
 	if ((current->mask & flush_cf))
 	{
 	  // Write buffer to ostream.
-	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD);
+	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD, debug_object);
 	  // Flush ostream.  Note that in the case of nested debug output this `os' can be an stringstream,
 	  // in that case, no actual flushing is done until the debug output to the real ostream has
 	  // finished.
@@ -851,7 +954,7 @@ namespace libcw {
 	current_oss->put('\n');
 
       // Write buffer to ostream.
-      static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD);
+      static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD, debug_object);
 
       // Handle control flags, if any:
       if (current->mask != 0)
@@ -1066,44 +1169,14 @@ namespace libcw {
 
     debug_tsd_st::~debug_tsd_st()
     {
-      if (!tsd_initialized)	// Don't de-initialize when it wasn't initialized.
+      if (!tsd_initialized)	// Skip when it wasn't initialized.
 	return;
       // Sanity checks:
       if (continued_stack.size())
         DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty continued_stack (missing dc::finish?)" );
       if (laf_stack.size())
         DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty laf_stack" );
-
-      LIBCWD_TSD_DECLARATION
-      set_alloc_checking_off(LIBCWD_TSD);
-      marker.ST_internal_deinit();
-      margin.ST_internal_deinit();
-      set_alloc_checking_on(LIBCWD_TSD);
-      tsd_initialized = false;
-    }
-
-    /**
-     * \brief Destructor
-     */
-    debug_ct::~debug_ct()
-    {
-      WNS_initialized = false;
-#ifdef DEBUGDEBUG
-      init_magic = 0;
-#endif
-      LIBCWD_TSD_DECLARATION
-      LIBCWD_DEFER_CANCEL
-      set_alloc_checking_off(LIBCWD_TSD);
-      DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
-      {
-        _private_::debug_objects_ct::container_type& objects(_private_::debug_objects.write_locked());
-        objects.erase(find(objects.begin(), objects.end(), this));
-        if (objects.empty())
-	  _private_::debug_objects.ST_uninit();
-      }
-      DEBUG_OBJECTS_RELEASE_WRITE_LOCK
-      set_alloc_checking_on(LIBCWD_TSD);
-      LIBCWD_RESTORE_CANCEL
+      // Don't actually deinitialize anything.
     }
 
     /**
@@ -1450,7 +1523,7 @@ namespace libcw {
 	LIBCWD_TSD_DECLARATION
 	if (__libcwd_tsd.recursive_assert
 #ifdef DEBUGDEBUGMALLOC
-	    || __libcwd_tsd.recursive
+	    || __libcwd_tsd.inside_malloc_or_free
 #endif
 	    ) 
 	{

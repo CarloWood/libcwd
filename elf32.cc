@@ -798,7 +798,11 @@ private:
   object_files_string_set_ct M_source_files;
   object_files_range_location_map_ct M_ranges;
   bool M_debug_info_loaded;
+#ifndef LIBCWD_THREAD_SAFE
   bool M_inside_find_nearest_line;
+#else
+  static pthread_t S_thread_inside_find_nearest_line;
+#endif
   Elf32_Word M_stabs_section_index;
   Elf32_Word M_dwarf_debug_info_section_index;
   Elf32_Word M_dwarf_debug_abbrev_section_index;
@@ -826,6 +830,10 @@ private:
     inline void object_file_ct::dwarf_read(unsigned char const*& debug_info_ptr, T& x);
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
 };
+
+#ifdef LIBCWD_THREAD_SAFE
+pthread_t object_file_ct::S_thread_inside_find_nearest_line;
+#endif
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1868,13 +1876,11 @@ void object_file_ct::load_stabs(void)
 
 void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, char const** file, char const** func, unsigned int* line)
 {
-  if (!M_debug_info_loaded)
+  while (!M_debug_info_loaded)	// So we can use 'break'.
   {
-#ifdef LIBCWD_THREAD_SAFE
-    // `object_files_string' and the STL containers using `_private_::object_files_allocator' in the
-    // following functions need this lock.
-    _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
-#endif
+    // The call to load_dwarf()/load_stabs() below can call malloc, causing us to recursively enter this function
+    // for this object or another object_file_ct.
+#ifndef LIBCWD_THREAD_SAFE
     if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
     {
       *file = NULL;
@@ -1883,6 +1889,29 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
       return;
     }
     M_inside_find_nearest_line = true;
+#else
+    // `S_thread_inside_find_nearest_line' is only *changed* inside the critical area
+    // of `object_files_instance'.  Therefore, when it is set to our thread id at
+    // this moment - then other threads can't change it.
+    if (pthread_equal(S_thread_inside_find_nearest_line, pthread_self()))
+    {
+      // This thread set the lock.  Don't try to acquire it again...
+      *file = NULL;
+      *func = symbol->name;
+      *line = 0;
+      return;
+    }
+    // Ok, now we are sure that THIS thread doesn't hold the following lock, try to acquire it.
+    // `object_files_string' and the STL containers using `_private_::object_files_allocator' in the following functions need this lock.
+    _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
+    // Now we acquired the lock, check again if another thread not already read the debug info.
+    if (M_debug_info_loaded)
+    {
+      _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
+      break;
+    }
+    S_thread_inside_find_nearest_line = pthread_self();
+#endif
 #if DEBUGSTABS || DEBUGDWARF
     libcw::debug::debug_ct::OnOffState state;
     Debug( libcw_do.force_on(state) );
@@ -1897,11 +1926,14 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
     Debug( dc::bfd.restore(state2) );
     Debug( libcw_do.restore(state) );
 #endif
+#ifndef LIBCWD_THREAD_SAFE
     M_inside_find_nearest_line = false;
-#ifdef LIBCWD_THREAD_SAFE
+#else
+    S_thread_inside_find_nearest_line = (pthread_t) 0;
     _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
 #endif
     M_input_stream.close();
+    break;
   }
   range_st range;
   range.start = offset;
@@ -1991,7 +2023,9 @@ object_file_ct::object_file_ct(char const* file_name) :
   if (DEBUGELF32)
     Debug( libcw_do.inc_indent(4) );
   M_debug_info_loaded = false;
+#ifndef LIBCWD_THREAD_SAFE
   M_inside_find_nearest_line = false;
+#endif
   M_stabs_section_index = 0;
   M_dwarf_debug_line_section_index = 0;
   for(int i = 0; i < M_header.e_shnum; ++i)

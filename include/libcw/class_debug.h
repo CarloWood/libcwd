@@ -41,6 +41,19 @@
 namespace libcw {
   namespace debug {
 
+#ifdef DEBUGMALLOC
+namespace _private_ {
+
+struct debug_message_st {
+  struct debug_message_st* next;
+  struct debug_message_st* prev;
+  int curlen;
+  char buf[sizeof(int)];
+};
+
+}
+#endif
+
 //===================================================================================================
 // class debug_ct
 //
@@ -109,6 +122,14 @@ private:
 
   bool interactive;
     // Set true if the last or current debug output is to cerr
+
+#ifdef DEBUGMALLOC
+public:
+  _private_::debug_message_st* queue;
+  _private_::debug_message_st* queue_top;
+    // Queue of messages written inside malloc/realloc/calloc/free/new/delete.
+    // Locked by mutex provided through set_ostream.
+#endif
 
 public:
   /** \addtogroup group_formatting */
@@ -189,7 +210,6 @@ public:
   //
 
   debug_ct(void);
-  ~debug_ct();
 
 private:
   void private_set_ostream(std::ostream* os);

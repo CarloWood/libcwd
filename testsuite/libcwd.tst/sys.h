@@ -19,6 +19,7 @@
 #endif
 #include <libcw/sysd.h>
 
+#undef _GNU_SOURCE
 #include "../../config.h"
 #ifdef HAVE__G_CONFIG_H
 #include <_G_config.h>

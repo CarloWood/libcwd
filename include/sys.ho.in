@@ -15,6 +15,7 @@
 #ifndef SYS_H
 #define SYS_H
 
+#undef _GNU_SOURCE		// Could be defined by g++ itself and redefined in ../config.h
 #include "../config.h"
 
 //
