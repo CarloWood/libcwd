@@ -63,3 +63,7 @@ install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(libcwddir)
 	$(INSTALL_DATA) $(EXTRA_HEADERS) $(DESTDIR)$(libcwddir)
 
+uninstall-local:
+	cd $(DESTDIR)$(libcwddir); rm -f $(EXTRA_HEADERS)
+	rmdir $(DESTDIR)$(libcwddir)
+

@@ -31,7 +31,7 @@ allocator_SOURCES = allocator.cc
 stabs_SOURCES = stabs.cc
 lines_SOURCES = lines.cc
 
-include_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h
+noinst_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h
 
 LDADD = ../libcwd.la
 full_top_builddir := $(shell (cd $(top_builddir); pwd))
