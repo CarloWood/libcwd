@@ -1,12 +1,16 @@
 Summary: C++ Debugging Support library for writing debug output and memory allocation debugging.
 Name: libcwd
-Version: @VERSION@
+%define __prefix /usr
+%define version @VERSION@
+Version: %{version}
 Release: 1
-Copyright: QPL
 Group: Development/Libraries
-Source: http://download.sourceforge.net/libcw/libcwd-@VERSION@.tar.gz
-Prefix: /usr
-Buildroot: /var/tmp/libcwd-root
+Source: http://download.sourceforge.net/libcw/libcwd-%{version}.tar.gz
+Copyright: QPL
+%ifos linux
+Requires: gcc >= 2.95.1, gcc-c++ >= 2.95.1, binutils >= 2.9
+%endif
+Buildroot: %{_tmppath}/%{name}-root
 
 %description
 Libcwd is a full-featured, professional, well documented library to support
@@ -19,18 +23,22 @@ demangled type-names of variables.
 %setup
 
 %build
-./configure --prefix=/usr
+./configure --prefix=%{__prefix}
 make
 
 %install
+rm -rf "$RPM_BUILD_ROOT"
 make DESTDIR="$RPM_BUILD_ROOT" install
 
 %clean
-rm -rf /var/tmp/libcwd-root
+rm -rf "$RPM_BUILD_ROOT"
 
 %files
 %defattr(-,root,root)
 %doc README
+%dir %{__prefix}/include/libcw
+%{__prefix}/lib/*
+%{__prefix}/include/libcw/*
 
 @CHANGELOG@
 
