@@ -21,17 +21,17 @@
 
 RCSTAG_CC("$Id$")
 
-void dc_test(void);
-
 #ifdef DEBUG
 #ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
 #endif
-    namespace dc {
-      channel_ct foo("FOO");
-      channel_ct bar("BAR");
-      channel_ct run("RUN");
+    namespace channels {
+      namespace dc {
+	channel_ct foo("FOO");
+	channel_ct bar("BAR");
+	channel_ct run("RUN");
+      };
     };
 #ifndef DEBUGNONAMESPACE
   };
@@ -344,13 +344,5 @@ int main(void)
   cout << "===========================================================================\n";
   cout << " Continued tests, depth 2\n\n";
 
-  dc_test();
-
   return 0;
-}
-
-void dc_test(void)
-{
-  Dout( system_dc|notice_dc, "This is the _dc test" );
-  Dout( notice_dc|flush_cf|wait_cf, "This is the _dc test" );
 }

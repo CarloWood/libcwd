@@ -46,8 +46,10 @@ char* cplus_demangle (char const* mangled, int options);
 namespace libcw {
   namespace debug {
 #endif
-    namespace dc {
-      channel_ct const bfd("BFD");
+    namespace channels {
+      namespace dc {
+	channel_ct const bfd("BFD");
+      };
     };
 #ifndef DEBUGNONAMESPACE
   };
@@ -63,7 +65,7 @@ namespace {	// Local stuff
   {
     va_list vl;
     va_start(vl, format);
-    Dout_vform(NAMESPACE_LIBCW_DEBUG::dc::bfd, format, vl);
+    Dout_vform(NAMESPACE_LIBCW_DEBUG::channels::dc::bfd, format, vl);
     va_end(vl);
   }
 

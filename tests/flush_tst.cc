@@ -22,8 +22,10 @@ RCSTAG_CC("$Id$")
 namespace libcw {
   namespace debug {
 #endif
-    namespace dc {
-      channel_ct generate("GENERATE");
+    namespace channels {
+      namespace dc {
+	channel_ct generate("GENERATE");
+      };
     };
 #ifndef DEBUGNONAMESPACE
   };

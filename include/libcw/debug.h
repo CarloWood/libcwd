@@ -37,18 +37,19 @@ RCSTAG_H(debug, "$Id$")
 #      define LIBCW ::libcw
 #    endif
 #    ifndef DEBUGNAMESPACE
-#      define DEBUGNAMESPACE NAMESPACE_LIBCW_DEBUG
+#      define DEBUGNAMESPACE NAMESPACE_LIBCW_DEBUG::channels
 #    endif
 #    define UNUSED_UNLESS_DEBUG(x) x
 #    include <assert.h>
 #    define ASSERT(x) assert(x);
-#    define LibcwDebug(dc_namespace, x) do { using namespace dc_namespace; (x); } while(0)
+#    define LibcwDebug(dc_namespace, x) do { USING_NAMESPACE_LIBCW_DEBUG using namespace dc_namespace; (x); } while(0)
 #    define Debug(x) LibcwDebug(DEBUGNAMESPACE, x)
-#    define __Debug(x) LibcwDebug(NAMESPACE_LIBCW_DEBUG, x)
+#    define __Debug(x) LibcwDebug(NAMESPACE_LIBCW_DEBUG::channels, x)
 #    define ForAllDebugObjects(STATEMENT) \
        for( NAMESPACE_LIBCW_DEBUG::debug_objects_ct::iterator __libcw_i(NAMESPACE_LIBCW_DEBUG::debug_objects->begin()); __libcw_i != NAMESPACE_LIBCW_DEBUG::debug_objects->end(); ++__libcw_i) \
        { \
          USING_NAMESPACE_LIBCW_DEBUG \
+	 using namespace DEBUGNAMESPACE; \
          debug_ct& debugObject(*(*__libcw_i)); \
 	 STATEMENT; \
        }
@@ -56,6 +57,7 @@ RCSTAG_H(debug, "$Id$")
        for( NAMESPACE_LIBCW_DEBUG::debug_channels_ct::iterator __libcw_i(NAMESPACE_LIBCW_DEBUG::debug_channels->begin()); __libcw_i != NAMESPACE_LIBCW_DEBUG::debug_channels->end(); ++__libcw_i) \
        { \
          USING_NAMESPACE_LIBCW_DEBUG \
+	 using namespace DEBUGNAMESPACE; \
          channel_ct& debugChannel(*(*__libcw_i)); \
 	 STATEMENT; \
        }
@@ -134,23 +136,6 @@ namespace libcw {
     // class channel_ct
     //
     // This object represents a debug channel.
-    // Debug channels should be declared within the namespace `::libcw::debug'.
-    //
-    // Example:
-    //
-    //  namespace libcw {
-    //    namespace debug {
-    //      channel_ct const my_channel("MY_LABEL");
-    //    };
-    //  };
-    //
-    //  Makes it possible to use:
-    //
-    //  Dout( my_channel, "foobar" );
-    //
-    //  Which will then output :
-    //
-    //  MY_LABEL: foobar
     //
 
     class channel_ct {
@@ -618,22 +603,23 @@ namespace libcw {
       continued_channel_set_st& operator|(continued_channel_ct const& cdc);
     };
 
-    namespace dc {
-      extern channel_ct const debug;
-      extern channel_ct const notice;
-      extern channel_ct const system;
-      extern channel_ct const warning;
+    namespace channels {
+      namespace dc {
+	extern channel_ct const debug;
+	extern channel_ct const notice;
+	extern channel_ct const system;
+	extern channel_ct const warning;
 #ifdef DEBUGMALLOC
-      extern channel_ct const debugmalloc;
+	extern channel_ct const debugmalloc;
 #else
-      extern channel_ct const malloc;
+	extern channel_ct const malloc;
 #endif
-      extern fatal_channel_ct const fatal;
-      extern fatal_channel_ct const core;
-      extern continued_channel_ct const continued;
-      extern continued_channel_ct const finish;
-    };	// namespace dc
-
+	extern fatal_channel_ct const fatal;
+	extern fatal_channel_ct const core;
+	extern continued_channel_ct const continued;
+	extern continued_channel_ct const finish;
+      };	// namespace dc
+    };		// namespace channels
     extern debug_ct libcw_do;
     typedef vector<debug_ct*> debug_objects_ct;
     extern debug_objects_ct* debug_objects;
@@ -661,6 +647,7 @@ namespace libcw {
     {								\
       bool on;							\
       {								\
+        USING_NAMESPACE_LIBCW_DEBUG				\
         using namespace dc_namespace;				\
 	on = (debug_obj|cntrl).on;				\
       }								\
@@ -685,6 +672,7 @@ namespace libcw {
     {								\
       bool on;							\
       {								\
+        USING_NAMESPACE_LIBCW_DEBUG				\
         using namespace dc_namespace;				\
 	on = (debug_obj|cntrl).on;				\
       }								\
@@ -707,6 +695,7 @@ namespace libcw {
   do							\
   { DEBUGDEBUGLIBCWDOUTFATALMARKER			\
     {							\
+      USING_NAMESPACE_LIBCW_DEBUG			\
       using namespace dc_namespace;			\
       debug_obj|cntrl;					\
     }							\
@@ -716,9 +705,9 @@ namespace libcw {
   } while(0)
 
 // For use in library header files
-#define __Dout(cntrl, data) LibcwDout(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
-#define __Dout_vform(cntrl, format, vl) LibcwDout_vform(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
-#define __DoutFatal(cntrl, data) LibcwDoutFatal(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define __Dout(cntrl, data) LibcwDout(NAMESPACE_LIBCW_DEBUG::channels, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define __Dout_vform(cntrl, format, vl) LibcwDout_vform(NAMESPACE_LIBCW_DEBUG::channels, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
+#define __DoutFatal(cntrl, data) LibcwDoutFatal(NAMESPACE_LIBCW_DEBUG::channels, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
 
 // For use in applications
 #define Dout(cntrl, data) LibcwDout(DEBUGNAMESPACE, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)

@@ -45,18 +45,20 @@ namespace libcw {
     						// if a custom channel has a longer label.
     };
 
-    namespace dc {
-      channel_ct const debug("DEBUG");
-      channel_ct const notice("NOTICE");
-      channel_ct const warning("WARNING");
-      channel_ct const system("SYSTEM");
-      channel_ct const malloc("MALLOC");
+    namespace channels {
+      namespace dc {
+	channel_ct const debug("DEBUG");
+	channel_ct const notice("NOTICE");
+	channel_ct const warning("WARNING");
+	channel_ct const system("SYSTEM");
+	channel_ct const malloc("MALLOC");
 
-      continued_channel_ct const continued(continued_maskbit);
-      continued_channel_ct const finish(finish_maskbit);
+	continued_channel_ct const continued(continued_maskbit);
+	continued_channel_ct const finish(finish_maskbit);
 
-      fatal_channel_ct const fatal("FATAL", fatal_maskbit);
-      fatal_channel_ct const core("COREDUMP", coredump_maskbit);
+	fatal_channel_ct const fatal("FATAL", fatal_maskbit);
+	fatal_channel_ct const core("COREDUMP", coredump_maskbit);
+      };
     };
 
     debug_channels_ct* debug_channels = NULL;	// List with all channel_ct objects.
@@ -346,7 +348,7 @@ namespace libcw {
       // current.mask needs to be 0 to avoid a crash in start():
       static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
       set_alloc_checking_off();
-      current = new (dummy_laf) laf_ct(0, dc::debug.label, NULL, 0);	// Leaks memory 24 bytes of memory
+      current = new (dummy_laf) laf_ct(0, channels::dc::debug.label, NULL, 0);	// Leaks memory 24 bytes of memory
       set_alloc_checking_on();
       laf_stack.init();
       continued_stack.init();
@@ -646,9 +648,9 @@ namespace libcw {
     void* no_alloc_checking_alloc(size_t size)
     {
       set_alloc_checking_off();
-      dc::malloc.off();
+      channels::dc::malloc.off();
       void* ptr = (void*)new char[size];
-      dc::malloc.on();
+      channels::dc::malloc.on();
       set_alloc_checking_on();
       return ptr;
     }
@@ -656,9 +658,9 @@ namespace libcw {
     void no_alloc_checking_free(void* ptr)
     {
       set_alloc_checking_off();
-      dc::malloc.off();
+      channels::dc::malloc.off();
       delete [] (char*)ptr;
-      dc::malloc.on();
+      channels::dc::malloc.on();
       set_alloc_checking_on();
     }
 #endif

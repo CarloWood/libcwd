@@ -35,8 +35,10 @@ RCSTAG_CC("$Id$")
 namespace libcw {
   namespace debug {
 #endif
-    namespace dc {
-      channel_ct const hello("HELLO");
+    namespace channels {
+      namespace dc {
+	channel_ct const hello("HELLO");
+      };
     };
 #ifndef DEBUGNONAMESPACE
   };

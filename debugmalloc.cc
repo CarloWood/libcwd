@@ -1434,15 +1434,15 @@ namespace libcw {
     {
 #if 0
       // Print out the entire `map':
-      LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, dc::debugmalloc, "map:" );
+      LibcwDout( NAMESPACE_LIBCW_DEBUG::channels, debug_object, dc::debugmalloc, "map:" );
       int cnt = 0;
       for(memblk_map_ct::const_iterator i(memblk_map->begin()); i != memblk_map->end(); ++i)
-	LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, dc::debugmalloc|nolabel_cf, << ++cnt << ":\t(*i).first = " << (*i).first << '\n' << "\t(*i).second = " << (*i).second );
+	LibcwDout( NAMESPACE_LIBCW_DEBUG::channels, debug_object, dc::debugmalloc|nolabel_cf, << ++cnt << ":\t(*i).first = " << (*i).first << '\n' << "\t(*i).second = " << (*i).second );
 #endif
 
-      LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, dc::debugmalloc, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks." );
+      LibcwDout( NAMESPACE_LIBCW_DEBUG::channels, debug_object, dc::debugmalloc, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks." );
       if (base_alloc_list)
-	base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::dc::debugmalloc);
+	base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::channels::dc::debugmalloc);
     }
 
 #ifndef DEBUGNONAMESPACE
@@ -1455,7 +1455,7 @@ void list_allocations_on_cerr(void)
 {
   Dout( dc::warning|cerr_cf, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks.");
   if (base_alloc_list)
-    base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::dc::debugmalloc);
+    base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::channels::dc::debugmalloc);
 }
 
 
@@ -1604,7 +1604,7 @@ debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
   if ((*i).second.a_alloc_node.get()->next_list())
   {
     Dout( dc::warning, "Memory leak detected!" );
-    (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::dc::warning);
+    (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::channels::dc::warning);
   }
 #endif
 

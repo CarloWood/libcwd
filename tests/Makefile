@@ -11,7 +11,7 @@ SUBDIRS:=$(shell find . -maxdepth 1 -mindepth 1 -type d ! -name CVS)
 STATICLIBS=
 
 # Extra shared libraries to link with:
-SHAREDLIBS=-lcwd
+SHAREDLIBS=-lcwd -lbfd -liberty
 
 # Use -L${LIBCWDIR}/lib to use the latest alpha version:
 LIBFLAGS=-L${BASEDIR}/lib
