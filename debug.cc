@@ -21,11 +21,11 @@
 #undef private
 #endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
 
-#include <errno.h>
+#include <cerrno>
 #include <iostream>
+#include <algorithm>
 #include <sys/time.h>     	// Needed for setrlimit()
 #include <sys/resource.h>	// Needed for setrlimit()
-#include <algorithm>
 #include <new>
 #include "cwd_debug.h"
 #include <libcw/strerrno.h>

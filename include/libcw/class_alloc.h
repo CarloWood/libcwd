@@ -38,6 +38,10 @@
 #ifndef LIBCW_SMART_PTR_H
 #include <libcw/smart_ptr.h>
 #endif
+#ifndef LIBCW_SYS_TIME_H
+#define LIBCW_SYS_TIME_H
+#include <sys/time.h>				// Needed for struct timeval.
+#endif
 
 namespace libcw {
   namespace debug {

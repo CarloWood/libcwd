@@ -207,7 +207,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       class object_file_ct;
 
       // cwbfd::
-      typedef std::list<cwbfd::object_file_ct*, _private_::object_files_allocator> object_files_ct;
+      typedef std::list<cwbfd::object_file_ct*, _private_::object_files_allocator::rebind<cwbfd::object_file_ct*>::other> object_files_ct;
 
       // cwbfd::
       class object_file_ct {					// All allocations related to cwbfd::object_file_ct must be `internal'.
@@ -512,7 +512,8 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    {
 	      __libcwd_tsd.internal = saved_internal;
 	      // The following code uses a heuristic approach to guess the start of an object file.
-	      typedef std::map<void*, unsigned int, std::less<void*>, _private_::internal_allocator::rebind<void*>::other> start_values_map_ct;
+	      typedef std::map<void*, unsigned int, std::less<void*>,
+	                       _private_::internal_allocator::rebind<std::pair<void* const, unsigned int> >::other> start_values_map_ct;
 	      start_values_map_ct start_values;
 	      unsigned int best_count = 0;
 	      void* best_start = 0;
@@ -1616,7 +1617,8 @@ struct dlloaded_st {
 namespace libcw {
   namespace debug {
     namespace _private_ {
-      typedef std::map<void*, dlloaded_st, std::less<void*>, userspace_allocator::rebind<void*>::other> dlopen_map_ct;
+      typedef std::map<void*, dlloaded_st, std::less<void*>,
+                       userspace_allocator::rebind<pair<void* const, dlloaded_st> >::other> dlopen_map_ct;
       static dlopen_map_ct dlopen_map;
 
 #ifdef _REENTRANT

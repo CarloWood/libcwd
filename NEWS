@@ -26,6 +26,9 @@ libcwd-0.99.21
 	called.  This was broken in 0.99.20 but has been fixed
 	again now.
 
+	Version 0.99.19/20 did not compile on Suse (7.1) because
+	of a missing #include <sys/time.h>.
+
 libcwd-0.99.20
 
 	Several small adjustments have been made to support the

@@ -50,6 +50,10 @@
 #ifndef LIBCW_MACRO_ALLOCTAG_H
 #include <libcw/macro_AllocTag.h>
 #endif
+#ifndef LIBCW_SYS_TIME_H
+#define LIBCW_SYS_TIME_H
+#include <sys/time.h>		// Needed for struct timeval.
+#endif
 
 namespace libcw {
   namespace debug {

@@ -76,6 +76,10 @@ void fatal_cancellation(void* arg) throw()
   Dout(dc::core, "Cancelling a thread " << text << ".  This is not supported by libcwd, sorry.");
 }
 
+//===================================================================================================
+// Thread Specific Data
+//
+
 TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
 
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
@@ -157,6 +161,10 @@ void TSD_st::S_cleanup_routine(void* arg) throw()
 
 // End of Thread Specific Data
 //===================================================================================================
+
+class thread_ct { };
+
+typedef std::vector<thread_ct, internal_allocator::rebind<thread_ct>::other> threadlist_t;
 
     } // namespace _private_
   } // namespace debug

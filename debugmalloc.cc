@@ -146,10 +146,10 @@
 #endif // LIBCWD_THREAD_SAFE
 #include <iostream>
 #include <iomanip>
+#include <sys/time.h>		// Needed for gettimeofday(2)
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
 #include <libcw/cwprint.h>
-#include <sys/time.h>		// Needed for gettimeofday(2)
 
 #if LIBCWD_THREAD_SAFE
 #include <libcw/private_mutex.inl>
@@ -895,7 +895,8 @@ private:
 typedef std::pair<memblk_key_ct const, memblk_info_ct> memblk_ct;
   // The value type of the map (memblk_map_ct::value_type).
 
-typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>, _private_::memblk_map_allocator> memblk_map_ct;
+typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>,
+                 _private_::memblk_map_allocator::rebind<memblk_ct>::other> memblk_map_ct;
   // The map containing all `memblk_ct' objects.
 
 // Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
@@ -912,7 +913,8 @@ typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>, _priva
 typedef std::pair<void const* const, location_ct> location_cache_ct;
   // The value type of the map (location_cache_map_ct::value_type).
 
-typedef std::map<void const*, location_ct, std::less<void const*>, _private_::internal_allocator> location_cache_map_ct;
+typedef std::map<void const*, location_ct, std::less<void const*>,
+                 _private_::internal_allocator::rebind<location_cache_ct>::other> location_cache_map_ct;
   // The map used to cache locations at which memory was allocated.
 
 union location_cache_map_t {
