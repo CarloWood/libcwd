@@ -1,3 +1,15 @@
+# $Id$
+#
+# Maintainers Makefile
+# A makefile with maintainer rules.
+#
+# This makefile is only used when --enable-maintainer-mode was passed to
+# configure.  The targets in this file are used to generate files that
+# might require special tools (or like in the case of nodebug.h,
+# need the header files of libcwd to be installed).  These generated
+# files are put into the distribution so that ordinairy users don't need
+# to generate them.
+
 nodebug.h: macrotest.cc debug.h
 	g++ -dM -E macrotest.cc | sed -e 's/#define/#undef/' > phase1.h
 	g++ -dM -E -DPHASE2 macrotest.cc | egrep -v '(#define __|_H *$)' | sort > nodebug.h
