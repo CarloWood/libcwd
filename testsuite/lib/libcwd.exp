@@ -35,8 +35,14 @@ verbose "    OPTIONS = \"$OPTIONS\""
 verbose "    path = \"$path\""
 verbose "    out = \"$out\""
 
+    if { [regexp -- "nodebug" $options] } {
+      regsub -- "-g\[a-z0-9\]*" "$OPTIONS" "" compiler_options
+    } else {
+      set compiler_options "$OPTIONS"
+    }
+
     lappend args "libs=$LIBS"
-    lappend args "additional_flags=$OPTIONS -I$path"
+    lappend args "additional_flags=$compiler_options -I$path"
     lappend args "c++"
 
     set executable "${objdir}/$out"
@@ -81,7 +87,7 @@ verbose "    out = \"$out\""
     set state $state_parse
     set numberofinputlines 1
     set numberofoutputlines 1
-    if { $options == "regexp_match" } {
+    if { [regexp -- "regexp_match" $options] } {
       set regexp_match 1
     } else {
       set regexp_match 0
@@ -159,7 +165,7 @@ verbose "    out = \"$out\""
 	  verbose "index = $index" 2
 	  if { $index == -1 } {
 	    set outputline $output
-	    if { $numberofoutputlines == -1 && [regexp -- $matchtill $outputline] } {
+	    if { $numberofoutputlines == -1 } {
 	      set count -1
 	    } else {
 	      set output ""

@@ -1,0 +1,28 @@
+global srcdir subdir
+
+catch "glob -nocomplain $srcdir/$subdir/*.cc" srcfiles
+#set srcfiles $srcdir/$subdir/type_info.cc
+verbose "srcfiles are $srcfiles"
+
+set prefix ""
+foreach x $srcfiles {
+    regsub "\\.cc$" $x "" prefix
+    set bname [file tail $prefix]
+    set args ""
+    if [file exists ${prefix}.arg] {
+      set id [open "${prefix}.arg" r];
+      set args [read -nonewline $id];
+      close $id;
+    }
+    set resfile "${prefix}.re"
+    set options "regexp_match nodebug"
+
+    if [file exists ${prefix}.inp] {
+        set inpfile ${prefix}.inp
+    } else {
+        set inpfile ""
+    }
+    verbose "inpfile is $inpfile"
+
+    test_libcwd $options "${prefix}.cc" "" $inpfile $resfile $args
+}
