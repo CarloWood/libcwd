@@ -16,6 +16,9 @@ namespace example { libcw::debug::debug_ct my_own_do; };
 
 int main(void)
 {
+  // Make sure we initialized the bfd stuff:
+  (void)libcw_bfd_pc_function_name(main);
+
   ostrstream dummy;	// Do this before turning on debug output
 
   Debug( check_configuration() );
