@@ -7,7 +7,9 @@
 
 int main(void)
 {
+#ifdef CWDEBUG
   myproject::debug::init();
+#endif
 
   // Only turn on debug output when the environment variable SUPPRESS_DEBUG_OUTPUT is not set.
   Debug( if (getenv("SUPPRESS_DEBUG_OUTPUT") == NULL) libcw_do.on() );

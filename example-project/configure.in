@@ -1,58 +1,48 @@
-dnl Process this file with autoconf to produce a configure script.
+# Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision$)dnl
 
-dnl Package name and version.
+# Package name and version.
 AC_INIT([project], [0.0.1], [project-bugs@yourmail.org])
 
-dnl Ensure that the directory specified with --srcdir was correct
-dnl by demanding that it contains `program.cc'.
+# Ensure that the directory specified with --srcdir was correct
+# by demanding that it contains `program.cc'.
 AC_CONFIG_SRCDIR([program.cc])
 
-dnl Put resulting configuration defines in this header file.
+# Put resulting configuration defines in this header file.
 AM_CONFIG_HEADER(config.h)
 
-dnl Automake options.
+# Automake options.
 AM_INIT_AUTOMAKE
 
-dnl Demand at least version 2.57 of autoconf.
+# Demand at least version 2.57 of autoconf.
 AC_PREREQ(2.57)
 
-dnl Include --enable-maintainer-mode option.
+# Include --enable-maintainer-mode option.
 AM_MAINTAINER_MODE
+ACLOCAL_AMFLAGS="-I m4"
 
-dnl Manual configuration options of project.
-AC_ARG_ENABLE(debugging,
-    [  --enable-debugging      enable debugging code.],
-    project_config_debugging=$enableval)
+# Manual configuration options of project.
+AC_ARG_ENABLE(debugging, [  --enable-debugging      enable debugging code.])
 
-dnl Check for compiler and preprocessor
+# Check for compiler and preprocessor
 AC_PROG_CXX
 AC_PROG_CXXCPP
 
-dnl Checks for other programs.
+# Checks for other programs.
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-dnl Set language requirements for the tests below.
+# Set language requirements for the tests below.
 AC_LANG_CPLUSPLUS
 AC_REQUIRE_CPP
 
-dnl Configuration defines
-if test "$project_config_debugging" = yes; then
+# Configuration defines
 
-  dnl Check if we have libcwd
-  AC_CHECK_LIB(cwd, __libcwd_version,,
-      [AC_MSG_ERROR([
-  --enable-debugging: You need to have libcwd installed to enable debugging.
-  Or perhaps you need to add its location to LDFLAGS and CPPFLAGS, for example:
-  LDFLAGS=\"-L/usr/local/lib\" CPPFLAGS=\"-I/usr/local/include\" ./configure])])
+# Check if we have libcwd, $enable_debugging can be "yes", "no" or empty (auto).
+test -n "$enable_debugging" || enable_debugging=no	# Test the default to explicitely "no".
+CW_LIB_LIBCWD([debugging], [$enable_debugging], [no])
 
-  CXXFLAGS="-DCWDEBUG $CXXFLAGS"
-
-  dnl" <- this quote is needed for the syntax highlighting of vim.
-fi
-
-dnl Generate output files.
+# Generate output files.
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 

@@ -8,6 +8,7 @@ namespace myproject {		// >
     namespace channels {	// >
 
       namespace dc {
+
         // Add new debug channels here.
 	channel_ct custom("CUSTOM");
 
