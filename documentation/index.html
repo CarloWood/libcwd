@@ -85,6 +85,14 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>21 Jun 2002</B>
+<P class="news">libcwd-0.99.22 is released.&nbsp;
+Fixes a horrible bug that was introduced in 0.99.20, causing
+any realloc() to crash when not having used an AllocTag for it.&nbsp;
+Did not run into this before because all of the testsuite uses
+AllocTag for reallocated blocks, and libstdc++ doesn't use realloc
+at all.&nbsp;
+I now ran into it because I am playing with libgtkmm.</P>
 <DT><B>18 Jun 2002</B>
 <P class="news">libcwd-0.99.21 is released.&nbsp;
 This release adds support for g++ 3.1.&nbsp;

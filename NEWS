@@ -6,6 +6,22 @@ libcwd-0.99.22
 	output could cause errno to be set to EINTR before
 	printing the error message, in threaded applications.
 
+	DoutFatal in thread applications could cause a deadlock
+	because cancelling the main thread and then calling
+	exit() causes the main thread to call waitpid()
+	for the thread manager (which is already dead at that
+	moment) which is a cancellation point and therefore
+	tries to handle the cancellation of the main thread,
+	which hangs because the thread manager is already
+	gone (a bug in libpthread imho).
+
+	Doing a realloc for an allocation without description
+	caused a core dump.  That made libcwd fail with most
+	third party libraries I'd think (libstdc++ doesn't
+	seem to use realloc).  Once again I am AMAZED that
+	nobody reported this horrible bug and I had to run
+	into it myself (bug was introduced in 0.99.20).
+
 libcwd-0.99.21
 
 	The library now compiles with g++ version 3.1 and

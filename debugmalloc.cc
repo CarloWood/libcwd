@@ -3090,7 +3090,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
   __libcwd_tsd.internal = 1;
   type_info_ct const* t = (*iter).second.typeid_ptr();
-  char const* d = (*iter).second.description().get();
+  _private_::smart_ptr d((*iter).second.description());
   struct timeval realloc_time;
   gettimeofday(&realloc_time, 0);
 #if LIBCWD_THREAD_SAFE
