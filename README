@@ -20,6 +20,17 @@ library installed and will print something like:
 If this happens, then this means that you will need to
 link your programs with -lcwd -lXXX, rather than just -lcwd.
 
+
+Note that although a static library is provided (with the
+configure option --enable-static), it is highly discouraged.
+Most notably, you should only use libcwd.a as a result of
+linking with "-static -lcwd"; dlopen(3) is not supported for
+such statically linked applications.  If you want to use
+dlopen(3) anyway together with libcwd then make sure that the
+loaded module is not using libcwd and is not allocating any
+memory. Otherwise it will not link or it will crash.
+
+
 The directory `example-project' contains a fully functional
 example project that uses autoconf, automake and libcwd.
 Please read example-project/README for more info and a little
