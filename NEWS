@@ -10,7 +10,9 @@ libcwd-0.99.31
 	API changes:
 
 	The method debug_ct::keep_tsd was removed.
-	This function is no longer needed.
+	This function is no longer needed.  See README.threads
+	for a description of how Thread Specific Data of
+	terminating threads now is handled.
 
 	Bug fixes:
 

@@ -26,14 +26,14 @@ to http://sources.redhat.com/ml/gdb/2002-05/msg00278.html)
 
 In order to debug NPTL (Native POSIX Threads Library)
 you will need the gdb that comes with RedHat 9.  At
-the moment of writing, the current CVS gdb does not
-work with NPTL.
+the moment of writing (2003/6/27), the CVS HEAD of gdb
+does not work with NPTL.
 
 As of libcwd-0.99.31, support for NPTL was added. The
-thread specific data of libcwd now works as follows:
-1) The first two calls to calloc() are assume not to
+Thread Specific Data of libcwd now works as follows:
+1) The first two calls to calloc() are assumed not to
    be internal but to be part of the initialization
-   of libpthread.  At this moment there is no thread
+   of libpthread.  At that moment there is no thread
    specific (or thread local) storage possible.
    The location lookup and the inclusion on the map<>
    that stores all allocations is delayed till the
@@ -42,27 +42,29 @@ thread specific data of libcwd now works as follows:
    calloc's are added as invisible allocations (don't
    show up in list_allocations_on()).
 2) While configuring libcwd, the environment variable
-   THREADSMAX is used as the maximum nuber of simultaneous
+   THREADSMAX is used as the maximum number of simultaneous
    running threads.  At the moment this means that
    this is the size of a static array with basic
    Thread Specific Data (TSD) for libcwd (basic because
    it doesn't contain the TSD that is needed to actually
    write debug output: debug output is turned off).
    When a new thread calls malloc(), or new, for the
-   first time (or any other libcwd function), it is
+   first time (or any other libcwd function, most likely
+   turning on libcw_do or a debug channel), it is
    detected that this is a new thread and the new thread
-   gets assigned one of the TSD entries of this static
-   array.  As soon as possible the TSD is initialized
-   fully (so writing debug output becomes possible) and
-   a pthread key is added to be used as TSD.  After
-   initialization (a few miliseconds(?) after thread
+   gets assigned one of the entries of this static array
+   to be used as TSD.  As soon as possible the TSD is
+   initialized fully (so writing debug output becomes
+   possible) and a pthread key is added to be used as TSD.
+   After initialization (a few miliseconds(?) after thread
    creation) the static array TSD is released again
    and the new thread now uses the pthread key.
-3) When a thread terminates, libpthread will destruct
-   the above key - along with all user keys.  The
-   key destruct routine of the libcwd key will re-add
+3) When a thread terminates, libpthread will call a
+   destructor call back function of the above key - along
+   with any other user provided call backs for other keys.
+   The destructor routine of the libcwd key will re-add
    itself three times without taking action, allowing
-   user key destruction routines to finish first,
+   user destructor routines to finish first,
    still able to use libcwd at that moment.  Finally
    it will release the key and move the TSD back to
    a free entry in the static array.  From that moment
@@ -70,9 +72,9 @@ thread specific data of libcwd now works as follows:
    be called anymore usually.  Basically, all that
    happens after that is that libpthread possibly calls
    free() to release the second level key hash table(s)
-   it has (once per 32 keys).  These frees will thus not
+   it has (once per 32 keys).  These frees will then not
    be visible.  It is not possible to exactly determine
-   when the thread finishes - therefore the following
+   when a thread finishes - therefore the following
    trick is being used: When a TSD struct is requested
    from within a call to free() (or delete to accommodate
    possible user key destruction routines that also re-add
@@ -84,7 +86,7 @@ thread specific data of libcwd now works as follows:
    thread - it is assumed that the array was full, and
    a new static TSD is returned without initializing it
    or creating a new pthread key for it (it is marked
-   as a 'terminating' thread).  However, when a TSD
+   again as a 'terminating' thread).  However, when a TSD
    is requested from anywhere else - then libcwd assumes
    this is a NEW thread, and the TSD will be initialized
    when it doesn't already exist.

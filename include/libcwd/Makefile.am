@@ -64,6 +64,7 @@ libcwd_HEADERS = \
 	type_info.h
 
 BUILT_SOURCES = sys.ho config.ho sys.h config.h
+EXTRA_HEADERS = sys.h config.h
 
 MAINTAINERCLEANFILES = Makefile.in
 

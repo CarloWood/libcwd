@@ -118,8 +118,8 @@ namespace application {
     namespace dc {
       using namespace ::lib1::channels::dc;
       using namespace ::lib2::channels::dc;
-      static libcw::debug::channel_ct& foobar1(::lib1::channels::dc::foobar) __attribute__ ((unused));
-      static libcw::debug::channel_ct& foobar2(::lib2::channels::dc::foobar) __attribute__ ((unused));
+      static libcw::debug::channel_ct& foobar1(::lib1::channels::dc::foobar);
+      static libcw::debug::channel_ct& foobar2(::lib2::channels::dc::foobar);
     }
   }
 }
