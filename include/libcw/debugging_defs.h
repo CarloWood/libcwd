@@ -69,7 +69,7 @@
 //
 
 #ifdef DEBUG
-#undef DEBUGUSEBFD
+#define DEBUGUSEBFD
 #endif
 
 //

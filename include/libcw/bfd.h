@@ -30,7 +30,6 @@ namespace libcw {
     namespace dc {
       extern channel_ct const bfd;
     };
-    static channel_ct const& bfd_dc(dc::bfd);
 #ifndef DEBUGNONAMESPACE
   };
 };

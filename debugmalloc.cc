@@ -270,7 +270,7 @@ ostream& operator<<(ostream& os, memblk_types_ct memblk_type)
 
 #ifdef DEBUGUSEBFD
 alloc_ct::alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, void* call_addr) :
-    a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti), a_description(NULL, true)
+    a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti), a_description(NULL)
 {
   location = libcw_bfd_pc_location(call_addr); // FIXME
 }
