@@ -16,8 +16,7 @@ libcwd_HEADERS = \
 	lockable_auto_ptr.h \
 	no_alloc_checking_ostrstream.h \
 	strerrno.h \
-	type_info.h \
-	return_address.h
+	type_info.h
 
 BUILT_SOURCES = sys.ho debug_config.ho
 EXTRA_HEADERS = sys.h debug_config.h

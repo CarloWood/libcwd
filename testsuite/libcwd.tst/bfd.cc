@@ -15,7 +15,6 @@
 #include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
-#include <libcw/return_address.h>
 
 RCSTAG_CC("$Id$")
 
@@ -23,6 +22,16 @@ RCSTAG_CC("$Id$")
 static void* return_address[6];
 #define store_call_address(i) return_address[i] = __builtin_return_address(0)
 extern "C" int _start();
+#endif
+
+#ifdef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+static void* frame_return_address(unsigned int frame)
+{
+  for (void* frame_ptr = *reinterpret_cast<void**>(__builtin_frame_address(0)); frame_ptr; frame_ptr = *reinterpret_cast<void**>(frame_ptr))
+    if (frame-- == 0)
+      return reinterpret_cast<void**>(frame_ptr)[1];
+  return NULL;
+}
 #endif
 
 void libcw_bfd_test3(void)
@@ -69,12 +78,12 @@ void libcw_bfd_test3(void)
     libcw_bfd_pc_location(loc, (char*)retadr + libcw_bfd_builtin_return_address_offset);
     Dout(dc::notice, "called from " << loc);
 
-#ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
-    if (i < 5 && libcw_return_address(i) != retadr)
+#ifdef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+    if (i < 5 && frame_return_address(i) != retadr)
     {
-      retadr = libcw_return_address(i);
+      retadr = frame_return_address(i);
       libcw_bfd_pc_location(loc, (char*)retadr + libcw_bfd_builtin_return_address_offset);
-      DoutFatal(dc::fatal, "libcw_return_address(" << i << ") returns " << loc << "!");
+      DoutFatal(dc::fatal, "frame_return_address(" << i << ") returns " << loc << "!");
     }
 #endif
 
