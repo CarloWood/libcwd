@@ -285,46 +285,38 @@ extern void* __libtwd_new_array(size_t);
 #define __libc_free(p) __libtwd_libc_free(p LIBCWD_COMMA_TSD)
 void* __libtwd_libc_malloc(size_t size LIBCWD_COMMA_TSD_PARAM)
 {
-  bool internal = __libcwd_tsd.internal;
-  int save_internal = 0;
-  if (internal)
-    save_internal = set_library_call_on(LIBCWD_TSD);
+  set_alloc_checking_off(LIBCWD_TSD);
+  int saved_internal = set_library_call_on(LIBCWD_TSD);
   void* res = __libtwd_malloc(size);
-  if (internal)
-    set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+  set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+  set_alloc_checking_on(LIBCWD_TSD);
   return res;
 }
 void* __libtwd_libc_calloc(size_t nmemb, size_t size LIBCWD_COMMA_TSD_PARAM)
 {
-  bool internal = __libcwd_tsd.internal;
-  int save_internal = 0;
-  if (internal)
-    save_internal = set_library_call_on(LIBCWD_TSD);
+  set_alloc_checking_off(LIBCWD_TSD);
+  int saved_internal = set_library_call_on(LIBCWD_TSD);
   void* res = __libtwd_calloc(nmemb, size);
-  if (internal)
-    set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+  set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+  set_alloc_checking_on(LIBCWD_TSD);
   return res;
 }
 void* __libtwd_libc_realloc(void* ptr, size_t size LIBCWD_COMMA_TSD_PARAM)
 {
-  bool internal = __libcwd_tsd.internal;
-  int save_internal = 0;
-  if (internal)
-    save_internal = set_library_call_on(LIBCWD_TSD);
+  set_alloc_checking_off(LIBCWD_TSD);
+  int saved_internal = set_library_call_on(LIBCWD_TSD);
   void* res = __libtwd_realloc(ptr, size);
-  if (internal)
-    set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+  set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+  set_alloc_checking_on(LIBCWD_TSD);
   return res;
 }
 void __libtwd_libc_free(void* ptr LIBCWD_COMMA_TSD_PARAM)
 {
-  bool internal = __libcwd_tsd.internal;
-  int save_internal = 0;
-  if (internal)
-    save_internal = set_library_call_on(LIBCWD_TSD);
+  set_alloc_checking_off(LIBCWD_TSD);
+  int saved_internal = set_library_call_on(LIBCWD_TSD);
   __libtwd_free(ptr);
-  if (internal)
-    set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+  set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+  set_alloc_checking_on(LIBCWD_TSD);
   return;
 }
 #endif // TWDEBUG

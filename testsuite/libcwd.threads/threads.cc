@@ -1,3 +1,28 @@
+#ifdef TWDEBUG
+#include <libtw/sysd.h>
+#include <libtw/debug.h>
+
+#define LIBTWD_LEAKTEST \
+    struct timeval end; \
+    gettimeofday(&end, 0); \
+    static int last[32]; \
+    int ti = thread_index(pthread_self()); \
+    if (last[ti] != end.tv_sec) \
+    { \
+      end.tv_sec -= 10; \
+      last[ti] = end.tv_sec; \
+      leak_filter.set_time_interval(start, end); \
+      Debug2( leak_do.on() ); \
+      Debug2( TWINCHANNELS::dc::malloc.on() ); \
+      Debug2( list_allocations_on(leak_do, leak_filter) ); \
+      LibtwDout2(TWINCHANNELS, leak_do, TWINCHANNELS::dc::malloc|libtw::debug::flush_cf, "...flushing..."); \
+      Debug2( TWINCHANNELS::dc::malloc.off() ); \
+      Debug2( leak_do.off() ); \
+    }
+#else
+#define LIBTWD_LEAKTEST
+#endif
+
 #define PREFIX_CODE set_margin(); int __res; for(int __i = 0; __i < 100000; ++__i) {
 #define EXIT(res) \
     __res = (res); \
@@ -10,6 +35,7 @@
     } \
     ++heartbeat[thread_index(pthread_self())]; \
     pthread_testcancel(); \
+    LIBTWD_LEAKTEST; \
     if (__res) break; } \
     heartbeat[thread_index(pthread_self())] = 0; \
     return (void*)(__res == 0)
@@ -21,6 +47,9 @@
 #include "debug.h"
 #include <stdio.h>	// Needed for sprintf()
 #include <unistd.h>
+#ifdef TWDEBUG
+#include <fstream>
+#endif
 
 pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t cerr_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -40,6 +69,14 @@ void set_margin(void)
   sprintf(margin, "%-10lu (%04lu) ", pthread_self(), thread_index(pthread_self()));
   Debug( libcw_do.margin().assign(margin, 18) );
 }
+
+#ifdef TWDEBUG
+// Special debug object to print memory leaks to.
+libtw::debug::debug_ct leak_do;
+
+struct timeval start;
+libtw::debug::ooam_filter_ct leak_filter(libtw::debug::show_time);
+#endif
 
 #undef MAIN_FUNCTION
 #define MAIN_FUNCTION void* basic_prog(void*)
@@ -119,6 +156,12 @@ thread_func_t progs[] = { alloctag_prog, basic_prog, location_prog, cf_prog, /*c
     marker_prog, strdup_prog, test_delete_prog, type_info_prog, filter_prog };
 int const number_of_threads = sizeof(progs)/sizeof(thread_func_t);
 
+#ifdef TWDEBUG
+pthread_mutex_t leak_mutex;
+#endif
+
+extern int raise (int sig);
+
 int main(void)
 {
   Debug( check_configuration() );
@@ -128,15 +171,33 @@ int main(void)
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
 
+#ifdef TWDEBUG
+  std::ofstream leakout;
+  leakout.open("leakout");
+#endif
+
   Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
+#ifdef TWDEBUG
+  Debug2( leak_do.set_ostream(&leakout, &leak_mutex) );
+#endif
 
   set_margin();
 
+#ifndef TWDEBUG
   Debug( dc::notice.on() );
   Debug( libcw_do.on() );
+#endif
 
   for (int i = 0; i < number_of_threads; ++i)
     ++heartbeat[i + 2];
+
+#ifdef TWDEBUG
+  gettimeofday(&start, 0);
+  start.tv_sec += 10;
+
+  progs[6](0);
+  exit(0);
+#endif
 
   pthread_t thread_id[number_of_threads];
   for (int i = 0; i < number_of_threads; ++i)
@@ -191,6 +252,7 @@ int main(void)
     }
     if (running == 0)
       break;
+
     std::cerr << "\nHEARTBEAT ----end of check---------------------------------\n";
   }
 

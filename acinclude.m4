@@ -782,7 +782,7 @@ dnl -fno-exceptions is really only needed when using a compiler that was configu
 dnl with --enable-slsj-exceptions, in order to avoid calls to calloc() from
 dnl __pthread_setspecific when being 'internal'.
 if test "$USE_MAINTAINER_MODE" = yes; then
-EXTRAOPTS="-O3 -fno-exceptions"
+EXTRAOPTS="-fno-exceptions"
 else
 EXTRAOPTS="-O -fno-exceptions"
 fi

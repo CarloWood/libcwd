@@ -830,6 +830,7 @@ private:
   Elf32_Word M_dwarf_debug_str_section_index;
   static uint32_t const hash_table_size = 2049;		// Lets use a prime number.
   hash_list_st** M_hash_list;
+  void delete_hash_list(void);
 public:
   objfile_ct(void);
   void initialize(char const* file_name);
@@ -969,6 +970,7 @@ void objfile_ct::close(void)
 
 objfile_ct::~objfile_ct()
 {
+  delete_hash_list();
   delete [] M_section_header_string_table;
   delete [] M_sections;
   delete [] M_symbol_string_table;
@@ -1185,6 +1187,22 @@ static object_files_string catenate_path(object_files_string const& dir, char co
     res.assign(dir);
   res.append(subpath);
   return res;
+}
+
+void objfile_ct::delete_hash_list(void)
+{
+  if (M_hash_list)
+  {
+    for(unsigned int i = 0; i < hash_table_size; ++i)
+      for(hash_list_st* p = M_hash_list[i]; p;)
+      {
+	hash_list_st* np = p->next;
+	delete p;
+	p = np;
+      }
+    delete [] M_hash_list;
+    M_hash_list = NULL;
+  }
 }
 
 void objfile_ct::load_dwarf(void)
@@ -1813,6 +1831,7 @@ indirect:
   delete [] debug_line;
   delete [] debug_info;
   delete [] debug_abbrev;
+  delete_hash_list();
   M_debug_info_loaded = true;
 }
 
@@ -2030,7 +2049,7 @@ void objfile_ct::load_stabs(void)
     Debug( libcw_do.dec_indent(4) );
   delete [] stabs;
   delete [] stabs_string_table;
-  delete [] M_hash_list;
+  delete_hash_list();
   M_debug_info_loaded = true;
 }
 
