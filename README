@@ -62,7 +62,7 @@ cvs -z3 -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw co www
 At any later time you can update the documentation by changing
 directory into the www directory and issuing:
 
-cvs update
+cvs update -d
 
 A European mirror has been setup in Amsterdam (the Netherlands) at
 http://www.alinoe.com/.  This is my home PC (cable, 128cps) and

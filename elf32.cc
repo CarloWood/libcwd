@@ -587,7 +587,7 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
   range.start = offset;
   range.size = 1;
   std::map<range_st, location_st, compare_range_st>::const_iterator i(M_ranges.find(static_cast<range_st const>(range)));
-  if (i == M_ranges.end())
+  if (i == M_ranges.end() || strcmp((*(*i).second.func_iter).data(), symbol->name))
   {
     *file = NULL;
     *func = symbol->name;

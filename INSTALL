@@ -84,10 +84,10 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
 
      iii)  GNU make
      iv)   GNU m4
-     v)    GNU which
-     vi)   autoconf
-     vii)  automake
-     viii) libtool
+     v)    GNU which	version 2.x
+     vi)   autoconf	version 2.13 (2.52 seems to have problems)
+     vii)  automake	version 1.4pl1 or higher
+     viii) libtool	version 1.4 or higher
 
      Each of those can be downloaded from your local GNU site.
 

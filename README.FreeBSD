@@ -1,3 +1,11 @@
+31 Juli 2001
+
+  FreeBSD fails to compile libcwd when using g++-2.95.3 (internal compiler error).
+  I was not able to test it with other versions.  The remarks below still hold,
+  but since FreeBSD is ELF, libbfd shouldn't be needed anymore.  It seems that
+  __libc_malloc et al doesn't exist, and hence the macro trick is being used.
+  I think that is Bad(tm).
+
 10 Sept 2000
 
   FreeBSD seems not to include source-file/line-number information in
