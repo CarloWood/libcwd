@@ -358,10 +358,10 @@ of course, then you could as well have avoided the name space problem by using
 <SPAN class="code">somelibrary_debug_channel_notice</SPAN> right?&nbsp;
 Therefore you don't have to type the name of the namespace that is &quot;current&quot;.&nbsp;
 There can be only <EM>one</EM> namespace current at a time however.&nbsp; The result is that
-this can not be used to solve our problem: We want to avoid both, name collisions between debug channels
+this cannot be used to solve our problem: We want to avoid both, name collisions between debug channels
 and any other variable or function name, but <EM>also</EM> between debug channels defined in
 different libraries.&nbsp; That means we need more than one namespace: A namespace for each of
-the libraries.&nbsp; We can not make all of them current however.&nbsp; Worse, we can not
+the libraries.&nbsp; We cannot make all of them current however.&nbsp; Worse, we cannot
 make any namespace current because it must be possible to add code that writes debug output
 <EM>everywhere</EM>.&nbsp; We can only use the <SPAN class="code">using namespace</SPAN>
 directive.&nbsp; Now here is the real flaw: A <SPAN class="code">using namespace</SPAN> directive

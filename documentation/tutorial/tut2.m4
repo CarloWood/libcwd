@@ -79,7 +79,9 @@ namespace myproject {
 #include "debug.h"
 
 // Actual definition of `ghost'
-namespace debug_channels {
+namespace debug_channels {	// Actually, you will need a series of
+				// "namespace xyz {" here, to match whatever
+				// DEBUGCHANNELS is.
   namespace dc {
     libcw::debug::channel_ct <SPAN class="highlight">ghost</SPAN>("GHOST");
   }

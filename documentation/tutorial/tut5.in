@@ -123,7 +123,7 @@ namespace example {
 	// then here is the place to `hide' these channels by redefining them.
 	// For example, if `libbooster' defined `notice' too (as does libcwd)
 	// then we have to redefine it again:
-	static channel_ct&amp; notice(libcw::debug::channels::dc::notice);
+	using libcw::debug::channels::dc::notice;
 
       } // namespace dc
     } // namespace channels
