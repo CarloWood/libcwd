@@ -118,44 +118,51 @@ namespace libcw {
       libcw_do.init();
     }
 
-    debug_channels_singleton_ct debug_channels;	// List with all channel_ct objects.
-    debug_objects_singleton_ct debug_objects;		// List with all debug devices.
+    namespace _internal_ {
 
-    void debug_channels_singleton_ct::init(void)
-    {
-      if (!_debug_channels)
+      debug_channels_singleton_ct debug_channels;		// List with all channel_ct objects.
+      debug_objects_singleton_ct debug_objects;			// List with all debug devices.
+
+      // _internal_::
+      void debug_channels_singleton_ct::init(void)
       {
-        set_alloc_checking_off();
-        _debug_channels = new debug_channels_ct;
-        set_alloc_checking_on();
+	if (!_debug_channels)
+	{
+	  set_alloc_checking_off();
+	  _debug_channels = new debug_channels_ct;
+	  set_alloc_checking_on();
+	}
       }
-    }
 
-    void debug_objects_singleton_ct::init(void)
-    {
-      if (!_debug_objects)
+      // _internal_::
+      void debug_objects_singleton_ct::init(void)
       {
-        DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
+	if (!_debug_objects)
+	{
+	  DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
 #ifdef DEBUGMALLOC
-	// It is possible that malloc is not initialized yet.
-	init_debugmalloc();
+	  // It is possible that malloc is not initialized yet.
+	  init_debugmalloc();
 #endif
-        set_alloc_checking_off();
-        _debug_objects = new debug_objects_ct;
-        set_alloc_checking_on();
+	  set_alloc_checking_off();
+	  _debug_objects = new debug_objects_ct;
+	  set_alloc_checking_on();
+	}
       }
-    }
 
-    void debug_objects_singleton_ct::uninit(void)
-    {
-      if (_debug_objects)
+      // _internal_::
+      void debug_objects_singleton_ct::uninit(void)
       {
-	set_alloc_checking_off();
-	delete _debug_objects;
-	set_alloc_checking_on();
-	_debug_objects = NULL;
+	if (_debug_objects)
+	{
+	  set_alloc_checking_off();
+	  delete _debug_objects;
+	  set_alloc_checking_on();
+	  _debug_objects = NULL;
+	}
       }
-    }
+
+    } // namespace _internal_
 
 #ifdef DEBUGDEBUG
     static long debug_object_init_magic = 0;
@@ -476,8 +483,8 @@ namespace libcw {
       DEBUGDEBUG_CERR( "In debug_ct::init(void), _off set to 0" );
 
       set_alloc_checking_off();				// debug_objects is internal.
-      if (find(debug_objects().begin(), debug_objects().end(), this) == debug_objects().end()) // Not added before?
-	debug_objects().push_back(this);
+      if (find(_internal_::debug_objects().begin(), _internal_::debug_objects().end(), this) == _internal_::debug_objects().end()) // Not added before?
+	_internal_::debug_objects().push_back(this);
       set_alloc_checking_on();
 
       // Initialize this debug object:
@@ -576,9 +583,9 @@ namespace libcw {
       marker.init("", 0);	// Free allocated memory
       margin.init("", 0);
       set_alloc_checking_off();	// debug_objects is internal.
-      debug_objects().erase(find(debug_objects().begin(), debug_objects().end(), this));
-      if (debug_objects().empty())
-        debug_objects.uninit();
+      _internal_::debug_objects().erase(find(_internal_::debug_objects().begin(), _internal_::debug_objects().end(), this));
+      if (_internal_::debug_objects().empty())
+        _internal_::debug_objects.uninit();
       set_alloc_checking_on();
     }
 
@@ -606,7 +613,7 @@ namespace libcw {
     channel_ct const* find_channel(char const* label)
     {
       channel_ct const* tmp = NULL;
-      for(debug_channels_ct::iterator i(debug_channels().begin()); i != debug_channels().end(); ++i)
+      for(_internal_::debug_channels_ct::const_iterator i(_internal_::debug_channels().begin()); i != _internal_::debug_channels().end(); ++i)
       {
         if (!strncasecmp(label, (*i)->get_label(), strlen(label)))
           tmp = (*i);
@@ -617,7 +624,7 @@ namespace libcw {
     void list_channels_on(debug_ct const& debug_object)
     {
       if (debug_object._off < 0)
-	for(debug_channels_ct::iterator i(debug_channels().begin()); i != debug_channels().end(); ++i)
+	for(_internal_::debug_channels_ct::const_iterator i(_internal_::debug_channels().begin()); i != _internal_::debug_channels().end(); ++i)
 	{
 	  char const* txt = (*i)->is_on() ? ": Enabled" : ": Disabled";
 	  debug_object.get_os().write((*i)->get_label(), max_len);
@@ -654,11 +661,13 @@ namespace libcw {
       // order in which they appear in the ForAllDebugChannels is not
       // dependent on the order in which these global objects are
       // initialized.
-      debug_channels_ct::iterator i(debug_channels().begin());
-      for(; i != debug_channels().end(); ++i)
+      set_alloc_checking_off();	// debug_channels is internal.
+      _internal_::debug_channels_ct::iterator i(_internal_::debug_channels().begin());
+      for(; i != _internal_::debug_channels().end(); ++i)
         if (strncmp((*i)->label, label, max_label_len) > 0)
 	  break;
-      debug_channels().insert(i, this);
+      _internal_::debug_channels().insert(i, this);
+      set_alloc_checking_on();
 
       // Turn debug channel "WARNING" on by default.
       if (strncmp(label, "WARNING", lbl_len) == 0)

@@ -47,7 +47,7 @@ RCSTAG_H(debug, "$Id$")
 #define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
 #define __Debug(x) LibcwDebug(::libcw::debug::channels, x)
 #define ForAllDebugObjects(STATEMENT) \
-       for( ::libcw::debug::debug_objects_ct::iterator __libcw_i(::libcw::debug::debug_objects().begin()); __libcw_i != ::libcw::debug::debug_objects().end(); ++__libcw_i) \
+       for( ::libcw::debug::_internal_::debug_objects_ct::iterator __libcw_i(::libcw::debug::_internal_::debug_objects().begin()); __libcw_i != ::libcw::debug::_internal_::debug_objects().end(); ++__libcw_i) \
        { \
          using namespace ::libcw::debug; \
 	 using namespace DEBUGCHANNELS; \
@@ -55,7 +55,7 @@ RCSTAG_H(debug, "$Id$")
 	 { STATEMENT; } \
        }
 #define ForAllDebugChannels(STATEMENT) \
-       for( ::libcw::debug::debug_channels_ct::iterator __libcw_i(::libcw::debug::debug_channels().begin()); __libcw_i != ::libcw::debug::debug_channels().end(); ++__libcw_i) \
+       for( ::libcw::debug::_internal_::debug_channels_ct::iterator __libcw_i(::libcw::debug::_internal_::debug_channels().begin()); __libcw_i != ::libcw::debug::_internal_::debug_channels().end(); ++__libcw_i) \
        { \
          using namespace ::libcw::debug; \
 	 using namespace DEBUGCHANNELS; \
@@ -628,34 +628,37 @@ namespace channels {
   } // namespace dc
 } // namespace channels
 extern debug_ct libcw_do;
-typedef std::vector<debug_ct*> debug_objects_ct;
-class debug_objects_singleton_ct {
-  debug_objects_ct* _debug_objects;
-public:
-  void init(void);
-  void uninit(void);
-  debug_objects_ct& operator()(void) {
-    if (!_debug_objects)
-      init();
-    return *_debug_objects;
-  }
-};
-extern debug_objects_singleton_ct debug_objects;
-typedef std::vector<channel_ct*> debug_channels_ct;
-class debug_channels_singleton_ct {
-  debug_channels_ct* _debug_channels;
-  void init(void);
-public:
-  debug_channels_ct& operator()(void) {
-    if (!_debug_channels)
-      init();
-    return *_debug_channels;
-  }
-};
-extern debug_channels_singleton_ct debug_channels;
 
 extern channel_ct const* find_channel(char const* label);
 extern void list_channels_on(debug_ct const& debug_object);
+
+namespace _internal_ {
+  typedef std::vector<debug_ct*> debug_objects_ct;
+  class debug_objects_singleton_ct {
+    debug_objects_ct* _debug_objects;
+  public:
+    void init(void);
+    void uninit(void);
+    debug_objects_ct& operator()(void) {
+      if (!_debug_objects)
+	init();
+      return *_debug_objects;
+    }
+  };
+  extern debug_objects_singleton_ct debug_objects;
+  typedef std::vector<channel_ct*> debug_channels_ct;
+  class debug_channels_singleton_ct {
+    debug_channels_ct* _debug_channels;
+    void init(void);
+  public:
+    debug_channels_ct& operator()(void) {
+      if (!_debug_channels)
+	init();
+      return *_debug_channels;
+    }
+  };
+  extern debug_channels_singleton_ct debug_channels;
+} // namespace _internal_
 
   }	// namespace debug
 }	// namespace libcw
