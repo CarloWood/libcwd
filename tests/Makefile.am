@@ -3,13 +3,11 @@
 AUTOMAKE_OPTIONS = foreign
 
 EXTRA_PROGRAMS = \
-hello_world \
-amo
+hello_world
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
 hello_world_SOURCES = hello_world.cc
-amo_SOURCES = amo.cc
 
 LDADD = ../libcwd.la
 
