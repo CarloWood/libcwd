@@ -13,7 +13,7 @@
               `_*main' wasn't compiled with flag -(g|ggdb)\?
 )|(WARNING :     Object file .*/nodebug_nodebug_shared does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
 ))
-MALLOC  : <continued> 0x[a-f0-9]+
+MALLOC  : <continued> 0x[a-f0-9]+ \[nodebug_nodebug_shared:main\]
 MALLOC  : Allocated memory: (400|408) bytes in (1|2) blocks\.
 new\[\]     0x[a-f0-9]+ (_*main|) *<unknown type>; \(sz = 400\) 
 // input lines 2

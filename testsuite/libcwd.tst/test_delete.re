@@ -3,7 +3,7 @@
 ((WARNING : core size is limited.*
 )*(BFD     : Loading debug .*
 )*)
-MALLOC  : operator new \(size = 1\) = 0x[0-9a-f]*
+MALLOC  : operator new \(size = 1\) = 0x[0-9a-f]* \[tst_test_delete_shared:main\]
 NOTICE  : Before making allocation invisible:
 MALLOC  : Allocated memory: 1 bytes in 1 blocks\.
           0x[0-9a-f]*       test_delete\.cc:43   At; \(sz = 1\)  Test object that we will make invisible

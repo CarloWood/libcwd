@@ -21,17 +21,17 @@ WARNING : Enabled
 // output till ^MALLOC  : operator new \(size = 4\)
 (MALLOC  : operator new\[\] \(size = 50\) = (|<unfinished>
 BFD     :     Loading debug info from .*/tst_alloctag_s.....\.\.\. done
-MALLOC  : <continued> )0x[0-9a-f]*
+MALLOC  : <continued> )0x[0-9a-f]* \[tst_alloctag_shared:main\]
 )
-MALLOC  : operator new \(size = 4\) = 0x[0-9a-f]*
-MALLOC  : malloc\(33\) = 0x[0-9a-f]*
-MALLOC  : malloc\(55\) = 0x[0-9a-f]*
-MALLOC  : calloc\(22, 10\) = 0x[0-9a-f]*
-MALLOC  : calloc\(55, 10\) = 0x[0-9a-f]*
-MALLOC  : malloc\(11\) = 0x[0-9a-f]*
-MALLOC  : realloc\(0x[0-9a-f]*, 1000\) = 0x[0-9a-f]*
-MALLOC  : malloc\(66\) = 0x[0-9a-f]*
-MALLOC  : realloc\(0x[0-9a-f]*, 1000\) = 0x[0-9a-f]*
+MALLOC  : operator new \(size = 4\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
+MALLOC  : malloc\(33\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
+MALLOC  : malloc\(55\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
+MALLOC  : calloc\(22, 10\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
+MALLOC  : calloc\(55, 10\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
+MALLOC  : malloc\(11\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
+MALLOC  : realloc\(0x[0-9a-f]*, 1000\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
+MALLOC  : malloc\(66\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
+MALLOC  : realloc\(0x[0-9a-f]*, 1000\) = 0x[0-9a-f]* \[tst_alloctag_shared:main\]
 MALLOC  : Allocated memory: [0-9]* bytes in [8|9] blocks\.
 realloc   0x[0-9a-f]*          alloctag\.cc:94   int\[250\]; \(sz = 1000\)  Test of "\(int\*\)realloc\(mpi, 1000\)"
 realloc   0x[0-9a-f]*          alloctag\.cc:88   void\*; \(sz = 1000\)  Test of "\(void\*\)realloc\(mp, 1000\)"

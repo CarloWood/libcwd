@@ -96,6 +96,35 @@ extern bool test_delete(void const* ptr);
 extern void make_invisible(void const* ptr);
 extern void make_all_allocations_invisible_except(void const* ptr);
 extern void make_exit_function_list_invisible(void);
+/**
+ * \brief Make all future allocations invisible.
+ * \ingroup group_invisible
+ *
+ * All following allocations are made invisible; they won't show up
+ * anymore in the \ref group_overview "overview of allocated memory".
+ *
+ * \sa \ref group_invisible
+ * \sa \ref group_overview
+ *
+ * <b>Example:</b>
+ *
+ * \code
+ * Debug(set_invisible_on());
+ * gtk_init(&argc, &argv);
+ * Debug(set_invisible_off());
+ * \endcode
+ *
+ * Note: In the threaded case, this isn't blazing fast (it is in the non-threaded case).
+ *       You shouldn't use it inside tight loops when using libcwd_r.
+ */
+inline void set_invisible_on(void) { LIBCWD_TSD_DECLARATION; _private_::set_invisible_on(LIBCWD_TSD); }
+/**
+ * \brief Cancel a call to set_invisible_on.
+ * \ingroup group_invisible
+ *
+ * See \ref set_invisible_on
+ */
+inline void set_invisible_off(void) { LIBCWD_TSD_DECLARATION; _private_::set_invisible_off(LIBCWD_TSD); }
 #if CWDEBUG_MARKER
 extern void move_outside(marker_ct*, void const* ptr);
 #endif
@@ -111,6 +140,8 @@ namespace libcwd {
 
 __inline__ void make_invisible(void const*) { } 
 __inline__ void make_all_allocations_invisible_except(void const*) { }
+__inline__ void set_invisible_on(void) { }
+__inline__ void set_invisible_off(void) { }
 
 } // namespace libcwd
 

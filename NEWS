@@ -1,5 +1,13 @@
 libcwd-0.99.37
 
+	Two new function have been added to namespace libcwd:
+	set_invisible_on() and set_invisible_off().  These should
+	be called in pairs, just like turning off and on the
+	debug channels.  Any memory that is allocated while
+	invisibility is turned on will be invisible (hidden
+	from the allocated memory overview and any leak detection
+	you might have) automatically.
+
 	libcwd::ooam_filter_ct does not allocate normal memory anymore
 	(only `internal' memory) making it better suitable to use it
 	as a filter to show memory leaks at program termination.

@@ -1646,19 +1646,23 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 #define SIZE_PLUS_FOUR(s) ((s) + sizeof(size_t))
 #  endif
 
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
+#define LIBCWD_DEBUGM_OPT(x) x
+#define LIBCWD_COMMA_DEBUGM_OPT(x) , x
+#else
+#define LIBCWD_DEBUGM_OPT(x)
+#define LIBCWD_COMMA_DEBUGM_OPT(x)
+#endif
 #if CWDEBUG_LOCATION
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-static void* internal_malloc(size_t size, memblk_types_nt flag, void* call_addr LIBCWD_COMMA_TSD_PARAM, int saved_marker)
+#define LIBCWD_LOCATION_OPT(x) x
+#define LIBCWD_COMMA_LOCATION_OPT(x) , x
 #else
-static void* internal_malloc(size_t size, memblk_types_nt flag, void* call_addr LIBCWD_COMMA_TSD_PARAM)
+#define LIBCWD_LOCATION_OPT(x)
+#define LIBCWD_COMMA_LOCATION_OPT(x)
 #endif
-#else // !CWDEBUG_LOCATION
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_PARAM, int saved_marker)
-#else
-static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_PARAM)
-#endif
-#endif // !CWDEBUG_LOCATION
+
+static void* internal_malloc(size_t size, memblk_types_nt flag
+    LIBCWD_COMMA_LOCATION_OPT(void* call_addr) LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_DEBUGM_OPT(int saved_marker))
 {
   if (WST_initialization_state <= 0)		// Only true prior to initialization of std::ios_base::Init.
   {
@@ -1682,22 +1686,14 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 #else
   if (size > static_cast<size_t>(-1) - 12 - sizeof(size_t))
   {
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
-#else
-    DoutInternal( dc::finish, "NULL" );
-#endif
+    DoutInternal(dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
     DoutInternal( dc_malloc, "Size too large: no space left for magic numbers." );
     return NULL;	// A fatal error should occur directly after this
   }
   if ((mptr = static_cast<char*>(__libc_malloc(SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
   {
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
-#else
-    DoutInternal( dc::finish, "NULL" );
-#endif
+    DoutInternal(dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
     DoutInternal( dc_malloc, "Out of memory ! this is only a pre-detection!" );
     return NULL;	// A fatal error should occur directly after this
   }
@@ -1756,11 +1752,10 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
     DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
 #endif
 
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal(dc::finish, (void*)(mptr) << (__libcwd_tsd.invisible ? " (invisible)" : "") << " [" << saved_marker << ']');
-#else
-  DoutInternal(dc::finish, (void*)(mptr) << (__libcwd_tsd.invisible ? " (invisible)" : ""));
-#endif
+  DoutInternal(dc::finish, (void*)(mptr)
+      LIBCWD_LOCATION_OPT(<< " [" << loc->object_file()->filename() << ':' << loc->mangled_function_name() << ']')
+      << (__libcwd_tsd.invisible ? " (invisible)" : "")
+      LIBCWD_DEBUGM_OPT(<< " [" << saved_marker << ']'));
   return mptr;
 }
 
@@ -1942,11 +1937,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
   ++__libcwd_tsd.inside_malloc_or_free;
   if (!ptr)
   {
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-    DoutInternal( dc_malloc, "Trying to free NULL - ignored [" << ++__libcwd_tsd.marker << "]." );
-#else
-    DoutInternal( dc_malloc, "Trying to free NULL - ignored." );
-#endif
+    DoutInternal( dc_malloc, "Trying to free NULL - ignored" LIBCWD_DEBUGM_OPT(" [" << ++__libcwd_tsd.marker << "]") "." );
     --__libcwd_tsd.inside_malloc_or_free;
     return;
   }
@@ -2015,11 +2006,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	    << ptr << ((from == from_free) ? ") " : " ") );
 	if (channels::dc_malloc.is_on(LIBCWD_TSD))
 	  alloc_node->print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-	DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
-#else
-	DoutInternal( dc::continued, ' ' );
-#endif
+	DoutInternal(dc::continued, " " LIBCWD_DEBUGM_OPT("[" << ++__libcwd_tsd.marker << "] "));
       }
       if (from == from_delete)
       {
@@ -2095,11 +2082,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	DEBUGDEBUG_CERR( "__libcwd_free: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
 	__libcwd_tsd.internal = 0;
       }
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-      DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
-#else
-      DoutInternal( dc::continued, ' ' );
-#endif
+      DoutInternal(dc::continued, " " LIBCWD_DEBUGM_OPT("[" << ++__libcwd_tsd.marker << "] "));
     }
 
 #if CWDEBUG_MAGIC
@@ -2809,12 +2792,6 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_p
 #else
 #define CALL_ADDRESS
 #endif
-#undef SAVEDMARKER
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-#define SAVEDMARKER , saved_marker
-#else
-#define SAVEDMARKER
-#endif
 
 #if CWDEBUG_MARKER
 void marker_ct::register_marker(char const* label)
@@ -3292,12 +3269,8 @@ void* __libcwd_malloc(size_t size)
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc_malloc|continued_cf, "malloc(" << size << ") = [" << saved_marker << ']' );
-#else
-  DoutInternal( dc_malloc|continued_cf, "malloc(" << size << ") = " );
-#endif
-  void* ptr = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD SAVEDMARKER);
+  DoutInternal(dc_malloc|continued_cf, "malloc(" << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
+  void* ptr = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
 #if CWDEBUG_MAGIC
   if (ptr)
   {
@@ -3411,14 +3384,10 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc_malloc|continued_cf, "calloc(" << nmemb << ", " << size << ") = [" << saved_marker << ']' );
-#else
-  DoutInternal( dc_malloc|continued_cf, "calloc(" << nmemb << ", " << size << ") = " );
-#endif
+  DoutInternal(dc_malloc|continued_cf, "calloc(" << nmemb << ", " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
   void* ptr;
   size *= nmemb;
-  if ((ptr = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD SAVEDMARKER)))
+  if ((ptr = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker))))
     std::memset(ptr, 0, size);
 #if CWDEBUG_MAGIC
   if (ptr)
@@ -3514,15 +3483,11 @@ void* __libcwd_realloc(void* ptr, size_t size)
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc_malloc|continued_cf, "realloc(" << ptr << ", " << size << ") = [" << saved_marker << ']' );
-#else
-  DoutInternal( dc_malloc|continued_cf, "realloc(" << ptr << ", " << size << ") = " );
-#endif
+  DoutInternal(dc_malloc|continued_cf, "realloc(" << ptr << ", " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
 
   if (ptr == NULL)
   {
-    void* mptr = internal_malloc(size, memblk_type_realloc CALL_ADDRESS LIBCWD_COMMA_TSD SAVEDMARKER);
+    void* mptr = internal_malloc(size, memblk_type_realloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
 
 #if CWDEBUG_MAGIC
     if (mptr)
@@ -3578,11 +3543,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
     __libcwd_tsd.internal = 0;
     DoutInternal( dc::finish, "" );
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-    DoutFatalInternal( dc::core, "Trying to realloc() an invalid pointer (" << ptr << ") [" << saved_marker << ']' );
-#else
-    DoutFatalInternal( dc::core, "Trying to realloc() an invalid pointer (" << ptr << ')' );
-#endif
+    DoutFatalInternal(dc::core, "Trying to realloc() an invalid pointer (" << ptr << ")" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
   }
 
   if (size == 0)
@@ -3597,11 +3558,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     --__libcwd_tsd.inside_malloc_or_free;
     internal_free(ptr, from_free LIBCWD_COMMA_TSD);
     ++__libcwd_tsd.inside_malloc_or_free;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
-#else
-    DoutInternal( dc::finish, "NULL" );
-#endif
+    DoutInternal(dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
     --__libcwd_tsd.inside_malloc_or_free;
     return NULL;
   }
@@ -3631,11 +3588,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
-#else
-    DoutInternal( dc::finish, "NULL" );
-#endif
+    DoutInternal( dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
     DoutInternal( dc_malloc, "Size too large: no space left for magic numbers." );
     return NULL;	// A fatal error should occur directly after this
   }
@@ -3644,11 +3597,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
-#else
-    DoutInternal( dc::finish, "NULL" );
-#endif
+    DoutInternal(dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
     DoutInternal( dc_malloc, "Out of memory! This is only a pre-detection!" );
     --__libcwd_tsd.inside_malloc_or_free;
     return NULL; // A fatal error should occur directly after this
@@ -3731,11 +3680,10 @@ void* __libcwd_realloc(void* ptr, size_t size)
   if (!insertion_succeeded)
     DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
 
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal(dc::finish, (void*)(mptr) << (invisible ? " (invisible)" : "") << " [" << saved_marker << ']');
-#else
-  DoutInternal(dc::finish, (void*)(mptr) << (invisible ? " (invisible)" : ""));
-#endif
+  DoutInternal(dc::finish, (void*)(mptr)
+      LIBCWD_LOCATION_OPT(<< " [" << loc->object_file()->filename() << ':' << loc->mangled_function_name() << ']')
+      << (__libcwd_tsd.invisible ? " (invisible)" : "")
+      LIBCWD_DEBUGM_OPT(<< " [" << saved_marker << ']'));
   --__libcwd_tsd.inside_malloc_or_free;
   return mptr;
 }
@@ -3799,12 +3747,8 @@ void* operator new(size_t size) throw (std::bad_alloc)
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc_malloc|continued_cf, "operator new (size = " << size << ") = [" << saved_marker << ']' );
-#else
-  DoutInternal( dc_malloc|continued_cf, "operator new (size = " << size << ") = " );
-#endif
-  void* ptr = internal_malloc(size, memblk_type_new CALL_ADDRESS LIBCWD_COMMA_TSD SAVEDMARKER);
+  DoutInternal(dc_malloc|continued_cf, "operator new (size = " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
+  void* ptr = internal_malloc(size, memblk_type_new CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
   if (!ptr)
     DoutFatalInternal( dc::core, "Out of memory in `operator new'" );
 #if CWDEBUG_MAGIC
@@ -3836,12 +3780,8 @@ void* operator new(size_t size, std::nothrow_t const&) throw ()
 #endif
 
   ++__libcwd_tsd.inside_malloc_or_free;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc_malloc|continued_cf, "operator new (size = " << size << ", std::nothrow_t const&) = [" << saved_marker << ']' );
-#else
-  DoutInternal( dc_malloc|continued_cf, "operator new (size = " << size << ", std::nothrow_t const&) = " );
-#endif
-  void* ptr = internal_malloc(size, memblk_type_new CALL_ADDRESS LIBCWD_COMMA_TSD SAVEDMARKER);
+  DoutInternal(dc_malloc|continued_cf, "operator new (size = " << size << ", std::nothrow_t const&) = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
+  void* ptr = internal_malloc(size, memblk_type_new CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
   if (!ptr)
     DoutFatalInternal( dc::core, "Out of memory in `operator new'" );
 #if CWDEBUG_MAGIC
@@ -3908,12 +3848,8 @@ void* operator new[](size_t size) throw (std::bad_alloc)
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc_malloc|continued_cf, "operator new[] (size = " << size << ") = [" << saved_marker << ']' );
-#else
-  DoutInternal( dc_malloc|continued_cf, "operator new[] (size = " << size << ") = " );
-#endif
-  void* ptr = internal_malloc(size, memblk_type_new_array CALL_ADDRESS LIBCWD_COMMA_TSD SAVEDMARKER);
+  DoutInternal(dc_malloc|continued_cf, "operator new[] (size = " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
+  void* ptr = internal_malloc(size, memblk_type_new_array CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
   if (!ptr)
     DoutFatalInternal( dc::core, "Out of memory in `operator new[]'" );
 #if CWDEBUG_MAGIC
@@ -3945,12 +3881,8 @@ void* operator new[](size_t size, std::nothrow_t const&) throw ()
 #endif
 
   ++__libcwd_tsd.inside_malloc_or_free;
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-  DoutInternal( dc_malloc|continued_cf, "operator new[] (size = " << size << ", std::nothrow_t const&) = [" << saved_marker << ']' );
-#else
-  DoutInternal( dc_malloc|continued_cf, "operator new[] (size = " << size << ", std::nothrow_t const&) = " );
-#endif
-  void* ptr = internal_malloc(size, memblk_type_new_array CALL_ADDRESS LIBCWD_COMMA_TSD SAVEDMARKER);
+  DoutInternal(dc_malloc|continued_cf, "operator new[] (size = " << size << ", std::nothrow_t const&) = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
+  void* ptr = internal_malloc(size, memblk_type_new_array CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
   if (!ptr)
     DoutFatalInternal( dc::core, "Out of memory in `operator new[]'" );
 #if CWDEBUG_MAGIC
