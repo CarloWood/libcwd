@@ -28,6 +28,9 @@ extern "C" int _start();
 static void* frame_return_address(unsigned int frame)
 {
   void* frame_ptr = __builtin_frame_address(0);
+#if CW_FRAME_ADDRESS_OFFSET == 0
+  ++frame;
+#endif
   do
   {
     void** frame_ptr_ptr = reinterpret_cast<void**>(frame_ptr) + CW_FRAME_ADDRESS_OFFSET;

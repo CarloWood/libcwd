@@ -75,7 +75,17 @@ int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_AD
 // __builtin_return_address(x) with x > 0 does or doesn't work.
 //
 
-#@CW_CONFIG_BUILTIN_RETURN_ADDRESS_ONE@ HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+#@CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS@ HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+
+//
+// Define CW_FRAME_ADDRESS_OFFSET to be the offset to the next
+// frame pointer in the frame structure.
+//
+
+#@CW_CONFIG_FRAME_ADDRESS_OFFSET@ HAVE_FRAME_ADDRESS_OFFSET
+#ifdef HAVE_FRAME_ADDRESS_OFFSET
+#define CW_FRAME_ADDRESS_OFFSET @CW_FRAME_ADDRESS_OFFSET_C@
+#endif
 
 // Bug work arounds
 

@@ -582,22 +582,88 @@ eval "CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET=\"$cw_cv_sys_builtin_return_addres
 AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
 ])
 
-dnl CW_SYS_BUILTIN_RETURN_ADDRESS_ONE
+dnl CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS
 dnl
-dnl Determines if __buitin_return_address(1) is supported by compiler.
-AC_DEFUN(CW_SYS_BUILTIN_RETURN_ADDRESS_ONE,
-[AC_CACHE_CHECK([whether __builtin_return_address(1) works], cw_cv_sys_builtin_return_address_one,
+dnl Determines if __builtin_return_address(1) is supported by compiler.
+AC_DEFUN(CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS,
+[AC_CACHE_CHECK([whether __builtin_return_address(1) works], cw_cv_sys_recursive_builtin_return_address,
 [AC_TRY_RUN([int main(void) { return __builtin_return_address(1) == 0; }],
-cw_cv_sys_builtin_return_address_one=yes,
-cw_cv_sys_builtin_return_address_one=no,
-cw_cv_sys_builtin_return_address_one=unknown
+cw_cv_sys_recursive_builtin_return_address=yes,
+cw_cv_sys_recursive_builtin_return_address=no,
+cw_cv_sys_recursive_builtin_return_address=unknown
 )])
-if test "$cw_cv_sys_builtin_return_address_one" = "no"; then
-CW_CONFIG_BUILTIN_RETURN_ADDRESS_ONE=undef
+if test "$cw_cv_sys_recursive_builtin_return_address" = "no"; then
+CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS=undef
 else
-CW_CONFIG_BUILTIN_RETURN_ADDRESS_ONE=define
+CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS=define
 fi
-AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_ONE)
+AC_SUBST(CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS)
+])
+
+dnl CW_SYS_FRAME_ADDRESS_OFFSET
+dnl
+dnl Defines CW_FRAME_ADDRESS_OFFSET_C to be the number of void*
+dnl between a frame pointer and the next frame pointer.
+dnl
+AC_DEFUN(CW_SYS_FRAME_ADDRESS_OFFSET,
+[AC_REQUIRE([CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS])
+CW_CONFIG_FRAME_ADDRESS_OFFSET=undef
+if test "$cw_cv_sys_recursive_builtin_return_address" != "no"; then
+AC_CACHE_CHECK(frame pointer offset in frame structure, cw_sys_frame_address_offset,
+[AC_TRY_RUN([
+int func4(int offset)
+{
+  void* f0 = __builtin_frame_address(0);
+  void* f1 = __builtin_frame_address(1);
+  void* f2 = __builtin_frame_address(2);
+  void* f3 = __builtin_frame_address(3);
+  void* f4 = __builtin_frame_address(4);
+  return (f1 == ((void**)f0)[offset] && f2 == ((void**)f1)[offset] && f3 == ((void**)f2)[offset] && f4 == ((void**)f3)[offset]);
+}
+void func3(void)
+{
+  for (int offset = 0; offset < 128; ++offset)
+    if (func4(offset))
+      exit(offset);
+}
+void func2(int i)
+{
+  char a[22];
+  func3();
+  if (i == 1)		// Some arbitrary code
+    return;
+  i = 0;
+}
+void func1(void)
+{
+  char a[13];
+  func2(1);
+  for (int i = 1; i < 10; ++i);	// Some arbitrary code
+}
+void calculate_offset(void)
+{
+  char a[100];
+  func1();
+}
+int main(int argc, char* argv[])
+{
+  if (argc == 1)
+    exit(0);	// This wasn't the real rest yet
+  calculate_offset();
+  exit(255);	// Failure
+}],
+./conftest run
+cw_sys_frame_address_offset=$?
+if test "$cw_sys_frame_address_offset" != "255"; then
+CW_CONFIG_FRAME_ADDRESS_OFFSET=define
+fi,
+[AC_MSG_ERROR(Failed to compile a test program!?)],
+cw_sys_frame_address_offset=0 dnl Guess a default for cross compiling
+)])
+fi
+eval "CW_FRAME_ADDRESS_OFFSET_C=$cw_sys_frame_address_offset"
+AC_SUBST(CW_FRAME_ADDRESS_OFFSET_C)
+AC_SUBST(CW_CONFIG_FRAME_ADDRESS_OFFSET)
 ])
 
 dnl CW_BUG_G_CONFIG_H
