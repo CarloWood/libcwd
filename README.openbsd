@@ -22,4 +22,24 @@ their programs.
 Support for openbsd might be added in the future when I get a better
 idea (or when you tell me how to fix this problem!).
 
+29 Sep 2000
+
+I found out that using collect2 of GNU gcc does work (although not when
+you call it directly(?!?).  Using `g++ -shared' (instead of ld -Bshareable)
+creates a shared library that DOES initialize the global objects.
+
+However, now a new linker bug surfaced: It seems not possible to overload
+operator delete in a reliable way: calls to `delete' from libstdc++ do
+not call the same function as calls to `delete' from for instance libcwd.
+This is unacceptable since the overloaded operator new and delete in
+libcwd need to be called in pairs obviously.  I was able to reproduce
+this buggy behaviour in a rather small test case, using `g++ -shared -nostdlib',
+but not using `g++ -shared'.  In the case of libcwd however, it always
+fails (also with `g++ -shared').
+
+I give up on openbsd now, it is too buggy.  If you're using openbsd then
+I strongly suggest you try linux.  Your alternative (next to not using libcwd)
+is to fix it yourself: get libcwd to work on openbsd, then I'll have another
+look at it.
+
 Carlo Wood
