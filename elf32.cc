@@ -35,7 +35,7 @@
 #include <libcw/private_assert.h>
 
 #define DEBUGELF32 0
-#define DEBUGSTABS 0
+#define DEBUGSTABS 1
 #define DEBUGDWARF 0
 
 // This assumes that DW_TAG_compile_unit is the first tag for each compile unit
@@ -1799,7 +1799,11 @@ void objfile_ct::load_stabs(void)
       }
       case N_FUN:
       {
-	if (stabs[j].n_strx == 0)
+	if (stabs[j].n_strx == 0
+#ifdef __sun__
+            || stabs_string_table[stabs[j].n_strx] == 0
+#endif
+            )
 	{
           if (DEBUGSTABS)
 	    Dout(dc::bfd, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
