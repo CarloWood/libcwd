@@ -866,7 +866,8 @@ namespace {
 #endif
 	  hash < 39)
       {
-	entry_st entry = symbol_name_table_c[hash];
+	int index = static_cast<int>(static_cast<unsigned char>(hash));
+	entry_st entry = symbol_name_table_c[index];
 	if (entry.opcode[0] == opcode0 && entry.opcode[1] == opcode1 && (opcode1 == current() || entry.opcode[2] == '='))
 	{
 	  output += entry.symbol_name;
@@ -935,7 +936,8 @@ namespace {
 #endif
 	    hash < 39)
 	{
-	  entry_st entry = symbol_name_table_c[hash];
+	  int index = static_cast<int>(static_cast<unsigned char>(hash));
+	  entry_st entry = symbol_name_table_c[index];
 	  if (entry.opcode[0] == opcode0 && entry.opcode[1] == opcode1 && (opcode1 == current() || entry.opcode[2] == '='))
 	  {
 	    char const* p = entry.symbol_name;
