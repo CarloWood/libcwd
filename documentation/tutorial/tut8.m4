@@ -134,7 +134,7 @@ int main(void)
 1024       NOTICE  : main: creating thread 0, &lt;unfinished&gt;
 1024       MALLOC  :     malloc(8160) = &lt;unfinished&gt;
 1024       BFD     :         address 0x401fbbd8 corresponds to pthread.c:533
-1024       MALLOC  :     &lt;continued> 0x838689&gt;
+1024       MALLOC  :     &lt;continued> 0x8386890
 1024       NOTICE  : &lt;continued&gt; id 1026.
 1026       NOTICE  : Entering thread 1026
 1026       NOTICE  : Leaving thread 1026
