@@ -463,7 +463,7 @@ AM_CONDITIONAL(ENABLESTATIC, test x$enable_static = xyes)
 
 dnl Checks for header files.
 AC_HEADER_STAT
-AC_CHECK_HEADERS(_G_config.h link.h)
+AC_CHECK_HEADERS(_G_config.h link.h pwd.h)
 
 dnl Check for global variable.
 if test "$ac_cv_header_link_h" = yes; then

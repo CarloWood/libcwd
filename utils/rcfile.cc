@@ -21,7 +21,9 @@
 #include <sys/types.h>	// Needed for 'stat', 'getuid' and 'getpwuid'.
 #include <sys/stat.h>	// Needed for 'stat'.
 #include <unistd.h>	// Needed for 'stat', 'access' and 'getuid'.
+#ifdef HAVE_PWD_H
 #include <pwd.h>	// Needed for 'getpwuid'.
+#endif
 
 namespace libcwd {
 
@@ -60,17 +62,28 @@ std::string rcfile_ct::M_determine_rcfile_name(void)
   else
   {
     // Does it exist in $HOME/?
+    char const* homedir;
+#ifdef HAVE_PWD_H
     struct passwd* pwent = getpwuid(getuid());
-    rcfile_name = pwent->pw_dir;
-    rcfile_name += '/';
-    rcfile_name += M_rcname;
-    if (!S_exists(rcfile_name.c_str()))
+    homedir = pwent->pw_dir;
+#else
+    homedir = getenv("HOME");
+#endif
+    if (homedir)
     {
+      rcfile_name = homedir;
+      rcfile_name += '/';
+      rcfile_name += M_rcname;
+    }
+    if (!homedir || !S_exists(rcfile_name.c_str()))
+    {
+      if (!homedir)
+        homedir = "$HOME";
       if (M_env_set)
       {
         M_print_delayed_msg();
 	DoutFatal(dc::fatal, "read_rcfile: Could not read $LIBCWD_RCFILE_NAME (\"" << M_rcname <<
-            "\") from either \".\" or \"" << pwent->pw_dir << "\".");
+            "\") from either \".\" or \"" << homedir << "\".");
       }
       else
       {
@@ -78,14 +91,14 @@ std::string rcfile_ct::M_determine_rcfile_name(void)
 	rcfile_name = CW_DATADIR "/libcwdrc";
 	if (!S_exists(rcfile_name.c_str()))
 	  DoutFatal(dc::fatal, "read_rcfile: Could not read rcfile \"" << M_rcname <<
-	      "\" from either \".\" or \"" << pwent->pw_dir <<
+	      "\" from either \".\" or \"" << homedir <<
 	      "\" and could not read default rcfile \"" << rcfile_name << "\" either!");
 	else
 	{
 	  bool warning_on = channels::dc::warning.is_on();
 	  if (!warning_on)
 	    channels::dc::warning.on();
-	  Dout(dc::warning, "Neither ./" << M_rcname << " nor " << pwent->pw_dir << '/' << M_rcname << " exist.");
+	  Dout(dc::warning, "Neither ./" << M_rcname << " nor " << homedir << '/' << M_rcname << " exist.");
           Dout(dc::warning, "Using default rcfile \"" << rcfile_name << "\".");
 	  if (!warning_on)
 	    channels::dc::warning.off();
