@@ -359,6 +359,7 @@ bool Elf32_Ehdr::check_format(void) const
   else if (e_ident[EI_CLASS] != ELFCLASS32)
     Dout(dc::stabs, "Sorry, object file must be ELF32.");
   else if (e_ident[EI_DATA] !=
+#ifdef __BYTE_ORDER
 #if __BYTE_ORDER == __LITTLE_ENDIAN
       ELFDATA2LSB
 #elif __BYTE_ORDER == __BIG_ENDIAN
@@ -366,6 +367,13 @@ bool Elf32_Ehdr::check_format(void) const
 #else
       ELFDATANONE
 #endif
+#else // !__BYTE_ORDER
+#ifdef WORDS_BIGENDIAN
+      ELFDATAMSB
+#else
+      ELFDATA2LSB
+#endif
+#endif // !__BYTE_ORDER
       )
     Dout(dc::stabs, "Object file has non-native data encoding.");
   else if (e_ident[EI_VERSION] != EV_CURRENT)

@@ -580,50 +580,25 @@ cw_prog_cc_finger_print="`$CC -v 2>&1 | grep version | head -n 1`"
 
 dnl CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
 dnl
-dnl Determines if an offset of -1 works or not.
-dnl Assumed is that the test program compiles and works,
-dnl if anything fails then an offset of -1 is assumed.
+dnl Determines the size of a call, in other words: what needs to be substracted
+dnl from __builtin_return_address(0) to get the start of the assembly instruction
+dnl that did the call.
 AC_DEFUN(CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET,
 [AC_CACHE_CHECK(needed offset to __builtin_return_address(), cw_cv_sys_builtin_return_address_offset,
 [CW_TRY_RUN(
 changequote(<<, >>)dnl
-<<#include <bfd.h>
-#include <cstring>
-void* addr2;
-void test2(void)
-{
-  addr2 = __builtin_return_address(0);
-}
+<<int size;
 
-unsigned int const realline = __LINE__ + 3;
-void test(void)
+void f(void)
 {
-  test2();
+  size = (unsigned int)__builtin_return_address(0) & 255;
 }
 
 int main(int argc, char* argv[])
 {
-  bfd_init();
-  bfd* abfd = bfd_openr(argv[0], NULL);
-  bfd_check_format (abfd, bfd_archive);
-  char** matching;
-  bfd_check_format_matches (abfd, bfd_object, &matching);
-  long storage_needed = bfd_get_symtab_upper_bound (abfd);
-  asymbol** symbol_table = (asymbol**) malloc(storage_needed);
-  long number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
-  asymbol** se = &symbol_table[number_of_symbols - 1];
-  for (asymbol** s = symbol_table; s <= se; ++s)
-    if (!strcmp((*s)->name, "main"))
-    {
-      asection* sect = bfd_get_section(*s);
-      char const* file;
-      char const* func;
-      unsigned int line;
-      test();
-      bfd_find_nearest_line(abfd, sect, symbol_table, (unsigned int)((char*)addr2 - sect->vma) - 1, &file, &func, &line);
-      exit((line == realline) ? 1 : 0);
-    }
-  exit(1);
+  asm( ".align 256" );
+  f();
+  exit(size > 4 ? 1 : 0);
 }
 >>,
 changequote([, ])dnl
