@@ -55,7 +55,9 @@ namespace libcwd { namespace _private_ { namespace workaround_20040420 {
   static mutex_instance_nt const object_files_instance = _private_::object_files_instance;
   static mutex_instance_nt const dlopen_map_instance = _private_::dlopen_map_instance;
   static mutex_instance_nt const dlclose_instance = _private_::dlclose_instance;
+#if CWDEBUG_ALLOC
   static mutex_instance_nt const list_allocations_instance = _private_::list_allocations_instance;
+#endif
 }}}
 namespace workaround_20040420 = libcwd::_private_::workaround_20040420;
 #define object_files_instance workaround_20040420::object_files_instance
@@ -127,8 +129,10 @@ typedef std::set<symbol_ct, symbol_key_greater> function_symbols_ct;
 class bfile_ct;
 #if CWDEBUG_ALLOC
 typedef std::list<bfile_ct*, _private_::object_files_allocator::rebind<bfile_ct*>::other> object_files_ct;
+#define LIBCWD_COMMA_ALLOC_OPT(x) , x
 #else
 typedef std::list<bfile_ct*> object_files_ct;
+#define LIBCWD_COMMA_ALLOC_OPT(x)
 #endif
 
 class bfile_ct {                                  // All allocations related to bfile_ct must be `internal'.
@@ -143,9 +147,9 @@ private:
 public:
   bfile_ct(char const* filename, void* base);
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-  void initialize(char const* filename, void* base, bool is_libc, bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM);
+  void initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM);
 #else
-  void initialize(char const* filename, void* base, bool is_libc LIBCWD_COMMA_TSD_PARAM);
+  void initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);
 #endif
   void deinitialize(LIBCWD_TSD_PARAM);
 

@@ -722,6 +722,12 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
   write(2, "<memblk_key_ct>", 15);
   return raw_write;
 }
+
+_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, location_ct const& data)
+{
+  write(2, "<location_ct>", 13);
+  return raw_write;
+}
 #endif
 
 class dm_alloc_base_ct : public alloc_ct {

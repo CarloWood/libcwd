@@ -49,9 +49,4 @@ namespace libcwd {
 }
 #endif
 
-// Include the inline functions.
-#ifndef LIBCWD_CLASS_LOCATION_INL
-#include <libcwd/class_location.inl>
-#endif
-
 #endif // LIBCWD_BFD_H

@@ -38,6 +38,7 @@ extern "C" char* getenv(char const* name);	// Needed before including ext/pool_a
 #include <libcwd/private_internal_stringbuf.h>
 #include <libcwd/private_bufferstream.h>
 #include "private_debug_stack.inl"
+#include <libcwd/class_location.inl>
 
 extern "C" int raise(int);
 
@@ -77,8 +78,8 @@ using libcwd::_private_::debug_channels_instance;
 #endif // !LIBCWD_THREAD_SAFE
 
 #define NEED_SUPRESSION_OF_MALLOC_AND_BFD (__GNUC__ == 3 && \
-    ((__GNUC_MINOR__ == 2 && __VERSION__ [3] == 0) || \
-     (__GNUC_MINOR__ == 1 && __VERSION__ [4] == '1') || \
+    ((__GNUC_MINOR__ == 2 && __GNUC_PATCHLEVEL__ == 0) || \
+     (__GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 1) || \
      (__GNUC_MINOR__ == 0)))
 
 namespace libcwd {

@@ -24,16 +24,21 @@
 
 #include <libcwd/config.h>
 
+#if CWDEBUG_LOCATION
+#include <libcwd/class_location.h>
+#endif
+
 #if CWDEBUG_ALLOC
 
 #if CWDEBUG_LOCATION
 #include <libcwd/private_allocator.h>
-#include <libcwd/class_location.h>
 #endif
 #ifndef LIBCW_VECTOR
 #define LIBCW_VECTOR
 #include <vector>
 #endif
+
+#endif // CWDEBUG_ALLOC
 
 namespace libcwd {
 
@@ -43,20 +48,24 @@ namespace libcwd {
 /** \brief The type used for the formatting flags of an alloc_filter_ct object. */
 typedef unsigned short int alloc_format_t;
 
-alloc_format_t const show_time = 1;			//!< Show the time at which the allocation was made.
 #if CWDEBUG_LOCATION
-alloc_format_t const show_path = 2;			//!< Show the full path of the locations where the allocation was made.
-alloc_format_t const show_objectfile = 4;		//!< Show the name of the shared library that is responsible for the allocation.
-alloc_format_t const show_function = 8;			//!< Show the mangled name of the function that allocated the memory.
+alloc_format_t const show_path = 1;			//!< Show the full path of the locations where the allocation was made.
+alloc_format_t const show_objectfile = 2;		//!< Show the name of the shared library that is responsible for the allocation.
+alloc_format_t const show_function = 4;			//!< Show the mangled name of the function that allocated the memory.
 #endif
+#if CWDEBUG_ALLOC
+alloc_format_t const show_time = 8;			//!< Show the time at which the allocation was made.
 alloc_format_t const show_allthreads = 16;		//!< Show the allocations of all threads, not just the current thread.
 #if CWDEBUG_LOCATION
 alloc_format_t const format_mask = (show_time|show_path|show_objectfile|show_function|show_allthreads);
 #else
 alloc_format_t const format_mask = (show_time|show_allthreads);
 #endif
+#endif // CWDEBUG_ALLOC
 
 /** \} */
+
+#if CWDEBUG_ALLOC
 
 unsigned int const hide_untagged = 32;			// Call hide_untagged_allocations() to set this flag.
 unsigned int const hide_unknown_loc = 64;		// Call hide_unknown_locations() to set this flag.
@@ -217,7 +226,8 @@ private:
 #endif
 };
 
+#endif // CWDEBUG_ALLOC
+
 } // namespace libcwd
 
-#endif // CWDEBUG_ALLOC
 #endif // LIBCWD_CLASS_ALLOC_FILTER_H

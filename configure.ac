@@ -121,6 +121,11 @@ AC_ARG_ENABLE(debugt,
                           in libcwd itself.],
     libcwd_config_debugt=$enableval)
 
+AC_ARG_ENABLE(pch,
+    [  --disable-pch           disable precompiled header support @<:@auto detect for
+                          g++@:>@],
+    libcwd_config_pch=$enableval)
+
 AC_ARG_VAR(THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].])
 if test -z "$THREADSMAX"; then
   THREADSMAX=1024
@@ -489,7 +494,11 @@ AC_CACHE_CHECK([for compiler with PCH support],
       echo '#include "conftest.h"' > conftest.cc &&
      $CXX -c $CXXFLAGS $CPPFLAGS conftest.cc 1>&5 2>&1 ;
    then
-     cw_cv_prog_CXX_pch=yes
+     if test x"$libcwd_config_pch" != x"no"; then
+       cw_cv_prog_CXX_pch=yes
+     else
+       cw_cv_prog_CXX_pch=disabled
+     fi
    else
      cw_cv_prog_CXX_pch=no
    fi

@@ -99,11 +99,23 @@ namespace libcwd {
 #ifndef LIBCWD_PRIVATE_THREAD_H
 #include <libcwd/private_thread.h>
 #endif
-#ifndef LIBCWD_CLASS_LOCATION_H
-#include <libcwd/class_location.h>
-#endif
 
 namespace libcwd {
+
+#if CWDEBUG_LOCATION
+/** \addtogroup group_locations */
+/** \{ */
+
+/** \brief The type of the argument of location_format
+ *
+ * This type is the same as alloc_format_t but should
+ * only be used together with the bit masks \ref show_objectfile, \ref show_function and \ref show_path.
+ */
+typedef unsigned short int location_format_t;
+
+/** \} */ // End of group 'group_locations'
+#endif
+
   namespace _private_ {
 
 extern int WST_initializing_TSD;

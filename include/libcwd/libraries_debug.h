@@ -141,6 +141,7 @@ using namespace libcwd_inserters;
 #include <libcwd/class_debug.inl>		// Debug objects (debug_ct).
 #include <libcwd/class_debug_string.inl>	// Public member of debug_ct.
 #include <libcwd/class_channel_set.inl>		// Used in macro Dout et al.
+#include <libcwd/class_location.inl>
 
 // Include optional features.
 #if CWDEBUG_LOCATION				// --enable-location

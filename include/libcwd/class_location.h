@@ -112,10 +112,10 @@ protected:
   static char const* const S_cleared_location_ct_c;
 
 public:
-  location_ct(void const* addr);
+  explicit location_ct(void const* addr);
       // Construct a location object for address `addr'.
 #if LIBCWD_THREAD_SAFE
-  location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM);
+  explicit location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM);
       // Idem, but with passing the TSD.
 #endif
   ~location_ct();
@@ -218,6 +218,16 @@ public:
   void print_filename_on(std::ostream& os) const;
   template<class OSTREAM>
     friend void _private_::print_location_on(OSTREAM& os, location_ct const& location);
+#if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
+  // This doesn't need to be a friend, but g++ 3.3.x and lower are broken.
+  // We need to declare an operator<< this way as a workaround.
+  friend std::ostream&
+  operator<<(std::ostream& os, location_ct const& location)
+  {
+    _private_::print_location_on(os, location);
+    return os;
+  }
+#endif
 
   // This is used in list_allocations_on.
   bool initialization_delayed(void) const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
@@ -229,13 +239,6 @@ public:
   void synchronize_with(alloc_filter_ct const&) const;
 #endif
 };
-
-/** \brief The type of the argument of location_format
- *
- * This type is the same as alloc_format_t but should
- * only be used together with the bit masks \ref show_objectfile, \ref show_function and \ref show_path.
- */
-typedef unsigned short int location_format_t;
 
 /** \brief Set the output format of location_ct.
  *

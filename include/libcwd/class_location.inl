@@ -20,6 +20,9 @@
 
 #if CWDEBUG_LOCATION
 
+#ifndef LIBCWD_LIBRARIES_DEBUG_H
+#include <libcwd/libraries_debug.h>
+#endif
 #ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
 #endif
@@ -160,6 +163,7 @@ template<class OSTREAM>
 
 } // namespace _private_
 
+#if !(__GNUC__ == 3 && __GNUC_MINOR__ < 4)	// See class_location.h
 /**
  * \brief Write \a location to ostream \a os.
  * \ingroup group_locations
@@ -177,6 +181,7 @@ operator<<(std::ostream& os, location_ct const& location)
   _private_::print_location_on(os, location);
   return os;
 }
+#endif
 
 } // namespace libcwd
 

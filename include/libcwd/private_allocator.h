@@ -92,7 +92,7 @@ template<bool needs_lock, int pool_instance>
   struct CharPoolAlloc : public std::__default_alloc_template<needs_lock, random_salt + pool_instance> {
     typedef char* pointer;
   };
-#elif __GNUC_MINOR__ == 4
+#elif __GNUC_MINOR__ == 4 && __GNUC_PATCHLEVEL__ == 0
 template<bool needs_lock, int pool_instance>
   struct CharPoolAlloc : public __gnu_cxx::__pool_alloc<needs_lock, random_salt + pool_instance> {
     typedef char* pointer;
@@ -102,7 +102,7 @@ template<int pool_instance>
   struct char_wrapper {
     char c;
   };
-// gcc 3.5.0 and higher always use a lock, in the threaded case.
+// gcc 3.4.1 and higher always use a lock, in the threaded case.
 template<bool needs_lock, int pool_instance>
   class CharPoolAlloc : public __gnu_cxx::__pool_alloc<char_wrapper<pool_instance> > { };
 #endif

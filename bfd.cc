@@ -280,9 +280,9 @@ void bfd_close(bfd* abfd)
       }
 
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-      void bfile_ct::initialize(char const* filename, void* base, bool is_libc, bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
 #else
-      void bfile_ct::initialize(char const* filename, void* base, bool is_libc  LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 #endif
       {
 #if CWDEBUG_DEBUGM
@@ -363,7 +363,7 @@ void bfd_close(bfd* abfd)
 	if (M_number_of_symbols > 0)
 	{
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-	  Elf32_Off S_lock_value;
+	  Elf32_Off S_lock_value = 0;
 #endif
 #if CWDEBUG_ALLOC
 	  Elf32_Off exit_funcs = 0;
@@ -573,7 +573,11 @@ void bfd_close(bfd* abfd)
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
 	    if (is_libstdcpp && strcmp((*s)->name,
 #if __GNUC_MINOR__ == 4
+#if __GNUC_PATCHLEVEL__ == 0
 	    "_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE"
+#else
+	    "_ZN9__gnu_cxx11__pool_baseILb1EE7_S_lockE"
+#endif
 #else
 	    "_ZN9__gnu_cxx12__pool_allocIcE7_S_lockE"
 #endif
@@ -1033,9 +1037,9 @@ void bfd_close(bfd* abfd)
 	object_file = new bfile_ct(name, l_addr);
 	BFD_RELEASE_WRITE_LOCK;
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-	object_file->initialize(name, l_addr, is_libc, is_libstdcpp LIBCWD_COMMA_TSD);
+	object_file->initialize(name, l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
 #else
-	object_file->initialize(name, l_addr, is_libc LIBCWD_COMMA_TSD);
+	object_file->initialize(name, l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
 #endif
 	set_alloc_checking_on(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;

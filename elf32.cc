@@ -3067,7 +3067,9 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
     }
     // Ok, now we are sure that THIS thread doesn't hold the following lock, try to acquire it.
     // `object_files_string' and the STL containers using `_private_::object_files_allocator' in the following functions need this lock.
+#if CWDEBUG_ALLOC
     int saved_internal;
+#endif
     LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct<object_files_instance>::cleanup, NULL);
     _private_::rwlock_tct<object_files_instance>::wrlock();
     // Now we acquired the lock, check again if another thread not already read the debug info.

@@ -67,6 +67,9 @@ verbose "    out = \"$out\""
     }
 
     verbose "resultfile is $resultfile"
+    if ![file exists $resultfile] {
+      return;
+    }
     set resultid [open $resultfile r];
 
     # Constants

@@ -1,5 +1,7 @@
 libcwd-0.99.37
 
+	Added support for g++ 3.4.1.
+
 	The format of how a location_ct is written to an ostream
 	can now be controlled with libcwd::location_format().
 	It takes the same bit masks as the alloc filter, though
@@ -62,6 +64,8 @@ libcwd-0.99.37
 	The reason for the change is that the filter is being used
 	in more and more places that are not directly related to the
 	Overview Of Allocated Memory (ooam).
+
+	location_ct::location_ct(void const*) has been made explicit.
 
 libcwd-0.99.36
 
