@@ -98,7 +98,7 @@ public:
    * \brief Copy constructor.
    *
    * Constructs a location that is equivalent to the location passed as argument.
-   * The new object will be the owner of the memory allocations of this allocation
+   * The new object will be the owner of the memory allocations of this location
    * unless the member function \ref lock_ownership was called for the prototype
    * before copying it.  It is the responsibility of the coder to make sure that
    * the allocation owner is the object that is last deleted (if at all).
@@ -109,7 +109,7 @@ public:
    * \brief Assignment operator.
    *
    * Assigns the value of the location passed to the current object.
-   * The new object will be the owner of the memory allocations of this allocation
+   * The new object will be the owner of the memory allocations of this location
    * unless the member function \ref lock_ownership was called for the prototype
    * before copying it.  It is the responsibility of the coder to make sure that
    * the allocation owner is the object that is last deleted (if at all).

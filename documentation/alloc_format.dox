@@ -64,7 +64,7 @@ libraries whose name match.
 
 <b>Examples:</b>
 
-In order to show all allocations that were done at least one hour or more ago,
+In order to show all allocations that were done one hour or more ago, one could do:
 
 \code
 #ifdef CWDEBUG

@@ -58,7 +58,7 @@ endif
 # --------------- Maintainer's Section
 
 dist-hook: documentation
-	cp -pr $(srcdir)/documentation $(distdir)/documentation
+	cp -pr $(srcdir)/documentation $(distdir)
 	find $(distdir)/documentation -name CVS -print | xargs rm -rf
 	find $(distdir)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
 	mkdir $(distdir)/example-project
@@ -78,6 +78,14 @@ distclean-local:
 
 MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h.in Makefile.in \
 	install-sh missing mkinstalldirs config.guess config.sub ltmain.sh ltconfig \
-	config.cache config.log depcomp
+	config.cache config.log depcomp \
+	documentation/tutorial/examples5/debug.* \
+	documentation/tutorial/examples5/test* \
+	documentation/tutorial/core \
+	documentation/tutorial/examples7/test* \
+	documentation/tutorial/tut5.m4 \
+	documentation/tutorial/tut7.m4 \
+	documentation/tutorial/*.html \
+	documentation/tutorial/Makefile
 
 @MAINTAINER_MODE_TRUE@include maintMakefile

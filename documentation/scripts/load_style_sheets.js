@@ -3,9 +3,9 @@ with (document)
   var styles_path;
   var rootpath;
   var rootpos;
-  rootpos = location.href.lastIndexOf("/www/");
+  rootpos = location.pathname.lastIndexOf("/www/");
   if (rootpos != -1)
-    rootpath = location.href.substring(0,rootpos) + "/";
+    rootpath = location.pathname.substring(0,rootpos) + "/";
   else
   {
     rootpos = location.pathname.lastIndexOf("/reference-manual/");
@@ -17,11 +17,7 @@ with (document)
       if (rootpos != -1) 
 	rootpath = location.pathname.substring(0,rootpos) + "/";
       else
-      {
-	rootpos = location.pathname.lastIndexOf("/index.html");
-	if (rootpos != -1) 
-	  rootpath = location.pathname.substring(0,rootpos) + "/";
-      }
+	rootpath = "/";
     }
   }
 
@@ -53,9 +49,9 @@ with (document)
   }
 
   // See http://devedge.netscape.com/evangelism/docs/api/xbDebug/
-  // xbDEBUG.push();
-  // xbDEBUG.dump("styles_path = " + styles_path);
-  // xbDEBUG.pop();
+  //xbDEBUG.push();
+  //xbDEBUG.dump("styles_path = " + styles_path);
+  //xbDEBUG.pop();
 
   write("<LINK REL=StyleSheet HREF=\"" + styles_path + "main.css\" TYPE=\"text/css\">");
   if (need_style_tutorial == 1)

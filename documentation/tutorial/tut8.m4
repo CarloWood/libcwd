@@ -5,7 +5,14 @@ __PAGESTART
 
 <H2>Tutorial 8: Debugging Threaded Applications</H2>
 
-<P>Libcwd should be completely thread-safe, with the following restrictions:</P>
+<P>When debugging a threaded application, you must link with -lcwd_r instead of -lcwd.&nbsp;
+For example:</P>
+
+<PRE>
+g++ -pthread -D_REENTRANT -DCWDEBUG program.cc -lpthread -lcwd_r
+</PRE>
+
+<P>Libcwd_r should be completely thread-safe, with the following restrictions:</P>
 <UL>
 <LI>All debug objects and debug channels <EM>must</EM> be global (as they should
 be in non-threaded applications for that matter).</LI>

@@ -124,7 +124,7 @@ namespace libcw {
 /** \addtogroup group_alloc_format */
 /** \{ */
 
-/** \brief The type used for the formatting flags of a ooam_filter_ct object */
+/** \brief The type used for the formatting flags of an ooam_filter_ct object */
 typedef unsigned short int ooam_format_t;
 
 ooam_format_t const show_time = 1;			//!< Show the time at which the allocation was made.

@@ -85,6 +85,18 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>23 April 2002</B>
+<P class="news">libcwd-0.99.19 is released.&nbsp;
+This release fixes a deadlock during the initialization of threaded applications
+that use g++ version 2.96 or earlier.  There are now two libraries compiled and
+and installed: a thread safe version which is called libcwd_r, and the thread
+unsafe version called libcwd.  Finally, a new feature is added that allows
+one to filter the overview of allocated memory, removing the output related
+to certain shared libraries; restricting the memory allocations shown to a
+given time interval in which they were allocated; and showing the full path
+of a location source file at which the allocation took place, the time at
+which the allocation was made and/or the name of the shared library an allocation
+belongs to.  Detailed information can be found in the <a href="reference-manual/group__group__alloc__format.html">reference manual</a>.
 <DT><B>11 March 2002</B>
 <P class="news">libcwd-0.99.18 is released.&nbsp;
 This release contains several minor documentation fixes and again an API change: the
