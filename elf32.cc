@@ -1156,9 +1156,9 @@ struct file_name_st {
   uLEB128_t length_in_bytes_of_the_file;
 };
 
-static std::string catenate_path(std::string const& dir, char const* subpath)
+static object_files_string catenate_path(object_files_string const& dir, char const* subpath)
 {
-  std::string res;
+  object_files_string res;
   int count = 0;
   while (subpath[0] == '.' && subpath[1] == '.' && subpath[2] == '/')
   {
