@@ -685,13 +685,14 @@ namespace libcw {
 	  // Try to get the lock, but don't try too long...
 	  int res;
 	  struct timespec const t = { 0, 5000000 };
-	  for(int count = 0; count < 40; ++count)
+	  int count = 0;
+	  do
 	  {
-	    res = debug_object.M_mutex->trylock();
-	    if (res == 0)
+	    if (!(res = debug_object.M_mutex->trylock()))
 	      break;
 	    nanosleep(&t, NULL);
 	  }
+	  while(++count < 40);
 #endif
 	  target_os->put('\n');
 #ifdef LIBCWD_THREAD_SAFE
