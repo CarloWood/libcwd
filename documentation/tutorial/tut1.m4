@@ -53,7 +53,7 @@ a compile error in &lt;libcw/sysd.h&gt; telling you so.</P>
 <H3><CODE>#include &lt;libcw/sysd.h&gt;</CODE></H3>
 
 <P>This must be the very first header file that is included; even before system header files.&nbsp;
-Every source file that includes other libcw headers must include it.</P>
+Every source file that includes other libcwd headers must include it.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
 <LI><A HREF="faq.html#sysd.h">Why?</A></LI>
