@@ -1,7 +1,7 @@
 // Generated automatically from sys.h.in by configure.
 // $Header$
 //
-// Copyright (C) 2001 - 2003, by
+// Copyright (C) 2001 - 2004, by
 //
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
