@@ -32,6 +32,9 @@ ACLOCAL=${ACLOCAL:-aclocal}
 AUTOHEADER=${AUTOHEADER:-autoheader}
 AUTOCONF=${AUTOCONF:-autoconf}
 
+# libtool versions prior to 1.4.2 are broken.
+# On OS other than Linux we require 1.4d or higher because libtool
+# doesn't support shared C++ libraries in earlier versions.
 os=`uname -s`
 if test "$os" = "Linux"; then
   required_libtool_version="1.4.2";
@@ -48,10 +51,10 @@ fi
 libtool_version=`libtool --version | head -n 1 | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
 libtool_develversion=`libtool --version | head -n 1 | sed -e 's/.*[12]\.[0-9].*(\([^ ]*\).*/\1/'`
 
-# libtool versions prior to 1.4.2 are broken.
-# On OS other than Linux we require 1.4d or higher because libtool
-# doesn't support shared C++ libraries in earlier versions.
-if expr "$required_libtool_version" \> "$libtool_version" >/dev/null; then
+# Require required_libtool_version.
+expr_libtool_version=`echo "$libtool_version" | sed -e 's%\.%.000%g' -e 's%^%000%' -e 's%0*\([0-9][0-9][0-9]\)%\1%g'`
+expr_required_libtool_version=`echo "$required_libtool_version" | sed -e 's%\.%.000%g' -e 's%^%000%' -e 's%0*\([0-9][0-9][0-9]\)%\1%g'`
+if expr "$expr_required_libtool_version" \> "$expr_libtool_version" >/dev/null; then
   libtool --version
   echo ""
   echo "Fatal error: libtool version $required_libtool_version or higher is required."
@@ -62,10 +65,11 @@ libtool_files="config.guess config.sub ltmain.sh"
 # Determine the version of automake.
 automake_version=`$AUTOMAKE --version | head -n 1 | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
 
-# Require automake 1.6 because 1.5 is broken.
-if expr "1.6" \> "$automake_version" >/dev/null; then
+# Require automake 1.7 because 1.6 and below are broken.
+expr_automake_version=`echo "$automake_version" | sed -e 's%\.%.000%g' -e 's%^%000%' -e 's%0*\([0-9][0-9][0-9]\)%\1%g'`
+if expr "001.007" \> "$expr_automake_version" >/dev/null; then
   $AUTOMAKE --version | head -n 1
-  echo "Fatal error: automake version 1.6 or higher is required."
+  echo "Fatal error: automake version 1.7 or higher is required."
   exit 1
 fi
 
@@ -73,7 +77,8 @@ fi
 autoconf_version=`$AUTOCONF --version | head -n 1 | sed -e 's/[^0-9]*\([0-9]\.[0-9]*\).*/\1/'`
 
 # Require autoconf 2.57.
-if expr "2.57" \> "$autoconf_version" >/dev/null; then
+expr_autoconf_version=`echo "$autoconf_version" | sed -e 's%\.%.000%g' -e 's%^%000%' -e 's%0*\([0-9][0-9][0-9]\)%\1%g'`
+if expr "002.057" \> "$expr_autoconf_version" >/dev/null; then
   $AUTOCONF --version | head -n 1
   echo "Fatal error: autoconf version 2.57 or higher is required."
   exit 1
