@@ -15,10 +15,8 @@ http://www.xs4all.nl/~carlo17/tcore.diff
 http://www.cs.helsinki.fi/linux/linux-kernel/2002-10/1310.html)
 
 You are strongly advised to use gdb 5.2 for multithreaded
-debugging; however, it may be possible that the released
-gdb 5.2 is not capable of reading the debug information
-that is used by gcc 3.1, I heard (libcwd needed to be fixed
-too), the latest CVS version of gdb works though.
+debugging.  Try not to use -O2 if you want source file
+and line numbers that make sense ;).
 
 Be aware that gdb does hardly support namespaces and
 will therefore frequently not find types or variables
