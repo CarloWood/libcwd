@@ -30,9 +30,8 @@ Also end-applications will benefit by using this method (in terms of flexibility
 
 The following code would define a debug channel \c warp in the namespace \c libexample:
 
-\code
- // This is some .cpp file of your library.
- #include "debug"
+\verbatim // This is some .cpp file of your library.
+ #include "debug.h"
  // ...
  #ifdef CWDEBUG
  namespace libexample {
@@ -44,7 +43,7 @@ The following code would define a debug channel \c warp in the namespace \c libe
    }
  }
  #endif
-\endcode
+\endverbatim
 
 The namespace channels in this example is not really necessary but it illustrates
 which namespace DEBUGCHANNELS will be set to.  This is the namespace that needs to
