@@ -1,6 +1,6 @@
 // This header file is an example of how to write a "debug.h" file
 // in the case that your application want to define its own debug channels.
-// This example belongs to 'threads.cc'.
+// This example belongs to 'hello_world.cc'.
 
 #ifndef DEBUG_H
 #define DEBUG_H

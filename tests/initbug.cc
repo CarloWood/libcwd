@@ -1,5 +1,5 @@
-#include <libcw/sysd.h>
-#include <libcw/debug.h>
+#include "sys.h"
+#include "debug.h"
 #include "initbug_GlobalObject.h"
 
 int main(void)

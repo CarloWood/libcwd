@@ -1,7 +1,7 @@
-#include <libcw/sysd.h>
+#include "sys.h"
+#include "debug.h"
 #include <iostream>
 #include <errno.h>
-#include <libcw/debug.h>
 #include "initbug_GlobalObject.h"
 
 GlobalObject::GlobalObject(void)

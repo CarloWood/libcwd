@@ -1,4 +1,4 @@
-#include <libcw/sysd.h>
+#include "sys.h"
 #include <libcw/debug.h>
 #include <cstdlib>
 #include <iostream>

@@ -4,6 +4,7 @@ hello_world
 initbug
 syslog
 threads
+mangling
 dout_alloc
 .deps
 .libs

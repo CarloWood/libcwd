@@ -25,7 +25,7 @@
 //
 
 #include "sys.h"
-#include "debug.h"
+#include "hello_world_debug.h"
 
 // Define our own debug channel (see also "debug.h"):
 #ifdef CWDEBUG

@@ -1,4 +1,4 @@
-#include <libcw/sysd.h>
+#include "sys.h"
 #include "debug.h"
 
 namespace example {
