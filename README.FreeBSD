@@ -1,10 +1,20 @@
+1  May 2002
+
+  Now we use dlopen() and dlsym() to find a pointer to libc's malloc
+  et al.  As a result we don't have to use the dirty marco trick anymore
+  and libcwd now catches all allocations, also those by third party
+  libraries.  Another trick is used to swap from using libc's malloc to
+  libcwd's malloc as soon as possible.
+  Threading is still not supported unfortunately, you'll need to configure
+  libcwd with --disable-threading.
+
 11 March 2002
 
   FreeBSDs threading implementation is unfortunately not supported.
   You'll need to configure libcwd with --disable-threading.
   Note that FreeBSD also doesn't provide a __libc_malloc hook, so
   that we have to use the dirty marco trick :(.  This means that
-  calls from inside a third part library will not be caught by
+  calls from inside a third party library will not be caught by
   libcwd.  So far nobody is developing C++ applications on freeBSD
   as far as I know, mail me if you are and I'll try to fix this.
 
