@@ -1702,12 +1702,14 @@ void init_malloc_function_pointers(void)
   // Please mail libcwd@alinoe.com if you need to extend this.
   char const* libc_filename[] = {
     "/usr/lib/libc.so.4",		// FreeBSD 4.5
+    "/lib/libc.so.1",			// Solaris 8
    NULL
   };
 #else
   // Please mail libcwd@alinoe.com if you need to extend this.
   char const* libc_filename[] = {
     "/usr/lib/libc_r.so.4",		// FreeBSD 4.5
+    "/lib/libc.so.1",			// Solaris 8
     NULL
   };
 #endif

@@ -66,7 +66,7 @@ dejagnu-1.4.2 or higher, which can be downloaded from ftp.gnu.org/gnu/dejagnu/,
 or your local GNU mirror.
 
 You will also need expect-5.32.2 (and tcl/tk 8.3.3?).  At least, expect 5.31.2
-is known to hang.
+is known to hang.  You can get it from http://expect.nist.gov/.
 
 Packages/versions needed as maintainer or when using CVS
 --------------------------------------------------------
@@ -80,7 +80,11 @@ iv)   GNU m4
 v)    GNU which	version 2.x
 vi)   autoconf	version 2.13 or 2.52 or higher
 vii)  automake	version 1.5 or higher
-viii) libtool	version 1.4.2 or higher
+viii) libtool	version 1.4.2 or higher (linux)
+      (Other OS probably need the latest CVS version
+       because libtool 1.4.x treats everything as C,
+       causing the constructors of global objects not
+       to be called; see http://www.gnu.org/software/libtool/).
 
 Each of those can be downloaded from your local GNU site.
 

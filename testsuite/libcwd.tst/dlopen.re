@@ -21,7 +21,7 @@ BFD     : Warning: Address 0x[0-9a-f]* in section \.text of object file "libstdc
           `streambuf::streambuf\(int\)' wasn't compiled with flag -(g|ggdb)\?
           0x[0-9a-f]* *streambuf::streambuf\(int\) <unknown type>; \(sz = [0-9]*\) 
 BFD     : address 0x[0-9a-f]* corresponds to elf32.cc:2034
-          0x[0-9a-f]* *elf32.cc:2034 <unknown type>; \(sz = [0-9]*\) 
+          0x[0-9a-f]* *elf32.cc:2034 ifstream; \(sz = [0-9]*\)  ifstream for reading debug symbols from object file
 // input lines 2
 // output till ^NOTICE
 (malloc    0x[0-9a-f]* *(dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]* *<unknown type>; \(sz = [0-9]*\) 

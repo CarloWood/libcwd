@@ -3,18 +3,48 @@
 # Helps bootstrapping libcwd, when checked out from CVS.
 # Requires GNU autoconf, GNU automake, GNU libtool and GNU which.
 
+if test ! -d CVS; then
+  echo "You only need to run 'bootstrap' when you checked out libcwd using CVS."
+  echo "Just run ./configure [--help]."
+  exit 0
+fi
+
+os=`uname -s`
+if test "$os" = "Linux"; then
+  required_libtool_version="1.4.2";
+else
+  required_libtool_version="1.4d";	# Use the current CVS version, or 1.5 once it is released.
+fi
+
 test -n "$ZSH_NAME" && disable which		# zsh has a builtin which that is turned off with this.
 (which --version | grep GNU) >/dev/null 2>/dev/null || (echo "You need GNU which 2.x to install from CVS (http://www.xs4all.nl/~carlo17/which/ or ftp://ftp.gnu.org/gnu/which/)"; exit 1) || exit 1
 (autoconf --version) >/dev/null 2>/dev/null || (echo "You need GNU autoconf to install from CVS (ftp://ftp.gnu.org/gnu/autoconf/)"; exit 1) || exit 1
 (automake --version) >/dev/null 2>/dev/null || (echo "You need GNU automake 1.5 to install from CVS (ftp://ftp.gnu.org/gnu/automake/)"; exit 1) || exit 1
-(libtool --version) >/dev/null 2>/dev/null || (echo "You need GNU libtool 1.4.2 to install from CVS (ftp://ftp.gnu.org/gnu/libtool/)"; exit 1) || exit 1
+(libtool --version) >/dev/null 2>/dev/null || (echo "You need GNU libtool $required_libtool_version to install from CVS (ftp://ftp.gnu.org/gnu/libtool/)"; exit 1) || exit 1
 
 # Determine the version of libtool.
 libtool_version=`libtool --version | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
 libtool_develversion=`libtool --version | sed -e 's/.*[12]\.[0-9].*(\([^ ]*\).*/\1/'`
 
+# libcwd requires version 1.4.2 because previous versions are broken.
+# On OS other then Linux we require 1.4d or higher because libtool
+# doesn't support shared C++ libraries in earlier versions.
+if expr "$required_libtool_version" \> "$libtool_version" >/dev/null; then
+  libtool --version
+  echo "Fatal error: libtool version $required_libtool_version or higher is required."
+  exit 1
+fi
+libtool_files="config.guess config.sub ltmain.sh"
+
 # Determine the version of automake.
 automake_version=`automake --version | head -1 | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
+
+# libcwd requires automake 1.5 because we use libcwd_la_CXXFLAGS.
+if expr "1.5" \> "$automake_version" >/dev/null; then
+  automake --version | head -1
+  echo "Fatal error: automake version 1.5 or higher is required."
+  exit 1
+fi
 
 # Determine the installation paths of a few tools.
 # This extracts from the automake script the two lines:
@@ -55,25 +85,6 @@ if test "$share_aclocal_inode" != "$share_libtool_inode"; then
   exit 1
 fi
 
-if expr "1.4" \> "$libtool_version" >/dev/null; then
-  libtool --version
-  echo "Fatal error: libtool version 1.4 or higher is required."
-  exit 1
-fi
-
-# Check whether automake was patched.
-libtool_files="config.guess config.sub ltmain.sh"
-if grep '^@libtoolize_files =.*ltconfig' $automake_path >/dev/null; then
-  echo "Fatal error: version $libtool_version of libtool is a new version that does not generate ltconfig anymore."
-  echo "You still have an old automake installed it seems. Please edit $automake_path and replace the line"
-  echo "  @libtoolize_files = ('ltconfig', 'ltmain.sh', 'config.guess', 'config.sub');"
-  echo "with"
-  echo "  @libtoolize_files = ('ltmain.sh', 'config.guess', 'config.sub');"
-  echo "removing ltconfig from the list."
-  echo "Alternatively, upgrade automake to version 1.4p1."
-  exit 1
-fi
-
 # Check if bootstrap was run before and if the installed files are the same version.
 if test -f ltmain.sh; then
   installed_libtool=`grep '^VERSION=' ltmain.sh | sed -e 's/.*\([12]\.[^ ]*\).*/\1/'`
@@ -82,13 +93,6 @@ if test -f ltmain.sh; then
     echo "Re-installing new libtool files ($installed_libtool ($installed_timestamp) -> $libtool_version ($libtool_develversion))"
     rm -f config.guess config.sub ltmain.sh ltconfig
   fi
-fi
-
-# libcwd requires automake 1.5 because we use libcwd_la_CXXFLAGS.
-if expr "1.5" \> "$automake_version" >/dev/null; then
-  automake --version | head -1
-  echo "Fatal error: automake version 1.5 or higher is required."
-  exit 1
 fi
 
 # Generate automake/autoconf/libtool files:
