@@ -268,6 +268,67 @@ extern "C" void* __libc_realloc(void* ptr, size_t size);
 extern "C" void __libc_free(void* ptr);
 #endif
 
+#ifdef TWDEBUG
+#include <libtw/sysd.h>
+#include <libtw/debug.h>
+namespace libtw {
+  namespace debug {
+enum deallocated_from_nt { from_free, from_delete, from_delete_array, error };
+    extern void internal_free(void* ptr, deallocated_from_nt from LIBTWD_COMMA_TSD_PARAM);
+  }
+}
+extern void* __libtwd_new(size_t);
+extern void* __libtwd_new_array(size_t);
+#define __libc_malloc(s) __libtwd_libc_malloc(s LIBCWD_COMMA_TSD)
+#define __libc_calloc(n, s) __libtwd_libc_calloc(n, s LIBCWD_COMMA_TSD)
+#define __libc_realloc(p, s) __libtwd_libc_realloc(p, s LIBCWD_COMMA_TSD)
+#define __libc_free(p) __libtwd_libc_free(p LIBCWD_COMMA_TSD)
+void* __libtwd_libc_malloc(size_t size LIBCWD_COMMA_TSD_PARAM)
+{
+  bool internal = __libcwd_tsd.internal;
+  int save_internal = 0;
+  if (internal)
+    save_internal = set_library_call_on(LIBCWD_TSD);
+  void* res = __libtwd_malloc(size);
+  if (internal)
+    set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+  return res;
+}
+void* __libtwd_libc_calloc(size_t nmemb, size_t size LIBCWD_COMMA_TSD_PARAM)
+{
+  bool internal = __libcwd_tsd.internal;
+  int save_internal = 0;
+  if (internal)
+    save_internal = set_library_call_on(LIBCWD_TSD);
+  void* res = __libtwd_calloc(nmemb, size);
+  if (internal)
+    set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+  return res;
+}
+void* __libtwd_libc_realloc(void* ptr, size_t size LIBCWD_COMMA_TSD_PARAM)
+{
+  bool internal = __libcwd_tsd.internal;
+  int save_internal = 0;
+  if (internal)
+    save_internal = set_library_call_on(LIBCWD_TSD);
+  void* res = __libtwd_realloc(ptr, size);
+  if (internal)
+    set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+  return res;
+}
+void __libtwd_libc_free(void* ptr LIBCWD_COMMA_TSD_PARAM)
+{
+  bool internal = __libcwd_tsd.internal;
+  int save_internal = 0;
+  if (internal)
+    save_internal = set_library_call_on(LIBCWD_TSD);
+  __libtwd_free(ptr);
+  if (internal)
+    set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+  return;
+}
+#endif // TWDEBUG
+
 namespace libcw {
   namespace debug {
     
@@ -387,14 +448,14 @@ extern void ST_initialize_globals(void);
 #define DEBUGDEBUG_ELSE_DoutFatalInternal(data)
 #endif
 
-#define DoutInternal( cntrl, data )												\
+#define DoutInternalDo( debug_object, cntrl, data )												\
   do																\
   {																\
     DEBUGDEBUG_DoutInternal_MARKER;												\
-    if (__libcwd_tsd.library_call == 0 && LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0)						\
+    if (__libcwd_tsd.library_call == 0 && LIBCWD_DO_TSD_MEMBER_OFF(debug_object) < 0)						\
     {																\
       DEBUGDEBUG_CERR( "Entering 'DoutInternal(cntrl, \"" << data << "\")'.  internal == " << __libcwd_tsd.internal << '.' );	\
-      channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);						\
+      channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(debug_object) LIBCWD_COMMA_TSD);					\
       bool on;															\
       {																\
         using namespace channels;												\
@@ -402,17 +463,19 @@ extern void ST_initialize_globals(void);
       }																\
       if (on)															\
       {																\
-        LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);							\
-	++ LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
-	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss)); 				\
+        LIBCWD_DO_TSD(debug_object).start(debug_object, channel_set LIBCWD_COMMA_TSD);						\
+	++ LIBCWD_DO_TSD_MEMBER_OFF(debug_object);										\
+	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(debug_object, current_oss)); 			\
         no_alloc_ostream << data;												\
-	-- LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
-        LIBCWD_DO_TSD(libcw_do).finish(libcw_do, channel_set LIBCWD_COMMA_TSD);							\
+	-- LIBCWD_DO_TSD_MEMBER_OFF(debug_object);										\
+        LIBCWD_DO_TSD(debug_object).finish(debug_object, channel_set LIBCWD_COMMA_TSD);						\
       }																\
       DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal = " << __libcwd_tsd.internal << '.' ); 	\
     }																\
     DEBUGDEBUG_ELSE_DoutInternal(data);												\
   } while(0)
+
+#define DoutInternal( cntrl, data ) DoutInternalDo( libcw_do, cntrl, data )												\
 
 #define DoutFatalInternal( cntrl, data )											\
   do																\
@@ -693,7 +756,7 @@ public:
   dm_alloc_base_ct(void const* s, size_t sz, memblk_types_nt type,
       type_info_ct const& ti, struct timeval const& t LIBCWD_COMMA_LOCATION(location_ct const* l))
     : alloc_ct(s, sz, type, ti, t LIBCWD_COMMA_LOCATION(l)) { }
-  void print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const;
+  void print_description(debug_ct& debug_object, ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const;
 };
 
 #if LIBCWD_THREAD_SAFE
@@ -805,8 +868,9 @@ private:
   dm_alloc_copy_ct* M_next_list;
 public:
   dm_alloc_copy_ct(dm_alloc_ct const& alloc) : dm_alloc_base_ct(alloc), M_next(NULL), M_next_list(NULL) { }
+  ~dm_alloc_copy_ct();
   static dm_alloc_copy_ct* deep_copy(dm_alloc_ct const* alloc);
-  void show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
+  void show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
   dm_alloc_copy_ct const* next(void) const { return M_next; }
 };
 
@@ -827,6 +891,12 @@ dm_alloc_copy_ct* dm_alloc_copy_ct::deep_copy(dm_alloc_ct const* alloc)
       prev->M_next_list = dm_alloc_copy_ct::deep_copy(alloc->a_next_list);
   }
   return dm_alloc_copy;
+}
+
+dm_alloc_copy_ct::~dm_alloc_copy_ct()
+{
+  delete M_next_list;
+  delete M_next;
 }
 
 typedef dm_alloc_ct const const_dm_alloc_ct;
@@ -915,8 +985,8 @@ public:
       { M_memblk_type = new_flag; if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(LIBCWD_TSD_PARAM) const { a_alloc_node.get()->new_list(LIBCWD_TSD); }			// MT-safe: write lock is set.
   memblk_types_nt flags(void) const { return M_memblk_type; }
-  void print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
-      { a_alloc_node.get()->print_description(filter LIBCWD_COMMA_TSD); }
+  void print_description(debug_ct& debug_object, ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
+      { a_alloc_node.get()->print_description(debug_object, filter LIBCWD_COMMA_TSD); }
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, memblk_info_ct const& memblk) { memblk.printOn(os); return os; }
 private:
@@ -1150,13 +1220,13 @@ static void print_integer(std::ostream& os, unsigned int val, int width)
     os << *p++;
 }
 
-void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
+void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal && !__libcwd_tsd.library_call );
 #endif
 #if CWDEBUG_LOCATION
-  LibcwDoutScopeBegin(channels, libcw_do, dc::continued);
+  LibcwDoutScopeBegin(channels, debug_object, dc::continued);
   if (filter.M_flags & show_objectfile)
   {
     object_file_ct const* object_file = M_location->object_file();
@@ -1209,7 +1279,7 @@ void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COM
 
 #if CWDEBUG_MARKER
   if (a_memblk_type == memblk_type_marker || a_memblk_type == memblk_type_deleted_marker)
-    DoutInternal( dc::continued, "<marker>;" );
+    DoutInternalDo( debug_object, dc::continued, "<marker>;" );
   else
 #endif
 
@@ -1239,26 +1309,26 @@ void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COM
 	}
 #ifdef LIBCWD_USE_STRSTREAM
 	buf->put('\0');
-	DoutInternal( dc::continued, buf->str() );
+	DoutInternalDo( debug_object, dc::continued, buf->str() );
 	buf->freeze(0);
 #else
 	buf->put('\0');
-	DoutInternal( dc::continued, buf->str().data() );
+	DoutInternalDo( debug_object, dc::continued, buf->str().data() );
 #endif
 	delete buf;
 	__libcwd_tsd.internal = 0;
       }
       else
-	DoutInternal( dc::continued, a_type );
+	DoutInternalDo( debug_object, dc::continued, a_type );
     }
 
-    DoutInternal( dc::continued, ';' );
+    DoutInternalDo( debug_object, dc::continued, ';' );
   }
 
-  DoutInternal( dc::continued, " (sz = " << a_size << ") " );
+  DoutInternalDo( debug_object, dc::continued, " (sz = " << a_size << ") " );
 
   if (!a_description.is_null())
-    DoutInternal( dc::continued, ' ' << a_description );
+    DoutInternalDo( debug_object, dc::continued, ' ' << a_description );
 }
 
 void dm_alloc_ct::printOn(std::ostream& os) const
@@ -1271,7 +1341,7 @@ void dm_alloc_ct::printOn(std::ostream& os) const
       ",\n\tnext_list = " << (void*)a_next_list << ", my_list = " << (void*)my_list << "\n\t( = " << (void*)*my_list << " ) }";
 }
 
-void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
+void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
 {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
   LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
@@ -1303,7 +1373,7 @@ void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooa
 	  (alloc->a_time.tv_sec == filter.M_end.tv_sec && alloc->a_time.tv_usec > filter.M_end.tv_usec))
 	continue;
     }
-    LibcwDoutScopeBegin(channels, libcw_do, channel|nolabel_cf|continued_cf);
+    LibcwDoutScopeBegin(channels, debug_object, channel|nolabel_cf|continued_cf);
     for (int i = depth; i > 1; i--)
       LibcwDoutStream << "    ";
     if (filter.M_flags & show_time)
@@ -1328,10 +1398,10 @@ void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooa
     LibcwDoutStream << cwprint(memblk_types_label_ct(alloc->memblk_type()));
     LibcwDoutStream << alloc->a_start << ' ';
     LibcwDoutScopeEnd;
-    alloc->print_description(filter LIBCWD_COMMA_TSD);
-    Dout( dc::finish, "" );
+    alloc->print_description(debug_object, filter LIBCWD_COMMA_TSD);
+    LibcwDout(DEBUGCHANNELS, debug_object, dc::finish, "");
     if (alloc->M_next_list)
-      alloc->M_next_list->show_alloc_list(depth + 1, channel, filter);
+      alloc->M_next_list->show_alloc_list(debug_object, depth + 1, channel, filter);
   }
 }
 
@@ -1796,7 +1866,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	  << ptr << ((from == from_free) ? ") " : " ") );
       if (channels::dc_malloc.is_on())
-	(*iter).second.print_description(default_ooam_filter LIBCWD_COMMA_TSD);
+	(*iter).second.print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
       DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
 #else
@@ -2342,7 +2412,7 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 #if CWDEBUG_LOCATION
       filter.M_check_synchronization();
 #endif
-      list->show_alloc_list(1, channels::dc_malloc, filter);
+      list->show_alloc_list(debug_object, 1, channels::dc_malloc, filter);
 #if LIBCWD_THREAD_SAFE
       LIBCWD_CLEANUP_POP_RESTORE(true);
 #endif
@@ -2621,7 +2691,7 @@ marker_ct::~marker_ct()
       libcw_do.push_margin();
       libcw_do.margin().append("  * ", 4);
       Dout( dc::warning, "Memory leak detected!" );
-      list->show_alloc_list(1, channels::dc::warning, M_filter);
+      list->show_alloc_list(libcw_do, 1, channels::dc::warning, M_filter);
       libcw_do.pop_margin();
       _private_::set_alloc_checking_off(LIBCWD_TSD);
       delete list;
@@ -2862,6 +2932,14 @@ extern "C" {
 
 void __libcwd_free(void* ptr)
 {
+#if TWDEBUG
+  LIBTWD_TSD_DECLARATION;
+  if (__libtwd_tsd.internal)
+  {
+    libtw::debug::internal_free(ptr, libtw::debug::from_free LIBTWD_COMMA_TSD);
+    return;
+  }
+#endif
   LIBCWD_TSD_DECLARATION;
   internal_free(ptr, from_free LIBCWD_COMMA_TSD);
 }
@@ -2873,6 +2951,11 @@ void __libcwd_free(void* ptr)
 
 void* __libcwd_malloc(size_t size)
 {
+#if TWDEBUG
+  LIBTWD_TSD_DECLARATION;
+  if (__libtwd_tsd.internal)
+    return __libtwd_malloc(size);
+#endif
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -2935,6 +3018,11 @@ void* __libcwd_malloc(size_t size)
 
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
+#if TWDEBUG
+  LIBTWD_TSD_DECLARATION;
+  if (__libtwd_tsd.internal)
+    return __libtwd_calloc(nmemb, size);
+#endif
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3008,6 +3096,11 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 
 void* __libcwd_realloc(void* ptr, size_t size)
 {
+#if TWDEBUG
+  LIBTWD_TSD_DECLARATION;
+  if (__libtwd_tsd.internal)
+    return __libtwd_realloc(ptr, size);
+#endif
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3260,6 +3353,20 @@ void* __libcwd_realloc(void* ptr, size_t size)
 void* operator new(size_t size)
 {
   LIBCWD_TSD_DECLARATION;
+#if TWDEBUG
+  LIBTWD_TSD_DECLARATION;
+  if (__libtwd_tsd.internal)
+  {
+    bool internal = __libcwd_tsd.internal;
+    int save_internal = 0;
+    if (internal)
+      save_internal = set_library_call_on(LIBCWD_TSD);
+    void* res = __libtwd_new(size);
+    if (internal)
+      set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+    return res;
+  }
+#endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
@@ -3323,6 +3430,20 @@ void* operator new(size_t size)
 void* operator new[](size_t size)
 {
   LIBCWD_TSD_DECLARATION;
+#if TWDEBUG
+  LIBTWD_TSD_DECLARATION;
+  if (__libtwd_tsd.internal)
+  {
+    bool internal = __libcwd_tsd.internal;
+    int save_internal = 0;
+    if (internal)
+      save_internal = set_library_call_on(LIBCWD_TSD);
+    void* res = __libtwd_new_array(size);
+    if (internal)
+      set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+    return res;
+  }
+#endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
@@ -3391,6 +3512,20 @@ void* operator new[](size_t size)
 void operator delete(void* ptr)
 {
   LIBCWD_TSD_DECLARATION;
+#if TWDEBUG
+  LIBTWD_TSD_DECLARATION;
+  if (__libtwd_tsd.internal)
+  {
+    bool internal = __libcwd_tsd.internal;
+    int save_internal = 0;
+    if (internal)
+      save_internal = set_library_call_on(LIBCWD_TSD);
+    libtw::debug::internal_free(ptr, libtw::debug::from_delete LIBTWD_COMMA_TSD);
+    if (internal)
+      set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+    return;
+  }
+#endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
@@ -3408,6 +3543,20 @@ void operator delete(void* ptr)
 void operator delete[](void* ptr)
 {
   LIBCWD_TSD_DECLARATION;
+#if TWDEBUG
+  LIBTWD_TSD_DECLARATION;
+  if (__libtwd_tsd.internal)
+  {
+    bool internal = __libcwd_tsd.internal;
+    int save_internal = 0;
+    if (internal)
+      save_internal = set_library_call_on(LIBCWD_TSD);
+    libtw::debug::internal_free(ptr, libtw::debug::from_delete_array LIBTWD_COMMA_TSD);
+    if (internal)
+      set_library_call_off(save_internal LIBCWD_COMMA_TSD);
+    return;
+  }
+#endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)

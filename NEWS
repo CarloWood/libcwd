@@ -8,6 +8,9 @@ libcwd-0.99.25
 	applications could core dump because demangle_symbol and
 	demangle_type were not thread safe.
 
+	list_allocations_on only worked for libcw_do, not for a
+	custom debug object.
+
 libcwd-0.99.24
 
         Bug fixes:
