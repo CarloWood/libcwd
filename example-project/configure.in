@@ -42,7 +42,7 @@ if test "$project_config_debugging" = yes; then
   AC_CHECK_LIB(cwd, libcw_bfd_pc_location__FPCv, [LIBS="-lcwd -lbfd -liberty $LIBS"], [AC_CHECK_LIB(cwd, main,,
       [AC_MSG_ERROR([
   --enable-debugging: You need to have libcwd installed to enable debugging.
-  Or perhaps you need to adds its location to LDFLAGS and CPPFLAGS, for example:
+  Or perhaps you need to add its location to LDFLAGS and CPPFLAGS, for example:
   LDFLAGS=\"-L/usr/local/lib\" CPPFLAGS=\"-I/usr/local/include\" ./configure])])], -lbfd -liberty)
 
   CXXFLAGS="-DDEBUG $CXXFLAGS"

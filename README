@@ -6,15 +6,16 @@ applications don't need it.  While still developing, you
 will compile with -DDEBUG and link with -lcwd (and add its
 install path to LD_LIBRARY_PATH).  A production version is then
 simply compiled without -DDEBUG and not linked with -lcwd.
+
 The library cannot be linked with static libraries (because
 those are not compiled with -fPIC) therefore libtool drops
 any inter-library dependency if you only have a static
 library installed and will print something like:
 
-*** Warning: This library needs some functionality provided by -liberty.
-*** I have the capability to make that library automatically link in when
-*** you link to this library.  But I can only do this if you have a
-*** shared version of the library, which you do not appear to have.
+ *** Warning: This library needs some functionality provided by -liberty.
+ *** I have the capability to make that library automatically link in when
+ *** you link to this library.  But I can only do this if you have a
+ *** shared version of the library, which you do not appear to have.
 
 If this happens, then this means that you will need to
 link your programs with -lcwd -lbfd -liberty, rather than
