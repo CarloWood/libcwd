@@ -60,10 +60,14 @@ echo
 %doc documentation/index.html
 %dir %{__prefix}/include/libcwd
 %{__prefix}/lib/*
+%{__prefix}/lib/pkgconfig/*.pc
 %{__prefix}/include/libcwd/*
 %{__prefix}/share/libcwd/libcwdrc
 
 %changelog
+* Fri Mar 12 2004 Carlo Wood <libcw@alinoe.com>
+- Added pkgconfig support.
+
 * Sat May  3 2003 Carlo Wood <libcw@alinoe.com>
 - 0.99.29 needs g++ 3.0 or higher.
 - Headers were moved to include/libcwd.

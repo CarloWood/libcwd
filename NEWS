@@ -2,6 +2,12 @@ libcwd-0.99.33
 
 	New function debug_watch().
 
+	Added support for pkg-config(1).
+	See http://www.freedesktop.org/software/pkgconfig
+	This means you can use `pkg-config --cflags` and
+	`pkg-config --libs` in your configure script in order
+	to get the flags that libcwd needs.
+
 libcwd-0.99.32
 
 	Support for a runtime configuration file (.libcwdrc) has been

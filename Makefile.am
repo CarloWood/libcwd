@@ -5,7 +5,8 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = include utils . tests testsuite cutee
 
 BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec .example-project_debug.h-timestamp
-EXTRA_DIST = LICENSE.QPL README.CVS README.threads README.FreeBSD README.openbsd README.solaris nodebug.h depcomp $(BUILT_SOURCES)
+EXTRA_DIST = LICENSE.QPL README.CVS README.threads README.FreeBSD README.openbsd README.solaris \
+	nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in $(BUILT_SOURCES)
 DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz
 
 VERSIONINFO=@VERSIONINFO@
@@ -67,6 +68,11 @@ libcwd_r_la_SOURCES = \
 libcwd_r_la_LDFLAGS = -version-info $(VERSIONINFO) $(LIB_THREADS_SHARED)
 libcwd_r_la_LIBADD = utils/libutils_r.la
 endif
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libcwd.pc libcwd_r.pc
+
+$(pkgconfig_DATA): config.status
 
 # --------------- Maintainer's Section
 
