@@ -1563,14 +1563,16 @@ void allocator_unlock(void)
 
       LIBCWD_DEFER_CANCEL;
       _private_::debug_channels.init(LIBCWD_TSD);
+
+      static _private_::debug_channels_ct hidden_channels;
+      hidden_channels.init(LIBCWD_TSD);
+
       DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK;
 
       set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
       _private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
       for(_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
 	const_cast<char*>((*i)->get_label())[WST_max_len] = ' ';
-      static _private_::debug_channels_ct hidden_channels;
-      hidden_channels.init(LIBCWD_TSD);
       _private_::debug_channels_ct::container_type& channels_not_listed(hidden_channels.write_locked());
       for(_private_::debug_channels_ct::container_type::iterator i(channels_not_listed.begin());
           i != channels_not_listed.end(); ++i)

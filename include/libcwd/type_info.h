@@ -52,15 +52,23 @@ public:
    * \brief Default constructor.
    * \internal
    */
-  type_info_ct(void) :
-      M_type_size(0), M_type_ref_size(0), M_name(NULL), M_dem_name("<unknown type>") { }
+  type_info_ct(void) { }
+  /**
+   * \brief Constructor used for unknown_type_info_c.
+   * \internal
+   */
+  type_info_ct(int) : M_type_size(0), M_type_ref_size(0), M_name(NULL), M_dem_name("<unknown type>") { }
   /**
    * \brief Construct a type_info_ct object for a type (T) with encoding \a type_encoding, size \a s and size of reference \a rs.
    * \internal
    */
-  type_info_ct(char const* type_encoding, size_t s, size_t rs) :
-      M_type_size(s), M_type_ref_size(rs), M_name(type_encoding),
-      M_dem_name(_private_::make_label(type_encoding)) { }
+  void init(char const* type_encoding, size_t s, size_t rs)
+  {
+    M_type_size = s;
+    M_type_ref_size = rs;
+    M_name = type_encoding;
+    M_dem_name = _private_::make_label(type_encoding);
+  }
   //! The demangled type name.
   char const* demangled_name(void) const { return M_dem_name; }
   //! The encoded type name (as returned by <CODE>typeid(T).%name()</CODE>).
@@ -81,35 +89,74 @@ namespace _private_ {
   // _private_::
   template<typename T>
     struct type_info {
-      static type_info_ct const value_c;
+    private:
+      static type_info_ct S_value;
+      static bool S_initialized;
+    public:
+      static type_info_ct const& value(void);
     };
 
   // Specialization for general pointers.
   // _private_::
   template<typename T>
     struct type_info<T*> {
-      static type_info_ct const value_c;
+    private:
+      static type_info_ct S_value;
+      static bool S_initialized;
+    public:
+      static type_info_ct const& value(void);
     };
 
   // Specialization for `void*'.
   // _private_::
   template<>
     struct type_info<void*> {
-      static type_info_ct const value_c;
+    private:
+      static type_info_ct S_value;
+      static bool S_initialized;
+    public:
+      static type_info_ct const& value(void);
     };
 
-  // NOTE:
-  // Compiler versions 2.95.x will terminate with an "Internal compiler error"
-  // in the line below if you use the option '-fno-rtti'.  Either upgrade to version
-  // 2.96 or higher, or don't use '-fno-rtti'.  The exact reason for the compiler
-  // crash is the use of `typeid'.
   // _private_::
   template<typename T>
-    type_info_ct const type_info<T>::value_c(typeid(T).name(), sizeof(T), 0);
+    type_info_ct type_info<T>::S_value;
+    
+  // _private_::
+  template<typename T>
+    bool type_info<T>::S_initialized;
 
   // _private_::
   template<typename T>
-    type_info_ct const type_info<T*>::value_c(typeid(T*).name(), sizeof(T*), sizeof(T));
+    type_info_ct const& type_info<T>::value(void)
+    {
+      if (!S_initialized)
+      {
+	S_value.init(typeid(T).name(), sizeof(T), 0);
+	S_initialized = true;
+      }
+      return S_value;
+    }
+
+  // _private_::
+  template<typename T>
+    type_info_ct type_info<T*>::S_value;
+
+  // _private_::
+  template<typename T>
+    bool type_info<T*>::S_initialized;
+
+  // _private_::
+  template<typename T>
+    type_info_ct const& type_info<T*>::value(void)
+    {
+      if (!S_initialized)
+      {
+	S_value.init(typeid(T*).name(), sizeof(T*), sizeof(T));
+	S_initialized = true;
+      }
+      return S_value;
+    }
 
 } // namespace _private_
 
@@ -120,26 +167,66 @@ namespace _private_ {
 
 template<typename T>
   struct libcwd_type_info_exact {
-    static ::libcwd::type_info_ct const value_c;
+  private:
+    static ::libcwd::type_info_ct S_value;
+    static bool S_initialized;
+  public:
+    static ::libcwd::type_info_ct const& value(void);
   };
 
 // Specialization for general pointers.
 template<typename T>
   struct libcwd_type_info_exact<T*> {
-    static ::libcwd::type_info_ct const value_c;
+  private:
+    static ::libcwd::type_info_ct S_value;
+    static bool S_initialized;
+  public:
+    static ::libcwd::type_info_ct const& value(void);
   };
 
 // Specialization for `void*'.
 template<>
   struct libcwd_type_info_exact<void*> {
-    static ::libcwd::type_info_ct const value_c;
+  private:
+    static ::libcwd::type_info_ct S_value;
+    static bool S_initialized;
+  public:
+    static ::libcwd::type_info_ct const& value(void);
   };
 
 template<typename T>
-  ::libcwd::type_info_ct const libcwd_type_info_exact<T>::value_c(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(), typeid(T).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T), 0);
+  ::libcwd::type_info_ct libcwd_type_info_exact<T>::S_value;
+  
+template<typename T>
+  bool libcwd_type_info_exact<T>::S_initialized;
+  
+template<typename T>
+  ::libcwd::type_info_ct const& libcwd_type_info_exact<T>::value(void)
+  {
+    if (!S_initialized)
+    {
+      S_value.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(), typeid(T).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T), 0);
+      S_initialized = true;
+    }
+    return S_value;
+  }
 
 template<typename T>
-  ::libcwd::type_info_ct const libcwd_type_info_exact<T*>::value_c(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), sizeof(T));
+  ::libcwd::type_info_ct libcwd_type_info_exact<T*>::S_value;
+
+template<typename T>
+  bool libcwd_type_info_exact<T*>::S_initialized;
+
+template<typename T>
+  ::libcwd::type_info_ct const& libcwd_type_info_exact<T*>::value(void)
+  {
+    if (!S_initialized)
+    {
+      S_value.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), sizeof(T));
+      S_initialized = true;
+    }
+    return S_value;
+  }
 
 namespace libcwd {
 
@@ -156,8 +243,6 @@ template<typename T>
 #endif
       );
 
-// This is really only necessary for GNU g++ version 2, otherwise
-// libcwd::type_info<>::value_c could be used directly.
 /**
  * \brief Get type information of a given class or type.
  *
@@ -179,12 +264,9 @@ template<typename T>
   type_info_ct const&
   type_info_of(void)
   {
-    return ::libcwd_type_info_exact<T>::value_c;
+    return ::libcwd_type_info_exact<T>::value();
   }
 
-// We could have used type_info_of<typeof(obj)>(), but typeof(obj) doesn't
-// work when obj has a template parameter as type (not supported in 2.95.3 and
-// broken in 3.0; see also http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view&pr=2703&database=gcc).
 /**
  * \brief Get type information of a given class \em instance.
  *
@@ -198,7 +280,7 @@ template<typename T>
   					// Besides, using `const&' doesn't harm the result as typeid() always ignores the top-level
 					// CV-qualifiers anyway (see C++ standard ISO+IEC+14882, 5.2.8 point 5).
   {
-    return _private_::type_info<T>::value_c;
+    return _private_::type_info<T>::value();
   }
 
 extern type_info_ct const unknown_type_info_c;

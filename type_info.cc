@@ -22,7 +22,7 @@ namespace libcwd {
  * \brief Returned by type_info_of() for unknown types.
  * \ingroup group_type_info
  */
-type_info_ct const unknown_type_info_c;
+type_info_ct const unknown_type_info_c(0);
 
 namespace _private_ {
 
@@ -75,15 +75,39 @@ namespace _private_ {
     return label;
   }
 
-  type_info_ct const type_info<void*>::value_c(typeid(void*).name(), sizeof(void*), 0 /* unknown */);
+  type_info_ct type_info<void*>::S_value;
+
+  bool type_info<void*>::S_initialized;
+  
+  type_info_ct const& type_info<void*>::value(void)
+  {
+    if (!S_initialized)
+    {
+      S_value.init(typeid(void*).name(), sizeof(void*), 0 /* unknown */);
+      S_initialized = true;
+    }
+    return S_value;
+  }
 
 } // namespace _private_
 
 } // namespace libcwd
 
+libcwd::type_info_ct libcwd_type_info_exact<void*>::S_value;
+
+bool libcwd_type_info_exact<void*>::S_initialized;
+
+libcwd::type_info_ct const& libcwd_type_info_exact<void*>::value(void)
+{
+  if (!S_initialized)
+  {
 #if __GXX_ABI_VERSION == 0
-::libcwd::type_info_ct const libcwd_type_info_exact<void*>::value_c(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
+    S_value.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
 #else
-::libcwd::type_info_ct const libcwd_type_info_exact<void*>::value_c(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(), typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
+    S_value.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(), typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
 #endif
+    S_initialized = true;
+  }
+  return S_value;
+}
 

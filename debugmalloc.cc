@@ -1660,11 +1660,14 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 #define LIBCWD_COMMA_DEBUGM_OPT(x)
 #endif
 #if CWDEBUG_LOCATION
-#define LIBCWD_LOCATION_OPT(x) x
 #define LIBCWD_COMMA_LOCATION_OPT(x) , x
 #else
-#define LIBCWD_LOCATION_OPT(x)
 #define LIBCWD_COMMA_LOCATION_OPT(x)
+#endif
+#if CWDEBUG_LOCATION && !CWDEBUG_DEBUGT
+#define LIBCWD_LOCATION_OPT(x) x
+#else
+#define LIBCWD_LOCATION_OPT(x)
 #endif
 
 static void* internal_malloc(size_t size, memblk_types_nt flag

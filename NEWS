@@ -8,6 +8,9 @@ libcwd-0.99.38
 	string when later another channel with a larger name was
 	created.
 
+	'type_info_of' could not be used safely from constructors
+	of global objects.
+
 libcwd-0.99.37
 
 	Added support for g++ 3.4.1.
