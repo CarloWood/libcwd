@@ -13,3 +13,4 @@ maintMakefile
 .deps
 nodebug.h
 program
+confdefs.h
