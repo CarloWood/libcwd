@@ -93,9 +93,16 @@ void fatal_cancellation(void* arg)
 // Thread Specific Data
 //
 
-// Access to this global array is protected by the lock tsd_deinitialization_instance.
-static size_t old_tid_index;
-static pthread_t old_tid_array[CW_THREADSMAX];
+// Access to these global variables is protected by the lock tsd_deinitialization_instance.
+struct slow_tid_map_st {
+  pthread_t tid;
+  int tsd_index;		// Points to old_tsd_array.
+};
+static size_t max_old_tid_index;
+static size_t old_tid_index;	// Next free entry in the old_tid_array.
+static slow_tid_map_st old_tid_array[(CW_THREADSMAX < 1024) ? 2048 : (2 * CW_THREADSMAX)];
+static size_t old_tsd_index;	// Next free entry in the old_tsd_array.
+static TSD_st old_tsd_array[128];
 
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 pthread_key_t TSD_st::S_tsd_key;
@@ -103,6 +110,7 @@ pthread_once_t TSD_st::S_tsd_key_once = PTHREAD_ONCE_INIT;
 
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
 void threading_tsd_init(LIBCWD_TSD_PARAM);
+static TSD_st terminating_thread_tsd;
 
 TSD_st& TSD_st::S_create(void)
 {
@@ -115,10 +123,13 @@ TSD_st& TSD_st::S_create(void)
 
   mutex_tct<tsd_deinitialization_instance>::initialize();
   mutex_tct<tsd_deinitialization_instance>::lock();
-  for (size_t i = 0; i < old_tid_index; ++i)
+  for (size_t i = 0; i < max_old_tid_index; ++i)
   {
-    if (pthread_equal(old_tid_array[i], tmp_tsd.tid))
-      abort();
+    if (pthread_equal(old_tid_array[i].tid, tmp_tsd.tid))
+    {
+      mutex_tct<tsd_deinitialization_instance>::unlock();
+      return old_tsd_array[old_tid_array[i].tsd_index];
+    }
   }
   mutex_tct<tsd_deinitialization_instance>::unlock();
   pthread_once(&S_tsd_key_once, &S_tsd_key_alloc);
@@ -174,6 +185,7 @@ void TSD_st::cleanup_routine(void)
     pthread_setspecific(S_tsd_key, (void*)this);
     if (tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS - 1)
       return;
+/*
     set_alloc_checking_off(*this);
     for (int i = 0; i < LIBCWD_DO_MAX; ++i)
       if (do_array[i])
@@ -185,11 +197,21 @@ void TSD_st::cleanup_routine(void)
 	delete ptr;				// Free debug object TSD.
       }
     set_alloc_checking_on(*this);
+*/
     terminated = true;
     int oldtype;
     pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldtype);
     mutex_tct<tsd_deinitialization_instance>::lock();
-    old_tid_array[old_tid_index++] = tid;
+    std::memcpy(&old_tsd_array[old_tsd_index], this, sizeof(TSD_st));	// Save a copy of the TSD.
+    old_tid_array[old_tid_index].tid = tid;				// Make sure we can find it back.
+    old_tid_array[old_tid_index].tsd_index = old_tsd_index;
+    // Wrap the arrays around.  This is not 100% safe - but will work in practise.
+    if (++old_tid_index == sizeof(old_tid_array)/sizeof(old_tid_index[0]))
+      old_tid_index = 0;
+    if (++old_tsd_index == sizeof(old_tsd_array)/sizeof(old_tsd_index[0]))
+      old_tsd_index = 0;
+    if (old_tsd_index > max_old_tid_index)
+      max_old_tid_index = old_tid_index;
     mutex_tct<tsd_deinitialization_instance>::unlock();
     pthread_setcanceltype(oldtype, NULL);
   }

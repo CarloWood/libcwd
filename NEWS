@@ -12,7 +12,7 @@ libcwd-0.99.31
 	The method debug_ct::keep_tsd was removed.
 	This function is no longer needed.
 
-        Bug fixes:
+	Bug fixes:
 
         debug_tsd_st::finish accessed a bit in just a memory
 	block that was just freed.  As a result the 'flush_cf'

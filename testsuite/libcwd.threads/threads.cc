@@ -73,7 +73,7 @@ unsigned long thread_index(pthread_t tid)
 }
 
 pthread_once_t test_keys_once = PTHREAD_ONCE_INIT;
-static pthread_key_t keys[100];
+static pthread_key_t keys[32];
 
 static void cleanup_routine(void* arg)
 {
