@@ -25,13 +25,13 @@ You will benefit greatly from this in terms on flexibility (trust me).
 
 If you are developing a library that uses libcwd then do not put your debug channels in the
 libcwd::channels::dc namespace.&nbsp;
-The correct way to declare new debug channels is by putting them in a namespace of the library and
-providing new macros for writing debug output.&nbsp;
-Also end applications will benefit by using this method (in terms of flexibility).
+The correct way to declare new debug channels is by putting them in a namespace of the library itself.&nbsp;
+Also end-applications will benefit by using this method (in terms of flexibility).
 
 The following code would define a debug channel \c warp in the namespace \c libexample:
 
 \code
+// This is some .cpp file of your library.
 #include "debug"
 // ...
 #ifdef CWDEBUG
@@ -39,6 +39,7 @@ namespace libexample {
   namespace channels {
     namespace dc {
       libcwd::channel_ct warp("WARP");
+      // Add new channels here...
     }
   }
 }
@@ -52,13 +53,14 @@ that is only used while compiling your library - this one would not be installed
 The first one (the %debug.h that will be installed) would look something like this:
 
 \code
+// This is for example <libexample/debug.h>
 #ifndef LIBEXAMPLE_DEBUG_H
 #define LIBEXAMPLE_DEBUG_H
 
 #ifdef CWDEBUG
 
 #ifndef DEBUGCHANNELS
-#define DEBUGCHANNELS ::libexample::channels	// Where ever you put your 'dc' namespace.
+#define DEBUGCHANNELS ::libexample::channels	// Wherever you put your 'dc' namespace.
 #endif
 #include <libcwd/debug.h>
 
@@ -67,6 +69,7 @@ namespace libexample {
     namespace dc {
       using namespace libcwd::channels::dc;
       extern libcwd::channel_ct warp;
+      // Add new channels here...
     }
   }
 }
@@ -153,7 +156,7 @@ include <libexample/debug.h> because the current directory of the headerfile tha
 searched first.&nbsp;
 Using #include "debug.h" has the same effect as #include <libexample/debug.h> here thus.&nbsp;
 And we don't want that because that would mean that if a user includes a header of your library
-before including his own application defined debug.h first, then DEBUGCHANNELS gets set wrong.&nbsp;
+before including his own application defined %debug.h first, then DEBUGCHANNELS gets set wrong.&nbsp;
 What we want in that case is a compile error pointing out to the user that he needs to #include "debug.h"
 before including your library header file.
 
