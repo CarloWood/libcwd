@@ -28,9 +28,7 @@
 // develloping the program, unless you want to do
 // speed tests.
 
-#ifdef __LIBCW__
 #define DEBUG
-#endif
 
 //
 //
@@ -40,9 +38,7 @@
 // will warn you when you free an invalid block.
 // It also enables Memory Leak Detection (See ...).
 
-#ifdef __LIBCW__
 #define DEBUGMALLOC
-#endif
 
 //
 //

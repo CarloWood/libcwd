@@ -24,7 +24,7 @@ void libcw_bfd_test3(void)
 {
   for (int i = 0; i <= 5; ++i)
   {
-    void *retadr;
+    void* retadr;
     
     switch (i)
     {
@@ -48,7 +48,7 @@ void libcw_bfd_test3(void)
 	break;
     }
 
-    location_st loc = libcw_bfd_pc_location((char *)retadr - 1);
+    location_st loc = libcw_bfd_pc_location((char*)retadr - 1);
       Dout(dc::notice, hex << retadr << dec << " -> (" << loc << ")");
 
     if (loc.line == 0)
@@ -71,7 +71,7 @@ void libcw_bfd_test(void)
   libcw_bfd_test1();
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
