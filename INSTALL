@@ -23,6 +23,8 @@ Actually, I forgot why they are there :).
 You can read more about what they do in Chapter 4
 "Debugging compile options" here:
 http://libcw.sourceforge.net/templates/index.html?debugging
+If you want to change Makefile.am files and the-like
+then you'll need to use --enable-maintainer-mode.
 
 You can install libcwd in a `staging' directory
 by issuing
@@ -46,3 +48,16 @@ make dist
 make maintainer-clean
 
 well, ... heh.  Look in the Makefile for more targets ;)
+
+Finally, you can also build libcwd in a different directory
+than the source tree is in:
+
+tar xzf libcwd-0.99.2.tar.gz
+mkdir libcwd-objdir
+cd libcwd-objdir
+../libcwd-0.99.2/configure --prefix=/usr
+make
+su
+make install
+
+that way your source tree stays completely distclean :)
