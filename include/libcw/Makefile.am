@@ -8,7 +8,6 @@ libcwd_HEADERS = \
 	cwprint.h \
 	debug.h \
 	debugdebugcheckpoint.h \
-	debug_config.h \
 	debugmalloc.h \
 	demangle.h \
 	exec_prog.h \
@@ -17,7 +16,6 @@ libcwd_HEADERS = \
 	lockable_auto_ptr.h \
 	no_alloc_checking_ostrstream.h \
 	strerrno.h \
-	sys.h \
 	type_info.h
 
 EXTRA_DIST = perf.h
