@@ -23,7 +23,8 @@ You will benefit greatly from this in terms on flexibility (trust me).
 
 \subsection libraries Libraries
 
-Libraries that use libcwd should not put their debug channels in libcwd::channels::dc.&nbsp;
+If you are developing a library that uses libcwd then do not put your debug channels in the
+libcwd::channels::dc namespace.&nbsp;
 The correct way to declare new debug channels is by putting them in a namespace of the library and
 providing new macros for writing debug output.&nbsp;
 Also end applications will benefit by using this method (in terms of flexibility).
@@ -31,23 +32,33 @@ Also end applications will benefit by using this method (in terms of flexibility
 The following code would define a debug channel \c warp in the namespace \c libexample:
 
 \code
+#include "debug"
+// ...
+#ifdef CWDEBUG
 namespace libexample {
   namespace channels {
     namespace dc {
-      ::libcwd::channel_ct warp("WARP");
+      libcwd::channel_ct warp("WARP");
     }
   }
 }
+#endif
 \endcode
 
-Then provide a debug header file (%debug.h) with the following:
+Then provide two debug header files (both named %debug.h), one for installation
+with the library headers (ie libexample/debug.h) and one in an include directory
+that is only used while compiling your library - this one would not be installed.
+
+The first one (the %debug.h that will be installed) would look something like this:
 
 \code
 #ifndef LIBEXAMPLE_DEBUG_H
 #define LIBEXAMPLE_DEBUG_H
 
+#ifdef CWDEBUG
+
 #ifndef DEBUGCHANNELS
-#define DEBUGCHANNELS ::libexample::channels
+#define DEBUGCHANNELS ::libexample::channels	// Where ever you put your 'dc' namespace.
 #endif
 #include <libcwd/debug.h>
 
@@ -62,26 +73,71 @@ namespace libexample {
 
 // Define private debug output macros for use in header files of the library,
 // there is no reason to do this for normal applications.
-#ifdef CWDEBUG
 #define LibExampleDout(cntrl, data) \
     LibcwDout(libexample::channels, libcwd::libcw_do, cntrl, data)
 #define LibExampleDoutFatal(cntrl, data) \
     LibcwDoutFatal(libexample::channels, libcwd::libcw_do, cntrl, data)
-#else
+
+#else // !CWDEBUG
+
 #define LibExampleDout(cntrl, data)
 #define LibExampleDoutFatal(cntrl, data) LibcwDoutFatal(::std, , cntrl, data)
-#endif
+
+#endif // !CWDEBUG
 
 #endif // LIBEXAMPLE_DEBUG_H
 \endcode
 
 This will make your debug channels available in the usual way (by using Dout and friends.&nbsp;
-LibExampleDout and friends are only for use in the header files of `libexample' itself) avoiding any linker name collisions.
+LibExampleDout and friends are only for use in the \em header files of `libexample' itself)
+avoiding any linker name collisions.
+
+The second "debug.h", which would not be installed but only be included when compiling
+the .cpp files (that #include "debug.h") of your library itself, then looks like this:
+
+\code
+#ifndef DEBUG_H
+#define DEBUG_H
+
+#ifndef CWDEBUG
+
+#include <iostream>     // std::cerr
+#include <cstdlib>      // std::exit, EXIT_FAILURE
+
+#define AllocTag1(p)
+#define AllocTag2(p, desc)
+#define AllocTag_dynamic_description(p, x)
+#define AllocTag(p, x)
+#define Debug(x)
+#define Dout(a, b)
+#define DoutFatal(a, b) LibcwDoutFatal(::std, , a, b)
+#define ForAllDebugChannels(STATEMENT)
+#define ForAllDebugObjects(STATEMENT)
+#define LibcwDebug(dc_namespace, x)
+#define LibcwDout(a, b, c, d)
+#define LibcwDoutFatal(a, b, c, d) do { std::cerr << d << std::endl; std::exit(EXIT_FAILURE); } while(1)
+#define NEW(x) new x
+#define CWDEBUG_ALLOC 0
+#define CWDEBUG_MAGIC 0
+#define CWDEBUG_LOCATION 0
+#define CWDEBUG_LIBBFD 0
+#define CWDEBUG_DEBUG 0
+#define CWDEBUG_DEBUGOUTPUT 0
+#define CWDEBUG_DEBUGM 0
+#define CWDEBUG_DEBUGT 0
+#define CWDEBUG_MARKER 0
+
+#endif // CWDEBUG
+
+#include <libexample/debug.h>	// The debug.h shown above.
+
+#endif // DEBUG_H
+\endcode
 
 \subsection header_files_of_libraries Header files of libraries
 
 Don't use Dout etc. in header files of libraries, instead use (for example) LibExampleDout etc., as shown above.&nbsp;
-It is advisable not to include any %debug.h in your headerfiles.&nbsp;
+Also, do not include any %debug.h in your header files.&nbsp;
 Instead, add the following lines to each header file that needs debugging:
 
 \code
@@ -90,20 +146,28 @@ Instead, add the following lines to each header file that needs debugging:
 #endif
 \endcode
 
-Don't use "libexample/%debug.h" in this error message because someone else might write a library that is using your library and needs
-a different %debug.h to be included in end applications.
+Don't use "libexample/debug.h" in this error message because someone else might write a library that is using your library and needs
+a different %debug.h to be included in end applications.&nbsp;
+The reason for this is that if you'd use #include "debug.h" in your headerfiles, then the compiler will
+include <libexample/debug.h> because the current directory of the headerfile that is doing the include is
+searched first.&nbsp;
+Using #include "debug.h" has the same effect as #include <libexample/debug.h> here thus.&nbsp;
+And we don't want that because that would mean that if a user includes a header of your library
+before including his own application defined debug.h first, then DEBUGCHANNELS gets set wrong.&nbsp;
+What we want in that case is a compile error pointing out to the user that he needs to #include "debug.h"
+before including your library header file.
 
 \subsection debug_channel_name_collisions Debug channel name collisions
 
-The reason that libcwd uses the convention to put debug channels in the namespace dc is to avoid collisions between debug channel
-names of libraries.&nbsp;
+The reason that libcwd uses the convention to put debug channels in the namespace dc
+is to avoid collisions between debug channel names of libraries.&nbsp;
 There are two types of name collisions possible: you upgrade or start to use a library which uses a debug channel
-that you had already defined, in that case you might need to change the name of your own channel, or you link with two or more
-libraries that both use libcwd and that defined the same debug channel, in that case you will have to make your own debug
-namespace as shown above and choose a new name for one of the channels.
+that you had already defined, in that case you might need to change the name of your own channel,
+or you link with two or more libraries that both use libcwd and that defined the same debug channel,
+in that case you will have to make your own debug namespace as shown above and choose a new name for one of the channels.
 
-For example, suppose you link with two libraries: lib1 and lib2 who use the above convention and defined their own namespaces called
-lib1 and lib2, but both defined a debug channel called foobar.&nbsp;
+For example, suppose you link with two libraries: lib1 and lib2 who use the above convention and defined their
+own namespaces called lib1 and lib2, but both defined a debug channel called foobar.&nbsp;
 Then you can rename these channels as follows.&nbsp;
 Make a debug header file that contains:
 
@@ -116,10 +180,10 @@ Make a debug header file that contains:
 namespace application {
   namespace channels {
     namespace dc {
-      using namespace ::lib1::channels::dc;
-      using namespace ::lib2::channels::dc;
-      static libcwd::channel_ct& foobar1(::lib1::channels::dc::foobar);
-      static libcwd::channel_ct& foobar2(::lib2::channels::dc::foobar);
+      using namespace lib1::channels::dc;
+      using namespace lib2::channels::dc;
+      static libcwd::channel_ct& foobar1(lib1::channels::dc::foobar);
+      static libcwd::channel_ct& foobar2(lib2::channels::dc::foobar);
     }
   }
 }
