@@ -49,7 +49,7 @@ int main(void)
   AllocTag(a1, "First created");
 
   // Create marker
-  libcw::debug::debugmalloc_marker_ct* marker = new libcw::debug::debugmalloc_marker_ct("A test marker");
+  libcw::debug::marker_ct* marker = new libcw::debug::marker_ct("A test marker");
 
   // Allocate more objects
   A* a2 = new A[10];

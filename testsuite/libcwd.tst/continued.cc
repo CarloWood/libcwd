@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
-#include "libcw/h.h"
 #include "libcw/debug.h"
 
 namespace libcw {

@@ -12,7 +12,6 @@
 //
 
 #include <libcw/sys.h>
-#include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
 

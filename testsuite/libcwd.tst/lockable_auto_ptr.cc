@@ -12,7 +12,6 @@
 //
 #include "libcw/sys.h"
 #include <iostream>
-#include "libcw/h.h"
 #include "libcw/debug.h"
 #include "libcw/lockable_auto_ptr.h"
 

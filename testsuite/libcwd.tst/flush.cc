@@ -1,6 +1,5 @@
 #include "libcw/sys.h"
 #include <unistd.h>
-#include "libcw/h.h"
 #include "libcw/debug.h"
 
 namespace libcw {

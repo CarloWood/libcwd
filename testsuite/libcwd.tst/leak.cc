@@ -15,7 +15,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <libcw/h.h>
 #include <libcw/debug.h>
 
 RCSTAG_CC("$Id$")
@@ -94,7 +93,7 @@ int main(int argc, char* argv[])
   if (!test_delete((void*)0x8000000))
     DoutFatal(dc::core, "Huh 5 ?");
 
-  debugmalloc_marker_ct* marker = new debugmalloc_marker_ct("test marker");
+  marker_ct* marker = new marker_ct("test marker");
 
   test_object* t = NEW( test_object );
   void* leak1 = t->leak;
