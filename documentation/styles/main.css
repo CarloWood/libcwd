@@ -199,7 +199,7 @@ PRE, PRE.output {
 }
 
 .para {
-  font-style		: italic;
+  ITALICS
 }
 
 .command-line-parameter {
@@ -208,7 +208,7 @@ PRE, PRE.output {
 
 .command-line-variable {
   font-weight		: normal;
-  font-style		: italic;
+  ITALICS
 }
 
 .shell-command {
@@ -217,10 +217,10 @@ PRE, PRE.output {
 }
 
 I {
-  NORMAL_ITALICS_FONT
+  ITALICS
 }
 
 EM {
-  NORMAL_ITALICS_FONT
+  ITALICS
 }
 

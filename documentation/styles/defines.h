@@ -26,9 +26,9 @@
 /* Don't use helvetica, it is broken on RedHat which has an alias "-alias-helvetica-medium-i-normal--*-iso8859-1"
  * installed that is actually a horrible looking japanese font.  See https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=59911 */
 #ifndef IE
-#define NORMAL_ITALICS_FONT font-family: sans-serif; font-size: NORMAL_SIZE; font-size-adjust: none
+#define ITALICS font-family: sans-serif; font-style: italic;
 #else
-#define NORMAL_ITALICS_FONT NORMAL_FONT
+#define ITALICS font-style: italic;
 #endif
 
 #ifdef KONQUEROR
