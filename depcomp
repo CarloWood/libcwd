@@ -51,12 +51,15 @@ pch)
   # First compile file without dependency tracking.
   "$@" || exit $?
 
-  # Remove the call to Libtool.
+  # Remove the call to libtool its parameters.
   if test "$libtool" = yes; then
     while test $1 != '--mode=compile'; do
       shift
     done
     shift
+    if expr match "$1" "--" >/dev/null; then
+      shift
+    fi
   fi
 
   # Remove `-o $object' and `-include pch.h'.
