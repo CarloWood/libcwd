@@ -500,7 +500,9 @@ namespace libcw {
       channels::dc::malloc.initialize("MALLOC");
       channels::dc::continued.initialize(continued_maskbit);
       channels::dc::finish.initialize(finish_maskbit);
+#ifdef DEBUGUSEBFD
       channels::dc::bfd.initialize("BFD");
+#endif
       // What the heck, initialize all other debug channels too
       channels::dc::warning.initialize("WARNING");
       channels::dc::notice.initialize("NOTICE");
@@ -786,14 +788,24 @@ namespace libcw {
 
     channel_set_st& debug_ct::operator|(fatal_channel_ct const&)
     {
+#ifdef DEBUGUSEBFD
       DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
           " : Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
+#else
+      DoutFatal(dc::core,
+          "Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
+#endif
     }
 
     channel_set_st& debug_ct::operator&(channel_ct const&)
     {
+#ifdef DEBUGUSEBFD
       DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
-          " : Use dc::core or dc::fatal together with DoutFatal.");
+	  " : Use dc::core or dc::fatal together with DoutFatal.");
+#else
+      DoutFatal(dc::core,
+	  "Use dc::core or dc::fatal together with DoutFatal.");
+#endif
     }
 
     void buf_st::init(char const* s, size_t l, bool first_time)

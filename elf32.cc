@@ -18,7 +18,7 @@
 
 #include <libcw/debug_config.h>
 
-#ifndef DEBUGUSEGNULIBBFD
+#if defined(DEBUGUSEBFD) && !defined(DEBUGUSEGNULIBBFD)
 
 #include "sys.h"
 #include <inttypes.h>	// ISO C99 header, needed for int32_t etc.
@@ -1845,4 +1845,4 @@ object_file_ct::object_file_ct(char const* file_name) :
   } // namespace debug
 } // namespace libcw
 
-#endif // !DEBUGUSEGNULIBBFD
+#endif // DEBUGUSEBFD && !DEBUGUSEGNULIBBFD
