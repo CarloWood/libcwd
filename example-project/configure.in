@@ -1,22 +1,24 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision$)dnl
 
-dnl General initialization of `autoconf' variables.
-dnl Ensure that the directory specified with --srcdir was correct
-dnl by demanding that it contains `debug.h'.
-AC_INIT(program.cc)
+dnl Package name and version.
+AC_INIT([project], [0.0.1], [project-bugs@yourmail.org])
 
-dnl Include --enable-maintainer-mode option.
-AM_MAINTAINER_MODE
+dnl Ensure that the directory specified with --srcdir was correct
+dnl by demanding that it contains `program.cc'.
+AC_CONFIG_SRCDIR([program.cc])
 
 dnl Put resulting configuration defines in this header file.
 AM_CONFIG_HEADER(config.h)
 
-dnl Demand at least version 2.13 of autoconf.
-AC_PREREQ(2.13)
+dnl Automake options.
+AM_INIT_AUTOMAKE
 
-dnl Automake package name and version
-AM_INIT_AUTOMAKE(project, [0.0.1])
+dnl Demand at least version 2.57 of autoconf.
+AC_PREREQ(2.57)
+
+dnl Include --enable-maintainer-mode option.
+AM_MAINTAINER_MODE
 
 dnl Manual configuration options of project.
 AC_ARG_ENABLE(debugging,
@@ -51,5 +53,6 @@ if test "$project_config_debugging" = yes; then
 fi
 
 dnl Generate output files.
-AC_OUTPUT([Makefile])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
 
