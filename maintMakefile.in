@@ -103,16 +103,16 @@ example-project/debug.h: example-project/debug.h.maintainer nodebug.h
 full-check: Makefile
 	@( \
 	  for c in \
-		'--enable-maintainer-mode --enable-libcwd-debugm --enable-libcwd-debug --compilers=cvs-3.0,2.96,2.95.3' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --compilers=cvs-3.0,3.0.1,3.0' \
-		'--enable-maintainer-mode --compilers=cvs-3.0,2.96,3.0.1,2.95.3,2.95.1,2.95.2,3.0' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --compilers=cvs-3.0' \
-		'--enable-maintainer-mode --enable-libcwd-debugm --compilers=cvs-3.0,2.96,2.95.3' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debug --disable-libcwd-debug-output --compilers=cvs-3.0' \
-		'--enable-maintainer-mode --enable-libcwd-debug --disable-libcwd-debug-output --compilers=cvs-3.0,2.96,2.95.3' \
-	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=cvs-3.0' \
-		'--enable-maintainer-mode --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=cvs-3.0,2.96,2.95.3' \
-		'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --enable-libcwd-debug --compilers=cvs-3.0' \
+		'--enable-maintainer-mode --enable-libcwd-debugm --enable-libcwd-debug --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-libcwd-threading --compilers=3.0.3,3.0.2,3.0.1,3.0' \
+		'--enable-maintainer-mode --compilers=3.0.3,2.96,2.95.3,2.95.1,2.95.2,3.0' \
+	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --compilers=3.0.3' \
+		'--enable-maintainer-mode --enable-libcwd-debugm --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3' \
+		'--enable-maintainer-mode --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3' \
+		'--enable-maintainer-mode --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
+		'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --enable-libcwd-debug --compilers=3.0.3' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
 	    case "$$c" in \

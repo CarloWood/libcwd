@@ -340,8 +340,7 @@ if test "$libcwd_config_threading" = yes; then
   AC_CHECK_LIB(pthread, pthread_create,
     [AC_CHECK_HEADER(pthread.h,
         [CW_CONFIG_HAVE_PTHREADS=define
-	 LIB_THREADS=-lpthread
-         AC_DEFINE_UNQUOTED([LIBCWD_HAVE_PTHREAD])],
+	 LIB_THREADS=-lpthread],
       [AC_MSG_ERROR([
 
 * Sorry but libcwd only supports POSIX Threads at the moment and I can't

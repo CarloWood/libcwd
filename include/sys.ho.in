@@ -20,7 +20,9 @@
 //
 // Use all GNU extensions.
 //
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 //
 // Define _REENTRANT to make sure that the glibc functions are thread safe too.
