@@ -41,6 +41,12 @@ and channels turned off, just as at the start of <CODE>main()</CODE>.</P>
 thread is printing the output.&nbsp; For example:</P>
 
 <PRE>
+#include "sys.h"	// See <A HREF="../html/preparation.html">documentation/html/preparation.html</A>
+#include "debug.h"
+#include &lt;iostream&gt;
+#include &lt;cstdio&gt;
+#include &lt;pthread.h&gt;
+
 void* thread_function(void* arguments)
 {
   // Set Thread Specific on/off flags of the debug channels.
@@ -54,10 +60,10 @@ void* thread_function(void* arguments)
 #endif
   Debug( libcw_do.margin().assign(margin, 11) );
 
-  Dout(dc::notice, "Entering thread " << pthread_self());
+  Dout(dc::notice, "Entering thread " &lt;&lt; pthread_self());
   // ... do stuff
-  Dout(dc::notice, "Leaving thread " << pthread_self());
-  return NULL;
+  Dout(dc::notice, "Leaving thread " &lt;&lt; pthread_self());
+  return (void*)true;
 }
 
 int main(void)
@@ -88,24 +94,57 @@ int main(void)
   // Create and join a few threads...
   int const number_of_threads = 4;
   pthread_t thread_id[number_of_threads];
-  for (int i = 0; i < number_of_threads; ++i)
+  for (int i = 0; i &lt; number_of_threads; ++i)
   {
-    Dout(dc::notice|continued_cf, "main: creating thread " << i << ", ");
+    Dout(dc::notice|continued_cf, "main: creating thread " &lt;&lt; i &lt;&lt; ", ");
     pthread_create(&thread_id[i], NULL, thread_function, NULL);
-    Dout(dc::finish, "id " << thread_id[i] << '.');
+    Dout(dc::finish, "id " &lt;&lt; thread_id[i] &lt;&lt; '.');
   }
 
-  for (int i = 0; i < number_of_threads; ++i)
+  for (int i = 0; i &lt; number_of_threads; ++i)
   {
     void* status;
     pthread_join(thread_id[i], &status);
-    Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] <<
-         ", returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
+    Dout(dc::notice, "main loop: thread " &lt;&lt; i &lt;&lt; ", id " &lt;&lt; thread_id[i] &lt;&lt;
+         ", returned with status " &lt;&lt; ((bool)status ? "OK" : "ERROR") &lt;&lt; '.');
   }
 
   Dout(dc::notice, "Exiting from main()");
   return 0;
 }
+</PRE>
+
+<P>Which outputs something like:</P>
+
+<PRE class="output">
+BFD     : Enabled
+DEBUG   : Enabled
+MALLOC  : Enabled
+NOTICE  : Enabled
+SYSTEM  : Enabled
+WARNING : Enabled
+1024       NOTICE  : main: creating thread 0, &lt;unfinished&gt;
+1024       MALLOC  :     malloc(8160) = &lt;unfinished&gt;
+1024       BFD     :         address 0x401fbbd8 corresponds to pthread.c:533
+1024       MALLOC  :     &lt;continued> 0x838689&gt;
+1024       NOTICE  : &lt;continued&gt; id 1026.
+1026       NOTICE  : Entering thread 1026
+1026       NOTICE  : Leaving thread 1026
+1024       NOTICE  : main: creating thread 1, id 2051.
+2051       NOTICE  : Entering thread 2051
+2051       NOTICE  : Leaving thread 2051
+1024       NOTICE  : main: creating thread 2, id 3076.
+3076       NOTICE  : Entering thread 3076
+3076       NOTICE  : Leaving thread 3076
+1024       NOTICE  : main: creating thread 3, id 4101.
+1024       NOTICE  : main loop: thread 0, id 1026, returned with status OK.
+1024       NOTICE  : main loop: thread 1, id 2051, returned with status OK.
+1024       NOTICE  : main loop: thread 2, id 3076, returned with status OK.
+4101       NOTICE  : Entering thread 4101
+4101       NOTICE  : Leaving thread 4101
+1024       NOTICE  : main loop: thread 3, id 4101, returned with status OK.
+1024       NOTICE  : Exiting from main()
+1024       MALLOC  : free(0x8386890)            pthread.c:533  &lt;unknown type&gt;; (sz = 8160)
 </PRE>
 
 <P>Congratulations, you are now a libcwd expert.&nbsp; If you still have any
