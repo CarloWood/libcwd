@@ -56,10 +56,12 @@ public:
 					// points to the dm_alloc_ct node who owns the current list.
   size_t memsize;			// Total number of allocated bytes (excluding internal allocations).
   unsigned long memblks;		// Total number of allocated blocks (excluding internal allocations).
+  pthread_t tid;			// Thread ID.
 
   thread_ct(TSD_st* tsd_ptr) throw();
   void initialize(TSD_st* tsd_ptr) throw();
   void tsd_destroyed(void) throw();
+  bool is_zombie(void) const { return !tsd; }
 };
 
 // The list of threads.

@@ -134,6 +134,7 @@ typedef unsigned short int ooam_format_t;
 ooam_format_t const show_time = 1;			//!< Show the time at which the allocation was made.
 ooam_format_t const show_path = 2;			//!< Show the full path of the locations where the allocation was made.
 ooam_format_t const show_objectfile = 4;		//!< Show the name of the shared library that is responsible for the allocation.
+ooam_format_t const show_allthreads = 8;		//!< Show the allocations of all threads, not just the current thread.
 
 /** \} */
 

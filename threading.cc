@@ -149,6 +149,7 @@ void TSD_st::cleanup_routine(void) throw()
       delete ptr;				// Free debug object TSD.
     }
   set_alloc_checking_on(*this);
+  terminated = true;
 }
 
 void TSD_st::S_cleanup_routine(void* arg) throw()
@@ -208,6 +209,7 @@ thread_ct::thread_ct(TSD_st* tsd_ptr) throw()
 {
   std::memset(this, 0 , sizeof(thread_ct));		// This is ok: we have no virtual table or base classes.
   tsd = tsd_ptr;
+  tid = tsd->tid;
 }
 
 // Initialization of a freshly added thread_ct.

@@ -129,6 +129,9 @@ int main(void)
     Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] << " (" << thread_index(thread_id[i]) << "), returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
   }
 
+  Debug( dc::malloc.on() );
+  libcw::debug::ooam_filter_ct filter(libcw::debug::show_allthreads);
+  Debug( list_allocations_on(libcw_do, filter) );
   Dout(dc::notice, "Exiting from main()");
   return 0;
 }

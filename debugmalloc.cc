@@ -1699,6 +1699,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 #endif
   bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
 #if LIBCWD_THREAD_SAFE
+  bool found_in_current_thread = found;
   if (!found)
   {
     RELEASE_READ_LOCK;
@@ -1786,6 +1787,10 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     ACQUIRE_READ2WRITE_LOCK;
     (*memblk_iter_write).second.erase(LIBCWD_TSD);	// Update flags and optional decouple
     target_memblk_map_write->erase(memblk_iter_write);		// Update administration
+#if LIBCWD_THREAD_SAFE
+    if (!found_in_current_thread && __libcwd_tsd.target_thread->is_zombie() && target_memblk_map_write->size() == 0)
+      delete target_memblk_map_write;
+#endif
     RELEASE_WRITE_LOCK;
 
     DEBUGDEBUG_CERR( "__libcwd_free: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
@@ -2048,9 +2053,9 @@ void init_debugmalloc(void)
  */
 bool test_delete(void const* ptr)
 {
-  LIBCWD_TSD_DECLARATION
   bool found;
 #if LIBCWD_THREAD_SAFE
+  LIBCWD_TSD_DECLARATION
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
   memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
@@ -2080,9 +2085,7 @@ size_t mem_size(void)
 {
   size_t memsize = 0;
 #if LIBCWD_THREAD_SAFE
-#if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION
-#endif
   LIBCWD_DEFER_CANCEL;
   rwlock_tct<threadlist_instance>::rdlock();
   // See comment in search_in_maps_of_other_threads.
@@ -2108,9 +2111,7 @@ unsigned long mem_blocks(void)
 {
   unsigned long memblks = 0;
 #if LIBCWD_THREAD_SAFE
-#if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION
-#endif
   LIBCWD_DEFER_CANCEL;
   rwlock_tct<threadlist_instance>::rdlock();
   // See comment in search_in_maps_of_other_threads.
@@ -2139,9 +2140,7 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
   size_t memsize = 0;
   unsigned long memblks = 0;
 #if LIBCWD_THREAD_SAFE
-#if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION
-#endif
   LIBCWD_DEFER_CANCEL;
   rwlock_tct<threadlist_instance>::rdlock();
   // See comment in search_in_maps_of_other_threads.
@@ -2162,12 +2161,49 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
 }
 
 /**
+ * \brief List all current allocations to a given %debug object.
+ * \ingroup group_overview
+ *
+ * With \link enable_alloc CWDEBUG_ALLOC \endlink set to 1, it is possible
+ * to write the \ref group_overview "overview of allocated memory" to
+ * a \ref group_debug_object "Debug Object".
+ *
+ * By default only the allocations that were made by the <EM>current</EM> thread
+ * will be printed.&nbsp; Use \ref show_allthreads, together with a filter object,
+ * in order to get a listing of the allocations of all threads (see below).
+ *
+ * The syntax to do this is:
+ *
+ * \code
+ * Debug( list_allocations_on(libcw_do) );	// libcw_do is the (default) debug object.
+ * \endcode
+ *
+ * which would print on \link libcw::debug::libcw_do libcw_do \endlink using
+ * \ref group_debug_channels "debug channel" \link libcw::debug::dc::malloc dc::malloc \endlink.
+ *
+ * Note that not passing formatting information is equivalent with,
+ *
+ * \code
+ * Debug(
+ *     ooam_filter_ct format(0);
+ *     list_allocations_on(debug_object, format)
+ * );
+ * \endcode
+ *
+ * meaning that all allocations are shown without time, without path and without to which library they belong to.
+ */
+void list_allocations_on(debug_ct& debug_object)
+{
+  list_allocations_on(debug_object, default_ooam_filter);
+}
+
+/**
  * \brief List all current allocations to a given %debug object using a specified format.
  * \ingroup group_overview
  *
  * With \link enable_alloc CWDEBUG_ALLOC \endlink set to 1, it is possible
  * to write the \ref group_overview "overview of allocated memory" to
- * a \ref group_debug_object "Debug Object".&nbsp;
+ * a \ref group_debug_object "Debug Object".
  *
  * For example:
  *
@@ -2197,71 +2233,63 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
 
-  dm_alloc_copy_ct* list = NULL;
-  size_t memsize;
-  unsigned long memblks;
+#if LIBCWD_THREAD_SAFE
+  size_t total_memsize = 0;
+  unsigned long total_memblks = 0;
   LIBCWD_DEFER_CANCEL;
-  ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memsize = MEMSIZE;
-  memblks = MEMBLKS;
-  if (BASE_ALLOC_LIST)
+  rwlock_tct<threadlist_instance>::rdlock();
+  // See comment in search_in_maps_of_other_threads.
+  for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)
   {
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
-    list = dm_alloc_copy_ct::deep_copy(BASE_ALLOC_LIST);
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
+    ACQUIRE_READ_LOCK(&(*thread_iter));
+    total_memsize += MEMSIZE;
+    total_memblks += MEMBLKS;
+    if ((MEMBLKS == 0 && ((*thread_iter).is_zombie() || (*thread_iter).tsd->terminated)) ||
+	(!(filter.M_flags & show_allthreads) && thread_iter != __libcwd_tsd.thread_iter))
+    {
+      RELEASE_READ_LOCK;
+      continue;
+    }
+#endif
+    size_t memsize = MEMSIZE;
+    unsigned long memblks = MEMBLKS;
+    dm_alloc_copy_ct* list = NULL;
+    if (BASE_ALLOC_LIST)
+    {
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      list = dm_alloc_copy_ct::deep_copy(BASE_ALLOC_LIST);
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+    }
+#if LIBCWD_THREAD_SAFE
+    pthread_t tid = __libcwd_tsd.target_thread->tid;
+    RELEASE_READ_LOCK;
+    LibcwDout( channels, debug_object, dc_malloc, "Allocated memory by thread " << tid << ": " << memsize << " bytes in " << memblks << " blocks:" );
+#else
+    LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << memsize << " bytes in " << memblks << " blocks:" );
+#endif
+    if (list)
+    {
+#if LIBCWD_THREAD_SAFE
+      LIBCWD_DEFER_CANCEL;
+      pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(&mutex_tct<list_allocations_instance>::cleanup), NULL);
+      mutex_tct<list_allocations_instance>::lock();
+#endif
+      filter.M_check_synchronization();
+      list->show_alloc_list(1, channels::dc_malloc, filter);
+#if LIBCWD_THREAD_SAFE
+      pthread_cleanup_pop(1);
+      LIBCWD_RESTORE_CANCEL;
+#endif
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      delete list;
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+    }
+#if LIBCWD_THREAD_SAFE
   }
-  RELEASE_READ_LOCK;
+  rwlock_tct<threadlist_instance>::rdunlock();
   LIBCWD_RESTORE_CANCEL;
-  LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << memsize << " bytes in " << memblks << " blocks." );
-  if (list)
-  {
-#if LIBCWD_THREAD_SAFE
-    LIBCWD_DEFER_CANCEL;
-    pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(&mutex_tct<list_allocations_instance>::cleanup), NULL);
-    mutex_tct<list_allocations_instance>::lock();
+  LibcwDout( channels, debug_object, dc_malloc, "Total allocated memory: " << total_memsize << " bytes in " << total_memblks << " blocks." );
 #endif
-    filter.M_check_synchronization();
-    list->show_alloc_list(1, channels::dc_malloc, filter);
-#if LIBCWD_THREAD_SAFE
-    pthread_cleanup_pop(1);
-    LIBCWD_RESTORE_CANCEL;
-#endif
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
-    delete list;
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
-  }
-}
-
-/**
- * \brief List all current allocations to a given %debug object.
- * \ingroup group_overview
- *
- * With \link enable_alloc CWDEBUG_ALLOC \endlink set to 1, it is possible
- * to write the \ref group_overview "overview of allocated memory" to
- * a \ref group_debug_object "Debug Object".&nbsp;
- * The syntax to do this is:
- *
- * \code
- * Debug( list_allocations_on(libcw_do) );	// libcw_do is the (default) debug object.
- * \endcode
- *
- * which would print on \link libcw::debug::libcw_do libcw_do \endlink using
- * \ref group_debug_channels "debug channel" \link libcw::debug::dc::malloc dc::malloc \endlink.
- *
- * Note that not passing formatting information is equivalent with,
- *
- * \code
- * Debug(
- *     ooam_filter_ct format(0);
- *     list_allocations_on(debug_object, format)
- * );
- * \endcode
- *
- * meaning that all allocations are shown without time, without path and without to which library they belong to.
- */
-void list_allocations_on(debug_ct& debug_object)
-{
-  list_allocations_on(debug_object, default_ooam_filter);
 }
 
 //=============================================================================

@@ -116,6 +116,7 @@ public:
   threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).
   bool thread_iter_valid;
   thread_ct* target_thread;
+  bool terminated;
 #endif
 #if CWDEBUG_DEBUGM
   int marker;
