@@ -304,7 +304,7 @@ fi
 
 dnl Checks for header files.
 AC_HEADER_STAT
-AC_CHECK_HEADERS(_G_config.h)
+AC_CHECK_HEADERS(_G_config.h link.h)
 
 dnl Check for typedefs.
 AC_TYPE_SIGNAL

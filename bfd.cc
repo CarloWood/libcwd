@@ -42,6 +42,7 @@
 #endif
 #ifdef HAVE_LINK_H
 #include <link.h>
+extern link_map* _dl_loaded;
 #endif
 #include <cstdio>		// Needed for vsnprintf.
 #include <algorithm>
@@ -420,9 +421,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #ifdef HAVE_LINK_H
             {
 	      for(link_map* p = _dl_loaded; p; p = p->l_next)
-	        if (!strcmp(p->name, filename))
+	        if (!strcmp(p->l_name, filename))
 		{
-		  lbase = p->l_addr;
+		  lbase = reinterpret_cast<void*>(p->l_addr);		// No idea why they use unsigned int for a load address.
 		  break;
 		}
 	    }
@@ -467,7 +468,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    }
 #endif // !HAVE_LINK_H
 	    ::dlclose(handle);
-	    Dout(dc::continued, '(' << lbase << ") ");
+	    Dout(dc::continued, " (" << lbase << ") ... ");
 #else // !HAVE_DLOPEN
 	    DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure.");
 #endif
@@ -819,7 +820,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       object_file_ct* load_object_file(char const* name, void* l_addr)
       {
 	ASSERT( libcw::debug::_internal_::internal );
-	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << "... ");
+	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name);
+	if (l_addr != unknown_l_addr)
+	  Dout(dc::continued|flush_cf, " (" << l_addr << ") ... ");
 	set_alloc_checking_off();
 	object_file_ct* object_file = new object_file_ct(name, l_addr);
 	set_alloc_checking_on();
@@ -942,7 +945,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	{
 #endif
 	  if (l->l_addr)
-	    load_object_file(l->l_name, l->l_addr);
+	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	}
 	object_files().sort(object_file_greater());
 
@@ -1231,7 +1234,9 @@ extern "C" {
     void* handle = ::dlopen(name, flags);
     if ((flags & RTLD_NOLOAD))
       return handle;
+    set_alloc_checking_off();
     cwbfd::object_file_ct* object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
+    set_alloc_checking_on();
     if (object_file)
     {
       cwbfd::object_files().sort(cwbfd::object_file_greater());
@@ -1247,7 +1252,11 @@ extern "C" {
     if (iter != libcwd_dlopen_map.end())
     {
       if (!((*iter).second.M_flags & RTLD_NODELETE))
+      {
+        set_alloc_checking_off();
 	delete (*iter).second.M_object_file;
+        set_alloc_checking_on();
+      }
       libcwd_dlopen_map.erase(iter);
     }
     return ret;
