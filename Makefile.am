@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = include utils . tests testsuite cutee
 
 EXTRA_DIST = LICENSE.QPL README.CVS README.threads README.FreeBSD README.openbsd README.solaris \
-	README.debian README.PCH nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in libcwd.lsm libcwd.spec
+	README.PCH nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in libcwd.lsm libcwd.spec
 DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 
 VERSIONINFO=@VERSIONINFO@
