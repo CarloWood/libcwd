@@ -1,5 +1,5 @@
 Introduction
-============
+------------
 
 Libcwd is for use by developers while still developing: end
 applications don't need it.  While still developing, you
@@ -38,7 +38,7 @@ The debug support can be divided into the following components:
 
 
 Documentation
-=============
+-------------
 
 You can find extensive documentation online at
 http://libcw.sourceforge.net/debugging/.  There you will find
@@ -73,4 +73,19 @@ Feel free to try this when sourceforge is too slow.
 Note that the documentation includes documentation of libcw
 (without a `d' at the end), libcw is not released to the public
 yet.  You can ignore everything not in the debugging/ directory.
+
+
+Anonymous CVS Access 
+--------------------
+
+This project's SourceForge CVS repository can be checked out through anonymous
+(pserver) CVS with the following instruction set.  The module of libcwd is called
+"libcwd" (not "libcw" !).  When prompted for a password for anonymous, simply
+press the Enter key. 
+
+cvs -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw login 
+
+cvs -z3 -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw co libcwd
+
+Updates from within the module's directory do not need the -d parameter.
 
