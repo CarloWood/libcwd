@@ -3,4 +3,11 @@
 This directory contains the files needed to build a debian package.
 It is the first time I did something like this, please let me know if it works.
 
+To generate two .deb files, type:
+
+dpkg-buildpackage -rfakeroot
+
+in de directory containing this debian directory.
+Both .deb files need to be installed.
+
 Carlo Wood <libcw@alinoe.com>
