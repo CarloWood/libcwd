@@ -291,7 +291,6 @@ AC_SUBST(CW_CONFIG_NEED_SYS_TYPES)
 dnl Check for structures.
 
 dnl Check for compiler/system characteristics.
-CW_BUG_20000813
 CW_BUG_REDEFINES([sys/resource.h])
 CW_MALLOC_OVERHEAD
 CW_NEED_WORD_ALIGNMENT

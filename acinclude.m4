@@ -63,33 +63,6 @@ ifelse([$4], , , [$4
 fi
 ])
 
-dnl CW_BUG_20000813
-dnl
-dnl Check whether the compiler has bug #20000813
-dnl Set CW_CONFIG_DWARF2OUT_BUG to `define' when this is the case
-dnl with the current CXXFLAGS, to `undef' otherwise.
-dnl
-AC_DEFUN(CW_BUG_20000813,
-[changequote(, )dnl
-cw_bug_var=`echo " $CXXFLAGS" | sed -e 's/ [^-][^ ]*//g' -e 's/ -[^Ogf][^ ]*//g' \
-    -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/' -e 's/ //g' -e 's/[^a-z0-9]/_/g'`
-changequote([, ])dnl
-AC_MSG_CHECKING([if compiler crashes when we declare a static vector in an inline function])
-AC_CACHE_VAL(cw_cv_bug_20000813$cw_bug_var,
-AC_TRY_COMPILE(
-[#include <vector>
-inline void f(void) { static vector<int> ids; }],
-[f()], eval "cw_cv_bug_20000813$cw_bug_var=no", eval "cw_cv_bug_20000813$cw_bug_var=yes"))
-if eval "test \"`echo '$cw_cv_bug_20000813'$cw_bug_var`\" = no"; then
-CW_CONFIG_DWARF2OUT_BUG=undef
-AC_MSG_RESULT(no)
-else
-CW_CONFIG_DWARF2OUT_BUG=define
-AC_MSG_RESULT(yes)
-fi
-AC_SUBST(CW_CONFIG_DWARF2OUT_BUG)
-])
-
 dnl CW_BUG_REDEFINES_INITIALIZATION
 dnl
 AC_DEFUN(CW_BUG_REDEFINES_INITIALIZATION,

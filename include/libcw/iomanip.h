@@ -42,21 +42,22 @@ public:
   IMANIP_DATA& get_imanip_data(void) { return imanip_data; }
 };
 
-// About the DWARF2OUT_BUG:
-// Occurs in at least: gcc-2.95.2:
-// Internal compiler error in `output_die', at dwarf2out.c:5426
-// Occurs not in: gcc-ss-20000813
+namespace {
+  template<class TYPE>
+    struct compiler_bug_workaround {
+      static TYPE ids;
+    };
+
+  template<class TYPE>
+  TYPE compiler_bug_workaround<TYPE>::ids;
+};
+
 template<class TYPE>
-#ifdef DWARF2OUT_BUG
-static
-#else
-inline
-#endif
-typename TYPE::omanip_data_ct& get_omanip_data(ostream const& os)
+inline typename TYPE::omanip_data_ct& get_omanip_data(ostream const& os)
 {
   typedef omanip_id_tct<typename TYPE::omanip_data_ct> omanip_id_ct;
   typedef vector<omanip_id_ct> ids_ct;
-  static ids_ct ids;
+  ids_ct& ids(compiler_bug_workaround<ids_ct>::ids);	// static ids_ct ids;
   typename ids_ct::iterator i = find(ids.begin(), ids.end(), &os);
   if (i == ids.end())
     i = ids.insert(ids.end(), omanip_id_ct(&os));
