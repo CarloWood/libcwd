@@ -167,6 +167,19 @@ debug_ct::get_ostream(void) const
   return real_os;
 }
 
+__inline__
+void
+debug_ct::private_set_ostream(std::ostream* os)
+{
+  real_os = os;
+#ifdef DEBUGDEBUG
+  LIBCWD_TSD_DECLARATION
+  LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
+  if (LIBCWD_TSD_MEMBER(laf_stack).size() == 0)
+    LIBCWD_TSD_MEMBER(current_oss) = NULL;
+#endif
+}
+
 /**
  * \brief Set output device.
  * \ingroup group_destination
@@ -177,13 +190,7 @@ __inline__
 void
 debug_ct::set_ostream(std::ostream* os)
 {
-  real_os = os;
-#ifdef DEBUGDEBUG
-  LIBCWD_TSD_DECLARATION
-  LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
-  if (LIBCWD_TSD_MEMBER(laf_stack).size() == 0)
-    LIBCWD_TSD_MEMBER(current_oss) = NULL;
-#endif
+  private_set_ostream(os);
 }
 
 /** \} */

@@ -38,6 +38,10 @@
 namespace libcw {
   namespace debug {
 
+namespace _private_ {
+  class lock_interface_base_ct;
+} // namespace _private_
+
 //===================================================================================================
 // class debug_ct
 //
@@ -83,7 +87,13 @@ protected:
   //
 
   std::ostream* real_os;
-    // The original output ostream (as set with set_ostream() or set_fd()).
+    // The original output ostream (as set with set_ostream()).
+    //
+#ifdef LIBCWD_THREAD_SAFE
+  _private_::lock_interface_base_ct* M_mutex;
+    // Pointer to the mutex that should be used for `real_os' or NULL when no lock is used.
+    // A value of NULL is only allowed prior to creating a second thread.
+#endif
 
 private:
   //-------------------------------------------------------------------------------------------------
@@ -182,12 +192,24 @@ public:
   debug_ct(void);
   ~debug_ct();
 
+private:
+  void private_set_ostream(std::ostream* os);
+
 public:
   //-------------------------------------------------------------------------------------------------
   // Manipulators:
   //
 
   void set_ostream(std::ostream* os);
+#ifdef LIBCWD_THREAD_SAFE
+  template<class T>
+    void set_ostream(std::ostream* os, T* mutex);
+#ifdef LIBCW_DOXYGEN
+  // Specialization.
+  template<>
+    void set_ostream(std::ostream* os, pthread_mutex_t* mutex);
+#endif
+#endif
   void off(void);
   void on(void);
   
@@ -235,8 +257,73 @@ public:
    * \returns The previous value.
    */
   bool keep_tsd(bool keep);
-#endif
+#endif // LIBCWD_THREAD_SAFE
 };
+
+#ifdef LIBCWD_THREAD_SAFE
+namespace _private_ {
+
+class lock_interface_base_ct {
+public:
+  virtual int trylock(void) = 0;
+  virtual void lock(void) = 0;
+  virtual void unlock(void) = 0;
+};
+
+template<class T>
+  class lock_interface_tct : public lock_interface_base_ct {
+    private:
+      T* ptr;
+      virtual int trylock(void) { return ptr->trylock(); }
+      virtual void lock(void) { ptr->lock(); }
+      virtual void unlock(void) { ptr->unlock(); }
+    public:
+      lock_interface_tct(T* mutex) : ptr(mutex) { }
+  };
+
+  class pthread_lock_interface_ct : public lock_interface_base_ct {
+    private:
+      pthread_mutex_t* ptr;
+      virtual int trylock(void) { return pthread_mutex_trylock(ptr); }
+      virtual void lock(void) { pthread_mutex_lock(ptr); }
+      virtual void unlock(void) { pthread_mutex_unlock(ptr); }
+    public:
+      pthread_lock_interface_ct(pthread_mutex_t* mutex) : ptr(mutex) { }
+  };
+
+} // namespace _private_
+
+/**
+ * \brief Set output device and provide external lock.
+ * \ingroup group_destination
+ *
+ * Assign a new \c ostream to this %debug object.&nbsp;
+ * The \c ostream will only be written to after obtaining the lock
+ * that is passed as second argument.  Each \c ostream needs to have
+ * a unique lock.&nbsp; If the application also writes directly
+ * to the same \c ostream then use the same lock.
+ *
+ * <b>Example:</b>
+ *
+ * \code
+ * MyLock lock;
+ *
+ * // Uses MyLock::lock(), MyLock::trylock() and MyLock::unlock().
+ * Debug( libcw_do.set_ostream(&std::cerr, &lock) );
+ *
+ * lock.lock();
+ * std::cerr << "The application uses cerr too\n";
+ * lock.unlock();
+ * \endcode
+ */
+template<class T>
+  void debug_ct::set_ostream(std::ostream* os, T* mutex)
+  {
+    M_mutex = new _private_::lock_interface_tct<T>(mutex);
+    private_set_ostream(os);
+  }
+
+#endif // LIBCWD_THREAD_SAFE
 
   }  // namespace debug
 }  // namespace libcw

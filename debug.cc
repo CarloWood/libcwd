@@ -70,7 +70,11 @@ namespace libcw {
       pos_type position;
 #endif
     public:
+#ifdef LIBCWD_THREAD_SAFE
+      void writeto(std::ostream* os, _private_::lock_interface_base_ct* mutex LIBCWD_COMMA_TSD_PARAM)
+#else
       void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM)
+#endif
       {
 	char* buf;
 	bool used_malloc = false;
@@ -91,7 +95,25 @@ namespace libcw {
 	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
 	LIBCWD_DISABLE_CANCEL			// We don't want Dout() to be a cancellation point.
-	os->write(buf, curlen);
+	if (mutex)
+	{
+	  mutex->lock();
+	  os->write(buf, curlen);
+	  mutex->unlock();
+	}
+	else if (_private_::WST_multi_threaded)
+	{
+	  static bool WST_second_time = false;	// Break infinite loop.
+	  if (WST_second_time)
+	    os->write(buf, curlen);
+	  else
+	  {
+	    WST_second_time = true;
+	    DoutFatal(dc::core, "When using multiple threads, you must provide a locking mechanism for the debug output stream.  You can pass a pointer to a mutex with `debug_ct::set_ostream'.");
+	  }
+	}
+	else
+	  os->write(buf, curlen);
 	LIBCWD_ENABLE_CANCEL
 #ifdef DEBUGMALLOC
 	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
@@ -322,9 +344,6 @@ namespace libcw {
 #if defined(DEBUGDEBUG) && !defined(DEBUGDEBUGOUTPUT)
       // Force allocation of a __cxa_eh_globals struct in libsupc++.
       (void)std::uncaught_exception();
-#endif
-#if defined(DEBUGDEBUG) && defined(LIBCWD_THREAD_SAFE)
-      _private_::WST_multi_threaded = true;
 #endif
     }
 
@@ -630,6 +649,12 @@ namespace libcw {
 
     /** \} */
 
+#ifdef LIBCWD_THREAD_SAFE
+#define LIBCWD_COMMA_MUTEX ,debug_object.M_mutex
+#else
+#define LIBCWD_COMMA_MUTEX
+#endif
+
     void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
 #ifdef DEBUGDEBUG
@@ -651,7 +676,23 @@ namespace libcw {
 	if (!(current->mask & continued_expected_maskbit))
 	{
 	  std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
+#ifdef LIBCWD_THREAD_SAFE
+	  // Try to get the lock, but don't try too long...
+	  int res;
+	  struct timespec const t = { 0, 5000000 };
+	  for(int count = 0; count < 40; ++count)
+	  {
+	    res = debug_object.M_mutex->trylock();
+	    if (res == 0)
+	      break;
+	    nanosleep(&t, NULL);
+	  }
+#endif
 	  target_os->put('\n');
+#ifdef LIBCWD_THREAD_SAFE
+	  if (res == 0)
+	    debug_object.M_mutex->unlock();
+#endif
 	  char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #ifdef DEBUGUSEBFD
 	  DoutFatal(dc::core, "Using `dc::" << channame << "' in " <<
@@ -684,11 +725,11 @@ namespace libcw {
 	//     (current->mask & continued_cf_maskbit) is false and this if is skipped.
 	LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
 #endif
-	// Write out what is in the buffer till now.
+	// Append <unfinished> to the current buffer.
+	current_oss->write("<unfinished>\n", 13);		// Continued debug output should end on a space by itself,
+	// And write out what is in the buffer till now.
 	std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
-	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD);
-	// Append <unfinished> to it.
-	target_os->write("<unfinished>\n", 13);		// Continued debug output should end on a space by itself,
+	static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD);
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
 	static_cast<buffer_ct*>(current_oss)->restore_position();
 	current_oss->write("<continued> ", 12);		// therefore we repeat the space here.
@@ -784,7 +825,7 @@ namespace libcw {
 	if ((current->mask & flush_cf))
 	{
 	  // Write buffer to ostream.
-	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD);
+	  static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD);
 	  // Flush ostream.  Note that in the case of nested debug output this `os' can be an stringstream,
 	  // in that case, no actual flushing is done until the debug output to the real ostream has
 	  // finished.
@@ -804,7 +845,7 @@ namespace libcw {
 	current_oss->put('\n');
 
       // Write buffer to ostream.
-      static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_TSD);
+      static_cast<buffer_ct*>(current_oss)->writeto(target_os LIBCWD_COMMA_MUTEX LIBCWD_COMMA_TSD);
 
       // Handle control flags, if any:
       if (current->mask != 0)
@@ -829,12 +870,18 @@ namespace libcw {
 	}
 	if ((current->mask & wait_cf))
 	{
+#ifdef LIBCWD_THREAD_SAFE
+	  debug_object.M_mutex->lock();
+#endif
 	  *target_os << "(type return)";
 	  if (debug_object.interactive)
 	  {
 	    *target_os << std::flush;
 	    while(std::cin.get() != '\n');
 	  }
+#ifdef LIBCWD_THREAD_SAFE
+	  debug_object.M_mutex->unlock();
+#endif
 	}
 	if ((current->mask & flush_cf))
 	{
@@ -905,6 +952,10 @@ namespace libcw {
 
       if (WNS_initialized)
         return;
+
+#ifdef LIBCWD_THREAD_SAFE
+      M_mutex = NULL;
+#endif
 
 #ifdef DEBUGDEBUG
       if (!WST_debug_object_init_magic)
@@ -1466,6 +1517,37 @@ namespace libcw {
 	core_dump();					// off() and on() where called and not in equal pairs.
       off_cnt = state.off_cnt;				// Restore.
     }
+
+#ifdef LIBCWD_THREAD_SAFE
+/**
+ * \brief Set output device and provide external pthread mutex.
+ * \ingroup group_destination
+ *
+ * Assign a new \c ostream to this %debug object.
+ * The \c ostream will only be written to after obtaining the lock
+ * that is passed as second argument.
+ *
+ * <b>Example:</b>
+ *
+ * \code
+ * pthread_mutex_t lock;
+ *
+ * // Use the same lock as you use in your application for std::cerr.
+ * Debug( libcw_do.set_ostream(&std::cerr, &lock) );
+ *
+ * pthread_mutex_lock(&lock);
+ * std::cerr << "The application uses cerr too\n";
+ * pthread_mutex_unlock(&lock);
+ * \endcode
+ */
+// Specialization
+template<>
+  void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
+  {
+    M_mutex = new _private_::pthread_lock_interface_ct(mutex);
+    private_set_ostream(os);
+  }
+#endif // LIBCWD_THREAD_SAFE
 
   }	// namespace debug
 }	// namespace libcw

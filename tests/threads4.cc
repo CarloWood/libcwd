@@ -76,7 +76,8 @@ int main(void)
 #ifdef DEBUGMALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
-  Debug( libcw_do.set_ostream(&std::cout) );
+  pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
+  Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
   Debug( libcw_do.on() );
   char margin[32];
   sprintf(margin, "%-10lu (%04lu) ", pthread_self(), thread_index(pthread_self()));

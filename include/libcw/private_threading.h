@@ -78,9 +78,7 @@ namespace libcw {
     namespace _private_ {
 
 extern void initialize_global_mutexes(void) throw();
-#ifdef DEBUGDEBUG
 extern bool WST_multi_threaded;
-#endif
 
 //===================================================================================================
 //

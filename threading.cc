@@ -22,9 +22,7 @@ namespace libcw {
     namespace _private_ {
 
 #ifdef LIBCWD_THREAD_SAFE
-#ifdef DEBUGDEBUG
 bool WST_multi_threaded = false;
-#endif
 #ifdef DEBUGDEBUG
 int instance_locked[instance_locked_size];
 #endif
@@ -86,6 +84,7 @@ void TSD_st::S_initialize(void) throw()
   mutex_tct<tsd_initialization_instance>::unlock();
   if (thread_index(pthread_self()) != 0)	// Is this a second (or later) thread?
   {
+    WST_multi_threaded = true;
     set_alloc_checking_off(*this);
     for (int i = 0; i < LIBCWD_DO_MAX; ++i)
       if (old_array[i])

@@ -104,7 +104,7 @@ extern debug_objects_ct debug_objects;
  * For example,
  *
  * \code
- * ForAllDebugObjects( debugObject.set_ostream(&std::cerr) );
+ * ForAllDebugObjects( debugObject.set_ostream(&std::cerr, &cerr_mutex) );
  * \endcode
  *
  * would set the output stream of all %debug objects to <CODE>std::cerr</CODE>.
