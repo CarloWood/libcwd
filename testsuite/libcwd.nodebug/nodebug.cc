@@ -12,7 +12,7 @@ int main(void)
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
 #ifdef DEBUGUSEBFD
-  Debug( dc::stabs.on() );
+  Debug( dc::bfd.on() );
 #endif
 
   int* p = new int [100];

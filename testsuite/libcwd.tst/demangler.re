@@ -1,6 +1,6 @@
 // input lines 2
 // output till ^void
-(STABS   : Loading debug info from.*
+(BFD     : Loading debug info from.*
 )*
 // type exact
 void libcw_app_ct::add_option<libcw_app_ct>(void (libcw_app_ct::*)(char const*), char const*, char, char const*, char const*)

@@ -474,7 +474,7 @@ namespace libcw {
       channels::dc::malloc.initialize("MALLOC");
       channels::dc::continued.initialize(continued_maskbit);
       channels::dc::finish.initialize(finish_maskbit);
-      channels::dc::stabs.initialize("STABS");
+      channels::dc::bfd.initialize("BFD");
       // What the heck, initialize all other debug channels too
       channels::dc::warning.initialize("WARNING");
       channels::dc::notice.initialize("NOTICE");

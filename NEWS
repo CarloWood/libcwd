@@ -1,3 +1,8 @@
+libcwd-0.99.11
+
+	I changed my mind and renamed 'dc::stabs' back to 'dc::bfd'.  The label also is
+	again "BFD".
+
 libcwd-0.99.10
 
 	MAJOR CHANGE: malloc, calloc, realloc and free are no longer macros but are now

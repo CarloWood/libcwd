@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#undef ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::stabs in order to print the "Loading debug info from ..." lines.
+#undef ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading debug info from ..." lines.
 #undef DEBUGDEBUGBFD		// Define to add debug code for this file.
 
 #include <libcw/debug_config.h>
@@ -74,7 +74,7 @@ namespace libcw {
     // New debug channel
     namespace channels {
       namespace dc {
-	channel_ct const stabs("STABS");
+	channel_ct const bfd("BFD");
       }
     }
 
@@ -128,13 +128,13 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	  char* bufp = new char[len + 1];
 	  set_alloc_checking_on();
 	  vsnprintf(bufp, sizeof(buf), format, vl);
-	  Dout(dc::stabs, buf);
+	  Dout(dc::bfd, buf);
 	  set_alloc_checking_off();
 	  delete [] bufp;
 	  set_alloc_checking_on();
 	}
 	else
-	  Dout(dc::stabs, buf);
+	  Dout(dc::bfd, buf);
       }
 
       // cwbfd::
@@ -299,7 +299,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	abfd = bfd_openr(filename, NULL);
 #ifdef DEBUGUSEGNULIBBFD
 	if (!abfd)
-	  DoutFatal(dc::stabs, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
+	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
 	abfd->cacheable = bfd_tttrue;
 #endif
 	abfd->usrdata = (addr_ptr_t)this;
@@ -308,9 +308,9 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	{
 	  bfd_close(abfd);
 #ifdef DEBUGUSEGNULIBBFD
-	  DoutFatal(dc::stabs, filename << ": can not get addresses from archive: " << bfd_errmsg(bfd_get_error()));
+	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive: " << bfd_errmsg(bfd_get_error()));
 #else
-	  DoutFatal(dc::stabs, filename << ": can not get addresses from archive.");
+	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive.");
 #endif
 	}
 #ifdef DEBUGUSEGNULIBBFD
@@ -338,7 +338,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	long storage_needed = bfd_get_symtab_upper_bound (abfd);
 #ifdef DEBUGUSEGNULIBBFD
 	if (storage_needed < 0)
-	  DoutFatal(dc::stabs, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
+	  DoutFatal(dc::bfd, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
 #else
 	if (storage_needed == 0)
 	{
@@ -355,7 +355,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
 #ifdef DEBUGUSEGNULIBBFD
 	if (number_of_symbols < 0)
-	  DoutFatal(dc::stabs, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
+	  DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
 #endif
 
 	if (number_of_symbols > 0)
@@ -771,9 +771,9 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	if (libcwd_was_off)
 	  Debug( libcw_do.on() );
 	bool bfd_was_off;
-	Debug( bfd_was_off = !dc::stabs.is_on() );
+	Debug( bfd_was_off = !dc::bfd.is_on() );
 	if (bfd_was_off)
-	  Debug( dc::stabs.on() );
+	  Debug( dc::bfd.on() );
 #endif
 
 	// Initialize object files list
@@ -800,7 +800,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 
 	// Load executable
 /**/	set_alloc_checking_on();
-/**/	Dout(dc::stabs|continued_cf|flush_cf, "Loading debug info from " << fullpath.value->data() << "... ");
+/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << fullpath.value->data() << "... ");
 /**/	set_alloc_checking_off();
 	object_file_ct* object_file = new object_file_ct(fullpath.value->data(), 0);
 /**/	set_alloc_checking_on();
@@ -827,7 +827,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	  if (l->l_addr)
 	  {
 /**/	    set_alloc_checking_on();
-/**/	    Dout(dc::stabs|continued_cf|flush_cf, "Loading debug info from " << l->l_name << ' ');
+/**/	    Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << l->l_name << ' ');
 /**/	    if (l->l_addr != unknown_l_addr)
 /**/	      Dout(dc::continued, '(' << hex << l->l_addr << ") ... ");
 /**/	    set_alloc_checking_off();
@@ -855,7 +855,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	if (libcwd_was_off)
 	  Debug( libcw_do.off() );
 	if (bfd_was_off)
-	  Debug( dc::stabs.off() );
+	  Debug( dc::bfd.off() );
 #endif
 
 	initialized = true;
@@ -909,10 +909,10 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	    if (addr < (bfd_vma)(size_t)symbol_start_addr(p) + symbol_size(p))
 	      return &(*i);
 	  }
-	  Dout(dc::stabs, "No symbol found: " << hex << addr);
+	  Dout(dc::bfd, "No symbol found: " << hex << addr);
 	}
 	else
-	  Dout(dc::stabs, "No source file found: " << hex << addr);
+	  Dout(dc::bfd, "No source file found: " << hex << addr);
 	return NULL;
       }
 
@@ -1023,29 +1023,29 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	      string demangled_name;
 	      demangle_symbol(p->name, demangled_name);
 	      set_alloc_checking_on();
-	      Dout(dc::stabs, "Warning: Address " << hex << addr << " in section " << sect->name <<
+	      Dout(dc::bfd, "Warning: Address " << hex << addr << " in section " << sect->name <<
 		  " does not have a line number, perhaps the unit containing the function");
 #ifdef __FreeBSD__
-	      Dout(dc::stabs|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb");
+	      Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb");
 #else
-	      Dout(dc::stabs|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g");
+	      Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g");
 #endif
 	      set_alloc_checking_off();
 	    }
 	    set_alloc_checking_on();
 	  }
 	  else
-	    Dout(dc::stabs, "Warning: Address in section " << sect->name << " does not contain a function");
+	    Dout(dc::bfd, "Warning: Address in section " << sect->name << " does not contain a function");
 	}
 	else
-	  Dout(dc::stabs, "address " << hex << addr << dec << " corresponds to " << *this);
+	  Dout(dc::bfd, "address " << hex << addr << dec << " corresponds to " << *this);
 	return;
       }
 
       M_filepath = NULL;
       if (symbol)
       {
-	Debug( dc::stabs.off() );
+	Debug( dc::bfd.off() );
 	size_t len = strlen(symbol->get_symbol()->name);
 	len += sizeof("<undefined symbol: >\0");
 	char* func = new char [len];		// This leaks memory(!), but I don't think we ever come here.
@@ -1053,7 +1053,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	strcpy(func + 19, symbol->get_symbol()->name);
 	strcat(func, ">");
 	M_func = func;
-	Debug( dc::stabs.on() );
+	Debug( dc::bfd.on() );
       }
       else
 	M_func = unknown_function_c;

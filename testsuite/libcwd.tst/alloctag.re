@@ -1,11 +1,11 @@
 // input lines 2
-// output till ^DEBUG   : Disabled
-(STABS   : Loading debug info from.*
+// output till ^BFD     : Disabled
+(BFD     : Loading debug info from.*
 )*
+BFD     : Disabled
 DEBUG   : Disabled
 MALLOC  : Enabled
 NOTICE  : Enabled
-STABS   : Disabled
 SYSTEM  : Enabled
 WARNING : Enabled
 MALLOC  : operator new\[\] \(size = 50\) = 0x[0-9a-f]*

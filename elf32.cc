@@ -355,9 +355,9 @@ bool Elf32_Ehdr::check_format(void) const
       e_ident[EI_MAG1] != 'E' ||
       e_ident[EI_MAG2] != 'L' ||
       e_ident[EI_MAG3] != 'F')
-    Dout(dc::stabs, "Object file must be ELF.");
+    Dout(dc::bfd, "Object file must be ELF.");
   else if (e_ident[EI_CLASS] != ELFCLASS32)
-    Dout(dc::stabs, "Sorry, object file must be ELF32.");
+    Dout(dc::bfd, "Sorry, object file must be ELF32.");
   else if (e_ident[EI_DATA] !=
 #ifdef __BYTE_ORDER
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -375,7 +375,7 @@ bool Elf32_Ehdr::check_format(void) const
 #endif
 #endif // !__BYTE_ORDER
       )
-    Dout(dc::stabs, "Object file has non-native data encoding.");
+    Dout(dc::bfd, "Object file has non-native data encoding.");
   else if (e_ident[EI_VERSION] != EV_CURRENT)
     Dout(dc::warning, "Object file has different version than what libcwd understands.");
   else
@@ -413,7 +413,7 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
     {
       int number_of_symbols = M_sections[i].section_header().sh_size / sizeof(Elf32_sym);
 #ifdef DEBUGELF32
-      Dout(dc::stabs, "Found symbol table " << M_sections[i].name << " with " << number_of_symbols << " symbols.");
+      Dout(dc::bfd, "Found symbol table " << M_sections[i].name << " with " << number_of_symbols << " symbols.");
 #endif
       Elf32_sym* symbols = (Elf32_sym*)allocate_and_read_section(i);
       for(int s = 0; s < number_of_symbols; ++s)
@@ -430,7 +430,7 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	if (!*new_symbol->name)
 	  continue;							// Skip Symbols that do not have a name.
 #ifdef DEBUGELF32
-	Dout(dc::stabs, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
+	Dout(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
 #endif
 	new_symbol->value = symbol.st_value - new_symbol->section->vma;	// Is not an absolute value: make value relative to start of section.
 	new_symbol->udata.p = symbol.st_size;
@@ -527,7 +527,7 @@ void object_file_ct::load_stabs(void)
 	  location.line = 0;
 	}
 #ifdef DEBUGSTABS
-	Dout(dc::stabs, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
+	Dout(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
 #endif
 	break;
       }
@@ -536,7 +536,7 @@ void object_file_ct::load_stabs(void)
 	if (stabs[j].n_strx == 0)
 	{
 #ifdef DEBUGSTABS
-	  Dout(dc::stabs, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
+	  Dout(dc::bfd, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
 #endif
 	  range.size = func_addr + stabs[j].n_value - range.start;
 	  register_range(location, range);
@@ -550,14 +550,14 @@ void object_file_ct::load_stabs(void)
 	  location.func_iter = M_function_names.insert(cur_func).first;
 	  location.line = 0;
 #ifdef DEBUGSTABS
-	  Dout(dc::stabs, "N_FUN: " << std::hex << func_addr << " : \"" << &stabs_string_table[stabs[j].n_strx] << "\".");
+	  Dout(dc::bfd, "N_FUN: " << std::hex << func_addr << " : \"" << &stabs_string_table[stabs[j].n_strx] << "\".");
 #endif
 	}
 	break;
       }
       case N_SLINE:
 #ifdef DEBUGSTABS
-	Dout(dc::stabs, "N_SLINE: " << stabs[j].n_desc << " at " << std::hex << stabs[j].n_value << '.');
+	Dout(dc::bfd, "N_SLINE: " << stabs[j].n_desc << " at " << std::hex << stabs[j].n_value << '.');
 #endif
 	if (stabs[j].n_value != 0)
 	{
@@ -613,7 +613,7 @@ char* object_file_ct::allocate_and_read_section(int i)
 void object_file_ct::register_range(location_st const& location, range_st const& range)
 {
 #ifdef DEBUGSTABS
-  Dout(dc::stabs, std::hex << range.start << " - " << (range.start + range.size)
+  Dout(dc::bfd, std::hex << range.start << " - " << (range.start + range.size)
       << "; " << (*location.source_iter).data() << ':' << std::dec << location.line << " : \""
       << (*location.func_iter).data() << "\".");
   std::pair<std::map<range_st, location_st, compare_range_st>::iterator, bool> p(
@@ -627,17 +627,17 @@ void object_file_ct::register_range(location_st const& location, range_st const&
   if (!p.second)
   {
     if ((*p.first).second.func_iter != location.func_iter)
-      Dout(dc::stabs, "WARNING: Collision between different functions (" << *p.first << ")!?");
+      Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
     else
     {
       if ((*p.first).first.start != range.start )
-        Dout(dc::stabs, "WARNING: Different start for same function (" << *p.first << ")!?");
+        Dout(dc::bfd, "WARNING: Different start for same function (" << *p.first << ")!?");
       if ((*p.first).first.size != range.size)
-	Dout(dc::stabs, "WARNING: Different sizes for same function.  Not sure what .stabs entry to use.");
+	Dout(dc::bfd, "WARNING: Different sizes for same function.  Not sure what .stabs entry to use.");
       if ((*p.first).second.line != location.line)
-        Dout(dc::stabs, "WARNING: Different line numbers for overlapping range (" << *p.first << ")!?");
+        Dout(dc::bfd, "WARNING: Different line numbers for overlapping range (" << *p.first << ")!?");
       if ((*p.first).second.source_iter != location.source_iter)
-        Dout(dc::stabs, "Collision with " << *p.first << ".");
+        Dout(dc::bfd, "Collision with " << *p.first << ".");
     }
   }
 #endif
@@ -659,7 +659,7 @@ object_file_ct::object_file_ct(char const* file_name) :
   Elf32_Shdr* section_headers = new Elf32_Shdr [M_header.e_shnum];
   M_input_stream.read(reinterpret_cast<char*>(section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
 #ifdef DEBUGELF32
-  Dout(dc::stabs, "Number of section headers: " << M_header.e_shnum);
+  Dout(dc::bfd, "Number of section headers: " << M_header.e_shnum);
 #endif
   ASSERT( section_headers[M_header.e_shstrndx].sh_size > 0
       && section_headers[M_header.e_shstrndx].sh_size >= section_headers[M_header.e_shstrndx].sh_name );
@@ -676,7 +676,7 @@ object_file_ct::object_file_ct(char const* file_name) :
   {
 #ifdef DEBUGELF32
     if (section_headers[i].sh_name)
-      Dout(dc::stabs, "Section name: \"" << &M_section_header_string_table[section_headers[i].sh_name] << '"');
+      Dout(dc::bfd, "Section name: \"" << &M_section_header_string_table[section_headers[i].sh_name] << '"');
 #endif
     M_sections[i].init(M_section_header_string_table, section_headers[i]);
     if (!strcmp(M_sections[i].name, ".strtab"))
@@ -700,7 +700,7 @@ object_file_ct::object_file_ct(char const* file_name) :
   }
 #ifdef DEBUGELF32
   Debug( libcw_do.dec_indent(4) );
-  Dout(dc::stabs, "Number of symbols: " << M_number_of_symbols);
+  Dout(dc::bfd, "Number of symbols: " << M_number_of_symbols);
 #endif
   delete [] section_headers;
   // load_stabs();	// Preload stabs.

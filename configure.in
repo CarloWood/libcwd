@@ -22,7 +22,7 @@ dnl INTERFACE_VERSION_REVISION	: Revision, increment every public release; or se
 dnl INTERFACE_AGE		: Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
 INTERFACE_VERSION=99		dnl 0.99 actually
-INTERFACE_VERSION_REVISION=10
+INTERFACE_VERSION_REVISION=11
 INTERFACE_AGE=99		dnl 0.99 actually
 
 VERSION_MAJOR=`expr $INTERFACE_VERSION - $INTERFACE_AGE`
@@ -72,8 +72,8 @@ AC_ARG_ENABLE(libcwd-location,
     libcwd_config_location=$enableval)
 
 libcwd_config_bfd=no
-AC_ARG_ENABLE(libcwd-bfd,
-    [  --enable-libcwd-bfd     try to find and use GNU bfd library,
+AC_ARG_ENABLE(libcwd-libbfd,
+    [  --enable-libcwd-libbfd  try to find and use GNU bfd library,
                           this is only needed on a system without ELF.],
     libcwd_config_bfd=$enableval)
 
@@ -229,7 +229,7 @@ if test "$libcwd_config_bfd" = yes; then
 * Cannot find a working libiberty.  Perhaps you need to add -L/path
 * to LDFLAGS (read the INSTALL file for more info)?
 * Libiberty is part of binutils (or binutils-devel or binutils-dev).
-* You can skip this check by using configure --disable-libcwd-bfd.  On an
+* You can skip this check by using configure --disable-libcwd-libbfd.  On an
 * ELF32 system lookup of function names and source:line information will
 * still work anyway.
 ])
@@ -256,7 +256,7 @@ if test "$libcwd_config_bfd" = yes; then
       [CW_CONFIG_DEBUGUSEGNULIBBFD=define
        AC_MSG_WARN([
 
-* You used --enable-libcwd-bfd: The license of libbfd (GPL) forbids to link
+* You used --enable-libcwd-libbfd: The license of libbfd (GPL) forbids to link
 * with libraries that are non-GPL.  Therefore you are not allowed to
 * distribute the resulting executable!  See include/libcw/debug_config.ho.in
 * under DEBUGUSEGNULIBBFD for more information.
@@ -267,7 +267,7 @@ if test "$libcwd_config_bfd" = yes; then
 * to CPPFLAGS (read the INSTALL file for more info)?  If your OS uses
 * packages then you need to make sure you have installed both, binutils
 * and the development version of binutils (binutils-devel, or binutils-dev).
-* You can skip this check by using configure --disable-libcwd-bfd.  On an
+* You can skip this check by using configure --disable-libcwd-libbfd.  On an
 * ELF32 system lookup of function names and source:line information will
 * still work anyway.
 ])])
@@ -276,7 +276,7 @@ if test "$libcwd_config_bfd" = yes; then
 
 * Cannot find a working libbfd.  Perhaps you need to add -L/path to LDFLAGS
 * (read the INSTALL file for more info)?  Libbfd is part of binutils.
-* You can skip this check by using configure --disable-libcwd-bfd.  On an
+* You can skip this check by using configure --disable-libcwd-libbfd.  On an
 * ELF32 system lookup of function names and source:line information will
 * still work anyway.
 ])

@@ -1,6 +1,6 @@
 // input lines 2
 // output till ^MARGINNOTICE
-(STABS   : Loading debug info from.*
+(BFD     : Loading debug info from.*
 )*
 // type exact
 MARGINNOTICE  MARKER   xMARGINNOTICE  MARKER   yMARGINNOTICE  MARKER   z<newline>

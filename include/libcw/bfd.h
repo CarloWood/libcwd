@@ -36,7 +36,7 @@ namespace libcw {
 
 namespace channels {
   namespace dc {
-    extern channel_ct const stabs;
+    extern channel_ct const bfd;
   }
 }
 

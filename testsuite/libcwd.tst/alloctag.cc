@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   Debug( dc::debug.off() );
 #ifdef DEBUGUSEBFD
-  Debug( dc::stabs.off() );
+  Debug( dc::bfd.off() );
 #endif
 
   // Write debug output to cout

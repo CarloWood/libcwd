@@ -1,6 +1,6 @@
 // input lines 2
 // output till ^MALLOC
-(STABS   : Loading debug info from.*
+(BFD     : Loading debug info from.*
 )*
 MALLOC  : malloc\(1111\) = 0x[0-9a-f]*
 MALLOC  : malloc\(2222\) = 0x[0-9a-f]*

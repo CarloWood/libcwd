@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   Debug( dc::warning.on() );	// On Solaris we fail to find the start of libdl
 #endif
 #ifdef DEBUGUSEBFD
-  Debug( dc::stabs.on() );
+  Debug( dc::bfd.on() );
 #endif
   Debug( dc::notice.on() );
   Debug( dc::system.on() );
