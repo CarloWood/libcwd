@@ -22,6 +22,7 @@ namespace libcw {
     namespace _private_ {
 
 bool WST_multi_threaded = false;
+bool WST_first_thread_initialized = false;
 #if CWDEBUG_DEBUG
 int instance_locked[instance_locked_size];
 #endif
@@ -73,9 +74,16 @@ void TSD_st::S_initialize(void) throw()
   std::memcpy(old_array, do_array, sizeof(old_array));
   std::memset(this, 0, sizeof(struct TSD_st));	// This structure might be reused and therefore already contain data.
   tid = pthread_self();
-  initialize_global_mutexes();			// This is a good moment to initialize all pthread mutexes.
   mutex_tct<tsd_initialization_instance>::unlock();
-  if (thread_index(pthread_self()) != 0)	// Is this a second (or later) thread?
+  // We assume that the main() thread will call malloc() at least
+  // once before it reaches main() and thus before any other thread is created.
+  // When it does we get here; and thus are still single threaded.
+  if (!WST_first_thread_initialized)		// Is this the first thread?
+  {
+    WST_first_thread_initialized = true;
+    initialize_global_mutexes();		// This is a good moment to initialize all pthread mutexes.
+  }
+  else
   {
     WST_multi_threaded = true;
     set_alloc_checking_off(*this);

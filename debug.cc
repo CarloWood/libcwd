@@ -1097,7 +1097,9 @@ void allocator_unlock(void)
 #ifdef _REENTRANT
       WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
+#ifdef __linux
       LIBCWD_ASSERT( pthread_self() == PTHREAD_THREADS_MAX );	// Only the initial thread should be initializing debug_ct objects.
+#endif
 #endif
       LIBCWD_ASSERT( __libcwd_tsd.do_array[WNS_index] == NULL );
       debug_tsd_st& tsd(*(__libcwd_tsd.do_array[WNS_index] =  new debug_tsd_st));

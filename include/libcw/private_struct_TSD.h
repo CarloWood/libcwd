@@ -97,47 +97,11 @@ namespace libcw {
 
 namespace libcw {
   namespace debug {
-
-#if LIBCWD_THREAD_SAFE
-// This function must return 0 for the initial thread and an integer smaller than PTHREAD_THREADS_MAX that
-// is unique per _running_ thread.  It can be used as index into an array of size PTHREAD_THREADS_MAX.
-__inline__
-unsigned long
-thread_index(pthread_t tid)
-{
-  return tid % PTHREAD_THREADS_MAX;
-}
-#endif
-
     namespace _private_ {
 
-struct TSD_st;
-
 extern int WST_initializing_TSD;
-// Thread Specific Data (TSD) is stored in a structure TSD_st
-// and is accessed through a reference to `__libcwd_tsd'.
-#if !LIBCWD_THREAD_SAFE
-// When LIBCWD_THREAD_SAFE is not set then `__libcwd_tsd' is simply a global object in namespace _private_:
-extern TSD_st __libcwd_tsd;
-#else
-// Otherwise, the Thread Specific Data is stored in this global area:
-extern TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
-#endif
 
-#if LIBCWD_THREAD_SAFE
-// Internal structure of a thread description structure.
-struct pthread_descr_struct {
-  union {
-    struct {
-      struct pthread_descr_struct* self;	// Pointer to this structure.
-      void* __padding[12];			// Reserved for future use by pthreads.
-      unsigned short libcwd_tsd_index;		// Abuse this space for libcwd.
-    } data;
-    void* __padding[16];
-  } p_header;
-  // ...
-};
-#endif
+__inline__ TSD_st* get_tsd_instance(pthread_t tid);
 
 struct TSD_st {
 public:
@@ -183,13 +147,32 @@ public:
   static TSD_st& instance(void) throw()
   {
     pthread_t tid = pthread_self();
-    TSD_st* instance = &__libcwd_tsd_array[thread_index(tid)];
+    TSD_st* instance = get_tsd_instance(tid);
     if (!pthread_equal(tid, instance->tid))
       instance->S_initialize();
     return *instance;
   }
 #endif // LIBCWD_THREAD_SAFE
 };
+
+// Thread Specific Data (TSD) is stored in a structure TSD_st
+// and is accessed through a reference to `__libcwd_tsd'.
+
+#if !LIBCWD_THREAD_SAFE
+// When LIBCWD_THREAD_SAFE is not set then `__libcwd_tsd' is simply a global object in namespace _private_:
+extern TSD_st __libcwd_tsd;
+#else
+// Otherwise, __libcwd_tsd is a local variable that references the Thread Specific Data that is stored in this global array.
+extern TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
+
+// This function must return a TSD_st* to an instance that is unique per _running_ thread.
+__inline__
+TSD_st*
+get_tsd_instance(pthread_t tid)
+{
+  return &__libcwd_tsd_array[tid % PTHREAD_THREADS_MAX];
+}
+#endif
 
     } // namespace _private_
   } // namespace debug
