@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
   debugmalloc_marker_ct* marker = new debugmalloc_marker_ct("test marker");
 #endif
 
-  test_object* t = new test_object();
+  test_object* t = NEW( test_object );
   void* leak1 = t->leak;
   void* leak1a = t->a->leakAA;
   void* leak1b = t->b->leakAA;

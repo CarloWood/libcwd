@@ -23,7 +23,7 @@ RCSTAG_CC("$Id$")
 
 int main(int argc, char **argv)
 {
-#ifdef DEBUGMALLOCMAGIC
+#ifdef DEBUGMAGICMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
 
@@ -48,9 +48,9 @@ int main(int argc, char **argv)
   p[4] = 5;
   delete[] p;
 
-#else // !DEBUGMALLOCMAGIC
-  cerr << "Define DEBUGMALLOC and DEBUGMALLOCMAGIC in libcw/debugging_defs.h\n";
-#endif // !DEBUGMALLOCMAGIC
+#else // !DEBUGMAGICMALLOC
+  cerr << "Define DEBUGMALLOC and DEBUGMAGICMALLOC in libcw/debugging_defs.h\n";
+#endif // !DEBUGMAGICMALLOC
 
   return 0;
 }

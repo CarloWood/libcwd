@@ -49,7 +49,7 @@ void libcw_bfd_test3(void)
     }
 
     location_st loc = libcw_bfd_pc_location((char*)retadr - 1);
-      Dout(dc::notice, hex << retadr << dec << " -> (" << loc << ")");
+    Dout(dc::notice, "called from " << loc);
 
     if (loc.line == 0)
       break;
