@@ -36,20 +36,20 @@ RCSTAG_H(debug, "$Id$")
 #      define NAMESPACE_LIBCW_DEBUG ::libcw::debug
 #      define LIBCW ::libcw
 #    endif
-#    ifndef DEBUGNAMESPACE
-#      define DEBUGNAMESPACE NAMESPACE_LIBCW_DEBUG::channels
+#    ifndef DEBUGCHANNELS
+#      define DEBUGCHANNELS NAMESPACE_LIBCW_DEBUG::channels
 #    endif
 #    define UNUSED_UNLESS_DEBUG(x) x
 #    include <assert.h>
 #    define ASSERT(x) assert(x);
 #    define LibcwDebug(dc_namespace, x) do { USING_NAMESPACE_LIBCW_DEBUG using namespace dc_namespace; (x); } while(0)
-#    define Debug(x) LibcwDebug(DEBUGNAMESPACE, x)
+#    define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
 #    define __Debug(x) LibcwDebug(NAMESPACE_LIBCW_DEBUG::channels, x)
 #    define ForAllDebugObjects(STATEMENT) \
        for( NAMESPACE_LIBCW_DEBUG::debug_objects_ct::iterator __libcw_i(NAMESPACE_LIBCW_DEBUG::debug_objects->begin()); __libcw_i != NAMESPACE_LIBCW_DEBUG::debug_objects->end(); ++__libcw_i) \
        { \
          USING_NAMESPACE_LIBCW_DEBUG \
-	 using namespace DEBUGNAMESPACE; \
+	 using namespace DEBUGCHANNELS; \
          debug_ct& debugObject(*(*__libcw_i)); \
 	 STATEMENT; \
        }
@@ -57,7 +57,7 @@ RCSTAG_H(debug, "$Id$")
        for( NAMESPACE_LIBCW_DEBUG::debug_channels_ct::iterator __libcw_i(NAMESPACE_LIBCW_DEBUG::debug_channels->begin()); __libcw_i != NAMESPACE_LIBCW_DEBUG::debug_channels->end(); ++__libcw_i) \
        { \
          USING_NAMESPACE_LIBCW_DEBUG \
-	 using namespace DEBUGNAMESPACE; \
+	 using namespace DEBUGCHANNELS; \
          channel_ct& debugChannel(*(*__libcw_i)); \
 	 STATEMENT; \
        }
@@ -710,9 +710,9 @@ namespace libcw {
 #define __DoutFatal(cntrl, data) LibcwDoutFatal(NAMESPACE_LIBCW_DEBUG::channels, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
 
 // For use in applications
-#define Dout(cntrl, data) LibcwDout(DEBUGNAMESPACE, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
-#define Dout_vform(cntrl, format, vl) LibcwDout_vform(DEBUGNAMESPACE, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
-#define DoutFatal(cntrl, data) LibcwDoutFatal(DEBUGNAMESPACE, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define Dout(cntrl, data) LibcwDout(DEBUGCHANNELS, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define Dout_vform(cntrl, format, vl) LibcwDout_vform(DEBUGCHANNELS, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
+#define DoutFatal(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
 
 #else // !DEBUG
 
