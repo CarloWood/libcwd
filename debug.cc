@@ -556,11 +556,21 @@ namespace libcw {
 	  DoutFatal(dc::fatal|error_cf, "getrlimit(RLIMIT_CORE, &corelim)");
 	corelim.rlim_cur = corelim.rlim_max;
 	if (corelim.rlim_max != RLIM_INFINITY)
-	  cerr << "WARNING : core size is limited (hard limit: " << (corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!\n";
+	{
+	  _off = -1;
+	  Dout(dc::warning, "core size is limited (hard limit: " << (corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
+#ifndef DEBUGDEBUG
+	  _off = 0;
+#endif
+	}
 	if (setrlimit(RLIMIT_CORE, &corelim))
 	    DoutFatal(dc::fatal|error_cf, "unlimit core size failed");
 #else
+	_off = -1;
 	Dout(dc::warning, "Please unlimit core size manually");
+#ifndef DEBUGDEBUG
+	_off = 0;
+#endif
 #endif
       }
     }
