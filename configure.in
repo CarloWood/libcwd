@@ -270,15 +270,15 @@ if test "$libcwd_config_bfd" = yes; then
     AC_CACHE_CHECK([for bfd_set_start_address in -lbfd -lintl], cw_cv_lib_bfd_set_start_address_with_intl,
     [save_LIBS="$LIBS"
      LIBS="-lbfd -lintl $LIBS"
-     AC_TRY_LINK([extern "C" char set_start_address();], [set_start_address()], cw_cv_lib_bfd_set_start_address_with_intl=yes, cw_cv_lib_bfd_set_start_address_with_intl=no)
+     AC_TRY_LINK([extern "C" char bfd_set_start_address();], [bfd_set_start_address()], cw_cv_lib_bfd_bfd_set_start_address_with_intl=yes, cw_cv_lib_bfd_bfd_set_start_address_with_intl=no)
      LIBS="$save_LIBS"
     ])
-    if test "$cw_cv_lib_bfd_set_start_address_with_intl" = "yes"; then
+    if test "$cw_cv_lib_bfd_bfd_set_start_address_with_intl" = "yes"; then
       LIBS="-lbfd -lintl $LIBS"
     fi])
 
   dnl If we succeeded so far, then enable DEBUGUSEBFD
-  if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no" -a "set+$cw_cv_lib_bfd_set_start_address_with_intl" != "set+no"; then
+  if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no" -a "set+$cw_cv_lib_bfd_bfd_set_start_address_with_intl" != "set+no"; then
     AC_CHECK_HEADER(bfd.h,
       [CW_CONFIG_DEBUGUSEBFD=define],
       [AC_MSG_ERROR([
