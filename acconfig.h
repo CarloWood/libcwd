@@ -15,6 +15,9 @@
 
 // Define this if you have dlopen (and link with the appropriate library)
 #undef HAVE_DLOPEN
+
+// This should be the argument to ps, causing it to print a wide output of a specified PID
+#undef PS_ARGUMENT
 @BOTTOM@
 
 #endif // LIBCW_CONFIG_H

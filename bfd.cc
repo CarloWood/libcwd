@@ -524,10 +524,11 @@ static string full_path_to_executable(void) return result
     // Path to `ps'
     char const ps_prog[] = CW_PATH_PROG_PS;
    
-    char const* argv[3];
+    char const* argv[4];
     argv[0] = "ps";
-    argv[1] = "w";
-    argv[2] = NULL;
+    argv[1] = PS_ARGUMENT;
+    argv[2] = pidstr_buf;
+    argv[3] = NULL;
     if (exec_prog(ps_prog, argv, environ, decode_ps) == -1 || argv0.empty())
       DoutFatal(dc::fatal|error_cf, "Failed to execute \"" << ps_prog << "\"");
   }

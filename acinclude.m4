@@ -682,6 +682,40 @@ else
 fi
 ])
 
+dnl CW_SYS_PS_WIDE_PID_OPTION
+dnl Determines the options needed for `ps' to print the full command of a specified PID
+AC_DEFUN(CW_SYS_PS_WIDE_PID_OPTION,
+[AC_CACHE_CHECK([for option of ps to print the full command of a specified PID], cw_cv_sys_ps_wide_pid_option,
+[if $PS -ww >/dev/null; then
+cw_cv_sys_ps_wide_pid_option="-ww"
+elif $PS -w >/dev/null; then
+cw_cv_sys_ps_wide_pid_option="-w"
+else
+cw_cv_sys_ps_wide_pid_option="-f"
+fi
+cw_var_ps=
+$PS $cw_cv_sys_ps_wide_pid_option 1 > ./ps.out.$$
+if grep init ./ps.out.$$ >/dev/null; then
+  :
+else
+$PS $cw_cv_sys_ps_wide_pid_option\p 1 > ./ps.out.$$
+if grep init ./ps.out.$$ >/dev/null; then
+  cw_cv_sys_ps_wide_pid_option="$cw_cv_sys_ps_wide_pid_option"p
+fi
+fi
+echo "#! /bin/sh" > ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
+echo "$PS $cw_cv_sys_ps_wide_pid_option \$\$" >> ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
+chmod 700 ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
+if ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise | grep real_in_practise >/dev/null; then
+  :
+else
+  AC_MSG_ERROR([Cannot determine the correct ps arguments])
+fi
+rm -f ./ps.out.$$ ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
+])
+AC_DEFINE([PS_ARGUMENT], $cw_cv_sys_ps_wide_pid_option")
+])
+
 dnl --------------------------------------------------------------------------------------------------------------17" monitors are a minimum
 dnl Everything below isn't really a test but parts that are used in both, libcwd as well as in libcw.
 dnl In order to avoid duplication it is put here as macro.

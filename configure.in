@@ -103,6 +103,7 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_AWK
 AC_PATH_PROG(PS, ps, /bin/ps, $PATH)
+CW_SYS_PS_WIDE_PID_OPTION
 AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS")
 
 dnl We need to use these options for the tests too
