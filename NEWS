@@ -3,6 +3,7 @@ libcwd-0.99.29
 	Bug fixes:
 
 	Compilation warning fix for g++ 3.3.
+	Compile error fixes for g++ 3.4.
 
 libcwd-0.99.28
 
