@@ -21,6 +21,9 @@
 #ifndef LIBCW_DEBUG_CONFIG_H
 #include <libcw/debug_config.h>
 #endif
+
+#if CWDEBUG_LOCATION
+
 #ifndef LIBCW_PRIVATE_STRUCT_TSD_H
 #include <libcw/private_struct_TSD.h>
 #endif
@@ -204,4 +207,5 @@ public:
   } // namespace debug
 } // namespace libcw
 
+#endif // CWDEBUG_LOCATION
 #endif // LIBCW_CLASS_LOCATION_H

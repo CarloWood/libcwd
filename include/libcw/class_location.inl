@@ -17,6 +17,9 @@
 #ifndef LIBCW_DEBUG_CONFIG_H
 #include <libcw/debug_config.h>
 #endif
+
+#if CWDEBUG_LOCATION
+
 #ifndef LIBCW_PRIVATE_ASSERT_H
 #include <libcw/private_assert.h>
 #endif
@@ -29,10 +32,6 @@
 #ifndef LIBCW_STRING
 #define LIBCW_STRING
 #include <string>
-#endif
-#ifndef LIBCW_IOSTREAM
-#define LIBCW_IOSTREAM
-#include <iostream>
 #endif
 
 namespace libcw {
@@ -120,23 +119,8 @@ location_ct::mangled_function_name(void) const
   return M_func;
 }
 
-__inline__
-void
-location_ct::print_filepath_on(std::ostream& os) const
-{
-  LIBCWD_ASSERT( M_known );
-  os << M_filepath.get();
-}
-
-__inline__
-void
-location_ct::print_filename_on(std::ostream& os) const
-{
-  LIBCWD_ASSERT( M_known );
-  os << M_filename;
-}
-
   } // namespace debug
 } // namespace libcw
 
+#endif // CWDEBUG_LOCATION
 #endif // LIBCW_CLASS_LOCATION_INL

@@ -248,5 +248,8 @@ using namespace libcw_debug_inserters;
 #endif
 #include <libcw/debugmalloc.h>			// --enable-alloc
 
+// Finally, in order for Dout() to be usable, we need this.
+#include <iostream>
+
 #endif // CWDEBUG
 #endif // LIBCW_DEBUG_H

@@ -1,5 +1,6 @@
 #include "sys.h"
 #include <libcw/debug.h>
+#include <iostream>
 
 void S_destroy(void* tsd_ptr) throw()
 {

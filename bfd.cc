@@ -1606,4 +1606,24 @@ extern "C" {
 
 #endif // LIBCWD_DLOPEN_DEFINED
 
-#endif // !CWDEBUG_LOCATION
+#if CWDEBUG_LOCATION
+namespace libcw {
+  namespace debug {
+
+void location_ct::print_filepath_on(std::ostream& os) const
+{
+  LIBCWD_ASSERT( M_known );
+  os << M_filepath.get();
+}
+
+void location_ct::print_filename_on(std::ostream& os) const
+{
+  LIBCWD_ASSERT( M_known );
+  os << M_filename;
+}
+
+  } // namespace debug
+} // namespace libcw
+#endif // CWDEBUG_LOCATION
+
+#endif // CWDEBUG_LOCATION
