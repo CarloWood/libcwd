@@ -2105,8 +2105,24 @@ void __libcwd_free(void* ptr)
 // malloc(3) and calloc(3) replacements:
 //
 
+#if __GNUC__ >= 3 || __GNUC_MINOR__ >= 97 && defined(LIBCWD_THREAD_SAFE)
+#define UNLOCK if (locked) _private_::allocator_unlock();
+#else
+#define UNLOCK
+#endif
+
 void* __libcwd_malloc(size_t size)
 {
+#if __GNUC__ >= 3 || __GNUC_MINOR__ >= 97 && defined(LIBCWD_THREAD_SAFE)
+  bool locked = false;
+  if (_private_::WST_multi_threaded)
+  {
+    locked = _private_::allocator_trylock(false);	// Fake a std::string (etc) lock.
+    if (!locked)
+      core_dump();
+  }
+#endif
+
   LIBCWD_TSD_DECLARATION
 #ifdef DEBUGDEBUGMALLOC
   // We can't use `assert' here, because that can call malloc.
@@ -2128,6 +2144,7 @@ void* __libcwd_malloc(size_t size)
     DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `__libcwd_malloc(" << size << ")' [" << saved_marker << ']' );
 
 #if !defined(DEBUGDEBUGMALLOC) && !defined(DEBUGMAGICMALLOC)
+    UNLOCK
     return __libc_malloc(size);
 #else // defined(DEBUGDEBUGMALLOC) || defined(DEBUGMAGICMALLOC)
 
@@ -2137,6 +2154,7 @@ void* __libcwd_malloc(size_t size)
     DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_malloc': " << ptr << " [" << saved_marker << ']' );
     --__libcwd_tsd.recursive;
 #endif // DEBUGDEBUGMALLOC
+    UNLOCK
     return ptr;
 #else // DEBUGMAGICMALLOC
     void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(size));
@@ -2145,6 +2163,7 @@ void* __libcwd_malloc(size_t size)
 #ifdef DEBUGDEBUGMALLOC
       --__libcwd_tsd.recursive;
 #endif
+      UNLOCK
       return NULL;
     }
     ((size_t*)ptr)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
@@ -2154,6 +2173,7 @@ void* __libcwd_malloc(size_t size)
     DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_malloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
     --__libcwd_tsd.recursive;
 #endif // DEBUGDEBUGMALLOC
+    UNLOCK
     return static_cast<size_t*>(ptr) + 2;
 #endif // DEBUGMAGICMALLOC
 
@@ -2179,6 +2199,7 @@ void* __libcwd_malloc(size_t size)
 #ifdef DEBUGDEBUGMALLOC
   --__libcwd_tsd.recursive;
 #endif
+  UNLOCK
   return ptr;
 }
 
