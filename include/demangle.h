@@ -652,8 +652,10 @@ namespace __gnu_cxx
       session<Allocator>::decode_builtin_type(string_type& output)
       {
 	_GLIBCXX_DEMANGLER_DOUT_ENTERING("decode_builtin_type");
-	char const* bt;
-	if (!islower(current()) || !(bt = builtin_type_c[current() - 'a']))
+	if (!islower(current()))
+	  _GLIBCXX_DEMANGLER_FAILURE;
+	char const* bt = builtin_type_c[current() - 'a'];
+	if (!bt)
 	  _GLIBCXX_DEMANGLER_FAILURE;
 	output += bt;
 	eat_current();
@@ -1210,8 +1212,8 @@ namespace __gnu_cxx
 	char opcode0 = current();
 	char opcode1 = tolower(next());
 
-	register char hash;
-	if ((hash = offset_table_c[opcode0 - CHAR_MIN]))
+	register char hash = offset_table_c[opcode0 - CHAR_MIN];
+	if (hash)
 	{
 	  hash += opcode1;
 	  if (
@@ -1376,8 +1378,8 @@ namespace __gnu_cxx
 	  char opcode0 = current();
 	  char opcode1 = tolower(next());
 
-	  register char hash;
-	  if ((hash = offset_table_c[opcode0 - CHAR_MIN]))
+	  register char hash = offset_table_c[opcode0 - CHAR_MIN];
+	  if (hash)
 	  {
 	    hash += opcode1;
 	    if (
