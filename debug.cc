@@ -70,7 +70,7 @@ namespace libcw {
     }
 
     debug_channels_singleton_ct debug_channels;	// List with all channel_ct objects.
-    debug_objects_singleton_ct debug_objects;	// List with all debug devices.
+    debug_objects_singleton_ct debug_objects;		// List with all debug devices.
 
     void debug_channels_singleton_ct::init(void)
     {

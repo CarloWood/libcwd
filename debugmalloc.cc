@@ -123,10 +123,10 @@ namespace libcw {
 // - bool test_delete(void const* ptr)
 //		Returns true if `ptr' points to the start of an allocated
 //		memory block.
-// - size_t debug_mem_size(void)
+// - size_t mem_size(void)
 //		Returns the total ammount of allocated memory in bytes
 //		(the sum all blocks shown by `list_allocations_on').
-// - long debug_memblks(void)
+// - long memblks(void)
 //		Returns the total number of allocated memory blocks
 //		(Those that are shown by `list_allocations_on').
 // - ostream& operator<<(ostream& o, debugmalloc_report_ct)
@@ -136,7 +136,7 @@ namespace libcw {
 //
 // The current 'manipulator' functions are:
 //
-// - void libcw_debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
+// - void move_outside(marker_ct* marker, void const* ptr)
 //		Move `ptr' outside the list of `marker'.
 // - void set_alloc_checking_off(void)
 //		After calling this function, new allocations are invisible.
@@ -286,8 +286,8 @@ ostream& operator<<(ostream& os, memblk_types_ct memblk_type)
 
 class dm_alloc_ct : public alloc_ct {
 #ifdef DEBUGMARKER
-  friend class debugmalloc_marker_ct;
-  friend void libcw_debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr);
+  friend class marker_ct;
+  friend void libcw_debug_move_outside(marker_ct* marker, void const* ptr);
 #endif
 private:
   static dm_alloc_ct** current_alloc_list;
@@ -399,8 +399,8 @@ public:
 class memblk_info_ct {
   friend class dm_alloc_ct;
 #ifdef DEBUGMARKER
-  friend class debugmalloc_marker_ct;
-  friend void libcw_debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr);
+  friend class marker_ct;
+  friend void libcw_debug_move_outside(marker_ct* marker, void const* ptr);
 #endif
 private:
   lockable_auto_ptr<dm_alloc_ct> a_alloc_node;
@@ -757,12 +757,12 @@ bool test_delete(void const* ptr)
   return (i == memblk_map->end() || (*i).first.start() != ptr);
 }
 
-size_t debug_mem_size(void)
+size_t mem_size(void)
 {
   return dm_alloc_ct::get_mem_size();
 }
 
-long debug_memblks(void)
+long memblks(void)
 {
   return dm_alloc_ct::get_memblks();
 }
@@ -926,13 +926,13 @@ debugmalloc_newctor_ct::~debugmalloc_newctor_ct(void)
 }
 
 #ifdef DEBUGMARKER
-void debugmalloc_marker_ct::register_marker(char const* label)
+void marker_ct::register_marker(char const* label)
 {
-  Dout( dc::__libcwd_malloc, "New debugmalloc_marker_ct at " << this );
+  Dout( dc::__libcwd_malloc, "New libcw::debug::marker_ct at " << this );
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(this, 0)));
   memblk_info_ct &info((*i).second);
   if (i == memblk_map->end() || (*i).first.start() != this || info.flags() != memblk_type_new)
-    DoutFatal( dc::core, "Use 'new' for debugmalloc_marker_ct" );
+    DoutFatal( dc::core, "Use 'new' for libcw::debug::marker_ct" );
 
   info.change_label(type_info_of(this), label);
   info.change_flags(memblk_type_marker);
@@ -943,14 +943,14 @@ void debugmalloc_marker_ct::register_marker(char const* label)
 #endif
 }
 
-debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
+marker_ct::~marker_ct(void)
 {
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(this, 0)));
   if (i == memblk_map->end() || (*i).first.start() != this)
     DoutFatal( dc::core, "Trying to delete an invalid marker" );
 
 #ifdef CWDEBUG
-  Dout( dc::__libcwd_malloc, "Removing debugmalloc_marker_ct at " << this << " (" << (*i).second.description() << ')' );
+  Dout( dc::__libcwd_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << (*i).second.description() << ')' );
 
   if ((*i).second.a_alloc_node.get()->next_list())
   {
@@ -968,7 +968,7 @@ debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
   dm_alloc_ct::descend_current_alloc_list();
 }
 
-void libcw_debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
+void libcw_debug_move_outside(marker_ct* marker, void const* ptr)
 {
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i == memblk_map->end() || (*i).first.start() != ptr)

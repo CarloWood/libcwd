@@ -19,7 +19,8 @@ libcwd-0.99.6
 	This means that you probably will need to add a
 	`using namespace libcw::debug;' to your local debug.h file.
 	Note that namespace libcw::debug is automatically included in Debug()
-	and Dout() et al.
+	and Dout() et al; however due to a bug in the compiler this sometimes
+	doesn't work and you still have to explicitely give a namespace.
 	The following functions are still in global namespace when DEBUGMALLOC
 	is defined:
 	  __libcwd_malloc(unsigned int)
@@ -34,6 +35,8 @@ libcwd-0.99.6
 	These are defined in the header files libcw/lockable_auto_ptr.h and
 	libcw/iomanip.h (they are actually part of libcw but also included
 	with libcwd because libcwd uses them internally).
+	[ Use "using namespace libcw::debug;" ]
+	[ "lockable_auto_ptr" -> "libcw::lockable_auto_ptr" ]
 
 	The bfd interface has been redesigned:
 	- The global structure `location_st' has been removed and is replaced
@@ -63,13 +66,24 @@ libcwd-0.99.6
 	  "libcw::debug::location_ct location(addr);" ]
 	[ Available interface of location_ct: see libcw/bfd.h ]
 
+	A few functions have been renamed now they were moved inside the
+	libcw::debug namespace:
+	The class debugmalloc_marker_ct was renamed to just marker_ct.
+	The function libcw_debug_move_outside was renamed to move_outside.
+	The function debug_mem_size was renamed to mem_size;
+	The function debug_memblks was renamed to memblks;
+	[ "debugmalloc_marker_ct" --> "libcw::debug::marker_ct" ]
+	[ "libcw_debug_move_outside" --> "libcw::debug::move_outside" ]
+	[ "debug_mem_size" --> "libcw::debug::mem_size" ]
+	[ "debug_memblks" --> "libcw::debug::memblks" ]
+
 	The macro ASSERT(x) no longer contains a ';', this might mean that you
 	need to add semi-colons yourself if you have been using it.
 	[ "ASSERT( i == 1 )" --> "ASSERT( i == 1 );" ].
 
 	Bug fixes:
 
-	Fixed demangling `const' member functions.
+	Fixed demangling `const' member functions aka: void Foo::foo(void) const;
 
 libcwd-0.99.5
 

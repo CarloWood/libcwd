@@ -131,19 +131,19 @@ protected:
 class dm_alloc_ct;
 
 #ifdef DEBUGMARKER
-class debugmalloc_marker_ct {
+class marker_ct {
 private:
   void register_marker(char const* label);
 public:
-  debugmalloc_marker_ct(char const* label)
+  marker_ct(char const* label)
   {
     register_marker(label);
   }
-  debugmalloc_marker_ct(void)
+  marker_ct(void)
   {
-    register_marker("debugmalloc_marker_ct");
+    register_marker("An allocation marker");
   }
-  ~debugmalloc_marker_ct(void);
+  ~marker_ct(void);
 };
 #endif
 
@@ -161,8 +161,8 @@ debugmalloc_report_ct const malloc_report = { }; // Dummy
 // Accessors:
 extern alloc_ct const* find_alloc(void const* ptr);
 extern bool test_delete(void const* ptr);
-extern size_t debug_mem_size(void);
-extern long debug_memblks(void);
+extern size_t mem_size(void);
+extern long memblks(void);
 extern ostream& operator<<(ostream& o, debugmalloc_report_ct);
 
 // Manipulators:
@@ -172,8 +172,8 @@ extern void make_invisible(void const* ptr);
 extern void make_all_allocations_invisible_except(void const* ptr);
 
 #ifdef DEBUGMARKER
-extern void libcw_debug_move_outside(debugmalloc_marker_ct*, void const* ptr);
-inline void move_outside(debugmalloc_marker_ct* marker, void const* ptr)
+extern void libcw_debug_move_outside(marker_ct*, void const* ptr);
+inline void move_outside(marker_ct* marker, void const* ptr)
 {
   libcw_debug_move_outside(marker, ptr);
 }
