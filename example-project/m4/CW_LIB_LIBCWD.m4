@@ -25,7 +25,8 @@
 # libcwd was found.
 
 AC_DEFUN([CW_LIB_LIBCWD],
-[if test x"$$2" = x"no"; then
+[cw_wanted=$2
+if test x"$cw_wanted" = x"no"; then
   cw_used_libcwd=no
 else
   cw_libname=cwd
@@ -39,7 +40,7 @@ else
   AC_LINK_IFELSE([AC_LANG_CALL([], [__libcwd_version])], [cw_cv_lib_libcwd=yes], [cw_cv_lib_libcwd=no])
   LIBS="$cw_save_LIBS"
   AC_LANG_RESTORE])
-  cw_use_libcwd="$2"
+  cw_use_libcwd="$cw_wanted"
   test -n "$cw_use_libcwd" || cw_use_libcwd=auto
   test "$cw_use_libcwd" = "auto" && cw_use_libcwd=$cw_cv_lib_libcwd
   if test "$cw_use_libcwd" = "yes"; then
