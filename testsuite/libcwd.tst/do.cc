@@ -10,7 +10,7 @@
 // Creation of debug objects
 
 libcw::debug::debug_ct my_own_do;
-namespace example { libcw::debug::debug_ct my_own_do; };
+namespace example { libcw::debug::debug_ct my_own_do; }
 #define MyOwnDout(cntrl, data) LibcwDout(::libcw::debug::channels, my_own_do, cntrl, data)
 #define ExampleDout(cntrl, data) LibcwDout(::libcw::debug::channels, example::my_own_do, cntrl, data)
 

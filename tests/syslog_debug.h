@@ -12,10 +12,10 @@ namespace syslog_example {
       namespace dc {
 	using namespace ::libcw::debug::channels::dc;
 	extern ::libcw::debug::channel_ct const debug_syslog;
-      };
-    };
-  };
-};
+      }
+    }
+  }
+}
 
 #ifdef DEBUG
 extern libcw::debug::debug_ct syslog_do;

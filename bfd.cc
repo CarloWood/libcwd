@@ -54,25 +54,19 @@
 
 RCSTAG_CC("$Id$")
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
     namespace channels {
       namespace dc {
 	channel_ct const bfd("BFD");
-      };
-    };
-#ifndef DEBUGNONAMESPACE
-  };
-};
-#endif
+      }
+    }
+  }
+}
 
 extern char** environ;
 
-#ifndef DEBUGNONAMESPACE
 namespace {	// Local stuff
-#endif
 
 // {anonymous}::
 void error_handler(char const* format, ...)
@@ -250,7 +244,7 @@ object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
   {
     if (bfd_get_error() == bfd_error_file_ambiguously_recognized)
     {
-      Dout(dc::warning, "bfd_check_format_matches: ambiguously object format, recognized formats: " << cwprint(NAMESPACE_LIBCW_DEBUG::environment_ct(matching)));
+      Dout(dc::warning, "bfd_check_format_matches: ambiguously object format, recognized formats: " << cwprint(::libcw::debug::environment_ct(matching)));
       free(matching);
     }
     DoutFatal(dc::fatal, filename << ": can not get addresses from object file: " << bfd_errmsg(bfd_get_error()));
@@ -747,9 +741,7 @@ symbol_ct const* pc_symbol(bfd_vma addr, object_file_ct* object_file)
   return NULL;
 }
 
-#ifndef DEBUGNONAMESPACE
-};	// End namespace local stuff
-#endif
+} // namespace {anonymous}
 
 //
 // Writing location_ct to an ostream.
@@ -763,10 +755,8 @@ ostream& operator<<(ostream& os, libcw::debug::location_ct const& location)
   return os;
 }
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
 
 char const* const unknown_function_c = "<unknown function>";
 
@@ -956,9 +946,7 @@ location_ct& location_ct::operator=(location_ct const &prototype)
   return *this;
 }
 
-#ifndef DEBUGNONAMESPACE
-  };
-};
-#endif
+  }	// namespace debug
+}	// namespace libcw
 
 #endif // !DEBUGUSEBFD

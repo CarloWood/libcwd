@@ -31,19 +31,15 @@ RCSTAG_CC("$Id$")
 
 // Define our own debug channel:
 #ifdef DEBUG
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
     namespace channels {
       namespace dc {
 	channel_ct const hello("HELLO");
-      };
-    };
-#ifndef DEBUGNONAMESPACE
-  };
-};
-#endif
+      }
+    }
+  }
+}
 #endif
 
 int main(void)

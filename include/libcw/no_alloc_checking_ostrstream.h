@@ -18,10 +18,8 @@ RCSTAG_H(no_alloc_checking_ostrstream, "$Id$")
 
 #include <strstream>
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
 
 #ifdef DEBUGMALLOC
 
@@ -40,9 +38,7 @@ namespace libcw {
 
 #endif // !DEBUGMALLOC
 
-#ifndef DEBUGNONAMESPACE
-  }; // namespace debug
-}; // namespace libcw
-#endif
+  }	// namespace debug
+}	// namespace libcw
 
 #endif // LIBCW_NO_ALLOC_CHECKING_OSTRSTREAM_H

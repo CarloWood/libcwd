@@ -24,30 +24,24 @@ RCSTAG_H(bfd, "$Id$")
 
 #include <bfd.h>
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
 
 class location_ct;
 
-#ifndef DEBUGNONAMESPACE
-  };
-};
-#endif // DEBUGNONAMESPACE
+  }	// namespace debug
+}	// namespace libcw
 
 extern ostream& operator<<(ostream& os, libcw::debug::location_ct const& location);
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
 
 namespace channels {
   namespace dc {
     extern channel_ct const bfd;
-  };
-};
+  }
+}
 
 extern char const* pc_mangled_function_name(void const* addr);
 extern char const* const unknown_function_c;
@@ -109,10 +103,8 @@ public:
   friend ostream& ::operator<<(ostream& os, location_ct const& location);		// Prints a default "M_filename:M_line".
 };
 
-#ifndef DEBUGNONAMESPACE
-  };
-};
-#endif // DEBUGNONAMESPACE
+  }	// namespace debug
+}	// namespace libcw
 
 #endif // DEBUGUSEBFD
 

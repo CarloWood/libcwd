@@ -41,10 +41,10 @@ namespace syslog_example {
     namespace channels {
       namespace dc {
 	libcw::debug::channel_ct const debug_syslog("SYSLOG");
-      };
-    };
-  };
-};
+      }
+    }
+  }
+}
 
 class syslog_streambuf_ct : public streambuf {
   // Because we do not use an ANSI/ISO C++ conforming libstdc++, we need to add a few typedefs here.

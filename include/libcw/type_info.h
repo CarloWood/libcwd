@@ -121,8 +121,8 @@ namespace libcw {
       return *type_info_singleton;
     }
 
-  } // namespace _internal_
-} // namespace libcw
+  }	// namespace _internal_
+}	// namespace libcw
 
 template<class T>
   __inline type_info_ct const&

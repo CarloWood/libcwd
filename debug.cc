@@ -32,10 +32,8 @@
 RCSTAG_CC("$Id$")
 
 #ifdef DEBUG
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
 
     // Configuration signature
     unsigned long config_signature_lib = config_signature_header;
@@ -52,7 +50,7 @@ namespace libcw {
     namespace {
       unsigned short int max_len = 8;		// The length of the longest label. Is adjusted automatically
     						// if a custom channel has a longer label.
-    };
+    }
 
     namespace channels {
       namespace dc {
@@ -67,8 +65,8 @@ namespace libcw {
 
 	fatal_channel_ct const fatal("FATAL", fatal_maskbit);
 	fatal_channel_ct const core("COREDUMP", coredump_maskbit);
-      };
-    };
+      }
+    }
 
     debug_channels_singleton_ct debug_channels;	// List with all channel_ct objects.
     debug_objects_singleton_ct debug_objects;	// List with all debug devices.
@@ -815,9 +813,7 @@ namespace libcw {
     }
 #endif
 
-#ifndef DEBUGNONAMESPACE
-  };	// namespace debug
-};	// namespace libcw
-#endif
+  }	// namespace debug
+}	// namespace libcw
 
 #endif // DEBUG

@@ -11,9 +11,9 @@ namespace myproject {
         // Add new debug channels here.
 	::libcw::debug::channel_ct const custom("CUSTOM");
 
-      };
-    };
-  };
-};
+      }
+    }
+  }
+}
 
 #endif // DEBUG

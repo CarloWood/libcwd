@@ -50,7 +50,7 @@ namespace {
 
   template<class TYPE>
   TYPE compiler_bug_workaround<TYPE>::ids;
-};
+}
 
 template<class TYPE>
 inline typename TYPE::omanip_data_ct& get_omanip_data(ostream const& os)

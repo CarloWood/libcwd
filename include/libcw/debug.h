@@ -23,36 +23,27 @@
 RCSTAG_H(debug, "$Id$")
 
 #  ifdef DEBUG
-#    ifdef DEBUGNONAMESPACE
-#      define USING_NAMESPACE_LIBCW_DEBUG
-#      define NAMESPACE_LIBCW_DEBUG ::std
-#      define LIBCW
-#    else
-#      define USING_NAMESPACE_LIBCW_DEBUG using namespace ::libcw::debug;
-#      define NAMESPACE_LIBCW_DEBUG ::libcw::debug
-#      define LIBCW ::libcw
-#    endif
 #    ifndef DEBUGCHANNELS
-#      define DEBUGCHANNELS NAMESPACE_LIBCW_DEBUG::channels
+#      define DEBUGCHANNELS ::libcw::debug::channels
 #    endif
 #    define UNUSED_UNLESS_DEBUG(x) x
 #    include <cassert>
 #    define ASSERT(x) assert(x)
-#    define LibcwDebug(dc_namespace, x) do { USING_NAMESPACE_LIBCW_DEBUG using namespace dc_namespace; {x;} } while(0)
+#    define LibcwDebug(dc_namespace, x) do { using namespace ::libcw::debug; using namespace dc_namespace; {x;} } while(0)
 #    define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
-#    define __Debug(x) LibcwDebug(NAMESPACE_LIBCW_DEBUG::channels, x)
+#    define __Debug(x) LibcwDebug(::libcw::debug::channels, x)
 #    define ForAllDebugObjects(STATEMENT) \
-       for( NAMESPACE_LIBCW_DEBUG::debug_objects_ct::iterator __libcw_i(NAMESPACE_LIBCW_DEBUG::debug_objects().begin()); __libcw_i != NAMESPACE_LIBCW_DEBUG::debug_objects().end(); ++__libcw_i) \
+       for( ::libcw::debug::debug_objects_ct::iterator __libcw_i(::libcw::debug::debug_objects().begin()); __libcw_i != ::libcw::debug::debug_objects().end(); ++__libcw_i) \
        { \
-         USING_NAMESPACE_LIBCW_DEBUG \
+         using namespace ::libcw::debug; \
 	 using namespace DEBUGCHANNELS; \
          debug_ct& debugObject(*(*__libcw_i)); \
 	 STATEMENT; \
        }
 #    define ForAllDebugChannels(STATEMENT) \
-       for( NAMESPACE_LIBCW_DEBUG::debug_channels_ct::iterator __libcw_i(NAMESPACE_LIBCW_DEBUG::debug_channels().begin()); __libcw_i != NAMESPACE_LIBCW_DEBUG::debug_channels().end(); ++__libcw_i) \
+       for( ::libcw::debug::debug_channels_ct::iterator __libcw_i(::libcw::debug::debug_channels().begin()); __libcw_i != ::libcw::debug::debug_channels().end(); ++__libcw_i) \
        { \
-         USING_NAMESPACE_LIBCW_DEBUG \
+         using namespace ::libcw::debug; \
 	 using namespace DEBUGCHANNELS; \
          channel_ct& debugChannel(*(*__libcw_i)); \
 	 STATEMENT; \
@@ -69,7 +60,6 @@ RCSTAG_H(debug, "$Id$")
 #    define __Debug(x)
 #    define ForAllDebugObjects(STATEMENT)
 #    define ForAllDebugChannels(STATEMENT)
-#    define LIBCW ::libcw
 #  endif
 
 #ifdef DEBUG
@@ -80,10 +70,8 @@ RCSTAG_H(debug, "$Id$")
 #include <libcw/debugdebugcheckpoint.h>
 #endif
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
 
     //=============================================================================
     // Definitions
@@ -582,8 +570,8 @@ namespace libcw {
 	extern fatal_channel_ct const core;
 	extern continued_channel_ct const continued;
 	extern continued_channel_ct const finish;
-      };	// namespace dc
-    };		// namespace channels
+      } // namespace dc
+    } // namespace channels
     extern debug_ct libcw_do;
     typedef vector<debug_ct*> debug_objects_ct;
     class debug_objects_singleton_ct {
@@ -632,10 +620,8 @@ namespace libcw {
     template<class T>
       inline printUsing<T> print_using(T const& object, void (T::* print_on)(ostream&) const) { return printUsing<T>(object, print_on); }
     
-#ifndef DEBUGNONAMESPACE
-  };	// namespace debug
-};	// namespace libcw
-#endif
+  }	// namespace debug
+}	// namespace libcw
 
 #ifdef DEBUGDEBUG
 #define DEBUGDEBUGLIBCWDOUTMARKER  cerr << "DEBUGDEBUG: LibcwDout at " << __FILE__ << ':' << __LINE__ << '\n'; debugdebugcheckpoint();
@@ -650,7 +636,7 @@ namespace libcw {
     {								\
       bool on;							\
       {								\
-        USING_NAMESPACE_LIBCW_DEBUG				\
+        using namespace ::libcw::debug;				\
         using namespace dc_namespace;				\
 	on = (debug_obj|cntrl).on;				\
       }								\
@@ -675,7 +661,7 @@ namespace libcw {
     {								\
       bool on;							\
       {								\
-        USING_NAMESPACE_LIBCW_DEBUG				\
+        using namespace ::libcw::debug;				\
         using namespace dc_namespace;				\
 	on = (debug_obj|cntrl).on;				\
       }								\
@@ -698,7 +684,7 @@ namespace libcw {
   do							\
   { DEBUGDEBUGLIBCWDOUTFATALMARKER			\
     {							\
-      USING_NAMESPACE_LIBCW_DEBUG			\
+      using namespace ::libcw::debug;			\
       using namespace dc_namespace;			\
       debug_obj|cntrl;					\
     }							\
@@ -708,14 +694,14 @@ namespace libcw {
   } while(0)
 
 // For use in library header files
-#define __Dout(cntrl, data) LibcwDout(NAMESPACE_LIBCW_DEBUG::channels, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
-#define __Dout_vform(cntrl, format, vl) LibcwDout_vform(NAMESPACE_LIBCW_DEBUG::channels, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
-#define __DoutFatal(cntrl, data) LibcwDoutFatal(NAMESPACE_LIBCW_DEBUG::channels, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define __Dout(cntrl, data) LibcwDout(::libcw::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+#define __Dout_vform(cntrl, format, vl) LibcwDout_vform(::libcw::debug::channels, ::libcw::debug::libcw_do, cntrl, format, vl)
+#define __DoutFatal(cntrl, data) LibcwDoutFatal(::libcw::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
 
 // For use in applications
-#define Dout(cntrl, data) LibcwDout(DEBUGCHANNELS, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
-#define Dout_vform(cntrl, format, vl) LibcwDout_vform(DEBUGCHANNELS, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
-#define DoutFatal(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define Dout(cntrl, data) LibcwDout(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, data)
+#define Dout_vform(cntrl, format, vl) LibcwDout_vform(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, format, vl)
+#define DoutFatal(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, data)
 
 #else // !DEBUG
 

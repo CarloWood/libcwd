@@ -6,10 +6,10 @@ namespace example {
     namespace channels {
       namespace dc {
 	::libcw::debug::channel_ct const warp("WARP");
-      };
-    };
-  };
-};
+      }
+    }
+  }
+}
 
 int main(void)
 {

@@ -84,7 +84,8 @@ namespace libcw {
     __DEFINE_OMANIP1_FUNCTION(setlabel, bool)
 #endif
   };
-};
+
+}	// namespace libcw
 
 extern ostream& operator<<(ostream& os, ::libcw::memblk_types_ct memblk_type);
 
@@ -129,7 +130,8 @@ namespace libcw {
 protected:
     virtual ~alloc_ct() {}
   };
-};
+
+}	// namespace libcw
 
 class dm_alloc_ct;
 
@@ -178,8 +180,8 @@ extern void libcw_debug_move_outside(debugmalloc_marker_ct*, void const* ptr);
 namespace libcw {
   namespace debug {
     inline void move_outside(debugmalloc_marker_ct* marker, void const* ptr) { libcw_debug_move_outside(marker, ptr); }
-  };
-};
+  }	// namespace debug
+}	// namespace libcw
 #endif
 
 // Undocumented (used inside AllocTag, AllocTag_dynamic_description, AllocTag1 and AllocTag2):
@@ -200,7 +202,7 @@ extern void init_debugmalloc(void);
 	    set_alloc_checking_off(); \
 	    if (1) \
 	    { \
-	      NAMESPACE_LIBCW_DEBUG::no_alloc_checking_ostrstream buf; \
+	      ::libcw::debug::no_alloc_checking_ostrstream buf; \
 	      set_alloc_checking_on(); \
 	      buf << x << ends; \
 	      set_alloc_checking_off(); \
@@ -216,7 +218,7 @@ extern void init_debugmalloc(void);
 	  set_alloc_checking_off(); \
 	  if (1) \
 	  { \
-	    NAMESPACE_LIBCW_DEBUG::no_alloc_checking_ostrstream buf; \
+	    ::libcw::debug::no_alloc_checking_ostrstream buf; \
 	    set_alloc_checking_on(); \
 	    buf << x << ends; \
 	    set_alloc_checking_off(); \
@@ -260,19 +262,15 @@ inline void make_all_allocations_invisible_except(void const*) { }
 #endif // !DEBUGMALLOC
 
 #ifdef DEBUG
-#  ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#  endif // DEBUGNONAMESPACE
 #  ifdef DEBUGMALLOC
     extern void list_allocations_on(debug_ct& debug_object);
 #  else // !DEBUGMALLOC
     inline void list_allocations_on(debug_ct&) { }
 #  endif // !DEBUGMALLOC
-#  ifndef DEBUGNONAMESPACE
-  };
-};
-#  endif // DEBUGNONAMESPACE
+  }	// namespace debug
+}	// namespace libcw
 #endif // DEBUG
 
 #ifndef DEBUGMALLOC_INTERNAL

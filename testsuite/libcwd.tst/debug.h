@@ -12,10 +12,10 @@ namespace example {
       namespace dc {
 	using namespace ::libcw::debug::channels::dc;
 	extern ::libcw::debug::channel_ct const warp;
-      };
-    };
-  };
-};
+      }
+    }
+  }
+}
 
 #undef Dout
 #undef Dout_vform

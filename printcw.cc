@@ -19,10 +19,8 @@
 
 RCSTAG_CC("$Id$")
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
 
 void argv_ct::print_on(ostream& os) const
 {
@@ -45,7 +43,5 @@ void environment_ct::print_on(ostream& os) const
   os << "NULL ]";
 }
 
-#ifndef DEBUGNONAMESPACE
-  };
-};
-#endif
+  }	// namespace debug
+}	// namespace libcw

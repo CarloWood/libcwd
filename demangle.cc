@@ -142,10 +142,10 @@ namespace libcw {
     namespace channels {
       namespace dc {
 	channel_ct const demangler("DEMANGLER");
-      };
-    };
-  };
-};
+      }
+    }
+  }
+}
 #endif
 #else // !STANDALONE
 #undef DEBUG

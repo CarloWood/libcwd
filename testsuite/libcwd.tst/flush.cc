@@ -8,10 +8,10 @@ namespace libcw {
     namespace channels {
       namespace dc {
 	channel_ct generate("GENERATE");
-      };
-    };
-  };
-};
+      }
+    }
+  }
+}
 
 void generate_tables(void)
 {

@@ -61,10 +61,8 @@ template<class PRINTABLE_OBJECT>
 // environment_ct
 //
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
     class environment_ct {
       char const* const* __envp;
     public:
@@ -77,9 +75,7 @@ namespace libcw {
       argv_ct(char const* const argv[]) : __argv(argv) { }
       void print_on(ostream& os) const;
     };
-#ifndef DEBUGNONAMESPACE
-  };
-};
-#endif
+  }	// namespace debug
+}	// namespace libcw
 
 #endif // LIBCW_CWPRINT_H

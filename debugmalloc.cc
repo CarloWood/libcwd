@@ -355,7 +355,7 @@ public:
   void print_description(void) const;
   void printOn(ostream& os) const;
   friend inline ostream& operator<<(ostream& os, dm_alloc_ct const& alloc) { alloc.printOn(os); return os; }
-  void show_alloc_list(int depth, NAMESPACE_LIBCW_DEBUG::channel_ct const& channel) const;
+  void show_alloc_list(int depth, ::libcw::debug::channel_ct const& channel) const;
 #endif
 };
 
@@ -523,7 +523,7 @@ void dm_alloc_ct::print_description(void) const
 {
 #ifdef DEBUGUSEBFD
   if (M_location.is_known())
-    Dout(dc::continued, setw(20) << NAMESPACE_LIBCW_DEBUG::print_using(M_location, &debug::location_ct::print_filename_on) <<
+    Dout(dc::continued, setw(20) << ::libcw::debug::print_using(M_location, &debug::location_ct::print_filename_on) <<
         ':' << setw(5) << setiosflags(ios::left) << M_location.line());
   else if (M_location.mangled_function_name() != debug::unknown_function_c)
   {
@@ -593,7 +593,7 @@ void dm_alloc_ct::printOn(ostream& os) const
       ",\n\tnext_list = " << (void*)a_next_list << ", my_list = " << (void*)my_list << "\n\t( = " << (void*)*my_list << " ) }";
 }
 
-void dm_alloc_ct::show_alloc_list(int depth, const NAMESPACE_LIBCW_DEBUG::channel_ct& channel) const
+void dm_alloc_ct::show_alloc_list(int depth, const ::libcw::debug::channel_ct& channel) const
 {
   dm_alloc_ct const* alloc;
   Dout( channel|noprefix_cf|nonewline_cf, memblk_types_ct::setlabel(true) );
@@ -1416,37 +1416,33 @@ ostream& operator<<(ostream& o, debugmalloc_report_ct)
   return o;
 }
 
-#ifndef DEBUGNONAMESPACE
 namespace libcw {
   namespace debug {
-#endif
 
     void list_allocations_on(debug_ct& debug_object)
     {
 #if 0
       // Print out the entire `map':
-      LibcwDout( NAMESPACE_LIBCW_DEBUG::channels, debug_object, dc::debugmalloc, "map:" );
+      LibcwDout( ::libcw::debug::channels, debug_object, dc::debugmalloc, "map:" );
       int cnt = 0;
       for(memblk_map_ct::const_iterator i(memblk_map->begin()); i != memblk_map->end(); ++i)
-	LibcwDout( NAMESPACE_LIBCW_DEBUG::channels, debug_object, dc::debugmalloc|nolabel_cf, << ++cnt << ":\t(*i).first = " << (*i).first << '\n' << "\t(*i).second = " << (*i).second );
+	LibcwDout( ::libcw::debug::channels, debug_object, dc::debugmalloc|nolabel_cf, << ++cnt << ":\t(*i).first = " << (*i).first << '\n' << "\t(*i).second = " << (*i).second );
 #endif
 
-      LibcwDout( NAMESPACE_LIBCW_DEBUG::channels, debug_object, dc::debugmalloc, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks." );
+      LibcwDout( ::libcw::debug::channels, debug_object, dc::debugmalloc, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks." );
       if (base_alloc_list)
-	base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::channels::dc::debugmalloc);
+	base_alloc_list->show_alloc_list(1, ::libcw::debug::channels::dc::debugmalloc);
     }
 
-#ifndef DEBUGNONAMESPACE
-  };
-};
-#endif
+  }	// namespace debug
+}	// namespace libcw
 
 // Undocumented (used from gdb while debugging libcw)
 void list_allocations_on_cerr(void)
 {
   Dout( dc::warning|cerr_cf, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks.");
   if (base_alloc_list)
-    base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::channels::dc::debugmalloc);
+    base_alloc_list->show_alloc_list(1, ::libcw::debug::channels::dc::debugmalloc);
 }
 
 
@@ -1593,10 +1589,10 @@ debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
 
   if ((*i).second.a_alloc_node.get()->next_list())
   {
-    string margin = NAMESPACE_LIBCW_DEBUG::libcw_do.get_margin();
+    string margin = ::libcw::debug::libcw_do.get_margin();
     Debug( libcw_do.set_margin(margin + "  * ") );
     Dout( dc::warning, "Memory leak detected!" );
-    (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::channels::dc::warning);
+    (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, ::libcw::debug::channels::dc::warning);
     Debug( libcw_do.set_margin(margin) );
   }
 #endif
