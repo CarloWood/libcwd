@@ -1019,10 +1019,7 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
 #ifdef __sun__
 	  // On solaris 2.8 _end is not absolute but in .bss.
 	  if (new_symbol->name[1] == 'e' && new_symbol->name[0] == '_' && new_symbol->name[2] == 'n' && new_symbol->name[3] == 'd' && new_symbol->name[4] == 0)
-	  {
-	    new_symbol->section = absolute_section_c;
-	    M_s_end_vma = new_symbol->value = symbol.st_value;
-	  }
+	    M_s_end_vma = symbol.st_value;
 #endif
 	  									// to start of section.
           if (DEBUGELF32)
