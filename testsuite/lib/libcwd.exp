@@ -43,7 +43,7 @@ verbose "    path = \"$path\""
 verbose "    out = \"$out\""
 
     if { [regexp -- "nodebug" $options] } {
-      regsub -- "-g\[a-z0-9\]*" "$OPTIONS" "" compiler_options
+      regsub -- "-g\[-a-z0-9\]*" "$OPTIONS" "" compiler_options
     } else {
       set compiler_options "$OPTIONS"
     }

@@ -599,20 +599,126 @@ typedef std::basic_string<char, std::char_traits<char>, _private_::object_files_
 typedef std::set<object_files_string, std::less<object_files_string>, _private_::object_files_allocator::rebind<object_files_string>::other> object_files_string_set_ct;
 
 //==========================================================================================================================================
-// struct location_st
+// struct location_ct
 //
 // Internal representation for locations.
 //
 
-struct location_st {
-  object_files_string_set_ct::iterator source_iter;
-  Elf32_Half line;
-  object_files_string_set_ct::iterator func_iter;
-};
-
 struct range_st {
   Elf32_Addr start;
   size_t size;
+};
+
+struct location_st {
+  object_files_string_set_ct::iterator M_func_iter;
+  object_files_string_set_ct::iterator M_source_iter;
+  Elf32_Half M_line;
+
+  friend std::ostream& operator<<(std::ostream& os, location_st const& loc);
+};
+
+class object_file_ct;
+
+class location_ct : private location_st {
+private:
+  location_st M_prev_location;
+  Elf32_Addr M_address;
+  range_st M_range;
+  int M_flags;
+  bool M_used;
+  object_file_ct* M_object_file;
+
+public:
+  location_ct(object_file_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file) { M_line = 0; M_range.start = 0; }
+
+  void invalidate(void) {
+    M_flags = 0;
+    DoutDwarf(dc::bfd, "--> location invalidated.");
+  }
+  void set_line(Elf32_Half line) {
+    if (!(M_flags & 1) || M_line != line)
+      M_used = false;
+    M_flags |= 1;
+    M_line = line;
+    DoutDwarf(dc::bfd, "--> location.M_line = " << M_line);
+    if (is_valid())
+    {
+      DoutDwarf(dc::bfd, "--> location now valid.");
+      M_store();
+    }
+  }
+  void set_address(Elf32_Addr address) {
+    if (M_address != address)
+      M_used = false;
+    M_flags |= 2;
+    M_address = address;
+    DoutDwarf(dc::bfd, "--> location.M_address = 0x" << std::hex << address);
+    if (is_valid())
+    {
+      DoutDwarf(dc::bfd, "--> location now valid.");
+      M_store();
+    }
+  }
+  void copy(void)
+  {
+    if (is_valid())
+      M_store();
+  }
+  void set_source_iter(object_files_string_set_ct::iterator const& iter) { M_source_iter = iter; M_used = false; }
+  void set_func_iter(object_files_string_set_ct::iterator const& iter) { M_func_iter = iter; }
+  // load_stabs doesn't use out M_address.
+  bool is_valid_stabs(void) const { return (M_flags == 1); }
+  void increment_line(int increment) {
+    if (increment != 0)
+      M_used = false;
+#if DEBUGDWARF
+    bool was_not_valid = !(M_flags & 1);
+#endif
+    M_flags |= 1;
+    M_line += increment;
+    DoutDwarf(dc::bfd, "--> location.M_line = " << M_line);
+    if (is_valid())
+    {
+#if DEBUGDWARF
+      if (was_not_valid)
+	DoutDwarf(dc::bfd, "--> location now valid.");
+#endif
+      M_store();
+    }
+  }
+  void increment_address(unsigned int increment) {
+    if (increment > 0)
+      M_used = false;
+    M_address += increment;
+    DoutDwarf(dc::bfd, "--> location.M_address = 0x" << std::hex << M_address);
+#if DEBUGDWARF
+    bool was_not_valid = !(M_flags & 2);
+#endif
+    M_flags |= 2;
+    if (is_valid())
+    {
+#if DEBUGDWARF
+      if (was_not_valid)
+	DoutDwarf(dc::bfd, "--> location now valid.");
+#endif
+      M_store();
+    }
+  }
+  void sequence_end(void) {
+    DoutDwarf(dc::bfd, "--> Sequence end.");
+    if (is_valid())
+      M_store();
+  }
+
+  Elf32_Half get_line(void) const { LIBCWD_ASSERT( (M_flags & 1) ); return M_line; }
+  object_files_string_set_ct::iterator get_source_iter(void) const { return M_source_iter; }
+  Elf32_Addr get_address(void) const { return M_address; }
+
+  void stabs_range(range_st const& range) const;
+
+private:
+  bool is_valid(void) const { return (M_flags == 3); }
+  void M_store(void);
 };
 
 bool operator==(range_st const& range1, range_st const& range2)
@@ -627,10 +733,15 @@ std::ostream& operator<<(std::ostream& os, range_st const& range)
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os, location_st const& loc)
+{
+  os << (*loc.M_source_iter).data() << ':' << std::dec << loc.M_line << " : \"" << (*loc.M_func_iter).data() << "\".";
+  return os;
+}
+
 std::ostream& operator<<(std::ostream& os, std::pair<range_st const, location_st> const& p)
 {
-  os << std::hex << p.first.start << " - " << p.first.start + p.first.size
-      << "; " << (*p.second.source_iter).data() << ':' << std::dec << p.second.line << " : \"" << (*p.second.func_iter).data() << "\".";
+  os << std::hex << p.first.start << " - " << p.first.start + p.first.size << "; " << p.second << '.';
   return os;
 }
 #endif
@@ -653,8 +764,6 @@ public:
   void init(char const* section_header_string_table, Elf32_Shdr const& section_header);
   Elf32_Shdr const& section_header(void) const { return M_section_header; }
 };
-
-class object_file_ct;
 
 struct hash_list_st {
   char const* name;
@@ -703,6 +812,8 @@ protected:
   virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int*);
 private:
   char* allocate_and_read_section(int i);
+  friend void location_ct::M_store(void);
+  friend void location_ct::stabs_range(range_st const& range) const;
   void register_range(location_st const& location, range_st const& range);
   void load_stabs(void);
   void load_dwarf(void);
@@ -710,6 +821,48 @@ private:
     inline void object_file_ct::dwarf_read(unsigned char const*& debug_info_ptr, T& x);
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
 };
+
+//-------------------------------------------------------------------------------------------------------------------------------------------
+
+void location_ct::M_store(void)
+{
+  if (M_used)
+  {
+    DoutDwarf(dc::bfd, "Skipping M_store: M_used is set.");
+    return;
+  }
+  if (M_prev_location.M_source_iter == M_source_iter && M_prev_location.M_line == M_line)
+  {
+    DoutDwarf(dc::bfd, "Skipping M_store: location didn't change.");
+    M_used = true;
+    return;
+  }
+  if (M_range.start == M_address)
+  {
+    DoutDwarf(dc::bfd, "Skipping M_store: address range is zero.");
+    return;
+  }
+  if (M_range.start)
+  {
+    DoutDwarf(dc::bfd, "M_store(): Registering new range.");
+    M_range.size = M_address - M_range.start;
+    M_object_file->register_range(M_prev_location, M_range);
+  }
+#if DEBUGDWARF
+  else
+    DoutDwarf(dc::bfd, "M_store(): M_range.start was 0.");
+#endif
+  M_range.start = M_address;
+  M_prev_location.M_func_iter = M_func_iter;
+  M_prev_location.M_source_iter = M_source_iter;
+  M_prev_location.M_line = M_line;
+  M_used = true;
+}
+
+inline void location_ct::stabs_range(range_st const& range) const
+{
+  M_object_file->register_range(*this, range);
+}
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
 // Implementation
@@ -1157,7 +1310,7 @@ indirect:
 	      debug_info_ptr += 4;
 	      break;
 	    case DW_FORM_data8:
-	      DoutDwarf(dc::finish, *reinterpret_cast<unsigned long long const*>(debug_info_ptr));
+	      // DoutDwarf(dc::finish, *reinterpret_cast<unsigned long long const*>(debug_info_ptr));
 	      debug_info_ptr += 8;
 	      break;
 	    case DW_FORM_indirect:
@@ -1181,7 +1334,7 @@ indirect:
 	      debug_info_ptr += 4;
 	      break;
 	    case DW_FORM_ref8:
-	      DoutDwarf(dc::finish, *reinterpret_cast<unsigned long long const*>(debug_info_ptr));
+	      // DoutDwarf(dc::finish, *reinterpret_cast<unsigned long long const*>(debug_info_ptr));
 	      debug_info_ptr += 8;
 	      break;
 	    case DW_FORM_ref_udata:
@@ -1264,12 +1417,8 @@ indirect:
 	  // State machine.
 	  // See paragraph 6.2 of "DWARF Debugging Information Format" document.
 
-	  Elf32_Addr address;		// The program-counter value corresponding to a machine instruction generated by the compiler.
 	  uLEB128_t file;		// An unsigned integer indicating the identity of the source file corresponding to a machine
 					// instruction.
-	  unsigned int line;		// An unsigned integer indicating a source line number.  Lines are numbered beginning at 1.
-					// The compiler may emit the value 0 in cases where an instruction cannot be attributed to
-					// any source line.
 	  uLEB128_t column;		// An unsigned integer indicating a column number within a source line.  Columns are numbered
 					// beginning at 1. The value 0 is reserved to indicate that a statement begins at the left
 					// edge of the line.
@@ -1329,29 +1478,25 @@ indirect:
 
 	  object_files_string cur_dir;
 	  object_files_string cur_source;
-	  location_st location;
-	  range_st range;
+	  location_ct location(this);
 
 	  object_files_string cur_func("-DWARF symbol\0");	// We don't add function names - this is used to see we're
 								// doing DWARF in find_nearest_line().
-	  location.func_iter = M_function_names.insert(cur_func).first;
+	  location.set_func_iter(M_function_names.insert(cur_func).first);
 
 	  do
 	  {
-	    address = 0;
 	    file = 0;		// One less than the `file' mentioned in the documentation.
-	    line = 1;
 	    column = 0;
 	    is_stmt = default_is_stmt;
 	    basic_block = false;
 	    end_sequence = false;
-
-	    location.line = 0;
-	    range.start = 0;
-
 	    cur_dir = default_dir;
 	    cur_source = cur_dir + default_source;
-	    location.source_iter = M_source_files.insert(cur_source).first;
+
+	    location.invalidate();
+	    location.set_source_iter(M_source_files.insert(cur_source).first);
+	    location.set_line(1);
 
 	    while(!end_sequence)
 	    {
@@ -1368,25 +1513,25 @@ indirect:
 		    LIBCWD_ASSERT( size > 0 );
 		    uLEB128_t extended_opcode;
 		    dwarf_read(debug_line_ptr, extended_opcode);
-		    LIBCWD_ASSERT( extended_opcode < 0x80 );			// Then it's size is one:
+		    LIBCWD_ASSERT( extended_opcode < 0x80 );		// Then it's size is one:
 		    --size;
 		    switch(extended_opcode)
 		    {
 		      case DW_LNE_end_sequence:
 			LIBCWD_ASSERT( size == 0 );
 			end_sequence = true;
-			DoutDwarf(dc::bfd, "DW_LNE_end_sequence: Address: 0x" << std::hex << address);
-			range.size = address - range.start;
-			if (location.line)
-			  register_range(location, range);
+			DoutDwarf(dc::bfd, "DW_LNE_end_sequence: Address: 0x" << std::hex << location.get_address());
+			location.sequence_end();
 			break;
 		      case DW_LNE_set_address:
+		      {
+			Elf32_Addr address;
 			LIBCWD_ASSERT( size == sizeof(address) );
 			dwarf_read(debug_line_ptr, address);
 			DoutDwarf(dc::bfd, "DW_LNE_set_address: 0x" << std::hex << address);
-			if (!range.start)
-			  range.start = address;
+			location.set_address(address);
 			break;
+		      }
 		      case DW_LNE_define_file:
 		      {
 			unsigned char const* end = debug_line_ptr + size;
@@ -1411,38 +1556,31 @@ indirect:
 		    break;
 		  }
 		  case DW_LNS_copy:
-		    DoutDwarf(dc::bfd, "DW_LNS_copy: Address/Line: 0x" << std::hex << address << ", " << std::dec << line);
-		    if (location.line && location.line != line)
-		    {
-		      range.size = address - range.start;
-		      register_range(location, range);
-		      range.start = address;
-		    }
-		    location.line = line;
+		    DoutDwarf(dc::bfd, "DW_LNS_copy");
+		    location.copy();
 		    basic_block = false;
 		    break;
 		  case DW_LNS_advance_pc:
 		  {
 		    uLEB128_t address_increment;
 		    dwarf_read(debug_line_ptr, address_increment);
-		    address += minimum_instruction_length * address_increment;
-		    DoutDwarf(dc::bfd, "DW_LNS_advance_pc: 0x" << std::hex << address);
-		    if (!range.start)
-		      range.start = address;
+		    DoutDwarf(dc::bfd, "DW_LNS_advance_pc: " << std::hex << address_increment);
+		    location.increment_address(minimum_instruction_length * address_increment);
 		    break;
 		  }
 		  case DW_LNS_advance_line:
 		  {
 		    LEB128_t line_increment;
 		    dwarf_read(debug_line_ptr, line_increment);
-		    line += line_increment;
-		    DoutDwarf(dc::bfd, "DW_LNS_advance_line: " << line);
+		    DoutDwarf(dc::bfd, "DW_LNS_advance_line: " << line_increment);
+		    location.increment_line(line_increment);
 		    break;
 		  }
 		  case DW_LNS_set_file:
 		    dwarf_read(debug_line_ptr, file);
 		    --file;
 		    DoutDwarf(dc::bfd, "DW_LNS_set_file: \"" << file_names[file].name << '"');
+		    location.invalidate();
 		    if (*file_names[file].name == '/')
 		      cur_source.assign(file_names[file].name);
 		    else
@@ -1458,8 +1596,7 @@ indirect:
 		      cur_source.append(file_names[file].name);
 		    }
 		    cur_source += '\0';
-		    location.source_iter = M_source_files.insert(cur_source).first;
-		    location.line = 0;
+		    location.set_source_iter(M_source_files.insert(cur_source).first);
 		    break;
 		  case DW_LNS_set_column:
 		    dwarf_read(debug_line_ptr, column);
@@ -1475,21 +1612,17 @@ indirect:
 		    break;
 		  case DW_LNS_const_add_pc:
 		  {
+		    DoutDwarf(dc::bfd, "DW_LNS_const_add_pc");
 		    unsigned int address_increment = (255 - opcode_base) / line_range;
-		    address += minimum_instruction_length * address_increment;
-		    DoutDwarf(dc::bfd, "DW_LNS_const_add_pc: 0x" << std::hex << address);
-		    if (!range.start)
-		      range.start = address;
+		    location.increment_address(minimum_instruction_length * address_increment);
 		    break;
 		  }
 		  case DW_LNS_fixed_advance_pc:
 		  {
+		    DoutDwarf(dc::bfd, "DW_LNS_fixed_advance_pc");
 		    unsigned short int address_increment;
 		    dwarf_read(debug_line_ptr, address_increment);
-		    address += minimum_instruction_length * address_increment;
-		    DoutDwarf(dc::bfd, "DW_LNS_fixed_advance_pc: 0x" << std::hex << address);
-		    if (!range.start)
-		      range.start = address;
+		    location.increment_address(minimum_instruction_length * address_increment);
 		    break;
 		  }
 		  default:
@@ -1506,17 +1639,12 @@ indirect:
 	      {
 		// Special opcode.
 		int line_increment = line_base + ((opcode - opcode_base) % line_range);
-		line += line_increment;
 		unsigned int address_increment = (opcode - opcode_base) / line_range;
-		address += minimum_instruction_length * address_increment;
-		DoutDwarf(dc::bfd, "Special opcode.  Address/Line: 0x" << std::hex << address << ", " << std::dec << line);
-		if (location.line && location.line != line)	// Catenate ranges with same location.
-		{
-		  range.size = address - range.start;
-		  register_range(location, range);
-		  range.start = address;
-		}
-		location.line = line;
+		DoutDwarf(dc::bfd, "Special opcode.  Address/Line increments: 0x" <<
+		    std::hex << address_increment << ", " << std::dec << line_increment);
+		location.invalidate();	// Make sure we won't add a new range until after also line was incremented.
+		location.increment_address(minimum_instruction_length * address_increment);
+		location.increment_line(line_increment);
 		basic_block = false;
 	      }
 	    }
@@ -1582,7 +1710,7 @@ void object_file_ct::load_stabs(void)
   object_files_string cur_dir;
   object_files_string cur_source;
   object_files_string cur_func;
-  location_st location;
+  location_ct location(this);
   range_st range;
   bool skip_function = false;
   bool source_file_changed_and_we_didnt_copy_it_yet = true;
@@ -1630,7 +1758,7 @@ void object_file_ct::load_stabs(void)
 	    Dout(dc::bfd, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
 	  range.size = func_addr + stabs[j].n_value - range.start;
 	  if (!skip_function)
-	    register_range(location, range);
+	    location.stabs_range(range);
 	  skip_function = false;
 	}
 	else
@@ -1646,7 +1774,7 @@ void object_file_ct::load_stabs(void)
 	  range.start = func_addr = stabs[j].n_value;
           if (DEBUGSTABS)
 	    Dout(dc::bfd, "N_FUN: " << std::hex << func_addr << " : \"" << &stabs_string_table[stabs[j].n_strx] << "\".");
-	  if (func_addr == 0 && location.line)
+	  if (func_addr == 0 && location.is_valid_stabs())
 	  {
 	    // Start of function is not given (bug in assembler?), try to find it by name:
 	    uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(fn), (unsigned char)':');
@@ -1667,7 +1795,7 @@ void object_file_ct::load_stabs(void)
 	      // the dynamic linker has put it in the 'undefined' section and no
 	      // address is known even though there is still this N_FUN entry.
 	      skip_function = true;
-	      location.line = 0;
+	      location.invalidate();
 	      break;
 	    }
 	    else if (DEBUGSTABS)
@@ -1691,8 +1819,8 @@ void object_file_ct::load_stabs(void)
 	    LIBCWD_ASSERT( func_addr_test == func_addr );
 	  }
 #endif
-	  location.func_iter = M_function_names.insert(cur_func).first;
-	  location.line = 0;	// See N_SLINE
+	  location.set_func_iter(M_function_names.insert(cur_func).first);
+	  location.invalidate();	// See N_SLINE
 	}
 	break;
       }
@@ -1701,9 +1829,9 @@ void object_file_ct::load_stabs(void)
 	  Dout(dc::bfd, "N_SLINE: " << stabs[j].n_desc << " at " << std::hex << stabs[j].n_value << '.');
 	if (stabs[j].n_value != 0)
 	{
-	  // Always false when function was changed since last line because location.line is set to 0 in that case.
+	  // Always false when function was changed since last line because location.invalidate() was called in that case.
 	  // Catenate ranges with same location.
-	  if (!source_file_changed_and_we_didnt_copy_it_yet && stabs[j].n_desc == location.line)
+	  if (!source_file_changed_and_we_didnt_copy_it_yet && location.is_valid_stabs() && stabs[j].n_desc == location.get_line())
 	    break;
 	  range.size = func_addr + stabs[j].n_value - range.start;
 	  // Delay one source/line change when there was no code since last source file change.
@@ -1714,12 +1842,12 @@ void object_file_ct::load_stabs(void)
 	    break;
 	  }
 	  if (!skip_function)
-	    register_range(location, range);
+	    location.stabs_range(range);
 	  range.start += range.size;
 	}
 	// Store the source/line for the next range.
-	location.source_iter = last_source_iter;
-	location.line = stabs[j].n_desc;
+	location.set_source_iter(last_source_iter);
+	location.set_line(stabs[j].n_desc);
 	source_file_changed_and_we_didnt_copy_it_yet = false;
 	source_file_changed_but_line_number_not_yet = false;
 	break;
@@ -1754,7 +1882,7 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
   range.start = offset;
   range.size = 1;
   object_files_range_location_map_ct::const_iterator i(M_ranges.find(static_cast<range_st const>(range)));
-  if (i == M_ranges.end() || (*(*(*i).second.func_iter).data() != '-' && strcmp((*(*i).second.func_iter).data(), symbol->name)))
+  if (i == M_ranges.end() || (*(*(*i).second.M_func_iter).data() != '-' && strcmp((*(*i).second.M_func_iter).data(), symbol->name)))
   {
     *file = NULL;
     *func = symbol->name;
@@ -1762,12 +1890,12 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
   }
   else
   {
-    *file = (*(*i).second.source_iter).data();
-    if (*(*(*i).second.func_iter).data() != '-')	// '-' is used for DWARF symbols by load_dwarf() (see above).
-      *func = (*(*i).second.func_iter).data();
+    *file = (*(*i).second.M_source_iter).data();
+    if (*(*(*i).second.M_func_iter).data() != '-')	// '-' is used for DWARF symbols by load_dwarf() (see above).
+      *func = (*(*i).second.M_func_iter).data();
     else
       *func = symbol->name;
-    *line = (*i).second.line;
+    *line = (*i).second.M_line;
   }
   return;
 }
@@ -1784,9 +1912,7 @@ void object_file_ct::register_range(location_st const& location, range_st const&
 {
   if ((DEBUGDWARF && M_dwarf_debug_line_section_index)
       || (DEBUGSTABS && M_stabs_section_index))
-    Dout(dc::bfd, std::hex << range.start << " - " << (range.start + range.size)
-	<< "; " << (*location.source_iter).data() << ':' << std::dec << location.line << " : \""
-	<< (*location.func_iter).data() << "\".");
+    Dout(dc::bfd, std::hex << range.start << " - " << (range.start + range.size) << "; " << location << '.');
 #if DEBUGSTABS || DEBUGDWARF
   std::pair<object_files_range_location_map_ct::iterator, bool> p(
 #endif
@@ -1798,7 +1924,7 @@ void object_file_ct::register_range(location_st const& location, range_st const&
 #if DEBUGSTABS || DEBUGDWARF
   if (!p.second)
   {
-    if ((*p.first).second.func_iter != location.func_iter)
+    if ((*p.first).second.M_func_iter != location.M_func_iter)
       Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
     else
     {
@@ -1806,9 +1932,9 @@ void object_file_ct::register_range(location_st const& location, range_st const&
         Dout(dc::bfd, "WARNING: Different start for same function (" << *p.first << ")!?");
       if ((*p.first).first.size != range.size)
 	Dout(dc::bfd, "WARNING: Different sizes for same function.  Not sure what .stabs entry to use.");
-      if ((*p.first).second.line != location.line)
+      if ((*p.first).second.M_line != location.M_line)
         Dout(dc::bfd, "WARNING: Different line numbers for overlapping range (" << *p.first << ")!?");
-      if ((*p.first).second.source_iter != location.source_iter)
+      if ((*p.first).second.M_source_iter != location.M_source_iter)
         Dout(dc::bfd, "Collision with " << *p.first << ".");
     }
   }

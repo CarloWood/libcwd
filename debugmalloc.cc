@@ -945,7 +945,9 @@ void dm_alloc_ct::print_description(LIBCWD_TSD_PARAM) const
 	_private_::no_alloc_print_int_to(buf, a_size / type_info_ptr->ref_size(), false);
 	buf->put(']');
       }
+#ifdef LIBCWD_USE_STRSTREAM
       buf->put('\0');
+#endif
       DoutInternal( dc::continued, buf->str() );
 #ifdef LIBCWD_USE_STRSTREAM
       buf->freeze(0);
