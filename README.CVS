@@ -24,6 +24,9 @@ autoheader
 autoconf
 automake
 
+or just type `make' which will use the lowercase
+`makefile' to do the above.
+
 After that, you can continue as usual with
 ./configure, see the INSTALL file for details.
 
