@@ -2,17 +2,16 @@
 // Please see the "example-project" in the source distribution of libcwd
 // for a better Real Life example.
 
+#define _GNU_SOURCE
 #include <libcw/sysd.h>
 #define DEBUGCHANNELS ::example		      // Where we'll put our namespace dc
 #include <libcw/debug.h>
 
-#ifdef CWDEBUG
 namespace example {                           // namespace dc cannot be put in ::
   namespace dc {
     libcw::debug::channel_ct ghost("GHOST");  // Create our own Debug Channel
   }
 }
-#endif
 
 int main(void)
 {

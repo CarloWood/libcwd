@@ -13,6 +13,7 @@ uses it to write its debug output to.</P>
 
 <P>Compile as: <CODE>g++ -DCWDEBUG log_file.cc -lcwd -o log_file</CODE></P>
 <PRE>
+#define _GNU_SOURCE
 #include &lt;libcw/sysd.h&gt;
 #include &lt;fstream&gt;
 #include &lt;libcw/debug.h&gt;

@@ -13,7 +13,7 @@
 
 #define _LARGEFILE64_SOURCE
 
-#include <libcw/sysd.h>
+#include "sys.h"
 #include <libcw/debug_config.h>		// Needed for DEBUGDEBUGTHREADS
 
 #ifdef DEBUGDEBUGTHREADS

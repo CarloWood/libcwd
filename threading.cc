@@ -105,15 +105,16 @@ void TSD_st::S_exit_key_alloc(void) throw()
 
 void TSD_st::cleanup_routine(void) throw()
 {
-  Dout(dc::always, "Thread " << tid << " is exiting.");
   set_alloc_checking_off(*this);
   for (int i = 0; i < LIBCWD_DO_MAX; ++i)
     if (do_array[i])
     {
-      do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
       debug_tsd_st* ptr = do_array[i];
-      do_array[i] = NULL;			// Be paranoid.
-      delete ptr;				// Free old objects.
+      if (ptr->tsd_keep)
+	continue;
+      do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
+      do_array[i] = NULL;			// So we won't free it again.
+      delete ptr;				// Free debug object TSD.
     }
   set_alloc_checking_on(*this);
 }

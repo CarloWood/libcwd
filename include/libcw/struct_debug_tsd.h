@@ -62,6 +62,10 @@ struct debug_tsd_st {
 
   bool tsd_initialized;
     // Set after initialization is completed.
+  
+  bool tsd_keep;
+    // Do not disable debug output and delete the TSD of the this debug object
+    // during the pthread key destruction phase.
 
 #ifdef DEBUGDEBUGOUTPUT
   // Since with DEBUGDEBUG defined we start with _off is -1 instead of 0,
@@ -108,9 +112,9 @@ struct debug_tsd_st {
     // A value of 0 means directly behind the marker.
 
   // Accessed from LibcwdDout.
-  void start(debug_ct&, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM);
-  void finish(debug_ct&, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM);
-  void fatal_finish(debug_ct&, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM) __attribute__ ((__noreturn__));
+  void start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM);
+  void finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM);
+  void fatal_finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM) __attribute__ ((__noreturn__));
 
   // Initialization and de-initialization.
   void init(void);
@@ -118,7 +122,7 @@ struct debug_tsd_st {
 #ifndef LIBCWD_THREAD_SAFE
       _off(0),
 #endif
-      tsd_initialized(false) { }
+      tsd_initialized(false), tsd_keep(false) { }
   ~debug_tsd_st();
 };
 

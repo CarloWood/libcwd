@@ -14,8 +14,22 @@ bring you here to read just that one question.</P>
 
 <HR SIZE=1 NOSHADE>
 
+<A name="GNU_SOURCE"></A>
+<H3>1. Won't this define make my code non-portable?</H3>
+
+<P>No, not unless you actually use the GNU extensions in parts of your
+application that need to be portable (like non-debugging code).&nbsp;
+While debugging the application you will only benefit from using as
+much compiler support as you can get, allowing the compiler to tell you
+what could possibly be wrong with your code.&nbsp;
+Once the application works, you don't have to define _GNU_SOURCE
+because you won't be including the debug code anymore, nor link with
+libcwd.&nbsp;  Of course, when you are not sure whether or not new code
+that you added is a GNU extension or not, you should try to compile it
+with CWDEBUG undefined.</P>
+
 <A name="sysd.h"></A>
-<H3>1. Why do I have to include &quot;libcw/sysd.h&quot; as first header file?</H3>
+<H3>2. Why do I have to include &quot;libcw/sysd.h&quot; as first header file?</H3>
 
 <P>This header file is used to fix operating systems bugs, including bugs
 in the system header files.&nbsp; The only way it can do this is when it
@@ -32,7 +46,7 @@ or including any other libcw header file before including libcw/sysd.h,
 will definitely lead to compile errors in that header file.&nbsp;</P>
 
 <A name="libcwd"></A>
-<H3>2. What is this <SPAN class="H3code">libcw</SPAN> talk?
+<H3>3. What is this <SPAN class="H3code">libcw</SPAN> talk?
 Aren't you forgetting the <U><SPAN class="H3code">d</SPAN></U> of
 <SPAN class="H3code">libcw<U>d</U></SPAN>?</H3>
 
@@ -49,7 +63,7 @@ the designer/developer of this life-span project [but I suppose you already
 guessed that&nbsp;;)&nbsp;].</P>
 
 <A name="dir"></A>
-<H3>3. Why do I need to type &quot;<SPAN class="H3code">libcw/sysd.h</SPAN>&quot;
+<H3>4. Why do I need to type &quot;<SPAN class="H3code">libcw/sysd.h</SPAN>&quot;
 and not just &quot;<SPAN class="H3code">sysd.h</SPAN>&quot;?</H3>
 
 <P>The header file names of libcw are not unique.&nbsp; In order to uniquely
@@ -63,20 +77,20 @@ directives.&nbsp; There is no garantee that there isn't a header file name
 collision in that case.</P>
 
 <A name="debug.h"></A>
-<H3>4. What is defined <EM>exactly</EM> in <SPAN class="H3code">libcw/debug.h</SPAN>?</H3>
+<H3>5. What is defined <EM>exactly</EM> in <SPAN class="H3code">libcw/debug.h</SPAN>?</H3>
 
 <P>Everything.&nbsp;
 Go and read the <A HREF="../html/reference.html>Reference Manual</A> to get <EM>all</EM> gory details if you dare.</P>
 
 <A name="macros"></A>
-<H3>5. Why are you using macros for <SPAN class="H3code">Debug</SPAN> and <SPAN class="H3code">Dout</SPAN>?</H3>
+<H3>6. Why are you using macros for <SPAN class="H3code">Debug</SPAN> and <SPAN class="H3code">Dout</SPAN>?</H3>
 
 <P>Because it is the only way to easy remove debugging code from an application as function of a macro
 and because it allows for the fastest possible code even without optimisation, which is often the case
 while debugging.&nbsp; A more detailed explanation is given in the <A HREF="../html/page_why_macro.html">Reference Manual</A>.</P>
 
 <A name="Debug"></A>
-<H3>6. Why do I need to type the <SPAN class="H3code">Debug(&nbsp;&nbsp;)</SPAN> around it?</H3>
+<H3>7. Why do I need to type the <SPAN class="H3code">Debug(&nbsp;&nbsp;)</SPAN> around it?</H3>
 
 <P>The macro <SPAN class="code">Debug()</SPAN> is used for two things. 1) The code inside it is only included
 when the macro <SPAN class="code">CWDEBUG</SPAN> is defined. 2) It includes the namespace <SPAN class="code">libcw::debug</SPAN>.</P>
@@ -101,7 +115,7 @@ Please read the <A HREF="../html/group__chapter__custom__debug__h.html">Referenc
 explanation of <SPAN class="code">DEBUGCHANNELS</SPAN>.</P>
 
 <A name="DebugChannels"></A>
-<H3>7. Which Debug Channels exist?&nbsp; Can I make my own?</H3>
+<H3>8. Which Debug Channels exist?&nbsp; Can I make my own?</H3>
 
 <P>This question is covered in chapter
 <A HREF="../html/group__group__debug__channels.html">Controlling The Output Level (Debug Channels)</A>
@@ -139,7 +153,7 @@ namespace myapplication {
 with the source distribution of libcwd for a Real Life example.</P>
 
 <A name="recursive"></A>
-<H3>8. Can I turn Debug Channels off again?&nbsp; Can I do that recursively?</H3>
+<H3>9. Can I turn Debug Channels off again?&nbsp; Can I do that recursively?</H3>
 
 <P>Debug channels can be switched on and off at any time.&nbsp; At the start of your program you should
 turn on the channels of your choice by calling <SPAN class="code">Debug(dc::<EM>channel</EM>.on())</SPAN>
@@ -163,7 +177,7 @@ that it was in before the corresponding call to <SPAN class="code">off()</SPAN>.
 <SPAN class="code">off()</SPAN> and <SPAN class="code">on()</SPAN> only respectively increment and decrement a counter.</P>
 
 <A name="Channel"></A>
-<H3>9. Why do you call it a Debug <EM>Channel</EM>?&nbsp; What <EM>is</EM> a Debug Channel?</H3>
+<H3>10. Why do you call it a Debug <EM>Channel</EM>?&nbsp; What <EM>is</EM> a Debug Channel?</H3>
 
 <P>A Debug Channel is a fictious &quot;news channel&quot;.&nbsp; It should contain information of a certain kind that is
 interesting or not interesting as a whole.&nbsp; A Debug Channel is not a device or stream, a single debug channel is best
@@ -173,7 +187,7 @@ news groups for a single message.&nbsp; When any of the specified Debug Channels
 to the output stream of the underlaying debug object.</P>
 
 <A name="OwnDebugObject"></A>
-<H3>10. Can I make my own Debug Object?</H3>
+<H3>11. Can I make my own Debug Object?</H3>
 
 <P><A HREF="../html/group__chapter__custom__do.html">Yes</A>, you can make as many debug objects as you like.&nbsp;
 Each debug object is associated with one ostream.&nbsp; However, the default debug output macros <CODE>Dout</CODE> and
@@ -193,7 +207,7 @@ extern libcw::debug::debug_ct <SPAN class="highlight">my_debug_object</SPAN>;
 </PRE>
 
 <A name="recursive2"></A>
-<H3>11. Can I turn Debug Objects off again? Can I do that recursively?</H3>
+<H3>12. Can I turn Debug Objects off again? Can I do that recursively?</H3>
 
 <P>Debug objects can be switched on and off at any time.&nbsp; At the start of your program you should
 turn on the debug object(s) by calling <SPAN class="code">Debug(<EM>debugobject</EM>.on())</SPAN>
@@ -214,7 +228,7 @@ that it was in before the corresponding call to <SPAN class="code">off()</SPAN>.
 <SPAN class="code">off()</SPAN> and <SPAN class="code">on()</SPAN> only respectively increment and decrement a counter.</P>
 
 <A name="SetOstream"></A>
-<H3>12. How do I set a new <SPAN class="H3code">ostream</SPAN> for a given Debug Object?</H3>
+<H3>13. How do I set a new <SPAN class="H3code">ostream</SPAN> for a given Debug Object?</H3>
 
 <P>You can change the <SPAN class="code">ostream</SPAN> that is associated with a Debug Object at any time.&nbsp;
 For example, changing the <SPAN class="code">ostream</SPAN> of <SPAN class="code">libcw_do</SPAN> from the
@@ -227,7 +241,7 @@ default <SPAN class="code">cerr</SPAN> to <SPAN class="code">cout</SPAN>:</P>
 <P>See also <A HREF="tut3.html">tutorial 3</A>.</P>
 
 <A name="WhyOff"></A>
-<H3>13. Why are Debug Objects turned off at creation?</H3>
+<H3>14. Why are Debug Objects turned off at creation?</H3>
 
 <P>The Debug Objects and Debug Channels are global objects.&nbsp; Because libcwd could not be
 dependant of libcw, they do not use libcw's <CODE>Global&lt;&gt;</CODE> template.&nbsp;
@@ -239,7 +253,7 @@ crashing.&nbsp; It should be obvious that the only way this could be achieved wa
 in the state <EM>off</EM>.</P>
 
 <A name="Order"></A>
-<H3>14. Why do you turn on the debug object after you enable a debug channel, why not the other way around?</H3>
+<H3>15. Why do you turn on the debug object after you enable a debug channel, why not the other way around?</H3>
 
 <P>The order in which Debug Channels and Debug Objects are turned on does not matter at all.&nbsp;
 At most, when you think about the Debug Object as the &laquo;main switch&raquo; then it seems to make
@@ -248,7 +262,7 @@ machinery.&nbsp; Others might think more in the lines of: lets start with settin
 <EM>on</EM> before I forget it.&nbsp; That is a bit <EM>too</EM> fuzzy (logic) for me though ;)</P>
 
 <A name="Object"></A>
-<H3>15. Why do you call it a Debug <EM>Object</EM>?&nbsp; What <EM>is</EM> a Debug Object?</H3>
+<H3>16. Why do you call it a Debug <EM>Object</EM>?&nbsp; What <EM>is</EM> a Debug Object?</H3>
 
 <P>Good question.&nbsp; It can't be because I wasn't creative, I am very creative.&nbsp;
 Note that I didn't think of <EM>Object</EM> as in OOP (<EM>that</EM> would be uncreative)
@@ -263,7 +277,7 @@ as some formatting information of how to write the data that is passed on to its
 <SPAN class="code">ostream</SPAN>.</P>
 
 <A name="semicolon"></A>
-<H3>16. Do I need to type that semi-colon after the macro?&nbsp; Why isn't it part of the macro?</H3>
+<H3>17. Do I need to type that semi-colon after the macro?&nbsp; Why isn't it part of the macro?</H3>
 
 <P>Yes, that colon needs to be there.&nbsp;
 It was chosen not to include the semi-colon in the macro because this way it looks
@@ -309,7 +323,7 @@ looks so much better), which would break code like:</P>
 </PRE>
 
 <A name="LibcwDout"></A>
-<H3>17. I made my own Debug Object, can I still use <SPAN class="H3code">Dout</SPAN>?</H3>
+<H3>18. I made my own Debug Object, can I still use <SPAN class="H3code">Dout</SPAN>?</H3>
 
 <P>No, macro <SPAN class="code">Dout</SPAN> et al. use exclusively the debug object that
 comes with libcwd.&nbsp; It is easy to define your own macros however (see <A HREF="#OwnDebugObject">above</A>).&nbsp;
@@ -319,7 +333,7 @@ in its header files do not use the <SPAN class="code">Dout</SPAN> macro (especia
 to redefine it).</P>
 
 <A name="evaluation"></A>
-<H3>18. Is the second field of the macro still evaluated when the Debug Channel and/or Debug Object are turned off?</H3>
+<H3>19. Is the second field of the macro still evaluated when the Debug Channel and/or Debug Object are turned off?</H3>
 
 <P>No!&nbsp; And that is a direct result of the fact that <SPAN class="code">Dout</SPAN> et al. are <EM>macros</EM>.&nbsp;
 Indeed this fact could therefore be a little confusing.&nbsp;
@@ -338,19 +352,19 @@ actually written.&nbsp; This fact is also covered in the
 In the production version of your application all debug code will be removed and you don't want it to behave differently then!</P>
 
 <A name="suppress"></A>
-<H3>19. Can I suppress that new-line character?</H3>
+<H3>20. Can I suppress that new-line character?</H3>
 
 <P>Yes, and a lot more.&nbsp; See <A HREF="tut5.html#Formatting">tutorial 5.4</A>.</P>
 
 <A name="label"></A>
-<H3>20. What is the maximum length of a label?</H3>
+<H3>21. What is the maximum length of a label?</H3>
 
 <P>The maximum length of the label of a new Debug Channel is given
 by the constant<SPAN class="code"> libcw::debug::max_label_len_c</SPAN>.&nbsp;
 At this moment that is 16.</P>
 
 <A name="prefix"></A>
-<H3>21. Why do I have to use the <SPAN class="H3code">dc::</SPAN> prefix?</H3>
+<H3>22. Why do I have to use the <SPAN class="H3code">dc::</SPAN> prefix?</H3>
 
 <P>This is a complex reason.&nbsp; Basically because of a flaw in the design of namespaces in C++.&nbsp;
 Namespaces have been introduced in order to avoid name collisions, which was a good thing.&nbsp;
@@ -422,13 +436,13 @@ channels and not understand how it works.&nbsp; The correct procedure is describ
 in the <A HREF="../html/group__group__debug__channels.html">Reference Manual</A>.</P>
 
 <A name="ownnamespace"></A>
-<H3>22. Can I put my debug channels in my own name space?</H3>
+<H3>23. Can I put my debug channels in my own name space?</H3>
 
 <P>Yes.&nbsp; How, is described in the <A HREF="../html/group__group__debug__channels.html">Reference Manual</A>.&nbsp;
 For some background information on why this has to be so complex, please read the <A HREF="#prefix">previous question</A>.</P>
 
 <A name="labelwidth"></A>
-<H3>23. Why does it print spaces between the label and the colon?&nbsp; How is the field width of the label determined?</H3>
+<H3>24. Why does it print spaces between the label and the colon?&nbsp; How is the field width of the label determined?</H3>
 
 <P>The colon is indented so it ends up in the same column for all existing debug channels.&nbsp;
 Hence, the longest label of all existing/created debug channels determines the number of spaces.&nbsp;

@@ -14,6 +14,11 @@
 #ifndef TESTSUITE_SYS_H
 #define TESTSUITE_SYS_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <libcw/sysd.h>
+
 #include "../../config.h"
 #ifdef HAVE__G_CONFIG_H
 #include <_G_config.h>
@@ -24,7 +29,5 @@
 #define _G_HAS_LABS 1
 #endif
 #endif // HAVE__G_CONFIG_H
-
-#include <libcw/sysd.h>
 
 #endif // TESTSUITE_SYS_H

@@ -13,7 +13,8 @@ to <CODE>cerr</CODE> is:</P>
 <P>Compile as: <SPAN class="shell-command">g++ -g -DCWDEBUG hello_world.cc -lcwd -o hello_world</SPAN></P>
 
 <PRE>
-#include &lt;libcw/sysd.h&gt;                  // This must be the first header file&nbsp;&nbsp;
+#define _GNU_SOURCE			// This must be defined before including &lt;libcw/sysd.h&gt;
+#include &lt;libcw/sysd.h&gt;           // This must be the first header file&nbsp;&nbsp;
 #include &lt;libcw/debug.h&gt;
 
 int main(void)
@@ -28,6 +29,22 @@ int main(void)
 </PRE>
 
 <P>Each of the lines of code in this first example program are explained below:</P>
+
+<H3><CODE>#define _GNU_SOURCE</CODE></H3>
+
+<P>This define is necessary to tell the system headers that you
+want to use the GNU extensions (see /usr/include/features.h).&nbsp;
+In order to make you explicitely aware of the fact that it is
+defined, libcwd does not define this macro itself (which it could do inside &lt;libcw/sysd.h&gt;),
+but forces you to define it when using libcwd.&nbsp;
+Note you only really have to define it when you compiled libcwd with
+threading support.&nbsp;
+If you do not define this macro and libcwd needs it, then you will get
+a compile error in &lt;libcw/sysd.h&gt; telling you so.</P>
+
+<DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
+<LI><A HREF="faq.html#GNU_SOURCE">Won't this define make my code non-portable?</LI>
+</UL></DIV>
 
 <H3><CODE>#include &lt;libcw/sysd.h&gt;</CODE></H3>
 

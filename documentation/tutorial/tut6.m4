@@ -59,6 +59,7 @@ the default debug object <CODE>libcw_do</CODE>:</P>
 
 <P>Compile as: <CODE>g++ -DCWDEBUG amo.cc -lcwd -o amo</CODE></P>
 <PRE>
+#define _GNU_SOURCE
 #include &lt;libcw/sysd.h&gt;
 #include &lt;libcw/debug.h&gt;
 
@@ -84,6 +85,7 @@ MALLOC  : Allocated memory: 0 bytes in 0 blocks.
 <P>Now let us actually allocate some memory:</P>
 
 <PRE>
+#define _GNU_SOURCE
 #include &lt;libcw/sysd.h&gt;
 #include &lt;libcw/debug.h&gt;
 
@@ -115,6 +117,7 @@ we expect source file and line number information of every memory allocation, an
 In order to find out what is wrong, we <EM>also turn on debug channel</EM><CODE> dc::bfd</CODE>:</P>
 
 <PRE>
+#define _GNU_SOURCE
 #include &lt;libcw/sysd.h&gt;
 #include &lt;libcw/debug.h&gt;
 
@@ -180,6 +183,7 @@ better surveyable by adding a &laquo;tag&raquo; for every allocation that
 your program is doing:</P>
 
 <PRE>
+#define _GNU_SOURCE
 #include &lt;libcw/sysd.h&gt;
 #include &lt;libcw/debug.h&gt;
 
@@ -215,6 +219,7 @@ of memory blocks (the comment is only stored once).</P>
 <P>Consider the following code:</P>
 
 <PRE>
+#define _GNU_SOURCE
 #include &lt;libcw/sysd.h&gt;
 #include &lt;libcw/debug.h&gt;
 
@@ -254,6 +259,7 @@ new[]     0x804f8d0               amo.cc:12   int[100]; (sz = 400)  Test array n
 <CODE>AllocTag_dynamic_description()</CODE>, which <EM>will</EM> work.</P>
 
 <PRE>
+#define _GNU_SOURCE
 #include &lt;libcw/sysd.h&gt;
 #include &lt;libcw/debug.h&gt;
 
@@ -299,6 +305,7 @@ an allocation as if you did a <CODE>new</CODE> followed by a
 <CODE>AllocTag1(p)</CODE>:</P>
 
 <PRE>
+#define _GNU_SOURCE
 #include &lt;libcw/sysd.h&gt;
 #include &lt;libcw/debug.h&gt;
 

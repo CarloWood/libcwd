@@ -284,6 +284,7 @@ namespace libcw {
       channels::dc::system.NS_initialize("SYSTEM");
 
       libcw_do.NS_init();			// Initialize debug code.
+      libcw_do.keep_tsd(true);
 
       // Unlimit core size.
 #ifdef RLIMIT_CORE
@@ -1069,7 +1070,7 @@ namespace libcw {
     }
 
     /**
-     * \fn void list_channels_on(debug_ct const& debug_object)
+     * \fn void list_channels_on(debug_ct& debug_object)
      * \ingroup group_special
      *
      * \brief List all %debug %channels to a given %debug object.
@@ -1425,6 +1426,16 @@ namespace libcw {
 	core_dump();							// off() and on() where called and not in equal pairs.
       LIBCWD_TSD_MEMBER_OFF = state._off;				// Restore.
     }
+
+#ifdef LIBCWD_THREAD_SAFE
+    bool debug_ct::keep_tsd(bool keep)
+    {
+      LIBCWD_TSD_DECLARATION
+      bool old = LIBCWD_TSD_MEMBER(tsd_keep);
+      LIBCWD_TSD_MEMBER(tsd_keep) = keep;
+      return old;
+    }
+#endif
 
     void channel_ct::force_on(channel_ct::OnOffState& state, char const* label)
     {

@@ -249,7 +249,7 @@ namespace {
   };
 
   enum param_qualifier_nt {
-    vendor_extention = 'U',
+    vendor_extension = 'U',
     array = 'A',
     pointer_to_member = 'M'
   };
@@ -1240,7 +1240,7 @@ namespace {
 	    failure = true;
 	    break;
 	  }
-          qualifiers->add_qualifier_start(vendor_extention, start_pos, source_name, M_inside_substitution);
+          qualifiers->add_qualifier_start(vendor_extension, start_pos, source_name, M_inside_substitution);
 	  continue;
 	}
 	case 'A':
@@ -1816,7 +1816,7 @@ decode_type_exit:
 	    || (M_pos += decode_encoding(M_str + M_pos, output)) < 0)
 	  FAILURE;
         RETURN;
-      case 'C':		// GNU extention?
+      case 'C':		// GNU extension?
       {
         internal_string first;
         output += "construction vtable for ";

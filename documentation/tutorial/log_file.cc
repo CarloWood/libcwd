@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <libcw/sysd.h>
 #include <fstream>
 #include <libcw/debug.h>

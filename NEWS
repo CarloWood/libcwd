@@ -61,6 +61,17 @@ libcwd-0.99.16
 	Reason: the temporary stringstream that was returned was only valid
 	inside a Dout to begin with.  The use of get_os() was dangerous.
 
+	You will need to add
+	#ifndef _GNU_SOURCE
+        #define _GNU_SOURCE
+        #endif
+	to your "sys.h" file, prior to including any other header file,
+	just before including <libcw/sysd.h>.  This is needed because libcwd
+	uses GNU extensions.  Of course, it is not necessary to define
+	_GNU_SOURCE when CWDEBUG isn't defined, so you may put it inside the
+        #ifdef CWDEBUG ... #endif.
+	If you don't understand this, read documentation/html/preparation.html.
+
 	Bug fixes:
 
 	When using .stabs, each first line of code after a source file scope change

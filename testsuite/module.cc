@@ -1,4 +1,5 @@
 // A shared library
+#define _GNU_SOURCE
 #include <libcw/sysd.h>
 #include <libcw/debug.h>
 

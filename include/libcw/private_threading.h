@@ -41,8 +41,10 @@
 #endif
 
 #ifdef LIBCWD_HAVE_PTHREAD
+#ifndef __USE_GNU
+#error "__USE_GNU is not defined!"
+#endif
 #include <pthread.h>
-#include <semaphore.h>
 #if defined(PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP) && defined(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP)
 #define LIBCWD_USE_LINUXTHREADS 1
 #else
@@ -403,6 +405,7 @@ template <int instance>
   private:
     static pthread_cond_t S_condition;
 #if defined(DEBUGDEBUGTHREADS) || !LIBCWD_USE_LINUXTHREADS
+    static bool S_initialized;
   private:
     static void S_initialize(void) throw();
 #endif
@@ -445,7 +448,7 @@ template <int instance>
   }
 #endif // !LIBCWD_USE_LINUXTHREADS
 
-#if !LIBCWD_USE_LINUXTHREADS
+#if defined(DEBUGDEBUGTHREADS) || !LIBCWD_USE_LINUXTHREADS
 template <int instance>
   bool cond_tct<instance>::S_initialized = false;
 #endif

@@ -17,6 +17,9 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 #include "config.h"		//   when using autoconf for your project.
 #endif
 #ifdef CWDEBUG		// This is needed so that others can compile
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include &lt;libcw/sysd.h&gt	//   your application without having libcwd installed.
 #endif
 </PRE>

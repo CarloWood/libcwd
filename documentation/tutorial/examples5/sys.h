@@ -1,6 +1,11 @@
-#ifdef HAVE_CONFIG_H		// This is just an example of what you could do
-#include "config.h"		//   when using autoconf for your project.
+// This is just an example of what you could do when using autoconf for your project.
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
-#ifdef CWDEBUG			// This is needed so that others can compile
-#include <libcw/sysd.h> 	//   your application without having libcwd installed.
+// This is needed so that others can compile your application without having libcwd installed.
+#ifdef CWDEBUG
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE		// Libcwd uses GNU extensions.
+#endif
+#include <libcw/sysd.h>
 #endif

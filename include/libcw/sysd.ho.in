@@ -57,7 +57,7 @@ namespace libcw {
 // Abort when someone tries to use MT with libcwd without MT support.
 #@CW_CONFIG_THREAD_SAFE@ LIBCWD_TMP_THREAD_SAFE
 #if defined(_REENTRANT) && !defined(LIBCWD_TMP_THREAD_SAFE)
-#error "Recompile libcwd with --enable-threading to enable support for Multi-Threading."
+#error "Recompile libcwd with --enable-libcwd-threading to enable support for Multi-Threading."
 #endif
 
 #ifdef LIBCWD_TMP_THREAD_SAFE
@@ -67,7 +67,13 @@ namespace libcw {
 #define LIBCWD_MT_VOLATILE
 #endif
 
-// Was only needed for the two tests above.
+#if defined(LIBCWD_TMP_THREAD_SAFE) && !defined(_GNU_SOURCE)
+#error "Sorry, libcwd with --enable-libcwd-threading uses GNU extensions, also in the header files.  "
+       "Therefore you must also define _GNU_SOURCE when you are linking with libcwd.  "
+       "Please add #define _GNU_SOURCE to your \"sys.h\", see html/preparation.html#preparation_step2."
+#endif
+
+// Was only needed for the three tests above.
 #undef LIBCWD_TMP_THREAD_SAFE
 
 #endif /* LIBCW_SYSD_H */

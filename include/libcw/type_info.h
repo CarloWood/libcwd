@@ -220,19 +220,13 @@ template<typename T>
     {
       LIBCWD_TSD_DECLARATION
 #ifdef LIBCWD_THREAD_SAFE
-      // MT: The critical area of spinlock contains no cancellation points:
-      // extract_exact_name() doesn't and even the constructor of type_info_ct
-      // that calls make_label, which calls demangle_type, do not print output.
-      // However, if we are a-synchrone then cancellation can happen at any
-      // point.  Therefore we set the cancellation type to defer.
-      int oldstate;
-      pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldstate);
-      _private_::cancel_buffer_t buffer;
-      _private_::mutex_tct<_private_::type_info_of_instance>::lock(buffer);
+      LIBCWD_DEFER_CANCEL
+      _private_::mutex_tct<_private_::type_info_of_instance>::initialize();
+      _private_::mutex_tct<_private_::type_info_of_instance>::lock();
       volatile static bool spin_lock = false;
       while(spin_lock);
       spin_lock = true;
-      _private_::mutex_tct<_private_::type_info_of_instance>::unlock(buffer);
+      _private_::mutex_tct<_private_::type_info_of_instance>::unlock();
       if (::libcwd_type_info_exact<T>::value_c.size() == 0)		// Recheck now that we acquired the lock.
 #endif
       {
@@ -241,7 +235,7 @@ template<typename T>
       }
 #ifdef LIBCWD_THREAD_SAFE
       spin_lock = false;
-      pthread_setcanceltype(oldstate, NULL);
+      LIBCWD_RESTORE_CANCEL
 #endif
     }
 #endif // __GNUC__ == 2 && __GNUC_MINOR__ < 97

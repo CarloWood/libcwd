@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <libcw/sysd.h>			// This must be the first header file
 #include <libcw/debug.h>
 
