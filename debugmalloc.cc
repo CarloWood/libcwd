@@ -150,6 +150,7 @@ RCSTAG_CC("$Id$")
 
 #ifdef CWDEBUG
 extern "C" int raise (int sig);
+namespace libcw { namespace debug { extern void initialize_globals(void); } }
 
 #ifdef DEBUGDEBUG
 #define DEBUGDEBUG_DoutInternal_MARKER DEBUGDEBUG_CERR( "DoutInternal at " << __FILE__ << ':' << __LINE__ )
@@ -852,6 +853,11 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
   {
     internal = true;
     memblk_map = new memblk_map_ct;
+#ifdef CWDEBUG
+    libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
+    					// to be a function that is called _very_ early - and hence this is a good moment
+					// to initialize ALL of libcwd.
+#endif
     internal = false;
   }
 
@@ -891,6 +897,11 @@ void init_debugmalloc(void)
   {
     set_alloc_checking_off();
     memblk_map = new memblk_map_ct;
+#ifdef CWDEBUG
+    libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
+    					// to be a function that is called _very_ early - and hence this is a good moment
+					// to initialize ALL of libcwd.
+#endif
     set_alloc_checking_on();
   }
 }

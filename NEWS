@@ -19,6 +19,12 @@ libcwd-0.99.9
 	A new demangler was added for g++-3.0 and higher (the new ABI).  This took me weeks
 	and weeks of hard work!
 
+	class channel_ct has a new method: initialize(char const* label).  This allows one
+	to pre-initialize a debug channel in the emergency case that it is needed before
+	the constructor of this global object is called.  All global objects that libcwd
+	declares are initialized this way when either `libcw_do' is constructed, or at the
+	first call to new/malloc.
+
 libcwd-0.99.8
 
 	This version now also compiles and works with g++ 2.95.3 and 3.0 20010523 (prerelease).

@@ -355,7 +355,7 @@ bool bulk_alloc(size_t malloc_overhead_attempt, size_t size)
 int main(int argc, char* argv[])
 {
   if (argc == 1)
-    exit(0);	// This wasn't the real rest yet
+    exit(0);	// This wasn't the real test yet
   for (size_t s = 0; s <= 64; s += 2)
     if (bulk_alloc(s, 2048))
       exit(s);

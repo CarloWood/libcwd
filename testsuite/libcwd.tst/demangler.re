@@ -9,3 +9,4 @@ char* std::basic_string<char, std::char_traits<char>, libcw::debug::no_alloc_che
 void f<A, A*, A const*>(A, A*, A const*, A const* (*) [4], A const* (*C::*) [4], A const* (&D::*) [3])
 foo(int, int*, int**, int***, int****, int*****, int******, int*******, int********, int*********, int**********, int***********, int************, int*************, int**************, int***************)
 std::D<A*, A*&, A**> std::B<std::D<A*, A* const&, A* const*>, std::D<A*, A*&, A**>, A*>(std::D<A*, A* const&, A* const*>, std::D<A*, A* const&, A* const*>, std::D<A*, A*&, A**>, A**)
+void operator-<42>(A<(42) + (2)>::T)

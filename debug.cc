@@ -75,7 +75,7 @@ namespace libcw {
     }
 
     debug_ct libcw_do;			// The Debug Object that is used by default by Dout(), the only debug object used
-					     // by libcw itself.
+					// by libcw itself.
 
     namespace {
       unsigned short int max_len = 8;	// The length of the longest label. Is adjusted automatically
@@ -96,6 +96,11 @@ namespace libcw {
 	fatal_channel_ct const fatal("FATAL", fatal_maskbit);
 	fatal_channel_ct const core("COREDUMP", coredump_maskbit);
       }
+    }
+
+    void initialize_globals(void)
+    {
+      libcw_do.init();
     }
 
     debug_channels_singleton_ct debug_channels;	// List with all channel_ct objects.
@@ -446,8 +451,18 @@ namespace libcw {
       continued_channel_set.debug_object = this;	// The owner of this continued_channel_set.
       // Fatal channels need to be marked fatal, otherwise we get into an endless loop
       // when they are used before they are created.
-      new (const_cast<fatal_channel_ct*>(&channels::dc::fatal)) fatal_channel_ct const ("FATAL", fatal_maskbit);
-      new (const_cast<fatal_channel_ct*>(&channels::dc::core)) fatal_channel_ct const ("COREDUMP", coredump_maskbit);
+      channels::dc::core.initialize("COREDUMP", coredump_maskbit);
+      channels::dc::fatal.initialize("FATAL", fatal_maskbit);
+      // Initialize other debug channels that might be used before we reach main().
+      channels::dc::debug.initialize("DEBUG");
+      channels::dc::malloc.initialize("MALLOC");
+      channels::dc::continued.initialize(continued_maskbit);
+      channels::dc::finish.initialize(finish_maskbit);
+      channels::dc::bfd.initialize("BFD");
+      // What the heck, initialize all other debug channels too
+      channels::dc::warning.initialize("WARNING");
+      channels::dc::notice.initialize("NOTICE");
+      channels::dc::system.initialize("SYSTEM");
       // `current' needs to be non-zero (saving us a check in start()) and
       // current.mask needs to be 0 to avoid a crash in start():
       debug_alloc_checking_on();
@@ -570,11 +585,13 @@ namespace libcw {
 	}
     }
 
-    channel_ct::channel_ct(char const* lbl) : off_cnt(0)
+    channel_ct::channel_ct(char const* lbl)
     {
-       // This is pretty much identical to fatal_channel_ct::fatal_channel_ct().
+      // This is pretty much identical to fatal_channel_ct::fatal_channel_ct().
 
       DEBUGDEBUG_CERR( "Entering `channel_ct::channel_ct(\"" << lbl << "\")'" );
+
+      off_cnt = 0;
 
       // Of course, dc::debug is off - so this won't do anything unless DEBUGDEBUG is #defined.
       Dout( dc::debug, "Initializing channel_ct(\"" << lbl << "\")" );
@@ -606,11 +623,6 @@ namespace libcw {
     fatal_channel_ct::fatal_channel_ct(char const* lbl, control_flag_t cb) : maskbit(cb)
     {
        // This is pretty much identical to channel_ct::channel_ct().
-
-       // This constructor is called *twice* (once from debug_ct::init()).
-       // Lets play safe and return the second time.
-       if (*label)
-         return;
 
       DEBUGDEBUG_CERR( "Entering `fatal_channel_ct::fatal_channel_ct(\"" << lbl << "\")'" );
 
@@ -647,14 +659,14 @@ namespace libcw {
     // Handle continued channel flags and update `off_count' and `continued_stack'.
     //
 
-    continued_channel_set_st& channel_set_st::operator|(continued_cf_st cf)
+    continued_channel_set_st& channel_set_st::operator|(continued_cf_nt)
     {
 #ifdef DEBUGDEBUG
       DEBUGDEBUG_CERR( "continued_cf detected" );
       if (!debug_object || !debug_object->initialized)
         DEBUGDEBUG_CERR( "Don't use DoutFatal together with continued_cf, use Dout instead." );
 #endif
-      mask |= cf.maskbit;
+      mask |= continued_cf_maskbit;
       if (!on)
       {
 	++(debug_object->off_count);

@@ -82,11 +82,6 @@ unsigned short const max_label_len = 16;
 // Define the type that is used for control flags and control flag mask.
 typedef unsigned int control_flag_t;
 
-struct continued_cf_st {
-  unsigned int maskbit;
-  continued_cf_st(control_flag_t mb) : maskbit(mb) {}
-};
-
 // The control bits:
 control_flag_t const nonewline_cf      		= 0x0001;
 control_flag_t const noprefix_cf       		= 0x0002;
@@ -106,7 +101,9 @@ control_flag_t const continued_maskbit 		= 0x2000;
 control_flag_t const finish_maskbit    		= 0x4000;
 
 // Its own type for overloading (saves us an `if'):
-continued_cf_st const continued_cf(continued_cf_maskbit);
+enum continued_cf_nt {
+  continued_cf
+};
 
 inline control_flag_t const cond_nonewline_cf(bool cond) { return cond ? nonewline_cf : 0; }
 inline control_flag_t const cond_noprefix_cf(bool cond) { return cond ? noprefix_cf : 0; }
@@ -149,6 +146,10 @@ public:
   explicit channel_ct(char const* lbl);
     // Constructor for an arbitrary new debug channel with label `lbl'.
     // A newly created channel is off by default.
+
+  void initialize(char const* lbl) const { if (!*label) new (const_cast<channel_ct*>(this)) channel_ct(lbl); }
+    // Force initialization in case the constructor of this global object
+    // wasn't called yet.  Does nothing when the object was already initialized.
 
 public:
   //---------------------------------------------------------------------------
@@ -199,6 +200,10 @@ public:
 
   explicit fatal_channel_ct(char const* lbl, control_flag_t cb);
     // Construct a special debug channel with label `lbl' and control bit `cb'.
+
+  void initialize(char const* lbl, control_flag_t cb) const { if (!*label) new (const_cast<fatal_channel_ct*>(this)) fatal_channel_ct(lbl, cb); }
+    // Force initialization in case the constructor of this global object
+    // wasn't called yet.  Does nothing when the object was already initialized.
 };
 
 //=============================================================================
@@ -225,6 +230,10 @@ public:
 
   explicit continued_channel_ct(control_flag_t cb) : maskbit(cb) { }
     // Construct a continued debug channel with extra control bit `cb'.
+
+  void initialize(control_flag_t cb) const { if (maskbit == 0) new (const_cast<continued_channel_ct*>(this)) continued_channel_ct(cb); }
+    // Force initialization in case the constructor of this global object
+    // wasn't called yet.  Does nothing when the object was already initialized.
 };
 
 //=============================================================================
@@ -296,7 +305,7 @@ struct channel_set_st : channel_set_data_st {
     if (!on)
     {
       label = dc.label;
-      on = (dc.off_cnt < 0);	// Private access to channel_ct::off_cnt, using < 0 instead of != -1 because thats faster.
+      on = (dc.off_cnt < 0);	// Private access to channel_ct::off_cnt, using < 0 instead of == -1 because thats faster.
     }
     return *this;
   }
@@ -312,7 +321,7 @@ struct channel_set_st : channel_set_data_st {
     return *this;
   }
 
-  continued_channel_set_st& operator|(continued_cf_st cf);
+  continued_channel_set_st& operator|(continued_cf_nt);
     // The returned set is a cast of this object.
 };
 
@@ -415,7 +424,7 @@ protected:
   debug_stack_tst<laf_ct*> laf_stack;
     // Store for nested debug calls.
 
-  friend continued_channel_set_st& channel_set_st::operator|(continued_cf_st cf);
+  friend continued_channel_set_st& channel_set_st::operator|(continued_cf_nt);
     // Needs access to `initialized', `off_count' and `continued_stack'.
 
   int off_count;
@@ -485,6 +494,7 @@ private:
 
   friend class channel_ct;
   friend class fatal_channel_ct;
+  friend void initialize_globals(void);
   void init(void);
     // Initialize this object, needed because debug output can be written
     // from the constructors of (other) global objects, and from the malloc()

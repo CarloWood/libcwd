@@ -707,6 +707,22 @@ namespace libcw {
 	init_debugmalloc();
 #endif
 
+#ifdef ALWAYS_PRINT_LOADING
+	// We want debug output to BFD
+	bool const libcwd_was_off =
+#ifdef DEBUGDEBUG
+	  false;
+#else
+	  true;
+#endif
+	if (libcwd_was_off)
+	  Debug( libcw_do.on() );
+	bool bfd_was_off;
+	Debug( bfd_was_off = !dc::bfd.is_on() );
+	if (bfd_was_off)
+	  Debug( dc::bfd.on() );
+#endif
+
 	// Initialize object files list
 	new (object_files_instance_) object_files_ct;
 
@@ -772,6 +788,13 @@ namespace libcw {
 	}
 
 	object_files().sort(object_file_greater());
+
+#ifdef ALWAYS_PRINT_LOADING
+	if (libcwd_was_off)
+	  Debug( libcw_do.off() );
+	if (bfd_was_off)
+	  Debug( dc::bfd.off() );
+#endif
 
 	initialized = true;
 

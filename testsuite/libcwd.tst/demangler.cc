@@ -13,7 +13,8 @@ char const* test_cases [] = {
    "_ZNSbIcSt11char_traitsIcEN5libcw5debug27no_alloc_checking_allocatorEE12_S_constructIPcEES6_T_S7_RKS3_",
    "_Z1fI1APS0_PKS0_EvT_T0_T1_PA4_S3_M1CS8_M1DRA3_S3_",
    "_Z3fooiPiPS_PS0_PS1_PS2_PS3_PS4_PS5_PS6_PS7_PS8_PS9_PSA_PSB_PSC_",
-   "_ZSt1BISt1DIP1ARKS2_PS3_ES0_IS2_RS2_PS2_ES2_ET0_T_SB_SA_PT1_"
+   "_ZSt1BISt1DIP1ARKS2_PS3_ES0_IS2_RS2_PS2_ES2_ET0_T_SB_SA_PT1_",
+   "_ZngILi42EEvN1AIXplT_Li2EEE1TE"
 };
 
 int main(void)
