@@ -10,5 +10,6 @@ threads3
 threads4
 stabs
 dout_alloc
+location
 .deps
 .libs
