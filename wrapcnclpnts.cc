@@ -18,10 +18,10 @@
 
 #if CWDEBUG_DEBUGT && defined(__linux)
 
-#ifndef LIBCW_PRIVATE_THREADING_H
+#ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
-#ifndef LIBCW_PRIVATE_ASSERT_H
+#ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
 #endif
 

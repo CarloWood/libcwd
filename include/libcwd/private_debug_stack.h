@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_DEBUG_STACK_H
-#define LIBCW_PRIVATE_DEBUG_STACK_H
+#ifndef LIBCWD_PRIVATE_DEBUG_STACK_H
+#define LIBCWD_PRIVATE_DEBUG_STACK_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 #ifndef LIBCW_CSTDDEF
@@ -51,4 +51,4 @@ template<typename T>		// T must be a builtin type.
   }  // namespace debug
 }  // namespace libcw
 
-#endif // LIBCW_PRIVATE_DEBUG_STACK_H
+#endif // LIBCWD_PRIVATE_DEBUG_STACK_H

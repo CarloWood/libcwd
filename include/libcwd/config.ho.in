@@ -16,8 +16,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_DEBUG_CONFIG_H
-#define LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
+#define LIBCWD_CONFIG_H
 
 //
 // DO NOT CHANGE THIS FILE
@@ -381,4 +381,4 @@ check_configuration(void) {
 } // namespace libcw
 #endif // __cplusplus
 
-#endif // LIBCW_DEBUG_CONFIG_H
+#endif // LIBCWD_CONFIG_H

@@ -119,7 +119,7 @@
 #include "sys.h"
 #include <libcwd/config.h>
 
-#if CWDEBUG_ALLOC || defined(LIBCW_DOXYGEN)
+#if CWDEBUG_ALLOC || defined(LIBCWD_DOXYGEN)
 
 #include <cstring>
 #include <string>
@@ -212,7 +212,7 @@ using libcw::debug::_private_::dlclose_instance;
 #define LIBCWD_COMMA_LOCATION(x)
 #endif
 
-#ifdef LIBCW_DOXYGEN
+#ifdef LIBCWD_DOXYGEN
 // Doxygen doesn't parse the define below.  On linux this evaluates to 0.
 #define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE 0
 #else

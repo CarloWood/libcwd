@@ -11,8 +11,8 @@
 // packaging of this file.
 // 
 
-#ifndef LIBCW_PRIVATE_MUTEX_INL
-#define LIBCW_PRIVATE_MUTEX_INL
+#ifndef LIBCWD_PRIVATE_MUTEX_INL
+#define LIBCWD_PRIVATE_MUTEX_INL
 #if LIBCWD_THREAD_SAFE
 
 namespace libcw {
@@ -119,5 +119,5 @@ bool mutex_ct::is_locked(void)
 } // namespace libcw
 
 #endif // LIBCWD_THREAD_SAFE
-#endif // LIBCW_PRIVATE_MUTEX_INL
+#endif // LIBCWD_PRIVATE_MUTEX_INL
 

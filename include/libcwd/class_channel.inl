@@ -11,13 +11,13 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_CLASS_CHANNEL_INL
-#define LIBCW_CLASS_CHANNEL_INL
+#ifndef LIBCWD_CLASS_CHANNEL_INL
+#define LIBCWD_CLASS_CHANNEL_INL
 
-#ifndef LIBCW_CLASS_CHANNEL_H
+#ifndef LIBCWD_CLASS_CHANNEL_H
 #include <libcwd/class_channel.h>
 #endif
-#ifndef LIBCW_THREADING_H
+#ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
 
@@ -76,5 +76,5 @@ channel_ct::get_label(void) const
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CLASS_CHANNEL_INL
+#endif // LIBCWD_CLASS_CHANNEL_INL
 

@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_CLASS_OBJECT_FILE_H
-#define LIBCW_CLASS_OBJECT_FILE_H
+#ifndef LIBCWD_CLASS_OBJECT_FILE_H
+#define LIBCWD_CLASS_OBJECT_FILE_H
 
 #ifndef LIBCW_STRING
 #define LIBCW_STRING
@@ -68,4 +68,4 @@ public:
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CLASS_OBJECT_FILE_H
+#endif // LIBCWD_CLASS_OBJECT_FILE_H

@@ -15,19 +15,19 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_CLASS_LOCATION_H
-#define LIBCW_CLASS_LOCATION_H
+#ifndef LIBCWD_CLASS_LOCATION_H
+#define LIBCWD_CLASS_LOCATION_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 
 #if CWDEBUG_LOCATION
 
-#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include <libcwd/private_struct_TSD.h>
 #endif
-#ifndef LIBCW_CLASS_OBJECT_FILE_H
+#ifndef LIBCWD_CLASS_OBJECT_FILE_H
 #include <libcwd/class_object_file.h>
 #endif
 #ifndef LIBCW_LOCKABLE_AUTO_PTR_H
@@ -220,4 +220,4 @@ public:
 } // namespace libcw
 
 #endif // CWDEBUG_LOCATION
-#endif // LIBCW_CLASS_LOCATION_H
+#endif // LIBCWD_CLASS_LOCATION_H

@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
-#define LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
+#define LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 
 #if LIBCWD_THREAD_SAFE
 
@@ -88,5 +88,5 @@ int const high_priority_read_lock_offset = 2 * instance_locked_size;
 } // namespace libcw
 
 #endif // LIBCWD_THREAD_SAFE
-#endif // LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#endif // LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 

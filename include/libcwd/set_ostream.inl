@@ -11,13 +11,13 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_SET_OSTREAM_INL
-#define LIBCW_SET_OSTREAM_INL
+#ifndef LIBCWD_SET_OSTREAM_INL
+#define LIBCWD_SET_OSTREAM_INL
 
-#ifndef LIBCW_PRIVATE_LOCK_INTERFACE_H
+#ifndef LIBCWD_PRIVATE_LOCK_INTERFACE_H
 #include <libcwd/private_lock_interface.h>
 #endif
-#ifndef LIBCW_PRIVATE_THREADING_H
+#ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
 
@@ -72,5 +72,5 @@ template<class T>
 }  // namespace libcw
 
 #endif // LIBCWD_THREAD_SAFE
-#endif // LIBCW_SET_OSTREAM_INL
+#endif // LIBCWD_SET_OSTREAM_INL
 

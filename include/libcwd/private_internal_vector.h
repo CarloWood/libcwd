@@ -15,13 +15,13 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_INTERNAL_VECTOR_H
-#define LIBCW_PRIVATE_INTERNAL_VECTOR_H
+#ifndef LIBCWD_PRIVATE_INTERNAL_VECTOR_H
+#define LIBCWD_PRIVATE_INTERNAL_VECTOR_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_PRIVATE_ALLOCATOR_H
+#ifndef LIBCWD_PRIVATE_ALLOCATOR_H
 #include <libcwd/private_allocator.h>
 #endif
 #ifndef LIBCW_VECTOR
@@ -48,5 +48,5 @@ template <typename T>
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_PRIVATE_INTERNAL_VECTOR_H
+#endif // LIBCWD_PRIVATE_INTERNAL_VECTOR_H
 

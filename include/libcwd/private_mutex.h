@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_MUTEX_H
-#define LIBCW_PRIVATE_MUTEX_H
+#ifndef LIBCWD_PRIVATE_MUTEX_H
+#define LIBCWD_PRIVATE_MUTEX_H
 
 #ifndef LIBCW_PTHREAD_H
 #define LIBCW_PTHREAD_H
@@ -56,5 +56,5 @@ public:
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_PRIVATE_MUTEX_H
+#endif // LIBCWD_PRIVATE_MUTEX_H
 

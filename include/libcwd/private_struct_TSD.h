@@ -15,16 +15,16 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_STRUCT_TSD_H
-#define LIBCW_STRUCT_TSD_H
+#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
+#define LIBCWD_PRIVATE_STRUCT_TSD_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_PRIVATE_ASSERT_H
+#ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
 #endif
-#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #include <libcwd/private_mutex_instances.h>
 #endif
 #ifndef LIBCW_CSTRING
@@ -95,10 +95,10 @@ namespace libcw {
 #define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
 
 // This include uses the above macros.
-#ifndef LIBCW_STRUCT_DEBUG_TSD
+#ifndef LIBCWD_STRUCT_DEBUG_TSD_H
 #include <libcwd/struct_debug_tsd.h>
 #endif
-#ifndef LIBCW_PRIVATE_THREAD_H
+#ifndef LIBCWD_PRIVATE_THREAD_H
 #include <libcwd/private_thread.h>
 #endif
 
@@ -210,4 +210,4 @@ TSD_st& TSD_st::instance(void)
 using ::libcw::debug::_private_::__libcwd_tsd;
 #endif
 
-#endif // LIBCW_STRUCT_TSD_H
+#endif // LIBCWD_PRIVATE_STRUCT_TSD_H

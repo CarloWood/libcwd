@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_CONTROL_FLAG_H
-#define LIBCW_CONTROL_FLAG_H
+#ifndef LIBCWD_CONTROL_FLAG_H
+#define LIBCWD_CONTROL_FLAG_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 
@@ -91,5 +91,5 @@ __inline__ control_flag_t const cond_error_cf(bool err) { return err ? error_cf 
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CONTROL_FLAG_H
+#endif // LIBCWD_CONTROL_FLAG_H
 

@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
-#ifndef LIBCW_CLASS_DEBUG_STRING_H
-#define LIBCW_CLASS_DEBUG_STRING_H
+#ifndef LIBCWD_CLASS_DEBUG_STRING_H
+#define LIBCWD_CLASS_DEBUG_STRING_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 #ifndef LIBCW_CSTDDEF
@@ -95,4 +95,4 @@ public:
   }  // namespace debug
 }  // namespace libcw
 
-#endif // LIBCW_CLASS_DEBUG_STRING_H
+#endif // LIBCWD_CLASS_DEBUG_STRING_H

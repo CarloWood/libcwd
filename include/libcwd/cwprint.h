@@ -24,8 +24,8 @@
  *  \n libcw::debug::cwprint_using
  */
 
-#ifndef LIBCW_CWPRINT_H
-#define LIBCW_CWPRINT_H
+#ifndef LIBCWD_CWPRINT_H
+#define LIBCWD_CWPRINT_H
 
 namespace libcw {
   namespace debug {
@@ -166,4 +166,4 @@ template<class T, class T_OR_BASE_OF_T>
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CWPRINT_H
+#endif // LIBCWD_CWPRINT_H

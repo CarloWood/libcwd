@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_THREADING_H
-#define LIBCW_PRIVATE_THREADING_H
+#ifndef LIBCWD_PRIVATE_THREADING_H
+#define LIBCWD_PRIVATE_THREADING_H
 
 #define LIBCWD_DEBUGDEBUGRWLOCK 0
 
@@ -47,16 +47,16 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #define LIBCWD_DEBUGDEBUGLOCK_CERR(x) do { } while(0)
 #endif // !LIBCWD_DEBUGDEBUGRWLOCK
 
-#ifndef LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
+#ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
 #include <libcwd/private_set_alloc_checking.h>
 #endif
-#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include <libcwd/private_struct_TSD.h>
 #endif
-#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #include <libcwd/private_mutex_instances.h>
 #endif
-#ifndef LIBCW_CORE_DUMP_H
+#ifndef LIBCWD_CORE_DUMP_H
 #include <libcwd/core_dump.h>
 #endif
 #ifndef LIBCW_CSTRING
@@ -99,7 +99,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #endif
 
 #if CWDEBUG_DEBUGT || CWDEBUG_DEBUG
-#ifndef LIBCW_PRIVATE_ASSERT_H
+#ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
 #endif
 #endif
@@ -995,5 +995,5 @@ extern void fatal_cancellation(void*);
 #define LIBCWD_UNLOCKMUTEX_POP_RESTORE(instance)
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
 #endif // LIBCWD_THREAD_SAFE
-#endif // LIBCW_PRIVATE_THREADING_H
+#endif // LIBCWD_PRIVATE_THREADING_H
 

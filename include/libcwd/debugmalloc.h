@@ -15,14 +15,14 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_DEBUGMALLOC_H
-#define LIBCW_DEBUGMALLOC_H
+#ifndef LIBCWD_DEBUGMALLOC_H
+#define LIBCWD_DEBUGMALLOC_H
 
-#ifndef LIBCW_DEBUG_H
+#ifndef LIBCWD_DEBUG_H
 #error "Don't include <libcwd/debugmalloc.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 
@@ -32,22 +32,22 @@
 #define LIBCW_CSTDDEF
 #include <cstddef>		// Needed for size_t.
 #endif
-#ifndef LIBCW_CLASS_ALLOC_H
+#ifndef LIBCWD_CLASS_ALLOC_H
 #include <libcwd/class_alloc.h>
 #endif
 #ifndef LIBCW_LOCKABLE_AUTO_PTR_H
 #include <libcwd/lockable_auto_ptr.h>
 #endif
-#ifndef LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
+#ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
 #include <libcwd/private_set_alloc_checking.h>
 #endif
-#ifndef LIBCW_CLASS_MEMBLK_TYPES_H
-#include <libcwd/class_memblk_types.h>
+#ifndef LIBCWD_ENUM_MEMBLK_TYPES_H
+#include <libcwd/enum_memblk_types.h>
 #endif
-#if CWDEBUG_MARKER && !defined(LIBCW_CLASS_MARKER_H)
+#if CWDEBUG_MARKER && !defined(LIBCWD_CLASS_MARKER_H)
 #include <libcwd/class_marker.h>
 #endif
-#ifndef LIBCW_MACRO_ALLOCTAG_H
+#ifndef LIBCWD_MACRO_ALLOCTAG_H
 #include <libcwd/macro_AllocTag.h>
 #endif
 #ifndef LIBCWD_CLASS_OOAM_FILTER_H
@@ -207,4 +207,4 @@ __libcwd_wcsdup(wchar_t const* str)
 #endif // CWDEBUG_ALLOC
 #endif // !DEBUG_INTERNAL
 
-#endif // LIBCW_DEBUGMALLOC_H
+#endif // LIBCWD_DEBUGMALLOC_H

@@ -11,25 +11,25 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_CLASS_DEBUG_INL
-#define LIBCW_CLASS_DEBUG_INL
+#ifndef LIBCWD_CLASS_DEBUG_INL
+#define LIBCWD_CLASS_DEBUG_INL
 
-#ifndef LIBCW_CLASS_DEBUG_H
+#ifndef LIBCWD_CLASS_DEBUG_H
 #include <libcwd/class_debug.h>
 #endif
-#ifndef LIBCW_CLASS_CHANNEL_H
+#ifndef LIBCWD_CLASS_CHANNEL_H
 #include <libcwd/class_channel.h>
 #endif
-#ifndef LIBCW_CLASS_FATAL_CHANNEL_H
+#ifndef LIBCWD_CLASS_FATAL_CHANNEL_H
 #include <libcwd/class_fatal_channel.h>
 #endif
-#ifndef LIBCW_CLASS_CHANNEL_INL
+#ifndef LIBCWD_CLASS_CHANNEL_INL
 #include <libcwd/class_channel.inl>
 #endif
-#ifndef LIBCW_CLASS_FATAL_CHANNEL_INL
+#ifndef LIBCWD_CLASS_FATAL_CHANNEL_INL
 #include <libcwd/class_fatal_channel.inl>
 #endif
-#ifndef LIBCW_CLASS_DEBUG_STRING_INL
+#ifndef LIBCWD_CLASS_DEBUG_STRING_INL
 #include <libcwd/class_debug_string.inl>
 #endif
 
@@ -267,4 +267,4 @@ channel_set_bootstrap_st::operator&(fatal_channel_ct const& fdc)
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CLASS_DEBUG_INL
+#endif // LIBCWD_CLASS_DEBUG_INL

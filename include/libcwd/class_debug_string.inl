@@ -11,16 +11,16 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_CLASS_DEBUG_STRING_INL
-#define LIBCW_CLASS_DEBUG_STRING_INL
+#ifndef LIBCWD_CLASS_DEBUG_STRING_INL
+#define LIBCWD_CLASS_DEBUG_STRING_INL
 
-#ifndef LIBCW_CLASS_DEBUG_STRING_H
+#ifndef LIBCWD_CLASS_DEBUG_STRING_H
 #include <libcwd/class_debug_string.h>
 #endif
-#ifndef LIBCW_THREADING_H
+#ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
-#ifndef LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
+#ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
 #include <libcwd/private_set_alloc_checking.h>
 #endif
 #ifndef LIBCW_CSTDDEF
@@ -150,4 +150,4 @@ debug_string_stack_element_ct::debug_string_stack_element_ct(debug_string_ct con
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CLASS_DEBUG_STRING_INL
+#endif // LIBCWD_CLASS_DEBUG_STRING_INL

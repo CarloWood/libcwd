@@ -15,22 +15,22 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_CLASS_DEBUG_H
-#define LIBCW_CLASS_DEBUG_H
+#ifndef LIBCWD_CLASS_DEBUG_H
+#define LIBCWD_CLASS_DEBUG_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_CLASS_CHANNEL_SET_H
+#ifndef LIBCWD_CLASS_CHANNEL_SET_H
 #include <libcwd/class_channel_set.h>
 #endif
-#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include <libcwd/private_struct_TSD.h>
 #endif
-#ifndef LIBCW_STRUCT_DEBUG_TSD
+#ifndef LIBCWD_STRUCT_DEBUG_TSD_H
 #include <libcwd/struct_debug_tsd.h>
 #endif
-#ifndef LIBCW_PRIVATE_LOCK_INTERFACE_H
+#ifndef LIBCWD_PRIVATE_LOCK_INTERFACE_H
 #include <libcwd/private_lock_interface.h>
 #endif
 #ifndef LIBCW_IOSFWD
@@ -78,7 +78,7 @@ struct debug_message_st {
 class debug_ct {
   friend void debug_tsd_st::start(debug_ct&, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM);
   friend void debug_tsd_st::finish(debug_ct &, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM);
-#ifdef LIBCW_DOXYGEN
+#ifdef LIBCWD_DOXYGEN
 protected:
 #else
 public: // Only public because macro LibcwDout needs acces, don't access this directly.
@@ -226,10 +226,10 @@ public:
   //
 
   void set_ostream(std::ostream* os);
-#if LIBCWD_THREAD_SAFE || defined(LIBCW_DOXYGEN)
+#if LIBCWD_THREAD_SAFE || defined(LIBCWD_DOXYGEN)
   template<class T>
     void set_ostream(std::ostream* os, T* mutex);
-#ifdef LIBCW_DOXYGEN
+#ifdef LIBCWD_DOXYGEN
   // Specialization.
   template<>
     void set_ostream(std::ostream* os, pthread_mutex_t* mutex);
@@ -248,7 +248,7 @@ public:
   void force_on(OnOffState& state);
   void restore(OnOffState const& state);
 
-#if LIBCWD_THREAD_SAFE || defined(LIBCW_DOXYGEN)
+#if LIBCWD_THREAD_SAFE || defined(LIBCWD_DOXYGEN)
   /**
    * \brief Keep Thread Specific Data after thread exit.
    *
@@ -285,7 +285,7 @@ public:
 #endif // LIBCWD_THREAD_SAFE
 };
 
-#if LIBCWD_THREAD_SAFE && !defined(LIBCW_DOXYGEN)
+#if LIBCWD_THREAD_SAFE && !defined(LIBCWD_DOXYGEN)
 // Specialization.
 template<>
   void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex);
@@ -294,9 +294,9 @@ template<>
   }  // namespace debug
 }  // namespace libcw
 
-#ifndef LIBCW_SET_OSTREAM_INL
+#ifndef LIBCWD_SET_OSTREAM_INL
 #include <libcwd/set_ostream.inl>
 #endif
 
-#endif // LIBCW_CLASS_DEBUG_H
+#endif // LIBCWD_CLASS_DEBUG_H
 

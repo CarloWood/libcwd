@@ -19,10 +19,10 @@
  * \link libcw::debug::buf2str buf2str \endlink.
  */
 
-#ifndef LIBCW_BUF2STR_H
-#define LIBCW_BUF2STR_H
+#ifndef LIBCWD_BUF2STR_H
+#define LIBCWD_BUF2STR_H
 
-#ifndef LIBCW_CHAR2STR_H
+#ifndef LIBCWD_CHAR2STR_H
 #include <libcwd/char2str.h>
 #endif
 #ifndef LIBCW_CSTDDEF
@@ -88,4 +88,4 @@ public:
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_BUF2STR_H
+#endif // LIBCWD_BUF2STR_H

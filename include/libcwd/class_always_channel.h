@@ -15,13 +15,13 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_ALWAYS_CHANNEL_H
-#define LIBCW_ALWAYS_CHANNEL_H
+#ifndef LIBCWD_CLASS_ALWAYS_CHANNEL_H
+#define LIBCWD_CLASS_ALWAYS_CHANNEL_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_CONTROL_FLAG_H
+#ifndef LIBCWD_CONTROL_FLAG_H
 #include <libcwd/control_flag.h>
 #endif
 
@@ -43,5 +43,5 @@ public:
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_ALWAYS_CHANNEL_H
+#endif // LIBCWD_CLASS_ALWAYS_CHANNEL_H
 

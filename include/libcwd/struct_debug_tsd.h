@@ -11,22 +11,22 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_STRUCT_DEBUG_TSD_H
-#define LIBCW_STRUCT_DEBUG_TSD_H
+#ifndef LIBCWD_STRUCT_DEBUG_TSD_H
+#define LIBCWD_STRUCT_DEBUG_TSD_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_CLASS_CHANNEL_SET_H
+#ifndef LIBCWD_CLASS_CHANNEL_SET_H
 #include <libcwd/class_channel_set.h>
 #endif
-#ifndef LIBCW_PRIVATE_DEBUG_STACK_H
+#ifndef LIBCWD_PRIVATE_DEBUG_STACK_H
 #include <libcwd/private_debug_stack.h>
 #endif
-#ifndef LIBCW_CLASS_DEBUG_STRING_H
+#ifndef LIBCWD_CLASS_DEBUG_STRING_H
 #include <libcwd/class_debug_string.h>
 #endif
-#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include <libcwd/private_struct_TSD.h>
 #endif
 #ifndef LIBCW_IOSFWD
@@ -131,5 +131,5 @@ struct debug_tsd_st {
   }  // namespace debug
 }  // namespace libcw
 
-#endif // LIBCW_STRUCT_DEBUG_TSD_H
+#endif // LIBCWD_STRUCT_DEBUG_TSD_H
 

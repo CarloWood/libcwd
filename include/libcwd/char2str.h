@@ -19,8 +19,8 @@
  * \link libcw::debug::char2str char2str \endlink.
  */
 
-#ifndef LIBCW_CHAR2STR_H
-#define LIBCW_CHAR2STR_H
+#ifndef LIBCWD_CHAR2STR_H
+#define LIBCWD_CHAR2STR_H
 
 #ifndef LIBCW_IOSFWD
 #define LIBCW_IOSFWD
@@ -80,4 +80,4 @@ public:
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CHAR2STR_H
+#endif // LIBCWD_CHAR2STR_H

@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_ASSERT_H
-#define LIBCW_PRIVATE_ASSERT_H
+#ifndef LIBCWD_PRIVATE_ASSERT_H
+#define LIBCWD_PRIVATE_ASSERT_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 #ifndef LIBCW_CASSERT
@@ -44,5 +44,5 @@ void assert_fail(char const* expr, char const* file, int line, char const* funct
 			          : (::libcw::debug::_private_::\
 			assert_fail(LIBCWD_STRING(expr), __FILE__, __LINE__, __PRETTY_FUNCTION__), 0)))
 
-#endif // LIBCW_PRIVATE_ASSERT_H
+#endif // LIBCWD_PRIVATE_ASSERT_H
 

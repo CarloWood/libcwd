@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_CORE_DUMP_H
-#define LIBCW_CORE_DUMP_H
+#ifndef LIBCWD_CORE_DUMP_H
+#define LIBCWD_CORE_DUMP_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 
@@ -30,5 +30,5 @@ extern void core_dump(void) __attribute__ ((__noreturn__));
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CORE_DUMP_H
+#endif // LIBCWD_CORE_DUMP_H
 

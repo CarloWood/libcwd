@@ -24,8 +24,8 @@
  * Do not include this header file directly, instead include a custom \link preparation "sys.h" \endlink.
  */
 
-#ifndef LIBCW_SYS_H
-#define LIBCW_SYS_H
+#ifndef LIBCWD_SYS_H
+#define LIBCWD_SYS_H
 
 namespace libcw {
   namespace debug {
@@ -54,4 +54,4 @@ namespace libcw {
 #error Please add #define _GNU_SOURCE to your "sys.h", see reference-manual/preparation.html#preparation_step2.
 #endif
 
-#endif /* LIBCW_SYS_H */
+#endif /* LIBCWD_SYS_H */

@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PC_MANGLED_FUNCTION_NAME_H
-#define LIBCW_PC_MANGLED_FUNCTION_NAME_H
+#ifndef LIBCWD_PC_MANGLED_FUNCTION_NAME_H
+#define LIBCWD_PC_MANGLED_FUNCTION_NAME_H
 
 namespace libcw {
   namespace debug {
@@ -26,4 +26,4 @@ extern char const* pc_mangled_function_name(void const* addr);
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_PC_MANGLED_FUNCTION_NAME_H
+#endif // LIBCWD_PC_MANGLED_FUNCTION_NAME_H

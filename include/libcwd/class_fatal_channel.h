@@ -15,16 +15,16 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_FATAL_CHANNEL_H
-#define LIBCW_FATAL_CHANNEL_H
+#ifndef LIBCWD_CLASS_FATAL_CHANNEL_H
+#define LIBCWD_CLASS_FATAL_CHANNEL_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_MAX_LABEL_LEN_H
+#ifndef LIBCWD_MAX_LABEL_LEN_H
 #include <libcwd/max_label_len.h>
 #endif
-#ifndef LIBCW_CONTROL_FLAG_H
+#ifndef LIBCWD_CONTROL_FLAG_H
 #include <libcwd/control_flag.h>
 #endif
 
@@ -71,5 +71,5 @@ public:
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_FATAL_CHANNEL_H
+#endif // LIBCWD_CLASS_FATAL_CHANNEL_H
 

@@ -11,8 +11,8 @@
 // packaging of this file.
 //
 
-#ifndef BFD_H
-#define BFD_H
+#ifndef CWD_BFD_H
+#define CWD_BFD_H
 
 #include <libcwd/config.h>
 #if CWDEBUG_LOCATION
@@ -25,19 +25,19 @@
 #define LIBCW_SET
 #include <set>
 #endif
-#ifndef LIBCW_PRIVATE_ALLOCATOR_H
+#ifndef LIBCWD_PRIVATE_ALLOCATOR_H
 #include <libcwd/private_allocator.h>
 #endif
 #ifndef ELF32_H
 #include "elf32.h"
 #endif
-#ifndef LIBCW_CLASS_OBJECT_FILE_H
+#ifndef LIBCWD_CLASS_OBJECT_FILE_H
 #include <libcwd/class_object_file.h>
 #endif
 #ifndef MATCH_H
 #include "match.h"
 #endif
-#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #include <libcwd/private_mutex_instances.h>
 #endif
 
@@ -173,5 +173,5 @@ NEEDS_WRITE_LOCK_object_files(void)
 } // namespace libcw
 
 #endif // CWDEBUG_LOCATION
-#endif // BFD_H
+#endif // CWD_BFD_H
 

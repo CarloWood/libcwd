@@ -11,12 +11,12 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_PRIVATE_ALLOCATOR_INL
-#define LIBCW_PRIVATE_ALLOCATOR_INL
+#ifndef LIBCWD_PRIVATE_ALLOCATOR_INL
+#define LIBCWD_PRIVATE_ALLOCATOR_INL
 
 #if CWDEBUG_ALLOC
 
-#ifndef LIBCW_PRIVATE_THREAD_H
+#ifndef LIBCWD_PRIVATE_THREAD_H
 #include <libcwd/private_thread.h>
 #endif
 
@@ -225,5 +225,5 @@ template <class T1, class X1, pool_nt internal1, int inst1,
 } // namespace libcw
  
 #endif // CWDEBUG_ALLOC
-#endif // LIBCW_PRIVATE_ALLOCATOR_INL
+#endif // LIBCWD_PRIVATE_ALLOCATOR_INL
 

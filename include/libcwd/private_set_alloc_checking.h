@@ -15,13 +15,13 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
-#define LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
+#ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
+#define LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include <libcwd/private_struct_TSD.h>
 #endif
 
@@ -66,4 +66,4 @@ namespace libcw {
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
+#endif // LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H

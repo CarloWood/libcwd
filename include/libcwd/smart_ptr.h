@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef	LIBCW_SMART_PTR_H
-#define	LIBCW_SMART_PTR_H
+#ifndef LIBCWD_SMART_PTR_H
+#define LIBCWD_SMART_PTR_H
 
-#ifndef LIBCW_PRIVATE_STRUCT_TSD_H
+#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include <libcwd/private_struct_TSD.h>
 #endif
 
@@ -100,4 +100,4 @@ private:
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_SMART_PTR_H
+#endif // LIBCWD_SMART_PTR_H

@@ -11,8 +11,8 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_EXEC_PROG_H
-#define LIBCW_EXEC_PROG_H
+#ifndef EXEC_PROG_H
+#define EXEC_PROG_H
 
 namespace libcw {
   namespace debug {
@@ -22,4 +22,4 @@ extern int ST_exec_prog(char const* prog_name, char const* const argv[], char co
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_EXEC_PROG_H
+#endif // EXEC_PROG_H

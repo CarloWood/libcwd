@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_TYPE_INFO_H
-#define LIBCW_TYPE_INFO_H
+#ifndef LIBCWD_TYPE_INFO_H
+#define LIBCWD_TYPE_INFO_H
 
-#ifndef LIBCW_PRIVATE_THREADING_H
+#ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
 #ifndef LIBCW_TYPEINFO
@@ -153,7 +153,7 @@ template<typename T>
   __inline__
   type_info_ct const&
   type_info_of(T const&
-#ifdef LIBCW_DOXYGEN
+#ifdef LIBCWD_DOXYGEN
       instance
 #endif
       );
@@ -210,4 +210,4 @@ extern type_info_ct const unknown_type_info_c;
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_TYPE_INFO_H
+#endif // LIBCWD_TYPE_INFO_H

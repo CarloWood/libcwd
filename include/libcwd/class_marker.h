@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_CLASS_MARKER_H
-#define LIBCW_CLASS_MARKER_H
+#ifndef LIBCWD_CLASS_MARKER_H
+#define LIBCWD_CLASS_MARKER_H
 
-#ifndef LIBCW_OOAM_FILTER_H
+#ifndef LIBCWD_CLASS_OOAM_FILTER_H
 #include <libcwd/class_ooam_filter.h>
 #endif
 
@@ -77,5 +77,5 @@ public:
   } //namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CLASS_MARKER_H
+#endif // LIBCWD_CLASS_MARKER_H
 

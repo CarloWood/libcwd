@@ -15,16 +15,16 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_BFD_H
-#define LIBCW_BFD_H
+#ifndef LIBCWD_BFD_H
+#define LIBCWD_BFD_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_CLASS_LOCATION_H
+#ifndef LIBCWD_CLASS_LOCATION_H
 #include <libcwd/class_location.h>
 #endif
-#ifndef LIBCW_PC_MANGLED_FUNCTION_NAME_H
+#ifndef LIBCWD_PC_MANGLED_FUNCTION_NAME_H
 #include <libcwd/pc_mangled_function_name.h>
 #endif
 
@@ -37,8 +37,8 @@ extern "C" int dlclose(void*);
 #endif // LIBCWD_DLOPEN_DEFINED
 
 // Include the inline functions.
-#ifndef LIBCW_CLASS_LOCATION_INL
+#ifndef LIBCWD_CLASS_LOCATION_INL
 #include <libcwd/class_location.inl>
 #endif
 
-#endif // LIBCW_BFD_H
+#endif // LIBCWD_BFD_H

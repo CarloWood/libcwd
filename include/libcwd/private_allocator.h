@@ -15,19 +15,19 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_ALLOCATOR_H
-#define LIBCW_PRIVATE_ALLOCATOR_H
+#ifndef LIBCWD_PRIVATE_ALLOCATOR_H
+#define LIBCWD_PRIVATE_ALLOCATOR_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 
 #if CWDEBUG_ALLOC		// This file is not used when --disable-alloc was used.
 
-#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #include <libcwd/private_mutex_instances.h>
 #endif
-#ifndef LIBCW_CORE_DUMP_H
+#ifndef LIBCWD_CORE_DUMP_H
 #include <libcwd/core_dump.h>
 #endif
 #ifndef LIBCW_CSTDDEF
@@ -238,5 +238,5 @@ typedef LIBCWD_MT_USERSPACE_ALLOCATOR userspace_allocator;
 } // namespace libcw
  
 #endif // CWDEBUG_ALLOC
-#endif // LIBCW_PRIVATE_ALLOCATOR_H
+#endif // LIBCWD_PRIVATE_ALLOCATOR_H
 

@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_OOAM_FILTER_H
-#define LIBCW_OOAM_FILTER_H
+#ifndef LIBCWD_CLASS_OOAM_FILTER_H
+#define LIBCWD_CLASS_OOAM_FILTER_H
 
-#ifndef LIBCW_DEBUG_H
+#ifndef LIBCWD_DEBUG_H
 #error "Don't include <libcwd/class_ooam_filter.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 
@@ -168,4 +168,4 @@ private:
 } // namespace libcw
 
 #endif // CWDEBUG_ALLOC
-#endif // LIBCW_OOAM_FILTER_H
+#endif // LIBCWD_CLASS_OOAM_FILTER_H

@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_LOCK_INTERFACE_H
-#define LIBCW_PRIVATE_LOCK_INTERFACE_H
+#ifndef LIBCWD_PRIVATE_LOCK_INTERFACE_H
+#define LIBCWD_PRIVATE_LOCK_INTERFACE_H
 
 #if LIBCWD_THREAD_SAFE
 namespace libcw {
@@ -57,5 +57,5 @@ class pthread_lock_interface_ct : public lock_interface_base_ct {
 }  // namespace libcw
 
 #endif // LIBCWD_THREAD_SAFE
-#endif // LIBCW_PRIVATE_LOCK_INTERFACE_H
+#endif // LIBCWD_PRIVATE_LOCK_INTERFACE_H
 

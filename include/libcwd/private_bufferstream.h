@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_BUFFERSTREAM_H
-#define LIBCW_PRIVATE_BUFFERSTREAM_H
+#ifndef LIBCWD_PRIVATE_BUFFERSTREAM_H
+#define LIBCWD_PRIVATE_BUFFERSTREAM_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 
@@ -61,4 +61,4 @@ namespace libcw {
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_PRIVATE_BUFFERSTREAM_H
+#endif // LIBCWD_PRIVATE_BUFFERSTREAM_H

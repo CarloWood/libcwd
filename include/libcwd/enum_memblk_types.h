@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_CLASS_MEMBLK_TYPES_H
-#define LIBCW_CLASS_MEMBLK_TYPES_H
+#ifndef LIBCWD_ENUM_MEMBLK_TYPES_H
+#define LIBCWD_ENUM_MEMBLK_TYPES_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 #ifndef LIBCW_IOSFWD
@@ -63,5 +63,5 @@ extern ::std::ostream& operator<<(::std::ostream& os, memblk_types_nt);
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CLASS_MEMBLK_TYPES_H
+#endif // LIBCWD_ENUM_MEMBLK_TYPES_H
 

@@ -11,22 +11,22 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_CLASS_LOCATION_INL
-#define LIBCW_CLASS_LOCATION_INL
+#ifndef LIBCWD_CLASS_LOCATION_INL
+#define LIBCWD_CLASS_LOCATION_INL
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 
 #if CWDEBUG_LOCATION
 
-#ifndef LIBCW_PRIVATE_ASSERT_H
+#ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
 #endif
-#ifndef LIBCW_PRIVATE_THREADING_H
+#ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
-#ifndef LIBCW_CLASS_LOCATION_H
+#ifndef LIBCWD_CLASS_LOCATION_H
 #include <libcwd/class_location.h>
 #endif
 #ifndef LIBCW_STRING
@@ -132,4 +132,4 @@ location_ct::mangled_function_name(void) const
 } // namespace libcw
 
 #endif // CWDEBUG_LOCATION
-#endif // LIBCW_CLASS_LOCATION_INL
+#endif // LIBCWD_CLASS_LOCATION_INL

@@ -25,7 +25,7 @@
 #define LIBCWD_ASSERT(x)
 #endif
 #else // CWDEBUG
-#ifndef LIBCW_PRIVATE_ASSERT_H
+#ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
 #endif
 #endif // CWDEBUG

@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_STRERRNO_H
-#define LIBCW_STRERRNO_H
+#ifndef LIBCWD_STRERRNO_H
+#define LIBCWD_STRERRNO_H
 
 namespace libcw {
   namespace debug {
@@ -26,4 +26,4 @@ extern char const* strerrno(unsigned int err);
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_STRERRNO_H
+#endif // LIBCWD_STRERRNO_H

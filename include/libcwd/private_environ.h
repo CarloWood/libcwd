@@ -11,10 +11,10 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_PRIVATE_FUNCTIONS_H
-#define LIBCW_PRIVATE_FUNCTIONS_H
+#ifndef LIBCWD_PRIVATE_ENVIRON_H
+#define LIBCWD_PRIVATE_ENVIRON_H
 
-#ifndef LIBCW_SYS_H
+#ifndef LIBCWD_SYS_H
 #error "You need to #include "sys.h" at the top of every source file (which in turn should #include <libcwd/sys.h>)."
 #endif
 
@@ -40,4 +40,4 @@ extern bool suppress_startup_msgs;
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_PRIVATE_FUNCTIONS_H
+#endif // LIBCWD_PRIVATE_ENVIRON_H

@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_DEMANGLE_H
-#define LIBCW_DEMANGLE_H
+#ifndef LIBCWD_DEMANGLE_H
+#define LIBCWD_DEMANGLE_H
 
 #ifndef LIBCW_STRING
 #define LIBCW_STRING
@@ -37,4 +37,4 @@ extern void demangle_symbol(char const* input, std::string& output);
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_DEMANGLE_H
+#endif // LIBCWD_DEMANGLE_H

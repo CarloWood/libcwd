@@ -15,10 +15,10 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_LIBCWD_MACROS_H
-#define LIBCW_LIBCWD_MACROS_H
+#ifndef LIBCWD_MACRO_LIBCWD_MACROS_H
+#define LIBCWD_MACRO_LIBCWD_MACROS_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 #ifndef LIBCW_CSTDDEF
@@ -162,4 +162,4 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
     LIBCWD_DO_TSD(__libcwd_debug_object).fatal_finish(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);		\
   } while(0)
 
-#endif // LIBCW_LIBCWD_MACROS_H
+#endif // LIBCWD_MACRO_LIBCWD_MACROS_H

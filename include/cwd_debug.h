@@ -11,8 +11,8 @@
 // packaging of this file.
 //
 
-#ifndef DEBUG_H
-#define DEBUG_H
+#ifndef CWD_DEBUG_H
+#define CWD_DEBUG_H
 
 #ifndef RAW_WRITE_H
 #include <raw_write.h>
@@ -21,7 +21,7 @@
 #include <raw_write.inl>
 #endif
 #include <iostream>
-#ifndef LIBCW_PRIVATE_INTERNAL_STRING_H
+#ifndef LIBCWD_PRIVATE_INTERNAL_STRING_H
 #include <libcwd/private_internal_string.h>
 #endif
 #include <libcwd/debug.h>
@@ -145,4 +145,4 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
   }  // namespace debug
 } // namespace libcw
 
-#endif // DEBUG_H
+#endif // CWD_DEBUG_H

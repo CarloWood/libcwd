@@ -15,27 +15,27 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_CLASS_ALLOC_H
-#define LIBCW_CLASS_ALLOC_H
+#ifndef LIBCWD_CLASS_ALLOC_H
+#define LIBCWD_CLASS_ALLOC_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
 
-#ifndef LIBCW_CLASS_MEMBLK_TYPES_H
+#ifndef LIBCWD_ENUM_MEMBLK_TYPES_H
 #include <libcwd/enum_memblk_types.h>		// Needed for memblk_types_nt.
 #endif
 #ifndef LIBCW_LOCKABLE_AUTO_PTR_H
 #include <libcwd/lockable_auto_ptr.h>		// Needed for lockable_auto_ptr<char, true>.
 #endif
-#if CWDEBUG_LOCATION && !defined(LIBCW_CLASS_LOCATION_H)
+#if CWDEBUG_LOCATION && !defined(LIBCWD_CLASS_LOCATION_H)
 #include <libcwd/class_location.h>		// Needed for location_ct.
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF
 #include <cstddef>				// Needed for size_t.
 #endif
-#ifndef LIBCW_SMART_PTR_H
+#ifndef LIBCWD_SMART_PTR_H
 #include <libcwd/smart_ptr.h>
 #endif
 #ifndef LIBCW_SYS_TIME_H
@@ -156,4 +156,4 @@ public:
   } //namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CLASS_ALLOC_H
+#endif // LIBCWD_CLASS_ALLOC_H

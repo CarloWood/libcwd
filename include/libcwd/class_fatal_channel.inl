@@ -11,13 +11,13 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_CLASS_FATAL_CHANNEL_INL
-#define LIBCW_CLASS_FATAL_CHANNEL_INL
+#ifndef LIBCWD_CLASS_FATAL_CHANNEL_INL
+#define LIBCWD_CLASS_FATAL_CHANNEL_INL
 
-#ifndef LIBCW_CLASS_FATAL_CHANNEL_H
+#ifndef LIBCWD_CLASS_FATAL_CHANNEL_H
 #include <libcwd/class_fatal_channel.h>
 #endif
-#ifndef LIBCW_CONTROL_FLAG_H
+#ifndef LIBCWD_CONTROL_FLAG_H
 #include <libcwd/control_flag.h>
 #endif
 
@@ -47,4 +47,4 @@ fatal_channel_ct::get_label(void) const
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_CLASS_FATAL_CHANNEL_INL
+#endif // LIBCWD_CLASS_FATAL_CHANNEL_INL

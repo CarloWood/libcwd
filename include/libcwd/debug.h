@@ -20,10 +20,10 @@
  * that will allow others to compile your application without having libcwd installed.
  */
 
-#ifndef LIBCW_DEBUG_H
-#define LIBCW_DEBUG_H
+#ifndef LIBCWD_DEBUG_H
+#define LIBCWD_DEBUG_H
 
-#ifndef LIBCW_SYS_H
+#ifndef LIBCWD_SYS_H
 #error "You need to #include "sys.h" at the top of every source file (which in turn should #include <libcwd/sys.h>)."
 #endif
 
@@ -252,4 +252,4 @@ using namespace libcw_debug_inserters;
 #include <iostream>
 
 #endif // CWDEBUG
-#endif // LIBCW_DEBUG_H
+#endif // LIBCWD_DEBUG_H

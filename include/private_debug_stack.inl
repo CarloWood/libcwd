@@ -11,13 +11,13 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_PRIVATE_DEBUG_STACK_INL
-#define LIBCW_PRIVATE_DEBUG_STACK_INL
+#ifndef PRIVATE_DEBUG_STACK_INL
+#define PRIVATE_DEBUG_STACK_INL
 
-#ifndef LIBCW_PRIVATE_DEBUG_STACK_H
+#ifndef LIBCWD_PRIVATE_DEBUG_STACK_H
 #include <libcwd/private_debug_stack.h>
 #endif
-#ifndef LIBCW_PRIVATE_ASSERT_H
+#ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
 #endif
 #ifndef LIBCW_CSTDDEF
@@ -96,4 +96,4 @@ template<typename T>
   }  // namespace debug
 }  // namespace libcw
 
-#endif // LIBCW_PRIVATE_DEBUG_STACK_INL
+#endif // PRIVATE_DEBUG_STACK_INL

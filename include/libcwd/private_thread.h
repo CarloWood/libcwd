@@ -15,13 +15,13 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_PRIVATE_THREAD_H
-#define LIBCW_PRIVATE_THREAD_H
+#ifndef LIBCWD_PRIVATE_THREAD_H
+#define LIBCWD_PRIVATE_THREAD_H
 
-#ifndef LIBCW_PRIVATE_MUTEX_H
+#ifndef LIBCWD_PRIVATE_MUTEX_H
 #include <libcwd/private_mutex.h>
 #endif
-#ifndef LIBCW_PRIVATE_ALLOCATOR_H
+#ifndef LIBCWD_PRIVATE_ALLOCATOR_H
 #include <libcwd/private_allocator.h>
 #endif
 #ifndef LIBCW_LIST
@@ -79,5 +79,5 @@ extern threadlist_t* threadlist;
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_PRIVATE_THREAD_H
+#endif // LIBCWD_PRIVATE_THREAD_H
 

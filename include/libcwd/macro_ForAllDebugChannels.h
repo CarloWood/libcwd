@@ -15,16 +15,16 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_MACRO_FORALLDEBUGCHANNELS_H
-#define LIBCW_MACRO_FORALLDEBUGCHANNELS_H
+#ifndef LIBCWD_MACRO_FORALLDEBUGCHANNELS_H
+#define LIBCWD_MACRO_FORALLDEBUGCHANNELS_H
 
-#ifndef LIBCW_DEBUG_CONFIG_H
+#ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
-#ifndef LIBCW_PRIVATE_ASSERT_H
+#ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
 #endif
-#ifndef LIBCW_PRIVATE_INTERNAL_VECTOR_H
+#ifndef LIBCWD_PRIVATE_INTERNAL_VECTOR_H
 #include <libcwd/private_internal_vector.h>
 #endif
 
@@ -129,4 +129,4 @@ extern debug_channels_ct debug_channels;
        } \
        while(0)
 
-#endif // LIBCW_MACRO_FORALLDEBUGCHANNELS_H
+#endif // LIBCWD_MACRO_FORALLDEBUGCHANNELS_H

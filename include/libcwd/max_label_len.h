@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_MAX_LABEL_LEN_H
-#define LIBCW_MAX_LABEL_LEN_H
+#ifndef LIBCWD_MAX_LABEL_LEN_H
+#define LIBCWD_MAX_LABEL_LEN_H
 
 namespace libcw {
   namespace debug {
@@ -27,4 +27,4 @@ unsigned short const max_label_len_c = 16;
   } // namespace debug
 } // namespace libcw
 
-#endif // LIBCW_MAX_LABEL_LEN_H
+#endif // LIBCWD_MAX_LABEL_LEN_H
