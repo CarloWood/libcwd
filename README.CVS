@@ -1,1 +1,32 @@
-Please run `bootstrap' in the base directory.  You only need to do that once.
+Initial Initialisation
+----------------------
+ 
+If you checked out this directory with cvs, then you will need to execute:
+
+./bootstrap
+
+You only need to do this once.
+
+After that please read INSTALL.
+
+===============================================================================
+
+Anonymous CVS Access 
+--------------------
+
+This project's SourceForge CVS repository can be checked out through anonymous
+(pserver) CVS with the following instruction set. The module you wish to check
+out must be specified as the modulename. When prompted for a password for
+anonymous, simply press the Enter key. 
+
+cvs -d:pserver:anonymous@cvs.libcwd.sourceforge.net:/cvsroot/libcwd login 
+
+cvs -z3 -d:pserver:anonymous@cvs.libcwd.sourceforge.net:/cvsroot/libcwd co libcwd
+
+You don't need the -d parameter inside the module's directory.  (Note that you
+do need -d after 'update' to savely update new directories that might have been
+added.  Example: "cd libcwd; cvs update -dP".  Or add 'update -dP' to your
+~/.cvsrc file.)
+
+Current modules are: libcwd
+

@@ -1,0 +1,110 @@
+#! /bin/sh
+
+# Helps bootstrapping libcwd, when checked out from CVS.
+# Requires GNU autoconf, GNU automake, GNU libtool and GNU which.
+
+test -n "$ZSH_NAME" && disable which		# zsh has a builtin which that is turned off with this.
+(which --version | grep GNU) >/dev/null 2>/dev/null || (echo "You need GNU which to install from CVS (http://www.xs4all.nl/~carlo17/which/ or ftp://ftp.gnu.org/gnu/which/)"; exit 1) || exit 1
+(autoconf --version) >/dev/null 2>/dev/null || (echo "You need GNU autoconf to install from CVS (ftp://ftp.gnu.org/gnu/autoconf/)"; exit 1) || exit 1
+(automake --version) >/dev/null 2>/dev/null || (echo "You need GNU automake to install from CVS (ftp://ftp.gnu.org/gnu/automake/)"; exit 1) || exit 1
+(libtool --version) >/dev/null 2>/dev/null || (echo "You need GNU libtool to install from CVS (ftp://ftp.gnu.org/gnu/libtool/)"; exit 1) || exit 1
+
+# Determine the version of libtool.
+libtool_version=`libtool --version | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
+libtool_develversion=`libtool --version | sed -e 's/.*[12]\.[0-9].*(\([^ ]*\).*/\1/'`
+
+# Determine the installation paths of a few tools.
+# This extracts from the automake script the two lines:
+#   $prefix = "/usr";
+#   $am_dir = "${prefix}/share/automake";
+# OR (automake version 1.4):
+#   $am_dir = "/usr/share/automake";
+# OR (automake version 1.5):
+#   my $libdir = "/usr/share/automake";
+# and then puts "/usr/share/automake" into the variable automake_dir.
+automake_path=`which automake`
+automake_prefix=`grep '^\(my \)\?\$prefix = ' $automake_path | sed -e 's/.*"\(.*\)".*/\1/'`
+automake_tmp=`grep '^\(my \)\?\$\(am_\)\?\(lib\)\?dir = ' $automake_path | sed -e 's/.*"\(\${prefix}\)\(.*\)".*/$automake_prefix\2/' | sed -e 's/.*"\([^"]*\)".*/\1/'`
+eval "automake_dir=$automake_tmp"
+if test -f $automake_dir/depcomp; then
+  automake_files="install-sh missing mkinstalldirs depcomp"
+else
+  automake_files="install-sh missing mkinstalldirs"
+fi
+
+# Check where aclocal reads its m4 scripts from and check if that is where libtool stored its scripts.
+share_aclocal=`aclocal --print-ac-dir`
+share_aclocal_inode=`ls -id "$share_aclocal" | sed -e 's/[^0-9]*\([0-9]*\).*/\1/'`
+share_libtool=`which libtool | sed -e 's%/bin/libtool%/share/aclocal%'`
+share_libtool_inode=`ls -id "$share_libtool" | sed -e 's/[^0-9]*\([0-9]*\).*/\1/'`
+if test "$share_aclocal_inode" != "$share_libtool_inode"; then
+  libtool_prefix=`which libtool | sed -e 's%/bin/libtool%%'`
+  echo "Fatal error: automake is not installed with the same prefix as libtool."
+  echo "This causes aclocal to fail reading the libtool macros or it might read the wrong ones."
+  echo "To fix this you can do one of two things:"
+  echo "1. Remove the installation of libtool in \"$libtool_prefix\" and reinstall it with prefix \"$automake_prefix\"."
+  echo "2. Install automake with prefix \"$libtool_prefix\"."
+  echo "You can install more than one version of libtool, but you will need to re-install automake for each of them."
+  echo "Then you can choose which version to use by adjusting your PATH."
+  exit 1
+fi
+
+if expr "1.4" \> "$libtool_version" >/dev/null; then
+  libtool --version
+  echo "Fatal error: libtool version 1.4 or higher is required."
+  exit 1
+fi
+
+# Check whether automake was patched.
+libtool_files="config.guess config.sub ltmain.sh"
+if grep '^@libtoolize_files =.*ltconfig' $automake_path >/dev/null; then
+  echo "Fatal error: version $libtool_version of libtool is a new version that does not generate ltconfig anymore."
+  echo "You still have an old automake installed it seems. Please edit $automake_path and replace the line"
+  echo "  @libtoolize_files = ('ltconfig', 'ltmain.sh', 'config.guess', 'config.sub');"
+  echo "with"
+  echo "  @libtoolize_files = ('ltmain.sh', 'config.guess', 'config.sub');"
+  echo "removing ltconfig from the list."
+  echo "Alternatively, upgrade automake to version 1.4p1."
+  exit 1
+fi
+
+# Check if bootstrap was run before and if the installed files are the same version.
+if test -f ltmain.sh; then
+  installed_libtool=`grep '^VERSION=' ltmain.sh | sed -e 's/.*\([12]\.[^ ]*\).*/\1/'`
+  installed_timestamp=`grep '^TIMESTAMP=' ltmain.sh | sed -e 's/.*(\([0-9]*\.[^ ]*\).*/\1/'`
+  if test "$installed_libtool" != "$libtool_version" -o X"$installed_timestamp" != X"$libtool_develversion"; then
+    echo "Re-installing new libtool files ($installed_libtool ($installed_timestamp) -> $libtool_version ($libtool_develversion))"
+    rm -f config.guess config.sub ltmain.sh ltconfig
+  fi
+fi
+
+# Generate automake/autoconf/libtool files:
+
+echo "*** Generating automake/autoconf/libtool files:"
+echo "    aclocal.m4 ..."
+aclocal										# aclocal.m4
+echo "    config.h.in ..."
+autoheader 2>&1 | egrep -v '(config.h.in is unchanged|warning: AC_TRY_RUN)'	# config.h.in
+echo "    configure ..."
+autoconf 2>&1 | grep -v 'warning: AC_TRY_RUN'					# configure
+# The --add-missing --copy of automake is broken, so we do it ourselfs.
+# We need to copy install-sh anyway before running libtoolize.
+for i in $automake_files; do	# install-sh, missing, mkinstalldirs[, depcomp]
+  if test ! -f ./$i; then
+    echo "    $i ..."
+    cp $automake_dir/$i ./$i;
+  fi
+done
+echo "    config.guess, config.sub, ltmain.sh ..."
+libtoolize --automake --copy	# config.guess, config.sub, ltmain.sh [and ltconfig for version 1.3.x and lower.]
+echo "    Makefile.in ..."
+automake			# Makefile.in
+
+# Sanity check
+for i in aclocal.m4 config.h.in configure $automake_files $libtool_files; do
+  if test ! -f $i; then
+    echo "Warning: missing \"$i\" in `pwd`"
+  fi
+done
+
+echo "*** done"
