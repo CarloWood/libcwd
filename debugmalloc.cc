@@ -1307,7 +1307,7 @@ void memblk_info_ct::erase(LIBCWD_TSD_PARAM)
 
 void memblk_info_ct::make_invisible(void)
 {
-#ifdef _REENTRANT
+#if defined(_REENTRANT) && CWDEBUG_DEBUG
   LIBCWD_ASSERT( _private_::is_locked(_private_::memblk_map_instance) ); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
 #endif
   LIBCWD_ASSERT( a_alloc_node.strict_owner() );
@@ -2297,7 +2297,7 @@ marker_ct::~marker_ct(void)
   {
     RELEASE_READ_LOCK
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
-    Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description << ')' );
+    Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description.get() << ')' );
     DoutFatal( dc::core, "Deleting a marker must be done in the same \"scope\" as where it was allocated; for example, "
 	"you cannot allocate marker A, then allocate marker B and then delete marker A before deleting first marker B." );
   }
@@ -2306,7 +2306,7 @@ marker_ct::~marker_ct(void)
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
 
-  Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description << ')' );
+  Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description.get() << ')' );
   if (list)
   {
 #if LIBCWD_THREAD_SAFE
@@ -2953,7 +2953,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
   __libcwd_tsd.internal = 1;
   type_info_ct const* t = (*iter).second.typeid_ptr();
-  char const* d = (*iter).second.description();
+  char const* d = (*iter).second.description().get();
   struct timeval realloc_time;
   gettimeofday(&realloc_time, 0);
   ACQUIRE_READ2WRITE_LOCK

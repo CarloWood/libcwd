@@ -634,11 +634,13 @@ void allocator_unlock(void)
       //pthread_kill_other_threads_np(); // Only causes a dead lock.
 #endif
 #endif
+#if CWDEBUG_DEBUG
       if (pthread_self() == (pthread_t)2049)
       {
 	::write(1, "WARNING: Thread manager core dumped.  Going into infinite loop.  Please detach process with gdb.\n", 97);
 	while(1);
       }
+#endif
       raise(6);
 #ifdef _REENTRANT
       LIBCWD_ENABLE_CANCEL;

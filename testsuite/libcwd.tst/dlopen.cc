@@ -1,6 +1,7 @@
 #include "sys.h"
 #include <libcw/debug.h>
 #include <dlfcn.h>
+#include <cerrno>
 
 typedef void* (*f_type)(bool);
 f_type f;

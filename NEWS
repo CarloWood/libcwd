@@ -24,7 +24,7 @@ libcwd-0.99.20
 	but it did lead to a coredump with allocation debugging
 	(of libcwd itself) on.
 
-	gcc version 2.x was using strstream as internal_stringstream,
+	gcc version 2.9x was using strstream as internal_stringstream,
 	and although only used with alloc checking off this DID lead,
 	under special circumstances, to a deadlock in list_allocations_on.
 

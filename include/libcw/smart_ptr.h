@@ -88,6 +88,7 @@ public:
 public:
   int get_reference_count(void) const { return M_ptr ? M_ptr->reference_count() : 0; }
   bool is_null(void) const { return M_ptr == NULL; }
+  char const* get(void) const { return M_ptr->get(); }
 
 protected:
   // Helper methods.
