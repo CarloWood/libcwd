@@ -78,7 +78,7 @@ Quick Reference<BR>
 </UL>
 <h4>Debug Output</h4>
 <UL TYPE="circle">
-<LI class="quickref"><CODE>Dout(dc::notice, "Hello World");</CODE>
+<LI class="quickref"><CODE>Dout(dc::notice, "Hello" &lt;&lt; ' ' &lt;&lt; "World");</CODE>
 <LI class="quickref"><CODE>Dout(dc::notice|blank_label_cf|error_cf, "Hello World");</CODE>
 <LI class="quickref">Other <a href="../reference-manual/group__group__control__flags.html">Control flags</a>
 </UL>
@@ -87,7 +87,7 @@ Quick Reference<BR>
 <LI class="quickref"><CODE>MyClass* p = new MyClass;<br>
 AllocTag(p, "This is an example");</CODE></LI>
 <LI class="quickref">Other <a href="../reference-manual/group__group__annotation.html">AllocTag</a> memory allocation annotation macros.</LI>
-<LI class="quickref"><CODE>Debug( list_allocations_on(libcw_do) );</CODE></LI>
+<LI class="quickref"><CODE>Debug( <a href="../reference-manual/group__group__alloc__format.html">list_allocations_on</a>(libcw_do) );</CODE></LI>
 </UL>
 
 </td></tr></table>

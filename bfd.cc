@@ -71,6 +71,7 @@ using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::object_files_instance;
 using libcw::debug::_private_::dlopen_map_instance;
+using libcw::debug::_private_::list_allocations_instance;
 #define BFD_INITIALIZE_LOCK		rwlock_tct<object_files_instance>::initialize();
 #define BFD_ACQUIRE_WRITE_LOCK	        rwlock_tct<object_files_instance>::wrlock();
 #define BFD_RELEASE_WRITE_LOCK	        rwlock_tct<object_files_instance>::wrunlock();
@@ -227,6 +228,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	asymbol** get_symbol_table(void) const { return symbol_table; }
 	long get_number_of_symbols(void) const { return number_of_symbols; }
 	libcw::debug::object_file_ct const* get_object_file(void) const { return &M_object_file; }
+	libcw::debug::object_file_ct* get_object_file(void) { return &M_object_file; }
 	function_symbols_ct& get_function_symbols(void) { return function_symbols; }
 	function_symbols_ct const& get_function_symbols(void) const { return function_symbols; }
       private:
@@ -1114,6 +1116,161 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
     } // namespace cwbfd
 
+#if LIBCWD_THREAD_SAFE
+#define ACQUIRE_LISTALLOC_LOCK mutex_tct<list_allocations_instance>::lock()
+#define RELEASE_LISTALLOC_LOCK mutex_tct<list_allocations_instance>::unlock()
+#else
+#define ACQUIRE_LISTALLOC_LOCK
+#define RELEASE_LISTALLOC_LOCK
+#endif
+
+    int ooam_filter_ct::S_id = 0;		// Id of ooam_filter_ct object that is currently synchronized with the other
+    						// global variables of the critical area(s) of list_allocations_instance.
+    int ooam_filter_ct::S_next_id = 0;		// Id of the last ooam_filter_ct object that was created.
+
+    // Use '1' instead of '0' because 0 is more likely to be used by the user
+    // as an extreme but real limit.
+    struct timeval const ooam_filter_ct::no_time_limit = { 1, 0 };
+
+    void ooam_filter_ct::set_flags(ooam_format_t flags)
+    {
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      M_flags = flags;
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+    }
+
+    ooam_format_t ooam_filter_ct::get_flags(void) const
+    {
+      // Makes little sense to add locking here (ooam_format_t is an atomic type).
+      return M_flags;
+    }
+
+    void ooam_filter_ct::set_time_interval(struct timeval const& start, struct timeval const& end)
+    {
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      M_start = start;
+      M_end = end;
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+    }
+
+    struct timeval ooam_filter_ct::get_time_start(void) const
+    {
+      struct timeval res;
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      res = M_start;
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+      return res;
+    }
+
+    struct timeval ooam_filter_ct::get_time_end(void) const
+    {
+      struct timeval res;
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      res = M_end;
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+      return res;
+    }
+
+    std::vector<std::string> ooam_filter_ct::get_objectfile_list(void) const
+    {
+      std::vector<std::string> res;
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      res = M_objectfile_masks;
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+      return res;
+    }
+
+    static bool match(char const* mask, size_t masklen, char const* name)
+    {
+      char const* m = mask;
+      char const* n = name;
+      
+      for(;;)
+      {
+	if (*n == 0)
+	{
+	  while(masklen-- > 0)
+	    if (*m++ != '*')
+	      return false;
+	  return true;
+	}
+	if (*m == '*')
+	  break;
+	if (*n++ != *m++)
+	  return false;
+	--masklen;
+      }
+      while(--masklen > 0 && *++m == '*');
+      if (masklen == 0)
+	return true;
+      while(*n != *m || !match(m, masklen, n))
+	if (*n++ == 0)
+	  return false;
+      return true;
+    }
+
+    void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& masks)
+    {
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      M_objectfile_masks = masks;
+      S_id = -1;			// Force resynchronization.
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+    }
+
+    void ooam_filter_ct::M_synchronize(void) const
+    {
+#if defined(_REENTRANT) && CWDEBUG_DEBUG
+      LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
+#endif
+      BFD_ACQUIRE_WRITE_LOCK;
+      // First clear the list, unhiding everything.
+      for (cwbfd::object_files_ct::iterator iter = cwbfd::NEEDS_WRITE_LOCK_object_files().begin();
+	   iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
+	   ++iter)
+	(*iter)->get_object_file()->M_hide = false;
+      // Next hide what matches.
+      for (cwbfd::object_files_ct::iterator iter = cwbfd::NEEDS_WRITE_LOCK_object_files().begin();
+	   iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
+	   ++iter)
+      {
+	for (std::vector<std::string>::const_iterator iter2(M_objectfile_masks.begin());
+	    iter2 != M_objectfile_masks.end(); ++iter2)
+	  if (match((*iter2).data(), (*iter2).length(), (*iter)->get_object_file()->M_filename))
+	  {
+	    (*iter)->get_object_file()->M_hide = true;
+	    break;
+	  }
+      }
+      BFD_RELEASE_WRITE_LOCK;
+      S_id = M_id;
+    }
+
+    ooam_filter_ct::ooam_filter_ct(ooam_format_t flags = 0) : M_flags(flags), M_start(no_time_limit), M_end(no_time_limit)
+    {
+      LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
+      ACQUIRE_LISTALLOC_LOCK;
+      M_id = ++S_next_id;
+      RELEASE_LISTALLOC_LOCK;
+      LIBCWD_CLEANUP_POP_RESTORE(false);
+    }
+
+    char const* const location_ct::S_uninitialized_location_ct_c = "<uninitialized location_ct>";
+    char const* const location_ct::S_pre_ios_initialization_c = "<pre ios initialization>";
+    char const* const location_ct::S_pre_libcwd_initialization_c = "<pre libcwd initialization>";
+    char const* const location_ct::S_cleared_location_ct_c = "<cleared location ct>";
+
     /** \addtogroup group_locations */
     /** \{ */
 
@@ -1161,7 +1318,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       return os;
     }
 
-    libcw::debug::object_file_ct::object_file_ct(char const* filepath)
+    libcw::debug::object_file_ct::object_file_ct(char const* filepath) : M_hide(false)
     {
       LIBCWD_TSD_DECLARATION
       set_alloc_checking_off(LIBCWD_TSD);
@@ -1202,14 +1359,16 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
         if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
 	{
 	  M_object_file = NULL;
-	  M_func = "<pre ios initialization>";
+	  M_func = S_pre_ios_initialization_c;
+	  M_initialization_delayed = addr;
 	  return;
 	}
 #endif
 	if (!ST_init())	// Initialization of BFD code fails?
 	{
 	  M_object_file = NULL;
-	  M_func = "<pre libcwd initialization>";
+	  M_func = S_pre_libcwd_initialization_c;
+	  M_initialization_delayed = addr;
 	  return;
 	}
       }
@@ -1251,6 +1410,8 @@ already_loaded:
       BFD_RELEASE_READ_LOCK;
 #endif
       LIBCWD_RESTORE_CANCEL;
+
+      M_initialization_delayed = NULL;
       if (!object_file)
       {
         LIBCWD_Dout(dc::bfd, "No object file for address " << addr);
@@ -1373,7 +1534,7 @@ already_loaded:
 	}
       }
       M_object_file = NULL;
-      M_func = "<cleared location_ct>";
+      M_func = S_cleared_location_ct_c;
     }
 
     location_ct::location_ct(location_ct const &prototype)
@@ -1384,6 +1545,8 @@ already_loaded:
 	M_filename = prototype.M_filename;
 	M_line = prototype.M_line;
       }
+      else
+	M_initialization_delayed = prototype.M_initialization_delayed;
       M_object_file = prototype.M_object_file;
       M_func = prototype.M_func;
     }
@@ -1399,6 +1562,8 @@ already_loaded:
 	  M_filename = prototype.M_filename;
 	  M_line = prototype.M_line;
 	}
+	else
+	  M_initialization_delayed = prototype.M_initialization_delayed;
 	M_object_file = prototype.M_object_file;
 	M_func = prototype.M_func;
       }

@@ -80,7 +80,13 @@ int main(int argc, char* argv[])
   int* rpi = (int*)realloc(mpi, 1000);
   AllocTag(rpi, "Test of \"(int*)realloc(mpi, 1000)\"");
 
-  Debug( list_allocations_on(libcw_do) );
+  Debug(
+    ooam_filter_ct filter(0);
+    std::vector<std::string> masks;
+    masks.push_back("lib*");
+    filter.hide_objectfiles_matching(masks);
+    list_allocations_on(libcw_do, filter)
+  );
 
   delete [] cp;
   delete i;

@@ -26,6 +26,8 @@
 namespace libcw {
   namespace debug {
 
+// Forward declarations.
+class ooam_filter_ct;
 namespace cwbfd { class object_file_ct; }
 
 /** \addtogroup group_locations */
@@ -39,6 +41,8 @@ class object_file_ct {
 private:
   char const* M_filepath;	// The full path to the object file (internally allocated and leaking memory).
   char const* M_filename;	// Points inside M_filepath just after the last '/' or to the beginning.
+  friend class ooam_filter_ct;
+  bool M_hide;
 
 protected:
   friend class cwbfd::object_file_ct;
@@ -49,6 +53,8 @@ public:
   char const* filepath(void) const { return M_filepath; }
   /** \brief The file name of the loaded executable or shared library (with path stripped off). */
   char const* filename(void) const { return M_filename; }
+
+  bool hide_from_alloc_list() const { return M_hide; }
 };
 
 /** \} */ // End of group 'group_locations'

@@ -103,7 +103,7 @@
 //		(Those that are shown by `list_allocations_on').
 // - std::ostream& operator<<(std::ostream& o, debugmalloc_report_ct)
 //		Allows to write a memory allocation report to std::ostream `o'.
-// - void list_allocations_on(debug_ct& debug_object);
+// - void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 //		Prints out all visible allocated memory blocks and labels.
 //
 // The current 'manipulator' functions are:
@@ -168,6 +168,7 @@
 #ifdef _REENTRANT
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::memblk_map_instance;
+using libcw::debug::_private_::list_allocations_instance;
 // We can't use rwlock_tct here because that leads to a dead lock.
 // rwlocks have to use condition variables or semaphores and both try to get a
 // (libpthread internal) self-lock that is already set by libthread when it calls
@@ -682,11 +683,11 @@ public:
     // Set `current_alloc_list' back to its parent list.
   static unsigned long get_memblks(void) { return memblks; }		// MT-safe: read lock is set.
   static size_t get_memsize(void) { return memsize; }			// MT-safe: read lock is set.
-  void print_description(list_allocations_flag_t flags LIBCWD_COMMA_TSD_PARAM) const;
+  void print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const;
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, dm_alloc_ct const& alloc) { alloc.printOn(os); return os; }
   friend inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, dm_alloc_ct const& alloc) { alloc.printOn(os.M_os); return os; }
-  void show_alloc_list(int depth, channel_ct const& channel, list_allocations_flag_t flags) const;
+  void show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
 };
 
 typedef dm_alloc_ct const const_dm_alloc_ct;
@@ -767,8 +768,8 @@ public:
       { M_memblk_type = new_flag; if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(void) const { a_alloc_node.get()->new_list(); }			// MT-safe: write lock is set.
   memblk_types_nt flags(void) const { return M_memblk_type; }
-  void print_description(list_allocations_flag_t flags LIBCWD_COMMA_TSD_PARAM) const
-      { a_alloc_node.get()->print_description(flags LIBCWD_COMMA_TSD); }
+  void print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
+      { a_alloc_node.get()->print_description(filter LIBCWD_COMMA_TSD); }
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, memblk_info_ct const& memblk) { memblk.printOn(os); return os; }
 private:
@@ -971,7 +972,7 @@ static void print_integer(std::ostream& os, unsigned int val, int width)
     os << *p++;
 }
 
-void dm_alloc_ct::print_description(list_allocations_flag_t flags LIBCWD_COMMA_TSD_PARAM) const
+void dm_alloc_ct::print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal && !__libcwd_tsd.library_call );
@@ -980,9 +981,9 @@ void dm_alloc_ct::print_description(list_allocations_flag_t flags LIBCWD_COMMA_T
   if (M_location.is_known())
   {
     LibcwDoutScopeBegin(channels, libcw_do, dc::continued);
-    if (flags & show_objectfile)
+    if (filter.M_flags & show_objectfile)
       LibcwDoutStream << M_location.object_file()->filename() << ':';
-    if (flags & show_path)
+    if (filter.M_flags & show_path)
     {
       size_t len = M_location.filepath_length();
       if (len < 20)
@@ -1082,16 +1083,31 @@ void dm_alloc_ct::printOn(std::ostream& os) const
       ",\n\tnext_list = " << (void*)a_next_list << ", my_list = " << (void*)my_list << "\n\t( = " << (void*)*my_list << " ) }";
 }
 
-void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel, list_allocations_flag_t flags) const
+void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const
 {
   dm_alloc_ct const* alloc;
   LIBCWD_TSD_DECLARATION
   for (alloc = this; alloc; alloc = alloc->next)
   {
+    const_cast<location_ct*>(&alloc->location())->handle_delayed_initialization();
+    if (alloc->location().object_file()->hide_from_alloc_list())
+      continue;
+    if (filter.M_start.tv_sec != 1)
+    {
+      if (alloc->a_time.tv_sec < filter.M_start.tv_sec || 
+	  (alloc->a_time.tv_sec == filter.M_start.tv_sec && alloc->a_time.tv_usec < filter.M_start.tv_usec))
+	continue;
+    }
+    if (filter.M_end.tv_sec != 1)
+    {
+      if (alloc->a_time.tv_sec > filter.M_end.tv_sec ||
+	  (alloc->a_time.tv_sec == filter.M_end.tv_sec && alloc->a_time.tv_usec > filter.M_end.tv_usec))
+	continue;
+    }
     LibcwDoutScopeBegin(channels, libcw_do, channel|nolabel_cf|continued_cf);
     for (int i = depth; i > 1; i--)
       LibcwDoutStream << "    ";
-    if (flags & show_time)
+    if (filter.M_flags & show_time)
     {
       struct tm* tbuf_ptr;
 #if LIBCWD_THREAD_SAFE
@@ -1113,10 +1129,10 @@ void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel, list_all
     LibcwDoutStream << cwprint(memblk_types_label_ct(alloc->memblk_type()));
     LibcwDoutStream << alloc->a_start << ' ';
     LibcwDoutScopeEnd;
-    alloc->print_description(flags LIBCWD_COMMA_TSD);
+    alloc->print_description(filter LIBCWD_COMMA_TSD);
     Dout( dc::finish, "" );
     if (alloc->a_next_list)
-      alloc->a_next_list->show_alloc_list(depth + 1, channel, flags);
+      alloc->a_next_list->show_alloc_list(depth + 1, channel, filter);
   }
 }
 
@@ -1855,22 +1871,35 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
 }
 
 /**
- * \brief List all current allocations to a given %debug object.
+ * \brief List all current allocations to a given %debug object using a specified format.
  * \ingroup group_overview
  *
  * With \link enable_alloc CWDEBUG_ALLOC \endlink set to 1, it is possible
  * to write the \ref group_overview "overview of allocated memory" to
  * a \ref group_debug_object "Debug Object".&nbsp;
- * The syntax to do this is:
+ *
+ * For example:
  *
  * \code
- * Debug( list_allocations_on(libcw_do) );	// libcw_do is the (default) debug object.
+ * Debug(
+ *   ooam_filter_ct ooam_filter(show_objectfile);
+ *   std::vector<std::string> masks;
+ *   masks.push_back("libc.so*");
+ *   masks.push_back("libstdc++*");
+ *   ooam_filter.hide_objectfiles_matching(masks);
+ *   list_allocations_on(libcw_do, ooam_filter)
+ * );
  * \endcode
  *
  * which would print on \link libcw::debug::libcw_do libcw_do \endlink using
- * \ref group_debug_channels "debug channel" \link libcw::debug::dc::malloc dc::malloc \endlink.
+ * \ref group_debug_channels "debug channel" \link libcw::debug::dc::malloc dc::malloc \endlink,
+ * not showing allocations that belong to shared libraries matching "libc.so*" or "libstdc++*".
+ * The remaining items would show which object file (shared library name or the executable name)
+ * they belong to, because we used \c show_objectfile as flag.
+ *
+ * \sa group_alloc_format
  */
-void list_allocations_on(debug_ct& debug_object, list_allocations_flag_t flags = 0)
+void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 {
 #if CWDEBUG_DEBUGM
   {
@@ -1901,12 +1930,53 @@ void list_allocations_on(debug_ct& debug_object, list_allocations_flag_t flags =
   }
 
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<memblk_map_instance>::cleanup /* &rwlock_tct<memblk_map_instance>::cleanup */, NULL);
+#if LIBCWD_THREAD_SAFE
+  pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(&mutex_tct<list_allocations_instance>::cleanup), NULL);
+  mutex_tct<list_allocations_instance>::lock();
+#endif
+  filter.M_check_synchronization();
   ACQUIRE_READ_LOCK
   LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << const_dm_alloc_ct::get_memsize() << " bytes in " << const_dm_alloc_ct::get_memblks() << " blocks." );
   if (base_alloc_list)
-    const_cast<dm_alloc_ct const*>(base_alloc_list)->show_alloc_list(1, channels::dc_malloc, flags);
+    const_cast<dm_alloc_ct const*>(base_alloc_list)->show_alloc_list(1, channels::dc_malloc, filter);
   RELEASE_READ_LOCK
+#if LIBCWD_THREAD_SAFE
+  pthread_cleanup_pop(1);
+#endif
   LIBCWD_CLEANUP_POP_RESTORE(false);
+}
+
+static ooam_filter_ct const default_ooam_filter(0);
+/**
+ * \brief List all current allocations to a given %debug object.
+ * \ingroup group_overview
+ *
+ * With \link enable_alloc CWDEBUG_ALLOC \endlink set to 1, it is possible
+ * to write the \ref group_overview "overview of allocated memory" to
+ * a \ref group_debug_object "Debug Object".&nbsp;
+ * The syntax to do this is:
+ *
+ * \code
+ * Debug( list_allocations_on(libcw_do) );	// libcw_do is the (default) debug object.
+ * \endcode
+ *
+ * which would print on \link libcw::debug::libcw_do libcw_do \endlink using
+ * \ref group_debug_channels "debug channel" \link libcw::debug::dc::malloc dc::malloc \endlink.
+ *
+ * Note that not passing formatting information is equivalent with,
+ *
+ * \code
+ * Debug(
+ *     ooam_filter_ct format(0);
+ *     list_allocations_on(debug_object, format)
+ * );
+ * \endcode
+ *
+ * meaning that all allocations are shown without time, without path and without to which library they belong to.
+ */
+void list_allocations_on(debug_ct& debug_object)
+{
+  list_allocations_on(debug_object, default_ooam_filter);
 }
 
 //=============================================================================

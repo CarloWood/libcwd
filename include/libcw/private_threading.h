@@ -117,6 +117,7 @@ enum mutex_instance_nt {
   set_ostream_instance,
   debug_objects_instance,	// rwlock
   debug_channels_instance,	// rwlock
+  list_allocations_instance,
   // Values reserved for read/write locks.
   reserved_instance_low,
   reserved_instance_high = 3 * reserved_instance_low,

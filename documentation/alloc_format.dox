@@ -1,0 +1,96 @@
+/*!
+\addtogroup group_alloc_format Format Of The Overview Of Allocated Memory
+\ingroup group_overview
+*/
+/*!
+\page page_alloc_format
+\ingroup group_alloc_format
+
+<hr><h2>Detailed Description</h2>
+
+The format of the \link group_overview Overview Of Allocated Memory \endlink can be altered
+and/or the content can be filtered by passing an object of type libcw::debug::ooam_filter_ct 
+to the function \ref list_allocations_on.  This object is constructed out of
+\c ooam_format_t constants which act as bits in a bit-mask.
+
+It is possible to include the time at which each allocation
+was made by passing the bit \c show_time.  This
+will prepend "hours:minutes:seconds.microseconds" to the output:
+
+\code
+04:07:16.712874 malloc    0x8078648          alloctag.cc:65   void*; (sz = 220)
+\endcode
+
+It is also possible to show the full path of the location file
+by passing the bit \c show_path.  This makes the output
+look like:
+
+\code
+malloc    0x8078648 /home/carlo/c++/libcwd/testsuite/libcwd.tst/alloctag.cc:65   void*; (sz = 220)
+\endcode
+
+Finally, it is possible to show the name of the object file (shared library or
+executable name) to which the allocation belongs by using the bit \c show_objectfile.
+The name of the corresponding object file is prepended to the location:
+
+\code
+malloc    0x8078648 tst_alloctag_shared:         alloctag.cc:65   void*; (sz = 220)
+\endcode
+
+The flags can be combined with the bit-wise OR operator.
+
+<b>Example:</b>
+
+\code
+#ifdef CWDEBUG
+libcw::debug::ooam_filter_ct filter(libcw::debug::show_time | libcw::debug::show_path);
+#endif
+
+Debug( list_allocations_on(libcw_do, filter) );
+\endcode
+
+<b>Filtering</b>
+
+There are two criteria on which can be filtered: the time at which an allocation was
+made and the shared library that an allocation belongs too.
+
+It is possible to give a time interval of the allocations that should be shown.
+For each of the limits (start and end) one can use the constant struct timeval libcw::debug::ooam_filter_ct::no_time_limit
+to indicate that there is no limit required.
+
+It is also possible to specify a list of wildcard masks (of the kind where a '*' matches anything) that
+will be matched against the names of the shared libraries, hiding the allocations that belong to the
+libraries whose name match.
+
+<b>Examples:</b>
+
+In order to show all allocations that were done at least one hour or more ago,
+
+\code
+#ifdef CWDEBUG
+libcw::debug::ooam_filter_ct filter(libcw::debug::show_time);
+struct timeval end;
+gettimeofday(&end, 0);
+end.tv_sec -= 3600;
+filter.set_time_interval(libcw::debug::ooam_filter_ct::no_time_limit, end);
+#endif
+
+Debug( list_allocations_on(libcw_do, filter) );
+\endcode
+
+In order to hide all allocations that belong to any shared library (only
+leaving the allocations that belong to the executable), one could do:
+
+\code
+#ifdef CWDEBUG
+libcw::debug::ooam_filter_ct filter(libcw::debug::show_objectfile);
+std::vector<std::string> masks;
+masks.push_back("lib*");
+filter.hide_objectfiles_matching(masks);
+#endif
+
+Debug( list_allocations_on(libcw_do, filter) );
+\endcode
+
+*/
+

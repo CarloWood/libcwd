@@ -37,6 +37,7 @@ void initialize_global_mutexes(void) throw()
 #if CWDEBUG_ALLOC
   mutex_tct<alloc_tag_desc_instance>::initialize();
   mutex_tct<memblk_map_instance>::initialize();
+  mutex_tct<list_allocations_instance>::initialize();
 #endif
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
   mutex_tct<type_info_of_instance>::initialize();

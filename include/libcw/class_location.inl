@@ -70,7 +70,7 @@ location_ct::~location_ct()
 }
 
 __inline__
-location_ct::location_ct(void) : M_func("<uninitialized location_ct>"), M_object_file(NULL), M_known(false)
+location_ct::location_ct(void) : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
 {
 }
 
@@ -84,6 +84,17 @@ location_ct::pc_location(void const* addr)
   clear();
   LIBCWD_TSD_DECLARATION
   M_pc_location(addr LIBCWD_COMMA_TSD);
+}
+
+__inline__
+void
+location_ct::handle_delayed_initialization(void)
+{
+  if (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c))
+  {
+    LIBCWD_TSD_DECLARATION
+    M_pc_location(M_initialization_delayed LIBCWD_COMMA_TSD);
+  }
 }
 
 __inline__

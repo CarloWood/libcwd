@@ -121,16 +121,84 @@ __inline__ void make_all_allocations_invisible_except(void const*) { }
 namespace libcw {
   namespace debug {
 
-typedef unsigned short int list_allocations_flag_t;
-list_allocations_flag_t const show_time = 1;
-list_allocations_flag_t const show_path = 2;
-list_allocations_flag_t const show_objectfile = 4;
+/** \addtogroup group_alloc_format */
+/** \{ */
+
+/** \brief The type used for the formatting flags of a ooam_filter_ct object */
+typedef unsigned short int ooam_format_t;
+
+ooam_format_t const show_time = 1;			//!< Show the time at which the allocation was made.
+ooam_format_t const show_path = 2;			//!< Show the full path of the locations where the allocation was made.
+ooam_format_t const show_objectfile = 4;		//!< Show the name of the shared library that is responsible for the allocation.
+
+/** \} */
+
+class dm_alloc_ct;
+
+/** \class ooam_filter_ct debugmalloc.h libcw/debug.h
+ * \ingroup group_alloc_format
+ *
+ * The object passed to \ref list_allocations_on containing formatting information
+ * for the \link group_overview Overview Of Allocated Memory \endlink.
+ */
+class ooam_filter_ct {
+private:
+  static int S_next_id;		// MT: protected by list_allocations_instance
+  static int S_id;		// MT: protected by list_allocations_instance
+  int M_id;
+  friend class ::libcw::debug::dm_alloc_ct;
+  ooam_format_t M_flags;
+  struct timeval M_start;
+  struct timeval M_end;
+  std::vector<std::string> M_objectfile_masks;
+public:
+  /** The timeval used when there is no actual limit set, either start or end. */
+  static struct timeval const no_time_limit;
+  /** \brief Construct a formatting object */
+  ooam_filter_ct(ooam_format_t flags = 0);
+  /** \brief Set the general formatting flags. */
+  void set_flags(ooam_format_t flags);
+  /** \brief Returns the flags as set with set_flags */
+  ooam_format_t get_flags(void) const;
+  /** \brief Returns the start time as passed with set_time_interval. */
+  struct timeval get_time_start(void) const;
+  /** \brief Returns the end time as passed with set_time_interval. */
+  struct timeval get_time_end(void) const;
+  /** \brief Returns the list of masks. */
+  std::vector<std::string> get_objectfile_list(void) const;
+
+  /** \brief Select the time interval that should be shown.
+   *
+   * The time interval outside of which allocations will not be shown
+   * in the allocated memory overview.  \a start is the earliest time shown
+   * while \a end is the last time shown.
+   *
+   * \sa group_alloc_format
+   */
+  void set_time_interval(struct timeval const& start, struct timeval const& end);
+
+  /** \brief Select which object files to hide in the Allocated Memory Overview.
+   *
+   * \a masks is a list of wildcard expressions ('*' matches anything) that are matched
+   * against the name of the executable and all the shared library names (without their path).
+   * Object files that match will be hidden from the \link group_overview overview of allocated memory \endlink.
+   *
+   * \sa group_alloc_format
+   */
+  void hide_objectfiles_matching(std::vector<std::string> const& masks);
+
+private:
+  friend void list_allocations_on(debug_ct&, ooam_filter_ct const&);
+  void M_check_synchronization(void) const { if (M_id != S_id) M_synchronize(); }
+  void M_synchronize(void) const;
+};
 
 #if CWDEBUG_ALLOC
-extern void list_allocations_on(debug_ct& debug_object, list_allocations_flag_t flags = 0);
+extern void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& format);
+extern void list_allocations_on(debug_ct& debug_object);
 #else // !CWDEBUG_ALLOC
 __inline__ void list_allocations_on(debug_ct&) { }
-__inline__ void list_allocations_on(debug_ct&, list_allocations_flag_t) { }
+__inline__ void list_allocations_on(debug_ct&, ooam_filter_ct const&) { }
 #endif // !CWDEBUG_ALLOC
 
   } // namespace debug

@@ -18,10 +18,13 @@ libcwd-0.99.19
 	them, saving lots of memory when an application makes many
 	allocations.
 
-	The Allocation Overview now contains the time at which the
-	allocation was done.  It also shows the file name of the
-	shared library or executable that the location at which
-	the allocation was done belongs to.
+	It is now possible to show the time at which allocations are
+	made in the Overview Of Allocated Memory and/or to show only
+	allocations made in a given time interval.
+	It is also possible to show the file name of the shared library
+	or executable that the location at which the allocation was
+	made belongs to and/or to selectively filter away allocations
+	belonging to specified shared libraries.
 
 	Bug fixes:
 

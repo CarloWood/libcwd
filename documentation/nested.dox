@@ -65,7 +65,7 @@ NOTICE:     Inside generate_tables()
 KERNEL: <continued> done</PRE>
 \endexampleoutput
 
-Finally, it is also possible to split a debug line into more then two parts by using the special dc::continued debug channel.
+Finally, it is also possible to split a debug line into more than two parts by using the special dc::continued debug channel.
 
 \code
 Dout( dc::notice|flush_cf|continued_cf, "Generating tables." );
