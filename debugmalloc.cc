@@ -226,7 +226,7 @@ bool allocator_trylock(bool when_no_threads)
   if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
     std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
 #endif
-  return __gthread_mutex_trylock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
+  return (__gthread_mutex_trylock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock) == 0);
 }
 
 // The following unlocks the node allocator.
@@ -2117,7 +2117,7 @@ void* __libcwd_malloc(size_t size)
   bool locked = false;
   if (_private_::WST_multi_threaded)
   {
-    locked = _private_::allocator_trylock(false);	// Fake a std::string (etc) lock.
+    locked = _private_::allocator_trylock(true);	// Fake a std::string (etc) lock.
     if (!locked)
       core_dump();
   }
