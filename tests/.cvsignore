@@ -1,5 +1,7 @@
 Makefile
 Makefile.in
 hello_world
+initbug
 syslog
 .deps
+.libs
