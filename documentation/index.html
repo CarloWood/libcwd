@@ -85,6 +85,22 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>24 May 2002</B>
+<P class="news">libcwd-0.99.20 is released.&nbsp;
+This release fixes three (possible) deadlocks in <CODE>list_allocations_on</CODE>,
+one in <CODE>dlopen</CODE> (when an error occured during loading),
+and one during core dumping (<CODE>COREDUMP</CODE>) in
+<CODE>pthread_kill_other_threads_np</CODE>.&nbsp;
+Furthermore a bug was fixed in relation to the use of the control flag
+<CODE>error_cf</CODE> as that was using the non-reentrant
+libc function <CODE>strerror</CODE> instead of
+<CODE>strerror_r</CODE>, causing libcwd likely to complain
+about freeing an 'internal' allocation (which means that the user (or the
+system) is freeing memory that was allocated by libcwd, and libcwd likes
+to take care of its own allocations).</P>
+<P class="news">Support for non-threaded applications on solaris 2.8 has been added as well.&nbsp;
+Please contact me if you are interested in making threads work too on this OS.&nbsp;
+The same holds for FreeBSD.</P>
 <DT><B>23 April 2002</B>
 <P class="news">libcwd-0.99.19 is released.&nbsp;
 This release fixes a deadlock during the initialization of threaded applications

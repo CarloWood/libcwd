@@ -51,11 +51,11 @@ libcwd-0.99.20
 	freed was errornously passed a '0' instead of the constant
 	default_ooam_filter; that in turn caused the synchronization id
 	of the filter object to be increased every time, which caused
-	a dead lock the mutex used for the filter id was already set
+	a deadlock if the mutex used for the filter id was already set
 	(something that could easily happen because free is called in
 	the critical area of that mutex).
 
-	list_allocations_on could also easily cause a dead lock
+	list_allocations_on could also easily cause a deadlock
 	because it was printing the allocation list directly from
 	the map<> that is being used to administrate the allocations
 	and thus kept a lock for allocations during printing.
@@ -101,12 +101,12 @@ libcwd-0.99.19
 
 	The demangler for the old ABI (g++ versions <= 2.96)
 	still contained a (non-internal) std::vector causing a
-	dead lock while demangling the functionname in which another
+	deadlock while demangling the functionname in which another
 	STL allocation is done (which uses a single mutex).
 	[ Thus: STL container allocation --> sets lock --> calls
 	  malloc --> looks up location --> demangles function name
 	  --> uses STL vector --> tries another allocation -->
-	  dead lock ].  This problem did not occur for g++ 3.x
+	  deadlock ].  This problem did not occur for g++ 3.x
 	because then we _already_ used _private_::internal_vector,
 	as should be.
 
@@ -210,15 +210,15 @@ libcwd-0.99.17
 
 	list_channels_on didn't print the margin.
 
-	Fixed a dead lock in object_file_ct::find_nearest_line().
-	The dead lock occured when debug output written from
+	Fixed a deadlock in object_file_ct::find_nearest_line().
+	The deadlock occured when debug output written from
 	load_dwarf/load_stabs, which must be done with userspace
 	allocations, caused a recursive entry into this function.
 
-	Fixed a dead lock in std::__default_allocator<true, 0>, the
+	Fixed a deadlock in std::__default_allocator<true, 0>, the
 	default userspace allocator of the STL.  The problem here
 	is that this lock is set when it calls malloc() to increase
-	its internal memory pool, causing a dead lock when memory
+	its internal memory pool, causing a deadlock when memory
 	needs to be allocated during the writing of debug output
 	to dc::malloc or dc::bfd (this happens *extremely* seldom,
 	I even knew about this when I released 0.99.16).  The solution
