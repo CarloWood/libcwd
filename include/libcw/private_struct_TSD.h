@@ -119,6 +119,9 @@ public:
 #if LIBCWD_THREAD_SAFE
   threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).
   bool thread_iter_valid;
+#if CWDEBUG_DEBUG
+  thread_ct* memblk_map_target_thread;
+#endif
 #endif
 #if CWDEBUG_DEBUGM
   int marker;

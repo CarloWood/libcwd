@@ -152,6 +152,14 @@
 #include <libcw/cwprint.h>
 
 #if LIBCWD_THREAD_SAFE
+#if CWDEBUG_DEBUG
+// This stuff is needed inside allocator_adaptor<>::sanity_check to check if the correct lock is set.
+#define SET_MEMBLK_MAP_TARGET_THREAD __libcwd_tsd.memblk_map_target_thread = target_thread;
+#define UNSET_MEMBLK_MAP_TARGET_THREAD __libcwd_tsd.memblk_map_target_thread = NULL;
+#else // !CWDEBUG_DEBUG
+#define SET_MEMBLK_MAP_TARGET_THREAD
+#define UNSET_MEMBLK_MAP_TARGET_THREAD
+#endif // !CWDEBUG_DEBUG
 #include <libcw/private_mutex.inl>
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::mutex_ct;
@@ -162,12 +170,18 @@ using libcw::debug::_private_::list_allocations_instance;
 // rwlocks have to use condition variables or semaphores and both try to get a
 // (libpthread internal) self-lock that is already set by libthread when it calls
 // free() in order to destroy thread specific data 1st level arrays.
-#define ACQUIRE_WRITE_LOCK	(*__libcwd_tsd.thread_iter).memblk_map_mutex.lock();
-#define RELEASE_WRITE_LOCK	(*__libcwd_tsd.thread_iter).memblk_map_mutex.unlock();
-#define ACQUIRE_READ_LOCK	(*__libcwd_tsd.thread_iter).memblk_map_mutex.lock();
-#define RELEASE_READ_LOCK	(*__libcwd_tsd.thread_iter).memblk_map_mutex.unlock();
+#define ACQUIRE_WRITE_LOCK		(*__libcwd_tsd.thread_iter).memblk_map_mutex.lock();
+#define RELEASE_WRITE_LOCK		(*__libcwd_tsd.thread_iter).memblk_map_mutex.unlock();
+#define ACQUIRE_READ_LOCK		(*__libcwd_tsd.thread_iter).memblk_map_mutex.lock();
+#define RELEASE_READ_LOCK		(*__libcwd_tsd.thread_iter).memblk_map_mutex.unlock();
 #define ACQUIRE_READ2WRITE_LOCK
 #define ACQUIRE_WRITE2READ_LOCK
+#define ACQUIRE_TARGET_WRITE_LOCK	target_thread->memblk_map_mutex.lock(); SET_MEMBLK_MAP_TARGET_THREAD
+#define RELEASE_TARGET_WRITE_LOCK	UNSET_MEMBLK_MAP_TARGET_THREAD target_thread->memblk_map_mutex.unlock();
+#define ACQUIRE_TARGET_READ_LOCK	target_thread->memblk_map_mutex.lock(); SET_MEMBLK_MAP_TARGET_THREAD
+#define RELEASE_TARGET_READ_LOCK	UNSET_MEMBLK_MAP_TARGET_THREAD target_thread->memblk_map_mutex.unlock();
+#define ACQUIRE_TARGET_READ2WRITE_LOCK
+#define ACQUIRE_TARGET_WRITE2READ_LOCK
 // We can rwlock_tct here, because this lock is never used from free(),
 // only from new, new[], malloc and realloc.
 #define ACQUIRE_LC_WRITE_LOCK		rwlock_tct<location_cache_instance>::wrlock();
@@ -183,6 +197,12 @@ using libcw::debug::_private_::list_allocations_instance;
 #define RELEASE_READ_LOCK
 #define ACQUIRE_READ2WRITE_LOCK
 #define ACQUIRE_WRITE2READ_LOCK
+#define ACQUIRE_TARGET_WRITE_LOCK
+#define RELEASE_TARGET_WRITE_LOCK
+#define ACQUIRE_TARGET_READ_LOCK
+#define RELEASE_TARGET_READ_LOCK
+#define ACQUIRE_TARGET_READ2WRITE_LOCK
+#define ACQUIRE_TARGET_WRITE2READ_LOCK
 #define ACQUIRE_LC_WRITE_LOCK
 #define RELEASE_LC_WRITE_LOCK
 #define ACQUIRE_LC_READ_LOCK
@@ -902,15 +922,20 @@ typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>,
 #if LIBCWD_THREAD_SAFE
 // Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
 #define memblk_map_write (reinterpret_cast<memblk_map_ct*>((*__libcwd_tsd.thread_iter).memblk_map))
+#define target_memblk_map_write (reinterpret_cast<memblk_map_ct*>(target_thread->memblk_map))
 // Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
 #define memblk_map_read  (reinterpret_cast<memblk_map_ct const*>((*__libcwd_tsd.thread_iter).memblk_map))
+#define target_memblk_map_read  (reinterpret_cast<memblk_map_ct const*>(target_thread->memblk_map))
 #else // !LIBCWD_THREAD_SAFE
 static memblk_map_ct* memblk_map;
 #define memblk_map_write memblk_map
+#define target_memblk_map_write memblk_map
 #define memblk_map_read  memblk_map
+#define target_memblk_map_read  memblk_map
 #endif // !LIBCWD_THREAD_SAFE
 
 #define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
+#define target_memblk_iter_write memblk_iter_write
 
 //=============================================================================
 //
@@ -1559,6 +1584,31 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
   return mptr;
 }
 
+#if LIBCWD_THREAD_SAFE
+static bool search_in_maps_of_other_threads(void const* ptr, _private_::thread_ct*& target_thread, memblk_map_ct::const_iterator& iter LIBCWD_COMMA_TSD_PARAM)
+{
+  using _private_::threadlist_instance;
+  using _private_::threadlist_t;
+  using _private_::threadlist;
+  bool found = false;
+  mutex_tct<threadlist_instance>::lock();
+  for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)
+  {
+    if (thread_iter == __libcwd_tsd.thread_iter)
+      continue;	// Already searched.
+    target_thread = &(*thread_iter);
+    ACQUIRE_TARGET_READ_LOCK
+    iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+    found = (iter != target_memblk_map_read->end());
+    if (found)
+      break;
+    RELEASE_TARGET_READ_LOCK
+  }
+  mutex_tct<threadlist_instance>::unlock();
+  return found;
+}
+#endif
+
 static ooam_filter_ct const default_ooam_filter(0);
 static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_PARAM)
 {
@@ -1633,12 +1683,24 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     return;
   }
 
+#if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL_NO_BRACE;
-  ACQUIRE_READ_LOCK
-  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(ptr, 0)));
-  if (iter == memblk_map_read->end() || (*iter).first.start() != ptr)
+  _private_::thread_ct* target_thread = &(*__libcwd_tsd.thread_iter);
+  ACQUIRE_TARGET_READ_LOCK
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+#else
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+#endif
+  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
+#if LIBCWD_THREAD_SAFE
+  if (!found)
   {
-    RELEASE_READ_LOCK
+    RELEASE_TARGET_READ_LOCK
+    found = search_in_maps_of_other_threads(ptr, target_thread, iter, __libcwd_tsd) && (*iter).first.start() == ptr;
+  }
+#endif
+  if (!found)
+  {
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
 #if CWDEBUG_MAGIC
     if (((size_t*)ptr)[-2] == INTERNAL_MAGIC_NEW_BEGIN ||
@@ -1701,7 +1763,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	else if (f == memblk_type_new_array)
 	  DoutFatalInternal( dc::core, "You are `free()'-ing a block that was allocated with `new[]'!  Use `delete[]' instead." );
       }
-      DoutFatalInternal( dc::core, "Huh? Bug in libcw" );
+      DoutFatalInternal( dc::core, "Huh? Bug in libcwd" );
     }
 
     DEBUGDEBUG_CERR( "__libcwd_free: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
@@ -1715,10 +1777,10 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     // First unlocking the reader and then locking a writer would make it possible
     // that the application would crash when two threads try to free simultaneously
     // the same memory block (instead of detecting that and exiting gracefully).
-    ACQUIRE_READ2WRITE_LOCK
+    ACQUIRE_TARGET_READ2WRITE_LOCK
     (*memblk_iter_write).second.erase(LIBCWD_TSD);	// Update flags and optional decouple
-    memblk_map_write->erase(memblk_iter_write);		// Update administration
-    RELEASE_WRITE_LOCK
+    target_memblk_map_write->erase(memblk_iter_write);		// Update administration
+    RELEASE_TARGET_WRITE_LOCK
 
     DEBUGDEBUG_CERR( "__libcwd_free: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
     __libcwd_tsd.internal = 0;
@@ -1831,7 +1893,7 @@ void init_malloc_function_pointers(void)
   char const* libc_filename[] = {
     "/usr/lib/libc.so.4",		// FreeBSD 4.5
     "/lib/libc.so.1",			// Solaris 8
-   NULL
+    NULL
   };
 #else
   // Please mail libcwd@alinoe.com if you need to extend this.
@@ -1978,19 +2040,28 @@ void init_debugmalloc(void)
 bool test_delete(void const* ptr)
 {
   LIBCWD_TSD_DECLARATION
-  bool res;
+  bool found;
+#if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
-  ACQUIRE_READ_LOCK
-  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(ptr, 0)));
+  _private_::thread_ct* target_thread = &(*__libcwd_tsd.thread_iter);
+  ACQUIRE_TARGET_READ_LOCK
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+#else
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+#endif
   // MT: Because the expression `(*iter).first.start()' is included inside the locked
   //     area too, no core dump will occur when another thread would be deleting
   //     this allocation at the same time.  The behaviour of the application would
   //     still be undefined however because it makes it possible that this function
   //     returns false (not deleted) for a deleted memory block.
-  res = (iter == memblk_map_read->end() || (*iter).first.start() != ptr);
-  RELEASE_READ_LOCK
+  found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
+#if LIBCWD_THREAD_SAFE
+  RELEASE_TARGET_READ_LOCK
+  if (!found)
+    found = search_in_maps_of_other_threads(ptr, target_thread, iter, __libcwd_tsd) && (*iter).first.start() == ptr;
   LIBCWD_RESTORE_CANCEL;
-  return res;
+#endif
+  return !found;
 }
 
 /**
@@ -2176,20 +2247,32 @@ void make_invisible(void const* ptr)
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
+#if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
-  ACQUIRE_READ_LOCK
-  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(ptr, 0)));
-  if (iter == memblk_map_read->end() || (*iter).first.start() != ptr)
+  _private_::thread_ct* target_thread = &(*__libcwd_tsd.thread_iter);
+  ACQUIRE_TARGET_READ_LOCK
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+#else
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+#endif
+  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
+#if LIBCWD_THREAD_SAFE
+  if (!found)
   {
-    RELEASE_READ_LOCK
+    RELEASE_TARGET_READ_LOCK
+    found = search_in_maps_of_other_threads(ptr, target_thread, iter, __libcwd_tsd) && (*iter).first.start() == ptr;
+  }
+#endif
+  if (!found)
+  {
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
     DoutFatalInternal( dc::core, "Trying to turn non-existing memory block (" << ptr << ") into an 'internal' block" );
   }
   DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
   __libcwd_tsd.internal = 1;
-  ACQUIRE_READ2WRITE_LOCK
+  ACQUIRE_TARGET_READ2WRITE_LOCK
   (*memblk_iter_write).second.make_invisible();
-  RELEASE_WRITE_LOCK
+  RELEASE_TARGET_WRITE_LOCK
   DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
   LIBCWD_RESTORE_CANCEL;
@@ -2480,11 +2563,29 @@ alloc_ct const* find_alloc(void const* ptr)
 #endif
 
   alloc_ct const* res;
+#if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
-  ACQUIRE_READ_LOCK
-  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(ptr, 0)));
-  res = (iter == memblk_map_read->end()) ? NULL : (*iter).second.get_alloc_node();
-  RELEASE_READ_LOCK
+  _private_::thread_ct* target_thread = &(*__libcwd_tsd.thread_iter);
+  ACQUIRE_TARGET_READ_LOCK
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+#else
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+#endif
+  bool found = (iter != target_memblk_map_read->end());
+#if LIBCWD_THREAD_SAFE
+  if (!found)
+  {
+    RELEASE_TARGET_READ_LOCK
+    found = search_in_maps_of_other_threads(ptr, target_thread, iter, __libcwd_tsd);
+  }
+#endif
+  if (!found)
+  {
+    LIBCWD_RESTORE_CANCEL_NO_BRACE;
+    return NULL;
+  }
+  res = (*iter).second.get_alloc_node();
+  RELEASE_TARGET_READ_LOCK
   LIBCWD_RESTORE_CANCEL;
   return res;
 }
@@ -2913,12 +3014,24 @@ void* __libcwd_realloc(void* ptr, size_t size)
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
   __libcwd_tsd.internal = 1;
 
+#if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL_NO_BRACE;
-  ACQUIRE_READ_LOCK
-  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(ptr, 0)));
-  if (iter == memblk_map_read->end() || (*iter).first.start() != ptr)
+  _private_::thread_ct* target_thread = &(*__libcwd_tsd.thread_iter);
+  ACQUIRE_TARGET_READ_LOCK
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+#else
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+#endif
+  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
+#if LIBCWD_THREAD_SAFE
+  if (!found)
   {
-    RELEASE_READ_LOCK
+    RELEASE_TARGET_READ_LOCK
+    found = search_in_maps_of_other_threads(ptr, target_thread, iter, __libcwd_tsd) && (*iter).first.start() == ptr;
+  }
+#endif
+  if (!found)
+  {
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
     DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
     __libcwd_tsd.internal = 0;
@@ -2932,7 +3045,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 
   if (size == 0)
   {
-    RELEASE_READ_LOCK
+    RELEASE_TARGET_READ_LOCK
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
     // MT: At this point, the memory block that `ptr' points at could be freed by
     //     another thread.  This is not a problem because `internal_free' will
@@ -2962,7 +3075,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   if (((size_t*)ptr)[-2] != MAGIC_MALLOC_BEGIN ||
       ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_MALLOC_END)
   {
-    RELEASE_READ_LOCK
+    RELEASE_TARGET_READ_LOCK
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
     if (((size_t*)ptr)[-2] == MAGIC_NEW_BEGIN &&
 	((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_END)
@@ -2975,7 +3088,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   if ((mptr = static_cast<char*>(__libc_realloc(static_cast<size_t*>(ptr) - 2, SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
   {
-    RELEASE_READ_LOCK
+    RELEASE_TARGET_READ_LOCK
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
     DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
@@ -2998,13 +3111,13 @@ void* __libcwd_realloc(void* ptr, size_t size)
   char const* d = (*iter).second.description().get();
   struct timeval realloc_time;
   gettimeofday(&realloc_time, 0);
-  ACQUIRE_READ2WRITE_LOCK	// MT: memblk_info_ct() needs wrlock.
+  ACQUIRE_TARGET_READ2WRITE_LOCK	// MT: memblk_info_ct() needs wrlock.
   memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_realloc, realloc_time LIBCWD_COMMA_LOCATION(loc)));
-  memblk_map_write->erase(memblk_iter_write);
-  std::pair<memblk_map_ct::iterator, bool> const& iter2(memblk_map_write->insert(memblk));
+  target_memblk_map_write->erase(memblk_iter_write);
+  std::pair<memblk_map_ct::iterator, bool> const& iter2(target_memblk_map_write->insert(memblk));
   if (!iter2.second)
   {
-    RELEASE_WRITE_LOCK
+    RELEASE_TARGET_WRITE_LOCK
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
     DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
     __libcwd_tsd.internal = 0;
@@ -3014,7 +3127,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   memblk_info.change_label(*t, d);
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
-  RELEASE_WRITE_LOCK
+  RELEASE_TARGET_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
 
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT

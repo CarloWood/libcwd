@@ -34,15 +34,24 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
       core_dump();
 #endif
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
-    if (instance == single_threaded_internal_instance && WST_multi_threaded)
-      core_dump();
-    if (instance == memblk_map_instance)
+    if (WST_multi_threaded)
     {
-      if (WST_multi_threaded && !(*__libcwd_tsd.thread_iter).memblk_map_mutex.is_locked())
+      if (instance == single_threaded_internal_instance)
+	core_dump();
+      // Check if the correct lock is set.
+      if (instance == memblk_map_instance)
+      {
+	if (__libcwd_tsd.memblk_map_target_thread)	// Inside a ACQUIRE_TARGET_*_LOCK ... RELEASE_TARGET_*_LOCK critical area?
+	{
+	  if (!__libcwd_tsd.memblk_map_target_thread->memblk_map_mutex.is_locked())
+	    core_dump();
+	}
+	else if (!(*__libcwd_tsd.thread_iter).memblk_map_mutex.is_locked())
+	  core_dump();
+      }
+      else if (instance >= 0 && !is_locked(instance))
 	core_dump();
     }
-    else if (instance >= 0 && WST_multi_threaded && !is_locked(instance))
-      core_dump();
 #endif
   }
 #endif
