@@ -46,7 +46,9 @@ char* cplus_demangle (char const* mangled, int options);
 namespace libcw {
   namespace debug {
 #endif
-    channel_ct const bfd_dc("BFD");
+    namespace dc {
+      channel_ct const bfd("BFD");
+    };
 #ifndef DEBUGNONAMESPACE
   };
 };
@@ -61,7 +63,7 @@ namespace {	// Local stuff
   {
     va_list vl;
     va_start(vl, format);
-    Dout_vform(NAMESPACE_LIBCW_DEBUG::bfd_dc, format, vl);
+    Dout_vform(NAMESPACE_LIBCW_DEBUG::dc::bfd, format, vl);
     va_end(vl);
   }
 
@@ -194,17 +196,17 @@ namespace {	// Local stuff
     object_file_ct* object_file = (object_file_ct*)obj;
     long storage_needed = bfd_get_reloc_upper_bound(abfd, sect);
     if (storage_needed < 0)
-      DoutFatal(bfd_dc, "bfd_get_reloc_upper_bound: " << bfd_errmsg(bfd_get_error()));
+      DoutFatal(dc::bfd, "bfd_get_reloc_upper_bound: " << bfd_errmsg(bfd_get_error()));
     else if (storage_needed > 0)
     {
       arelent** relocation_table = (arelent**) malloc (storage_needed);
       long number_of_relocations = bfd_canonicalize_reloc(abfd, sect, relocation_table, object_file->symbol_table);
       if (number_of_relocations < 0)
-	DoutFatal(bfd_dc, "bfd_canonicalize_reloc: " << bfd_errmsg(bfd_get_error()));
+	DoutFatal(dc::bfd, "bfd_canonicalize_reloc: " << bfd_errmsg(bfd_get_error()));
       else if (number_of_relocations > 0)
       {
-	Dout(warning_dc, abfd->filename << ": " << sect->name << " section contains relocation data; libcw doesn't know how to deal with that");
-	Dout(bfd_dc, sect->name << ": Number of relocations: " << number_of_relocations);
+	Dout(dc::warning, abfd->filename << ": " << sect->name << " section contains relocation data; libcw doesn't know how to deal with that");
+	Dout(dc::bfd, sect->name << ": Number of relocations: " << number_of_relocations);
       }
     }
 
@@ -273,27 +275,27 @@ namespace {	// Local stuff
   {
     abfd = bfd_openr(filename, NULL);
     if (!abfd)
-      DoutFatal(bfd_dc, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
+      DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
     abfd->cacheable = bfd_tttrue;
     abfd->usrdata = (PTR)this;
 
     if (!bfd_check_format (abfd, bfd_object))
     {
       bfd_close(abfd);
-      DoutFatal(bfd_dc, '"' << filename << "\": not in executable format: " << bfd_errmsg(bfd_get_error()));
+      DoutFatal(dc::bfd, '"' << filename << "\": not in executable format: " << bfd_errmsg(bfd_get_error()));
     }
 
-    //Dout(bfd_dc, "Opened BFD: " << *abfd);
+    //Dout(dc::bfd, "Opened BFD: " << *abfd);
 
     long storage_needed = bfd_get_symtab_upper_bound (abfd);
     if (storage_needed < 0)
-      DoutFatal(bfd_dc, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
+      DoutFatal(dc::bfd, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
 
     symbol_table = (asymbol**) malloc(storage_needed);
     number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
     if (number_of_symbols < 0)
-      DoutFatal(bfd_dc, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
-    //Dout(bfd_dc, "Number of symbols: " << number_of_symbols);
+      DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
+    //Dout(dc::bfd, "Number of symbols: " << number_of_symbols);
 
     if (number_of_symbols > 0)
     {
@@ -377,18 +379,18 @@ static int libcw_bfd_init(void)
   bfd_set_error_handler(libcw_bfd_error_handler);
 
   // Load executable
-  Dout(bfd_dc|continued_cf|flush_cf, "Loading debug symbols from " << fullpath.c_str() << "... ");
+  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath.c_str() << "... ");
   new object_file_ct(fullpath.c_str(), 0);
-  Dout(finish_dc, "done");
+  Dout(dc::finish, "done");
 
   // Load all shared objects
   extern struct link_map* _dl_loaded;
   for (struct link_map* l = _dl_loaded; l; l = l->l_next)
     if (l->l_addr)
     {
-      Dout(bfd_dc|continued_cf, "Loading debug symbols from " << l->l_name << "... ");
+      Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << "... ");
       new object_file_ct(l->l_name, l->l_addr);
-      Dout(finish_dc, "done");
+      Dout(dc::finish, "done");
     }
 
   object_files().sort(object_file_greater());
@@ -433,11 +435,11 @@ static asymbol const* libcw_bfd_pc_symbol(void const* addr, object_file_ct const
       if (addr < (char*)symbol_start_addr(p) + symbol_size(p))
         return p;
     }
-    Dout(bfd_dc, "No symbol found: " << hex << addr);
+    Dout(dc::bfd, "No symbol found: " << hex << addr);
   }
 #ifdef DEBUG
   else
-    Dout(bfd_dc, "No source file found: " << hex << addr);
+    Dout(dc::bfd, "No source file found: " << hex << addr);
 #endif
   return NULL;
 }
@@ -509,14 +511,14 @@ location_st libcw_bfd_pc_location(void const* addr) return location
       if (p->name)
       {
 	char* demangled_name = cplus_demangle(p->name, DMGL_PARAMS | DMGL_ANSI);
-	Dout(bfd_dc, "Warning: Address " << hex << addr << " in section " << sect->name <<
+	Dout(dc::bfd, "Warning: Address " << hex << addr << " in section " << sect->name <<
 	    " does not have a line number, perhaps " << (demangled_name ? demangled_name : p->name) << " is inlined?");
       }
       else
-	Dout(bfd_dc, "Warning: Address in section " << sect->name << " does not contain a function");
+	Dout(dc::bfd, "Warning: Address in section " << sect->name << " does not contain a function");
     }
     else
-      Dout(bfd_dc, hex << addr << dec << " is at (" << location << ')');
+      Dout(dc::bfd, hex << addr << dec << " is at (" << location << ')');
 #endif
     return location;
   }

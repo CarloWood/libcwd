@@ -27,7 +27,10 @@ RCSTAG_H(bfd, "$Id$")
 namespace libcw {
   namespace debug {
 #endif
-    extern channel_ct const bfd_dc;
+    namespace dc {
+      extern channel_ct const bfd;
+    };
+    static channel_ct const& bfd_dc(dc::bfd);
 #ifndef DEBUGNONAMESPACE
   };
 };

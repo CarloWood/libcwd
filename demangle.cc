@@ -44,7 +44,7 @@
 RCSTAG_CC("$Id$")
 
 #ifdef DEBUG
-#define ERROR DoutFatal( core_dc, "Demangler error" )
+#define ERROR DoutFatal( dc::core, "Demangler error" )
 #else
 #define ERROR return -1
 #endif

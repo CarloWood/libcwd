@@ -45,18 +45,19 @@ namespace libcw {
     						// if a custom channel has a longer label.
     };
 
-    channel_ct const debug_dc("DEBUG");
-    channel_ct const notice_dc("NOTICE");
-    channel_ct const warning_dc("WARNING");
+    namespace dc {
+      channel_ct const debug("DEBUG");
+      channel_ct const notice("NOTICE");
+      channel_ct const warning("WARNING");
+      channel_ct const system("SYSTEM");
+      channel_ct const malloc("MALLOC");
 
-    channel_ct const system_dc("SYSTEM");
-    channel_ct const malloc_dc("MALLOC");
+      continued_channel_ct const continued(continued_maskbit);
+      continued_channel_ct const finish(finish_maskbit);
 
-    continued_channel_ct const continued_dc(continued_maskbit);
-    continued_channel_ct const finish_dc(finish_maskbit);
-
-    fatal_channel_ct const fatal_dc("FATAL", fatal_maskbit);
-    fatal_channel_ct const core_dc("COREDUMP", coredump_maskbit);
+      fatal_channel_ct const fatal("FATAL", fatal_maskbit);
+      fatal_channel_ct const core("COREDUMP", coredump_maskbit);
+    };
 
     debug_channels_ct* debug_channels = NULL;	// List with all channel_ct objects.
     debug_objects_ct* debug_objects = NULL;	// List with all debug devices.
@@ -303,7 +304,7 @@ namespace libcw {
     void debug_ct::fatal_finish(void)
     {
       finish();
-      DoutFatal( core_dc, "Don't use `DoutFatal' together with `continue_cf', use `Dout' instead" );
+      DoutFatal( dc::core, "Don't use `DoutFatal' together with `continue_cf', use `Dout' instead" );
     }
 
     void debug_ct::init(void)
@@ -345,7 +346,7 @@ namespace libcw {
       // current.mask needs to be 0 to avoid a crash in start():
       static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
       set_alloc_checking_off();
-      current = new (dummy_laf) laf_ct(0, debug_dc.label, NULL, 0);	// Leaks memory 24 bytes of memory
+      current = new (dummy_laf) laf_ct(0, dc::debug.label, NULL, 0);	// Leaks memory 24 bytes of memory
       set_alloc_checking_on();
       laf_stack.init();
       continued_stack.init();
@@ -389,9 +390,9 @@ namespace libcw {
 	struct rlimit corelim;
 	corelim.rlim_cur = corelim.rlim_max = RLIM_INFINITY;
 	if (setrlimit(RLIMIT_CORE, &corelim))
-	  DoutFatal( core_dc|error_cf, "unlimit core size failed" );
+	  DoutFatal( dc::core|error_cf, "unlimit core size failed" );
 #else
-	Dout( warning_dc, "Please unlimit core size manually" );
+	Dout( dc::warning, "Please unlimit core size manually" );
 #endif
       }
     }
@@ -400,9 +401,9 @@ namespace libcw {
     {
       // Sanity checks:
       if (continued_stack.size())
-        DoutFatal( core_dc|cerr_cf, "Destructing debug_ct with a non-empty continued_stack" );
+        DoutFatal( dc::core|cerr_cf, "Destructing debug_ct with a non-empty continued_stack" );
       if (laf_stack.size())
-        DoutFatal( core_dc|cerr_cf, "Destructing debug_ct with a non-empty laf_stack" );
+        DoutFatal( dc::core|cerr_cf, "Destructing debug_ct with a non-empty laf_stack" );
 
       ++_off;		// Turn all debug output premanently off, otherwise we might re-initialize
                         // this object again when we try to write debug output to it!
@@ -456,7 +457,7 @@ namespace libcw {
       if (fd)
       {
 	if (!fd->is_linked())
-	  DoutFatal( core_dc, "Old debug channel isn't linked (in kernel list) !?" );
+	  DoutFatal( dc::core, "Old debug channel isn't linked (in kernel list) !?" );
 	if (!fd->must_be_removed()) // Prevend a little debug flood
 	  fd->del();
 	set_ostream(&cerr);
@@ -494,13 +495,13 @@ namespace libcw {
       cerr << "DEBUGDEBUG: Entering `channel_ct::channel_ct(\"" << lbl << "\")'" << endl;
 #endif
 
-      // Of course, debug_dc is off - so this won't do anything unless DEBUGDEBUG is #defined.
-      Dout( debug_dc, "Initializing channel_ct(\"" << lbl << "\")" );
+      // Of course, dc::debug is off - so this won't do anything unless DEBUGDEBUG is #defined.
+      Dout( dc::debug, "Initializing channel_ct(\"" << lbl << "\")" );
 
       size_t lbl_len = strlen(lbl);
 
       if (lbl_len > max_label_len)	// Only happens for customized channels
-	DoutFatal( core_dc, "strlen(\"" << lbl << "\") > " << max_label_len );
+	DoutFatal( dc::core, "strlen(\"" << lbl << "\") > " << max_label_len );
 
       if (lbl_len > max_len)
 	max_len = lbl_len;
@@ -530,13 +531,13 @@ namespace libcw {
       cerr << "DEBUGDEBUG: Entering `fatal_channel_ct::fatal_channel_ct(\"" << lbl << "\")'" << endl;
 #endif
 
-      // Of course, debug_dc is off - so this won't do anything unless DEBUGDEBUG is #defined.
-      Dout( debug_dc, "Initializing fatal_channel_ct(\"" << lbl << "\")" );
+      // Of course, dc::debug is off - so this won't do anything unless DEBUGDEBUG is #defined.
+      Dout( dc::debug, "Initializing fatal_channel_ct(\"" << lbl << "\")" );
 
       size_t lbl_len = strlen(lbl);
 
       if (lbl_len > max_label_len)	// Only happens for customized channels
-	DoutFatal( core_dc, "strlen(\"" << lbl << "\") > " << max_label_len );
+	DoutFatal( dc::core, "strlen(\"" << lbl << "\") > " << max_label_len );
 
       if (lbl_len > max_len)
 	max_len = lbl_len;
@@ -557,7 +558,7 @@ namespace libcw {
     void channel_ct::on(void) const
     {
       if (off_cnt == -1)
-	DoutFatal( core_dc, "Calling channel_ct::on() more often then channel_ct::off()" );
+	DoutFatal( dc::core, "Calling channel_ct::on() more often then channel_ct::off()" );
       --off_cnt;
     }
 
@@ -600,9 +601,9 @@ namespace libcw {
     {
 #ifdef DEBUGDEBUG
       if ((cdc.maskbit & continued_maskbit))
-	cerr << "DEBUGDEBUG: continued_dc detected" << endl;
+	cerr << "DEBUGDEBUG: dc::continued detected" << endl;
       else
-        cerr << "DEBUGDEBUG: finish_dc detected" << endl;
+        cerr << "DEBUGDEBUG: dc::finish detected" << endl;
 #endif
       if ((continued_channel_set.on = !off_count))
       {
@@ -645,9 +646,9 @@ namespace libcw {
     void* no_alloc_checking_alloc(size_t size)
     {
       set_alloc_checking_off();
-      malloc_dc.off();
+      dc::malloc.off();
       void* ptr = (void*)new char[size];
-      malloc_dc.on();
+      dc::malloc.on();
       set_alloc_checking_on();
       return ptr;
     }
@@ -655,9 +656,9 @@ namespace libcw {
     void no_alloc_checking_free(void* ptr)
     {
       set_alloc_checking_off();
-      malloc_dc.off();
+      dc::malloc.off();
       delete [] (char*)ptr;
-      malloc_dc.on();
+      dc::malloc.on();
       set_alloc_checking_on();
     }
 #endif

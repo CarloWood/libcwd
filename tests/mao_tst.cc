@@ -21,9 +21,9 @@ int main(int UNUSED(argc), char *argv[])
 {
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
-  Debug( warning_dc.on() );
-  Debug( notice_dc.on() );
-  Debug( malloc_dc.on() );
+  Debug( dc::warning.on() );
+  Debug( dc::notice.on() );
+  Debug( dc::malloc.on() );
 
   // Turn debug object on
   Debug( libcw_do.on() );

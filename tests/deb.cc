@@ -25,7 +25,9 @@ RCSTAG_CC("$Id$")
 namespace libcw {
   namespace debug {
 #endif
-    const channel_ct alt_dc("ALT");
+    namespace dc {
+      channel_ct const alt("ALT");
+    };
 #ifndef DEBUGNONAMESPACE
   };
 };
@@ -87,49 +89,49 @@ int main(int argc, char **argv)
   debugmalloc_marker_ct *marker = new debugmalloc_marker_ct;
 #endif
 
-  Dout( malloc_dc|wait_cf|continued_cf, "1. Hello" << " " << "world: " );
-  Dout( finish_dc, dec << a << ' ' << hex << a );
+  Dout( dc::malloc|wait_cf|continued_cf, "1. Hello" << " " << "world: " );
+  Dout( dc::finish, dec << a << ' ' << hex << a );
 
-  Dout( notice_dc|warning_dc|continued_cf, "2. " );
+  Dout( dc::notice|dc::warning|continued_cf, "2. " );
 #ifdef DEBUG
   ::libcw::debug::libcw_do.get_ostream()->form("%d %08u %.4f", a, a, f);
 #endif
-  Dout( finish_dc, "" );
+  Dout( dc::finish, "" );
 
-  Dout( notice_dc|continued_cf|cerr_cf, "3. This is being written to cerr." );
+  Dout( dc::notice|continued_cf|cerr_cf, "3. This is being written to cerr." );
 
-  Dout( notice_dc|flush_cf, "4. This is flushed.\n" );
+  Dout( dc::notice|flush_cf, "4. This is flushed.\n" );
   sleep(2);
-  Dout( finish_dc, "This is a continued message, after the flush." );
+  Dout( dc::finish, "This is a continued message, after the flush." );
 
-  Dout( warning_dc|flush_cf|cerr_cf, "5. Hit return." );
+  Dout( dc::warning|flush_cf|cerr_cf, "5. Hit return." );
   cin.get();
 
-  Dout( notice_dc, "And now something invisible:" );
+  Dout( dc::notice, "And now something invisible:" );
 
   Debug( libcw_do.off() );
   Debug( libcw_do.off() );
-  Dout( alt_dc, "This should NOT be displayed" );
+  Dout( dc::alt, "This should NOT be displayed" );
   Debug( libcw_do.on() );
-  Dout( alt_dc, "This should NOT be displayed" );
+  Dout( dc::alt, "This should NOT be displayed" );
   Debug( libcw_do.on() );
-  Dout( notice_dc, "This should be displayed (again)" );
+  Dout( dc::notice, "This should be displayed (again)" );
 
-  Dout( notice_dc|continued_cf, "Here is a nested debug call (1) that " );
-  Dout( warning_dc, "Interrupt1!" );
-  Dout( notice_dc, "Interrupt notice" );
-  Dout( warning_dc, "Interrupt2!" );
-  Dout( notice_dc|continued_cf, "Here is another nested debug call (2) that " );
-  Dout( notice_dc, "Interrupt notice" );
-  Dout( warning_dc, "Interrupt3!" );
-  Dout( notice_dc, "Interrupt notice" );
-  Dout( warning_dc, "Interrupt4!" );
-  Dout( finish_dc, "ends now (2)." );
-  Dout( warning_dc, "Interrupt5!" );
-  Dout( warning_dc, "Interrupt6!" );
-  Dout( finish_dc, "ends now (1)." );
+  Dout( dc::notice|continued_cf, "Here is a nested debug call (1) that " );
+  Dout( dc::warning, "Interrupt1!" );
+  Dout( dc::notice, "Interrupt notice" );
+  Dout( dc::warning, "Interrupt2!" );
+  Dout( dc::notice|continued_cf, "Here is another nested debug call (2) that " );
+  Dout( dc::notice, "Interrupt notice" );
+  Dout( dc::warning, "Interrupt3!" );
+  Dout( dc::notice, "Interrupt notice" );
+  Dout( dc::warning, "Interrupt4!" );
+  Dout( dc::finish, "ends now (2)." );
+  Dout( dc::warning, "Interrupt5!" );
+  Dout( dc::warning, "Interrupt6!" );
+  Dout( dc::finish, "ends now (1)." );
 
-  Dout( notice_dc, "End of test." );
+  Dout( dc::notice, "End of test." );
 
 #ifdef DEBUGMALLOC
   delete marker;

@@ -324,7 +324,7 @@ public:
       }
     // Constructor: Add `node' at the start of `list'
 #ifdef DEBUGDEBUG
-  dm_alloc_ct(dm_alloc_ct const& __dummy) : alloc_ct(__dummy) { DoutFatal( fatal_dc, "Calling dm_alloc_ct::dm_alloc_ct(dm_alloc_ct const&)" ); }
+  dm_alloc_ct(dm_alloc_ct const& __dummy) : alloc_ct(__dummy) { DoutFatal( dc::fatal, "Calling dm_alloc_ct::dm_alloc_ct(dm_alloc_ct const&)" ); }
     // No copy constructor allowed.
 #endif
   ~dm_alloc_ct();
@@ -387,7 +387,7 @@ public:
       { return a_end < b.start() || (a_end == b.start() && size() > 0); }
   bool operator>(memblk_key_ct b) const
       { return a_start > b.end() || (a_start == b.end() && b.size() > 0); }
-  bool operator==(memblk_key_ct b) const { Dout( warning_dc, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" ); return a_start == b.start(); }
+  bool operator==(memblk_key_ct b) const { Dout( dc::warning, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" ); return a_start == b.start(); }
 #ifdef DEBUG
   void printOn(ostream& os) const;
   friend inline ostream& operator<<(ostream& os, memblk_key_ct const& memblk) { memblk.printOn(os); return os; }
@@ -396,7 +396,7 @@ public:
   static bool selftest(void);
     // Returns true is the self test FAILED.
 #endif
-  memblk_key_ct(void) { Dout( core_dc, "Huh?" ); }
+  memblk_key_ct(void) { Dout( dc::core, "Huh?" ); }
     // Never use this.  It's needed for the implementation of the pair<>.
 };
 
@@ -439,7 +439,7 @@ public:
   friend inline ostream& operator<<(ostream& os, memblk_info_ct const& memblk) { memblk.printOn(os); return os; }
 #endif
 private:
-  memblk_info_ct(void) { Dout( core_dc, "huh?" ); }
+  memblk_info_ct(void) { Dout( dc::core, "huh?" ); }
     // Never use this.  It's needed for the implementation of the pair<>.
 };
 
@@ -498,11 +498,11 @@ dm_alloc_ct::~dm_alloc_ct()
 {
 #ifdef DEBUGDEBUG
   if (a_next_list)
-    DoutFatal( core_dc, "Removing an dm_alloc_ct that still has an own list" );
+    DoutFatal( dc::core, "Removing an dm_alloc_ct that still has an own list" );
   dm_alloc_ct* tmp;
   for(tmp = *my_list; tmp && tmp != this; tmp = tmp->next);
   if (!tmp)
-    DoutFatal( core_dc, "Removing an dm_alloc_ct that is not part of its own list" );
+    DoutFatal( dc::core, "Removing an dm_alloc_ct that is not part of its own list" );
 #endif
   mem_size -= size();
   --memblks;
@@ -537,20 +537,20 @@ void dm_alloc_ct::print_description(void) const
       filename = location.file;
     else
       ++filename;
-    Dout( continued_dc, setw(20) << filename << ':' << setw(5) << setiosflags(ios::left) << location.line );
+    Dout( dc::continued, setw(20) << filename << ':' << setw(5) << setiosflags(ios::left) << location.line );
   }
   else if (location.func)
   {
     char* f = cplus_demangle(location.func, DMGL_PARAMS|DMGL_ANSI);
-    Dout( continued_dc, setw(24) << f << ' ' );
+    Dout( dc::continued, setw(24) << f << ' ' );
     free(f);
   }
   else
-    Dout( continued_dc, setw(25) << ' ' );
+    Dout( dc::continued, setw(25) << ' ' );
 #endif
 
   if (a_memblk_type == memblk_type_marker || a_memblk_type == memblk_type_deleted_marker)
-    Dout( continued_dc, "<marker>;" );
+    Dout( dc::continued, "<marker>;" );
   else
   {
     set_alloc_checking_off();	/* for `buf' */
@@ -579,22 +579,22 @@ void dm_alloc_ct::print_description(void) const
       }
 #endif
       *buf << ends;
-      Dout( continued_dc, buf->str() );
+      Dout( dc::continued, buf->str() );
       buf->freeze(0);
     }
     else
-      Dout( continued_dc, a_type );
+      Dout( dc::continued, a_type );
     delete buf;
     set_alloc_checking_on();	/* for `buf' */
 
-    Dout( continued_dc, ';' );
+    Dout( dc::continued, ';' );
   }
 
   if (a_memblk_type != memblk_type_noheap && a_memblk_type != memblk_type_removed)
-    Dout( continued_dc, " (sz = " << a_size << ") " );
+    Dout( dc::continued, " (sz = " << a_size << ") " );
 
   if (a_description.get())
-    Dout( continued_dc, ' ' << a_description.get() );
+    Dout( dc::continued, ' ' << a_description.get() );
 }
 
 void dm_alloc_ct::printOn(ostream& os) const
@@ -612,10 +612,10 @@ void dm_alloc_ct::show_alloc_list(int depth, const NAMESPACE_LIBCW_DEBUG::channe
   {
     Dout( channel|nolabel_cf|continued_cf, "" ); // Only prints prefix
     for (int i = depth; i > 1; i--)
-      Dout( continued_dc, "    " );
-    Dout( continued_dc, alloc->memblk_type() << alloc->a_start << ' ' ); // Prints label and start
+      Dout( dc::continued, "    " );
+    Dout( dc::continued, alloc->memblk_type() << alloc->a_start << ' ' ); // Prints label and start
     alloc->print_description();
-    Dout( finish_dc, "" );
+    Dout( dc::finish, "" );
     if (alloc->a_next_list)
       alloc->a_next_list->show_alloc_list(depth + 1, channel);
   }
@@ -686,7 +686,7 @@ void memblk_info_ct::erase(void)
       case memblk_type_freed:
       case memblk_type_removed:
       case memblk_type_deleted_marker:
-	DoutFatal( core_dc, "Deleting a memblk_info_ct twice ?" );
+	DoutFatal( dc::core, "Deleting a memblk_info_ct twice ?" );
     }
     ap->change_flags(new_flag);
   }
@@ -747,7 +747,7 @@ void* debugmalloc(size_t size)
     void* ptr = malloc(size);
 #    ifdef DEBUGDEBUG
     internal = false;
-    Dout( malloc_dc|cerr_cf, "Internal malloc(" << size << ") = " << ptr );
+    Dout( dc::debugmalloc|cerr_cf, "Internal malloc(" << size << ") = " << ptr );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `debugmalloc': " << ptr << endl;
 #      endif
@@ -763,7 +763,7 @@ void* debugmalloc(size_t size)
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
 #    ifdef DEBUGDEBUG
     internal = false;
-    Dout( malloc_dc|cerr_cf, "Internal malloc(" << size << ") = " << static_cast<size_t*>(ptr) + 2 );
+    Dout( dc::debugmalloc|cerr_cf, "Internal malloc(" << size << ") = " << static_cast<size_t*>(ptr) + 2 );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `debugmalloc': " << static_cast<size_t*>(ptr) + 2 << endl;
 #      endif
@@ -775,7 +775,7 @@ void* debugmalloc(size_t size)
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
 #ifdef DEBUG
   internal = false;	// Reset before doing Dout()
-  Dout( malloc_dc|continued_cf, "malloc(" << size << ") = " );
+  Dout( dc::debugmalloc|continued_cf, "malloc(" << size << ") = " );
 #endif
   internal = true;
   void* ptr = internal_debugmalloc(size, memblk_type_malloc CALL_ADDRESS);
@@ -806,7 +806,7 @@ void* debugcalloc(size_t nmemb, size_t size)
     void* ptr = calloc(nmemb, size);
 #    ifdef DEBUGDEBUG
     internal = false;
-    Dout( malloc_dc|cerr_cf, "Internal debugcalloc(" << nmemb << ", " << size << ") = " << ptr );
+    Dout( dc::debugmalloc|cerr_cf, "Internal debugcalloc(" << nmemb << ", " << size << ") = " << ptr );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `debugcalloc': " << ptr << endl;
 #      endif
@@ -823,7 +823,7 @@ void* debugcalloc(size_t nmemb, size_t size)
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(nmemb * size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
 #    ifdef DEBUGDEBUG
     internal = false;
-    Dout( malloc_dc|cerr_cf, "Internal calloc(" << nmemb << ", " << size << ") = " << static_cast<size_t*>(ptr) + 2 );
+    Dout( dc::debugmalloc|cerr_cf, "Internal calloc(" << nmemb << ", " << size << ") = " << static_cast<size_t*>(ptr) + 2 );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `debugcalloc': " << static_cast<size_t*>(ptr) + 2 << endl;
 #      endif
@@ -835,7 +835,7 @@ void* debugcalloc(size_t nmemb, size_t size)
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
 #ifdef DEBUG
   internal =false;	// Reset before doing Dout()
-  Dout( malloc_dc|continued_cf, "calloc(" << nmemb << ", " << size << ") = " );
+  Dout( dc::debugmalloc|continued_cf, "calloc(" << nmemb << ", " << size << ") = " );
 #endif
   internal = true;
   void* ptr;
@@ -868,10 +868,10 @@ void* operator new(size_t size)
 #  ifndef DEBUGMAGICMALLOC
     void* ptr = malloc(size);
     if (!ptr)
-      DoutFatal( core_dc, "Out of memory in `operator new'" );
+      DoutFatal( dc::core, "Out of memory in `operator new'" );
 #    ifdef DEBUGDEBUG
     internal = false;
-    Dout( malloc_dc|cerr_cf, "Internal operator new(" << size << ") = " << ptr );
+    Dout( dc::debugmalloc|cerr_cf, "Internal operator new(" << size << ") = " << ptr );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `operator new': " << ptr << endl;
 #      endif
@@ -881,13 +881,13 @@ void* operator new(size_t size)
 #  else // DEBUGMAGICMALLOC
     void* ptr = malloc(SIZE_PLUS_TWELVE(size));
     if (!ptr)
-      DoutFatal( core_dc, "Out of memory in `operator new'" );
+      DoutFatal( dc::core, "Out of memory in `operator new'" );
     ((size_t*)ptr)[0] = INTERNAL_MAGIC_NEW_BEGIN;
     ((size_t*)ptr)[1] = size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_NEW_END;
 #    ifdef DEBUGDEBUG
     internal = false;
-    Dout( malloc_dc|cerr_cf, "Internal operator new(" << size << ") = " << static_cast<size_t*>(ptr) + 2 );
+    Dout( dc::debugmalloc|cerr_cf, "Internal operator new(" << size << ") = " << static_cast<size_t*>(ptr) + 2 );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `operator new': " << static_cast<size_t*>(ptr) + 2 << endl;
 #      endif
@@ -899,12 +899,12 @@ void* operator new(size_t size)
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
 #ifdef DEBUG
   internal = false;	// Reset before doing Dout()
-  Dout( malloc_dc|continued_cf, "operator new (size = " << size << ") = " );
+  Dout( dc::debugmalloc|continued_cf, "operator new (size = " << size << ") = " );
 #endif
   internal = true;
   void* ptr = internal_debugmalloc(size, memblk_type_new CALL_ADDRESS);
   if (!ptr)
-    DoutFatal( core_dc, "Out of memory in `operator new'" );
+    DoutFatal( dc::core, "Out of memory in `operator new'" );
 #ifdef DEBUGMAGICMALLOC
   else
   {
@@ -931,10 +931,10 @@ void* operator new[](size_t size)
 #  ifndef DEBUGMAGICMALLOC
     void* ptr = malloc(size);
     if (!ptr)
-      DoutFatal( core_dc, "Out of memory in `operator new[]'" );
+      DoutFatal( dc::core, "Out of memory in `operator new[]'" );
 #    ifdef DEBUGDEBUG
     internal = false;
-    Dout( malloc_dc|cerr_cf, "Internal operator new[](" << size << ") = " << ptr );
+    Dout( dc::debugmalloc|cerr_cf, "Internal operator new[](" << size << ") = " << ptr );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `operator new[]': " << ptr << endl;
 #      endif
@@ -944,13 +944,13 @@ void* operator new[](size_t size)
 #  else // DEBUGMAGICMALLOC
     void* ptr = malloc(SIZE_PLUS_TWELVE(size));
     if (!ptr)
-      DoutFatal( core_dc, "Out of memory in `operator new[]'" );
+      DoutFatal( dc::core, "Out of memory in `operator new[]'" );
     ((size_t*)ptr)[0] = INTERNAL_MAGIC_NEW_ARRAY_BEGIN;
     ((size_t*)ptr)[1] = size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_NEW_ARRAY_END;
 #    ifdef DEBUGDEBUG
     internal = false;
-    Dout( malloc_dc|cerr_cf, "Internal operator new[](" << size << ") = " << static_cast<size_t*>(ptr) + 2 );
+    Dout( dc::debugmalloc|cerr_cf, "Internal operator new[](" << size << ") = " << static_cast<size_t*>(ptr) + 2 );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `operator new[]': " << static_cast<size_t*>(ptr) + 2 << endl;
 #      endif
@@ -962,12 +962,12 @@ void* operator new[](size_t size)
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
 #ifdef DEBUG
   internal = false;	// Reset before doing Dout()
-  Dout( malloc_dc|continued_cf, "operator new[] (size = " << size << ") = " );
+  Dout( dc::debugmalloc|continued_cf, "operator new[] (size = " << size << ") = " );
 #endif
   internal = true;
   void* ptr = internal_debugmalloc(size, memblk_type_new_array CALL_ADDRESS);
   if (!ptr)
-    DoutFatal( core_dc, "Out of memory in `operator new[]'" );
+    DoutFatal( dc::core, "Out of memory in `operator new[]'" );
 #ifdef DEBUGMAGICMALLOC
   else
   {
@@ -1009,8 +1009,8 @@ void operator delete[](void* ptr)
 // `internal' is already set.
 //
 // Note: This function is called by `debugmalloc', `debugcalloc' and
-// `operator new' which end with a call to Dout( malloc_dc|continued_cf, ...)
-// and should therefore end with a call to Dout( finish_dc, ptr ).
+// `operator new' which end with a call to Dout( dc::debugmalloc|continued_cf, ...)
+// and should therefore end with a call to Dout( dc::finish, ptr ).
 //
 
 #ifdef DEBUGUSEBFD
@@ -1027,8 +1027,8 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
 #endif
   {
     internal = false;			// Reset before doing Dout()
-    Dout( finish_dc, "NULL" );
-    Dout( malloc_dc, "Out of memory ! this is only a pre-detection!" );
+    Dout( dc::finish, "NULL" );
+    Dout( dc::debugmalloc, "Out of memory ! this is only a pre-detection!" );
     return NULL;	// A fatal error should occur directly after this
   }
 
@@ -1042,10 +1042,10 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
       ))));
   internal = false;			// Reset before doing Dout()
   if (!i.second)
-    DoutFatal( core_dc, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
+    DoutFatal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
   (*i.first).second.lock();		// Lock ownership.
 
-  Dout( finish_dc, (void*)(mptr) );
+  Dout( dc::finish, (void*)(mptr) );
   return mptr;
 }
 
@@ -1076,21 +1076,21 @@ void debugfree(void* ptr)
     internal = false;			// Reset before doing Dout()
     if (from == from_delete)
     {
-      Dout( malloc_dc|cerr_cf, "Internal delete(" << ptr << ')' );
+      Dout( dc::debugmalloc|cerr_cf, "Internal delete(" << ptr << ')' );
 #  ifdef DEBUGDEBUGMALLOC
       cerr << "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")'" << endl;
 #  endif
     }
     else if (from == from_delete_array)
     {
-      Dout( malloc_dc|cerr_cf, "Internal delete[](" << ptr << ')' );
+      Dout( dc::debugmalloc|cerr_cf, "Internal delete[](" << ptr << ')' );
 #  ifdef DEBUGDEBUGMALLOC
       cerr << "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")'" << endl;
 #  endif
     }
     else
     {
-      Dout( malloc_dc|cerr_cf, "Internal free(" << ptr << ')' );
+      Dout( dc::debugmalloc|cerr_cf, "Internal free(" << ptr << ')' );
 #  ifdef DEBUGDEBUGMALLOC
       cerr << "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")'" << endl;
 #  endif
@@ -1107,7 +1107,7 @@ void debugfree(void* ptr)
           ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_END)
       {
         internal = false;	// Reset before doing Dout()
-        DoutFatal( core_dc, "internal delete: magic number corrupt!" );
+        DoutFatal( dc::core, "internal delete: magic number corrupt!" );
       }
     }
     else if (from == from_delete_array)
@@ -1116,7 +1116,7 @@ void debugfree(void* ptr)
           ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_ARRAY_END)
       {
         internal = false;	// Reset before doing Dout()
-        DoutFatal( core_dc, "internal delete[]: magic number corrupt!" );
+        DoutFatal( dc::core, "internal delete[]: magic number corrupt!" );
       }
     }
     else
@@ -1125,7 +1125,7 @@ void debugfree(void* ptr)
           ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
       {
         internal = false;	// Reset before doing Dout()
-        DoutFatal( core_dc, "internal free: magic number corrupt!" );
+        DoutFatal( dc::core, "internal free: magic number corrupt!" );
       }
     }
 #endif // DEBUGMAGICMALLOC
@@ -1134,7 +1134,7 @@ void debugfree(void* ptr)
   }
   if (!ptr)
   {
-    Dout( malloc_dc, "Trying to free NULL - ignored." );
+    Dout( dc::debugmalloc, "Trying to free NULL - ignored." );
     return;
   }
   internal = true;
@@ -1144,7 +1144,7 @@ void debugfree(void* ptr)
   if (i == memblk_map->end() || (*i).first.start() != ptr)
   {
     internal = false;		// Reset before doing Dout()
-    DoutFatal( core_dc, "Trying to "
+    DoutFatal( dc::core, "Trying to "
 	<< ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) << " an invalid pointer (" << ptr << ')' );
   }
   else
@@ -1154,11 +1154,11 @@ void debugfree(void* ptr)
     {
 #ifdef DEBUG
       internal = false;		// Reset before doing Dout()
-      Dout( malloc_dc|continued_cf,
+      Dout( dc::debugmalloc|continued_cf,
           ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	  << ptr << ((from == from_free) ? ") " : " ") );
       (*i).second.print_description();
-      Dout( continued_dc, ' ' );
+      Dout( dc::continued, ' ' );
       internal = true;		// Restore
 #endif // DEBUG
       if (expected_from[(*i).second.flags()] != from)
@@ -1167,29 +1167,29 @@ void debugfree(void* ptr)
 	if (from == from_delete)
 	{
 	  if (f == memblk_type_malloc)
-	    DoutFatal( core_dc, "You are `delete'-ing a block that was allocated with `malloc()' ! Use `free()' instead." );
+	    DoutFatal( dc::core, "You are `delete'-ing a block that was allocated with `malloc()' ! Use `free()' instead." );
 	  else if (f == memblk_type_realloc)
-	    DoutFatal( core_dc, "You are `delete'-ing a block that was returned by `realloc()' ! Use `free()' instead." );
+	    DoutFatal( dc::core, "You are `delete'-ing a block that was returned by `realloc()' ! Use `free()' instead." );
 	  else if (f == memblk_type_new_array)
-	    DoutFatal( core_dc, "You are `delete'-ing a block that was allocated with `new[]' ! Use `delete[]' instead." );
+	    DoutFatal( dc::core, "You are `delete'-ing a block that was allocated with `new[]' ! Use `delete[]' instead." );
         }
 	else if (from == from_delete)
 	{
 	  if (f == memblk_type_malloc)
-	    DoutFatal( core_dc, "You are `delete[]'-ing a block that was allocated with `malloc()' ! Use `free()' instead." );
+	    DoutFatal( dc::core, "You are `delete[]'-ing a block that was allocated with `malloc()' ! Use `free()' instead." );
 	  else if (f == memblk_type_realloc)
-	    DoutFatal( core_dc, "You are `delete[]'-ing a block that was returned by `realloc()' ! Use `free()' instead." );
+	    DoutFatal( dc::core, "You are `delete[]'-ing a block that was returned by `realloc()' ! Use `free()' instead." );
           else if (f == memblk_type_new)
-	    DoutFatal( core_dc, "You are `delete[]'-ing a block that was allocated with `new' ! Use `delete' instead." );
+	    DoutFatal( dc::core, "You are `delete[]'-ing a block that was allocated with `new' ! Use `delete' instead." );
         }
 	else if (from == from_free)
 	{
 	  if (f == memblk_type_new)
-	    DoutFatal( core_dc, "You are `free()'-ing a block that was allocated with `new'. Use `delete' instead." );
+	    DoutFatal( dc::core, "You are `free()'-ing a block that was allocated with `new'. Use `delete' instead." );
 	  else if (f == memblk_type_new_array)
-	    DoutFatal( core_dc, "You are `free()'-ing a block that was allocated with `new[]'. Use `delete[]' instead." );
+	    DoutFatal( dc::core, "You are `free()'-ing a block that was allocated with `new[]'. Use `delete[]' instead." );
 	}
-	DoutFatal( core_dc, "Huh? Bug in libcw" );
+	DoutFatal( dc::core, "Huh? Bug in libcw" );
       }
     }
 
@@ -1206,11 +1206,11 @@ void debugfree(void* ptr)
         internal = false;	// Reset before doing Dout()
 	if (((size_t*)ptr)[-2] == MAGIC_MALLOC_BEGIN &&
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_MALLOC_END)
-	  DoutFatal( core_dc, "You are `delete'-ing a block that was allocated with `malloc()' ! Use `free()' instead." );
+	  DoutFatal( dc::core, "You are `delete'-ing a block that was allocated with `malloc()' ! Use `free()' instead." );
 	if (((size_t*)ptr)[-2] == MAGIC_NEW_ARRAY_BEGIN &&
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_ARRAY_END)
-	  DoutFatal( core_dc, "You are `delete'-ing a block that was allocated with `new[]' ! Use `delete[]' instead." );
-        DoutFatal( core_dc, "delete: magic number corrupt!" );
+	  DoutFatal( dc::core, "You are `delete'-ing a block that was allocated with `new[]' ! Use `delete[]' instead." );
+        DoutFatal( dc::core, "delete: magic number corrupt!" );
       }
     }
     else if (from == from_delete_array)
@@ -1221,11 +1221,11 @@ void debugfree(void* ptr)
         internal = false;	// Reset before doing Dout()
 	if (((size_t*)ptr)[-2] == MAGIC_MALLOC_BEGIN &&
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_MALLOC_END)
-	  DoutFatal( core_dc, "You are `delete[]'-ing a block that was allocated with `malloc()' ! Use `free()' instead." );
+	  DoutFatal( dc::core, "You are `delete[]'-ing a block that was allocated with `malloc()' ! Use `free()' instead." );
 	if (((size_t*)ptr)[-2] == MAGIC_NEW_BEGIN &&
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_END)
-	  DoutFatal( core_dc, "You are `delete[]'-ing a block that was allocated with `new' ! Use `delete' instead." );
-        DoutFatal( core_dc, "delete[]: magic number corrupt!" );
+	  DoutFatal( dc::core, "You are `delete[]'-ing a block that was allocated with `new' ! Use `delete' instead." );
+        DoutFatal( dc::core, "delete[]: magic number corrupt!" );
       }
     }
     else
@@ -1236,11 +1236,11 @@ void debugfree(void* ptr)
         internal = false;	// Reset before doing Dout()
 	if (((size_t*)ptr)[-2] == MAGIC_NEW_BEGIN &&
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_END)
-          DoutFatal( core_dc, "You are `free()'-ing a block that was allocated with `new'. Use `delete' instead." );
+          DoutFatal( dc::core, "You are `free()'-ing a block that was allocated with `new'. Use `delete' instead." );
 	if (((size_t*)ptr)[-2] == MAGIC_NEW_ARRAY_BEGIN &&
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_ARRAY_END)
-          DoutFatal( core_dc, "You are `free()'-ing a block that was allocated with `new[]'. Use `delete[]' instead." );
-        DoutFatal( core_dc, "free: magic number corrupt!" );
+          DoutFatal( dc::core, "You are `free()'-ing a block that was allocated with `new[]'. Use `delete[]' instead." );
+        DoutFatal( dc::core, "free: magic number corrupt!" );
       }
     }
     free(static_cast<size_t*>(ptr) - 2);		// Free memory block
@@ -1252,18 +1252,18 @@ void debugfree(void* ptr)
       internal = false;			// Reset before doing Dout()
 #if 0 // Leaks are now detected in libcw_exit()
       if (dm_alloc_ct::get_memblks() == 0)
-	Dout( finish_dc, "(No blocks left)" );
+	Dout( dc::finish, "(No blocks left)" );
       else
       {
         if (dm_alloc_ct::get_memblks() == 1)
-	  Dout( finish_dc, "(1 block left)" );
+	  Dout( dc::finish, "(1 block left)" );
 	else if (dm_alloc_ct::get_memblks() < 10) // To catch small leaks
-	  Dout( finish_dc, '(' << dm_alloc_ct::get_memblks() << " blocks left)" );
+	  Dout( dc::finish, '(' << dm_alloc_ct::get_memblks() << " blocks left)" );
 	Debug( list_allocations_on(libcw_do) );
       }
       else
 #endif
-      Dout( finish_dc, "" );
+      Dout( dc::finish, "" );
     }
 #endif // DEBUG
 
@@ -1294,7 +1294,7 @@ void* debugrealloc(void* ptr, size_t size)
     void* ptr1 = realloc(ptr, size);
 #    ifdef DEBUGDEBUG
     internal = false;	// Reset before doing Dout()
-    Dout( malloc_dc|cerr_cf, "Internal realloc(" << ptr << ", " << size << ") = " << ptr1 );
+    Dout( dc::debugmalloc|cerr_cf, "Internal realloc(" << ptr << ", " << size << ") = " << ptr1 );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `debugrealloc': " << ptr1 << endl;
 #      endif
@@ -1307,14 +1307,14 @@ void* debugrealloc(void* ptr, size_t size)
 	((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
     {
       internal = false;
-      DoutFatal( core_dc, "internal realloc: magic number corrupt!" );
+      DoutFatal( dc::core, "internal realloc: magic number corrupt!" );
     }
     void* ptr1 = realloc(ptr, SIZE_PLUS_TWELVE(size));
     ((size_t*)ptr1)[1] = size;
     ((size_t*)(static_cast<char*>(ptr1) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
 #    ifdef DEBUGDEBUG
     internal = false;	// Reset before doing Dout()
-    Dout( malloc_dc|cerr_cf, "Internal realloc(" << static_cast<size_t*>(ptr) + 2 << ", " << size << ") = " << static_cast<size_t*>(ptr1) + 2 );
+    Dout( dc::debugmalloc|cerr_cf, "Internal realloc(" << static_cast<size_t*>(ptr) + 2 << ", " << size << ") = " << static_cast<size_t*>(ptr1) + 2 );
 #      ifdef DEBUGDEBUGMALLOC
     cerr << "DEBUGDEBUGMALLOC: Internal: Leaving `debugrealloc': " << static_cast<size_t*>(ptr1) + 2 << endl;
 #      endif
@@ -1327,7 +1327,7 @@ void* debugrealloc(void* ptr, size_t size)
 
 #ifdef DEBUG
   internal = false;	// Reset before doing Dout()
-  Dout( malloc_dc|continued_cf, "realloc(" << ptr << ", " << size << ") = " );
+  Dout( dc::debugmalloc|continued_cf, "realloc(" << ptr << ", " << size << ") = " );
 #endif
   internal = true;
 
@@ -1336,8 +1336,8 @@ void* debugrealloc(void* ptr, size_t size)
   if (i == memblk_map->end() || (*i).first.start() != ptr)
   {
     internal = false;	// Reset before doing Dout()
-    Dout( finish_dc, "" );
-    DoutFatal( core_dc, "Trying to realloc() an invalid pointer" );
+    Dout( dc::finish, "" );
+    DoutFatal( dc::core, "Trying to realloc() an invalid pointer" );
   }
 
   register void* mptr;
@@ -1351,18 +1351,18 @@ void* debugrealloc(void* ptr, size_t size)
     internal = false;	// Reset before doing Dout()
     if (((size_t*)ptr)[-2] == MAGIC_NEW_BEGIN &&
 	((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_END)
-      DoutFatal( core_dc, "You can't realloc() a block that was allocated with `new'!" );
+      DoutFatal( dc::core, "You can't realloc() a block that was allocated with `new'!" );
     if (((size_t*)ptr)[-2] == MAGIC_NEW_ARRAY_BEGIN &&
 	((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_ARRAY_END)
-      DoutFatal( core_dc, "You can't realloc() a block that was allocated with `new[]'!" );
-    DoutFatal( core_dc, "realloc: magic number corrupt!" );
+      DoutFatal( dc::core, "You can't realloc() a block that was allocated with `new[]'!" );
+    DoutFatal( dc::core, "realloc: magic number corrupt!" );
   }
   if ((mptr = static_cast<char*>(realloc(static_cast<size_t*>(ptr) - 2, SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
   {
     internal = false;
-    Dout( finish_dc, "NULL" );
-    Dout( malloc_dc, "Out of memory! This is only a pre-detection!" );
+    Dout( dc::finish, "NULL" );
+    Dout( dc::debugmalloc, "Out of memory! This is only a pre-detection!" );
     return NULL; // A fatal error should occur directly after this
   }
 #ifdef DEBUGMAGICMALLOC
@@ -1383,13 +1383,13 @@ void* debugrealloc(void* ptr, size_t size)
   if (!j.second)
   {
     internal = false;	// Reset before doing Dout()
-    DoutFatal( core_dc, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
+    DoutFatal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
   }
   (*(j.first)).second.change_label(*t, d);
 
   internal = false;
 
-  Dout( finish_dc, (void*)(mptr) );
+  Dout( dc::finish, (void*)(mptr) );
   return mptr;
 }
 
@@ -1434,15 +1434,15 @@ namespace libcw {
     {
 #if 0
       // Print out the entire `map':
-      LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, malloc_dc, "map:" );
+      LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, dc::debugmalloc, "map:" );
       int cnt = 0;
       for(memblk_map_ct::const_iterator i(memblk_map->begin()); i != memblk_map->end(); ++i)
-	LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, malloc_dc|nolabel_cf, << ++cnt << ":\t(*i).first = " << (*i).first << '\n' << "\t(*i).second = " << (*i).second );
+	LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, dc::debugmalloc|nolabel_cf, << ++cnt << ":\t(*i).first = " << (*i).first << '\n' << "\t(*i).second = " << (*i).second );
 #endif
 
-      LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, malloc_dc, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks." );
+      LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, dc::debugmalloc, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks." );
       if (base_alloc_list)
-	base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::malloc_dc);
+	base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::dc::debugmalloc);
     }
 
 #ifndef DEBUGNONAMESPACE
@@ -1453,9 +1453,9 @@ namespace libcw {
 // Undocumented (used from gdb while debugging libcw)
 void list_allocations_on_cerr(void)
 {
-  Dout( warning_dc|cerr_cf, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks.");
+  Dout( dc::warning|cerr_cf, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks.");
   if (base_alloc_list)
-    base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::malloc_dc);
+    base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::dc::debugmalloc);
 }
 
 
@@ -1470,12 +1470,12 @@ void make_invisible(void const* ptr)
   if (internal)
   {
     internal = false;
-    DoutFatal( core_dc, "What do you think you're doing?" );
+    DoutFatal( dc::core, "What do you think you're doing?" );
   }
 #endif
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i == memblk_map->end() || (*i).first.start() != ptr)
-    DoutFatal( core_dc, "Trying to turn non-existing memory block (" << ptr << ") into an 'internal' block" );
+    DoutFatal( dc::core, "Trying to turn non-existing memory block (" << ptr << ") into an 'internal' block" );
   internal = true;
   (*i).second.make_invisible();
   internal = false;
@@ -1508,7 +1508,7 @@ void set_alloc_checking_on(void)
 {
 #ifdef DEBUG
   if (alloc_checking_off_counter == 0)
-    DoutFatal( core_dc, "Calling `set_alloc_checking_on' while ALREADY on." );
+    DoutFatal( dc::core, "Calling `set_alloc_checking_on' while ALREADY on." );
 #endif
   if (--alloc_checking_off_counter == 0)
     internal = prev_internal;
@@ -1532,7 +1532,7 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<
 debugmalloc_newctor_ct::debugmalloc_newctor_ct(void* ptr, type_info_ct const& ti) : no_heap_alloc_node(NULL)
 {
 #ifdef DEBUGDEBUG
-  Dout( malloc_dc, "New debugmalloc_newctor_ct at " << this << " from object " << ti.name() << " (" << ptr << ")" );
+  Dout( dc::debugmalloc, "New debugmalloc_newctor_ct at " << this << " from object " << ti.name() << " (" << ptr << ")" );
 #endif
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i != memblk_map->end())
@@ -1555,7 +1555,7 @@ debugmalloc_newctor_ct::debugmalloc_newctor_ct(void* ptr, type_info_ct const& ti
 debugmalloc_newctor_ct::~debugmalloc_newctor_ct(void)
 {
 #ifdef DEBUGDEBUG
-  Dout( malloc_dc, "Removing debugmalloc_newctor_ct at " << (void*)this );
+  Dout( dc::debugmalloc, "Removing debugmalloc_newctor_ct at " << (void*)this );
   Debug( list_allocations_on(libcw_do) );
 #endif
   // Set `current_alloc_list' one list back
@@ -1575,11 +1575,11 @@ debugmalloc_newctor_ct::~debugmalloc_newctor_ct(void)
 
 void debugmalloc_marker_ct::register_marker(char const* label)
 {
-  Dout( malloc_dc, "New debugmalloc_marker_ct at " << this );
+  Dout( dc::debugmalloc, "New debugmalloc_marker_ct at " << this );
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(this, 0)));
   memblk_info_ct &info((*i).second);
   if (i == memblk_map->end() || (*i).first.start() != this || info.flags() != memblk_type_new)
-    DoutFatal( core_dc, "Use 'new' for debugmalloc_marker_ct" );
+    DoutFatal( dc::core, "Use 'new' for debugmalloc_marker_ct" );
 
   info.change_label(type_info_of(this), label);
   info.change_flags(memblk_type_marker);
@@ -1594,23 +1594,23 @@ debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
 {
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(this, 0)));
   if (i == memblk_map->end() || (*i).first.start() != this)
-    DoutFatal( core_dc, "Trying to delete an invalid marker" );
+    DoutFatal( dc::core, "Trying to delete an invalid marker" );
 
 #ifdef DEBUG
-  Dout( malloc_dc|continued_cf, "Removing debugmalloc_marker_ct at " << this << " (" );
+  Dout( dc::debugmalloc|continued_cf, "Removing debugmalloc_marker_ct at " << this << " (" );
   (*i).second.print_description();
-  Dout( finish_dc, ')' );
+  Dout( dc::finish, ')' );
 
   if ((*i).second.a_alloc_node.get()->next_list())
   {
-    Dout( warning_dc, "Memory leak detected!" );
-    (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::warning_dc);
+    Dout( dc::warning, "Memory leak detected!" );
+    (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::dc::warning);
   }
 #endif
 
   // Set `current_alloc_list' one list back
   if (*dm_alloc_ct::current_alloc_list != (*i).second.a_alloc_node.get()->next_list())
-    DoutFatal( core_dc, "Deleting a marker must be done in the same \"scope\" as where it was allocated" );
+    DoutFatal( dc::core, "Deleting a marker must be done in the same \"scope\" as where it was allocated" );
   dm_alloc_ct::descend_current_alloc_list();
 }
 
@@ -1618,16 +1618,16 @@ void debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
 {
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i == memblk_map->end() || (*i).first.start() != ptr)
-    DoutFatal( core_dc, "Trying to move non-existing memory block (" << ptr << ") outside memory leak test marker" );
+    DoutFatal( dc::core, "Trying to move non-existing memory block (" << ptr << ") outside memory leak test marker" );
   memblk_map_ct::iterator const& j(memblk_map->find(memblk_key_ct(marker, 0)));
   if (j == memblk_map->end() || (*j).first.start() != marker)
-    DoutFatal( core_dc, "No such marker: " << (void*)marker );
+    DoutFatal( dc::core, "No such marker: " << (void*)marker );
   dm_alloc_ct* alloc_node = (*i).second.a_alloc_node.get();
   if (!alloc_node)
-    DoutFatal( core_dc, "Trying to move an invisible memory block outside memory leak test marker" );
+    DoutFatal( dc::core, "Trying to move an invisible memory block outside memory leak test marker" );
   dm_alloc_ct* marker_alloc_node = (*j).second.a_alloc_node.get();
   if (!marker_alloc_node || marker_alloc_node->a_memblk_type != memblk_type_marker)
-    DoutFatal( core_dc, "That is not a marker: " << (void*)marker );
+    DoutFatal( dc::core, "That is not a marker: " << (void*)marker );
 
   // Look if it is in the right list
   for(dm_alloc_ct* node = alloc_node; node;)
@@ -1653,7 +1653,7 @@ void debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
       return;
     }
   }
-  Dout( warning_dc, "Memory block at " << ptr << " is already outside the marker at " << (void*)marker << " (" << marker_alloc_node->type_info_ptr->demangled_name() << ") area!" );
+  Dout( dc::warning, "Memory block at " << ptr << " is already outside the marker at " << (void*)marker << " (" << marker_alloc_node->type_info_ptr->demangled_name() << ") area!" );
 }
 
 alloc_ct const* find_alloc(void const* ptr)
@@ -1747,5 +1747,4 @@ bool memblk_key_ct::selftest(void)
 }
 
 #endif /* DEBUGDEBUG */
-
 #endif /* DEBUGMALLOC */

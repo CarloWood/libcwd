@@ -28,10 +28,10 @@ int main(int argc, char *argv[])
 
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
-  Debug( notice_dc.on() );
-  Debug( malloc_dc.on() );
-  Debug( warning_dc.on() );
-  // Debug( bfd_dc.on() );
+  Debug( dc::notice.on() );
+  Debug( dc::malloc.on() );
+  Debug( dc::warning.on() );
+  // Debug( dc::bfd.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
-  Dout( notice_dc, "Moving the int array outside of the marker..." );
+  Dout( dc::notice, "Moving the int array outside of the marker..." );
   debug_move_outside(marker, p);
 
   // Show Memory Allocation Overview
@@ -64,6 +64,6 @@ int main(int argc, char *argv[])
   // Delete the marker
   delete marker;
 
-  Dout( notice_dc, "Finished successfully." );
+  Dout( dc::notice, "Finished successfully." );
   return 0;
 }

@@ -22,7 +22,9 @@ RCSTAG_CC("$Id$")
 namespace libcw {
   namespace debug {
 #endif
-    channel_ct generate_dc("GENERATE");
+    namespace dc {
+      channel_ct generate("GENERATE");
+    };
 #ifndef DEBUGNONAMESPACE
   };
 };
@@ -31,9 +33,9 @@ namespace libcw {
 void generate_tables(void)
 {
   sleep(6);
-  Dout( generate_dc, "Inside generate_tables()" );
+  Dout( dc::generate, "Inside generate_tables()" );
   sleep(6);
-  Dout( generate_dc, "Leaving generate_tables()" );
+  Dout( dc::generate, "Leaving generate_tables()" );
   return;
 }
 
@@ -48,10 +50,10 @@ int main(void)
   // Print channels
 //  Debug( list_channels_on(libcw_do) );
 
-  //Debug( io_dc.off() );
-  Dout( notice_dc|flush_cf|continued_cf, "Generating tables part1... " );
+  //Debug( dc::io.off() );
+  Dout( dc::notice|flush_cf|continued_cf, "Generating tables part1... " );
   generate_tables();
-  Dout( continued_dc, "part2... " );
+  Dout( dc::continued, "part2... " );
   generate_tables();
-  Dout( finish_dc, "done" );
+  Dout( dc::finish, "done" );
 }

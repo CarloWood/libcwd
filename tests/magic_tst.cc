@@ -29,7 +29,9 @@ int main(int argc, char **argv)
 
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
-  Debug( bfd_dc.off() );
+#ifdef DEBUGUSEBDF
+  Debug( dc::bfd.off() );
+#endif
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );

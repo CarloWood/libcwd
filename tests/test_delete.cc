@@ -23,9 +23,9 @@ int main(int argc, char *argv[])
 
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
-  Debug( notice_dc.on() );
-  Debug( malloc_dc.on() );
-  // Debug( bfd_dc.on() );
+  Debug( dc::notice.on() );
+  Debug( dc::malloc.on() );
+  // Debug( dc::bfd.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );
@@ -39,27 +39,27 @@ int main(int argc, char *argv[])
 
   // Check test_delete
   if (test_delete(a))	// Should return false
-    Dout( core_dc, "CANNOT find that pointer?!" );
+    Dout( dc::core, "CANNOT find that pointer?!" );
   if (!find_alloc(a))
-    Dout( core_dc, "CANNOT find that pointer?!" );
+    Dout( dc::core, "CANNOT find that pointer?!" );
 
   // Show Memory Allocation Overview
-  Dout( notice_dc, "Before making allocation invisible:" );
+  Dout( dc::notice, "Before making allocation invisible:" );
   Debug( list_allocations_on(libcw_do) );
 
   // Make allocation invisible
   make_invisible(a);
 
   // Show Memory Allocation Overview
-  Dout( notice_dc, "After making allocation invisible:" );
+  Dout( dc::notice, "After making allocation invisible:" );
   Debug( list_allocations_on(libcw_do) );
 
   // Check test_delete
   if (test_delete(a))	// Should still return false
-    Dout( core_dc, "CANNOT find that pointer?!" );
+    Dout( dc::core, "CANNOT find that pointer?!" );
   if (find_alloc(a))
-    Dout( core_dc, "Can STILL find that pointer?!" );
+    Dout( dc::core, "Can STILL find that pointer?!" );
 
-  Dout( notice_dc, "Finished successfully." );
+  Dout( dc::notice, "Finished successfully." );
   return 0;
 }

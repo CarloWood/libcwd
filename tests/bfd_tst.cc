@@ -18,6 +18,8 @@
 
 RCSTAG_CC("$Id$")
 
+#ifdef DEBUGUSEBFD
+
 void libcw_bfd_test3(void)
 {
   for (int i = 0; i <= 5; ++i)
@@ -47,7 +49,7 @@ void libcw_bfd_test3(void)
     }
 
     location_st loc = libcw_bfd_pc_location((char *)retadr - 1);
-      Dout(notice_dc, hex << retadr << dec << " -> (" << loc << ")");
+      Dout(dc::notice, hex << retadr << dec << " -> (" << loc << ")");
 
     if (loc.line == 0)
       break;
@@ -73,9 +75,9 @@ int main(int argc, char *argv[])
 {
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
-  Debug( warning_dc.on() );
-  Debug( bfd_dc.on() );
-  Debug( notice_dc.on() );
+  Debug( dc::warning.on() );
+  Debug( dc::bfd.on() );
+  Debug( dc::notice.on() );
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&cout) );
@@ -88,3 +90,13 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+
+#else
+
+int main(void)
+{
+  cout << "DEBUGUSEBFD not defined\n";
+  return 0;
+}
+
+#endif

@@ -67,7 +67,7 @@ int main(int argc, char **argv)
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
 #ifdef DEBUGUSEBFD
-  Debug( bfd_dc.off() );
+  Debug( dc::bfd.off() );
 #endif
 
   // Write debug output to cout
@@ -79,20 +79,20 @@ int main(int argc, char **argv)
   // List all debug channels
   Debug( list_channels_on(libcw_do) );
 
-  void *ptr1 = malloc(1111); AllocTag(ptr1, "ptr1");
+  void *ptr1 = malloc(1111U); AllocTag(ptr1, "ptr1");
   if (test_delete(ptr1))
-    DoutFatal( core_dc, "Huh 1 ?" );
+    DoutFatal( dc::core, "Huh 1 ?" );
   void *ptr2 = malloc(2222); AllocTag(ptr2, "ptr2");
   if (test_delete(ptr1) || test_delete(ptr2))
-    DoutFatal( core_dc, "Huh 2 ?" );
+    DoutFatal( dc::core, "Huh 2 ?" );
   void *ptr3 = malloc(3333); AllocTag(ptr3, "ptr3");
   if (test_delete(ptr1) || test_delete(ptr2) || test_delete(ptr3))
-    DoutFatal( core_dc, "Huh 3 ?" );
+    DoutFatal( dc::core, "Huh 3 ?" );
   void *ptr4 = malloc(4444); AllocTag(ptr4, "ptr4");
   if (test_delete(ptr1) || test_delete(ptr2) || test_delete(ptr3) || test_delete(ptr4))
-    DoutFatal( core_dc, "Huh 4 ?" );
+    DoutFatal( dc::core, "Huh 4 ?" );
   if (!test_delete((void*)0x8000000))
-    DoutFatal( core_dc, "Huh 5 ?" );
+    DoutFatal( dc::core, "Huh 5 ?" );
 
   debugmalloc_marker_ct *marker = new debugmalloc_marker_ct("test marker");
 

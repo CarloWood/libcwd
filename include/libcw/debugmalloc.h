@@ -255,21 +255,17 @@ inline TYPE* __libcw_allocCatcher(TYPE* new_ptr) {
 
 #ifndef DEBUGMALLOC_INTERNAL
 #  ifdef DEBUGMALLOC
-#    ifdef DEBUGMALLOCMYSBRK
-#      define rcalloc(x, y) debugcalloc(x, y)
-#      define rmalloc(x) debugmalloc(x)
-#      define rfree(x) debugfree(x)
-#      define rrealloc(x, y) debugrealloc(x, y)
-#    else
-#      define calloc(x, y) debugcalloc(x, y)
-#      define malloc(x) debugmalloc(x)
-#      define free(x) debugfree(x)
-#      define realloc(x, y) debugrealloc(x, y)
-#    endif
+
 extern void* debugcalloc(size_t nmemb, size_t size);
 extern void* debugmalloc(size_t size);
 extern void debugfree(void* ptr);
 extern void* debugrealloc(void* ptr, size_t size);
+
+#define calloc debugcalloc
+#define malloc debugmalloc
+#define free debugfree
+#define realloc debugrealloc
+
 #  endif /* DEBUGMALLOC */
 #endif /* !DEBUG_INTERNAL */
 

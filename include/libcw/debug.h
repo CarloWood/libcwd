@@ -448,7 +448,7 @@ namespace libcw {
       };
 	// Temporary storage for the current (continued) channel set (while being assembled from operator| calls).
 	// The reason for the union is that the type of this variable is converted from channel_set_st to
-	// continued_channel_set_st by a reinterpret_cast when a continued_cf, continued_dc or finish_dc is
+	// continued_channel_set_st by a reinterpret_cast when a continued_cf, dc::continued or dc::finish is
 	// detected. This allows us to make compile-time decisions (using overloading).
 
     protected:
@@ -607,15 +607,37 @@ namespace libcw {
       continued_channel_set_st& operator|(continued_channel_ct const& cdc);
     };
 
-    extern channel_ct const debug_dc;
-    extern channel_ct const notice_dc;
-    extern channel_ct const system_dc;
-    extern channel_ct const warning_dc;
-    extern channel_ct const malloc_dc;
-    extern fatal_channel_ct const fatal_dc;
-    extern fatal_channel_ct const core_dc;
-    extern continued_channel_ct const continued_dc;
-    extern continued_channel_ct const finish_dc;
+    namespace dc {
+      extern channel_ct const debug;
+      extern channel_ct const notice;
+      extern channel_ct const system;
+      extern channel_ct const warning;
+#ifdef DEBUGMALLOC
+      extern channel_ct const debugmalloc;
+#else
+      extern channel_ct const malloc;
+#endif
+      extern fatal_channel_ct const fatal;
+      extern fatal_channel_ct const core;
+      extern continued_channel_ct const continued;
+      extern continued_channel_ct const finish;
+    };	// namespace dc
+
+    // A different way of notation
+    static channel_ct const& debug_dc(dc::debug) __attribute__ ((unused));
+    static channel_ct const& notice_dc(dc::notice) __attribute__ ((unused));
+    static channel_ct const& system_dc(dc::system) __attribute__ ((unused));
+    static channel_ct const& warning_dc(dc::warning) __attribute__ ((unused));
+#ifdef DEBUGMALLOC
+    static channel_ct const& malloc_dc(dc::debugmalloc) __attribute__ ((unused));
+#else
+    static channel_ct const& malloc_dc(dc::malloc) __attribute__ ((unused));
+#endif
+    static fatal_channel_ct const& fatal_dc(dc::fatal) __attribute__ ((unused));
+    static fatal_channel_ct const& core_dc(dc::core) __attribute__ ((unused));
+    static continued_channel_ct const& continued_dc(dc::continued) __attribute__ ((unused));
+    static continued_channel_ct const& finish_dc(dc::finish) __attribute__ ((unused));
+
     extern debug_ct libcw_do;
     typedef vector<debug_ct*> debug_objects_ct;
     extern debug_objects_ct* debug_objects;

@@ -35,7 +35,9 @@ RCSTAG_CC("$Id$")
 namespace libcw {
   namespace debug {
 #endif
-    const channel_ct hello_dc("HELLO");
+    namespace dc {
+      channel_ct const hello("HELLO");
+    };
 #ifndef DEBUGNONAMESPACE
   };
 };
@@ -52,7 +54,7 @@ int main(int argc, char **argv)
   // Select channels (note that where 'on' is used, 'off' can be specified
   // and vica versa).
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
-  Debug( notice_dc.off() );	// Just an example
+  Debug( dc::notice.off() );	// Just an example
 
   // Write debug output to cout (the default is cerr)
   Debug( libcw_do.set_ostream(&cout) );
@@ -69,7 +71,7 @@ int main(int argc, char **argv)
   //----------------------------------------------------------------------
 
   // Write "Hello World" to our own channel:
-  Dout( hello_dc, "Hello World!" );
+  Dout( dc::hello, "Hello World!" );
 
   return 0;
 }
