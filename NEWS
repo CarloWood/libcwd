@@ -3,10 +3,15 @@ libcwd-0.99.38
 	Configuration with --disable-location has been fixed and
 	is now supported.
 
-	Cygwin is now supported when configuring with --disable-alloc
-	and --disable-location (only debug output).
+	Cygwin and mingw32 are now supported when configuring with
+	--disable-alloc and --disable-location (only debug output).
 
         Bug fixes:
+
+	On fedora core 2 it has happened that unnamed 'shared
+	libraries' are being mapped and listed in the dl_loaded
+	list.  This caused libcwd to crash with the error:
+	FATAL  : std::ifstream.open(""): ENOENT (No such file or directory)
 
 	A debug channel that was not included in the vector of
 	debug channels (as is used for ForAllDebugChannels),
@@ -17,13 +22,8 @@ libcwd-0.99.38
 	'type_info_of' could not be used safely from constructors
 	of global objects.
 
-	Configuration with --disable-alloc caused problems with
-	using libcwd with another library.
-
-	On fedora core 2 it has happened that unnamed 'shared
-	libraries' are being mapped and listed in the dl_loaded
-	list.  This caused libcwd to crash with the error:
-	FATAL  : std::ifstream.open(""): ENOENT (No such file or directory)
+	Configuration with --disable-alloc caused problems when
+	using libcwd in a library.
 
 libcwd-0.99.37
 
