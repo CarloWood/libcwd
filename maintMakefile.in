@@ -151,5 +151,5 @@ syncwww: documentation
 
 cvs-clean: maintainer-clean
 	$(MAKE) -C documentation maintainer-clean
-	$(MAKE) -C example-project maintainer-clean
+	(test -f example-project/Makefile && $(MAKE) -C example-project maintainer-clean) || true
 

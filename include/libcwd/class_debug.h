@@ -121,6 +121,9 @@ private:
   bool WNS_initialized;
     // Set to true when this object is initialized (by a call to NS_init()).
 
+  bool NS_being_initialized;
+    // Set to true when this object is being initialized (by a call to NS_init()).
+
 #if CWDEBUG_DEBUG
   long init_magic;
     // Used to check if the trick with `WNS_initialized' really works.
@@ -205,10 +208,14 @@ private:
 #if CWDEBUG_LOCATION
   friend bool cwbfd::ST_init(LIBCWD_TSD_PARAM);
 #endif
-  void NS_init(LIBCWD_TSD_PARAM);
+  bool NS_init(LIBCWD_TSD_PARAM);
     // Initialize this object, needed because debug output can be written
     // from the constructors of (other) global objects, and from the malloc()
     // family when CWDEBUG_ALLOC is set to 1.
+    // This will return false when it is called recursively which can happen
+    // as part of initialization of libcwd via a call to malloc while creating
+    // laf_ct -> buffer_ct --> basic_stringbuf.  In that case the initialization
+    // failed thus.  On success, it returns true.
 
 public:
   //-------------------------------------------------------------------------------------------------

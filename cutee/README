@@ -1,0 +1,12 @@
+cutee, C++ Unit Testing Easy Environment.
+
+More info and docs at:
+	http://codesink.org
+
+QUICKSTART
+===========
+cp Makefile.template Makefile
+make
+./runtest
+
+Stefano Barbato, stefano@codesink.org

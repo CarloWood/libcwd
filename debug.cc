@@ -536,7 +536,8 @@ void allocator_unlock(void)
       channels::dc::notice.NS_initialize("NOTICE" LIBCWD_COMMA_TSD, true);
       channels::dc::system.NS_initialize("SYSTEM" LIBCWD_COMMA_TSD, true);
 
-      libcw_do.NS_init(LIBCWD_TSD);		// Initialize debug code.
+      if (!libcw_do.NS_init(LIBCWD_TSD))	// Initialize debug code.
+	DoutFatal(dc::core, "Calling debug_ct::NS_init recursively from ST_initialize_globals");
 
       // Unlimit core size.
 #ifdef RLIMIT_CORE
@@ -1296,14 +1297,19 @@ void allocator_unlock(void)
     int debug_ct::S_index_count = 0;
 #endif
 
-    void debug_ct::NS_init(LIBCWD_TSD_PARAM)
+    bool debug_ct::NS_init(LIBCWD_TSD_PARAM)
     {
+      if (NS_being_initialized)
+        return false;
+
       ST_initialize_globals(LIBCWD_TSD);// Because all allocations for global objects are internal these days, we use
       					// the constructor of debug_ct to initiate the global initialization of libcwd
 					// instead of relying on malloc().
 
       if (WNS_initialized)
-        return;
+        return true;
+
+      NS_being_initialized = true;
 
 #if LIBCWD_THREAD_SAFE
       M_mutex = NULL;
@@ -1357,10 +1363,12 @@ void allocator_unlock(void)
 #endif
       DEBUGDEBUG_CERR( "debug_ct::NS_init(), _off set to " << LIBCWD_TSD_MEMBER_OFF );
 
-      set_ostream(&std::cerr);				// Write to std::cerr by default.
-      interactive = true;				// and thus we're interactive.
+      set_ostream(&std::cerr);			// Write to std::cerr by default.
+      interactive = true;			// and thus we're interactive.
 
+      NS_being_initialized = false;
       WNS_initialized = true;
+      return true;				// Success.
     }
 
     void debug_tsd_st::init(void)
@@ -1369,7 +1377,7 @@ void allocator_unlock(void)
       LIBCWD_TSD_DECLARATION;
       LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
-      start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
+      start_expected = true;			// Of course, we start with expecting the beginning of a debug output.
       unfinished_expected = false;
 
       // `current' needs to be non-zero (saving us a check in start()) and
@@ -1824,7 +1832,12 @@ void allocator_unlock(void)
     void debug_ct::force_on(debug_ct::OnOffState& state)
     {
       LIBCWD_TSD_DECLARATION;
-      NS_init(LIBCWD_TSD);
+#if CWDEBUG_DEBUG
+      if (!NS_init(LIBCWD_TSD))
+        DoutFatal(dc::core, "Calling debug_ct::NS_init recursively from debug_ct::force_on");
+#else
+      (void)NS_init(LIBCWD_TSD);
+#endif
       state._off = LIBCWD_TSD_MEMBER_OFF;
 #if CWDEBUG_DEBUGOUTPUT
       state.first_time = LIBCWD_TSD_MEMBER(first_time);

@@ -509,6 +509,9 @@ namespace _private_ {
   //				  one of our allocation routines, do not store in the map
   //				  and do not call any library functions.
 
+// Initialization 3.3 and later is "garanteed" allocation free.
+#if __GNUC_MINOR__ < 3
+
   //
   // The following kludge is needed because of a bug in libstdc++-v3.
   //
@@ -522,14 +525,10 @@ namespace _private_ {
 #if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
 #endif
-#if __GNUC_MINOR__ < 3
 #ifndef _GLIBCPP_USE_WCHAR_T
     if (std::cerr.flags() != std::ios_base::unitbuf)		// Still didn't reach the end of std::ios_base::Init::Init()?
 #else
     if (std::wcerr.flags() != std::ios_base::unitbuf)
-#endif
-#else
-    if (!std::ios_base::Init::_S_initialized())			// std::ios_base::Init not initialized yet?
 #endif
       return true;
     WST_ios_base_initialized = true;
@@ -539,6 +538,7 @@ namespace _private_ {
     DEBUGDEBUG_CERR( "Standard streams initialized." );
     return false;
   }
+#endif // __GNUC_MINOR__ < 3
 
 #if CWDEBUG_DEBUGM
 // _private_::
@@ -2284,7 +2284,11 @@ void init_debugmalloc(void)
       WST_initialization_state = -1;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
-    if (!_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init())
+    if (1
+#if __GNUC_MINOR__ < 3
+        && !_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init()
+#endif
+       )
     {
       WST_initialization_state = 1;		// ST_initialize_globals() calls malloc again of course.
       int recursive_store = __libcwd_tsd.inside_malloc_or_free;

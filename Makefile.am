@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = include utils . tests testsuite
+SUBDIRS = include utils . tests testsuite cutee
 
 BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec .example-project_debug.h-timestamp
 EXTRA_DIST = LICENSE.QPL README.CVS README.threads README.FreeBSD README.openbsd README.solaris nodebug.h $(BUILT_SOURCES)

@@ -616,16 +616,18 @@ void bfd_close(bfd* abfd)
 	LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] != __libcwd_tsd.tid && __libcwd_tsd.rdlocked_by2[object_files_instance] != __libcwd_tsd.tid );
 #endif
 #endif
-	set_alloc_checking_off(LIBCWD_TSD);
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
+	set_alloc_checking_off(LIBCWD_TSD);
 	M_function_symbols.erase(M_function_symbols.begin(), M_function_symbols.end());
 	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(),
 	                                    NEEDS_WRITE_LOCK_object_files().end(), this));
 	if (iter != NEEDS_WRITE_LOCK_object_files().end())
 	  NEEDS_WRITE_LOCK_object_files().erase(iter);
+	set_alloc_checking_on(LIBCWD_TSD);
 	BFD_RELEASE_WRITE_LOCK;
 	LIBCWD_RESTORE_CANCEL;
+	set_alloc_checking_off(LIBCWD_TSD);
 	if (M_abfd)
 	{
 	  bfd_close(M_abfd);
@@ -1009,7 +1011,8 @@ void bfd_close(bfd* abfd)
 	WST_being_initialized = true;
 
 	// This must be called before calling ST_init().
-	libcw_do.NS_init(LIBCWD_TSD);
+	if (!libcw_do.NS_init(LIBCWD_TSD))
+	  return false;
 
         // MT: We assume this is called before reaching main().
 	//     Therefore, no synchronisation is required.
@@ -1282,7 +1285,7 @@ typedef location_ct bfd_location_ct;
 	// MT: `WST_initialized' is only false when we're still Single Threaded.
 	//     Therefore it is safe to call ST_* functions.
 
-#if CWDEBUG_ALLOC
+#if CWDEBUG_ALLOC && __GNUC_MINOR__ < 3
         if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
 	{
 	  M_object_file = NULL;

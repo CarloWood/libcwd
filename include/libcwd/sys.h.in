@@ -49,6 +49,14 @@ namespace libcw {
 //
 
 //
+// Sanity check - if this is defined then _REENTRANT will be defined regardless
+// and that won't work.
+//
+#ifdef __GTHREADS
+#error No, no, no... "sys.h" has to be the VERY first header file you include.  Before ANY other (system) header file.
+#endif
+
+//
 // g++ 3.4 (20030816) defines _REENTRANT regardless when including
 // certain standard libstdc++ header files.  Therefore we can ONLY
 // test on _REENTRANT here, before including any other header file.

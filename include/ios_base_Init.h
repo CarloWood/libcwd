@@ -20,8 +20,10 @@ namespace libcw {
   namespace debug {
     namespace _private_ {
 
+#if __GNUC_MINOR__ < 3
 extern bool WST_ios_base_initialized;
 extern bool inside_ios_base_Init_Init(void);
+#endif
 
     } // namespace _private_
   } // namespace debug

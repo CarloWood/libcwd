@@ -192,7 +192,12 @@ __inline__
 debug_ct::debug_ct(void)
 {
   LIBCWD_TSD_DECLARATION;
-  NS_init(LIBCWD_TSD);
+#if CWDEBUG_DEBUG
+  if (!NS_init(LIBCWD_TSD))
+    core_dump();
+#else
+  (void)NS_init(LIBCWD_TSD);
+#endif
 }
 
 /**
