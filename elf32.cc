@@ -710,6 +710,8 @@ public:
     DoutDwarf(dc::bfd, "--> Sequence end.");
     if (is_valid())
       M_store();
+    // Invalidate range tracking, we will start all over.
+    M_range.start = 0;
   }
 
   Elf32_Half get_line(void) const { LIBCWD_ASSERT( (M_flags & 1) ); return M_line; }
@@ -796,6 +798,7 @@ private:
   object_files_string_set_ct M_source_files;
   object_files_range_location_map_ct M_ranges;
   bool M_debug_info_loaded;
+  bool M_inside_find_nearest_line;
   Elf32_Word M_stabs_section_index;
   Elf32_Word M_dwarf_debug_info_section_index;
   Elf32_Word M_dwarf_debug_abbrev_section_index;
@@ -839,7 +842,10 @@ void location_ct::M_store(void)
     M_used = true;
     return;
   }
-  LIBCWD_ASSERT( M_range.start <= M_address );
+#if DEBUGDWARF
+  if (M_range.start > M_address)
+    core_dump();
+#endif
   if (M_range.start == M_address)
     DoutDwarf(dc::bfd, "Skipping M_store: address range is zero.");
   else if (M_range.start)
@@ -1866,14 +1872,39 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
   if (!M_debug_info_loaded)
   {
 #ifdef LIBCWD_THREAD_SAFE
-  // `object_files_string' and the STL containers using `_private_::object_files_allocator' in the
-  // following functions need this lock.
-  _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
+    // `object_files_string' and the STL containers using `_private_::object_files_allocator' in the
+    // following functions need this lock.
+    _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
+#endif
+    if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
+    {
+      *file = NULL;
+      *func = symbol->name;
+      *line = 0;
+      return;
+    }
+    M_inside_find_nearest_line = true;
+#if DEBUGSTABS || DEBUGDWARF
+    int off = libcw::debug::libcw_do._off;
+    libcw::debug::libcw_do._off = -1;	// Force debug output on.
+    int cnt = 0;
+    Debug(
+      while(!dc::bfd.is_on())
+      {
+	++cnt;
+	dc::bfd.on();
+      }
+    );
 #endif
     if (M_dwarf_debug_line_section_index)
       load_dwarf();
     else if (M_stabs_section_index)
       load_stabs();
+#if DEBUGSTABS || DEBUGDWARF
+    Debug( while(cnt) { --cnt; dc::bfd.off(); } );
+    libcw::debug::libcw_do._off = off;
+#endif
+    M_inside_find_nearest_line = false;
 #ifdef LIBCWD_THREAD_SAFE
     _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
 #endif
@@ -1964,6 +1995,7 @@ object_file_ct::object_file_ct(char const* file_name) :
   if (DEBUGELF32)
     Debug( libcw_do.inc_indent(4) );
   M_debug_info_loaded = false;
+  M_inside_find_nearest_line = false;
   M_stabs_section_index = 0;
   M_dwarf_debug_line_section_index = 0;
   for(int i = 0; i < M_header.e_shnum; ++i)
