@@ -163,10 +163,7 @@ void allocator_unlock(void)
 #if CWDEBUG_ALLOC
 	// Writing to the final std::ostream (ie std::cerr) must be non-internal!
 	// LIBCWD_DISABLE_CANCEL/LIBCWD_ENABLE_CANCEL must be done non-internal too.
-	int saved_internal = __libcwd_tsd.internal;
-	__libcwd_tsd.internal = 0;
-	++__libcwd_tsd.library_call;
-	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+	int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
 #endif
 #ifdef _REENTRANT
 	LIBCWD_DISABLE_CANCEL;			// We don't want Dout() to be a cancellation point.
@@ -228,9 +225,7 @@ void allocator_unlock(void)
 	LIBCWD_ENABLE_CANCEL;
 #endif // !_REENTRANT
 #if CWDEBUG_ALLOC
-	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
-	--__libcwd_tsd.library_call;
-	__libcwd_tsd.internal = saved_internal;
+	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #endif
 	if (free_msgbuf)
 	  free(msgbuf);

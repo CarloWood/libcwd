@@ -438,11 +438,37 @@ void set_alloc_checking_off(LIBCWD_TSD_PARAM)
 void set_alloc_checking_on(LIBCWD_TSD_PARAM)
 {
   if (__libcwd_tsd.internal == 0)
-    DoutFatal( dc::core, "Calling `set_alloc_checking_on' while ALREADY on." );
-  LIBCWD_DEBUGM_CERR( "set_alloc_checking_on from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << __libcwd_tsd.internal - 1 << '.' );
+    DoutFatal(dc::core, "Calling `set_alloc_checking_on' while ALREADY on.");
+  LIBCWD_DEBUGM_CERR( "set_alloc_checking_on called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << __libcwd_tsd.internal - 1 << '.' );
   --__libcwd_tsd.internal;
 }
-#endif
+
+// _private_::
+int set_library_call_on(LIBCWD_TSD_PARAM)
+{
+  int saved_internal = __libcwd_tsd.internal;
+  LIBCWD_DEBUGM_CERR( "set_library_call_on called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to 0." );
+  __libcwd_tsd.internal = 0;
+  if (saved_internal == 0)
+    DoutFatal(dc::core, "Calling `set_library_call_on' while not internal.");
+  ++__libcwd_tsd.library_call;
+  ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+  return saved_internal;
+}
+
+// _private_::
+void set_library_call_off(int saved_internal LIBCWD_COMMA_TSD_PARAM)
+{
+  --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+  if (__libcwd_tsd.internal)
+    DoutFatal(dc::core, "Calling `set_library_call_off' while internal?!");
+  if (__libcwd_tsd.library_call == 0)
+    DoutFatal(dc::core, "Calling `set_library_call_off' while library_call == 0 ?!");
+  LIBCWD_DEBUGM_CERR( "set_library_call_off called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << saved_internal << '.' );
+  __libcwd_tsd.internal = saved_internal;
+  --__libcwd_tsd.library_call;
+}
+#endif // CWDEBUG_DEBUGM
 
 } // namespace _private_
 

@@ -81,7 +81,15 @@ struct Elf32_Ehdr {
   Elf32_Half		e_shnum;		// Number of entries in the Section Header.
   Elf32_Half		e_shstrndx;		// Section Header Index for the Section Header String Table.
 
-  friend std::istream& operator>>(std::istream& is, Elf32_Ehdr& header) { is.read(reinterpret_cast<char*>(&header), sizeof(Elf32_Ehdr)); return is; }
+  friend std::istream& operator>>(std::istream& is, Elf32_Ehdr& header)
+  {
+#if CWDEBUG_DEBUGM
+    LIBCWD_TSD_DECLARATION
+    LIBCWD_ASSERT( !__libcwd_tsd.internal );
+#endif
+    is.read(reinterpret_cast<char*>(&header), sizeof(Elf32_Ehdr));
+    return is;
+  }
   inline bool check_format(void) const;
 };
 
@@ -818,7 +826,7 @@ protected:
   virtual bool check_format(void) const;
   virtual long get_symtab_upper_bound(void);
   virtual long canonicalize_symtab(asymbol_st**);
-  virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int*);
+  virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM);
 private:
   char* allocate_and_read_section(int i);
   friend void location_ct::M_store(void);
@@ -1885,7 +1893,7 @@ void object_file_ct::load_stabs(void)
   M_debug_info_loaded = true;
 }
 
-void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, char const** file, char const** func, unsigned int* line)
+void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, char const** file, char const** func, unsigned int* line LIBCWD_COMMA_TSD_PARAM)
 {
   while (!M_debug_info_loaded)	// So we can use 'break'.
   {
@@ -1943,7 +1951,9 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
     S_thread_inside_find_nearest_line = (pthread_t) 0;
     _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
 #endif
+    int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
     M_input_stream.close();
+    _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
     break;
   }
   range_st range;
@@ -1971,10 +1981,13 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
 char* object_file_ct::allocate_and_read_section(int i)
 {
   char* p = new char[M_sections[i].section_header().sh_size];
+  LIBCWD_TSD_DECLARATION
+  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD); 
   LIBCWD_DISABLE_CANCEL;
   M_input_stream.rdbuf()->pubseekpos(M_sections[i].section_header().sh_offset);
   M_input_stream.read(p, M_sections[i].section_header().sh_size);
   LIBCWD_ENABLE_CANCEL;
+  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD); 
   return p;
 }
 
@@ -2012,23 +2025,34 @@ object_file_ct::object_file_ct(char const* file_name) :
     M_symbols(NULL), M_number_of_symbols(0), M_symbol_table_type(0)
 {
   filename = file_name;
+  LIBCWD_TSD_DECLARATION
+  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
   M_input_stream.open(file_name);
+  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   if (!M_input_stream)
     DoutFatal(dc::fatal|error_cf, "std::ifstream.open(\"" << file_name << "\")");
+  _private_::set_library_call_on(LIBCWD_TSD);
   M_input_stream >> M_header;
+  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   LIBCWD_ASSERT(M_header.e_shentsize == sizeof(Elf32_Shdr));
   if (M_header.e_shoff == 0 || M_header.e_shnum == 0)
     return;
+  _private_::set_library_call_on(LIBCWD_TSD);
   M_input_stream.rdbuf()->pubseekpos(M_header.e_shoff);
+  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   Elf32_Shdr* section_headers = new Elf32_Shdr [M_header.e_shnum];
+  _private_::set_library_call_on(LIBCWD_TSD);
   M_input_stream.read(reinterpret_cast<char*>(section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
+  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   if (DEBUGELF32)
     Dout(dc::bfd, "Number of section headers: " << M_header.e_shnum);
   LIBCWD_ASSERT( section_headers[M_header.e_shstrndx].sh_size > 0
       && section_headers[M_header.e_shstrndx].sh_size >= section_headers[M_header.e_shstrndx].sh_name );
   M_section_header_string_table = new char[section_headers[M_header.e_shstrndx].sh_size]; 
+  _private_::set_library_call_on(LIBCWD_TSD);
   M_input_stream.rdbuf()->pubseekpos(section_headers[M_header.e_shstrndx].sh_offset);
   M_input_stream.read(M_section_header_string_table, section_headers[M_header.e_shstrndx].sh_size);
+  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[section_headers[M_header.e_shstrndx].sh_name], ".shstrtab") );
   M_sections = new section_ct[M_header.e_shnum];
   if (DEBUGELF32)

@@ -33,13 +33,31 @@ namespace libcw {
 #if CWDEBUG_DEBUGM
   extern void set_alloc_checking_off(LIBCWD_TSD_PARAM);
   extern void set_alloc_checking_on(LIBCWD_TSD_PARAM);
+  extern int set_library_call_on(LIBCWD_TSD_PARAM);
+  extern void set_library_call_off(int saved_internal LIBCWD_COMMA_TSD_PARAM);
 #else
   __inline__ void set_alloc_checking_off(LIBCWD_TSD_PARAM) { ++__libcwd_tsd.internal; }
   __inline__ void set_alloc_checking_on(LIBCWD_TSD_PARAM) { --__libcwd_tsd.internal; }
+  __inline__ int set_library_call_on(LIBCWD_TSD_PARAM)
+      {
+	int internal_saved = __libcwd_tsd.internal;
+	__libcwd_tsd.internal = 0;
+	++__libcwd_tsd.library_call;
+	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+	return internal_saved;
+      }
+  __inline__ void set_library_call_off(int saved_internal LIBCWD_COMMA_TSD_PARAM)
+      {
+	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
+	__libcwd_tsd.internal = saved_internal;
+	--__libcwd_tsd.library_call;
+      }
 #endif
 #else // !CWDEBUG_ALLOC
   __inline__ void set_alloc_checking_off(LIBCWD_TSD_PARAM) { }
   __inline__ void set_alloc_checking_on(LIBCWD_TSD_PARAM) { }
+  __inline__ void set_library_call_on(LIBCWD_TSD_PARAM) { }
+  __inline__ void set_library_call_off(LIBCWD_TSD_PARAM) { }
 #endif // !CWDEBUG_ALLOC
 
     } // namespace _private_
