@@ -1,5 +1,5 @@
 // input lines 3
-// output till ^WARNING
+// output till ^WARNING : Ok
 ((WARNING : core size is limited.*
 )*(BFD     : Loading debug info from.*
 )*)
