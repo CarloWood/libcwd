@@ -103,8 +103,10 @@ distclean-local:
 	else \
 	  find documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf; \
 	fi
-	(cd example-project; rm -rf $(srcdir)/autom4te.cache .deps $(srcdir)/aclocal.m4 config.h $(srcdir)/config.h.in \
-	 config.log config.status $(srcdir)/configure Makefile $(srcdir)/Makefile.in stamp-h1 program *.o)
+	if test -d example-project; then \
+	  (cd example-project; rm -rf $(srcdir)/autom4te.cache .deps $(srcdir)/aclocal.m4 config.h $(srcdir)/config.h.in \
+	   config.log config.status $(srcdir)/configure Makefile $(srcdir)/Makefile.in stamp-h1 program *.o); \
+        fi
 
 MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure $(srcdir)/Makefile.in \
 	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \
