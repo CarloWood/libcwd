@@ -44,6 +44,7 @@ template<class IMANIP_DATA>
     IMANIP_DATA& get_imanip_data(void) { return imanip_data; }
   };
 
+#if __GNUC__ == 2
 namespace {
 
   template<class TYPE>
@@ -55,13 +56,18 @@ namespace {
     TYPE compiler_bug_workaround<TYPE>::ids;
 
 } // namespace {anonymous}
+#endif
 
 template<class TYPE>
   inline typename TYPE::omanip_data_ct& get_omanip_data(std::ostream const& os)
   {
     typedef omanip_id_tct<typename TYPE::omanip_data_ct> omanip_id_ct;
     typedef std::vector<omanip_id_ct> ids_ct;
-    ids_ct& ids(compiler_bug_workaround<ids_ct>::ids);	// static ids_ct ids;
+#if __GNUC__ == 2
+    ids_ct& ids(compiler_bug_workaround<ids_ct>::ids);
+#else
+    static ids_ct ids;
+#endif
     typename ids_ct::iterator i = std::find(ids.begin(), ids.end(), &os);
     if (i == ids.end())
       i = ids.insert(ids.end(), omanip_id_ct(&os));
@@ -73,7 +79,11 @@ template<class TYPE>
   {
     typedef imanip_id_tct<typename TYPE::imanip_data_ct> imanip_id_ct;
     typedef std::vector<imanip_id_ct> ids_ct;
-    ids_ct& ids(compiler_bug_workaround<ids_ct>::ids);	// static ids_ct ids;
+#if __GNUC__ == 2
+    ids_ct& ids(compiler_bug_workaround<ids_ct>::ids);
+#else
+    static ids_ct ids;
+#endif
     typename ids_ct::iterator i = std::find(ids.begin(), ids.end(), &os);
     if (i == ids.end())
       i = ids.insert(ids.end(), imanip_id_ct(&os));
