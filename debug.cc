@@ -954,7 +954,7 @@ namespace libcw {
 	  // The cast is necessary on platforms where corelim.rlim_max is long long
 	  // and libstdc++ was not compiled with support for long long.
 	  Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
-#ifndef DEBUGDEBUG
+#ifndef DEBUGDEBUGOUTPUT
 	  _off = 0;
 #endif
 	}
@@ -963,7 +963,7 @@ namespace libcw {
 #else
 	_off = -1;
 	Dout(dc::warning, "Please unlimit core size manually");
-#ifndef DEBUGDEBUG
+#ifndef DEBUGDEBUGOUTPUT
 	_off = 0;
 #endif
 #endif
