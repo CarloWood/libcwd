@@ -53,9 +53,9 @@ int const random_salt = 6;
 int const random_salt = 327665;
 #endif
 // Dummy mutex instance numbers, these must be negative.
-int const single_threaded_userspace_instance = -random_salt;	// Use std::alloc
+int const single_threaded_userspace_instance = -random_salt;	// Use std::__default_alloc_template<true, 0>
 int const single_threaded_internal_instance = -1;
-int const multi_threaded_userspace_instance = -random_salt;	// Use std::alloc
+int const multi_threaded_userspace_instance = -random_salt;	// Use std::__default_alloc_template<true, 0>
 int const multi_threaded_internal_instance = -2;
 
 #if CWDEBUG_DEBUG
@@ -227,13 +227,16 @@ template <class T1, class X1, bool internal1, int inst1,
 #define LIBCWD_DEBUGDEBUG_COMMA(x)
 #endif
 
-#define LIBCWD_DEFAULT_ALLOC_USERSPACE(instance) ::libcw::debug::_private_::	\
-	allocator_adaptor<char,						\
-	  		  ::std::alloc,					\
-			  false						\
+// ::std::__default_alloc_template<true, 0> is the default thread-safe STL allocator std::__alloc,
+// but we use the longer type because in gcc 3.0.x the underscores were missing and it would be
+// std::alloc.  See also http://gcc.gnu.org/onlinedocs/libstdc++/ext/howto.html#3.
+#define LIBCWD_DEFAULT_ALLOC_USERSPACE(instance) ::libcw::debug::_private_::			\
+	allocator_adaptor<char,									\
+	  		  ::std::__default_alloc_template<true, 0>,				\
+			  false									\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
 
-#define LIBCWD_DEFAULT_ALLOC_INTERNAL(instance) ::libcw::debug::_private_::				\
+#define LIBCWD_DEFAULT_ALLOC_INTERNAL(instance) ::libcw::debug::_private_::			\
 	allocator_adaptor<char,									\
 			  ::std::__default_alloc_template					\
 			      < ::libcw::debug::_private_::instance ==				\
