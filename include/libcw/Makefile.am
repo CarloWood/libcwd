@@ -10,6 +10,7 @@ libcwd_HEADERS = \
 	debugdebugcheckpoint.h \
 	debugmalloc.h \
 	demangle.h \
+	elf32.h \
 	exec_prog.h \
 	iomanip.h \
 	lockable_auto_ptr.h \
