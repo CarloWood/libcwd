@@ -16,12 +16,10 @@ libcwd_HEADERS = \
 	lockable_auto_ptr.h \
 	no_alloc_checking_ostrstream.h \
 	strerrno.h \
-	type_info.h \
-	sys.h \
-	debug_config.h
+	type_info.h
+
+EXTRA_HEADERS = sys.h debug_config.h
 
 EXTRA_DIST = perf.h
-
-DISTCLEANFILES = debug_config.h sys.h
 
 MAINTAINERCLEANFILES = Makefile.in
