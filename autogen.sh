@@ -40,8 +40,6 @@ else
   					# see http://www.gnu.org/software/libtool/libtool.html
 fi
 
-test -n "$ZSH_NAME" && disable which	# zsh has a builtin which that is turned off with this.
-(which --version | grep GNU) >/dev/null 2>/dev/null || (echo "You need GNU which 2.x to install from CVS (http://www.xs4all.nl/~carlo17/which/ or ftp://ftp.gnu.org/gnu/which/)"; exit 1) || exit 1
 ($AUTOCONF --version) >/dev/null 2>/dev/null || (echo "You need GNU autoconf to install from CVS (ftp://ftp.gnu.org/gnu/autoconf/)"; exit 1) || exit 1
 ($AUTOMAKE --version) >/dev/null 2>/dev/null || (echo "You need GNU automake 1.6 or higher to install from CVS (ftp://ftp.gnu.org/gnu/automake/)"; exit 1) || exit 1
 (libtool --version) >/dev/null 2>/dev/null || (echo "You need GNU libtool $required_libtool_version or higher to install from CVS (ftp://ftp.gnu.org/gnu/libtool/)"; exit 1) || exit 1
