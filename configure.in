@@ -256,9 +256,10 @@ if test "$libcwd_config_bfd" = yes; then
       [CW_CONFIG_DEBUGUSEGNULIBBFD=define
        AC_MSG_WARN([
 
-* You used --enable-libcwd-bfd: The license of libbfd (GPL) forbids to link with libraries
-* that are non-GPL.  Therefore you are not allowed to distribute the resulting executable!
-* See include/libcw/debug_config.ho.in under DEBUGUSEGNULIBBFD for more information.
+* You used --enable-libcwd-bfd: The license of libbfd (GPL) forbids to link
+* with libraries that are non-GPL.  Therefore you are not allowed to
+* distribute the resulting executable!  See include/libcw/debug_config.ho.in
+* under DEBUGUSEGNULIBBFD for more information.
 ])],
       [AC_MSG_ERROR([
 
