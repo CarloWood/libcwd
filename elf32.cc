@@ -1279,7 +1279,7 @@ indirect:
 	  do
 	  {
 	    address = 0;
-	    file = 1;
+	    file = 0;		// One less than the `file' mentioned in the documentation.
 	    line = 1;
 	    column = 0;
 	    is_stmt = default_is_stmt;
@@ -1373,7 +1373,7 @@ indirect:
 		  }
 		  case DW_LNS_advance_line:
 		  {
-		    uLEB128_t line_increment;
+		    LEB128_t line_increment;
 		    dwarf_read(debug_line_ptr, line_increment);
 		    line += line_increment;
 		    DoutDwarf(dc::bfd, "DW_LNS_advance_line: " << line);
@@ -1381,6 +1381,7 @@ indirect:
 		  }
 		  case DW_LNS_set_file:
 		    dwarf_read(debug_line_ptr, file);
+		    --file;
 		    DoutDwarf(dc::bfd, "DW_LNS_set_file: \"" << file_names[file].name << '"');
 		    if (*file_names[file].name == '/')
 		      cur_source.assign(file_names[file].name);
