@@ -113,9 +113,9 @@ __inline__ void make_all_allocations_invisible_except(void const*) { }
 #endif // !DEBUGMALLOC
 
 #ifdef DEBUGDEBUGMALLOC
-#define DEBUGDEBUGMALLOC_CERR(x) DEBUGDEBUG_CERR(x)
+#define LIBCWD_DEBUGM_CERR(x) DEBUGDEBUG_CERR(x)
 #else
-#define DEBUGDEBUGMALLOC_CERR(x)
+#define LIBCWD_DEBUGM_CERR(x)
 #endif
 
 namespace libcw {
@@ -133,7 +133,7 @@ __inline__ void list_allocations_on(debug_ct&) { }
 #ifndef DEBUGMALLOC_INTERNAL
 #ifdef DEBUGMALLOC
 
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
+#ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 // Ugh, use kludge.
 #include <cstdlib>	// Make sure the prototypes for malloc et al are declared
 			// before defining the macros!
@@ -145,7 +145,7 @@ __inline__ void list_allocations_on(debug_ct&) { }
 
 // Use external linkage to catch ALL calls to all malloc/calloc/realloc/free functions,
 // also those that are done in libc, or any other shared library that might be linked.
-// [ Note: if DEBUGMALLOCEXTERNALCLINKAGE wasn't defined, then these are the prototypes
+// [ Note: if LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC wasn't defined, then these are the prototypes
 // for __libcwd_malloc et al of course.  We still use external "C" linkage in that case
 // in order to avoid a collision with possibily later included prototypes for malloc. ]
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
@@ -159,7 +159,7 @@ extern "C" void* realloc(void* ptr, size_t size) throw() __attribute__((__malloc
 #endif
 extern "C" void  free(void* ptr) throw();
 
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
+#ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 // Use same kludge for other libc functions that return malloc-ed pointers.
 #define strdup __libcwd_strdup
 #ifdef HAVE_WMEMCPY
@@ -200,7 +200,7 @@ __libcwd_wcsdup(wchar_t const* str)
   return p;
 }
 #endif // HAVE_WMEMCPY
-#endif // !DEBUGMALLOCEXTERNALCLINKAGE
+#endif // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 
 #endif // DEBUGMALLOC
 #endif // !DEBUG_INTERNAL

@@ -57,7 +57,7 @@ extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const*
 extern void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<char, true> description);
     // For dynamic descriptions
 																		    // allocated with new[]
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
+#ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 extern void register_external_allocation(void const* ptr, size_t size);
 #endif
 
@@ -210,7 +210,7 @@ template<typename TYPE>
  */
 #define NEW(x) __libcwd_allocCatcher(new x)
 
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
+#ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 /**
  * \brief Register an externally allocated memory block at position \a ptr with size \a size.
  */
@@ -229,7 +229,7 @@ template<typename TYPE>
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
+#ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 #define RegisterExternalAlloc(p, s)
 #endif
 

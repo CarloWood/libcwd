@@ -227,13 +227,13 @@ template <class T1, class X1, bool internal1, int inst1,
 #define LIBCWD_DEBUGDEBUG_COMMA(x)
 #endif
 
-#define DEFAULT_ALLOC_USERSPACE(instance) ::libcw::debug::_private_::	\
+#define LIBCWD_DEFAULT_ALLOC_USERSPACE(instance) ::libcw::debug::_private_::	\
 	allocator_adaptor<char,						\
 	  		  ::std::alloc,					\
 			  false						\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
 
-#define DEFAULT_ALLOC_INTERNAL(instance) ::libcw::debug::_private_::				\
+#define LIBCWD_DEFAULT_ALLOC_INTERNAL(instance) ::libcw::debug::_private_::				\
 	allocator_adaptor<char,									\
 			  ::std::__default_alloc_template					\
 			      < ::libcw::debug::_private_::instance ==				\
@@ -249,25 +249,25 @@ template <class T1, class X1, bool internal1, int inst1,
 // libcwd mutex instance.  Using a macro here instead of another template in order not to bloat the
 // mangling TOO much.
 #define LIBCWD_NS_INTERNAL_ALLOCATOR(instance)	\
-			  		DEFAULT_ALLOC_INTERNAL(instance)
+			  		LIBCWD_DEFAULT_ALLOC_INTERNAL(instance)
 #else // !LIBCWD_THREAD_SAFE
 // In a single threaded application, the Non_shared case is equivalent to the Single Threaded case.
 #define LIBCWD_NS_INTERNAL_ALLOCATOR(instance) \
-			  		DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
+			  		LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
 #endif // !LIBCWD_THREAD_SAFE
 
 #ifdef LIBCWD_THREAD_SAFE
 // LIBCWD_MT_*_ALLOCATOR uses an different allocator than the normal default allocator of libstdc++
 // in the case of multi-threading because it can be that the allocator mutex is locked, which would
 // result in a deadlock if we try to use it again here.
-#define LIBCWD_MT_INTERNAL_ALLOCATOR	DEFAULT_ALLOC_INTERNAL(multi_threaded_internal_instance)
-#define LIBCWD_MT_USERSPACE_ALLOCATOR	DEFAULT_ALLOC_USERSPACE(multi_threaded_userspace_instance)
+#define LIBCWD_MT_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_INTERNAL(multi_threaded_internal_instance)
+#define LIBCWD_MT_USERSPACE_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_USERSPACE(multi_threaded_userspace_instance)
 #else // !LIBCWD_THREAD_SAFE
 // LIBCWD_MT_*_ALLOCATOR uses the normal default allocator of libstdc++-v3 (alloc) using locking
 // itself.  The userspace allocator shares it memory pool with everything else (that uses this
 // allocator, which is most of the (userspace) STL).
-#define LIBCWD_MT_INTERNAL_ALLOCATOR	DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
-#define LIBCWD_MT_USERSPACE_ALLOCATOR	DEFAULT_ALLOC_USERSPACE(single_threaded_userspace_instance)
+#define LIBCWD_MT_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
+#define LIBCWD_MT_USERSPACE_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_USERSPACE(single_threaded_userspace_instance)
 #endif // !LIBCWD_THREAD_SAFE
 
 //---------------------------------------------------------------------------------------------------

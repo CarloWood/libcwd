@@ -49,7 +49,7 @@ extern link_map* _dl_loaded;
 #endif
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
-#ifdef CWDEBUG_DLOPEN_DEFINED
+#ifdef LIBCWD_DLOPEN_DEFINED
 #undef dlopen
 #undef dlclose
 #endif
@@ -1429,7 +1429,7 @@ already_loaded:
   } // namespace debug
 } // namespace libcw
 
-#ifdef CWDEBUG_DLOPEN_DEFINED
+#ifdef LIBCWD_DLOPEN_DEFINED
 using namespace libcw::debug;
 
 struct dlloaded_st {
@@ -1527,6 +1527,6 @@ extern "C" {
   }
 } // extern "C"
 
-#endif // CWDEBUG_DLOPEN_DEFINED
+#endif // LIBCWD_DLOPEN_DEFINED
 
 #endif // !DEBUGUSEBFD

@@ -186,7 +186,7 @@ using libcw::debug::_private_::memblk_map_instance;
 #define ACQUIRE_WRITE2READ_LOCK
 #endif // !LIBCWD_THREAD_SAFE
 
-#ifdef DEBUGMALLOCEXTERNALCLINKAGE
+#ifdef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 #define __libcwd_malloc malloc
 #define __libcwd_calloc calloc
 #define __libcwd_realloc realloc
@@ -398,7 +398,7 @@ namespace _private_ {
 // _private_::
 void set_alloc_checking_off(LIBCWD_TSD_PARAM)
 {
-  DEBUGDEBUGMALLOC_CERR( "set_alloc_checking_off called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << __libcwd_tsd.internal + 1 << '.' );
+  LIBCWD_DEBUGM_CERR( "set_alloc_checking_off called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << __libcwd_tsd.internal + 1 << '.' );
   ++__libcwd_tsd.internal;
 }
 
@@ -407,7 +407,7 @@ void set_alloc_checking_on(LIBCWD_TSD_PARAM)
 {
   if (__libcwd_tsd.internal == 0)
     DoutFatal( dc::core, "Calling `set_alloc_checking_on' while ALREADY on." );
-  DEBUGDEBUGMALLOC_CERR( "set_alloc_checking_on from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << __libcwd_tsd.internal - 1 << '.' );
+  LIBCWD_DEBUGM_CERR( "set_alloc_checking_on from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << __libcwd_tsd.internal - 1 << '.' );
   --__libcwd_tsd.internal;
 }
 #endif
@@ -998,7 +998,7 @@ void memblk_info_ct::erase(LIBCWD_TSD_PARAM)
   dm_alloc_ct* ap = a_alloc_node.get();
 #ifdef DEBUGDEBUGMALLOC
   if (ap)
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: memblk_info_ct::erase for " << ap->start() );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: memblk_info_ct::erase for " << ap->start() );
 #endif
   if (ap && ap->next_list())
   {
@@ -1262,11 +1262,11 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
+    LIBCWD_DEBUGM_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
@@ -1274,15 +1274,15 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 #if defined(DEBUGDEBUGMALLOC) && defined(DEBUGDEBUGOUTPUT)
     if (from == from_delete)
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
+      LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
     }
     else if (from == from_delete_array)
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
+      LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
     }
     else
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
+      LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
     }
 #endif // DEBUGDEBUGMALLOC
 #ifdef DEBUGMAGICMALLOC
@@ -2027,7 +2027,7 @@ bool memblk_key_ct::selftest(void)
 
 #endif // DEBUGDEBUGMALLOC
 
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
+#ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 
 // If we cannot call the libc malloc functions directly, then we cannot declare
 // a malloc function with external linkage but instead have to use a macro `malloc'
@@ -2099,7 +2099,7 @@ void register_external_allocation(void const* mptr, size_t size)
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
 }
-#endif // !DEBUGMALLOCEXTERNALCLINKAGE
+#endif // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 
   } // namespace debug
 } // namespace libcw
@@ -2146,12 +2146,12 @@ void* __libcwd_malloc(size_t size)
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `__libcwd_malloc(" << size << ")' [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `__libcwd_malloc(" << size << ")' [" << saved_marker << ']' );
 
 #if !defined(DEBUGDEBUGMALLOC) && !defined(DEBUGMAGICMALLOC)
     return __libc_malloc(size);
@@ -2159,7 +2159,7 @@ void* __libcwd_malloc(size_t size)
 
 #ifndef DEBUGMAGICMALLOC
     void* ptr = __libc_malloc(size);
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_malloc': " << ptr << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_malloc': " << ptr << " [" << saved_marker << ']' );
     return ptr;
 #else // DEBUGMAGICMALLOC
     void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(size));
@@ -2168,7 +2168,7 @@ void* __libcwd_malloc(size_t size)
     ((size_t*)ptr)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
     ((size_t*)ptr)[1] = size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_malloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_malloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
     return static_cast<size_t*>(ptr) + 2;
 #endif // DEBUGMAGICMALLOC
 
@@ -2201,19 +2201,19 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
+    LIBCWD_DEBUGM_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
 #ifdef DEBUGDEBUGOUTPUT
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `__libcwd_calloc(" << nmemb << ", " << size << ")' [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `__libcwd_calloc(" << nmemb << ", " << size << ")' [" << saved_marker << ']' );
 
 #if !defined(DEBUGDEBUGMALLOC) && !defined(DEBUGMAGICMALLOC)
     return __libc_calloc(nmemb, size);
@@ -2221,7 +2221,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 
 #ifndef DEBUGMAGICMALLOC
     void* ptr = __libc_calloc(nmemb, size);
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_calloc': " << ptr << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_calloc': " << ptr << " [" << saved_marker << ']' );
     return ptr;
 #else // DEBUGMAGICMALLOC
     void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(nmemb * size));
@@ -2231,7 +2231,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
     ((size_t*)ptr)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
     ((size_t*)ptr)[1] = nmemb * size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(nmemb * size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_calloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_calloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
     return static_cast<size_t*>(ptr) + 2;
 #endif // DEBUGMAGICMALLOC
 
@@ -2274,19 +2274,19 @@ void* __libcwd_realloc(void* ptr, size_t size)
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
+    LIBCWD_DEBUGM_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
 #ifdef DEBUGDEBUGOUTPUT
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `__libcwd_realloc(" << ptr << ", " << size << ")' [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `__libcwd_realloc(" << ptr << ", " << size << ")' [" << saved_marker << ']' );
 
 #if !defined(DEBUGDEBUGMALLOC) && !defined(DEBUGMAGICMALLOC)
     return __libc_realloc(ptr, size);
@@ -2294,7 +2294,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 
 #ifndef DEBUGMAGICMALLOC
     void* ptr1 = __libc_realloc(ptr, size);
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_realloc': " << ptr1 << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_realloc': " << ptr1 << " [" << saved_marker << ']' );
     return ptr1;
 #else // DEBUGMAGICMALLOC
     void* ptr1;
@@ -2307,7 +2307,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
       if (size == 0)
       {
         __libc_free(ptr);
-	DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_realloc': NULL [" << saved_marker << ']' );
+	LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_realloc': NULL [" << saved_marker << ']' );
 	return NULL;
       }
       ptr1 = __libc_realloc(ptr, SIZE_PLUS_TWELVE(size));
@@ -2317,7 +2317,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     ((size_t*)ptr1)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
     ((size_t*)ptr1)[1] = size;
     ((size_t*)(static_cast<char*>(ptr1) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_realloc': " << static_cast<size_t*>(ptr1) + 2 << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_realloc': " << static_cast<size_t*>(ptr1) + 2 << " [" << saved_marker << ']' );
     return static_cast<size_t*>(ptr1) + 2;
 #endif // DEBUGMAGICMALLOC
 
@@ -2486,7 +2486,7 @@ void* operator new(size_t size)
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
+    LIBCWD_DEBUGM_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
 #ifdef DEBUGDEBUGOUTPUT
@@ -2495,7 +2495,7 @@ void* operator new(size_t size)
 #endif
   if (__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `operator new', size = " << size << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `operator new', size = " << size << " [" << saved_marker << ']' );
 
 #if !defined(DEBUGDEBUGMALLOC) && !defined(DEBUGMAGICMALLOC)
     return __libc_malloc(size);
@@ -2505,7 +2505,7 @@ void* operator new(size_t size)
     void* ptr = __libc_malloc(size);
     if (!ptr)
       DoutFatalInternal( dc::core, "Out of memory in `operator new'" );
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `operator new': " << ptr << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `operator new': " << ptr << " [" << saved_marker << ']' );
     return ptr;
 #else // DEBUGMAGICMALLOC
     void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(size));
@@ -2514,7 +2514,7 @@ void* operator new(size_t size)
     ((size_t*)ptr)[0] = INTERNAL_MAGIC_NEW_BEGIN;
     ((size_t*)ptr)[1] = size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_NEW_END;
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `operator new': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `operator new': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
     return static_cast<size_t*>(ptr) + 2;
 #endif // DEBUGMAGICMALLOC
 
@@ -2549,7 +2549,7 @@ void* operator new[](size_t size)
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
+    LIBCWD_DEBUGM_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
 #ifdef DEBUGDEBUGOUTPUT
@@ -2558,7 +2558,7 @@ void* operator new[](size_t size)
 #endif
   if (__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `operator new[]', size = " << size << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Entering `operator new[]', size = " << size << " [" << saved_marker << ']' );
 
 #if !defined(DEBUGDEBUGMALLOC) && !defined(DEBUGMAGICMALLOC)
     return __libc_malloc(size);
@@ -2568,7 +2568,7 @@ void* operator new[](size_t size)
     void* ptr = __libc_malloc(size);
     if (!ptr)
       DoutFatalInternal( dc::core, "Out of memory in `operator new[]'" );
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `operator new[]': " << ptr << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `operator new[]': " << ptr << " [" << saved_marker << ']' );
     return ptr;
 #else // DEBUGMAGICMALLOC
     void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(size));
@@ -2577,7 +2577,7 @@ void* operator new[](size_t size)
     ((size_t*)ptr)[0] = INTERNAL_MAGIC_NEW_ARRAY_BEGIN;
     ((size_t*)ptr)[1] = size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_NEW_ARRAY_END;
-    DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `operator new[]': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `operator new[]': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
     return static_cast<size_t*>(ptr) + 2;
 #endif // DEBUGMAGICMALLOC
 
@@ -2617,11 +2617,11 @@ void operator delete(void* ptr)
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
+    LIBCWD_DEBUGM_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   internal_free(ptr, from_delete LIBCWD_COMMA_TSD);
@@ -2634,11 +2634,11 @@ void operator delete[](void* ptr)
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    DEBUGDEBUGMALLOC_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
+    LIBCWD_DEBUGM_CERR("DEBUGDEBUGMALLOC: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ << ": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
 #endif
-#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
+#if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   internal_free(ptr, from_delete_array LIBCWD_COMMA_TSD);	// Note that the standard demands that we call free(), and not delete().

@@ -80,7 +80,7 @@ namespace channels {
     extern channel_ct system;
     extern channel_ct warning;
 #ifdef DEBUGMALLOC
-#ifdef DEBUGMALLOCEXTERNALCLINKAGE
+#ifdef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
     extern channel_ct malloc;
 #else
     extern channel_ct __libcwd_malloc;

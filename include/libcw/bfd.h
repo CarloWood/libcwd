@@ -28,13 +28,13 @@
 #include <libcw/pc_mangled_function_name.h>
 #endif
 
-#ifdef CWDEBUG_DLOPEN_DEFINED
+#ifdef LIBCWD_DLOPEN_DEFINED
 #include <dlfcn.h>
 #define dlopen __libcwd_dlopen
 #define dlclose __libcwd_dlclose
 extern "C" void* dlopen(char const*, int);
 extern "C" int dlclose(void*);
-#endif // CWDEBUG_DLOPEN_DEFINED
+#endif // LIBCWD_DLOPEN_DEFINED
 
 // Include the inline functions.
 #ifndef LIBCW_CLASS_LOCATION_INL
