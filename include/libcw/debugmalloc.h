@@ -225,7 +225,7 @@ extern void init_debugmalloc(void);
 	desc = buf.str(); /* Implicit buf.freeze(1) */ \
       } \
       ::libcw::debug::set_alloc_checking_on(); \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), ::libcw::debug::lockable_auto_ptr<char, true>(desc)); \
+      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), ::libcw::lockable_auto_ptr<char, true>(desc)); \
     } while(0)
 
 template<typename TYPE>
