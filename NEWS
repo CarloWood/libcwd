@@ -16,6 +16,15 @@ libcwd-0.99.24
 	-fno-exceptions.  Of course you can still use exceptions in
 	the applications that link with libcwd.
 
+	The configure options --disable-alloc and --disable-location
+	now work again.
+
+	When allocating 0xffffffff bytes, libcwd would - instead
+	of reporting an Out Of Memory - allocate 11 bytes and CORE when
+	you tried to free that memory again.  The reason is that it
+	adds 12 to the size for the magic numbers.  Now it will detect
+	large sizes and generate an Out Of Memory.
+
 libcwd-0.99.23
 
 	The "Overview Of Allocated Memory" filter (ooam_filter_ct)

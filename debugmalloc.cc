@@ -1574,6 +1574,16 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 #if !CWDEBUG_MAGIC
   if (!(mptr = __libc_malloc(size)))
 #else
+  if (size > static_cast<size_t>(-1) - 12 - sizeof(size_t))
+  {
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
+    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
+#else
+    DoutInternal( dc::finish, "NULL" );
+#endif
+    DoutInternal( dc_malloc, "Size too large: no space left for magic numbers." );
+    return NULL;	// A fatal error should occur directly after this
+  }
   if ((mptr = static_cast<char*>(__libc_malloc(SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
   {
@@ -3157,6 +3167,16 @@ void* __libcwd_realloc(void* ptr, size_t size)
 	((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_ARRAY_END)
       DoutFatalInternal( dc::core, "You can't realloc() a block that was allocated with `new[]'!" );
     DoutFatalInternal( dc::core, "realloc: magic number corrupt!" );
+  }
+  if (size > static_cast<size_t>(-1) - 12 - sizeof(size_t))
+  {
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
+    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
+#else
+    DoutInternal( dc::finish, "NULL" );
+#endif
+    DoutInternal( dc_malloc, "Size too large: no space left for magic numbers." );
+    return NULL;	// A fatal error should occur directly after this
   }
   if ((mptr = static_cast<char*>(__libc_realloc(static_cast<size_t*>(ptr) - 2, SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
