@@ -606,7 +606,13 @@ public:
       { return a_end < b.start() || (a_end == b.start() && size() > 0); }
   bool operator>(memblk_key_ct b) const
       { return a_start > b.end() || (a_start == b.end() && b.size() > 0); }
-  bool operator==(memblk_key_ct b) const { ASSERT( internal ); DoutInternal( dc::warning, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" ); return a_start == b.start(); }
+  bool operator==(memblk_key_ct b) const
+  {
+#ifdef DEBUGDEBUGMALLOC
+    ASSERT( internal );
+    DoutInternal( dc::warning, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" ); return a_start == b.start();
+#endif
+  }
 #ifdef CWDEBUG
   void printOn(ostream& os) const;
   friend inline ostream& operator<<(ostream& os, memblk_key_ct const& memblk) { memblk.printOn(os); return os; }
