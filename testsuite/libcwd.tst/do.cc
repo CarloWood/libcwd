@@ -130,6 +130,7 @@ int main(void)
   MyOwnDout(dc::notice, "This is written to cout");
   my_own_do.set_ostream(&dummy);
   MyOwnDout(dc::notice, "This is written to an ostringstream");
+  cout << flush;
   Dout(dc::notice, "This is written to cerr");
   my_own_do.set_ostream(cerrp);
   MyOwnDout(dc::notice, "This is written to cerr");

@@ -58,7 +58,7 @@ void no_alloc_checking_allocator::deallocate(no_alloc_checking_allocator::pointe
 }
 
 #ifdef LIBCW_USE_STRSTREAM
-no_alloc_checking_ostringstream::no_alloc_checking_ostringstream(void)
+no_alloc_checking_stringstream::no_alloc_checking_stringstream(void)
 {
   set_alloc_checking_off();
   my_sb = new strstreambuf(no_alloc_checking_alloc, no_alloc_checking_free);
@@ -66,7 +66,7 @@ no_alloc_checking_ostringstream::no_alloc_checking_ostringstream(void)
   ios::init(my_sb);                                 // Add the real buffer
 }
 
-no_alloc_checking_ostringstream::~no_alloc_checking_ostringstream()
+no_alloc_checking_stringstream::~no_alloc_checking_stringstream()
 {
   set_alloc_checking_off();
   delete my_sb;
@@ -79,7 +79,9 @@ no_alloc_checking_ostringstream::~no_alloc_checking_ostringstream()
   } // namespace debug
 } // namespace libcw
 
+#if __GNUC__ > 2 || __GNUC_MINOR__ > 96
 // Explicit instantiation
 template class std::basic_stringbuf<char, std::char_traits<char>, libcw::debug::no_alloc_checking_allocator>;
 template std::basic_ostream<char, std::char_traits<char> >& std::operator<< <char, std::char_traits<char>, libcw::debug::no_alloc_checking_allocator>(std::basic_ostream<char, std::char_traits<char> >&, std::basic_string<char, std::char_traits<char>, libcw::debug::no_alloc_checking_allocator> const&);
+#endif
 

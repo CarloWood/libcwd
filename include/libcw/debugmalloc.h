@@ -203,7 +203,7 @@ extern void init_debugmalloc(void);
 #define AllocTag2(p, desc) ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc))
 #define AllocTag(p, x) \
     do { \
-      static char const* desc; \
+      static char* desc; \
       if (!desc) { \
 	::libcw::debug::set_alloc_checking_off(); \
 	if (1) \
