@@ -713,7 +713,7 @@ else
 fi
 rm -f ./ps.out.$$ ./conf.test.this_is_a_very_long_executable_name_that_should_be_longer_than_any_other_name_including_full_path_than_will_reasonable_ever_happen_for_real_in_practise
 ])
-AC_DEFINE([PS_ARGUMENT], $cw_cv_sys_ps_wide_pid_option")
+AC_DEFINE_UNQUOTED([PS_ARGUMENT], "$cw_cv_sys_ps_wide_pid_option")
 ])
 
 dnl --------------------------------------------------------------------------------------------------------------17" monitors are a minimum
