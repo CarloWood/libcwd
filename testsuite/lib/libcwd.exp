@@ -31,7 +31,7 @@ verbose "    OPTIONS = \"$OPTIONS\""
     }
 
     regsub "^(.*)/\[^/\]+$" "$srcfile" "\\1" path
-    regsub "^.*/(\[^/.\]+)\[.\]\[^/.\]*$" "$srcfile" "\\1" out
+    regsub "^.*/libcwd\.(\[^/\]+)/(\[^/.\]+)\.\[^/.\]*$" "$srcfile" "\\1_\\2" out
 
 verbose "    path = \"$path\""
 verbose "    out = \"$out\""
@@ -45,14 +45,15 @@ verbose "    out = \"$out\""
     if { [regexp -- "static" $options] } {
       lappend args "libs=$STATICLIBS"
       set staticorshared "static"
+      set executable "${objdir}/$out\_static"
     } else {
       lappend args "libs=$SHAREDLIBS"
       set staticorshared "shared"
+      set executable "${objdir}/$out\_shared"
     }
     lappend args "additional_flags=$compiler_options -I$path"
     lappend args "c++"
 
-    set executable "${objdir}/$out"
     set errname "[file tail $srcfile]"
     if { $compile_args != "" } {
 	set errname "$errname $compile_args"

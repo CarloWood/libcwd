@@ -1,5 +1,5 @@
 // type regexp
-BFD     : Loading debug symbols from .*/bfd\.\.\. done \([0-9]+ symbols\)
+BFD     : Loading debug symbols from .*/tst_bfd_s.....\.\.\. done \([0-9]+ symbols\)
 // input lines 2
 // output till ^BFD     : address
 (BFD     : Loading debug symbols from .*\.so.* \(0x[0-9a-f]+\) \.\.\. done \([0-9]+ symbols\)

@@ -1,6 +1,9 @@
-CHECK = nodebug alloctag basic bfd cf continued dc do flush leak lockable_auto_ptr magic marker test_delete type_info
-SHAREDTSTTARGETS := $(patsubst %,tst_%_shared,$(CHECK))
-STATICTSTTARGETS := $(patsubst %,tst_%_static,$(CHECK))
+NODEBUGCHECK = nodebug
+TSTCHECK = alloctag basic bfd cf continued dc do flush leak lockable_auto_ptr magic marker test_delete type_info
+SHAREDTSTTARGETS := $(patsubst %,tst_%_shared,$(TSTCHECK))
+STATICTSTTARGETS := $(patsubst %,tst_%_static,$(TSTCHECK))
+SHAREDNODEBUGTARGETS := $(patsubst %,nodebug_%_shared,$(NODEBUGCHECK))
+STATICNODEBUGTARGETS := $(patsubst %,nodebug_%_static,$(NODEBUGCHECK))
 
 srcdir = @srcdir@
 top_builddir = ..
@@ -64,21 +67,24 @@ check: site.exp
 tst_%.o: libcwd.tst/%.cc
 	$(CXXCOMPILE) -c $< -o $@
 
+nodebug_%.o: libcwd.nodebug/%.cc
+	$(CXXCOMPILE) -c $< -o $@
+
 ifeq ($(enable_shared), yes)
-tst_%_shared: tst_%.o
+%_shared: %.o
 	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
 endif
 
 ifeq ($(enable_static), yes)
-tst_%_static: tst_%.o
+%_static: %.o
 	$(CXXLINK) $< -o $@ $(STATICLIBS)
 endif
 
 # Clean rules
 mostlyclean:
-	rm -f site.bak
+	rm -f site.bak core *.o
 clean: mostlyclean
-	rm -f libcwd.log libcwd.sum $(SHAREDTESTTARGETS) $(STATICTESTTARGETS) *.o
+	rm -f libcwd.log libcwd.sum *_*_shared *_*_static
 distclean: clean
 	rm -f Makefile site.exp
 
