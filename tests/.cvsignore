@@ -1,4 +1,5 @@
 Makefile
 Makefile.in
 hello_world
+syslog
 .deps
