@@ -141,7 +141,7 @@ namespace libcw {
 RCSTAG_CC("$Id$")
 
 #ifdef STANDALONE
-#ifdef DEBUG
+#ifdef CWDEBUG
 namespace libcw {
   namespace debug {
     namespace channels {
@@ -153,7 +153,7 @@ namespace libcw {
 }
 #endif
 #else // !STANDALONE
-#undef DEBUG
+#undef CWDEBUG
 #undef Dout
 #undef Dout_vform
 #undef DoutFatal

@@ -97,7 +97,7 @@ template<class X, bool array = false>	// Use array == true when `ptr' was alloca
       // Returns `true' when this object is the strict owner.
       // You should only call this when this object is the owner.
 
-#ifdef DEBUG
+#ifdef CWDEBUG
     bool is_owner(void) const { return owner; }
       // Don't use this except for debug testing.
 #endif

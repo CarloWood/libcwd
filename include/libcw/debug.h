@@ -22,17 +22,17 @@
 
 RCSTAG_H(debug, "$Id$")
 
-#  ifdef DEBUG
-#    ifndef DEBUGCHANNELS
-#      define DEBUGCHANNELS ::libcw::debug::channels
-#    endif
-#    define UNUSED_UNLESS_DEBUG(x) x
-#    include <cassert>
-#    define ASSERT(x) assert(x)
-#    define LibcwDebug(dc_namespace, x) do { using namespace ::libcw::debug; using namespace dc_namespace; { x; } } while(0)
-#    define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
-#    define __Debug(x) LibcwDebug(::libcw::debug::channels, x)
-#    define ForAllDebugObjects(STATEMENT) \
+#ifdef CWDEBUG
+#ifndef DEBUGCHANNELS
+#define DEBUGCHANNELS ::libcw::debug::channels
+#endif
+#define UNUSED_UNLESS_DEBUG(x) x
+#include <cassert>
+#define ASSERT(x) assert(x)
+#define LibcwDebug(dc_namespace, x) do { using namespace ::libcw::debug; using namespace dc_namespace; { x; } } while(0)
+#define Debug(x) LibcwDebug(DEBUGCHANNELS, x)
+#define __Debug(x) LibcwDebug(::libcw::debug::channels, x)
+#define ForAllDebugObjects(STATEMENT) \
        for( ::libcw::debug::debug_objects_ct::iterator __libcw_i(::libcw::debug::debug_objects().begin()); __libcw_i != ::libcw::debug::debug_objects().end(); ++__libcw_i) \
        { \
          using namespace ::libcw::debug; \
@@ -40,7 +40,7 @@ RCSTAG_H(debug, "$Id$")
          debug_ct& debugObject(*(*__libcw_i)); \
 	 { STATEMENT; } \
        }
-#    define ForAllDebugChannels(STATEMENT) \
+#define ForAllDebugChannels(STATEMENT) \
        for( ::libcw::debug::debug_channels_ct::iterator __libcw_i(::libcw::debug::debug_channels().begin()); __libcw_i != ::libcw::debug::debug_channels().end(); ++__libcw_i) \
        { \
          using namespace ::libcw::debug; \
@@ -48,21 +48,21 @@ RCSTAG_H(debug, "$Id$")
          channel_ct& debugChannel(*(*__libcw_i)); \
 	 { STATEMENT; } \
        }
-#  else
-#    ifdef __cplusplus
-#      define UNUSED_UNLESS_DEBUG(x) /**/
-#    else
-#      define UNUSED_UNLESS_DEBUG(x) unused__##x
-#    endif
-#    define ASSERT(x)
-#    define LibcwDebug(dc_namespace, x)
-#    define Debug(x)
-#    define __Debug(x)
-#    define ForAllDebugObjects(STATEMENT)
-#    define ForAllDebugChannels(STATEMENT)
-#  endif
+#else
+#ifdef __cplusplus
+#define UNUSED_UNLESS_DEBUG(x) /**/
+#else
+#define UNUSED_UNLESS_DEBUG(x) unused__##x
+#endif
+#define ASSERT(x)
+#define LibcwDebug(dc_namespace, x)
+#define Debug(x)
+#define __Debug(x)
+#define ForAllDebugObjects(STATEMENT)
+#define ForAllDebugChannels(STATEMENT)
+#endif
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 #include <iostream>
 #include <vector>
 #include <string>
@@ -88,22 +88,22 @@ struct continued_cf_st {
 };
 
 // The control bits:
-control_flag_t const nonewline_cf      	= 0x0001;
-control_flag_t const noprefix_cf       	= 0x0002;
-control_flag_t const nolabel_cf        	= 0x0004;
+control_flag_t const nonewline_cf      		= 0x0001;
+control_flag_t const noprefix_cf       		= 0x0002;
+control_flag_t const nolabel_cf        		= 0x0004;
 control_flag_t const blank_margin_cf       	= 0x0008;
 control_flag_t const blank_label_cf       	= 0x0010;
 control_flag_t const blank_marker_cf       	= 0x0020;
-control_flag_t const cerr_cf           	= 0x0040;
-control_flag_t const flush_cf          	= 0x0080;
-control_flag_t const wait_cf           	= 0x0100;
-control_flag_t const error_cf	   	= 0x0200;
+control_flag_t const cerr_cf           		= 0x0040;
+control_flag_t const flush_cf          		= 0x0080;
+control_flag_t const wait_cf           		= 0x0100;
+control_flag_t const error_cf	   		= 0x0200;
 control_flag_t const continued_cf_maskbit	= 0x0400;
 // The bits of all special channels:
-control_flag_t const fatal_maskbit     	= 0x0800;
-control_flag_t const coredump_maskbit  	= 0x1000;
-control_flag_t const continued_maskbit 	= 0x2000;
-control_flag_t const finish_maskbit    	= 0x4000;
+control_flag_t const fatal_maskbit     		= 0x0800;
+control_flag_t const coredump_maskbit  		= 0x1000;
+control_flag_t const continued_maskbit 		= 0x2000;
+control_flag_t const finish_maskbit    		= 0x4000;
 
 // Its own type for overloading (saves us an `if'):
 continued_cf_st const continued_cf(continued_cf_maskbit);
@@ -341,10 +341,10 @@ template<typename T>		// T must be a builtin type.
     void push(T ptr) {
       if (p == end)
 	raise(3);	// This is really not normal, if you core here you probably did something wrong.
-		      // Doing a back trace in gdb should reveal an `infinite' debug output re-entrance loop.
-		      // This means that while printing debug output you call a function that makes
-		      // your program return to the same line, starting to print out that debug output
-		      // again. Try to break this loop some how.
+			// Doing a back trace in gdb should reveal an `infinite' debug output re-entrance loop.
+			// This means that while printing debug output you call a function that makes
+			// your program return to the same line, starting to print out that debug output
+			// again. Try to break this loop some how.
       *++p = ptr;
     }
     void pop(void) { --p; }
@@ -691,7 +691,7 @@ namespace pu {	// print utils
 #define Dout_vform(cntrl, format, vl) LibcwDout_vform(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, format, vl)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, data)
 
-#else // !DEBUG
+#else // !CWDEBUG
 
 // No debug output code
 #define LibcwDout(a, b, c, d)
@@ -704,7 +704,7 @@ namespace pu {	// print utils
 #define Dout_vform(a, b, c)
 #define DoutFatal(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)
 
-#endif // DEBUG
+#endif // CWDEBUG
 
 #include <libcw/debugmalloc.h>
 

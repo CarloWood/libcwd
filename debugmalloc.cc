@@ -29,7 +29,7 @@
 #ifdef DEBUGUSEBFD
 #include <libcw/bfd.h>
 #endif
-#ifdef DEBUG
+#ifdef CWDEBUG
 #include <libcw/iomanip.h>
 #include <libcw/cwprint.h>
 #endif
@@ -189,7 +189,7 @@ static deallocated_from_nt expected_from[] = {
 
 ostream& operator<<(ostream& os, memblk_types_ct memblk_type)
 {
-#ifdef DEBUG
+#ifdef CWDEBUG
   memblk_types_ct::omanip_data_ct& manip_data(get_omanip_data<memblk_types_ct>(os));
   if (manip_data.is_debug_channel() && !manip_data.is_amo_label())
   {
@@ -352,7 +352,7 @@ public:
     // Set `current_alloc_list' back to its parent list.
   static unsigned long get_memblks(void) { return memblks; }
   static size_t get_mem_size(void) { return mem_size; }
-#ifdef DEBUG
+#ifdef CWDEBUG
   void print_description(void) const;
   void printOn(ostream& os) const;
   friend inline ostream& operator<<(ostream& os, dm_alloc_ct const& alloc) { alloc.printOn(os); return os; }
@@ -384,7 +384,7 @@ public:
   bool operator>(memblk_key_ct b) const
       { return a_start > b.end() || (a_start == b.end() && b.size() > 0); }
   bool operator==(memblk_key_ct b) const { Dout( dc::warning, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" ); return a_start == b.start(); }
-#ifdef DEBUG
+#ifdef CWDEBUG
   void printOn(ostream& os) const;
   friend inline ostream& operator<<(ostream& os, memblk_key_ct const& memblk) { memblk.printOn(os); return os; }
 #endif
@@ -431,7 +431,7 @@ public:
       { if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(void) const { a_alloc_node.get()->new_list(); }
   memblk_types_nt flags(void) const { return a_alloc_node.get()->memblk_type(); }
-#ifdef DEBUG
+#ifdef CWDEBUG
   void print_description(void) const { a_alloc_node.get()->print_description(); }
   void printOn(ostream& os) const;
   friend inline ostream& operator<<(ostream& os, memblk_info_ct const& memblk) { memblk.printOn(os); return os; }
@@ -515,7 +515,7 @@ dm_alloc_ct::~dm_alloc_ct()
     delete my_owner_node;
 }
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 
 void dm_alloc_ct::print_description(void) const
 {
@@ -609,7 +609,7 @@ void dm_alloc_ct::show_alloc_list(int depth, const channel_ct& channel) const
   Dout( channel|noprefix_cf|nonewline_cf, memblk_types_ct::setlabel(false) );
 }
 
-#endif // DEBUG
+#endif // CWDEBUG
 
 //=============================================================================
 //
@@ -624,7 +624,7 @@ inline memblk_info_ct::memblk_info_ct(void const* s, size_t sz, memblk_types_nt 
     a_alloc_node(new dm_alloc_ct(s, sz, f)) {}
 #endif
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 
 void memblk_key_ct::printOn(ostream& os) const
 {
@@ -636,7 +636,7 @@ void memblk_info_ct::printOn(ostream& os) const
   os << "{ alloc_node = { owner = " << a_alloc_node.is_owner() << ", locked = " << a_alloc_node.strict_owner()
       << ", px = " << a_alloc_node.get() << "\n\t( = " << *a_alloc_node.get() << " ) }";
 }
-#endif // DEBUG
+#endif // CWDEBUG
 
 void memblk_info_ct::erase(void)
 {
@@ -767,7 +767,7 @@ long debug_memblks(void)
   return dm_alloc_ct::get_memblks();
 }
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 
 ostream& operator<<(ostream& o, debugmalloc_report_ct)
 {
@@ -834,7 +834,7 @@ void make_all_allocations_invisible_except(void const* ptr)
   }
 }
 
-#endif // DEBUG
+#endif // CWDEBUG
 
 static unsigned int alloc_checking_off_counter = 0;
 static bool prev_internal;
@@ -848,7 +848,7 @@ void set_alloc_checking_off(void)
 
 void set_alloc_checking_on(void)
 {
-#ifdef DEBUG
+#ifdef CWDEBUG
   if (alloc_checking_off_counter == 0)
     DoutFatal( dc::core, "Calling `set_alloc_checking_on' while ALREADY on." );
 #endif
@@ -949,7 +949,7 @@ debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
   if (i == memblk_map->end() || (*i).first.start() != this)
     DoutFatal( dc::core, "Trying to delete an invalid marker" );
 
-#ifdef DEBUG
+#ifdef CWDEBUG
   Dout( dc::__libcwd_malloc, "Removing debugmalloc_marker_ct at " << this << " (" << (*i).second.description() << ')' );
 
   if ((*i).second.a_alloc_node.get()->next_list())
@@ -1101,7 +1101,7 @@ bool memblk_key_ct::selftest(void)
   return false;
 }
 
-#endif /* DEBUGDEBUG */
+#endif // DEBUGDEBUG
 
   } // namespace debug
 } // namespace libcw
@@ -1169,7 +1169,7 @@ void* __libcwd_malloc(size_t size)
 #  endif // DEBUGMAGICMALLOC
   }
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
-#ifdef DEBUG
+#ifdef CWDEBUG
   internal = false;	// Reset before doing Dout()
   Dout( dc::__libcwd_malloc|continued_cf, "malloc(" << size << ") = " );
 #endif
@@ -1229,7 +1229,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 #  endif // DEBUGMAGICMALLOC
   }
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
-#ifdef DEBUG
+#ifdef CWDEBUG
   internal =false;	// Reset before doing Dout()
   Dout( dc::__libcwd_malloc|continued_cf, "calloc(" << nmemb << ", " << size << ") = " );
 #endif
@@ -1303,7 +1303,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   }
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
 
-#ifdef DEBUG
+#ifdef CWDEBUG
   internal = false;	// Reset before doing Dout()
   Dout( dc::__libcwd_malloc|continued_cf, "realloc(" << ptr << ", " << size << ") = " );
 #endif
@@ -1464,7 +1464,7 @@ void __libcwd_free(void* ptr)
     bool visible = (*i).second.has_alloc_node();
     if (visible)
     {
-#ifdef DEBUG
+#ifdef CWDEBUG
       internal = false;		// Reset before doing Dout()
       Dout( dc::__libcwd_malloc|continued_cf,
           ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
@@ -1472,7 +1472,7 @@ void __libcwd_free(void* ptr)
       (*i).second.print_description();
       Dout( dc::continued, ' ' );
       internal = true;		// Restore
-#endif // DEBUG
+#endif // CWDEBUG
       if (expected_from[(*i).second.flags()] != from)
       {
         memblk_types_nt f = (*i).second.flags();
@@ -1558,7 +1558,7 @@ void __libcwd_free(void* ptr)
     free(static_cast<size_t*>(ptr) - 2);		// Free memory block
 #endif // DEBUGMAGICMALLOC
 
-#ifdef DEBUG
+#ifdef CWDEBUG
     if (visible)
     {
       internal = false;			// Reset before doing Dout()
@@ -1577,7 +1577,7 @@ void __libcwd_free(void* ptr)
 #endif
       Dout( dc::finish, "" );
     }
-#endif // DEBUG
+#endif // CWDEBUG
 
   }
   internal = false;
@@ -1631,7 +1631,7 @@ void* operator new(size_t size)
 #  endif // DEBUGMAGICMALLOC
   }
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
-#ifdef DEBUG
+#ifdef CWDEBUG
   internal = false;	// Reset before doing Dout()
   Dout( dc::__libcwd_malloc|continued_cf, "operator new (size = " << size << ") = " );
 #endif
@@ -1694,7 +1694,7 @@ void* operator new[](size_t size)
 #  endif // DEBUGMAGICMALLOC
   }
 #endif // defined(DEBUGDEBUG) || defined(DEBUGMAGICMALLOC)
-#ifdef DEBUG
+#ifdef CWDEBUG
   internal = false;	// Reset before doing Dout()
   Dout( dc::__libcwd_malloc|continued_cf, "operator new[] (size = " << size << ") = " );
 #endif

@@ -12,7 +12,8 @@
 //
 
 #include <libcw/sys.h>
-#ifdef DEBUG
+#include <libcw/debug_config.h>
+#ifdef CWDEBUG
 #include <errno.h>
 #include <signal.h>		// Needed for raise()
 #include <sys/time.h>     	// Needed for setrlimit()
@@ -27,11 +28,11 @@
 #ifdef DEBUGUSEBFD
 #include <libcw/bfd.h>		// Needed for location_ct
 #endif
-#endif
+#endif // CWDEBUG
 
 RCSTAG_CC("$Id$")
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 namespace libcw {
   namespace debug {
 
@@ -816,4 +817,4 @@ namespace libcw {
   }	// namespace debug
 }	// namespace libcw
 
-#endif // DEBUG
+#endif // CWDEBUG

@@ -20,7 +20,7 @@
 #include <libcw/h.h>
 #include <libcw/exec_prog.h>
 #include <libcw/debug.h>
-#ifdef DEBUG
+#ifdef CWDEBUG
 #include <libcw/buf2str.h>
 #include <libcw/cwprint.h>
 #include <fstream>
@@ -31,7 +31,7 @@ RCSTAG_CC("$Id$")
 namespace libcw {
   namespace debug {
 
-#ifdef DEBUG
+#ifdef CWDEBUG
     namespace {
       void print_poll_array_on(ostream& os, struct pollfd const ptr[2], size_t size);
     }
@@ -61,7 +61,7 @@ namespace libcw {
 
       int stdout_filedes[2];
       int stderr_filedes[2];
-#ifdef DEBUG
+#ifdef CWDEBUG
       int debug_filedes[2];
 #endif
 
@@ -73,7 +73,7 @@ namespace libcw {
       if ((ret = pipe(stderr_filedes)) == -1)
 	DoutFatal(dc::fatal|error_cf, "pipe");
       Dout(dc::system, "pipe([" << stderr_filedes[0] << ", " << stderr_filedes[1] << "]) = " << ret);
-#ifdef DEBUG
+#ifdef CWDEBUG
       if ((ret = pipe(debug_filedes)) == -1)
 	DoutFatal(dc::fatal|error_cf, "pipe");
 #ifdef DEBUGDEBUG
@@ -88,7 +88,7 @@ namespace libcw {
       {
 	case 0:
 	{
-#ifdef DEBUG
+#ifdef CWDEBUG
 	  Debug( libcw_do.set_margin(string(prog_name) + ": ") );
 	  ofstream debug_stream(debug_filedes[1]);
 	  Debug( libcw_do.set_ostream(&debug_stream) );
@@ -100,7 +100,7 @@ namespace libcw {
 	  Dout(dc::system|cond_error_cf(ret == -1), "close(" << stdout_filedes[0] << ") = " << ret);
 	  ret = close(stderr_filedes[0]);
 	  Dout(dc::system|cond_error_cf(ret == -1), "close(" << stderr_filedes[0] << ") = " << ret);
-#ifdef DEBUG
+#ifdef CWDEBUG
 	  ret = close(debug_filedes[0]);
 #ifdef DEBUGDEBUG
 	  Dout(dc::system|cond_error_cf(ret == -1), "close(" << debug_filedes[0] << ") = " << ret);
@@ -135,14 +135,14 @@ namespace libcw {
 	  Dout(dc::system|cond_error_cf(ret == -1), "close(" << stdout_filedes[1] << ") = " << ret);
 	  ret = close(stderr_filedes[1]);
 	  Dout(dc::system|cond_error_cf(ret == -1), "close(" << stderr_filedes[1] << ") = " << ret);
-#ifdef DEBUG
+#ifdef CWDEBUG
 	  ret = close(debug_filedes[1]);
 #ifdef DEBUGDEBUG
 	  Dout(dc::system|cond_error_cf(ret == -1), "close(" << debug_filedes[1] << ") = " << ret);
 #endif
 #endif
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 	  int const max_number_of_fds = 3;
 #else
 	  int const max_number_of_fds = 2;
@@ -154,7 +154,7 @@ namespace libcw {
 	  ufds[0].events = POLLIN;
 	  ufds[1].fd = stderr_filedes[0];
 	  ufds[1].events = POLLIN;
-#ifdef DEBUG
+#ifdef CWDEBUG
 	  ufds[2].fd = debug_filedes[0];
 	  ufds[2].events = POLLIN;
 #endif
@@ -182,14 +182,14 @@ namespace libcw {
 		int len;
 		do
 		{
-#ifdef DEBUG
+#ifdef CWDEBUG
 #ifndef DEBUDEBUG
 		  if (ufds[fd].fd != debug_filedes[0])
 #endif
 		    Dout(dc::system|continued_cf, "read(" << ufds[fd].fd << ", ");
 #endif
 		  len = read(ufds[fd].fd, readbuf, sizeof(readbuf));
-#ifdef DEBUG
+#ifdef CWDEBUG
 #ifndef DEBUDEBUG
 		  if (ufds[fd].fd != debug_filedes[0])
 #endif
@@ -228,7 +228,7 @@ namespace libcw {
 		      }
 		      else if (ufds[fd].fd == stderr_filedes[0])
 			Dout(dc::warning, "child process returns on stderr: \"" << buf2str(decodebuf[fd].begin(), decodebuf[fd].size()) << '"');
-#ifdef DEBUG
+#ifdef CWDEBUG
 		      else if (ufds[fd].fd == debug_filedes[0])
 		      {
 			Debug( libcw_do.get_ostream()->flush() );
@@ -283,7 +283,7 @@ namespace libcw {
       return ret;
     }
 
-#ifdef DEBUG
+#ifdef CWDEBUG
     namespace {		// Implementation of local functions
 
       // {anonymous}::
@@ -369,4 +369,4 @@ namespace libcw {
   } // namespace debug
 } // namespace libcw
 
-#endif // DEBUG
+#endif // CWDEBUG

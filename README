@@ -3,9 +3,9 @@ Introduction
 
 Libcwd is for use by developers while still developing: end
 applications don't need it.  While still developing, you
-will compile with -DDEBUG and link with -lcwd (and add its
+will compile with -DCWDEBUG and link with -lcwd (and add its
 install path to LD_LIBRARY_PATH).  A production version is then
-simply compiled without -DDEBUG and not linked with -lcwd.
+simply compiled without -DCWDEBUG and not linked with -lcwd.
 
 The library cannot be linked with static libraries (because
 those are not compiled with -fPIC) therefore libtool drops

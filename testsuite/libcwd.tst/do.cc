@@ -1,10 +1,10 @@
 #include <libcw/sys.h>
 #include <libcw/debug.h>
 
-// DEBUG must be define in this test
+// CWDEBUG must be define in this test
 
-#ifndef DEBUG
-#error "DEBUG not defined"
+#ifndef CWDEBUG
+#error "CWDEBUG not defined"
 #endif
 
 // Creation of debug objects

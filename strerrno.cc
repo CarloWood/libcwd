@@ -12,12 +12,13 @@
 //
 
 #include <libcw/sys.h>
+#include <libcw/debug_config.h>
 #include <libcw/h.h>
 #include <libcw/strerrno.h>
 
 RCSTAG_CC("$Id$")
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 
 namespace libcw {
   namespace debug {

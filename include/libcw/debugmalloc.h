@@ -56,7 +56,7 @@ enum memblk_types_nt {
   memblk_type_removed           // No heap, corresponding `debugmalloc_newctor_ct' removed
 };
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 // Ostream manipulator for memblk_types_ct
 
 class memblk_types_manipulator_data_ct {
@@ -78,7 +78,7 @@ private:
 public:
   memblk_types_ct(memblk_types_nt mbt) : memblk_type(mbt) { }
   memblk_types_nt operator()(void) const { return memblk_type; }
-#ifdef DEBUG
+#ifdef CWDEBUG
   typedef memblk_types_manipulator_data_ct omanip_data_ct;
   __DEFINE_OMANIP0(memblk_types_ct, setdebug)
   __DEFINE_OMANIP1_OPERATOR(memblk_types_ct, bool)
@@ -190,7 +190,7 @@ extern void init_debugmalloc(void);
   } // namespace debug
 } // namespace libcw
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 
 #define AllocTag1(p) ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), (char const*)NULL)
 #define AllocTag2(p, desc) ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc))
@@ -238,7 +238,7 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 
 #include <libcw/type_info.h>
 
-#else // !DEBUG
+#else // !CWDEBUG
 
 #define AllocTag(p, x)
 #define AllocTag_dynamic_description(p, x)
@@ -246,7 +246,7 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 #define AllocTag2(p, desc)
 #define NEW(x) new x
 
-#endif // !DEBUG
+#endif // !CWDEBUG
 
 #else // !DEBUGMALLOC
 
@@ -267,7 +267,7 @@ inline void make_all_allocations_invisible_except(void const*) { }
 
 #endif // !DEBUGMALLOC
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 
 namespace libcw {
   namespace debug {
@@ -281,7 +281,7 @@ inline void list_allocations_on(debug_ct&) { }
   } // namespace debug
 } // namespace libcw
 
-#endif // DEBUG
+#endif // CWDEBUG
 
 #ifndef DEBUGMALLOC_INTERNAL
 #ifdef DEBUGMALLOC

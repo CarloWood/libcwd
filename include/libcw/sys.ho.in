@@ -111,10 +111,10 @@ int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_AD
 // However, I'll leave this in for now.
 
 #ifdef NO_ATTRIBUTE
-  #define __attribute__(x)
-  #define NEED_FAKE_RETURN(x) return x;
+#define __attribute__(x)
+#define NEED_FAKE_RETURN(x) return x;
 #else
-  #define NEED_FAKE_RETURN(x)
+#define NEED_FAKE_RETURN(x)
 #endif
 
 // General macros that are used in all files.

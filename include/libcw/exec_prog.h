@@ -16,7 +16,7 @@
 
 RCSTAG_H(exec_prog, "$Id$")
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 namespace libcw {
   namespace debug {
 

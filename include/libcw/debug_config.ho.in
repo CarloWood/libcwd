@@ -29,6 +29,11 @@
 // for more, detailed documentation.
 //
 
+// Allow people to use just -DDEBUG instead of -DCWDEBUG in the command line.
+#if DEBUG == 1
+#define CWDEBUG
+#endif
+
 //
 // DEBUGMALLOC
 //
@@ -63,7 +68,7 @@
 // with libcwd to print debugging information using the symbol table.
 //
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 #@CW_CONFIG_DEBUGUSEBFD@ DEBUGUSEBFD
 #endif
 
@@ -83,7 +88,7 @@
 // program close to an unknown bug (before main()), and thus
 // before debugger watch points can be used).
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 #@CW_CONFIG_DEBUGDEBUG@ DEBUGDEBUG
 #endif
 
@@ -108,7 +113,7 @@
 // Adds support for `markers'.  Always leave defined.
 //
 
-#if defined(DEBUG) && defined(DEBUGMALLOC)
+#if defined(CWDEBUG) && defined(DEBUGMALLOC)
 #@CW_CONFIG_DEBUGMARKER@ DEBUGMARKER
 #endif
 
@@ -116,7 +121,7 @@
 // Configuration signature
 //
 
-#ifdef DEBUG
+#ifdef CWDEBUG
 namespace libcw {
   namespace debug {
 
@@ -149,6 +154,6 @@ inline void check_configuration(void) {
 
   } // namespace debug
 } // namespace libcw
-#endif // DEBUG
+#endif // CWDEBUG
 
 #endif // LIBCW_DEBUGGING_DEFS_H

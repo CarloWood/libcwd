@@ -9,6 +9,9 @@ libcwd-0.99.6
 	to the debug ostream.  When variations to this trick are needed
 	then you can obviously add those to your local debug.h file.
 
+	It is now allowed to use -DCWDEBUG instead of -DDEBUG while compiling
+	files.  This allows to use the macro DEBUG for something else.
+
 	API changes:
 
 	Major namespace changes:
@@ -68,7 +71,7 @@ libcwd-0.99.6
 
 	Bug fixes:
 
-	None
+	Fixed demangling `const' member functions.
 
 libcwd-0.99.5
 
