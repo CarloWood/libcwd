@@ -16,7 +16,6 @@
 #endif
 #include <libcw/sys.h>
 #include <cstdio>
-#include <getopt.h>
 #include <cstdlib>
 #include <iostream>
 #include <libcw/h.h>

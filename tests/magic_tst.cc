@@ -16,7 +16,6 @@
 #endif
 #include "libcw/sys.h"
 #include <cstdio>
-#include <getopt.h>
 #include "libcw/h.h"
 #include "libcw/debug.h"
 

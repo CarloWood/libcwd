@@ -15,10 +15,6 @@
 
 #ifdef DEBUGUSEBFD
 
-#ifdef __GNUG__
-#pragma implementation
-#endif
-
 #include "libcw/sys.h"
 #include <unistd.h>
 #include <stdarg.h>
@@ -162,17 +158,17 @@ namespace {	// Local stuff
   class object_file_ct {
   private:
     bfd* abfd;
-    ElfW(Addr) lbase;
+    void* lbase;
     asymbol** symbol_table;
     long number_of_symbols;
     function_symbols_ct function_symbols;
   public:
     object_file_ct(void) : lbase(0) { }
-    object_file_ct(char const* filename, ElfW(Addr) base);
+    object_file_ct(char const* filename, void* base);
     friend void process_section(bfd* abfd, asection* sect, PTR obj);
 
     bfd* get_bfd(void) const { return abfd; }
-    ElfW(Addr) const get_lbase(void) const { return lbase; }
+    void* const get_lbase(void) const { return lbase; }
     asymbol** get_symbol_table(void) const { return symbol_table; }
     long get_number_of_symbols(void) const { return number_of_symbols; }
     function_symbols_ct& get_function_symbols(void) { return function_symbols; }
@@ -276,7 +272,7 @@ namespace {	// Local stuff
     }
   };
 
-  object_file_ct::object_file_ct(char const* filename, ElfW(Addr) base) : lbase(base)
+  object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
   {
     abfd = bfd_openr(filename, NULL);
     if (!abfd)
@@ -403,7 +399,7 @@ static int libcw_bfd_init(void)
     if (l->l_addr)
     {
       Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << "... ");
-      new object_file_ct(l->l_name, l->l_addr);
+      new object_file_ct(l->l_name, reinterpret_cast<void*>(l->l_addr));
       Dout(dc::finish, "done");
     }
 
@@ -439,7 +435,7 @@ static asymbol const* libcw_bfd_pc_symbol(void const* addr, object_file_ct const
     // Make symbol_start_addr(&dummy_symbol) and symbol_size(&dummy_symbol) return the correct value
     bfd_asymbol_bfd(&dummy_symbol) = object_file->get_bfd();
     dummy_symbol.section = &dummy_section;	// Has dummy_section.vma == 0.  Use dummy_symbol.value to store (value + vma):
-    dummy_symbol.value = reinterpret_cast<symvalue>(reinterpret_cast<char const*>(addr) - object_file->get_lbase());
+    dummy_symbol.value = reinterpret_cast<char const*>(addr) - reinterpret_cast<char const*>(object_file->get_lbase());
     dummy_symbol.udata.i = 1;
     function_symbols_ct::iterator i(object_file->get_function_symbols().find(symbol_key_ct(&dummy_symbol)));
     if (i != object_file->get_function_symbols().end())

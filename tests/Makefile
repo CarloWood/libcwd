@@ -13,15 +13,15 @@ STATICLIBS=
 # Extra shared libraries to link with:
 SHAREDLIBS=-lcwd $(shell ../get_libraries)
 
-# Use -L${LIBCWDIR}/lib to use the latest alpha version:
-LIBFLAGS=-L${BASEDIR}/lib
+# Use -L$(LIBCWDIR)/lib to use the latest alpha version:
+LIBFLAGS=
 
 # Extra *.o files that need to be linked:
 EXTRA_OBJS=
 
 #-----------------------------------------------------------------------------
 
-include ${PROTODIR}/test/PTMakefile
+include $(PROTODIR)/test/PTMakefile
 
 #build::
 #clean::
