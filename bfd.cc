@@ -45,6 +45,9 @@ extern link_map* _dl_loaded;
 #endif
 #include <cstdio>		// Needed for vsnprintf.
 #include <algorithm>
+#ifdef DEBUGDEBUGBFD
+#include <iomanip>
+#endif
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
 #ifdef CWDEBUG_DLOPEN_DEFINED
@@ -878,21 +881,21 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // cwbfd::
       void dump_object_file_symbols(object_file_ct const* object_file)
       {
-	cout << setiosflags(ios_base::left) << setw(15) << "Start address" << setw(50) << "File name" << setw(20) << "Number of symbols" << endl;
-	cout << "0x" << setfill('0') << setiosflags(ios_base::right) << setw(8) << hex << (unsigned long)object_file->get_lbase() << "     ";
-	cout << setfill(' ') << setiosflags(ios_base::left) << setw(50) << object_file->get_bfd()->filename;
-	cout << dec << setiosflags(ios_base::left);
-	cout << object_file->get_number_of_symbols() << endl;
+	std::cout << std::setiosflags(std::ios_base::left) << std::setw(15) << "Start address" << std::setw(50) << "File name" << std::setw(20) << "Number of symbols\n";
+	std::cout << "0x" << std::setfill('0') << std::setiosflags(std::ios_base::right) << std::setw(8) << std::hex << (unsigned long)object_file->get_lbase() << "     ";
+	std::cout << std::setfill(' ') << std::setiosflags(std::ios_base::left) << std::setw(50) << object_file->get_bfd()->filename;
+	std::cout << std::dec << std::setiosflags(std::ios_base::left);
+	std::cout << object_file->get_number_of_symbols() << std::endl;
 
-	cout << setiosflags(ios_base::left) << setw(12) << "Start";
-	cout << ' ' << setiosflags(ios_base::right) << setw(6) << "Size" << ' ';
-	cout << "Name value flags\n";
+	std::cout << std::setiosflags(std::ios_base::left) << std::setw(12) << "Start";
+	std::cout << ' ' << std::setiosflags(std::ios_base::right) << std::setw(6) << "Size" << ' ';
+	std::cout << "Name value flags\n";
 	asymbol** symbol_table = object_file->get_symbol_table();
 	for (long n = object_file->get_number_of_symbols() - 1; n >= 0; --n)
 	{
-	  cout << setiosflags(ios_base::left) << setw(12) << (void*)symbol_start_addr(symbol_table[n]);
-	  cout << ' ' << setiosflags(ios_base::right) << setw(6) << symbol_size(symbol_table[n]) << ' ';
-	  cout << symbol_table[n]->name << ' ' << (void*)symbol_table[n]->value << ' ' << oct << symbol_table[n]->flags << endl;
+	  std::cout << std::setiosflags(std::ios_base::left) << std::setw(12) << (void*)symbol_start_addr(symbol_table[n]);
+	  std::cout << ' ' << std::setiosflags(std::ios_base::right) << std::setw(6) << symbol_size(symbol_table[n]) << ' ';
+	  std::cout << symbol_table[n]->name << ' ' << (void*)symbol_table[n]->value << ' ' << std::oct << symbol_table[n]->flags << std::endl;
 	}
       }
 #endif
@@ -1069,9 +1072,13 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	WST_initialized = true;			// MT: Safe, this function is Single Threaded.
 
 #ifdef DEBUGDEBUGBFD
+	LIBCWD_DEFER_CANCEL
+	BFD_ACQUIRE_READ_LOCK
 	// Dump all symbols
-	for (object_files_ct::reverse_iterator i(object_files().rbegin()); i != object_files().rend(); ++i)
+	for (object_files_ct::const_reverse_iterator i(NEEDS_READ_LOCK_object_files().rbegin()); i != NEEDS_READ_LOCK_object_files().rend(); ++i)
           dump_object_file_symbols(*i);
+	BFD_RELEASE_READ_LOCK
+	LIBCWD_RESTORE_CANCEL
 #endif
 
 	return true;
