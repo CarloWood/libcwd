@@ -27,7 +27,8 @@ THREADS_SHAREDLIBS = -L$(top_builddir)/.libs -lcwd_r @LIBS@ @LIB_THREADS@ $(RPAT
 THREADS_STATICLIBS = -static -L$(top_builddir)/.libs -lcwd_r @LIBS@ @LIB_THREADS@
 enable_shared = @enable_shared@
 enable_static = @enable_static@
-enable_threads = @libcwd_config_threading@
+enable_threading = @libcwd_config_threading@
+enable_nonthreading = @libcwd_config_nonthreading@
 INCLUDES = -Ilibcwd.tst -I$(top_builddir)/include -I$(srcdir)/../include
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
@@ -52,26 +53,29 @@ STATICTSTTARGETS :=
 STATICNODEBUGTARGETS :=
 STATICTHREADSTARGETS :=
 endif
-ifeq ($(enable_threads), yes)
-SHAREDTARGETS := $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(SHAREDTHREADSTARGETS)
-STATICTARGETS := $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS) $(STATICTHREADSTARGETS)
-EXPECT_SCRIPTS = nodebug.exp threads.exp tst.exp
-ifeq ($(enable_shared), yes)
-MODULETARGETS_THREADS = module_r.so
-else
+
+SHAREDTARGETS =
+STATICTARGETS =
+EXPECT_SCRIPTS =
 MODULETARGETS_THREADS =
-endif
-else
-SHAREDTARGETS := $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS)
-STATICTARGETS := $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS)
-EXPECT_SCRIPTS = nodebug.exp tst.exp
-MODULETARGETS_THREADS =
-endif
-ifeq ($(enable_shared), yes)
-MODULETARGETS = $(MODULETARGETS_THREADS) module.so
-else
 MODULETARGETS =
+ifeq ($(enable_nonthreading), yes)
+SHAREDTARGETS += $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS)
+STATICTARGETS += $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS)
+EXPECT_SCRIPTS += nodebug.exp tst.exp
+ifeq ($(enable_shared), yes)
+MODULETARGETS += module.so
 endif
+endif
+ifeq ($(enable_threading), yes)
+SHAREDTARGETS += $(SHAREDTHREADSTARGETS)
+STATICTARGETS += $(STATICTHREADSTARGETS)
+EXPECT_SCRIPTS += threads.exp
+ifeq ($(enable_shared), yes)
+MODULETARGETS_THREADS += module_r.so
+endif
+endif
+MODULETARGETS += $(MODULETARGETS_THREADS)
 
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
 CXXCOMPILENODEBUG = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGSNODEBUG)
@@ -106,12 +110,14 @@ site.exp: Makefile
 check: site.exp $(MODULETARGETS)
 	LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" $(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS) $(EXPECT_SCRIPTS)
 
+ifeq ($(enable_nonthreading), yes)
 ifeq ($(enable_shared), yes)
 module.so: module.cc $(top_builddir)/include/libcwd/*.h
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
 endif
+endif
 
-ifeq ($(enable_threads), yes)
+ifeq ($(enable_threading), yes)
 ifeq ($(enable_shared), yes)
 module_r.so: module.cc $(top_builddir)/include/libcwd/*.h
 	$(CXXCOMPILE) -D_REENTRANT -pthread -shared -fpic -DPIC -w $< -o $@
@@ -121,6 +127,7 @@ endif
 # Provide rules for manual compilation:
 .SECONDARY: $(patsubst %,tst_%.o,$(TSTCHECK)) $(patsubst %,threads_%.o,$(THREADSCHECK)) $(patsubst %,nodebug_%.o,$(NODEBUGCHECK))
 
+ifeq ($(enable_nonthreading), yes)
 ifeq ($(enable_static), yes)
 tst_%_static.o: libcwd.tst/%.cc Makefile $(top_builddir)/include/libcwd/*.h
 	$(CXXCOMPILE) -DSTATIC -c $< -o $@
@@ -131,19 +138,22 @@ tst_%.o: libcwd.tst/%.cc Makefile $(top_builddir)/include/libcwd/*.h
 
 nodebug_%.o: libcwd.nodebug/%.cc Makefile $(top_builddir)/include/libcwd/*.h
 	$(CXXCOMPILENODEBUG) -c $< -o $@
+endif
 
-ifeq ($(enable_threads), yes)
+ifeq ($(enable_threading), yes)
 threads_%.o: libcwd.threads/%.cc Makefile $(top_builddir)/include/libcwd/*.h
 	$(CXXCOMPILE) -D_REENTRANT -pthread -c $< -o $@
 endif
 
 ifeq ($(enable_shared), yes)
+ifeq ($(enable_threading), yes)
 threads_threads_shared: threads_threads.o $(top_builddir)/.libs/libcwd_r.so.* module_r.so
 	$(CXXLINK) -pthread $< -o $@ $(THREADS_SHAREDLIBS)
 
 threads_%_shared: threads_%.o $(top_builddir)/.libs/libcwd_r.so.*
 	$(CXXLINK) -pthread $< -o $@ $(THREADS_SHAREDLIBS)
-
+endif
+ifeq ($(enable_nonthreading), yes)
 tst_dlopen_shared: tst_dlopen.o $(top_builddir)/.libs/libcwd.so.* module.so
 	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
 
@@ -156,14 +166,17 @@ tst_%_shared: tst_%.o $(top_builddir)/.libs/libcwd.so.*
 nodebug_%_shared: nodebug_%.o $(top_builddir)/.libs/libcwd.so.*
 	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
 endif
+endif
 
 ifeq ($(enable_static), yes)
+ifeq ($(enable_threading), yes)
 threads_threads_static: threads_threads.o $(top_builddir)/.libs/libcwd_r.a
 	$(CXXLINK) -pthread $< -o $@ $(THREADS_STATICLIBS)
 
 threads_%_static: threads_%.o $(top_builddir)/.libs/libcwd_r.a
 	$(CXXLINK) -pthread $< -o $@ $(THREADS_STATICLIBS)
-
+endif
+ifeq ($(enable_nonthreading), yes)
 tst_dlopen_static: tst_dlopen_static.o $(top_builddir)/.libs/libcwd.a
 	$(CXXLINK) $< -o $@ $(STATICLIBS)
 
@@ -175,6 +188,7 @@ tst_%_static: tst_%.o $(top_builddir)/.libs/libcwd.a
 
 nodebug_%_static: nodebug_%.o $(top_builddir)/.libs/libcwd.a
 	$(CXXLINK) $< -o $@ $(STATICLIBS)
+endif
 endif
 
 shared: $(SHAREDTARGETS)

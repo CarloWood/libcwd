@@ -21,6 +21,11 @@
 #include <unistd.h>
 #include <map>
 
+#if LIBCWD_DEBUGDEBUGRWLOCK
+pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;
+unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
+#endif
+
 namespace libcw {
   namespace debug {
     namespace _private_ {
