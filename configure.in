@@ -65,8 +65,6 @@ AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
 dnl Other options
 EXTRAOPTS="-fno-exceptions"
 AC_SUBST(EXTRAOPTS)
-dnl Add -pipe if possible
-CW_PIPE_EXTRAOPTS
 
 dnl Manual configuration options of libcwd.
 AC_ARG_ENABLE(libcwd,
@@ -153,6 +151,9 @@ cw_cv_sys_CPPFLAGS="$CPPFLAGS"
 cw_cv_sys_CXXFLAGS="$CXXFLAGS"
 cw_cv_sys_LDFLAGS="$LDFLAGS"
 cw_cv_sys_LIBS="$LIBS"
+
+dnl Add -pipe to EXTRAOPTS if possible
+CW_PIPE_EXTRAOPTS
 
 dnl Checks for other programs.
 AC_PROG_INSTALL
