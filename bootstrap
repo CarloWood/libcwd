@@ -82,15 +82,15 @@ fi
 
 echo "*** Generating automake/autoconf/libtool files:"
 echo "    aclocal.m4 ..."
-aclocal										# aclocal.m4
+aclocal
 echo "    config.h.in ..."
-autoheader 2>&1 | egrep -v '(config.h.in is unchanged|warning: AC_TRY_RUN)'	# config.h.in
+autoheader 2>&1 | egrep -v '(config.h.in.* is unchanged|warning: AC_TRY_RUN|warning: do not use m4_(patsubst|regexp):|^WARNING:|^$)'
 echo "    configure ..."
-autoconf 2>&1 | grep -v 'warning: AC_TRY_RUN'					# configure
+autoconf 2>&1 | grep -v 'warning: AC_TRY_RUN'
 # The --add-missing --copy of automake is broken, so we do it ourselfs.
 # We need to copy install-sh anyway before running libtoolize.
 for i in $automake_files; do	# install-sh, missing, mkinstalldirs[, depcomp]
-  if test ! -f ./$i; then
+  if test ! -f ./$i || ! cmp -s ./$i $automake_dir/$i; then
     echo "    $i ..."
     cp $automake_dir/$i ./$i;
   fi

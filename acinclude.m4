@@ -364,7 +364,7 @@ cw_cv_system_needwordalignment=no,
 cw_cv_system_needwordalignment=yes,
 cw_cv_system_needwordalignment="why not")])
 if test "$cw_cv_system_needwordalignment" != no; then
-  AC_DEFINE_UNQUOTED([LIBCWD_NEED_WORD_ALIGNMENT])
+  AC_DEFINE_UNQUOTED([LIBCWD_NEED_WORD_ALIGNMENT], 1)
 fi
 ])
 

@@ -381,7 +381,7 @@ if test "$libcwd_config_threading" = yes; then
 
   dnl pthread_kill_other_threads_np is a GNU extension, therefore we need to
   dnl define _GNU_SOURCE.  The extension also needs -lpthread to be available.
-  AC_DEFINE_UNQUOTED(_GNU_SOURCE, "1")
+  AC_DEFINE_UNQUOTED(_GNU_SOURCE)
   SAVE_LIBS="$LIBS"
   LIBS="$LIBS $LIB_THREADS $LIB_THREADS_SHARED"
   AC_CHECK_FUNCS(pthread_kill_other_threads_np)
