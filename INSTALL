@@ -26,7 +26,7 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      i) The GNU compiler, version 2.95.1 or higher.
 
      Location: gnu/gcc/
-     Current version: 2.95.2
+     Current version: 2.95.3
      The development versions are supported.
 
      Alternatively you can install only
@@ -61,11 +61,14 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
   libcwd-0.99.3 were tested with gcc-2.95.2 and gcc-ss-20000813.
   libcwd-0.99.3 was also tested with gcc-ss-20000724 on linux/RH6.9.
   libcwd-0.99.4 was tested with gcc-2.95.2.
+  libcwd-0.99.8 was tested with gcc-2.95.1, gcc-2.95.3, gcc-2.95.3,
+                gcc-2.96 (RedHat) and gcc-3.0 20010523 (prerelease).
+		gcc-3.0 snapshot 20010521 and earlier will likely fail.
 
      ii) GNU binutils, version 2.9 or higher.
 
      Location: gnu/binutils/binutils-<version>.tar.gz
-     Current version: 2.10.1
+     Current version: 2.11
 
      This is only needed for libbfd.  On some OSes you also
      need this for libiberty (although on most OSes libiberty
@@ -82,7 +85,16 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      ------------------------------------
 
      If you want to run the testsuite then you will have to install
-     dejagnu-1.4 which can be downloaded from ftp://ftp.gnu.org/gnu/dejagnu/.
+     dejagnu-1.4.1 which can be downloaded from ftp://ftp.gnu.org/gnu/dejagnu/,
+     or your local GNU mirror.  However, this version still contains a bug
+     and you'll have to apply the following patch: edit /usr/share/dejagnu/target.exp
+     line 275 and remove the newline at the end (so that the word "text" on line
+     276 is added at the end of line 275:
+     regsub -all ".*: warning: -f(pic|PIC) ignored for target .*" $text "" text
+
+     Alternatively, you can get dejagnu directly from the cvs repository
+     at http://www.gnu.org/software/dejagnu/ where this bug already has been
+     fixed (as it will be in any version *after* 1.4.1).
 
      Packages/versions needed as maintainer or when using CVS
      --------------------------------------------------------
