@@ -71,7 +71,7 @@ MAIN_FUNCTION
 
 #endif // !STATIC
 
-  Dout(dc::notice|flush_cf, "Finished");
+  Dout(dc::notice, "Finished");
 
   Debug( dc::malloc.off() );
 
