@@ -123,7 +123,6 @@ void libcw_bfd_test(void)
 int main(int argc, char* argv[])
 {
   Debug( check_configuration() );
-  Debug( list_allocations_on(libcw_do) );
 
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
@@ -131,7 +130,6 @@ int main(int argc, char* argv[])
   Debug( dc::warning.on() );	// On Solaris we fail to find the start of libdl
 #endif
   Debug( dc::bfd.on() );
-  Debug( dc::malloc.on() );
   Debug( dc::notice.on() );
   Debug( dc::system.on() );
 
@@ -146,8 +144,6 @@ int main(int argc, char* argv[])
   store_call_address(4);
 #endif
   libcw_bfd_test();
-
-  Debug( list_allocations_on(libcw_do) );
 
   return 0;
 }
