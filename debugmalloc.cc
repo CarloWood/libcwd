@@ -1055,7 +1055,9 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
     LIBCWD_RESTORE_CANCEL;
   }
   // Don't try to resolve a location if we're from a library call, this to avoid possible infinite loops.
-  else if (!__libcwd_tsd.library_call && location_info->initialization_delayed())
+  // We need to at least try to resolve when library_call == 1, because we might get here from internal_malloc
+  // et al, which increments library_call before calling location_cache().
+  else if (__libcwd_tsd.library_call < 2 && location_info->initialization_delayed())
     location_info->handle_delayed_initialization(default_ooam_filter);
   return location_info;
 }

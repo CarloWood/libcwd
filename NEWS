@@ -1,3 +1,16 @@
+libcwd-0.99.32
+
+	Bug fixes:
+
+	It happened that the location of an allocation done before
+	libcwd is initialized would never get resolved, resulting
+	in weird output like:
+	MALLOC  : malloc(352) = 0x805a4c8
+	MALLOC  : free(0x805a4c8) <pre libcwd initialization> <unknown type>; (sz = 352)
+	Where the allocation of that specific instance clearly isn't
+	"pre libcwd initialization".  The reason for this is that
+	locations are cached: the delayed lookup was never performed.
+
 libcwd-0.99.31
 
 	Support for the Native POSIX Threads Library (NPTL)
