@@ -85,6 +85,14 @@ namespace libcw {
 extern void initialize_global_mutexes(void) throw();
 extern bool WST_multi_threaded;
 
+#if CWDEBUG_DEBUGT
+extern void test_for_deadlock(int, struct TSD_st&, void const*);
+inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void const* from)
+{
+  test_for_deadlock(reinterpret_cast<int>(ptr), __libcwd_tsd, from);
+}
+#endif
+
 //===================================================================================================
 //
 // Mutex locking.
@@ -229,6 +237,10 @@ template <int instance>
 #if CWDEBUG_DEBUG
       if (success)
       {
+#if CWDEBUG_DEBUGT
+	LIBCWD_TSD_DECLARATION
+	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
+#endif
 	instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
 	locked_by[instance] = pthread_self();
@@ -247,24 +259,30 @@ template <int instance>
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << instance);
 #endif
-#if !CWDEBUG_DEBUGT
-      pthread_mutex_lock(&S_mutex);
-#else // CWDEBUG_DEBUGT
-      int res;
-      if (instance != tsd_initialization_instance)
+#if CWDEBUG_DEBUGT
+      if (instance != tsd_initialization_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
       {
 	LIBCWD_TSD_DECLARATION
 	__libcwd_tsd.waiting_for_lock = instance;
-        res = pthread_mutex_lock(&S_mutex);
+        int res = pthread_mutex_lock(&S_mutex);
+	LIBCWD_ASSERT( res == 0 );
         __libcwd_tsd.waiting_for_lock = 0;
+#if LIBCWD_DEBUGDEBUGRWLOCK
+	if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << instance << " locked");
+#endif
+	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
       }
       else
-	res = pthread_mutex_lock(&S_mutex);
-      LIBCWD_ASSERT( res == 0 );
-#endif // CWDEBUG_DEBUGT
+      {
+	int res = pthread_mutex_lock(&S_mutex);
+	LIBCWD_ASSERT( res == 0 );
 #if LIBCWD_DEBUGDEBUGRWLOCK
-      if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << instance << " locked");
+	if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << instance << " locked");
 #endif
+      }
+#else // !CWDEBUG_DEBUGT
+      pthread_mutex_lock(&S_mutex);
+#endif // !CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUG
       instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
@@ -504,6 +522,7 @@ template <int instance>
 	  {
 	    LIBCWD_TSD_DECLARATION;
 	    ++__libcwd_tsd.inside_critical_area;
+	    _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 	    __libcwd_tsd.instance_rdlocked[instance] += 1;
 	    if (__libcwd_tsd.instance_rdlocked[instance] == 1)
 	    {
@@ -539,6 +558,9 @@ template <int instance>
 	    if (instance < end_recursive_types)
 	      S_writer_id = pthread_self();
 #if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUGT
+	    _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
+#endif
 	    instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
 	    locked_by[instance] = pthread_self();
@@ -555,7 +577,7 @@ template <int instance>
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::trywrlock()");
       return success;
     }
-    static void rdlock(void) throw()
+    static void rdlock(bool high_priority = false) throw()
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
@@ -568,8 +590,11 @@ template <int instance>
       // Give a writer a higher priority (kinda fuzzy).
       if (S_writer_is_waiting)						// If there is a writer interested,
       {
-	mutex_tct<readers_instance>::lock();				// then give it precedence and wait here.
-        mutex_tct<readers_instance>::unlock();
+	if (!high_priority)
+	{
+	  mutex_tct<readers_instance>::lock();				// then give it precedence and wait here.
+	  mutex_tct<readers_instance>::unlock();
+	}
       }
 #if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION
@@ -586,6 +611,8 @@ template <int instance>
       LibcwDebugThreads(
 	  LIBCWD_TSD_DECLARATION;
 	  ++__libcwd_tsd.inside_critical_area;
+	  // See wrlock for comment about the +100 offset.
+	  _private_::test_for_deadlock(high_priority ? instance + 100 : instance, __libcwd_tsd, __builtin_return_address(0));
 	  __libcwd_tsd.instance_rdlocked[instance] += 1;
 	  if (__libcwd_tsd.instance_rdlocked[instance] == 1)
 	  {
@@ -651,6 +678,32 @@ template <int instance>
         S_writer_id = pthread_self();
       LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area );
 #if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUGT
+      // Read and write locks use both the same instance because the rationale,
+      // Thread A: lock 1 ... lock 2
+      // Thread B: lock 2 ... lock 1
+      //                   ^--- current program counter.
+      // can still lead to a deadlock even when lock 1 is a read lock
+      // (when one of the 'lock 1's is a write lock then the deadlock is trivial)
+      // namely when a third thread is trying to get the write lock:
+      // Thread C: wrlock 1
+      // This blocks on A's lock1, but blocks new read locks and thus stops B's lock1.
+      _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
+
+      // We use a special instance number for write locks that is also being
+      // used for high priority read locks.  As a result of the order in which we call
+      // test_for_deadlock, the reversed order (first instance + 100 then instance) it not
+      // allowed.  That is correct because that means that it is not allowed for a thread
+      // to take a high priority read lock and then try to get a normal read lock which
+      // would indeed lead to a deadlock when another thread tries to get a write lock
+      // after the high priority read lock is obtained (the write lock waits for the
+      // first read lock to be released and that one is never released because the thread
+      // waits at the second read lock for the write lock to succeed).
+      // Using instance + 100 for a high priority lock DOES allow the following though:
+      // Thread A: rdlock 1 ... lock 2
+      // Thread B: lock 2 ... high priority rdlock 1
+      _private_::test_for_deadlock(instance + 100, __libcwd_tsd, __builtin_return_address(0));
+#endif
       instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = pthread_self();
@@ -704,6 +757,9 @@ template <int instance>
       if (instance < end_recursive_types)
 	S_writer_id = pthread_self();
 #if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUGT
+      _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
+#endif
       instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
       locked_by[instance] = pthread_self();
@@ -735,6 +791,7 @@ template <int instance>
       S_holders_count = 1;				// Turn writer into a reader (atomic operation).
       LibcwDebugThreads(
 	  LIBCWD_TSD_DECLARATION;
+	  _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 	  __libcwd_tsd.instance_rdlocked[instance] += 1;
 	  if (__libcwd_tsd.instance_rdlocked[instance] == 1)
 	  {

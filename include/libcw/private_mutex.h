@@ -27,6 +27,7 @@ namespace libcw {
 class mutex_ct {
 private:
   pthread_mutex_t M_mutex;
+public:
 #if CWDEBUG_DEBUG
   int M_instance_locked;
 #if CWDEBUG_DEBUGT

@@ -1030,7 +1030,7 @@ void allocator_unlock(void)
 	    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	    pthread_exit(PTHREAD_CANCELED); 
 	  }
-	  _private_::rwlock_tct<_private_::threadlist_instance>::rdlock();
+	  _private_::rwlock_tct<_private_::threadlist_instance>::rdlock(true);
           // Terminate all threads that I know of, so that no locks will remain.
 	  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
 	    if (!pthread_equal((*thread_iter).tid, pthread_self()))
