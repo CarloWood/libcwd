@@ -1196,41 +1196,18 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 {
   if (WST_initialization_state <= 0)		// Only true prior to initialization of std::ios_base::Init.
   {
-    // This block is Single Threaded.
-    if (WST_initialization_state == 0)		// Only true once.
-    {
-      __libcwd_tsd.internal = 1;
-      memblk_map.MT_unsafe = new memblk_map_ct;	// MT-safe: There are no threads created yet when we get here.
-      WST_initialization_state = -1;
-      __libcwd_tsd.internal = 0;
-    }
-#ifdef __GLIBCPP__
-    // "ios_base" is always initialized for libstdc++ version 2.
-    if (!_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init())
-#endif // __GLIBCPP__
-    {
-      WST_initialization_state = 1;			// ST_initialize_globals() calls malloc again of course.
-#ifdef DEBUGDEBUGMALLOC
-      --__libcwd_tsd.recursive;				// Allow that.
-#endif
 #ifdef DEBUGDEBUG
-      bool continued_debug_output = (__libcwd_tsd.library_call == 0 && libcw_do._off < 0);
+    bool continued_debug_output = (__libcwd_tsd.library_call == 0 && libcw_do._off < 0);
 #endif
-      libcw::debug::ST_initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
-						// to be a function that is called _very_ early - and hence this is a good moment
-						// to initialize ALL of libcwd.
-#ifdef DEBUGDEBUGMALLOC
-      ++__libcwd_tsd.recursive;
-#endif
+    init_debugmalloc();
 #ifdef DEBUGDEBUG
-      // It is possible that libcwd is not initialized at this point, libcw_do._off == 0 (turned off)
-      // and thus no unfinished debug output was printed before entering this function.
-      // Initialization of libcwd with DEBUGDEBUG defined turns on libcwd_do.  In order to balance the
-      // continued stack, we print an unfinished debug message here.
-      if (continued_debug_output != (__libcwd_tsd.library_call == 0 && libcw_do._off < 0))
-	DoutInternal( dc_malloc|continued_cf, "internal_malloc(" << size << ", " << flag << ") = " );
+    // It is possible that libcwd is not initialized at this point, libcw_do._off == 0 (turned off)
+    // and thus no unfinished debug output was printed before entering this function.
+    // Initialization of libcwd with DEBUGDEBUG defined turns on libcwd_do.  In order to balance the
+    // continued stack, we print an unfinished debug message here.
+    if (continued_debug_output != (__libcwd_tsd.library_call == 0 && libcw_do._off < 0))
+      DoutInternal( dc_malloc|continued_cf, "internal_malloc(" << size << ", " << flag << ") = " );
 #endif
-    }
   }
 
   register void* mptr;
@@ -1299,7 +1276,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
   ++__libcwd_tsd.recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
   {
@@ -1499,13 +1476,33 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 
 void init_debugmalloc(void)
 {
-  if (WST_initialization_state == 0)
+  if (WST_initialization_state <= 0)
   {
     LIBCWD_TSD_DECLARATION
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
-    memblk_map.MT_unsafe = new memblk_map_ct;		// MT-safe: `init_debugmalloc' is called before any threads are created.
-    WST_initialization_state = -1;
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
+    // This block is Single Threaded.
+    if (WST_initialization_state == 0)			// Only true once.
+    {
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      memblk_map.MT_unsafe = new memblk_map_ct;		// MT-safe: There are no threads created yet when we get here.
+      WST_initialization_state = -1;
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+    }
+#ifdef __GLIBCPP__
+    // "ios_base" is always initialized for libstdc++ version 2.
+    if (!_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init())
+#endif // __GLIBCPP__
+    {
+      WST_initialization_state = 1;			// ST_initialize_globals() calls malloc again of course.
+#ifdef DEBUGDEBUGMALLOC
+      --__libcwd_tsd.recursive;				// Allow that.
+#endif
+      libcw::debug::ST_initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
+						// to be a function that is called _very_ early - and hence this is a good moment
+						// to initialize ALL of libcwd.
+#ifdef DEBUGDEBUGMALLOC
+      ++__libcwd_tsd.recursive;
+#endif
+    }
   }
 }
 
@@ -2118,7 +2115,7 @@ void* __libcwd_malloc(size_t size)
 #endif
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
   {
@@ -2195,7 +2192,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 #endif
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
   {
@@ -2283,7 +2280,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #endif
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   if (__libcwd_tsd.internal)
   {
@@ -2647,7 +2644,7 @@ void operator delete(void* ptr)
   ++__libcwd_tsd.recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
 #ifdef DEBUGDEBUGMALLOC
   --__libcwd_tsd.recursive;
@@ -2668,7 +2665,7 @@ void operator delete[](void* ptr)
   ++__libcwd_tsd.recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(DEBUGMALLOCEXTERNALCLINKAGE)
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
 #ifdef DEBUGDEBUGMALLOC
   --__libcwd_tsd.recursive;

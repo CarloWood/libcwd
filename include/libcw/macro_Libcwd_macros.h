@@ -57,7 +57,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LIBCWD_STR1(x) #x
 #define LIBCWD_STR2(x) LIBCWD_STR1(x)
 #define LIBCWD_STR3 "LibcwDout at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
-#define DEBUGDEBUGLIBCWDOUTMARKER ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3));
+#define DEBUGDEBUGLIBCWDOUTMARKER ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3) - 1);
 #else // !DEBUGDEBUGOUTPUT
 #define DEBUGDEBUGLIBCWDOUTMARKER
 #endif // !DEBUGDEBUGOUTPUT
@@ -100,7 +100,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #ifndef DEBUGDEBUGLIBCWDOUTFATALMARKER
 #ifdef DEBUGDEBUGOUTPUT
 #define LIBCWD_STR4 "LibcwDoutFatal at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
-#define DEBUGDEBUGLIBCWDOUTFATALMARKER ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4));
+#define DEBUGDEBUGLIBCWDOUTFATALMARKER ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4) - 1);
 #else
 #define DEBUGDEBUGLIBCWDOUTFATALMARKER
 #endif
