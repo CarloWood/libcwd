@@ -118,9 +118,14 @@ struct debug_tsd_st {
   void init(void);
   debug_tsd_st(void) :
 #if !LIBCWD_THREAD_SAFE
-      _off(0),
+      _off(0)
+#else
+      // In the non-threaded case, debug_ct contains a debug_tsd_st which
+      // may therefore already be initialized before.  Therefore, don't
+      // initialize these but rely on the global data to be zeroed.
+      tsd_initialized(false), current_bufferstream(NULL)
 #endif
-      tsd_initialized(false), current_bufferstream(NULL) { }
+      { }
   ~debug_tsd_st();
 };
 
