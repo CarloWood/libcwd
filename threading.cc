@@ -154,24 +154,27 @@ TSD_st& TSD_st::S_create(int from_free)
   {
     if (from_free == 1)
       static_tsd->inside_free++;
-    mutex_tct<static_tsd_instance>::unlock();
-    pthread_setcanceltype(oldtype, NULL);
-    return *static_tsd;
+    if (static_tsd->inside_free || !static_tsd->terminated)
+    {
+      mutex_tct<static_tsd_instance>::unlock();
+      pthread_setcanceltype(oldtype, NULL);
+      return *static_tsd;
+    }
   }
   else if (from_free == 2)
     // This is impossible because instance_any() can only be called while
     // a (static) tsd was already allocated and marked as reserved; therefore
     // we will always find it with the `find_static_tsd' above.
     abort();
-
-  static_tsd = allocate_static_tsd(_tid);
+  else
+    static_tsd = allocate_static_tsd(_tid);
 
   // Fill the temporary structure with zeroes.
   std::memset(static_tsd, 0, sizeof(struct TSD_st));
   static_tsd->tid = _tid;			// Make sure nobody else will allocate this entry.
 
   if (from_free == 1)
-    static_tsd->inside_free++;
+    static_tsd->inside_free = 1;
   mutex_tct<static_tsd_instance>::unlock();
 
   static_tsd->pid = getpid();
@@ -242,6 +245,8 @@ void TSD_st::free_instance(TSD_st& tsd)
 {
   mutex_tct<static_tsd_instance>::lock();
   tsd.inside_free--;
+  if (tsd.inside_free < 0)
+    core_dump();
   mutex_tct<static_tsd_instance>::unlock();
 }
 
@@ -288,6 +293,8 @@ void TSD_st::cleanup_routine(void)
     TSD_st* static_tsd = allocate_static_tsd(tid);
     std::memcpy(static_tsd, this, sizeof(TSD_st));		// Save a copy of the TSD.
     static_tsd->terminated = ++terminated_count;
+    std::cout << pthread_self() << ": Thread with tid " << static_tsd->tid <<
+        " terminated.  TSD pointer = " << (void*)static_tsd << "\n";
     mutex_tct<static_tsd_instance>::unlock();
     pthread_setcanceltype(oldtype, NULL);
     this->internal = 1;

@@ -954,6 +954,8 @@ template <int instance>
       S_holders_count = 1;				// Turn writer into a reader (atomic operation).
       LibcwDebugThreads(
 	  _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
+	  if (instance >= instance_rdlocked_size)
+	    core_dump();
 	  __libcwd_tsd.instance_rdlocked[instance] += 1;
 	  if (__libcwd_tsd.instance_rdlocked[instance] == 1)
 	  {

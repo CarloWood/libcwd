@@ -299,60 +299,6 @@ void* valgrind_realloc(void*, size_t) { return 0; }
 void valgrind_free(void*) { }
 #endif
 
-
-#ifdef TWDEBUG
-#include <libtw/sys.h>
-#include <libtw/debug.h>
-namespace libtw {
-  namespace debug {
-enum deallocated_from_nt { from_free, from_delete, from_delete_array, error };
-    extern void internal_free(void* ptr, deallocated_from_nt from LIBTWD_COMMA_TSD_PARAM);
-  }
-}
-extern void* __libtwd_new(size_t);
-extern void* __libtwd_new_array(size_t);
-#define __libc_malloc(s) __libtwd_libc_malloc(s LIBCWD_COMMA_TSD)
-#define __libc_calloc(n, s) __libtwd_libc_calloc(n, s LIBCWD_COMMA_TSD)
-#define __libc_realloc(p, s) __libtwd_libc_realloc(p, s LIBCWD_COMMA_TSD)
-#define __libc_free(p) __libtwd_libc_free(p LIBCWD_COMMA_TSD)
-void* __libtwd_libc_malloc(size_t size LIBCWD_COMMA_TSD_PARAM)
-{
-  set_alloc_checking_off(LIBCWD_TSD);
-  int saved_internal = set_library_call_on(LIBCWD_TSD);
-  void* res = __libtwd_malloc(size);
-  set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-  set_alloc_checking_on(LIBCWD_TSD);
-  return res;
-}
-void* __libtwd_libc_calloc(size_t nmemb, size_t size LIBCWD_COMMA_TSD_PARAM)
-{
-  set_alloc_checking_off(LIBCWD_TSD);
-  int saved_internal = set_library_call_on(LIBCWD_TSD);
-  void* res = __libtwd_calloc(nmemb, size);
-  set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-  set_alloc_checking_on(LIBCWD_TSD);
-  return res;
-}
-void* __libtwd_libc_realloc(void* ptr, size_t size LIBCWD_COMMA_TSD_PARAM)
-{
-  set_alloc_checking_off(LIBCWD_TSD);
-  int saved_internal = set_library_call_on(LIBCWD_TSD);
-  void* res = __libtwd_realloc(ptr, size);
-  set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-  set_alloc_checking_on(LIBCWD_TSD);
-  return res;
-}
-void __libtwd_libc_free(void* ptr LIBCWD_COMMA_TSD_PARAM)
-{
-  set_alloc_checking_off(LIBCWD_TSD);
-  int saved_internal = set_library_call_on(LIBCWD_TSD);
-  __libtwd_free(ptr);
-  set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-  set_alloc_checking_on(LIBCWD_TSD);
-  return;
-}
-#endif // TWDEBUG
-
 namespace libcw {
   namespace debug {
     
@@ -3054,18 +3000,9 @@ extern "C" {
 
 void __libcwd_free(void* ptr)
 {
-#ifdef TWDEBUG
-  LIBTWD_TSD_DECLARATION;
-  if (__libtwd_tsd.internal)
-  {
-    libtw::debug::internal_free(ptr, libtw::debug::from_free LIBTWD_COMMA_TSD);
-    return;
-  }
-#endif
 #if LIBCWD_THREAD_SAFE
-  // This is the only place where `instance_free' may be called, it marks
-  // the returned tsd as 'inside_free'.  Such tsds, if the thread is terminating
-  // and the tsds thus static, are never overwritten by other threads.
+  // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
+  // terminating and are never overwritten by other threads.
   libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
 #endif
   internal_free(ptr, from_free LIBCWD_COMMA_TSD);
@@ -3082,11 +3019,6 @@ void __libcwd_free(void* ptr)
 
 void* __libcwd_malloc(size_t size)
 {
-#ifdef TWDEBUG
-  LIBTWD_TSD_DECLARATION;
-  if (__libtwd_tsd.internal)
-    return __libtwd_malloc(size);
-#endif
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3148,29 +3080,55 @@ void* __libcwd_malloc(size_t size)
   return ptr;
 }
 
-#if LIBCWD_THREAD_SAFE && !VALGRIND
-static bool WST_libpthread_initialized = false;
-#endif
-
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
 #if LIBCWD_THREAD_SAFE && !VALGRIND
+  static bool WST_libpthread_initialized = false;
+  struct delayed_calloc_st {
+    void* ptr;
+    size_t size;
+  };
+  static delayed_calloc_st WST_delayed_calloc[2];
   if (!WST_libpthread_initialized)
   {
-    // We can't call pthread_self() or any other function of libpthread yet.
-    // Doing LIBCWD_TSD_DECLARATION would core without creating a usable backtrace.
-    void* ptr = __libc_calloc(nmemb, size);    
     static int ST_libpthread_init_count = 0;
-    if (++ST_libpthread_init_count == 2)
+    if (ST_libpthread_init_count == 2)
+    {
       WST_libpthread_initialized = true;
-    return ptr;
+      LIBCWD_TSD_DECLARATION;
+      LIBCWD_DEFER_CANCEL;
+      __libcwd_tsd.internal = 1;
+      ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
+      memblk_map_write->insert(memblk_ct(memblk_key_ct(WST_delayed_calloc[0].ptr, WST_delayed_calloc[0].size), memblk_info_ct(memblk_type_malloc)));
+      memblk_map_write->insert(memblk_ct(memblk_key_ct(WST_delayed_calloc[1].ptr, WST_delayed_calloc[1].size), memblk_info_ct(memblk_type_malloc)));
+      RELEASE_WRITE_LOCK;
+      __libcwd_tsd.internal = 0;
+      LIBCWD_RESTORE_CANCEL;
+    }
+    else
+    {
+      // We can't call pthread_self() or any other function of libpthread yet.
+      // Doing LIBCWD_TSD_DECLARATION would core without creating a usable backtrace.
+#if CWDEBUG_MAGIC
+      void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(nmemb * size));
+#else
+      void* ptr = __libc_calloc(nmemb, size);    
+#endif
+      if (!ptr)
+	return NULL;
+#if CWDEBUG_MAGIC
+      std::memset(static_cast<void*>(static_cast<size_t*>(ptr) + 2), 0, nmemb * size);
+      ((size_t*)ptr)[0] = MAGIC_MALLOC_BEGIN;
+      ((size_t*)ptr)[1] = nmemb * size;
+      ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(nmemb * size)))[-1] = MAGIC_MALLOC_END;
+      ptr = static_cast<size_t*>(ptr) + 2;
+#endif
+      WST_delayed_calloc[ST_libpthread_init_count].ptr = ptr;
+      WST_delayed_calloc[ST_libpthread_init_count++].size = nmemb * size;
+      return ptr;
+    }
   }
-#endif
-#ifdef TWDEBUG
-  LIBTWD_TSD_DECLARATION;
-  if (__libtwd_tsd.internal)
-    return __libtwd_calloc(nmemb, size);
-#endif
+#endif // LIBCWD_THREAD_SAFE && !VALGRIND
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3245,11 +3203,6 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 
 void* __libcwd_realloc(void* ptr, size_t size)
 {
-#ifdef TWDEBUG
-  LIBTWD_TSD_DECLARATION;
-  if (__libtwd_tsd.internal)
-    return __libtwd_realloc(ptr, size);
-#endif
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3541,20 +3494,6 @@ void* __libcwd_realloc(void* ptr, size_t size)
 void* operator new(size_t size) throw (std::bad_alloc)
 {
   LIBCWD_TSD_DECLARATION;
-#ifdef TWDEBUG
-  LIBTWD_TSD_DECLARATION;
-  if (__libtwd_tsd.internal)
-  {
-    bool internal = __libcwd_tsd.internal;
-    int save_internal = 0;
-    if (internal)
-      save_internal = set_library_call_on(LIBCWD_TSD);
-    void* res = __libtwd_new(size);
-    if (internal)
-      set_library_call_off(save_internal LIBCWD_COMMA_TSD);
-    return res;
-  }
-#endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
@@ -3656,20 +3595,6 @@ void* operator new(size_t size, std::nothrow_t const&) throw ()
 void* operator new[](size_t size) throw (std::bad_alloc)
 {
   LIBCWD_TSD_DECLARATION;
-#ifdef TWDEBUG
-  LIBTWD_TSD_DECLARATION;
-  if (__libtwd_tsd.internal)
-  {
-    bool internal = __libcwd_tsd.internal;
-    int save_internal = 0;
-    if (internal)
-      save_internal = set_library_call_on(LIBCWD_TSD);
-    void* res = __libtwd_new_array(size);
-    if (internal)
-      set_library_call_off(save_internal LIBCWD_COMMA_TSD);
-    return res;
-  }
-#endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
@@ -3775,20 +3700,10 @@ void* operator new[](size_t size, std::nothrow_t const&) throw ()
 
 void operator delete(void* ptr) throw()
 {
-  LIBCWD_TSD_DECLARATION;
-#ifdef TWDEBUG
-  LIBTWD_TSD_DECLARATION;
-  if (__libtwd_tsd.internal)
-  {
-    bool internal = __libcwd_tsd.internal;
-    int save_internal = 0;
-    if (internal)
-      save_internal = set_library_call_on(LIBCWD_TSD);
-    libtw::debug::internal_free(ptr, libtw::debug::from_delete LIBTWD_COMMA_TSD);
-    if (internal)
-      set_library_call_off(save_internal LIBCWD_COMMA_TSD);
-    return;
-  }
+#if LIBCWD_THREAD_SAFE
+  // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
+  // terminating and are never overwritten by other threads.
+  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
 #endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3803,11 +3718,18 @@ void operator delete(void* ptr) throw()
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   internal_free(ptr, from_delete LIBCWD_COMMA_TSD);
+#if LIBCWD_THREAD_SAFE
+  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+#endif
 }
 
 void operator delete(void* ptr, std::nothrow_t const&) throw()
 {
-  LIBCWD_TSD_DECLARATION;
+#if LIBCWD_THREAD_SAFE
+  // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
+  // terminating and are never overwritten by other threads.
+  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
+#endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call || __libcwd_tsd.internal)
@@ -3818,24 +3740,17 @@ void operator delete(void* ptr, std::nothrow_t const&) throw()
   }
 #endif
   internal_free(ptr, from_delete LIBCWD_COMMA_TSD);
+#if LIBCWD_THREAD_SAFE
+  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+#endif
 }
 
 void operator delete[](void* ptr) throw()
 {
-  LIBCWD_TSD_DECLARATION;
-#ifdef TWDEBUG
-  LIBTWD_TSD_DECLARATION;
-  if (__libtwd_tsd.internal)
-  {
-    bool internal = __libcwd_tsd.internal;
-    int save_internal = 0;
-    if (internal)
-      save_internal = set_library_call_on(LIBCWD_TSD);
-    libtw::debug::internal_free(ptr, libtw::debug::from_delete_array LIBTWD_COMMA_TSD);
-    if (internal)
-      set_library_call_off(save_internal LIBCWD_COMMA_TSD);
-    return;
-  }
+#if LIBCWD_THREAD_SAFE
+  // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
+  // terminating and are never overwritten by other threads.
+  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
 #endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3852,11 +3767,18 @@ void operator delete[](void* ptr) throw()
   internal_free(ptr, from_delete_array LIBCWD_COMMA_TSD);	// Note that the standard demands that we call free(), and not delete().
   								// This forces everyone to overload both, operator delete() and operator
 								// delete[]() and not only operator delete().
+#if LIBCWD_THREAD_SAFE
+  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+#endif
 }
 
 void operator delete[](void* ptr, std::nothrow_t const&) throw()
 {
-  LIBCWD_TSD_DECLARATION;
+#if LIBCWD_THREAD_SAFE
+  // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
+  // terminating and are never overwritten by other threads.
+  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
+#endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call || __libcwd_tsd.internal)
@@ -3867,6 +3789,9 @@ void operator delete[](void* ptr, std::nothrow_t const&) throw()
   }
 #endif
   internal_free(ptr, from_delete_array LIBCWD_COMMA_TSD);
+#if LIBCWD_THREAD_SAFE
+  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+#endif
 }
 
 #endif // CWDEBUG_ALLOC

@@ -106,11 +106,12 @@ void* thread_function(void* arguments)
 
   // Serialize incrementation.
   int my_id;
-  LIBCWD_DEFER_CANCEL
+  LIBCWD_TSD_DECLARATION;
+  LIBCWD_DEFER_CANCEL;
   mutex_tct<test_instance0>::lock();
   my_id = ++thread_counter;
   mutex_tct<test_instance0>::unlock();
-  LIBCWD_RESTORE_CANCEL
+  LIBCWD_RESTORE_CANCEL;
 
   state_thread[my_id] = 0;
   Dout(dc::notice, my_id << ": Entering thread " << pthread_self());
@@ -124,6 +125,8 @@ void* thread_function(void* arguments)
   return NULL;
 }
 
+pthread_mutex_t cout_lock;
+
 int main(void)
 {
   Debug( check_configuration() );
@@ -131,23 +134,29 @@ int main(void)
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
   Debug( libcw_do.on() );
-  Debug( libcw_do.set_ostream(&std::cout) );
+  Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
 
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   Debug( list_channels_on(libcw_do) );
+
+#if CWDEBUG_DEBUGT
+  // This is necessary because we use test_instance0 as rwlock and we got three levels deep.
+  Dout(dc::fatal, "Please use a libcwd_r that was compiled without --enable-debugt for this test.");
+#endif
 
   mutex_tct<test_instance0>::initialize();
   rwlock_tct<test_instance0>::initialize();
 
   // Test if rwlocks allows multiple read locks but only one write lock.
-  LIBCWD_DEFER_CANCEL
+  LIBCWD_TSD_DECLARATION;
+  LIBCWD_DEFER_CANCEL;
   rwlock_tct<test_instance0>::wrlock();
     LIBCWD_ASSERT( !rwlock_tct<test_instance0>::trywrlock() );
     LIBCWD_ASSERT( !rwlock_tct<test_instance0>::tryrdlock() );
   rwlock_tct<test_instance0>::wrunlock();
-  LIBCWD_RESTORE_CANCEL
+  LIBCWD_RESTORE_CANCEL;
 
-  LIBCWD_DEFER_CANCEL
+  LIBCWD_DEFER_CANCEL;
   rwlock_tct<test_instance0>::rdlock();
     LIBCWD_ASSERT( !rwlock_tct<test_instance0>::trywrlock() );
     LIBCWD_ASSERT( rwlock_tct<test_instance0>::tryrdlock() && (rwlock_tct<test_instance0>::rdunlock(), true) );
@@ -160,14 +169,14 @@ int main(void)
   rwlock_tct<test_instance0>::rdunlock();
   LIBCWD_ASSERT( rwlock_tct<test_instance0>::tryrdlock() && (rwlock_tct<test_instance0>::rdunlock(), true) );
   LIBCWD_ASSERT( rwlock_tct<test_instance0>::trywrlock() && (rwlock_tct<test_instance0>::wrunlock(), true) );
-  LIBCWD_RESTORE_CANCEL
+  LIBCWD_RESTORE_CANCEL;
 
   // Now test that a mutex allows only one lock.
-  LIBCWD_DEFER_CANCEL
+  LIBCWD_DEFER_CANCEL;
   mutex_tct<test_instance0>::lock();
   LIBCWD_ASSERT( !mutex_tct<test_instance0>::trylock() );
   mutex_tct<test_instance0>::unlock();
-  LIBCWD_RESTORE_CANCEL
+  LIBCWD_RESTORE_CANCEL;
 
   pthread_t thread_id[number_of_threads];
   for (int i = 0; i < number_of_threads; ++i)

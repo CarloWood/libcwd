@@ -208,6 +208,8 @@ TSD_st& TSD_st::instance_free(void)
   TSD_st* instance;
   if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
     return S_create(1);
+  else
+    instance->inside_free++;
   return *instance;
 }
 

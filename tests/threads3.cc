@@ -10,6 +10,7 @@ namespace debug_channels {
 }
 #endif
 
+pthread_mutex_t cout_lock;
 int const number_of_threads = 4;
 
 void* thread_function(void* arguments)
@@ -19,7 +20,9 @@ void* thread_function(void* arguments)
   // And for the debug object.
   Debug( libcw_do.on() );
 
+  pthread_mutex_lock(&cout_lock);
   std::cout << "COUT:Entering thread " << pthread_self() << ":COUT\n";
+  pthread_mutex_unlock(&cout_lock);
   Dout(dc::notice, "Entering thread " << pthread_self());
   int cnt = 0;
   for (int i = 0; i < 1000; ++i)
@@ -38,7 +41,7 @@ int main(void)
 #if CWDEBUG_ALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
-  Debug( libcw_do.set_ostream(&std::cout) );
+  Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
   Debug( libcw_do.on() );
 
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );

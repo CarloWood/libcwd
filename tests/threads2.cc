@@ -29,10 +29,10 @@
 
 using namespace std;
 
-const int thread_cycles = 10;
-const int thread_pairs = 10;
+const int thread_cycles = 100;
+const int thread_pairs = 100;
 const unsigned max_size = 100;
-const int iters = 10000;
+const int iters = 1000;
 
 class task_queue
 {
@@ -91,12 +91,15 @@ consume (void* t)
   return 0;
 }
 
+pthread_mutex_t cout_lock;
+
 int
 main (int argc, char** argv)
 {
   Debug( check_configuration() );
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
+  Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
 
   pthread_t prod[thread_pairs];
   pthread_t cons[thread_pairs];
