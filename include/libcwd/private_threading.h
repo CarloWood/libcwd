@@ -56,6 +56,9 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
 #include <libcwd/private_mutex_instances.h>
 #endif
+#ifndef LIBCW_CORE_DUMP_H
+#include <libcwd/core_dump.h>
+#endif
 #ifndef LIBCW_CSTRING
 #define LIBCW_CSTRING
 #include <cstring>			// Needed for std::memset and std::memcpy.
