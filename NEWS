@@ -3,11 +3,20 @@ libcwd-0.99.3
 	A different bug work around for the compiler bug that surfaces
 	in iomanip.h has been used.  It turned out that not only
 	gcc-2.95.2 but even snap shot 2.96-20000724 has problems with
-	the construct that was used.  The new workaround works always
-	and is not anymore dependend on the CXXFLAGS being used.
+	the (ISO C++ correct) construct that was used.  The new
+	workaround works better and is not any longer dependend on the
+	CXXFLAGS being used.
 
 	Support for solaris has been added.  Tests were done on a 
 	sparc-sun-solaris2.7.
+
+	Configuration and installation has been improved on FreeBSD,
+	it should now compile 'out of the box' with the usual
+	"./configure; make; make install".
+	
+	It is not necessary to use GNU make any longer when using the
+	tar ball distribution (GNU make is still needed if you use
+	cvs or --enable-maintainer-mode).
 
 libcwd-0.99.2
 

@@ -9,7 +9,8 @@ are normally included in the release.
 You will also need GNU make in order to compile
 this package when checked out using CVS.  Trying
 to compile this with a non-GNU make might result
-in a `Must be a seperator' error.
+in a `Must be a seperator' or a `Need an operator'
+error.
 
 In order to generate the needed files you will need
 to have installed the tools `automake', `autoconf'
