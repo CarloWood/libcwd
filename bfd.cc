@@ -87,6 +87,9 @@ namespace libcw {
   namespace debug {
     namespace _private_ {
       extern void demangle_symbol(char const* in, _private_::internal_string& out);
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+      extern __gnu_cxx::_STL_mutex_lock* _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr;
+#endif
     } // namespace _private_
 
     // New debug channel
@@ -274,7 +277,11 @@ void bfd_close(bfd* abfd)
 #endif
       }
 
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+      void bfile_ct::initialize(char const* filename, void* base, bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
+#else
       void bfile_ct::initialize(char const* filename, void* base LIBCWD_COMMA_TSD_PARAM)
+#endif
       {
 #if CWDEBUG_DEBUGM
 	LIBCWD_ASSERT( __libcwd_tsd.internal == 1 );
@@ -353,6 +360,9 @@ void bfd_close(bfd* abfd)
 
 	if (M_number_of_symbols > 0)
 	{
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+	  Elf32_Off S_lock_value;
+#endif
 #if !CWDEBUG_LIBBFD
 	  size_t s_end_offset = M_abfd->M_s_end_offset;
 #else
@@ -555,6 +565,10 @@ void bfd_close(bfd* abfd)
 	  asymbol** se2 = &M_symbol_table[M_number_of_symbols - 1];
 	  for (asymbol** s = M_symbol_table; s <= se2;)
 	  {
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+	    if (is_libstdcpp && strcmp((*s)->name, "_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE") == 0)
+	      S_lock_value = bfd_get_section(*s)->vma + (*s)->value;
+#endif
 	    if (((*s)->name[0] == '.' && (*s)->name[1] == 'L')
 	        || ((*s)->flags & (BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|BSF_INDIRECT|BSF_DYNAMIC)) != 0
 		|| (s_end_start_addr != NULL && symbol_start_addr(*s) >= s_end_start_addr)
@@ -602,6 +616,11 @@ void bfd_close(bfd* abfd)
 #endif
 	    Debug( libcw_do.restore(state) );
 	  }
+#endif
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+	  if (is_libstdcpp && S_lock_value)
+	    _private_::_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr =
+	        (__gnu_cxx::_STL_mutex_lock*)((char*)M_lbase + S_lock_value);
 #endif
 	}
 
@@ -978,12 +997,23 @@ void bfd_close(bfd* abfd)
 	else
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << " (" << l_addr << ") ... ");
 	bfile_ct* object_file;
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+	bool is_libstdcpp;
+	char const* slash = strrchr(name, '/');
+	if (!slash)
+	  slash = name - 1;
+	is_libstdcpp = (strncmp("libstdc++.so", slash + 1, 12) == 0);
+#endif
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
 	set_alloc_checking_off(LIBCWD_TSD);
 	object_file = new bfile_ct(name, l_addr);
 	BFD_RELEASE_WRITE_LOCK;
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+	object_file->initialize(name, l_addr, is_libstdcpp LIBCWD_COMMA_TSD);
+#else
 	object_file->initialize(name, l_addr LIBCWD_COMMA_TSD);
+#endif
 	set_alloc_checking_on(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
 	if (object_file->get_number_of_symbols() > 0)
