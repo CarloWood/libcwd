@@ -1278,11 +1278,17 @@ marker_ct::~marker_ct(void)
 
   if ((*i).second.a_alloc_node.get()->next_list())
   {
-    string margin = libcw_do.get_margin();
-    Debug( libcw_do.set_margin(margin + "  * ") );
-    Dout( dc::warning, "Memory leak detected!" );
-    (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, channels::dc::warning);
-    Debug( libcw_do.set_margin(margin) );
+    set_alloc_checking_off();
+    {
+      string margin = libcw_do.get_margin();
+      Debug( libcw_do.set_margin(margin + "  * ") );
+      set_alloc_checking_on();
+      Dout( dc::warning, "Memory leak detected!" );
+      (*i).second.a_alloc_node.get()->next_list()->show_alloc_list(1, channels::dc::warning);
+      Debug( libcw_do.set_margin(margin) );
+      set_alloc_checking_off();
+    }
+    set_alloc_checking_on();
   }
 #endif
 

@@ -19,6 +19,7 @@ RCSTAG_H(iomanip, "$Id$")
 #include <iosfwd>
 #include <vector>
 #include <algorithm>
+#include <libcw/debugmalloc.h>
 
 namespace libcw {
 
@@ -44,33 +45,51 @@ template<class IMANIP_DATA>
     IMANIP_DATA& get_imanip_data(void) { return imanip_data; }
   };
 
-#if __GNUC__ == 2
 namespace {
 
   template<class TYPE>
-    struct compiler_bug_workaround {
-      static TYPE ids;
+    class ids_singleton_tct {
+    private:
+      static TYPE* S_ids;
+    public:
+      TYPE* ids(void)
+      {
+	if (!S_ids)
+	  S_ids = new TYPE;
+	return S_ids;
+      }
+      ~ids_singleton_tct()
+      {
+        set_alloc_checking_off();
+        delete S_ids;
+	S_ids = NULL;
+        set_alloc_checking_on();
+      }
     };
 
   template<class TYPE>
-    TYPE compiler_bug_workaround<TYPE>::ids;
+    TYPE* ids_singleton_tct<TYPE>::S_ids;
 
 } // namespace {anonymous}
-#endif
 
 template<class TYPE>
   inline typename TYPE::omanip_data_ct& get_omanip_data(std::ostream const& os)
   {
     typedef omanip_id_tct<typename TYPE::omanip_data_ct> omanip_id_ct;
     typedef std::vector<omanip_id_ct> ids_ct;
-#if __GNUC__ == 2
-    ids_ct& ids(compiler_bug_workaround<ids_ct>::ids);
-#else
-    static ids_ct ids;
+
+    ids_ct* ids;
+    static ids_singleton_tct<ids_ct> ids_singleton;
+#ifdef DEBUGMALLOC
+    static ids_singleton_tct<ids_ct> internal_ids_singleton;
+    if (libcw::debug::_internal_::internal)
+      ids = internal_ids_singleton.ids();
+    else
 #endif
-    typename ids_ct::iterator i = std::find(ids.begin(), ids.end(), &os);
-    if (i == ids.end())
-      i = ids.insert(ids.end(), omanip_id_ct(&os));
+      ids = ids_singleton.ids();
+    typename ids_ct::iterator i = std::find(ids->begin(), ids->end(), &os);
+    if (i == ids->end())
+      i = ids->insert(ids->end(), omanip_id_ct(&os));
     return (*i).get_omanip_data();
   }
 
@@ -79,14 +98,19 @@ template<class TYPE>
   {
     typedef imanip_id_tct<typename TYPE::imanip_data_ct> imanip_id_ct;
     typedef std::vector<imanip_id_ct> ids_ct;
-#if __GNUC__ == 2
-    ids_ct& ids(compiler_bug_workaround<ids_ct>::ids);
-#else
-    static ids_ct ids;
+
+    ids_ct* ids;
+    static ids_singleton_tct<ids_ct> ids_singleton;
+#ifdef DEBUGMALLOC
+    static ids_singleton_tct<ids_ct> internal_ids_singleton;
+    if (libcw::debug::_internal_::internal)
+      ids = internal_ids_singleton.ids();
+    else
 #endif
-    typename ids_ct::iterator i = std::find(ids.begin(), ids.end(), &os);
-    if (i == ids.end())
-      i = ids.insert(ids.end(), imanip_id_ct(&os));
+      ids = ids_singleton.ids();
+    typename ids_ct::iterator i = std::find(ids->begin(), ids->end(), &os);
+    if (i == ids->end())
+      i = ids->insert(ids.end(), imanip_id_ct(&os));
     return (*i).get_imanip_data();
   }
 
