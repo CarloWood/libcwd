@@ -46,8 +46,8 @@ struct TSD_st {
 
 // Thread Specific Data (TSD) is stored in a structure TSD_st
 // and is accessed through a reference to `__libcwd_tsd'.
-#ifndef _REENTRANT
-// When _REENTRANT is not defined then `__libcwd_tsd' is simply a global object in namespace _private_:
+#ifndef LIBCWD_THREAD_SAFE
+// When LIBCWD_THREAD_SAFE is not defined then `__libcwd_tsd' is simply a global object in namespace _private_:
 extern TSD_st __libcwd_tsd;
 #endif
 extern int WST_initializing_TSD;
@@ -60,7 +60,7 @@ extern int WST_initializing_TSD;
 // (see LIBCWD_TSD_DECLARATION) or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
 // This approach means that many function signatures are different because with thread support a
 // `__libcwd_tsd' reference needs to be passed.  We use several helper macros for this:
-#ifdef _REENTRANT
+#ifdef LIBCWD_THREAD_SAFE
 
 #define LIBCWD_TSD __libcwd_tsd		// Optional `__libcwd_tsd' parameter
 					//   (foo() or foo(__libcwd_tsd)).
@@ -70,7 +70,7 @@ extern int WST_initializing_TSD;
 					//   (foo(void) or foo(TSD_st& __libcwd_tsd)).
 #define LIBCWD_COMMA_TSD_PARAM , LIBCWD_TSD_PARAM
 					// Idem, but as second or higher parameter.
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 
 #define LIBCWD_TSD
 #define LIBCWD_COMMA_TSD
@@ -78,9 +78,9 @@ extern int WST_initializing_TSD;
 #define LIBCWD_COMMA_TSD_PARAM
 
 // Put __libcwd_tsd in global namespace because anywhere we always refer to it
-// as `__libcwd_tsd' because when _REENTRANT is defined it is local variable.
+// as `__libcwd_tsd' because when LIBCWD_THREAD_SAFE is defined it is local variable.
 using ::libcw::debug::_private_::__libcwd_tsd;
 
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 
 #endif // LIBCW_TSD_H

@@ -63,7 +63,7 @@ extern bool WST_multi_threaded;
   } // namespace debug
 } // namespace libcw
  
-#ifdef _REENTRANT
+#ifdef LIBCWD_THREAD_SAFE
 #define LIBCWD_TSD_INSTANCE ::libcw::debug::_private_::\
     thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance()
 	// For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
@@ -73,16 +73,16 @@ extern bool WST_multi_threaded;
     TSD_st& __libcwd_tsd(::libcw::debug::_private_::\
 	                 thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance());
 	// Declaration of local `__libcwd_tsd' structure reference.
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_TSD_INSTANCE
 #define LIBCWD_COMMA_TSD_INSTANCE
 #define LIBCWD_TSD_DECLARATION
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 
 // End of Thread Specific Data
 //===================================================================================================
 
-#ifdef _REENTRANT
+#ifdef LIBCWD_THREAD_SAFE
 
 namespace libcw {
   namespace debug {
@@ -492,6 +492,6 @@ extern void initialize_global_mutexes(void) throw();
   } // namespace debug
 } // namespace libcw
 
-#endif // _REENTRANT
+#endif // LIBCWD_THREAD_SAFE
 #endif // LIBCW_PRIVATE_THREADING_H
 

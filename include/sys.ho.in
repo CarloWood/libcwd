@@ -25,13 +25,6 @@
 #endif
 
 //
-// Define _REENTRANT to make sure that the glibc functions are thread safe too.
-//
-#ifdef LIBCWD_THREAD_SAFE
-#define _REENTRANT
-#endif
-
-//
 // typedefs
 //
 // getgroups_t          : The type of the array argument to getgroups

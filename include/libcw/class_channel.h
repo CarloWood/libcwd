@@ -82,15 +82,15 @@ namespace libcw {
 
 class channel_ct {
 private:
-#ifdef _REENTRANT
+#ifdef LIBCWD_THREAD_SAFE
   int WNS_index;
     // A unique id that is used as index into the TSD array `off_cnt_array'.
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
   int off_cnt;
     // A counter of the nested calls to off().
     // The channel is turned off when the value of `off' is larger or equal then zero
     // and `on' when it has the value -1.
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 
   char WNS_label[max_label_len_c];
     // A reference name for the represented debug channel
@@ -130,7 +130,7 @@ public:
 
   char const* get_label(void) const;
   bool is_on(void) const;
-#ifdef _REENTRANT
+#ifdef LIBCWD_THREAD_SAFE
   bool is_on(LIBCWD_TSD_PARAM) const;
 #endif
 };

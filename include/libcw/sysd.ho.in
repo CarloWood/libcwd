@@ -55,15 +55,19 @@ namespace libcw {
 //
 
 // Abort when someone tries to use MT with libcwd without MT support.
-#if defined(_REENTRANT) && !(@CW_CONFIG_THREAD_SAFE@)
+#@CW_CONFIG_THREAD_SAFE@ LIBCWD_TMP_THREAD_SAFE
+#if defined(_REENTRANT) && !defined(LIBCWD_TMP_THREAD_SAFE)
 #error "Recompile libcwd with --enable-threading to enable support for Multi-Threading."
 #endif
 
-#ifdef _REENTRANT
+#ifdef LIBCWD_TMP_THREAD_SAFE
 // See http://www.cuj.com/experts/1902/alexandr.htm?topic=experts
 #define LIBCWD_MT_VOLATILE volatile
 #else
 #define LIBCWD_MT_VOLATILE
 #endif
+
+// Was only needed for the two tests above.
+#undef LIBCWD_TMP_THREAD_SAFE
 
 #endif /* LIBCW_SYSD_H */

@@ -332,17 +332,18 @@ if test "$libcwd_config_bfd" = yes; then
 fi
 
 AC_SUBST(CW_CONFIG_THREAD_SAFE)
-CW_CONFIG_THREAD_SAFE=0
+CW_CONFIG_THREAD_SAFE=undef
 AC_SUBST(CW_CONFIG_HAVE_PTHREADS)
 CW_CONFIG_HAVE_PTHREADS=undef
 AC_SUBST(LIB_THREADS)
 if test "$libcwd_config_threading" = yes; then
 
-  dnl Check if we have libpthread.
-  AC_CHECK_LIB(pthread, pthread_create,
+  dnl Check if we have POSIX threads
+  EXTRAOPTS="$EXTRAOPTS -pthread"
+  CXXFLAGS="$DEBUGOPTS $EXTRAOPTS"
+  AC_SEARCH_LIBS(pthread_create, pthread,
     [AC_CHECK_HEADER(pthread.h,
-        [CW_CONFIG_HAVE_PTHREADS=define
-	 LIB_THREADS=-lpthread],
+      [CW_CONFIG_HAVE_PTHREADS=define],
       [AC_MSG_ERROR([
 
 * Sorry but libcwd only supports POSIX Threads at the moment and I can't
@@ -351,15 +352,12 @@ if test "$libcwd_config_threading" = yes; then
 ])])],
     [AC_MSG_ERROR([
 
-* Sorry but libcwd only supports POSIX Threads at the moment and I can't
-* find -lpthread.  Use --disable-libcwd-threading to compile a libcwd that
-* is not thread safe.
+* Sorry but libcwd only supports POSIX Threads at the moment.  Your libc doesn't
+* include posix threads by itself and I can't find -lpthread.
+* Use --disable-libcwd-threading to compile a libcwd that is not thread safe.
 ])])
 
-  AC_DEFINE([LIBCWD_THREAD_SAFE])
-  CW_CONFIG_THREAD_SAFE=1
-  TESTOPTS=-D_REENTRANT
-
+  CW_CONFIG_THREAD_SAFE=define
   SAVE_LIBS="$LIBS"
   LIBS="$LIBS $LIB_THREADS"
   AC_CHECK_FUNCS(pthread_kill_other_threads_np)

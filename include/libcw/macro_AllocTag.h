@@ -147,16 +147,16 @@ extern void register_external_allocation(void const* ptr, size_t size);
 #define AllocTag2(p, desc) ::libcw::debug::\
     set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc))
 
-#ifdef _REENTRANT
+#ifdef LIBCWD_THREAD_SAFE
 #define LIBCWD_LOCK_desc__if_still_NULL_then ::libcw::debug::_private_::\
     mutex_tct< ::libcw::debug::_private_::alloc_tag_desc_instance>::lock(); \
     if (!desc)
 #define LIBCWD_UNLOCK_desc ::libcw::debug::_private_::\
     mutex_tct< ::libcw::debug::_private_::alloc_tag_desc_instance>::unlock();
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_LOCK_desc__if_still_NULL_then
 #define LIBCWD_UNLOCK_desc
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 
 /**
  * \brief Annotate <I>type</I> of \a p with a static description.

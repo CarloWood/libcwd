@@ -47,7 +47,7 @@ private:
   container_type* WNS_debug_objects;
 public:
   void init(void);
-#ifdef _REENTRANT
+#ifdef LIBCWD_THREAD_SAFE
   void init_and_rdlock(void);
 #endif
   void ST_uninit(void);
@@ -81,15 +81,15 @@ extern debug_objects_ct debug_objects;
   } // namespace debug
 } // namespace libcw
 
-#ifdef _REENTRANT
+#ifdef LIBCWD_THREAD_SAFE
 #define LIBCWD_ForAllDebugObjects_LOCK ::libcw::debug::_private_::\
     debug_objects.init_and_rdlock();
 #define LIBCWD_ForAllDebugObjects_UNLOCK ::libcw::debug::_private_::\
     rwlock_tct< ::libcw::debug::_private_::debug_objects_instance>::rdunlock();
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_ForAllDebugObjects_LOCK ::libcw::debug::_private_::debug_objects.init();
 #define LIBCWD_ForAllDebugObjects_UNLOCK
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 
 /**
  * \def ForAllDebugObjects
