@@ -406,7 +406,7 @@ template <int instance>
 
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 template <int instance>
-  bool mutex_tct<instance>::S_initialized = false;
+  bool volatile mutex_tct<instance>::S_initialized = false;
 
 template <int instance>
   void mutex_tct<instance>::S_initialize(void)
@@ -569,7 +569,7 @@ template <int instance>
 
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
 template <int instance>
-  bool cond_tct<instance>::S_initialized = false;
+  bool volatile cond_tct<instance>::S_initialized = false;
 #endif
 
 template <int instance>

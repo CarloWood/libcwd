@@ -1711,7 +1711,10 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
                           DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str)
 			  DEBUGDWARF_OPT_COMMA(uint32_t debug_info_offset))
 {
+#if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
   DoutDwarf(dc::continued, '(' << print_DW_FORM_name(form) << ") ");
+#endif
   switch(form)
   {
     case DW_FORM_data1:

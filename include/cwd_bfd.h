@@ -128,7 +128,6 @@ private:
 public:
   bfile_ct(char const* filename, void* base);
   void initialize(char const* filename, void* base LIBCWD_COMMA_TSD_PARAM);
-  ~bfile_ct();
   void deinitialize(LIBCWD_TSD_PARAM);
 
   bfd* get_bfd(void) const { return abfd; }
@@ -152,7 +151,8 @@ NEEDS_READ_LOCK_object_files(void)
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] == __libcwd_tsd.tid ||
-      __libcwd_tsd.rdlocked_by2[object_files_instance] == __libcwd_tsd.tid );
+      __libcwd_tsd.rdlocked_by2[object_files_instance] == __libcwd_tsd.tid ||
+      _private_::locked_by[object_files_instance] == __libcwd_tsd.tid );
 #endif
   return *reinterpret_cast<object_files_ct const*>(bfile_ct::ST_list_instance);
 }

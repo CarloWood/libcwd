@@ -35,7 +35,7 @@ namespace libcw {
 void Function::M_init(void)
 {
 #if LIBCWD_THREAD_SAFE
-  mutex_tct<function_instance>::lock();
+  mutex_tct<_private_::function_instance>::lock();
   if (!M_initialized)
   {
 #endif
@@ -43,27 +43,27 @@ void Function::M_init(void)
 
 #if LIBCWD_THREAD_SAFE
   }
-  mutex_tct<function_instance>::unlock();
+  mutex_tct<_private_::function_instance>::unlock();
 #endif
 }
 
 void Function::M_init(Function& function)
 {
 #if LIBCWD_THREAD_SAFE
-  mutex_tct<function_instance>::lock();
+  mutex_tct<_private_::function_instance>::lock();
 #endif
   M_initialized = 1;
   function.init();
   // FIXME std::copy(function.instances().begin(), function.instances().end(), std::back_inserter(M_vector));
 #if LIBCWD_THREAD_SAFE
-  mutex_tct<function_instance>::unlock();
+  mutex_tct<_private_::function_instance>::unlock();
 #endif
 }
 
 void Function::M_init(char const* expr, unsigned int flags)
 {
 #if LIBCWD_THREAD_SAFE
-  mutex_tct<function_instance>::lock();
+  mutex_tct<_private_::function_instance>::lock();
   if (!M_initialized)
   {
 #endif
@@ -210,7 +210,7 @@ void Function::M_init(char const* expr, unsigned int flags)
 
 #if LIBCWD_THREAD_SAFE
   }
-  mutex_tct<function_instance>::unlock();
+  mutex_tct<_private_::function_instance>::unlock();
 #endif
 }
 

@@ -602,21 +602,6 @@ void bfd_close(bfd* abfd)
 	BFD_RELEASE_WRITE_LOCK;
       }
 
-      // cwbfd::
-      bfile_ct::~bfile_ct()
-      {
-#if CWDEBUG_DEBUGM
-	LIBCWD_TSD_DECLARATION;
-	LIBCWD_ASSERT( __libcwd_tsd.internal );
-#if CWDEBUG_DEBUGT
-        LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
-#endif
-#endif
-	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(), NEEDS_WRITE_LOCK_object_files().end(), this));
-	if (iter != NEEDS_WRITE_LOCK_object_files().end())
-	  NEEDS_WRITE_LOCK_object_files().erase(iter);
-      }
-
       void bfile_ct::deinitialize(LIBCWD_TSD_PARAM)
       {
 #if CWDEBUG_DEBUGM
@@ -637,9 +622,15 @@ void bfd_close(bfd* abfd)
 	  free(M_symbol_table);
 	  M_symbol_table  = NULL;
 	}
+	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
 	M_function_symbols.erase(M_function_symbols.begin(), M_function_symbols.end());
+	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(),
+	                                    NEEDS_WRITE_LOCK_object_files().end(), this));
+	if (iter != NEEDS_WRITE_LOCK_object_files().end())
+	  NEEDS_WRITE_LOCK_object_files().erase(iter);
 	BFD_RELEASE_WRITE_LOCK;
+	LIBCWD_RESTORE_CANCEL;
 	set_alloc_checking_on(LIBCWD_TSD);
       }
 
@@ -995,13 +986,9 @@ void bfd_close(bfd* abfd)
 	{
 	  Dout(dc::finish, "No symbols found");
 	  object_file->deinitialize(LIBCWD_TSD);
-	  LIBCWD_DEFER_CANCEL;
-	  BFD_ACQUIRE_WRITE_LOCK;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  delete object_file;
 	  set_alloc_checking_on(LIBCWD_TSD);
-	  BFD_RELEASE_WRITE_LOCK;
-	  LIBCWD_RESTORE_CANCEL;
 	  return NULL;
         }
 	return object_file;
