@@ -47,6 +47,7 @@ distclean-local:
 	rm -rf rpm
 
 MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h.in Makefile.in \
-	install-sh missing mkinstalldirs config.guess config.sub ltmain.sh ltconfig
+	install-sh missing mkinstalldirs config.guess config.sub ltmain.sh ltconfig \
+	config.cache config.log config.status depcomp
 
 @MAINTAINER_MODE_TRUE@include maintMakefile

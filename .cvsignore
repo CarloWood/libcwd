@@ -11,6 +11,8 @@ config.guess
 config.sub
 ltconfig
 ltmain.sh
+depcomp
+stamp-h1
 config.h.in
 config.h
 stamp-h.in

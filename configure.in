@@ -100,12 +100,13 @@ dnl Always let CXX and CXXCPP override cached values
 CW_ENVIRONMENT
 
 dnl Check for compiler and preprocessor
+AC_PROG_CC
+AC_PROG_CXX
 CW_PROG_CXX
 CW_PROG_CXXCPP
 if test -n "$CC"; then
   unset ac_cv_prog_CC
 fi
-AC_PROG_CC
 
 dnl Check if C compiler and C++ compiler versions match.
 CW_COMPILER_VERSIONS
@@ -128,8 +129,8 @@ AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS")
 dnl We need to use these options for the tests too
 CXXFLAGS="$DEBUGOPTS $EXTRAOPTS"
 
-dnl This block cannot be replaced by a macro because the DISABLE_* and
-dnl PROG_LIBTOOL macros need to be in configure.in itself for some reason.
+dnl This block cannot be replaced by a macro because the DISABLE_* and the
+dnl AM_PROG_LIBTOOL macro need to be in configure.in itself for some reason.
 dnl This block is also present in src/libcw/configure.in!
 dnl Generate libtool (also checks shared/static prerequisites)
 if expr "$host" : ".*openbsd.*" >/dev/null; then
@@ -142,7 +143,7 @@ fi
 test -n "$enable_shared" || enable_shared=yes
 test -n "$enable_static" || enable_static=yes
 dnl Note: due to a bug in libtool-1.3c, the language must be C at this point!
-AC_PROG_LIBTOOL
+AM_PROG_LIBTOOL
 dnl Configuration needed by the testsuite, extract this from the generated 'libtool'
 enable_shared=`./libtool --config | grep '^build_libtool_libs=' | sed -e 's/build_libtool_libs=//'`
 enable_static=`./libtool --config | grep '^build_old_libs=' | sed -e 's/build_old_libs=//'`

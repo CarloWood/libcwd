@@ -148,7 +148,7 @@ if test "$no_create" != yes; then
     fi
   done
 fi]
-dnl `automake' looks for AC_OUTPUT and thinks `$1.in' etc.
+dnl `automake' looks for AC_OUTPUT and thinks `$1' etc.
 dnl is a literally required file unless we fool it a bit here:
 [AC_OUTPUT]([$1], [$2], [$3]))
 
@@ -512,9 +512,8 @@ dnl
 dnl Like AC_PROG_CXX, except that it demands that GNU g++-2.95.1
 dnl or higher is available.
 AC_DEFUN(CW_PROG_CXX,
-[AC_BEFORE([$0], [AC_PROG_CXXCPP])dnl
-AC_CHECK_PROGS(CXX, g++ c++)
-AC_PROG_CXX_WORKS
+[AC_BEFORE([$0], [CW_PROG_CXXCPP])
+AC_REQUIRE([AC_PROG_CXX])
 AC_CACHE_CHECK(whether we are using GNU C++ version 2.95.1 or later, ac_cv_prog_gxx_version,
 [dnl The semicolon is to pacify NeXT's syntax-checking cpp.
 cat > conftest.C <<EOF
@@ -550,7 +549,9 @@ dnl CW_PROG_CXXCPP
 dnl
 dnl Like AC_PROG_CXXCPP but with bug work around that allows user to override CXXCPP.
 AC_DEFUN(CW_PROG_CXXCPP,
-[dnl This triggers the bug:
+[AC_BEFORE([$0], [AC_PROG_CXXCPP])
+AC_REQUIRE([CW_PROG_CXX])
+dnl This triggers the bug:
 if test -n "$CXXCPP"; then
 dnl Work around:
   unset ac_cv_prog_CXXCPP
@@ -567,7 +568,7 @@ dnl CW_PROG_CXX_FINGER_PRINTS
 dnl
 dnl Extract finger prints of C++ compiler and preprocessor and C compiler which is used for linking.
 AC_DEFUN(CW_PROG_CXX_FINGER_PRINTS,
-[AC_REQUIRE([CW_PROG_CXX])
+[AC_REQUIRE([AC_PROG_CXX])
 AC_REQUIRE([CW_PROG_CXXCPP])
 AC_REQUIRE([AC_PROG_CC])
 cw_prog_cxx_finger_print="`$CXX -v 2>&1 | grep version | head -n 1`"

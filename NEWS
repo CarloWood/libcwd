@@ -3,6 +3,10 @@ libcwd-0.99.15
 	libcwd now works with (single threaded) qt applications.  A few major
 	bugs have been fixed.
 
+	Miscellaneous:
+	- The configuration option --disable-libcwd-location is fixed.
+	- Automake-1.5 now works.
+
 	API changes:
 
 	You now MUST use CWDEBUG, defining DEBUG will no longer work; it was
