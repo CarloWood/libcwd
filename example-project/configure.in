@@ -38,7 +38,8 @@ AC_REQUIRE_CPP
 # Configuration defines
 
 # Check if we have libcwd, $enable_debugging can be "yes", "no" or empty (auto).
-test -n "$enable_debugging" || enable_debugging=no	# Test the default to explicitely "no".
+test -n "$enable_debugging" || enable_debugging=no	# Set the default to an explicit "no".
+# This sets 'cw_use_libcwd' to "yes" if libcwd is actually used; CXXFLAGS and LDFLAGS are updated.
 CW_LIB_LIBCWD([debugging], [$enable_debugging], [no])
 
 # Generate output files.

@@ -15,7 +15,7 @@
 # or non-threaded respectively.
 #
 # This macro tests for the usability of libcwd and sets the the macro
-# `cw_cv_lib_libcwd' to "yes" when it is detected, "no" otherwise.
+# `cw_used_libcwd' to "yes" when it is detected, "no" otherwise.
 #
 # The default ACTION_IF_FOUND is, if WANTED is unequal "no",
 # to update CXXFLAGS and LIBS.
@@ -25,31 +25,38 @@
 # libcwd was found.
 
 AC_DEFUN([CW_LIB_LIBCWD],
-[AC_CACHE_CHECK([if libcwd is available], cw_cv_lib_libcwd,
-[# Check if we have libcwd
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
-cw_libname=cwd
-test "$3" = "yes" && cw_libname=cwd_r
-cw_save_LIBS="$LIBS"
-LIBS="`pkg-config --libs lib$cw_libname` $LIBS"
-AC_LINK_IFELSE([AC_LANG_CALL([], [__libcwd_version])], [cw_cv_lib_libcwd=yes], [cw_cv_lib_libcwd=no])
-LIBS="$cw_save_LIBS"
-AC_LANG_RESTORE])
-cw_use_libcwd="$2"
-test -n "$cw_use_libcwd" || cw_use_libcwd=auto
-test "$cw_use_libcwd" = "auto" && cw_use_libcwd=$cw_cv_lib_libcwd
-if test "$cw_use_libcwd" = "yes"; then
-  if test "$cw_cv_lib_libcwd" = "no"; then
-    m4_default([$5], [dnl
-  AC_MSG_ERROR([
+[if test x"$$2" = x"no"; then
+  cw_used_libcwd=no
+else
+  cw_libname=cwd
+  test "$3" = "yes" && cw_libname=cwd_r
+  AC_CACHE_CHECK([if libcwd is available], cw_cv_lib_libcwd,
+[  # Check if we have libcwd
+  AC_LANG_SAVE
+  AC_LANG_CPLUSPLUS
+  cw_save_LIBS="$LIBS"
+  LIBS="`pkg-config --libs lib$cw_libname` $LIBS"
+  AC_LINK_IFELSE([AC_LANG_CALL([], [__libcwd_version])], [cw_cv_lib_libcwd=yes], [cw_cv_lib_libcwd=no])
+  LIBS="$cw_save_LIBS"
+  AC_LANG_RESTORE])
+  cw_use_libcwd="$2"
+  test -n "$cw_use_libcwd" || cw_use_libcwd=auto
+  test "$cw_use_libcwd" = "auto" && cw_use_libcwd=$cw_cv_lib_libcwd
+  if test "$cw_use_libcwd" = "yes"; then
+    if test "$cw_cv_lib_libcwd" = "no"; then
+      m4_default([$5], [dnl
+      AC_MSG_ERROR([
   --enable-$1: You need to have libcwd installed to enable this.
   Or perhaps you need to add its location to PKG_CONFIG_PATH and LD_LIBRARY_PATH, for example:
   PKG_CONFIG_PATH=/opt/install/lib/pkgconfig LD_LIBRARY_PATH=/opt/install/lib ./configure])])
+    else
+      cw_used_libcwd=yes
+      m4_default([$4], [dnl
+      CXXFLAGS="`pkg-config --cflags lib$cw_libname` $CXXFLAGS"
+      LIBS="$LIBS `pkg-config --libs lib$cw_libname`"])
+    fi
   else
-    m4_default([$4], [dnl
-    CXXFLAGS="`pkg-config --cflags lib$cw_libname` $CXXFLAGS"
-    LIBS="$LIBS `pkg-config --libs lib$cw_libname`"])
+    cw_used_libcwd=no
   fi
 fi
 ])
