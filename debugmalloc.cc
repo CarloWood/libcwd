@@ -189,10 +189,9 @@ namespace libcw { namespace debug { extern void initialize_globals(void); } }
     DEBUGDEBUG_DoutInternal_MARKER;			\
     if (library_call == 0 && libcw_do._off < 0)		\
     {							\
-DEBUGDEBUG_CERR( "Entering 'DoutInternal(cntrl, \"" << data << "\")'.  internal == " << internal << "; setting library_call to 1 and internal to false." ); \
+DEBUGDEBUG_CERR( "Entering 'DoutInternal(cntrl, \"" << data << "\")'.  internal == " << internal << "; setting internal to false." ); \
       int prev_internal = internal;			\
       internal = false;					\
-      ++library_call;					\
       bool on;						\
       {							\
         using namespace channels;			\
@@ -201,11 +200,12 @@ DEBUGDEBUG_CERR( "Entering 'DoutInternal(cntrl, \"" << data << "\")'.  internal 
       if (on)						\
       {							\
         libcw_do.start();				\
+	++libcw_do._off;				\
         (*libcw_do.current_oss) << data;		\
+	--libcw_do._off;				\
         libcw_do.finish();				\
       }							\
-      --library_call;					\
-DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal = " << internal << "; setting library_call to " << library_call << " and internal to " << prev_internal << '.' ); \
+DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal = " << internal << "; setting internal to " << prev_internal << '.' ); \
       internal = prev_internal;				\
     }							\
     DEBUGDEBUG_ELSE_DoutInternal(data)			\
@@ -219,7 +219,6 @@ DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal =
     {							\
       int prev_internal = internal;			\
       internal = false;					\
-      ++library_call;					\
       bool on;						\
       {							\
         using namespace channels;			\
@@ -228,10 +227,11 @@ DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal =
       if (on)						\
       {							\
         libcw_do.start();				\
+	++libcw_do._off;				\
         (*libcw_do.current_oss) << data;		\
+	--libcw_do._off;				\
         libcw_do.finish();				\
       }							\
-      --library_call;					\
       internal = prev_internal;				\
     }							\
   } while(0)
@@ -242,15 +242,16 @@ DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal =
     DEBUGDEBUG_DoutFatalInternal_MARKER;		\
     if (library_call < 2)				\
     {							\
-DEBUGDEBUG_CERR( "Entering 'DoutFatalInternal(cntrl, \"" << data << "\")'.  internal == " << internal << "; setting library_call to " << (library_call + 1) << " and internal to false." ); \
+DEBUGDEBUG_CERR( "Entering 'DoutFatalInternal(cntrl, \"" << data << "\")'.  internal == " << internal << "; setting internal to false." ); \
       internal = false;					\
-      ++library_call;					\
       {							\
 	using namespace channels;			\
 	libcw_do|cntrl;					\
       }							\
       libcw_do.start();					\
+      ++libcw_do._off;					\
       (*libcw_do.current_oss) << data;			\
+      --libcw_do._off;					\
       libcw_do.fatal_finish();	/* Never returns */	\
       ASSERT( !"Bug in libcwd!" );			\
     }							\
@@ -351,11 +352,9 @@ namespace _internal_ {
 #endif
       return true;
     ios_base_initialized = true;
-    ++library_call;
     ++libcw_do._off;
     make_all_allocations_invisible_except(NULL);    // Get rid of the <pre ios initialization> allocation list.
     --libcw_do._off;
-    --library_call;
     DEBUGDEBUG_CERR( "Standard streams initialized." );
     return false;
   }
@@ -944,8 +943,6 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
 #endif
 #endif
 {
-  ASSERT( !internal );
-
   register void* mptr;
 #ifndef DEBUGMAGICMALLOC
   if (!(mptr = __libc_malloc(size)))
@@ -978,15 +975,19 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
         if (!_internal_::ios_base_initialized && !_internal_::inside_ios_base_Init_Init())
 #endif // __GLIBCPP__
     {
+      initialization_state = 1;			// initialize_globals() calls malloc again of course.
+#ifdef DEBUGDEBUGMALLOC
+      --recursive;				// Allow that.
+#endif
 #ifdef DEBUGDEBUG
       bool continued_debug_output = (library_call == 0 && libcw_do._off < 0);
 #endif
-      ++library_call;
       libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
 						// to be a function that is called _very_ early - and hence this is a good moment
 						// to initialize ALL of libcwd.
-      --library_call;
-      initialization_state = 1;
+#ifdef DEBUGDEBUGMALLOC
+      ++recursive;
+#endif
 #ifdef DEBUGDEBUG
       // It is possible that libcwd is not initialized at this point, libcw_do._off == 0 (turned off)
       // and thus no unfinished debug output was printed before entering this function.
@@ -1108,7 +1109,7 @@ void list_allocations_on(debug_ct& debug_object)
 void make_invisible(void const* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !internal && (!recursive || library_call) );
+  ASSERT( !internal );
 #endif
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i == memblk_map->end() || (*i).first.start() != ptr)
@@ -1123,7 +1124,7 @@ void make_invisible(void const* ptr)
 void make_all_allocations_invisible_except(void const* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !internal && (!recursive || library_call) );
+  ASSERT( !internal );
 #endif
   for (dm_alloc_ct const* alloc = base_alloc_list; alloc;)
   {
@@ -1557,7 +1558,7 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 void register_external_allocation(void const* mptr, size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive && !internal );
   ++recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__)
@@ -1622,7 +1623,7 @@ using namespace ::libcw::debug;
 void* __libcwd_malloc(size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
@@ -1691,7 +1692,7 @@ void* __libcwd_malloc(size_t size)
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
@@ -1771,7 +1772,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 void* __libcwd_realloc(void* ptr, size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
@@ -1924,7 +1925,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 void __libcwd_free(void* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive || internal );
   ++recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
@@ -2118,7 +2119,7 @@ void __libcwd_free(void* ptr)
 void* operator new(size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
@@ -2181,7 +2182,7 @@ void* operator new(size_t size)
 void* operator new[](size_t size)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive || internal );
   ++recursive;
   int saved_marker = ++marker;
 #endif
@@ -2249,7 +2250,7 @@ void* operator new[](size_t size)
 void operator delete(void* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive || internal );
   ++recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
@@ -2265,7 +2266,7 @@ void operator delete(void* ptr)
 void operator delete[](void* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive || internal || library_call );
+  ASSERT( !recursive || internal );
   ++recursive;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)

@@ -193,6 +193,7 @@ inline void check_configuration(void) {
 // autoconf defines that are needed.
 //
 
+#undef HAVE___LIBC_MALLOC
 #@CW_CONFIG_HAVE___LIBC_MALLOC@ HAVE___LIBC_MALLOC
 
 #endif // LIBCW_DEBUGGING_DEFS_H
