@@ -603,3 +603,42 @@ cw_cv_sys_builtin_return_address_offset=-1)])
 eval "CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET=\"$cw_cv_sys_builtin_return_address_offset\""
 AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
 ])
+
+dnl CW_BUG_G_CONFIG_H
+dnl Check if /usr/include/_G_config.h forgets to define a few macros
+AC_DEFUN(CW_BUG_G_CONFIG_H,
+[AC_CHECK_FUNCS(labs)
+AC_CACHE_CHECK([whether _G_config.h forgets to define macros], cw_cv_sys_G_config_h_macros,
+[AC_EGREP_CPP(_G_CLOG_CONFLICT,
+[#ifndef HAVE__G_CONFIG_H
+#include <_G_config.h>
+#endif
+#ifndef _G_CLOG_CONFLICT
+_G_CLOG_CONFLICT
+#endif
+], cw_cv_sys_G_config_h_macros=_G_CLOG_CONFLICT, cw_cv_sys_G_config_h_macros=no)
+AC_EGREP_CPP(_G_HAS_LABS,
+[#ifdef HAVE__G_CONFIG_H
+#include <_G_config.h>
+#endif
+#ifndef _G_HAS_LABS
+_G_HAS_LABS
+#endif
+], [if test "$cw_cv_sys_G_config_h_macros" = "no"; then
+  cw_cv_sys_G_config_h_macros=_G_HAS_LABS
+else
+  cw_cv_sys_G_config_h_macros="$cw_cv_sys_G_config_h_macros _G_HAS_LABS"
+fi])])
+if test "$cw_cv_sys_G_config_h_macros" != no; then
+  CW_CONFIG_G_CONFIG_H_MACROS=define
+else
+  CW_CONFIG_G_CONFIG_H_MACROS=undef
+fi
+AC_SUBST(CW_CONFIG_G_CONFIG_H_MACROS)
+if test "$ac_cv_func_labs" = yes; then
+  CW_HAVE_LABS=1
+else
+  CW_HAVE_LABS=0
+fi
+AC_SUBST(CW_HAVE_LABS)
+])
