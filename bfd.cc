@@ -1031,15 +1031,21 @@ int const BSF_DYNAMIC = 4096;
 	{
 	  if (p->name)
 	  {
-	    string demangled_name;
-	    demangle_symbol(p->name, demangled_name);
-	    Dout(dc::bfd, "Warning: Address " << hex << addr << " in section " << sect->name <<
-		" does not have a line number, perhaps the unit containing the function");
+	    set_alloc_checking_off();
+	    {
+	      string demangled_name;
+	      demangle_symbol(p->name, demangled_name);
+	      set_alloc_checking_on();
+	      Dout(dc::bfd, "Warning: Address " << hex << addr << " in section " << sect->name <<
+		  " does not have a line number, perhaps the unit containing the function");
 #ifdef __FreeBSD__
-	    Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb");
+	      Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb");
 #else
-	    Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g");
+	      Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g");
 #endif
+	      set_alloc_checking_off();
+	    }
+	    set_alloc_checking_on();
 	  }
 	  else
 	    Dout(dc::bfd, "Warning: Address in section " << sect->name << " does not contain a function");

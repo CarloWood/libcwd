@@ -754,17 +754,15 @@ void dm_alloc_ct::print_description(void) const
         ':' << setw(5) << setiosflags(std::ios_base::left) << M_location.line());
   else if (M_location.mangled_function_name() != unknown_function_c)
   {
-    ++library_call;
-    ++libcw_do._off;
+    set_alloc_checking_off();
     {
-      string f;		// Can not be internal because we pass it to demangle_symbol.
+      string f;
       demangle_symbol(M_location.mangled_function_name(), f);
       if (f.size() < 25)
 	f.append(25 - f.size(), ' ');
       DoutInternal_without_DEBUGDEBUG_CERR( dc::continued, f << ' ' );
     }
-    --libcw_do._off;
-    --library_call;
+    set_alloc_checking_on();
   }
   else
     DoutInternal_without_DEBUGDEBUG_CERR( dc::continued, setw(25) << ' ' );
