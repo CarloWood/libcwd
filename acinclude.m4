@@ -885,7 +885,7 @@ AC_SUBST(DEBUGOPTS)
 
 dnl Other options
 if test "$USE_MAINTAINER_MODE" = yes; then
-EXTRAOPTS="-O"
+EXTRAOPTS=""
 else
 EXTRAOPTS="-O"
 fi

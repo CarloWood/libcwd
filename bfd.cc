@@ -54,6 +54,7 @@ extern link_map* _dl_loaded;
 #undef dlclose
 #endif
 #include "exec_prog.h"
+#include <libcw/class_object_file.h>
 #if CWDEBUG_LIBBFD
 #if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
 // libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
@@ -204,10 +205,10 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       class object_file_ct;
 
       // cwbfd::
-      typedef std::list<object_file_ct*, _private_::object_files_allocator> object_files_ct;
+      typedef std::list<cwbfd::object_file_ct*, _private_::object_files_allocator> object_files_ct;
 
       // cwbfd::
-      class object_file_ct {					// All allocations related to object_file_ct must be `internal'.
+      class object_file_ct {					// All allocations related to cwbfd::object_file_ct must be `internal'.
       private:
 	bfd* abfd;
 	void* lbase;
@@ -215,8 +216,8 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	asymbol** symbol_table;
 	long number_of_symbols;
 	function_symbols_ct function_symbols;
+	libcw::debug::object_file_ct M_object_file;
       public:
-	object_file_ct(void) : lbase(0) { }
 	object_file_ct(char const* filename, void* base);
 	~object_file_ct();
 
@@ -225,6 +226,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	size_t size(void) const { return M_size; }
 	asymbol** get_symbol_table(void) const { return symbol_table; }
 	long get_number_of_symbols(void) const { return number_of_symbols; }
+	libcw::debug::object_file_ct const* get_object_file(void) const { return &M_object_file; }
 	function_symbols_ct& get_function_symbols(void) { return function_symbols; }
 	function_symbols_ct const& get_function_symbols(void) const { return function_symbols; }
       private:
@@ -248,7 +250,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       symbol_start_addr(asymbol const* s)
       {
 	return s->value + bfd_get_section(s)->vma
-	    + reinterpret_cast<char const*>(reinterpret_cast<object_file_ct const*>(bfd_asymbol_bfd(s)->usrdata)->get_lbase());
+	    + reinterpret_cast<char const*>(reinterpret_cast<cwbfd::object_file_ct const*>(bfd_asymbol_bfd(s)->usrdata)->get_lbase());
       }
 
       // cwbfd::
@@ -270,22 +272,22 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       // cwbfd::
-      char object_file_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
+      char cwbfd::object_file_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
 
       // cwbfd::
       inline object_files_ct const& NEEDS_READ_LOCK_object_files(void)
       {
-	return *reinterpret_cast<object_files_ct const*>(object_file_ct::ST_list_instance);
+	return *reinterpret_cast<object_files_ct const*>(cwbfd::object_file_ct::ST_list_instance);
       }
 
       // cwbfd::
       inline object_files_ct& NEEDS_WRITE_LOCK_object_files(void)
       {
-	return *reinterpret_cast<object_files_ct*>(object_file_ct::ST_list_instance);
+	return *reinterpret_cast<object_files_ct*>(cwbfd::object_file_ct::ST_list_instance);
       }
 
       // cwbfd::
-      object_file_ct* NEEDS_READ_LOCK_find_object_file(void const* addr)
+      cwbfd::object_file_ct* NEEDS_READ_LOCK_find_object_file(void const* addr)
       {
 	object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
 	for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
@@ -295,7 +297,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       // cwbfd::
-      object_file_ct* NEEDS_READ_LOCK_find_object_file(bfd const* abfd)
+      cwbfd::object_file_ct* NEEDS_READ_LOCK_find_object_file(bfd const* abfd)
       {
 	object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
 	for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
@@ -353,7 +355,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       void* const unknown_l_addr = (void*)-1;
 
       // cwbfd::
-      object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
+      cwbfd::object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base), M_object_file(filename)
       {
 #if CWDEBUG_DEBUGM
 	{
@@ -607,7 +609,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       // cwbfd::
-      object_file_ct::~object_file_ct()
+      cwbfd::object_file_ct::~object_file_ct()
       {
 #if defined(_REENTRANT) && CWDEBUG_DEBUG
 	LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
@@ -619,7 +621,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
       // cwbfd::
       struct object_file_greater {
-	bool operator()(object_file_ct const* a, object_file_ct const* b) const { return a->get_lbase() > b->get_lbase(); }
+	bool operator()(cwbfd::object_file_ct const* a, cwbfd::object_file_ct const* b) const { return a->get_lbase() > b->get_lbase(); }
       };
 
       // cwbfd::
@@ -885,7 +887,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
 #ifdef LIBCWD_DEBUGBFD
       // cwbfd::
-      void dump_object_file_symbols(object_file_ct const* object_file)
+      void dump_object_file_symbols(cwbfd::object_file_ct const* object_file)
       {
 	std::cout << std::setiosflags(std::ios_base::left) << std::setw(15) << "Start address" << std::setw(50) << "File name" << std::setw(20) << "Number of symbols\n";
 	std::cout << "0x" << std::setfill('0') << std::setiosflags(std::ios_base::right) << std::setw(8) << std::hex << (unsigned long)object_file->get_lbase() << "     ";
@@ -907,7 +909,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #endif
 
       // cwbfd::
-      object_file_ct* load_object_file(char const* name, void* l_addr)
+      cwbfd::object_file_ct* load_object_file(char const* name, void* l_addr)
       {
 	{
 	  LIBCWD_TSD_DECLARATION
@@ -919,7 +921,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << "... ");
 	else
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << " (" << l_addr << ") ... ");
-	object_file_ct* object_file = new object_file_ct(name, l_addr);
+	cwbfd::object_file_ct* object_file = new cwbfd::object_file_ct(name, l_addr);
 	if (object_file->get_number_of_symbols() > 0)
 	{
 	  Dout(dc::finish, "done (" << std::dec << object_file->get_number_of_symbols() << " symbols)");
@@ -1083,7 +1085,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       // cwbfd::
-      symbol_ct const* pc_symbol(bfd_vma addr, object_file_ct* object_file)
+      symbol_ct const* pc_symbol(bfd_vma addr, cwbfd::object_file_ct* object_file)
       {
 	if (object_file)
 	{
@@ -1152,11 +1154,22 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
     _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, bfd_location_ct const& location)
     {
-      if (location.M_filepath)
+      if (location.M_known)
 	os << location.M_filename << ':' << location.M_line;
       else
 	os << "<unknown location>";
       return os;
+    }
+
+    libcw::debug::object_file_ct::object_file_ct(char const* filepath)
+    {
+      LIBCWD_TSD_DECLARATION
+      set_alloc_checking_off(LIBCWD_TSD);
+      M_filepath = strcpy((char*)malloc(strlen(filepath) + 1), filepath);
+      set_alloc_checking_on(LIBCWD_TSD);
+      M_filename = strrchr(M_filepath, '/') + 1;
+      if (M_filename == (char const*)1)
+	M_filename = M_filepath;
     }
 
     //
@@ -1167,15 +1180,17 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
     // Like `pc_function', this function looks up the symbol (function) that
     // belongs to the address `addr' and stores the pointer to the name of that symbol
     // in the member `M_func'.  When no symbol could be found then `M_func' is set to
-    // `libcw::debug::unknown_function_c' and `M_filepath' is set to NULL.
+    // `libcw::debug::unknown_function_c'.
     //
     // If a symbol is found then this function attempts to lookup source file and line number
     // nearest to the given address.  The result - if any - is put into `M_filepath' (source
     // file) and `M_line' (line number), and `M_filename' is set to point to the filename
-    // part of `M_filepath'.  If a lookup fails then `M_filepath' is set to NULL.
+    // part of `M_filepath'.
     //
     void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     {
+      LIBCWD_ASSERT( !M_known );
+
       using namespace cwbfd;
 
       if (!WST_initialized)
@@ -1186,20 +1201,20 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #ifdef __GLIBCPP__	// Pre libstdc++ v3, there is no malloc done for initialization of cerr.
         if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
 	{
-	  M_filepath = NULL;
+	  M_object_file = NULL;
 	  M_func = "<pre ios initialization>";
 	  return;
 	}
 #endif
 	if (!ST_init())	// Initialization of BFD code fails?
 	{
-	  M_filepath = NULL;
+	  M_object_file = NULL;
 	  M_func = "<pre libcwd initialization>";
 	  return;
 	}
       }
 
-      object_file_ct* object_file;
+      cwbfd::object_file_ct* object_file;
       LIBCWD_DEFER_CANCEL;
       BFD_ACQUIRE_READ_LOCK;
       object_file = NEEDS_READ_LOCK_find_object_file(addr);
@@ -1239,10 +1254,11 @@ already_loaded:
       if (!object_file)
       {
         LIBCWD_Dout(dc::bfd, "No object file for address " << addr);
-	M_filepath = NULL;
+	M_object_file = NULL;
 	M_func = unknown_function_c;
 	return;
       }
+      M_object_file = object_file->get_object_file();
 
       symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, object_file);
       if (symbol && symbol->is_defined())
@@ -1278,15 +1294,14 @@ already_loaded:
 	  // free `file' before we copy it!
 	  // Therefore we need to call `set_alloc_checking_off', to prevent this.
 	  set_alloc_checking_off(LIBCWD_TSD);
-	  M_filepath = new char [len + 1];
+	  M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);
 	  set_alloc_checking_on(LIBCWD_TSD);
-	  strcpy(M_filepath, file);
-	  M_filename = strrchr(M_filepath, '/') + 1;
+	  strcpy(M_filepath.get(), file);
+	  M_known = true;
+	  M_filename = strrchr(M_filepath.get(), '/') + 1;
 	  if (M_filename == (char const*)1)
-	    M_filename = M_filepath;
+	    M_filename = M_filepath.get();
 	}
-	else
-	  M_filepath = NULL;
 
 	// Sanity check
 	if (!p->name || M_line == 0)
@@ -1325,7 +1340,6 @@ already_loaded:
 	return;
       }
 
-      M_filepath = NULL;
       if (symbol)
       {
 	Debug( dc::bfd.off() );
@@ -1347,67 +1361,42 @@ already_loaded:
      */
     void location_ct::clear(void)
     {
-      if (M_filepath)
+      if (M_known)
       {
-	LIBCWD_TSD_DECLARATION
-	set_alloc_checking_off(LIBCWD_TSD);
-	delete [] M_filepath;
-	M_filepath = NULL;
-	set_alloc_checking_on(LIBCWD_TSD);
+	M_known = false;
+	if (M_filepath.is_owner())
+	{
+	  LIBCWD_TSD_DECLARATION
+	  set_alloc_checking_off(LIBCWD_TSD);
+	  M_filepath.release();
+	  set_alloc_checking_on(LIBCWD_TSD);
+	}
       }
       M_func = "<cleared location_ct>";
     }
 
-    // Undocumented: shouldn't be used I think.
-    location_ct::location_ct(location_ct const &prototype) : M_filepath(NULL)
+    location_ct::location_ct(location_ct const &prototype)
     {
-      if (prototype.M_filepath)
+      if ((M_known = prototype.M_known))
       {
-	LIBCWD_TSD_DECLARATION
-	set_alloc_checking_off(LIBCWD_TSD);
-	M_filepath = new char [strlen(prototype.M_filepath) + 1];
-	set_alloc_checking_on(LIBCWD_TSD);
-	strcpy(M_filepath, prototype.M_filepath);
-	M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
+	M_object_file = prototype.M_object_file;
+	M_filepath = prototype.M_filepath;
+	M_filename = prototype.M_filename;
 	M_line = prototype.M_line;
 	M_func = prototype.M_func;
       }
     }
 
-    /**
-     * \brief Move \p prototype to this location object
-     *
-     * \p prototype must be \ref is_known "known" and the current object \ref is_known "unknown";
-     * \p prototype is clear()-ed afterwards.
-     */
-    void location_ct::move(location_ct& prototype)
-    {
-      // MT: This method is used assuming that *only* attributes of the
-      //     location_ct objects `this' and `prototype' are accessed.
-      // (so no locking is needed when the shared objects are known to be unique for the current thread).
-      LIBCWD_ASSERT( !this->is_known() );
-      M_filepath = prototype.M_filepath;
-      M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
-      M_line = prototype.M_line;
-      M_func = prototype.M_func;
-      prototype.M_filepath = NULL;
-      prototype.M_func = "<moved location_ct>";
-    }
-
-    // Undocumented: shouldn't be used I think.
     location_ct& location_ct::operator=(location_ct const &prototype)
     {
       if (this != &prototype)
       {
 	clear();
-	if (prototype.M_filepath)
+	if ((M_known = prototype.M_known))
 	{
-	  LIBCWD_TSD_DECLARATION
-	  set_alloc_checking_off(LIBCWD_TSD);
-	  M_filepath = new char [strlen(prototype.M_filepath) + 1];
-	  set_alloc_checking_on(LIBCWD_TSD);
-	  strcpy(M_filepath, prototype.M_filepath);
-	  M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
+	  M_object_file = prototype.M_object_file;
+	  M_filepath = prototype.M_filepath;
+	  M_filename = prototype.M_filename;
 	  M_line = prototype.M_line;
 	  M_func = prototype.M_func;
 	}
@@ -1424,7 +1413,7 @@ already_loaded:
      */
     std::ostream& operator<<(std::ostream& os, location_ct const& location)
     {
-      if (location.M_filepath)
+      if (location.M_known)
 	os << location.M_filename << ':' << location.M_line;
       else
 	os << "<unknown location>";

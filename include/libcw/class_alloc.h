@@ -58,6 +58,7 @@ protected:
   memblk_types_nt a_memblk_type;		//!< A flag which indicates the type of allocation.
   type_info_ct const* type_info_ptr;		//!< Type info of related object.
   lockable_auto_ptr<char, true> a_description;	//!< A label describing this memblk.
+  struct timeval a_time;			//!< The time at which the memory was allocated.
 #if CWDEBUG_LOCATION
   location_ct M_location;			//!< Source file, function and line number from where the allocator was called from.
 #endif
@@ -94,6 +95,13 @@ public:
    */
   char const* description(void) const { return a_description.get(); }
 
+  /**
+   * \brief The time at which this allocation was made.
+   *
+   * \returns the time at which the memory was allocated, as returned by a call to gettimeofday.
+   */
+  struct timeval const& time(void) const { return a_time; }
+
 #if CWDEBUG_LOCATION
   /**
    * \brief The source file location that the allocator was called from.
@@ -116,11 +124,11 @@ public:
 
 protected:
   /**
-   * \brief Construct an \c alloc_ct object with attributes \a s, \a sz, \a type and \a ti.
+   * \brief Construct an \c alloc_ct object with attributes \a s, \a sz, \a type, \a ti and \a t.
    * \internal
    */
-  alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti) :
-      a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti) { }
+  alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, struct timeval const& t) :
+      a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti), a_time(t) { }
 
   /**
    * \brief Destructor.

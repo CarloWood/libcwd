@@ -149,6 +149,7 @@
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
 #include <libcw/cwprint.h>
+#include <sys/time.h>		// Needed for gettimeofday(2)
 
 // MULTI THREADING
 //
@@ -637,8 +638,8 @@ private:
   				// this object.
 
 public:
-  dm_alloc_ct(void const* s, size_t sz, memblk_types_nt f) :		// MT-safe: write lock is set.
-      alloc_ct(s, sz , f, unknown_type_info_c),
+  dm_alloc_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t) :		// MT-safe: write lock is set.
+      alloc_ct(s, sz , f, unknown_type_info_c, t),
       next(*dm_alloc_ct::current_alloc_list), prev(NULL), a_next_list(NULL),
       my_list(dm_alloc_ct::current_alloc_list), my_owner_node(dm_alloc_ct::current_owner_node)
       {
@@ -748,7 +749,7 @@ private:
     // after this memblk_info_ct is deleted (dm_alloc_ct marked `is_deleted'),
     // when it still has allocated 'childeren' in `a_next_list' of its own.
 public:
-  memblk_info_ct(void const* s, size_t sz, memblk_types_nt f);
+  memblk_info_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t);
   void erase(LIBCWD_TSD_PARAM);
   void lock(void) { a_alloc_node.lock(); }
   void make_invisible(void) { a_alloc_node.reset(); }			// MT-safe: write lock is set (needed for ~dm_alloc_ct).
@@ -774,13 +775,13 @@ private:
     // Never use this.  It's needed for the implementation of the std::pair<>.
 };
 
-typedef std::pair<memblk_key_ct const, memblk_info_ct> memblk_ct;
-  // The value type of the map (memblk_map_ct::value_type).
-
 //=============================================================================
 //
 // The memblk map:
 //
+
+typedef std::pair<memblk_key_ct const, memblk_info_ct> memblk_ct;
+  // The value type of the map (memblk_map_ct::value_type).
 
 typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>, _private_::memblk_map_allocator> memblk_map_ct;
   // The map containing all `memblk_ct' objects.
@@ -792,25 +793,93 @@ union memblk_map_t {
 #else
   memblk_map_ct const* MT_unsafe;
 #endif
+  // The `map' implementation calls `new' when initializing a new `map',
+  // therefore this must be a pointer.
   memblk_map_ct* write;		// Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
   memblk_map_ct const* read;	// Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
 };
 
 static memblk_map_t memblk_map;		// MT-safe: initialized before WST_initialization_state == 1.
 
-// The `map' implementation calls `new' when initializing a new `map',
-// therefore this must be a pointer.
-
 #define memblk_map_write (memblk_map.write)
 #define memblk_map_read  (memblk_map.read)
-#define iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
+#define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
+
+//=============================================================================
+//
+// The location_cache map:
+//
+
+typedef std::pair<void const* const, location_ct> location_cache_ct;
+  // The value type of the map (location_cache_map_ct::value_type).
+
+typedef std::map<void const*, location_ct, std::less<void const*>, _private_::memblk_map_allocator> location_cache_map_ct;
+  // The map used to cache locations at which memory was allocated.
+
+union location_cache_map_t {
+#ifdef _REENTRANT
+  location_cache_map_ct const volatile* MT_unsafe;
+#else
+  location_cache_map_ct const* MT_unsafe;
+#endif
+  location_cache_map_ct* write;		// Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
+  location_cache_map_ct const* read;	// Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
+};
+
+static location_cache_map_t location_cache_map;		// MT-safe: initialized before WST_initialization_state == 1.
+
+#define location_cache_map_write (location_cache_map.write)
+#define location_cache_map_read  (location_cache_map.read)
+#define location_cache_iter_write reinterpret_cast<location_cache_map_ct::iterator&>(const_cast<location_cache_map_ct::const_iterator&>(iter))
+
+//=============================================================================
 
 static int WST_initialization_state;		// MT-safe: We will reach state '1' the first call to malloc.
 						// We *assume* that the first call to malloc is before we reach
 						// main(), or at least before threads are created.
-  //  0: memblk_map and libcwd both not initialized yet.
-  //  1: memblk_map and libcwd both initialized.
-  // -1: memblk_map initialized but libcwd not initialized yet.
+
+  //  0: memblk_map, location_cache_map and libcwd both not initialized yet.
+  //  1: memblk_map, location_cache_map and libcwd both initialized.
+  // -1: memblk_map and location_cache_map initialized but libcwd not initialized yet.
+
+//=============================================================================
+//
+// Location cache
+//
+
+location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
+{
+  LIBCWD_ASSERT( !__libcwd_tsd.internal );
+  bool found;
+  location_ct* location_info;
+  LIBCWD_DEFER_CANCEL;
+  ACQUIRE_READ_LOCK;
+  location_cache_map_ct::const_iterator const_iter(location_cache_map_read->find(addr));
+  found = (const_iter != location_cache_map_read->end());
+  if (found)
+    location_info = const_cast<location_ct*>(&(*const_iter).second);
+  RELEASE_READ_LOCK;
+  LIBCWD_RESTORE_CANCEL;
+  if (!found)
+  {
+    location_ct loc(addr);	// This construction must be done with no lock set at all.
+    LIBCWD_DEFER_CANCEL;
+    ACQUIRE_WRITE_LOCK;
+    DEBUGDEBUG_CERR( "location_cache: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
+    __libcwd_tsd.internal = 1;
+    std::pair<location_cache_map_ct::iterator, bool> const&
+	iter(location_cache_map_write->insert(location_cache_ct(addr, loc)));
+    DEBUGDEBUG_CERR( "location_cache: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
+    __libcwd_tsd.internal = 0;
+    location_info = &(*iter.first).second;
+    if (iter.second)		// Test for insertion because another thread could have added this location
+				  // to the cache between RELEASE_READ_LOCK and ACQUIRE_WRITE_LOCK above.
+      location_info->lock_ownership();
+    RELEASE_WRITE_LOCK;
+    LIBCWD_RESTORE_CANCEL;
+  }
+  return location_info;
+}
 
 //=============================================================================
 //
@@ -883,59 +952,23 @@ inline std::ostream& operator<<(std::ostream& os, smanip<unsigned long> const& s
 
 extern void demangle_symbol(char const* in, _private_::internal_string& out);
 
-#if CWDEBUG_LOCATION
-struct dm_location_ct : public location_ct {
-  void print_on(std::ostream& os) const;
-  friend _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, dm_location_ct const& data);
-#if CWDEBUG_DEBUGOUTPUT
-  friend _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& os, dm_location_ct const& data);
-#endif
-};
-#endif // CWDEBUG_LOCATION
-
 static char const* const twentyfive_spaces_c = "                         ";
 
-#if CWDEBUG_LOCATION
-_private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, dm_location_ct const& data)
+// Print integer without allocating memory.
+static void print_integer(std::ostream& os, unsigned int val, int width)
 {
-  size_t len = strlen(data.M_filename);
-  if (len < 20)
-    os.M_os.write(twentyfive_spaces_c, 20 - len);
-  os.M_os.write(data.M_filename, len);
-  os.M_os.put(':');
-  _private_::no_alloc_print_int_to(&os.M_os, data.M_line, false);
-  int l = data.M_line;
-  int cnt = 0;
-  while(l < 10000)
+  char buf[12];
+  char* p = buf + sizeof(buf);
+  int c = width;
+  do
   {
-    ++cnt;
-    l *= 10;
+    *--p = '0' + val % 10;
+    val /= 10;
   }
-  os.M_os.write(twentyfive_spaces_c, cnt);
-  return os;
+  while(--c > 0 || val > 0);
+  while(c++ < width)
+    os << *p++;
 }
-
-#if CWDEBUG_DEBUGOUTPUT
-_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, dm_location_ct const& data)
-{
-  size_t len = strlen(data.M_filename);
-  if (len < 20)
-    write(2, twentyfive_spaces_c, 20 - len);
-  write(2, data.M_filename, len);
-  write(2, ":", 1);
-  (void)operator<<(raw_write, data.M_line);
-  int l = data.M_line;
-  int cnt = 0;
-  while(l < 10000)
-  {
-    ++cnt;
-    l *= 10;
-  }
-  write(2, twentyfive_spaces_c, cnt);
-  return raw_write;
-}
-#endif // CWDEBUG_DEBUGOUTPUT
-#endif // CWDEBUG_LOCATION
 
 void dm_alloc_ct::print_description(LIBCWD_TSD_PARAM) const
 {
@@ -944,7 +977,25 @@ void dm_alloc_ct::print_description(LIBCWD_TSD_PARAM) const
 #endif
 #if CWDEBUG_LOCATION
   if (M_location.is_known())
-    DoutInternal(dc::continued, *static_cast<dm_location_ct const*>(&M_location));
+  {
+    LibcwDoutScopeBegin(channels, libcw_do, dc::continued);
+    LibcwDoutStream << M_location.object_file()->filename() << ':';
+    size_t len = M_location.filepath_length();
+    if (len < 20)
+      LibcwDoutStream.write(twentyfive_spaces_c, 20 - len);
+    M_location.print_filepath_on(LibcwDoutStream);
+    LibcwDoutStream.put(':');
+    print_integer(LibcwDoutStream, M_location.line(), 1);
+    int l = M_location.line();
+    int cnt = 0;
+    while(l < 10000)
+    {
+      ++cnt;
+      l *= 10;
+    }
+    LibcwDoutStream.write(twentyfive_spaces_c, cnt);
+    LibcwDoutScopeEnd;
+  }
   else if (M_location.mangled_function_name() != unknown_function_c)
   {
     __libcwd_tsd.internal = 1;
@@ -1025,11 +1076,28 @@ void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel) const
   LIBCWD_TSD_DECLARATION
   for (alloc = this; alloc; alloc = alloc->next)
   {
-    Dout( channel|nolabel_cf|continued_cf, "" ); // Only prints prefix
+    LibcwDoutScopeBegin(channels, libcw_do, channel|nolabel_cf|continued_cf);
     for (int i = depth; i > 1; i--)
-      Dout( dc::continued, "    " );
+      LibcwDoutStream << "    ";
+    struct tm* tbuf_ptr;
+#if LIBCWD_THREAD_SAFE
+    struct tm tbuf;
+    tbuf_ptr = localtime_r(&alloc->a_time.tv_sec, &tbuf);
+#else
+    tbuf_ptr = localtime(&alloc->a_time.tv_sec);
+#endif
+    print_integer(LibcwDoutStream, tbuf_ptr->tm_hour, 2);
+    LibcwDoutStream << ':';
+    print_integer(LibcwDoutStream, tbuf_ptr->tm_min, 2);
+    LibcwDoutStream << ':';
+    print_integer(LibcwDoutStream, tbuf_ptr->tm_sec, 2);
+    LibcwDoutStream << '.';
+    print_integer(LibcwDoutStream, alloc->a_time.tv_usec, 6);
+    LibcwDoutStream << ' ';
     // Print label and start.
-    Dout( dc::continued, cwprint(memblk_types_label_ct(alloc->memblk_type())) << alloc->a_start << ' ' );
+    LibcwDoutStream << cwprint(memblk_types_label_ct(alloc->memblk_type()));
+    LibcwDoutStream << alloc->a_start << ' ';
+    LibcwDoutScopeEnd;
     alloc->print_description(LIBCWD_TSD);
     Dout( dc::finish, "" );
     if (alloc->a_next_list)
@@ -1042,8 +1110,8 @@ void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel) const
 // memblk_ct methods
 //
 
-inline memblk_info_ct::memblk_info_ct(void const* s, size_t sz, memblk_types_nt f) :	// MT-safe: write lock is set.
-    M_memblk_type(f), a_alloc_node(new dm_alloc_ct(s, sz, f)) {}
+inline memblk_info_ct::memblk_info_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t) :	// MT-safe: write lock is set.
+    M_memblk_type(f), a_alloc_node(new dm_alloc_ct(s, sz, f, t)) {}
 
 void memblk_key_ct::printOn(std::ostream& os) const
 {
@@ -1275,7 +1343,7 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 #if CWDEBUG_LOCATION
   if (__libcwd_tsd.library_call++)
     ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);	// Otherwise debug output will be generated from bfd.cc (location_ct)
-  location_ct loc(call_addr LIBCWD_COMMA_TSD);
+  location_ct const* loc = location_cache(call_addr LIBCWD_COMMA_TSD);
   if (--__libcwd_tsd.library_call)
     --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
@@ -1291,9 +1359,11 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
   __libcwd_tsd.internal = 1;
 
   // Update our administration:
+  struct timeval alloc_time;
+  gettimeofday(&alloc_time, 0);
   ACQUIRE_WRITE_LOCK
   std::pair<memblk_map_ct::iterator, bool> const&
-      iter(memblk_map_write->insert(memblk_ct(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, flag))));
+      iter(memblk_map_write->insert(memblk_ct(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, flag, alloc_time))));
   memblk_info = &(*iter.first).second;
 #if CWDEBUG_DEBUGM
   error = !iter.second;
@@ -1313,7 +1383,7 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 
   memblk_info->lock();				// Lock ownership (doesn't call malloc).
 #if CWDEBUG_LOCATION
-  memblk_info->get_alloc_node()->location_reference().move(loc);
+  memblk_info->get_alloc_node()->location_reference() = *loc;
 #endif
 
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
@@ -1480,8 +1550,8 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     // that the application would crash when two threads try to free simultaneously
     // the same memory block (instead of detecting that and exiting gracefully).
     ACQUIRE_READ2WRITE_LOCK
-    (*iter_write).second.erase(LIBCWD_TSD);	// Update flags and optional decouple
-    memblk_map_write->erase(iter_write);	// Update administration
+    (*memblk_iter_write).second.erase(LIBCWD_TSD);	// Update flags and optional decouple
+    memblk_map_write->erase(memblk_iter_write);		// Update administration
     RELEASE_WRITE_LOCK
 
     DEBUGDEBUG_CERR( "__libcwd_free: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
@@ -1663,7 +1733,9 @@ void init_debugmalloc(void)
     if (WST_initialization_state == 0)			// Only true once.
     {
       _private_::set_alloc_checking_off(LIBCWD_TSD);
-      memblk_map.MT_unsafe = new memblk_map_ct;		// MT-safe: There are no threads created yet when we get here.
+      // MT-safe: There are no threads created yet when we get here.
+      location_cache_map.MT_unsafe = new location_cache_map_ct;
+      memblk_map.MT_unsafe = new memblk_map_ct;
       WST_initialization_state = -1;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
@@ -1861,7 +1933,7 @@ void make_invisible(void const* ptr)
   DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
   __libcwd_tsd.internal = 1;
   ACQUIRE_READ2WRITE_LOCK
-  (*iter_write).second.make_invisible();
+  (*memblk_iter_write).second.make_invisible();
   RELEASE_WRITE_LOCK
   DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
@@ -2149,6 +2221,7 @@ bool memblk_key_ct::selftest(void)
 
   memblk_map_ct map1;
   unsigned int cnt = 0;
+  struct timeval alloc_time = { 0, 0 };
 
   long const interval_start = 100;
   long const interval_end = 200;
@@ -2167,7 +2240,7 @@ bool memblk_key_ct::selftest(void)
 	    continue;
 	  std::pair<memblk_map_ct::iterator, bool> const& p3(map1.insert(
 	      memblk_ct(memblk_key_ct((void*)start1, end1 - start1),
-	      memblk_info_ct((void*)start1, end1 - start1, memblk_type_malloc)) ));
+	      memblk_info_ct((void*)start1, end1 - start1, memblk_type_malloc, alloc_time)) ));
 	  if (p3.second)
 	    ++cnt;
 	  for (long start_or_end_start2 = interval_start;; start_or_end_start2 = interval_end)
@@ -2185,7 +2258,7 @@ bool memblk_key_ct::selftest(void)
                   memblk_map_ct map2;
 		  std::pair<memblk_map_ct::iterator, bool> const& p1(map2.insert(
                       memblk_ct(memblk_key_ct((void*)start1, end1 - start1),
-                      memblk_info_ct((void*)start1, end1 - start1, memblk_type_malloc)) ));
+                      memblk_info_ct((void*)start1, end1 - start1, memblk_type_malloc, alloc_time)) ));
                   if (!p1.second)
                     return true;
                   if ((*p1.first).first.start() != (void*)start1 || (*p1.first).first.end() != (void*)end1)
@@ -2193,7 +2266,7 @@ bool memblk_key_ct::selftest(void)
                   bool overlap = !((start1 < start2 && end1 <= start2) || (start2 < start1 && end2 <= start1));
 		  std::pair<memblk_map_ct::iterator, bool> const& p2(map2.insert(
                       memblk_ct(memblk_key_ct((void*)start2, end2 - start2),
-                      memblk_info_ct((void*)start2, end2 - start2, memblk_type_malloc)) ));
+                      memblk_info_ct((void*)start2, end2 - start2, memblk_type_malloc, alloc_time)) ));
                   if (overlap && p2.second || (!overlap && !p2.second))
                     return true;
 		  if (((*p2.first).first.start() < (void*)start2 && (*p2.first).first.end() <= (void*)start2) ||
@@ -2256,6 +2329,7 @@ void register_external_allocation(void const* mptr, size_t size)
   if (WST_initialization_state == 0)		// Only true once.
   {
     __libcwd_tsd.internal = 1;
+    location_cache_map.MT_unsafe = new location_cache_map_ct;
     memblk_map.MT_unsafe = new memblk_map_ct;
     WST_initialization_state = -1;
     __libcwd_tsd.internal = 0;
@@ -2264,7 +2338,7 @@ void register_external_allocation(void const* mptr, size_t size)
 #if CWDEBUG_LOCATION
   if (__libcwd_tsd.library_call++)
     ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);	// Otherwise debug output will be generated from bfd.cc (location_ct)
-  location_ct loc(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset LIBCWD_COMMA_TSD);
+  location_ct* loc = location_cache(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset LIBCWD_COMMA_TSD);
   if (--__libcwd_tsd.library_call)
     --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
@@ -2273,10 +2347,12 @@ void register_external_allocation(void const* mptr, size_t size)
   __libcwd_tsd.internal = 1;
 
   // Update our administration:
+  struct timeval alloc_time;
+  gettimeofday(&alloc_time, 0);
   std::pair<memblk_map_ct::iterator, bool> iter;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
-  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_external));	// MT: memblk_info_ct() needs wrlock.
+  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_external, alloc_time));	// MT: memblk_info_ct() needs wrlock.
   iter = memblk_map_write->insert(memblk);
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL;
@@ -2291,7 +2367,7 @@ void register_external_allocation(void const* mptr, size_t size)
   memblk_info_ct& memblk_info((*iter.first).second);
   memblk_info.lock();		// Lock ownership (doesn't call malloc).
 #if CWDEBUG_LOCATION
-  memblk_info.get_alloc_node()->location_reference().move(loc);
+  memblk_info.get_alloc_node()->location_reference().move(*loc);
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
 }
@@ -2546,7 +2622,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #if CWDEBUG_LOCATION
   if (__libcwd_tsd.library_call++)
     ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);    // Otherwise debug output will be generated from bfd.cc (location_ct)
-  location_ct loc(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset LIBCWD_COMMA_TSD);
+  location_ct const* loc = location_cache(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset LIBCWD_COMMA_TSD);
   if (--__libcwd_tsd.library_call)
     --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
@@ -2637,9 +2713,11 @@ void* __libcwd_realloc(void* ptr, size_t size)
   __libcwd_tsd.internal = 1;
   type_info_ct const* t = (*iter).second.typeid_ptr();
   char const* d = (*iter).second.description();
+  struct timeval realloc_time;
+  gettimeofday(&realloc_time, 0);
   ACQUIRE_READ2WRITE_LOCK
-  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_realloc));	// MT: memblk_info_ct() needs wrlock.
-  memblk_map_write->erase(iter_write);
+  memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_realloc, realloc_time));	// MT: memblk_info_ct() needs wrlock.
+  memblk_map_write->erase(memblk_iter_write);
   std::pair<memblk_map_ct::iterator, bool> const& iter2(memblk_map_write->insert(memblk));
   if (!iter2.second)
   {
@@ -2654,7 +2732,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
 #if CWDEBUG_LOCATION
-  memblk_info.get_alloc_node()->location_reference().move(loc);
+  memblk_info.get_alloc_node()->location_reference() = *loc;
 #endif
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL_NO_BRACE;

@@ -24,6 +24,12 @@
 #ifndef LIBCW_PRIVATE_STRUCT_TSD_H
 #include <libcw/private_struct_TSD.h>
 #endif
+#ifndef LIBCW_CLASS_OBJECT_FILE_H
+#include <libcw/class_object_file.h>
+#endif
+#ifndef LIBCW_LOCKABLE_AUTO_PTR_H
+#include <libcw/lockable_auto_ptr.h>
+#endif
 #ifndef LIBCW_STRING
 #define LIBCW_STRING
 #include <string>
@@ -54,12 +60,12 @@ extern char const* const unknown_function_c;
  */
 class location_ct {
 protected:
-  char* M_filepath;	//!< The full source file name of this location, or NULL when unknown.&nbsp; Allocated in `M_pc_location' using new [].
-  char* M_filename;	//!< Points inside M_filepath just after the last '/' or to the beginning.
-  unsigned int M_line;	//!< The line number of this location.
-  char const* M_func;	//!< Pointer to static string containing the mangled function name of this location.
-
-  void M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM);
+  lockable_auto_ptr<char, true> M_filepath;	//!< The full source file name of this location.&nbsp; Allocated in `M_pc_location' using new [].
+  char* M_filename;				//!< Points inside M_filepath just after the last '/' or to the beginning.
+  unsigned int M_line;				//!< The line number of this location.
+  char const* M_func;				//!< Pointer to static string containing the mangled function name of this location.
+  object_file_ct const* M_object_file;		//!< A pointer to an object representing the library or executable that this location belongs to.
+  bool M_known;					//!< Set when the above variables contains valid data.
 
 public:
   location_ct(void const* addr);
@@ -70,14 +76,57 @@ public:
 #endif
   ~location_ct();
 
-  // Provided, but deprecated (I honestly think you never need them):
-  location_ct(void);						// Default constructor
-  location_ct(location_ct const& location);			// Copy constructor
+  /**
+   * \brief The default constructor.
+   *
+   * Constructs an unknown location object.
+   * Use \ref pc_location to initialize the object.
+   */
+  location_ct(void);
+
+  /**
+   * \brief Copy constructor.
+   *
+   * Constructs a location that is equivalent to the location passed as argument.
+   * The new object will be the owner of the memory allocations of this allocation
+   * unless the member function \ref lock_ownership was called for the prototype
+   * before copying it.  It is the responsibility of the coder to make sure that
+   * the allocation owner is the object that is last deleted (if at all).
+   */
+  location_ct(location_ct const& location);
+
+  /**
+   * \brief Assignment operator.
+   *
+   * Assigns the value of the location passed to the current object.
+   * The new object will be the owner of the memory allocations of this allocation
+   * unless the member function \ref lock_ownership was called for the prototype
+   * before copying it.  It is the responsibility of the coder to make sure that
+   * the allocation owner is the object that is last deleted (if at all).
+   */
   location_ct& operator=(location_ct const& location);		// Assignment operator
 
+  /**
+   * \brief Lock ownership of internal allocations.
+   *
+   * Makes this object responsible for deleting internal allocations,
+   * the user is responsible to making sure that the owner is
+   * deleted last.
+   */
+  void lock_ownership(void) { if (M_known) M_filepath.lock(); }
+
+  /**
+   * \brief Initialize the current object with the location that corresponds with \a pc.
+   */
   void pc_location(void const* pc);
+
+  // Only public because libcwd calls it directly.
+  void M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM);
+
+  /**
+   * \brief Clear the current object (set the location to 'unknown').
+   */
   void clear(void);
-  void move(location_ct& prototype);
 
 public:
   // Accessors
@@ -88,8 +137,10 @@ public:
   bool is_known(void) const;
 
   /**
-   * \brief Return the source file name (without path).  We don't allow to retrieve a pointer
-   * to M_filepath; that is dangerous as the memory that it is pointing to could be deleted.
+   * \brief The source file name (without path).
+   *
+   * We don't allow to retrieve a pointer to the allocated character string because
+   * that is dangerous as the memory that it is pointing to could be deleted.
    */
   std::string file(void) const;
 
@@ -104,8 +155,22 @@ public:
    */
   char const* mangled_function_name(void) const;
 
+  /** \brief The size of the file name. */
+  size_t filename_length(void) const { return M_known ? strlen(M_filename) : 0; }
+  /** \brief The size of the full path name. */
+  size_t filepath_length(void) const { return M_known ? strlen(M_filepath.get()) : 0; }
+
+  /** \brief Corresponding object file.
+   *
+   * Returns a pointer to an object representing the shared library or the executable
+   * that this location belongs to; only valid if is_known() returns true.
+   */
+  object_file_ct const* object_file(void) const { return M_object_file; }
+
   // Printing
+  /** \brief Write the full path to an ostream. */
   void print_filepath_on(std::ostream& os) const;
+  /** \brief Write the file name to an ostream. */
   void print_filename_on(std::ostream& os) const;
   friend std::ostream& operator<<(std::ostream& os, location_ct const& location);
       // Prints a default "M_filename:M_line".

@@ -66,7 +66,7 @@ public:
 //
 // This is the left-most type of channel 'control' series
 // existing of <channel_set_bootstrap_st>|<one or more channels>|<optional control flags>.
-// It is used in macro LibcwdDoutScopeStart.
+// It is used in macro LibcwDoutScopeBegin.
 //
 // LibcwDoutFatal uses operator& while LibcwDout uses operator|.
 //

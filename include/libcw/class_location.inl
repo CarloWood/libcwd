@@ -42,21 +42,19 @@ namespace libcw {
  * \brief Construct a location for address \p addr.
  */
 __inline__
-location_ct::location_ct(void const* addr)
+location_ct::location_ct(void const* addr) : M_known(false)
 {
   LIBCWD_TSD_DECLARATION
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
 
 #if LIBCWD_THREAD_SAFE
-/**
- * \brief Construct a location for address \p addr.
- * \internal
- *
- * Takes a thread-specific-data argument.
+/*
+ * Construct a location for address addr,
+ * taking a thread-specific-data argument.
  */
 __inline__
-location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM)
+location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false)
 {
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
@@ -71,9 +69,8 @@ location_ct::~location_ct()
   clear();
 }
 
-// Undocumented: shouldn't be used I think.
 __inline__
-location_ct::location_ct(void) : M_filepath(NULL), M_func("<uninitialized location_ct>")
+location_ct::location_ct(void) : M_func("<uninitialized location_ct>"), M_known(false)
 {
 }
 
@@ -93,7 +90,7 @@ __inline__
 bool
 location_ct::is_known(void) const
 {
-  return M_filepath != NULL;
+  return M_known;
 }
 
 __inline__
@@ -104,7 +101,7 @@ location_ct::file(void) const
   LIBCWD_TSD_DECLARATION
   LIBCWD_ASSERT( !__libcwd_tsd.internal );		// Returning a string, using a userspace allocator!
 #endif
-  LIBCWD_ASSERT( M_filepath != NULL );
+  LIBCWD_ASSERT( M_known );
   return M_filename;
 }
 
@@ -126,15 +123,15 @@ __inline__
 void
 location_ct::print_filepath_on(std::ostream& os) const
 {
-  LIBCWD_ASSERT( M_filepath != NULL );
-  os << M_filepath;
+  LIBCWD_ASSERT( M_known );
+  os << M_filepath.get();
 }
 
 __inline__
 void
 location_ct::print_filename_on(std::ostream& os) const
 {
-  LIBCWD_ASSERT( M_filepath != NULL );
+  LIBCWD_ASSERT( M_known );
   os << M_filename;
 }
 

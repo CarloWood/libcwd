@@ -12,6 +12,17 @@ libcwd-0.99.19
 	ALL allocations are accounted, including those done by third
 	party libraries.
 
+	Source file / line number lookups for memory allocations are
+	cached, which is slightly faster but mostly made it possible
+	to use pointers to the file names instead of duplicating
+	them, saving lots of memory when an application makes many
+	allocations.
+
+	The Allocation Overview now contains the time at which the
+	allocation was done.  It also shows the file name of the
+	shared library or executable that the location at which
+	the allocation was done belongs to.
+
 	Bug fixes:
 
 	The demangler for the old ABI (g++ versions <= 2.96)
