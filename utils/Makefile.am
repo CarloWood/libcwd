@@ -14,7 +14,7 @@ LIBUTILS_R = libutils_r.la
 else
 LIBUTILS_R =
 endif
-lib_LTLIBRARIES = libutils.la $(LIBUTILS_R)
+noinst_LTLIBRARIES = libutils.la $(LIBUTILS_R)
 
 libutils_la_CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
 libutils_la_SOURCES = \
