@@ -22,4 +22,10 @@ EXTRA_HEADERS = sys.h debug_config.h
 
 EXTRA_DIST = perf.h
 
+DISTCLEANFILES = debug_config.h sys.h
+
 MAINTAINERCLEANFILES = Makefile.in
+
+install-data-local:
+	$(INSTALL_DATA) $(EXTRA_HEADERS) $(DESTDIR)$(libcwddir)
+
