@@ -46,7 +46,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 	LIBCWD_CANCELSTATE_DISABLE								\
 	LIBCWD_TSD_DECLARATION									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
-	::write(2, "CWDEBUG_DEBUG: ", 12);								\
+	::write(2, "CWDEBUG_DEBUG: ", 15);								\
 	/*  __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning. */ \
 	for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
 	  ::write(2, "    ", 4);								\
