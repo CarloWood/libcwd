@@ -75,6 +75,9 @@ int main(int argc, char* argv[])
   delete marker;
 #endif
 
+  delete [] p;
+  delete [] a2;
+  delete a1;
   Dout(dc::notice, "Finished successfully.");
 
 #else // !DEBUGMALLOC

@@ -39,6 +39,7 @@
 #include <libcw/bfd.h>
 #include <libcw/exec_prog.h>
 #include <libcw/cwprint.h>
+#include "config.h"
 
 #undef DEBUGDEBUGBFD
 #ifdef DEBUGDEBUGBFD
@@ -310,6 +311,39 @@ ostream& operator<<(ostream& o, location_st const& loc)
   return o;
 }
 
+static bool is_group_member(gid_t gid)
+{
+#if defined(HAVE_GETGID) && defined(HAVE_GETEGID)
+  if (gid == getgid() || gid == getegid())
+#endif
+    return true;
+
+#ifdef HAVE_GETGROUPS
+  int ngroups = 0;
+  int default_group_array_size = 0;
+  getgroups_t* group_array = (getgroups_t*)NULL;
+
+  while (ngroups == default_group_array_size)
+  {
+    default_group_array_size += 64;
+    group_array = (getgroups_t*)realloc(group_array, default_group_array_size * sizeof(getgroups_t));
+    ngroups = getgroups(default_group_array_size, group_array);
+  }
+
+  if (ngroups > 0)
+    for (int i = 0; i < ngroups; i++)
+      if (gid == group_array[i])
+      {
+        free(group_array);
+	return true;
+      }
+
+  free(group_array);
+#endif
+
+  return false;
+}
+
 // 
 // Find the full path to the current running process.
 // This needs to work before we reach main, therefore
@@ -336,12 +370,44 @@ string full_path_to_executable(void) return result
   proc_file >> argv0;
   proc_file.close();
 
+  if (argv0.find('/') == string::npos)
+  {
+    string prog_name(argv0.data());
+    string path_list(getenv("PATH"));
+    //char const* home = getenv("HOME");
+    string::size_type start_pos = 0, end_pos;
+    string path;
+    struct stat finfo;
+    prog_name += '\0';
+    for (;;)
+    {
+      end_pos = path_list.find(':', start_pos);
+      path = path_list.substr(start_pos, end_pos - start_pos) + '/' + prog_name;
+      if (stat(path.data(), &finfo) == 0 && !S_ISDIR(finfo.st_mode))
+      {
+        uid_t user_id = geteuid();
+	if ((user_id == 0 && (finfo.st_mode & 0111)) ||
+	    (user_id == finfo.st_uid && (finfo.st_mode & 0100)) ||
+	    (is_group_member(finfo.st_gid) && (finfo.st_mode & 0010)) ||
+	    (finfo.st_mode & 0001))
+	{
+	  argv0 = path;
+	  break;
+        }
+      }
+      if (end_pos == string::npos)
+        break;
+      start_pos = end_pos + 1;
+    }
+  }
+
   char full_path_buf[MAXPATHLEN];
   char* full_path = realpath(argv0.data(), full_path_buf);
 
   if (!full_path)
     DoutFatal(error_cf, "realpath(\"" << argv0.data() << "\", full_path_buf)");
 
+  Dout(dc::debug, "Full path to executable is \"" << full_path << "\".");
   result = full_path;
 }
 
@@ -403,7 +469,8 @@ static int libcw_bfd_init(void)
   bfd_init();
 
   // Get the full path and name of executable
-  static string const fullpath(full_path_to_executable());		// Must be static because bfd keeps a pointer to its data()
+  static string fullpath(full_path_to_executable());		// Must be static because bfd keeps a pointer to its data()
+  fullpath += '\0';
 
   bfd_set_error_program_name(fullpath.data() + fullpath.find_last_of('/') + 1);
   bfd_set_error_handler(libcw_bfd_error_handler);

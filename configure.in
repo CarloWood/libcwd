@@ -6,23 +6,66 @@ dnl Ensure that the directory specified with --srcdir was correct
 dnl by demanding that it contains `debugmalloc.cc'.
 AC_INIT(debugmalloc.cc)
 
-dnl Use a different default cache_file.
-if test "$cache_file" = ./config.cache; then
-  rm -f ./config.cache
-  cache_file=../../config.cache
-  AC_CACHE_LOAD
-fi
+dnl Include maintainer mode targets
+AM_MAINTAINER_MODE
 
 dnl Put resulting configuration defines in this header file.
-AM_CONFIG_HEADER(include/config.h)
+AM_CONFIG_HEADER(config.h)
 
 dnl Demand at least version 2.13 of autoconf.
 AC_PREREQ(2.13)
 
-dnl Set package name and version
-AM_INIT_AUTOMAKE(libcwd, 0.99.2)
+dnl Version info
+dnl
+dnl INTERFACE_VERSION		: Current interface version, increment whenever the interface is changed.
+dnl INTERFACE_VERSION_REVISION	: Revision, increment every public release; or set to 0 when the interface is changed.
+dnl INTERFACE_AGE		: Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
-dnl Manual configuration options.
+INTERFACE_VERSION=99		dnl 0.99 actually
+INTERFACE_VERSION_REVISION=2
+INTERFACE_AGE=99		dnl 0.99 actually
+
+VERSION_MAJOR=$(($INTERFACE_VERSION-$INTERFACE_AGE))
+VERSION_MINOR=$INTERFACE_AGE
+VERSION_REVISION=$INTERFACE_VERSION_REVISION
+
+dnl Automake package name and version
+AM_INIT_AUTOMAKE(libcwd, [$VERSION_MAJOR.$VERSION_MINOR.$VERSION_REVISION])
+
+dnl Libtool version info
+VERSIONINFO="$INTERFACE_VERSION:$INTERFACE_VERSION_REVISION:$INTERFACE_AGE"
+AC_SUBST(VERSIONINFO)
+
+dnl Choose warning options to use
+if test "$USE_MAINTAINER_MODE" = yes; then
+WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Winline -Wwrite-strings -Werror"
+else
+WARNOPTS=
+fi
+AC_SUBST(WARNOPTS)
+
+dnl Stop automake from adding the `-I. -I. -I.' nonsense
+AC_SUBST(DEFS)
+
+dnl Find out which debugging options we need
+AC_CANONICAL_HOST
+case "$host" in
+  *freebsd*) DEBUGOPTS=-ggdb ;;	dnl FreeBSD needs -ggdb to include sourcefile:linenumber info in its object files.
+  *) DEBUGOPTS=-g ;;
+esac
+AC_SUBST(DEBUGOPTS)
+
+dnl Other options
+EXTRAOPTS="-fno-exceptions -pipe"
+AC_SUBST(EXTRAOPTS)
+
+dnl We need to use these options for the tests too
+CXXFLAGS="$DEBUGOPTS $EXTRAOPTS"
+
+dnl Manual configuration options of libcwd.
+AC_ARG_ENABLE(libcwd,
+[Options of package libcwd:])
+
 libcwd_config_alloc=yes
 AC_ARG_ENABLE(libcwd-alloc,
     [  --disable-libcwd-alloc  disable memory allocation debugging support.],
@@ -59,6 +102,10 @@ dnl Checks for programs.
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+dnl Disable building static libraries by default
+AC_DISABLE_STATIC
 AM_PROG_LIBTOOL
 
 dnl Set language requirements for the tests below.
@@ -90,12 +137,13 @@ fi
 if test "$libcwd_config_bfd" = yes; then
 
   dnl Checks for libraries.
+  save_LIBS=$LIBS
 
   dnl Check if we have `cplus_demangle' in libiberty.a
-  CW_CHECK_STATICLIB(libiberty.a, cplus_demangle,,
+  AC_CHECK_LIB(iberty, cplus_demangle,,
       [dnl If that failed, try linking with -ldl:
-      unset ac_cv_lib_static_libiberty_a_cplus_demangle
-      CW_CHECK_STATICLIB(libiberty.a, cplus_demangle,,, -ldl)])
+      unset ac_cv_lib_iberty_cplus_demangle
+      AC_CHECK_LIB(iberty, cplus_demangle, [LIBS="-liberty -ldl $LIBS"],, -ldl)])
 
   dnl Check if we have `bfd_init' in -lbfd
   AC_CHECK_LIB(bfd, bfd_init,,
@@ -111,6 +159,11 @@ if test "$libcwd_config_bfd" = yes; then
   else
     AC_MSG_WARN([Cannot find a working libbfd;  Look up of function names and source:line information will be disabled.])
   fi
+
+  dnl Now remove those libraries again: we can't link our shared library
+  dnl with the static libiberty.a because that wasn't compiled with -fPIC
+  dnl LIBS=$save_LIBS
+
 fi
 
 if test "$libcwd_config_debug" = yes; then
@@ -126,6 +179,7 @@ if test "$libcwd_config_marker" = yes; then
 fi
 
 dnl Checks for header files.
+AC_HEADER_STAT
 
 dnl Check for typedefs.
 AC_TYPE_SIGNAL
@@ -136,6 +190,8 @@ CW_TYPE_SIGHANDLER_PARAM_T
 if test "$ac_cv_type_signal" = "int"; then
   AC_DEFINE_UNQUOTED([CW_RETSIGTYPE_IS_INT])
 fi
+AC_TYPE_UID_T
+CW_TYPE_GETGROUPS
 
 dnl Check for structures.
 
@@ -147,10 +203,15 @@ CW_NEED_WORD_ALIGNMENT
 CW_NBLOCK
 
 dnl Check for library functions.
+AC_CHECK_FUNCS(getgid getegid getgroups)
 
 dnl Check for system services.
 
 dnl Set up build directory
 test ! -d include && mkdir include
 
-CW_OUTPUT([Makefile include/libcw/debug_config.h include/libcw/sys.h])
+CW_OUTPUT(Makefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+exit 0
+
+dnl Keep automake happy
+AC_OUTPUT(Makefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)

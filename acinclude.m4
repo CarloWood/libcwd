@@ -88,8 +88,9 @@ AC_SUBST(CW_CONFIG_DWARF2OUT_BUG)
 dnl CW_BUG_REDEFINES_INITIALIZATION
 dnl
 AC_DEFUN(CW_BUG_REDEFINES_INITIALIZATION,
-[CW_REDEFINES_FIX=
-AC_SUBST(CW_REDEFINES_FIX)])
+CW_REDEFINES_FIX=
+dnl We don't want automake to put this in Makefile.in
+[AC_SUBST](CW_REDEFINES_FIX))
 
 dnl CW_BUG_REDEFINES([HEADERFILE])
 dnl
@@ -159,14 +160,17 @@ if test "$no_create" != yes; then
       mv $cw_outfile $cw_outfile.$cw_pid
     fi
   done
-fi
-AC_OUTPUT([$1], [$2], [$3])])
+fi]
+dnl `automake' looks for AC_OUTPUT and thinks `$1.in' etc.
+dnl is a literally required file unless we fool it a bit here:
+[AC_OUTPUT]([$1], [$2], [$3]))
 
 dnl CW_DEFINE_TYPE_INITIALIZATION
 dnl
 AC_DEFUN(CW_DEFINE_TYPE_INITIALIZATION,
-[CW_TYPEDEFS=
-AC_SUBST(CW_TYPEDEFS)])
+CW_TYPEDEFS=
+dnl We don't want automake to put this in Makefile.in
+[AC_SUBST](CW_TYPEDEFS))
 
 dnl CW_DEFINE_TYPE(NEWTYPE, OLDTYPE)
 dnl
@@ -403,3 +407,54 @@ fi
 CW_CONFIG_NBLOCK=$cw_cv_system_nblock
 AC_SUBST(CW_CONFIG_NBLOCK)
 ])
+
+dnl CW_TYPE_GETGROUPS
+dnl
+dnl Like AC_TYPE_GETGROUPS but with bug fix for C++ and adding a
+dnl typedef getgroups_t instead of defining the macro GETGROUPS_T.
+AC_DEFUN(CW_TYPE_GETGROUPS,
+[AC_REQUIRE([AC_TYPE_UID_T])dnl
+AC_CACHE_CHECK(type of array argument to getgroups, ac_cv_type_getgroups,
+[AC_TRY_RUN(
+changequote(<<, >>)dnl
+<<
+/* Thanks to Mike Rendell for this test.  */
+#include <sys/types.h>
+#ifdef __cplusplus
+extern "C" int getgroups(size_t, gid_t*);
+#endif
+#define NGID 256
+#undef MAX
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+main()
+{
+  gid_t gidset[NGID];
+  int i, n;
+  union { gid_t gval; long lval; }  val;
+
+  val.lval = -1;
+  for (i = 0; i < NGID; i++)
+    gidset[i] = val.gval;
+  n = getgroups (sizeof (gidset) / MAX (sizeof (int), sizeof (gid_t)) - 1,
+                 gidset);
+  /* Exit non-zero if getgroups seems to require an array of ints.  This
+     happens when gid_t is short but getgroups modifies an array of ints.  */
+  exit ((n > 0 && gidset[n] != val.gval) ? 1 : 0);
+}
+>>,
+changequote([, ])dnl
+  [CW_TYPE_EXTRACT_FROM(getgroups, [#include <unistd.h>], 2, 2)
+  eval "cw_result2=\"$cw_result\""
+  ac_cv_type_getgroups=`echo "$cw_result2" | sed -e 's/ *\*$//'`],
+  ac_cv_type_getgroups=int,
+  ac_cv_type_getgroups=cross)
+if test "$ac_cv_type_getgroups" = cross; then
+  dnl When we can't run the test program (we are cross compiling), presume
+  dnl that <unistd.h> has either an accurate prototype for getgroups or none.
+  dnl Old systems without prototypes probably use int.
+  AC_EGREP_HEADER([getgroups.*int.*gid_t], unistd.h,
+                  ac_cv_type_getgroups=gid_t, ac_cv_type_getgroups=int)
+fi])
+CW_DEFINE_TYPE(getgroups_t, [$ac_cv_type_getgroups])
+])
+

@@ -1,2 +1,2 @@
-config.h.in
-config.h
+Makefile
+Makefile.in

@@ -1,5 +1,5 @@
-.depend-timestamp
-.depend
+Makefile
+Makefile.in
 bfd_tst
 deb
 debug_tst
