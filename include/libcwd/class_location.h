@@ -45,6 +45,16 @@
 namespace libcw {
   namespace debug {
 
+    namespace _private_ {
+
+enum hidden_st {
+  filtered_location,
+  unfiltered_location,
+  new_location
+};
+
+    } // namespace _private_
+
 /** \addtogroup group_locations */
 /** \{ */
 
@@ -75,11 +85,7 @@ protected:
 private:
 #if CWDEBUG_ALLOC
   friend class ooam_filter_ct;
-#if !CWDEBUG_DEBUG
-  bool M_hide;					// Used by ooam_filter_ct::M_sychronize_locations
-#else
-  int M_hide;					// We use a third value to indicate 'uninitialized'.
-#endif
+  mutable _private_::hidden_st M_hide;		// Indicates if this location is filtered by the current filter.
 #endif
 
 protected:
@@ -202,10 +208,9 @@ public:
   bool initialization_delayed(void) const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
 #if CWDEBUG_ALLOC
   void handle_delayed_initialization(ooam_filter_ct const& filter);
-  bool hide_from_alloc_list(void) const { return M_hide; }
-#if CWDEBUG_DEBUG
-  bool hide_initialized(void) const { return M_hide != 123456; }
-#endif
+  bool hide_from_alloc_list(void) const { return M_hide == _private_::filtered_location; }
+  bool new_location(void) const { return M_hide == _private_::new_location; }
+  void synchronize_with(ooam_filter_ct const&) const;
 #endif
 };
 

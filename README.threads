@@ -11,8 +11,8 @@ and the other threads continue to run for a while.
 There exists a kernel patch written by Intel/IBM
 that fixes this problem; please read
 http://www-124.ibm.com/developer/opensource/linux/projects/mtcoredumps/
-Note: The multithreaded coredumps support patch has
-      been included in kernel 2.5.47.
+Note: This patch, multithreaded coredumps support patch, has
+      already been included in kernel 2.5.47 and higher.
 
 You are strongly advised to use gdb 5.2 for multithreaded
 debugging.  Try not to use -O2 or -fomit-frame-pointer if

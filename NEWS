@@ -6,6 +6,12 @@ libcwd-0.99.30
 
 	Several minor thread related bug fixes.
 
+	Threaded applications could errornously filter away
+	allocation in an allocated memory overview because
+	allocation made after between two calls to
+	list_allocations_on using the same filter would
+	be filtered on an uninitialized boolean.
+
 libcwd-0.99.29
 
         Allocations inside Dout() et al are not 'internal' anymore.

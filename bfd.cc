@@ -1474,7 +1474,7 @@ already_loaded:
       {
 	M_known = false;
 #if CWDEBUG_ALLOC
-	M_hide = true;
+	M_hide = _private_::filtered_location;
 #endif
 	if (M_filepath.is_owner())
 	{
@@ -1489,8 +1489,8 @@ already_loaded:
     }
 
     location_ct::location_ct(location_ct const &prototype)
-#if CWDEBUG_ALLOC && CWDEBUG_DEBUG
-        : M_hide(123456)	// Initialization should not be needed.
+#if CWDEBUG_ALLOC
+        : M_hide(_private_::new_location)
 #endif
     {
       if ((M_known = prototype.M_known))

@@ -68,7 +68,7 @@ since existing binaries might need to link with them.
 
 libcwd-0.99.30 was tested with gcc-3.0.4, gcc-3.1,
 gcc-3.1.1, gcc-3.2, gcc-3.2.1, gcc-3.2.2, gcc-3.2.3,
-gcc-3.3 and gcc version 3.4 20030515 (experimental)
+gcc-3.3 and gcc version 3.4 20030519 (experimental)
 
 Packages needed to run the testsuite
 ------------------------------------

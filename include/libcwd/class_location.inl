@@ -42,8 +42,8 @@ namespace libcw {
  */
 __inline__
 location_ct::location_ct(void const* addr) : M_known(false)
-#if CWDEBUG_DEBUG
-    , M_hide(123456)	// Initialization should not be needed.
+#if CWDEBUG_ALLOC
+    , M_hide(_private_::new_location)
 #endif
 {
   LIBCWD_TSD_DECLARATION;
@@ -57,8 +57,8 @@ location_ct::location_ct(void const* addr) : M_known(false)
  */
 __inline__
 location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false)
-#if CWDEBUG_DEBUG
-    , M_hide(123456)
+#if CWDEBUG_ALLOC
+     , M_hide(_private_::new_location)
 #endif
 {
   M_pc_location(addr LIBCWD_COMMA_TSD);
@@ -76,8 +76,8 @@ location_ct::~location_ct()
 
 __inline__
 location_ct::location_ct(void) : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
-#if CWDEBUG_DEBUG
-    , M_hide(123456)
+#if CWDEBUG_ALLOC
+    , M_hide(_private_::new_location)
 #endif
 {
 }

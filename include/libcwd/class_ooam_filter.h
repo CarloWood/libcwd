@@ -149,7 +149,7 @@ public:
 
 #if CWDEBUG_LOCATION
   // Return true if filepath matches one of the masks in M_source_masks.
-  bool check_hide(char const* filepath) const;
+  _private_::hidden_st check_hide(char const* filepath) const;
 #endif
 
 private:

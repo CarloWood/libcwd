@@ -24,7 +24,7 @@ MAIN_FUNCTION
 
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
-#endif
+#else // CWDEBUG_ALLOC && CWDEBUG_LOCATION
 
   Debug( check_configuration() );
 
@@ -123,6 +123,8 @@ MAIN_FUNCTION
   free(cp2i);
   free(rp);
   free(rpi);
+
+#endif // CWDEBUG_ALLOC && CWDEBUG_LOCATION
 
   Debug( libcw_do.off() );
 

@@ -1088,22 +1088,22 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
   return location_info;
 }
 
+void location_ct::synchronize_with(ooam_filter_ct const& filter) const
+{
+#if defined(_REENTRANT) && CWDEBUG_DEBUG
+  LIBCWD_ASSERT( !M_known || M_hide == _private_::new_location || _private_::is_locked(location_cache_instance) );
+#endif
+  if (!M_known)
+    M_hide = _private_::unfiltered_location;
+  else
+    M_hide = filter.check_hide(M_filepath.get());
+}
+
 void ooam_filter_ct::M_synchronize_locations(void) const
 {
   ACQUIRE_LC_WRITE_LOCK;
   for (location_cache_map_ct::iterator iter = location_cache_map_write->begin(); iter != location_cache_map_write->end(); ++iter)
-  {
-    (*iter).second.M_hide = false;
-    if (!(*iter).second.M_known)
-      continue;
-    for (std::vector<std::string>::const_iterator iter2(M_sourcefile_masks.begin());
-	iter2 != M_sourcefile_masks.end(); ++iter2)
-      if (_private_::match((*iter2).data(), (*iter2).length(), (*iter).second.M_filepath.get()))
-      {
-	(*iter).second.M_hide = true;
-	break;
-      }
-  }
+    (*iter).second.synchronize_with(*this);
   RELEASE_LC_WRITE_LOCK;
 }
 
@@ -1111,18 +1111,15 @@ void location_ct::handle_delayed_initialization(ooam_filter_ct const& filter)
 {
   LIBCWD_TSD_DECLARATION;
   M_pc_location(M_initialization_delayed LIBCWD_COMMA_TSD);
-  if (!M_known)
-    M_hide = false;
-  else
-    M_hide = filter.check_hide(M_filepath.get());
+  synchronize_with(filter);
 }
 
-bool ooam_filter_ct::check_hide(char const* filepath) const
+_private_::hidden_st ooam_filter_ct::check_hide(char const* filepath) const
 {
   for (std::vector<std::string>::const_iterator iter(M_sourcefile_masks.begin()); iter != M_sourcefile_masks.end(); ++iter)
     if (_private_::match((*iter).data(), (*iter).length(), filepath))
-      return true;
-  return false;
+      return _private_::filtered_location;
+  return _private_::unfiltered_location;
 }
 #endif // CWDEBUG_LOCATION
 
@@ -1343,6 +1340,8 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
       const_cast<location_ct*>(&alloc->location())->handle_delayed_initialization(filter);
     if ((filter.M_flags & hide_unknown_loc) && !alloc->location().is_known())
       continue;
+    if (alloc->location().new_location())
+      alloc->location().synchronize_with(filter);
     if (alloc->location().hide_from_alloc_list())
       continue;
     object_file_ct const* object_file = alloc->location().object_file();
@@ -2724,9 +2723,9 @@ marker_ct::~marker_ct()
       dm_alloc_ct* next_alloc_node = alloc_node->next;
 #if CWDEBUG_LOCATION
       object_file_ct const* object_file = alloc_node->location().object_file();
+      if (alloc_node->location().new_location())
+	alloc_node->location().synchronize_with(M_filter);
 #endif
-      // FIXME: This bug still seems to exist, but I can't reproduce it anymore all of a sudden:
-      LIBCWD_ASSERT(alloc_node->location().hide_initialized());
       if (((M_filter.M_flags & hide_untagged) && !alloc_node->is_tagged()) ||
 #if CWDEBUG_LOCATION
 	  (alloc_node->location().hide_from_alloc_list()) ||
