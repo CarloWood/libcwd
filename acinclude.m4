@@ -673,9 +673,13 @@ AC_DEFUN(CW_SETUP_RPM_DIRS,
     test -d rpm || mkdir rpm
     cd rpm
     test -d BUILD || mkdir BUILD
+    touch BUILD/.notempty
     test -d SOURCES || mkdir SOURCES
+    touch SOURCES/.notempty
     test -d SRPMS || mkdir SRPMS
+    touch SRPMS/.notempty
     test -d RPMS || mkdir RPMS
+    touch RPMS/.notempty
     cd RPMS
     TARGET=i386
     AC_SUBST(TARGET)
