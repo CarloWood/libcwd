@@ -33,10 +33,13 @@
 #include <dlfcn.h>
 #endif
 #include <fstream>
+#include <set>
 #include <libcw/debug.h>
 #include <libcw/elf32.h>
 
 RCSTAG_CC("$Id$")
+
+#undef DEBUGELF32
 
 namespace libcw {
   namespace debug {
@@ -150,7 +153,7 @@ int const SHN_COMMON = 0xfff2;		// Symbols defined relative to this section are 
 int const SHN_HIRESERVE = 0xffff;	// This value specifies the upper bound of the range of reserved indexes.
 
 struct Elf32_Shdr {
-  Elf32_Word sh_name;			// Index into the section header string table ssection.  Specifies the name of the section.
+  Elf32_Word sh_name;			// Index into the section header string table section.  Specifies the name of the section.
   Elf32_Word sh_type;			// This member categorizes the sections contents and semantics.
   Elf32_Word sh_flags;			// 1-bit flags that describe miscellaneous attributes.
   Elf32_Addr sh_addr;			// Start address of section in memory image (or 0 otherwise).
@@ -162,64 +165,265 @@ struct Elf32_Shdr {
   Elf32_Word sh_entsize;		// Size of fixed-size entries in the section (or 0 otherwise).
 };
 
+//
+Elf32_Word const SHT_NULL = 0;		// Inactive section.
+Elf32_Word const SHT_PROBITS = 1;	// Application specific section.
+Elf32_Word const SHT_SYMTAB = 2;	// Symbol table.
+Elf32_Word const SHT_STRTAB = 3;	// String table.
+Elf32_Word const SHT_RELA = 4;		// Relocation section with explicit addends.
+Elf32_Word const SHT_HASH = 5;		// Symbol hash table.
+Elf32_Word const SHT_DYNAMIC = 6;	// Dynamic section.
+Elf32_Word const SHT_NOTE = 7;		// Note section.
+Elf32_Word const SHT_NOBITS = 8;	// Empty section used as offset reference.
+Elf32_Word const SHT_REL = 9;		// Relocation section without explicit addends.
+Elf32_Word const SHT_SHLIB = 10;	// Reserved.
+Elf32_Word const SHT_DYNSYM = 11;	// Symbol table with minimal ammount of data required for dynamic linking.
+Elf32_Word const SHT_LOPROC = 0x70000000;	// Start of range reserved for processor specific semantics.
+Elf32_Word const SHT_HIPROC = 0x7fffffff;	// End of range reserved for processor specific semantics.
+Elf32_Word const SHT_LOUSER = 0x80000000;	// Start of range reserved for user defined semantics.
+Elf32_Word const SHT_HIUSER = 0xffffffff;	// End of range reserved for user defined semantics.
+
 //-------------------------------------------------------------------------------------------------------------------------------------------
+// Symbol Table
+
+// Figure 1-16: Symbol Table Entry.
+struct Elf32_sym {
+  Elf32_Word st_name;			// Index into the symbol string table section.  Specifies the name of the symbol.
+  Elf32_Addr st_value;			// The value of the associated symbol (absolute value, address, etc).
+  Elf32_Word st_size;			// Size associated with this symbol, if any.
+  unsigned char st_info;		// The symbols type and binding attributes.
+  unsigned char st_other;		// Reserved.
+  Elf32_Half st_shndx;			// Section header index relative to which this symbol is "defined".
+
+  unsigned char bind(void) const { return st_info >> 4; }
+  unsigned char type(void) const { return st_info & 0xf; }
+};
+
+// Figure 1-17: Symbol binding.
+int const STB_LOCAL = 0;
+int const STB_GLOBAL = 1;
+int const STB_WEAK = 2;
+int const STB_LOPROC = 13;
+int const STB_HIPROC = 15;
+
+// Figure 1-18: Symbol Types.
+int const STT_NOTYPE = 0;
+int const STT_OBJECT = 1;
+int const STT_FUNC = 2;
+int const STT_SECTION = 3;
+int const STT_FILE = 4;
+int const STT_LOPROC = 13;
+int const STT_HIPROC = 15;
+
+//-------------------------------------------------------------------------------------------------------------------------------------------
+
+class bfd_ct;
+
+class section_ct : public asection_st {
+private:
+  Elf32_Shdr M_section_header;
+public:
+  section_ct(void) { }
+  void init(char const* section_header_string_table, Elf32_Shdr const& section_header);
+  Elf32_Shdr const& section_header(void) const { return M_section_header; }
+};
 
 class bfd_ct : public bfd_st {
 private:
-  char const* M_filename;
   std::ifstream M_input_stream;
   Elf32_Ehdr M_header;
-  Elf32_Shdr* M_section_headers;
+  char* M_section_header_string_table;
+  section_ct* M_sections;
+  char* M_symbol_string_table;
+  char* M_dyn_symbol_string_table;
+  asymbol_st* M_symbols;
+  int M_number_of_symbols;
+  Elf32_Word M_symbol_table_type;
 public:
-  bfd_ct(char const* filename);
-  ~bfd_ct() { if (M_section_headers) delete [] M_section_headers; }
+  bfd_ct(char const* file_name);
+  ~bfd_ct()
+  {
+    delete [] M_section_header_string_table;
+    delete [] M_sections;
+    delete [] M_symbol_string_table;
+    delete [] M_dyn_symbol_string_table;
+    delete [] M_symbols;
+  }
+  char const* get_section_header_string_table(void) const { return M_section_header_string_table; }
+  section_ct const& get_section(int index) const { ASSERT( index < M_header.e_shnum ); return M_sections[index]; }
 protected:
   virtual bool check_format(void) const { return M_header.check_format(); }
   virtual long get_symtab_upper_bound(void);
   virtual long canonicalize_symtab(asymbol_st**);
-  virtual void find_nearest_line(asection_st*, asymbol_st**, Elf32_Addr, char const**, char const**, unsigned int*) const;
+  virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int*) const;
+private:
+  char* allocate_and_read_section(int i);
 };
 
-bfd_st* bfd_st::openr(char const* filename)
+void section_ct::init(char const* section_header_string_table, Elf32_Shdr const& section_header)
 {
-  return new bfd_ct(filename);
+  std::memcpy(&M_section_header, &section_header, sizeof(M_section_header));
+  // Duplicated values:
+  vma = M_section_header.sh_addr;
+  name = &section_header_string_table[M_section_header.sh_name];
+}
+
+bfd_st* bfd_st::openr(char const* file_name)
+{
+  return new bfd_ct(file_name);
 }
 
 long bfd_ct::get_symtab_upper_bound(void)
 {
-  ASSERT(M_header.e_shentsize == sizeof(Elf32_Shdr));
-  if (M_header.e_shoff == 0 || M_header.e_shnum == 0)
-    return 0;
-  M_input_stream.rdbuf()->pubseekpos(M_header.e_shoff);
-  M_section_headers = new Elf32_Shdr [M_header.e_shnum];
-  M_input_stream.read(reinterpret_cast<char*>(M_section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
-  Dout(dc::bfd, "Number of section headers: " << M_header.e_shnum);
-  Debug( libcw_do.inc_indent(4) );
+  return M_number_of_symbols * sizeof(asymbol_st*);
+}
+
+long bfd_ct::canonicalize_symtab(asymbol_st** symbol_table)
+{
+  M_symbols = new asymbol_st[M_number_of_symbols];
+  asymbol_st* new_symbol = M_symbols;
+  int table_entries = 0;
   for(int i = 0; i < M_header.e_shnum; ++i)
   {
-    Dout(dc::bfd, M_section_headers[i].sh_name);
+    if ((M_sections[i].section_header().sh_type == M_symbol_table_type)
+        && M_sections[i].section_header().sh_size > 0)
+    {
+      int number_of_symbols = M_sections[i].section_header().sh_size / sizeof(Elf32_sym);
+#ifdef DEBUGELF32
+      Dout(dc::bfd, "Found symbol table " << M_sections[i].name << " with " << number_of_symbols << " symbols.");
+#endif
+      Elf32_sym* symbols = (Elf32_sym*)allocate_and_read_section(i);
+      for(int s = 0; s < number_of_symbols; ++s)
+      {
+	Elf32_sym& symbol(symbols[s]);
+        if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
+	  continue;							// Skip Special Sections and Undefined Symbols.
+	new_symbol->bfd_ptr = this;
+	new_symbol->section = &M_sections[symbol.st_shndx];
+	if (M_sections[i].section_header().sh_type == SHT_SYMTAB)
+	  new_symbol->name = &M_symbol_string_table[symbol.st_name];
+	else
+	  new_symbol->name = &M_dyn_symbol_string_table[symbol.st_name];
+	if (!*new_symbol->name)
+	  continue;							// Skip Symbols that do not have a name.
+#ifdef DEBUGELF32
+	Dout(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
+#endif
+	new_symbol->value = symbol.st_value - new_symbol->section->vma;	// Is not an absolute value: make value relative to start of section.
+	new_symbol->udata.p = symbol.st_size;
+	new_symbol->flags = 0;
+	switch(symbol.bind())
+	{
+	  case STB_LOCAL:
+	    new_symbol->flags |= cwbfd::BSF_LOCAL;
+	    break;
+	  case STB_GLOBAL:
+	    new_symbol->flags |= cwbfd::BSF_GLOBAL;
+	    break;
+	  case STB_WEAK:
+	    new_symbol->flags |= cwbfd::BSF_WEAK;
+            break;
+	  default:	// Ignored
+	    break;
+	}
+        switch(symbol.type())
+	{
+	  case STT_OBJECT:
+	    new_symbol->flags |= cwbfd::BSF_OBJECT;
+	    break;
+	  case STT_FUNC:
+	    new_symbol->flags |= cwbfd::BSF_FUNCTION;
+	    break;
+	  case STT_SECTION:
+	    new_symbol->flags |= cwbfd::BSF_SECTION_SYM;
+	    break;
+	  case STT_FILE:
+	    new_symbol->flags |= cwbfd::BSF_FILE;
+	    break;
+	}
+	symbol_table[table_entries++] = new_symbol++;
+      }
+      delete [] symbols;
+      break;							// There *should* only be one symbol table section.
+    }
   }
-  Debug( libcw_do.dec_indent(4) );
-  return 0;
+  ASSERT( M_number_of_symbols >= table_entries );
+  M_number_of_symbols = table_entries;
+  return M_number_of_symbols;
 }
 
-long bfd_ct::canonicalize_symtab(asymbol_st**)
+void bfd_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, char const** file, char const** func, unsigned int* line) const
 {
-  Dout(dc::core, "bfd_ct::canonicalize_symtab: Unimplemented function");
-  return 0;
+  *file = symbol->name;
+  *func = symbol->name;
+  *line = offset - symbol->value;
 }
 
-void bfd_ct::find_nearest_line(asection_st*, asymbol_st**, Elf32_Addr, char const**, char const**, unsigned int*) const
+char* bfd_ct::allocate_and_read_section(int i)
 {
-  Dout(dc::core, "bfd_ct::find_nearest_line: Unimplemented function");
+  char* p = new char[M_sections[i].section_header().sh_size];
+  M_input_stream.rdbuf()->pubseekpos(M_sections[i].section_header().sh_offset);
+  M_input_stream.read(p, M_sections[i].section_header().sh_size);
+  return p;
 }
 
-bfd_ct::bfd_ct(char const* filename) : M_filename(filename), M_section_headers(NULL)
+bfd_ct::bfd_ct(char const* file_name) :
+    M_section_header_string_table(NULL), M_sections(NULL),
+    M_symbol_string_table(NULL),  M_dyn_symbol_string_table(NULL), M_symbols(NULL), M_number_of_symbols(0), M_symbol_table_type(0)
 {
-  M_input_stream.open(filename);
+  filename = file_name;
+  M_input_stream.open(file_name);
   if (!M_input_stream)
-    Dout(dc::fatal|error_cf, "std::fstream.open(\"" << filename << "\")");
+    Dout(dc::fatal|error_cf, "std::fstream.open(\"" << file_name << "\")");
   M_input_stream >> M_header;
+  ASSERT(M_header.e_shentsize == sizeof(Elf32_Shdr));
+  if (M_header.e_shoff == 0 || M_header.e_shnum == 0)
+    return;
+  M_input_stream.rdbuf()->pubseekpos(M_header.e_shoff);
+  Elf32_Shdr* section_headers = new Elf32_Shdr [M_header.e_shnum];
+  M_input_stream.read(reinterpret_cast<char*>(section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
+#ifdef DEBUGELF32
+  Dout(dc::bfd, "Number of section headers: " << M_header.e_shnum);
+#endif
+  ASSERT( section_headers[M_header.e_shstrndx].sh_size > 0
+      && section_headers[M_header.e_shstrndx].sh_size >= section_headers[M_header.e_shstrndx].sh_name );
+  M_section_header_string_table = new char[section_headers[M_header.e_shstrndx].sh_size]; 
+  M_input_stream.rdbuf()->pubseekpos(section_headers[M_header.e_shstrndx].sh_offset);
+  M_input_stream.read(M_section_header_string_table, section_headers[M_header.e_shstrndx].sh_size);
+  ASSERT( !strcmp(&M_section_header_string_table[section_headers[M_header.e_shstrndx].sh_name], ".shstrtab") );
+  M_sections = new section_ct[M_header.e_shnum];
+#ifdef DEBUGELF32
+  Debug( libcw_do.inc_indent(4) );
+#endif
+  for(int i = 0; i < M_header.e_shnum; ++i)
+  {
+#ifdef DEBUGELF32
+    if (section_headers[i].sh_name)
+      Dout(dc::bfd, "Section name: \"" << &M_section_header_string_table[section_headers[i].sh_name] << '"');
+#endif
+    M_sections[i].init(M_section_header_string_table, section_headers[i]);
+    if (!strcmp(M_sections[i].name, ".strtab"))
+      M_symbol_string_table = allocate_and_read_section(i);
+    else if (!strcmp(M_sections[i].name, ".dynstr"))
+      M_dyn_symbol_string_table = allocate_and_read_section(i);
+    if ((section_headers[i].sh_type == SHT_SYMTAB || section_headers[i].sh_type == SHT_DYNSYM)
+        && section_headers[i].sh_size > 0)
+    {
+      M_has_syms = true;
+      ASSERT( section_headers[i].sh_entsize == sizeof(Elf32_sym) );
+      ASSERT( M_symbol_table_type != SHT_SYMTAB || section_headers[i].sh_type != SHT_SYMTAB);	// There should only be one SHT_SYMTAB.
+      if (M_symbol_table_type != SHT_SYMTAB)							// If there is one, use it.
+      {
+	M_symbol_table_type = section_headers[i].sh_type;
+	M_number_of_symbols = section_headers[i].sh_size / section_headers[i].sh_entsize;
+      }
+    }
+  }
+#ifdef DEBUGELF32
+  Debug( libcw_do.dec_indent(4) );
+  Dout(dc::bfd, "Number of symbols: " << M_number_of_symbols);
+#endif
+  delete [] section_headers;
 }
 
 } // namespace elf32

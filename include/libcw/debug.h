@@ -18,7 +18,7 @@
 #error "You need to #include <libcw/sys.h> at the top of every source file."
 #endif
 
-#ifndef CWDEBUG
+#if !defined(CWDEBUG) && !defined(LIBCW_GENERATION_OF_NODEBUG_H)
 // If you run into this error then you included <libcw/debug.h> while the macro CWDEBUG was not defined.
 // Doing so would cause the compilation of your application to fail on machines that do not have libcwd
 // installed.  Instead you should use:
@@ -26,7 +26,9 @@
 // and add a file debug.h to your applications distribution.  Please see the the example-project that
 // comes with the source code of libcwd (or is included in the documentation that comes with the rpm
 // (ie: /usr/doc/libcwd-1.0/example-project) a description of the content of "debug.h".
-// Note: CWDEBUG should be defined on the compiler commandline, for example: g++ -DCWDEBUG ...
+// Note1: CWDEBUG should be defined on the compiler commandline, for example: g++ -DCWDEBUG ...
+// Note2: If this happens during generation of noddebug.h, then please correct your rules for generating
+//        nodebug.h, see the example-project of libcwd version 0.99.10 or higher.
 #error "You are including <libcw/debug.h> while CWDEBUG is not defined.  See the comments in this header file for more information."
 #endif
 

@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#undef ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading debug symbols from ..." lines.
+#define ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading debug symbols from ..." lines.
 #undef DEBUGDEBUGBFD		// Define to add debug code for this file.
 
 #include <libcw/debug_config.h>
@@ -93,38 +93,22 @@ typedef elf32::Elf32_Addr bfd_vma;
 typedef elf32::asection_st asection;
 typedef elf32::asymbol_st asymbol;
 
+int const bfd_archive = 0;
+u_int32_t const HAS_SYMS = 0xffffffff;
+
 inline asection* bfd_get_section(asymbol const* s) { return s->section; }
 inline bfd*& bfd_asymbol_bfd(asymbol* s) { return s->bfd_ptr; }
 inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
 inline bfd* bfd_openr(char const* filename, void*) { return bfd::openr(filename); }
 inline void bfd_close(bfd* abfd) { delete abfd; }
 inline bool bfd_check_format(bfd const* abfd, int) { return abfd->check_format(); }
+inline u_int32_t bfd_get_file_flags(bfd const* abfd) { return abfd->has_syms() ? HAS_SYMS : 0; }
 inline long bfd_get_symtab_upper_bound(bfd* abfd) { return abfd->get_symtab_upper_bound(); }
 inline long bfd_canonicalize_symtab(bfd* abfd, asymbol** symbol_table) { return abfd->canonicalize_symtab(symbol_table); }
-inline bool bfd_is_abs_section(asection* sect) { return false; } // FIXME
-inline bool bfd_is_com_section(asection* sect) { return false; } // FIXME
-inline bool bfd_is_ind_section(asection* sect) { return false; } // FIXME
-inline bool bfd_is_und_section(asection* sect) { return false; } // FIXME
-inline void bfd_find_nearest_line(bfd* abfd, asection* section, asymbol** symbol, bfd_vma vma,
-                                  char const** file, char const** func, unsigned int* line)
-    { abfd->find_nearest_line(section, symbol, vma, file, func, line); }
-
-int const bfd_archive = 0;
-
-int const BSF_FUNCTION = 0;
-int const BSF_GLOBAL = 1;
-int const BSF_LOCAL = 2;
-int const BSF_OBJECT = 4;
-int const BSF_WEAK = 8;
-int const BSF_DEBUGGING = 16;
-int const BSF_CONSTRUCTOR = 32;
-int const BSF_WARNING = 64;
-int const BSF_FILE = 128;
-int const BSF_SECTION_SYM = 256;
-int const BSF_OLD_COMMON = 512;
-int const BSF_NOT_AT_END = 1024;
-int const BSF_INDIRECT = 2048;
-int const BSF_DYNAMIC = 4096;
+inline bool bfd_is_abs_section(asection* sect) { return false; }
+inline bool bfd_is_com_section(asection* sect) { return false; }
+inline bool bfd_is_ind_section(asection* sect) { return false; }
+inline bool bfd_is_und_section(asection* sect) { return false; }
 
 //----------------------------------------------------------------------------------------
 
@@ -342,6 +326,7 @@ int const BSF_DYNAMIC = 4096;
 	  }
 	  DoutFatal(dc::fatal, filename << ": can not get addresses from object file: " << bfd_errmsg(bfd_get_error()));
 	}
+#endif
 
 	if (!(bfd_get_file_flags(abfd) & HAS_SYMS))
 	{
@@ -350,7 +335,6 @@ int const BSF_DYNAMIC = 4096;
 	  number_of_symbols = 0;
 	  return;
 	}
-#endif
 
 	long storage_needed = bfd_get_symtab_upper_bound (abfd);
 #ifdef DEBUGUSEGNULIBBFD
@@ -808,7 +792,7 @@ int const BSF_DYNAMIC = 4096;
         };
 	static non_alloc_checking_string_st fullpath;	// Must be static because bfd keeps a pointer to its data()
 	get_full_path_to_executable(*fullpath.value);
-	*fullpath.value += '\0';
+	*fullpath.value += '\0';			// Make string null terminated so we can use data().
 
 #ifdef DEBUGUSEGNULIBBFD
 	bfd_set_error_program_name(fullpath.value->data() + fullpath.value->find_last_of('/') + 1);
@@ -817,7 +801,7 @@ int const BSF_DYNAMIC = 4096;
 
 	// Load executable
 /**/	set_alloc_checking_on();
-/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << *fullpath.value << "... ");
+/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath.value->data() << "... ");
 /**/	set_alloc_checking_off();
 	object_file_ct* object_file = new object_file_ct(fullpath.value->data(), 0);
 /**/	set_alloc_checking_on();
@@ -883,7 +867,7 @@ int const BSF_DYNAMIC = 4096;
 
 #ifdef DEBUGDEBUGBFD
 	// Dump all symbols
-	cout << setiosflags(ios_base::left) << setw(15) << "Start address" << setw(50) << "BFD name" << setw(20) << "Number of symbols" << endl;
+	cout << setiosflags(ios_base::left) << setw(15) << "Start address" << setw(50) << "File name" << setw(20) << "Number of symbols" << endl;
 	for (object_files_ct::reverse_iterator i(object_files().rbegin()); i != object_files().rend(); ++i)
 	{
 	  cout << "0x" << setfill('0') << setiosflags(ios_base::right) << setw(8) << hex << (unsigned long)(*i)->get_lbase() << "     ";
@@ -895,11 +879,11 @@ int const BSF_DYNAMIC = 4096;
 	  cout << ' ' << setiosflags(ios_base::right) << setw(6) << "Size" << ' ';
 	  cout << "Name value flags\n";
 	  asymbol** symbol_table = (*i)->get_symbol_table();
-	  for (long n = (*i)->get_number_of_symbols() - 1; n > 0; --n)
+	  for (long n = (*i)->get_number_of_symbols() - 1; n >= 0; --n)
 	  {
-	    cout << setiosflags(ios_base::left) << hex << setw(12) << symbol_start_addr(symbol_table[n]);
+	    cout << setiosflags(ios_base::left) << hex << setw(12) << (void*)symbol_start_addr(symbol_table[n]);
 	    cout << ' ' << setiosflags(ios_base::right) << setw(6) << symbol_size(symbol_table[n]) << ' ';
-	    cout << symbol_table[n]->name << ' ' << hex <<	symbol_table[n]->value << ' ' << oct << symbol_table[n]->flags << endl;
+	    cout << symbol_table[n]->name << ' ' << hex << symbol_table[n]->value << ' ' << oct << symbol_table[n]->flags << endl;
 	  }
 	}
 #endif
@@ -997,8 +981,12 @@ int const BSF_DYNAMIC = 4096;
 	char const* file;
 	ASSERT( object_file->get_bfd() == abfd );
 	set_alloc_checking_off();
+#ifdef DEBUGUSEGNULIBBFD
 	bfd_find_nearest_line(abfd, sect, const_cast<asymbol**>(object_file->get_symbol_table()),
 	    (char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &M_func, &M_line);
+#else
+        abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &M_func, &M_line);
+#endif
 	set_alloc_checking_on();
 	ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
 	M_func = p->name;

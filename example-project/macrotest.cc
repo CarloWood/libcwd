@@ -8,8 +8,8 @@
 // DEBUG and DEBUGMALLOC undefined are generated and written
 // to nodebug.h.
 //
-// g++ -dM -E macrotest.cc | sed -e 's/#define \([^ ]*\).*/#undef \1/' > phase1.h
-// g++ -dM -E -DPHASE2 macrotest.cc | egrep -v '(#define __|_H *$)' | sort > nodebug.h
+// g++ -dM -E $(CPPFLAGS) macrotest.cc | sed -e 's/#define \([^ ]*\).*/#undef \1/' > phase1.h
+// g++ -dM -E $(CPPFLAGS) -DPHASE2 macrotest.cc | egrep -v '(#define __|_H *$)' | sort > nodebug.h
 //
 
 #undef DEBUG
@@ -19,6 +19,7 @@
 #undef DEBUGMALLOC
 #undef DEBUGMAGICMALLOC
 #define LIBCW_SYS_H
+#define LIBCW_GENERATION_OF_NODEBUG_H
 #include <libcw/debug.h>
 #include "phase1.h"
 #undef PHASE2
