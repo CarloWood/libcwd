@@ -14,6 +14,7 @@
 #include <libcw/sys.h>
 #include <iostream>
 #include <libcw/cwprint.h>
+#include <cstring>		// Needed for strlen
 #include <libcw/buf2str.h>
 
 RCSTAG_CC("$Id$")
