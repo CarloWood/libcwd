@@ -46,7 +46,7 @@
 #include <libcw/cwprint.h>
 #include <libcw/demangle.h>
 
-#if defined(BFD64) && !BFD_HOST_64BIT_LONG && !defined(_GLIBCPP_USE_LONG_LONG)
+#if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
 // If you run into this error, please contact the author and we'll see what we can do.
 #error "libbfd is compiled with 64bit support on a 32bit host, but your libstdc++ is not compiled with support for long long."
 #endif
