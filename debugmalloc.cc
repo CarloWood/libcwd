@@ -880,12 +880,14 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
   {
     internal = true;
     memblk_map = new memblk_map_ct;
+    internal = false;
 #ifdef CWDEBUG
+    ++library_call;
     libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
     					// to be a function that is called _very_ early - and hence this is a good moment
 					// to initialize ALL of libcwd.
+    --library_call;
 #endif
-    internal = false;
   }
 
 #ifdef DEBUGUSEBFD
@@ -927,12 +929,14 @@ void init_debugmalloc(void)
   {
     set_alloc_checking_off();
     memblk_map = new memblk_map_ct;
+    set_alloc_checking_on();
 #ifdef CWDEBUG
+    ++library_call;
     libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
     					// to be a function that is called _very_ early - and hence this is a good moment
 					// to initialize ALL of libcwd.
+    --library_call;
 #endif
-    set_alloc_checking_on();
   }
 }
 
@@ -1450,12 +1454,14 @@ void register_external_allocation(void const* mptr, size_t size)
   {
     internal = true;
     memblk_map = new memblk_map_ct;
+    internal = false;
 #ifdef CWDEBUG
+    ++library_call;  
     libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
     					// to be a function that is called _very_ early - and hence this is a good moment
 					// to initialize ALL of libcwd.
+    --library_call;  
 #endif
-    internal = false;
   }
 
 #ifdef DEBUGUSEBFD
