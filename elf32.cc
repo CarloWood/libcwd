@@ -1534,26 +1534,25 @@ void object_file_ct::load_stabs(void)
 	char const* filename = &stabs_string_table[stabs[j].n_strx];
 	if (*filename == '/')
 	{
-	  cur_source.assign(filename);
-	  cur_source += '\0';
-	  if (stabs[j].n_type == N_SO)
+	  if (filename[strlen(filename) - 1] == '/')
 	  {
 	    cur_dir.assign(filename);
-	    ASSERT( *(cur_dir.rbegin()) == '/' );
+	    if (DEBUGSTABS)
+	      Dout(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_dir << "\".");
+	    break;
 	  }
 	  else
-	    location.source_iter = M_source_files.insert(cur_source).first; 
-	    location.line = 0;	// See N_SLINE
+	    cur_source.assign(filename);
 	}
 	else
 	{
 	  cur_source = cur_dir;
 	  cur_source += filename;
-	  cur_source += '\0';
-	  location.source_iter = M_source_files.insert(cur_source).first; 
-	  location.line = 0;
 	}
-        if (DEBUGSTABS)
+	cur_source += '\0';
+	location.source_iter = M_source_files.insert(cur_source).first; 
+	location.line = 0;	// See N_SLINE
+	if (DEBUGSTABS)
 	  Dout(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
 	break;
       }
