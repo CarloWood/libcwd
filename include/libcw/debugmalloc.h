@@ -424,6 +424,23 @@ inline char* __libcwd_strdup(char const* str)
 }
 #define strdup __libcwd_strdup
 
+extern "C" {
+  size_t wcslen(wchar_t const*);
+  wchar_t* wmemcpy(wchar_t*, wchar_t const*, size_t);
+}
+inline wchar_t* __libcwd_wcsdup(wchar_t const* str)
+{
+  size_t size = wcslen(str) + 1;
+  wchar_t* p = (wchar_t*)malloc(size * sizeof(wchar_t));
+  if (p)
+  {
+    wmemcpy(p, str, size);
+    AllocTag(p, "wcsdup()");
+  }
+  return p;
+}
+#define wcsdup __libcwd_wcsdup
+
 #endif // DEBUGMALLOC
 #endif // !DEBUG_INTERNAL
 
