@@ -1,3 +1,9 @@
+9 Januari 2002
+
+  FreeBSD (4.5-PRERELEASE) now works.  Libcwd uses the external command
+  'ldd' to get a list of linked libraries.  Please be aware that you
+  have to use `gmake' - FreeBSD's own `make' fails without clear indications.
+
 30 December 2001
 
   FreeBSD now compiles with g++-2.95.3.

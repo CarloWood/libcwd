@@ -49,5 +49,8 @@ cvs -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw login
 
 cvs -z3 -d:pserver:anonymous@cvs.libcw.sourceforge.net:/cvsroot/libcw co libcwd
 
-Updates from within the module's directory do not need the -d parameter.
+You don't need the -d parameter inside the module's directory.  (Note that you
+do need -d after 'update' to savely update new directories that might have been
+added.  Example: "cd libcw; cvs update -dP". Or add 'update -dP' to your
+~/.cvsrc file.)
 
