@@ -95,6 +95,15 @@ AC_ARG_ENABLE(libcwd-debugm,
                           in libcwd itself.],
     libcwd_config_debugm=$enableval)
 
+dnl Restore the environment variables used when running `configure' when
+dnl `config.status --recheck' was invoked.
+if test x"$no_create" = xyes -a x"$no_recursion" = xyes; then
+  eval "CPPFLAGS=\"$cw_cv_sys_CPPFLAGS\""
+  eval "CXXFLAGS=\"$cw_cv_sys_CXXFLAGS\""
+  eval "LDFLAGS=\"$cw_cv_sys_LDFLAGS\""
+  eval "LIBS=\"$cw_cv_sys_LIBS\""
+fi
+
 dnl Always let these environment variables override cached values
 if test x"$CXX" != "x" -o x"$CXXCPP" != "x"; then
   unset ac_cv_prog_CXX
@@ -281,6 +290,8 @@ if test "$USE_MAINTAINER_MODE" = yes; then
   echo "buildarchtranslate: i686: i386" >> rpmrc
   cd ..
 fi
+
+AC_OUTPUT_COMMANDS([$MAKE -C include/libcw debug_config.h sys.h], [MAKE="${MAKE-make}"])
 
 CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
 exit 0
