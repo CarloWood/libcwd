@@ -8,7 +8,7 @@ MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
           0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
 MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
           0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
-MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:(115|157)|          stl_alloc.h:(103|108|109)|          stl-inst.cc:104|      new_allocator.h:50|                     ) *<unknown type>; \(sz = 4096\)  
+MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:(115|157)|          stl_alloc.h:(103|108|109)|          stl-inst.cc:104|      new_allocator.h:50|     pool_allocator.h:294|                     ) *<unknown type>; \(sz = 4096\)  
 MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc 
 // input lines 5
 // output till ^MALLOC  : calloc

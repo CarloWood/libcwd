@@ -968,6 +968,7 @@ read_flag(unsigned char const*& debug_info_ptr, uLEB128_t const DEBUGDWARF_OPT(f
 {
 #if DEBUGDWARF
   LIBCWD_ASSERT(form == DW_FORM_flag);
+  LIBCWD_TSD_DECLARATION;		// Needed for the DoutDwarf below.
 #endif
   uint8_t result;
   dwarf_read(debug_info_ptr, result);
@@ -2288,6 +2289,9 @@ void objfile_ct::load_dwarf(void)
 		      break;
 		    }
 		    case DW_LNS_set_file:
+		    {
+		      static int count;
+		      ++count;
 		      dwarf_read(debug_line_ptr, file);
 		      --file;
 		      DoutDwarf(dc::bfd, "DW_LNS_set_file: \"" << file_names[file].name << '"');
@@ -2300,7 +2304,14 @@ void objfile_ct::load_dwarf(void)
 			  cur_dir = default_dir;
 			else
 			{
-			  cur_dir.assign(include_directories[file_names[file].directory_index - 1]);
+			  if (*include_directories[file_names[file].directory_index - 1] != '/')
+			  {
+			    cur_dir.assign(current_compilation_unit->get_compilation_directory().data(),
+			        current_compilation_unit->get_compilation_directory().length());
+			    cur_dir += include_directories[file_names[file].directory_index - 1];
+			  }
+			  else
+			    cur_dir.assign(include_directories[file_names[file].directory_index - 1]);
 			  cur_dir += '/';
 			}
 			cur_source = catenate_path(cur_dir, file_names[file].name);
@@ -2308,6 +2319,7 @@ void objfile_ct::load_dwarf(void)
 		      cur_source += '\0';
 		      location.set_source_iter(M_source_files.insert(cur_source).first);
 		      break;
+		    }
 		    case DW_LNS_set_column:
 		      dwarf_read(debug_line_ptr, column);
 		      DoutDwarf(dc::bfd, "DW_LNS_set_column: " << column);
