@@ -16,7 +16,9 @@
 
   //-------------------------------------------------------------------------------
   // THREADS:
-  // Everything below needs to be repeated at the start of _every_ thread function.
+  // Everything below needs to be repeated at the start of every
+  // thread function, because every thread starts in a completely
+  // reset state with all debug channels off etc.
 
   // Turn on specific debug channels.
   Debug( dc::custom.on() );
@@ -52,6 +54,7 @@
 #endif
 #endif // _REENTRANT
 
-  // Write a list of all debug channels.
+  // Optionally, write a list of all existing debug channels to the
+  // default debug device (libcw_do) (and thus to cout in this case).
   Debug( list_channels_on(libcw_do) );
 
