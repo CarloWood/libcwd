@@ -356,7 +356,9 @@ AC_DEFUN(CW_NBLOCK,
 AC_CHECK_LIB(c, socket, [true],
 [AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS")])
 AC_CACHE_CHECK(non-blocking socket flavour, cw_cv_system_nblock,
-[AC_TRY_RUN([#include <sys/types.h>
+[AC_REQUIRE([AC_TYPE_SIGNAL])
+AC_REQUIRE([CW_TYPE_SIGHANDLER_PARAM_T])
+AC_TRY_RUN([#include <sys/types.h>
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
