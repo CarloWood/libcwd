@@ -1,3 +1,33 @@
+libcwd-0.99.20
+
+	Several small adjustments have been made to support the
+	native linker of solaris 2.8.  As a result, libcwd is
+	now usable on solaris 2.8, although not 100% bug free.
+	Threading still only works on linux (there is a good
+	reason for that, related to the fact that libcwd needs
+	to keep working even after a thread is de-initialized
+	and the fact that linux threads is abusing a mutex in
+	a way that causes a unavoidable deadlock when we use
+	semaphores in malloc et al; to make a long story short,
+	libcwd can't use the POSIX threads 'Thread Specific Data'
+	support for its thread specific data and we need to do
+	some very unportable things in order to get everything
+	working.  Well, you don't want to know about this, just
+	believe me that it is NOT simple to add support for
+	other OS).
+
+	Bug fixes:
+
+	The internal function ST_get_full_path_to_executable was
+	using ST_internal_string without setting allocation off.
+	I don't think that could have bad effects during normal use,
+	but it did lead to a coredump with allocation debugging
+	(of libcwd itself) on.
+
+	gcc version 2.x was using strstream as internal_stringstream,
+	and although only used with alloc checking off this DID lead,
+	under special circumstances, to a deadlock in list_allocations_on.
+
 libcwd-0.99.19
 
 	The package now builds two libraries by default: libcwd.so

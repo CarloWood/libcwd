@@ -255,9 +255,11 @@ template <class T1, class X1, bool internal1, int inst1,
 #define LIBCWD_NS_INTERNAL_ALLOCATOR(instance) \
 			  		LIBCWD_DEFAULT_ALLOC_INTERNAL(single_threaded_internal_instance)
 #endif // !LIBCWD_THREAD_SAFE
+// The Non-Shared userspace allocator is the same whether libcwd is thread-safe or not.
+#define LIBCWD_NS_USERSPACE_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_USERSPACE(single_threaded_userspace_instance)
 
 #if LIBCWD_THREAD_SAFE
-// LIBCWD_MT_*_ALLOCATOR uses an different allocator than the normal default allocator of libstdc++
+// LIBCWD_MT_*_ALLOCATOR uses a different allocator than the normal default allocator of libstdc++
 // in the case of multi-threading because it can be that the allocator mutex is locked, which would
 // result in a deadlock if we try to use it again here.
 #define LIBCWD_MT_INTERNAL_ALLOCATOR	LIBCWD_DEFAULT_ALLOC_INTERNAL(multi_threaded_internal_instance)
@@ -288,6 +290,10 @@ typedef LIBCWD_MT_INTERNAL_ALLOCATOR internal_allocator;
 
 //---------------------------------------------------------------------------------------------------
 // User space allocator type.
+
+// This allocator can be used outside libcwd-specific critical areas but inside Single Threaded
+// functions.
+typedef LIBCWD_NS_USERSPACE_ALLOCATOR ST_userspace_allocator;
 
 // This general allocator can be used outside libcwd-specific critical areas.
 typedef LIBCWD_MT_USERSPACE_ALLOCATOR userspace_allocator;

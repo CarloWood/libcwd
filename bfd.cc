@@ -65,6 +65,7 @@ extern link_map* _dl_loaded;
 #else // !CWDEBUG_LIBBFD
 #include "elf32.h"
 #endif // !CWDEBUG_LIBBFD
+#include <libcw/private_string.h>
 
 #ifdef _REENTRANT
 using libcw::debug::_private_::rwlock_tct;
@@ -661,13 +662,17 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       // cwbfd::
-      _private_::ST_internal_string* ST_argv0_ptr;		// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
+      _private_::ST_string* ST_argv0_ptr;		// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
       // cwbfd::
-      _private_::ST_internal_string const* ST_pidstr_ptr;	// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
+      _private_::ST_string const* ST_pidstr_ptr;	// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
 
       // cwbfd::
       int ST_decode_ps(char const* buf, size_t len)	// MT: Single Threaded function.
       {
+#if CWDEBUG_DEBUGM
+	LIBCWD_TSD_DECLARATION
+	LIBCWD_ASSERT( !__libcwd_tsd.internal );
+#endif
 	static int pid_token = 0;
 	static int command_token = 0;
 	static size_t command_column;
@@ -675,7 +680,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	bool found_PID = false;
 	bool eating_token = false;
 	size_t current_column = 1;
-	_private_::ST_internal_string token;
+	_private_::ST_string token;
 
 	for (char const* p = buf; p < &buf[len]; ++p, ++current_column)
 	{
@@ -738,9 +743,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // program.
       // 
       // cwbfd::
-      void ST_get_full_path_to_executable(_private_::ST_internal_string& result)
+      void ST_get_full_path_to_executable(_private_::ST_string& result)
       {
-	_private_::ST_internal_string argv0;		// Like main()s argv[0], thus must be zero terminated.
+	_private_::ST_string argv0;		// Like main()s argv[0], thus must be zero terminated.
 	char buf[6];
 	char* p = &buf[5];
 	*p = 0;
@@ -760,7 +765,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	}
 	else
 	{
-	  _private_::ST_internal_string pidstr;
+	  _private_::ST_string pidstr;
 
 	  size_t const max_pidstr = sizeof("65535\0");
 	  char pidstr_buf[max_pidstr];
@@ -779,7 +784,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  argv[2] = p;
 	  argv[3] = NULL;
 
-	  ST_argv0_ptr = &argv0;	// Ugly way to pass these ST_internal_strings to ST_decode_ps:
+	  ST_argv0_ptr = &argv0;	// Ugly way to pass these ST_strings to ST_decode_ps:
 	  ST_pidstr_ptr = &pidstr;	// pidstr is input, argv0 is output.
 
 	  if (ST_exec_prog(ps_prog, argv, environ, ST_decode_ps) == -1 || argv0.empty())
@@ -791,10 +796,10 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	// arguments (which is why we can't use argv0.find('/') here), all seperated by the 0 character.
 	if (!strchr(argv0.data(), '/'))
 	{
-	  _private_::ST_internal_string prog_name(argv0);
-	  _private_::ST_internal_string path_list(getenv("PATH"));
-	  _private_::ST_internal_string::size_type start_pos = 0, end_pos;
-	  _private_::ST_internal_string path;
+	  _private_::ST_string prog_name(argv0);
+	  _private_::ST_string path_list(getenv("PATH"));
+	  _private_::ST_string::size_type start_pos = 0, end_pos;
+	  _private_::ST_string path;
 	  struct stat finfo;
 	  for (;;)
 	  {
@@ -812,7 +817,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 		break;
 	      }
 	    }
-	    if (end_pos == _private_::ST_internal_string::npos)
+	    if (end_pos == _private_::ST_string::npos)
 	      break;
 	    start_pos = end_pos + 1;
 	  }
@@ -992,16 +997,14 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #endif
 
 	// Get the full path and name of executable
-	struct static_internal_string {
-	  _private_::ST_internal_string* value;
-          static_internal_string(void)
+	struct static_string {
+	  _private_::ST_string* value;
+          static_string(void)
 	      {
-		value = new _private_::ST_internal_string;	// alloc checking already off.
+		value = new _private_::ST_string;
 	      }
-	  ~static_internal_string()
+	  ~static_string()
 	      {
-		LIBCWD_TSD_DECLARATION
-		set_alloc_checking_off(LIBCWD_TSD);
 #if CWDEBUG_DEBUG && defined(_REENTRANT)
 		_private_::WST_multi_threaded = false;		// `fullpath' is static and will only be destroyed from exit().
 #endif
@@ -1009,19 +1012,18 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #if CWDEBUG_DEBUG && defined(_REENTRANT)
 		_private_::WST_multi_threaded = true;		// Make sure we catch other global strings (in order to avoid a static destructor ordering fiasco).
 #endif
-		set_alloc_checking_on(LIBCWD_TSD);
 	      }
         };
-	static static_internal_string fullpath;			// Must be static because bfd keeps a pointer to its data()
 	set_alloc_checking_on(LIBCWD_TSD);
+	static static_string fullpath;				// Must be static because bfd keeps a pointer to its data()
 	ST_get_full_path_to_executable(*fullpath.value);
-	set_alloc_checking_off(LIBCWD_TSD);
 	*fullpath.value += '\0';				// Make string null terminated so we can use data().
 
 #if CWDEBUG_LIBBFD
 	bfd_set_error_program_name(fullpath.value->data() + fullpath.value->find_last_of('/') + 1);
 	bfd_set_error_handler(error_handler);
 #endif
+	set_alloc_checking_off(LIBCWD_TSD);
 
 	// Load executable
 	// No write lock is really needed because this is a Single Threaded function,

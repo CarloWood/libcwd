@@ -22,6 +22,7 @@
 #include <libcw/buf2str.h>
 #include <libcw/cwprint.h>
 #include <libcw/private_assert.h>
+#include <libcw/private_string.h>
 #include <fstream>
 #ifdef __GLIBCPP__
 #include <streambuf>
@@ -216,7 +217,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
 #endif
       int number_of_fds = max_number_of_fds;
       struct pollfd ufds[max_number_of_fds];
-      std::string decodebuf[max_number_of_fds];
+      _private_::string decodebuf[max_number_of_fds];
       ufds[0].fd = stdout_filedes[0];
       ufds[0].events = POLLIN;
       ufds[1].fd = stderr_filedes[0];

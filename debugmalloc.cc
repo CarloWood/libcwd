@@ -255,6 +255,25 @@ namespace libcw {
     
 namespace _private_ {
 
+#ifdef LIBCWD_USE_STRSTREAM
+void* internal_strstreambuf_alloc(size_t size)
+{
+  LIBCWD_TSD_DECLARATION
+  set_alloc_checking_off(LIBCWD_TSD);
+  void* ptr = __libcwd_malloc(size);
+  set_alloc_checking_on(LIBCWD_TSD);
+  return ptr;
+}
+
+void internal_strstreambuf_free(void* ptr)
+{
+  LIBCWD_TSD_DECLARATION
+  set_alloc_checking_off(LIBCWD_TSD);
+  __libcwd_free(ptr);
+  set_alloc_checking_on(LIBCWD_TSD);
+}
+#endif
+
 void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal)
 {
   char buf[32];			// 32 > x where x is the number of digits of the largest unsigned long.
@@ -978,17 +997,17 @@ void dm_alloc_ct::print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TS
   LIBCWD_ASSERT( !__libcwd_tsd.internal && !__libcwd_tsd.library_call );
 #endif
 #if CWDEBUG_LOCATION
+  LibcwDoutScopeBegin(channels, libcw_do, dc::continued);
+  if (filter.M_flags & show_objectfile)
+  {
+    object_file_ct const* object_file = M_location.object_file();
+    if (object_file)
+      LibcwDoutStream << object_file->filename() << ':';
+    else
+      LibcwDoutStream << "<unknown object file>:";
+  }
   if (M_location.is_known())
   {
-    LibcwDoutScopeBegin(channels, libcw_do, dc::continued);
-    if (filter.M_flags & show_objectfile)
-    {
-      object_file_ct const* object_file = M_location.object_file();
-      if (object_file)
-	LibcwDoutStream << object_file->filename() << ':';
-      else
-	LibcwDoutStream << "<unknown object file>:";
-    }
     if (filter.M_flags & show_path)
     {
       size_t len = M_location.filepath_length();
@@ -1013,22 +1032,20 @@ void dm_alloc_ct::print_description(ooam_filter_ct const& filter LIBCWD_COMMA_TS
       l *= 10;
     }
     LibcwDoutStream.write(twentyfive_spaces_c, cnt);
-    LibcwDoutScopeEnd;
   }
   else if (M_location.mangled_function_name() != unknown_function_c)
   {
-    __libcwd_tsd.internal = 1;
-    {
-      _private_::internal_string f;
-      demangle_symbol(M_location.mangled_function_name(), f);
-      if (f.size() < 25)
-	f.append(25 - f.size(), ' ');
-      DoutInternal( dc::continued, f << ' ' );
-    }
-    __libcwd_tsd.internal = 0;
+    _private_::internal_string f;
+    demangle_symbol(M_location.mangled_function_name(), f);
+    size_t s = f.size();
+    LibcwDoutStream.write(f.data(), s);
+    if (s < 25)
+      LibcwDoutStream.write(twentyfive_spaces_c, 25 - s);
+    LibcwDoutStream.put(' ');
   }
   else
-    DoutInternal( dc::continued, twentyfive_spaces_c );
+    LibcwDoutStream.write(twentyfive_spaces_c, 25);
+  LibcwDoutScopeEnd;
 #endif
 
 #if CWDEBUG_MARKER
