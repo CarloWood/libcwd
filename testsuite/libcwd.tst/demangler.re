@@ -16,3 +16,4 @@ foo\(int, int\*, int\*\*, int\*\*\*, int\*\*\*\*, int\*\*\*\*\*, int\*\*\*\*\*\*
 (std::)*D<A\*, A\*&, A\*\*> (std::)*B<(std::)*D<A\*, A\* const&, A\* const\*>, (std::)*D<A\*, A\*&, A\*\*>, A\*>\((std::)*D<A\*, A\* const&, A\* const\*>, (std::)*D<A\*, A\* const&, A\* const\*>, (std::)*D<A\*, A\*&, A\*\*>, A\*\*\)
 (void operator-<42>\(A<\(42\) \+ \(2\)>::T\)|SKIPPED)
 _X11TransParseAddress
+(std::)*_Alloc_traits<(std::)*basic_string<char, (std::)*string_char_traits<char>, libcw::debug::_private_::allocator_adaptor<char, (std::)*__default_alloc_template<false, 327664>, true> >, libcw::debug::_private_::allocator_adaptor<(std::)*basic_string<char, (std::)*string_char_traits<char>, libcw::debug::_private_::allocator_adaptor<char, (std::)*__default_alloc_template<false, 327664>, true> >, (std::)*__default_alloc_template<false, 327664>, true> >::_S_instanceless

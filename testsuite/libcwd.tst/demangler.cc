@@ -18,7 +18,8 @@ char const* test_cases [] = {
    "foo__FiPiPPiPPPiPPPPiPPPPPiPPPPPPiPPPPPPPiPPPPPPPPiPPPPPPPPPiPPPPPPPPPPiPPPPPPPPPPPiPPPPPPPPPPPPiPPPPPPPPPPPPPiPPPPPPPPPPPPPPiPPPPPPPPPPPPPPPi",
    "B__H3Zt1D3ZP1AZRCP1AZPCP1AZt1D3ZP1AZRP1AZPP1AZP1A_X01X01X11PX21_t1D3ZX21ZRX21ZPX21",
    "SKIPPED",
-   "_X11TransParseAddress"
+   "_X11TransParseAddress",
+   "_t13_Alloc_traits2Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1ZQ45libcw5debug9_private_t17allocator_adaptor3Zt12basic_string3ZcZt18string_char_traits1ZcZQ45libcw5debug9_private_t17allocator_adaptor3ZcZt24__default_alloc_template2b0i327664b1Zt24__default_alloc_template2b0i327664b1._S_instanceless"
 };
 #else
 char const* test_cases [] = {
@@ -33,7 +34,8 @@ char const* test_cases [] = {
    "_Z3fooiPiPS_PS0_PS1_PS2_PS3_PS4_PS5_PS6_PS7_PS8_PS9_PSA_PSB_PSC_",
    "_ZSt1BISt1DIP1ARKS2_PS3_ES0_IS2_RS2_PS2_ES2_ET0_T_SB_SA_PT1_",
    "_ZngILi42EEvN1AIXplT_Li2EEE1TE",
-   "_X11TransParseAddress"
+   "_X11TransParseAddress",
+   "_ZNSt13_Alloc_traitsISbIcSt18string_char_traitsIcEN5libcw5debug9_private_17allocator_adaptorIcSt24__default_alloc_templateILb0ELi327664EELb1EEEENS5_IS9_S7_Lb1EEEE15_S_instancelessE"
 };
 #endif
 
@@ -303,5 +305,57 @@ void p(void)
 }
 
 #endif
+
+namespace std {
+  template<bool b, int i>
+    class __default_alloc_template { };
+
+  template<typename CHAR>
+    class string_char_traits { };
+
+  template<class BASIC_STRING, class ADAPTOR>
+    struct _Alloc_traits {
+      static char _S_instanceless;
+    };
+  template<class BASIC_STRING, class ADAPTOR>
+    char _Alloc_traits<BASIC_STRING, ADAPTOR>::_S_instanceless;
+}
+namespace libcw {
+  namespace debug {
+    namespace _private_ {
+      template<typename CHAR, class ALLOCATOR, bool b>
+	class allocator_adaptor { };
+    }
+  }
+}
+
+void q(void)
+{
+  std::_Alloc_traits<
+    std::basic_string<
+      char,
+      std::string_char_traits<char>,
+      libcw::debug::_private_::allocator_adaptor<
+	char,
+        std::__default_alloc_template<false, 327664>,
+	true
+      >
+    >,
+    libcw::debug::_private_::allocator_adaptor<
+      std::basic_string<
+	char,
+        std::string_char_traits<char>,
+	libcw::debug::_private_::allocator_adaptor<
+	  char,
+	  std::__default_alloc_template<false, 327664>,
+	  true
+	>
+      >,
+      std::__default_alloc_template<false, 327664>,
+      true
+    >
+  > dummy1;
+  char x = dummy1._S_instanceless;
+}
 
 #endif // INSTANTIATE

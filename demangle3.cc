@@ -37,6 +37,9 @@ The direct use of these functions should be avoided, instead use the function ty
 // The description of how the mangling is done in the new ABI was found on
 // http://www.codesourcery.com/cxx-abi/abi.html#mangling
 //
+// To compile a standalone demangler:
+// g++ -pthread -DSTANDALONE -DCWDEBUG -Iinclude demangle3.cc -Wl,-rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
+//
  
 #undef CPPFILTCOMPATIBLE
   

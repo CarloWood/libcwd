@@ -24,6 +24,9 @@
 //
 // Currently this file has been tested with gcc-2.95.2 and gcc-2.96 (RedHat).
 //
+// For a standalone demangler, compile this file as:
+// g++ -pthread -DSTANDALONE -DCWDEBUG -Iinclude demangle.cc -Wl,-rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
+//
 
 #undef CPPFILTCOMPATIBLE
 
@@ -798,12 +801,12 @@ namespace libcw {
 
 	  // `input' is of the form
 	  //
-	  // [m]<digit>
+	  // [m]<digit>[<digit>...]
 	  // _[m]<digit>[<digit>...]_
 	  //
 
-	  bool just_one_digit = (*input != '_');
-	  if (!just_one_digit)
+	  bool underscore = (*input == '_');
+	  if (underscore)
 	    ++input;
 	  bool is_negative = (*input == 'm' && numeric_limits<INTEGRAL_TYPE>::is_signed);
 	  if (is_negative)
@@ -830,7 +833,7 @@ namespace libcw {
 	      x = x * 10 - (*input - '0');
 	      output += *input;
 	    }
-	    while (isdigit(*++input) && !just_one_digit);
+	    while (isdigit(*++input));
 	  else
 	    do
 	    {
@@ -839,7 +842,10 @@ namespace libcw {
 	      x = x * 10 + (*input - '0');
 	      output += *input;
 	    }
-	    while (isdigit(*++input) && !just_one_digit);
+	    while (isdigit(*++input));
+
+	  if (underscore && *input == '_')
+	    ++input;
 
 #ifndef CPPFILTCOMPATIBLE
 	  if (!numeric_limits<INTEGRAL_TYPE>::is_signed)
