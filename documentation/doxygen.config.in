@@ -370,6 +370,7 @@ INPUT                  = @top_srcdir@/debug.cc \
                          @top_srcdir@/bfd.cc \
                          @srcdir@ \
                          @top_srcdir@/include/libcwd \
+			 @top_builddir@/include/libcwd \
                          @top_srcdir@/demangle3.cc
 
 # If the value of the INPUT tag contains directories, you can use the 
