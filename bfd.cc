@@ -249,7 +249,7 @@ namespace {	// Local stuff
       for (int i = 0; i < number_of_symbols - 1; ++i)
       {
 	int j;
-	for (j = i + 1; j < number_of_symbols; ++j)
+	for (j = i + 1; j < number_of_symbols - 1; ++j)
 	  if (symbol_start_addr(symbol_table[j]) != symbol_start_addr(symbol_table[i]))
 	    break;
 	symbol_size(symbol_table[i]) = (char*)symbol_start_addr(symbol_table[j]) - (char*)symbol_start_addr(symbol_table[i]);

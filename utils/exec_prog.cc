@@ -190,7 +190,10 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
 		Dout(dc::finish|cond_error_cf(len == -1), '"' << buf2str(readbuf, len > 0 ? len : 0) << "\", " << sizeof(readbuf) << ") = " << len);
 #endif
 	      if (len <= 0)
+	      {
+		ufds[fd].revents = POLLHUP;	// Needed on FreeBSD which doesn't detect this via poll()
 	        break;
+	      }
 	      for (char const* p = readbuf; p < &readbuf[len]; ++p)
 	      {
 		decodebuf[fd].push_back(*p);
@@ -232,8 +235,10 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
 	      }
 	    }
 	    while(readbuf[len - 1] != '\n');
+	    if (len > 0)
+	      continue;	// Ignore possible errors when data was read.
 	  }
-	  else if ((ufds[fd].revents & (POLLERR|POLLHUP|POLLNVAL)))
+	  if ((ufds[fd].revents & (POLLERR|POLLHUP|POLLNVAL)))
 	  {
 	    --number_of_fds;
 	    if (fd < number_of_fds)

@@ -1,5 +1,9 @@
 #! /bin/sh
 
 if grep -l '^#define[   ]*DEBUGUSEBFD' `dirname $0`/include/libcw/debugging_defs.h >/dev/null; then
+  if [ "`uname -s`" = "FreeBSD" ]; then
+    echo "-lbfd /usr/local/lib/libiberty.a -lintl";
+  else
     echo "-lbfd -ldl /usr/lib/libiberty.a";
+  fi
 fi
