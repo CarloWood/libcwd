@@ -1577,7 +1577,7 @@ void allocator_unlock(void)
 #else
       if (off_cnt == -1)
 #endif
-	DoutFatal( dc::core, "Calling channel_ct::on() more often then channel_ct::off()" );
+	DoutFatal( dc::core, "Calling channel_ct::on() more often than channel_ct::off()" );
 #ifdef _REENTRANT
       __libcwd_tsd.off_cnt_array[WNS_index] -= 1;
 #else
