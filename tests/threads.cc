@@ -6,6 +6,7 @@ RCSTAG_CC("$Id$")
 
 int const number_of_threads = 4;
 static int volatile state_thread[number_of_threads];
+pthread_mutex_t mutex; // Mutex for thread counter
 
 char const* in_the_middle(int my_id)
 {
@@ -21,7 +22,12 @@ char const* in_the_middle(int my_id)
 void* thread_function(void* arguments)
 {
   static int thread_counter = -1;
+
+  // Serialize incrementation
+  pthread_mutex_lock(&mutex);
   int my_id = ++thread_counter;
+  pthread_mutex_unlock(&mutex);
+
   state_thread[my_id] = 0;
   Dout(dc::notice, my_id << ": Entering thread " << pthread_self());
   Dout(dc::notice, my_id << ": Here we are " << in_the_middle(my_id));
@@ -39,6 +45,7 @@ int main(void)
   Debug( libcw_do.on() );
   Debug( list_channels_on(libcw_do) );
 
+  pthread_mutex_init(&mutex, NULL);
   pthread_t thread_id[number_of_threads];
   for (int i = 0; i < number_of_threads; ++i)
     pthread_create(&thread_id[i], NULL, thread_function, NULL);
