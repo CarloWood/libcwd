@@ -18,6 +18,18 @@
 #error "You need to #include <libcw/sys.h> at the top of every source file."
 #endif
 
+#ifndef CWDEBUG
+// If you run into this error then you included <libcw/debug.h> while the macro CWDEBUG was not defined.
+// Doing so would cause the compilation of your application to fail on machines that do not have libcwd
+// installed.  Instead you should use:
+// #include "debug.h"
+// and add a file debug.h to your applications distribution.  Please see the the example-project that
+// comes with the source code of libcwd (or is included in the documentation that comes with the rpm
+// (ie: /usr/doc/libcwd-1.0/example-project) a description of the content of "debug.h".
+// Note: CWDEBUG should be defined on the compiler commandline, for example: g++ -DCWDEBUG ...
+#error "You are including <libcw/debug.h> while CWDEBUG is not defined.  See the comments in this header file for more information."
+#endif
+
 #include <libcw/debug_config.h>
 
 RCSTAG_H(debug, "$Id$")

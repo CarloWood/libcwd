@@ -16,7 +16,7 @@
 
 RCSTAG_H(debugmalloc, "$Id$")
 
-#ifndef LIBCW_DEBUG_H
+#if defined(CWDEBUG) && !defined(LIBCW_DEBUG_H)
 #error "Don't include <libcw/debugmalloc.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 
@@ -63,7 +63,8 @@ enum memblk_types_nt {
   memblk_type_marker,           // A memory allocation "marker"
   memblk_type_deleted_marker,   // A deleted memory allocation "marker"
 #endif
-  memblk_type_removed           // No heap, corresponding `debugmalloc_newctor_ct' removed
+  memblk_type_removed,          // No heap, corresponding `debugmalloc_newctor_ct' removed
+  memblk_type_external		// Externally allocated with `malloc' (no magic numbers!)
 };
 
 #ifdef CWDEBUG
@@ -245,6 +246,7 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 };
      
 #define NEW(x) __libcwd_allocCatcher(new x)
+#define RegisterAlloc(x) ::libcw::debug::register_external_allocation(x)
 
 #include <libcw/type_info.h>
 
@@ -255,10 +257,21 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
-#define set_alloc_checking_on()
-#define set_alloc_checking_off()
+#define RegisterAlloc(x) ::libcw::debug::register_external_allocation(x)
+
+namespace libcw {
+  namespace debug {
+
+extern void set_alloc_checking_off(void);
+extern void set_alloc_checking_on(void);
+
+  }
+}
 
 #endif // !CWDEBUG
+
+using libcw::debug::set_alloc_checking_off;
+using libcw::debug::set_alloc_checking_on;
 
 #else // !DEBUGMALLOC
 
@@ -267,6 +280,7 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
+#define RegisterAlloc(x)
 #define set_alloc_checking_on()
 #define set_alloc_checking_off()
 

@@ -13,13 +13,22 @@
 
 #include "libcw/sys.h"
 #include <iostream>
+#ifdef CWDEBUG
 #include "libcw/debug.h"
+#else
+#define DEBUGMALLOC
+#define Debug(x)
+#define Dout(x, y)
+#define ForAllDebugChannels(x)
+#define DoutFatal(x,y) do { std::cerr << y; exit(1); } while(1)
+#include <libcw/debugmalloc.h>
+#endif
 
 class A {};
 
 int main(void)
 {
-#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD)
+#if !defined(DEBUGMALLOC) || (!defined(DEBUGUSEBFD) && defined(CWDEBUG))
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
@@ -46,9 +55,9 @@ int main(void)
 #ifdef DEBUGMALLOC
   // Check test_delete
   if (libcw::debug::test_delete(a))	// Should return false
-    Dout( dc::core, "CANNOT find that pointer?!" );
+    DoutFatal( dc::core, "CANNOT find that pointer?!" );
   if (!libcw::debug::find_alloc(a))
-    Dout( dc::core, "CANNOT find that pointer?!" );
+    DoutFatal( dc::core, "CANNOT find that pointer?!" );
 #endif
 
   // Show Memory Allocation Overview
@@ -65,12 +74,24 @@ int main(void)
 #ifdef DEBUGMALLOC
   // Check test_delete
   if (libcw::debug::test_delete(a))	// Should still return false
-    Dout( dc::core, "CANNOT find that pointer?!" );
+    DoutFatal( dc::core, "CANNOT find that pointer?!" );
   if (libcw::debug::find_alloc(a))
-    Dout( dc::core, "Can STILL find that pointer?!" );
+    DoutFatal( dc::core, "Can STILL find that pointer?!" );
+  // Test set_alloc_checking_off/set_alloc_checking_on, using test_delete
+  set_alloc_checking_off();
+  char* ptr = (char*)malloc(100);
+  set_alloc_checking_on();
+  if (!libcw::debug::test_delete(ptr))
+    DoutFatal( dc::core, "Can find an INTERNAL pointer?!" );
+  set_alloc_checking_off();
+  free(ptr);
+  set_alloc_checking_on();
 #endif
 
   Dout( dc::notice, "Finished successfully." );
+#ifndef CWDEBUG
+  std::cout << "Finished successfully.\n";
+#endif
 
   exit(0);
 }
