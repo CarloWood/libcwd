@@ -377,7 +377,8 @@ namespace libcw {
       template_parameters = &current_template_parameters;
       previous_types = &current_previous_types;
 
-      if (eat_type(input, output) || *input != 0)
+      char const* in = input;
+      if (eat_type(in, output) || *in != 0)
 	output.assign(input, strlen(input));
 
       template_parameters = previous_template_parameters;

@@ -5,7 +5,7 @@
 
 // Used helper types.
 class prefix { };
-class return_type { };
+class return_type { } return_type_instance;
 class parameterI { };
 class parameterII { };
 class parameterIII { };
@@ -13,8 +13,8 @@ struct scopetype {
   return_type symbol_scopetype_func(parameterI, parameterII, parameterIII);
   return_type symbol_scopetype_func_const(parameterI, parameterII, parameterIII) const;
 };
-return_type scopetype::symbol_scopetype_func(parameterI, parameterII, parameterIII) { }
-return_type scopetype::symbol_scopetype_func_const(parameterI, parameterII, parameterIII) const { }
+return_type scopetype::symbol_scopetype_func(parameterI, parameterII, parameterIII) { return return_type_instance; }
+return_type scopetype::symbol_scopetype_func_const(parameterI, parameterII, parameterIII) const { return return_type_instance; }
 class ttypeI { };
 class ttypeII { };
 class ttypeIII { };
