@@ -1,7 +1,8 @@
 Initial Initialisation
 ----------------------
  
-If you checked out this directory with cvs, then you will need to execute:
+If you checked out this directory with cvs (see below for instructions), then
+you will need to execute:
 
 ./bootstrap
 
