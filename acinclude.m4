@@ -740,7 +740,7 @@ dnl __pthread_setspecific when being 'internal'.
 if test "$USE_MAINTAINER_MODE" = yes; then
 EXTRAOPTS="-pipe -fno-exceptions"
 else
-EXTRAOPTS="-O -pipe -fno-exceptions"
+EXTRAOPTS="-O2 -pipe -fno-exceptions"
 fi
 AC_SUBST(EXTRAOPTS)
 

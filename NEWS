@@ -1,3 +1,27 @@
+libcwd-0.99.36
+
+	Libcwd is now compiled with -O2 by default.
+	Several files that shouldn't have been in the tar ball were
+	removed from the release.
+	The distclean target was fixed.
+
+	API changes:
+
+	The following methods have been removed from debug_ct:
+	void set_margin(std::string const& s);
+	void set_marker(std::string const& s);
+	std::string get_margin(void) const;
+	std::string get_marker(void) const;
+	Instead use debug_ct::margin() and debug_ct::marker()
+	and the methods of the class that is returned
+	(ie libcwd::debug_string_ct::assign).
+	See reference-manual/classlibcwd_1_1debug__ct.html
+
+        Bug fixes:
+
+	The example-project didn't compile because of the usage
+	of #ifdef instead of #if in debug.cc.
+
 libcwd-0.99.35
 
         Bug fixes:

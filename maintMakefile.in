@@ -52,6 +52,8 @@ CVSREADACCESS:=${shell if test -f $(srcdir)/CVS/Entries; then echo "yes"; else e
 CVSWRITEACCESS:=${shell if test x"$$LIBCWD_WRITE_ACCESS" = "xyes"; then echo $(CVSREADACCESS); else echo "no"; fi}
 AWK=@AWK@
 
+BUILT_SOURCES = .example-project_debug.h-timestamp
+
 test-values:
 	@echo "srcdir	= \"$(srcdir)\""
 	@echo "RPMDIR   = \"$(RPMDIR)\""

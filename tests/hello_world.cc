@@ -84,7 +84,7 @@ int main(void)
   //Debug( attach_gdb() );
   using libcwd::Function;
   Function test;
-  //debug_load_object_file("libcwd.so.0.99.32.O2", true);
+  //debug_load_object_file("libcwd.so", true);
   //test.init("inline_test", Function::regexp|Function::cpp_linkage|Function::c_linkage);
 
   return 0;

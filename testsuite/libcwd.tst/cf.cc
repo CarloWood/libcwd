@@ -33,11 +33,11 @@ MAIN_FUNCTION
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
 
-  Debug( libcw_do.set_margin("MARGIN") );
-  Debug( libcw_do.set_marker("MARKER") );
+  Debug( libcw_do.margin().assign("MARGIN", 6) );
+  Debug( libcw_do.marker().assign("MARKER", 6) );
   Debug( libcw_do.set_indent(3) );
-  Debug( local_debug_object.set_margin("MARGIN") );
-  Debug( local_debug_object.set_marker("MARKER") );
+  Debug( local_debug_object.margin().assign("MARGIN", 6) );
+  Debug( local_debug_object.marker().assign("MARKER", 6) );
   Debug( local_debug_object.set_indent(3) );
 
   Dout(dc::notice|nonewline_cf, "x");

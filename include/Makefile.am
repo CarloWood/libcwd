@@ -17,6 +17,7 @@ WARNOPTS = @WARNOPTS@
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 DEFAULT_INCLUDES =
 
+DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in
 
 global_dependencies=
@@ -64,3 +65,7 @@ endif
 
 clean-local:
 	rm -f pch.h.gch/* $(DEPDIR)/libcwd_*.*po
+
+distclean-local:
+	rm -rf pch.h.gch .deps
+

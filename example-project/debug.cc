@@ -23,7 +23,7 @@ void init_thread(void)
   // thread function, because every thread starts in a completely
   // reset state with all debug channels off etc.
 
-#ifdef LIBCWD_THREAD_SAFE	// For the non-threaded case this is set by the rcfile.
+#if LIBCWD_THREAD_SAFE		// For the non-threaded case this is set by the rcfile.
   // Turn on all debug channels by default.
   ForAllDebugChannels(while(!debugChannel.is_on()) debugChannel.on());
   // Turn off specific debug channels.
@@ -34,7 +34,7 @@ void init_thread(void)
   // Turn on debug output.
   // Only turn on debug output when the environment variable SUPPRESS_DEBUG_OUTPUT is not set.
   Debug(if (getenv("SUPPRESS_DEBUG_OUTPUT") == NULL) libcw_do.on());
-#ifdef LIBCWD_THREAD_SAFE
+#if LIBCWD_THREAD_SAFE
   Debug(libcw_do.set_ostream(&std::cout, &cout_mutex));
 
   // Set the thread id in the margin.

@@ -66,7 +66,7 @@ threads4_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPT
 threads4_SOURCES = threads4.cc
 threads4_LDADD = ../libcwd_r.la
 
-noinst_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h
+noinst_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h hello_world_debug.h
 
 LDADD = ../libcwd.la
 full_top_builddir := $(shell (cd $(top_builddir); pwd))

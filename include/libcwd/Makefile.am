@@ -70,6 +70,7 @@ libcwd_HEADERS = \
 BUILT_SOURCES = sys.h config.h
 EXTRA_HEADERS = sys.h config.h
 
+DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in
 
 install-data-local:

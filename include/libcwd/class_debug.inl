@@ -70,24 +70,6 @@ debug_ct::marker(void) const
   return LIBCWD_TSD_MEMBER(marker);
 }
 
-// This is here only for backwards compatibility.
-// You should call margin().assign(s) directly.
-__inline__
-void
-debug_ct::set_margin(std::string const& s)
-{
-  margin().assign(s);
-}
-
-// This is here only for backwards compatibility.
-// You should call marker().assign(s) directly.
-__inline__
-void
-debug_ct::set_marker(std::string const& s)
-{
-  marker().assign(s);
-}
-
 /**
  * \brief Set number of spaces to indent.
  */
@@ -131,24 +113,6 @@ debug_ct::get_indent(void) const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(indent);
-}
-
-// This is here only for backwards compatibility.
-// You should use margin directly.
-__inline__
-std::string
-debug_ct::get_margin(void) const
-{
-  return std::string(margin().c_str(), margin().size());
-}
-
-// This is here only for backwards compatibility.
-// You should use marker directly.
-__inline__
-std::string
-debug_ct::get_marker(void) const
-{
-  return std::string(marker().c_str(), marker().size());
 }
 
 /** \} */

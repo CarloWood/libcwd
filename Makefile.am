@@ -4,10 +4,9 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = include utils . tests testsuite cutee
 
-BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec .example-project_debug.h-timestamp
 EXTRA_DIST = LICENSE.QPL README.CVS README.threads README.FreeBSD README.openbsd README.solaris \
-	nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in $(BUILT_SOURCES)
-DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz
+	README.debian README.PCH nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in libcwd.lsm libcwd.spec
+DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 
 VERSIONINFO=@VERSIONINFO@
 CXXFLAGS = @CXXFLAGS@
@@ -77,22 +76,33 @@ $(pkgconfig_DATA): config.status
 # --------------- Maintainer's Section
 
 dist-hook: documentation
+	cat $(distdir)/Makefile.in | \
+	  sed -e 's/^\(CONFIG_CLEAN_FILES =.*\) libcwd\.spec libcwd\.lsm\(.*\)/\1\2/' > $(distdir)/Makefile.in.new && \
+	  mv $(distdir)/Makefile.in.new $(distdir)/Makefile.in
 	cp -pr $(srcdir)/documentation $(distdir)
 	find $(distdir)/documentation -name CVS -print | xargs rm -rf
 	find $(distdir)/documentation -name .cvsignore -print | xargs rm -rf
 	find $(distdir)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
+	rm -f $(distdir)/documentation/tutorial/Makefile
 	mkdir $(distdir)/example-project
 	for i in `grep '^/' $(srcdir)/example-project/CVS/Entries | cut -d/ -f2`; do \
 	  cp -p $(srcdir)/example-project/$$i $(distdir)/example-project; \
 	done
-	rm $(distdir)/example-project/debug.h.maintainer
+	mkdir $(distdir)/example-project/m4
+	for i in `grep '^/' $(srcdir)/example-project/m4/CVS/Entries | cut -d/ -f2`; do \
+	  cp -p $(srcdir)/example-project/m4/$$i $(distdir)/example-project/m4; \
+	done
+	rm $(distdir)/example-project/debug.h.maintainer $(distdir)/example-project/.cvsignore
 	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
 	chmod +x $(distdir)/install-sh
 
 distclean-local:
-	rm -rf rpm
+	rm -rf rpm autom4te.cache
+	find documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
+	(cd example-project; rm -rf autom4te.cache .deps aclocal.m4 config.h config.h.in \
+	 config.log config.status configure Makefile Makefile.in stamp-h1 program *.o)
 
-MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h stamp-h.in Makefile.in \
+MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h Makefile.in \
 	install-sh missing mkinstalldirs config.guess config.sub ltmain.sh ltconfig \
 	config.cache config.log config.status ChangeLog tags example-project/debug.h
 

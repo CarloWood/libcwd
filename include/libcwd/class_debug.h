@@ -184,12 +184,6 @@ public:
   void push_marker(void);
   void pop_marker(void);
 
-  // Deprecated (last documented in 0.99.15)
-  void set_margin(std::string const& s);
-  void set_marker(std::string const& s);
-  std::string get_margin(void) const;
-  std::string get_marker(void) const;
-
   //-------------------------------------------------------------------------------------------------
   // Other accessors
   //
