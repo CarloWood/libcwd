@@ -1037,7 +1037,7 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<
 
 #undef CALL_ADDRESS
 #ifdef DEBUGUSEBFD
-#define CALL_ADDRESS , reinterpret_cast<char*>(__builtin_return_address(0)) + libcw_bfd_builtin_return_address_offset
+#define CALL_ADDRESS , reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset
 static void* internal_debugmalloc(size_t size, memblk_types_nt flag, void* call_addr);
 #else
 #define CALL_ADDRESS
@@ -1064,7 +1064,7 @@ debugmalloc_newctor_ct::debugmalloc_newctor_ct(void* ptr, type_info_ct const& ti
     DEBUGDEBUG_CERR( "debugmalloc_newctor_ct: internal == " << internal << "; setting it to false." );
     internal = false;
 #ifdef DEBUGUSEBFD
-    location_ct loc(location_ct(reinterpret_cast<char*>(__builtin_return_address(0)) + libcw_bfd_builtin_return_address_offset));
+    location_ct loc(location_ct(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset));
     no_heap_alloc_node->location_reference().move(loc);
 #endif
     no_heap_alloc_node->new_list();
@@ -1597,7 +1597,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #ifdef DEBUGUSEBFD
   if (library_call++)
     libcw_do._off++;    // Otherwise debug output will be generated from bfd.cc (location_ct)
-  location_ct loc(reinterpret_cast<char*>(__builtin_return_address(0)) + libcw_bfd_builtin_return_address_offset);
+  location_ct loc(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset);
   if (--library_call)
     libcw_do._off--;
 #endif

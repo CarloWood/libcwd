@@ -18,6 +18,7 @@ INCLUDES = -I$(top_builddir) -I- -I$(top_builddir)/include -I$(srcdir)/include -
 lib_LTLIBRARIES = libcwd.la
 
 libcwd_la_SOURCES = \
+	elf32.cc \
 	bfd.cc \
 	debug.cc \
 	debugdebugcheckpoint.cc \

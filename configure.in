@@ -65,10 +65,16 @@ AC_ARG_ENABLE(libcwd-marker,
     [  --disable-libcwd-marker disable memory allocation markers.],
     libcwd_config_marker=$enableval)
 
-libcwd_config_bfd=yes
+libcwd_config_location=yes
+AC_ARG_ENABLE(libcwd-location,
+    [  --disable-libcwd-location  disable the ability to lookup source file and line number,
+                          you might need this on a non-ELF32 system.],
+    libcwd_config_location=$enableval)
+
+libcwd_config_bfd=no
 AC_ARG_ENABLE(libcwd-bfd,
-    [  --disable-libcwd-bfd    do not try to find and use the bfd library,
-                          this will disable sourcefile:linenumber support.],
+    [  --enable-libcwd-bfd     try to find and use GNU bfd library,
+                          this is only needed on a system without ELF.],
     libcwd_config_bfd=$enableval)
 
 libcwd_config_debug=no
@@ -154,6 +160,8 @@ AC_SUBST(CW_CONFIG_DEBUGMAGICMALLOC)
 CW_CONFIG_DEBUGMAGICMALLOC=undef
 AC_SUBST(CW_CONFIG_DEBUGUSEBFD)
 CW_CONFIG_DEBUGUSEBFD=undef
+AC_SUBST(CW_CONFIG_DEBUGUSEGNULIBBFD)
+CW_CONFIG_DEBUGUSEGNULIBBFD=undef
 AC_SUBST(CW_CONFIG_DEBUGDEBUG)
 CW_CONFIG_DEBUGDEBUG=undef
 AC_SUBST(CW_CONFIG_DEBUGDEBUGMALLOC)
@@ -177,11 +185,17 @@ dnl Set language requirements for the tests below.
 AC_LANG_CPLUSPLUS
 AC_REQUIRE_CPP
 
-if test "$libcwd_config_bfd" = yes; then
+if test "$libcwd_config_location" = yes; then
 
-  dnl Check if we have dlopen in libc or libdl
-  AC_CHECK_LIB(c, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN)],
-      [AC_CHECK_LIB(dl, dlopen, [LIBS="-ldl $LIBS"; AC_DEFINE_UNQUOTED(HAVE_DLOPEN)])])
+dnl Check if we have dlopen in libc or libdl
+AC_CHECK_LIB(c, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN)],
+    [AC_CHECK_LIB(dl, dlopen, [LIBS="-ldl $LIBS"; AC_DEFINE_UNQUOTED(HAVE_DLOPEN)])])
+
+CW_CONFIG_DEBUGUSEBFD=define
+
+fi
+
+if test "$libcwd_config_bfd" = yes; then
 
   dnl Check if we have `xmalloc' in libiberty
   AC_CHECK_LIB(iberty, xmalloc,,
@@ -213,8 +227,9 @@ if test "$libcwd_config_bfd" = yes; then
 * Cannot find a working libiberty.  Perhaps you need to add -L/path
 * to LDFLAGS (read the INSTALL file for more info)?
 * Libiberty is part of binutils (or binutils-devel or binutils-dev).
-* You can skip this check by using configure --disable-libcwd-bfd, but
-* then lookup of function names and source:line information will be disabled.
+* You can skip this check by using configure --disable-libcwd-bfd.  On an
+* ELF32 system lookup of function names and source:line information will
+* still work anyway.
 ])
   fi
 
@@ -233,33 +248,34 @@ if test "$libcwd_config_bfd" = yes; then
       LIBS="-lbfd -lintl $LIBS"
     fi])
 
-  dnl If we succeeded so far, then enable DEBUGUSEBFD
+  dnl If we succeeded so far, then enable DEBUGUSEGNULIBBFD
   if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no" -o "set+$cw_cv_lib_bfd_bfd_set_start_address_with_intl" = "set+yes"; then
     AC_CHECK_HEADER(bfd.h,
-      [CW_CONFIG_DEBUGUSEBFD=define],
+      [CW_CONFIG_DEBUGUSEGNULIBBFD=define],
       [AC_MSG_ERROR([
 
 * You have libbfd, but I cannot find bfd.h.  Perhaps you need to add -I/path
 * to CPPFLAGS (read the INSTALL file for more info)?  If your OS uses
 * packages then you need to make sure you have installed both, binutils
 * and the development version of binutils (binutils-devel, or binutils-dev).
-* You can skip this check by using configure --disable-libcwd-bfd, but
-* then lookup of function names and source:line information will be disabled.
+* You can skip this check by using configure --disable-libcwd-bfd.  On an
+* ELF32 system lookup of function names and source:line information will
+* still work anyway.
 ])])
   else
     AC_MSG_ERROR([
 
 * Cannot find a working libbfd.  Perhaps you need to add -L/path to LDFLAGS
 * (read the INSTALL file for more info)?  Libbfd is part of binutils.
-* You can skip this check by using configure --disable-libcwd-bfd, but
-* then lookup of function names and source:line information will be disabled.
+* You can skip this check by using configure --disable-libcwd-bfd.  On an
+* ELF32 system lookup of function names and source:line information will
+* still work anyway.
 ])
   fi
-
-  dnl This test needs the full set of libraries we just determined.
-  CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
-
 fi
+
+dnl This test needs the full set of libraries we just determined.
+CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
 
 if test "$libcwd_config_debug" = yes; then
   CW_CONFIG_DEBUGDEBUG=define

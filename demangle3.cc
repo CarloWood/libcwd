@@ -192,9 +192,9 @@ namespace {
 	M_pos = saved_pos;
 	Dout(dc::demangler, "\e[31mAdding substitution " << substitution_name
 	    << " : " << subst
-	    << " (from " << location_ct((char*)__builtin_return_address(0) + libcw_bfd_builtin_return_address_offset)
-	    << " <- " << location_ct((char*)__builtin_return_address(1) + libcw_bfd_builtin_return_address_offset)
-	    << " <- " << location_ct((char*)__builtin_return_address(2) + libcw_bfd_builtin_return_address_offset)
+	    << " (from " << location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset)
+	    << " <- " << location_ct((char*)__builtin_return_address(1) + builtin_return_address_offset)
+	    << " <- " << location_ct((char*)__builtin_return_address(2) + builtin_return_address_offset)
 	    << ").\e[0m");
 	M_inside_add_substitution = false;
 #endif

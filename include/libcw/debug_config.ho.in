@@ -59,8 +59,6 @@
 //
 // Add BFD code.
 //
-// You will need libbfd.a and libiberty.a, which are part of GNU binutils.
-//
 // Turning this on causes libcwd to print source file and line
 // number information about where memory was allocated in the
 // memory allocation overview.
@@ -70,6 +68,37 @@
 
 #ifdef CWDEBUG
 #@CW_CONFIG_DEBUGUSEBFD@ DEBUGUSEBFD
+#endif
+
+//
+// DEBUGUSEGNULIBBFD
+//
+// If you don't have an ELF32 system then you might need this.  You will need
+// libbfd.a and libiberty.a, which are part of GNU binutils.
+//
+// If you use this then you are not allowed to distribute the resulting executables
+// because the GPL of libbfd prohibbits distribution of code that is not GPL-ed
+// and the resulting executable will be partly QPL-ed (this is a restriction of
+// the GPL not the QPL).  Note that if you have an ELF system (like linux) then you
+// DON'T need this.
+//
+// If you want to release your program under the GNU GPL, you can easily do that.
+// You can resolve the legal conflict for your program by adding a notice like this
+// to it: 
+//
+//     As a special exception, you have permission to link this program
+//     with the libcwd library and distribute executables, as long as you
+//     follow the requirements of the GNU GPL in regard to all of the
+//     software in the executable aside from libcwd.
+//
+// You can do this, legally, if you are the copyright holder for the program.
+// Add it in the source files, after the notice that says the program is covered
+// by the GNU GPL.  [ Source: http://www.gnu.org/philosophy/license-list.html
+// section "The Qt Public License (QPL)." ].
+//
+
+#ifdef DEBUGUSEBFD
+#@CW_CONFIG_DEBUGUSEGNULIBBFD@ DEBUGUSEGNULIBBFD
 #endif
 
 //

@@ -45,11 +45,16 @@
 #include <libcw/exec_prog.h>
 #include <libcw/cwprint.h>
 #include <libcw/demangle.h>
-
+#ifdef DEBUGUSEGNULIBBFD
 #if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
-// If you run into this error, please contact the author and we'll see what we can do.
-#error "libbfd is compiled with 64bit support on a 32bit host, but your libstdc++ is not compiled with support for long long."
+// libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
+// for `long long'.  If you run into this error (and you insist on use libbfd) then either recompile
+// libstdc++ with support for `long long' or recompile libbfd without 64bit support.
+#error "Incompatible libbfd and libstdc++ (see comments in source code)."
 #endif
+#else // !DEBUGUSEGNULIBBFD
+#include <libcw/elf32.h>
+#endif // !DEBUGUSEGNULIBBFD
 
 #undef DEBUGDEBUGBFD
 #ifdef DEBUGDEBUGBFD
@@ -79,10 +84,58 @@ namespace libcw {
 #endif
 
     // Local stuff
-    namespace {
+    namespace cwbfd {
+
+#ifndef DEBUGUSEGNULIBBFD
+
+//----------------------------------------------------------------------------------------
+// Interface Adaptor
+
+typedef char* PTR;
+typedef elf32::bfd_st bfd;
+typedef elf32::Elf32_Addr bfd_vma;
+typedef elf32::asection_st asection;
+typedef elf32::asymbol_st asymbol;
+
+inline asection* bfd_get_section(asymbol const* s) { return s->section; }
+inline bfd*& bfd_asymbol_bfd(asymbol* s) { return s->bfd_ptr; }
+inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
+inline bfd* bfd_openr(char const* filename, void*) { return bfd::openr(filename); }
+inline void bfd_close(bfd* abfd) { delete abfd; }
+inline bool bfd_check_format(bfd const* abfd, int) { return abfd->check_format(); }
+inline long bfd_get_symtab_upper_bound(bfd* abfd) { return abfd->get_symtab_upper_bound(); }
+inline long bfd_canonicalize_symtab(bfd* abfd, asymbol** symbol_table) { return abfd->canonicalize_symtab(symbol_table); }
+inline bool bfd_is_abs_section(asection* sect) { return false; } // FIXME
+inline bool bfd_is_com_section(asection* sect) { return false; } // FIXME
+inline bool bfd_is_ind_section(asection* sect) { return false; } // FIXME
+inline bool bfd_is_und_section(asection* sect) { return false; } // FIXME
+inline void bfd_find_nearest_line(bfd* abfd, asection* section, asymbol** symbol, bfd_vma vma,
+                                  char const** file, char const** func, unsigned int* line)
+    { abfd->find_nearest_line(section, symbol, vma, file, func, line); }
+
+int const bfd_archive = 0;
+
+int const BSF_FUNCTION = 0;
+int const BSF_GLOBAL = 1;
+int const BSF_LOCAL = 2;
+int const BSF_OBJECT = 4;
+int const BSF_WEAK = 8;
+int const BSF_DEBUGGING = 16;
+int const BSF_CONSTRUCTOR = 32;
+int const BSF_WARNING = 64;
+int const BSF_FILE = 128;
+int const BSF_SECTION_SYM = 256;
+int const BSF_OLD_COMMON = 512;
+int const BSF_NOT_AT_END = 1024;
+int const BSF_INDIRECT = 2048;
+int const BSF_DYNAMIC = 4096;
+
+//----------------------------------------------------------------------------------------
+
+#endif // !DEBUGUSEGNULIBBFD
 
 #ifdef __GLIBCPP__
-      // {anonymous}::
+      // cwbfd::
       bool ios_base_initialization_hack(void)
       {
 #ifndef _GLIBCPP_USE_WCHAR_T
@@ -98,7 +151,7 @@ namespace libcw {
       }
 #endif // __GLIBCPP__
 
-      // {anonymous}::
+      // cwbfd::
       void error_handler(char const* format, ...)
       {
 	va_list vl;
@@ -122,7 +175,7 @@ namespace libcw {
 	  Dout(dc::bfd, buf);
       }
 
-      // {anonymous}::
+      // cwbfd::
       class symbol_ct {
       private:
 	asymbol* symbol;
@@ -135,16 +188,16 @@ namespace libcw {
 	friend struct symbol_key_greater;
       };
 
-      // {anonymous}::
+      // cwbfd::
       struct symbol_key_greater {
 	// Returns true when the start of a lays behond the end of b (ie, no overlap).
 	bool operator()(symbol_ct const& a, symbol_ct const& b) const;
       };
 
-      // {anonymous}::
+      // cwbfd::
       typedef set<symbol_ct, symbol_key_greater> function_symbols_ct;
 
-      // {anonymous}::
+      // cwbfd::
       class object_file_ct {
       private:
 	bfd* abfd;
@@ -164,13 +217,17 @@ namespace libcw {
 	function_symbols_ct const& get_function_symbols(void) const { return function_symbols; }
       };
 
-      // {anonymous}::
+      // cwbfd::
       typedef PTR addr_ptr_t;
 
-      // {anonymous}::
+      // cwbfd::
+#ifdef PTR
       typedef const PTR addr_const_ptr_t;	// Warning: PTR is a macro, must put `const' in front of it
+#else
+      typedef char const* addr_const_ptr_t;
+#endif
 
-      // {anonymous}::
+      // cwbfd::
       inline addr_const_ptr_t
       symbol_start_addr(asymbol const* s)
       {
@@ -178,33 +235,33 @@ namespace libcw {
 	    + reinterpret_cast<char const*>(reinterpret_cast<object_file_ct const*>(bfd_asymbol_bfd(s)->usrdata)->get_lbase());
       }
 
-      // {anonymous}::
+      // cwbfd::
       inline size_t symbol_size(asymbol const* s)
       {
 	return reinterpret_cast<size_t>(s->udata.p);
       }
 
-      // {anonymous}::
+      // cwbfd::
       inline size_t& symbol_size(asymbol* s)
       {
 	return *reinterpret_cast<size_t*>(&s->udata.p);
       }
 
-      // {anonymous}::
+      // cwbfd::
       bool symbol_key_greater::operator()(symbol_ct const& a, symbol_ct const& b) const
       {
 	return symbol_start_addr(a.symbol) >= reinterpret_cast<char const*>(symbol_start_addr(b.symbol)) + symbol_size(b.symbol);
       }
 
       // Global object (but libcwd must stay independent of stuff in libcw/kernel, so we don't use Global<>)
-      // {anonymous}::
+      // cwbfd::
       typedef list<object_file_ct*> object_files_ct;
-      // {anonymous}::
+      // cwbfd::
       static char object_files_instance_[sizeof(object_files_ct)] __attribute__((__aligned__));
-      // {anonymous}::
+      // cwbfd::
       object_files_ct& object_files(void) { return *reinterpret_cast<object_files_ct*>(object_files_instance_); }
 
-      // {anonymous}::
+      // cwbfd::
       object_file_ct* find_object_file(void const* addr)
       {
 	object_files_ct::iterator i(object_files().begin());
@@ -214,7 +271,7 @@ namespace libcw {
 	return (i != object_files().end()) ? (*i) : NULL;
       }
 
-      // {anonymous}::
+      // cwbfd::
       object_file_ct* find_object_file(bfd const* abfd)
       {
 	object_files_ct::iterator i(object_files().begin());
@@ -224,7 +281,7 @@ namespace libcw {
 	return (i != object_files().end()) ? (*i) : NULL;
       }
 
-      // {anonymous}::
+      // cwbfd::
       struct symbol_less {
 	bool operator()(asymbol const* a, asymbol const* b) const
 	{
@@ -267,23 +324,30 @@ namespace libcw {
 	}
       };
 
-      // {anonymous}::
+      // cwbfd::
       void* const unknown_l_addr = (void*)-1;
 
-      // {anonymous}::
+      // cwbfd::
       object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
       {
 	abfd = bfd_openr(filename, NULL);
+#ifdef DEBUGUSEGNULIBBFD
 	if (!abfd)
 	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
 	abfd->cacheable = bfd_tttrue;
+#endif
 	abfd->usrdata = (addr_ptr_t)this;
 
 	if (bfd_check_format(abfd, bfd_archive))
 	{
 	  bfd_close(abfd);
+#ifdef DEBUGUSEGNULIBBFD
 	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive: " << bfd_errmsg(bfd_get_error()));
+#else
+	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive.");
+#endif
 	}
+#ifdef DEBUGUSEGNULIBBFD
 	char** matching;
 	if (!bfd_check_format_matches(abfd, bfd_object, &matching))
 	{
@@ -303,17 +367,30 @@ namespace libcw {
 	  number_of_symbols = 0;
 	  return;
 	}
+#endif
 
 	long storage_needed = bfd_get_symtab_upper_bound (abfd);
+#ifdef DEBUGUSEGNULIBBFD
 	if (storage_needed < 0)
 	  DoutFatal(dc::bfd, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
+#else
+	if (storage_needed == 0)
+	{
+	  Dout(dc::warning, filename << " has no symbols, skipping.");
+	  bfd_close(abfd);
+	  number_of_symbols = 0;
+	  return;
+	}
+#endif
 
 	symbol_table = (asymbol**) malloc(storage_needed);
 	AllocTag_dynamic_description(symbol_table, "symbols of " << filename);
 
 	number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
+#ifdef DEBUGUSEGNULIBBFD
 	if (number_of_symbols < 0)
 	  DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
+#endif
 
 	if (number_of_symbols > 0)
 	{
@@ -429,12 +506,12 @@ namespace libcw {
 	  object_files().push_back(this);
       }
 
-      // {anonymous}::
+      // cwbfd::
       struct object_file_greater {
 	bool operator()(object_file_ct const* a, object_file_ct const* b) const { return a->get_lbase() > b->get_lbase(); }
       };
 
-      // {anonymous}::
+      // cwbfd::
       bool is_group_member(gid_t gid)
       {
 #if defined(HAVE_GETGID) && defined(HAVE_GETEGID)
@@ -468,12 +545,12 @@ namespace libcw {
 	return false;
       }
 
-      // {anonymous}::
+      // cwbfd::
       string* argv0_ptr;
-      // {anonymous}::
+      // cwbfd::
       string const* pidstr_ptr;
 
-      // {anonymous}::
+      // cwbfd::
       int decode_ps(char const* buf, size_t len)
       {
 	static int pid_token = 0;
@@ -545,7 +622,7 @@ namespace libcw {
       // `ps' in order to find the name of the running
       // program.
       // 
-      // {anonymous}::
+      // cwbfd::
       void get_full_path_to_executable(string& result)
       {
 	string argv0;		// Like main()s argv[0], thus must be zero terminated.
@@ -634,10 +711,10 @@ namespace libcw {
 	result = full_path;
       }
 
-      // {anonymous}::
+      // cwbfd::
       static bool initialized = false;
 
-      // {anonymous}::
+      // cwbfd::
       struct my_link_map {
 	void* l_addr;
 	char l_name[MAXPATHLEN];
@@ -650,10 +727,10 @@ namespace libcw {
 	}
       };
 
-      // {anonymous}::
+      // cwbfd::
       vector<my_link_map> shared_libs;
 
-      // {anonymous}::
+      // cwbfd::
       int decode(char const* buf, size_t len)
       {
 	for (char const* p = buf; p < &buf[len]; ++p)
@@ -684,8 +761,8 @@ namespace libcw {
 	return 0;
       }
 
-      // {anonymous}::
-      int libcw_bfd_init(void)
+      // cwbfd::
+      int init(void)
       {
 	static bool being_initialized = false;
 	// This should catch it when we call new or malloc while 'internal'.
@@ -726,15 +803,19 @@ namespace libcw {
 	// Initialize object files list
 	new (object_files_instance_) object_files_ct;
 
+#ifdef DEBUGUSEGNULIBBFD
 	bfd_init();
+#endif
 
 	// Get the full path and name of executable
 	static string fullpath;					// Must be static because bfd keeps a pointer to its data()
 	get_full_path_to_executable(fullpath);
 	fullpath += '\0';
 
+#ifdef DEBUGUSEGNULIBBFD
 	bfd_set_error_program_name(fullpath.data() + fullpath.find_last_of('/') + 1);
 	bfd_set_error_handler(error_handler);
+#endif
 
 	// Load executable
 /**/	set_alloc_checking_on();
@@ -828,7 +909,7 @@ namespace libcw {
 	return 0;
       }
 
-      // {anonymous}::
+      // cwbfd::
       symbol_ct const* pc_symbol(bfd_vma addr, object_file_ct* object_file)
       {
 	static asymbol dummy_symbol;
@@ -854,7 +935,7 @@ namespace libcw {
 	return NULL;
       }
 
-    } // namespace {anonymous}
+    } // namespace cwbfd
 
     char const* const unknown_function_c = "<unknown function>";
 
@@ -863,8 +944,10 @@ namespace libcw {
     //
     char const* pc_mangled_function_name(void const* addr)
     {
+      using namespace cwbfd;
+
       if (!initialized)
-	libcw_bfd_init();
+	init();
 
       symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, find_object_file(addr));
 
@@ -891,6 +974,8 @@ namespace libcw {
     //
     void location_ct::M_pc_location(void const* addr)
     {
+      using namespace cwbfd;
+
       if (!initialized)
       {
 #ifdef __GLIBCPP__	// Pre libstdc++ v3, there is no malloc done for initialization of cerr.
@@ -901,7 +986,7 @@ namespace libcw {
 	  return;
 	}
 #endif
-	libcw_bfd_init();
+	init();
       }
 
       object_file_ct* object_file = find_object_file(addr);

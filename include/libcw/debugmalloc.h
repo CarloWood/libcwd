@@ -410,6 +410,20 @@ extern void* __libcwd_realloc(void* ptr, size_t size);
 #define free __libcwd_free
 #define realloc __libcwd_realloc
 
+// Other libc functions that return malloc-ed pointers.
+inline char* __libcwd_strdup(char const* str)
+{
+  size_t size = strlen(str) + 1;
+  char* p = (char*)malloc(size);
+  if (p)
+  {
+    memcpy(p, str, size);
+    AllocTag(p, "strdup()");
+  }
+  return p;
+}
+#define strdup __libcwd_strdup
+
 #endif // DEBUGMALLOC
 #endif // !DEBUG_INTERNAL
 
