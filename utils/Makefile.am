@@ -8,7 +8,7 @@ EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
 CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
-INCLUDES = -I- -I$(srcdir)/../include -I$(top_builddir)/include -DCWDEBUG
+INCLUDES = -I$(srcdir)/../include -I$(top_builddir)/include -DCWDEBUG
 LIBS=
 
 libutils_la_SOURCES = \

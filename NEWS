@@ -1,6 +1,7 @@
 libcwd-0.99.15
 
-	libcwd now works with (single threaded) qt applications.
+	libcwd now works with (single threaded) qt applications.  A few major
+	bugs have been fixed.
 
 	API changes:
 
@@ -17,6 +18,16 @@ libcwd-0.99.15
 	symbols that started with _X... Since those are used a lot in X libs,
 	libcwd was unusable with X windowing system applications (like those
 	using qt).
+
+	Wrong demangling or a core dump could occur during the demangling of
+	symbols used in type_info_of<> when using g++ version 3.x.
+
+	An abort on an 'assert(func_addr)' could happen for .stabs N_FUN entries.
+	The latest glibc caused this - making libcwd unusable.
+
+	Due to a bug in the installation of g++-3.0.x, the use of -I- caused
+	the header file gthr-default.h not to be found and as such failure of
+	compilation of libcwd with an out-of-the-box installation of gcc.
 
 libcwd-0.99.14
 

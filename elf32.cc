@@ -1640,7 +1640,7 @@ void object_file_ct::load_stabs(void)
 	      // This can happen for .gnu.link_once section symbols: it might be that
 	      // a function is present in the current object file but is not used;
 	      // the dynamic linker has put it in the 'undefined' section and no
-	      // address it known even while there is still this N_FUN entry.
+	      // address is known even though there is still this N_FUN entry.
 	      skip_function = true;
 	      location.line = 0;
 	      break;

@@ -13,7 +13,7 @@ EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
 CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
-INCLUDES = -I$(top_builddir) -I- -I$(top_builddir)/include -I$(srcdir)/include
+INCLUDES = -I$(top_builddir) -I$(top_builddir)/include -I$(srcdir)/include
 
 lib_LTLIBRARIES = libcwd.la
 
