@@ -1035,7 +1035,7 @@ void allocator_unlock(void)
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdlock(true);
           // Terminate all threads that I know of, so that no locks will remain.
 	  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
-	    if (!pthread_equal((*thread_iter).tid, pthread_self()))
+	    if (!pthread_equal((*thread_iter).tid, pthread_self()) && (*thread_iter).tid != 1024)
             pthread_cancel((*thread_iter).tid);
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;

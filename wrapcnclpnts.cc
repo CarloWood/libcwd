@@ -117,7 +117,10 @@ CANCELLATION_POINT_SYSCALL (int, tcdrain, (int fd), (fd))
 CANCELLATION_POINT_SYSCALL (__pid_t, wait, (__WAIT_STATUS_DEFN stat_loc), (stat_loc))
 strong_alias(wait, __wait)
 
-CANCELLATION_POINT_SYSCALL (__pid_t, waitpid, (__pid_t pid, int *stat_loc, int options), (pid, stat_loc, options))
+// We can't wrap this call because that leads to a deadlock when threads are
+// being cancelled.  I don't think it is needed anyway because libcwd doesn't
+// call waitpid anywhere.
+// CANCELLATION_POINT_SYSCALL (__pid_t, waitpid, (__pid_t pid, int *stat_loc, int options), (pid, stat_loc, options))
 
 CANCELLATION_POINT_SYSCALL (ssize_t, write, (int fd, const void *buf, size_t n), (fd, buf, n))
 strong_alias(write, __write)
