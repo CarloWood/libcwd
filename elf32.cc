@@ -35,7 +35,7 @@
 #include <libcw/private_assert.h>
 
 #define DEBUGELF32 0
-#define DEBUGSTABS 1
+#define DEBUGSTABS 0
 #define DEBUGDWARF 0
 
 // This assumes that DW_TAG_compile_unit is the first tag for each compile unit
@@ -806,6 +806,7 @@ private:
   object_files_string_set_ct M_source_files;
   object_files_range_location_map_ct M_ranges;
   bool M_debug_info_loaded;
+  bool M_brac_relative_to_fun;
 #ifndef _REENTRANT
   bool M_inside_find_nearest_line;
 #else
@@ -1797,20 +1798,47 @@ void objfile_ct::load_stabs(void)
 	  Dout(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
 	break;
       }
+      case N_LBRAC:
+      {
+	if (DEBUGSTABS)
+	  Dout(dc::bfd, "N_LBRAC: " << std::hex << stabs[j].n_value << '.');
+	if (stabs[j].n_value == 0)		// Fix me: shouldn't be done (yet) while function start == source file start.
+	  M_brac_relative_to_fun = true;
+	break;
+      }
+      case N_RBRAC:
+      {
+	if (DEBUGSTABS)
+	  Dout(dc::bfd, "N_RBRAC: " << std::hex << stabs[j].n_value << '.');
+	if (location.is_valid_stabs())	// Only take N_RBRAC into account when we had at least one N_SLINE.
+	{
+	  if ((M_brac_relative_to_fun ? func_addr : 0) + stabs[j].n_value == range.start)
+	  {
+	    if (DEBUGSTABS)
+	      Dout(dc::bfd, "N_RBRAC: " << "end at " << std::hex << stabs[j].n_value << '.');
+	    range.size = func_addr + stabs[j].n_value - range.start;
+	    if (!skip_function)
+	      location.stabs_range(range);
+	    skip_function = false;
+	    location.invalidate();
+	  }
+	}
+	break;
+      }
       case N_FUN:
       {
-	if (stabs[j].n_strx == 0
-#ifdef __sun__
-            || stabs_string_table[stabs[j].n_strx] == 0
-#endif
-            )
+	if (stabs[j].n_strx == 0)
 	{
-          if (DEBUGSTABS)
-	    Dout(dc::bfd, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
-	  range.size = func_addr + stabs[j].n_value - range.start;
-	  if (!skip_function)
-	    location.stabs_range(range);
-	  skip_function = false;
+	  if (location.is_valid_stabs())	// Location is invalidated when we already processed the end of the function by N_RBRAC.
+	  {
+	    if (DEBUGSTABS)
+	      Dout(dc::bfd, "N_FUN: " << "end at " << std::hex << stabs[j].n_value << '.');
+	    range.size = func_addr + stabs[j].n_value - range.start;
+	    if (!skip_function)
+	      location.stabs_range(range);
+	    skip_function = false;
+	    location.invalidate();
+	  }
 	}
 	else
 	{
@@ -2079,6 +2107,7 @@ objfile_ct::objfile_ct(char const* file_name) :
   if (DEBUGELF32)
     Debug( libcw_do.inc_indent(4) );
   M_debug_info_loaded = false;
+  M_brac_relative_to_fun = false;
 #ifndef _REENTRANT
   M_inside_find_nearest_line = false;
 #endif
