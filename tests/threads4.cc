@@ -2,6 +2,7 @@
 #include "threads_debug.h"
 #include <iostream>
 #include <sstream>
+#include <cstdio>	// For sprintf
 
 #ifdef CWDEBUG
 namespace debug_channels {

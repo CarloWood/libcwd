@@ -1,6 +1,16 @@
 libcwd-0.99.17
 
+	A tutorial on debugging threaded applications was added.
+
 	Bug fixes:
+
+	The specialization of template
+	_private_::lock_interface_tct<pthread_mutex_t*>
+	was accidently left out of its header file, resulting in
+	the compile error:
+	/usr/include/libcw/private_lock_interface.h:38: no matching
+	  function for call to `pthread_mutex_t::trylock()'
+        when trying to pass a pthread_mutex_t to debug_ct::set_ostream.
 
 	Libcwd failed to find an executable in the current directory
 	when one of the command line parameters contained a '/'.

@@ -220,7 +220,7 @@ public:
   //
 
   void set_ostream(std::ostream* os);
-#ifdef LIBCWD_THREAD_SAFE
+#if defined(LIBCWD_THREAD_SAFE) || defined(LIBCW_DOXYGEN)
   template<class T>
     void set_ostream(std::ostream* os, T* mutex);
 #ifdef LIBCW_DOXYGEN
@@ -242,7 +242,7 @@ public:
   void force_on(OnOffState& state);
   void restore(OnOffState const& state);
 
-#ifdef LIBCWD_THREAD_SAFE
+#if defined(LIBCWD_THREAD_SAFE) || defined(LIBCW_DOXYGEN)
   /**
    * \brief Keep Thread Specific Data after thread exit.
    *
@@ -278,6 +278,12 @@ public:
   bool keep_tsd(bool keep);
 #endif // LIBCWD_THREAD_SAFE
 };
+
+#ifndef LIBCW_DOXYGEN
+// Specialization.
+template<>
+  void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex);
+#endif
 
   }  // namespace debug
 }  // namespace libcw
