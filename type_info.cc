@@ -33,16 +33,9 @@ char const* make_label(char const* mangled_name)
   char const* demangled_name;
   size_t len;
   string out;
-  if (demangle(mangled_name, out) == -1)
-  {
-    demangled_name = mangled_name;
-    len = strlen(demangled_name);
-  }
-  else
-  {
-    demangled_name = out.c_str();
-    len = out.size();
-  }
+  demangle_type(mangled_name, out);
+  demangled_name = out.c_str();
+  len = out.size();
 #ifdef DEBUGMALLOC
   set_alloc_checking_off();
 #endif

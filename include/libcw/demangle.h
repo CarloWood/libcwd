@@ -18,6 +18,7 @@ RCSTAG_H(demangle, "$Id$")
 
 #include <string>
 
-extern int demangle(char const* in, string& out);
+extern void demangle_type(char const* in, string& out);
+extern void demangle_symbol(char const* in, string& out);
 
 #endif // LIBCW_DEMANGLE_H

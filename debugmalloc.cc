@@ -527,14 +527,6 @@ dm_alloc_ct::~dm_alloc_ct()
 
 #ifdef DEBUG
 
-#ifdef DEBUGUSEBFD
-extern "C" {
-  char* cplus_demangle (char const* mangled, int options);
-}
-#define DMGL_PARAMS 1
-#define DMGL_ANSI 2
-#endif
-
 void dm_alloc_ct::print_description(void) const
 {
 #ifdef DEBUGUSEBFD
@@ -549,9 +541,9 @@ void dm_alloc_ct::print_description(void) const
   }
   else if (location.func)
   {
-    char* f = cplus_demangle(location.func, DMGL_PARAMS|DMGL_ANSI);
+    string f;
+    demangle_symbol(location.func, f);
     Dout( dc::continued, setw(24) << f << ' ' );
-    free(f);
   }
   else
     Dout( dc::continued, setw(25) << ' ' );

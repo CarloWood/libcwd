@@ -139,11 +139,11 @@ if test "$libcwd_config_bfd" = yes; then
   dnl Checks for libraries.
   save_LIBS=$LIBS
 
-  dnl Check if we have `cplus_demangle' in libiberty.a
-  AC_CHECK_LIB(iberty, cplus_demangle,,
+  dnl Check if we have `xmalloc' in libiberty.a
+  AC_CHECK_LIB(iberty, xmalloc,,
       [dnl If that failed, try linking with -ldl:
-      unset ac_cv_lib_iberty_cplus_demangle
-      AC_CHECK_LIB(iberty, cplus_demangle, [LIBS="-liberty -ldl $LIBS"],, -ldl)])
+      unset ac_cv_lib_iberty_xmalloc
+      AC_CHECK_LIB(iberty, xmalloc, [LIBS="-liberty -ldl $LIBS"],, -ldl)])
 
   dnl Check if we have `bfd_init' in -lbfd
   AC_CHECK_LIB(bfd, bfd_init,,
@@ -152,7 +152,7 @@ if test "$libcwd_config_bfd" = yes; then
       AC_CHECK_LIB(bfd, bfd_init, [LIBS="-lbfd -lintl $LIBS"],, -lintl)])
 
   dnl If both succeeded, then enable DEBUGUSEBFD
-  if test "$ac_cv_lib_iberty_cplus_demangle" != "no" -a "$ac_cv_lib_bfd_bfd_init" != "no"; then
+  if test "$ac_cv_lib_iberty_xmalloc" != "no" -a "$ac_cv_lib_bfd_bfd_init" != "no"; then
     AC_CHECK_HEADER(bfd.h,
       [CW_CONFIG_DEBUGUSEBFD=define],
       [AC_MSG_WARN([You have libbfd, but I cannot find bfd.h!?  Look up of function names and source:line information will be disabled.])])

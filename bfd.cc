@@ -39,6 +39,7 @@
 #include <libcw/bfd.h>
 #include <libcw/exec_prog.h>
 #include <libcw/cwprint.h>
+#include <libcw/demangle.h>
 #include "config.h"
 
 #undef DEBUGDEBUGBFD
@@ -605,15 +606,6 @@ char const* libcw_bfd_pc_function_name(void const* addr)
   return symbol->get_symbol()->name;
 }
 
-#ifdef DEBUG
-// demangle.h doesn't include the extern "C", so we do it this way
-extern "C" {
-  char* cplus_demangle (char const* mangled, int options);
-}
-#define DMGL_PARAMS 1
-#define DMGL_ANSI 2
-#endif
-
 //
 // Find source file, (mangled) function name and line number of the address `addr'.
 //
@@ -667,15 +659,14 @@ location_st libcw_bfd_pc_location(void const* addr) return location
     {
       if (p->name)
       {
-	char* demangled_name = cplus_demangle(p->name, DMGL_PARAMS | DMGL_ANSI);
+	string demangled_name;
+	demangle_symbol(p->name, demangled_name);
 	Dout(dc::bfd, "Warning: Address " << hex << addr << " in section " << sect->name <<
 	    " does not have a line number, perhaps the unit containing the function");
 #ifdef __FreeBSD__
-	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << (demangled_name ? demangled_name : p->name) <<
-	    "' wasn't compiled with CFLAGS=-ggdb");
+	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with CFLAGS=-ggdb");
 #else
-	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << (demangled_name ? demangled_name : p->name) <<
-	    "' wasn't compiled with CFLAGS=-g");
+	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with CFLAGS=-g");
 #endif
       }
       else
