@@ -4,14 +4,14 @@ BFD     : Loading debug symbols from .*/tst_bfd_s.....\.\.\. done \([0-9]+ symbo
 // output till ^BFD     : address
 (BFD     : Loading debug symbols from .*\.so.* \(0x[0-9a-f]+\) \.\.\. (done \([0-9]+ symbols\)|No symbols found)
 )+
-BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:59
-NOTICE  : called from bfd\.cc:59
-BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:64
-NOTICE  : called from bfd\.cc:64
-BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:69
-NOTICE  : called from bfd\.cc:69
-BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:90
-NOTICE  : called from bfd\.cc:90
+BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:60
+NOTICE  : called from bfd\.cc:60
+BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:65
+NOTICE  : called from bfd\.cc:65
+BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:70
+NOTICE  : called from bfd\.cc:70
+BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:91
+NOTICE  : called from bfd\.cc:91
 // input lines 3
 // output till ^BFD     : Warning
 (BFD     : address 0x[0-9a-f]+ corresponds to .*
