@@ -6,7 +6,38 @@
 \page page_symbols_intro
 \ingroup chapter_symbols_intro
 
-Fix me: add text.
+Libcwd reads the symbol table of the application and of each
+of the linked object files upon initialization.&nbsp;
+It then allows you to translate program counter addresses to
+function names, source file names and line numbers.&nbsp;
+You can also print demangled names of any symbol or type, making
+the debug output better human readable.&nbsp;
+
+<b>Example 1: printing the location that a function was called from:</b>
+
+\code
+#ifdef CWDEBUG
+// Get the location that we were called from.
+libcw::debug::location_ct location((char*)__builtin_return_address(0)
+    + libcw::debug::builtin_return_address_offset);
+// Demangle the function name of the location that we were called from.
+std::string demangled_function_name;
+libcw::debug::demangle_symbol(location.mangled_function_name(), demangled_function_name);
+// Print it.
+Dout(dc::notice, "This function was called from " << demangled_function_name << '(' << location << ')');
+#endif
+\endcode
+
+<b>Example 2: Printing the demangled name of the current (template) function:</b>
+
+\code
+// If we are in template Foo<TYPE>::f()
+Dout(dc::notice, "We are in Foo<" << type_info_of<TYPE>().demangled_name() << ">::f()");
+\endcode
+
+Note that calling \ref demangle_symbol costs cpu every time you call it, but using
+\ref type_info_of<> does not cost any cpu: the demangling is done once, during the
+initialization of libcwd; \ref type_info_of<> merely returns a static pointer.
 
 */
 

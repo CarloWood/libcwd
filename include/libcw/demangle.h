@@ -26,8 +26,13 @@
 namespace libcw {
   namespace debug {
 
+/** \addtogroup group_demangle */
+/** \{ */
+
 extern void demangle_type(char const* input, std::string& output);
 extern void demangle_symbol(char const* input, std::string& output);
+
+/** \} */
 
   } // namespace debug
 } // namespace libcw
