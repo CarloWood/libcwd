@@ -425,7 +425,7 @@ template <int instance>
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_ASSERT( is_locked(instance) );
 #endif
-      pthread_cond_wait(&S_condition, &S_mutex);
+      pthread_cond_wait(&S_condition, &this->S_mutex);
     }
     void signal(void) { pthread_cond_signal(&S_condition); }
     void broadcast(void) { pthread_cond_broadcast(&S_condition); }

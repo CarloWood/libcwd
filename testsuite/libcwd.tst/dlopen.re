@@ -41,6 +41,6 @@ MALLOC  : free\(0x[0-9a-f]*\) *(dl-deps.c:[0-9]*|_dl_map_object_deps) *<unknown 
 // input lines 3
 // output till ^NOTICE
 (MALLOC  : delete 0x[0-9a-f]* *(streambuf::streambuf\(int\)|streambuf\.cc:211|ios\.cc:326|memory:183) *<unknown type>; \(sz = [0-9]*\)  
-MALLOC  : Trying to free NULL - ignored\.
-)*
+(MALLOC  : Trying to free NULL - ignored\.
+)*)*
 NOTICE  : Finished

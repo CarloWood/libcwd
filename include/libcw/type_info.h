@@ -98,9 +98,10 @@ namespace _private_ {
 
   // Specialization for `void*'.
   // _private_::
-  struct type_info<void*> {
-    static type_info_ct const value_c;
-  };
+  template<>
+    struct type_info<void*> {
+      static type_info_ct const value_c;
+    };
 
   // NOTE:
   // Compiler versions 2.95.x will terminate with an "Internal compiler error"
@@ -156,9 +157,10 @@ template<typename T>
   };
 
 // Specialization for `void*'.
-struct libcwd_type_info_exact<void*> {
-  static ::libcw::debug::type_info_ct const value_c;
-};
+template<>
+  struct libcwd_type_info_exact<void*> {
+    static ::libcw::debug::type_info_ct const value_c;
+  };
 
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97
 template<typename T>

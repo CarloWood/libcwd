@@ -81,11 +81,19 @@ bool allocator_trylock(void)
 #if (__GNUC__ < 3 || __GNUC_MINOR__ == 0)
   if (!(__NODE_ALLOCATOR_THREADS)) return true;
 #endif
+#if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
   if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
     std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
 #endif
   return (__gthread_mutex_trylock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock) == 0);
+#else
+#if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
+  if (!std::__pool_alloc<true, 0>::_S_lock._M_init_flag)
+    std::__pool_alloc<true, 0>::_S_lock._M_initialize();
+#endif
+  return (__gthread_mutex_trylock(&std::__pool_alloc<true, 0>::_S_lock._M_lock) == 0);
+#endif
 }
 
 // The following unlocks the node allocator.
@@ -95,11 +103,19 @@ void allocator_unlock(void)
 #if (__GNUC__ < 3 || __GNUC_MINOR__ == 0)
   if (!(__NODE_ALLOCATOR_THREADS)) return;
 #endif
+#if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
   if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
     std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
 #endif
   __gthread_mutex_unlock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
+#else
+#if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
+  if (!std::__pool_alloc<true, 0>::_S_lock._M_init_flag)
+    std::__pool_alloc<true, 0>::_S_lock._M_initialize();
+#endif
+  __gthread_mutex_unlock(&std::__pool_alloc<true, 0>::_S_lock._M_lock);
+#endif
 }
 #endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
 
@@ -198,10 +214,10 @@ void allocator_unlock(void)
       rdbuf()->sgetn(msgbuf, curlen);
 #endif
 #if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
-      if (queue_msg)			// Inside a call to malloc and possibly owning lock of std::__default_alloc_template<true, 0>?
+      if (queue_msg)	// Inside a call to malloc and possibly owning lock of std::LIBCWD_POOL_ALLOC<true, 0>?
       {
-	// We don't write debug output to the final ostream when inside malloc and std::__default_alloc_template<true, 0> is locked.
-	// It is namely possible that this will again try to acquire the lock in std::__default_alloc_template<true, 0>, resulting
+	// We don't write debug output to the final ostream when inside malloc and std::LIBCWD_POOL_ALLOC<true, 0> is locked.
+	// It is namely possible that this will again try to acquire the lock in std::LIBCWD_POOL_ALLOC<true, 0>, resulting
 	// in a deadlock.  Append it to the queue instead.
 	msgbuf->curlen = curlen;
 	msgbuf->prev = NULL;

@@ -8,7 +8,7 @@ MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
           0x[a-f0-9]* tst_filter_shared:/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
 MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
           0x[a-f0-9]* tst_filter_shared:/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
-MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:157|          stl_alloc.h:(103|108|109)) *<unknown type>; \(sz = 4096\)  
+MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:157|          stl_alloc.h:(103|108|109)|          stl-inst.cc:104) *<unknown type>; \(sz = 4096\)  
 MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc 
 MALLOC  : malloc\(12\) = 0x[a-f0-9]*
 MALLOC  : calloc\(54[4|8], 1\) = 0x[a-f0-9]*
@@ -55,11 +55,12 @@ MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = 54[4|8]\)  
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-deps\.c:528|_dl_map_object_deps|<pre libcwd initialization>) *<unknown type>; \(sz = [0-9]*\)  
-// input lines 3
+// input lines 4
 // output till MALLOC  : Allocated memory
-(MALLOC  : .*<pre libcwd initialization> <unknown type>; \(sz = [0-9]*\)  
+((MALLOC  : .*<pre libcwd initialization> <unknown type>; \(sz = [0-9]*\)  
 MALLOC  : (Trying to free NULL - ignored\.|free\(0x[a-f0-9]*\) <pre libcwd initialization> <unknown type>.*)
-)*
+)*|(MALLOC  : delete 0x[a-f0-9]* <pre ios initialization>  <unknown type>.*
+))
 MALLOC  : Allocated memory: [0-9]* bytes in [5-9] blocks:
 [0-9:.]* \(deleted\) 0x[a-f0-9]* tst_filter_shared:           filter\.cc:181  <marker>; \(sz = 4\)  marker1
     [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:31   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
