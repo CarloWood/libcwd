@@ -914,19 +914,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #endif
 
 	// Load executable
-/**/	set_alloc_checking_on();
-/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << fullpath.value->data() << "... ");
-/**/	set_alloc_checking_off();
-	object_file_ct* object_file = new object_file_ct(fullpath.value->data(), 0);
-/**/	set_alloc_checking_on();
-/**/	if (object_file->get_number_of_symbols() > 0)
-/**/	  Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
-/**/	else
-/**/	  Dout(dc::finish, "No symbols found");
-/**/	set_alloc_checking_off();
+	load_object_file(fullpath.value->data(), 0);
 
 	// Load all shared objects
-
 #ifndef HAVE_LINK_H
 	// Path to `ldd'
 	char const ldd_prog[] = "/usr/bin/ldd";
@@ -1052,9 +1042,34 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       object_file_ct* object_file = find_object_file(addr);
+#ifdef HAVE_LINK_H
       if (!object_file)
       {
-        DoutFatal(dc::core, "Ok, can't find object file for address " << addr);
+	set_alloc_checking_off();
+        // Try to load everything again... previous loaded libraries are skipped based on load address.
+	for(link_map* l = _dl_loaded; l;)
+	{
+	  if (l->l_addr)
+	  {
+	    for (object_files_ct::iterator iter = object_files().begin(); iter != object_files().end(); ++iter)
+	      if (reinterpret_cast<void*>(l->l_addr) == (*iter)->get_lbase())
+		goto already_loaded;
+	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+	  }
+already_loaded:
+	  l = l->l_next;
+	}
+	object_files().sort(object_file_greater());
+	set_alloc_checking_on();
+	object_file = find_object_file(addr);
+      }
+#endif
+      if (!object_file)
+      {
+        Dout(dc::bfd, "No object file for address " << addr);
+	M_filepath = NULL;
+	M_func = unknown_function_c;
+	return;
       }
 
       symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, object_file);
