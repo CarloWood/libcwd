@@ -1,4 +1,8 @@
-#define __USE_LARGEFILE64
+#include <libcw/debug_config.h>		// Needed for LIBCWD_DEBUG_THREADS
+
+#if LIBCWD_DEBUG_THREADS
+
+#define _LARGEFILE64_SOURCE
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -55,7 +59,7 @@ CANCELABLE_SYSCALL (int, fsync, (int fd), (fd))
 CANCELABLE_SYSCALL (off_t, lseek, (int fd, off_t offset, int whence), (fd, offset, whence))
 strong_alias (lseek, __lseek)
 
-//CANCELABLE_SYSCALL (off64_t, lseek64, (int fd, off64_t offset, int whence), (fd, offset, whence))
+CANCELABLE_SYSCALL (off64_t, lseek64, (int fd, off64_t offset, int whence), (fd, offset, whence))
 
 CANCELABLE_SYSCALL (int, msync, (__ptr_t addr, size_t length, int flags), (addr, length, flags))
 
@@ -71,13 +75,13 @@ CANCELABLE_SYSCALL (int, pause, (void), ())
 
 CANCELABLE_SYSCALL (ssize_t, pread, (int fd, void *buf, size_t count, off_t offset), (fd, buf, count, offset))
 
-//CANCELABLE_SYSCALL (ssize_t, pread64, (int fd, void *buf, size_t count, off64_t offset), (fd, buf, count, offset))
-//strong_alias (pread64, __pread64)
+CANCELABLE_SYSCALL (ssize_t, pread64, (int fd, void *buf, size_t count, off64_t offset), (fd, buf, count, offset))
+strong_alias (pread64, __pread64)
 
 CANCELABLE_SYSCALL (ssize_t, pwrite, (int fd, const void *buf, size_t n, off_t offset), (fd, buf, n, offset))
 
-//CANCELABLE_SYSCALL (ssize_t, pwrite64, (int fd, const void *buf, size_t n, off64_t offset), (fd, buf, n, offset))
-//strong_alias (pwrite64, __pwrite64)
+CANCELABLE_SYSCALL (ssize_t, pwrite64, (int fd, const void *buf, size_t n, off64_t offset), (fd, buf, n, offset))
+strong_alias (pwrite64, __pwrite64)
 
 CANCELABLE_SYSCALL (ssize_t, read, (int fd, void *buf, size_t count), (fd, buf, count))
 strong_alias (read, __read)
@@ -111,3 +115,5 @@ strong_alias (send, __send)
 CANCELABLE_SYSCALL (ssize_t, sendmsg, (int fd, const struct msghdr *message, int flags), (fd, message, flags))
 
 CANCELABLE_SYSCALL (ssize_t, sendto, (int fd, const __ptr_t buf, size_t n, int flags, __CONST_SOCKADDR_ARG addr, socklen_t addr_len), (fd, buf, n, flags, addr, addr_len))
+
+#endif // LIBCWD_DEBUG_THREADS
