@@ -12,6 +12,12 @@ libcwd-0.99.34
 	caused undefined behaviour.  Thanks to Vladimir Prus for
 	reporting this problem.
 
+	The non-threaded library could core dump at exit due to a
+	global object destruction order fiasco.  If libcw_do was
+	destructed before rcfile (or any other global object doing
+	memory allocations from its destructor) and dc::malloc is
+	still turned on.
+
 libcwd-0.99.33
 
 	New function debug_watch(ptr).  You can call this from within

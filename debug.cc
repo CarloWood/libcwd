@@ -1435,14 +1435,15 @@ void allocator_unlock(void)
 
     debug_tsd_st::~debug_tsd_st()
     {
-#if !LIBCWD_THREAD_SAFE
-      // In the threaded case, we are called with `internal' set already.
-      set_alloc_checking_off();
-#endif
+#if LIBCWD_THREAD_SAFE
+      // In the non-threaded case we do not want to deinitialize these because they
+      // might still be needed if dc::malloc (and/or dc::bfd) is turned on and
+      // the destructor of some global object that is destructed *after* libcw_do
+      // is deleting (or allocating) memory.
+
+      // In the threaded case, we are called with `internal' set.
       margin.deinitialize();
       marker.deinitialize();
-#if !LIBCWD_THREAD_SAFE
-      set_alloc_checking_on();
 #endif
       if (!tsd_initialized)	// Skip the rest when it wasn't initialized.
 	return;
