@@ -18,6 +18,18 @@ libcwd-0.99.28
 	(to correctly lookup every possible location in a -O2 compiled
 	libstdc++-5.0.2).
 
+	Only half of the new/delete signatures in <new> were supported.
+	As a result, applications that used new(std::nothrow_t) would
+	abort with the error: COREDUMP: You are `delete'-ing a block that
+	was allocated with `malloc()'!  Use `free()' instead.
+	In particular gtkmm-2.0 and higher is using such a call.
+	(Bug reported by Marek Materzok).
+	The following signatures have been added to libcwd now:
+	void* operator new(std::size_t, std::nothrow_t const&) throw();
+	void* operator new[](std::size_t, std::nothrow_t const&) throw();
+	void operator delete(void*, std::nothrow_t const&) throw();
+	void operator delete[](void*, std::nothrow_t const&) throw();
+
 	TODO: http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view%20audit-trail&database=gcc&pr=38
 
 libcwd-0.99.27
