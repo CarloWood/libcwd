@@ -42,7 +42,9 @@ RCSTAG_H(debug, "$Id$")
 #    define UNUSED_UNLESS_DEBUG(x) x
 #    include <assert.h>
 #    define ASSERT(x) assert(x);
-#    define Debug(x) do { USING_NAMESPACE_LIBCW_DEBUG/**/(x); } while(0)
+#    define LibcwDebug(dc_namespace, x) do { using namespace dc_namespace; (x); } while(0)
+#    define Debug(x) LibcwDebug(DEBUGNAMESPACE, x)
+#    define __Debug(x) LibcwDebug(NAMESPACE_LIBCW_DEBUG, x)
 #    define ForAllDebugObjects(STATEMENT) \
        for( NAMESPACE_LIBCW_DEBUG::debug_objects_ct::iterator __libcw_i(NAMESPACE_LIBCW_DEBUG::debug_objects->begin()); __libcw_i != NAMESPACE_LIBCW_DEBUG::debug_objects->end(); ++__libcw_i) \
        { \
@@ -64,7 +66,9 @@ RCSTAG_H(debug, "$Id$")
 #      define UNUSED_UNLESS_DEBUG(x) unused__##x
 #    endif
 #    define ASSERT(x)
+#    define LibcwDebug(dc_namespace, x)
 #    define Debug(x)
+#    define __Debug(x)
 #    define ForAllDebugObjects(STATEMENT)
 #    define ForAllDebugChannels(STATEMENT)
 #    define LIBCW ::libcw
@@ -349,7 +353,7 @@ namespace libcw {
 #ifdef DEBUGMALLOC
     class no_alloc_checking_ostrstream : public ostrstream {
     private:
-      strstreambuf *my_sb;
+      strstreambuf* my_sb;
     public:
       no_alloc_checking_ostrstream(void);
       ~no_alloc_checking_ostrstream();
@@ -629,21 +633,6 @@ namespace libcw {
       extern continued_channel_ct const continued;
       extern continued_channel_ct const finish;
     };	// namespace dc
-
-    // A different way of notation
-    static channel_ct const& debug_dc(dc::debug) __attribute__ ((unused));
-    static channel_ct const& notice_dc(dc::notice) __attribute__ ((unused));
-    static channel_ct const& system_dc(dc::system) __attribute__ ((unused));
-    static channel_ct const& warning_dc(dc::warning) __attribute__ ((unused));
-#ifdef DEBUGMALLOC
-    static channel_ct const& malloc_dc(dc::debugmalloc) __attribute__ ((unused));
-#else
-    static channel_ct const& malloc_dc(dc::malloc) __attribute__ ((unused));
-#endif
-    static fatal_channel_ct const& fatal_dc(dc::fatal) __attribute__ ((unused));
-    static fatal_channel_ct const& core_dc(dc::core) __attribute__ ((unused));
-    static continued_channel_ct const& continued_dc(dc::continued) __attribute__ ((unused));
-    static continued_channel_ct const& finish_dc(dc::finish) __attribute__ ((unused));
 
     extern debug_ct libcw_do;
     typedef vector<debug_ct*> debug_objects_ct;
