@@ -1571,6 +1571,8 @@ void object_file_ct::load_stabs(void)
 	else
 	{
 	  range.start = func_addr = stabs[j].n_value;
+	  if (func_addr == 0 && location.line)
+	    DoutFatal(dc::fatal, "Upgrade your binutils: it produces wrong .stabs debug info (2.10.91 should work).");
 	  char const* fn = &stabs_string_table[stabs[j].n_strx];
 	  cur_func.assign(fn, strchr(fn, ':') - fn);
 	  cur_func += '\0';
