@@ -25,7 +25,7 @@ RCSTAG_H(debug, "$Id$")
 #  ifdef DEBUG
 #   ifdef DEBUGNONAMESPACE
 #     define USING_NAMESPACE_LIBCW_DEBUG
-#     define NAMESPACE_LIBCW_DEBUG std
+#     define NAMESPACE_LIBCW_DEBUG ::std
 #     define LIBCW
 #   else
 #     define USING_NAMESPACE_LIBCW_DEBUG using namespace ::libcw::debug;
@@ -636,14 +636,14 @@ namespace libcw {
 #define DEBUGDEBUGLIBCWDOUTMARKER
 #endif
 
-#define LibcwDout( debug_obj, cntrl, data )			\
+#define LibcwDout( dc_namespace, debug_obj, cntrl, data )	\
   do								\
   { DEBUGDEBUGLIBCWDOUTMARKER					\
     if (!debug_obj._off)					\
     {								\
       bool on;							\
       {								\
-	USING_NAMESPACE_LIBCW_DEBUG				\
+        using namespace dc_namespace;				\
 	on = (debug_obj|cntrl).on;				\
       }								\
       if (on)							\
@@ -660,14 +660,14 @@ namespace libcw {
 // Its only here because this is the only Right Place(tm)
 // to put it and I needed it for bfd.cc
 //
-#define LibcwDout_vform( debug_obj, cntrl, format, vl )		\
+#define LibcwDout_vform( dc_namespace, debug_obj, cntrl, format, vl )	\
   do								\
   { DEBUGDEBUGLIBCWDOUTMARKER					\
     if (!debug_obj._off)					\
     {								\
       bool on;							\
       {								\
-	USING_NAMESPACE_LIBCW_DEBUG				\
+        using namespace dc_namespace;				\
 	on = (debug_obj|cntrl).on;				\
       }								\
       if (on)							\
@@ -685,11 +685,11 @@ namespace libcw {
 #define DEBUGDEBUGLIBCWDOUTFATALMARKER
 #endif
 
-#define LibcwDoutFatal( debug_obj, cntrl, data )		\
+#define LibcwDoutFatal( dc_namespace, debug_obj, cntrl, data )	\
   do							\
   { DEBUGDEBUGLIBCWDOUTFATALMARKER			\
     {							\
-      USING_NAMESPACE_LIBCW_DEBUG			\
+      using namespace dc_namespace;			\
       debug_obj|cntrl;					\
     }							\
     debug_obj.start();					\
@@ -697,19 +697,23 @@ namespace libcw {
     debug_obj.fatal_finish();				\
   } while(0)
 
-#define Dout(cntrl, data) LibcwDout(NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
-#define Dout_vform(cntrl, format, vl) LibcwDout_vform(NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
-#define DoutFatal(cntrl, data) LibcwDoutFatal(NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define __Dout(cntrl, data) LibcwDout(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
+#define __Dout_vform(cntrl, format, vl) LibcwDout_vform(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, format, vl)
+#define __DoutFatal(cntrl, data) LibcwDoutFatal(NAMESPACE_LIBCW_DEBUG, NAMESPACE_LIBCW_DEBUG::libcw_do, cntrl, data)
 
 #else // !DEBUG
 
 #define LibcwDout(a, b, c)
 #define LibcwDoutFatal(a, b, c) do { cerr << c << endl; exit(-1); } while(1)
-#define Dout(a, b)
-#define Dout_vform(a, b, c)
-#define DoutFatal(a, b) LibcwDoutFatal(/*nothing*/, a, b)
+#define __Dout(a, b)
+#define __Dout_vform(a, b, c)
+#define __DoutFatal(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)
 
 #endif // DEBUG
+
+#define Dout(cntrl, data) __Dout(cntrl, data)
+#define Dout_vform(cntrl, format, vl) __Dout_vform(cntrl, format, vl)
+#define DoutFatal(cntrl, data) __DoutFatal(cntrl, data)
 
 #include <libcw/debugmalloc.h>
 
