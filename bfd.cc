@@ -1372,6 +1372,7 @@ already_loaded:
 	  set_alloc_checking_on(LIBCWD_TSD);
 	}
       }
+      M_object_file = NULL;
       M_func = "<cleared location_ct>";
     }
 
@@ -1379,12 +1380,12 @@ already_loaded:
     {
       if ((M_known = prototype.M_known))
       {
-	M_object_file = prototype.M_object_file;
 	M_filepath = prototype.M_filepath;
 	M_filename = prototype.M_filename;
 	M_line = prototype.M_line;
-	M_func = prototype.M_func;
       }
+      M_object_file = prototype.M_object_file;
+      M_func = prototype.M_func;
     }
 
     location_ct& location_ct::operator=(location_ct const &prototype)
@@ -1394,12 +1395,12 @@ already_loaded:
 	clear();
 	if ((M_known = prototype.M_known))
 	{
-	  M_object_file = prototype.M_object_file;
 	  M_filepath = prototype.M_filepath;
 	  M_filename = prototype.M_filename;
 	  M_line = prototype.M_line;
-	  M_func = prototype.M_func;
 	}
+	M_object_file = prototype.M_object_file;
+	M_func = prototype.M_func;
       }
       return *this;
     }

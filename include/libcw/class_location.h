@@ -64,8 +64,8 @@ protected:
   char* M_filename;				//!< Points inside M_filepath just after the last '/' or to the beginning.
   unsigned int M_line;				//!< The line number of this location.
   char const* M_func;				//!< Pointer to static string containing the mangled function name of this location.
-  object_file_ct const* M_object_file;		//!< A pointer to an object representing the library or executable that this location belongs to.
-  bool M_known;					//!< Set when the above variables contains valid data.
+  object_file_ct const* M_object_file;		//!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
+  bool M_known;					//!< Set when M_filepath (and M_filename) point to valid data and M_line contains a valid line number.
 
 public:
   location_ct(void const* addr);

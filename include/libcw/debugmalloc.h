@@ -121,10 +121,16 @@ __inline__ void make_all_allocations_invisible_except(void const*) { }
 namespace libcw {
   namespace debug {
 
+typedef unsigned short int list_allocations_flag_t;
+list_allocations_flag_t const show_time = 1;
+list_allocations_flag_t const show_path = 2;
+list_allocations_flag_t const show_objectfile = 4;
+
 #if CWDEBUG_ALLOC
-extern void list_allocations_on(debug_ct& debug_object);
+extern void list_allocations_on(debug_ct& debug_object, list_allocations_flag_t flags = 0);
 #else // !CWDEBUG_ALLOC
 __inline__ void list_allocations_on(debug_ct&) { }
+__inline__ void list_allocations_on(debug_ct&, list_allocations_flag_t) { }
 #endif // !CWDEBUG_ALLOC
 
   } // namespace debug

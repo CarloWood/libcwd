@@ -1,3 +1,8 @@
+CXX=@CXX@
+SHELL=@SHELL@
+top_srcdir=@top_srcdir@
+top_builddir=../..
+
 .SUFFIXES:
 .PHONY: examples html
 
@@ -8,6 +13,9 @@ AOUT7:=$(shell grep 'START OUTPUT' tut7.in | cut -d \  -f4)
 
 all: examples html
 
+Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/tutorial/Makefile.in
+	cd $(top_builddir) && CONFIG_FILES=documentation/tutorial/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
+
 examples: $(SOURCES5) $(SOURCES7)
 html: index.html faq.html intro.html tut1.html tut2.html tut3.html tut4.html tut5.html tut6.html tut7.html tut8.html
 
@@ -16,16 +24,17 @@ html: index.html faq.html intro.html tut1.html tut2.html tut3.html tut4.html tut
 
 tut5.m4: tut5.in $(AOUT5)
 	awk -f moo.awk $< > $@
+	@rm -f core
 
 tut7.m4: tut7.in $(AOUT7)
 	awk -f moo.awk $< > $@
+	@rm -f core
 	
 $(SOURCES5): tut5.in
-	@$(MAKE) -s $@-cc
-	@rm -f core
+	$(MAKE) -s $@-cc
 
 $(SOURCES7): tut7.in
-	@$(MAKE) -s $@-cc
+	$(MAKE) -s $@-cc
 
 %-cc:
 	@IN=`echo $* | sed -e 's/examples\([57]\).*/tut\1.in/'`; \
@@ -59,5 +68,5 @@ examples7/%-bin: examples7/%.cc examples7/sys.h examples7/debug.h ../../.libs/li
 		$< -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
 
 maintainer-clean:
-	rm -f examples5/debug.* examples5/test* core examples7/test* tut5.m4 tut7.m4 *.html
+	rm -f examples5/debug.* examples5/test* core examples7/test* tut5.m4 tut7.m4 *.html Makefile
 

@@ -682,11 +682,11 @@ public:
     // Set `current_alloc_list' back to its parent list.
   static unsigned long get_memblks(void) { return memblks; }		// MT-safe: read lock is set.
   static size_t get_memsize(void) { return memsize; }			// MT-safe: read lock is set.
-  void print_description(LIBCWD_TSD_PARAM) const;
+  void print_description(list_allocations_flag_t flags LIBCWD_COMMA_TSD_PARAM) const;
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, dm_alloc_ct const& alloc) { alloc.printOn(os); return os; }
   friend inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, dm_alloc_ct const& alloc) { alloc.printOn(os.M_os); return os; }
-  void show_alloc_list(int depth, channel_ct const& channel) const;
+  void show_alloc_list(int depth, channel_ct const& channel, list_allocations_flag_t flags) const;
 };
 
 typedef dm_alloc_ct const const_dm_alloc_ct;
@@ -767,7 +767,8 @@ public:
       { M_memblk_type = new_flag; if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(void) const { a_alloc_node.get()->new_list(); }			// MT-safe: write lock is set.
   memblk_types_nt flags(void) const { return M_memblk_type; }
-  void print_description(LIBCWD_TSD_PARAM) const { a_alloc_node.get()->print_description(LIBCWD_TSD); }
+  void print_description(list_allocations_flag_t flags LIBCWD_COMMA_TSD_PARAM) const
+      { a_alloc_node.get()->print_description(flags LIBCWD_COMMA_TSD); }
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, memblk_info_ct const& memblk) { memblk.printOn(os); return os; }
 private:
@@ -970,7 +971,7 @@ static void print_integer(std::ostream& os, unsigned int val, int width)
     os << *p++;
 }
 
-void dm_alloc_ct::print_description(LIBCWD_TSD_PARAM) const
+void dm_alloc_ct::print_description(list_allocations_flag_t flags LIBCWD_COMMA_TSD_PARAM) const
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal && !__libcwd_tsd.library_call );
@@ -979,11 +980,22 @@ void dm_alloc_ct::print_description(LIBCWD_TSD_PARAM) const
   if (M_location.is_known())
   {
     LibcwDoutScopeBegin(channels, libcw_do, dc::continued);
-    LibcwDoutStream << M_location.object_file()->filename() << ':';
-    size_t len = M_location.filepath_length();
-    if (len < 20)
-      LibcwDoutStream.write(twentyfive_spaces_c, 20 - len);
-    M_location.print_filepath_on(LibcwDoutStream);
+    if (flags & show_objectfile)
+      LibcwDoutStream << M_location.object_file()->filename() << ':';
+    if (flags & show_path)
+    {
+      size_t len = M_location.filepath_length();
+      if (len < 20)
+	LibcwDoutStream.write(twentyfive_spaces_c, 20 - len);
+      M_location.print_filepath_on(LibcwDoutStream);
+    }
+    else
+    {
+      size_t len = M_location.filename_length();
+      if (len < 20)
+	LibcwDoutStream.write(twentyfive_spaces_c, 20 - len);
+      M_location.print_filename_on(LibcwDoutStream);
+    }
     LibcwDoutStream.put(':');
     print_integer(LibcwDoutStream, M_location.line(), 1);
     int l = M_location.line();
@@ -1070,7 +1082,7 @@ void dm_alloc_ct::printOn(std::ostream& os) const
       ",\n\tnext_list = " << (void*)a_next_list << ", my_list = " << (void*)my_list << "\n\t( = " << (void*)*my_list << " ) }";
 }
 
-void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel) const
+void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel, list_allocations_flag_t flags) const
 {
   dm_alloc_ct const* alloc;
   LIBCWD_TSD_DECLARATION
@@ -1079,29 +1091,32 @@ void dm_alloc_ct::show_alloc_list(int depth, channel_ct const& channel) const
     LibcwDoutScopeBegin(channels, libcw_do, channel|nolabel_cf|continued_cf);
     for (int i = depth; i > 1; i--)
       LibcwDoutStream << "    ";
-    struct tm* tbuf_ptr;
+    if (flags & show_time)
+    {
+      struct tm* tbuf_ptr;
 #if LIBCWD_THREAD_SAFE
-    struct tm tbuf;
-    tbuf_ptr = localtime_r(&alloc->a_time.tv_sec, &tbuf);
+      struct tm tbuf;
+      tbuf_ptr = localtime_r(&alloc->a_time.tv_sec, &tbuf);
 #else
-    tbuf_ptr = localtime(&alloc->a_time.tv_sec);
+      tbuf_ptr = localtime(&alloc->a_time.tv_sec);
 #endif
-    print_integer(LibcwDoutStream, tbuf_ptr->tm_hour, 2);
-    LibcwDoutStream << ':';
-    print_integer(LibcwDoutStream, tbuf_ptr->tm_min, 2);
-    LibcwDoutStream << ':';
-    print_integer(LibcwDoutStream, tbuf_ptr->tm_sec, 2);
-    LibcwDoutStream << '.';
-    print_integer(LibcwDoutStream, alloc->a_time.tv_usec, 6);
-    LibcwDoutStream << ' ';
+      print_integer(LibcwDoutStream, tbuf_ptr->tm_hour, 2);
+      LibcwDoutStream << ':';
+      print_integer(LibcwDoutStream, tbuf_ptr->tm_min, 2);
+      LibcwDoutStream << ':';
+      print_integer(LibcwDoutStream, tbuf_ptr->tm_sec, 2);
+      LibcwDoutStream << '.';
+      print_integer(LibcwDoutStream, alloc->a_time.tv_usec, 6);
+      LibcwDoutStream << ' ';
+    }
     // Print label and start.
     LibcwDoutStream << cwprint(memblk_types_label_ct(alloc->memblk_type()));
     LibcwDoutStream << alloc->a_start << ' ';
     LibcwDoutScopeEnd;
-    alloc->print_description(LIBCWD_TSD);
+    alloc->print_description(flags LIBCWD_COMMA_TSD);
     Dout( dc::finish, "" );
     if (alloc->a_next_list)
-      alloc->a_next_list->show_alloc_list(depth + 1, channel);
+      alloc->a_next_list->show_alloc_list(depth + 1, channel, flags);
   }
 }
 
@@ -1497,7 +1512,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	  << ptr << ((from == from_free) ? ") " : " ") );
       if (channels::dc_malloc.is_on())
-	(*iter).second.print_description(LIBCWD_TSD);
+	(*iter).second.print_description(0 LIBCWD_COMMA_TSD);
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
       DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
 #else
@@ -1855,7 +1870,7 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
  * which would print on \link libcw::debug::libcw_do libcw_do \endlink using
  * \ref group_debug_channels "debug channel" \link libcw::debug::dc::malloc dc::malloc \endlink.
  */
-void list_allocations_on(debug_ct& debug_object)
+void list_allocations_on(debug_ct& debug_object, list_allocations_flag_t flags = 0)
 {
 #if CWDEBUG_DEBUGM
   {
@@ -1889,7 +1904,7 @@ void list_allocations_on(debug_ct& debug_object)
   ACQUIRE_READ_LOCK
   LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << const_dm_alloc_ct::get_memsize() << " bytes in " << const_dm_alloc_ct::get_memblks() << " blocks." );
   if (base_alloc_list)
-    const_cast<dm_alloc_ct const*>(base_alloc_list)->show_alloc_list(1, channels::dc_malloc);
+    const_cast<dm_alloc_ct const*>(base_alloc_list)->show_alloc_list(1, channels::dc_malloc, flags);
   RELEASE_READ_LOCK
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
@@ -2072,7 +2087,7 @@ marker_ct::~marker_ct(void)
     libcw_do.push_margin();
     libcw_do.margin().append("  * ", 4);
     Dout( dc::warning, "Memory leak detected!" );
-    (*iter).second.a_alloc_node.get()->next_list()->show_alloc_list(1, channels::dc::warning);
+    (*iter).second.a_alloc_node.get()->next_list()->show_alloc_list(1, channels::dc::warning, 0);
     libcw_do.pop_margin();
   }
 

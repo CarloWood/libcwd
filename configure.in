@@ -495,5 +495,5 @@ fi
 cd ..
 ])
 
-AC_OUTPUT(libcwd.spec libcwd.lsm Makefile maintMakefile include/sys.ho include/Makefile include/libcw/debug_config.ho include/libcw/sysd.ho include/libcw/Makefile utils/Makefile tests/Makefile testsuite/Makefile)
+AC_OUTPUT(libcwd.spec libcwd.lsm Makefile maintMakefile include/sys.ho include/Makefile include/libcw/debug_config.ho include/libcw/sysd.ho include/libcw/Makefile utils/Makefile tests/Makefile testsuite/Makefile documentation/tutorial/Makefile)
 

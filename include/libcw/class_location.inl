@@ -70,7 +70,7 @@ location_ct::~location_ct()
 }
 
 __inline__
-location_ct::location_ct(void) : M_func("<uninitialized location_ct>"), M_known(false)
+location_ct::location_ct(void) : M_func("<uninitialized location_ct>"), M_object_file(NULL), M_known(false)
 {
 }
 
@@ -109,6 +109,7 @@ __inline__
 unsigned int
 location_ct::line(void) const
 {
+  LIBCWD_ASSERT( M_known );
   return M_line;
 }
 
