@@ -5,8 +5,3 @@ Please use --disable-threading during configuration.
 If you need threads support for solaris then please don't
 hesitate to contribute!
 
-The non-threading libcwd-0.99.20 has been tested on solaris 2.8.
-The result of the testsuite is currently:
-
-
-
