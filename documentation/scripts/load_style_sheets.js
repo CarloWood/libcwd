@@ -8,9 +8,9 @@ with (document)
     rootpath = location.pathname.substring(0,rootpos) + "/documentation/";
   else
   {
-    rootpos = location.href.lastIndexOf("libcw.sourceforge.net");
+    rootpos = location.href.lastIndexOf(".sourceforge.net");
     if (rootpos != -1)
-      rootpath = location.href.substring(0,rootpos) + "libcw.sourceforge.net/";
+      rootpath = location.href.substring(0,rootpos) + ".sourceforge.net/";
     else
     {
       rootpos = location.pathname.lastIndexOf("/html/");
