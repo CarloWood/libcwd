@@ -124,34 +124,6 @@ CW_REDEFINES_FIX="$CW_REDEFINES_FIX\\
 #undef $i"
 done])
 
-dnl CW_OUTPUT([FILE... [, EXTRA_CMDS [, INIT-CMDS]]])
-dnl
-dnl Like AC_OUTPUT, but preserve the timestamp of the output files
-dnl when they are not changed.
-dnl
-AC_DEFUN(CW_OUTPUT,
-[AC_OUTPUT_COMMANDS(
-[for cw_outfile in $1; do
-  if test -f $cw_outfile.$cw_pid; then
-    if cmp -s $cw_outfile $cw_outfile.$cw_pid 2>/dev/null; then
-      echo "$cw_outfile is unchanged"
-      mv $cw_outfile.$cw_pid $cw_outfile
-    fi
-  fi
-  rm -f $cw_outfile.$cw_pid
-done], [cw_pid=$cw_pid])
-cw_pid=$$
-if test "$no_create" != yes; then
-  for cw_outfile in $1; do
-    if test -f $cw_outfile; then
-      mv $cw_outfile $cw_outfile.$cw_pid
-    fi
-  done
-fi]
-dnl `automake' looks for AC_OUTPUT and thinks `$1' etc.
-dnl is a literally required file unless we fool it a bit here:
-[AC_OUTPUT]([$1], [$2], [$3]))
-
 dnl CW_DEFINE_TYPE_INITIALIZATION
 dnl
 AC_DEFUN(CW_DEFINE_TYPE_INITIALIZATION,
@@ -218,14 +190,14 @@ changequote(, )dnl
     dnl We need this comment to work around a bug in autoconf or m4: '['
     cw_result="`echo $cw_result | sed -e 's/.*detect_type.*with ARG = //g' -e 's/].*//'`"
   fi
-  if test -z "$cw_result"; then
-    AC_MSG_ERROR(Configure problem: Failed to determine type)
-  fi
 changequote([, ])dnl
+  if test -z "$cw_result"; then
+    AC_MSG_ERROR([Configure problem: Failed to determine type])
+  fi
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
-  AC_MSG_ERROR(Configuration problem: Failed to compile a test program)
+  AC_MSG_ERROR([Configuration problem: Failed to compile a test program])
 fi
 CXXFLAGS="$save_CXXFLAGS"
 rm -f conftest*
@@ -306,10 +278,9 @@ AC_DEFUN(CW_TRY_RUN_NATIVE,
 [cat > conftest.$ac_ext <<EOF
 [#]line __oline__ "configure"
 #include "confdefs.h"
-ifelse(AC_LANG, CPLUSPLUS, [#ifdef __cplusplus
+#ifdef __cplusplus
 #include <cstdlib>
 #endif
-])dnl
 [$1]
 EOF
 if AC_TRY_EVAL(ac_link) && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
