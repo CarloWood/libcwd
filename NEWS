@@ -5,9 +5,17 @@ libcwd-0.99.14
 	On systems where a 'char' is unsigned, the line number lookup of DWARF
 	failed.
 
-	Systems with old binutils produce incorrect .stabs entries, causing
-	the line number lookup of stabs to fail.  Libcwd now detects this and
-	then aborts.
+	Some systems (I had this on a powerpc-unknown-linux-gnu) and/or with
+	old binutils produce incorrect .stabs N_FUN entries, causing the line
+	number lookup of stabs to fail.  Libcwd now detects this and then uses
+	an alternative way to determining the start of a function (as a result
+	libcwd now succeeds where libbfd fails).
+
+	Added a workaround for a bug in libtools so that executables in the
+	tests/ directory no longer can accidently link with an old installed
+	version of libcwd.
+
+	Several fixes in the build system (all related to the testsuite).
 
 libcwd-0.99.13
 
