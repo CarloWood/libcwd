@@ -14,8 +14,8 @@
 #ifndef TESTSUITE_SYS_H
 #define TESTSUITE_SYS_H
 
-#define NEED_G_CONFIG_H_MACROS
-#ifdef NEED_G_CONFIG_H_MACROS
+#include "../../config.h"
+#ifdef HAVE__G_CONFIG_H
 #include <_G_config.h>
 #ifndef _G_CLOG_CONFLICT
 #define _G_CLOG_CONFLICT 0
@@ -23,7 +23,7 @@
 #ifndef _G_HAS_LABS
 #define _G_HAS_LABS 1
 #endif
-#endif
+#endif // HAVE__G_CONFIG_H
 
 #include <libcw/sysd.h>
 
