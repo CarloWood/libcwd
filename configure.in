@@ -249,8 +249,64 @@ dnl Check for system services.
 dnl Set up build directory
 test ! -d include && mkdir include
 
-CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+dnl Set up rpm directory when in maintainer mode
+if test "$USE_MAINTAINER_MODE" = yes; then
+  SPECFILE="$PACKAGE.spec"
+  AC_SUBST(SPECFILE)
+  top_builddir="`pwd`"
+  test -d rpm || mkdir rpm
+  cd rpm
+  test -d BUILD || mkdir BUILD
+  test -d SOURCES || mkdir SOURCES
+  test -d SRPMS || mkdir SRPMS
+  test -d RPMS || mkdir RPMS
+  cd RPMS
+  TARGET=i386
+  AC_SUBST(TARGET)
+  test -d $TARGET || mkdir $TARGET
+  cd ..
+  echo "%_require_vendor 1" > macros
+  echo "%_require_distribution 1" >> macros
+  echo "%_distribution http://sourceforge.net/project/showfiles.php?group_id=354" >> macros
+  echo "%vendor Carlo Wood" >> macros
+  echo "%_topdir "$top_builddir"/rpm" >> macros
+  echo "%_pgp_path "$PGPPATH >> macros
+  echo "%_signature pgp5" >> macros
+  echo "%_pgp_name carlo@alinoe.com" >> macros
+  echo "macrofiles: /usr/lib/rpm/macros:"$top_builddir"/rpm/macros" > rpmrc
+  echo "buildarchtranslate: i686: i386" >> rpmrc
+  cd ..
+fi
+
+AC_OUTPUT_COMMANDS([
+echo "CONFIG_FILES=\"$CONFIG_FILES\""
+if (echo "$CONFIG_FILES" | grep $SPECFILE) && test $use_maintainer_mode = yes; then
+  if test -f "$srcdir/CVS/Entries"; then
+    CVSREADACCESS=yes
+  else
+    CVSREADACCESS=no
+  fi
+  if test x"$LIBCW_WRITE_ACCESS" = "xyes"; then
+    CVSWRITEACCESS=$CVSREADACCESS
+  else
+    CVSWRITEACCESS=no
+  fi
+  if test ! -f $SPECFILE || test $SPECFILE -ot "$srcdir/$SPECFILE.in" -o $SPECFILE -ot config.status; then
+    echo "creating $SPECFILE"
+    if test $CVSWRITEACCESS = yes; then
+      (cd "$srcdir"; cvs commit $SPECFILE.in)
+    fi
+    sed -e "s/@VERSION@/$VERSION/g" "$srcdir/$SPECFILE.in" | grep -B2000 '@CHANGELOG@' | grep -v '@CHANGELOG@' > $SPECFILE
+    echo -n "%changelog" >> $SPECFILE
+    if test $CVSREADACCESS = yes; then
+      (cd "$srcdir"; cvs log $SPECFILE.in) | grep -A2000 '^-----' | egrep -v '^-----|^=====|^revision' | awk -F'[ ;]' --assign lastdate="" '{ if ($0~/^date: /) { if (lastdate != $2) { lastdate=$2; printf("\n* "); system("echo -n `date --date \""$2" "$3"\" \"+%a %b %d %Y\"`"); printf(" Carlo Wood <libcw@alinoe.com>\n"); } } else if ($0~/^[A-Z]/) { printf("- %s\n", $0); } else if ($0~/./) { printf("  %s\n", $0); } else {print} }' >> $SPECFILE
+    fi
+    grep -A2000 '@CHANGELOG@' "$srcdir/$SPECFILE.in" | grep -v '@CHANGELOG@' >> $SPECFILE
+  fi
+fi], [use_maintainer_mode=$USE_MAINTAINER_MODE; srcdir="$srcdir"; SPECFILE="$SPECFILE"; VERSION=$VERSION])
+
+CW_OUTPUT(Makefile maintMakefile libcwd.lsm include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
 exit 0
 
 dnl Keep automake happy
-AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+AC_OUTPUT(Makefile maintMakefile libcwd.lsm include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)

@@ -1,9 +1,0 @@
-%_require_vendor 1
-%_require_distribution 1
-%_distribution http://sourceforge.net/project/showfiles.php?group_id=354
-%vendor Carlo Wood
-%_topdir /home/carlo/c++/libcw/src/libcwd/rpm
-
-%_pgp_path /home/carlo/pgp
-%_signature pgp5
-%_pgp_name carlo@alinoe.com

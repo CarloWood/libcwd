@@ -29,10 +29,6 @@
 # The remaining targets can be used to test a part of the distribution process,
 # but are not really useful on their own otherwise.
 #
-# - @PACKAGE@.lsm
-#	Generates an LSM file for distribution via the web page.
-#	It does this by simply replacing "!VERSION!" by @VERSION@.
-#
 # - $(SPECFILE)
 #	Generates the rpm spec file from the file `$(SPECFILE).in' by
 #	replacing "!VERSION!" by @VERSION@ and "!CHANGELOG!" by an
@@ -44,59 +40,45 @@
 # - ChangeLog
 #	Generates the `ChangeLog' file from the CVS repository logs.
 
-REDHAT:=$(shell grep '^%_topdir' rpm/macros | cut -d \  -f 2)
-SPECFILE=@PACKAGE@.spec
-TARGET=i386
+RPMDIR=$(top_builddir)/rpm
+TARGET=@TARGET@
+SPECFILE=@SPECFILE@
 REL=1
-AUTHOR=Carlo Wood <libcw@alinoe.com>
 TAG:=${shell echo "V@VERSION@" | sed -e 's/\./_/g'}
 PREVTAG:=${shell test -f .prevtag && cat .prevtag}
+CVSREADACCESS:=${shell if test -f $(srcdir)/CVS/Entries; then echo "yes"; else echo "no"; fi}
 
 test-values:
-	@echo "REDHAT   = \"$(REDHAT)\""
+	@echo "srcdir	= \"$(srcdir)\""
+	@echo "RPMDIR   = \"$(RPMDIR)\""
+	@echo "PACKAGE  = \"@PACKAGE@\""
+	@echo "VERSION  = \"@VERSION@\""
 	@echo "SPECFILE = \"$(SPECFILE)\""
 	@echo "TARGET   = \"$(TARGET)\""
 	@echo "REL      = \"$(REL)\""
-	@echo "AUTHOR   = \"$(AUTHOR)\""
+	@echo "CVSREADACCESS = \"$(CVSREADACCESS)\""
 	@echo "TAG      = \"$(TAG)\""
 	@echo "PREVTAG  = \"$(PREVTAG)\""
-	@echo "PACKAGE  = \"@PACKAGE@\""
-	@echo "VERSION  = \"@VERSION@\""
 
 ## Make sure the ChangeLog is up to date in maintainer mode
-.PHONY: release tar rpm ChangeLog
-
-@PACKAGE@.lsm: @PACKAGE@.lsm.in configure.in
-	sed -e 's%!VERSION!%'`grep 's%@VERSION\@' config.status | cut -d% -f3`'%g' @PACKAGE@.lsm.in > @PACKAGE@.lsm
+.PHONY: tar rpm ChangeLog
 
 tar:
 	$(MAKE) dist
-	mv @PACKAGE@-@VERSION@.tar.gz $(REDHAT)/SOURCES
+	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
 
 rpm: tar $(SPECFILE)
-	rpm --rcfile /usr/lib/rpm/rpmrc:rpm/rpmrc --target $(TARGET) --sign --clean -ba $(SPECFILE)
-
-$(SPECFILE): $(SPECFILE).in configure.in
-	cvs commit $(SPECFILE).in
-	sed -e 's/!VERSION!/@VERSION@/g' $(SPECFILE).in | grep -B2000 '!CHANGELOG!' | grep -v '!CHANGELOG!' > $(SPECFILE)
-	echo -n "%changelog" >> $(SPECFILE)
-	cvs log $(SPECFILE).in | \
-	  grep -A2000 '^-----' | \
-	  egrep -v '^-----|^=====|^revision' | \
-	  awk -F'[ ;]' --assign lastdate="" '{ if ($$0~/^date: /) { \
-	    if (lastdate != $$2) { \
-	      lastdate=$$2; \
-	      printf("\n* "); \
-	      system("echo -n `date --date \""$$2" "$$3"\" \"+%a %b %d %Y\"`"); \
-	      printf(" $(AUTHOR)\n"); \
-	    } \
-	  } else if ($$0~/^[A-Z]/) { printf("- %s\n", $$0); } else if ($$0~/./) { printf("  %s\n", $$0); } else {print} }' >> $(SPECFILE)
-	grep -A2000 '!CHANGELOG!' $(SPECFILE).in | grep -v '!CHANGELOG!' >> $(SPECFILE)
+	cd rpm; rpm --rcfile /usr/lib/rpm/rpmrc:rpmrc --target $(TARGET) --sign --clean -ba ../$(SPECFILE)
 
 ChangeLog:
-	@( echo "`which --skip-dot cvs` \`echo \"\$$*\" | sed -e 's%1970%1990%'\`" > cvs; \
-	chmod 755 cvs; )
-	PATH=.:$$PATH rcs2log > ChangeLog
-	@rm cvs
+	if test $(CVSREADACCESS) = yes; then \
+	  echo "`which --skip-dot cvs` \`echo \"\$$*\" | sed -e 's%1970%1990%'\`" > cvs; \
+	  chmod 755 cvs; \
+	  here=`pwd`; \
+	  (cd $(srcdir); PATH="$$here:$$PATH" rcs2log) > ChangeLog; \
+	  rm cvs; \
+	else \
+	  touch ChangeLog; \
+	fi
 
 ##-----------------------------------------------------------------------------

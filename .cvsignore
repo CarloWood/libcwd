@@ -17,3 +17,4 @@ maintMakefile
 libcwd.la
 libcwd.spec
 libcwd.lsm
+rpm

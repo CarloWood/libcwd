@@ -1,4 +1,0 @@
-macrofiles: /usr/lib/rpm/macros:rpm/macros
-
-buildarchtranslate: i686: i386
-

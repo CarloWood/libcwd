@@ -1,6 +1,6 @@
 Begin3
 Title: libcwd
-Version: !VERSION!
+Version: @VERSION@
 Entered-date: 31AUG2000
 Description: Libcwd is a full-featured, professional, well documented library to support
 Description: C++ developers with debugging their applications.  It includes support for

@@ -32,4 +32,4 @@ libcwd_la_LIBADD = utils/libutils.la
 
 # --------------- Maintainer's Section
 
-@MAINTAINER_MODE_TRUE@include $(srcdir)/maintMakefile
+@MAINTAINER_MODE_TRUE@include maintMakefile
