@@ -189,6 +189,10 @@ namespace {	// Local stuff
 	return true;
       else if (!strcmp(b->name, "gcc2_compiled."))
 	return false;
+      else if (!strcmp(a->name, "force_to_data"))
+	return true;
+      else if (!strcmp(b->name, "force_to_data"))
+	return false;
       else if (!(a->flags & BSF_GLOBAL) && (b->flags & BSF_GLOBAL))
 	return true;
       else if ((a->flags & BSF_GLOBAL) && !(b->flags & BSF_GLOBAL))
@@ -300,15 +304,9 @@ namespace {	// Local stuff
       // Sort the symbol table in order of start address.
       sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
 
-      // Calculate sizes for every symbol (forced to be larger than 0)
+      // Calculate sizes for every symbol
       for (int i = 0; i < number_of_symbols - 1; ++i)
-      {
-	int j;
-	for (j = i + 1; j < number_of_symbols - 1; ++j)
-	  if (symbol_start_addr(symbol_table[j]) != symbol_start_addr(symbol_table[i]))
-	    break;
-	symbol_size(symbol_table[i]) = (char*)symbol_start_addr(symbol_table[j]) - (char*)symbol_start_addr(symbol_table[i]);
-      }
+	symbol_size(symbol_table[i]) = (char*)symbol_start_addr(symbol_table[i + 1]) - (char*)symbol_start_addr(symbol_table[i]);
 
       // Use reasonable size for last one:
       symbol_size(symbol_table[number_of_symbols - 1]) = 100000;
