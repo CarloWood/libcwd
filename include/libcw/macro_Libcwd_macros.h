@@ -54,6 +54,7 @@
 // This is debugging libcwd itself.
 #ifndef LIBCWD_LibcwDoutScopeBegin_MARKER
 #if CWDEBUG_DEBUGOUTPUT
+#include <sys/types.h>
 extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LIBCWD_STR1(x) #x
 #define LIBCWD_STR2(x) LIBCWD_STR1(x)
