@@ -70,6 +70,8 @@ void* thread_function(void* arguments)
   return (void *)(cnt == loopsize);
 }
 
+pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 int main(void)
 {
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
@@ -77,7 +79,6 @@ int main(void)
 #if CWDEBUG_ALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
-  pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
   Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
   Debug( libcw_do.on() );
   char margin[32];
