@@ -414,11 +414,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  {
 #ifdef HAVE_DLOPEN
 	    libcw::debug::_internal_::internal = false;
-	    void* handle = ::dlopen(filename, RTLD_LAZY|RTLD_LOCAL|RTLD_NOLOAD);
+	    void* handle = ::dlopen(filename, RTLD_LAZY);
 	    if (!handle)
 	    {
 	      char const* dlerror_str = dlerror();
-	      DoutFatal(dc::fatal, "::dlopen(" << filename << ", RTLD_LAZY|RTLD_LOCAL|RTLD_NOLOAD): " << dlerror_str);
+	      DoutFatal(dc::fatal, "::dlopen(" << filename << ", RTLD_LAZY): " << dlerror_str);
 	    }
 	    char* val;
 	    if (s_end_vma && (val = (char*)dlsym(handle, "_end")))	// dlsym will fail when _end is a local symbol.
@@ -1273,8 +1273,10 @@ extern "C" {
   {
     ASSERT( !libcw::debug::_internal_::internal );
     void* handle = ::dlopen(name, flags);
+#ifdef RTLD_NOLOAD
     if ((flags & RTLD_NOLOAD))
       return handle;
+#endif
     set_alloc_checking_off();
     cwbfd::object_file_ct* object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
     set_alloc_checking_on();
