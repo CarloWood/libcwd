@@ -41,12 +41,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
       // Check if the correct lock is set.
       if (instance == memblk_map_instance)
       {
-	if (__libcwd_tsd.memblk_map_target_thread)	// Inside a ACQUIRE_TARGET_*_LOCK ... RELEASE_TARGET_*_LOCK critical area?
-	{
-	  if (!__libcwd_tsd.memblk_map_target_thread->memblk_map_mutex.is_locked())
-	    core_dump();
-	}
-	else if (!(*__libcwd_tsd.thread_iter).memblk_map_mutex.is_locked())
+	if (!__libcwd_tsd.target_thread->thread_mutex.is_locked())
 	  core_dump();
       }
       else if (instance >= 0 && !is_locked(instance))

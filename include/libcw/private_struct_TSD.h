@@ -106,10 +106,6 @@ namespace libcw {
 extern int WST_initializing_TSD;
 class thread_ct;
 
-#if LIBCWD_THREAD_SAFE
-__inline__ TSD_st* get_tsd_instance(pthread_t tid);
-#endif
-
 struct TSD_st {
 public:
 #if CWDEBUG_ALLOC
@@ -119,9 +115,7 @@ public:
 #if LIBCWD_THREAD_SAFE
   threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).
   bool thread_iter_valid;
-#if CWDEBUG_DEBUG
-  thread_ct* memblk_map_target_thread;
-#endif
+  thread_ct* target_thread;
 #endif
 #if CWDEBUG_DEBUGM
   int marker;
@@ -158,14 +152,7 @@ private:
   static void S_cleanup_routine(void* arg) throw();
 
 public:
-  static TSD_st& instance(void) throw()
-  {
-    pthread_t tid = pthread_self();
-    TSD_st* instance = get_tsd_instance(tid);
-    if (!pthread_equal(tid, instance->tid))
-      instance->S_initialize();
-    return *instance;
-  }
+  static TSD_st& instance(void) throw();
 #endif // LIBCWD_THREAD_SAFE
 };
 
@@ -185,6 +172,16 @@ TSD_st*
 get_tsd_instance(pthread_t tid)
 {
   return &__libcwd_tsd_array[tid % PTHREAD_THREADS_MAX];
+}
+
+__inline__
+TSD_st& TSD_st::instance(void) throw()
+{
+  pthread_t tid = pthread_self();
+  TSD_st* instance = get_tsd_instance(tid);
+  if (!pthread_equal(tid, instance->tid))
+    instance->S_initialize();
+  return *instance;
 }
 #endif
 

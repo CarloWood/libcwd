@@ -31,6 +31,9 @@
 
 namespace libcw {
   namespace debug {
+
+class dm_alloc_ct;
+
     namespace _private_ {
 
 struct TSD_st;
@@ -44,9 +47,15 @@ struct TSD_st;
 
 class thread_ct {
 public:
-  TSD_st* tsd;                  // Pointer to thread specific data of this thread or NULL when thread is no longer running.
-  void* memblk_map;             // Pointer to memblk_map_ct of this thread.
-  mutex_ct memblk_map_mutex;    // Mutex for memblk_map.
+  TSD_st* tsd;                  	// Pointer to thread specific data of this thread or NULL when thread is no longer running.
+  mutex_ct thread_mutex;		// Mutex for the attributes of this object.
+  void* memblk_map;             	// Pointer to memblk_map_ct of this thread.
+  dm_alloc_ct* base_alloc_list;		// The base list with `dm_alloc_ct' objects.  Each of these objects has a list of it's own.
+  dm_alloc_ct** current_alloc_list;	// The current list to which newly allocated memory blocks are added.
+  dm_alloc_ct* current_owner_node;	// If the current_alloc_list != &base_alloc_list, then this variable
+					// points to the dm_alloc_ct node who owns the current list.
+  size_t memsize;			// Total number of allocated bytes (excluding internal allocations).
+  unsigned long memblks;		// Total number of allocated blocks (excluding internal allocations).
 
   thread_ct(TSD_st* tsd_ptr) throw();
   void initialize(TSD_st* tsd_ptr) throw();

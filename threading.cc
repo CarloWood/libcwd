@@ -206,7 +206,7 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
 // this object isn't yet added to threadlist at the moment of its construction.
 thread_ct::thread_ct(TSD_st* tsd_ptr) throw() : tsd(tsd_ptr), memblk_map(NULL)
 {
-  std::memset(&memblk_map_mutex, 0 , sizeof(memblk_map_mutex));
+  std::memset(&thread_mutex, 0 , sizeof(thread_mutex));
 }
 
 // Initialization of a freshly added thread_ct.
@@ -221,14 +221,15 @@ void thread_ct::initialize(TSD_st* tsd_ptr) throw()
   if (!tsd_ptr->internal || !is_locked(threadlist_instance))
     core_dump();
 #endif
-  memblk_map_mutex.initialize();
-  memblk_map_mutex.lock();			// Need to be lock because the othewise sanity_check() of the maps allocator will fail.
+  current_alloc_list =  &base_alloc_list;
+  thread_mutex.initialize();
+  thread_mutex.lock();			// Need to be lock because the othewise sanity_check() of the maps allocator will fail.
   						// Its not really necessary to lock of course, because threadlist_instance is locked as
 						// well and thus this is the only thread that could possibly access the map.
   // new_memblk_map allocates a new map<> for the current thread.
   // The implementation of new_memblk_map resides in debugmalloc.cc.
   memblk_map = new_memblk_map(*tsd_ptr);
-  memblk_map_mutex.unlock();
+  thread_mutex.unlock();
 }
 
 // This member function is called when the TSD_st structure
