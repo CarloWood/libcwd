@@ -9,6 +9,8 @@ initbug \
 dout_alloc \
 mangling
 
+EXTRA_DIST = threads.cc
+
 CLEANFILES=$(EXTRA_PROGRAMS)
 
 hello_world_SOURCES = hello_world.cc
@@ -17,7 +19,7 @@ initbug_SOURCES = initbug.cc initbug_GlobalObject.cc
 dout_alloc_SOURCES = dout_alloc.cc
 mangling_SOURCES = mangling.cc
 
-include_HEADERS = syslog_debug.h
+include_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h
 
 LDADD = ../libcwd.la
 
@@ -28,3 +30,6 @@ CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
 INCLUDES = -I. -I- -I$(top_builddir)/include -I$(srcdir)/../include -DCWDEBUG
 
 MAINTAINERCLEANFILES = Makefile.in
+
+threads: threads.o
+	$(CXX) -o  threads threads.o ../.libs/libcwd.so -ldl -lpthread -Wl,--rpath -Wl,../.libs

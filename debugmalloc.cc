@@ -944,22 +944,6 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
 #endif
 #endif
 {
-  register void* mptr;
-#ifndef DEBUGMAGICMALLOC
-  if (!(mptr = __libc_malloc(size)))
-#else
-  if ((mptr = static_cast<char*>(__libc_malloc(SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
-#endif
-  {
-#ifdef DEBUGDEBUGMALLOC
-    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
-#else
-    DoutInternal( dc::finish, "NULL" );
-#endif
-    DoutInternal( dc_malloc, "Out of memory ! this is only a pre-detection!" );
-    return NULL;	// A fatal error should occur directly after this
-  }
-
   if (initialization_state <= 0)		// Only true prior to initialization of ios_base::Init.
   {
     if (initialization_state == 0)		// Only true once.
@@ -998,6 +982,22 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
 #endif
     }
 #endif // CWDEBUG
+  }
+
+  register void* mptr;
+#ifndef DEBUGMAGICMALLOC
+  if (!(mptr = __libc_malloc(size)))
+#else
+  if ((mptr = static_cast<char*>(__libc_malloc(SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
+#endif
+  {
+#ifdef DEBUGDEBUGMALLOC
+    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
+#else
+    DoutInternal( dc::finish, "NULL" );
+#endif
+    DoutInternal( dc_malloc, "Out of memory ! this is only a pre-detection!" );
+    return NULL;	// A fatal error should occur directly after this
   }
 
 #ifdef DEBUGUSEBFD
