@@ -157,6 +157,8 @@ MAIN_FUNCTION
 #endif
   libcwd_bfd_test();
 
+  Dout(dc::notice, "Program end");
+
   Debug( libcw_do.off() );
 
   EXIT(0);

@@ -22,8 +22,11 @@ MAIN_FUNCTION
 #endif
   Debug( dc::notice.on() );
 
+#ifdef STATIC
+  Dout(dc::notice, "You cannot use dlopen in a statically linked application.");
+#else // !STATIC
+
   void* handle;
-  
   do
   {
 #ifdef THREADTEST
@@ -65,6 +68,8 @@ MAIN_FUNCTION
   free(ptr1);
   free(ptr2);
   dlclose(handle);
+
+#endif // !STATIC
 
   Dout(dc::notice, "Finished");
 

@@ -2,93 +2,36 @@ load_lib "libgloss.exp"
 load_lib "targetdb.exp"
   
 #
-# Run the test specified by srcfile and resultfile. compile_args and
-# exec_args are additional arguments to be passed in when compiling and
-# running the testcase, respectively.
+# Run the test specified by srcfile and resultfile.
 #
-proc test_libcwd { options srcfile compile_args inpfile resultfile exec_args } {
+proc test_libcwd { options srcfile resultfile } {
     global base_dir
-    global SHAREDLIBS STATICLIBS THREADS_SHAREDLIBS THREADS_STATICLIBS OPTIONS THREADS_OPTIONS
-    global includes
-    global srcdir subdir objdir
-    global ld_library_path
-    global compiler
-    global board_info board
+    global objdir
+    global board
 
 verbose "Calling test_libcwd:"
 verbose "    options = \"$options\""
 verbose "    srcfile = \"$srcfile\""
-verbose "    compile_args = \"$compile_args\""
-verbose "    inpfile = \"$inpfile\""
 verbose "    resultfile = \"$resultfile\""
-verbose "    exec_args = \"$exec_args\""
-verbose "    srcdir = \"$srcdir\""
-verbose "    SHAREDLIBS = \"$SHAREDLIBS\""
-verbose "    STATICLIBS = \"$STATICLIBS\""
-verbose "    OPTIONS = \"$OPTIONS\""
-verbose "    THREADS_SHAREDLIBS = \"$THREADS_SHAREDLIBS\""
-verbose "    THREADS_STATICLIBS = \"$THREADS_STATICLIBS\""
-verbose "    THREADS_OPTIONS = \"$THREADS_OPTIONS\""
 
     set board [target_info name]
-    set_board_info c++compiler "$compiler"
 
-    set args ""
-
-    if { $compile_args != "" } {
-	lappend args "additional_flags=$compile_args"
-    }
-
-    regsub "^(.*)/\[^/\]+$" "$srcfile" "\\1" path
     regsub "^.*/libcwd\.(\[^/\]+)/(\[^/.\]+)\.\[^/.\]*$" "$srcfile" "\\1_\\2" out
 
-verbose "    path = \"$path\""
 verbose "    out = \"$out\""
 
-
-    if { [regexp -- "threading" $options] } {
-      if { [regexp -- "nodebug" $options] } {
-	regsub -- "-g\[-a-z0-9\]*" "$THREADS_OPTIONS" "" compiler_options
-      } else {
-	set compiler_options "$THREADS_OPTIONS"
-      }
-    } else {
-      if { [regexp -- "nodebug" $options] } {
-	regsub -- "-g\[-a-z0-9\]*" "$OPTIONS" "" compiler_options
-      } else {
-	set compiler_options "$OPTIONS"
-      }
-    }
-
     if { [regexp -- "static" $options] } {
-      if { [regexp -- "threading" $options] } {
-	lappend args "libs=$THREADS_STATICLIBS"
-      } else {
-	lappend args "libs=$STATICLIBS"
-      }
-      set staticorshared "static"
       set executable "${objdir}/$out\_static"
     } else {
-      if { [regexp -- "threading" $options] } {
-	lappend args "libs=$THREADS_SHAREDLIBS"
-      } else {
-	lappend args "libs=$SHAREDLIBS"
-      }
-      set staticorshared "shared"
       set executable "${objdir}/$out\_shared"
     }
-    lappend args "additional_flags=$compiler_options -I$path"
-    lappend args "c++"
 
-    set errname "[file tail $srcfile]"
-    if { $compile_args != "" } {
-	set errname "$errname $compile_args"
-    }
-
-    verbose "Executing target_compile $srcfile \"$executable\" executable $args"
-    set compileroutput "[target_compile $srcfile "$executable" executable $args]"
+    set errname "[file tail $executable]"
+    set target "[file tail $executable]"
+    verbose "Executing \"exec make -s $target\""
+    set compileroutput "[exec make -s $target]"
     # Kludge to remove linker _warnings_ from output.
-    # The expected from is: /usr/lib/libc.so.4: warning: ...
+    # The expected form is: /usr/lib/libc.so.4: warning: ...
     #                   or: /usr/lib/libc.so.4: WARNING! ...
     regsub -all -line -nocase -- "^.*: warning\[!:\].*$" "$compileroutput" "" compileroutput
     # Finally remove all new-lines if any:
@@ -96,16 +39,16 @@ verbose "    out = \"$out\""
     verbose "Filtered compiler output is: `$compileroutput'"
 
     if { "$compileroutput" != "" } {
-	fail "$errname $staticorshared compilation"
+	fail "$errname compilation"
 	setup_xfail "*-*-*"
-	fail "$errname $staticorshared execution"
+	fail "$errname execution"
 	setup_xfail "*-*-*"
-	fail "$errname $staticorshared output"
+	fail "$errname output"
 	return;
     }
-    pass "$errname $staticorshared compilation"
+    pass "$errname compilation"
 
-    set result [libcwd_load $executable "$exec_args" "$inpfile"];
+    set result [libcwd_load $executable "" ""];
     set status [lindex $result 0];
     set output [lindex $result 1];
 
@@ -115,7 +58,7 @@ verbose "    out = \"$out\""
     $status "$errname execution"
     if { $status != "pass" } {
 	setup_xfail "*-*-*"
-	fail "$errname $staticorshared output"
+	fail "$errname output"
 	return;
     }
 
@@ -281,9 +224,9 @@ verbose "    out = \"$out\""
 
     # Finish
     if { $passed == 1 } {
-	pass "$errname $staticorshared output"
+	pass "$errname output"
     } else {
-	fail "$errname $staticorshared output"
+	fail "$errname output"
     }
 
     # Close input file

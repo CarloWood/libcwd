@@ -99,6 +99,10 @@ MAIN_FUNCTION
 
   delete p;
 
+#ifdef STATIC
+  Dout(dc::notice, "You cannot use dlopen() in a statically linked application.");
+#else // !STATIC
+
 #if CWDEBUG_ALLOC
   libcw::debug::ooam_filter_ct list_filter(
 #if CWDEBUG_LOCATION
@@ -114,7 +118,6 @@ MAIN_FUNCTION
 #endif
 
   void* handle;
-
   do
   {
 #ifdef THREADTEST
@@ -181,6 +184,8 @@ MAIN_FUNCTION
   libcw::debug::marker_ct* marker1 = new libcw::debug::marker_ct("marker1", marker1_filter);
 #endif
   void* p1 = malloc(500);
+  Dout(dc::notice, "after malloc(500)");
+  Debug( list_allocations_on(libcw_do) );
   void* p4 = malloc(123);
   AllocTag(p4, "Allocated between the two markers");
 #if CWDEBUG_MARKER
@@ -213,6 +218,7 @@ MAIN_FUNCTION
   free(p2);
   free(p1);
   free(p4);
+#endif // !STATIC
 
   EXIT(0);
 }

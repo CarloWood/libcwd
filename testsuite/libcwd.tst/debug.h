@@ -29,6 +29,7 @@ namespace example {
 
 #define Dout(cntrl, data)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(::std, /*nothing*/, cntrl, data)
+#define Debug(x)
 
 #endif
 

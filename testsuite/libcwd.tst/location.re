@@ -14,11 +14,15 @@ NOTICE  : called from location\.cc:126
 BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:158
 NOTICE  : called from location\.cc:158
 // input lines 3
-// output till ^BFD     : Warning
+// output till ^(BFD     : Warning|NOTICE  : Program end)
 (BFD     : address 0x[0-9a-f]+ corresponds to .*
 NOTICE  : called from .*
 )*
-BFD     : Warning: Address 0x[0-9a-f]+ in section \.text of object file "[^"]*"
+// input lines 5
+// output till ^NOTICE  : Program end
+(BFD     : Warning: Address 0x[0-9a-f]+ in section \.text of object file "[^"]*"
           does not have a line number, perhaps the unit containing the function
           `(_*start|__libc_start_main)' wasn't compiled with flag -(g|ggdb)\?
 NOTICE  : called from <unknown location>
+)*
+NOTICE  : Program end
