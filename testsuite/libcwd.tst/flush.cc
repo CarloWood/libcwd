@@ -46,4 +46,6 @@ int main(void)
   Dout( dc::continued, "part2... " );
   generate_tables();
   Dout( dc::finish, "done" );
+
+  Debug( libcw_do.off() );
 }

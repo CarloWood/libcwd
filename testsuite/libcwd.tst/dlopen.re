@@ -18,6 +18,6 @@ malloc    0x[0-9a-f]*            module\.cc:10   void\*; \(sz = 300\)  Allocated
 malloc    0x[0-9a-f]*            module\.cc:19   void\*; \(sz = 310\)  Allocated inside global_test_symbol
 // input lines 2
 // output till ^NOTICE
-(malloc    0x[0-9a-f]* *(dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c):[0-9]* *<unknown type>; \(sz = [0-9]*\) 
+(malloc    0x[0-9a-f]* *(dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]* *<unknown type>; \(sz = [0-9]*\) 
 )*
 NOTICE  : Finished

@@ -90,5 +90,7 @@ int main(int argc, char* argv[])
   free(cp2i);
   free(rp);
   free(rpi);
+
+  Debug( libcw_do.off() );
   return 0;
 }

@@ -7,13 +7,13 @@ int main(void)
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
-  Debug( make_all_allocations_invisible_except(NULL) );
-
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
 #ifdef DEBUGUSEBFD
   Debug( dc::bfd.on() );
 #endif
+
+  Debug( make_all_allocations_invisible_except(NULL) );
 
   int* p = new int [100];
 

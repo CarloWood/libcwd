@@ -87,5 +87,6 @@ int main(void)
 
   Dout(dc::notice, "Finished successfully.");
 
+  Debug( libcw_do.off() );
   exit(0);
 }

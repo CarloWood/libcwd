@@ -157,5 +157,6 @@ int main(int argc, char* argv[])
 #endif
   libcw_bfd_test();
 
+  Debug( libcw_do.off() );
   return 0;
 }

@@ -85,5 +85,6 @@ int main(void)
   std::cout << "Finished successfully.\n";
 #endif
 
+  Debug( libcw_do.off() );
   exit(0);
 }

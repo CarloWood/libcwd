@@ -180,19 +180,6 @@ debug_ct::private_set_ostream(std::ostream* os)
 #endif
 }
 
-/**
- * \brief Set output device.
- * \ingroup group_destination
- *
- * Assign a new \c ostream to this %debug object (default is <CODE>std::cerr</CODE>).
- */
-__inline__
-void
-debug_ct::set_ostream(std::ostream* os)
-{
-  private_set_ostream(os);
-}
-
 /** \} */
 
 /**

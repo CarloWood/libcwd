@@ -43,9 +43,11 @@ libcwd_HEADERS = \
 	private_internal_string.h \
 	private_internal_stringstream.h \
 	private_internal_vector.h \
+	private_lock_interface.h \
 	private_set_alloc_checking.h \
 	private_struct_TSD.h \
 	private_threading.h \
+	set_ostream.inl \
 	strerrno.h \
 	struct_debug_tsd.h \
 	type_info.h

@@ -94,6 +94,7 @@ namespace libcw {
 	++__libcwd_tsd.library_call;
 	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
+#ifdef LIBCWD_THREAD_SAFE
 	LIBCWD_DISABLE_CANCEL			// We don't want Dout() to be a cancellation point.
 	if (mutex)
 	{
@@ -109,12 +110,16 @@ namespace libcw {
 	  else
 	  {
 	    WST_second_time = true;
-	    DoutFatal(dc::core, "When using multiple threads, you must provide a locking mechanism for the debug output stream.  You can pass a pointer to a mutex with `debug_ct::set_ostream'.");
+	    DoutFatal(dc::core, "When using multiple threads, you must provide a locking mechanism for the debug output stream.  "
+		"You can pass a pointer to a mutex with `debug_ct::set_ostream' (see documentation/html/group__group__destination.html).");
 	  }
 	}
 	else
 	  os->write(buf, curlen);
 	LIBCWD_ENABLE_CANCEL
+#else // !LIBCWD_THREAD_SAFE
+	os->write(buf, curlen);
+#endif // !LIBCWD_THREAD_SAFE
 #ifdef DEBUGMALLOC
 	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	--__libcwd_tsd.library_call;
@@ -1544,10 +1549,44 @@ namespace libcw {
 template<>
   void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
   {
-    M_mutex = new _private_::pthread_lock_interface_ct(mutex);
+    _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex);
+    LIBCWD_DEFER_CANCEL
+    _private_::mutex_tct<_private_::set_ostream_instance>::lock();
+    _private_::lock_interface_base_ct* old_mutex = M_mutex;
+    if (old_mutex)
+      old_mutex->lock();		// Make sure all other threads left this critical area.
+    M_mutex = new_mutex;
+    if (old_mutex)
+    {
+      old_mutex->unlock();
+      delete old_mutex;
+    }
     private_set_ostream(os);
+    _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+    LIBCWD_RESTORE_CANCEL
   }
 #endif // LIBCWD_THREAD_SAFE
+
+/**
+ * \brief Set output device.
+ * \ingroup group_destination
+ *
+ * Assign a new \c ostream to this %debug object (default is <CODE>std::cerr</CODE>).
+ */
+void debug_ct::set_ostream(std::ostream* os)
+{
+#ifdef LIBCWD_THREAD_SAFE
+  if (_private_::WST_multi_threaded)
+    Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << ": You should passing a locking mechanism to `set_ostream' for the ostream (see documentation/html/group__group__destination.html)");
+  LIBCWD_DEFER_CANCEL
+  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
+#endif
+  private_set_ostream(os);
+#ifdef LIBCWD_THREAD_SAFE
+  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+  LIBCWD_RESTORE_CANCEL
+#endif
+}
 
   }	// namespace debug
 }	// namespace libcw

@@ -33,6 +33,7 @@ void initialize_global_mutexes(void) throw()
   mutex_tct<mutex_initialization_instance>::initialize();
   rwlock_tct<object_files_instance>::initialize();
   mutex_tct<dlopen_map_instance>::initialize();
+  mutex_tct<set_ostream_instance>::initialize();
 #ifdef DEBUGMALLOC
   mutex_tct<alloc_tag_desc_instance>::initialize();
   mutex_tct<memblk_map_instance>::initialize();

@@ -160,5 +160,6 @@ int main(int argc, char* argv[])
   free(ptr2);
   free(ptr3);
 
+  Debug( libcw_do.off() );
   return 0;
 }

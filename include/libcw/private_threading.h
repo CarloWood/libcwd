@@ -112,6 +112,7 @@ enum mutex_instance_nt {
   type_info_of_instance,
   dlopen_map_instance,
   write_max_len_instance,
+  set_ostream_instance,
   debug_objects_instance,	// rwlock
   debug_channels_instance,	// rwlock
   // Values reserved for read/write locks.
