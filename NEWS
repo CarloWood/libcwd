@@ -21,7 +21,7 @@ libcwd-0.99.7
 
 	Bug fixes:
 
-	g++-2.95.x core dumped on lockable_auto_ptr.h.  This is the reason
+	g++-2.95.x core dumped in lockable_auto_ptr.h.  This is the reason
 	for the release of 0.99.7.
 
 	Improvements in acinclude.m4: some tests where done with the C++
