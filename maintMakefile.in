@@ -85,7 +85,7 @@ $(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
 		      printf("\n"); \
 		    } \
 		    lastdate=$$2; \
-		    system("echo \"* \"`date --date \""$$2" "$$3"\" \"+%a %b %d %Y\"`\" Carlo Wood <libcw@alinoe.com>\""); \
+		    system("echo \"* \"`date \""$$2" "$$3"\" \"+%a %b %d %Y\"`\" Carlo Wood <libcw@alinoe.com>\""); \
 		  } \
 		} else if ($$0~/^[A-Z]/) { \
 		  printf("- %s\n", $$0); \
