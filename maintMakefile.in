@@ -99,11 +99,11 @@ $(srcdir)/$(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
 	else \
 	  touch spec.changelog; \
 	fi
-	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+	CONFIG_FILES=$(SPECFILE) CONFIG_HEADERS= $(SHELL) ./config.status
 	rm spec.changelog
 
 $(srcdir)/$(LSMFILE): $(srcdir)/$(LSMFILE).in $(srcdir)/configure.in
-	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+	CONFIG_FILES=$(LSMFILE) CONFIG_HEADERS= $(SHELL) ./config.status
 
 ChangeLog:
 	if test $(CVSREADACCESS) = yes; then \

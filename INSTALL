@@ -54,7 +54,7 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
 ftp://ftp.valinux.com/pub/support/hjl/binutils/binutils-2.10.0.18.tar.gz
       If that solves your problem, please let me know: libcwd
       should work with binutils-2.9 but I never thoughroughly
-      tested it and would like to know which version give a
+      tested it and would like to know which version gives a
       problem, if any.)
 
   libcwd-0.99.0 was tested with gcc-2.95.1 and gcc-ss-20000402.

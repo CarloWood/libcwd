@@ -42,7 +42,7 @@ void debugdebugcheckpoint(void)
     if (init && *((void**)address) == (void*)currupted_value)
     {
       cout << "Coredumping!" << endl;
-      MyCoreDump
+      raise(3);
     }
     else if (!init && *((void**)address) != (void*)currupted_value)
     {
@@ -53,22 +53,5 @@ void debugdebugcheckpoint(void)
 #endif
   counter++;
 }
-#else
-
-#if 0	// Not needed anymore for gcc-2.95.1
-// A bug in egcs-1.1.1 causes the linker error:
-// ./debugging/debugdebugcheckpoint.o: In function `global constructors keyed to int lexicographical_compare_3way<signed char const*, signed char const*>(signed char const*, signed char const*, signed char const*, signed char const*)':
-// /usr/local/egcs/include/g++/stl_algobase.h:427: multiple definition of `global constructors keyed to int lexicographical_compare_3way<signed char const*, signed char const*>(signed char const*, signed char const*, signed char const*, signed char const*)'
-// ./llists/cbll.o:/usr/local/egcs/include/g++/stl_algobase.h:427: first defined here
-//
-// According to Martin v. Loewis (egcs developer):
-// Thanks. This is a known bug. The work-around is to put some global
-// symbol into the source file. If this still fails, the global symbol
-// should appear before the include. Eg.
-//
-// int this_is_debugdebugcheckpoint_cc = 0;
-
-int bug_workaround_for_empty_debugdebugcheckpoint_cc = 0;
-#endif
 
 #endif // DEBUGDEBUG

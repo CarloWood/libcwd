@@ -617,3 +617,14 @@ else
 fi
 AC_SUBST(CW_HAVE_LABS)
 ])
+
+dnl CW_RPM
+dnl Generate directories and files needed for an rpm target.
+dnl For this to work, the Makefile.am needs to contain the string @RPM_TARGET@
+AC_DEFUN(CW_RPM,
+[if test "$USE_MAINTAINER_MODE" = yes; then
+AC_CHECK_PROGS(rpm)
+if test "$ac_cv_prog_rpm" = yes; then
+
+fi
+fi])

@@ -1,3 +1,7 @@
+## Process this file with automake to generate Makefile.in
+
+AUTOMAKE_OPTIONS = foreign
+
 EXTRA_PROGRAMS = \
 bfd_tst \
 deb \
@@ -27,7 +31,7 @@ marker_SOURCES = marker.cc
 test_delete_SOURCES = test_delete.cc
 type_info_tst_SOURCES = type_info_tst.cc
 
-LDADD = ../libcwd.la @STATICLIBS@
+LDADD = ../libcwd.la
 
 EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@

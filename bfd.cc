@@ -17,7 +17,7 @@
 
 #include <libcw/sys.h>
 #include <unistd.h>
-#include <stdarg.h>
+#include <cstdarg>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

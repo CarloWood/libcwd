@@ -1,15 +1,21 @@
 libcwd-0.99.4
 
+	We depend more on libtool now to handle linking with shared or
+	static libraries.  As a result you can (again) on linux, link
+	with just -lcwd (without having to specify also -lbfd -liberty).
+
 	Bug fixes:
 
 	Libcwd got into an endless loop when a fatal error occured
 	before the fatal debug channels where initialized.  This
 	happened for instance when a hard limit for the core size
-	was set.
+	is set.
 
 	When a hard limit for the core size is set, the call to
-	setrlimit failed, and libcwd terminated with a fatal
-	error (and got into a loop, see above).
+	setrlimit failed and libcwd terminated with a fatal
+	error (and got into a loop, see above).  Now it sets the
+	core size to the maximum value and prints a warning when
+	that isn't unlimited.
 
 libcwd-0.99.3
 

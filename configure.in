@@ -194,23 +194,31 @@ fi
 
 if test "$libcwd_config_bfd" = yes; then
 
-  dnl Checks for libraries.
-  save_LIBS="$LIBS"
-
   dnl Check if we have dlopen in libdl
   AC_CHECK_LIB(dl, dlopen)
 
-  dnl Check if we have `xmalloc' in libiberty.a
-  CW_CHECK_STATICLIB(libiberty.a, xmalloc)
-  dnl If that failed, then look if perhaps it is in /usr/local/lib in case we didn't look there.
-  if test "$ac_cv_lib_static_libiberty_a_xmalloc" = "no" -a -f /usr/local/lib/libiberty.a; then
-    CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-    LDFLAGS="$LDFLAGS -L/usr/local/lib"
-    unset ac_cv_lib_static_libiberty_a_xmalloc
-    CW_CHECK_STATICLIB(libiberty.a, xmalloc)
+  dnl Check if we have `xmalloc' in libiberty
+  AC_CHECK_LIB(iberty, xmalloc,,
+    [dnl If that failed, then look if perhaps it is in /usr/local/lib in case we didn't look there.
+    if test "$ac_cv_lib_iberty_xmalloc" = "no"; then
+      if test -f /usr/local/lib/libiberty.a -o -e /usr/local/lib/libiberty.so; then
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	unset ac_cv_lib_iberty_xmalloc
+	AC_CHECK_LIB(iberty, xmalloc)
+      fi
+    fi])
+ 
+  dnl If it failed, then abort with an error message.
+  if test "$ac_cv_lib_iberty_xmalloc" = "no"; then
+    AC_MSG_ERROR([
+
+* Cannot find a working libiberty;  Lookup of function names and source:line
+* information will be disabled.  Perhaps you need to add -L/path to LDFLAGS?
+* Please read the INSTALL file for more info.
+* You can skip this check by using configure --disable-libcwd-bfd.
+])
   fi
-  STATICLIBS="$ac_cv_lib_static_libiberty_a_xmalloc"
-  AC_SUBST(STATICLIBS)
 
   dnl Check if we have libbfd.
   dnl We look for `bfd_set_start_address' because that function might use dcgettext__
@@ -220,8 +228,8 @@ if test "$libcwd_config_bfd" = yes; then
       unset ac_cv_lib_bfd_bfd_set_start_address
       AC_CHECK_LIB(bfd, bfd_set_start_address, [LIBS="-lbfd -lintl $LIBS"],, -lintl)])
 
-  dnl If both succeeded, then enable DEBUGUSEBFD
-  if test "$ac_cv_lib_static_libiberty_a_xmalloc" != "no" -a "$ac_cv_lib_bfd_bfd_set_start_address" != "no"; then
+  dnl If we succeeded so far, then enable DEBUGUSEBFD
+  if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no"; then
     AC_CHECK_HEADER(bfd.h,
       [CW_CONFIG_DEBUGUSEBFD=define],
       [AC_MSG_ERROR([
@@ -229,7 +237,7 @@ if test "$libcwd_config_bfd" = yes; then
 * You have libbfd, but I cannot find bfd.h!  Look up of function names and
 * source:line information will be disabled.  Perhaps you need to add -I/path
 * to CPPFLAGS?
-* Please read the INSTALL for more info.
+* Please read the INSTALL file for more info.
 * You can skip this check by using configure --disable-libcwd-bfd.
 ])])
   else
@@ -237,21 +245,14 @@ if test "$libcwd_config_bfd" = yes; then
 
 * Cannot find a working libbfd;  Lookup of function names and source:line
 * information will be disabled.  Perhaps you need to add -L/path to LDFLAGS?
-* Please read the INSTALL for more info.
+* Please read the INSTALL file for more info.
 * You can skip this check by using configure --disable-libcwd-bfd.
 ])
   fi
 
-dnl This test needs the full set of libraries we just determined.
-CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
+  dnl This test needs the full set of libraries we just determined.
+  CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
 
-  dnl We don't want to link with static libraries that are not compiled with -fPIC
-  dnl while linking our shared library.
-changequote(, )dnl
-  final_LIBS="`echo $LIBS | sed -e 's/[^ ]*libiberty\.a//' -e 's/  / /g'`"
-changequote([, ])dnl
-  dnl We can't link with -lbfd without libiberty.a while running the test programs below.
-  LIBS="$save_LIBS"
 fi
 
 if test "$libcwd_config_debug" = yes; then
@@ -301,11 +302,6 @@ dnl Check for library functions.
 AC_CHECK_FUNCS(getgid getegid getgroups)
 
 dnl Check for system services.
-
-dnl Tests are finished.  Set LIBS to the final value.
-if test "$libcwd_config_bfd" = yes; then
-  LIBS="$final_LIBS"
-fi
 
 dnl Set up build directory
 test ! -d include && mkdir include
@@ -365,8 +361,8 @@ fi
 cd ../..
 ])
 
-CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
 exit 0
 
 dnl Keep automake happy
-AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
