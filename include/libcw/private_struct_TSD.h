@@ -101,7 +101,9 @@ namespace libcw {
 
 extern int WST_initializing_TSD;
 
+#if LIBCWD_THREAD_SAFE
 __inline__ TSD_st* get_tsd_instance(pthread_t tid);
+#endif
 
 struct TSD_st {
 public:
