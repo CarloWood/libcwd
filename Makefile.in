@@ -20,7 +20,7 @@ INCLUDEFLAGS=
 STATICLIBS=#-L/usr/src/perf-papi/src -lpapi
 
 # Extra static libraries to link with:
-SHAREDLIBS:=$(shell ./get_libraries)
+SHAREDLIBS:=@LIBS@
 
 #-----------------------------------------------------------------------------
 

@@ -268,12 +268,12 @@ dnl If `sighandler_param_t' is not defined in signal.h,
 dnl define it to be the type of the the first argument of `SIG_IGN'.
 dnl
 AC_DEFUN(CW_TYPE_SIGHANDLER_PARAM_T,
-[AC_CACHE_CHECK(type signalhandler_param_t, cw_cv_type_signalhandler_param_t,
-[AC_EGREP_HEADER(signalhandler_param_t, signal.h, cw_cv_type_signalhandler_param_t=exists,
+[AC_CACHE_CHECK(type sighandler_param_t, cw_cv_type_sighandler_param_t,
+[AC_EGREP_HEADER(sighandler_param_t, signal.h, cw_cv_type_sighandler_param_t=exists,
 [CW_TYPE_EXTRACT_FROM(SIG_IGN, [#include <signal.h>], 1, 1)
-eval "cw_cv_type_signalhandler_param_t=\"$cw_result\""])])
-if test "$cw_cv_type_signalhandler_param_t" != exists; then
-  CW_DEFINE_TYPE(signalhandler_param_t, [$cw_cv_type_signalhandler_param_t])
+eval "cw_cv_type_sighandler_param_t=\"$cw_result\""])])
+if test "$cw_cv_type_sighandler_param_t" != exists; then
+  CW_DEFINE_TYPE(sighandler_param_t, [$cw_cv_type_sighandler_param_t])
 fi
 ])
 
@@ -362,7 +362,7 @@ AC_DEFUN(CW_NBLOCK,
 #include <sys/file.h>
 #include <signal.h>
 #include <unistd.h>
-$ac_cv_type_signal alarmed($cw_cv_type_signalhandler_param_t) { exit(1); }
+$ac_cv_type_signal alarmed($cw_cv_type_sighandler_param_t) { exit(1); }
 int main(int argc, char* argv[])
 {
   if (argc == 1)

@@ -36,7 +36,7 @@
 // will warn you when you free an invalid block.
 // It also enables Memory Leak Detection (See html documentation).
 
-#@CONFIG_DEBUGMALLOC@ DEBUGMALLOC
+#@CW_CONFIG_DEBUGMALLOC@ DEBUGMALLOC
 
 //
 // DEBUGMAGICMALLOC
@@ -46,7 +46,7 @@
 // deleted or reallocated.
 
 #ifdef DEBUGMALLOC
-#@CONFIG_DEBUGMAGICMALLOC@ DEBUGMAGICMALLOC
+#@CW_CONFIG_DEBUGMAGICMALLOC@ DEBUGMAGICMALLOC
 #endif
 
 //
@@ -64,7 +64,7 @@
 //
 
 #ifdef DEBUG
-#@CONFIG_DEBUGUSEBFD@ DEBUGUSEBFD
+#@CW_CONFIG_DEBUGUSEBFD@ DEBUGUSEBFD
 #endif
 
 //
@@ -84,7 +84,7 @@
 // before debugger watch points can be used).
 
 #ifdef DEBUG
-#@CONFIG_DEBUGDEBUG@ DEBUGDEBUG
+#@CW_CONFIG_DEBUGDEBUG@ DEBUGDEBUG
 #endif
 
 //
@@ -99,7 +99,7 @@
 //  memory block had been allocated, and what it was).
 
 #ifdef DEBUGDEBUG
-#@CONFIG_DEBUGDEBUGMALLOC@ DEBUGDEBUGMALLOC
+#@CW_CONFIG_DEBUGDEBUGMALLOC@ DEBUGDEBUGMALLOC
 #endif
 
 //
@@ -109,7 +109,7 @@
 //
 
 #if defined(DEBUG) && defined(DEBUGMALLOC)
-#@CONFIG_DEBUGMARKER@ DEBUGMARKER
+#@CW_CONFIG_DEBUGMARKER@ DEBUGMARKER
 #endif
 
 //

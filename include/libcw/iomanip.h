@@ -47,7 +47,7 @@ public:
 // Internal compiler error in `output_die', at dwarf2out.c:5426
 // Occurs not in: gcc-ss-20000813
 template<class TYPE>
-#if DWARF2OUT_BUG
+#ifdef DWARF2OUT_BUG
 static
 #else
 inline
@@ -64,7 +64,7 @@ typename TYPE::omanip_data_ct& get_omanip_data(ostream const& os)
 }
 
 template<class TYPE>
-#if DWARF2OUT_BUG
+#ifdef DWARF2OUT_BUG
 static
 #else
 inline

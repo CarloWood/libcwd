@@ -7,3 +7,4 @@ config.log
 config.cache
 config.status
 config.h.in
+Makefile
