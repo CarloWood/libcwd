@@ -85,20 +85,12 @@ namespace libcw {
       // {anonymous}::
       bool ios_base_initialization_hack(void)
       {
-	static bool not_very_first_time = false;
-	if (!not_very_first_time)
-	{
-	  // This is the very first time that operator new was called.
-	  // KLUDGE: set ios_base::Init::_S_synced_with_stdio to false.
-	  // It will be set to true at the end of ios_base::Init().
-	  bool prev = std::ios_base::sync_with_stdio(false);
-	  ASSERT( prev );
-	  not_very_first_time = true;
+#ifndef _GLIBCPP_USE_WCHAR_T
+	if (std::cerr.flags() != std::ios_base::unitbuf)		// Still didn't reach the end of ios_base::Init::Init()?
+#else
+	if (std::wcerr.flags() != std::ios_base::unitbuf)
+#endif
 	  return true;
-	}
-	if (!std::ios_base::sync_with_stdio(false)) // Still didn't reach the end of ios_base::Init()?
-	  return true;
-	std::ios_base::sync_with_stdio(true);
 	_internal_::ios_base_initialized = true;
 	make_all_allocations_invisible_except(NULL);	// Get rid of the <pre ios initialization> allocation list.
 	DEBUGDEBUG_CERR( "Standard streams initialized." );

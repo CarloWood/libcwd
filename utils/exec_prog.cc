@@ -24,6 +24,7 @@
 #include <libcw/cwprint.h>
 #include <fstream>
 #endif
+#include <streambuf>
 
 RCSTAG_CC("$Id$")
 
@@ -88,16 +89,41 @@ namespace libcw {
 	case 0:
 	{
 #ifdef CWDEBUG
-#if (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 97)
+#ifdef __GLIBCPP__
+	  // Quick and dirty unbuffered file descriptor streambuf.
+	  class fdbuf : public std::basic_streambuf<char, std::char_traits<char> > {
+	  public:
+	    typedef std::char_traits<char> traits_type;
+	    typedef traits_type::int_type int_type;
+	  private:
+	    int M_fd;
+	  public:
+	    fdbuf(int fd) : M_fd(fd) { }
+          protected:
+	    virtual int_type overflow(int_type c = traits_type::eof())
+	    {
+	      if (!traits_type::eq_int_type(c, traits_type::eof()))
+	      {
+		char cp[1];
+		*cp = c;
+		write(M_fd, cp, 1);
+	      }
+	      return 0;
+	    }
+	  };
+
+	  // Unbuffered file descriptor stream.
 	  class ofdstream : public std::ostream {
+	  private:
+	    mutable fdbuf M_fdbuf;
 	  public:
 	    explicit
-	    ofdstream(int fd) : std::ostream(new std::filebuf(fd, "ofdstream", ios_base::out|ios_base::trunc)) { }
-	    ~ofdstream() { delete _M_streambuf; _M_streambuf = NULL; }
-	    std::filebuf* rdbuf(void) const { return static_cast<std::filebuf*>(_M_streambuf); }
-	    bool is_open(void) { return rdbuf()->is_open(); }
-	    void close(void) { if (!rdbuf()->close()) setstate(std::ios_base::failbit); }
-	  } debug_stream(debug_filedes[1]);
+	    ofdstream(int fd) : std::ostream(&M_fdbuf), M_fdbuf(fd) { }
+	    fdbuf* rdbuf(void) const { return &M_fdbuf; }
+	  };
+	  
+	  // Write debug output to pipe.
+	  ofdstream debug_stream(debug_filedes[1]);
 #else
 	  std::ofstream debug_stream(debug_filedes[1]);
 #endif
