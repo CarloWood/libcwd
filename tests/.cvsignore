@@ -7,6 +7,7 @@ syslog
 threads
 threads2
 threads3
+threads4
 stabs
 dout_alloc
 .deps
