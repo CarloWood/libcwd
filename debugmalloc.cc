@@ -162,7 +162,7 @@ using libcw::debug::_private_::list_allocations_instance;
 using libcw::debug::_private_::threadlist_instance;
 using libcw::debug::_private_::threadlist_t;
 using libcw::debug::_private_::threadlist;
-// We can't use a read/write lock here because that leads to a dead lock.
+// We can't use a read/write lock here because that leads to a deadlock.
 // rwlocks have to use condition variables or semaphores and both try to get a
 // (libpthread internal) self-lock that is already set by libthread when it calls
 // free() in order to destroy thread specific data 1st level arrays.
@@ -2527,8 +2527,8 @@ marker_ct::~marker_ct()
  */
 void move_outside(marker_ct* marker, void const* ptr)
 {
-#if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION
+#if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
 
@@ -2625,8 +2625,8 @@ void move_outside(marker_ct* marker, void const* ptr)
  */
 alloc_ct const* find_alloc(void const* ptr)
 { 
-#if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION
+#if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
 

@@ -445,11 +445,11 @@ void test_lock_pair(int instance_first, void const* from_first, int instance_sec
       stored_info.limited++;
       stored_info.from_first[stored_info.limited] = from_first;
       stored_info.from_second[stored_info.limited] = from_second;
-      DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << "; second: " << instance_second << "; groups: " << (void*)stored_info.state << '\n');
+      DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << "; second: " << instance_second << "; groups: " << (void*)(unsigned long)stored_info.state << '\n');
     }
     if (stored_info.state == 0)					// No group left?
     {
-      FATALDEBUGDEBUG_CERR("\nKEYPAIR: There is a potential dead lock between lock " << keypair_key.instance1 << " and " << keypair_key.instance2 << '.');
+      FATALDEBUGDEBUG_CERR("\nKEYPAIR: There is a potential deadlock between lock " << keypair_key.instance1 << " and " << keypair_key.instance2 << '.');
       FATALDEBUGDEBUG_CERR("\nKEYPAIR: Previously, these locks were locked in the following locations:");
       for (int cnt = 0; cnt <= stored_info.limited; ++cnt)
 	FATALDEBUGDEBUG_CERR("\nKEYPAIR: First at " << stored_info.from_first[cnt] << " and then at " << stored_info.from_second[cnt]);
@@ -459,7 +459,7 @@ void test_lock_pair(int instance_first, void const* from_first, int instance_sec
   }
   else
   {
-    DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << "; second: " << instance_second << "; groups: " << (void*)keypair_info.state << '\n');
+    DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << "; second: " << instance_second << "; groups: " << (void*)(unsigned long)keypair_info.state << '\n');
 
 #if 0
     // X1,W/R2 + Y2,Z3 imply X1,Z3.
@@ -483,7 +483,6 @@ void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* fr
   if (instance == keypair_map_instance)
     return;
 
-  Debug( libcw_do.off() );
   set_alloc_checking_off(__libcwd_tsd);
 
   // Initialization.
@@ -517,7 +516,6 @@ void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* fr
   }
 
   set_alloc_checking_on(__libcwd_tsd);
-  Debug( libcw_do.on() );
 }
 #endif
 

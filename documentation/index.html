@@ -85,6 +85,16 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>18 Jun 2002</B>
+<P class="news">libcwd-0.99.21 is released.&nbsp;
+This release adds support for g++ 3.1.&nbsp;
+In the previous two versions there was an include missing
+causing libcwd not to compile on SuSe and Mandrake.&nbsp;
+The administration of allocated memory is now kept
+in an STL map <EM>per</EM> thread instead of one big global map.&nbsp;
+The advantage of that is that in general a
+call to new/malloc etc. will not cause a thread to
+have to wait for other threads anymore.</P>
 <DT><B>24 May 2002</B>
 <P class="news">libcwd-0.99.20 is released.&nbsp;
 This release fixes three (possible) deadlocks in <CODE>list_allocations_on</CODE>,

@@ -159,7 +159,7 @@ void allocator_unlock(void)
 	{
 	  // We don't write debug output to the final ostream when inside malloc and std::__default_alloc_template<true, 0> is locked.
 	  // It is namely possible that this will again try to acquire the lock in std::__default_alloc_template<true, 0>, resulting
-	  // in a dead lock.  Append it to the queue instead.
+	  // in a deadlock.  Append it to the queue instead.
 	  msgbuf->curlen = curlen;
 	  msgbuf->prev = NULL;
 	  msgbuf->next = debug_object.queue;
@@ -639,7 +639,7 @@ void allocator_unlock(void)
       // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
 #ifdef HAVE_PTHREAD_KILL_OTHER_THREADS_NP
       // For the same reason, kill other threads prior to generating the core.
-      //pthread_kill_other_threads_np(); // Only causes a dead lock.
+      //pthread_kill_other_threads_np(); // Only causes a deadlock.
 #endif
 #endif
 #if defined(_REENTRANT) && CWDEBUG_DEBUG

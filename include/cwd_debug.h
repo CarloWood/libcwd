@@ -40,7 +40,7 @@ extern void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexa
 //
 // A fake ostream that is used in DoutInternal and LIBCWD_Dout in order to write
 // to an ostream without allocating memory through std::__default_allocator<true, 0>
-// which could lead to a dead lock.
+// which could lead to a deadlock.
 
 struct no_alloc_ostream_ct {
   std::ostream& M_os;

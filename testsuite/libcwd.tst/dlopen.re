@@ -35,4 +35,9 @@ MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : free\(0x[0-9a-f]*\) *dl-object.c:[0-9]* *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : free\(0x[0-9a-f]*\) *dl-deps.c:[0-9]* *<unknown type>; \(sz = [0-9]*\)  
+// input lines 3
+// output till ^NOTICE
+(MALLOC  : delete 0x[0-9a-f]* *(streambuf::streambuf\(int\)|streambuf\.cc:211) *<unknown type>; \(sz = [0-9]*\)  
+MALLOC  : Trying to free NULL - ignored\.
+)*
 NOTICE  : Finished
