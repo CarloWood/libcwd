@@ -40,6 +40,9 @@
 
 namespace libcw {
   namespace debug {
+#ifdef DEBUGUSEBFD
+    namespace cwbfd { bool ST_init(void); }
+#endif
 
 class channel_ct;
 class fatal_channel_ct;
@@ -215,6 +218,9 @@ private:
   friend class channel_ct;
   friend class fatal_channel_ct;
   friend void ST_initialize_globals(void);
+#ifdef DEBUGUSEBFD
+  friend bool cwbfd::ST_init(void);
+#endif
   void NS_init(void);
     // Initialize this object, needed because debug output can be written
     // from the constructors of (other) global objects, and from the malloc()

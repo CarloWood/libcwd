@@ -926,6 +926,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // cwbfd::
       bool ST_init(void)
       {
+	// This must be called before calling ST_init().
+	libcw_do.NS_init();
+
 	static bool WST_being_initialized = false;
 	// This should catch it when we call new or malloc while 'internal'.
 	if (WST_being_initialized)
