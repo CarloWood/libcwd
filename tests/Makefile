@@ -1,0 +1,28 @@
+# Directory where the base Makefile resides:
+BASEDIR=../../..
+
+# List of source files (one per executable):
+CXXSRC:=$(shell grep -l 'main' *.cc)
+
+# List of sub directories:
+SUBDIRS:=$(shell find . -maxdepth 1 -mindepth 1 -type d ! -name CVS)
+
+# Extra static libraries to link with:
+STATICLIBS=
+
+# Extra shared libraries to link with:
+SHAREDLIBS=-lcwd
+
+# Use -L${LIBCWDIR}/lib to use the latest alpha version:
+LIBFLAGS=-L${BASEDIR}/lib
+
+# Extra *.o files that need to be linked:
+EXTRA_OBJS=
+
+#-----------------------------------------------------------------------------
+
+include ${PROTODIR}/test/PTMakefile
+
+#build::
+#clean::
+#depend::
