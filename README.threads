@@ -1,3 +1,5 @@
 In order to debug a threaded application, you need
 to link with -lcwd_r instead of -lcwd.
 
+Threading only works on linux so far.
+Use ./configure --disable-threading on other OS.

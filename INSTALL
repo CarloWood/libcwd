@@ -62,16 +62,8 @@ Packages needed to run the testsuite
 ------------------------------------
 
 ii) If you want to run the testsuite then you will have to install
-dejagnu-1.4.1 which can be downloaded from ftp://ftp.gnu.org/gnu/dejagnu/,
-or your local GNU mirror.  However, this version still contains a bug
-and you'll have to apply the following patch: edit /usr/share/dejagnu/target.exp
-line 275 and remove the newline at the end (so that the word "text" on line
-276 is added at the end of line 275:
-regsub -all ".*: warning: -f(pic|PIC) ignored for target .*" $text "" text
-
-Alternatively, you can get dejagnu directly from the cvs repository
-at http://www.gnu.org/software/dejagnu/ where this bug already has been
-fixed (as it will be in any version *after* 1.4.1).
+dejagnu-1.4.2 or higher, which can be downloaded from ftp.gnu.org/gnu/dejagnu/,
+or your local GNU mirror.
 
 You will also need expect-5.32.2 (and tcl/tk 8.3.3?).  At least, expect 5.31.2
 is known to hang.

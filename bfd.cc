@@ -1013,7 +1013,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	      }
         };
 	static static_internal_string fullpath;			// Must be static because bfd keeps a pointer to its data()
+	set_alloc_checking_on(LIBCWD_TSD);
 	ST_get_full_path_to_executable(*fullpath.value);
+	set_alloc_checking_off(LIBCWD_TSD);
 	*fullpath.value += '\0';				// Make string null terminated so we can use data().
 
 #if CWDEBUG_LIBBFD
