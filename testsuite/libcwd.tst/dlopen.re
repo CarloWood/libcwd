@@ -25,7 +25,7 @@ malloc    0x[0-9a-f]*            module\.cc:24   void\*; \(sz = 310\)  Allocated
           0x[0-9a-f]* *streambuf::streambuf\(int\) <unknown type>; \(sz = [0-9]*\) 
 )|(BFD     : address 0x[0-9a-f]* corresponds to (streambuf\.cc:211|ios\.cc:326|memory:183)
           0x[0-9a-f]* *(streambuf.cc:211|ios.cc:326|memory:183) *<unknown type>; \(sz = [0-9]*\) 
-))*(((malloc |realloc)   0x[0-9a-f]* *((dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]*|add_to_global|open_path|_dl_[a-z_]*|dl_open_worker) *<unknown type>; \(sz = [0-9]*\) 
+))*(((malloc |realloc)   0x[0-9a-f]* *((dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]*|add_to_global|open_path|_dl_[a-z_]*|dl_open_worker|decompose_rpath) *<unknown type>; \(sz = [0-9]*\) 
 )|(BFD     : Warning: Address 0x[0-9a-f]* in section \.text of object file "ld-linux.so\.2"
           does not have a line number, perhaps the unit containing the function
           `_dl_map_object_deps' wasn't compiled with flag -(g|gdb)\?

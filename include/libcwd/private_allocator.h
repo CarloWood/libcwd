@@ -133,11 +133,11 @@ template<class __pool_type>
 // This class also defines policies (so far only whether or not threading is used).
 template<int pool_instance, bool needs_lock>
   struct pool_instance_and_policy {
-    typedef __gnu_cxx::__pool<needs_lock> __pool_type;		// Underlaying pool type.
-    static static_pool_instance<__pool_type> _S_pool_instance;	// The actual pool instance.
+    typedef __gnu_cxx::__pool<needs_lock> pool_type;		// Underlaying pool type.
+    static static_pool_instance<pool_type> _S_pool_instance;	// The actual pool instance.
 
     // The following is needed as interface of a 'pool_policy' class as used by __gnu_cxx::__mt_alloc.
-    static __pool_type& _S_get_pool(void)			// Accessor to the __pool_type singleton.
+    static pool_type& _S_get_pool(void)				// Accessor to the pool_type singleton.
         { return *_S_pool_instance.ptr; }
     static void _S_initialize_once(void) 			// This is called every time a new allocation is done.
     { 
@@ -157,11 +157,11 @@ template<int pool_instance, bool needs_lock>
 template<int pool_instance>
   struct pool_instance_and_policy<pool_instance, true>
   {
-    typedef __gnu_cxx::__pool<true> __pool_type;		// Underlaying pool type.
-    static static_pool_instance<__pool_type> _S_pool_instance;	// The actual pool instance.
+    typedef __gnu_cxx::__pool<true> pool_type;			// Underlaying pool type.
+    static static_pool_instance<pool_type> _S_pool_instance;	// The actual pool instance.
     
     // The following is needed as interface of a 'pool_policy' class as used by __gnu_cxx::__mt_alloc.
-    static __pool_type& _S_get_pool(void)			// Accessor to the __pool_type singleton.
+    static pool_type& _S_get_pool(void)				// Accessor to the pool_type singleton.
         { return *_S_pool_instance.ptr; }
     static void _S_initialize_once(void) 			// This is called every time a new allocation is done.
     { 
@@ -179,12 +179,12 @@ template<int pool_instance>
   };
 
 template<int pool_instance>
-  static_pool_instance<typename pool_instance_and_policy<pool_instance, true>::__pool_type>
+  static_pool_instance<typename pool_instance_and_policy<pool_instance, true>::pool_type>
       pool_instance_and_policy<pool_instance, true>::_S_pool_instance;
 #endif // __GTHREADS
 
 template<int pool_instance, bool needs_lock>
-  static_pool_instance<typename pool_instance_and_policy<pool_instance, needs_lock>::__pool_type>
+  static_pool_instance<typename pool_instance_and_policy<pool_instance, needs_lock>::pool_type>
       pool_instance_and_policy<pool_instance, needs_lock>::_S_pool_instance;
 
 template<bool needs_lock, int pool_instance>

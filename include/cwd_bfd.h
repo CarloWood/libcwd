@@ -194,12 +194,13 @@ symbol_start_addr(asymbol const* s)
 // cwbfd::
 inline size_t symbol_size(asymbol const* s)
 {
-  return reinterpret_cast<size_t>(s->udata.p);
+  return static_cast<size_t>(s->udata.p);
 }
 
 // cwbfd::
 inline size_t& symbol_size(asymbol* s)
 {
+  // This assumes that sizeof(size_t) == sizeof(unsigned int).
   return *reinterpret_cast<size_t*>(&s->udata.p);
 }
 #endif
