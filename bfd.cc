@@ -345,6 +345,67 @@ static bool is_group_member(gid_t gid)
   return false;
 }
 
+static string argv0;	// Like main()'s argv[0], must be zero terminated!
+static string pidstr;
+
+static int decode_ps(char const* buf, size_t len)
+{
+  static int pid_token = 0;
+  static int command_token = 0;
+  int current_token = 0;
+  bool found_PID = false;
+  bool eating_token = false;
+  size_t current_column = 1;
+  size_t command_column;
+  string token;
+
+  for (char const* p = buf; current_column <= len; ++p, ++current_column)
+  {
+    if (!eating_token)
+    {
+      if (*p != ' ' && *p != '\t' && *p != '\n')
+      {
+	++current_token;
+	token = *p;
+	eating_token = true;
+      }
+      if (*p == '\n')
+      {
+	current_token = 0;
+	current_column = 0;
+      }
+    }
+    else
+    {
+      if (*p == ' ' || *p == '\t' || *p == '\n')
+      {
+	if (pid_token == current_token && token == pidstr)
+	  found_PID = true;
+	else if (found_PID && (command_token == current_token || current_column >= command_column))
+	{
+	  argv0 = token + '\0';
+	  return 0;
+	}
+	else if (pid_token == 0 && token == "PID")
+	  pid_token = current_token;
+	else if (command_token == 0 && token == "COMMAND")
+	{
+	  command_token = current_token;
+	  command_column = current_column;
+	}
+        if (*p == '\n')
+	{
+	  current_token = 0;
+	  current_column = 0;
+	}
+	eating_token = false;
+      }
+      token += *p;
+    }
+  }
+  return 0;
+}
+
 // 
 // Find the full path to the current running process.
 // This needs to work before we reach main, therefore
@@ -353,9 +414,13 @@ static bool is_group_member(gid_t gid)
 // reading "/proc/PID/cmdline".  It expects that the
 // name of the program (argv[0] in main()) is returned
 // as a zero terminated string when reading this file.
+//
+// If "/proc/PID/cmdline" doesn't exist, then we run
+// `ps' in order to find the name of the running
+// program.
 // 
 
-string full_path_to_executable(void) return result
+static string full_path_to_executable(void) return result
 {
   size_t const max_proc_path = sizeof("/proc/65535/cmdline\0");
   char proc_path[max_proc_path];
@@ -364,18 +429,35 @@ string full_path_to_executable(void) return result
   proc_path_str << "/proc/" << getpid() << "/cmdline" << ends;
   ifstream proc_file(proc_path);
 
-  if (!proc_file)
-    DoutFatal(error_cf, "ifstream proc_file(\"" << proc_path << "\")");
-
-  string argv0;
-  proc_file >> argv0;
-  proc_file.close();
+  if (proc_file)
+  {
+    proc_file >> argv0;
+    proc_file.close();
+  }
+  else
+  {
+    size_t const max_pidstr = sizeof("65535\0");
+    char pidstr_buf[max_pidstr];
+    ostrstream pidstr_stream(pidstr_buf, max_pidstr);
+    pidstr_stream << getpid() << ends;
+    pidstr = pidstr_buf;
+    extern char **environ;
+   
+    // Path to `ps'
+    char const ps_prog[] = CW_PATH_PROG_PS;
+   
+    char const* argv[3];
+    argv[0] = "ps";
+    argv[1] = "w";
+    argv[2] = NULL;
+    if (exec_prog(ps_prog, argv, environ, decode_ps) == -1 || argv0.empty())
+      DoutFatal(error_cf, "Failed to execute \"" << ps_prog << "\"");
+  }
 
   if (argv0.find('/') == string::npos)
   {
-    string prog_name(argv0.data());
+    string prog_name(argv0);
     string path_list(getenv("PATH"));
-    //char const* home = getenv("HOME");
     string::size_type start_pos = 0, end_pos;
     string path;
     struct stat finfo;
@@ -383,7 +465,7 @@ string full_path_to_executable(void) return result
     for (;;)
     {
       end_pos = path_list.find(':', start_pos);
-      path = path_list.substr(start_pos, end_pos - start_pos) + '/' + prog_name;
+      path = path_list.substr(start_pos, end_pos - start_pos) + '/' + prog_name + '\0';
       if (stat(path.data(), &finfo) == 0 && !S_ISDIR(finfo.st_mode))
       {
         uid_t user_id = geteuid();
@@ -431,12 +513,16 @@ struct my_link_map {
 
 vector<my_link_map> shared_libs;
 
-int decode(char const* buf, size_t len)
+static int decode(char const* buf, size_t len)
 {
   for (char const* p = buf; p < &buf[len]; ++p)
-    if (p[0] == '=' && p[1] == '>' && p[2] == ' ' && p[3] == '/')
+    if (p[0] == '=' && p[1] == '>' && p[2] == ' ' || p[2] == '\t')
     {
-      p += 3;
+      p += 2;
+      while (*p == ' ' || *p == '\t')
+	++p;
+      if (*p != '/' && *p != '.')
+	break;
       char const* q;
       for (q = p; q < &buf[len] && *q > ' '; ++q);
       for (char const* r = q; r < &buf[len]; ++r)

@@ -23,6 +23,11 @@
 #ifndef LIBCW_SYS_H
 #define LIBCW_SYS_H
 
+#@CW_CONFIG_NEED_SYS_TYPES@ NEED_SYS_TYPES
+#ifdef NEED_SYS_TYPES
+#include <sys/types.h>
+#endif
+
 //
 // typedefs
 //
@@ -30,6 +35,7 @@
 // optval_t		: The type of the fourth argument of `getsockopt'
 // retsig_t		: The return type of a signal handler
 // sighandler_param_t	: The type of the parameter of a signal handler
+// getgroups_t		: The type of the array argument to getgroups
 //
 @CW_TYPEDEFS@
 

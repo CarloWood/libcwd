@@ -205,7 +205,7 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
 		    if (decode_stdout(decodebuf[fd].begin(), decodebuf[fd].size()) == -1)
 		    {
 		      Dout(dc::notice, "decode_stdout() returned -1, terminating child process.");
-		      Dout(dc::system, "kill(" << pid << ", SIGKILL) = ");
+		      Dout(dc::system|continued_cf, "kill(" << pid << ", SIGKILL) = ");
 		      ret = kill(pid, SIGKILL);
 		      Dout(dc::finish|cond_error_cf(ret == -1), ret);
 		      for (int fd = 0; fd < number_of_fds; ++fd)

@@ -8,8 +8,8 @@
 #
 # GNU make
 # GNU which-2.x
-# GNU awk
 # GNU date
+# awk
 # rpm-3.x (RedHat-6.x)
 # rcs2log
 # cut
@@ -44,6 +44,7 @@ TAG:=${shell echo "V@VERSION@" | sed -e 's/\./_/g'}
 PREVTAG:=${shell test -f .prevtag && cat .prevtag}
 CVSREADACCESS:=${shell if test -f $(srcdir)/CVS/Entries; then echo "yes"; else echo "no"; fi}
 CVSWRITEACCESS:=${shell if test x"$$LIBCW_WRITE_ACCESS" = "xyes"; then echo $(CVSREADACCESS); else echo "no"; fi}
+AWK=@AWK@
 
 test-values:
 	@echo "srcdir	= \"$(srcdir)\""
@@ -76,7 +77,7 @@ $(srcdir)/$(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
 	  (cd $(srcdir); cvs log $(SPECFILE).in) | \
 	      grep -A2000 '^-----' | \
 	      egrep -v '^-----|^=====|^revision' | \
-	      awk -F'[ ;]' --assign lastdate="" \
+	      $(AWK) -F'[ ;]' -v lastdate="" \
 	      '{ \
 		if ($$0~/^date: /) { \
 		  if (lastdate != $$2) { \

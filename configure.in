@@ -25,7 +25,7 @@ INTERFACE_VERSION=99		dnl 0.99 actually
 INTERFACE_VERSION_REVISION=3
 INTERFACE_AGE=99		dnl 0.99 actually
 
-VERSION_MAJOR=$(($INTERFACE_VERSION-$INTERFACE_AGE))
+VERSION_MAJOR=`expr $INTERFACE_VERSION - $INTERFACE_AGE`
 VERSION_MINOR=$INTERFACE_AGE
 VERSION_REVISION=$INTERFACE_VERSION_REVISION
 
@@ -148,6 +148,9 @@ cw_cv_sys_LIBS="$LIBS"
 dnl Checks for other programs.
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+AC_PROG_AWK
+AC_PATH_PROG(PS, ps, /usr/bin/ps, $PATH)
+AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS")
 
 dnl We need to use these options for the tests too
 CXXFLAGS="$DEBUGOPTS $EXTRAOPTS"
@@ -260,6 +263,12 @@ if test "$ac_cv_type_signal" = "int"; then
 fi
 AC_TYPE_UID_T
 CW_TYPE_GETGROUPS
+if test "$ac_cv_type_getgroups" = "gid_t"; then
+  CW_CONFIG_NEED_SYS_TYPES=define
+else
+  CW_CONFIG_NEED_SYS_TYPES=undef
+fi
+AC_SUBST(CW_CONFIG_NEED_SYS_TYPES)
 
 dnl Check for structures.
 
@@ -319,17 +328,21 @@ fi
 dnl Generate include/libcw/debug_config.h and include/libcw/sys.h, preserving timestamp when they are not changed.
 AC_OUTPUT_COMMANDS([
 cd include/libcw
-if cmp -s debug_config.h debug_config.ho 2> /dev/null; then
-  echo "debug_config.h is unchanged"
-else
-  echo "creating debug_config.h"
-  cp debug_config.ho debug_config.h
+if echo "$CONFIG_FILES" | grep debug_config.ho; then
+  if cmp -s debug_config.h debug_config.ho 2> /dev/null; then
+    echo "debug_config.h is unchanged"
+  else
+    echo "creating debug_config.h"
+    cp debug_config.ho debug_config.h
+  fi
 fi
-if cmp -s sys.h sys.ho 2> /dev/null; then
-  echo "sys.h is unchanged"
-else
-  echo "creating sys.h"
-  cp sys.ho sys.h
+if echo "$CONFIG_FILES" | grep sys.ho; then
+  if cmp -s sys.h sys.ho 2> /dev/null; then
+    echo "sys.h is unchanged"
+  else
+    echo "creating sys.h"
+    cp sys.ho sys.h
+  fi
 fi
 cd ../..
 ])

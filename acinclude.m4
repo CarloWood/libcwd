@@ -159,7 +159,7 @@ AC_DEFUN(CW_OUTPUT,
   if test -f $cw_outfile.$cw_pid; then
     if cmp -s $cw_outfile $cw_outfile.$cw_pid 2>/dev/null; then
       echo "$cw_outfile is unchanged"
-      touch -r $cw_outfile.$cw_pid $cw_outfile
+      mv $cw_outfile.$cw_pid $cw_outfile
     fi
   fi
   rm -f $cw_outfile.$cw_pid
@@ -379,7 +379,10 @@ dnl Defines CW_CONFIG_NBLOCK to be `POSIX', `BSD' or `SYSV'
 dnl depending on whether socket non-blocking stuff is
 dnl posix, bsd or sysv style respectively.
 AC_DEFUN(CW_NBLOCK,
-[AC_CACHE_CHECK(non-blocking socket flavour, cw_cv_system_nblock,
+[save_LIBS="$LIBS"
+AC_CHECK_LIB(c, socket, [true],
+[AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS")])
+AC_CACHE_CHECK(non-blocking socket flavour, cw_cv_system_nblock,
 [AC_TRY_RUN([#include <sys/types.h>
 #include <sys/socket.h>
 #include <fcntl.h>
@@ -427,7 +430,7 @@ if test "$cw_cv_system_nblock" = crosscompiled_set_to_POSIX_BSD_or_SYSV; then
 fi
 CW_CONFIG_NBLOCK=$cw_cv_system_nblock
 AC_SUBST(CW_CONFIG_NBLOCK)
-])
+LIBS="$save_LIBS"])
 
 dnl CW_TYPE_GETGROUPS
 dnl
