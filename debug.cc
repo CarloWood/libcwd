@@ -1529,8 +1529,8 @@ namespace libcw {
  * \ingroup group_destination
  *
  * Assign a new \c ostream to this %debug object.
- * The \c ostream will only be written to after obtaining the lock
- * that is passed as second argument.
+ * The \c ostream will only be written to after acquiring the
+ * pthread mutex passed in the second argument.
  *
  * <b>Example:</b>
  *
@@ -1568,10 +1568,11 @@ template<>
 #endif // LIBCWD_THREAD_SAFE
 
 /**
- * \brief Set output device.
+ * \brief Set output device (single threaded applications).
  * \ingroup group_destination
  *
  * Assign a new \c ostream to this %debug object (default is <CODE>std::cerr</CODE>).
+ * For use in single threaded applications only.
  */
 void debug_ct::set_ostream(std::ostream* os)
 {
