@@ -174,8 +174,8 @@ namespace libcw {
 #ifdef DEBUGDEBUG
       else if (init_magic != debug_object_init_magic || !debug_object_init_magic)
       {
-        cerr << "DEBUGDEBUG: Ack, fatal error in libcw: `initialized' true while `init_magic' not set! "
-	        "Please mail the author of libcw." << endl;
+        cerr << "DEBUGDEBUG: Ack, fatal error in libcwd: `initialized' true while `init_magic' not set! "
+	        "Please mail the author of libcwd." << endl;
 	raise(3);	// Core dump
       }
 #endif
@@ -379,7 +379,7 @@ namespace libcw {
 	    debug_internal2 = true;
 	    *os << endl;
 	  }
-	  exit(-2);
+	  exit(254);
 	}
 	if ((channel_set.mask & wait_cf))
 	{
@@ -558,20 +558,6 @@ namespace libcw {
     {
       return string(marker.str, marker.len);
     }
-
-#if 0
-    void debug_ct::destroy_all_buffered_output(void)
-    {
-      if (fd)
-      {
-	if (!fd->is_linked())
-	  DoutFatal( dc::core, "Old debug channel isn't linked (in kernel list) !?" );
-	if (!fd->must_be_removed()) // Prevend a little debug flood
-	  fd->del();
-	set_ostream(&cerr);
-      }
-    }
-#endif
 
     channel_ct const* find(char const* label)
     {
