@@ -43,12 +43,10 @@ namespace libcw {
 	int internal_saved = __libcwd_tsd.internal;
 	__libcwd_tsd.internal = 0;
 	++__libcwd_tsd.library_call;
-	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	return internal_saved;
       }
   __inline__ void set_library_call_off(int saved_internal LIBCWD_COMMA_TSD_PARAM)
       {
-	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	__libcwd_tsd.internal = saved_internal;
 	--__libcwd_tsd.library_call;
       }
