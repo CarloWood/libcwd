@@ -53,4 +53,11 @@ namespace libcw {
 
 RCSTAG_H(sys, "$Id$")
 
+//
+// Compilers and preprocessor used.  Put here to cause a recompile when changed.
+// CC    : @CC_FINGER_PRINT@
+// CXX   : @CXX_FINGER_PRINT@
+// CXXCPP: @CXXCPP_FINGER_PRINT@
+//
+
 #endif /* LIBCW_SYSD_H */

@@ -159,6 +159,14 @@ Static libraries are supported however, please configure using
   fi
 fi
 
+dnl Used in sysd.h to force recompilation
+CC_FINGER_PRINT="$cw_cv_sys_CC_finger_print"
+AC_SUBST([CC_FINGER_PRINT])
+CXX_FINGER_PRINT="$cw_cv_sys_CXX_finger_print"
+AC_SUBST([CXX_FINGER_PRINT])
+CXXCPP_FINGER_PRINT="$cw_cv_sys_CXXCPP_finger_print"
+AC_SUBST([CXXCPP_FINGER_PRINT])
+
 dnl Configuration defines of debug_config.h
 AC_SUBST(CW_CONFIG_DEBUGMALLOC)
 CW_CONFIG_DEBUGMALLOC=undef

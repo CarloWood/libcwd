@@ -70,6 +70,7 @@ rpm: tar $(SPECFILE)
 	cd rpm; rpm --rcfile=/usr/lib/rpm/rpmrc:rpmrc --target=$(TARGET) --sign --clean -ba ../$(SPECFILE)
 
 reconfig: $(top_builddir)/config.status
+	$(top_builddir)/config.status --recheck
 	$(top_builddir)/config.status
 	
 $(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
