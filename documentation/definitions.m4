@@ -1,4 +1,5 @@
 changequote([[,]])dnl
+undefine([[format]])dnl
 define(__HTMLHEADER, [[<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML LANG="en-us">
 <HEAD>
