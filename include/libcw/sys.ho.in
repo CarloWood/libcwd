@@ -78,13 +78,6 @@ int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_AD
 // Word around (if any):
 @CW_REDEFINES_FIX@
 
-// At least gcc-2.95.2 crashes in dwarf2out.c when compiling with -ggdb
-// when we try to put a static vector<> inside an inline function.
-// Either upgrade your compile, don't use -ggdb or define this bug
-// work around.  FreeBSD needs -ggdb to get sourcefile:linenumber information.
-
-#@CW_CONFIG_DWARF2OUT_BUG@ DWARF2OUT_BUG
-
 // This is to avoid warnings like:
 // /usr/include/g++-3/iostream.h:253:5: "_G_CLOG_CONFLICT" is not defined
 #@CW_CONFIG_G_CONFIG_H_MACROS@ NEED_G_CONFIG_H_MACROS
