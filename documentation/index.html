@@ -85,6 +85,26 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>5 September 2002</B>
+<P class="news">libcwd-0.99.25 is released.&nbsp;
+This release fixes a few major bugs: internal memory leaks in libcwd
+itself (now garanteed leak free!), and the demangle routines weren't
+thread safe when you were using compiler version 2.95.x or 2.96.&nbsp;
+Also, the library was erroneously not compiled with -O, making it
+about twice as slow (still very fast).&nbsp;
+The function <CODE>list_allocations_on()</CODE> didn't work at all for 
+other debug objects; only <CODE>list_allocations_on(libcw_do)</CODE> would work.&nbsp;
+Under certain circumstances (linking with a third party C++ library
+that got initialized first and whose first allocation is via
+std::allocator) would lead to a dead lock during initialization.&nbsp;
+Finally, <CODE>channel_ct::get_label()</CODE> has been changed to be zero
+terminated.&nbsp; The fact that it was not (deliberately), wasn't very
+clearly documented.</P>
+<DT><B>19 August 2002</B>
+<P class="news">libcwd-0.99.24 is released.&nbsp;
+This release fixes multi-threading problems among which writing continued
+debug output: the label of each output line will now really always start
+on a new line.</P>
 <DT><B>18 July 2002</B>
 <P class="news">Today an excellent <a href="http://www.kuro5hin.org/story/2002/7/18/3313/01429">review</a> of C++ tools appeared on the front page of 
 <a href="http://www.kuro5hin.org/">kuro5hin.org</a> in which libcwd
