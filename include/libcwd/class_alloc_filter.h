@@ -37,6 +37,7 @@
 #define LIBCW_VECTOR
 #include <vector>
 #endif
+#include <sys/time.h>
 
 #endif // CWDEBUG_ALLOC
 
