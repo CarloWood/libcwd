@@ -18,9 +18,9 @@ with (document)
 	rootpath = location.pathname.substring(0,rootpos) + "/";
       else
       {
-	rootpos = location.pathname.lastIndexOf("/documentation/");
+	rootpos = location.pathname.lastIndexOf("/");
 	if (rootpos != -1) 
-	  rootpath = location.pathname.substring(0,rootpos) + "/documentation/";
+	  rootpath = location.pathname.substring(0,rootpos) + "/";
 	else
 	  rootpath = "/";
       }
