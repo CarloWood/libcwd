@@ -4,13 +4,13 @@ libcwd-0.99.28
 
 	Configuration with --disable-alloc was still broken on SunOS.
 
-	The mangling was changed in g++ version 3.1 (making C++ libraries
-	compiled with versions before 3.1, binary incompatible).  The demangler
-	of libcwd was updated to reflect this change.  Note that libcwd
-	will not always demangle applications, that were compiled with a g++
-	version 3.0.x, correctly anymore.
+	The mangling was changed in g++ version 3.1 (rendering C++ libraries
+	compiled with previous versions binary incompatible).  The demangler
+	of libcwd was updated to reflect this change.  As a result, libcwd
+	will not always correctly demangle applications that were compiled
+	with g++ versions 3.0.x anymore.
 
-	Under certain circumstances the decoding of the line numbers
+	Under certain circumstances, the decoding of the line numbers
 	of DWARF2 .debug_line section failed.  In particular, the
 	last source line of functions was failing often.  Most notably
 	that was confusing when the last line of an inlined function
@@ -20,8 +20,8 @@ libcwd-0.99.28
 
 	Only half of the new/delete signatures in <new> were supported.
 	As a result, applications that used new(std::nothrow_t) would
-	abort with the error: COREDUMP: You are `delete'-ing a block that
-	was allocated with `malloc()'!  Use `free()' instead.
+	abort with the error: "COREDUMP: You are `delete'-ing a block that
+	was allocated with `malloc()'!  Use `free()' instead."
 	In particular gtkmm-2.0 and higher is using such a call.
 	(Bug reported by Marek Materzok).
 	The following signatures have been added to libcwd now:
@@ -32,18 +32,18 @@ libcwd-0.99.28
 
 	There is a bug in the g++ compiler that is not likely to be
 	fixed very soon; see http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view%20audit-trail&database=gcc&pr=38
-	Therefore, a workaround for this bug was adding in order to
+	Therefore, a workaround for this bug was added in order to
 	make cwprint_using work when the print method is a method of
 	the base class.  The latter now takes two template parameters:
 	template<T, T_OR_BASE_OF_T>
 	  cwprint_using_tct<T_OR_BASE_OF_T>
 	  cwprint_using(T const&, void (T_OR_BASE_OF_T::*)(std::ostream&) const);
 
-	dlopen() failed when not an absolute path was given. It now
+	dlopen() failed when a relative path was given. It now
 	also works when the filename is somewhere in LD_LIBRARY_PATH,
-	or /etc/ld.so.cache etc. but only when glibc is used (more
-	precisely, I assume that the handle that is returned by
-	dlopen is actually a link_map pointer).
+	or /etc/ld.so.cache, etc., but only when glibc is used (more
+	precisely, libcwd assumes that the handle that is returned by
+	dlopen() is actually a link_map pointer).
 
 libcwd-0.99.27
 
