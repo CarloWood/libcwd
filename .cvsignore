@@ -15,3 +15,5 @@ maintMakefile
 .libs
 *.lo
 libcwd.la
+libcwd.spec
+libcwd.lsm
