@@ -85,8 +85,9 @@ The first one (the %debug.h that will be installed) would look something like th
 
  // All other macros might be used in header files of libexample, but need to be
  // defined by the debug.h of the application that uses it.
- #ifndef AllocTag        // And everything else.
- #error The application source file must include "debug.h" before including the header file of this library.
+ // LIBEXAMPLE_INTERNAL is defined when the library itself is being compiled (see below).
+ #if !defined(Debug) && !defined(LIBEXAMPLE_INTERNAL)
+ #error The application source file (.cc or .cpp) must use '#include "debug.h"' _before_ including the header file that it includes now, that led to this error.
  #endif
 
  #endif // LIBEXAMPLE_DEBUG_H
@@ -107,6 +108,7 @@ the .cpp files (that #include "debug.h") of your library itself, then looks like
  #include &lt;cstdlib&gt;      // std::exit, EXIT_FAILURE
 \include nodebug.h #endif // CWDEBUG
  &nbsp;
+ #define LIBEXAMPLE_INTERNAL		// See above.
  #include &lt;libexample/debug.h&gt;	// The debug<b></b>.h shown above.
  #define DEBUGCHANNELS libexample::channels
  #include &lt;libcwd/debug.h&gt;

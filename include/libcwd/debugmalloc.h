@@ -25,6 +25,9 @@
 #ifndef LIBCWD_CONFIG_H
 #include <libcwd/config.h>
 #endif
+#ifndef LIBCWD_MACRO_ALLOCTAG_H
+#include <libcwd/macro_AllocTag.h>
+#endif
 
 #if CWDEBUG_ALLOC
 
@@ -46,9 +49,6 @@
 #endif
 #if CWDEBUG_MARKER && !defined(LIBCWD_CLASS_MARKER_H)
 #include <libcwd/class_marker.h>
-#endif
-#ifndef LIBCWD_MACRO_ALLOCTAG_H
-#include <libcwd/macro_AllocTag.h>
 #endif
 #ifndef LIBCWD_CLASS_ALLOC_FILTER_H
 #include <libcwd/class_alloc_filter.h>

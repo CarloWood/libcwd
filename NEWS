@@ -1,5 +1,11 @@
 libcwd-0.99.38
 
+	Configuration with --disable-location has been fixed and
+	is not supported.
+
+	Cygwin is now supported when configuring with --disable-alloc
+	and --disable-location (only debug output).
+
         Bug fixes:
 
 	A debug channel that was not included in the vector of
@@ -10,6 +16,9 @@ libcwd-0.99.38
 
 	'type_info_of' could not be used safely from constructors
 	of global objects.
+
+	Configuration with --disable-alloc caused problems with
+	using libcwd with another library.
 
 libcwd-0.99.37
 

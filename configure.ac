@@ -151,8 +151,11 @@ CW_PROG_CXXCPP
 dnl Set WARNOPTS, DEBUGOPTS and EXTRAOPTS to suitable start values.
 CW_DO_OPTIONS
 
+# __cxa_atexit not being used is always wrong, but not really our concern if we are configured with --disable-alloc.
+if test x"$libcwd_config_alloc" = x"yes"; then
 dnl Test if g++ was configured correctly.
 CW_ATEXITTEST
+fi
 
 dnl Check if C compiler and C++ compiler versions match.
 CW_COMPILER_VERSIONS
@@ -172,7 +175,10 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_AWK
 AC_PATH_PROG(PS, ps, /bin/ps, $PATH)
+# The PS_WIDE_PID_OPTION test is not needed when --disable-location is used.
+if test x"$libcwd_config_location" = x"yes"; then
 CW_SYS_PS_WIDE_PID_OPTION
+fi
 AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS", [Full path to the 'ps' executable.])
 
 dnl We need to use these options for the tests too
