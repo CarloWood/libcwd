@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2001, by
+// Copyright (C) 2001 - 2002, by
 //
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -48,11 +48,18 @@
 #include <pthread.h>
 #include <semaphore.h>
 #if defined(PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP) && defined(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP)
-#define LIBCWD_USE_LINUXTHREADS
+#define LIBCWD_USE_LINUXTHREADS 1
 #else
-#define LIBCWD_USE_POSIX_THREADS
+#define LIBCWD_USE_POSIX_THREADS 1
 #endif
 #endif // LIBCWD_HAVE_PTHREAD
+
+#ifndef LIBCWD_USE_LINUXTHREADS
+#define LIBCWD_USE_LINUXTHREADS 0
+#endif
+#ifndef LIBCWD_USE_POSIX_THREADS
+#define LIBCWD_USE_POSIX_THREADS 0
+#endif
 
 #ifndef DEBUGDEBUG
 #define LIBCWD_DEBUGTHREADS 0		// Toggle this if necessary.
@@ -91,6 +98,21 @@
 
 #ifdef LIBCWD_THREAD_SAFE
 
+#if LIBCWD_USE_LINUXTHREADS
+#define LIBCWD_CLEANUP_PUSH_DEFER(routine, arg) pthread_cleanup_push_defer_np(routine, arg)
+#define LIBCWD_CLEANUP_POP_DEFER(execute) pthread_cleanup_pop_defer_np(execute)
+#elif LIBCWD_USE_POSIX_THREADS
+#define LIBCWD_CLEANUP_PUSH_DEFER(routine, arg) \
+    { \
+      int __libcwd_oldtype; \
+      pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &__libcwd_oldtype); \
+      pthread_cleanup_push(routine, arg);
+#define LIBCWD_CLEANUP_POP_DEFER(execute) \
+      pthread_cleanup_pop(execute); \
+      pthread_setcanceltype(__libcwd_oldtype, NULL); \
+    }
+#endif
+
 namespace libcw {
   namespace debug {
     namespace _private_ {
@@ -99,7 +121,7 @@ namespace libcw {
 extern bool WST_multi_threaded;
 #endif
 
-#if defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
+#if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 template<class TSD>
   class thread_specific_data_tct {
   private:
@@ -121,7 +143,7 @@ template<class TSD>
     }
     static bool initialized(void) { return S_initialized; }
   };
-#endif // defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
+#endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 
 //===================================================================================================
 //
@@ -181,19 +203,19 @@ extern int instance_locked[instance_locked_size];	// MT: Each element is locked 
 __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; }
 #endif
 
-#if defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
+#if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 template <int instance>
   class mutex_tct {
   protected:
     static pthread_mutex_t S_mutex;
-#ifndef LIBCWD_USE_LINUXTHREADS
+#if !LIBCWD_USE_LINUXTHREADS
   private:
     static bool S_initialized;
     static void S_initialize(void) throw();
 #endif
   public:
     static void initialize(void) throw()
-#ifdef LIBCWD_USE_LINUXTHREADS
+#if LIBCWD_USE_LINUXTHREADS
 	{ }
 #else
 	{
@@ -255,7 +277,7 @@ template <int instance>
     }
   };
 
-#ifndef LIBCWD_USE_LINUXTHREADS
+#if !LIBCWD_USE_LINUXTHREADS
 template <int instance>
   void mutex_tct<instance>::S_initialize(void) throw()
   {
@@ -284,16 +306,16 @@ template <int instance>
     if (instance != mutex_initialization_instance)
       mutex_tct<mutex_initialization_instance>::unlock();
   }
-#endif // LIBCWD_USE_LINUXTHREADS
+#endif // !LIBCWD_USE_LINUXTHREADS
 
-#ifndef LIBCWD_USE_LINUXTHREADS
+#if !LIBCWD_USE_LINUXTHREADS
 template <int instance>
   bool mutex_tct<instance>::S_initialized = false;
 #endif
 
 template <int instance>
   pthread_mutex_t mutex_tct<instance>::S_mutex
-#ifdef LIBCWD_USE_LINUXTHREADS
+#if LIBCWD_USE_LINUXTHREADS
       =
 #if LIBCWD_DEBUGTHREADS
       	PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
@@ -314,14 +336,14 @@ template <int instance>
   class cond_tct : public mutex_tct<instance> {
   private:
     static pthread_cond_t S_condition;
-#ifndef LIBCWD_USE_LINUXTHREADS
+#if !LIBCWD_USE_LINUXTHREADS
     static bool S_initialized;
   private:
     static void S_initialize(void) throw();
 #endif
   public:
     static void initialize(void) throw()
-#ifdef LIBCWD_USE_LINUXTHREADS
+#if LIBCWD_USE_LINUXTHREADS
 	{ }
 #else
 	{
@@ -342,7 +364,7 @@ template <int instance>
     void broadcast(void) { pthread_cond_broadcast(&S_condition); }
   };
 
-#ifndef LIBCWD_USE_LINUXTHREADS
+#if !LIBCWD_USE_LINUXTHREADS
 template <int instance>
   void cond_tct<instance>::S_initialize(void) throw()
   {
@@ -359,20 +381,20 @@ template <int instance>
   }
 #endif // !LIBCWD_USE_LINUXTHREADS
 
-#ifndef LIBCWD_USE_LINUXTHREADS
+#if !LIBCWD_USE_LINUXTHREADS
 template <int instance>
   bool cond_tct<instance>::S_initialized = false;
 #endif
 
 template <int instance>
   pthread_cond_t cond_tct<instance>::S_condition
-#ifdef LIBCWD_USE_LINUXTHREADS
+#if LIBCWD_USE_LINUXTHREADS
       = PTHREAD_COND_INITIALIZER;
 #else // !LIBCWD_USE_LINUXTHREADS
       ;
 #endif // !LIBCWD_USE_LINUXTHREADS
 
-#endif // defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
+#endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 
 //
 // template <int instance>	This class may not use system calls (it may not call malloc(3)).
@@ -404,13 +426,13 @@ template <int instance>
     static int S_holders_count;				// Number of readers or -1 if a writer locked this object.
     static bool S_writer_is_waiting;
     static pthread_t S_writer_id;
-#if LIBCWD_DEBUGTHREADS || !defined(LIBCWD_USE_LINUXTHREADS)
+#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
     static bool S_initialized;			// Set when initialized.
 #endif
   public:
     static void initialize(void) throw()
     {
-#if LIBCWD_DEBUGTHREADS || !defined(LIBCWD_USE_LINUXTHREADS)
+#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
       if (S_initialized)
 	return;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling initialize() instance " << instance);
@@ -589,7 +611,7 @@ template <int instance>
 template <int instance>
   pthread_t rwlock_tct<instance>::S_writer_id = 0;
 
-#if LIBCWD_DEBUGTHREADS || !defined(LIBCWD_USE_LINUXTHREADS)
+#if LIBCWD_DEBUGTHREADS || !LIBCWD_USE_LINUXTHREADS
 template <int instance>
   bool rwlock_tct<instance>::S_initialized = 0;
 #endif
@@ -600,7 +622,7 @@ template <int instance>
 //===================================================================================================
 // Implementation of Thread Specific Data.
 
-#if defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
+#if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 template<class TSD>
   pthread_once_t thread_specific_data_tct<TSD>::S_key_once = PTHREAD_ONCE_INIT;
 
@@ -668,7 +690,7 @@ template<class TSD>
       debug_tsd_init();							// Initialize the TSD of existing debug objects.
     return instance;
   }
-#endif // defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
+#endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 
 // End of Thread Specific Data
 //===================================================================================================
