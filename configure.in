@@ -223,8 +223,8 @@ fi
 
 if test "$libcwd_config_bfd" = yes; then
 
-  dnl Check if we have dlopen in libdl
-  AC_CHECK_LIB(dl, dlopen)
+  dnl Check if we have dlopen in libc or libdl
+  AC_CHECK_LIB(c, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN)], [AC_CHECK_LIB(dl, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN)])])
 
   dnl Check if we have `xmalloc' in libiberty
   AC_CHECK_LIB(iberty, xmalloc,,

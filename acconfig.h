@@ -12,6 +12,9 @@
 
 // Full path to the `ps' executable
 #undef CW_PATH_PROG_PS
+
+// Define this if you have dlopen (and link with the appropriate library)
+#undef HAVE_DLOPEN
 @BOTTOM@
 
 #endif // LIBCW_CONFIG_H

@@ -34,7 +34,7 @@
 #include <stdlib.h>             // Needed for realpath(3)
 #endif
 #include "config.h"
-#ifdef HAVE_LIBDL
+#ifdef HAVE_DLOPEN
 #include <map>
 #include <dlfcn.h>
 #include <cstring>
@@ -259,7 +259,7 @@ namespace {	// Local stuff
       // Warning: the following code is black magic.
       if (lbase == unknown_l_addr)
       {
-#ifdef HAVE_LIBDL
+#ifdef HAVE_DLOPEN
         map<void*, unsigned int> start_values;
 	unsigned int best_count = 0;
 	void* best_start = 0;
@@ -296,7 +296,7 @@ namespace {	// Local stuff
 	}
         lbase = best_start;
 	Dout(dc::continued, '(' << hex << lbase << ") ");
-#else // !HAVE_LIBDL
+#else // !HAVE_DLOPEN
 	DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure");
 #endif
       }
