@@ -44,6 +44,12 @@ namespace libcw {
 //
 //
 
+#if __GNUC__ == 2 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
+#define LIBCWD_POOL_ALLOC __default_alloc_template
+#else
+#define LIBCWD_POOL_ALLOC __pool_alloc
+#endif
+
 // This is a random number in the hope nobody else uses it.
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97
 // gdb-5.0 and 5.1 core dump on old-ABI mangled names with integer template parameters larger
@@ -55,15 +61,15 @@ int const random_salt = 327665;
 #endif
 // Dummy mutex instance numbers, these must be negative.
 int const multi_threaded_internal_instance = -1;
-int const multi_threaded_userspace_instance = -random_salt;				// Use std::__default_alloc_template<true, 0>
+int const multi_threaded_userspace_instance = -random_salt;		// Use std::LIBCWD_POOL_ALLOC<true, 0>
 int const single_threaded_internal_instance = -2;
 int const single_threaded_userspace_instance = multi_threaded_userspace_instance;
 
-// An allocator that doesn't use the same lock as std::__default_alloc_template<true, 0>
+// An allocator that doesn't use the same lock as std::LIBCWD_POOL_ALLOC<true, 0>
 // We normally would be able to use the default allocator, but... libcwd functions can
-// at all times be called from malloc which might be called from std::__default_alloc_template<true, 0>
+// at all times be called from malloc which might be called from std::LIBCWD_POOL_ALLOC<true, 0>
 // with its lock set.
-typedef std::__default_alloc_template<true, random_salt - 3> our_userspace_allocator;
+typedef std::LIBCWD_POOL_ALLOC<true, random_salt - 3> our_userspace_allocator;
 
 #if CWDEBUG_DEBUG
 #define LIBCWD_COMMA_INT_INSTANCE , int instance
@@ -127,7 +133,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
 #define LIBCWD_DEBUGDEBUG_COMMA(x)
 #endif
 
-// ::std::__default_alloc_template<true, 0> is the default thread-safe STL allocator std::__alloc,
+// ::std::LIBCWD_POOL_ALLOC<true, 0> is the default thread-safe STL allocator std::__alloc,
 // but we use the longer type because in gcc 3.0.x the underscores were missing and it would be
 // std::alloc.  See also http://gcc.gnu.org/onlinedocs/libstdc++/ext/howto.html#3.
 #define LIBCWD_DEFAULT_ALLOC_USERSPACE(instance) ::libcw::debug::_private_::			\
@@ -154,7 +160,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
 
 #define LIBCWD_DEFAULT_ALLOC_INTERNAL(instance) ::libcw::debug::_private_::			\
 	allocator_adaptor<char,									\
-			  ::std::__default_alloc_template					\
+			  ::std::LIBCWD_POOL_ALLOC						\
 			      <LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),			\
 			        ::libcw::debug::_private_::random_salt +			\
 				::libcw::debug::_private_::instance >,				\
