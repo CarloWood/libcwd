@@ -198,6 +198,12 @@ using libcw::debug::_private_::memblk_map_instance;
 #define __libcwd_realloc realloc
 #define __libcwd_free free
 #define dc_malloc dc::malloc
+#ifdef LIBCWD_HAVE__LIBC_MALLOC
+#define __libc_malloc _libc_malloc
+#define __libc_calloc _libc_calloc
+#define __libc_realloc _libc_realloc
+#define __libc_free _libc_free
+#endif
 #else
 #define __libc_malloc malloc
 #define __libc_calloc calloc

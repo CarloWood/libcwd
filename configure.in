@@ -220,6 +220,8 @@ AC_SUBST(CW_CONFIG_DEBUGMARKER)
 CW_CONFIG_DEBUGMARKER=undef
 AC_SUBST(CW_CONFIG_HAVE___LIBC_MALLOC)
 CW_CONFIG_HAVE___LIBC_MALLOC=undef
+AC_SUBST(CW_CONFIG_HAVE__LIBC_MALLOC)
+CW_CONFIG_HAVE__LIBC_MALLOC=undef
 AC_SUBST(CW_CONFIG_HAVE_DLOPEN)
 CW_CONFIG_HAVE_DLOPEN=undef
 
@@ -431,11 +433,13 @@ CW_SYS_FRAME_ADDRESS_OFFSET
 AC_C_BIGENDIAN
 
 dnl Check for library functions.
-AC_CHECK_FUNCS(getgid getegid getgroups __libc_malloc wmemcpy)
+AC_CHECK_FUNCS(getgid getegid getgroups __libc_malloc _libc_malloc wmemcpy)
 
 if test "$ac_cv_func___libc_malloc" = "yes"; then
   CW_CONFIG_HAVE___LIBC_MALLOC=define
-fi
+else if test "$ac_cv_func__libc_malloc" = "yes"; then
+  CW_CONFIG_HAVE__LIBC_MALLOC=define
+fi fi
 
 dnl Check for system services.
 
