@@ -18,6 +18,7 @@ libcwd_HEADERS = \
 	strerrno.h \
 	type_info.h
 
+BUILT_SOURCES = sys.ho debug_config.ho
 EXTRA_HEADERS = sys.h debug_config.h
 
 EXTRA_DIST = perf.h
