@@ -16,15 +16,24 @@
 
 RCSTAG_H(debugmalloc, "$Id$")
 
-#if defined(CWDEBUG) && !defined(LIBCW_DEBUG_H)
+#ifdef CWDEBUG
+#ifndef LIBCW_DEBUG_H
 #error "Don't include <libcw/debugmalloc.h> directly, include the appropriate \"debug.h\" instead."
 #endif
+#else // !CWDEBUG
+#include <libcw/debug_config.h>
+#endif // CWDEBUG
 
 #ifdef DEBUGMALLOC
-
 #include <libcw/iomanip.h>
 #include <libcw/lockable_auto_ptr.h>
-#include <libcw/no_alloc_checking_stringstream.h>
+#ifdef LIBCW_USE_STRSTREAM
+#include <strstream>
+#define STRINGSTREAM std::strstream
+#else
+#include <sstream>
+#define STRINGSTREAM std::stringstream
+#endif
 #ifdef DEBUGUSEBFD
 #include <libcw/bfd.h>
 #endif
@@ -33,9 +42,6 @@ namespace libcw {
   namespace debug {
 
 namespace _internal_ {
-#if 0 //def DEBUGDEBUG
-  extern bool ios_base_initialized; 
-#endif
   extern bool internal;
   extern int library_call;
 
@@ -207,10 +213,8 @@ extern void init_debugmalloc(void);
 	::libcw::debug::set_alloc_checking_off(); \
 	if (1) \
 	{ \
-	  ::libcw::debug::no_alloc_checking_stringstream buf; \
-	  ::libcw::debug::set_alloc_checking_on(); \
+	  STRINGSTREAM buf; \
 	  buf << x << ::std::ends; \
-	  ::libcw::debug::set_alloc_checking_off(); \
 	  size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	  desc = new char [size]; /* This is never deleted anymore */ \
 	  buf.rdbuf()->sgetn(desc, size); \
@@ -225,10 +229,8 @@ extern void init_debugmalloc(void);
       ::libcw::debug::set_alloc_checking_off(); \
       if (1) \
       { \
-	::libcw::debug::no_alloc_checking_stringstream buf; \
-	::libcw::debug::set_alloc_checking_on(); \
+	STRINGSTREAM buf; \
 	buf << x << ::std::ends; \
-	::libcw::debug::set_alloc_checking_off(); \
 	size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	desc = new char [size]; \
 	buf.rdbuf()->sgetn(desc, size); \
@@ -377,10 +379,11 @@ inline _internal_::Desperation const& operator<<(_internal_::Desperation const& 
   }  // namespace debug
 } // namespace libcw
 
+  // __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning.
   #define DEBUGDEBUG_CERR(x)							\
       do {									\
         write(2, "DEBUGDEBUG: ", 12);						\
-	for (int i = 0; i < ::libcw::debug::_internal_::library_call; ++i) 	\
+	for (int __libcwd_lcwc = 0; __libcwd_lcwc < ::libcw::debug::_internal_::library_call; ++__libcwd_lcwc) 	\
 	  write(2, "    ", 4);							\
 	::libcw::debug::_internal_::raw_write << x << '\n';			\
       } while(0)
@@ -413,17 +416,28 @@ inline void list_allocations_on(debug_ct&) { }
 #ifndef DEBUGMALLOC_INTERNAL
 #ifdef DEBUGMALLOC
 
-extern void* __libcwd_calloc(size_t nmemb, size_t size);
-extern void* __libcwd_malloc(size_t size);
-extern void __libcwd_free(void* ptr);
-extern void* __libcwd_realloc(void* ptr, size_t size);
-
-#define calloc __libcwd_calloc
+#ifndef HAVE___LIBC_MALLOC
+// Ugh, use kludge.
 #define malloc __libcwd_malloc
-#define free __libcwd_free
+#define calloc __libcwd_calloc
 #define realloc __libcwd_realloc
+#define free __libcwd_free
+#endif
 
-// Other libc functions that return malloc-ed pointers.
+// Use external linkage to catch ALL calls to all malloc/calloc/realloc/free functions,
+// also those that are done in libc, or any other shared library that might be linked.
+extern "C" void* malloc(size_t size);
+extern "C" void* calloc(size_t nmemb, size_t size);
+extern "C" void* realloc(void* ptr, size_t size);
+extern "C" void  free(void* ptr);
+
+#ifndef HAVE___LIBC_MALLOC
+// Use same kludge for other libc functions that return malloc-ed pointers.
+#define strdup __libcwd_strdup
+#ifdef HAVE_WMEMCPY
+#define wcsdup __libcwd_wcsdup
+#endif
+
 inline char* __libcwd_strdup(char const* str)
 {
   size_t size = strlen(str) + 1;
@@ -435,8 +449,8 @@ inline char* __libcwd_strdup(char const* str)
   }
   return p;
 }
-#define strdup __libcwd_strdup
 
+#ifdef HAVE_WMEMCPY
 extern "C" {
   size_t wcslen(wchar_t const*);
   wchar_t* wmemcpy(wchar_t*, wchar_t const*, size_t);
@@ -452,7 +466,8 @@ inline wchar_t* __libcwd_wcsdup(wchar_t const* str)
   }
   return p;
 }
-#define wcsdup __libcwd_wcsdup
+#endif // HAVE_WMEMCPY
+#endif // !HAVE___LIBC_MALLOC
 
 #endif // DEBUGMALLOC
 #endif // !DEBUG_INTERNAL

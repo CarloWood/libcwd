@@ -360,6 +360,9 @@ template<typename T>		// T must be a builtin type.
       end = &st[63];
     }
     void push(T ptr) {
+#ifdef DEBUGDEBUG
+      ASSERT( end != NULL );
+#endif
       if (p == end)
 	raise(3);	// This is really not normal, if you core here you probably did something wrong.
 			// Doing a back trace in gdb should reveal an `infinite' debug output re-entrance loop.
@@ -368,9 +371,28 @@ template<typename T>		// T must be a builtin type.
 			// again. Try to break this loop some how.
       *++p = ptr;
     }
-    void pop(void) { --p; }
-    T top(void) { return *p; }
-    size_t size(void) { return p - &st[-1]; }
+    void pop(void)
+    {
+#ifdef DEBUGDEBUG
+      ASSERT( end != NULL );
+      ASSERT( p != &st[-1] );
+#endif
+      --p;
+    }
+    T top(void)
+    {
+#ifdef DEBUGDEBUG
+      ASSERT( end != NULL );
+#endif
+      return *p;
+    }
+    size_t size(void)
+    {
+#ifdef DEBUGDEBUG
+      ASSERT( end != NULL );
+#endif
+      return p - &st[-1];
+    }
   };
 
 // string place holder (we can't use a string because that has a constructor).
@@ -584,7 +606,11 @@ namespace channels {
     extern channel_ct const system;
     extern channel_ct const warning;
 #ifdef DEBUGMALLOC
+#ifdef HAVE___LIBC_MALLOC
+    extern channel_ct const malloc;
+#else
     extern channel_ct const __libcwd_malloc;
+#endif
 #else
     extern channel_ct const malloc;
 #endif

@@ -999,8 +999,10 @@ int const BSF_DYNAMIC = 4096;
 	asection* sect = bfd_get_section(p);
 	char const* file;
 	ASSERT( object_file->get_bfd() == abfd );
+	set_alloc_checking_off();
 	bfd_find_nearest_line(abfd, sect, const_cast<asymbol**>(object_file->get_symbol_table()),
 	    (char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &M_func, &M_line);
+	set_alloc_checking_on();
 	ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
 	M_func = p->name;
 

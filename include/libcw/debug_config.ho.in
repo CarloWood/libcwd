@@ -166,14 +166,17 @@ static unsigned long const config_signature_header = (0
 #ifdef DEBUGUSEBFD
 	|4
 #endif
-#ifdef DEBUGDEBUG
+#ifdef DEBUGUSEGNULIBBFD
 	|8
 #endif
-#ifdef DEBUGDEBUGMALLOC
+#ifdef DEBUGDEBUG
 	|16
 #endif
-#ifdef DEBUGMARKER
+#ifdef DEBUGDEBUGMALLOC
 	|32
+#endif
+#ifdef DEBUGMARKER
+	|64
 #endif
 	);
 extern void conf_check_failed(void);
@@ -185,5 +188,11 @@ inline void check_configuration(void) {
   } // namespace debug
 } // namespace libcw
 #endif // CWDEBUG
+
+//
+// autoconf defines that are needed.
+//
+
+#@CW_CONFIG_HAVE___LIBC_MALLOC@ HAVE___LIBC_MALLOC
 
 #endif // LIBCW_DEBUGGING_DEFS_H

@@ -64,11 +64,12 @@ check: site.exp
 	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS)
 
 # Provide rules for manual compilation:
+dummy:
 
-tst_%.o: libcwd.tst/%.cc
+tst_%.o: libcwd.tst/%.cc dummy
 	$(CXXCOMPILE) -c $< -o $@
 
-nodebug_%.o: libcwd.nodebug/%.cc
+nodebug_%.o: libcwd.nodebug/%.cc dummy
 	$(CXXCOMPILE) -c $< -o $@
 
 ifeq ($(enable_shared), yes)
