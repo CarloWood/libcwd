@@ -229,7 +229,7 @@
  * \par Description
  *
  * Turns on even more debug output: Internal memory allocations are written to cerr.&nbsp;
- * This is needed for debugging internal memory allocations which are done before libcwd is initialized.&nbsp;
+ * This is needed for debugging the internal memory allocations of libcwd.
  *
  * \par When to use it
  *
