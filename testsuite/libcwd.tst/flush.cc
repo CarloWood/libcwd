@@ -16,11 +16,11 @@ namespace libcw {
 void generate_tables(void)
 {
   write(1, "<sleeping>", 10);
-  sleep(1);
+  usleep(10000);
   Dout( dc::generate, "Inside generate_tables()" );
   std::cout << std::flush;
   write(1, "<sleeping>", 10);
-  usleep(100000);
+  usleep(10000);
   Dout( dc::generate, "Leaving generate_tables()" );
   std::cout << std::flush;
   return;

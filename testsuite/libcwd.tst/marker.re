@@ -8,13 +8,13 @@ MALLOC  : operator new \(size = 1\) = 0x[0-9a-f]*
 MALLOC  : New libcw::debug::marker_ct at 0x[0-9a-f]*
 MALLOC  : operator new\[\] \(size = 120\) = 0x[0-9a-f]*
 MALLOC  : operator new\[\] \(size = 120\) = 0x[0-9a-f]*
-MALLOC  : Allocated memory: 253 bytes in 4 blocks\.
+MALLOC  : Allocated memory: 253 bytes in 4 blocks:
 \(MARKER\)  0x[0-9a-f]*            marker\.cc:59   <marker>; \(sz = 1\)  A test marker
     new\[\]     0x[0-9a-f]*            marker\.cc:65   int\[30\]; \(sz = 120\)  Created after the marker
     new\[\]     0x[0-9a-f]*            marker\.cc:63   Am\[10\]; \(sz = 120\)  Created after the marker
           0x[0-9a-f]*            marker\.cc:54   Am; \(sz = 12\)  First created
 NOTICE  : Moving the int array outside of the marker\.\.\.
-MALLOC  : Allocated memory: 253 bytes in 4 blocks\.
+MALLOC  : Allocated memory: 253 bytes in 4 blocks:
 new\[\]     0x[0-9a-f]*            marker\.cc:65   int\[30\]; \(sz = 120\)  Created after the marker
 \(MARKER\)  0x[0-9a-f]*            marker\.cc:59   <marker>; \(sz = 1\)  A test marker
     new\[\]     0x[0-9a-f]*            marker\.cc:63   Am\[10\]; \(sz = 120\)  Created after the marker

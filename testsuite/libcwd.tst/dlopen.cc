@@ -55,10 +55,15 @@ MAIN_FUNCTION
     DoutFatal(dc::fatal, "Failed find function \"" << sym << "\": " << error_str);
   }
 
-  (*f)(false);
-  (*f)(true);
+  void* ptr1 = (*f)(false);
+  void* ptr2 = (*f)(true);
 
   Debug( list_allocations_on(libcw_do) );
+
+  free(ptr1);
+  free(ptr2);
+  dlclose(handle);
+
   Dout(dc::notice, "Finished");
 
   Debug( dc::malloc.off() );

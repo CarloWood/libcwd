@@ -1,5 +1,15 @@
-#define PREFIX_CODE set_margin();
-#define EXIT(res) return (void*)((res) == 0)
+#define PREFIX_CODE set_margin(); int __res; for(int __i = 0; __i < 100; ++__i) {
+#define EXIT(res) \
+    __res = (res); \
+    ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() ); \
+    ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() ); \
+    ForAllDebugObjects( debugObject.set_ostream(&std::cerr, &cerr_mutex) ); \
+    { \
+      LIBCWD_TSD_DECLARATION; \
+      ForAllDebugObjects( while (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) >= 0) debugObject.on() ); \
+      ForAllDebugObjects( if (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) < 0) debugObject.off() ); \
+    } \
+    if (__res) break; } return (void*)(__res == 0)
 #define THREADED(x) x
 #define COMMA_THREADED(x) , x
 #define THREADTEST
@@ -33,8 +43,8 @@ void set_margin(void)
 #include "../libcwd.tst/alloctag.cc"
 
 #undef MAIN_FUNCTION
-#define MAIN_FUNCTION void* bfd_prog(void*)
-#include "../libcwd.tst/bfd.cc"
+#define MAIN_FUNCTION void* location_prog(void*)
+#include "../libcwd.tst/location.cc"
 
 #undef MAIN_FUNCTION
 #define MAIN_FUNCTION void* cf_prog(void*)
@@ -93,7 +103,7 @@ void set_margin(void)
 #include "../libcwd.tst/type_info.cc"
 
 typedef void* (*thread_func_t)(void*);
-thread_func_t progs[] = { alloctag_prog, basic_prog, bfd_prog, cf_prog, /*continued_prog,*/ dc_prog,
+thread_func_t progs[] = { alloctag_prog, basic_prog, location_prog, cf_prog, /*continued_prog,*/ dc_prog,
     demangler_prog, dlopen_prog, do_prog, flush_prog, leak_prog, lockable_auto_ptr_prog, /*magic_prog,*/
     marker_prog, strdup_prog, test_delete_prog, type_info_prog };
 int const number_of_threads = sizeof(progs)/sizeof(thread_func_t);

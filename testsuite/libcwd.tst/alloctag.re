@@ -19,7 +19,7 @@ MALLOC  : malloc\(11\) = 0x[0-9a-f]*
 MALLOC  : realloc\(0x[0-9a-f]*, 1000\) = 0x[0-9a-f]*
 MALLOC  : malloc\(66\) = 0x[0-9a-f]*
 MALLOC  : realloc\(0x[0-9a-f]*, 1000\) = 0x[0-9a-f]*
-MALLOC  : Allocated memory: 2912 bytes in 8 blocks\.
+MALLOC  : Allocated memory: 2912 bytes in 8 blocks:
 realloc   0x[0-9a-f]*          alloctag\.cc:80   int\[250\]; \(sz = 1000\)  Test of "\(int\*\)realloc\(mpi, 1000\)"
 realloc   0x[0-9a-f]*          alloctag\.cc:74   void\*; \(sz = 1000\)  Test of "\(void\*\)realloc\(mp, 1000\)"
 malloc    0x[0-9a-f]*          alloctag\.cc:68   int\[137\]; \(sz = 550\)  Test of "\(int\*\)calloc\(55, 10\)"

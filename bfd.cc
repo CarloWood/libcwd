@@ -547,7 +547,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 		Dout(dc::warning, "Unable to determine start of \"" << filename << "\", skipping.");
 		free(symbol_table);
 		symbol_table  = NULL;
-		bfd_close(abfd);
+		if (abfd)
+		{
+		  bfd_close(abfd);
+		  abfd = NULL;
+		}
 		number_of_symbols = 0;
 		__libcwd_tsd.internal = 0;
 		::dlclose(handle);
@@ -631,6 +635,16 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(), NEEDS_WRITE_LOCK_object_files().end(), this));
 	if (iter != NEEDS_WRITE_LOCK_object_files().end())
 	  NEEDS_WRITE_LOCK_object_files().erase(iter);
+	if (symbol_table)
+	{
+	  free(symbol_table);
+	  symbol_table  = NULL;
+	}
+	if (abfd)
+	{
+	  bfd_close(abfd);
+	  abfd = NULL;
+	}
       }
 
       // cwbfd::
@@ -1630,6 +1644,22 @@ void dlopen_cleanup1(void* arg)
     set_alloc_checking_on(LIBCWD_TSD);
   BFD_RELEASE_WRITE_LOCK
 }
+
+void dlclose_cleanup1(void* arg)
+{
+  TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
+  if (__libcwd_tsd.internal)
+    set_alloc_checking_on(LIBCWD_TSD);
+  DLOPEN_MAP_RELEASE_LOCK
+}
+
+void dlclose_cleanup2(void* arg)
+{
+  TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
+  if (__libcwd_tsd.internal)
+    set_alloc_checking_on(LIBCWD_TSD);
+  BFD_RELEASE_WRITE_LOCK
+}
 #endif
 
     }
@@ -1675,7 +1705,7 @@ extern "C" {
     LIBCWD_TSD_DECLARATION
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
     int ret = ::dlclose(handle);
-    LIBCWD_DEFER_CANCEL;
+    LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlclose_cleanup1, &__libcwd_tsd); // The delete calls close().
     DLOPEN_MAP_ACQUIRE_LOCK
     libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map.find(handle));
     if (iter != libcw::debug::_private_::dlopen_map.end())
@@ -1683,9 +1713,13 @@ extern "C" {
 #ifdef RTLD_NODELETE
       if (!((*iter).second.M_flags & RTLD_NODELETE))
       {
+	LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlclose_cleanup2, &__libcwd_tsd); // The delete calls close().
+	BFD_ACQUIRE_WRITE_LOCK;
         set_alloc_checking_off(LIBCWD_TSD);
 	delete (*iter).second.M_object_file;
         set_alloc_checking_on(LIBCWD_TSD);
+	BFD_RELEASE_WRITE_LOCK;
+	LIBCWD_CLEANUP_POP_RESTORE(false);
       }
 #endif
 #ifdef _REENTRANT
@@ -1701,7 +1735,7 @@ extern "C" {
 #endif
     }
     DLOPEN_MAP_RELEASE_LOCK
-    LIBCWD_RESTORE_CANCEL;
+    LIBCWD_CLEANUP_POP_RESTORE(false);
     return ret;
   }
 } // extern "C"

@@ -186,7 +186,7 @@ public:
   // Other accessors
   //
 
-  std::ostream* get_ostream(void) const;		// The orignial ostream set with set_ostream.
+  std::ostream* get_ostream(void) const;		// The original ostream set with set_ostream.
 
 private:
   //-------------------------------------------------------------------------------------------------

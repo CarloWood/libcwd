@@ -1,5 +1,5 @@
 NODEBUGCHECK = nodebug
-TSTCHECK = alloctag basic bfd cf continued dc demangler dlopen do find_alloc flush leak lockable_auto_ptr magic marker strdup test_delete type_info
+TSTCHECK = alloctag basic location cf continued dc demangler dlopen do find_alloc flush leak lockable_auto_ptr magic marker strdup test_delete type_info
 THREADSCHECK = keys threads
 
 srcdir = @srcdir@
