@@ -37,6 +37,37 @@
 #ifndef MATCH_H
 #include "match.h"
 #endif
+#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#include <libcw/private_mutex_instances.h>
+#endif
+
+#ifdef _REENTRANT
+using libcw::debug::_private_::rwlock_tct;
+using libcw::debug::_private_::mutex_tct;
+using libcw::debug::_private_::object_files_instance;
+using libcw::debug::_private_::dlopen_map_instance;
+#define BFD_INITIALIZE_LOCK             rwlock_tct<object_files_instance>::initialize()
+#define BFD_ACQUIRE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrlock()
+#define BFD_RELEASE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrunlock()
+#define BFD_ACQUIRE_READ_LOCK           rwlock_tct<object_files_instance>::rdlock()
+#define BFD_ACQUIRE_HP_READ_LOCK        rwlock_tct<object_files_instance>::rdlock(true)
+#define BFD_RELEASE_READ_LOCK           rwlock_tct<object_files_instance>::rdunlock()
+#define BFD_ACQUIRE_READ2WRITE_LOCK     rwlock_tct<object_files_instance>::rd2wrlock()
+#define BFD_ACQUIRE_WRITE2READ_LOCK     rwlock_tct<object_files_instance>::wr2rdlock()
+#define DLOPEN_MAP_ACQUIRE_LOCK         mutex_tct<dlopen_map_instance>::lock()
+#define DLOPEN_MAP_RELEASE_LOCK         mutex_tct<dlopen_map_instance>::unlock()
+#else // !_REENTRANT
+#define BFD_INITIALIZE_LOCK
+#define BFD_ACQUIRE_WRITE_LOCK
+#define BFD_RELEASE_WRITE_LOCK
+#define BFD_ACQUIRE_READ_LOCK
+#define BFD_ACQUIRE_HP_READ_LOCK
+#define BFD_RELEASE_READ_LOCK
+#define BFD_ACQUIRE_READ2WRITE_LOCK
+#define BFD_ACQUIRE_WRITE2READ_LOCK
+#define DLOPEN_MAP_ACQUIRE_LOCK
+#define DLOPEN_MAP_RELEASE_LOCK
+#endif // !_REENTRANT
 
 namespace libcw {
   namespace debug {
@@ -132,34 +163,6 @@ NEEDS_WRITE_LOCK_object_files(void)
 }
 
     } // namespace cwbfd
-
-#ifdef _REENTRANT
-using libcw::debug::_private_::rwlock_tct;
-using libcw::debug::_private_::mutex_tct;
-using libcw::debug::_private_::object_files_instance;
-using libcw::debug::_private_::dlopen_map_instance;
-#define BFD_INITIALIZE_LOCK             rwlock_tct<object_files_instance>::initialize()
-#define BFD_ACQUIRE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrlock()
-#define BFD_RELEASE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrunlock()
-#define BFD_ACQUIRE_READ_LOCK           rwlock_tct<object_files_instance>::rdlock()
-#define BFD_ACQUIRE_HP_READ_LOCK        rwlock_tct<object_files_instance>::rdlock(true)
-#define BFD_RELEASE_READ_LOCK           rwlock_tct<object_files_instance>::rdunlock()
-#define BFD_ACQUIRE_READ2WRITE_LOCK     rwlock_tct<object_files_instance>::rd2wrlock()
-#define BFD_ACQUIRE_WRITE2READ_LOCK     rwlock_tct<object_files_instance>::wr2rdlock()
-#define DLOPEN_MAP_ACQUIRE_LOCK         mutex_tct<dlopen_map_instance>::lock()
-#define DLOPEN_MAP_RELEASE_LOCK         mutex_tct<dlopen_map_instance>::unlock()
-#else // !_REENTRANT
-#define BFD_INITIALIZE_LOCK
-#define BFD_ACQUIRE_WRITE_LOCK
-#define BFD_RELEASE_WRITE_LOCK
-#define BFD_ACQUIRE_READ_LOCK
-#define BFD_ACQUIRE_HP_READ_LOCK
-#define BFD_RELEASE_READ_LOCK
-#define BFD_ACQUIRE_READ2WRITE_LOCK
-#define BFD_ACQUIRE_WRITE2READ_LOCK
-#define DLOPEN_MAP_ACQUIRE_LOCK
-#define DLOPEN_MAP_RELEASE_LOCK
-#endif // !_REENTRANT
 
   } // namespace debug
 } // namespace libcw

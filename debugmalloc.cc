@@ -1237,10 +1237,11 @@ void dm_alloc_base_ct::print_description(ooam_filter_ct const& filter LIBCWD_COM
       }
 #ifdef LIBCWD_USE_STRSTREAM
       buf->put('\0');
-#endif
       DoutInternal( dc::continued, buf->str() );
-#ifdef LIBCWD_USE_STRSTREAM
       buf->freeze(0);
+#else
+      buf->put('\0');
+      DoutInternal( dc::continued, buf->str().data() );
 #endif
       delete buf;
       __libcwd_tsd.internal = 0;
