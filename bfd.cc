@@ -1094,6 +1094,9 @@ void bfd_close(bfd* abfd)
 	      }
         };
 	set_alloc_checking_on(LIBCWD_TSD);
+	// End INTERNAL!
+	// ****************************************************************************
+
 	static static_string fullpath;				// Must be static because bfd keeps a pointer to its data()
 	ST_get_full_path_to_executable(*const_cast<_private_::internal_string*>(fullpath.value) LIBCWD_COMMA_TSD);
 	    // Result is '\0' terminated so we can use data() as a C string.
@@ -1111,7 +1114,7 @@ void bfd_close(bfd* abfd)
 	{
 
 	  // Load all shared objects
-  #ifndef HAVE__DL_LOADED
+#ifndef HAVE__DL_LOADED
 	  // Path to `ldd'
 	  char const ldd_prog[] = "/usr/bin/ldd";
 
@@ -1124,33 +1127,31 @@ void bfd_close(bfd* abfd)
 	  for(ST_shared_libs_vector_ct::const_iterator iter = ST_shared_libs.begin(); iter != ST_shared_libs.end(); ++iter)
 	  {
 	    my_link_map const* l = &(*iter);
-  #else
+#else
 	  for(link_map const* l = *dl_loaded_ptr; l; l = l->l_next)
 	  {
-  #if 0
+#if 0
 	  }
-  #endif
-  #endif
+#endif
+#endif
 	    if (l->l_addr)
 	      load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	    else if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
 	      load_object_file(l->l_name, unknown_l_addr);
 	  }
+
 	  LIBCWD_DEFER_CANCEL;
 	  BFD_ACQUIRE_WRITE_LOCK;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
 	  set_alloc_checking_on(LIBCWD_TSD);
 	  BFD_RELEASE_WRITE_LOCK;
+	  LIBCWD_RESTORE_CANCEL;
 	}
 
 	set_alloc_checking_off(LIBCWD_TSD);
 	ST_shared_libs.~ST_shared_libs_vector_ct();
 	set_alloc_checking_on(LIBCWD_TSD);
-
-	// End INTERNAL!
-	// ****************************************************************************
-	LIBCWD_RESTORE_CANCEL;
 
         if (_private_::always_print_loading)
 	{
