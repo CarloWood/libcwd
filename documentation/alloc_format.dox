@@ -51,8 +51,10 @@ Debug( list_allocations_on(libcw_do, filter) );
 
 <b>Filtering</b>
 
-There are two criteria on which can be filtered: the time at which an allocation was
-made and the shared library that an allocation belongs too.
+There are four criteria on which can be filtered: the time at which an allocation was
+made, the shared library that an allocation belongs too, the name of the source file
+from which an allocation was made and whether or not an AllocTag was used for the
+allocation.
 
 It is possible to give a time interval of the allocations that should be shown.
 For each of the limits (start and end) one can use the constant struct timeval libcw::debug::ooam_filter_ct::no_time_limit
@@ -61,6 +63,14 @@ to indicate that there is no limit required.
 It is also possible to specify a list of wildcard masks (of the kind where a '*' matches anything) that
 will be matched against the names of the shared libraries, hiding the allocations that belong to the
 libraries whose name match.
+
+It is also possible to specify a list of wildcard masks (of the kind where a '*' matches anything) that
+will be matched against the names of the source file from which the allocation was done, only showing the
+allocations that whose name match.
+
+Finally, it is also possible to hide all allocations except when one of the \link group_annotation AllocTag \endlink macros was used.
+Please note that using this option makes it hard to see whether or not your application has any
+memory leaks in the case the leak has no <CODE>AllocTag</CODE> added.
 
 <b>Examples:</b>
 
