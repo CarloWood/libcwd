@@ -46,7 +46,7 @@ public:
 private:
   container_type* WNS_debug_objects;
 public:
-  void init(void);
+  void internal_init(LIBCWD_TSD_PARAM);
 #ifdef LIBCWD_THREAD_SAFE
   void init_and_rdlock(void);
 #endif
@@ -82,12 +82,14 @@ extern debug_objects_ct debug_objects;
 } // namespace libcw
 
 #ifdef LIBCWD_THREAD_SAFE
-#define LIBCWD_ForAllDebugObjects_LOCK ::libcw::debug::_private_::\
-    debug_objects.init_and_rdlock();
-#define LIBCWD_ForAllDebugObjects_UNLOCK ::libcw::debug::_private_::\
-    rwlock_tct< ::libcw::debug::_private_::debug_objects_instance>::rdunlock();
+#define LIBCWD_ForAllDebugObjects_LOCK \
+    LIBCWD_DEFER_CLEANUP_PUSH(&::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_objects_instance>::cleanup, NULL); \
+    ::libcw::debug::_private_::debug_objects.init_and_rdlock();
+#define LIBCWD_ForAllDebugObjects_UNLOCK \
+    ::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_objects_instance>::rdunlock(); \
+    LIBCWD_CLEANUP_POP_RESTORE(false);
 #else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_ForAllDebugObjects_LOCK ::libcw::debug::_private_::debug_objects.init();
+#define LIBCWD_ForAllDebugObjects_LOCK ::libcw::debug::_private_::debug_objects.init(LIBCWD_TSD);
 #define LIBCWD_ForAllDebugObjects_UNLOCK
 #endif // !LIBCWD_THREAD_SAFE
 
@@ -116,7 +118,7 @@ extern debug_objects_ct debug_objects;
 	 { \
 	   using namespace ::libcw::debug; \
 	   using namespace DEBUGCHANNELS; \
-	   debug_ct& debugObject(*(*__libcw_i)); \
+	   ::libcw::debug::debug_ct& debugObject(*(*__libcw_i)); \
 	   { STATEMENT; } \
 	 } \
 	 LIBCWD_ForAllDebugObjects_UNLOCK \

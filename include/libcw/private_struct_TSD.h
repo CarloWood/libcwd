@@ -26,6 +26,12 @@
 #include <cstring>	// Needed for std::memset.
 #endif
 
+#ifndef DEBUGDEBUG
+#define LIBCWD_DEBUGTHREADS 0           // Toggle this if necessary.
+#else
+#define LIBCWD_DEBUGTHREADS 1
+#endif
+
 namespace libcw {
   namespace debug {
     namespace _private_ {
@@ -81,6 +87,10 @@ struct TSD_st {
 #endif
 #ifdef LIBCWD_THREAD_SAFE	// Directly contained in debug_ct when not threaded.
   debug_tsd_st do_array[16];	// Thread Specific Data of Debug Objects.
+#if LIBCWD_DEBUGTHREADS
+  int cancel_explicitely_deferred;
+  int cancel_explicitely_disabled;
+#endif
 #endif
   int off_cnt_array[256];
   TSD_st(void) { std::memset(this, 0, sizeof(struct TSD_st)); }

@@ -24,18 +24,28 @@
 #ifdef DEBUGDEBUG
 extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 
+#ifdef LIBCWD_THREAD_SAFE
+#define LIBCWD_CANCELSTATE_DISABLE int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate);
+#define LIBCWD_CANCELSTATE_RESTORE pthread_setcancelstate(__libcwd_oldstate, NULL);
+#else
+#define LIBCWD_CANCELSTATE_DISABLE
+#define LIBCWD_CANCELSTATE_RESTORE
+#endif
+
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
 // when --disable-libcwd-debug-output is used because a fatal error occured anyway, so this can't
 // disturb the testsuite.
 #define FATALDEBUGDEBUG_CERR(x)									\
     do {											\
-      if (1/*::libcw::debug::_private_::WST_ios_base_initialized FIXME: uncomment again*/) {			\
+      if (1/*::libcw::debug::_private_::WST_ios_base_initialized FIXME: uncomment again*/) {	\
+	LIBCWD_CANCELSTATE_DISABLE								\
 	::write(2, "DEBUGDEBUG: ", 12);								\
 	LIBCWD_TSD_DECLARATION									\
 	/*  __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning. */ \
 	for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
 	  ::write(2, "    ", 4);								\
 	::libcw::debug::_private_::raw_write << x << '\n';					\
+	LIBCWD_CANCELSTATE_RESTORE								\
       }												\
     } while(0)
 #else // !DEBUGDEBUG

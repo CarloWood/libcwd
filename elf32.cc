@@ -1903,6 +1903,7 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
 #ifdef LIBCWD_THREAD_SAFE
     _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
 #endif
+    M_input_stream.close();
   }
   range_st range;
   range.start = offset;

@@ -218,22 +218,30 @@ template<typename T>
     // We have to use the following hack.
     if (::libcwd_type_info_exact<T>::value_c.size() == 0)		// Not initialized already?
     {
+      LIBCWD_TSD_DECLARATION
 #ifdef LIBCWD_THREAD_SAFE
-      volatile static bool spin_lock = false;
+      // MT: The critical area of spinlock contains no cancellation points:
+      // extract_exact_name() doesn't and even the constructor of type_info_ct
+      // that calls make_label, which calls demangle_type, do not print output.
+      // However, if we are a-synchrone then cancellation can happen at any
+      // point.  Therefore we set the cancellation type to defer.
+      int oldstate;
+      pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldstate);
       _private_::cancel_buffer_t buffer;
       _private_::mutex_tct<_private_::type_info_of_instance>::lock(buffer);
+      volatile static bool spin_lock = false;
       while(spin_lock);
       spin_lock = true;
       _private_::mutex_tct<_private_::type_info_of_instance>::unlock(buffer);
       if (::libcwd_type_info_exact<T>::value_c.size() == 0)		// Recheck now that we acquired the lock.
 #endif
       {
-        LIBCWD_TSD_DECLARATION
 	new (const_cast<type_info_ct*>(&::libcwd_type_info_exact<T>::value_c))	// MT: const_cast is safe: we are locked.
 	    type_info_ct(_private_::extract_exact_name(typeid(::libcwd_type_info_exact<T>).name() LIBCWD_COMMA_TSD), sizeof(T), _private_::sizeof_star<T>::value_c);	// In place initialize the static type_info_ct object.
       }
 #ifdef LIBCWD_THREAD_SAFE
       spin_lock = false;
+      pthread_setcanceltype(oldstate, NULL);
 #endif
     }
 #endif // __GNUC__ == 2 && __GNUC_MINOR__ < 97

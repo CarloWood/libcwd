@@ -27,7 +27,8 @@ libcwd_la_SOURCES = \
 	demangle.cc \
 	demangle3.cc \
 	strerrno.cc \
-	type_info.cc
+	type_info.cc \
+	wrapcnclpnts.c
 
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO) $(LIB_THREADS_SHARED)
 

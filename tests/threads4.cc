@@ -17,6 +17,7 @@ int const number_of_threads2 = 4;
 
 void* thread_function2(void* arguments)
 {
+  pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   Debug( libcw_do.on() );
   Dout(dc::hello, "THIS SHOULD NOT BE PRINTED! (tf2)");
   Debug(dc::hello.on());
@@ -26,6 +27,7 @@ void* thread_function2(void* arguments)
 
 void* thread_function(void* arguments)
 {
+  pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   pthread_t thread_id[number_of_threads2];
   // Set Thread Specific on/off flags of the debug channels.
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
@@ -67,6 +69,7 @@ void* thread_function(void* arguments)
 
 int main(void)
 {
+  pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   Debug( check_configuration() );
 #ifdef DEBUGMALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);

@@ -300,20 +300,20 @@ namespace libcw {
       debug_objects_ct debug_objects;		// List with all debug devices.
 
       // _private_::
-      void debug_channels_ct::init(void)
+      void debug_channels_ct::internal_init(LIBCWD_TSD_PARAM)
       {
+#ifdef DEBUGDEBUGMALLOC
+	LIBCWD_ASSERT( __libcwd_tsd.internal );
+#endif
 #ifdef LIBCWD_THREAD_SAFE
 	_private_::rwlock_tct<_private_::debug_channels_instance>::initialize();
 #endif
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
-	  LIBCWD_TSD_DECLARATION
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK
 	  WNS_debug_channels = new debug_channels_ct::container_type;
 	  DEBUG_CHANNELS_RELEASE_WRITE_LOCK
-	  set_alloc_checking_on(LIBCWD_TSD);
 	}
 #ifdef LIBCWD_THREAD_SAFE
 	else
@@ -340,7 +340,7 @@ namespace libcw {
 #endif
 
       // _private_::
-      void debug_objects_ct::init(void)
+      void debug_objects_ct::internal_init(LIBCWD_TSD_PARAM)
       {
 #ifdef LIBCWD_THREAD_SAFE
 	_private_::rwlock_tct<_private_::debug_objects_instance>::initialize();
@@ -353,12 +353,9 @@ namespace libcw {
 	  // It is possible that malloc is not initialized yet.
 	  init_debugmalloc();
 #endif
-	  LIBCWD_TSD_DECLARATION
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK
 	  WNS_debug_objects = new debug_objects_ct::container_type;
 	  DEBUG_OBJECTS_RELEASE_WRITE_LOCK
-	  set_alloc_checking_on(LIBCWD_TSD);
 	}
 #ifdef LIBCWD_THREAD_SAFE
 	else
@@ -880,14 +877,20 @@ namespace libcw {
 #endif
 
       LIBCWD_TSD_DECLARATION
+      LIBCWD_DEFER_CANCEL
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
-      _private_::debug_objects.init();
+      _private_::debug_objects.internal_init(LIBCWD_TSD);
       DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
       if (find(_private_::debug_objects.write_locked().begin(),
 	       _private_::debug_objects.write_locked().end(), this)
 	  == _private_::debug_objects.write_locked().end()) // Not added before?
 	_private_::debug_objects.write_locked().push_back(this);
       DEBUG_OBJECTS_RELEASE_WRITE_LOCK
+#ifdef LIBCWD_THREAD_SAFE
+      set_alloc_checking_on(LIBCWD_TSD);
+      LIBCWD_RESTORE_CANCEL
+      set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
+#endif
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
 #ifndef LIBCWD_THREAD_SAFE
       tsd.init();
@@ -964,9 +967,8 @@ namespace libcw {
     }
 
     namespace _private_ {
-      void debug_tsd_init(void)
+      void debug_tsd_init(LIBCWD_TSD_PARAM)
       {
-	LIBCWD_TSD_DECLARATION
 	ForAllDebugObjects(
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  LIBCWD_DO_TSD(debugObject).init();
@@ -1006,6 +1008,7 @@ namespace libcw {
       init_magic = 0;
 #endif
       LIBCWD_TSD_DECLARATION
+      LIBCWD_DEFER_CANCEL
       set_alloc_checking_off(LIBCWD_TSD);
       DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
       {
@@ -1016,6 +1019,7 @@ namespace libcw {
       }
       DEBUG_OBJECTS_RELEASE_WRITE_LOCK
       set_alloc_checking_on(LIBCWD_TSD);
+      LIBCWD_RESTORE_CANCEL
     }
 
     /**
@@ -1031,7 +1035,11 @@ namespace libcw {
     channel_ct* find_channel(char const* label)
     {
       channel_ct* tmp = NULL;
-      _private_::debug_channels.init();
+      LIBCWD_TSD_DECLARATION
+      LIBCWD_DEFER_CANCEL
+      set_alloc_checking_off(LIBCWD_TSD);
+      _private_::debug_channels.internal_init(LIBCWD_TSD);
+      set_alloc_checking_on(LIBCWD_TSD);
       DEBUG_CHANNELS_ACQUIRE_READ_LOCK
       for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	  i != _private_::debug_channels.read_locked().end(); ++i)
@@ -1040,6 +1048,7 @@ namespace libcw {
           tmp = (*i);
       }
       DEBUG_CHANNELS_RELEASE_READ_LOCK
+      LIBCWD_RESTORE_CANCEL
       return tmp;
     }
 
@@ -1077,7 +1086,10 @@ namespace libcw {
       LIBCWD_TSD_DECLARATION
       if (LIBCWD_DO_TSD_MEMBER(debug_object, _off) < 0)
       {
-        _private_::debug_channels.init();
+	LIBCWD_DEFER_CANCEL
+	set_alloc_checking_off(LIBCWD_TSD);
+        _private_::debug_channels.internal_init(LIBCWD_TSD);
+	set_alloc_checking_on(LIBCWD_TSD);
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK
 	for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	    i != _private_::debug_channels.read_locked().end(); ++i)
@@ -1091,6 +1103,7 @@ namespace libcw {
 	  LibcwDoutScopeEnd;
 	}
 	DEBUG_CHANNELS_RELEASE_READ_LOCK
+	LIBCWD_RESTORE_CANCEL
       }
     }
 
@@ -1108,10 +1121,20 @@ namespace libcw {
       if (label_len > max_label_len_c)	// Only happens for customized channels
 	DoutFatal( dc::core, "strlen(\"" << label << "\") > " << max_label_len_c );
 
+      LIBCWD_TSD_DECLARATION
+
 #ifdef LIBCWD_THREAD_SAFE
       _private_::mutex_tct<_private_::write_max_len_instance>::initialize();
-      _private_::cancel_buffer_t buffer;
-      _private_::mutex_tct<_private_::write_max_len_instance>::lock(buffer);
+      LIBCWD_DEFER_CANCEL
+      _private_::mutex_tct<_private_::write_max_len_instance>::lock();
+      // MT: This critical area does not contain cancellation points.
+      // When this thread is cancelled later, there is no need to take action:
+      // the debug channel is global and can be used by any thread.  We want
+      // to keep the maximum label length as set by this channel.  Even when
+      // this debug channel is part of shared library that is being loaded
+      // by dlopen() then it won't get removed when this thread is cancelled.
+      // (Actually, a downwards update of WST_max_len should be done by
+      // dlclose if at all).
 #endif
       // MT: This is not strict thread safe because it is possible that after threads are already
       //     running, a new shared library is dlopen-ed with a new global channel_ct with a larger
@@ -1122,14 +1145,14 @@ namespace libcw {
       if (label_len > WST_max_len)
 	WST_max_len = label_len;
 
-      LIBCWD_TSD_DECLARATION
 #ifdef LIBCWD_THREAD_SAFE
       // MT: Take advantage of the `write_max_len_instance' lock to prefend simultaneous access
       //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
       static int next_index;
       WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
        
-      _private_::mutex_tct<_private_::write_max_len_instance>::unlock(buffer);
+      _private_::mutex_tct<_private_::write_max_len_instance>::unlock();
+      LIBCWD_RESTORE_CANCEL
 
       __libcwd_tsd.off_cnt_array[WNS_index] = 0;
 #else
@@ -1143,8 +1166,9 @@ namespace libcw {
       // order in which they appear in the ForAllDebugChannels is not
       // dependent on the order in which these global objects are
       // initialized.
+      LIBCWD_DEFER_CANCEL
       set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
-      _private_::debug_channels.init();
+      _private_::debug_channels.internal_init(LIBCWD_TSD);
       DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK
       {
 	_private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
@@ -1156,6 +1180,7 @@ namespace libcw {
       }
       DEBUG_CHANNELS_RELEASE_WRITE_LOCK
       set_alloc_checking_on(LIBCWD_TSD);
+      LIBCWD_RESTORE_CANCEL
 
       // Turn debug channel "WARNING" on by default.
       if (strncmp(WNS_label, "WARNING", label_len) == 0)
@@ -1188,14 +1213,15 @@ namespace libcw {
 
 #ifdef LIBCWD_THREAD_SAFE
       _private_::mutex_tct<_private_::write_max_len_instance>::initialize();
-      _private_::cancel_buffer_t buffer;
-      _private_::mutex_tct<_private_::write_max_len_instance>::lock(buffer);
+      LIBCWD_DEFER_CANCEL
+      _private_::mutex_tct<_private_::write_max_len_instance>::lock();
 #endif
-      // MT: See comment in channel_ct::NS_initialize above.
+      // MT: See comments in channel_ct::NS_initialize above.
       if (label_len > WST_max_len)
 	WST_max_len = label_len;
 #ifdef LIBCWD_THREAD_SAFE
-      _private_::mutex_tct<_private_::write_max_len_instance>::unlock(buffer);
+      _private_::mutex_tct<_private_::write_max_len_instance>::unlock();
+      LIBCWD_RESTORE_CANCEL
 #endif
 
       strncpy(WNS_label, label, label_len);
