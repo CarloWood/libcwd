@@ -14,7 +14,9 @@
 #include "sys.h"
 #include "cwd_debug.h"
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/wait.h>
+#include <cerrno>
 #include <time.h>
 #include <fstream>
 
@@ -56,7 +58,27 @@ void attach_gdb(void)
     {
       struct timespec t = { 0, 100000000 };
       while (libcwd_attach_gdb_hook)
+      {
+        int status;
+        pid_t pid3 = waitpid(pid2, &status, WNOHANG);
+        if (pid3 == pid2 || ((int)pid3 == -1 && errno == ECHILD))
+	{
+          libcwd_attach_gdb_hook = 0;
+	  if (WIFEXITED(status))
+	    DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated with exit code " << WEXITSTATUS(status) <<
+	        " before attaching to the process.  This can for instance happen when you call attach_gdb from "
+		"the destructor of a global object.");
+	  else if (WIFSIGNALED(status))
+	    DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated because of (uncaught) signal " << WTERMSIG(status) <<
+	        " before attaching to the process.");
+#ifdef WCOREDUMP
+          else if (WCOREDUMP(status))
+	    DoutFatal(dc::core, "Failed to start gdb: 'xterm' dumped core before attaching to the process.");
+#endif
+	  DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated before attaching to the process.");
+	}
 	nanosleep(&t, NULL);
+      }
       Dout(dc::always, "ATTACHED!");
     }
   }
