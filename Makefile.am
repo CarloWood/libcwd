@@ -80,7 +80,7 @@ dist-hook: documentation
 	  sed -e 's/^\(CONFIG_CLEAN_FILES =.*\) libcwd\.spec libcwd\.lsm\(.*\)/\1\2/' > $(distdir)/Makefile.in.new && \
 	  mv $(distdir)/Makefile.in.new $(distdir)/Makefile.in
 	cp -pr $(top_builddir)/documentation $(distdir)
-	if test "$(srcdir)" != "."; then \
+	if test "`readlink -f $(srcdir)`" != "`readlink -f .`"; then \
 	  rm -f $(distdir)/documentation/images $(distdir)/documentation/scripts $(distdir)/documentation/index.html; \
 	  tar -C $(srcdir) -cf - documentation | tar -C $(distdir) -xf - ; \
 	fi
