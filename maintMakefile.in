@@ -73,7 +73,7 @@ test-values:
 ## Make sure the ChangeLog is up to date in maintainer mode
 .PHONY: tar rpm ChangeLog reconfig documentation
 
-rpm: dist $(SPECFILE)
+rpm: dist $(SPECFILE) $(LSMFILE)
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
 	cd rpm; rpm --rcfile=/usr/lib/rpm/rpmrc:rpmrc --sign --clean -ba ../$(SPECFILE)
 
@@ -81,9 +81,6 @@ reconfig: $(top_builddir)/config.status
 	$(top_builddir)/config.status --recheck
 	$(top_builddir)/config.status
 	
-$(srcdir)/$(LSMFILE): $(srcdir)/$(LSMFILE).in $(srcdir)/configure.in
-	CONFIG_FILES=$(LSMFILE) CONFIG_HEADERS= $(SHELL) ./config.status
-
 ChangeLog:
 	if test $(CVSREADACCESS) = yes; then \
 	  echo "`which --skip-dot cvs` \`echo \"\$$*\" | sed -e 's%1970%1990%'\`" > cvs; \

@@ -85,6 +85,7 @@ echo "    aclocal.m4 ..."
 aclocal
 echo "    config.h.in ..."
 autoheader 2>&1 | egrep -v '(config.h.in.* is unchanged|warning: AC_TRY_RUN|warning: do not use m4_(patsubst|regexp):|^WARNING:|^$)'
+echo timestamp > stamp-h.in 2> /dev/null
 echo "    configure ..."
 autoconf 2>&1 | grep -v 'warning: AC_TRY_RUN'
 # The --add-missing --copy of automake is broken, so we do it ourselfs.
