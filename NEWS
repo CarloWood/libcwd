@@ -2,10 +2,10 @@ libcwd-0.99.13
 
 	Support for dlopen() was added.  Because there seems to be no hook for dlopen,
 	it is being defined as a macro (#define dlopen __libcwd_dlopen).  However,
-	if a dlopen isn't catched (because, for instance, because it is called from
-	another library that is not using libcwd) and when <link.h> is available (as
-	is on all OS that use glibc) then libcwd will automatically post-load any
-	shared libraries as soon as it can not find the address of a location_ct.
+	if a dlopen isn't catched (for instance, because it is called from another
+	library that is not using libcwd) and when <link.h> is available (as is on
+	all OS that use glibc) then libcwd will automatically post-load any shared
+	libraries as soon as it can not find the address of a location_ct.
 	Actually, the correct usage of the macro is only important in order to assure
 	the correct unloading of symbols when a loaded module is dlclose-ed again
 	(which is also defined as a macro).
