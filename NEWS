@@ -12,19 +12,17 @@ libcwd-0.99.16
 	Miscellaneous:
 	- The configuration option --disable-libcwd-location is fixed.
 	- Automake-1.5 now works.
+	- Autoconf-2.5x now works.
 
 	API changes:
 
-	IMPORTANT: Debug channels have globally been renamed to Debug
-	selectors.  The word 'channel' had too much association with output
-	destinations (streams).
-
-	IMPORTANT: 'channel_ct const' -> 'selector_ct'.
-	Debug selectors (previously channels) should no longer be declared
-	constant.  Declarations like
+	IMPORTANT: 'channel_ct const' -> 'channel_ct'.
+	Debug channels should no longer be declared constant.
+	Declarations like
 	libcw::debug::channel_ct const my_channel("FOO");
 	will have to be changed to
 	libcw::debug::selector_ct my_channel("FOO");
+	removing the `const'.
 
 	`long memblks()' has been renamed to `unsigned long mem_blocks()'.
 
@@ -50,7 +48,7 @@ libcwd-0.99.16
 
 	A debug function for internal use (by the maintainers):
 	`debugdebugcheckpoint()' has been removed.  If you need a user
-	function to be called every Dout() then can define your own Dout
+	function to be called every Dout() then define your own Dout
 	macro's, that makes more sense then recompiling libcwd.
 
 	CWASSERT was renamed to LIBCWD_ASSERT; Note that all macros that start
