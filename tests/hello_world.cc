@@ -30,7 +30,7 @@
 RCSTAG_CC("$Id$")
 
 // Define our own debug channel:
-#ifdef DEBUG
+#ifdef CWDEBUG
 namespace libcw {
   namespace debug {
     namespace channels {
@@ -51,7 +51,7 @@ int main(void)
 
 #ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
-  make_all_allocations_invisible_except(NULL);
+  libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
 
   // Select channels (note that where 'on' is used, 'off' can be specified

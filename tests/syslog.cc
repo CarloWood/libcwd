@@ -53,7 +53,7 @@ class syslog_streambuf_ct : public streambuf {
   typedef char char_type;
   typedef streampos pos_type;
   typedef streamoff off_type;
-  typedef unsigned int int_type;
+  typedef int int_type;
   struct traits { static int_type const eof(void) { return static_cast<int_type>(-1); } };
 private:
   char buf[256];	// Tiny buffer, doesn't need to contain more than one line.
@@ -104,7 +104,7 @@ int main(int UNUSED(argc), char* argv[])
 
 #ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
-  make_all_allocations_invisible_except(NULL);
+  libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
 
   // Select channels (note that where 'on' is used, 'off' can be specified
