@@ -85,6 +85,17 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>22 Feb 2004</B>
+<P class="news">libcwd-0.99.32 is released.&nbsp;
+This release fixes a possible deadlock during initialization, in the threaded case.&nbsp;
+The latest gcc CVS version 3.4 and 3.5 are working again.&nbsp;
+Two new features have been added:
+<a href="reference-manual/group__chapter__rcfile.html"><CODE>read_rcfile()</CODE></a>
+and <a href="reference-manual/group__chapter__attach__gdb.html"><CODE>attach_gdb()</CODE></a>.&nbsp;
+The first reads initialization from an rcfile (allowing to set which debug channels
+should be on or off for example) and the second opens an xterm with an attached gdb session in it,
+allowing you to start to debug the application from that point (especially handy for threaded
+applications).</P>
 <DT><B>28 Jun 2003</B>
 <P class="news">libcwd-0.99.31 is released.&nbsp;
 This release really works with glibc-2.3.2 and RedHat 9.&nbsp;
