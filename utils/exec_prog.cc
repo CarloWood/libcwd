@@ -12,11 +12,15 @@
 //
 
 #include "sys.h"
+#include <libcwd/config.h>
+
+#if CWDEBUG_LOCATION
+
 #include <sys/poll.h>		// Needed for poll(2)
+#include <sys/types.h>		// Needed for waitpid(2)
+#include <sys/wait.h>		//
 #include <unistd.h>		// Needed for pipe(2), dup2(2), fork(2), read(2) and close(2)
-#include <errno.h>		// Needed for errno
 #include <signal.h>		// Needed for kill(2) and SIGKILL
-#include <sys/wait.h>		// Needed for waitpid(2)
 #include "exec_prog.h"
 #include "cwd_debug.h"
 #include <libcwd/buf2str.h>
@@ -25,6 +29,7 @@
 #include <libcwd/private_string.h>
 #include <fstream>
 #include <streambuf>
+#include <cerrno>		// Needed for errno
 
 namespace libcwd {
 
@@ -448,3 +453,5 @@ namespace {		// Implementation of local functions
 } // namespace {anonymous}
 
 } // namespace libcwd
+
+#endif // CWDEBUG_LOCATION
