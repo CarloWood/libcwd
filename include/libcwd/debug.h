@@ -23,10 +23,6 @@
 #ifndef LIBCWD_DEBUG_H
 #define LIBCWD_DEBUG_H
 
-#ifndef LIBCWD_SYS_H
-#error "You need to #include "sys.h" at the top of every source file (which in turn should #include <libcwd/sys.h>)."
-#endif
-
 #ifndef CWDEBUG
 
 // If you run into this error then you included <libcwd/debug.h> (or any other libcwd header file)
@@ -40,6 +36,10 @@
 #error "You are including <libcwd/debug.h> while CWDEBUG is not defined.  See the comments in this header file for more information."
 
 #else // CWDEBUG (normal usage of this file):
+
+#ifndef LIBCWD_SYS_H
+#error "You need to #include "sys.h" at the top of every source file (which in turn should #include <libcwd/sys.h>)."
+#endif
 
 #include <libcwd/config.h>
 
