@@ -120,11 +120,11 @@ enum mutex_instance_nt {
   object_files_instance,	// rwlock
   end_recursive_types,
   // Fast mutexes.
+  memblk_map_instance,		// rwlock
   mutex_initialization_instance,
   ids_singleton_tct_S_ids_instance,
   alloc_tag_desc_instance,
   type_info_of_instance,
-  memblk_map_instance,		// rwlock
   dlopen_map_instance,
   write_max_len_instance,
   debug_objects_instance,	// rwlock
