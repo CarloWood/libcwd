@@ -237,7 +237,7 @@ namespace {	// Local stuff
     {
       Dout(dc::warning, filename << " has no symbols, skipping.");
       bfd_close(abfd);
-      delete this;
+      number_of_symbols = 0;
       return;
     }
 
@@ -282,8 +282,17 @@ namespace {	// Local stuff
 	    }
 	  }
 	}
+	if (best_count < 3)
+	{
+	  Dout(dc::warning, "Unable to determine start of \"" << filename << "\", skipping.");
+	  free(symbol_table);
+	  symbol_table  = NULL;
+	  bfd_close(abfd);
+	  number_of_symbols = 0;
+	  return;
+	}
         lbase = best_start;
-	Dout(dc::continued, " (" << hex << lbase << ')');
+	Dout(dc::continued, '(' << hex << lbase << ") ");
 #else // !HAVE_LIBDL
 	DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure");
 #endif
@@ -331,7 +340,8 @@ namespace {	// Local stuff
         Dout( dc::warning, "Unknown size of symbol " << symbol_table[number_of_symbols - 1]->name);
     }
 
-    object_files().push_back(this);
+    if (number_of_symbols > 0)
+      object_files().push_back(this);
   }
 
   struct object_file_greater {
@@ -650,18 +660,23 @@ static int libcw_bfd_init(void)
     if (l->l_addr)
     {
 #ifdef DEBUG
-      Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name);
+      Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << ' ');
       if (l->l_addr != unknown_l_addr)
-	Dout(dc::continued, " (" << hex << l->l_addr << ") ... ");
+	Dout(dc::continued, '(' << hex << l->l_addr << ") ... ");
 #endif
       object_file_ct* object_file = new object_file_ct(l->l_name, l->l_addr);
 #ifdef DEBUG
       if (l->l_addr == unknown_l_addr)
-	Dout(dc::continued, " ... ");
-      if (object_file->get_number_of_symbols() > 0)
-	Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
-      else
+	Dout(dc::continued, "... ");
+#endif
+      if (object_file->get_number_of_symbols() == 0)
+      {
+	delete object_file;
 	Dout(dc::finish, "No symbols found");
+      }
+#ifdef DEBUG
+      else
+	Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
 #endif
     }
   }
