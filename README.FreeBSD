@@ -1,4 +1,4 @@
-07 Sept 2000
+7 Sept 2000
 
   Make sure to use `gmake' and not `make'; libcwd only works with GNU make.
 
