@@ -33,7 +33,7 @@ define(__PAGEHEADER, [[
       The C++ Debugging Support Library
       </DIV>
       <DIV class="header-copyright">
-      By Carlo Wood, &copy;1999 - 2002.
+      By Carlo Wood, &copy;1999 - 2003.
       </DIV>
     </TD>
   </TR>
