@@ -1569,6 +1569,12 @@ void allocator_unlock(void)
       _private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
       for(_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
 	const_cast<char*>((*i)->get_label())[WST_max_len] = ' ';
+      static _private_::debug_channels_ct hidden_channels;
+      hidden_channels.init(LIBCWD_TSD);
+      _private_::debug_channels_ct::container_type& channels_not_listed(hidden_channels.write_locked());
+      for(_private_::debug_channels_ct::container_type::iterator i(channels_not_listed.begin());
+          i != channels_not_listed.end(); ++i)
+	const_cast<char*>((*i)->get_label())[WST_max_len] = ' ';
 
       // MT: This is not strict thread safe because it is possible that after threads are already
       //     running, a new shared library is dlopen-ed with a new global channel_ct with a larger
@@ -1585,6 +1591,9 @@ void allocator_unlock(void)
 	WST_max_len = label_len;
 
       for(_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
+	const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
+      for(_private_::debug_channels_ct::container_type::iterator i(channels_not_listed.begin());
+          i != channels_not_listed.end(); ++i)
 	const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
       set_alloc_checking_on(LIBCWD_TSD);
 
@@ -1603,20 +1612,22 @@ void allocator_unlock(void)
       std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
       WNS_label[WST_max_len] = '\0';
 
-      // We store debug channels in some organized order, so that the
-      // order in which they appear in the ForAllDebugChannels is not
-      // dependent on the order in which these global objects are
-      // initialized.
+      set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
       if (add_to_channel_list)
       {
-	set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
+	// We store debug channels in some organized order, so that the
+	// order in which they appear in the ForAllDebugChannels is not
+	// dependent on the order in which these global objects are
+	// initialized.
 	_private_::debug_channels_ct::container_type::iterator i(channels.begin());
 	for(; i != channels.end(); ++i)
 	  if (strncmp((*i)->get_label(), WNS_label, WST_max_len) > 0)
 	    break;
 	channels.insert(i, this);
-	set_alloc_checking_on(LIBCWD_TSD);
       }
+      else
+        channels_not_listed.push_back(this);
+      set_alloc_checking_on(LIBCWD_TSD);
 
       DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
       LIBCWD_RESTORE_CANCEL;
