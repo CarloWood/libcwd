@@ -12,7 +12,7 @@
 //
 
 #ifndef LIBCW_BCD2STR_H
-#define UTILS_BCD2STR_H
+#define LIBCW_BCD2STR_H
 
 RCSTAG_H(bcd2str, "$Id$")
 

@@ -603,8 +603,13 @@ location_st libcw_bfd_pc_location(void const* addr) return location
 	char* demangled_name = cplus_demangle(p->name, DMGL_PARAMS | DMGL_ANSI);
 	Dout(dc::bfd, "Warning: Address " << hex << addr << " in section " << sect->name <<
 	    " does not have a line number, perhaps the unit containing the function");
+#ifdef __FreeBSD__
+	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << (demangled_name ? demangled_name : p->name) <<
+	    "' wasn't compiled with CFLAGS=-ggdb");
+#else
 	Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << (demangled_name ? demangled_name : p->name) <<
 	    "' wasn't compiled with CFLAGS=-g");
+#endif
       }
       else
 	Dout(dc::bfd, "Warning: Address in section " << sect->name << " does not contain a function");

@@ -19,8 +19,8 @@
 #include <sys/wait.h>		// Needed for waitpid(2)
 #include <libcw/h.h>
 #include <libcw/exec_prog.h>
-#ifdef DEBUG
 #include <libcw/debug.h>
+#ifdef DEBUG
 #include <libcw/buf2str.h>
 #include <libcw/cwprint.h>
 #include <fstream>
