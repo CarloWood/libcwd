@@ -74,11 +74,7 @@ public:
 
 namespace _private_ {
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-  extern char const* extract_exact_name(char const* LIBCWD_COMMA_TSD_PARAM);
-#else
   extern char const* extract_exact_name(char const*, char const* LIBCWD_COMMA_TSD_PARAM);
-#endif
 
   //-------------------------------------------------------------------------------------------------
   // type_info_of
@@ -116,28 +112,6 @@ namespace _private_ {
   template<typename T>
     type_info_ct const type_info<T*>::value_c(typeid(T*).name(), sizeof(T*), sizeof(T));
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-  //-------------------------------------------------------------------------------------------------
-  // sizeof_star
-
-  // _private_::
-  template<typename T>
-    struct sizeof_star {
-      static size_t const value_c = 0;
-    };
-
-  // _private_::
-  template<typename T>
-    struct sizeof_star<T*> {
-      static size_t const value_c = sizeof(T);
-    };
-
-  // _private_::
-  struct sizeof_star<void*> {
-    static size_t const value_c = 0;
-  };
-#endif
-
     } // namespace _private_
   } // namespace debug
 } // namespace libcw
@@ -162,19 +136,11 @@ template<>
     static ::libcw::debug::type_info_ct const value_c;
   };
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-template<typename T>
-  ::libcw::debug::type_info_ct const libcwd_type_info_exact<T>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T), 0);
-
-template<typename T>
-  ::libcw::debug::type_info_ct const libcwd_type_info_exact<T*>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), sizeof(T));
-#else
 template<typename T>
   ::libcw::debug::type_info_ct const libcwd_type_info_exact<T>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(), typeid(T).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T), 0);
 
 template<typename T>
   ::libcw::debug::type_info_ct const libcwd_type_info_exact<T*>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), sizeof(T));
-#endif
 
 namespace libcw {
   namespace debug {
@@ -215,32 +181,6 @@ template<typename T>
   type_info_ct const&
   type_info_of(void)
   {
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-    // In early versions of g++, typeid is broken and doesn't work on a template parameter type.
-    // We have to use the following hack.
-    if (::libcwd_type_info_exact<T>::value_c.size() == 0)		// Not initialized already?
-    {
-      LIBCWD_TSD_DECLARATION;
-#if LIBCWD_THREAD_SAFE
-      LIBCWD_DEFER_CANCEL;
-      _private_::mutex_tct<_private_::type_info_of_instance>::initialize();
-      _private_::mutex_tct<_private_::type_info_of_instance>::lock();
-      volatile static bool spin_lock = false;
-      while(spin_lock);
-      spin_lock = true;
-      _private_::mutex_tct<_private_::type_info_of_instance>::unlock();
-      if (::libcwd_type_info_exact<T>::value_c.size() == 0)		// Recheck now that we acquired the lock.
-#endif
-      {
-	new (const_cast<type_info_ct*>(&::libcwd_type_info_exact<T>::value_c))	// MT: const_cast is safe: we are locked.
-	    type_info_ct(_private_::extract_exact_name(typeid(::libcwd_type_info_exact<T>).name() LIBCWD_COMMA_TSD), sizeof(T), _private_::sizeof_star<T>::value_c);	// In place initialize the static type_info_ct object.
-      }
-#if LIBCWD_THREAD_SAFE
-      spin_lock = false;
-      LIBCWD_RESTORE_CANCEL;
-#endif
-    }
-#endif // __GNUC__ == 2 && __GNUC_MINOR__ < 97
     return ::libcwd_type_info_exact<T>::value_c;
   }
 
@@ -260,11 +200,7 @@ template<typename T>
   					// Besides, using `const&' doesn't harm the result as typeid() always ignores the top-level
 					// CV-qualifiers anyway (see C++ standard ISO+IEC+14882, 5.2.8 point 5).
   {
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-    return type_info_of<T>();
-#else
     return _private_::type_info<T>::value_c;
-#endif
   }
 
 extern type_info_ct const unknown_type_info_c;

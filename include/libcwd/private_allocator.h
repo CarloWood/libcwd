@@ -44,21 +44,14 @@ namespace libcw {
 //
 //
 
-#if __GNUC__ == 2 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
+#if __GNUC_MINOR__ < 4
 #define LIBCWD_POOL_ALLOC __default_alloc_template
 #else
 #define LIBCWD_POOL_ALLOC __pool_alloc
 #endif
 
 // This is a random number in the hope nobody else uses it.
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-// gdb-5.0 and 5.1 core dump on old-ABI mangled names with integer template parameters larger
-// than one digit.  See http://sources.redhat.com/ml/bug-binutils/2002-q1/msg00021.html and
-// http://sources.redhat.com/ml/bug-binutils/2002-q1/msg00023.html.
-int const random_salt = 6;
-#else
 int const random_salt = 327665;
-#endif
 // Dummy mutex instance numbers, these must be negative.
 int const multi_threaded_internal_instance = -1;
 int const multi_threaded_userspace_instance = -random_salt;		// Use std::LIBCWD_POOL_ALLOC<true, 0>
@@ -94,11 +87,7 @@ template<class T, class X, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
     typedef T		value_type;
     typedef size_t	size_type;
     typedef ptrdiff_t	difference_type;
-#if __GNUC__ < 3
-    typedef void*	deallocate_pointer;
-#else
     typedef T*		deallocate_pointer;
-#endif
 
     template <class T1> struct rebind {
       typedef allocator_adaptor<T1, X, internal LIBCWD_COMMA_INSTANCE> other;

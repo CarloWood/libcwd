@@ -51,13 +51,8 @@ template<class X, bool array = false>	// Use array == true when `ptr' was alloca
   class lockable_auto_ptr {
     typedef X element_type;
 
-#if (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
-    public:
-#else
-    // 2.95 core dumps on this
     private:
     template<class Y, bool ARRAY> friend class lockable_auto_ptr;
-#endif
     X* ptr;		// Pointer to object of type X, or NULL when not pointing to anything.
     bool locked;	// Set if this lockable_auto_ptr object is locked.
     mutable bool owner;	// Set if this lockable_auto_ptr object is the owner of the object that

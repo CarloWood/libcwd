@@ -601,11 +601,7 @@ static uLEB128_t const DW_LNE_define_file	= 3;
 // Also, define a replacement type for set<string> here.
 
 #if CWDEBUG_ALLOC
-#if __GNUC__ < 3
-typedef std::basic_string<char, ::string_char_traits<char>, _private_::object_files_allocator> object_files_string;
-#else
 typedef std::basic_string<char, std::char_traits<char>, _private_::object_files_allocator> object_files_string;
-#endif
 typedef std::set<object_files_string, std::less<object_files_string>, _private_::object_files_allocator::rebind<object_files_string>::other> object_files_string_set_ct;
 #else
 typedef std::string object_files_string;
@@ -1206,10 +1202,6 @@ void objfile_ct::delete_hash_list(void)
 
 void objfile_ct::load_dwarf(void)
 {
-#if __GNUC__ == 2 && __GNUC_MINOR__ == 96
-  Dout(dc::warning, "gcc/g++ 2.96 has broken DWARF2 debug information.  Source file / Line number lookups will fail frequently.  "
-                    "Use either g++ 2.95.x, 3.x or -gstabs.");
-#endif
   uint32_t total_length;
   if (DEBUGDWARF)
   {
@@ -1790,14 +1782,7 @@ indirect:
 		}
 	      }
 	    }
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
-#if CWDEBUG_DEBUG	// Play safe.
-	    // g++ bug work around.
-	    LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end || debug_line_ptr == debug_line_ptr_end + 1 );
-#endif
-#else
 	    LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end );
-#endif
 
 	    // End state machine code.
 	    // ===========================================================================================================================17"

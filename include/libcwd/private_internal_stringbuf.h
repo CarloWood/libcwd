@@ -41,7 +41,7 @@ namespace libcw {
     namespace _private_ {
 
 #ifdef LIBCWD_USE_STRSTREAM
-#error not implemented
+class auto_internal_stringbuf { };
 #else // !LIBCWD_USE_STRSTREAM
 #if CWDEBUG_ALLOC
 typedef ::std::basic_stringbuf<char, ::std::char_traits<char>, ::libcw::debug::_private_::auto_internal_allocator> auto_internal_stringbuf;

@@ -52,9 +52,6 @@ void initialize_global_mutexes(void)
 #if CWDEBUG_DEBUGT
   mutex_tct<keypair_map_instance>::initialize();
 #endif
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
-  mutex_tct<type_info_of_instance>::initialize();
-#endif
 #endif // !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 }
 

@@ -1,12 +1,19 @@
 libcwd-0.99.29
 
         Allocations inside Dout() et al are not 'internal' anymore.
-	Although it makes no sense to allocate memory in debug code,
-	there were problems with memory being allocated as part of
-	libstdc++ (like a locale object and a scratch buffer for
-	writing numbers), these allocation should be non-internal -
-	and when performed from within a Dout did sometimes lead
-	to a COREDUMP, complaining about freeing 'internal' memory.
+	Although it makes no sense to explicitly allocate memory in
+	debug code, there were problems with implicitly allocated
+	memory as part of libstdc++ (like a locale object and a
+	scratch buffer for writing numbers), these allocation should
+	be non-internal - and when occuring from within a Dout did
+	sometimes lead to a COREDUMP, complaining about freeing
+	'internal' memory.
+
+	Support for 2.95.x and 2.96 (RedHat 7) has been dropped.
+	Minimum compiler requirement is now 3.0, 3.2.x is recommended.
+	This was necessary because these older versions don't
+	fully support string buffers with allocator support, they
+	are not standard compliant.
 
 	Libcwd now compiles and works with the (current) CVS branches
 	of g++ 3.3 and 3.4.

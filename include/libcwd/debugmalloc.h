@@ -156,15 +156,9 @@ __inline__ void list_allocations_on(debug_ct&) { }
 // [ Note: if LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC wasn't defined, then these are the prototypes
 // for __libcwd_malloc et al of course.  We still use external "C" linkage in that case
 // in order to avoid a collision with possibily later included prototypes for malloc. ]
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
-extern "C" void* malloc(size_t size) throw();
-extern "C" void* calloc(size_t nmemb, size_t size) throw();
-extern "C" void* realloc(void* ptr, size_t size) throw();
-#else
 extern "C" void* malloc(size_t size) throw() __attribute__((__malloc__));
 extern "C" void* calloc(size_t nmemb, size_t size) throw() __attribute__((__malloc__));
 extern "C" void* realloc(void* ptr, size_t size) throw() __attribute__((__malloc__));
-#endif
 extern "C" void  free(void* ptr) throw();
 
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC

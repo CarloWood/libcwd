@@ -66,12 +66,6 @@ extern void register_external_allocation(void const* ptr, size_t size);
   } // namespace debug
 } // namespace libcw
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-#define LIBCWD_GETBUFSIZE(buf) buf.rdbuf()->pubseekoff(0, ios::cur, ios::out)
-#else
-#define LIBCWD_GETBUFSIZE(buf) buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out)
-#endif
-
 //===================================================================================================
 // Macro AllocTag
 //
@@ -181,7 +175,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
 	{ \
 	  ::libcw::debug::_private_::auto_internal_stringstream buf; \
 	  buf << x << ::std::ends; \
-	  size_t size = LIBCWD_GETBUFSIZE(buf); \
+	  size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	  ::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	  WS_desc = new char [size]; /* This is never deleted anymore */ \
 	  ::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
@@ -205,7 +199,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
       { \
 	::libcw::debug::_private_::auto_internal_stringstream buf; \
 	buf << x << ::std::ends; \
-	size_t size = LIBCWD_GETBUFSIZE(buf); \
+	size_t size = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	desc = new char [size]; \
 	::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \

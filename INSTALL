@@ -35,10 +35,10 @@ http://www.gnu.org/order/ftp.html
 Packages/versions needed
 ------------------------
 
-i) The GNU compiler, version 2.95.1 or higher.
+i) The GNU compiler, version 3.0 or higher.
 
     Location: gnu/gcc/
-    Current version: 3.2.2
+    Current version: 3.3
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -49,7 +49,7 @@ the source tree of gcc/g++.  Please try to upgrade your
 compiler the usual way if needed.
 If you are using rpm's then you will need to
 install/upgrade the following:
-    gcc (2.95.1 or higher),
+    gcc (3.0 or higher),
     gcc-c++ (of same version),
     libstdc++ (of same version) and
     cpp (of same version).
@@ -58,7 +58,7 @@ Check your installation on RedHat with:
 
 Note: If you don't use rpm's but are using tar balls,
 then you do NOT need to download gnu/libstdc++/* because
-gcc-2.95 and higher comes with libstdc++ included.
+gcc comes with libstdc++ included.
 The gnu/libstdc++/ directory on GNU ftp sites are
 for older compilers or to be used as source drop-in
 when you compile g++ (replacing the normal stdc++ with
@@ -66,10 +66,10 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.29 was tested with gcc-2.95.2, gcc-2.95.3,
-gcc-2.96-110 (redhat 7.3), gcc-3.0.4, gcc-3.1, gcc-3.1.1,
-gcc-3.2, gcc-3.2.1, gcc-3.2.2, gcc-3.3-20030313 and
-gcc-3.4-20030313.
+libcwd-0.99.29 was tested with gcc-3.0.4, gcc-3.1,
+gcc-3.1.1, gcc-3.2, gcc-3.2.1, gcc-3.2.2, gcc-3.2.3,
+gcc version 3.3 20030502 (prerelease) and
+gcc version 3.4 20030416 (experimental)
 
 Packages needed to run the testsuite
 ------------------------------------
@@ -130,7 +130,7 @@ extra tools installed on your system, only for the brave thus).
 
 -=ii=-
 
-The configure script looks for a GNU C++ compiler version 2.95.1 or higher.
+The configure script looks for a GNU C++ compiler version 3.0 or higher.
 If it can't find one (it will only find one when there is a g++ or c++ in
 your PATH), then you can specify the right path during configuration.
 For example, I configure libcwd as follows to compile with the latest CVS
@@ -146,9 +146,6 @@ can configure using --enable-libbfd.  If libiberty.a or libbfd.so are in an
 unusual directory, then you will have to set LDFLAGS prior to running ./configure:
 
 LDFLAGS="-L/usr/gnu/lib" CPPFLAGS="-I/usr/gnu/include" ./configure
-
-Please note that the libbfd that comes with binutils-2.11.x is not compatible
-with the libiberty that comes with with gcc-2.95.x.
 
 -=iv=-
 

@@ -56,7 +56,6 @@ enum mutex_instance_nt {
   alloc_tag_desc_instance,
   list_allocations_instance,
 #endif
-  type_info_of_instance,
   dlopen_map_instance,
   dlclose_instance,
   write_max_len_instance,

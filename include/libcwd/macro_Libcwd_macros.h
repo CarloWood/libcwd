@@ -26,6 +26,13 @@
 #include <cstddef>		// Needed for size_t
 #endif
 
+#if CWDEBUG_DEBUGM
+// Dout may not be called while 'internal' anymore.
+#define LIBCWD_ASSERT_NOT_INTERNAL LIBCWD_ASSERT(!__libcwd_tsd.internal)
+#else
+#define LIBCWD_ASSERT_NOT_INTERNAL
+#endif
+
 //===================================================================================================
 // Macro LibcwDebug
 //
@@ -82,6 +89,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
   do																\
   {																\
     LIBCWD_TSD_DECLARATION;													\
+    LIBCWD_ASSERT_NOT_INTERNAL;													\
     LIBCWD_LibcwDoutScopeBegin_MARKER;												\
     if (LIBCWD_DO_TSD_MEMBER_OFF(debug_obj) < 0)										\
     {																\

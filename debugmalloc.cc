@@ -336,25 +336,6 @@ namespace _private_ {
 extern bool WST_multi_threaded;
 #endif
 
-#ifdef LIBCWD_USE_STRSTREAM
-void* auto_internal_strstreambuf_alloc(size_t size)
-{
-  LIBCWD_TSD_DECLARATION;
-  set_alloc_checking_off(LIBCWD_TSD);
-  void* ptr = __libcwd_malloc(size);
-  set_alloc_checking_on(LIBCWD_TSD);
-  return ptr;
-}
-
-void auto_internal_strstreambuf_free(void* ptr)
-{
-  LIBCWD_TSD_DECLARATION;
-  set_alloc_checking_off(LIBCWD_TSD);
-  __libcwd_free(ptr);
-  set_alloc_checking_on(LIBCWD_TSD);
-}
-#endif
-
 #if CWDEBUG_ALLOC
 void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal)
 {
@@ -572,7 +553,7 @@ namespace _private_ {
 #if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
 #endif
-#if __GNUC__ == 2 || (__GNUC__ == 3 && __GNUC_MINOR__ < 3)
+#if __GNUC_MINOR__ < 3
 #ifndef _GLIBCPP_USE_WCHAR_T
     if (std::cerr.flags() != std::ios_base::unitbuf)		// Still didn't reach the end of std::ios_base::Init::Init()?
 #else
@@ -813,7 +794,7 @@ private:
   dm_alloc_ct* next;		// Next memblk in list `my_list'
   dm_alloc_ct* prev;		// Previous memblk in list `my_list'
   dm_alloc_ct* a_next_list;	// First element of my childeren (if any)
-  dm_alloc_ct** my_list;	// Pointer to my list, never NULL.
+  dm_alloc_ct** my_list;	// Pointer to my list, never NULL except after deinitialization.
   dm_alloc_ct* my_owner_node;	// Pointer to node who's a_next_list contains
   				// this object.
 
@@ -840,7 +821,8 @@ public:
   dm_alloc_ct(dm_alloc_ct const& __dummy) : dm_alloc_base_ct(__dummy) { LIBCWD_TSD_DECLARATION; DoutFatalInternal( dc::fatal, "Calling dm_alloc_ct::dm_alloc_ct(dm_alloc_ct const&)" ); }
     // No copy constructor allowed.
 #endif
-  ~dm_alloc_ct();
+  void deinit();
+  ~dm_alloc_ct() { if (my_list) deinit(); }
   void new_list(LIBCWD_TSD_PARAM)							// MT-safe: write lock is set.
       {
 #if CWDEBUG_DEBUGT
@@ -974,8 +956,9 @@ private:
 public:
   memblk_info_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_LOCATION(location_ct const* l));
   memblk_info_ct(memblk_types_nt f);
-  void erase(LIBCWD_TSD_PARAM);
+  bool erase(bool owner LIBCWD_COMMA_TSD_PARAM);
   void lock(void) { a_alloc_node.lock(); }
+  dm_alloc_ct* release_alloc_node(void) const { return a_alloc_node.release(); }
   void make_invisible(void);
   bool has_alloc_node(void) const { return a_alloc_node.get(); }
   alloc_ct* get_alloc_node(void) const
@@ -1168,7 +1151,7 @@ inline bool dm_alloc_ct::is_deleted(void) const
       a_memblk_type == memblk_type_freed);
 }
 
-dm_alloc_ct::~dm_alloc_ct()						// MT-safe: write lock is set.
+void dm_alloc_ct::deinit()						// MT-safe: write lock is set.
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -1191,22 +1174,8 @@ dm_alloc_ct::~dm_alloc_ct()						// MT-safe: write lock is set.
     prev->next = next;
   else if (!(*my_list = next) && my_owner_node && my_owner_node->is_deleted())
     delete my_owner_node;
+  my_list = NULL;	// Mark that we are already de-initialized.
 }
-
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
-#if CWDEBUG_LOCATION
-// Bug work around.
-inline std::ostream& operator<<(std::ostream& os, smanip<int> const& smanip)
-{
-  return std::operator<<(os, smanip);
-}
-
-inline std::ostream& operator<<(std::ostream& os, smanip<unsigned long> const& smanip)
-{
-  return std::operator<<(os, smanip);
-}
-#endif
-#endif
 
 namespace _private_ {
   extern void demangle_symbol(char const* in, _private_::internal_string& out);
@@ -1459,7 +1428,7 @@ void memblk_info_ct::printOn(std::ostream& os) const
       << ", px = " << a_alloc_node.get() << "\n\t( = " << *a_alloc_node.get() << " ) }";
 }
 
-void memblk_info_ct::erase(LIBCWD_TSD_PARAM)
+bool memblk_info_ct::erase(bool owner LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( __libcwd_tsd.internal );
@@ -1471,7 +1440,8 @@ void memblk_info_ct::erase(LIBCWD_TSD_PARAM)
 #endif
   if (ap && ap->next_list())
   {
-    a_alloc_node.release();
+    if (owner)
+      a_alloc_node.release();
     memblk_types_nt new_flag = ap->memblk_type();
     switch(new_flag)
     {
@@ -1498,7 +1468,9 @@ void memblk_info_ct::erase(LIBCWD_TSD_PARAM)
 	DoutFatalInternal( dc::core, "Deleting a memblk_info_ct twice ?" );
     }
     ap->change_flags(new_flag);
+    return true;
   }
+  return false;
 }
 
 void memblk_info_ct::make_invisible(void)
@@ -1878,11 +1850,19 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
   if (!found)
   {
     RELEASE_READ_LOCK;
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd) && (*iter).first.start() == ptr;
+    // The following will acquire a lock in another target thread if the
+    // ptr is found, when the ptr is not found then no lock will be set.
+    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
   }
 #endif
-  if (!found)
+  if (!found
+#if LIBCWD_THREAD_SAFE
+      || (*iter).first.start() != ptr
+#endif
+    )
   {
+    if (found)			// We found the wrong block (different start pointer).
+      RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
 #if CWDEBUG_MAGIC
     if (((size_t*)ptr)[-2] == INTERNAL_MAGIC_NEW_BEGIN ||
@@ -1899,26 +1879,32 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
   }
   else
   {
+    dm_alloc_ct* alloc_node;
     memblk_types_nt f = (*iter).second.flags();
     bool visible = (!__libcwd_tsd.library_call && (*iter).second.has_alloc_node());
     if (visible)
     {
-      DoutInternal( dc_malloc|continued_cf,
-	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
-	  << ptr << ((from == from_free) ? ") " : " ") );
-      if (channels::dc_malloc.is_on())
-	(*iter).second.print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
-#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
-      DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
-#else
-      DoutInternal( dc::continued, ' ' );
-#endif
+      // Needed to print description later on.
+      alloc_node = (*iter).second.release_alloc_node();
     }
     if (expected_from[f] != from)
     {
 #if LIBCWD_THREAD_SAFE
       RELEASE_READ_LOCK;
 #endif
+      if (visible)
+      {
+	DoutInternal( dc_malloc|continued_cf,
+	    ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
+	    << ptr << ((from == from_free) ? ") " : " ") );
+	if (channels::dc_malloc.is_on())
+	  (*iter).second.print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
+	DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
+#else
+	DoutInternal( dc::continued, ' ' );
+#endif
+      }
       if (from == from_delete)
       {
 	if (f == memblk_type_malloc)
@@ -1963,8 +1949,10 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     // that the application would crash when two threads try to free simultaneously
     // the same memory block (instead of detecting that and exiting gracefully).
     ACQUIRE_READ2WRITE_LOCK;
-    (*memblk_iter_write).second.erase(LIBCWD_TSD);		// Update flags and optional decouple
-    target_memblk_map_write->erase(memblk_iter_write);		// Update administration
+    bool keep = (*memblk_iter_write).second.erase(!visible LIBCWD_COMMA_TSD);	// Update flags and optional decouple
+    if (visible && !keep)
+      alloc_node->deinit();							// Perform deinitialization that needs lock.
+    target_memblk_map_write->erase(memblk_iter_write);				// Update administration
 #if LIBCWD_THREAD_SAFE
     if (!found_in_current_thread && __libcwd_tsd.target_thread->is_zombie() && target_memblk_map_write->size() == 0)
       delete target_memblk_map_write;
@@ -1975,6 +1963,28 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     __libcwd_tsd.internal = 0;
 
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
+
+    if (visible)
+    {
+      DoutInternal( dc_malloc|continued_cf,
+	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
+	  << ptr << ((from == from_free) ? ") " : " ") );
+      if (channels::dc_malloc.is_on())
+	alloc_node->print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
+      if (!keep)
+      {
+	DEBUGDEBUG_CERR( "__libcwd_free: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
+	__libcwd_tsd.internal = 1;
+	delete alloc_node;
+	DEBUGDEBUG_CERR( "__libcwd_free: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
+	__libcwd_tsd.internal = 0;
+      }
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
+      DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
+#else
+      DoutInternal( dc::continued, ' ' );
+#endif
+    }
 
 #if CWDEBUG_MAGIC
     if (f == memblk_type_external)
@@ -2524,11 +2534,17 @@ void make_invisible(void const* ptr)
   if (!found)
   {
     RELEASE_READ_LOCK;
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd) && (*iter).first.start() == ptr;
+    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
   }
 #endif
-  if (!found)
+  if (!found
+#if LIBCWD_THREAD_SAFE
+      || (*iter).first.start() != ptr
+#endif
+      )
   {
+    if (found)
+      RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
     DoutFatalInternal( dc::core, "Trying to turn non-existing memory block (" << ptr << ") into an 'internal' block" );
   }
@@ -2839,9 +2855,10 @@ void move_outside(marker_ct* marker, void const* ptr)
       return;
     }
   }
-  Dout( dc::warning, "Memory block at " << ptr << " is already outside the marker at " << (void*)marker << " (" << marker_alloc_node->type_info_ptr->demangled_name() << ") area!" );
   RELEASE_READ_LOCK;
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
+  Dout( dc::warning, "Memory block at " << ptr << " is already outside the marker at " <<
+      (void*)marker << " (" << marker_alloc_node->type_info_ptr->demangled_name() << ") area!" );
 }
 #endif // CWDEBUG_MARKER
 
@@ -3288,14 +3305,20 @@ void* __libcwd_realloc(void* ptr, size_t size)
   if (!found)
   {
     RELEASE_READ_LOCK;
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd) && (*iter).first.start() == ptr;
+    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
     other_target_thread = __libcwd_tsd.target_thread;
   }
   else
     other_target_thread = NULL;
 #endif
-  if (!found)
+  if (!found
+#if LIBCWD_THREAD_SAFE
+      || (*iter).first.start() != ptr
+#endif
+      )
   {
+    if (found)
+      RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
     DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
     __libcwd_tsd.internal = 0;
@@ -3351,6 +3374,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
   }
   if (size > static_cast<size_t>(-1) - 12 - sizeof(size_t))
   {
+    RELEASE_READ_LOCK;
+    LIBCWD_RESTORE_CANCEL_NO_BRACE;
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
     DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
 #else

@@ -41,12 +41,6 @@ namespace libcw {
   }
 }
 
-// When to use <strstream> instead of <sstream>.
-
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-#define LIBCWD_USE_STRSTREAM
-#endif
-
 //
 // Compilers and preprocessor used.  Put here to cause a recompile when changed.
 // CC    : @CC_FINGER_PRINT@

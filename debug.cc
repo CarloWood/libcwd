@@ -14,12 +14,12 @@
 #include "sys.h"
 #include <libcwd/config.h>
 
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#if defined(_REENTRANT) && CWDEBUG_ALLOC
 // This has to be very early (must not have been included elsewhere already).
 #define private public  // Ugly, I know.
 #include <bits/stl_alloc.h>
 #undef private
-#endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#endif // defined(_REENTRANT) && CWDEBUG_ALLOC
 
 #include <cerrno>
 #include <iostream>
@@ -68,12 +68,17 @@ using libcw::debug::_private_::debug_channels_instance;
 #define COMMA_IFTHREADS(x)
 #endif // !_REENTRANT
 
+#define NEED_SUPRESSION_OF_MALLOC_AND_BFD (__GNUC__ == 3 && \
+    ((__GNUC_MINOR__ == 2 && __VERSION__ [3] == 0) || \
+     (__GNUC_MINOR__ == 1 && __VERSION__ [4] == '1') || \
+     (__GNUC_MINOR__ == 0)))
+
 namespace libcw {
   namespace debug {
 
 namespace _private_ {
 
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#if defined(_REENTRANT) && CWDEBUG_ALLOC
 // The following tries to take the "node allocator" lock -- the lock of the
 // default allocator for threaded applications.
 __inline__
@@ -118,7 +123,7 @@ void allocator_unlock(void)
   __gthread_mutex_unlock(&std::__pool_alloc<true, 0>::_S_lock._M_lock);
 #endif
 }
-#endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#endif // defined(_REENTRANT) && CWDEBUG_ALLOC
 
 } // namespace _private_
 
@@ -130,11 +135,7 @@ void allocator_unlock(void)
 
     class buffer_ct : public _private_::auto_internal_stringbuf {
     private:
-#if __GNUC__ < 3
-      typedef streampos streampos_t;
-#else
       typedef pos_type streampos_t;
-#endif
       streampos_t position;
 #ifdef _REENTRANT
       // These two are protected by the ostream lock of a debug object.
@@ -182,7 +183,7 @@ void allocator_unlock(void)
       // ends_on_newline	: This output ends on a newline.
       // possible_nonewline_cf	: When `ends_on_newline' is false, then that was caused by the use of nonewline_cf.
 
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#if defined(_REENTRANT) && CWDEBUG_ALLOC
       typedef debug_message_st* msgbuf_t;
       msgbuf_t msgbuf;
       // Queue the message when the default (STL) allocator is locked and it could be that we
@@ -211,12 +212,12 @@ void allocator_unlock(void)
 	msgbuf = (msgbuf_t)malloc(curlen + extra_size);
 	free_msgbuf = true;
       }
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#if defined(_REENTRANT) && CWDEBUG_ALLOC
       this->sgetn(msgbuf->buf, curlen);
 #else
       this->sgetn(msgbuf, curlen);
 #endif
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#if defined(_REENTRANT) && CWDEBUG_ALLOC
       if (queue_msg)	// Inside a call to malloc and possibly owning lock of std::LIBCWD_POOL_ALLOC<true, 0>?
       {
 	// We don't write debug output to the final ostream when inside malloc and std::LIBCWD_POOL_ALLOC<true, 0> is locked.
@@ -281,7 +282,7 @@ void allocator_unlock(void)
 	  locked_os->write("<continued> ", 12);
 	}
 #endif // _REENTRANT
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#if defined(_REENTRANT) && CWDEBUG_ALLOC
 	debug_message_st* message = debug_object.queue_top;
 	if (message)
 	{
@@ -343,7 +344,7 @@ void allocator_unlock(void)
 	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #endif
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(_REENTRANT) && CWDEBUG_ALLOC
+#if defined(_REENTRANT) && CWDEBUG_ALLOC
       }
 #endif
       if (free_msgbuf)
@@ -913,13 +914,11 @@ void allocator_unlock(void)
 #endif
 #endif
 
-#if (__GNUC__ == 3 && __GNUC_MINOR__ == 2)
-      if (__VERSION__ [3] == 0)		// g++ 3.2 only, this is not needed for 3.2.1 and higher.
+      if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
       {
         channels::dc::malloc.off();
         channels::dc::bfd.off();
       }
-#endif
 
       // Skip `start()' for a `continued' debug output.
       // Generating the "prefix: <continued>" is already taken care
@@ -1013,7 +1012,11 @@ void allocator_unlock(void)
 
       // Create a new laf.
       DEBUGDEBUG_CERR( "creating new laf_ct" );
+      int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+      _private_::set_invisible_on(LIBCWD_TSD);
       current = new laf_ct(channel_set.mask, channel_set.label, errno);
+      _private_::set_invisible_off(LIBCWD_TSD);
+      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
       current_bufferstream = &current->bufferstream;
       DEBUGDEBUG_CERR( "laf_ct created" );
@@ -1077,13 +1080,11 @@ void allocator_unlock(void)
 
       set_alloc_checking_off(LIBCWD_TSD);
 
-#if (__GNUC__ == 3 && __GNUC_MINOR__ == 2)
-      if (__VERSION__ [3] == 0)			// g++ 3.2 only.
+      if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
       {
         channels::dc::malloc.on();
         channels::dc::bfd.on();
       }
-#endif
 
       // Skip `finish()' for a `continued' debug output.
       if ((current->mask & continued_cf_maskbit) && !(current->mask & finish_maskbit))
@@ -1147,11 +1148,17 @@ void allocator_unlock(void)
 	  if ((current->mask & coredump_maskbit))
 	    core_dump();
 	  DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
+	  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+	  _private_::set_invisible_on(LIBCWD_TSD);
 	  delete current;
+	  _private_::set_invisible_off(LIBCWD_TSD);
+	  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 	  DEBUGDEBUG_CERR( "Done deleting `current'" );
 	  set_alloc_checking_on(LIBCWD_TSD);
+#if CWDEBUG_ALLOC
 	  if (__libcwd_tsd.internal)			// Still internal?  Are we ever calling DoutFatal while internal?
 	    _private_::set_library_call_on(LIBCWD_TSD);	// Indefinetely turn library call on before terminating threads.
+#endif
 #ifdef _REENTRANT
 	  LIBCWD_DISABLE_CANCEL;
 	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
@@ -1199,7 +1206,11 @@ void allocator_unlock(void)
 	    false, false COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
 
       DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
+      int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+      _private_::set_invisible_on(LIBCWD_TSD);
       delete current;
+      _private_::set_invisible_off(LIBCWD_TSD);
+      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
       DEBUGDEBUG_CERR( "Done deleting `current'" );
 
       if (start_expected)
@@ -1286,7 +1297,11 @@ void allocator_unlock(void)
       LIBCWD_RESTORE_CANCEL;
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
 #endif
+      int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+      _private_::set_invisible_on(LIBCWD_TSD);
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
+      _private_::set_invisible_off(LIBCWD_TSD);
+      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #ifdef _REENTRANT
       WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
@@ -1444,26 +1459,22 @@ void allocator_unlock(void)
 	    i != _private_::debug_channels.read_locked().end(); ++i)
 	{
 	  LibcwDoutScopeBegin(DEBUGCHANNELS, debug_object, dc::always|noprefix_cf);
-#if (__GNUC__ == 3 && __GNUC_MINOR__ == 2)
-	  if (__VERSION__ [3] == 0)
+	  if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
 	  {
 	    channels::dc::malloc.on();
 	    channels::dc::bfd.on();
 	  }
-#endif
 	  LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(), LIBCWD_DO_TSD_MEMBER(debug_object, margin).size());
 	  LibcwDoutStream.write((*i)->get_label(), WST_max_len);
 	  if ((*i)->is_on())
 	    LibcwDoutStream.write(": Enabled", 9);
 	  else
 	    LibcwDoutStream.write(": Disabled", 10);
-#if (__GNUC__ == 3 && __GNUC_MINOR__ == 2)
-	  if (__VERSION__ [3] == 0)
+	  if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
 	  {
 	    channels::dc::malloc.off();
 	    channels::dc::bfd.off();
 	  }
-#endif
 	  LibcwDoutScopeEnd;
 	}
         DEBUG_CHANNELS_RELEASE_READ_LOCK;

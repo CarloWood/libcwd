@@ -29,54 +29,17 @@
 #endif
 #ifndef LIBCW_SSTREAM
 #define LIBCW_SSTREAM
-#ifdef LIBCWD_USE_STRSTREAM
-#include <strstream>
-#else
 #include <sstream>
-#endif
 #endif
 
 namespace libcw {
   namespace debug {
     namespace _private_ {
 
-#ifdef LIBCWD_USE_STRSTREAM
-#if !CWDEBUG_ALLOC
-typedef std::strstream auto_internal_stringstream;
-#else // CWDEBUG_ALLOC
-extern void* auto_internal_strstreambuf_alloc(size_t);
-extern void auto_internal_strstreambuf_free(void*);
-
-class auto_internal_strstreambase : virtual public ios {
-protected:
-  strstreambuf M_my_sb;
-public:
-  strstreambuf* rdbuf(void) { return &M_my_sb; }
-protected:
-  auto_internal_strstreambase(void) :
-      M_my_sb(::libcw::debug::_private_::auto_internal_strstreambuf_alloc,
-	      ::libcw::debug::_private_::auto_internal_strstreambuf_free)
-      { init(&M_my_sb); }
-};
-
-class auto_internal_stringstream : public auto_internal_strstreambase, public iostream {
-public:
-#if CWDEBUG_DEBUGM
-  auto_internal_stringstream(void) { LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( !__libcwd_tsd.internal ); }
-  ~auto_internal_stringstream(void) { LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( !__libcwd_tsd.internal ); }
-#endif
-  _IO_ssize_t pcount(void) { return ((strstreambuf*)_strbuf)->pcount(); }
-  char* str(void) { return ((strstreambuf*)_strbuf)->str(); }
-  void freeze(int n = 1) { ((strstreambuf*)_strbuf)->freeze(n); }
-  int frozen(void) { return ((strstreambuf*)_strbuf)->frozen(); }
-};
-#endif // CWDEBUG_ALLOC
-#else // !LIBCWD_USE_STRSTREAM
 #if CWDEBUG_ALLOC
 typedef ::std::basic_stringstream<char, ::std::char_traits<char>, ::libcw::debug::_private_::auto_internal_allocator> auto_internal_stringstream;
 #else
 typedef ::std::stringstream auto_internal_stringstream;
-#endif
 #endif
 
     } // namespace _private_

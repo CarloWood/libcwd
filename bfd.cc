@@ -78,6 +78,7 @@ extern link_map* _dl_loaded;
 #endif // !CWDEBUG_LIBBFD
 #include <libcwd/private_string.h>
 #include "cwd_bfd.h"
+#include <libcwd/core_dump.h>
 
 extern char** environ;
 
@@ -519,10 +520,10 @@ void bfd_close(bfd* abfd)
 	    __libcwd_tsd.internal = 0;
 #endif
 	    ::dlclose(handle);
+	    Dout(dc::continued, '(' << lbase << ") ... ");
 #if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = saved_internal;
 #endif
-	    Dout(dc::continued, '(' << lbase << ") ... ");
 #else // !HAVE_DLOPEN
 	    DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure.");
 #endif

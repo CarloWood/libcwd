@@ -370,17 +370,17 @@ CW_DEFINE_TYPE(getgroups_t, [$ac_cv_type_getgroups])
 
 dnl CW_PROG_CXX
 dnl
-dnl Like AC_PROG_CXX, except that it demands that GNU g++-2.95.1
+dnl Like AC_PROG_CXX, except that it demands that GNU g++-3.0
 dnl or higher is available.
 AC_DEFUN(CW_PROG_CXX,
 [AC_BEFORE([$0], [CW_PROG_CXXCPP])
 AC_REQUIRE([AC_PROG_CXX])
-AC_CACHE_CHECK(whether we are using GNU C++ version 2.95.1 or later, ac_cv_prog_gxx_version,
+AC_CACHE_CHECK(whether we are using GNU C++ version 3.0 or later, ac_cv_prog_gxx_version,
 [dnl The semicolon is to pacify NeXT's syntax-checking cpp.
 cat > conftest.C <<EOF
 #ifdef __GNUG__
   gnu;
-#if __GNUG__ > 2 || (__GNUG__ == 2 && __GNUC_MINOR__ >= 95)
+#if __GNUG__ >= 3
   yes;
 #endif
 #endif
@@ -399,7 +399,7 @@ if test "$ac_cv_prog_gxx_version" = yes; then
   GXX=yes
 else
   if test "$ac_cv_prog_gxx_version" = "old version"; then
-    AC_MSG_ERROR([Installation problem: GNU C++ version 2.95.1 or higher is required])
+    AC_MSG_ERROR([Installation problem: GNU C++ version 3.0 or higher is required])
   else
     AC_MSG_ERROR([Installation problem: Cannot find GNU C++ compiler])
   fi

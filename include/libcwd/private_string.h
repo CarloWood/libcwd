@@ -35,22 +35,14 @@ namespace libcw {
 
 // This is the string type that we use in Single Threaded internal functions.
 #if CWDEBUG_ALLOC
-#if __GNUC__ < 3
-typedef ::std::basic_string<char, ::string_char_traits<char>, ST_userspace_allocator> ST_string;
-#else
 typedef ::std::basic_string<char, ::std::char_traits<char>, ST_userspace_allocator> ST_string;
-#endif
 #else
 typedef ::std::string ST_string;
 #endif
 
 // This is the string type that we use in Multi Threaded internal functions.
 #if CWDEBUG_ALLOC
-#if __GNUC__ < 3
-typedef ::std::basic_string<char, ::string_char_traits<char>, userspace_allocator> string;
-#else
 typedef ::std::basic_string<char, ::std::char_traits<char>, userspace_allocator> string;
-#endif
 #else
 typedef ::std::string string;
 #endif
