@@ -610,8 +610,9 @@ public:
   {
 #ifdef DEBUGDEBUGMALLOC
     ASSERT( internal );
-    DoutInternal( dc::warning, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" ); return a_start == b.start();
+    DoutInternal( dc::warning, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" );
 #endif
+    return a_start == b.start();
   }
 #ifdef CWDEBUG
   void printOn(ostream& os) const;
