@@ -184,8 +184,6 @@ MAIN_FUNCTION
   libcw::debug::marker_ct* marker1 = new libcw::debug::marker_ct("marker1", marker1_filter);
 #endif
   void* p1 = malloc(500);
-  Dout(dc::notice, "after malloc(500)");
-  Debug( list_allocations_on(libcw_do) );
   void* p4 = malloc(123);
   AllocTag(p4, "Allocated between the two markers");
 #if CWDEBUG_MARKER
