@@ -55,6 +55,13 @@ case "$host" in
 esac
 AC_SUBST(DEBUGOPTS)
 
+dnl Set a decent default value in case we don't have the right libraries
+case "$host" in
+  *sparc*) CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET="0" ;;
+  *) CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET="-1" ;;
+esac
+AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
+
 dnl Other options
 EXTRAOPTS="-fno-exceptions -pipe"
 AC_SUBST(EXTRAOPTS)
@@ -228,6 +235,9 @@ if test "$libcwd_config_bfd" = yes; then
 ])
   fi
 
+dnl This test needs the full set of libraries we just determined.
+CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
+
   dnl We don't want to link with static libraries that are not compiled with -fPIC
   dnl while linking our shared library.
 changequote(, )dnl
@@ -278,7 +288,6 @@ CW_BUG_REDEFINES([sys/resource.h])
 CW_MALLOC_OVERHEAD
 CW_NEED_WORD_ALIGNMENT
 CW_NBLOCK
-CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
 
 dnl Check for library functions.
 AC_CHECK_FUNCS(getgid getegid getgroups)
