@@ -15,7 +15,8 @@ libutils_la_SOURCES = \
 bcd2str.cc \
 buf2str.cc \
 char2str.cc \
-exec_prog.cc
+exec_prog.cc \
+return_address.cc
 
 EXTRA_DIST = perf.cc
 

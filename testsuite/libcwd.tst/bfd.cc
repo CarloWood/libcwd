@@ -15,8 +15,16 @@
 #include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
+#undef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+#include <libcw/return_address.h>
 
 RCSTAG_CC("$Id$")
+
+#ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+static void* return_address[6];
+#define store_call_address(i) return_address[i] = __builtin_return_address(0)
+extern "C" int _start();
+#endif
 
 void libcw_bfd_test3(void)
 {
@@ -26,9 +34,7 @@ void libcw_bfd_test3(void)
     
     switch (i)
     {
-      case 0:
-        retadr = __builtin_return_address(0);
-	break;
+#ifdef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
       case 1:
         retadr = __builtin_return_address(1);
 	break;
@@ -41,14 +47,37 @@ void libcw_bfd_test3(void)
       case 4:
         retadr = __builtin_return_address(4);
 	break;
-      default:
+      case 5:
         retadr = __builtin_return_address(5);
+	break;
+#else
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+        retadr = return_address[i];
+	break;
+      case 5:
+        retadr = (char*)&_start + 10;	// Whatever...
+        break;
+#endif
+      default:
+        retadr = __builtin_return_address(0);
 	break;
     }
 
     location_st loc;
     libcw_bfd_pc_location(loc, (char*)retadr + libcw_bfd_builtin_return_address_offset);
     Dout(dc::notice, "called from " << loc);
+
+#ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+    if (i < 5 && libcw_return_address(i) != retadr)
+    {
+      retadr = libcw_return_address(i);
+      libcw_bfd_pc_location(loc, (char*)retadr + libcw_bfd_builtin_return_address_offset);
+      DoutFatal(dc::fatal, "libcw_return_address(" << i << ") returns " << loc << "!");
+    }
+#endif
 
     if (loc.line == 0)
       break;
@@ -57,16 +86,25 @@ void libcw_bfd_test3(void)
  
 void libcw_bfd_test2(void)
 {
+#ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+  store_call_address(1);
+#endif
   libcw_bfd_test3();
 }
 
 void libcw_bfd_test1(void)
 {
+#ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+  store_call_address(2);
+#endif
   libcw_bfd_test2();
 }
 
 void libcw_bfd_test(void)
 {
+#ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+  store_call_address(3);
+#endif
   libcw_bfd_test1();
 }
 
@@ -90,6 +128,9 @@ int main(int argc, char* argv[])
   Debug( libcw_do.on() );
 
   // Run test
+#ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
+  store_call_address(4);
+#endif
   libcw_bfd_test();
 
   return 0;
