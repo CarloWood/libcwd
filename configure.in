@@ -359,7 +359,10 @@ if test "$libcwd_config_threading" = yes; then
   CW_CONFIG_THREAD_SAFE=1
   TESTOPTS=-D_REENTRANT
 
+  SAVE_LIBS="$LIBS"
+  LIBS="$LIBS $LIB_THREADS"
   AC_CHECK_FUNCS(pthread_kill_other_threads_np)
+  LIBS="$SAVE_LIBS"
 fi
 
 dnl This test needs the full set of libraries we just determined.
