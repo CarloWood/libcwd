@@ -1490,7 +1490,7 @@ indirect:
 								// doing DWARF in find_nearest_line().
 	  location.set_func_iter(M_function_names.insert(cur_func).first);
 
-	  do
+	  while( debug_line_ptr < debug_line_ptr_end )
 	  {
 	    file = 0;		// One less than the `file' mentioned in the documentation.
 	    column = 0;
@@ -1655,7 +1655,6 @@ indirect:
 	      }
 	    }
 	  }
-	  while( debug_line_ptr < debug_line_ptr_end );
 	  LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end );
 
 	  // End state machine code.
@@ -1885,7 +1884,6 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
     }
     M_inside_find_nearest_line = true;
 #if DEBUGSTABS || DEBUGDWARF
-    int off = libcw::debug::libcw_do._off;
     libcw::debug::debug_ct::OnOffState state;
     Debug( libcw_do.force_on(state) );
     libcw::debug::channel_ct::OnOffState state2;
