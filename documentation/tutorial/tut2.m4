@@ -16,11 +16,12 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 #ifdef HAVE_CONFIG_H		// This is just an example of what you could do
 #include "config.h"		//   when using autoconf for your project.
 #endif
-#ifdef CWDEBUG		// This is needed so that others can compile
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
+#ifdef CWDEBUG			// This is needed so that others can compile
+				//   your application without having libcwd installed.
+#ifndef _GNU_SOURCE		// Already defined by g++ 3.0.3 and higher.
+#define _GNU_SOURCE		// Needed for libpthread extensions.
 #endif
-#include &lt;libcw/sysd.h&gt	//   your application without having libcwd installed.
+#include &lt;libcw/sysd.h&gt
 #endif
 </PRE>
 <P>Create a file <CODE>"debug.h"</CODE> that is part of your application and put in it:</P>
@@ -78,13 +79,10 @@ namespace myproject {
 #include "sys.h"
 #include "debug.h"
 
-// Include this to make life easier.
-using namespace libcw::debug;
-
 // Actual definition of `ghost'
 namespace debug_channels {
   namespace dc {
-    channel_ct <SPAN class="highlight">ghost</SPAN>("GHOST");
+    libcw::debug::channel_ct <SPAN class="highlight">ghost</SPAN>("GHOST");
   }
 }
 

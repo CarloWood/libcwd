@@ -13,8 +13,10 @@ to <CODE>cerr</CODE> is:</P>
 <P>Compile as: <SPAN class="shell-command">g++ -g -DCWDEBUG hello_world.cc -lcwd -o hello_world</SPAN></P>
 
 <PRE>
-// These two lines should actually be part of a custom &quot;sys.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
+// These four lines should actually be part of a custom &quot;sys.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
+#ifndef _GNU_SOURCE                     // Already defined by g++ 3.0.3 and higher.
 #define _GNU_SOURCE                     // This must be defined before including &lt;libcw/sysd.h&gt;
+#endif
 #include &lt;libcw/sysd.h&gt;                 // This must be the first header file
 // This line should actually be part of a custom &quot;debug.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
 #include &lt;libcw/debug.h&gt;
@@ -42,7 +44,10 @@ but forces you to define it when using libcwd.&nbsp;
 Note that you only really have to define it when you compiled libcwd with
 threading support.&nbsp;
 If you do not define this macro and libcwd needs it, then you will get
-a compile error in &lt;libcw/sysd.h&gt; telling you so.</P>
+a compile error in &lt;libcw/sysd.h&gt; telling you so.&nbsp;
+GNU gcc 3.0.3 (and higher) already defines this macro by itself, so there is
+no need to include it if you intend to only compile your application with
+this version.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
 <LI><A HREF="faq.html#GNU_SOURCE">Won't this define make my code non-portable?</A></LI>

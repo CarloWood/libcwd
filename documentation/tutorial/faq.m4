@@ -24,9 +24,11 @@ much compiler support as you can get, allowing the compiler to tell you
 what could possibly be wrong with your code.&nbsp;
 Once the application works, you don't have to define _GNU_SOURCE
 because you won't be including the debug code anymore, nor link with
-libcwd.&nbsp;  Of course, when you are not sure whether or not new code
-that you added is a GNU extension or not, you should try to compile it
-with CWDEBUG undefined.</P>
+libcwd.&nbsp;  If you need to write 100% ANSI code and you are not sure
+whether or not new code that you added is an extension or not, you
+should try to compile it with CWDEBUG undefined <EM>and</EM> using -ansi as
+command line option to g++; without -ansi g++-3.0.3 and higher define
+_GNU_SOURCE itself by default.</P>
 
 <A name="sysd.h"></A>
 <H3>2. Why do I have to include &quot;libcw/sysd.h&quot; as first header file?</H3>

@@ -30,8 +30,8 @@ the following code prints a list of all channels after they have been turned on.
 <P class="download">[<A HREF="examples5/test5.1.1.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.1.1.cc -->
-#include &quot;sys.h&quot;	// See tutorial 2
-#include &lt;libcw/debug.h&gt;
+#include &quot;sys.h&quot;		// See tutorial 2
+#include &quot;debug.h&quot;
 
 int main(void)
 {

@@ -1,6 +1,14 @@
+//-------------------------------------------------------------------------------
+// This block should really be part of custom header files!  Please ignore it
+// and read documentation/html/preparation.html#preparation_step2 instead.
+// "sys.h":
+#ifndef _GNU_SOURCE		// g++ 3.0.3 and higher already define this.
 #define _GNU_SOURCE
-#include <libcw/sysd.h>			// This must be the first header file
+#endif
+#include <libcw/sysd.h>		// This must be the first header file
+// "debug.h"
 #include <libcw/debug.h>
+//-------------------------------------------------------------------------------
 
 int main(void)
 {
