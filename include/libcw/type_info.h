@@ -18,10 +18,29 @@ RCSTAG_H(type_info, "$Id$")
 
 #include <typeinfo>		// Needed for typeid()
 #include <cstddef>		// Needed for size_t
-#include <cstring>		// Needed for strncpy()
 
 namespace libcw {
   namespace debug {
+
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+    namespace _internal_ {
+
+      template<typename T>
+        struct sizeof_star {
+	  static size_t const value = 0;
+	};
+
+      template<typename T>
+        struct sizeof_star<T*> {
+	  static const size_t value = sizeof(T);
+	};
+
+      struct sizeof_star<void*> {
+	static size_t const value = 0;
+      };
+
+    }
+#endif
 
 extern char const* make_label(char const* mangled_name);
 
@@ -42,113 +61,78 @@ public:
   size_t ref_size(void) const { return type_ref_size; }
 };
 
-namespace _internal_ {
-
-  //
-  // Note on the overload trick:
-  // Because we always pass `1' as second parameter, and conversion to
-  // `char' has a low priority, calling the template function with
-  // `T const*' as first parameter has the highest priority now
-  // (in the case that `obj' is really a pointer).
-  //
-  // Note on the const_cast:
-  // We must use a reference as parameter, even when using __inline,
-  // because without optimization constructors and destructors for temporaries
-  // are called and the destructor could be private for instance.
-  // When passing a reference, we must use a `const' too to avoid a warning
-  // and that will cause all types to look like consts.
-  // Therefore we simply get rid of all const-ness (looks better).
-
-  // _internal_::
-  template<typename T>
-    type_info_ct const& type_info_of(T const* obj, int)
-    {
-      static type_info_ct const type_info_singleton(typeid(const_cast<T*>(obj)), sizeof(T*), sizeof(T));
-      return type_info_singleton;
-    }
-
-  // Specialization for `void*'.
-  // _internal_::
-  extern type_info_ct const& type_info_of(void const* obj, int);
-
-  // This one is called when `obj' is not a pointer of some type.
-  // _internal_::
-  template<typename T>
-    type_info_ct const& type_info_of(T const& obj, char)
-    {
-      static type_info_ct const type_info_singleton(typeid(const_cast<T&>(obj)), sizeof(T), 0);
-      return type_info_singleton;
-    }
-
-  // _internal_::
-  class type_info : public std::type_info {
-  public:
-    type_info(char const* name) : std::type_info(name) { }
+template<typename T>
+  struct type_info {
+    static type_info_ct const value;
   };
 
-  // _internal_::
-  template<typename T>
-    type_info_ct const&
-    type_info_of_type(T const* const*, int)
-    {
-      T const* tp;
-      return type_info_of(tp, 1);
-    }
+// Specialization for general pointers.
+template<typename T>
+  struct type_info<T*> {
+    static type_info_ct const value;
+  };
+ 
+// Specialization for `void*'.
+struct type_info<void*> {
+  static type_info_ct const value;
+};
 
-  // _internal_::
-  template<typename T>
-    type_info_ct const&
-    type_info_of_type(T const**, int)
-    {
-      T* tp;
-      return type_info_of(tp, 1);
-    }
+extern type_info_ct unknown_type_info;
 
-  // _internal_::
-  template<typename T>
-    type_info_ct const&
-    type_info_of_type(T const*, char)
-    {
-      static type_info_ct const* type_info_singleton = 0;
-      if (!type_info_singleton)
-      {
-#ifdef DEBUGMALLOC
-	set_alloc_checking_off();
-#endif
-	T* tp;					// Create pointer to object
-	char const* tp_name = typeid(tp).name();
-	size_t len = strlen(tp_name);
-	char* t_name = new char[len];
-	strncpy(t_name, tp_name + 1, len - 1);	// Strip off the leading `P'
-	t_name[len - 1] = 0;
-	type_info ti(t_name);
-	type_info_singleton = new type_info_ct(ti, sizeof(T), 0);
-#ifdef DEBUGMALLOC
-	set_alloc_checking_on();
-#endif
-      }
-      return *type_info_singleton;
-    }
+template<typename T>
+  type_info_ct const type_info<T>::value(typeid(T), sizeof(T), 0);
 
-} // namespace _internal_
+template<typename T>
+  type_info_ct const type_info<T*>::value(typeid(T*), sizeof(T*), sizeof(T));
 
-template<class T>
-  __inline type_info_ct const&
-  type_info_of(T const& obj)
-  {
-    return _internal_::type_info_of(obj, 1);
-  }
+// Prototype
+template<typename T>
+  __inline type_info_ct const& type_info_of(T);
 
-// For types without objects.
-// This function makes assumptions about how names are mangled.
+// Specialization that allows to specify a type without an object.
+// This is really only necessary for GNU g++ version 2, otherwise
+// libcw::debug::type_info<>:value could be used directly.
+//
+// You also need to use this for constants since passing an object
+// to a function (the function type_info(T) below) strips the 'const'
+// from a parameter.
+//
 template<class T>
   __inline type_info_ct const&
   type_info_of(void)
   {
-    return _internal_::type_info_of_type(reinterpret_cast<T*>(0), 1);
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+    // In early versions of g++, typeid is broken and doesn't work on a template parameter type.
+    // We have to use the following hack.
+    if (type_info<T>::value.size() == 0)		// Not initialized already?
+    {
+      class type_info_with_name : public std::type_info {	// Nuke the 'protected' qualifier of this constructor.
+      public:
+	type_info_with_name(char const* name) : std::type_info(name) { }
+      };
+
+      T* tp;                                  			// Create pointer to object.
+      static type_info_with_name ti(typeid(tp).name() + 1);	// Strip leading 'P' in the mangled name to get rid of the 'pointer' again.
+      new (const_cast<type_info_ct*>(&type_info<T>::value))
+          type_info_ct(ti, sizeof(T), _internal_::sizeof_star<T>::value);	// In place initialize the static type_info_ct object.
+    }
+#endif
+    return type_info<T>::value;
   }
 
-extern type_info_ct unknown_type_info;
+// We could/should have used type_info_of<typeof(obj)>(), but typeof(obj) doesn't
+// work when obj has a template parameter as type (not supported in 2.95.3 and
+// broken in 3.0; see also http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view&pr=2703&database=gcc).
+template<typename T>
+  __inline type_info_ct const&
+  type_info_of(T)
+  {
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+    return type_info_of<T>();
+#else
+    return type_info<T>::value;
+#endif
+  }
 
   } // namespace debug
 } // namespace libcw

@@ -5,15 +5,15 @@ A : 0
 A* : 64
 void* : 0
 int : 0
-int* : 4
+int const* : 4
 A : 0
-A* : 64
-B : 0
-B* : 64
+A const* : 64
+B const : 0
+B const* : 64
 void* : 0
-A*
-A const**
-A const* const**
-B*
-B const**
-B const* const**
+A const*
+A const* const*
+A const* const* const*
+B const*
+B const* const*
+B const* const* const*

@@ -42,20 +42,14 @@ namespace libcw {
       set_alloc_checking_off();
 #endif
       char* label = new char[len + 1];
-    #ifdef DEBUGMALLOC
+#ifdef DEBUGMALLOC
       set_alloc_checking_on();
-    #endif
+#endif
       strcpy(label, demangled_name);
       return label;
     }
 
-    namespace _internal_ {
-      type_info_ct const& type_info_of(void const* obj, int)
-      { 
-	static type_info_ct const type_info_singleton(typeid(const_cast<void*>(obj)), sizeof(void*), 0 /* unknown */);
-	return type_info_singleton;
-      }
-    } // namespace _internal_
+    type_info_ct const type_info<void*>::value(typeid(void*), sizeof(void*), 0 /* unknown */);
 
   } // namespace debug
 } // namespace libcw
