@@ -244,7 +244,7 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 };
      
 #define NEW(x) __libcwd_allocCatcher(new x)
-#define ExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
+#define RegisterExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
 
 #include <libcw/type_info.h>
 
@@ -255,7 +255,7 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
-#define ExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
+#define RegisterExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
 
 #endif // !CWDEBUG
 
@@ -279,7 +279,7 @@ using libcw::debug::set_alloc_checking_on;
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
-#define ExternalAlloc(p, s)
+#define RegisterExternalAlloc(p, s)
 #define set_alloc_checking_on()
 #define set_alloc_checking_off()
 

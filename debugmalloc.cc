@@ -1398,7 +1398,7 @@ void register_external_allocation(void const* mptr, size_t size)
 #endif
   if (internal)
     DoutFatalInternal( dc::core, "Calling register_external_allocation while `internal' is true!  "
-                                 "You can't use ExternalAlloc() inside a set_alloc_checking_off() ... "
+                                 "You can't use RegisterExternalAlloc() inside a set_alloc_checking_off() ... "
 				 "set_alloc_checking_on() set, or inside a Dout() et. al." );
 
   DoutInternal( dc::__libcwd_malloc, "register_external_allocation(" << (void*)mptr << ", " << size << ')' );
@@ -1433,7 +1433,7 @@ void register_external_allocation(void const* mptr, size_t size)
   internal = false;
   
   if (!i.second)
-    DoutFatalInternal( dc::core, "register_external_allocation: externally (supposedly newly) allocated block collides with *existing* memblk!  Are you sure this memory block was externally allocated, or did you call ExternalAlloc twice for the same pointer?" );
+    DoutFatalInternal( dc::core, "register_external_allocation: externally (supposedly newly) allocated block collides with *existing* memblk!  Are you sure this memory block was externally allocated, or did you call RegisterExternalAlloc twice for the same pointer?" );
 
   memblk_info_ct& memblk_info((*i.first).second);
   memblk_info.lock();		// Lock ownership (doesn't call malloc).
