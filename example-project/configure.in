@@ -39,7 +39,7 @@ dnl Configuration defines
 if test "$project_config_debugging" = yes; then
 
   dnl Check if we have libcwd
-  AC_CHECK_LIB(cwd, libcwd_version, [LIBS="-lcwd $LIBS"], [AC_CHECK_LIB(cwd, main,,
+  AC_CHECK_LIB(cwd, __libcwd_version, [LIBS="-lcwd $LIBS"], [AC_CHECK_LIB(cwd, main,,
       [AC_MSG_ERROR([
   --enable-debugging: You need to have libcwd installed to enable debugging.
   Or perhaps you need to add its location to LDFLAGS and CPPFLAGS, for example:

@@ -22,7 +22,7 @@ dnl INTERFACE_VERSION_REVISION	: Revision, increment every public release; or se
 dnl INTERFACE_AGE		: Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
 INTERFACE_VERSION=99		dnl 0.99 actually
-INTERFACE_VERSION_REVISION=12
+INTERFACE_VERSION_REVISION=13
 INTERFACE_AGE=99		dnl 0.99 actually
 
 VERSION_MAJOR=`expr $INTERFACE_VERSION - $INTERFACE_AGE`
