@@ -1591,22 +1591,6 @@ already_loaded:
       return *this;
     }
 
-    /**
-     * \brief Write \a location to ostream \a os.
-     * \ingroup group_locations
-     *
-     * Write the contents of a location_ct object to an ostream in the form "source-%file:line-number",
-     * or writes "<unknown location>" when the location is unknown.
-     */
-    std::ostream& operator<<(std::ostream& os, location_ct const& location)
-    {
-      if (location.M_known)
-	os << location.M_filename << ':' << location.M_line;
-      else
-	os << "<unknown location>";
-      return os;
-    }
-
 } // namespace libcwd
 
 #if defined(LIBCWD_DLOPEN_DEFINED) && defined(HAVE_DLOPEN)

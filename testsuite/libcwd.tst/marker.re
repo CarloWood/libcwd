@@ -3,11 +3,11 @@
 ((WARNING : core size is limited.*
 )*(BFD     : Loading debug .*
 )*)
-MALLOC  : operator new \(size = 12\) = 0x[0-9a-f]* \[tst_marker_shared:main\]
-MALLOC  : operator new \(size = 8\) = 0x[0-9a-f]* \[tst_marker_shared:main\]
+MALLOC  : operator new \(size = 12\) = 0x[0-9a-f]* \[marker\.cc:54\]
+MALLOC  : operator new \(size = 8\) = 0x[0-9a-f]* \[marker\.cc:59\]
 MALLOC  : New libcwd::marker_ct at 0x[0-9a-f]*
-MALLOC  : operator new\[\] \(size = 120\) = 0x[0-9a-f]* \[tst_marker_shared:main\]
-MALLOC  : operator new\[\] \(size = 120\) = 0x[0-9a-f]* \[tst_marker_shared:main\]
+MALLOC  : operator new\[\] \(size = 120\) = 0x[0-9a-f]* \[marker\.cc:63\]
+MALLOC  : operator new\[\] \(size = 120\) = 0x[0-9a-f]* \[marker\.cc:65\]
 MALLOC  : Allocated memory: 260 bytes in 4 blocks\.
 \(MARKER\)  0x[0-9a-f]*            marker\.cc:59   <marker>; \(sz = 8\)  A test marker
     new\[\]     0x[0-9a-f]*            marker\.cc:65   int\[30\]; \(sz = 120\)  Created after the marker

@@ -53,7 +53,7 @@ public:
   container_type const& read_locked(void) const;
 };
 
-__inline__
+inline
 debug_objects_ct::container_type&
 debug_objects_ct::write_locked(void)
 {
@@ -63,7 +63,7 @@ debug_objects_ct::write_locked(void)
   return *WNS_debug_objects;
 }
 
-__inline__
+inline
 debug_objects_ct::container_type const&
 debug_objects_ct::read_locked(void) const
 {

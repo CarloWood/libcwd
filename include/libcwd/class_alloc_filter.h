@@ -28,6 +28,11 @@
 
 #if CWDEBUG_LOCATION
 #include <libcwd/private_allocator.h>
+#include <libcwd/class_location.h>
+#endif
+#ifndef LIBCW_VECTOR
+#define LIBCW_VECTOR
+#include <vector>
 #endif
 
 namespace libcwd {

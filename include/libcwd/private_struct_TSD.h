@@ -92,12 +92,15 @@ namespace libcwd {
 #define LIBCWD_DO_TSD_MEMBER(debug_object, m) (LIBCWD_DO_TSD(debug_object).m)
 #define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
 
-// This include uses the above macros.
+// These includes use the above macros.
 #ifndef LIBCWD_STRUCT_DEBUG_TSD_H
 #include <libcwd/struct_debug_tsd.h>
 #endif
 #ifndef LIBCWD_PRIVATE_THREAD_H
 #include <libcwd/private_thread.h>
+#endif
+#ifndef LIBCWD_CLASS_LOCATION_H
+#include <libcwd/class_location.h>
 #endif
 
 namespace libcwd {
@@ -114,6 +117,9 @@ public:
   int inside_malloc_or_free;		// Set when entering a (de)allocation routine non-internal.
   int invisible;			// When set, allocation done must be invisible.
 #endif // CWDEBUG_ALLOC
+#if CWDEBUG_LOCATION
+  location_format_t format;		// Determines how to print location_ct to an ostream.
+#endif
 #if LIBCWD_THREAD_SAFE
   threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).
   bool thread_iter_valid;
@@ -190,7 +196,7 @@ extern TSD_st __libcwd_tsd;
 #else
 extern bool WST_tsd_key_created;
 
-__inline__
+inline
 TSD_st& TSD_st::instance(void)
 {
   TSD_st* instance;
@@ -200,7 +206,7 @@ TSD_st& TSD_st::instance(void)
 }
 
 // This function is called at the start of free().
-__inline__
+inline
 TSD_st& TSD_st::instance_free(void)
 {
   TSD_st* instance;

@@ -105,7 +105,7 @@
  *
  * \par Description
  *
- * Adds code that supports source-%file:line-number lookup.&nbsp;
+ * Adds code that supports source-file:line-number lookup.&nbsp;
  * This will load debugging symbols at the start of a program allowing
  * one to print source file / line number information.<BR><BR>
  * Turning this on causes libcwd to print source file and line
@@ -366,7 +366,7 @@ extern void version_check_failed(void);
  * Debug( check_configuration() );
  * \endcode
  */
-__inline__
+inline
 void
 check_configuration(void) {
   if (get_config_signature_lib_c() != config_signature_header_c)

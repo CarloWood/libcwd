@@ -216,7 +216,7 @@ template<typename TYPE>
   // when this function is inline.  I was able to use heuristics to work around that for
   // STABS, but not for DWARF-2 (the default of FreeBSD).
   // See http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view%20audit-trail&database=gcc&pr=5271
-  __inline__
+  inline
 #endif
   TYPE*
   __libcwd_allocCatcher(TYPE* new_ptr)

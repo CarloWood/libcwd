@@ -1,5 +1,13 @@
 libcwd-0.99.37
 
+	The format of how a location_ct is written to an ostream
+	can now be controlled with libcwd::location_format().
+	It takes the same bit masks as the alloc filter, though
+	restricted to the flags 'show_objectfile', 'show_function'
+	and 'show_path'.  Instead of printing "<unknown function>"
+	libcwd will now print the objectfile and the mangled
+	function name of that location.
+
 	The location at which memory is allocated is now also
 	printed at the moment the memory is allocated and not only
 	when it is being deleted. It is appended after the

@@ -23,21 +23,21 @@
 
 namespace libcwd {
 
-__inline__
+inline
 fatal_channel_ct::fatal_channel_ct(char const* label, control_flag_t maskbit)
 {
   LIBCWD_TSD_DECLARATION;
   NS_initialize(label, maskbit LIBCWD_COMMA_TSD);
 }
 
-__inline__
+inline
 control_flag_t
 fatal_channel_ct::get_maskbit(void) const
 { 
   return WNS_maskbit;
 }
 
-__inline__
+inline
 char const*
 fatal_channel_ct::get_label(void) const
 { 

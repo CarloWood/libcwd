@@ -138,10 +138,10 @@ extern void init_debugmalloc(void);
 
 namespace libcwd {
 
-__inline__ void make_invisible(void const*) { } 
-__inline__ void make_all_allocations_invisible_except(void const*) { }
-__inline__ void set_invisible_on(void) { }
-__inline__ void set_invisible_off(void) { }
+inline void make_invisible(void const*) { } 
+inline void make_all_allocations_invisible_except(void const*) { }
+inline void set_invisible_on(void) { }
+inline void set_invisible_off(void) { }
 
 } // namespace libcwd
 
@@ -159,7 +159,7 @@ namespace libcwd {
 extern unsigned long list_allocations_on(debug_ct& debug_object, alloc_filter_ct const& format);
 extern unsigned long list_allocations_on(debug_ct& debug_object);
 #else // !CWDEBUG_ALLOC
-__inline__ void list_allocations_on(debug_ct&) { }
+inline void list_allocations_on(debug_ct&) { }
 #endif // !CWDEBUG_ALLOC
 
 } // namespace libcwd
@@ -194,7 +194,7 @@ extern "C" void  free(void* ptr) throw();
 #define wcsdup __libcwd_wcsdup
 #endif
 
-__inline__
+inline
 char*
 __libcwd_strdup(char const* str)
 {
@@ -214,7 +214,7 @@ extern "C" {
   wchar_t* wmemcpy(wchar_t*, wchar_t const*, size_t);
 }
 
-__inline__
+inline
 wchar_t*
 __libcwd_wcsdup(wchar_t const* str)
 {

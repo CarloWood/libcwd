@@ -109,7 +109,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 namespace libcwd {
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
-__inline__
+inline
 _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, pthread_mutex_t const& mutex)
 {

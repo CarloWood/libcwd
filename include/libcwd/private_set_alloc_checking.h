@@ -35,30 +35,30 @@ namespace libcwd {
   extern int set_library_call_on(LIBCWD_TSD_PARAM);
   extern void set_library_call_off(int saved_internal LIBCWD_COMMA_TSD_PARAM);
 #else
-  __inline__ void set_alloc_checking_off(LIBCWD_TSD_PARAM) { ++__libcwd_tsd.internal; }
-  __inline__ void set_alloc_checking_on(LIBCWD_TSD_PARAM) { --__libcwd_tsd.internal; }
-  __inline__ int set_library_call_on(LIBCWD_TSD_PARAM)
+  inline void set_alloc_checking_off(LIBCWD_TSD_PARAM) { ++__libcwd_tsd.internal; }
+  inline void set_alloc_checking_on(LIBCWD_TSD_PARAM) { --__libcwd_tsd.internal; }
+  inline int set_library_call_on(LIBCWD_TSD_PARAM)
       {
 	int internal_saved = __libcwd_tsd.internal;
 	__libcwd_tsd.internal = 0;
 	++__libcwd_tsd.library_call;
 	return internal_saved;
       }
-  __inline__ void set_library_call_off(int saved_internal LIBCWD_COMMA_TSD_PARAM)
+  inline void set_library_call_off(int saved_internal LIBCWD_COMMA_TSD_PARAM)
       {
 	__libcwd_tsd.internal = saved_internal;
 	--__libcwd_tsd.library_call;
       }
 #endif
-  __inline__ void set_invisible_on(LIBCWD_TSD_PARAM) { ++__libcwd_tsd.invisible; }
-  __inline__ void set_invisible_off(LIBCWD_TSD_PARAM) { --__libcwd_tsd.invisible; }
+  inline void set_invisible_on(LIBCWD_TSD_PARAM) { ++__libcwd_tsd.invisible; }
+  inline void set_invisible_off(LIBCWD_TSD_PARAM) { --__libcwd_tsd.invisible; }
 #else // !CWDEBUG_ALLOC
-  __inline__ void set_alloc_checking_off(LIBCWD_TSD_PARAM) { }
-  __inline__ void set_alloc_checking_on(LIBCWD_TSD_PARAM) { }
-  __inline__ int set_library_call_on(LIBCWD_TSD_PARAM) { return 0; }
-  __inline__ void set_library_call_off(int LIBCWD_COMMA_TSD_PARAM) { }
-  __inline__ void set_invisible_on(LIBCWD_TSD_PARAM) { }
-  __inline__ void set_invisible_off(LIBCWD_TSD_PARAM) { }
+  inline void set_alloc_checking_off(LIBCWD_TSD_PARAM) { }
+  inline void set_alloc_checking_on(LIBCWD_TSD_PARAM) { }
+  inline int set_library_call_on(LIBCWD_TSD_PARAM) { return 0; }
+  inline void set_library_call_off(int LIBCWD_COMMA_TSD_PARAM) { }
+  inline void set_invisible_on(LIBCWD_TSD_PARAM) { }
+  inline void set_invisible_off(LIBCWD_TSD_PARAM) { }
 #endif // !CWDEBUG_ALLOC
 
   } // namespace _private_

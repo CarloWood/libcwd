@@ -23,7 +23,7 @@
 
 namespace libcwd {
 
-__inline__
+inline
 _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, char const* data)
 {
@@ -31,7 +31,7 @@ operator<<(_private_::raw_write_nt const& raw_write, char const* data)
   return raw_write;
 }
 
-__inline__
+inline
 _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, void const* data)
 {
@@ -50,7 +50,7 @@ operator<<(_private_::raw_write_nt const& raw_write, void const* data)
   return raw_write;
 }
 
-__inline__ _private_::raw_write_nt const&
+inline _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, bool data)
 {
   if (data)
@@ -60,7 +60,7 @@ operator<<(_private_::raw_write_nt const& raw_write, bool data)
   return raw_write;
 }
 
-__inline__ _private_::raw_write_nt const&
+inline _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, char data)
 {
   char c[1];
@@ -69,7 +69,7 @@ operator<<(_private_::raw_write_nt const& raw_write, char data)
   return raw_write;
 }
 
-__inline__ _private_::raw_write_nt const&
+inline _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, unsigned long data)
 {
   char c[11];
@@ -84,7 +84,7 @@ operator<<(_private_::raw_write_nt const& raw_write, unsigned long data)
   return raw_write;
 }
 
-__inline__
+inline
 _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, long data)
 {
@@ -96,20 +96,20 @@ operator<<(_private_::raw_write_nt const& raw_write, long data)
   return operator<<(raw_write, (unsigned long)data);
 }
 
-__inline__ _private_::raw_write_nt const&
+inline _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, int data)
 {
   return operator<<(raw_write, (long)data);
 }
 
-__inline__
+inline
 _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, unsigned int data)
 {
   return operator<<(raw_write, static_cast<unsigned long>(data));
 }
 
-__inline__
+inline
 _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, libcwd::_private_::internal_string const& data)
 {

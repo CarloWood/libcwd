@@ -44,7 +44,10 @@
 
 namespace libcwd {
 
-    namespace _private_ {
+// Forward declaration.
+class location_ct;
+
+  namespace _private_ {
 
 enum hidden_st {
   filtered_location,
@@ -52,7 +55,19 @@ enum hidden_st {
   new_location
 };
 
-    } // namespace _private_
+// Forward declaration.
+template<class OSTREAM>
+  void print_location_on(OSTREAM& os, location_ct const& location);
+
+  } // namespace _private_
+} // namespace libcwd
+
+// This header file uses hidden_st
+#ifndef LIBCWD_CLASS_ALLOC_FILTER_H
+#include <libcwd/class_alloc_filter.h>
+#endif
+
+namespace libcwd {
 
 /** \addtogroup group_locations */
 /** \{ */
@@ -201,8 +216,8 @@ public:
   void print_filepath_on(std::ostream& os) const;
   /** \brief Write the file name to an ostream. */
   void print_filename_on(std::ostream& os) const;
-  friend std::ostream& operator<<(std::ostream& os, location_ct const& location);
-      // Prints a default "M_filename:M_line".
+  template<class OSTREAM>
+    friend void _private_::print_location_on(OSTREAM& os, location_ct const& location);
 
   // This is used in list_allocations_on.
   bool initialization_delayed(void) const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
@@ -214,6 +229,28 @@ public:
   void synchronize_with(alloc_filter_ct const&) const;
 #endif
 };
+
+/** \brief The type of the argument of location_format
+ *
+ * This type is the same as alloc_format_t but should
+ * only be used together with the bit masks \ref show_objectfile, \ref show_function and \ref show_path.
+ */
+typedef unsigned short int location_format_t;
+
+/** \brief Set the output format of location_ct.
+ *
+ * This function can be used to specify the format of how a location_ct will be printed
+ * when it is written to an ostream.  The format is thread-specific: only the calling
+ * thread will be influenced.
+ *
+ * The argument \a format is a bit-wise OR-ed value of three possible bit masks:
+ * \c show_function : Include the mangled function name.
+ * \c show_object : Include the name of the shared library or the executable name.
+ * \c show_path : Print the full path of the source file.
+ *
+ * \returns the previous value of the format.
+ */
+location_format_t location_format(location_format_t format);
 
 /** \} */ // End of group 'group_locations'
 

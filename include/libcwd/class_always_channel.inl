@@ -23,7 +23,7 @@
 
 namespace libcwd {
 
-__inline__
+inline
 channel_set_st&
 channel_set_bootstrap_st::operator|(always_channel_ct const& adc)
 {

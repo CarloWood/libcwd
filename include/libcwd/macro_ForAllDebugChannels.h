@@ -51,7 +51,7 @@ public:
   container_type const& read_locked(void) const;
 };
 
-__inline__
+inline
 debug_channels_ct::container_type&
 debug_channels_ct::write_locked(void)
 {
@@ -61,7 +61,7 @@ debug_channels_ct::write_locked(void)
   return *WNS_debug_channels;
 }
 
-__inline__
+inline
 debug_channels_ct::container_type const&
 debug_channels_ct::read_locked(void) const
 {

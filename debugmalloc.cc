@@ -1753,7 +1753,7 @@ static void* internal_malloc(size_t size, memblk_types_nt flag
 #endif
 
   DoutInternal(dc::finish, (void*)(mptr)
-      LIBCWD_LOCATION_OPT(<< " [" << loc->object_file()->filename() << ':' << loc->mangled_function_name() << ']')
+      LIBCWD_LOCATION_OPT(<< " [" << *loc << ']')
       << (__libcwd_tsd.invisible ? " (invisible)" : "")
       LIBCWD_DEBUGM_OPT(<< " [" << saved_marker << ']'));
   return mptr;
@@ -3681,7 +3681,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
 
   DoutInternal(dc::finish, (void*)(mptr)
-      LIBCWD_LOCATION_OPT(<< " [" << loc->object_file()->filename() << ':' << loc->mangled_function_name() << ']')
+      LIBCWD_LOCATION_OPT(<< " [" << *loc << ']')
       << (__libcwd_tsd.invisible ? " (invisible)" : "")
       LIBCWD_DEBUGM_OPT(<< " [" << saved_marker << ']'));
   --__libcwd_tsd.inside_malloc_or_free;

@@ -148,7 +148,7 @@ namespace libcwd {
 
 // Prototype of `type_info_of'.
 template<typename T>
-  __inline__
+  inline
   type_info_ct const&
   type_info_of(T const&
 #ifdef LIBCWD_DOXYGEN
@@ -175,7 +175,7 @@ template<typename T>
  * \endcode
  */
 template<typename T>
-  __inline__
+  inline
   type_info_ct const&
   type_info_of(void)
   {
@@ -192,7 +192,7 @@ template<typename T>
  * are ignored in the same way as does \c typeid() (see 5.2.8 Type identification of the ISO C++ standard).
  */ 
 template<typename T>
-  __inline__
+  inline
   type_info_ct const&
   type_info_of(T const&)		// If we don't use a reference, this would _still_ cause the copy constructor to be called.
   					// Besides, using `const&' doesn't harm the result as typeid() always ignores the top-level

@@ -66,7 +66,7 @@ public:
    * \brief Write the character represented by \a c2s to the \c ostream \a os,
    * escaping it when it is a non-printable character.
    */
-  friend __inline__ std::ostream& operator<<(std::ostream& os, char2str const c2s)
+  friend inline std::ostream& operator<<(std::ostream& os, char2str const c2s)
   {
     if ((c2s.c > 31 && c2s.c != 92 && c2s.c != 127) || (unsigned char)c2s.c > 159)
       c2s.print_char_to(os);

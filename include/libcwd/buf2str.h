@@ -73,7 +73,7 @@ public:
    * to the \c ostream \a os, escaping non-printable characters.
    */
   friend
-  __inline__
+  inline
   std::ostream&
   operator<<(std::ostream& os, buf2str const& __buf2str)
   {

@@ -32,7 +32,7 @@ namespace libcwd {
 // The size of 64 should be MORE then enough.
 
 template<typename T>
-  __inline__
+  inline
   void
   debug_stack_tst<T>::init(void)
   {
@@ -41,7 +41,7 @@ template<typename T>
   }
 
 template<typename T>
-  __inline__
+  inline
   void
   debug_stack_tst<T>::push(T ptr)
   {
@@ -60,7 +60,7 @@ template<typename T>
 extern void print_pop_error(void);
 
 template<typename T>
-  __inline__
+  inline
   void
   debug_stack_tst<T>::pop(void)
   {
@@ -73,7 +73,7 @@ template<typename T>
   }
 
 template<typename T>
-  __inline__
+  inline
   T
   debug_stack_tst<T>::top(void) const
   {
@@ -84,7 +84,7 @@ template<typename T>
   }
 
 template<typename T>
-  __inline__
+  inline
   size_t
   debug_stack_tst<T>::size(void) const
   {

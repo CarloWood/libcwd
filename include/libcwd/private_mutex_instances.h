@@ -74,7 +74,7 @@ enum mutex_instance_nt {
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 extern int instance_locked[instance_locked_size];	// MT: Each element is locked by the
-__inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; }
+inline bool is_locked(int instance) { return instance_locked[instance] > 0; }
 #endif
 #if CWDEBUG_DEBUGT
 extern pthread_t locked_by[instance_locked_size];	// The id of the thread that last locked it, or 0 when that thread unlocked it.

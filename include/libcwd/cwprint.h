@@ -41,7 +41,7 @@ template<class PRINTABLE_OBJECT>
     cwprint_tct(PRINTABLE_OBJECT const& printable_object) : M_printable_object(printable_object) { }
 
     friend
-    __inline__	// Must be defined inside the class declaration in order to avoid a compiler warning.
+    inline	// Must be defined inside the class declaration in order to avoid a compiler warning.
     std::ostream&
     operator<<(std::ostream& os, cwprint_tct<PRINTABLE_OBJECT> const& __cwprint)
     {
@@ -84,7 +84,7 @@ template<class PRINTABLE_OBJECT>
  */
 
 template<class T>
-  __inline__
+  inline
   cwprint_tct<T>
   cwprint(T const& printable_object)
   {
@@ -106,7 +106,7 @@ template<class PRINTABLE_OBJECT>
 	M_printable_object(printable_object), M_print_on_method(print_on_method) { }
 
     friend
-    __inline__	// Must be defined inside the class declaration in order to avoid a compiler warning.
+    inline	// Must be defined inside the class declaration in order to avoid a compiler warning.
     std::ostream&
     operator<<(std::ostream& os, cwprint_using_tct<PRINTABLE_OBJECT> __cwprint_using)
     {
@@ -154,7 +154,7 @@ template<class PRINTABLE_OBJECT>
 // when `print_on_method' is a method of the base class of T.
 
 template<class T, class T_OR_BASE_OF_T>
-  __inline__
+  inline
   cwprint_using_tct<T_OR_BASE_OF_T>
   cwprint_using(T const& printable_object, void (T_OR_BASE_OF_T::*print_on_method)(std::ostream&) const)
   {

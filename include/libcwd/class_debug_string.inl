@@ -33,7 +33,7 @@ namespace libcwd {
 /**
  * \brief Copy constructor.
  */
-__inline__
+inline
 debug_string_ct::debug_string_ct(debug_string_ct const& ds)
 {
   NS_internal_init(ds.M_str, ds.M_size);
@@ -45,7 +45,7 @@ debug_string_ct::debug_string_ct(debug_string_ct const& ds)
 /**
  * \brief Assign \a str with size \a len to the string.
  */
-__inline__
+inline
 void
 debug_string_ct::assign(char const* str, size_t len)
 {
@@ -58,7 +58,7 @@ debug_string_ct::assign(char const* str, size_t len)
 /**
  * \brief Append \a str with size \a len to the string.
  */
-__inline__
+inline
 void
 debug_string_ct::append(char const* str, size_t len) 
 {
@@ -71,7 +71,7 @@ debug_string_ct::append(char const* str, size_t len)
 /**
  * \brief Prepend \a str with size \a len to the string.
  */
-__inline__
+inline
 void
 debug_string_ct::prepend(char const* str, size_t len)
 {
@@ -84,7 +84,7 @@ debug_string_ct::prepend(char const* str, size_t len)
 /**
  * \brief The size of the string.
  */
-__inline__
+inline
 size_t
 debug_string_ct::size(void) const
 {
@@ -94,7 +94,7 @@ debug_string_ct::size(void) const
 /**
  * \brief The capacity of the string.
  */
-__inline__
+inline
 size_t
 debug_string_ct::capacity(void) const
 {
@@ -104,7 +104,7 @@ debug_string_ct::capacity(void) const
 /**
  * \brief A zero terminated char const pointer.
  */
-__inline__
+inline
 char const*
 debug_string_ct::c_str(void) const
 {
@@ -114,7 +114,7 @@ debug_string_ct::c_str(void) const
 /**
  * \brief Assign \a str to the string.
  */
-__inline__
+inline
 void
 debug_string_ct::assign(std::string const& str)
 {
@@ -124,7 +124,7 @@ debug_string_ct::assign(std::string const& str)
 /**
  * \brief Append \a str to the string.
  */
-__inline__
+inline
 void
 debug_string_ct::append(std::string const& str)
 {
@@ -134,14 +134,14 @@ debug_string_ct::append(std::string const& str)
 /**
  * \brief Prepend \a str to the string.
  */
-__inline__
+inline
 void
 debug_string_ct::prepend(std::string const& str)
 {
   prepend(str.data(), str.size());
 }
 
-__inline__
+inline
 debug_string_stack_element_ct::debug_string_stack_element_ct(debug_string_ct const& ds) : debug_string(ds)
 {
 }

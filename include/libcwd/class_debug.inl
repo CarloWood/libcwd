@@ -38,7 +38,7 @@ namespace libcwd {
 /** \addtogroup group_formatting */
 /* \{ */
 
-__inline__
+inline
 debug_string_ct&
 debug_ct::margin(void)
 {
@@ -46,7 +46,7 @@ debug_ct::margin(void)
   return LIBCWD_TSD_MEMBER(margin);
 }
 
-__inline__
+inline
 debug_string_ct const&
 debug_ct::margin(void) const
 {
@@ -54,7 +54,7 @@ debug_ct::margin(void) const
   return LIBCWD_TSD_MEMBER(margin);
 }
 
-__inline__
+inline
 debug_string_ct&
 debug_ct::marker(void)
 {
@@ -62,7 +62,7 @@ debug_ct::marker(void)
   return LIBCWD_TSD_MEMBER(marker);
 }
 
-__inline__
+inline
 debug_string_ct const&
 debug_ct::marker(void) const
 {
@@ -73,7 +73,7 @@ debug_ct::marker(void) const
 /**
  * \brief Set number of spaces to indent.
  */
-__inline__
+inline
 void
 debug_ct::set_indent(unsigned short i)
 {
@@ -84,7 +84,7 @@ debug_ct::set_indent(unsigned short i)
 /**
  * \brief Increment number of spaces to indent.
  */
-__inline__
+inline
 void
 debug_ct::inc_indent(unsigned short i)
 {
@@ -95,7 +95,7 @@ debug_ct::inc_indent(unsigned short i)
 /**
  * \brief Decrement number of spaces to indent.
  */
-__inline__
+inline
 void
 debug_ct::dec_indent(unsigned short i)
 {
@@ -107,7 +107,7 @@ debug_ct::dec_indent(unsigned short i)
 /**
  * \brief Get the current indentation.
  */
-__inline__
+inline
 unsigned short
 debug_ct::get_indent(void) const
 {
@@ -123,14 +123,14 @@ debug_ct::get_indent(void) const
 /**
  * \brief Get the \c ostream device as set with set_ostream().
  */
-__inline__
+inline
 std::ostream*
 debug_ct::get_ostream(void) const
 {
   return real_os;
 }
 
-__inline__
+inline
 void
 debug_ct::private_set_ostream(std::ostream* os)
 {
@@ -151,7 +151,7 @@ debug_ct::private_set_ostream(std::ostream* os)
  * \sa group_debug_object
  * \sa chapter_custom_do
  */
-__inline__
+inline
 debug_ct::debug_ct(void)
 {
   LIBCWD_TSD_DECLARATION;
@@ -166,7 +166,7 @@ debug_ct::debug_ct(void)
 /**
  * \brief Turn this %debug object off.
  */
-__inline__
+inline
 void
 debug_ct::off(void)
 {
@@ -197,7 +197,7 @@ debug_ct::off(void)
  *
  * Note that the statement <CODE>i++</CODE> was never executed.
  */
-__inline__
+inline
 void
 debug_ct::on(void)
 {
@@ -212,7 +212,7 @@ debug_ct::on(void)
 #endif
 }
 
-__inline__
+inline
 channel_set_st&
 channel_set_bootstrap_st::operator|(channel_ct const& dc)
 {
@@ -222,7 +222,7 @@ channel_set_bootstrap_st::operator|(channel_ct const& dc)
   return *reinterpret_cast<channel_set_st*>(this);
 }
 
-__inline__
+inline
 channel_set_st&
 channel_set_bootstrap_st::operator&(fatal_channel_ct const& fdc)
 {

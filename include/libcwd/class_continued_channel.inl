@@ -23,13 +23,13 @@
 
 namespace libcwd {
 
-__inline__
+inline
 continued_channel_ct::continued_channel_ct(control_flag_t maskbit)
 {
   NS_initialize(maskbit);
 }
 
-__inline__
+inline
 control_flag_t
 continued_channel_ct::get_maskbit(void) const
 { 

@@ -14,6 +14,7 @@
 #ifndef CWD_DEBUG_H
 #define CWD_DEBUG_H
 
+#include <libcwd/debug.h>
 #ifndef RAW_WRITE_H
 #include <raw_write.h>
 #endif
@@ -27,7 +28,6 @@
 #ifndef LIBCWD_PRIVATE_INTERNAL_STRING_H
 #include <libcwd/private_internal_string.h>
 #endif
-#include <libcwd/debug.h>
 
 extern "C" size_t strlen(const char *s) throw();
 
@@ -97,6 +97,12 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
 inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, void const* data)
 {
   _private_::no_alloc_print_int_to(&os.M_os, reinterpret_cast<unsigned long>(data), true);
+  return os;
+}
+
+inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, location_ct const& location)
+{
+  _private_::print_location_on(os, location);
   return os;
 }
 

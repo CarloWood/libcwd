@@ -39,7 +39,7 @@ namespace libcwd {
 /**
  * \brief Construct a location for address \p addr.
  */
-__inline__
+inline
 location_ct::location_ct(void const* addr) : M_known(false)
 #if CWDEBUG_ALLOC
     , M_hide(_private_::new_location)
@@ -54,7 +54,7 @@ location_ct::location_ct(void const* addr) : M_known(false)
  * Construct a location for address addr,
  * taking a thread-specific-data argument.
  */
-__inline__
+inline
 location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false)
 #if CWDEBUG_ALLOC
      , M_hide(_private_::new_location)
@@ -67,13 +67,13 @@ location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(fals
 /**
  * \brief Destructor.
  */
-__inline__
+inline
 location_ct::~location_ct()
 {
   clear();
 }
 
-__inline__
+inline
 location_ct::location_ct(void) : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
 #if CWDEBUG_ALLOC
     , M_hide(_private_::new_location)
@@ -84,7 +84,7 @@ location_ct::location_ct(void) : M_func(S_uninitialized_location_ct_c), M_object
 /**
  * \brief Point this location to a different program counter address.
  */
-__inline__
+inline
 void
 location_ct::pc_location(void const* addr)
 {
@@ -93,14 +93,14 @@ location_ct::pc_location(void const* addr)
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
 
-__inline__
+inline
 bool
 location_ct::is_known(void) const
 {
   return M_known;
 }
 
-__inline__
+inline
 std::string
 location_ct::file(void) const
 {
@@ -112,7 +112,7 @@ location_ct::file(void) const
   return M_filename;
 }
 
-__inline__
+inline
 unsigned int
 location_ct::line(void) const
 {
@@ -120,11 +120,62 @@ location_ct::line(void) const
   return M_line;
 }
 
-__inline__
+inline
 char const*
 location_ct::mangled_function_name(void) const
 {
   return M_func;
+}
+
+inline
+location_format_t
+location_format(location_format_t format)
+{
+  LIBCWD_TSD_DECLARATION;
+  location_format_t ret = __libcwd_tsd.format;
+  __libcwd_tsd.format = format;
+  return ret;
+}
+
+namespace _private_ {
+
+template<class OSTREAM>
+  void print_location_on(OSTREAM& os, location_ct const& location)
+  {
+    if (location.M_known)
+    {
+      LIBCWD_TSD_DECLARATION;
+      if ((__libcwd_tsd.format & show_objectfile))
+	os << location.M_object_file->filename() << ':';
+      if ((__libcwd_tsd.format & show_function))
+	os << location.M_func << ':';
+      if ((__libcwd_tsd.format & show_path))
+	os << location.M_filepath.get() << ':' << location.M_line;
+      else
+	os << location.M_filename << ':' << location.M_line;
+    }
+    else
+      os << location.M_object_file->filename() << ':' << location.M_func;
+  }
+
+} // namespace _private_
+
+/**
+ * \brief Write \a location to ostream \a os.
+ * \ingroup group_locations
+ *
+ * Write the contents of a location_ct object to an ostream in the form <i>source-file</i>:<i>line-number</i>,
+ * or writes <i>objectfile</i>:<i>mangledfuncname</i> when the location is unknown.
+ * If the <i>source-file</i>:<i>line-number</i> is known, then it may be prepended by the object file
+ * and/or the mangled function name anyway if this was requested through \ref location_format.
+ * That function can also be used to cause the <i>source-file</i> to be printed with its full path.
+ */
+inline
+std::ostream&
+operator<<(std::ostream& os, location_ct const& location)
+{
+  _private_::print_location_on(os, location);
+  return os;
 }
 
 } // namespace libcwd

@@ -92,7 +92,7 @@ __gnu_cxx::_STL_mutex_lock* _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr;
 
 // The following tries to take the "node allocator" lock -- the lock of the
 // default allocator for threaded applications.
-__inline__
+inline
 bool allocator_trylock(void)
 {
 #if (__GNUC__ < 3 || __GNUC_MINOR__ == 0)
@@ -117,7 +117,7 @@ bool allocator_trylock(void)
 }
 
 // The following unlocks the node allocator.
-__inline__
+inline
 void allocator_unlock(void)
 {
 #if (__GNUC__ < 3 || __GNUC_MINOR__ == 0)
