@@ -24,7 +24,7 @@ RCSTAG_H(debugmalloc, "$Id$")
 
 #include <libcw/iomanip.h>
 #include <libcw/lockable_auto_ptr.h>
-#include <libcw/no_alloc_checking_ostrstream.h>
+#include <libcw/no_alloc_checking_stringstream.h>
 #ifdef DEBUGUSEBFD
 #include <libcw/bfd.h>
 #endif
@@ -208,28 +208,31 @@ extern void init_debugmalloc(void);
 	::libcw::debug::set_alloc_checking_off(); \
 	if (1) \
 	{ \
-	  ::libcw::debug::no_alloc_checking_ostrstream buf; \
+	  ::libcw::debug::no_alloc_checking_stringstream buf; \
 	  ::libcw::debug::set_alloc_checking_on(); \
 	  buf << x << ::std::ends; \
 	  ::libcw::debug::set_alloc_checking_off(); \
-	  desc = buf.str(); /* Implicit buf.freeze(1) */ \
+	  size_t size = buf.rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out); \
+	  desc = new char [size]; /* This is never deleted anymore */ \
+	  buf.rdbuf()->sgetn(desc, size); \
 	} \
 	::libcw::debug::set_alloc_checking_on(); \
       } \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), desc); /* Don't care about the memory leak though */ \
+      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), desc); \
     } while(0)
-
 #define AllocTag_dynamic_description(p, x) \
     do { \
       char* desc; \
       ::libcw::debug::set_alloc_checking_off(); \
       if (1) \
       { \
-	::libcw::debug::no_alloc_checking_ostrstream buf; \
+	::libcw::debug::no_alloc_checking_stringstream buf; \
 	::libcw::debug::set_alloc_checking_on(); \
 	buf << x << ::std::ends; \
 	::libcw::debug::set_alloc_checking_off(); \
-	desc = buf.str(); /* Implicit buf.freeze(1) */ \
+	size_t size = buf.rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out); \
+	desc = new char [size]; \
+	buf.rdbuf()->sgetn(desc, size); \
       } \
       ::libcw::debug::set_alloc_checking_on(); \
       ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), ::libcw::lockable_auto_ptr<char, true>(desc)); \

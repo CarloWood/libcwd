@@ -4,7 +4,11 @@
 
 int main(void)
 {
+#ifdef LIBCW_USE_STRSTREAM
   std::ostrstream buf;
+#else
+  std::ostringstream buf;
+#endif
 
   Debug( check_configuration() );
   Debug( libcw_do.on() );

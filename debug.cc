@@ -16,15 +16,14 @@
 #ifdef CWDEBUG
 #include <errno.h>
 #include <signal.h>		// Needed for raise()
+#include <iostream>
 #include <sys/time.h>     	// Needed for setrlimit()
 #include <sys/resource.h>	// Needed for setrlimit()
-#include <iostream>		// Needed for cerr
 #include <algorithm>
 #include <new>
-#include <strstream>
 #include <libcw/debug.h>
 #include <libcw/strerrno.h>
-#include <libcw/no_alloc_checking_ostrstream.h>
+#include <libcw/no_alloc_checking_stringstream.h>
 #ifdef DEBUGUSEBFD
 #include <libcw/bfd.h>		// Needed for location_ct
 #endif
@@ -37,6 +36,25 @@ using namespace std;
 #ifdef CWDEBUG
 namespace libcw {
   namespace debug {
+
+    class buffer_ct : public no_alloc_checking_stringstream {
+    private:
+      pos_type position;
+    public:
+      void writeto(ostream* os)
+      {
+	int curlen = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out) - rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
+	for (char c = rdbuf()->sgetc(); --curlen >= 0; c = rdbuf()->snextc())
+	  os->put(c);
+      }
+      void store_position(void) {
+	position = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out);
+      }
+      void restore_position(void) {
+	rdbuf()->pubseekoff(position, ios_base::beg, ios_base::out);
+	rdbuf()->pubseekoff(0, ios_base::beg, ios_base::in);
+      }
+    };
 
     // Configuration signature
     unsigned long config_signature_lib = config_signature_header;
@@ -136,14 +154,8 @@ namespace libcw {
 
     class laf_ct {
     public:
-      no_alloc_checking_ostrstream oss;
+      buffer_ct oss;
 	// The temporary output buffer.
-
-      int prefix_end;
-	// Number of characters in oss that make up the prefix.
-
-      size_t flushed;
-	// Number of character in the buffer that are already flushed.
 
       control_flag_t mask;
 	// The previous control bits.
@@ -158,7 +170,7 @@ namespace libcw {
 	// The current errno.
 
     public:
-      laf_ct(control_flag_t m, char const* l, ostream* os, int e) : flushed(0), mask(m), label(l), saved_os(os), err(e) { }
+      laf_ct(control_flag_t m, char const* l, ostream* os, int e) : mask(m), label(l), saved_os(os), err(e) { }
     };
 
     static inline void write_whitespace_to(ostream& os, unsigned int size)
@@ -198,15 +210,12 @@ namespace libcw {
       if ((current->mask & continued_cf_maskbit) && unfinished_expected)
       {
         // Write out what is in the buffer till now.
-	os->write(current->oss.str() + current->flushed, current->oss.pcount() - current->flushed);
-	current->oss.freeze(0);
+        current->oss.writeto(os);
 	// Append <unfinished> to it.
-	*os << "<unfinished>\n";		// Continued debug output should end on a space by itself.
+	os->write("<unfinished>\n", 13);	// Continued debug output should end on a space by itself,
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
-	//current->oss.rdbuf()->seekoff(current->prefix_end, ios_base::beg);
-	current->oss.rdbuf()->pubseekoff(current->prefix_end, ios_base::beg);
-	current->oss << "<continued> ";		// Therefore we repeat the space here.
-	current->flushed = 0;
+	current->oss.restore_position();
+	current->oss << "<continued> ";		// therefore we repeat the space here.
       }
 
       // By putting this here instead of in finish(), all nested debug output will go to cerr too.
@@ -219,7 +228,7 @@ namespace libcw {
       // Is this a nested debug output (the first of a series in the middle of another debug output)?
       if (!start_expected)
       {
-	// Put current ostrstream on the stack.
+	// Put current stringstream on the stack.
 	laf_stack.push(current);
 
 	// Indent nested debug output with 4 extra spaces.
@@ -278,9 +287,9 @@ namespace libcw {
       // If this is continued debug output, then it makes sense to remember the prefix length,
       // just in case we need indeed to output <continued> data (it wouldn't hurt to do this
       // always, but it is rarely a continued debug output and the mask test is faster than
-      // calling pcount().
+      // calling store_position().
       if ((channel_set.mask & continued_cf_maskbit))
-        current->prefix_end = current->oss.pcount();
+        current->oss.store_position();
 
       --_off;
       DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << _off );
@@ -300,10 +309,8 @@ namespace libcw {
 	if ((current->mask & flush_cf))
 	{
 	  // Write buffer to ostream.
-	  os->write(current->oss.str() + current->flushed, current->oss.pcount() - current->flushed);
-	  current->oss.freeze(0);
-	  current->flushed = current->oss.pcount();	// Remember how much was already written.
-	  // Flush ostream. Note that in the case of nested debug output this `os' can be an ostrstream,
+	  current->oss.writeto(os);
+	  // Flush ostream. Note that in the case of nested debug output this `os' can be an stringstream,
 	  // in that case, no actual flushing is done until the debug output to the real ostream has
 	  // finished.
 	  *os << flush;
@@ -315,8 +322,7 @@ namespace libcw {
       DEBUGDEBUG_CERR( "Entering debug_ct::finish(), _off became " << _off );
 
       // Write buffer to ostream.
-      os->write(current->oss.str() + current->flushed, current->oss.pcount() - current->flushed);
-      current->oss.freeze(0);
+      current->oss.writeto(os);
       channel_set.mask = current->mask;
       channel_set.label = current->label;
       saved_os = current->saved_os;
@@ -704,27 +710,6 @@ namespace libcw {
       return continued_channel_set;
     }
 
-#ifdef DEBUGMALLOC
-    void* no_alloc_checking_alloc(size_t size)
-    {
-      set_alloc_checking_off();
-      channels::dc::malloc.off();
-      void* ptr = (void*)new char[size];
-      channels::dc::malloc.on();
-      set_alloc_checking_on();
-      return ptr;
-    }
-
-    void no_alloc_checking_free(void* ptr)
-    {
-      set_alloc_checking_off();
-      channels::dc::malloc.off();
-      delete [] (char*)ptr;
-      channels::dc::malloc.on();
-      set_alloc_checking_on();
-    }
-#endif
-
     void buf_st::init(char const* s, size_t l, bool first_time)
     {
       if (first_time)
@@ -756,23 +741,6 @@ namespace libcw {
       set_alloc_checking_on();
 #endif
     }
-
-#ifdef DEBUGMALLOC
-    no_alloc_checking_ostrstream::no_alloc_checking_ostrstream(void)
-    {
-      set_alloc_checking_off();
-      my_sb = new strstreambuf(no_alloc_checking_alloc, no_alloc_checking_free);
-      set_alloc_checking_on();
-      ios::init(my_sb);                                 // Add the real buffer
-    }
- 
-    no_alloc_checking_ostrstream::~no_alloc_checking_ostrstream()
-    {
-      set_alloc_checking_off();
-      delete my_sb;
-      set_alloc_checking_on();
-    }
-#endif
 
   }	// namespace debug
 }	// namespace libcw

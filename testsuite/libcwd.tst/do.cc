@@ -23,7 +23,11 @@ int main(void)
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
 
-  ostrstream dummy;	// Do this before turning on debug output
+#ifndef LIBCW_USE_STRSTREAM
+  ostringstream dummy;	// Do this before turning on debug output
+#else
+  ostrstream dummy;
+#endif
 
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
@@ -125,12 +129,12 @@ int main(void)
 
   MyOwnDout(dc::notice, "This is written to cout");
   my_own_do.set_ostream(&dummy);
-  MyOwnDout(dc::notice, "This is written to an ostrstream");
+  MyOwnDout(dc::notice, "This is written to an ostringstream");
   Dout(dc::notice, "This is written to cerr");
   my_own_do.set_ostream(cerrp);
   MyOwnDout(dc::notice, "This is written to cerr");
   dummy << ends;
-  Dout(dc::warning, "Was written to ostrstream: \"" << dummy.str() << '"');
+  Dout(dc::warning, "Was written to ostringstream: \"" << dummy.str() << '"');
 
   exit(0);
 }

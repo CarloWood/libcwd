@@ -387,8 +387,8 @@ public: // Direct access needed in macro LibcwDout().  Do not write to these.
     // Current laf.
 
   std::ostream* current_oss;
-    // The ostrstream of the current laf.  This should *always* be equal to current->oss.
-    // The reason for keeping this copy is to avoid including <strstream> in debug.h.
+    // The stringstream of the current laf.  This should *always* be equal to current->oss.
+    // The reason for keeping this copy is to avoid including <sstream> in debug.h.
 
   union {
     channel_set_st           channel_set;
@@ -404,7 +404,7 @@ protected:
     // The original output ostream (as set with set_ostream() or set_fd()).
 
   std::ostream* os;
-    // The current output ostream (may be a temporal ostrstream).
+    // The current output ostream (may be a temporal stringstream).
 
   bool start_expected;
     // Set to true when start() is expected, otherwise we expect a call to finish().

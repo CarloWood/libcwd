@@ -25,7 +25,8 @@ libcwd_la_SOURCES = \
 	demangle.cc \
 	cwprint.cc \
 	strerrno.cc \
-	type_info.cc
+	type_info.cc \
+	no_alloc_checking_stringstream.cc
 
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
 

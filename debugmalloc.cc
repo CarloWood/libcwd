@@ -134,7 +134,7 @@
 #include <string>
 #include <map>
 #include <iomanip>
-#include <strstream>
+#include <libcw/no_alloc_checking_stringstream.h>
 #include <libcw/debug.h>
 #include <libcw/lockable_auto_ptr.h>
 #include <libcw/demangle.h>
@@ -228,7 +228,6 @@ using std::ios;
 using std::map;
 using std::pair;
 using std::less;
-using std::ostrstream;
 using std::setw;
 using std::ends;
 
@@ -674,7 +673,7 @@ void dm_alloc_ct::print_description(void) const
     if (s > 0 && a_type[s - 1] == '*' && type_info_ptr->ref_size() != 0)
     {
       set_alloc_checking_off();	/* for `buf' */
-      ostrstream* buf = new ostrstream;
+      no_alloc_checking_stringstream* buf = new no_alloc_checking_stringstream;
       if (a_memblk_type == memblk_type_new || a_memblk_type == memblk_type_deleted)
       {
 	if (s > 1 && a_type[s - 2] == ' ')
@@ -698,7 +697,9 @@ void dm_alloc_ct::print_description(void) const
       set_alloc_checking_on();
       Dout( dc::continued, buf->str() );
       set_alloc_checking_off();
+#ifdef LIBCW_USE_STRSTREAM
       buf->freeze(0);
+#endif
       delete buf;
       set_alloc_checking_on();	/* for `buf' */
     }

@@ -25,5 +25,5 @@ DEBUG   : 2311
 * NOTICE  : This is written to cout
 > NOTICE  : This is written to cerr
 * NOTICE  : This is written to cerr
-> WARNING : Was written to ostrstream: "* NOTICE  : This is written to an ostrstream
+> WARNING : Was written to ostringstream: "* NOTICE  : This is written to an ostringstream
 "

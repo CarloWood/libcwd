@@ -180,6 +180,9 @@ namespace std {
     ios::end;
   };
 }
+
+#define LIBCW_USE_STRSTREAM
+
 #endif
 
 // Include an ident for this header file

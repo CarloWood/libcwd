@@ -30,7 +30,6 @@
 
 #include <libcw/sys.h>
 #include <cctype>
-#include <strstream>
 #include <libcw/debug.h>
 #include <libcw/demangle.h>
 
@@ -214,10 +213,10 @@ namespace libcw {
       // <symbol>__<types>			--> <symbol>(<type1>, <type2>, ..., <typeN>)
       // <symbol>__[C]<scope-type>		--> <scope-type>::<symbol>(void) [const]
       // <symbol>__[C]<scope-type><types>	--> <scope-type>::<symbol>(<type1>, <type2>, ..., <typeN>) [const]
-      // __<scope-type><types>		--> <scope-type>::<class-name>(<type1>, <type2>, ..., <typeN>)
-      // __<scope-type>			--> <scope-type>::<class-name>(void)
+      // __<scope-type><types>			--> <scope-type>::<class-name>(<type1>, <type2>, ..., <typeN>)
+      // __<scope-type>				--> <scope-type>::<class-name>(void)
       // _._<scope-type>			--> <scope-type>::~<class-name>()
-      // _<scope-type>.<symbol>		--> <scope-type>::<symbol>
+      // _<scope-type>.<symbol>			--> <scope-type>::<symbol>
       // __vt_<scope-type>			--> <scope-type> virtual table
       // __vt_<scope-type>.symbol		--> <scope-type>::<symbol> virtual table
       // __ti<type>				--> <type> type_info node
@@ -996,11 +995,11 @@ namespace libcw {
 	// G<digits><global-name>				<global-name>
 	// P<type>						PREFIX*					POSTFIX
 	// R<type>						PREFIX&					POSTFIX
-	// P[M<scope-type>][C]F<types>_<type>		<type> ([<scope-type>::]*		)(<type>, <type>, ..., <type>) [const]
-	// R[M<scope-type>][C]F<types>_<type>		<type> ([<scope-type>::]&		)(<type>, <type>, ..., <type>) [const]
+	// P[M<scope-type>][C]F<types>_<type>			<type> ([<scope-type>::]*		)(<type>, <type>, ..., <type>) [const]
+	// R[M<scope-type>][C]F<types>_<type>			<type> ([<scope-type>::]&		)(<type>, <type>, ..., <type>) [const]
 	//
 	// scope types:
-	// <digits><class-name>				<class-name>
+	// <digits><class-name>					<class-name>
 	// t<digits><name><digits><ttype><ttype>...<ttype>	<name><<ttype>, <ttype>, ..., <ttype>>
 	//
 	// possible scope types:
@@ -1209,10 +1208,11 @@ namespace libcw {
 	  if ((size_t)index >= previous_types->size())
 	  {
 	    char buf[32];
-	    ostrstream s(buf, sizeof(buf));
-	    s << index << ends;
+	    char* p = &buf[31];
+	    *p = 0;
+	    do { *--p = '0' + (index % 10); } while((index /= 10) > 0);
 	    prefix += 'T';
-	    prefix += buf;
+	    prefix += p;
 	    return false;
 	  }
 	  char const* recursive_input = (*previous_types)[index];

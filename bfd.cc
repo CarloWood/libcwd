@@ -24,7 +24,6 @@
 #include <new>
 #include <set>
 #include <list>
-#include <strstream>
 #include <string>
 #include <fstream>
 #include <sys/param.h>          // Needed for realpath(3)
@@ -290,6 +289,7 @@ namespace libcw {
 
 	symbol_table = (asymbol**) malloc(storage_needed);
 	AllocTag_dynamic_description(symbol_table, "symbols of " << filename);
+
 	number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
 	if (number_of_symbols < 0)
 	  DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
@@ -528,11 +528,16 @@ namespace libcw {
       void get_full_path_to_executable(string& result)
       {
 	string argv0;		// Like main()s argv[0], thus must be zero terminated.
+	char buf[6];
+	char* p = &buf[5];
+	*p = 0;
+	int pid = getpid();
+	do { *--p = '0' + (pid % 10); } while ((pid /= 10) > 0);
 	size_t const max_proc_path = sizeof("/proc/65535/cmdline\0");
 	char proc_path[max_proc_path];
-	ostrstream proc_path_str(proc_path, max_proc_path);
-
-	proc_path_str << "/proc/" << getpid() << "/cmdline" << ends;
+	strcpy(proc_path, "/proc/");
+	strcpy(proc_path + 6, p);
+	strcat(proc_path, "/cmdline");
 	ifstream proc_file(proc_path);
 
 	if (proc_file)
@@ -546,9 +551,11 @@ namespace libcw {
 
 	  size_t const max_pidstr = sizeof("65535\0");
 	  char pidstr_buf[max_pidstr];
-	  ostrstream pidstr_stream(pidstr_buf, max_pidstr);
-	  pidstr_stream << getpid() << ends;
-	  pidstr = pidstr_buf;
+	  char* p = &pidstr_buf[max_pidstr - 1];
+	  *p = 0;
+	  int pid = getpid();
+	  do { *--p = '0' + (pid % 10); } while ((pid /= 10) > 0);
+	  pidstr = p;
 	 
 	  // Path to `ps'
 	  char const ps_prog[] = CW_PATH_PROG_PS;
@@ -556,7 +563,7 @@ namespace libcw {
 	  char const* argv[4];
 	  argv[0] = "ps";
 	  argv[1] = PS_ARGUMENT;
-	  argv[2] = pidstr_buf;
+	  argv[2] = p;
 	  argv[3] = NULL;
 
 	  argv0_ptr = &argv0;		// Ugly way to pass these strings to decode_ps:
@@ -671,6 +678,9 @@ namespace libcw {
 	// ****************************************************************************
 	// Start INTERNAL!
 	set_alloc_checking_off();
+
+	// Initialize the malloc library if not done yet.
+	init_debugmalloc();
 
 	// Initialize object files list
 	new (object_files_instance_) object_files_ct;
@@ -904,9 +914,13 @@ namespace libcw {
       if (symbol)
       {
 	Debug( dc::bfd.off() );
-	ostrstream os;
-	os << "<undefined symbol: " << symbol->get_symbol()->name << '>' << ends;
-	M_func = os.str();			// This leaks memory(!), but I don't think we ever come here.
+	size_t len = strlen(symbol->get_symbol()->name);
+	len += sizeof("<undefined symbol: >\0");
+	char* func = new char [len];		// This leaks memory(!), but I don't think we ever come here.
+	strcpy(func, "<undefined symbol: ");
+	strcpy(func + 19, symbol->get_symbol()->name);
+	strcat(func, ">");
+	M_func = func;
 	Debug( dc::bfd.on() );
       }
       else

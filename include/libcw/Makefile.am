@@ -13,7 +13,7 @@ libcwd_HEADERS = \
 	exec_prog.h \
 	iomanip.h \
 	lockable_auto_ptr.h \
-	no_alloc_checking_ostrstream.h \
+	no_alloc_checking_stringstream.h \
 	strerrno.h \
 	type_info.h
 
