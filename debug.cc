@@ -336,8 +336,8 @@ namespace libcw {
       if (current == reinterpret_cast<laf_ct*>(dummy_laf))
       {
 	*os << '\n';
-#ifdef DEBUGUSEBFD
 	char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
+#ifdef DEBUGUSEBFD
         DoutFatal(dc::core, "Using `dc::" << channame
 	    << "' in " << libcw_bfd_pc_location((char*)__builtin_return_address(0) + libcw_bfd_builtin_return_address_offset)
 	    << " without (first using) a matching `continue_cf'.");

@@ -30,7 +30,7 @@
 #include <fstream>
 #include <sys/param.h>          // Needed for realpath(3)
 #include <unistd.h>             // Needed for getpid(2) and realpath(3)
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <stdlib.h>             // Needed for realpath(3)
 #endif
 #include "config.h"
@@ -406,14 +406,14 @@ static int decode_ps(char const* buf, size_t len)
 {
   static int pid_token = 0;
   static int command_token = 0;
+  static size_t command_column;
   int current_token = 0;
   bool found_PID = false;
   bool eating_token = false;
   size_t current_column = 1;
-  size_t command_column;
   string token;
 
-  for (char const* p = buf; current_column <= len; ++p, ++current_column)
+  for (char const* p = buf; p < &buf[len]; ++p, ++current_column)
   {
     if (!eating_token)
     {
