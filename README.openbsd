@@ -26,7 +26,7 @@ of libcwd however it always failed, also when using `g++ -shared'.
 
 I give up on openbsd for now, the linker is too buggy.  I have reported
 the above problem to the libtool as well as to the openbsd developers and
-received no reaction at all.  Gigni de nihilo nihil; in nihilum nil posse
+received any reaction at all.  Gigni de nihilo nihil; in nihilum nil posse
 reverti.
 
 Carlo Wood

@@ -27,8 +27,8 @@ MALLOC  : calloc\([3-8], 16\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_check_map_vers
 // output till ^NOTICE  : dlopen
 (MALLOC  : malloc\([0-9]*\) = <unfinished>
 WARNING :     Object file .*/libc\.so\.6 does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
-MALLOC  : <continued> 0x[a-f0-9]* \[libc\.so\.6:dl_open_worker\]
-)|(MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[libc\.so\.6:dl_open_worker\]
+MALLOC  : <continued> 0x[a-f0-9]* \[libc\.so\.6:(dl_open_worker|_dl_open)\]
+)|(MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[libc\.so\.6:(dl_open_worker|_dl_open)\]
 )
 NOTICE  : dlopen\(\./module\.so, RTLD_NOW\|RTLD_GLOBAL\) == 0x[a-f0-9]*
 MALLOC  : operator new \(size = 8\) = 0x[a-f0-9]* \[filter\.cc:197\]

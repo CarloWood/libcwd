@@ -84,6 +84,25 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>8 Oct 2004</B>
+<P class="news">libcwd-0.99.39 is released.&nbsp;
+This release fixes a few major bugs.&nbsp;
+The most important one caused libcwd to crash even before reaching main
+when the compiler used is configured with --enable-nls, making libcwd
+completely useless on for example <A HREF="http://www.gentoo.org/">Gentoo</A>.&nbsp;
+A second important bug that was fixed is one where the shared libraries
+that one uses are stripped (as is also the case on Gentoo).&nbsp;
+In this case libcwd failed to determine the end of a shared library
+because the symbol "_end" is missing and it took the end of the <u>first</u>
+function in the library by accident as end of the library, instead of
+the last function.&nbsp;
+As a result, addresses inside such stripped libraries could not be found
+by libcwd - and worse, trying to printing such locations caused a core dump!&nbsp;
+<P class="news">Special thanks go to Michal Grzejszczak for reporting the
+problems with Gentoo; not many people take the effort to report bugs
+these days, especially for a package that crashes immediately the first
+time you try a 'Hello World'!  Thanks to him also Gentoo users can use libcwd
+from now on.</p>
 <DT><B>24 Sep 2004</B>
 <P class="news">libcwd-0.99.38 is released.&nbsp;
 This release adds support for gcc 3.4.2 (needed for the threaded case) and for

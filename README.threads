@@ -14,19 +14,26 @@ http://www-124.ibm.com/developer/opensource/linux/projects/mtcoredumps/
 Note: This patch, multithreaded coredumps support patch, has
       already been included in kernel 2.5.47 and higher.
 
-You are strongly advised to use gdb 5.2 for multithreaded
-debugging.  Try not to use -O2 or -fomit-frame-pointer if
-you want source file and line numbers that make sense ;).
+The minimal version of gdb needed to debug multi-threaded
+applications in a meaningful way has always been 5.2. However,
+when using g++ 3.x or higher, you should be using at least gdb 6.0
+(but using the _latest_ version of gdb is always the best idea!).
+Try not to use -O2 or -fomit-frame-pointer if you want source
+file and line numbers that make sense ;).
 
 Be aware that gdb does hardly support namespaces and
 will therefore frequently not find types or variables
 in namespaces.  It doesn't look like that this will be
 fixed very soon (2002-05-27) (see the thread that belongs
 to http://sources.redhat.com/ml/gdb/2002-05/msg00278.html)
+In order to specify namespaces in gdb you will have to
+type them in full and put single quotes around it.
+For example:
+(gdb) p *(('some::name::space::ptr'*)0x8039214)
 
 In order to debug NPTL (Native POSIX Threads Library)
-you will need the gdb that comes with RedHat 9.  At
-the moment of writing (2003/6/27), the CVS HEAD of gdb
+you will need the gdb that comes with RedHat 9 (or fedora).
+At the moment of writing (2003/6/27), the CVS HEAD of gdb
 does not work with NPTL.
 
 As of libcwd-0.99.31, support for NPTL was added. The

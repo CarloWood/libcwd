@@ -7,6 +7,21 @@ libcwd-0.99.39
 	delete or free about the attempt to delete a non-internal
 	memory allocation with memory allocation checking off.
 
+	The size of stripped shared libraries was incorrectly
+	determined (the end of the library was set to the end
+	of the first function in the library instead of the last).
+	As a result, addresses in such libraries resulted in
+	not being able to lookup the correct shared object file.
+	Moreover, printing a location_ct with such an unknown
+	object file would core dump.
+
+	The creation of a std::ios_base::Init does still allocate
+	memory with g++ 3.3 and higher if that compiler is
+	configured with --enable-nls, as is the case for Gentoo.
+	As a result, libcwd - that assumes no memory was allocated
+	anymore as of 3.3 - would core dump even before reaching
+	main.
+
 libcwd-0.99.38
 
 	Added support for g++ 3.4.2 and 4.0.0.
