@@ -1619,10 +1619,19 @@ extern "C" {
 #if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
-    int ret = ::dlclose(handle);
+    // Block until printing of allocations is finished because it might be that
+    // those allocations have type_info pointers to shared objectst that will be
+    // removed by dlclose, causing a core dump in list_allocations_on in the other
+    // thread.
+    int ret;
+    LIBCWD_DEFER_CLEANUP_PUSH(&_private_::mutex_tct<dlclose_instance>::cleanup, &__libcwd_tsd);
+    DLCLOSE_ACQUIRE_LOCK;
+    ret = ::dlclose(handle);
+    DLCLOSE_RELEASE_LOCK;
+    LIBCWD_CLEANUP_POP_RESTORE(false);
     if (ret != 0)
       return ret;
-    LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlopen_map_cleanup, &__libcwd_tsd);
+    LIBCWD_DEFER_CLEANUP_PUSH(_private_::dlopen_map_cleanup, &__libcwd_tsd);
     DLOPEN_MAP_ACQUIRE_LOCK;
     libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map->find(handle));
     if (iter != libcw::debug::_private_::dlopen_map->end())

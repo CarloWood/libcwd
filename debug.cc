@@ -910,7 +910,8 @@ void allocator_unlock(void)
       set_alloc_checking_off(LIBCWD_TSD);
 
       // Skip `start()' for a `continued' debug output.
-      // Generating the "prefix: <continued>" is already taken care of while generating the "<unfinished>" (see next `if' block).
+      // Generating the "prefix: <continued>" is already taken care
+      // of while generating the "<unfinished>" (see next `if' block).
       if ((channel_set.mask & (continued_maskbit|finish_maskbit)))
       {
 	current->err = errno;				// Always keep the last errno as set at the start of LibcwDout()

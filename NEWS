@@ -5,6 +5,15 @@ libcwd-0.99.29
 	Compilation warning fix for g++ 3.3.
 	Compile error fixes for g++ 3.4.
 
+	When one thread is listing memory allocations and another
+	thread is closing a shared library, it could happen that
+	a type_info reference in the listing did not exist anymore
+	by the time it was listed, resulting in a crash.
+	This was fixed with a mutex that excludes calls to dlclose
+	and listing memory allocation for all threads.  Note that
+	this can still happen when a shared library is closed that
+	leaked memory.
+
 libcwd-0.99.28
 
 	Bug fixes:

@@ -164,6 +164,7 @@ using libcw::debug::_private_::list_allocations_instance;
 using libcw::debug::_private_::threadlist_instance;
 using libcw::debug::_private_::threadlist_t;
 using libcw::debug::_private_::threadlist;
+using libcw::debug::_private_::dlclose_instance;
 // We can't use a read/write lock here because that leads to a deadlock.
 // rwlocks have to use condition variables or semaphores and both try to get a
 // (libpthread internal) self-lock that is already set by libthread when it calls
@@ -186,6 +187,8 @@ using libcw::debug::_private_::threadlist;
 #define RELEASE_LC_READ_LOCK		rwlock_tct<location_cache_instance>::rdunlock()
 #define ACQUIRE_LC_READ2WRITE_LOCK	rwlock_tct<location_cache_instance>::rd2wrlock()
 #define ACQUIRE_LC_WRITE2READ_LOCK	rwlock_tct<location_cache_instance>::wr2rdlock()
+#define DLCLOSE_ACQUIRE_LOCK            mutex_tct<dlclose_instance>::lock()
+#define DLCLOSE_RELEASE_LOCK            mutex_tct<dlclose_instance>::unlock()
 #else // !LIBCWD_THREAD_SAFE
 #define ACQUIRE_WRITE_LOCK(tt)
 #define RELEASE_WRITE_LOCK
@@ -199,6 +202,8 @@ using libcw::debug::_private_::threadlist;
 #define RELEASE_LC_READ_LOCK
 #define ACQUIRE_LC_READ2WRITE_LOCK
 #define ACQUIRE_LC_WRITE2READ_LOCK
+#define DLCLOSE_ACQUIRE_LOCK
+#define DLCLOSE_RELEASE_LOCK
 #endif // !LIBCWD_THREAD_SAFE
 
 #if CWDEBUG_LOCATION
@@ -2334,6 +2339,16 @@ void list_allocations_on(debug_ct& debug_object)
   list_allocations_on(debug_object, default_ooam_filter);
 }
 
+#if LIBCWD_THREAD_SAFE
+static void list_allocations_cleanup(void)
+{
+  LIBCWD_TSD_DECLARATION;
+  rwlock_tct<threadlist_instance>::rdunlock();
+  if (LIBCWD_TSD.list_allocations_on_show_allthreads)
+    DLCLOSE_RELEASE_LOCK;
+}
+#endif
+
 /**
  * \brief List all current allocations to a given %debug object using a specified format.
  * \ingroup group_overview
@@ -2374,7 +2389,10 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
 #if LIBCWD_THREAD_SAFE
   size_t total_memsize = 0;
   unsigned long total_memblks = 0;
-  LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<threadlist_instance>::cleanup, NULL);
+  LIBCWD_DEFER_CLEANUP_PUSH(list_allocations_cleanup, NULL);
+  LIBCWD_TSD.list_allocations_on_show_allthreads = filter.M_flags & show_allthreads;
+  if ((filter.M_flags & show_allthreads))
+    DLCLOSE_ACQUIRE_LOCK;
   rwlock_tct<threadlist_instance>::rdlock();
   // See comment in search_in_maps_of_other_threads.
   for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)

@@ -58,6 +58,7 @@ enum mutex_instance_nt {
 #endif
   type_info_of_instance,
   dlopen_map_instance,
+  dlclose_instance,
   write_max_len_instance,
   set_ostream_instance,
   kill_threads_instance,

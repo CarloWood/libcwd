@@ -46,6 +46,7 @@ using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::object_files_instance;
 using libcw::debug::_private_::dlopen_map_instance;
+using libcw::debug::_private_::dlclose_instance;
 #define BFD_INITIALIZE_LOCK             rwlock_tct<object_files_instance>::initialize()
 #define BFD_ACQUIRE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrlock()
 #define BFD_RELEASE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrunlock()
@@ -56,6 +57,8 @@ using libcw::debug::_private_::dlopen_map_instance;
 #define BFD_ACQUIRE_WRITE2READ_LOCK     rwlock_tct<object_files_instance>::wr2rdlock()
 #define DLOPEN_MAP_ACQUIRE_LOCK         mutex_tct<dlopen_map_instance>::lock()
 #define DLOPEN_MAP_RELEASE_LOCK         mutex_tct<dlopen_map_instance>::unlock()
+#define DLCLOSE_ACQUIRE_LOCK            mutex_tct<dlclose_instance>::lock()
+#define DLCLOSE_RELEASE_LOCK            mutex_tct<dlclose_instance>::unlock()
 #else // !_REENTRANT
 #define BFD_INITIALIZE_LOCK
 #define BFD_ACQUIRE_WRITE_LOCK
@@ -67,6 +70,8 @@ using libcw::debug::_private_::dlopen_map_instance;
 #define BFD_ACQUIRE_WRITE2READ_LOCK
 #define DLOPEN_MAP_ACQUIRE_LOCK
 #define DLOPEN_MAP_RELEASE_LOCK
+#define DLCLOSE_ACQUIRE_LOCK
+#define DLCLOSE_RELEASE_LOCK
 #endif // !_REENTRANT
 
 namespace libcw {

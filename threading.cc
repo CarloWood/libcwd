@@ -39,6 +39,7 @@ void initialize_global_mutexes(void)
   mutex_tct<mutex_initialization_instance>::initialize();
   rwlock_tct<object_files_instance>::initialize();
   mutex_tct<dlopen_map_instance>::initialize();
+  mutex_tct<dlclose_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
   mutex_tct<kill_threads_instance>::initialize();
   rwlock_tct<threadlist_instance>::initialize();

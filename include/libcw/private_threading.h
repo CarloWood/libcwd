@@ -571,6 +571,7 @@ template <int instance>
 	      S_writer_id = pthread_self();
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUGT
+	    LIBCWD_TSD_DECLARATION;
 	    _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
 	    instance_locked[instance] += 1;

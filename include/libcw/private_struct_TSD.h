@@ -121,6 +121,7 @@ public:
   bool thread_iter_valid;
   thread_ct* target_thread;
   bool terminated;
+  bool list_allocations_on_show_allthreads;
 #endif
 #if CWDEBUG_DEBUGM
   int marker;

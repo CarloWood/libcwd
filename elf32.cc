@@ -1154,7 +1154,7 @@ struct abbrev_st {
   unsigned short attributes_capacity;
   bool has_children;
   abbrev_st(void) : attributes(NULL), attributes_size(0), attributes_capacity(0) { }
-  ~abbrev_st() { free(attributes); }
+  ~abbrev_st() { if (attributes) /* almost always 0, so test here to speed up */ free(attributes); }
 };
 
 struct file_name_st {
