@@ -5,7 +5,7 @@ BASEDIR=../../..
 CXXSRC:=$(shell grep -l 'main' *.cc)
 
 # List of sub directories:
-SUBDIRS:=$(shell find . -maxdepth 1 -mindepth 1 -type d ! -name CVS)
+SUBDIRS=
 
 # Extra static libraries to link with:
 STATICLIBS=

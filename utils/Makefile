@@ -5,7 +5,7 @@ BASEDIR=../../..
 SUBDIRS=
 
 # List source files:
-CXXSRC:=$(shell find . -maxdepth 1 -mindepth 1 -type f ! -name perf.cc -name '*$(CPPEXT)' -printf '%f\n')
+CXXSRC:=$(shell /bin/ls -1 -t -F *$(CPPEXT) 2>/dev/null | grep '\$(CPPEXT)$$' | egrep -v '^(perf\.cc)$$')
 
 #-----------------------------------------------------------------------------
 

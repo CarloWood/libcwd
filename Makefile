@@ -10,7 +10,7 @@ LIB=cwd
 SUBDIRS=utils
 
 # List of source files:
-CXXSRC:=$(shell find . -maxdepth 1 -mindepth 1 -type f -name '*.cc' ! -name debug.cc -printf '%f\n') debug.cc
+CXXSRC:=$(shell /bin/ls -1 -t -F *$(CPPEXT) 2>/dev/null | grep '\$(CPPEXT)$$' | egrep -v '^(debug\.cc)$$') debug.cc
 
 # Library specific include flags.  Use $(BASEDIR) as a prefix!
 # For example: -I$(BASEDIR)/mylib/include
@@ -28,9 +28,6 @@ SHAREDLIBS:=$(shell ./get_libraries)
 #-----------------------------------------------------------------------------
 
 include $(PROTODIR)/lib/PTMakefile
-
-# libcwd always needs to be compiled with -DDEBUG of course
-CXXFLAGS+=-DDEBUG
 
 #clean::
 #depend::
