@@ -48,6 +48,12 @@ libcwd-0.99.21
 	only report memory leaks when the *current* thread has
 	allocated memory.
 
+	Fixed a potential dead lock related to the use of
+	dlopen().  Code was added to detect potential dead locks
+	without that they actual happen.  The only potential dead
+	locks that should be left (if any) are ones related to
+	exceptions like a DoutFatal or thread cancellation.
+
 libcwd-0.99.20
 
 	Several small adjustments have been made to support the

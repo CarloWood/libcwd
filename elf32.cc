@@ -822,7 +822,8 @@ private:
   static uint32_t const hash_table_size = 2049;		// Lets use a prime number.
   hash_list_st** M_hash_list;
 public:
-  objfile_ct(char const* file_name);
+  objfile_ct(void);
+  void initialize(char const* file_name);
   ~objfile_ct();
   char const* get_section_header_string_table(void) const { return M_section_header_string_table; }
   section_ct const& get_section(int index) const { LIBCWD_ASSERT( index < M_header.e_shnum ); return M_sections[index]; }
@@ -831,6 +832,7 @@ protected:
   virtual long get_symtab_upper_bound(void);
   virtual long canonicalize_symtab(asymbol_st**);
   virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM);
+  virtual void close(void);
 private:
   char* allocate_and_read_section(int i);
   friend void location_ct::M_store(void);
@@ -839,7 +841,7 @@ private:
   void load_stabs(void);
   void load_dwarf(void);
   template<typename T>
-    inline void objfile_ct::dwarf_read(unsigned char const*& debug_info_ptr, T& x);
+    inline void dwarf_read(unsigned char const*& debug_info_ptr, T& x);
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
 };
 
@@ -940,15 +942,20 @@ void section_ct::init(char const* section_header_string_table, Elf32_Shdr const&
 
 bfd_st* bfd_st::openr(char const* file_name)
 {
-  return new objfile_ct(file_name);
+  _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
+  objfile_ct* objfile = new objfile_ct;
+  _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
+  objfile->initialize(file_name);
+  return objfile;
+}
+
+void objfile_ct::close(void)
+{
+  delete M_input_stream;
 }
 
 objfile_ct::~objfile_ct()
 {
-  LIBCWD_TSD_DECLARATION
-  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-  delete M_input_stream;
-  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   delete [] M_section_header_string_table;
   delete [] M_sections;
   delete [] M_symbol_string_table;
@@ -2101,9 +2108,13 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 #endif
 }
 
-objfile_ct::objfile_ct(char const* file_name) :
+objfile_ct::objfile_ct(void) :
     M_section_header_string_table(NULL), M_sections(NULL), M_symbol_string_table(NULL),  M_dyn_symbol_string_table(NULL),
     M_symbols(NULL), M_number_of_symbols(0), M_symbol_table_type(0)
+{
+}
+
+void objfile_ct::initialize(char const* file_name)
 {
   filename = file_name;
   LIBCWD_TSD_DECLARATION

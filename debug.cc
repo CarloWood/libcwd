@@ -1006,7 +1006,7 @@ void allocator_unlock(void)
       {
 	if ((current->mask & (coredump_maskbit|fatal_maskbit)))
 	{
-	  set_alloc_checking_on(LIBCWD_TSD);
+	  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
 	  if (!__libcwd_tsd.recursive_fatal)
 	  {
 	    __libcwd_tsd.recursive_fatal = true;
@@ -1016,7 +1016,7 @@ void allocator_unlock(void)
 	  }
 	  if ((current->mask & coredump_maskbit))
 	    core_dump();
-	  set_alloc_checking_off(LIBCWD_TSD);
+	  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 	  DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
 	  delete current;
 	  DEBUGDEBUG_CERR( "Done deleting `current'" );
@@ -1057,11 +1057,11 @@ void allocator_unlock(void)
 	}
 	if ((current->mask & flush_cf))
 	{
-	  set_alloc_checking_on(LIBCWD_TSD);
+	  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
 	  LIBCWD_DISABLE_CANCEL;
 	  *target_os << std::flush;
 	  LIBCWD_ENABLE_CANCEL;
-	  set_alloc_checking_off(LIBCWD_TSD);
+	  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 	}
       }
 

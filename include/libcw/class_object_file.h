@@ -29,7 +29,7 @@ namespace libcw {
 // Forward declarations.
 class ooam_filter_ct;
 namespace cwbfd {
-  class object_file_ct;
+  class bfile_ct;
 } // namespace cwbfd
 
 /** \addtogroup group_locations */
@@ -47,7 +47,7 @@ private:
   bool M_hide;
 
 protected:
-  friend class cwbfd::object_file_ct;
+  friend class cwbfd::bfile_ct;
   object_file_ct(char const* filepath);
 
 public:

@@ -28,11 +28,11 @@ malloc    0x[0-9a-f]*            module\.cc:19   void\*; \(sz = 310\)  Allocated
 )*
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:19 *void\*; \(sz = 310\)  Allocated inside global_test_symbol 
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:10 *void\*; \(sz = 300\)  Allocated inside static_test_symbol 
-MALLOC  : free\(0x[0-9a-f]*\) *dl-version.c:[0-9]* *<unknown type>; \(sz = 80\)  
-MALLOC  : free\(0x[0-9a-f]*\) *dl-object.c:[0-9]* *<unknown type>; \(sz = 140\)  
-MALLOC  : free\(0x[0-9a-f]*\) *dl-load.c:[0-9]* *<unknown type>; \(sz = 12\)  
+MALLOC  : free\(0x[0-9a-f]*\) *dl-version.c:[0-9]* *<unknown type>; \(sz = [0-9]*\)  
+MALLOC  : free\(0x[0-9a-f]*\) *dl-object.c:[0-9]* *<unknown type>; \(sz = [0-9]*\)  
+MALLOC  : free\(0x[0-9a-f]*\) *dl-load.c:[0-9]* *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
-MALLOC  : free\(0x[0-9a-f]*\) *dl-object.c:[0-9]* *<unknown type>; \(sz = 544\)  
-MALLOC  : free\(0x[0-9a-f]*\) *dl-deps.c:[0-9]* *<unknown type>; \(sz = 52\)  
+MALLOC  : free\(0x[0-9a-f]*\) *dl-object.c:[0-9]* *<unknown type>; \(sz = [0-9]*\)  
+MALLOC  : free\(0x[0-9a-f]*\) *dl-deps.c:[0-9]* *<unknown type>; \(sz = [0-9]*\)  
 NOTICE  : Finished

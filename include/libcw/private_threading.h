@@ -611,8 +611,19 @@ template <int instance>
       LibcwDebugThreads(
 	  LIBCWD_TSD_DECLARATION;
 	  ++__libcwd_tsd.inside_critical_area;
-	  // See wrlock for comment about the +100 offset.
-	  _private_::test_for_deadlock(high_priority ? instance + 100 : instance, __libcwd_tsd, __builtin_return_address(0));
+	  // Thread A: rdlock<1> ... mutex<2>
+	  // Thread B: mutex<2>  ... rdlock<1>
+	  //                      ^--- current program counter.
+	  // can still lead to a deadlock when a third thread is trying to get the write lock
+	  // because trying to acquire a write lock immedeately blocks new read locks.
+	  // However, trying to acquire a write lock does not block high priority read locks,
+	  // therefore the following is allowed:
+	  // Thread A: rdlock<1> ... mutex<2>
+	  // Thread B: mutex<2>  ... high priority rdlock<1>
+	  // provided that the write lock wrlock<1> is never used in combination with mutex<2>.
+	  // In order to take this into account, we need to pass the information that this is
+	  // a read lock to the test function.
+	  _private_::test_for_deadlock(instance + (high_priority ? high_priority_read_lock_offset : read_lock_offset), __libcwd_tsd, __builtin_return_address(0));
 	  __libcwd_tsd.instance_rdlocked[instance] += 1;
 	  if (__libcwd_tsd.instance_rdlocked[instance] == 1)
 	  {
@@ -679,30 +690,7 @@ template <int instance>
       LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area );
 #if CWDEBUG_DEBUG
 #if CWDEBUG_DEBUGT
-      // Read and write locks use both the same instance because the rationale,
-      // Thread A: lock 1 ... lock 2
-      // Thread B: lock 2 ... lock 1
-      //                   ^--- current program counter.
-      // can still lead to a deadlock even when lock 1 is a read lock
-      // (when one of the 'lock 1's is a write lock then the deadlock is trivial)
-      // namely when a third thread is trying to get the write lock:
-      // Thread C: wrlock 1
-      // This blocks on A's lock1, but blocks new read locks and thus stops B's lock1.
       _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
-
-      // We use a special instance number for write locks that is also being
-      // used for high priority read locks.  As a result of the order in which we call
-      // test_for_deadlock, the reversed order (first instance + 100 then instance) it not
-      // allowed.  That is correct because that means that it is not allowed for a thread
-      // to take a high priority read lock and then try to get a normal read lock which
-      // would indeed lead to a deadlock when another thread tries to get a write lock
-      // after the high priority read lock is obtained (the write lock waits for the
-      // first read lock to be released and that one is never released because the thread
-      // waits at the second read lock for the write lock to succeed).
-      // Using instance + 100 for a high priority lock DOES allow the following though:
-      // Thread A: rdlock 1 ... lock 2
-      // Thread B: lock 2 ... high priority rdlock 1
-      _private_::test_for_deadlock(instance + 100, __libcwd_tsd, __builtin_return_address(0));
 #endif
       instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT

@@ -37,6 +37,7 @@ enum mutex_instance_nt {
   debug_objects_instance,		// rwlock
   debug_channels_instance,		// rwlock
 #if CWDEBUG_DEBUGT
+  keypair_map_instance,
   pthread_lock_interface_instance,	// Dummy instance that is used to store who locked the ostream.
   instance_rdlocked_size,		// Must come after last rwlock and pthread_lock_interface_instance.
 #endif
@@ -66,6 +67,8 @@ extern int instance_locked[instance_locked_size];	// MT: Each element is locked 
 #if CWDEBUG_DEBUGT
 extern pthread_t locked_by[instance_locked_size];	// The id of the thread that last locked it, or 0 when that thread unlocked it.
 extern void const* locked_from[instance_locked_size];	// and where is was locked.
+int const read_lock_offset = instance_locked_size;
+int const high_priority_read_lock_offset = 2 * instance_locked_size;
 #endif
 __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; }
 #endif

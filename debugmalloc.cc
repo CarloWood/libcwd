@@ -1592,7 +1592,7 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 static bool search_in_maps_of_other_threads(void const* ptr, memblk_map_ct::const_iterator& iter LIBCWD_COMMA_TSD_PARAM)
 {
   bool found = false;
-  rwlock_tct<threadlist_instance>::rdlock();
+  rwlock_tct<threadlist_instance>::rdlock(true);
   // Using threadlist_t::iterator instead of threadlist_t::const_iterator because
   // we need to pass &(*thread_iter) to ACQUIRE_READ_LOCK.  This should be safe
   // because inside the critical area of a READ_LOCK we should only be reading,

@@ -80,6 +80,7 @@ public:
   virtual ~bfd_st() { }
 public:
   static bfd_st* openr(char const* file_name);
+  virtual void close(void) = 0;
   virtual bool check_format(void) const = 0;
   virtual long get_symtab_upper_bound(void) = 0;
   virtual long canonicalize_symtab(asymbol_st**) = 0;
