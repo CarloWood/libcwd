@@ -19,6 +19,10 @@ class A {};
 
 int main(void)
 {
+#if !defined(DEBUGMALLOC)
+  DoutFatal(dc::fatal, "Expected Failure.");
+#endif
+
   Debug( check_configuration() );
 
   // Don't show allocations that are allocated before main()
@@ -39,11 +43,13 @@ int main(void)
   A* a = new A;
   AllocTag(a, "Test object that we will make invisible");
 
+#ifdef DEBUGMALLOC
   // Check test_delete
   if (libcw::debug::test_delete(a))	// Should return false
     Dout( dc::core, "CANNOT find that pointer?!" );
   if (!libcw::debug::find_alloc(a))
     Dout( dc::core, "CANNOT find that pointer?!" );
+#endif
 
   // Show Memory Allocation Overview
   Dout( dc::notice, "Before making allocation invisible:" );
@@ -56,11 +62,13 @@ int main(void)
   Dout( dc::notice, "After making allocation invisible:" );
   Debug( list_allocations_on(libcw_do) );
 
+#ifdef DEBUGMALLOC
   // Check test_delete
   if (libcw::debug::test_delete(a))	// Should still return false
     Dout( dc::core, "CANNOT find that pointer?!" );
   if (libcw::debug::find_alloc(a))
     Dout( dc::core, "Can STILL find that pointer?!" );
+#endif
 
   Dout( dc::notice, "Finished successfully." );
 

@@ -1,6 +1,11 @@
 #include <libcw/sys.h>
 #include <errno.h>
 #include <libcw/debug.h>
+#ifdef LIBCW_USE_STRSTREAM
+#include <strstream>
+#else
+#include <sstream>
+#endif
 
 int main(void)
 {

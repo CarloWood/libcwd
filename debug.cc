@@ -201,7 +201,9 @@ namespace libcw {
       {
         current->mask = channel_set.mask;	// New bits might have been added
 	current->err = errno;			// Always keep the last errno as set at the start of LibcwDout()
+#ifdef DEBUGMALLOC
 	ASSERT( _internal_::internal == 1 );
+#endif
         return;
       }
 
@@ -292,9 +294,11 @@ namespace libcw {
       --_off;
       DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << _off );
 
+#ifdef DEBUGMALLOC
       // While writing debug output (which is directly after returning from this function)
       // alloc checking needs to be on.  FIXME
       ASSERT( _internal_::internal == 1 );
+#endif
     }
 
     static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));

@@ -24,13 +24,19 @@ class A {
 
 int main(void)
 {
+#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD) || !defined(DEBUGMARKER)
+  DoutFatal(dc::fatal, "Expected Failure.");
+#endif
+
   Debug( check_configuration() );
 
   // Don't show allocations that are allocated before main()
   libcw::debug::make_all_allocations_invisible_except(NULL);
 
+#ifdef DEBUGMALLOC
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
+#endif
 
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
@@ -48,8 +54,10 @@ int main(void)
   A* a1 = new A;
   AllocTag(a1, "First created");
 
+#ifdef DEBUGMARKER
   // Create marker
   libcw::debug::marker_ct* marker = new libcw::debug::marker_ct("A test marker");
+#endif
 
   // Allocate more objects
   A* a2 = new A[10];
@@ -60,14 +68,18 @@ int main(void)
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
+#ifdef DEBUGMARKER
   Dout(dc::notice, "Moving the int array outside of the marker...");
   Debug( move_outside(marker, p) );
+#endif
 
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
+#ifdef DEBUGMARKER
   // Delete the marker
   delete marker;
+#endif
 
   delete [] p;
   delete [] a2;

@@ -1,5 +1,10 @@
 #include <libcw/sys.h>
 #include <libcw/debug.h>
+#ifndef LIBCW_USE_STRSTREAM
+#include <sstream>
+#else
+#include <strstream>
+#endif
 
 using namespace std;
 
@@ -20,8 +25,10 @@ int main(void)
 {
   Debug( check_configuration() );
 
+#ifdef DEBUGUSEBFD
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
+#endif
 
 #ifndef LIBCW_USE_STRSTREAM
   ostringstream dummy;	// Do this before turning on debug output

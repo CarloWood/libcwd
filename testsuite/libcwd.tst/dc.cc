@@ -13,6 +13,9 @@ namespace example {
 
 int main(void)
 {
+#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD)
+  DoutFatal(dc::fatal, "Expected Failure.");
+#endif
   Debug( check_configuration() );
   Debug( libcw_do.on() );
   Debug( dc::warp.on() );

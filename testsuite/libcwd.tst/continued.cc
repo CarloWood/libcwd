@@ -208,6 +208,10 @@ char const* continued_func(unsigned int what)
 
 int main(void)
 {
+#if !defined(DEBUGUSEBFD)
+  DoutFatal(dc::fatal, "Expected Failure.");
+#endif
+
   Debug( check_configuration() );
 
   grab_cerr();

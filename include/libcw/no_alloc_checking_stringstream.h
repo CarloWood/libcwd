@@ -54,7 +54,10 @@ typedef std::basic_stringstream<char, std::char_traits<char>, no_alloc_checking_
 #else // !DEBUGMALLOC
 
 #ifdef LIBCW_USE_STRSTREAM
-typedef strstream no_alloc_checking_stringstream;
+class no_alloc_checking_stringstream : public strstream {
+public:
+  typedef streampos pos_type;
+};
 #else
 typedef std::stringstream no_alloc_checking_stringstream;
 #endif

@@ -20,18 +20,26 @@ RCSTAG_CC("$Id$")
 
 int main(int argc, char* argv[])
 {
+#if !defined(DEBUGMALLOC)
+  DoutFatal(dc::fatal, "Expected Failure.");
+#endif
+
   Debug( check_configuration() );
 
   // Don't show allocations that are allocated before main()
   libcw::debug::make_all_allocations_invisible_except(NULL);
 
+#ifdef DEBUGMALLOC
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
+#endif
 
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   Debug( dc::debug.off() );
+#ifdef DEBUGUSEBFD
   Debug( dc::bfd.off() );
+#endif
 
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );

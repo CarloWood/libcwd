@@ -48,7 +48,11 @@ int main(void)
   {
     // This must core dump:
     delete[] p;
+#ifdef DEBUGMALLOC
     DoutFatal(dc::fatal, "This should not be reached!");
+#else
+    DoutFatal(dc::core, "Expected Failure.");
+#endif
   }
   // Parent process
   int status;
