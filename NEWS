@@ -7,6 +7,8 @@ libcwd-0.99.38
 
 	Cygwin and mingw32 are now supported when configuring with
 	--disable-alloc and --disable-location (only debug output).
+	Threading had not been tested on cygwin, and doesn't work
+	on mingw32 (use --disable-threading).
 
         Bug fixes:
 

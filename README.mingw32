@@ -1,5 +1,6 @@
 Libcwd will only compile on cygwin and mingw32 when you configure it with
---disable-alloc and --disable-location.
+--disable-alloc and --disable-location.  On mingw32 you also have to use
+--disable-threading because at the moment only POSIX threading is supported.
 
 You then still have the debug output functionality, but no memory allocation
 tracking or the possibility to use 'location_ct' objects to print source-file
