@@ -2,9 +2,9 @@ libcwd-0.99.3
 
 	A different bug work around for the compiler bug that surfaces
 	in iomanip.h has been used.  It turned out that not only
-	gcc-2.95.2 even snap shot 2.96-20000724 had problems with the
-	used construct.  This new workaround works always and is not
-	anymore dependend on the CXXFLAGS being used.
+	gcc-2.95.2 but even snap shot 2.96-20000724 has problems with
+	the construct that was used.  The new workaround works always
+	and is not anymore dependend on the CXXFLAGS being used.
 
 libcwd-0.99.2
 
