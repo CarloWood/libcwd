@@ -1389,7 +1389,7 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 
 void* __libcwd_malloc(size_t size)
 {
-#ifdef DEBUGDEBUG
+#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
@@ -1441,7 +1441,7 @@ void* __libcwd_malloc(size_t size)
 
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
-#ifdef DEBUGDEBUG
+#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
@@ -1504,7 +1504,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 
 void* __libcwd_realloc(void* ptr, size_t size)
 {
-#ifdef DEBUGDEBUG
+#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
@@ -1630,7 +1630,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 
 void __libcwd_free(void* ptr)
 {
-#ifdef DEBUGDEBUG
+#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from_nt from = deallocated_from;
@@ -1910,7 +1910,7 @@ void* operator new[](size_t size)
 
 void operator delete(void* ptr)
 {
-#ifdef DEBUGDEBUG
+#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from = from_delete;
@@ -1919,7 +1919,7 @@ void operator delete(void* ptr)
 
 void operator delete[](void* ptr)
 {
-#ifdef DEBUGDEBUG
+#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   deallocated_from = from_delete_array;
