@@ -40,7 +40,8 @@ dist-hook:
 	done
 	chmod +x $(distdir)/install-sh
 
-MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h.in Makefile.in install-sh missing mkinstalldirs config.guess config.sub
+MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h.in Makefile.in \
+	install-sh missing mkinstalldirs config.guess config.sub ltconfig ltmain.sh
 
 maintainer-clean-local:
 	rm -rf rpm
