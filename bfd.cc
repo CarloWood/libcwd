@@ -468,11 +468,15 @@ void bfd_close(bfd* abfd)
 		asection const* sect = bfd_get_section(*s);
 		if (sect->name[1] == 't' && !strcmp(sect->name, ".text"))
 		{
+#if CWDEBUG_ALLOC
 		  __libcwd_tsd.internal = 0;
+#endif
 		  void* val = dlsym(handle, (*s)->name);
 		  if (dlerror() == NULL)
 		  {
+#if CWDEBUG_ALLOC
 		    __libcwd_tsd.internal = saved_internal;
+#endif
 		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->vma;
 		    std::pair<start_values_map_ct::iterator, bool> p = start_values.insert(std::pair<void* const, unsigned int>(start, 0));
 		    if (++(*(p.first)).second > best_count)
@@ -482,8 +486,10 @@ void bfd_close(bfd* abfd)
 			break;			// So if we reach 10 then this is value we are looking for.
 		    }
 		  }
+#if CWDEBUG_ALLOC
 		  else
 		    __libcwd_tsd.internal = saved_internal;
+#endif
 		}
 	      }
 	      if (best_count < 3)
@@ -497,9 +503,13 @@ void bfd_close(bfd* abfd)
 		  abfd = NULL;
 		}
 		number_of_symbols = 0;
+#if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = 0;
 		::dlclose(handle);
 		__libcwd_tsd.internal = saved_internal;
+#else
+		::dlclose(handle);
+#endif
 		return;
 	      }
 	      lbase = best_start;
