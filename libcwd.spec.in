@@ -8,10 +8,10 @@ Group: Development/Libraries
 Source: http://download.sourceforge.net/libcwd/libcwd-%{version}.tar.gz
 Copyright: QPL
 %ifos linux
-Requires: gcc-c++ >= 2.95.1, binutils >= 2.9
+Requires: gcc-c++ >= 3.0, binutils >= 2.9
 %endif
 Buildroot: %{_tmppath}/%{name}-root
-BuildPrereq: make, m4, which >= 2.5, autoconf >= 2.13, automake >= 1.5, libtool >= 1.4.2
+BuildPrereq: make, m4, which >= 2.5, autoconf >= 2.13, automake >= 1.6, libtool >= 1.4.2
 URL: http://libcwd.sourceforge.net/
 
 %description
@@ -58,11 +58,15 @@ echo
 %doc documentation/doxygen-examples
 %doc documentation/www
 %doc documentation/index.html
-%dir %{__prefix}/include/libcw
+%dir %{__prefix}/include/libcwd
 %{__prefix}/lib/*
 %{__prefix}/include/libcwd/*
 
 %changelog
+* Sat May  3 2003 Carlo Wood <libcw@alinoe.com>
+- 0.99.29 needs g++ 3.0 or higher.
+- Headers were moved to include/libcwd.
+
 * Mon Apr 14 2003 Carlo Wood <libcw@alinoe.com>
 - Renamed include/libcw to include/libcwd.
 

@@ -1,4 +1,4 @@
-libcwddir = $(includedir)/libcw
+libcwddir = $(includedir)/libcwd
 
 libcwd_HEADERS = \
 	bfd.h \
@@ -41,9 +41,11 @@ libcwd_HEADERS = \
 	private_allocator.h \
 	private_allocator.inl \
 	private_assert.h \
+	private_bufferstream.h \
 	private_debug_stack.h \
 	private_environ.h \
 	private_internal_string.h \
+	private_internal_stringbuf.h \
 	private_internal_stringstream.h \
 	private_internal_vector.h \
 	private_lock_interface.h \

@@ -29,25 +29,17 @@
 #endif
 #ifndef LIBCW_SSTREAM
 #define LIBCW_SSTREAM
-#ifdef LIBCWD_USE_STRSTREAM
-#include <strstream>
-#else
 #include <sstream>
-#endif
 #endif
 
 namespace libcw {
   namespace debug {
     namespace _private_ {
 
-#ifdef LIBCWD_USE_STRSTREAM
-class auto_internal_stringbuf { };
-#else // !LIBCWD_USE_STRSTREAM
 #if CWDEBUG_ALLOC
 typedef ::std::basic_stringbuf<char, ::std::char_traits<char>, ::libcw::debug::_private_::auto_internal_allocator> auto_internal_stringbuf;
 #else
 typedef ::std::stringbuf auto_internal_stringbuf;
-#endif
 #endif
 
     } // namespace _private_
