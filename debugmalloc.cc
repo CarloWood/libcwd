@@ -1456,16 +1456,22 @@ size_t const MAGIC_NEW_ARRAY_END = 0x31415927;
 size_t const MAGIC_MALLOC_BEGIN = 0xf4c433a1;
 size_t const MAGIC_MALLOC_END = 0x335bc0fa;
 
-char const* diagnose_from(deallocated_from_nt from, bool visible = true)
+char const* diagnose_from(deallocated_from_nt from, bool internal, bool visible = true)
 {
   switch(from)
   {
     case from_free:
-      return visible ? "You are 'free()'-ing a pointer (" : "You are 'free()'-ing an invisible memory block (at ";
+      return internal ?
+	  "You are 'free()'-ing a pointer with alloc checking OFF ('internal' allocation) (" :
+          visible ? "You are 'free()'-ing a pointer (" : "You are 'free()'-ing an invisible memory block (at ";
     case from_delete:
-      return visible ? "You are 'delete'-ing a pointer (" : "You are 'delete'-ing an invisible memory block (at ";
+      return internal ?
+	  "You are 'delete'-ing a pointer with alloc checking OFF ('internal' allocation) (" :
+          visible ? "You are 'delete'-ing a pointer (" : "You are 'delete'-ing an invisible memory block (at ";
     case from_delete_array:
-      return visible ? "You are 'delete[]'-ing a pointer (" : "You are 'delete[]'-ing an invisible memory block (at ";
+      return internal ?
+	  "You are 'delete[]'-ing a pointer with alloc checking OFF ('internal' allocation) (" :
+          visible ? "You are 'delete[]'-ing a pointer (" : "You are 'delete[]'-ing an invisible memory block (at ";
     case error:
       break;
   }
@@ -1478,15 +1484,15 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
   {
     case INTERNAL_MAGIC_NEW_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_NEW_END)
-        return ") that was allocated with 'new' internally by libcwd.  This might be a bug in libcwd.";
+        return ") that was allocated with 'new' with alloc checking OFF ('internal' allocation).  This might be a bug in libcwd, or you are using set_alloc_checking_on()/off() unbalanced.";
       break;
     case INTERNAL_MAGIC_NEW_ARRAY_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_NEW_ARRAY_END)
-        return ") that was allocated with 'new[]' internally by libcwd.  This might be a bug in libcwd.";
+        return ") that was allocated with 'new[]' with alloc checking OFF ('internal' allocation).  This might be a bug in libcwd, or you are using set_alloc_checking_on()/off() unbalanced.";
       break;
     case INTERNAL_MAGIC_MALLOC_BEGIN:
       if (*magic_end == INTERNAL_MAGIC_MALLOC_END)
-        return ") that was allocated with 'malloc()' internally by libcwd.  This might be a bug in libcwd.";
+        return ") that was allocated with 'malloc()' with alloc checking OFF ('internal' allocation).  This might be a bug in libcwd, or you are using set_alloc_checking_on()/off() unbalanced.";
       break;
     case MAGIC_NEW_BEGIN:
       if (*magic_end == MAGIC_NEW_END)
@@ -1794,11 +1800,26 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #endif // DEBUGDEBUGMALLOC
     return ptr1;
 #else // DEBUGMAGICMALLOC
-    ptr = static_cast<size_t*>(ptr) - 2;
-    if (((size_t*)ptr)[0] != INTERNAL_MAGIC_MALLOC_BEGIN ||
-	((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
-      DoutFatalInternal( dc::core, "internal realloc: magic number corrupt!" );
-    void* ptr1 = __libc_realloc(ptr, SIZE_PLUS_TWELVE(size));
+    void* ptr1;
+    if (ptr)
+    {
+      ptr = static_cast<size_t*>(ptr) - 2;
+      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_MALLOC_BEGIN ||
+	  ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
+	DoutFatalInternal( dc::core, "internal realloc: magic number corrupt!" );
+      if (size == 0)
+      {
+        __libc_free(ptr);
+#ifdef DEBUGDEBUGMALLOC
+	DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal: Leaving `__libcwd_realloc': NULL [" << saved_marker << ']' );
+	--recursive;
+#endif // DEBUGDEBUGMALLOC
+	return NULL;
+      }
+      ptr1 = __libc_realloc(ptr, SIZE_PLUS_TWELVE(size));
+    }
+    else
+      ptr1 = __libc_malloc(SIZE_PLUS_TWELVE(size));
     ((size_t*)ptr1)[1] = size;
     ((size_t*)(static_cast<char*>(ptr1) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
 #ifdef DEBUGDEBUGMALLOC
@@ -1817,6 +1838,25 @@ void* __libcwd_realloc(void* ptr, size_t size)
   DoutInternal( dc_malloc|continued_cf, "realloc(" << ptr << ", " << size << ") = " );
 #endif
 
+  if (ptr == NULL)
+  {
+    void* mptr = internal_debugmalloc(size, memblk_type_realloc CALL_ADDRESS SAVEDMARKER);
+
+#ifdef DEBUGMAGICMALLOC
+    if (mptr)
+    {
+      ((size_t*)mptr)[-2] = MAGIC_MALLOC_BEGIN;
+      ((size_t*)mptr)[-1] = size;
+      ((size_t*)(static_cast<char*>(mptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_MALLOC_END;
+    }
+#endif
+
+#ifdef DEBUGDEBUGMALLOC
+    --recursive;
+#endif
+    return mptr;
+  }
+
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << internal << "; setting it to true." );
   internal = true;
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
@@ -1831,6 +1871,21 @@ void* __libcwd_realloc(void* ptr, size_t size)
     DoutFatalInternal( dc::core, "Trying to realloc() an invalid pointer (" << ptr << ')' );
 #endif
   }
+
+  if (size == 0)
+  {
+#ifdef DEBUGDEBUGMALLOC
+    --recursive;
+#endif
+    __libcwd_free(ptr);
+#ifdef DEBUGDEBUGMALLOC
+    DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
+#else
+    DoutInternal( dc::finish, "NULL" );
+#endif
+    return NULL;
+  }
+
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << internal << "; setting it to false." );
   internal = false;
 
@@ -1961,21 +2016,21 @@ void __libcwd_free(void* ptr)
     {
       if (((size_t*)ptr)[0] != INTERNAL_MAGIC_NEW_BEGIN ||
           ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_END)
-        DoutFatalInternal( dc::core, "internal delete: " << diagnose_from(from) << (static_cast<size_t*>(ptr) + 2) <<
+        DoutFatalInternal( dc::core, "internal delete: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
 	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
     }
     else if (from == from_delete_array)
     {
       if (((size_t*)ptr)[0] != INTERNAL_MAGIC_NEW_ARRAY_BEGIN ||
           ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_ARRAY_END)
-        DoutFatalInternal( dc::core, "internal delete[]: " << diagnose_from(from) << (static_cast<size_t*>(ptr) + 2) <<
+        DoutFatalInternal( dc::core, "internal delete[]: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
 	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
     }
     else
     {
       if (((size_t*)ptr)[0] != INTERNAL_MAGIC_MALLOC_BEGIN ||
           ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
-        DoutFatalInternal( dc::core, "internal free: " << diagnose_from(from) << (static_cast<size_t*>(ptr) + 2) <<
+        DoutFatalInternal( dc::core, "internal free: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
 	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
     }
     ((size_t*)ptr)[0] ^= (size_t)-1;
@@ -2006,8 +2061,8 @@ void __libcwd_free(void* ptr)
 	((size_t*)ptr)[-2] == INTERNAL_MAGIC_MALLOC_BEGIN)
       DoutFatalInternal( dc::core, "Trying to " <<
           ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) <<
-	  " a pointer (" << ptr << ") that appears to be internally allocated!  This might be a bug in libcwd.  The magic number diagnostic gives: " <<
-	  diagnose_from(from) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+	  " a pointer (" << ptr << ") that appears to be internally allocated!  The magic number diagnostic gives: " <<
+	  diagnose_from(from, false) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
 
 #endif
     DoutFatalInternal( dc::core, "Trying to " <<
@@ -2077,19 +2132,19 @@ void __libcwd_free(void* ptr)
       {
 	if (((size_t*)ptr)[-2] != MAGIC_NEW_BEGIN ||
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_NEW_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
       }
       else if (from == from_delete_array)
       {
 	if (((size_t*)ptr)[-2] != MAGIC_NEW_ARRAY_BEGIN ||
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_NEW_ARRAY_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
       }
       else
       {
 	if (((size_t*)ptr)[-2] != MAGIC_MALLOC_BEGIN ||
 	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_MALLOC_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+	  DoutFatalInternal( dc::core, diagnose_from(from, false, (*i).second.has_alloc_node()) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
       }
       ((size_t*)ptr)[-2] ^= (size_t)-1;
       ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] ^= (size_t)-1;
