@@ -36,10 +36,13 @@ void assert_fail(char const* expr, char const* file, int line, char const* funct
   }
 }
 
+// Solaris8 doesn't define __STRING().
+#define LIBCWD_STRING(x) #x
+
 #define LIBCWD_ASSERT(expr) \
 	(static_cast<void>((expr) ? 0 \
 			          : (::libcw::debug::_private_::\
-			assert_fail(__STRING(expr), __FILE__, __LINE__, __PRETTY_FUNCTION__), 0)))
+			assert_fail(LIBCWD_STRING(expr), __FILE__, __LINE__, __PRETTY_FUNCTION__), 0)))
 
 #endif // LIBCW_PRIVATE_ASSERT_H
 
