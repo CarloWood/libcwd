@@ -44,8 +44,15 @@ namespace libcw {
 namespace _internal_ {
   extern bool internal;
   extern int library_call;
+#ifdef __GLIBCPP__
+  extern bool ios_base_initialized;
+#endif
 
   static class Desperation { } const raw_write = { };
+
+#ifdef __GLIBCPP__
+  bool inside_ios_base_Init_Init(void);
+#endif
 } // namespace _internal_
 
 // Forward declaration

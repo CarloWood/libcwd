@@ -286,7 +286,8 @@ namespace _internal_ {
   // that is used for this is `library_call'.  In other words, `library_call'
   // is set when we call a library function that could call malloc or new
   // (most notably operator<<(ostream&, ...), while writing debug output;
-  // and when creating a location_ct (which is a 'library call' of libcwd).
+  // when creating a location_ct (which is a 'library call' of libcwd) or
+  // while doing string manipulations.
   //
   // internal	library_call	Action
   //
@@ -300,6 +301,29 @@ namespace _internal_ {
   //				  and do not call any library functions.
   bool internal = false;
   int library_call = 0;
+
+#ifdef __GLIBCPP__
+  //
+  // The following kludge is needed because of a bug in libstdc++-v3.
+  //
+  bool ios_base_initialized = false;
+
+  // _internal_::
+  bool inside_ios_base_Init_Init(void)
+  {
+#ifndef _GLIBCPP_USE_WCHAR_T
+    if (std::cerr.flags() != std::ios_base::unitbuf)                // Still didn't reach the end of ios_base::Init::Init()?
+#else
+    if (std::wcerr.flags() != std::ios_base::unitbuf)
+#endif
+      return true;
+    ios_base_initialized = true;
+    make_all_allocations_invisible_except(NULL);    // Get rid of the <pre ios initialization> allocation list.
+    DEBUGDEBUG_CERR( "Standard streams initialized." );
+    return false;
+  }
+#endif // __GLIBCPP__
+
 } // namespace _internal_
 
 using _internal_::internal;
@@ -612,6 +636,11 @@ static memblk_map_ct* memblk_map;
   // The `map' implementation calls `new' when initializing a new `map',
   // therefore this must be a pointer. Or below:
 
+static int initialization_state;
+  //  0: memblk_map and libcwd both not initialized yet.
+  //  1: memblk_map and libcwd both initialized.
+  // -1: memblk_map initialized but libcwd not initialized yet.
+
 //=============================================================================
 //
 // dm_alloc_ct methods
@@ -671,6 +700,9 @@ void dm_alloc_ct::print_description(void) const
 #ifdef DEBUGDEBUG
   ASSERT( !internal && !library_call );
 #endif
+
+  ++library_call;	// string manipulations.
+
 #ifdef DEBUGUSEBFD
   if (M_location.is_known())
     Dout(dc::continued, setw(20) << cwprint_using(M_location, &location_ct::print_filename_on) <<
@@ -733,6 +765,8 @@ void dm_alloc_ct::print_description(void) const
 
   if (a_description.get())
     Dout( dc::continued, ' ' << a_description.get() );
+
+  --library_call;
 }
 
 void dm_alloc_ct::printOn(ostream& os) const
@@ -857,10 +891,6 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
 {
   ASSERT( !internal );
 
-#ifdef DEBUGDEBUG
-  bool DoutInternal_was_not_skipped = (library_call == 0 && libcw_do._off < 0);
-#endif
-
   register void* mptr;
 #ifndef DEBUGMAGICMALLOC
   if (!(mptr = __libc_malloc(size)))
@@ -868,26 +898,35 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
   if ((mptr = static_cast<char*>(__libc_malloc(SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
   {
-#ifdef DEBUGDEBUG
-    if (DoutInternal_was_not_skipped)
-#endif
     DoutInternal( dc::finish, "NULL" );
     DoutInternal( dc_malloc, "Out of memory ! this is only a pre-detection!" );
     return NULL;	// A fatal error should occur directly after this
   }
 
-  if (!memblk_map)
+  if (initialization_state <= 0)		// Only true prior to initialization of ios_base::Init.
   {
-    internal = true;
-    memblk_map = new memblk_map_ct;
-    internal = false;
+    if (initialization_state == 0)		// Only true once.
+    {
+      internal = true;
+      memblk_map = new memblk_map_ct;
+      initialization_state = -1;
+      internal = false;
+    }
 #ifdef CWDEBUG
-    ++library_call;
-    libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
-    					// to be a function that is called _very_ early - and hence this is a good moment
-					// to initialize ALL of libcwd.
-    --library_call;
-#endif
+    else
+#ifdef __GLIBCPP__
+    // "ios_base" is always initialized for libstdc++ version 2.
+        if (!_internal_::ios_base_initialized && !_internal_::inside_ios_base_Init_Init())
+#endif // __GLIBCPP__
+    {
+      ++library_call;
+      libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
+						// to be a function that is called _very_ early - and hence this is a good moment
+						// to initialize ALL of libcwd.
+      --library_call;
+      initialization_state = 1;
+    }
+#endif // CWDEBUG
   }
 
 #ifdef DEBUGUSEBFD
@@ -916,27 +955,18 @@ static void* internal_debugmalloc(size_t size, memblk_types_nt flag)
   memblk_info.get_alloc_node()->location_reference().move(loc);
 #endif
 
-#ifdef DEBUGDEBUG
-  if (DoutInternal_was_not_skipped)
-#endif
   DoutInternal( dc::finish, (void*)(mptr) );
   return mptr;
 }
 
 void init_debugmalloc(void)
 {
-  if (!memblk_map)
+  if (initialization_state == 0)
   {
     set_alloc_checking_off();
     memblk_map = new memblk_map_ct;
+    initialization_state = -1;
     set_alloc_checking_on();
-#ifdef CWDEBUG
-    ++library_call;
-    libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
-    					// to be a function that is called _very_ early - and hence this is a good moment
-					// to initialize ALL of libcwd.
-    --library_call;
-#endif
   }
 }
 
@@ -1072,10 +1102,8 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<
 #undef CALL_ADDRESS
 #ifdef DEBUGUSEBFD
 #define CALL_ADDRESS , reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset
-static void* internal_debugmalloc(size_t size, memblk_types_nt flag, void* call_addr);
 #else
 #define CALL_ADDRESS
-static void* internal_debugmalloc(size_t size, memblk_types_nt flag);
 #endif
 
 debugmalloc_newctor_ct::debugmalloc_newctor_ct(void* ptr, type_info_ct const& ti) : no_heap_alloc_node(NULL)
@@ -1440,7 +1468,7 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 // 
 void register_external_allocation(void const* mptr, size_t size)
 {
-#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
+#if defined(DEBUGDEBUG) && defined(__GLIBCPP__)
   ASSERT( _internal_::ios_base_initialized );
 #endif
   if (internal)
@@ -1450,18 +1478,12 @@ void register_external_allocation(void const* mptr, size_t size)
 
   DoutInternal( dc_malloc, "register_external_allocation(" << (void*)mptr << ", " << size << ')' );
 
-  if (!memblk_map)
+  if (initialization_state == 0)		// Only true once.
   {
     internal = true;
     memblk_map = new memblk_map_ct;
+    initialization_state = -1;
     internal = false;
-#ifdef CWDEBUG
-    ++library_call;  
-    libcw::debug::initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
-    					// to be a function that is called _very_ early - and hence this is a good moment
-					// to initialize ALL of libcwd.
-    --library_call;  
-#endif
   }
 
 #ifdef DEBUGUSEBFD
@@ -1502,18 +1524,10 @@ using namespace ::libcw::debug;
 // malloc(3) and calloc(3) replacements:
 //
 
-#if defined(DEBUGDEBUG) && defined(CWDEBUG) && defined(DEBUGUSEBFD)
-namespace libcw { namespace debug { namespace cwbfd { bool ios_base_initialization_hack(void); } } }
-#endif
-
 void* __libcwd_malloc(size_t size)
 {
-#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
-#ifndef HAVE___LIBC_MALLOC
+#if defined(DEBUGDEBUG) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
   ASSERT( _internal_::ios_base_initialized );
-#elif defined(CWDEBUG)
-  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
-#endif
 #endif
   if (internal)
   {
@@ -1564,12 +1578,8 @@ void* __libcwd_malloc(size_t size)
 
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
-#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
-#ifndef HAVE___LIBC_MALLOC
+#if defined(DEBUGDEBUG) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
   ASSERT( _internal_::ios_base_initialized );
-#elif defined(CWDEBUG)
-  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
-#endif
 #endif
   if (internal)
   {
@@ -1631,12 +1641,8 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 
 void* __libcwd_realloc(void* ptr, size_t size)
 {
-#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
-#ifndef HAVE___LIBC_MALLOC
+#if defined(DEBUGDEBUG) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
   ASSERT( _internal_::ios_base_initialized );
-#elif defined(CWDEBUG)
-  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
-#endif
 #endif
   if (internal)
   {
@@ -1761,12 +1767,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
 
 void __libcwd_free(void* ptr)
 {
-#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
-#ifndef HAVE___LIBC_MALLOC
+#if defined(DEBUGDEBUG) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
   ASSERT( _internal_::ios_base_initialized );
-#elif defined(CWDEBUG)
-  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
-#endif
 #endif
   deallocated_from_nt from = deallocated_from;
   deallocated_from = from_free;
@@ -2051,12 +2053,8 @@ void* operator new[](size_t size)
 
 void operator delete(void* ptr)
 {
-#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
-#ifndef HAVE___LIBC_MALLOC
+#if defined(DEBUGDEBUG) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
   ASSERT( _internal_::ios_base_initialized );
-#elif defined(CWDEBUG)
-  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
-#endif
 #endif
   deallocated_from = from_delete;
   __libcwd_free(ptr);
@@ -2064,12 +2062,8 @@ void operator delete(void* ptr)
 
 void operator delete[](void* ptr)
 {
-#if defined(DEBUGDEBUG) && defined(DEBUGUSEBFD) && defined(__GLIBCPP__)
-#ifndef HAVE___LIBC_MALLOC
+#if defined(DEBUGDEBUG) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
   ASSERT( _internal_::ios_base_initialized );
-#elif defined(CWDEBUG)
-  ASSERT( _internal_::ios_base_initialized || cwbfd::ios_base_initialization_hack());
-#endif
 #endif
   deallocated_from = from_delete_array;
   __libcwd_free(ptr);			// Note that the standard demands that we call free(), and not delete().

@@ -78,12 +78,6 @@ namespace libcw {
       }
     }
 
-#ifdef __GLIBCPP__
-    namespace _internal_ {
-      bool ios_base_initialized = false;
-    }
-#endif
-
     // Local stuff
     namespace cwbfd {
 
@@ -134,23 +128,6 @@ int const BSF_DYNAMIC = 4096;
 //----------------------------------------------------------------------------------------
 
 #endif // !DEBUGUSEGNULIBBFD
-
-#ifdef __GLIBCPP__
-      // cwbfd::
-      bool ios_base_initialization_hack(void)
-      {
-#ifndef _GLIBCPP_USE_WCHAR_T
-	if (std::cerr.flags() != std::ios_base::unitbuf)		// Still didn't reach the end of ios_base::Init::Init()?
-#else
-	if (std::wcerr.flags() != std::ios_base::unitbuf)
-#endif
-	  return true;
-	_internal_::ios_base_initialized = true;
-	make_all_allocations_invisible_except(NULL);	// Get rid of the <pre ios initialization> allocation list.
-	DEBUGDEBUG_CERR( "Standard streams initialized." );
-	return false;
-      }
-#endif // __GLIBCPP__
 
       // cwbfd::
       void error_handler(char const* format, ...)
@@ -1005,7 +982,7 @@ int const BSF_DYNAMIC = 4096;
       if (!initialized)
       {
 #ifdef __GLIBCPP__	// Pre libstdc++ v3, there is no malloc done for initialization of cerr.
-        if (!_internal_::ios_base_initialized && ios_base_initialization_hack())
+        if (!_internal_::ios_base_initialized && _internal_::inside_ios_base_Init_Init())
 	{
 	  M_filepath = NULL;
 	  M_func = "<pre ios initialization>";

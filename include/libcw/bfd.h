@@ -34,12 +34,6 @@ RCSTAG_H(bfd, "$Id$")
 namespace libcw {
   namespace debug {
 
-#ifdef __GLIBCPP__
-namespace _internal_ {
-  extern bool ios_base_initialized;
-}
-#endif
-
 namespace channels {
   namespace dc {
     extern channel_ct const bfd;
