@@ -1,6 +1,7 @@
-// input lines 2
+// input lines 3
 // output till ^int : 0
-(BFD     : Loading debug info from.*
+((WARNING : core size is limited.*
+)*BFD     : Loading debug info from.*
 )*
 // type exact
 int : 0

@@ -1,6 +1,7 @@
-// input lines 2
+// input lines 3
 // output till ^void
-(BFD     : Loading debug info from.*
+((WARNING : core size is limited.*
+)*BFD     : Loading debug info from.*
 )*
 // type exact
 void libcw_app_ct::add_option<libcw_app_ct>(void (libcw_app_ct::*)(char const*), char const*, char, char const*, char const*)

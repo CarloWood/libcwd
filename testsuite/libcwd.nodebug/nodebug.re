@@ -1,6 +1,7 @@
-// input lines 2
+// input lines 3
 // output till ^(BFD     :     Warning|MALLOC)
-(BFD     : Loading debug info from.*
+((WARNING : core size is limited.*
+)*BFD     : Loading debug info from.*
 )*
 MALLOC  : operator new\[\] \(size = 400\) = <unfinished>
 BFD     :     Warning: Address 0x[a-f0-9]+ in section \.text of object file "nodebug_nodebug_shared"

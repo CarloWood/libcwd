@@ -1,6 +1,7 @@
-// input lines 2
+// input lines 3
 // output till ^MALLOC
-(BFD     : Loading debug info from.*
+((WARNING : core size is limited.*
+)*BFD     : Loading debug info from.*
 )*
 // input lines 4
 // output till ^BFD     : Loading

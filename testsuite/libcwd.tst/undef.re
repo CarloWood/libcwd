@@ -1,6 +1,7 @@
-// input lines 2
+// input lines 3
 // output till ^Finished
-(BFD     : Loading debug info from.*
+((WARNING : core size is limited.*
+)*BFD     : Loading debug info from.*
 )*
 // type exact
 Finished successfully.

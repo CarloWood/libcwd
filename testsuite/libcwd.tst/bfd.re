@@ -1,7 +1,8 @@
 // type regexp
-// input lines 3
+// input lines 4
 // output till ^BFD     : address
-(BFD     : Loading debug info from .*/tst_bfd_s.....\.\.\. done \([0-9]+ symbols\)
+((WARNING : core size is limited.*
+)*BFD     : Loading debug info from .*/tst_bfd_s.....\.\.\. done \([0-9]+ symbols\)
 (BFD     : Loading debug info from (.*\.so.* \(0x[0-9a-f]+\)|/usr/lib/libdl\.so\.1) \.\.\. (done \([0-9]+ symbols\)|No symbols found)
 )+)*
 BFD     : address 0x[0-9a-f]+ corresponds to bfd\.cc:111
