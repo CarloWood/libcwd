@@ -1,5 +1,14 @@
 libcwd-0.99.25
 
+	Changes:
+
+	channel_ct::get_label() was returning a character array of size
+	max_label_len_c, right padded with spaces and not zero terminated.
+	Now it returns a zero terminated character array.  The length
+	of the string is equal to the length of longest label (so dlopen-
+	ing a library with a longer debug channel will actually increase
+	the size of all other labels).
+
         Bug fixes:
 
 	The previous version erroneously did not compile with -O.

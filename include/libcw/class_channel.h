@@ -92,7 +92,7 @@ private:
     // and `on' when it has the value -1.
 #endif // !LIBCWD_THREAD_SAFE
 
-  char WNS_label[max_label_len_c];
+  char WNS_label[max_label_len_c + 1];			// +1 for zero termination.
     // A reference name for the represented debug channel
     // This label will be printed in front of each output written to
     // this debug channel.

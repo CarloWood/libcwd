@@ -39,7 +39,7 @@ namespace libcw {
 
 class fatal_channel_ct {
 private:
-  char WNS_label[max_label_len_c];
+  char WNS_label[max_label_len_c + 1];				// +1 for zero termination.
     // A reference name for the represented debug channel
     // This label will be printed in front of each output written to
     // this debug channel.
