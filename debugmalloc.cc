@@ -1881,6 +1881,8 @@ void* calloc_bootstrap1(size_t nmemb, size_t size)
 //---------------------------------------------------------------------------------------------
 #endif // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
 
+namespace _private_ {
+
 void* new_memblk_map(void)
 {
   return new memblk_map_ct;
@@ -1894,6 +1896,8 @@ void delete_memblk_map(void* ptr)
   else
     core_dump();	// FIXME, map needs to be kept somehow.
 }
+
+} // namespace _private_
 
 void init_debugmalloc(void)
 {
