@@ -697,7 +697,7 @@ AC_DEFUN(CW_SETUP_RPM_DIRS,
     cd ..
     echo "%_require_vendor 1" > macros
     echo "%_require_distribution 1" >> macros
-    echo "%_distribution http://sourceforge.net/project/showfiles.php?group_id=354" >> macros
+    echo "%_distribution http://sourceforge.net/project/showfiles.php?group_id=47536" >> macros
     echo "%vendor Carlo Wood" >> macros
     echo "%_topdir "$top_builddir"/rpm" >> macros
     echo "%_pgp_path "$PGPPATH >> macros
