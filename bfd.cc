@@ -1119,26 +1119,32 @@ already_loaded:
 	{
 	  if (p->name)
 	  {
-	    set_alloc_checking_off();
+	    static int const BSF_WARNING_PRINTED = 0x40000000;
+	    if (!(p->flags & BSF_WARNING_PRINTED))
 	    {
-	      string demangled_name;
-	      demangle_symbol(p->name, demangled_name);
-	      set_alloc_checking_on();
-	      char const* ofn = strrchr(abfd->filename, '/');
-	      Dout(dc::bfd, "Warning: Address " << addr << " in section " << sect->name <<
-	          " of object file \"" << (ofn ? ofn + 1 : abfd->filename) << '"');
-	      Dout(dc::bfd|blank_label_cf|blank_marker_cf, "does not have a line number, perhaps the unit containing the function");
-#ifdef __FreeBSD__
-	      Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb?");
-#else
-	      Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g?");
-#endif
+	      const_cast<asymbol*>(p)->flags |= BSF_WARNING_PRINTED;
 	      set_alloc_checking_off();
+	      {
+		string demangled_name;
+		demangle_symbol(p->name, demangled_name);
+		set_alloc_checking_on();
+		char const* ofn = strrchr(abfd->filename, '/');
+		Dout(dc::bfd, "Warning: Address " << addr << " in section " << sect->name <<
+		    " of object file \"" << (ofn ? ofn + 1 : abfd->filename) << '"');
+		Dout(dc::bfd|blank_label_cf|blank_marker_cf, "does not have a line number, perhaps the unit containing the function");
+  #ifdef __FreeBSD__
+		Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb?");
+  #else
+		Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g?");
+  #endif
+		set_alloc_checking_off();
+	      }
+	      set_alloc_checking_on();
 	    }
-	    set_alloc_checking_on();
 	  }
 	  else
-	    Dout(dc::bfd, "Warning: Address in section " << sect->name << " does not contain a function");
+	    Dout(dc::bfd, "Warning: Address in section " << sect->name <<
+	        " of object file \"" << abfd->filename << "\" does not contain a function.");
 	}
 	else
 	  Dout(dc::bfd, "address " << addr << dec << " corresponds to " << *this);
