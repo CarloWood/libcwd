@@ -39,7 +39,7 @@ namespace libcw {
 
 #if CWDEBUG_LOCATION
     namespace cwbfd {
-      bool ST_init(void);
+      bool ST_init(LIBCWD_TSD_PARAM);
     } // namespace cwbfd
 #endif
 

@@ -34,8 +34,7 @@ namespace libcw {
 // The different instance-ids used in libcwd.
 enum mutex_instance_nt {
   // Recursive mutexes.
-  tsd_initialization_instance,
-  tsd_deinitialization_instance,
+  static_tsd_instance,
   object_files_instance,		// rwlock
   end_recursive_types,
   // Fast mutexes.

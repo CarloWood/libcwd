@@ -27,7 +27,8 @@ namespace libcw {
 __inline__
 fatal_channel_ct::fatal_channel_ct(char const* label, control_flag_t maskbit)
 {
-  NS_initialize(label, maskbit);
+  LIBCWD_TSD_DECLARATION;
+  NS_initialize(label, maskbit LIBCWD_COMMA_TSD);
 }
 
 __inline__

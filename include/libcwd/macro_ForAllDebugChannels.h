@@ -79,7 +79,13 @@ extern debug_channels_ct debug_channels;
 } // namespace libcw
 
 #if LIBCWD_THREAD_SAFE
+#if CWDEBUG_DEBUGT
+#define LIBCWD_ForAllDebugChannels_LOCK_TSD_DECLARATION LIBCWD_TSD_DECLARATION
+#else
+#define LIBCWD_ForAllDebugChannels_LOCK_TSD_DECLARATION
+#endif
 #define LIBCWD_ForAllDebugChannels_LOCK \
+    LIBCWD_ForAllDebugChannels_LOCK_TSD_DECLARATION; \
     LIBCWD_DEFER_CLEANUP_PUSH(&::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_channels_instance>::cleanup, NULL); \
     ::libcw::debug::_private_::debug_channels.init_and_rdlock()
 #define LIBCWD_ForAllDebugChannels_UNLOCK \

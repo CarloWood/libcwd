@@ -201,11 +201,11 @@ private:
 
   friend class channel_ct;
   friend class fatal_channel_ct;
-  friend void ST_initialize_globals(void);
+  friend void ST_initialize_globals(LIBCWD_TSD_PARAM);
 #if CWDEBUG_LOCATION
-  friend bool cwbfd::ST_init(void);
+  friend bool cwbfd::ST_init(LIBCWD_TSD_PARAM);
 #endif
-  void NS_init(void);
+  void NS_init(LIBCWD_TSD_PARAM);
     // Initialize this object, needed because debug output can be written
     // from the constructors of (other) global objects, and from the malloc()
     // family when CWDEBUG_ALLOC is set to 1.

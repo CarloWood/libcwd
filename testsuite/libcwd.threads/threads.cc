@@ -29,7 +29,6 @@
     ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() ); \
     ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() ); \
     { \
-      LIBCWD_TSD_DECLARATION; \
       ForAllDebugObjects( while (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) >= 0) debugObject.on() ); \
       ForAllDebugObjects( if (LIBCWD_DO_TSD_MEMBER_OFF(debugObject) < 0) debugObject.off() ); \
     } \
@@ -73,7 +72,7 @@ unsigned long thread_index(pthread_t tid)
 }
 
 pthread_once_t test_keys_once = PTHREAD_ONCE_INIT;
-static pthread_key_t keys[100];
+static pthread_key_t keys[32];
 
 static void cleanup_routine(void* arg)
 {

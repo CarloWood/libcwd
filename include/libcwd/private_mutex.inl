@@ -29,16 +29,19 @@ void mutex_ct::initialize(void)
 }
 
 __inline__
+#if CWDEBUG_DEBUGT
+bool mutex_ct::trylock(LIBCWD_TSD_PARAM)
+#else
 bool mutex_ct::trylock(void)
+#endif
 {
   LibcwDebugThreads( LIBCWD_ASSERT( M_initialized ) );
-  LibcwDebugThreads( LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ) );
+  LibcwDebugThreads( LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ) );
   bool success = (pthread_mutex_trylock(&M_mutex) == 0);
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
   if (success)
   {
 #if CWDEBUG_DEBUGT
-    LIBCWD_TSD_DECLARATION;
     _private_::test_for_deadlock(this, __libcwd_tsd, __builtin_return_address(0));
 #endif
     M_instance_locked += 1;
@@ -48,21 +51,34 @@ bool mutex_ct::trylock(void)
 #endif
   }
 #endif
-  LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
+  LibcwDebugThreads( if (success) ++__libcwd_tsd.inside_critical_area; );
   return success;
 }
 
+#if CWDEBUG_DEBUGT
 __inline__
+bool mutex_ct::trylock(void)
+{
+  LIBCWD_TSD_DECLARATION;
+  return trylock(LIBCWD_TSD);
+}
+#endif
+
+
+__inline__
+#if CWDEBUG_DEBUGT
+void mutex_ct::lock(LIBCWD_TSD_PARAM)
+#else
 void mutex_ct::lock(void)
+#endif
 {
   LibcwDebugThreads( LIBCWD_ASSERT( M_initialized ) );
-  LibcwDebugThreads( LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ) );
-  LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; );
+  LibcwDebugThreads( LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ) );
+  LibcwDebugThreads( ++__libcwd_tsd.inside_critical_area; );
 #if LIBCWD_DEBUGDEBUGRWLOCK
   LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << (void*)this);
 #endif
 #if CWDEBUG_DEBUGT
-  LIBCWD_TSD_DECLARATION;
   __libcwd_tsd.waiting_for_mutex = this;
   int res =
 #endif
@@ -86,8 +102,21 @@ void mutex_ct::lock(void)
 #endif
 }
 
+#if CWDEBUG_DEBUGT
 __inline__
+void mutex_ct::lock(void)
+{
+  LIBCWD_TSD_DECLARATION;
+  lock(LIBCWD_TSD);
+}
+#endif
+
+__inline__
+#if CWDEBUG_DEBUGT
+void mutex_ct::unlock(LIBCWD_TSD_PARAM)
+#else
 void mutex_ct::unlock(void)
+#endif
 {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
   M_instance_locked -= 1;
@@ -95,7 +124,7 @@ void mutex_ct::unlock(void)
   M_locked_by = 0;
 #endif
 #endif
-  LibcwDebugThreads( LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ) );
+  LibcwDebugThreads( LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ) );
 #if LIBCWD_DEBUGDEBUGRWLOCK
   LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": unlocking mutex " << (void*)this);
 #endif
@@ -103,8 +132,17 @@ void mutex_ct::unlock(void)
 #if LIBCWD_DEBUGDEBUGRWLOCK
   LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << (void*)this << " unlocked");
 #endif
-  LibcwDebugThreads( LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area; );
+  LibcwDebugThreads( --__libcwd_tsd.inside_critical_area; );
 }
+
+#if CWDEBUG_DEBUGT
+__inline__
+void mutex_ct::unlock(void)
+{
+  LIBCWD_TSD_DECLARATION;
+  unlock(LIBCWD_TSD);
+}
+#endif
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 __inline__

@@ -173,10 +173,17 @@ using libcw::debug::_private_::dlclose_instance;
 // the free() from __pthread_destroy_specifics (in the pthread library) will only
 // be trying to free memory that was allocated (for glibc-2.2.4 at specific.c:109)
 // by the same thread and thus will not attempt to acquire the rwlock.
+#if !CWDEBUG_DEBUGT
 #define ACQUIRE_WRITE_LOCK(tt)	do { __libcwd_tsd.target_thread = tt; __libcwd_tsd.target_thread->thread_mutex.lock(); } while(0)
 #define RELEASE_WRITE_LOCK	do { __libcwd_tsd.target_thread->thread_mutex.unlock(); UNSET_TARGETHREAD; } while(0)
 #define ACQUIRE_READ_LOCK(tt)	do { __libcwd_tsd.target_thread = tt; __libcwd_tsd.target_thread->thread_mutex.lock(); } while(0)
 #define RELEASE_READ_LOCK	do { __libcwd_tsd.target_thread->thread_mutex.unlock(); UNSET_TARGETHREAD; } while(0)
+#else
+#define ACQUIRE_WRITE_LOCK(tt)	do { __libcwd_tsd.target_thread = tt; __libcwd_tsd.target_thread->thread_mutex.lock(__libcwd_tsd); } while(0)
+#define RELEASE_WRITE_LOCK	do { __libcwd_tsd.target_thread->thread_mutex.unlock(__libcwd_tsd); UNSET_TARGETHREAD; } while(0)
+#define ACQUIRE_READ_LOCK(tt)	do { __libcwd_tsd.target_thread = tt; __libcwd_tsd.target_thread->thread_mutex.lock(__libcwd_tsd); } while(0)
+#define RELEASE_READ_LOCK	do { __libcwd_tsd.target_thread->thread_mutex.unlock(__libcwd_tsd); UNSET_TARGETHREAD; } while(0)
+#endif
 #define ACQUIRE_READ2WRITE_LOCK
 #define ACQUIRE_WRITE2READ_LOCK
 // We can rwlock_tct here, because this lock is never used from free(),
@@ -411,7 +418,7 @@ void smart_ptr::copy_from(char* ptr)
 
 } // namespace _private_
 
-extern void ST_initialize_globals(void);
+extern void ST_initialize_globals(LIBCWD_TSD_PARAM);
 
   } // namespace debug
 } // namespace libcw
@@ -819,8 +826,8 @@ public:
   dm_alloc_ct(dm_alloc_ct const& __dummy) : dm_alloc_base_ct(__dummy) { LIBCWD_TSD_DECLARATION; DoutFatalInternal( dc::fatal, "Calling dm_alloc_ct::dm_alloc_ct(dm_alloc_ct const&)" ); }
     // No copy constructor allowed.
 #endif
-  void deinit();
-  ~dm_alloc_ct() { if (my_list) deinit(); }
+  void deinit(LIBCWD_TSD_PARAM);
+  ~dm_alloc_ct() { if (my_list) { LIBCWD_TSD_DECLARATION; deinit(LIBCWD_TSD); } }
   void new_list(LIBCWD_TSD_PARAM)							// MT-safe: write lock is set.
       {
 #if CWDEBUG_DEBUGT
@@ -1142,9 +1149,10 @@ inline bool dm_alloc_ct::is_deleted(void) const
       a_memblk_type == memblk_type_freed);
 }
 
-void dm_alloc_ct::deinit()						// MT-safe: write lock is set.
+void dm_alloc_ct::deinit(LIBCWD_TSD_PARAM)					// MT-safe: write lock is set.
 {
-  LIBCWD_TSD_DECLARATION;
+  if (!my_list)
+    return;
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( __libcwd_tsd.internal );
   if (a_next_list)
@@ -1890,7 +1898,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 	DoutInternal( dc_malloc|continued_cf,
 	    ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	    << ptr << ((from == from_free) ? ") " : " ") );
-	if (channels::dc_malloc.is_on())
+	if (channels::dc_malloc.is_on(LIBCWD_TSD))
 	  alloc_node->print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
 	DoutInternal( dc::continued, " [" << ++__libcwd_tsd.marker << "] " );
@@ -1944,7 +1952,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     ACQUIRE_READ2WRITE_LOCK;
     bool keep = (*memblk_iter_write).second.erase(!visible LIBCWD_COMMA_TSD);	// Update flags and optional decouple
     if (visible && !keep)
-      alloc_node->deinit();							// Perform deinitialization that needs lock.
+      alloc_node->deinit(LIBCWD_TSD);						// Perform deinitialization that needs lock.
     target_memblk_map_write->erase(memblk_iter_write);				// Update administration
 #if LIBCWD_THREAD_SAFE
     if (!found_in_current_thread && __libcwd_tsd.target_thread->is_zombie() && target_memblk_map_write->size() == 0)
@@ -1962,7 +1970,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
       DoutInternal( dc_malloc|continued_cf,
 	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	  << ptr << ((from == from_free) ? ") " : " ") );
-      if (channels::dc_malloc.is_on())
+      if (channels::dc_malloc.is_on(LIBCWD_TSD))
 	alloc_node->print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
       if (!keep)
       {
@@ -2212,9 +2220,9 @@ void init_debugmalloc(void)
       WST_initialization_state = 1;		// ST_initialize_globals() calls malloc again of course.
       int recursive_store = __libcwd_tsd.inside_malloc_or_free;
       __libcwd_tsd.inside_malloc_or_free = 0;	// Allow that (this call to malloc will not have done from STL allocator).
-      libcw::debug::ST_initialize_globals();	// This doesn't belong in the malloc department at all, but malloc() happens
-						// to be a function that is called _very_ early - and hence this is a good moment
-						// to initialize ALL of libcwd.
+      libcw::debug::ST_initialize_globals(LIBCWD_TSD);	// This doesn't belong in the malloc department at all, but malloc()
+      							// happens to be a function that is called _very_ early - and hence
+							// this is a good moment to initialize ALL of libcwd.
       __libcwd_tsd.inside_malloc_or_free = recursive_store;
     }
   }
@@ -3035,8 +3043,17 @@ void __libcwd_free(void* ptr)
     return;
   }
 #endif
-  LIBCWD_TSD_DECLARATION;
+#if LIBCWD_THREAD_SAFE
+  // This is the only place where `instance_free' may be called, it marks
+  // the returned tsd as 'inside_free'.  Such tsds, if the thread is terminating
+  // and the tsds thus static, are never overwritten by other threads.
+  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
+#endif
   internal_free(ptr, from_free LIBCWD_COMMA_TSD);
+#if LIBCWD_THREAD_SAFE
+  // Mark the end of free() - now a static tsd might be re-used by other threads.
+  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+#endif
 }
 
 //=============================================================================
@@ -3069,7 +3086,7 @@ void* __libcwd_malloc(size_t size)
 #endif
   if (__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `__libcwd_malloc(" << size << ")' [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `__libcwd_malloc(" << size << ")' [" << saved_marker << ']' << " from " << (void*)__builtin_return_address(0) );
 
 #if !CWDEBUG_DEBUGM && !CWDEBUG_MAGIC
     return __libc_malloc(size);
@@ -3112,8 +3129,24 @@ void* __libcwd_malloc(size_t size)
   return ptr;
 }
 
+#if LIBCWD_THREAD_SAFE
+static bool WST_libpthread_initialized = false;
+#endif
+
 void* __libcwd_calloc(size_t nmemb, size_t size)
 {
+#if LIBCWD_THREAD_SAFE
+  if (!WST_libpthread_initialized)
+  {
+    // We can't call pthread_self() or any other function of libpthread yet.
+    // Doing LIBCWD_TSD_DECLARATION would core without creating a usable backtrace.
+    void* ptr = __libc_calloc(nmemb, size);    
+    static int ST_libpthread_init_count = 0;
+    if (++ST_libpthread_init_count == 2)
+      WST_libpthread_initialized = true;
+    return ptr;
+  }
+#endif
 #ifdef TWDEBUG
   LIBTWD_TSD_DECLARATION;
   if (__libtwd_tsd.internal)
@@ -3137,7 +3170,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 #endif
   if (__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `__libcwd_calloc(" << nmemb << ", " << size << ")' [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `__libcwd_calloc(" << nmemb << ", " << size << ")' [" << saved_marker << ']' << " from " << (void*)__builtin_return_address(0) );
 
 #if !CWDEBUG_DEBUGM && !CWDEBUG_MAGIC
     return __libc_calloc(nmemb, size);
@@ -3216,7 +3249,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #endif
   if (__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `__libcwd_realloc(" << ptr << ", " << size << ")' [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `__libcwd_realloc(" << ptr << ", " << size << ")' [" << saved_marker << ']' << " from " << (void*)__builtin_return_address(0) );
 
 #if !CWDEBUG_DEBUGM && !CWDEBUG_MAGIC
     return __libc_realloc(ptr, size);
@@ -3513,7 +3546,7 @@ void* operator new(size_t size) throw (std::bad_alloc)
 #endif
   if (__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `operator new', size = " << size << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `operator new', size = " << size << " [" << saved_marker << ']' << " from " << (void*)__builtin_return_address(0) );
 
 #if !CWDEBUG_DEBUGM && !CWDEBUG_MAGIC
     return __libc_malloc(size);
@@ -3628,7 +3661,7 @@ void* operator new[](size_t size) throw (std::bad_alloc)
 #endif
   if (__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `operator new[]', size = " << size << " [" << saved_marker << ']' );
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `operator new[]', size = " << size << " [" << saved_marker << ']' << " from " << (void*)__builtin_return_address(0) );
 
 #if !CWDEBUG_DEBUGM && !CWDEBUG_MAGIC
     return __libc_malloc(size);

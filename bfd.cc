@@ -1006,7 +1006,7 @@ void bfd_close(bfd* abfd)
       }
 
       // cwbfd::
-      bool ST_init(void)
+      bool ST_init(LIBCWD_TSD_PARAM)
       {
 	static bool WST_being_initialized = false;
 	// This should catch it when we call new or malloc while 'internal'.
@@ -1015,7 +1015,7 @@ void bfd_close(bfd* abfd)
 	WST_being_initialized = true;
 
 	// This must be called before calling ST_init().
-	libcw_do.NS_init();
+	libcw_do.NS_init(LIBCWD_TSD);
 
         // MT: We assume this is called before reaching main().
 	//     Therefore, no synchronisation is required.
@@ -1043,8 +1043,6 @@ void bfd_close(bfd* abfd)
 	  ::dlclose(handle);
 	}
 #endif // HAVE__DL_LOADED
-
-	LIBCWD_TSD_DECLARATION;
 
 #if CWDEBUG_DEBUG && CWDEBUG_ALLOC
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
@@ -1238,11 +1236,17 @@ void bfd_close(bfd* abfd)
     {
       using namespace cwbfd;
 
-      if (!WST_initialized	// `WST_initialized' is only false when we are still Single Threaded.
-	  && !ST_init())
-	return unknown_function_c;
+      if (!WST_initialized)	// `WST_initialized' is only false when we are still Single Threaded.
+      {
+	LIBCWD_TSD_DECLARATION;
+	if (!ST_init(LIBCWD_TSD))
+	  return unknown_function_c;
+      }
 
       symbol_ct const* symbol;
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEFER_CANCEL;
       BFD_ACQUIRE_READ_LOCK;
       symbol = pc_symbol((bfd_vma)(size_t)addr, NEEDS_READ_LOCK_find_object_file(addr));
@@ -1325,7 +1329,7 @@ typedef location_ct bfd_location_ct;
 	}
 #endif
 #endif
-	if (!ST_init())	// Initialization of BFD code fails?
+	if (!ST_init(LIBCWD_TSD))	// Initialization of BFD code fails?
 	{
 	  M_object_file = NULL;
 	  M_func = S_pre_libcwd_initialization_c;

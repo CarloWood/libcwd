@@ -191,7 +191,8 @@ debug_ct::private_set_ostream(std::ostream* os)
 __inline__
 debug_ct::debug_ct(void)
 {
-  NS_init();
+  LIBCWD_TSD_DECLARATION;
+  NS_init(LIBCWD_TSD);
 }
 
 /**

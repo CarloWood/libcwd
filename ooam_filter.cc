@@ -48,6 +48,9 @@ struct timeval const ooam_filter_ct::no_time_limit = { 1, 0 };
 
 void ooam_filter_ct::set_flags(ooam_format_t flags)
 {
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
   M_flags &= ~format_mask;
@@ -64,6 +67,9 @@ ooam_format_t ooam_filter_ct::get_flags(void) const
 
 void ooam_filter_ct::set_time_interval(struct timeval const& start, struct timeval const& end)
 {
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
   M_start = start;
@@ -74,6 +80,9 @@ void ooam_filter_ct::set_time_interval(struct timeval const& start, struct timev
 
 struct timeval ooam_filter_ct::get_time_start(void) const
 {
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   struct timeval res;
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
@@ -85,6 +94,9 @@ struct timeval ooam_filter_ct::get_time_start(void) const
 
 struct timeval ooam_filter_ct::get_time_end(void) const
 {
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   struct timeval res;
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
@@ -97,6 +109,9 @@ struct timeval ooam_filter_ct::get_time_end(void) const
 #if CWDEBUG_LOCATION
 std::vector<std::string> ooam_filter_ct::get_objectfile_list(void) const
 {
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   std::vector<std::string> res;
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
@@ -108,6 +123,9 @@ std::vector<std::string> ooam_filter_ct::get_objectfile_list(void) const
 
 std::vector<std::string> ooam_filter_ct::get_sourcefile_list(void) const
 {
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   std::vector<std::string> res;
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
@@ -119,6 +137,9 @@ std::vector<std::string> ooam_filter_ct::get_sourcefile_list(void) const
 
 void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& masks)
 {
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
   M_objectfile_masks = masks;
@@ -129,6 +150,9 @@ void ooam_filter_ct::hide_objectfiles_matching(std::vector<std::string> const& m
 
 void ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& masks)
 {
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
   M_sourcefile_masks = masks;
@@ -175,6 +199,9 @@ void ooam_filter_ct::M_synchronize(void) const
 ooam_filter_ct::ooam_filter_ct(ooam_format_t flags) : M_flags(flags & format_mask), M_start(no_time_limit), M_end(no_time_limit)
 {
 #if CWDEBUG_LOCATION
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+#endif
   LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
   ACQUIRE_LISTALLOC_LOCK;
   M_id = ++S_next_id;

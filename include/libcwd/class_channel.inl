@@ -35,7 +35,8 @@ namespace libcw {
 __inline__
 channel_ct::channel_ct(char const* label)
 {
-  NS_initialize(label);
+  LIBCWD_TSD_DECLARATION;
+  NS_initialize(label LIBCWD_COMMA_TSD);
 }
 
 #if LIBCWD_THREAD_SAFE

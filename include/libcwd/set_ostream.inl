@@ -52,6 +52,9 @@ template<class T>
   void debug_ct::set_ostream(std::ostream* os, T* mutex)
   {
     _private_::lock_interface_base_ct* new_mutex = new _private_::lock_interface_tct<T>(mutex);
+#if CWDEBUG_DEBUGT
+    LIBCWD_TSD_DECLARATION;
+#endif
     LIBCWD_DEFER_CANCEL;
     _private_::mutex_tct<_private_::set_ostream_instance>::lock();
     _private_::lock_interface_base_ct* old_mutex = M_mutex;

@@ -34,7 +34,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 	} while(0)
 #define LIBCWD_DEBUGDEBUGLOCK_CERR(x) \
 	do { \
-	  if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance) \
+	  if (instance != static_tsd_instance) \
 	  { \
 	    pthread_mutex_lock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
 	    ++LIBCWD_DEBUGDEBUGLOCK_CERR_count; \
@@ -168,7 +168,7 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 #define LIBCWD_DISABLE_CANCEL_NO_BRACE \
       int __libcwd_oldstate; \
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate); \
-      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.cancel_explicitely_disabled )
+      LibcwDebugThreads( ++__libcwd_tsd.cancel_explicitely_disabled )
 #if CWDEBUG_ALLOC
 #define LIBCWD_ASSERT_USERSPACE_OR_DEFERED_BEFORE_SETCANCELSTATE \
       /* pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL) will call, */ \
@@ -181,7 +181,6 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 #endif
 #define LIBCWD_ENABLE_CANCEL_NO_BRACE \
       LibcwDebugThreads(\
-	LIBCWD_TSD_DECLARATION; \
 	LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_disabled > 0 ); \
 	--__libcwd_tsd.cancel_explicitely_disabled; \
 	LIBCWD_ASSERT_USERSPACE_OR_DEFERED_BEFORE_SETCANCELSTATE; \
@@ -197,10 +196,9 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 #define LIBCWD_DEFER_CANCEL_NO_BRACE \
       int __libcwd_oldtype; \
       pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &__libcwd_oldtype); \
-      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.cancel_explicitely_deferred )
+      LibcwDebugThreads( ++__libcwd_tsd.cancel_explicitely_deferred )
 #define LIBCWD_RESTORE_CANCEL_NO_BRACE \
       LibcwDebugThreads(\
-	LIBCWD_TSD_DECLARATION; \
 	LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred > 0 ); \
 	--__libcwd_tsd.cancel_explicitely_deferred; \
 	LIBCWD_ASSERT_USERSPACE_OR_DEFERED_BEFORE_SETCANCELSTATE; \
@@ -213,29 +211,25 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 #if LIBCWD_USE_LINUXTHREADS
 #define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg) \
     pthread_cleanup_push_defer_np(reinterpret_cast<void(*)(void*)>(routine), reinterpret_cast<void*>(arg)); \
-      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.cancel_explicitely_deferred; ++__libcwd_tsd.cleanup_handler_installed )
+      LibcwDebugThreads( ++__libcwd_tsd.cancel_explicitely_deferred; ++__libcwd_tsd.cleanup_handler_installed )
 #if CWDEBUG_ALLOC
 #define LIBCWD_ASSERT_NONINTERNAL LIBCWD_ASSERT( !__libcwd_tsd.internal )
 #else
 #define LIBCWD_ASSERT_NONINTERNAL
 #endif
 #define LIBCWD_CLEANUP_POP_RESTORE(execute) \
-      LibcwDebugThreads(\
-	    LIBCWD_TSD_DECLARATION; \
-	    --__libcwd_tsd.cleanup_handler_installed; \
+      LibcwDebugThreads( --__libcwd_tsd.cleanup_handler_installed; \
 	    LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred > 0 ); \
 	    LIBCWD_ASSERT_NONINTERNAL; ); \
       pthread_cleanup_pop_restore_np(static_cast<int>(execute)); \
-      LibcwDebugThreads(\
-	    LIBCWD_TSD_DECLARATION; \
-	    --__libcwd_tsd.cancel_explicitely_deferred; )
+      LibcwDebugThreads( --__libcwd_tsd.cancel_explicitely_deferred; )
 #else // !LIBCWD_USE_LINUXTHREADS
 #define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg) \
       LIBCWD_DEFER_CANCEL; \
-      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.cleanup_handler_installed ); \
+      LibcwDebugThreads( ++__libcwd_tsd.cleanup_handler_installed ); \
       pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(routine), reinterpret_cast<void*>(arg))
 #define LIBCWD_CLEANUP_POP_RESTORE(execute) \
-      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; --__libcwd_tsd.cleanup_handler_installed ); \
+      LibcwDebugThreads( --__libcwd_tsd.cleanup_handler_installed ); \
       pthread_cleanup_pop(static_cast<int>(execute)); \
       LIBCWD_RESTORE_CANCEL
 #endif // !LIBCWD_USE_LINUXTHREADS
@@ -252,9 +246,8 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED \
     LibcwDebugThreads( \
-	if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance) \
+	if (instance != static_tsd_instance) \
 	{ \
-	  LIBCWD_TSD_DECLARATION; \
 	  /* When entering a critical area, make sure that we have explictely deferred cancellation of this */ \
 	  /* thread (or disabled that) because when cancellation would happen in the middle of the critical */ \
 	  /* area then the lock would stay locked.                                                          */ \
@@ -286,6 +279,9 @@ template <int instance>
     static bool trylock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGLOCK_CERR("Trying to lock mutex " << instance << " (" << (void*)&S_mutex << ") from " << __builtin_return_address(0) << " from " << __builtin_return_address(1));
       LIBCWD_DEBUGDEBUGLOCK_CERR("pthread_mutex_trylock(" << S_mutex << ").");
@@ -295,7 +291,6 @@ template <int instance>
       if (success)
       {
 #if CWDEBUG_DEBUGT
-	LIBCWD_TSD_DECLARATION;
 	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
 	LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::trylock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; incrementing it.");
@@ -306,19 +301,27 @@ template <int instance>
 #endif
       }
 #endif
-      LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( if (success) { ++__libcwd_tsd.inside_critical_area; } );
       return success;
     }
     static void lock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
+#if CWDEBUG_DEBUGT
+      TSD_st* tsd_ptr = 0;
+      if (instance != static_tsd_instance)
+      {
+        LIBCWD_TSD_DECLARATION;
+	tsd_ptr = &__libcwd_tsd;
+      }
+      TSD_st& __libcwd_tsd(*tsd_ptr);
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
-      LibcwDebugThreads( if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( if (instance != static_tsd_instance) { ++__libcwd_tsd.inside_critical_area; } );
       LIBCWD_DEBUGDEBUGLOCK_CERR("locking mutex " << instance << " (" << (void*)&S_mutex << ") from " << __builtin_return_address(0) << " from " << __builtin_return_address(1));
 #if CWDEBUG_DEBUGT
-      if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
+      if (instance != static_tsd_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
       {
-	LIBCWD_TSD_DECLARATION;
 	__libcwd_tsd.waiting_for_lock = instance;
 	LIBCWD_DEBUGDEBUGLOCK_CERR("pthread_mutex_lock(" << S_mutex << ").");
         int res = pthread_mutex_lock(&S_mutex);
@@ -354,6 +357,15 @@ template <int instance>
     }
     static void unlock(void)
     {
+#if CWDEBUG_DEBUGT
+      TSD_st* tsd_ptr = 0;
+      if (instance != static_tsd_instance)
+      {
+        LIBCWD_TSD_DECLARATION;
+	tsd_ptr = &__libcwd_tsd;
+      }
+      TSD_st& __libcwd_tsd(*tsd_ptr);
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::unlock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; decrementing it.");
@@ -386,7 +398,7 @@ template <int instance>
       LIBCWD_ASSERT(res == 0);
 #endif
       LIBCWD_DEBUGDEBUGLOCK_CERR("Lock " << instance << " released (" << (void*)&S_mutex << ").");
-      LibcwDebugThreads( if (instance != tsd_initialization_instance && instance != tsd_deinitialization_instance) { LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( if (instance != static_tsd_instance) { --__libcwd_tsd.inside_critical_area; } );
     }
     // This is used as cleanup handler with LIBCWD_DEFER_CLEANUP_PUSH.
     static void cleanup(void*);
@@ -449,13 +461,9 @@ template <int instance>
       	PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP;
 #endif
 
-// Specializations.
+// Specialization.
 template <>
-  extern pthread_mutex_t mutex_tct<tsd_initialization_instance>::S_mutex;
-      // = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-
-template <>
-  extern pthread_mutex_t mutex_tct<tsd_deinitialization_instance>::S_mutex;
+  extern pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex;
       // = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 #else // !LIBCWD_USE_LINUXTHREADS
@@ -625,6 +633,9 @@ template <int instance>
     }
     static bool tryrdlock(void)
     {
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::tryrdlock()");
@@ -643,7 +654,6 @@ template <int instance>
       LibcwDebugThreads(
 	  if (success)
 	  {
-	    LIBCWD_TSD_DECLARATION;
 	    ++__libcwd_tsd.inside_critical_area;
 	    _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 	    __libcwd_tsd.instance_rdlocked[instance] += 1;
@@ -667,6 +677,9 @@ template <int instance>
     static bool trywrlock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::trywrlock()");
       bool success;
@@ -682,7 +695,6 @@ template <int instance>
 	      S_writer_id = pthread_self();
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUGT
-	    LIBCWD_TSD_DECLARATION;
 	    _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
 	    LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": rwlock_tct::trywrlock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; incrementing it.");
@@ -698,13 +710,16 @@ template <int instance>
 	S_writer_is_waiting = false;
 	mutex_tct<readers_instance>::unlock();
       }
-      LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( if (success) { ++__libcwd_tsd.inside_critical_area; } );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::trywrlock()");
       return success;
     }
     static void rdlock(bool high_priority = false)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::rdlock()");
       if (instance < end_recursive_types && pthread_equal(S_writer_id, pthread_self()))
@@ -722,7 +737,6 @@ template <int instance>
 	}
       }
 #if CWDEBUG_DEBUGT
-      LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.waiting_for_rdlock = instance;
 #endif
       S_no_holders_condition.lock();
@@ -734,7 +748,6 @@ template <int instance>
       ++S_holders_count;				// Add one reader.
       S_no_holders_condition.unlock();
       LibcwDebugThreads(
-	  LIBCWD_TSD_DECLARATION;
 	  ++__libcwd_tsd.inside_critical_area;
 	  // Thread A: rdlock<1> ... mutex<2>
 	  // Thread B: mutex<2>  ... rdlock<1>
@@ -767,6 +780,9 @@ template <int instance>
     }
     static void rdunlock(void)
     {
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::rdunlock()");
       if (instance < end_recursive_types && pthread_equal(S_writer_id, pthread_self()))
@@ -774,13 +790,12 @@ template <int instance>
 	LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdunlock() (skipped: thread has write lock)");
 	return;						// No error checking is done.
       }
-      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area );
+      LibcwDebugThreads( --__libcwd_tsd.inside_critical_area );
       S_no_holders_condition.lock();
       if (--S_holders_count == 0)			// Was this the last reader?
         S_no_holders_condition.signal();		// Tell waiting threads.
       S_no_holders_condition.unlock();
       LibcwDebugThreads(
-	  LIBCWD_TSD_DECLARATION;
 	  if (__libcwd_tsd.instance_rdlocked[instance] == 2)
 	    __libcwd_tsd.rdlocked_by2[instance] = 0;
 	  else
@@ -792,12 +807,14 @@ template <int instance>
     static void wrlock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wrlock()");
       mutex_tct<readers_instance>::lock();		// Block new readers,
       S_writer_is_waiting = true;			// from this moment on.
 #if CWDEBUG_DEBUGT
-      LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.waiting_for_lock = instance;
 #endif
       S_no_holders_condition.lock();
@@ -812,7 +829,7 @@ template <int instance>
       S_no_holders_condition.unlock();
       if (instance < end_recursive_types)
         S_writer_id = pthread_self();
-      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area );
+      LibcwDebugThreads( ++__libcwd_tsd.inside_critical_area );
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUGT
       _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
@@ -828,6 +845,9 @@ template <int instance>
     }
     static void wrunlock(void)
     {
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": rwlock_tct::wrunlock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; decrementing it.");
@@ -848,7 +868,7 @@ template <int instance>
       }
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wrunlock()");
-      LibcwDebugThreads( LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area) ;
+      LibcwDebugThreads( --__libcwd_tsd.inside_critical_area) ;
       if (instance < end_recursive_types)
         S_writer_id = 0;
       S_no_holders_condition.lock();
@@ -859,10 +879,12 @@ template <int instance>
     }
     static void rd2wrlock(void)
     {
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::rd2wrlock()");
 #if CWDEBUG_DEBUGT
-      LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.waiting_for_lock = instance;
 #endif
       S_no_holders_condition.lock();
@@ -894,7 +916,6 @@ template <int instance>
 #endif
 #endif
       LibcwDebugThreads(
-	  LIBCWD_TSD_DECLARATION;
 	  if (__libcwd_tsd.instance_rdlocked[instance] == 2)
 	    __libcwd_tsd.rdlocked_by2[instance] = 0;
 	  else
@@ -905,6 +926,9 @@ template <int instance>
     }
     static void wr2rdlock(void)
     {
+#if CWDEBUG_DEBUGT
+      LIBCWD_TSD_DECLARATION;
+#endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": rwlock_tct::wr2rdlock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; decrementing it.");
@@ -929,7 +953,6 @@ template <int instance>
         S_writer_id = 0;
       S_holders_count = 1;				// Turn writer into a reader (atomic operation).
       LibcwDebugThreads(
-	  LIBCWD_TSD_DECLARATION;
 	  _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 	  __libcwd_tsd.instance_rdlocked[instance] += 1;
 	  if (__libcwd_tsd.instance_rdlocked[instance] == 1)

@@ -123,6 +123,7 @@ public:
   thread_ct* target_thread;
   bool terminated;
   bool list_allocations_on_show_allthreads;
+  int inside_free;			// Set when entering free().
 #endif
 #if CWDEBUG_DEBUGM
   int marker;
@@ -164,7 +165,7 @@ public:
 //-------------------------------------------------------
 // Static data and methods.
 private:
-  static TSD_st& S_create(void);
+  static TSD_st& S_create(int from_free);
   static pthread_key_t S_tsd_key;
   static pthread_once_t S_tsd_key_once;
   static void S_tsd_key_alloc(void);
@@ -172,6 +173,11 @@ private:
 
 public:
   static TSD_st& instance(void);
+  static TSD_st& instance_free(void);
+  static void free_instance(TSD_st&);
+#ifdef CWDEBUG_DEBUGT
+  static TSD_st& instance_any(void);
+#endif
 #endif // LIBCWD_THREAD_SAFE
 };
 
@@ -184,12 +190,33 @@ public:
 // global object in namespace _private_:
 extern TSD_st __libcwd_tsd;
 #else
+extern bool WST_tsd_key_created;
+
 __inline__
 TSD_st& TSD_st::instance(void)
 {
-  TSD_st* instance = (TSD_st*)pthread_getspecific(S_tsd_key);
-  if (!instance || instance->terminated)
-    return S_create();
+  TSD_st* instance;
+  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
+    return S_create(0);
+  return *instance;
+}
+
+// This function is called at the start of free().
+__inline__
+TSD_st& TSD_st::instance_free(void)
+{
+  TSD_st* instance;
+  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
+    return S_create(1);
+  return *instance;
+}
+
+__inline__
+TSD_st& TSD_st::instance_any(void)
+{
+  TSD_st* instance;
+  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
+    return S_create(2);
   return *instance;
 }
 #endif

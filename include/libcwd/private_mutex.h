@@ -26,6 +26,9 @@
 namespace libcw {
   namespace debug {
     namespace _private_ {
+#if CWDEBUG_DEBUGT
+    struct TSD_st;
+#endif
 
 class mutex_ct {
 private:
@@ -47,6 +50,11 @@ public:
   bool trylock(void);
   void lock(void);
   void unlock(void);
+#if CWDEBUG_DEBUGT
+  bool trylock(TSD_st&);
+  void lock(TSD_st&);
+  void unlock(TSD_st&);
+#endif
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
   bool is_locked(void);
 #endif
