@@ -174,8 +174,6 @@ extern size_t mem_size(void);
 extern long memblks(void);
 
 // Manipulators:
-extern void set_alloc_checking_off(void);
-extern void set_alloc_checking_on(void);
 extern void make_invisible(void const* ptr);
 extern void make_all_allocations_invisible_except(void const* ptr);
 
@@ -246,7 +244,7 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 };
      
 #define NEW(x) __libcwd_allocCatcher(new x)
-#define RegisterAlloc(x) ::libcw::debug::register_external_allocation(x)
+#define ExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
 
 #include <libcw/type_info.h>
 
@@ -257,18 +255,19 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
-#define RegisterAlloc(x) ::libcw::debug::register_external_allocation(x)
+#define ExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
+
+#endif // !CWDEBUG
 
 namespace libcw {
   namespace debug {
 
 extern void set_alloc_checking_off(void);
 extern void set_alloc_checking_on(void);
+extern void register_external_allocation(void const*, size_t);
 
   }
 }
-
-#endif // !CWDEBUG
 
 using libcw::debug::set_alloc_checking_off;
 using libcw::debug::set_alloc_checking_on;
@@ -280,7 +279,7 @@ using libcw::debug::set_alloc_checking_on;
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
-#define RegisterAlloc(x)
+#define ExternalAlloc(p, s)
 #define set_alloc_checking_on()
 #define set_alloc_checking_off()
 
