@@ -34,6 +34,10 @@ verbose "    out = \"$out\""
     # The expected form is: /usr/lib/libc.so.4: warning: ...
     #                   or: /usr/lib/libc.so.4: WARNING! ...
     regsub -all -line -nocase -- "^.*: warning\[!:\].*$" "$compileroutput" "" compileroutput
+    # Remove lines like
+    # make[3]: Entering directory `/home/carlo/c++/libcwd/testsuite
+    # make[3]: Leaving directory `/home/carlo/c++/libcwd/testsuite
+    regsub -all -line -- "^make\\\[\[0-9\]*\\\]:.*ing directory.*$" "$compileroutput" "" compileroutput
     # Finally remove all new-lines if any:
     regsub -- "^\[^`'.,!_/a-zA-Z0-9 ():;\]*$" "$compileroutput" "" compileroutput
     verbose "Filtered compiler output is: `$compileroutput'"
