@@ -24,6 +24,9 @@
 
 // Defined when both -lpthread and pthread.h could be found.
 #undef LIBCWD_HAVE_PTHREAD
+
+// Defined when --enable-libcwd-threading is used.
+#undef LIBCWD_THREAD_SAFE
 @BOTTOM@
 
 #endif // LIBCW_CONFIG_H

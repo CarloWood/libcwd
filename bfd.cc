@@ -33,7 +33,6 @@
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <stdlib.h>             // Needed for realpath(3)
 #endif
-#include "config.h"
 #ifdef HAVE_DLOPEN
 #include <map>
 #include <dlfcn.h>

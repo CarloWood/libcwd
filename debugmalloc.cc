@@ -145,7 +145,6 @@
 #include <libcw/iomanip.h>
 #include <libcw/cwprint.h>
 #endif
-#include "config.h"
 
 #ifdef DEBUGMALLOCEXTERNALCLINKAGE
 #define __libcwd_malloc malloc

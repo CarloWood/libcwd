@@ -134,15 +134,15 @@ dnl This block is also present in src/libcw/configure.in!
 dnl Generate libtool (also checks shared/static prerequisites)
 if expr "$host" : ".*openbsd.*" >/dev/null; then
   dnl openBSD has a buggy ld, no way that a shared library will work.
-  AM_DISABLE_SHARED
+  AC_DISABLE_SHARED
 else
   dnl Disable building static libraries by default
-  AM_DISABLE_STATIC
+  AC_DISABLE_STATIC
 fi
 test -n "$enable_shared" || enable_shared=yes
 test -n "$enable_static" || enable_static=yes
 dnl Note: due to a bug in libtool-1.3c, the language must be C at this point!
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 dnl Configuration needed by the testsuite, extract this from the generated 'libtool'
 enable_shared=`grep '^build_libtool_libs=' libtool | sed -e 's/build_libtool_libs=//'`
 enable_static=`grep '^build_old_libs=' libtool | sed -e 's/build_old_libs=//'`

@@ -12,7 +12,6 @@
 //
 
 #include "sys.h"
-#include "config.h"
 #include <libcw/debug_config.h>
 #ifdef CWDEBUG
 #include <errno.h>
