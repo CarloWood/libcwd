@@ -25,7 +25,8 @@ autoconf
 automake
 
 or just type `make' which will use the lowercase
-`makefile' to do the above.
+`makefile' to do the above (you will need GNU make;
+try `gmake' if `make' doesn't work).
 
 After that, you can continue as usual with
 ./configure, see the INSTALL file for details.
