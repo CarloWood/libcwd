@@ -31,6 +31,8 @@
 // #include <locale> Not supported by early versions
 #include "syslog_debug.h"
 
+using namespace std;
+
 RCSTAG_CC("$Id$")
 
 // New debug object which will write to syslog(3)

@@ -60,7 +60,7 @@ int main(void)
   Debug( dc::notice.off() );	// Just an example
 
   // Write debug output to cout (the default is cerr)
-  Debug( libcw_do.set_ostream(&cout) );
+  Debug( libcw_do.set_ostream(&std::cout) );
 
   // Turn debug object on.  Turning it off can be done recursively.
   // It starts with 'off' depth 1.

@@ -8,7 +8,7 @@ int main(void)
   ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );
   Debug( libcw_do.on() );
 
-  cout << "Successful\n";
+  std::cout << "Successful\n";
 
   return 0;
 }
