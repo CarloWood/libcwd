@@ -1,0 +1,36 @@
+Summary: C++ Debugging Support library for writing debug output and memory allocation debugging.
+Name: libcwd
+Version: !VERSION!
+Release: 1
+Copyright: QPL
+Group: Development/Libraries
+Source: http://download.sourceforge.net/libcw/libcwd-!VERSION!.tar.gz
+Prefix: /usr
+Buildroot: /var/tmp/libcwd-root
+
+%description
+Libcwd is a full-featured, professional, well documented library to support
+C++ developers with debugging their applications.  It includes support for
+ostream-based debug output, custom debug channels and devices, powerful
+memory allocation debugging, run-time sourcefile:linenumber information and
+demangled type-names of variables.
+
+%prep
+%setup
+
+%build
+./configure --prefix=/usr
+make
+
+%install
+make DESTDIR="$RPM_BUILD_ROOT" install
+
+%clean
+# rm -rf "$RPM_BUILD_ROOT"
+
+%files
+%defattr(-,root,root)
+%doc README
+
+!CHANGELOG!
+
