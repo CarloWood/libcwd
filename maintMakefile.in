@@ -162,11 +162,11 @@ documentation: example-project/debug.h
 
 syncwww: documentation
 	@echo "Synchronizing with libcwd.sourceforge.net..."
-	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=documentation/www/exclude --delete-excluded \
-		/usr/src/libcwd/libcwd/documentation/ libcw.sourceforce.net:"~/libcwd.www/htdocs"
+	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/documentation/www/exclude --delete-excluded \
+		`pwd`/documentation/ libcw.sourceforce.net:"~/libcwd.www/htdocs"
 	@echo "Synchronizing with www.xs4all.nl..."
-	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=documentation/www/exclude --delete-excluded \
-		/usr/src/libcwd/libcwd/documentation/ xs2:"~/WWW/libcwd"
+	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/documentation/www/exclude --delete-excluded \
+		`pwd`/documentation/ xs2:"~/WWW/libcwd"
 
 cvs-clean:
 	$(MAKE) -C documentation maintainer-clean

@@ -7,9 +7,9 @@ include doxygen.config
 INPUT_FILES=$(shell for i in $(INPUT); do if test -f $(srcdir)/$$i; then echo $(srcdir)/$$i; else for j in $(FILE_PATTERNS); do ls $(srcdir)/$$i/$$j; done; fi done)
 EXAMPLE_FILES=$(shell find $(srcdir)/doxygen-examples -mindepth 1 -maxdepth 1 -type f -print)
 
-.PHONY: reference-manual external styles tutorial links
+.PHONY: reference-manual external styles tutorial documentation_src
 
-all: reference-manual tutorial links
+all: reference-manual tutorial documentation_src
 
 Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/Makefile.in
 	cd $(top_builddir) && CONFIG_FILES=documentation/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
@@ -17,11 +17,9 @@ Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/Makefile.in
 doxygen.config: $(top_builddir)/config.status $(top_srcdir)/documentation/doxygen.config.in
 	cd $(top_builddir) && CONFIG_FILES=documentation/doxygen.config CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 
-links:
+documentation_src:
 	if test "`readlink -f @srcdir@`" != "`readlink -f .`"; then \
-	  test -e images || ln -s @srcdir@/images images; \
-	  test -e scripts || ln -s @srcdir@/scripts scripts; \
-	  test -e index.html || ln -s @srcdir@/index.html index.html; \
+	  tar -C $(top_srcdir) -cf - documentation | tar -C $(top_builddir) -xf - ; \
 	fi
 
 reference-manual: styles external
@@ -80,6 +78,6 @@ tutorial:
 maintainer-clean: external-clean reference-manual-clean
 	$(MAKE) -C styles maintainer-clean
 	if test "`readlink -f @srcdir@`" != "`readlink -f .`"; then \
-	  rm -f images scripts index.html; \
+	  rm -rf images scripts index.html; \
 	fi
 	cd tutorial; rm -f examples5/debug.* examples5/test* tutorial/core examples7/test* tut5.m4 tut7.m4 *.html

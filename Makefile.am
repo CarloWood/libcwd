@@ -80,10 +80,6 @@ dist-hook: documentation
 	  sed -e 's/^\(CONFIG_CLEAN_FILES =.*\) libcwd\.spec libcwd\.lsm\(.*\)/\1\2/' > $(distdir)/Makefile.in.new && \
 	  mv $(distdir)/Makefile.in.new $(distdir)/Makefile.in
 	cp -pr $(top_builddir)/documentation $(distdir)
-	if test "`readlink -f $(srcdir)`" != "`readlink -f .`"; then \
-	  rm -f $(distdir)/documentation/images $(distdir)/documentation/scripts $(distdir)/documentation/index.html; \
-	  tar -C $(srcdir) -cf - documentation | tar -C $(distdir) -xf - ; \
-	fi
 	find $(distdir)/documentation -name CVS -print | xargs rm -rf
 	find $(distdir)/documentation -name .cvsignore -print | xargs rm -rf
 	find $(distdir)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
@@ -101,10 +97,14 @@ dist-hook: documentation
 	chmod +x $(distdir)/install-sh
 
 distclean-local:
-	rm -rf rpm autom4te.cache
-	find documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
-	(cd example-project; rm -rf autom4te.cache .deps aclocal.m4 config.h config.h.in \
-	 config.log config.status configure Makefile Makefile.in stamp-h1 program *.o)
+	rm -rf rpm $(srcdir)/autom4te.cache
+	if test ! -e $(top_builddir)/NEWS; then \
+	  rm -rf documentation; \
+	else \
+	  find documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf; \
+	fi
+	(cd example-project; rm -rf $(srcdir)/autom4te.cache .deps $(srcdir)/aclocal.m4 config.h $(srcdir)/config.h.in \
+	 config.log config.status $(srcdir)/configure Makefile $(srcdir)/Makefile.in stamp-h1 program *.o)
 
 MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure $(srcdir)/Makefile.in \
 	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \

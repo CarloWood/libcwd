@@ -34,34 +34,35 @@ B<T>::~B(void)
   libcwd::alloc_ct const* alloc = libcwd::find_alloc(this);
   if (sizeof(*this) != alloc->size())
   {
-    Debug( dc::malloc.off() );
-    Debug( libcw_do.set_marker(": | ") );
+    Debug(dc::malloc.off());
+    Debug(libcw_do.push_marker());
+    Debug(libcw_do.marker().assign(": | "));
     Dout(dc::notice, "This is a base class of an object starting at " << alloc->start());
     Dout(dc::notice, "The type of the pointer to the allocated object is " <<
                      alloc->type_info().demangled_name());
-    Debug( libcw_do.set_marker(": ` ") );
+    Debug(libcw_do.marker().assign(": ` "));
     Dout(dc::notice, "The destructor was called from " << location_ct(builtin_return_address(0)));
-    Debug( dc::malloc.on() );
-    Debug( libcw_do.set_marker(": ") );
+    Debug(dc::malloc.on());
+    Debug(libcw_do.pop_marker());
   }
 }
 
 int main(void)
 {
-  Debug( libcw_do.on() );
-  Debug( dc::notice.on() );
-  Debug( dc::malloc.on() );
+  Debug(libcw_do.on());
+  Debug(dc::notice.on());
+  Debug(dc::malloc.on());
 
-  B<int>* b = new B<int>;				// line 55
+  B<int>* b = new B<int>;				// line 56
   AllocTag(b, "object `b'");
   Dout(dc::notice, "b is " << b);
 
-  C<double, B<char> >* c = new C<double, B<char> >;	// line 59
+  C<double, B<char> >* c = new C<double, B<char> >;	// line 60
   AllocTag(c, "object `c'");
   Dout(dc::notice, "c is " << c);
 
   delete b;
-  delete c;						// line 64
+  delete c;						// line 65
 
   return 0;
 }

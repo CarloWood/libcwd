@@ -1,3 +1,12 @@
+libcwd-0.99.39
+
+        Bug fixes:
+
+	debug_ct::push_marker was broken. It left allocations
+	at 'internal' causing fatal error messages in a subsequent
+	delete or free about the attempt to delete a non-internal
+	memory allocation with memory allocation checking off.
+
 libcwd-0.99.38
 
 	Added support for g++ 3.4.2 and 4.0.0.

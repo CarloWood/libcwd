@@ -203,20 +203,21 @@ NOTICE  : child process stdout: "\tlibcwd.so.0 =&gt; /usr/lib/libcwd.so.0 (0x400
 template&lt;typename T&gt;
 B&lt;T&gt;::~B(void)
 {
-  Dout(dc::notice, &quot;Calling the destructor of &quot; &lt;&lt;
-                   type_info_of(*this).demangled_name() &lt;&lt; &quot; (this == &quot; &lt;&lt; this &lt;&lt; &quot;)&quot;);
+  Dout(dc::notice, "Calling the destructor of " &lt;&lt;
+                   libcwd::type_info_of(*this).demangled_name() &lt;&lt; " (this == " &lt;&lt; this &lt;&lt; ")");
   libcwd::alloc_ct const* alloc = libcwd::find_alloc(this);
   if (sizeof(*this) != alloc-&gt;size())
   {
-    Debug( dc::malloc.off() );
-    Debug( libcw_do.set_marker(&quot;: | &quot;) );
-    Dout(dc::notice, &quot;This is a base class of an object starting at &quot; &lt;&lt; alloc-&gt;start());
-    Dout(dc::notice, &quot;The type of the pointer to the allocated object is &quot; &lt;&lt;
+    Debug(dc::malloc.off());
+    Debug(libcw_do.push_marker());
+    Debug(libcw_do.marker().assign(": | "));
+    Dout(dc::notice, "This is a base class of an object starting at " &lt;&lt; alloc-&gt;start());
+    Dout(dc::notice, "The type of the pointer to the allocated object is " &lt;&lt;
                      alloc-&gt;type_info().demangled_name());
-    Debug( libcw_do.set_marker(&quot;: ` &quot;) );
-    Dout(dc::notice, &quot;The destructor was called from &quot; &lt;&lt; location_ct(builtin_return_address(0)));
-    Debug( dc::malloc.on() );
-    Debug( libcw_do.set_marker(&quot;: &quot;) );
+    Debug(libcw_do.marker().assign(": ` "));
+    Dout(dc::notice, "The destructor was called from " &lt;&lt; location_ct(builtin_return_address(0)));
+    Debug(dc::malloc.on());
+    Debug(libcw_do.pop_marker());
   }
 }
 </pre>
@@ -226,43 +227,58 @@ B&lt;T&gt;::~B(void)
 <h5>output</h5>
 
 <pre class="output" STYLE="margin-left: 0">
-MALLOC  : operator new (size = 4) = 0x80518a8
-NOTICE  : b is 0x80518a8
-MALLOC  : operator new (size = 12) = 0x81371f0
-NOTICE  : c is 0x81371f0
-NOTICE  : Calling the destructor of B&lt;int&gt; (this == 0x80518a8)
-MALLOC  : delete 0x80518a8        screenshot.cc:56   B&lt;int&gt;; (sz = 4)  object `b' 
-NOTICE  : Calling the destructor of B&lt;B&lt;char&gt; &gt; (this == 0x81371f4)
-NOTICE  : | This is a base class of an object starting at 0x81371f0
+MALLOC  : operator new (size = 4) = 0x80584d0 [screenshot.cc:56]
+NOTICE  : b is 0x80584d0
+MALLOC  : operator new (size = 12) = 0x8100fa0 [screenshot.cc:60]
+NOTICE  : c is 0x8100fa0
+NOTICE  : Calling the destructor of B&lt;int&gt; (this == 0x80584d0)
+MALLOC  : delete 0x80584d0        screenshot.cc:56   B&lt;int&gt;; (sz = 4)  object `b'
+NOTICE  : Calling the destructor of B&lt;B&lt;char&gt; &gt; (this == 0x8100fa4)
+NOTICE  : | This is a base class of an object starting at 0x8100fa0
 NOTICE  : | The type of the pointer to the allocated object is C&lt;double, B&lt;char&gt; &gt;*
 NOTICE  : ` The destructor was called from screenshot.cc:65
-MALLOC  : delete 0x81371f0        screenshot.cc:60   C&lt;double, B&lt;char&gt; &gt;; (sz = 12)  object `c'
+MALLOC  : delete 0x8100fa0        screenshot.cc:60   C&lt;double, B&lt;char&gt; &gt;; (sz = 12)  object `c'
 </pre>
 
 <h5>Another output example</h5>
 
 <pre class="output" STYLE="margin-left: 0">
-MALLOC  : malloc(72) = &lt;unfinished&gt;
-BFD     :     address 0x402ad017 corresponds to dl-open.c:114
-MALLOC  : &lt;continued&gt; 0x81c1330
-BFD     : Loading debug info from ./module.so (0x4031f000) ... done (206 symbols)
+MALLOC  : malloc(10) = &lt;unfinished&gt;
+WARNING :     Object file /lib/ld-linux.so.2 does not have debug info.  Address lookups inside this object file will result in a function name only, not a source file location.
+MALLOC  : &lt;continued&gt; 0x8125978 [ld-linux.so.2:open_path]
+MALLOC  : calloc(586, 1) = 0x8124f10 [ld-linux.so.2:_dl_new_object]
+MALLOC  : realloc(0x0, 138) = 0x8125170 [ld-linux.so.2:_dl_new_object]
+MALLOC  : malloc(52) = 0x8110fa0 [ld-linux.so.2:_dl_map_object_deps]
+MALLOC  : calloc(8, 16) = 0x8052c98 [ld-linux.so.2:_dl_check_map_versions]
+MALLOC  : malloc(68) = &lt;unfinished&gt;
+WARNING :     Object file /lib/tls/libc.so.6 does not have debug info.  Address lookups inside this object file will result in a function name only, not a source file location.
+MALLOC  : &lt;continued&gt; 0x80569e0 [libc.so.6:dl_open_worker]
+BFD     : Loading debug symbols from module.so (0x40424000) ... done (179 symbols)
 MALLOC  : malloc(310) = &lt;unfinished&gt;
-BFD     :     address 0x40325943 corresponds to module.cc:16
-MALLOC  : &lt;continued&gt; 0x81bfb68
+BFD     :     Loading debug info from module.so... done
+BFD     :     address 0x4042bc90 corresponds to module.cc:24
+MALLOC  : &lt;continued&gt; 0x81ab7b0 [module.cc:24]
 MALLOC  : malloc(300) = &lt;unfinished&gt;
-BFD     :     address 0x40325490 corresponds to module.cc:7
-MALLOC  : &lt;continued&gt; 0x817c490
-MALLOC  : Allocated memory: 1518 bytes in 10 blocks.
-malloc    0x817c490            module.cc:7    void*; (sz = 300)  Allocated inside static_test_symbol
-malloc    0x81bfb68            module.cc:16   void*; (sz = 310)  Allocated inside global_test_symbol
-malloc    0x81c1330            dl-open.c:114  &lt;unknown type&gt;; (sz = 72)
-malloc    0x81f52a8         dl-version.c:287  &lt;unknown type&gt;; (sz = 96)
-malloc    0x804f410            dl-deps.c:495  &lt;unknown type&gt;; (sz = 52)
-malloc    0x81c1290          dl-object.c:107  &lt;unknown type&gt;; (sz = 140)
-malloc    0x81c0d30          dl-object.c:41   &lt;unknown type&gt;; (sz = 24)
-malloc    0x81c05f8          dl-object.c:40   &lt;unknown type&gt;; (sz = 496)
-malloc    0x81f5288            dl-load.c:164  &lt;unknown type&gt;; (sz = 12)
-malloc    0x81c00a0            dlerror.c:108  &lt;unknown type&gt;; (sz = 16)
+BFD     :     address 0x4042ba86 corresponds to module.cc:13
+MALLOC  : &lt;continued&gt; 0x81ab8f8 [module.cc:13]
+MALLOC  : Allocated memory: 1592 bytes in 8 blocks.
+malloc    0x81ab8f8            module.cc:13   void*; (sz = 300)  Allocated inside static_test_symbol
+malloc    0x81ab7b0            module.cc:24   void*; (sz = 310)  Allocated inside global_test_symbol
+malloc    0x80569e0 dl_open_worker            &lt;unknown type&gt;; (sz = 68)
+malloc    0x8052c98 _dl_check_map_versions    &lt;unknown type&gt;; (sz = 128)
+malloc    0x8110fa0 _dl_map_object_deps       &lt;unknown type&gt;; (sz = 52)
+realloc   0x8125170 _dl_new_object            &lt;unknown type&gt;; (sz = 138)
+malloc    0x8124f10 _dl_new_object            &lt;unknown type&gt;; (sz = 586)
+malloc    0x8125978 open_path                 &lt;unknown type&gt;; (sz = 10)
+MALLOC  : free(0x81ab7b0)            module.cc:24   void*; (sz = 310)  Allocated inside global_test_symbol
+MALLOC  : free(0x81ab8f8)            module.cc:13   void*; (sz = 300)  Allocated inside static_test_symbol
+MALLOC  : free(0x8052c98) _dl_check_map_versions    &lt;unknown type&gt;; (sz = 128)
+MALLOC  : free(0x8125170) _dl_new_object            &lt;unknown type&gt;; (sz = 138)
+MALLOC  : free(0x8125978) open_path                 &lt;unknown type&gt;; (sz = 10)
+MALLOC  : Trying to free NULL - ignored.
+MALLOC  : Trying to free NULL - ignored.
+MALLOC  : free(0x8124f10) _dl_new_object            &lt;unknown type&gt;; (sz = 586)
+MALLOC  : free(0x8110fa0) _dl_map_object_deps       &lt;unknown type&gt;; (sz = 52)
 NOTICE  : Finished
 </pre>
 

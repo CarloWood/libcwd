@@ -957,6 +957,7 @@ void allocator_unlock(void)
       set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
       LIBCWD_TSD_MEMBER(M_marker_stack) = new (new_debug_string) debug_string_stack_element_ct(LIBCWD_TSD_MEMBER(marker));
+      set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(M_marker_stack)->next = current_marker_stack;
     }
 
