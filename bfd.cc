@@ -820,8 +820,12 @@ int const BSF_DYNAMIC = 4096;
 #endif
 
 	// Get the full path and name of executable
-	get_full_path_to_executable(fullpath);
-	fullpath += '\0';
+	string tmp_fullpath;
+	get_full_path_to_executable(tmp_fullpath);
+	tmp_fullpath += '\0';
+/**/	set_alloc_checking_on();
+/**/    fullpath = tmp_fullpath;				// Must be static because bfd keeps a pointer to its data()
+/**/	set_alloc_checking_off();
 
 #ifdef DEBUGUSEGNULIBBFD
 	bfd_set_error_program_name(fullpath.data() + fullpath.find_last_of('/') + 1);
