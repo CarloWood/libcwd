@@ -133,7 +133,7 @@
 #include <cstring>
 #include <string>
 #include <map>
-#include <iomanip.h>
+#include <iomanip>
 #include <strstream>
 #include <libcw/debug.h>
 #include <libcw/lockable_auto_ptr.h>
@@ -229,6 +229,8 @@ using std::map;
 using std::pair;
 using std::less;
 using std::ostrstream;
+using std::setw;
+using std::ends;
 
 namespace libcw {
   namespace debug {
