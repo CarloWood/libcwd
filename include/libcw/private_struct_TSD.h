@@ -156,6 +156,7 @@ public:
   pthread_t tid;
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
+  void cleanup_routine(void) throw();
 #endif
   int off_cnt_array[LIBCWD_DC_MAX];	// Thread Specific Data of Debug Channels.
 
@@ -164,6 +165,11 @@ public:
 #ifdef LIBCWD_THREAD_SAFE
 //-------------------------------------------------------
 // Static data and methods.
+private:
+  static pthread_key_t S_exit_key;
+  static pthread_once_t S_exit_key_once;
+  static void S_exit_key_alloc(void) throw();
+  static void S_cleanup_routine(void* arg) throw();
 
 public:
   static TSD_st& instance(void) throw()

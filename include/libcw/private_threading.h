@@ -105,7 +105,7 @@ enum mutex_instance_nt {
   object_files_instance,	// rwlock
   end_recursive_types,
   // Fast mutexes.
-  memblk_map_instance,		// rwlock
+  memblk_map_instance,
   mutex_initialization_instance,
   ids_singleton_tct_S_ids_instance,
   alloc_tag_desc_instance,
@@ -319,6 +319,8 @@ template <int instance>
 #endif
       LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION --__libcwd_tsd.inside_critical_area; } );
     }
+    // This is used as cleanup handler with LIBCWD_DEFER_CLEANUP_PUSH.
+    static void cleanup(void*);
   };
 
 #if !LIBCWD_USE_LINUXTHREADS || defined(DEBUGDEBUGTHREADS)
@@ -386,6 +388,12 @@ template <>
 #else // !LIBCWD_USE_LINUXTHREADS
       ;
 #endif // !LIBCWD_USE_LINUXTHREADS
+
+template <int instance>
+  void mutex_tct<instance>::cleanup(void*)
+  {
+    unlock();
+  }
 
 //========================================================================================================================================17"
 // class cond_tct
@@ -509,7 +517,7 @@ template <int instance>
       if (instance < end_recursive_types && pthread_equal(S_writer_id, pthread_self()))
       {
 	LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::tryrdlock() (skipped: thread has write lock)");
-	return;						// No error checking is done.
+	return true;						// No error checking is done.
       }
       // Give a writer a higher priority (kinda fuzzy).
       if (S_writer_is_waiting || !S_no_holders_condition.trylock())
@@ -527,25 +535,22 @@ template <int instance>
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::trywrlock()");
-      bool success = mutex_tct<readers_instance>::trylock();		// Block new readers,
-      while (success)
+      bool success;
+      if ((success = mutex_tct<readers_instance>::trylock()))
       {
-	S_writer_is_waiting = true;					// from this moment on.
-	if (!S_no_holders_condition.trylock())
+	S_writer_is_waiting = true;
+	if ((success = S_no_holders_condition.trylock()))
 	{
-	  S_writer_is_waiting = false;
-	  mutex_tct<readers_instance>::unlock();
-	  success = false;
-	  break;
+	  if ((success = (S_holders_count == 0)))
+	  {
+	    S_holders_count = -1;						// Mark that we have a writer.
+	    if (instance < end_recursive_types)
+	      S_writer_id = pthread_self();
+	  }
+	  S_no_holders_condition.unlock();
 	}
-	while (S_holders_count != 0)					// Other readers or writers have this lock?
-	  S_no_holders_condition.wait();					// Wait until all current holders are done.
-	S_writer_is_waiting = false;					// Stop checking the lock for new readers.
-	mutex_tct<readers_instance>::unlock();				// Release blocked readers.
-	S_holders_count = -1;						// Mark that we have a writer.
-	S_no_holders_condition.unlock();
-	if (instance < end_recursive_types)
-	  S_writer_id = pthread_self();
+	S_writer_is_waiting = false;
+	mutex_tct<readers_instance>::unlock();
       }
       LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::trywrlock()");

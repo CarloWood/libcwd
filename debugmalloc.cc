@@ -171,14 +171,18 @@
 // D libcw::debug::dm_alloc_ct::memsize
 //
 #ifdef LIBCWD_THREAD_SAFE
-using libcw::debug::_private_::rwlock_tct;
+using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::memblk_map_instance;
-#define ACQUIRE_WRITE_LOCK	rwlock_tct<memblk_map_instance>::wrlock();
-#define RELEASE_WRITE_LOCK	rwlock_tct<memblk_map_instance>::wrunlock();
-#define ACQUIRE_READ_LOCK	rwlock_tct<memblk_map_instance>::rdlock();
-#define RELEASE_READ_LOCK	rwlock_tct<memblk_map_instance>::rdunlock();
-#define ACQUIRE_READ2WRITE_LOCK	rwlock_tct<memblk_map_instance>::rd2wrlock();
-#define ACQUIRE_WRITE2READ_LOCK rwlock_tct<memblk_map_instance>::wr2rdlock();
+// We can't use rwlock_tct here because that leads to a dead lock.
+// rwlocks have to use condition variables or semaphores and both try to get a
+// (libpthread internal) self-lock that is already set by libthread when it calls
+// free() in order to destroy thread specific data 1st level arrays.
+#define ACQUIRE_WRITE_LOCK	mutex_tct<memblk_map_instance>::lock();		// rwlock_tct<memblk_map_instance>::wrlock();
+#define RELEASE_WRITE_LOCK	mutex_tct<memblk_map_instance>::unlock();	// rwlock_tct<memblk_map_instance>::wrunlock();
+#define ACQUIRE_READ_LOCK	mutex_tct<memblk_map_instance>::lock();		// rwlock_tct<memblk_map_instance>::rdlock();
+#define RELEASE_READ_LOCK	mutex_tct<memblk_map_instance>::unlock();	// rwlock_tct<memblk_map_instance>::rdunlock();
+#define ACQUIRE_READ2WRITE_LOCK							// rwlock_tct<memblk_map_instance>::rd2wrlock();
+#define ACQUIRE_WRITE2READ_LOCK 						// rwlock_tct<memblk_map_instance>::wr2rdlock();
 #else // !LIBCWD_THREAD_SAFE
 #define ACQUIRE_WRITE_LOCK
 #define RELEASE_WRITE_LOCK
@@ -1660,7 +1664,7 @@ void list_allocations_on(debug_ct& debug_object)
     __libcwd_tsd.internal = 0;
   }
 
-  LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<memblk_map_instance>::cleanup, NULL);
+  LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<memblk_map_instance>::cleanup /* &rwlock_tct<memblk_map_instance>::cleanup */, NULL);
   ACQUIRE_READ_LOCK
   LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << const_dm_alloc_ct::get_memsize() << " bytes in " << const_dm_alloc_ct::get_memblks() << " blocks." );
   if (base_alloc_list)

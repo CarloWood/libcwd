@@ -37,7 +37,7 @@ void initialize_global_mutexes(void) throw()
   mutex_tct<dlopen_map_instance>::initialize();
 #ifdef DEBUGMALLOC
   mutex_tct<alloc_tag_desc_instance>::initialize();
-  rwlock_tct<memblk_map_instance>::initialize();
+  mutex_tct<memblk_map_instance>::initialize();
 #endif
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
   mutex_tct<type_info_of_instance>::initialize();
@@ -67,6 +67,9 @@ void fatal_cancellation(void* arg) throw()
 TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
 
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
+pthread_key_t TSD_st::S_exit_key;
+pthread_once_t TSD_st::S_exit_key_once = PTHREAD_ONCE_INIT;
+
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
 
 void TSD_st::S_initialize(void) throw()
@@ -90,7 +93,35 @@ void TSD_st::S_initialize(void) throw()
     set_alloc_checking_on(*this);
     debug_tsd_init(*this);			// Initialize the TSD of existing debug objects.
   }
+  pthread_once(&S_exit_key_once, &TSD_st::S_exit_key_alloc);
+  pthread_setspecific(S_exit_key, (void*)this);
   pthread_setcanceltype(oldtype, NULL);
+}
+
+void TSD_st::S_exit_key_alloc(void) throw()
+{
+  pthread_key_create(&S_exit_key, &TSD_st::S_cleanup_routine);
+}
+
+void TSD_st::cleanup_routine(void) throw()
+{
+  Dout(dc::always, "Thread " << tid << " is exiting.");
+  set_alloc_checking_off(*this);
+  for (int i = 0; i < LIBCWD_DO_MAX; ++i)
+    if (do_array[i])
+    {
+      do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
+      debug_tsd_st* ptr = do_array[i];
+      do_array[i] = NULL;			// Be paranoid.
+      delete ptr;				// Free old objects.
+    }
+  set_alloc_checking_on(*this);
+}
+
+void TSD_st::S_cleanup_routine(void* arg) throw()
+{
+  TSD_st* obj = reinterpret_cast<TSD_st*>(arg);
+  obj->cleanup_routine();
 }
 
 #endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
