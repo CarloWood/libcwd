@@ -1,10 +1,10 @@
 Summary: C++ Debugging Support library for writing debug output and memory allocation debugging.
 Name: libcwd
-Version: !VERSION!
+Version: @VERSION@
 Release: 1
 Copyright: QPL
 Group: Development/Libraries
-Source: http://download.sourceforge.net/libcw/libcwd-!VERSION!.tar.gz
+Source: http://download.sourceforge.net/libcw/libcwd-@VERSION@.tar.gz
 Prefix: /usr
 Buildroot: /var/tmp/libcwd-root
 
@@ -32,5 +32,5 @@ rm -rf /var/tmp/libcwd-root
 %defattr(-,root,root)
 %doc README
 
-!CHANGELOG!
+@CHANGELOG@
 
