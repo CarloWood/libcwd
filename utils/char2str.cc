@@ -12,7 +12,6 @@
 //
 
 #include <libcw/sys.h>
-#include <libcw/h.h>
 #include <libcw/char2str.h>
 #include <iostream>
 
@@ -25,12 +24,12 @@ namespace libcw {
       char const c2s_tab[7] = { 'a', 'b', 't', 'n', 'v', 'f', 'r' };
     }
 
-    void char2str::print_char_to(ostream& os) const
+    void char2str::print_char_to(std::ostream& os) const
     {
       os.put(c);
     }
 
-    void char2str::print_escaped_char_to(ostream& os) const
+    void char2str::print_escaped_char_to(std::ostream& os) const
     {
       os.put('\\');
       if (c > 6 && c < 14)
@@ -49,9 +48,9 @@ namespace libcw {
 	return;
       }
       short old_fill = os.fill('0');
-      ios::fmtflags old_flgs = os.flags();
+      std::ios_base::fmtflags old_flgs = os.flags();
       os.width(3);
-      os << oct << (int)((unsigned char)c);
+      os << std::oct << (int)((unsigned char)c);
       os.setf(old_flgs);
       os.fill(old_fill);
     }

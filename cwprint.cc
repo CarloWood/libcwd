@@ -22,7 +22,7 @@ RCSTAG_CC("$Id$")
 namespace libcw {
   namespace debug {
 
-void argv_ct::print_on(ostream& os) const
+void argv_ct::print_on(std::ostream& os) const
 {
   os << "[ ";
   char const* const* p = __argv;
@@ -31,7 +31,7 @@ void argv_ct::print_on(ostream& os) const
   os << "NULL ]";
 }
 
-void environment_ct::print_on(ostream& os) const
+void environment_ct::print_on(std::ostream& os) const
 {
   os << "[ ";
   char const* const* p = __envp;

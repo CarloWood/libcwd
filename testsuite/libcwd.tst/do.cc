@@ -1,6 +1,8 @@
 #include <libcw/sys.h>
 #include <libcw/debug.h>
 
+using namespace std;
+
 // CWDEBUG must be define in this test
 
 #ifndef CWDEBUG

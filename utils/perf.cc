@@ -22,7 +22,6 @@
 #include <vector>
 #include <list>
 #include <iomanip>
-#include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/perf.h>
 #include <papi_internal.h>
@@ -377,18 +376,18 @@ void PERFstats_plot(int certainty_index)
       if (n == 0)
         continue;
       cout << setw(18) << PAPI_event_name(event) << " (" << setw(4) << n << ") : " << setw(10);
-      cout.setf(ios::fixed, ios::floatfield);
+      cout.setf(ios_base::fixed, ios_base::floatfield);
       cout << setprecision(0) << stats.x_avg << " +/- ";
       cout.width(10);
-      cout.setf(ios::left, ios::adjustfield);
+      cout.setf(ios_base::left, ios_base::adjustfield);
       if (n == 1)
         cout << "?\n";
       else
       {
 	double err = t(certainty_index, n - 1) * stats.s_n1 / sqrt(n);
 	cout << /*(long long)*/err;
-        cout.setf(ios::right, ios::adjustfield);
-        cout.setf(ios::fixed, ios::floatfield);
+        cout.setf(ios_base::right, ios_base::adjustfield);
+        cout.setf(ios_base::fixed, ios_base::floatfield);
 	cout.precision(1);
 	cout << '(' << setw(4) << 100.0 * err / stats.x_avg << " % )\n";
       }

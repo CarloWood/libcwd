@@ -24,7 +24,6 @@
 #include <new>
 #include <set>
 #include <list>
-#include <algo.h>
 #include <strstream>
 #include <string>
 #include <fstream>
@@ -40,7 +39,7 @@
 #include <cstring>
 #include <cstdlib>
 #endif
-#include <libcw/h.h>
+#include <cstdio>		// Needed for vsnprintf.
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
 #include <libcw/exec_prog.h>
@@ -53,6 +52,8 @@
 #endif
 
 RCSTAG_CC("$Id$")
+
+using namespace std;
 
 extern char** environ;
 
@@ -74,8 +75,31 @@ namespace libcw {
       {
 	va_list vl;
 	va_start(vl, format);
-	Dout_vform(dc::bfd, format, vl);
+	int const buf_size = 256;
+	char buf[buf_size];
+	int len = vsnprintf(buf, sizeof(buf), format, vl);	// Needs glibc 2.1 (following the C99 standard).
 	va_end(vl);
+	if (len >= buf_size)
+	{
+#ifdef DEBUGMALLOC
+	  set_alloc_checking_off();
+#endif
+	  char* bufp = new char[len + 1];
+#ifdef DEBUGMALLOC
+	  set_alloc_checking_on();
+#endif
+	  vsnprintf(bufp, sizeof(buf), format, vl);
+	  Dout(dc::bfd, buf);
+#ifdef DEBUGMALLOC
+	  set_alloc_checking_off();
+#endif
+	  delete [] bufp;
+#ifdef DEBUGMALLOC
+	  set_alloc_checking_on();
+#endif
+	}
+	else
+	  Dout(dc::bfd, buf);
       }
 
       // {anonymous}::
@@ -265,6 +289,7 @@ namespace libcw {
 	  DoutFatal(dc::bfd, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
 
 	symbol_table = (asymbol**) malloc(storage_needed);
+	AllocTag_dynamic_description(symbol_table, "symbols of " << filename);
 	number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
 	if (number_of_symbols < 0)
 	  DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
@@ -275,7 +300,7 @@ namespace libcw {
 	  // Warning: the following code is black magic.
 	  if (lbase == unknown_l_addr)
 	  {
-      #ifdef HAVE_DLOPEN
+#ifdef HAVE_DLOPEN
 	    map<void*, unsigned int> start_values;
 	    unsigned int best_count = 0;
 	    void* best_start = 0;
@@ -312,9 +337,9 @@ namespace libcw {
 	    }
 	    lbase = best_start;
 	    Dout(dc::continued, '(' << hex << lbase << ") ");
-      #else // !HAVE_DLOPEN
+#else // !HAVE_DLOPEN
 	    DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure");
-      #endif
+#endif
 	  }
 
 	  void const* s_end_start_addr = NULL;
@@ -391,12 +416,12 @@ namespace libcw {
       // {anonymous}::
       bool is_group_member(gid_t gid)
       {
-      #if defined(HAVE_GETGID) && defined(HAVE_GETEGID)
+#if defined(HAVE_GETGID) && defined(HAVE_GETEGID)
 	if (gid == getgid() || gid == getegid())
-      #endif
+#endif
 	  return true;
 
-      #ifdef HAVE_GETGROUPS
+#ifdef HAVE_GETGROUPS
 	int ngroups = 0;
 	int default_group_array_size = 0;
 	getgroups_t* group_array = (getgroups_t*)NULL;
@@ -417,7 +442,7 @@ namespace libcw {
 	    }
 
 	free(group_array);
-      #endif
+#endif
 
 	return false;
       }
@@ -634,12 +659,18 @@ namespace libcw {
       // {anonymous}::
       int libcw_bfd_init(void)
       {
-      #if defined(DEBUGDEBUG) || defined(DEBUGDEBUGBFD)
-	static bool entered = false;
-	if (entered)
+	static bool being_initialized = false;
+	// This should catch it when we call new or malloc while 'internal'.
+	if (being_initialized)
+	{
+	  libcw::debug::_internal_::internal = false;
 	  DoutFatal(dc::core, "Bug in libcwd: libcw_bfd_init() called twice or recursively entering itself!  Please submit a full bug report to libcw@alinoe.com.");
-	entered = true;
-      #endif
+	}
+	being_initialized = true;
+
+	// ****************************************************************************
+	// Start INTERNAL!
+	set_alloc_checking_off();
 
 	// Initialize object files list
 	new (object_files_instance_) object_files_ct;
@@ -655,12 +686,16 @@ namespace libcw {
 	bfd_set_error_handler(error_handler);
 
 	// Load executable
-	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath << "... ");
+/**/	set_alloc_checking_on();
+/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath << "... ");
+/**/	set_alloc_checking_off();
 	object_file_ct* object_file = new object_file_ct(fullpath.data(), 0);
-	if (object_file->get_number_of_symbols() > 0)
-	  Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
-	else
-	  Dout(dc::finish, "No symbols found");
+/**/	set_alloc_checking_on();
+/**/	if (object_file->get_number_of_symbols() > 0)
+/**/	  Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+/**/	else
+/**/	  Dout(dc::finish, "No symbols found");
+/**/	set_alloc_checking_off();
 
 	// Load all shared objects
 
@@ -678,19 +713,26 @@ namespace libcw {
 	  my_link_map* l = &(*iter);
 	  if (l->l_addr)
 	  {
-	    Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << ' ');
-	    if (l->l_addr != unknown_l_addr)
-	      Dout(dc::continued, '(' << hex << l->l_addr << ") ... ");
+/**/	    set_alloc_checking_on();
+/**/	    Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << ' ');
+/**/	    if (l->l_addr != unknown_l_addr)
+/**/	      Dout(dc::continued, '(' << hex << l->l_addr << ") ... ");
+/**/	    set_alloc_checking_off();
+
 	    object_file_ct* object_file = new object_file_ct(l->l_name, l->l_addr);
-	    if (l->l_addr == unknown_l_addr)
-	      Dout(dc::continued, "... ");
-	    if (object_file->get_number_of_symbols() == 0)
-	    {
+/**/	    set_alloc_checking_on();
+/**/	    if (l->l_addr == unknown_l_addr)
+/**/	      Dout(dc::continued, "... ");
+/**/	    if (object_file->get_number_of_symbols() == 0)
+/**/	    {
+/**/	      set_alloc_checking_off();
 	      delete object_file;
-	      Dout(dc::finish, "No symbols found");
-	    }
-	    else
-	      Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+/**/	      set_alloc_checking_on();
+/**/	      Dout(dc::finish, "No symbols found");
+/**/	    }
+/**/	    else
+/**/	      Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+/**/	    set_alloc_checking_off();
 	  }
 	}
 
@@ -698,28 +740,32 @@ namespace libcw {
 
 	initialized = true;
 
-      #ifdef DEBUGDEBUGBFD
+	set_alloc_checking_on();
+	// End INTERNAL!
+	// ****************************************************************************
+
+#ifdef DEBUGDEBUGBFD
 	// Dump all symbols
-	cout << setiosflags(ios::left) << setw(15) << "Start address" << setw(50) << "BFD name" << setw(20) << "Number of symbols" << endl;
+	cout << setiosflags(ios_base::left) << setw(15) << "Start address" << setw(50) << "BFD name" << setw(20) << "Number of symbols" << endl;
 	for (object_files_ct::reverse_iterator i(object_files().rbegin()); i != object_files().rend(); ++i)
 	{
-	  cout << "0x" << setfill('0') << setiosflags(ios::right) << setw(8) << hex << (unsigned long)(*i)->get_lbase() << "     ";
-	  cout << setfill(' ') << setiosflags(ios::left) << setw(50) << (*i)->get_bfd()->filename;
-	  cout << dec << setiosflags(ios::left);
+	  cout << "0x" << setfill('0') << setiosflags(ios_base::right) << setw(8) << hex << (unsigned long)(*i)->get_lbase() << "     ";
+	  cout << setfill(' ') << setiosflags(ios_base::left) << setw(50) << (*i)->get_bfd()->filename;
+	  cout << dec << setiosflags(ios_base::left);
 	  cout << (*i)->get_number_of_symbols() << endl;
 
-	  cout << setiosflags(ios::left) << setw(12) << "Start";
-	  cout << ' ' << setiosflags(ios::right) << setw(6) << "Size" << ' ';
+	  cout << setiosflags(ios_base::left) << setw(12) << "Start";
+	  cout << ' ' << setiosflags(ios_base::right) << setw(6) << "Size" << ' ';
 	  cout << "Name value flags\n";
 	  asymbol** symbol_table = (*i)->get_symbol_table();
 	  for (long n = (*i)->get_number_of_symbols() - 1; n > 0; --n)
 	  {
-	    cout << setiosflags(ios::left) << hex << setw(12) << symbol_start_addr(symbol_table[n]);
-	    cout << ' ' << setiosflags(ios::right) << setw(6) << symbol_size(symbol_table[n]) << ' ';
+	    cout << setiosflags(ios_base::left) << hex << setw(12) << symbol_start_addr(symbol_table[n]);
+	    cout << ' ' << setiosflags(ios_base::right) << setw(6) << symbol_size(symbol_table[n]) << ' ';
 	    cout << symbol_table[n]->name << ' ' << hex <<	symbol_table[n]->value << ' ' << oct << symbol_table[n]->flags << endl;
 	  }
 	}
-      #endif
+#endif
 
 	return 0;
       }
@@ -752,18 +798,6 @@ namespace libcw {
 
     } // namespace {anonymous}
 
-    //
-    // Writing location_ct to an ostream.
-    //
-    ostream& operator<<(ostream& os, location_ct const& location)
-    {
-      if (location.M_filepath)
-	os << location.M_filename << ':' << location.M_line;
-      else
-	os << "<unknown location>";
-      return os;
-    }
-
     char const* const unknown_function_c = "<unknown function>";
 
     //
@@ -772,15 +806,7 @@ namespace libcw {
     char const* pc_mangled_function_name(void const* addr)
     {
       if (!initialized)
-      {
-#ifdef DEBUGMALLOC
-	set_alloc_checking_off();
-#endif
 	libcw_bfd_init();
-#ifdef DEBUGMALLOC
-	set_alloc_checking_on();
-#endif
-      }
 
       symbol_ct const* symbol = pc_symbol((bfd_vma)addr, find_object_file(addr));
 
@@ -808,15 +834,7 @@ namespace libcw {
     void location_ct::M_pc_location(void const* addr)
     {
       if (!initialized)
-      {
-#ifdef DEBUGMALLOC
-	set_alloc_checking_off();
-#endif
 	libcw_bfd_init();
-#ifdef DEBUGMALLOC
-	set_alloc_checking_on();
-#endif
-      }
 
       object_file_ct* object_file = find_object_file(addr);
       symbol_ct const* symbol = pc_symbol((bfd_vma)addr, object_file);
@@ -929,6 +947,17 @@ namespace libcw {
       }
     }
 
+    void location_ct::move(location_ct& prototype)
+    {
+      ASSERT( !this->is_known() );
+      M_filepath = prototype.M_filepath;
+      M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
+      M_line = prototype.M_line;
+      M_func = prototype.M_func;
+      prototype.M_filepath = NULL;
+      prototype.M_func = "<moved location_ct>";
+    }
+
     location_ct& location_ct::operator=(location_ct const &prototype)
     {
       if (this != &prototype)
@@ -950,6 +979,15 @@ namespace libcw {
 	}
       }
       return *this;
+    }
+
+    ostream& operator<<(ostream& os, location_ct const& location)
+    {
+      if (location.M_filepath)
+	os << location.M_filename << ':' << location.M_line;
+      else
+	os << "<unknown location>";
+      return os;
     }
 
   } // namespace debug

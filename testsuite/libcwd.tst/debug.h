@@ -20,17 +20,14 @@ namespace example {
 }
 
 #undef Dout
-#undef Dout_vform
 #undef DoutFatal
 
 #define Dout(cntrl, data) LibcwDout(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
-#define Dout_vform(cntrl, format, vl) LibcwDout_vform(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, format, vl)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
 
 #else
 
 #define Dout(cntrl, data)
-#define Dout_vform(cntrl, format, vl)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(::std, /*nothing*/, cntrl, data)
 
 #endif

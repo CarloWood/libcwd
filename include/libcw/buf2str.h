@@ -48,7 +48,7 @@ public:
    * Note: This function is only intended for debugging purposes,
    *       it is not a good idea to use it in the final compilation.
    */
-  friend inline ostream& operator<<(ostream& os, buf2str const& b2s)
+  friend inline std::ostream& operator<<(std::ostream& os, buf2str const& b2s)
   {
     register size_t len = b2s.l;
     for (char const* p1 = b2s.b; len > 0; --len, p1++)

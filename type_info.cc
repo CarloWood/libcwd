@@ -16,7 +16,6 @@
 #endif
 
 #include <libcw/sys.h>
-#include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/demangle.h>
 #include <libcw/type_info.h>
@@ -35,7 +34,7 @@ namespace libcw {
     {
       char const* demangled_name;
       size_t len;
-      string out;
+      std::string out;
       demangle_type(mangled_name, out);
       demangled_name = out.c_str();
       len = out.size();

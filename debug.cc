@@ -21,7 +21,7 @@
 #include <iostream>		// Needed for cerr
 #include <algorithm>
 #include <new>
-#include <libcw/h.h>
+#include <strstream>
 #include <libcw/debug.h>
 #include <libcw/strerrno.h>
 #include <libcw/no_alloc_checking_ostrstream.h>
@@ -31,6 +31,8 @@
 #endif // CWDEBUG
 
 RCSTAG_CC("$Id$")
+
+using namespace std;
 
 #ifdef CWDEBUG
 namespace libcw {
@@ -90,9 +92,7 @@ namespace libcw {
     {
       if (!_debug_objects)
       {
-#ifdef DEBUGDEBUG
-        cerr << "DEBUGDEBUG: _debug_objects == NULL; initializing it" << endl;
-#endif
+        DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
 #ifdef DEBUGMALLOC
 	// It is possible that malloc is not initialized yet.
 	init_debugmalloc();
@@ -130,7 +130,7 @@ namespace libcw {
       debug_object_init_magic = rn.tv_usec;
       if (!debug_object_init_magic)
         debug_object_init_magic = 1;
-      cerr << "DEBUGDEBUG: Set debug_object_init_magic to " << debug_object_init_magic << endl; 
+      DEBUGDEBUG_CERR( "Set debug_object_init_magic to " << debug_object_init_magic );
     }
 #endif
 
@@ -158,7 +158,7 @@ namespace libcw {
 	// The current errno.
 
     public:
-      laf_ct(control_flag_t m, char const* l, ostream* os, int e) : flushed(0), mask(m), label(l), saved_os(os), err(e) {}
+      laf_ct(control_flag_t m, char const* l, ostream* os, int e) : flushed(0), mask(m), label(l), saved_os(os), err(e) { }
     };
 
     static inline void write_whitespace_to(ostream& os, unsigned int size)
@@ -176,8 +176,8 @@ namespace libcw {
 #ifdef DEBUGDEBUG
       else if (init_magic != debug_object_init_magic || !debug_object_init_magic)
       {
-        cerr << "DEBUGDEBUG: Ack, fatal error in libcwd: `initialized' true while `init_magic' not set! "
-	        "Please mail the author of libcwd." << endl;
+        DEBUGDEBUG_CERR( "Ack, fatal error in libcwd: `initialized' true while `init_magic' not set!  "
+	        "Please mail the author of libcwd." );
 	raise(3);	// Core dump
       }
 #endif
@@ -192,9 +192,7 @@ namespace libcw {
       }
 
       ++_off;
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Entering debug_ct::start(), _off became " << _off << "\n";
-#endif
+      DEBUGDEBUG_CERR( "Entering debug_ct::start(), _off became " << _off );
 
       // Is this an interrupting debug output (in the middle of a continued debug output)?
       if ((current->mask & continued_cf_maskbit) && unfinished_expected)
@@ -205,7 +203,8 @@ namespace libcw {
 	// Append <unfinished> to it.
 	*os << "<unfinished>\n";		// Continued debug output should end on a space by itself.
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
-	current->oss.rdbuf()->seekoff(current->prefix_end, ios::beg);
+	//current->oss.rdbuf()->seekoff(current->prefix_end, ios_base::beg);
+	current->oss.rdbuf()->pubseekoff(current->prefix_end, ios_base::beg);
 	current->oss << "<continued> ";		// Therefore we repeat the space here.
 	current->flushed = 0;
       }
@@ -237,14 +236,10 @@ namespace libcw {
 #ifdef DEBUGMALLOC
       set_alloc_checking_off();
 #endif
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: creating new laf_ct\n";
-#endif
+      DEBUGDEBUG_CERR( "creating new laf_ct" );
       current = new laf_ct(channel_set.mask, channel_set.label, saved_os, errno);
       current_oss = &current->oss;
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: laf_ct created\n";
-#endif
+      DEBUGDEBUG_CERR( "laf_ct created" );
 #ifdef DEBUGMALLOC
       set_alloc_checking_on();
 #endif
@@ -288,9 +283,7 @@ namespace libcw {
         current->prefix_end = current->oss.pcount();
 
       --_off;
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Leaving debug_ct::start(), _off became " << _off << '\n';
-#endif
+      DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << _off );
     }
 
     static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
@@ -319,9 +312,7 @@ namespace libcw {
       }
 
       ++_off;
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Entering debug_ct::finish(), _off became " << _off << '\n';
-#endif
+      DEBUGDEBUG_CERR( "Entering debug_ct::finish(), _off became " << _off );
 
       // Write buffer to ostream.
       os->write(current->oss.str() + current->flushed, current->oss.pcount() - current->flushed);
@@ -332,9 +323,7 @@ namespace libcw {
 #ifdef DEBUGMALLOC
       set_alloc_checking_off();
 #endif
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Deleting `current'\n";
-#endif
+      DEBUGDEBUG_CERR( "Deleting `current'" );
       if (current == reinterpret_cast<laf_ct*>(dummy_laf))
       {
 	*os << '\n';
@@ -349,9 +338,7 @@ namespace libcw {
 #endif
       }
       delete current;
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Done deleting `current'\n";
-#endif
+      DEBUGDEBUG_CERR( "Done deleting `current'" );
 #ifdef DEBUGMALLOC
       set_alloc_checking_on();
 #endif
@@ -420,9 +407,7 @@ namespace libcw {
       unfinished_expected = false;
 
       --_off;
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Leaving debug_ct::finish(), _off became " << _off << '\n';
-#endif
+      DEBUGDEBUG_CERR( "Leaving debug_ct::finish(), _off became " << _off );
     }
 
     void debug_ct::fatal_finish(void)
@@ -437,11 +422,17 @@ namespace libcw {
         return;
 
       _off = 0;						// Turn off all debugging until initialization is completed.
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: In debug_ct::init(void), _off set to 0" << endl;
+#if 0 //defined(DEBUGDEBUG) && defined(DEBUGMALLOC)
+      if (!_internal_::ios_base_initialized)
+      {
+        set_alloc_checking_off();
+        delete new int;	// Get the damn thing to check it again.
+        set_alloc_checking_on();
+      }
 #endif
+      DEBUGDEBUG_CERR( "In debug_ct::init(void), _off set to 0" );
 
-      if (::std::find(debug_objects().begin(), debug_objects().end(), this) == debug_objects().end()) // Not added before?
+      if (find(debug_objects().begin(), debug_objects().end(), this) == debug_objects().end()) // Not added before?
 	debug_objects().push_back(this);
 
       // Initialize this debug object:
@@ -482,16 +473,14 @@ namespace libcw {
       _off = 0;			// Don't print debug output till the REAL initialization of the debug system has been performed
       				// (ie, the _application_ start (don't confuse that with the constructor - which does nothing)).
 #endif
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: After debug_ct::init(void), _off set to " << _off << "\n";
-#endif
+      DEBUGDEBUG_CERR( "After debug_ct::init(void), _off set to " << _off );
 
 #ifdef DEBUGDEBUG
       if (!debug_object_init_magic)
 	init_debug_object_init_magic();
       init_magic = debug_object_init_magic;
-      cerr << "DEBUGDEBUG: Set init_magic to " << init_magic << endl;
-      cerr << "DEBUGDEBUG: Setting initialized to true" << endl;
+      DEBUGDEBUG_CERR( "Set init_magic to " << init_magic );
+      DEBUGDEBUG_CERR( "Setting initialized to true" );
 #endif
       initialized = true;
 
@@ -526,16 +515,14 @@ namespace libcw {
 
       ++_off;		// Turn all debug output premanently off, otherwise we might re-initialize
                         // this object again when we try to write debug output to it!
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: debug_ct destructed: _off became " << _off << '\n';
-#endif
+      DEBUGDEBUG_CERR( "debug_ct destructed: _off became " << _off );
       initialized = false;
 #ifdef DEBUGDEBUG
       init_magic = 0;
 #endif
       marker.init("", 0);	// Free allocated memory
       margin.init("", 0);
-      debug_objects().erase(::std::find(debug_objects().begin(), debug_objects().end(), this));
+      debug_objects().erase(find(debug_objects().begin(), debug_objects().end(), this));
       if (debug_objects().empty())
         debug_objects.uninit();
     }
@@ -561,7 +548,7 @@ namespace libcw {
       return string(marker.str, marker.len);
     }
 
-    channel_ct const* find(char const* label)
+    channel_ct const* find_channel(char const* label)
     {
       channel_ct const* tmp = NULL;
       for(debug_channels_ct::iterator i(debug_channels().begin()); i != debug_channels().end(); ++i)
@@ -587,9 +574,7 @@ namespace libcw {
     {
        // This is pretty much identical to fatal_channel_ct::fatal_channel_ct().
 
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Entering `channel_ct::channel_ct(\"" << lbl << "\")'" << endl;
-#endif
+      DEBUGDEBUG_CERR( "Entering `channel_ct::channel_ct(\"" << lbl << "\")'" );
 
       // Of course, dc::debug is off - so this won't do anything unless DEBUGDEBUG is #defined.
       Dout( dc::debug, "Initializing channel_ct(\"" << lbl << "\")" );
@@ -615,9 +600,7 @@ namespace libcw {
 	  break;
       debug_channels().insert(i, this);
 
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Leaving `channel_ct::channel_ct(\"" << lbl << "\")" << endl;
-#endif
+      DEBUGDEBUG_CERR( "Leaving `channel_ct::channel_ct(\"" << lbl << "\")" );
     }
 
     fatal_channel_ct::fatal_channel_ct(char const* lbl, control_flag_t cb) : maskbit(cb)
@@ -629,9 +612,7 @@ namespace libcw {
        if (*label)
          return;
 
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Entering `fatal_channel_ct::fatal_channel_ct(\"" << lbl << "\")'" << endl;
-#endif
+      DEBUGDEBUG_CERR( "Entering `fatal_channel_ct::fatal_channel_ct(\"" << lbl << "\")'" );
 
       // Of course, dc::debug is off - so this won't do anything unless DEBUGDEBUG is #defined.
       Dout( dc::debug, "Initializing fatal_channel_ct(\"" << lbl << "\")" );
@@ -647,9 +628,7 @@ namespace libcw {
       strncpy(label, lbl, lbl_len);
       memset(label + lbl_len, ' ', max_label_len - lbl_len);
 
-#ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: Leaving `fatal_channel_ct::fatal_channel_ct(\"" << lbl << "\")" << endl;
-#endif
+      DEBUGDEBUG_CERR( "Leaving `fatal_channel_ct::fatal_channel_ct(\"" << lbl << "\")" );
     }
 
     void channel_ct::off(void) const
@@ -671,25 +650,21 @@ namespace libcw {
     continued_channel_set_st& channel_set_st::operator|(continued_cf_st cf)
     {
 #ifdef DEBUGDEBUG
-      cerr << "DEBUGDEBUG: continued_cf detected" << endl;
+      DEBUGDEBUG_CERR( "continued_cf detected" );
       if (!debug_object || !debug_object->initialized)
-        cerr << "DEBUGDEBUG: Don't use DoutFatal together with continued_cf, use Dout instead." << endl;
+        DEBUGDEBUG_CERR( "Don't use DoutFatal together with continued_cf, use Dout instead." );
 #endif
       mask |= cf.maskbit;
       if (!on)
       {
 	++(debug_object->off_count);
-#ifdef DEBUGDEBUG
-	cerr << "DEBUGDEBUG: Channel is switched off. Increased off_count to " << debug_object->off_count << endl;
-#endif
+	DEBUGDEBUG_CERR( "Channel is switched off. Increased off_count to " << debug_object->off_count );
       }
       else
       {
         debug_object->continued_stack.push(debug_object->off_count);
-#ifdef DEBUGDEBUG
-        cerr << "DEBUGDEBUG: Channel is switched on. Pushed off_count (" << debug_object->off_count << ") to stack (size now " <<
-	    debug_object->continued_stack.size() << ") and set off_count to 0" << endl;
-#endif
+        DEBUGDEBUG_CERR( "Channel is switched on. Pushed off_count (" << debug_object->off_count << ") to stack (size now " <<
+	    debug_object->continued_stack.size() << ") and set off_count to 0" );
         debug_object->off_count = 0;
       }
       return *(reinterpret_cast<continued_channel_set_st*>(this));
@@ -699,16 +674,14 @@ namespace libcw {
     {
 #ifdef DEBUGDEBUG
       if ((cdc.maskbit & continued_maskbit))
-	cerr << "DEBUGDEBUG: dc::continued detected" << endl;
+	DEBUGDEBUG_CERR( "dc::continued detected" );
       else
-        cerr << "DEBUGDEBUG: dc::finish detected" << endl;
+        DEBUGDEBUG_CERR( "dc::finish detected" );
 #endif
 
       if ((continued_channel_set.on = !off_count))
       {
-#ifdef DEBUGDEBUG
-        cerr << "DEBUGDEBUG: Channel is switched on (off_count is 0)" << endl;
-#endif
+        DEBUGDEBUG_CERR( "Channel is switched on (off_count is 0)" );
 	current->mask |= cdc.maskbit;                                 // We continue with the current channel
 	continued_channel_set.mask = current->mask;
 	continued_channel_set.label = current->label;
@@ -716,27 +689,17 @@ namespace libcw {
 	{
 	  off_count = continued_stack.top();
 	  continued_stack.pop();
-#ifdef DEBUGDEBUG
-	  cerr << "DEBUGDEBUG: Restoring off_count to " << off_count << ". Stack size now " << continued_stack.size() << endl;
-#endif
+	  DEBUGDEBUG_CERR( "Restoring off_count to " << off_count << ". Stack size now " << continued_stack.size() );
 	}
       }
       else
       {
-#ifdef DEBUGDEBUG
-        cerr << "DEBUGDEBUG: Channel is switched off (off_count is " << off_count << ')';
-#endif
+        DEBUGDEBUG_CERR( "Channel is switched off (off_count is " << off_count << ')' );
 	if (cdc.maskbit == finish_maskbit)
 	{
-#ifdef DEBUGDEBUG
-	  cerr << ", decrementing off_count with 1" << endl;
-#endif
+	  DEBUGDEBUG_CERR( "` decrementing off_count with 1" );
 	  --off_count;
         }
-#ifdef DEBUGDEBUG
-        else
-	  cerr << endl;
-#endif
       }
       return continued_channel_set;
     }
@@ -800,9 +763,9 @@ namespace libcw {
       set_alloc_checking_off();
       my_sb = new strstreambuf(no_alloc_checking_alloc, no_alloc_checking_free);
       set_alloc_checking_on();
-      ios::init(my_sb);					// Add the real buffer
+      ios::init(my_sb);                                 // Add the real buffer
     }
-
+ 
     no_alloc_checking_ostrstream::~no_alloc_checking_ostrstream()
     {
       set_alloc_checking_off();

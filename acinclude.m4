@@ -86,7 +86,7 @@ AC_CACHE_VAL(cw_cv_bug_redefines_$cw_bug_var,
 #include <sys/time.h>
 #include <$1>
 #ifdef __cplusplus
-extern "C" void exit(int);
+#include <cstdlib>
 #endif
 int main() { exit(0); }
 EOF
@@ -177,6 +177,9 @@ dnl
 AC_DEFUN(CW_TYPE_EXTRACT_FROM,
 [cat > conftest.$ac_ext <<EOF
 [$2]
+#ifdef __cplusplus
+#include <cstdlib>
+#endif
 template<typename ARG>
   void detect_type(ARG)
   {
@@ -278,6 +281,51 @@ if test "$cw_cv_type_sighandler_param_t" != exists; then
 fi
 ])
 
+dnl CW_TRY_RUN
+dnl
+dnl Like `AC_TRY_RUN' but also works when the language is C++.
+dnl
+dnl CW_TRY_RUN(PROGRAM, [ACTION-IF-TRUE [, ACTION-IF-FALSE [, ACTION-IF-CROSS-COMPILING]]])
+AC_DEFUN(CW_TRY_RUN,
+[if test "$cross_compiling" = yes; then
+  ifelse([$4], ,
+    [errprint(__file__:__line__: warning: [CW_TRY_RUN] called without default to allow cross compiling
+)dnl
+  AC_MSG_ERROR(can not run test program while cross compiling)],
+  [$4])
+else
+  CW_TRY_RUN_NATIVE([$1], [$2], [$3])
+fi
+])
+
+dnl CW_TRY_RUN_NATIVE
+dnl
+dnl Like `AC_TRY_RUN_NATIVE' but also works when the language is C++.
+dnl Like CW_TRY_RUN but assumes a native-environment (non-cross) compiler.
+dnl CW_TRY_RUN_NATIVE(PROGRAM, [ACTION-IF-TRUE [, ACTION-IF-FALSE]])
+AC_DEFUN(CW_TRY_RUN_NATIVE,
+[cat > conftest.$ac_ext <<EOF
+[#]line __oline__ "configure"
+#include "confdefs.h"
+ifelse(AC_LANG, CPLUSPLUS, [#ifdef __cplusplus
+#include <cstdlib>
+#endif
+])dnl
+[$1]
+EOF
+if AC_TRY_EVAL(ac_link) && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+then
+dnl Don't remove the temporary files here, so they can be examined.
+  ifelse([$2], , :, [$2])
+else
+  echo "configure: failed program was:" >&AC_FD_CC
+  cat conftest.$ac_ext >&AC_FD_CC
+ifelse([$3], , , [  rm -fr conftest*
+  $3
+])dnl
+fi
+rm -fr conftest*])
+
 dnl CW_MALLOC_OVERHEAD
 dnl
 dnl Defines CW_MALLOC_OVERHEAD_C to be the number of bytes extra
@@ -285,8 +333,7 @@ dnl allocated for a call to malloc.
 dnl
 AC_DEFUN(CW_MALLOC_OVERHEAD,
 [AC_CACHE_CHECK(malloc overhead in bytes, cw_cv_system_mallocoverhead,
-[AC_TRY_RUN([#include <cstdlib>
-#include <cstddef>
+[CW_TRY_RUN([#include <cstddef>
 
 bool bulk_alloc(size_t malloc_overhead_attempt, size_t size)
 {
@@ -329,8 +376,7 @@ dnl Defines CW_CONFIG_NEED_WORD_ALIGNMENT to `define' or `undef'
 dnl when the host needs respectively size_t alignment or not.
 AC_DEFUN(CW_NEED_WORD_ALIGNMENT,
 [AC_CACHE_CHECK(if machine needs word alignment, cw_cv_system_needwordalignment,
-[AC_TRY_RUN([#include <cstddef>
-#include <cstdlib>
+[CW_TRY_RUN([#include <cstddef>
 
 int main(void)
 {
@@ -360,10 +406,11 @@ AC_CHECK_LIB(c, socket, [true],
 [AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS")])
 AC_CACHE_CHECK(non-blocking socket flavour, cw_cv_system_nblock,
 [AC_REQUIRE([AC_TYPE_SIGNAL])
-AC_REQUIRE([CW_TYPE_SIGHANDLER_PARAM_T])
 CW_TYPE_EXTRACT_FROM(recvfrom, [#include <sys/types.h>
 #include <sys/socket.h>], 6, 6)
 cw_recvfrom_param_six_t="$cw_result"
+AC_LANG_SAVE
+AC_LANG_C
 AC_TRY_RUN([#include <sys/types.h>
 #include <sys/socket.h>
 #include <fcntl.h>
@@ -371,15 +418,15 @@ AC_TRY_RUN([#include <sys/types.h>
 #include <sys/file.h>
 #include <signal.h>
 #include <unistd.h>
-$ac_cv_type_signal alarmed($cw_cv_type_sighandler_param_t) { exit(1); }
+$ac_cv_type_signal alarmed() { exit(1); }
 int main(int argc, char* argv[])
 {
-  if (argc == 1)
-    exit(0);
   char b[12];
   struct sockaddr x;
   size_t l = sizeof(x);
   int f = socket(AF_INET, SOCK_DGRAM, 0);
+  if (argc == 1)
+    exit(0);
   if (f >= 0 && !(fcntl(f, F_SETFL, (*argv[1] == 'P') ? O_NONBLOCK : O_NDELAY)))
   {
     signal(SIGALRM, alarmed);
@@ -405,7 +452,8 @@ fi],
 [cw_cv_system_nblock=crosscompiled_set_to_POSIX_BSD_or_SYSV
 AC_CACHE_SAVE
 AC_MSG_WARN(Cannot set cw_cv_system_nblock for unknown platform (you are cross-compiling).)
-AC_MSG_ERROR(Please edit config.cache and rerun ./configure to correct this!)])])
+AC_MSG_ERROR(Please edit config.cache and rerun ./configure to correct this!)])
+AC_LANG_RESTORE])
 if test "$cw_cv_system_nblock" = crosscompiled_set_to_POSIX_BSD_or_SYSV; then
   AC_MSG_ERROR(Please edit config.cache and correct the value of cw_cv_system_nblock, then rerun ./configure)
 fi
@@ -420,7 +468,7 @@ dnl typedef getgroups_t instead of defining the macro GETGROUPS_T.
 AC_DEFUN(CW_TYPE_GETGROUPS,
 [AC_REQUIRE([AC_TYPE_UID_T])dnl
 AC_CACHE_CHECK(type of array argument to getgroups, ac_cv_type_getgroups,
-[AC_TRY_RUN(
+[CW_TRY_RUN(
 changequote(<<, >>)dnl
 <<
 /* Thanks to Mike Rendell for this test.  */
@@ -440,8 +488,7 @@ main()
   val.lval = -1;
   for (i = 0; i < NGID; i++)
     gidset[i] = val.gval;
-  n = getgroups (sizeof (gidset) / MAX (sizeof (int), sizeof (gid_t)) - 1,
-                 gidset);
+  n = getgroups (sizeof (gidset) / MAX (sizeof (int), sizeof (gid_t)) - 1, gidset);
   /* Exit non-zero if getgroups seems to require an array of ints.  This
      happens when gid_t is short but getgroups modifies an array of ints.  */
   exit ((n > 0 && gidset[n] != val.gval) ? 1 : 0);
@@ -536,10 +583,10 @@ dnl Assumed is that the test program compiles and works,
 dnl if anything fails then an offset of -1 is assumed.
 AC_DEFUN(CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET,
 [AC_CACHE_CHECK(needed offset to __builtin_return_address(), cw_cv_sys_builtin_return_address_offset,
-[AC_TRY_RUN(
+[CW_TRY_RUN(
 changequote(<<, >>)dnl
-<<#include <cstdlib>
-#include <bfd.h>
+<<#include <bfd.h>
+#include <cstring>
 void* addr2;
 void test2(void)
 {
@@ -590,16 +637,15 @@ dnl
 dnl Determines if __builtin_return_address(1) is supported by compiler.
 AC_DEFUN(CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS,
 [AC_CACHE_CHECK([whether __builtin_return_address(1) works], cw_cv_sys_recursive_builtin_return_address,
-[AC_TRY_RUN(
-[#ifdef __cplusplus
-extern "C" void exit(int);
-#endif
-void f(void) { exit(__builtin_return_address(1) ? 0 : 1); }
+[AC_LANG_SAVE
+AC_LANG_C
+AC_TRY_RUN(
+[void f(void) { exit(__builtin_return_address(1) ? 0 : 1); }
 int main(void) { f(); }],
 cw_cv_sys_recursive_builtin_return_address=yes,
 cw_cv_sys_recursive_builtin_return_address=no,
-cw_cv_sys_recursive_builtin_return_address=unknown
-)])
+cw_cv_sys_recursive_builtin_return_address=unknown)
+AC_LANG_RESTORE])
 if test "$cw_cv_sys_recursive_builtin_return_address" = "no"; then
 CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS=undef
 else
@@ -618,7 +664,7 @@ AC_DEFUN(CW_SYS_FRAME_ADDRESS_OFFSET,
 CW_CONFIG_FRAME_ADDRESS_OFFSET=undef
 if test "$cw_cv_sys_recursive_builtin_return_address" != "no"; then
 AC_CACHE_CHECK(frame pointer offset in frame structure, cw_sys_frame_address_offset,
-[AC_TRY_RUN([
+[CW_TRY_RUN([
 int func4(int offset)
 {
   void* f0 = __builtin_frame_address(0);
@@ -677,7 +723,10 @@ AC_SUBST(CW_CONFIG_FRAME_ADDRESS_OFFSET)
 dnl CW_BUG_G_CONFIG_H
 dnl Check if /usr/include/_G_config.h forgets to define a few macros
 AC_DEFUN(CW_BUG_G_CONFIG_H,
-[AC_CHECK_FUNCS(labs)
+[AC_LANG_SAVE
+AC_LANG_C
+AC_CHECK_FUNCS(labs)
+AC_LANG_RESTORE
 AC_CACHE_CHECK([whether _G_config.h forgets to define macros], cw_cv_sys_G_config_h_macros,
 [AC_EGREP_CPP(_G_CLOG_CONFLICT,
 [#ifndef HAVE__G_CONFIG_H
@@ -878,7 +927,7 @@ esac
 AC_SUBST(DEBUGOPTS)
 
 dnl Other options
-EXTRAOPTS="-fno-exceptions"
+EXTRAOPTS=""
 AC_SUBST(EXTRAOPTS)
 ])
 

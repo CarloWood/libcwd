@@ -11,7 +11,6 @@ libcwd_HEADERS = \
 	debugmalloc.h \
 	demangle.h \
 	exec_prog.h \
-	h.h \
 	iomanip.h \
 	lockable_auto_ptr.h \
 	no_alloc_checking_ostrstream.h \

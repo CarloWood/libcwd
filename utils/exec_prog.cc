@@ -17,7 +17,6 @@
 #include <errno.h>		// Needed for errno
 #include <signal.h>		// Needed for kill(2) and SIGKILL
 #include <sys/wait.h>		// Needed for waitpid(2)
-#include <libcw/h.h>
 #include <libcw/exec_prog.h>
 #include <libcw/debug.h>
 #ifdef CWDEBUG
@@ -33,7 +32,7 @@ namespace libcw {
 
 #ifdef CWDEBUG
     namespace {
-      void print_poll_array_on(ostream& os, struct pollfd const ptr[2], size_t size);
+      void print_poll_array_on(std::ostream& os, struct pollfd const ptr[2], size_t size);
     }
 #endif
 
@@ -89,8 +88,20 @@ namespace libcw {
 	case 0:
 	{
 #ifdef CWDEBUG
-	  Debug( libcw_do.set_margin(string(prog_name) + ": ") );
-	  ofstream debug_stream(debug_filedes[1]);
+#if (__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 97)
+	  class ofdstream : public std::ostream {
+	  public:
+	    explicit
+	    ofdstream(int fd) : std::ostream(new std::filebuf(fd, "ofdstream", ios_base::out|ios_base::trunc)) { }
+	    ~ofdstream() { delete _M_streambuf; _M_streambuf = NULL; }
+	    std::filebuf* rdbuf(void) const { return static_cast<std::filebuf*>(_M_streambuf); }
+	    bool is_open(void) { return rdbuf()->is_open(); }
+	    void close(void) { if (!rdbuf()->close()) setstate(std::ios_base::failbit); }
+	  } debug_stream(debug_filedes[1]);
+#else
+	  std::ofstream debug_stream(debug_filedes[1]);
+#endif
+	  Debug( libcw_do.set_margin(std::string(prog_name) + ": ") );
 	  Debug( libcw_do.set_ostream(&debug_stream) );
 	  Debug( libcw_do.on() );
 #endif
@@ -149,7 +160,7 @@ namespace libcw {
 #endif
 	  int number_of_fds = max_number_of_fds;
 	  struct pollfd ufds[max_number_of_fds];
-	  vector<char> decodebuf[max_number_of_fds];
+	  std::string decodebuf[max_number_of_fds];
 	  ufds[0].fd = stdout_filedes[0];
 	  ufds[0].events = POLLIN;
 	  ufds[1].fd = stderr_filedes[0];
@@ -202,13 +213,13 @@ namespace libcw {
 		  }
 		  for (char const* p = readbuf; p < &readbuf[len]; ++p)
 		  {
-		    decodebuf[fd].push_back(*p);
+		    decodebuf[fd] += *p;
 		    if (*p == '\n')
 		    {
 		      // Process decode buf
 		      if (ufds[fd].fd == stdout_filedes[0])
 		      {
-			if (decode_stdout(decodebuf[fd].begin(), decodebuf[fd].size()) == -1)
+			if (decode_stdout(decodebuf[fd].data(), decodebuf[fd].size()) == -1)
 			{
 			  Dout(dc::notice, "decode_stdout() returned -1, terminating child process.");
 			  Dout(dc::system|continued_cf, "kill(" << pid << ", SIGKILL) = ");
@@ -227,16 +238,16 @@ namespace libcw {
 			}
 		      }
 		      else if (ufds[fd].fd == stderr_filedes[0])
-			Dout(dc::warning, "child process returns on stderr: \"" << buf2str(decodebuf[fd].begin(), decodebuf[fd].size()) << '"');
+			Dout(dc::warning, "child process returns on stderr: \"" << buf2str(decodebuf[fd].data(), decodebuf[fd].size()) << '"');
 #ifdef CWDEBUG
 		      else if (ufds[fd].fd == debug_filedes[0])
 		      {
 			Debug( libcw_do.get_ostream()->flush() );
-			Debug( libcw_do.get_ostream()->write(decodebuf[fd].begin(), decodebuf[fd].size()) );
+			Debug( libcw_do.get_ostream()->write(decodebuf[fd].data(), decodebuf[fd].size()) );
 			Debug( libcw_do.get_ostream()->flush() );
 		      }
 #endif
-		      decodebuf[fd].erase(decodebuf[fd].begin(), decodebuf[fd].end());
+		      decodebuf[fd].erase();
 		    }
 		  }
 		}
@@ -257,7 +268,7 @@ namespace libcw {
 		  int status;
 		  Dout(dc::system|continued_cf, "waitpid(" << pid << ", { ");
 		  ret = waitpid(pid, &status, 0);
-		  Dout(dc::finish|cond_error_cf(ret == -1), hex << status << " }, 0) = " << dec << ret);
+		  Dout(dc::finish|cond_error_cf(ret == -1), std::hex << status << " }, 0) = " << std::dec << ret);
 		  if (WIFEXITED(status))
 		    ret = WEXITSTATUS(status);
 		  else
@@ -287,7 +298,7 @@ namespace libcw {
     namespace {		// Implementation of local functions
 
       // {anonymous}::
-      static void print_poll_struct_on(ostream& os, struct pollfd const& pfd)
+      static void print_poll_struct_on(std::ostream& os, struct pollfd const& pfd)
       {
 	os << "{ " << pfd.fd << ", ";
 	short const* eventp = &pfd.events;
@@ -339,7 +350,7 @@ namespace libcw {
 	      os << '|';
 	  }
 	  if (event)
-	    os << hex << event;
+	    os << std::hex << event;
 	  if (eventp == &pfd.revents)
 	  {
 	    os << " }";
@@ -351,7 +362,7 @@ namespace libcw {
       }
 
       // {anonymous}::
-      void print_poll_array_on(ostream& os, struct pollfd const ptr[2], size_t size)
+      void print_poll_array_on(std::ostream& os, struct pollfd const ptr[2], size_t size)
       {
 	os << " [ ";
 	if (size > 0)

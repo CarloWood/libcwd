@@ -31,7 +31,7 @@ int main(void)
   Debug( dc::malloc.off() );
 
   // Write debug output to cout
-  Debug( libcw_do.set_ostream(&cout) );
+  Debug( libcw_do.set_ostream(&std::cout) );
 
   // Turn debug object on
   Debug( libcw_do.on() );

@@ -386,7 +386,7 @@ public: // Direct access needed in macro LibcwDout().  Do not write to these.
   laf_ct* current;
     // Current laf.
 
-  ostream* current_oss;
+  std::ostream* current_oss;
     // The ostrstream of the current laf.  This should *always* be equal to current->oss.
     // The reason for keeping this copy is to avoid including <strstream> in debug.h.
 
@@ -400,10 +400,10 @@ public: // Direct access needed in macro LibcwDout().  Do not write to these.
     // detected. This allows us to make compile-time decisions (using overloading).
 
 protected:
-  ostream* orig_os;
+  std::ostream* orig_os;
     // The original output ostream (as set with set_ostream() or set_fd()).
 
-  ostream* os;
+  std::ostream* os;
     // The current output ostream (may be a temporal ostrstream).
 
   bool start_expected;
@@ -445,26 +445,26 @@ public:
   //
 
   void set_indent(unsigned short i) { indent = i; }
-  void set_margin(string const& s);
-  void set_marker(string const& s);
+  void set_margin(std::string const& s);
+  void set_marker(std::string const& s);
 
   unsigned short get_indent(void) const { return indent; }
-  string get_margin(void) const;
-  string get_marker(void) const;
+  std::string get_margin(void) const;
+  std::string get_marker(void) const;
 
   //---------------------------------------------------------------------------
   // Other accessors
   //
 
-  ostream* get_ostream(void) const { return orig_os; }
-  ostream& get_os(void) const { return *os; }
+  std::ostream* get_ostream(void) const { return orig_os; }
+  std::ostream& get_os(void) const { return *os; }
 
 private:
   //---------------------------------------------------------------------------
   // Private attributes: 
   //
 
-  ostream* saved_os;
+  std::ostream* saved_os;
     // The saved current output ostream while writing forced cerr.
 
   bool interactive;
@@ -506,7 +506,7 @@ public:
   // Manipulators:
   //
 
-  void set_ostream(ostream* _os) { orig_os = os = _os; }
+  void set_ostream(std::ostream* _os) { orig_os = os = _os; }
     // Assign a new ostream to this debug object (default is cerr).
 
   void off(void) { ++_off; }
@@ -573,7 +573,7 @@ namespace channels {
   } // namespace dc
 } // namespace channels
 extern debug_ct libcw_do;
-typedef vector<debug_ct*> debug_objects_ct;
+typedef std::vector<debug_ct*> debug_objects_ct;
 class debug_objects_singleton_ct {
   debug_objects_ct* _debug_objects;
 public:
@@ -586,7 +586,7 @@ public:
   }
 };
 extern debug_objects_singleton_ct debug_objects;
-typedef vector<channel_ct*> debug_channels_ct;
+typedef std::vector<channel_ct*> debug_channels_ct;
 class debug_channels_singleton_ct {
   debug_channels_ct* _debug_channels;
   void init(void);
@@ -599,21 +599,22 @@ public:
 };
 extern debug_channels_singleton_ct debug_channels;
 
-extern channel_ct const* find(char const* label);
+extern channel_ct const* find_channel(char const* label);
 extern void list_channels_on(debug_ct const& debug_object);
 
   }	// namespace debug
 }	// namespace libcw
 
 #ifdef DEBUGDEBUG
-#define DEBUGDEBUGLIBCWDOUTMARKER  cerr << "DEBUGDEBUG: LibcwDout at " << __FILE__ << ':' << __LINE__ << '\n'; debugdebugcheckpoint();
-#else
+#define DEBUGDEBUGLIBCWDOUTMARKER DEBUGDEBUG_CERR( "LibcwDout at " << __FILE__ << ':' << __LINE__ ); libcw::debug::debugdebugcheckpoint();
+#else // !DEBUGDEBUG
 #define DEBUGDEBUGLIBCWDOUTMARKER
-#endif
+#endif // !DEBUGDEBUG
 
 #define LibcwDout( dc_namespace, debug_obj, cntrl, data )	\
   do								\
-  { DEBUGDEBUGLIBCWDOUTMARKER					\
+  {								\
+    DEBUGDEBUGLIBCWDOUTMARKER					\
     if (debug_obj._off < 0)					\
     {								\
       using namespace ::libcw::debug;				\
@@ -625,81 +626,67 @@ extern void list_channels_on(debug_ct const& debug_object);
       if (on)							\
       {								\
 	debug_obj.start();					\
+	ASSERT( !::libcw::debug::_internal_::internal );	\
 	(*debug_obj.current_oss) << data;			\
 	debug_obj.finish();					\
       }								\
     }								\
   } while(0)
 
-//
-// This macro is undocumented because you shouldn't use it :)
-// Its only here because this is the only Right Place(tm)
-// to put it and I needed it for bfd.cc
-//
-#define LibcwDout_vform( dc_namespace, debug_obj, cntrl, format, vl )	\
-  do								\
-  { DEBUGDEBUGLIBCWDOUTMARKER					\
-    if (debug_obj._off < 0)					\
-    {								\
-      using namespace ::libcw::debug;				\
-      bool on;							\
-      {								\
-        using namespace dc_namespace;				\
-	on = (debug_obj|cntrl).on;				\
-      }								\
-      if (on)							\
-      {								\
-	debug_obj.start();					\
-	debug_obj.current_oss->vform(format, vl);		\
-	debug_obj.finish();					\
-      }								\
-    }								\
-  } while(0)
-
 #ifdef DEBUGDEBUG
-#define DEBUGDEBUGLIBCWDOUTFATALMARKER  cerr << "DEBUGDEBUG: LibcwDoutFatal at " << __FILE__ << ':' << __LINE__ << '\n'; debugdebugcheckpoint();
-#else
+#define DEBUGDEBUGLIBCWDOUTFATALMARKER DEBUGDEBUG_CERR( "LibcwDoutFatal at " << __FILE__ << ':' << __LINE__ ); libcw::debug::debugdebugcheckpoint();
+#else // !DEBUGDEBUG
 #define DEBUGDEBUGLIBCWDOUTFATALMARKER
-#endif
+#endif // !DEBUGDEBUG
 
 #define LibcwDoutFatal( dc_namespace, debug_obj, cntrl, data )	\
   do							\
-  { DEBUGDEBUGLIBCWDOUTFATALMARKER			\
+  {							\
+    DEBUGDEBUGLIBCWDOUTFATALMARKER			\
     using namespace ::libcw::debug;			\
     {							\
       using namespace dc_namespace;			\
       debug_obj|cntrl;					\
     }							\
     debug_obj.start();					\
+    ASSERT( !::libcw::debug::_internal_::internal );			\
     (*debug_obj.current_oss) << data;			\
     debug_obj.fatal_finish();				\
   } while(0)
 
 // For use in library header files
 #define __Dout(cntrl, data) LibcwDout(::libcw::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
-#define __Dout_vform(cntrl, format, vl) LibcwDout_vform(::libcw::debug::channels, ::libcw::debug::libcw_do, cntrl, format, vl)
 #define __DoutFatal(cntrl, data) LibcwDoutFatal(::libcw::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
 
 // For use in applications
 #define Dout(cntrl, data) LibcwDout(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, data)
-#define Dout_vform(cntrl, format, vl) LibcwDout_vform(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, format, vl)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, data)
 
 #else // !CWDEBUG
 
 // No debug output code
 #define LibcwDout(a, b, c, d)
-#define LibcwDout_vform(a, b, c, d)
-#define LibcwDoutFatal(a, b, c, d) do { cerr << d << endl; exit(-1); } while(1)
+#define LibcwDoutFatal(a, b, c, d) do { ::std::cerr << d << ::std::endl; exit(-1); } while(1)
 #define __Dout(a, b)
-#define __Dout_vform(a, b, c)
 #define __DoutFatal(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)
 #define Dout(a, b)
-#define Dout_vform(a, b, c)
 #define DoutFatal(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)
 
 #endif // CWDEBUG
 
 #include <libcw/debugmalloc.h>
+
+// Make the inserter functions of std accessible in libcw::debug:
+namespace libcw {
+  namespace debug {
+    using std::operator<<;
+  }
+}
+
+// Make the inserter functions of libcw::debug accessible in global namespace:
+namespace libcw_debug_inserters {
+  using libcw::debug::operator<<;
+}
+using namespace libcw_debug_inserters;
 
 #endif // LIBCW_DEBUG_H

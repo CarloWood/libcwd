@@ -23,13 +23,13 @@ namespace libcw {
 
 #ifdef DEBUGMALLOC
 
-class no_alloc_checking_ostrstream : public ostrstream {
+class no_alloc_checking_ostrstream : public std::ostrstream {
 private:
-  strstreambuf* my_sb;
+  std::strstreambuf* my_sb;
 public:
   no_alloc_checking_ostrstream(void);
   ~no_alloc_checking_ostrstream();
-  strstreambuf* rdbuf() { return my_sb; }
+  std::strstreambuf* rdbuf() { return my_sb; }
 };
 
 #else // !DEBUGMALLOC

@@ -4,7 +4,7 @@
 
 int main(void)
 {
-  ostrstream buf;
+  std::ostrstream buf;
 
   Debug( check_configuration() );
   Debug( libcw_do.on() );
@@ -52,7 +52,7 @@ int main(void)
   Debug( libcw_do.set_ostream(&buf) );
   Dout(dc::notice, "This is written to buf");
   Dout(dc::notice|cerr_cf, "cerr_cf");
-  buf.rdbuf()->seekpos(0, ios::end);
+  buf.rdbuf()->pubseekoff(0, std::ios_base::end);
 
   exit(0);
 }

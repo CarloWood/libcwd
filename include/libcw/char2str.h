@@ -24,11 +24,11 @@ namespace libcw {
 class char2str {
 private:
   char c;
-  void print_char_to(ostream&) const;
-  void print_escaped_char_to(ostream&) const;
+  void print_char_to(std::ostream&) const;
+  void print_escaped_char_to(std::ostream&) const;
 public:
   char2str(char ci) : c(ci) { }
-  friend inline ostream& operator<<(ostream& os, char2str const c2s)
+  friend inline std::ostream& operator<<(std::ostream& os, char2str const c2s)
   {
     if ((c2s.c > 31 && c2s.c != 92 && c2s.c != 127) || (unsigned char)c2s.c > 159)
       c2s.print_char_to(os);

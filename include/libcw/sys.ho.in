@@ -23,6 +23,14 @@
 #ifndef LIBCW_SYS_H
 #define LIBCW_SYS_H
 
+// Fix for gcc-2.95.
+
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
+#define __restrict /*ignore*/
+#endif
+
+// Include <sys/types> when needed.
+
 #@CW_CONFIG_NEED_SYS_TYPES@ NEED_SYS_TYPES
 #ifdef NEED_SYS_TYPES
 #include <sys/types.h>
@@ -125,6 +133,54 @@ int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_AD
 
 #define UNUSED(x)
 #define USE(var) static void* use_##var = (use_##var = (void*)&use_##var, (void*)&var)
+
+// Fix for gcc-2.96 and earlier
+
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#include <streambuf.h>
+namespace std {
+  class ios_base : private ios {
+  public:
+    using ios::fmtflags;
+    ios::dec;
+    ios::fixed;
+    ios::hex;
+    ios::internal;
+    ios::left;
+    ios::oct;
+    ios::right;
+    ios::scientific;
+    ios::showbase;
+    ios::showpoint;
+    ios::showpos;
+    ios::skipws;
+    ios::unitbuf;
+    ios::uppercase;
+    ios::adjustfield;
+    ios::basefield;
+    ios::floatfield;
+
+    using ios::iostate;
+    ios::badbit;
+    ios::eofbit;
+    ios::failbit;
+    ios::goodbit;
+
+    using ios::openmode;
+    ios::app;
+    ios::ate;
+    ios::binary;
+    ios::in;
+    ios::out;
+    ios::trunc;
+
+    using ios::seekdir;
+    ios::beg;
+    ios::cur;
+    ios::end;
+  };
+}
+#endif
 
 // Include an ident for this header file
 

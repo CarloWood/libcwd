@@ -19,6 +19,7 @@
 RCSTAG_CC("$Id$")
 
 using namespace libcw::debug;
+using namespace std;
 
 class A {
 private:
@@ -28,7 +29,7 @@ public:
 };
 
 class B {
-  friend A;
+  friend class A;
 private:
   char x[64];
   B(void) { }

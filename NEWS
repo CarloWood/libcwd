@@ -1,3 +1,35 @@
+libcwd-1.0
+
+	This version compiles with g++ 3.0 20010224 (prerelease).  That is of
+	little use however because it still doesn't work with libstdc++ version 3
+	(some serious rewriting seems to be needed for that :().  Also note that
+	this version is (still) not Thread-Safe.
+
+	Removed the compile option "-fno-exceptions" as default,
+	the library now also compiles without it.
+
+	Removed libcw/h.h.  The library now does not include namespace std
+	anymore by default and was patched to also compile in that case (this
+	worked anyway already but is needed for g++-3.0).
+
+	API changes:
+
+	Support for the macro Dout_vform has been removed because ostream::vform
+	isn't conforming the standard and is gone in libstdc++ version 3.
+
+	libcw::debug::find was renamed to libcw::debug::find_channel.
+
+	Bug fixes:
+
+	Improvements in acinclude.m4: some tests where done with the C++
+	compiler and failed when using a compiler in a non standard place.
+	Other tests failed because they use exit() without a proper proto-
+	type.
+
+	Fix in the testsuite so it also works when using a compiler that is
+	installed in a non-standard place.  You still need to add the path to
+	libstdc++-3.so to your LD_LIBRARY_PATH however!
+
 libcwd-0.99.6
 
 	A little gadget was added to namespace libcw::debug `cwprint_using'.

@@ -44,7 +44,7 @@ template<class PRINTABLE_OBJECT>
     PRINTABLE_OBJECT const& M_printable_object;
   public:
     cwprint_tct(PRINTABLE_OBJECT const& printable_object) : M_printable_object(printable_object) { }
-    friend inline ostream& operator<<(ostream& os, cwprint_tct<PRINTABLE_OBJECT> const& L_cwprint)
+    friend inline std::ostream& operator<<(std::ostream& os, cwprint_tct<PRINTABLE_OBJECT> const& L_cwprint)
 	{ L_cwprint.M_printable_object.print_on(os); return os; }
   };
 
@@ -63,7 +63,7 @@ template<class T>
 // class PRINTABLE_OBJECT {
 //   ...
 // public:
-//   void arbitrary_method_name(ostream& os) const;
+//   void arbitrary_method_name(std::ostream& os) const;
 // };
 //
 // Usage,
@@ -76,20 +76,20 @@ template<class T>
 
 template<class PRINTABLE_OBJECT>
   class cwprint_using_tct {
-    typedef void (PRINTABLE_OBJECT::* print_on_method_t)(ostream&) const;
+    typedef void (PRINTABLE_OBJECT::* print_on_method_t)(std::ostream&) const;
   private:
     PRINTABLE_OBJECT const& M_printable_object;
     print_on_method_t M_print_on_method;
   public:
     cwprint_using_tct(PRINTABLE_OBJECT const& printable_object, print_on_method_t print_on_method) :
 	M_printable_object(printable_object), M_print_on_method(print_on_method) { }
-    friend ostream& operator<<(ostream& os, cwprint_using_tct<PRINTABLE_OBJECT> L_cwprint_using)
+    friend std::ostream& operator<<(std::ostream& os, cwprint_using_tct<PRINTABLE_OBJECT> L_cwprint_using)
 	{ (L_cwprint_using.M_printable_object.*L_cwprint_using.M_print_on_method)(os); return os; }
   };
 
 template<class T>
   inline cwprint_using_tct<T>
-  cwprint_using(T const& printable_object, void (T::*print_on_method)(ostream&) const)
+  cwprint_using(T const& printable_object, void (T::*print_on_method)(std::ostream&) const)
   {
     return cwprint_using_tct<T>(printable_object, print_on_method);
   }
@@ -106,7 +106,7 @@ class environment_ct {
   char const* const* __envp;
 public:
   environment_ct(char const* const envp[]) : __envp(envp) { }
-  void print_on(ostream& os) const;
+  void print_on(std::ostream& os) const;
 };
 
 //
@@ -117,7 +117,7 @@ class argv_ct {
   char const* const* __argv;
 public:
   argv_ct(char const* const argv[]) : __argv(argv) { }
-  void print_on(ostream& os) const;
+  void print_on(std::ostream& os) const;
 };
 
   } // namespace debug

@@ -12,7 +12,6 @@
 //
 
 #include <libcw/sys.h>
-#include <libcw/h.h>
 #include <libcw/buf2str.h>
 
 RCSTAG_CC("$Id$")

@@ -1,5 +1,6 @@
 load_lib "libgloss.exp"
-
+load_lib "targetdb.exp"
+  
 #
 # Run the test specified by srcfile and resultfile. compile_args and
 # exec_args are additional arguments to be passed in when compiling and
@@ -11,6 +12,8 @@ proc test_libcwd { options srcfile compile_args inpfile resultfile exec_args } {
     global includes
     global srcdir subdir objdir
     global ld_library_path
+    global compiler
+    global board_info board
 
 verbose "Calling test_libcwd:"
 verbose "    options = \"$options\""
@@ -23,6 +26,9 @@ verbose "    srcdir = \"$srcdir\""
 verbose "    SHAREDLIBS = \"$SHAREDLIBS\""
 verbose "    STATICLIBS = \"$STATICLIBS\""
 verbose "    OPTIONS = \"$OPTIONS\""
+
+    set board [target_info name]
+    set_board_info c++compiler "$compiler"
 
     set args ""
 

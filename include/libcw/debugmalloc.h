@@ -32,6 +32,16 @@ RCSTAG_H(debugmalloc, "$Id$")
 namespace libcw {
   namespace debug {
 
+namespace _internal_ {
+#if 0 //def DEBUGDEBUG
+  extern bool ios_base_initialized; 
+#endif
+  extern bool internal;
+  extern int library_call;
+
+  static class Desperation { } const raw_write = { };
+} // namespace _internal_
+
 // Forward declaration
 class type_info_ct;
 
@@ -86,9 +96,9 @@ public:
 #endif
 };
 
-extern ostream& operator<<(ostream& os, memblk_types_ct);
+extern std::ostream& operator<<(std::ostream& os, memblk_types_ct);
 
-inline ostream& operator<<(ostream& os, memblk_types_nt memblk_type)
+inline std::ostream& operator<<(std::ostream& os, memblk_types_nt memblk_type)
 {
   return os << memblk_types_ct(memblk_type);
 }
@@ -109,19 +119,15 @@ protected:
   location_ct M_location;			// Source file, function and line number from where the allocator was called from
 #endif
 public:
-#ifdef DEBUGUSEBFD
-  alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, void* call_addr) :
-      a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti), M_location(call_addr) { }
-#else
   alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti) :
       a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti) { }
-#endif
   size_t size(void) const { return a_size; }
   void const* start(void) const { return a_start; }
   memblk_types_nt memblk_type(void) const { return a_memblk_type; }
   type_info_ct const& type_info(void) const { return *type_info_ptr; }
   char const* description(void) const { return a_description.get(); }
 #ifdef DEBUGUSEBFD
+  location_ct& location_reference(void) { return M_location; }
   location_ct const& location(void) const { return M_location; }
 #endif
 protected:
@@ -155,7 +161,9 @@ public:
   ~debugmalloc_newctor_ct(void);
 };
 
-class debugmalloc_report_ct { };
+class debugmalloc_report_ct {
+  friend std::ostream& operator<<(std::ostream& o, debugmalloc_report_ct);
+};
 debugmalloc_report_ct const malloc_report = { }; // Dummy
 
 // Accessors:
@@ -163,7 +171,6 @@ extern alloc_ct const* find_alloc(void const* ptr);
 extern bool test_delete(void const* ptr);
 extern size_t mem_size(void);
 extern long memblks(void);
-extern ostream& operator<<(ostream& o, debugmalloc_report_ct);
 
 // Manipulators:
 extern void set_alloc_checking_off(void);
@@ -203,7 +210,7 @@ extern void init_debugmalloc(void);
 	{ \
 	  ::libcw::debug::no_alloc_checking_ostrstream buf; \
 	  ::libcw::debug::set_alloc_checking_on(); \
-	  buf << x << ends; \
+	  buf << x << ::std::ends; \
 	  ::libcw::debug::set_alloc_checking_off(); \
 	  desc = buf.str(); /* Implicit buf.freeze(1) */ \
 	} \
@@ -220,7 +227,7 @@ extern void init_debugmalloc(void);
       { \
 	::libcw::debug::no_alloc_checking_ostrstream buf; \
 	::libcw::debug::set_alloc_checking_on(); \
-	buf << x << ends; \
+	buf << x << ::std::ends; \
 	::libcw::debug::set_alloc_checking_off(); \
 	desc = buf.str(); /* Implicit buf.freeze(1) */ \
       } \
@@ -266,6 +273,106 @@ inline void make_all_allocations_invisible_except(void const*) { }
 } // namespace libcw
 
 #endif // !DEBUGMALLOC
+
+#ifdef DEBUGDEBUG
+extern "C" ssize_t write(int fd, const void *buf, size_t count);
+
+namespace libcw {
+  namespace debug {
+
+inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, char const* data)
+{
+  write(2, data, strlen(data));
+  return raw_write;
+}
+
+inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, void const* data)
+{
+  size_t dat = (size_t)data;
+  write(2, "0x", 2);
+  char c[11];
+  char* p = &c[11];
+  do
+  {
+    int d = (dat % 16);
+    *--p = ((d < 10) ? '0' : ('a' - 10)) + d;
+    dat /= 16;
+  }
+  while(dat > 0);
+  write(2, p, &c[11] - p);
+  return raw_write;
+}
+
+inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, bool data)
+{
+  if (data)
+    write(2, "true", 4);
+  else
+    write(2, "false", 5);
+  return raw_write;
+}
+
+inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, char data)
+{
+  char c[1];
+  c[0] = data;
+  write(2, c, 1);
+  return raw_write;
+}
+
+inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, unsigned long data)
+{
+  char c[11];
+  char* p = &c[11];
+  do
+  {
+    *--p = '0' + (data % 10);
+    data /= 10;
+  }
+  while(data > 0);
+  write(2, p, &c[11] - p);
+  return raw_write;
+}
+
+inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, long data)
+{
+  if (data < 0)
+  {
+    write(2, "-", 1);
+    data = -data;
+  }
+  return operator<<(raw_write, (unsigned long)data);
+}
+
+inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, int data)
+{
+  return operator<<(raw_write, (long)data);
+}
+
+inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, size_t data)
+{
+  return operator<<(raw_write, static_cast<unsigned long>(data));
+}
+
+  }  // namespace debug
+} // namespace libcw
+
+  #define DEBUGDEBUG_CERR(x)							\
+      do {									\
+        write(2, "DEBUGDEBUG: ", 12);						\
+	for (int i = 0; i < ::libcw::debug::_internal_::library_call; ++i) 	\
+	  write(2, "    ", 4);							\
+	::libcw::debug::_internal_::raw_write << x << '\n';			\
+      } while(0)
+#else // !DEBUGDEBUG
+  #define DEBUGDEBUG_CERR(x)
+#endif // !DEBUGDEBUG
+
+#ifdef DEBUGDEBUGMALLOC
+  #define DEBUGDEBUGMALLOC_CERR(x) DEBUGDEBUG_CERR(x)
+#else
+  #define DEBUGDEBUGMALLOC_CERR(x)
+#endif
 
 #ifdef CWDEBUG
 

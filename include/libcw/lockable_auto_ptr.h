@@ -40,7 +40,13 @@ template<class X, bool array = false>	// Use array == true when `ptr' was alloca
   class lockable_auto_ptr {
     typedef X element_type;
 
-  private:
+#if (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
+    public:
+#else
+    // 2.95 core dumps on this
+    private:
+    template<class Y, bool ARRAY> friend class lockable_auto_ptr;
+#endif
     X* ptr;			// Pointer to object of type X, or NULL when not pointing to anything.
     bool locked;			// Set if this lockable_auto_ptr object is locked.
     mutable bool owner;		// Set if this lockable_auto_ptr object is the owner of the object that `ptr' points too.
@@ -56,8 +62,6 @@ template<class X, bool array = false>	// Use array == true when `ptr' was alloca
     lockable_auto_ptr(lockable_auto_ptr const& r) : ptr(r.ptr), locked(false), owner(r.owner && !r.locked)
 	{ if (!r.locked) r.owner = 0; }
 	// The default copy constructor.
-
-    template<class Y, bool ARRAY> friend class lockable_auto_ptr;
 
     template<class Y>
     lockable_auto_ptr(lockable_auto_ptr<Y, array> const& r) : ptr(r.ptr), locked(false), owner(r.owner && !r.locked)

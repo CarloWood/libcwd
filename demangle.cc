@@ -31,7 +31,6 @@
 #include <libcw/sys.h>
 #include <cctype>
 #include <strstream>
-#include <libcw/h.h>
 #include <libcw/debug.h>
 #include <libcw/demangle.h>
 
@@ -155,14 +154,14 @@ namespace libcw {
 #else // !STANDALONE
 #undef CWDEBUG
 #undef Dout
-#undef Dout_vform
 #undef DoutFatal
 #undef Debug
 #define Dout(cntrl, data)
-#define Dout_vform(cntrl, format, vl)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(::std, /*nothing*/, cntrl, data)
 #define Debug(x)
 #endif // !STANDALONE
+
+using namespace std;
 
 namespace libcw {
   namespace debug {

@@ -6,6 +6,8 @@
 #include <iostream>
 #include "libcw/debug.h"
 
+using namespace std;
+
 namespace libcw {
   namespace debug {
     namespace channels {
