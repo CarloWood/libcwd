@@ -84,7 +84,7 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
-<DT><B>12 Jul 2004</B>
+<DT><B>15 Jul 2004</B>
 <P class="news">libcwd-0.99.37 is released.&nbsp;
 This release concentrates on improving memory leak detection.&nbsp;
 Unfortunately it had to contain again an API change: <code>ooam_filter_ct</code> has
@@ -110,7 +110,10 @@ A pair of functions has been added to more easily control whether third-party
 allocations are invisible or not: <code>libcwd::set_invisible_on</code> and
 <code>libcwd::set_invisible_off</code>.&nbsp;
 Memory allocated while this flag is set will be invisible and the <tt>MALLOC</tt>
-showing the allocation will have '(invisible)' appended.</P>
+showing the allocation will have '(invisible)' appended.&nbsp;
+This line now also always shows the location where the allocator is called from.</P>
+<P class="news">This release fixes the --disable-alloc configure flag and adds
+support for gcc version 3.4.1 (needed for threaded applications).</P>
 <DT><B>24 Jun 2004</B>
 <P class="news">libcwd-0.99.36 is released.&nbsp;
 A very minor bug fix release.</P>
