@@ -1806,28 +1806,25 @@ void objfile_ct::load_stabs(void)
 	  M_brac_relative_to_fun = true;
 	break;
       }
-      case N_RBRAC:
+      case N_RBRAC:	// We assume that the first N_RBRACE comes AFTER the last N_SLINE (unlike what the document says).
       {
 	if (DEBUGSTABS)
 	  Dout(dc::bfd, "N_RBRAC: " << std::hex << stabs[j].n_value << '.');
-	if (location.is_valid_stabs())	// Only take N_RBRAC into account when we had at least one N_SLINE.
+	if (location.is_valid_stabs())
 	{
-	  if ((M_brac_relative_to_fun ? func_addr : 0) + stabs[j].n_value == range.start)
-	  {
-	    if (DEBUGSTABS)
-	      Dout(dc::bfd, "N_RBRAC: " << "end at " << std::hex << stabs[j].n_value << '.');
-	    range.size = func_addr + stabs[j].n_value - range.start;
-	    if (!skip_function)
-	      location.stabs_range(range);
-	    skip_function = false;
-	    location.invalidate();
-	  }
+	  if (DEBUGSTABS)
+	    Dout(dc::bfd, "N_RBRAC: " << "end at " << std::hex << stabs[j].n_value << '.');
+	  range.size = 0;			// The closing brace has size 0...
+	  if (!skip_function)
+	    location.stabs_range(range);
+	  skip_function = false;
+	  location.invalidate();
 	}
 	break;
       }
       case N_FUN:
       {
-	if (stabs[j].n_strx == 0)
+	if (stabs[j].n_strx == 0 || stabs_string_table[stabs[j].n_strx] == 0)
 	{
 	  if (location.is_valid_stabs())	// Location is invalidated when we already processed the end of the function by N_RBRAC.
 	  {
