@@ -47,11 +47,11 @@ static void print_poll_array_on(ostream& os, struct pollfd const ptr[2], size_t 
 
 int exec_prog(char const* prog_name, char const* const argv[], char const* const envp[], int (*decode_stdout)(char const*, size_t))
 {
-  Dout(dc::debug|continued_cf, "exec_prog(\"" << prog_name << "\", " << cwprint(::libcw::debug::argv_ct(argv)) << ", " << cwprint(::libcw::debug::environment_ct(envp)) << ", decode) = ");
   Debug({
     if (!dc::debug.is_on())
       libcw_do.off();
   });
+  Dout(dc::debug|continued_cf, "exec_prog(\"" << prog_name << "\", " << cwprint(::libcw::debug::argv_ct(argv)) << ", " << cwprint(::libcw::debug::environment_ct(envp)) << ", decode) = ");
 
   int stdout_filedes[2];
   int stderr_filedes[2];
