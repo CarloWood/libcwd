@@ -13,7 +13,7 @@ namespace example {
 
 int main(void)
 {
-#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD)
+#if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
   Debug( check_configuration() );
@@ -30,7 +30,7 @@ int main(void)
   ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );
   Debug( list_channels_on(libcw_do) );
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   Dout(dc::bfd, "bfd Testing");
 #else
   Dout(dc::notice, "bfd Testing disabled");

@@ -200,24 +200,24 @@ CXXCPP_FINGER_PRINT="$cw_cv_sys_CXXCPP_finger_print"
 AC_SUBST([CXXCPP_FINGER_PRINT])
 
 dnl Configuration defines of debug_config.h
-AC_SUBST(CW_CONFIG_DEBUGMALLOC)
-CW_CONFIG_DEBUGMALLOC=undef
-AC_SUBST(CW_CONFIG_DEBUGMAGICMALLOC)
-CW_CONFIG_DEBUGMAGICMALLOC=undef
-AC_SUBST(CW_CONFIG_DEBUGUSEBFD)
-CW_CONFIG_DEBUGUSEBFD=undef
-AC_SUBST(CW_CONFIG_DEBUGUSEGNULIBBFD)
-CW_CONFIG_DEBUGUSEGNULIBBFD=undef
-AC_SUBST(CW_CONFIG_DEBUGDEBUG)
-CW_CONFIG_DEBUGDEBUG=undef
-AC_SUBST(CW_CONFIG_DEBUGDEBUGOUTPUT)
-CW_CONFIG_DEBUGDEBUGOUTPUT=undef
-AC_SUBST(CW_CONFIG_DEBUGDEBUGMALLOC)
-CW_CONFIG_DEBUGDEBUGMALLOC=undef
-AC_SUBST(CW_CONFIG_DEBUGDEBUGTHREADS)
-CW_CONFIG_DEBUGDEBUGTHREADS=undef
-AC_SUBST(CW_CONFIG_DEBUGMARKER)
-CW_CONFIG_DEBUGMARKER=undef
+AC_SUBST(CW_CONFIG_ALLOC)
+CW_CONFIG_ALLOC=0
+AC_SUBST(CW_CONFIG_MAGIC)
+CW_CONFIG_MAGIC=0
+AC_SUBST(CW_CONFIG_LOCATION)
+CW_CONFIG_LOCATION=0
+AC_SUBST(CW_CONFIG_LIBBFD)
+CW_CONFIG_LIBBFD=0
+AC_SUBST(CW_CONFIG_DEBUG)
+CW_CONFIG_DEBUG=0
+AC_SUBST(CW_CONFIG_DEBUGOUTPUT)
+CW_CONFIG_DEBUGOUTPUT=0
+AC_SUBST(CW_CONFIG_DEBUGM)
+CW_CONFIG_DEBUGM=0
+AC_SUBST(CW_CONFIG_DEBUGT)
+CW_CONFIG_DEBUGT=0
+AC_SUBST(CW_CONFIG_MARKER)
+CW_CONFIG_MARKER=0
 AC_SUBST(CW_CONFIG_HAVE___LIBC_MALLOC)
 CW_CONFIG_HAVE___LIBC_MALLOC=undef
 AC_SUBST(CW_CONFIG_HAVE__LIBC_MALLOC)
@@ -231,11 +231,11 @@ AC_SUBST(enable_static)
 AC_SUBST(libcwd_config_threading)
 
 if test "$libcwd_config_alloc" = yes; then
-  CW_CONFIG_DEBUGMALLOC=define
+  CW_CONFIG_ALLOC=1
 fi
 
 if test "$libcwd_config_magic" = yes; then
-  CW_CONFIG_DEBUGMAGICMALLOC=define
+  CW_CONFIG_MAGIC=1
 fi
 
 dnl Set language requirements for the tests below.
@@ -250,7 +250,7 @@ CW_CONFIG_HAVE_DLOPEN=define],
     [AC_CHECK_LIB(dl, dlopen, [LIBS="-ldl $LIBS"; AC_DEFINE_UNQUOTED(HAVE_DLOPEN)
 CW_CONFIG_HAVE_DLOPEN=define])])
 
-CW_CONFIG_DEBUGUSEBFD=define
+CW_CONFIG_LOCATION=1
 
 fi
 
@@ -310,7 +310,7 @@ if test "$libcwd_config_bfd" = yes; then
   dnl If we succeeded so far, then enable DEBUGUSEGNULIBBFD
   if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no" -o "set+$cw_cv_lib_bfd_bfd_set_start_address_with_intl" = "set+yes"; then
     AC_CHECK_HEADER(bfd.h,
-      [CW_CONFIG_DEBUGUSEGNULIBBFD=define
+      [CW_CONFIG_LIBBFD=1
        AC_MSG_WARN([
 
 * You used --enable-libcwd-libbfd: The license of libbfd (GPL) forbids to link
@@ -392,23 +392,23 @@ dnl This test needs the full set of libraries we just determined.
 CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
 
 if test "$libcwd_config_debug" = yes; then
-  CW_CONFIG_DEBUGDEBUG=define
+  CW_CONFIG_DEBUG=1
 fi
 
 if test "$libcwd_config_debug_output" = yes; then
-  CW_CONFIG_DEBUGDEBUGOUTPUT=define
+  CW_CONFIG_DEBUGOUTPUT=1
 fi
 
 if test "$libcwd_config_debugm" = yes; then
-  CW_CONFIG_DEBUGDEBUGMALLOC=define
+  CW_CONFIG_DEBUGM=1
 fi
 
 if test "$libcwd_config_debugt" = yes; then
-  CW_CONFIG_DEBUGDEBUGTHREADS=define
+  CW_CONFIG_DEBUGT=1
 fi
 
 if test "$libcwd_config_marker" = yes; then
-  CW_CONFIG_DEBUGMARKER=define
+  CW_CONFIG_MARKER=1
 fi
 
 dnl Checks for header files.

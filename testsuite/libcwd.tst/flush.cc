@@ -30,7 +30,7 @@ int main(void)
 {
   Debug( check_configuration() );
   Debug( libcw_do.set_ostream(&std::cout) );
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
 

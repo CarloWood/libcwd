@@ -23,25 +23,25 @@ namespace libcw {
 
 #ifdef LIBCWD_THREAD_SAFE
 bool WST_multi_threaded = false;
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 int instance_locked[instance_locked_size];
 #endif
 
 void initialize_global_mutexes(void) throw()
 {
-#if !LIBCWD_USE_LINUXTHREADS || defined(DEBUGDEBUGTHREADS)
+#if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   mutex_tct<mutex_initialization_instance>::initialize();
   rwlock_tct<object_files_instance>::initialize();
   mutex_tct<dlopen_map_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   mutex_tct<alloc_tag_desc_instance>::initialize();
   mutex_tct<memblk_map_instance>::initialize();
 #endif
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
   mutex_tct<type_info_of_instance>::initialize();
 #endif
-#endif // !LIBCWD_USE_LINUXTHREADS || defined(DEBUGDEBUGTHREADS)
+#endif // !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 }
 
 #ifdef LIBCWD_USE_LINUXTHREADS

@@ -21,8 +21,8 @@
 
 #include <libcw/debug_config.h>
 
-#ifdef DEBUGDEBUG
-#ifdef DEBUGDEBUGTHREADS
+#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUGT
 #define WRITE __libc_write
 #else
 #define WRITE write
@@ -46,7 +46,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 	LIBCWD_CANCELSTATE_DISABLE								\
 	LIBCWD_TSD_DECLARATION									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
-	::write(2, "DEBUGDEBUG: ", 12);								\
+	::write(2, "CWDEBUG_DEBUG: ", 12);								\
 	/*  __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning. */ \
 	for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
 	  ::write(2, "    ", 4);								\
@@ -55,17 +55,17 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 	LIBCWD_CANCELSTATE_RESTORE								\
       }												\
     } while(0)
-#else // !DEBUGDEBUG
+#else // !CWDEBUG_DEBUG
 #define FATALDEBUGDEBUG_CERR(x)
-#endif // !DEBUGDEBUG
+#endif // !CWDEBUG_DEBUG
 
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
 #define DEBUGDEBUG_CERR(x) FATALDEBUGDEBUG_CERR(x)
-#else // !DEBUGDEBUGOUTPUT
+#else // !CWDEBUG_DEBUGOUTPUT
 #define DEBUGDEBUG_CERR(x)
-#endif // !DEBUGDEBUGOUTPUT
+#endif // !CWDEBUG_DEBUGOUTPUT
 
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 namespace libcw {
   namespace debug {
 
@@ -85,7 +85,7 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 
   }  // namespace debug
 } // namespace libcw
-#endif // DEBUGDEBUG
+#endif // CWDEBUG_DEBUG
 
 #endif // RAW_WRITE_H
 
@@ -94,7 +94,7 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 #ifndef LIBCWD_NO_INTERNAL_STRING
 #include <libcw/private_internal_string.h>
 #endif
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 namespace libcw {
   namespace debug {
 
@@ -102,6 +102,6 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 
   }  // namespace debug
 } // namespace libcw
-#endif // DEBUGDEBUG
+#endif // CWDEBUG_DEBUG
 #endif // !LIBCWD_NO_INTERNAL_STRING
 

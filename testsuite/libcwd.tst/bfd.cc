@@ -81,7 +81,7 @@ void libcw_bfd_test3(void)
 	break;
     }
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
     libcw::debug::location_ct loc((char*)retadr + libcw::debug::builtin_return_address_offset);
     Dout(dc::notice, "called from " << loc);
 
@@ -93,7 +93,7 @@ void libcw_bfd_test3(void)
 
     if (!loc.is_known())
       break;
-#else // !DEBUGUSEBFD
+#else // !CWDEBUG_LOCATION
 #ifdef CW_FRAME_ADDRESS_OFFSET
     if (i < 5 && frame_return_address(i) != retadr)
       DoutFatal(dc::fatal, "frame_return_address(" << i << ") returns " << frame_return_address(i) << '!');
@@ -128,7 +128,7 @@ void libcw_bfd_test(void)
 
 int main(int argc, char* argv[])
 {
-#if !defined(DEBUGUSEBFD)
+#if !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 #if !defined(__sun__) || !defined(__svr4__)
   Debug( dc::warning.on() );	// On Solaris we fail to find the start of libdl
 #endif
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   Debug( dc::bfd.on() );
 #endif
   Debug( dc::notice.on() );

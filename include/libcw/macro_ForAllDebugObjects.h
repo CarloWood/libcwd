@@ -59,7 +59,7 @@ __inline__
 debug_objects_ct::container_type&
 debug_objects_ct::write_locked(void)
 {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   LIBCWD_ASSERT( WNS_debug_objects );
 #endif
   return *WNS_debug_objects;
@@ -69,7 +69,7 @@ __inline__
 debug_objects_ct::container_type const&
 debug_objects_ct::read_locked(void) const
 {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   LIBCWD_ASSERT( WNS_debug_objects );
 #endif
   return *WNS_debug_objects;

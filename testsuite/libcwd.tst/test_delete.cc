@@ -19,7 +19,7 @@ class A {};
 
 int main(void)
 {
-#if !defined(DEBUGMALLOC) || (!defined(DEBUGUSEBFD) && defined(CWDEBUG))
+#if !CWDEBUG_ALLOC || (!CWDEBUG_LOCATION && defined(CWDEBUG))
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
@@ -43,7 +43,7 @@ int main(void)
   A* a = new A;
   AllocTag(a, "Test object that we will make invisible");
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   // Check test_delete
   if (libcw::debug::test_delete(a))	// Should return false
     DoutFatal( dc::core, "CANNOT find that pointer?!" );
@@ -62,7 +62,7 @@ int main(void)
   Dout( dc::notice, "After making allocation invisible:" );
   Debug( list_allocations_on(libcw_do) );
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   // Check test_delete
   if (libcw::debug::test_delete(a))	// Should still return false
     DoutFatal( dc::core, "CANNOT find that pointer?!" );

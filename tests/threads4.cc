@@ -74,7 +74,7 @@ int main(void)
 {
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   Debug( check_configuration() );
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
   pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;

@@ -46,7 +46,7 @@ template<typename T>
   void
   debug_stack_tst<T>::push(T ptr)
   {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end != NULL );
 #endif
     if (p == end)
@@ -63,7 +63,7 @@ template<typename T>
   void
   debug_stack_tst<T>::pop(void)
   {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end != NULL );
     LIBCWD_ASSERT( p != &st[-1] );
 #endif
@@ -75,7 +75,7 @@ template<typename T>
   T
   debug_stack_tst<T>::top(void) const
   {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end != NULL );
 #endif
     return *p;
@@ -86,7 +86,7 @@ template<typename T>
   size_t
   debug_stack_tst<T>::size(void) const
   {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end != NULL );
 #endif
     return p - &st[-1];

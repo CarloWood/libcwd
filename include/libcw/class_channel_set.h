@@ -56,7 +56,7 @@ public:
   debug_tsd_st* do_tsd_ptr;
     // Thread specific data of current debug object.
 
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   channel_set_data_st(void) : do_tsd_ptr(NULL) { }
 #endif
 };

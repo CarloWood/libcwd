@@ -22,7 +22,7 @@
 #include <libcw/debug_config.h>
 #endif
 
-#ifdef DEBUGMALLOC		// This file is not used unless --enable-libcwd-alloc was used.
+#if CWDEBUG_ALLOC		// This file is not used unless --enable-libcwd-alloc was used.
 
 #ifndef LIBCW_PRIVATE_THREADING_H
 #include <libcw/private_threading.h>
@@ -58,7 +58,7 @@ int const single_threaded_internal_instance = -1;
 int const multi_threaded_userspace_instance = -random_salt;	// Use std::alloc
 int const multi_threaded_internal_instance = -2;
 
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 #define LIBCWD_COMMA_INT_INSTANCE , int instance
 #define LIBCWD_COMMA_INSTANCE , instance
 #else
@@ -108,22 +108,22 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
     void construct(pointer p, const_reference t) { new((void*)p) T(t); }
     void destroy(pointer p) { p->~T(); }
 
-#if defined(DEBUGDEBUG) || defined(DEBUGDEBUGMALLOC)
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
   private:
     static void sanity_check(void);
 #endif
   };
 
-#if defined(DEBUGDEBUG) || defined(DEBUGDEBUGMALLOC)
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
 template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
   void allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::sanity_check(void)
   {
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
     LIBCWD_TSD_DECLARATION
     if ((__libcwd_tsd.internal > 0) != internal) 
       core_dump();
 #endif
-#if defined(DEBUGDEBUG) && defined(LIBCWD_THREAD_SAFE)
+#if CWDEBUG_DEBUG && defined(LIBCWD_THREAD_SAFE)
     if (instance == single_threaded_internal_instance && WST_multi_threaded)
       core_dump();
     if (instance >= 0 && WST_multi_threaded && !is_locked(instance))
@@ -137,7 +137,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
   T*
   allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::allocate(size_t n)
   {
-#if defined(DEBUGDEBUG) || defined(DEBUGDEBUGMALLOC)
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
     return (T*) X::allocate(n * sizeof(T));
@@ -148,7 +148,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
   T*
   allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::allocate(void)
   {
-#if defined(DEBUGDEBUG) || defined(DEBUGDEBUGMALLOC)
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
     return (T*) X::allocate(sizeof(T));
@@ -160,7 +160,7 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
   allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::
   deallocate(deallocate_pointer p, size_t n)
   {
-#if defined(DEBUGDEBUG) || defined(DEBUGDEBUGMALLOC)
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
     X::deallocate(p, n * sizeof(T));
@@ -171,13 +171,13 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
   void
   allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::deallocate(deallocate_pointer p)
   {
-#if defined(DEBUGDEBUG) || defined(DEBUGDEBUGMALLOC)
+#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
     X::deallocate(p, sizeof(T));
   }
 
-#ifndef DEBUGDEBUG
+#if !CWDEBUG_DEBUG
 template <class T1, class X1, bool internal1,
           class T2, class X2, bool internal2>
   __inline__
@@ -221,7 +221,7 @@ template <class T1, class X1, bool internal1, int inst1,
   }
 #endif
 
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 #define LIBCWD_DEBUGDEBUG_COMMA(x) , x
 #else
 #define LIBCWD_DEBUGDEBUG_COMMA(x)
@@ -296,6 +296,6 @@ typedef LIBCWD_MT_USERSPACE_ALLOCATOR userspace_allocator;
   } // namespace debug
 } // namespace libcw
  
-#endif // DEBUGMALLOC
+#endif // CWDEBUG_ALLOC
 #endif // LIBCW_PRIVATE_ALLOCATOR_H
 

@@ -14,9 +14,9 @@
 #define _LARGEFILE64_SOURCE
 
 #include "sys.h"
-#include <libcw/debug_config.h>		// Needed for DEBUGDEBUGTHREADS
+#include <libcw/debug_config.h>		// Needed for CWDEBUG_DEBUGT
 
-#ifdef DEBUGDEBUGTHREADS
+#if CWDEBUG_DEBUGT
 
 #ifndef LIBCW_PRIVATE_THREADING_H
 #include <libcw/private_threading.h>
@@ -142,4 +142,4 @@ CANCELLATION_POINT_SYSCALL (ssize_t, sendto, (int fd, const __ptr_t buf, size_t 
 
 } // extern "C"
 
-#endif // DEBUGDEBUGTHREADS
+#endif // CWDEBUG_DEBUGT

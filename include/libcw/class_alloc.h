@@ -28,7 +28,7 @@
 #ifndef LIBCW_LOCKABLE_AUTO_PTR_H
 #include <libcw/lockable_auto_ptr.h>		// Needed for lockable_auto_ptr<char, true>.
 #endif
-#if defined(DEBUGUSEBFD) && !defined(LIBCW_CLASS_LOCATION_H)
+#if CWDEBUG_LOCATION && !defined(LIBCW_CLASS_LOCATION_H)
 #include <libcw/class_location.h>		// Needed for location_ct.
 #endif
 #ifndef LIBCW_CSTDDEF
@@ -58,7 +58,7 @@ protected:
   memblk_types_nt a_memblk_type;		//!< A flag which indicates the type of allocation.
   type_info_ct const* type_info_ptr;		//!< Type info of related object.
   lockable_auto_ptr<char, true> a_description;	//!< A label describing this memblk.
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   location_ct M_location;			//!< Source file, function and line number from where the allocator was called from.
 #endif
 
@@ -94,7 +94,7 @@ public:
    */
   char const* description(void) const { return a_description.get(); }
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   /**
    * \brief The source file location that the allocator was called from.
    *

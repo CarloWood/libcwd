@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
   A* a1 = new A;
   AllocTag(a1, "First created");
 
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   // Create marker
   libcw::debug::marker_ct* marker = new libcw::debug::marker_ct("A test marker");
 #endif
@@ -48,22 +48,22 @@ int main(int argc, char* argv[])
   Debug( list_allocations_on(libcw_do) );
 
   Dout(dc::notice, "Moving the int array outside of the marker...");
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   Debug( move_outside(marker, p) );
 #endif
 
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   // Delete the marker
   delete marker;
 #endif
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   Dout(dc::notice, "Finished successfully.");
 #else
-  DoutFatal(dc::fatal, "Please define DEBUGMALLOC.");
+  DoutFatal(dc::fatal, "Please reconfigure libcwd with --enable-libcwd-alloc.");
 #endif
   return 0;
 }

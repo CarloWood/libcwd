@@ -18,7 +18,7 @@
 
 #include <libcw/debug_config.h>
 
-#if defined(DEBUGUSEBFD) && !defined(DEBUGUSEGNULIBBFD)
+#if CWDEBUG_LOCATION && !CWDEBUG_LIBBFD
 
 #include "sys.h"
 #include <inttypes.h>	// ISO C99 header, needed for int32_t etc.
@@ -1668,7 +1668,7 @@ indirect:
 	    }
 	  }
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
-#ifdef DEBUGDEBUG	// Play safe.
+#if CWDEBUG_DEBUG	// Play safe.
 	  // g++ bug work around.
 	  LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end || debug_line_ptr == debug_line_ptr_end + 1 );
 #endif
@@ -2085,4 +2085,4 @@ object_file_ct::object_file_ct(char const* file_name) :
   } // namespace debug
 } // namespace libcw
 
-#endif // DEBUGUSEBFD && !DEBUGUSEGNULIBBFD
+#endif // CWDEBUG_LOCATION && !CWDEBUG_LIBBFD

@@ -15,7 +15,7 @@
 #ifndef RAW_WRITE_INL
 #define RAW_WRITE_INL
 
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 
 #ifndef LIBCW_PRIVATE_INTERNAL_STRING_H
 #include <libcw/private_internal_string.h>
@@ -120,6 +120,6 @@ operator<<(_private_::raw_write_nt const& raw_write, libcw::debug::_private_::in
 
   }  // namespace debug
 } // namespace libcw
-#endif // DEBUGDEBUG
+#endif // CWDEBUG_DEBUG
 
 #endif // RAW_WRITE_INL

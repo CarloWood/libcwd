@@ -11,10 +11,10 @@
 // packaging of this file.
 //
 
-#undef DEBUGDEBUGBFD		// Define to add debug code for this file.
+#undef LIBCWD_DEBUGBFD		// Define to add debug code for this file.
 
 #include <libcw/debug_config.h>
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
 
 #include "sys.h"
 #include <unistd.h>
@@ -44,7 +44,7 @@ extern link_map* _dl_loaded;
 #endif
 #include <cstdio>		// Needed for vsnprintf.
 #include <algorithm>
-#ifdef DEBUGDEBUGBFD
+#ifdef LIBCWD_DEBUGBFD
 #include <iomanip>
 #endif
 #include "cwd_debug.h"
@@ -54,16 +54,16 @@ extern link_map* _dl_loaded;
 #undef dlclose
 #endif
 #include "exec_prog.h"
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 #if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
 // libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
 // for `long long'.  If you run into this error (and you insist on use libbfd) then either recompile
 // libstdc++ with support for `long long' or recompile libbfd without 64bit support.
 #error "Incompatible libbfd and libstdc++ (see comments in source code)."
 #endif
-#else // !DEBUGUSEGNULIBBFD
+#else // !CWDEBUG_LIBBFD
 #include "elf32.h"
-#endif // !DEBUGUSEGNULIBBFD
+#endif // !CWDEBUG_LIBBFD
 
 #ifdef LIBCWD_THREAD_SAFE
 using libcw::debug::_private_::rwlock_tct;
@@ -121,7 +121,7 @@ namespace libcw {
     // Local stuff
     namespace cwbfd {
 
-#ifndef DEBUGUSEGNULIBBFD
+#if !CWDEBUG_LIBBFD
 
 //----------------------------------------------------------------------------------------
 // Interface Adaptor
@@ -151,7 +151,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
 //----------------------------------------------------------------------------------------
 
-#endif // !DEBUGUSEGNULIBBFD
+#endif // !CWDEBUG_LIBBFD
 
       // cwbfd::
       void error_handler(char const* format, ...)
@@ -355,7 +355,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // cwbfd::
       object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
       {
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
 	{
 	  LIBCWD_TSD_DECLARATION
 	  LIBCWD_ASSERT( __libcwd_tsd.internal );
@@ -363,7 +363,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #endif
 
 	abfd = bfd_openr(filename, NULL);
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	if (!abfd)
 	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
 	abfd->cacheable = bfd_tttrue;
@@ -375,13 +375,13 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	if (bfd_check_format(abfd, bfd_archive))
 	{
 	  bfd_close(abfd);
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive: " << bfd_errmsg(bfd_get_error()));
 #else
 	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive.");
 #endif
 	}
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	char** matching;
 	if (!bfd_check_format_matches(abfd, bfd_object, &matching))
 	{
@@ -404,7 +404,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	}
 
 	long storage_needed = bfd_get_symtab_upper_bound (abfd);
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	if (storage_needed < 0)
 	  DoutFatal(dc::bfd, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
 #else
@@ -420,14 +420,14 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	symbol_table = (asymbol**) malloc(storage_needed);
 
 	number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	if (number_of_symbols < 0)
 	  DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
 #endif
 
 	if (number_of_symbols > 0)
 	{
-#ifndef DEBUGUSEGNULIBBFD
+#if !CWDEBUG_LIBBFD
 	  size_t s_end_vma = abfd->M_s_end_vma;
 #else
 	  size_t s_end_vma = 0;
@@ -458,7 +458,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    else
 	      ++s;
 	  }
-#endif // DEBUGUSEGNULIBBFD
+#endif // CWDEBUG_LIBBFD
 
 	  if (!s_end_vma && number_of_symbols > 0)
 	    Dout(dc::warning, "Cannot find symbol _end");
@@ -609,7 +609,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // cwbfd::
       object_file_ct::~object_file_ct()
       {
-#if defined(LIBCWD_THREAD_SAFE) && defined(DEBUGDEBUG)
+#if defined(LIBCWD_THREAD_SAFE) && CWDEBUG_DEBUG
 	LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
 #endif
 	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(), NEEDS_WRITE_LOCK_object_files().end(), this));
@@ -878,7 +878,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	return 0;
       }
 
-#ifdef DEBUGDEBUGBFD
+#ifdef LIBCWD_DEBUGBFD
       // cwbfd::
       void dump_object_file_symbols(object_file_ct const* object_file)
       {
@@ -918,7 +918,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	if (object_file->get_number_of_symbols() > 0)
 	{
 	  Dout(dc::finish, "done (" << std::dec << object_file->get_number_of_symbols() << " symbols)");
-#ifdef DEBUGDEBUGBFD
+#ifdef LIBCWD_DEBUGBFD
 	  dump_object_file_symbols(object_file);
 #endif
 	}
@@ -945,14 +945,14 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
         // MT: We assume this is called before reaching main().
 	//     Therefore, no synchronisation is required.
-#if defined(DEBUGDEBUG) && defined(LIBCWD_THREAD_SAFE)
+#if CWDEBUG_DEBUG && defined(LIBCWD_THREAD_SAFE)
 	if (_private_::WST_multi_threaded)
 	  core_dump();
 #endif
 
 	LIBCWD_TSD_DECLARATION
 
-#if defined(DEBUGDEBUG) && defined(DEBUGMALLOC)
+#if CWDEBUG_DEBUG && CWDEBUG_ALLOC
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
 
@@ -960,7 +960,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	// Start INTERNAL!
 	set_alloc_checking_off(LIBCWD_TSD);
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 	// Initialize the malloc library if not done yet.
 	init_debugmalloc();
 #endif
@@ -978,7 +978,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	// write lock because this function is Single Threaded.
 	new (&NEEDS_WRITE_LOCK_object_files()) object_files_ct;
 
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	bfd_init();
 #endif
 
@@ -993,11 +993,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	      {
 		LIBCWD_TSD_DECLARATION
 		set_alloc_checking_off(LIBCWD_TSD);
-#if defined(DEBUGDEBUG) && defined(LIBCWD_THREAD_SAFE)
+#if CWDEBUG_DEBUG && defined(LIBCWD_THREAD_SAFE)
 		_private_::WST_multi_threaded = false;		// `fullpath' is static and will only be destroyed from exit().
 #endif
 		delete value;
-#if defined(DEBUGDEBUG) && defined(LIBCWD_THREAD_SAFE)
+#if CWDEBUG_DEBUG && defined(LIBCWD_THREAD_SAFE)
 		_private_::WST_multi_threaded = true;		// Make sure we catch other global strings (in order to avoid a static destructor ordering fiasco).
 #endif
 		set_alloc_checking_on(LIBCWD_TSD);
@@ -1007,7 +1007,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	ST_get_full_path_to_executable(*fullpath.value);
 	*fullpath.value += '\0';				// Make string null terminated so we can use data().
 
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	bfd_set_error_program_name(fullpath.value->data() + fullpath.value->find_last_of('/') + 1);
 	bfd_set_error_handler(error_handler);
 #endif
@@ -1064,7 +1064,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
 	WST_initialized = true;			// MT: Safe, this function is Single Threaded.
 
-#ifdef DEBUGDEBUGBFD
+#ifdef LIBCWD_DEBUGBFD
 	LIBCWD_DEFER_CANCEL
 	BFD_ACQUIRE_READ_LOCK
 	// Dump all symbols
@@ -1249,7 +1249,7 @@ already_loaded:
 	LIBCWD_ASSERT( object_file->get_bfd() == abfd );
 	LIBCWD_DEFER_CANCEL
 	set_alloc_checking_off(LIBCWD_TSD);
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	bfd_find_nearest_line(abfd, const_cast<asection*>(sect), const_cast<asymbol**>(object_file->get_symbol_table()),
 	    (char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &M_func, &M_line);
 #else
@@ -1529,4 +1529,4 @@ extern "C" {
 
 #endif // LIBCWD_DLOPEN_DEFINED
 
-#endif // !DEBUGUSEBFD
+#endif // !CWDEBUG_LOCATION

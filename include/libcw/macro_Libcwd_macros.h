@@ -53,15 +53,15 @@
 
 // This is debugging libcwd itself.
 #ifndef LIBCWD_LibcwDoutScopeBegin_MARKER
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
 extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 #define LIBCWD_STR1(x) #x
 #define LIBCWD_STR2(x) LIBCWD_STR1(x)
 #define LIBCWD_STR3 "LibcwDout at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
 #define LIBCWD_LibcwDoutScopeBegin_MARKER LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code ); ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3) - 1); LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );
-#else // !DEBUGDEBUGOUTPUT
+#else // !CWDEBUG_DEBUGOUTPUT
 #define LIBCWD_LibcwDoutScopeBegin_MARKER
-#endif // !DEBUGDEBUGOUTPUT
+#endif // !CWDEBUG_DEBUGOUTPUT
 #endif // !LIBCWD_LibcwDoutScopeBegin_MARKER
 
 /**
@@ -112,7 +112,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
 
 // This is debugging libcwd itself.
 #ifndef LIBCWD_LibcwDoutFatalScopeBegin_MARKER
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
 #define LIBCWD_STR4 "LibcwDoutFatal at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
 #define LIBCWD_LibcwDoutFatalScopeBegin_MARKER LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code ); ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4) - 1); LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );
 #else

@@ -24,7 +24,7 @@ class A {
 
 int main(void)
 {
-#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD) || !defined(DEBUGMARKER)
+#if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION || !CWDEBUG_MARKER
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
@@ -33,7 +33,7 @@ int main(void)
   // Don't show allocations that are allocated before main()
   libcw::debug::make_all_allocations_invisible_except(NULL);
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
 #endif
@@ -54,7 +54,7 @@ int main(void)
   A* a1 = new A;
   AllocTag(a1, "First created");
 
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   // Create marker
   libcw::debug::marker_ct* marker = new libcw::debug::marker_ct("A test marker");
 #endif
@@ -68,7 +68,7 @@ int main(void)
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   Dout(dc::notice, "Moving the int array outside of the marker...");
   Debug( move_outside(marker, p) );
 #endif
@@ -76,7 +76,7 @@ int main(void)
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   // Delete the marker
   delete marker;
 #endif

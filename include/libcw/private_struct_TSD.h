@@ -133,19 +133,19 @@ struct pthread_descr_struct {
 
 struct TSD_st {
 public:
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   int internal;
   int library_call;
   int inside_malloc_or_free;	// Set when entering a (de)allocation routine non-internal.
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
   int marker;
 #endif
-#endif // DEBUGMALLOC
+#endif // CWDEBUG_ALLOC
   bool recursive_fatal;		// Detect loop involving dc::fatal or dc::core.
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   bool recursive_assert;	// Detect loop involving LIBCWD_ASSERT.
 #endif
-#ifdef DEBUGDEBUGTHREADS
+#if CWDEBUG_DEBUGT
   int cancel_explicitely_deferred;
   int cancel_explicitely_disabled;
   int inside_critical_area;

@@ -37,7 +37,7 @@
 namespace libcw {
   namespace debug {
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
     namespace cwbfd { bool ST_init(void); }
 #endif
 
@@ -67,8 +67,8 @@ struct debug_tsd_st {
     // Do not disable debug output and delete the TSD of the this debug object
     // during the pthread key destruction phase.
 
-#ifdef DEBUGDEBUGOUTPUT
-  // Since with DEBUGDEBUG defined we start with _off is -1 instead of 0,
+#if CWDEBUG_DEBUGOUTPUT
+  // Since we start with _off is -1 instead of 0 when CWDEBUG_DEBUG is set,
   // we need to ignore the call to on() the first time it is called.
   bool first_time;
 #endif

@@ -25,7 +25,7 @@ Moreover, a few bytes might be allocated extra just in front of the last magic n
 <p STYLE="margin-left: 1.27cm">&nbsp;<br>
 <img width=340 height=165 src="../images/libcw_magic.png" alt="Memory layout of magic numbers" border=0>
 <br CLEAR=ALL>&nbsp;<br>
-Figure 1. Memory layout of an allocated memory block with <CODE>DEBUGMAGICMALLOC</CODE> defined.
+Figure 1. Memory layout of an allocated memory block with <CODE>CWDEBUG_MAGIC</CODE> set.
 \endhtmlonly
 
 The magic numbers are checked when the memory is freed again.&nbsp;

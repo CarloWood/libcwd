@@ -201,7 +201,7 @@ char const* continued_func(unsigned int what)
 
 int main(void)
 {
-#if !defined(DEBUGUSEBFD)
+#if !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 

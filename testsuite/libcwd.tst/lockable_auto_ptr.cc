@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 {
   Debug( check_configuration() );
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
 #endif

@@ -26,7 +26,7 @@ int main(void)
 {
   Debug( check_configuration() );
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
 #endif
@@ -38,7 +38,7 @@ int main(void)
 #endif
 
   Debug( libcw_do.on() );
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   // Get rid of the `first_time'.
   Debug( my_own_do.on() );
   Debug( my_own_do.off() );

@@ -14,7 +14,7 @@ using libcw::debug::_private_::allocator_adaptor;
 int main(void)
 {
   Debug( check_configuration() );
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );

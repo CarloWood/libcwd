@@ -41,7 +41,7 @@
 namespace libcw {
   namespace debug {
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 namespace _private_ {
 
 struct debug_message_st {
@@ -115,7 +115,7 @@ private:
   bool WNS_initialized;
     // Set to true when this object is initialized (by a call to NS_init()).
 
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   long init_magic;
     // Used to check if the trick with `WNS_initialized' really works.
 #endif
@@ -123,7 +123,7 @@ private:
   bool interactive;
     // Set true if the last or current debug output is to cerr
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 public:
   _private_::debug_message_st* queue;
   _private_::debug_message_st* queue_top;
@@ -196,13 +196,13 @@ private:
   friend class channel_ct;
   friend class fatal_channel_ct;
   friend void ST_initialize_globals(void);
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   friend bool cwbfd::ST_init(void);
 #endif
   void NS_init(void);
     // Initialize this object, needed because debug output can be written
     // from the constructors of (other) global objects, and from the malloc()
-    // family when DEBUGMALLOC is defined.
+    // family when CWDEBUG_ALLOC is set to 1.
 
 public:
   //-------------------------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ public:
   
   struct OnOffState {
     int _off;
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
     bool first_time;
 #endif
   };

@@ -79,16 +79,16 @@ namespace channels {
     extern channel_ct notice;
     extern channel_ct system;
     extern channel_ct warning;
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 #ifdef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
     extern channel_ct malloc;
 #else
     extern channel_ct __libcwd_malloc;
 #endif
-#else // !DEBUGMALLOC
+#else // !CWDEBUG_ALLOC
     extern channel_ct malloc;
 #endif
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
     extern channel_ct bfd;
 #endif
     extern fatal_channel_ct fatal;
@@ -239,10 +239,10 @@ using namespace libcw_debug_inserters;
 #include <libcw/class_channel_set.inl>		// Used in macro Dout et al.
 
 // Include optional features.
-#ifdef DEBUGUSEBFD				// --enable-libcwd-location
+#if CWDEBUG_LOCATION				// --enable-libcwd-location
 #include <libcw/bfd.h>
 #endif
-#ifdef DEBUGMALLOC				// --enable-libcwd-alloc
+#if CWDEBUG_ALLOC				// --enable-libcwd-alloc
 #include <libcw/debugmalloc.h>
 #endif
 

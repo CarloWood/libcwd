@@ -102,7 +102,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
 #ifdef CWDEBUG
   if ((ret = pipe(debug_filedes)) == -1)
     DoutFatal(dc::fatal|error_cf, "pipe");
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   Dout(dc::system, "pipe([" << debug_filedes[0] << ", " << debug_filedes[1] << "]) = " << ret);
 #endif
 #endif
@@ -169,7 +169,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
       Dout(dc::system|cond_error_cf(ret == -1), "close(" << stderr_filedes[0] << ") = " << ret);
 #ifdef CWDEBUG
       ret = close(debug_filedes[0]);
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
       Dout(dc::system|cond_error_cf(ret == -1), "close(" << debug_filedes[0] << ") = " << ret);
 #endif
 #endif
@@ -191,7 +191,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
     case -1:
       Debug( libcw_do.on() );
       Dout(dc::system|error_cf, "fork() = -1");
-      DoutFatal(dc::fatal, "Try undefining DEBUGUSEBFD");
+      DoutFatal(dc::fatal, "Try configuring libcwd with --disable-libcwd-location");
     default:
     {
       pid_t pid = ret;
@@ -204,7 +204,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
       Dout(dc::system|cond_error_cf(ret == -1), "close(" << stderr_filedes[1] << ") = " << ret);
 #ifdef CWDEBUG
       ret = close(debug_filedes[1]);
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
       Dout(dc::system|cond_error_cf(ret == -1), "close(" << debug_filedes[1] << ") = " << ret);
 #endif
 #endif
@@ -246,14 +246,14 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
 	    do
 	    {
 #ifdef CWDEBUG
-#ifndef DEBUDEBUG
+#if !CWDEBUG_DEBUG
 	      if (ufds[fd].fd != debug_filedes[0])
 #endif
 		Dout(dc::system|continued_cf, "read(" << ufds[fd].fd << ", ");
 #endif
 	      len = read(ufds[fd].fd, readbuf, sizeof(readbuf));
 #ifdef CWDEBUG
-#ifndef DEBUDEBUG
+#if !CWDEBUG_DEBUG
 	      if (ufds[fd].fd != debug_filedes[0])
 #endif
 		Dout(dc::finish|cond_error_cf(len == -1), '"' << buf2str(readbuf, len > 0 ? len : 0) << "\", " << sizeof(readbuf) << ") = " << len);

@@ -26,7 +26,7 @@
 #include <libcw/debug_config.h>
 #endif
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF
@@ -219,7 +219,7 @@ template<typename TYPE>
 
 /** \} */ // End of group 'group_annotation'.
 
-#else // !DEBUGMALLOC
+#else // !CWDEBUG_ALLOC
 
 /** \addtogroup group_annotation */
 /** \{ */
@@ -235,7 +235,7 @@ template<typename TYPE>
 
 /** \} */ // End of group 'group_annotation'.
 
-#endif // !DEBUGMALLOC
+#endif // !CWDEBUG_ALLOC
 
 #endif // LIBCW_MACRO_ALLOCTAG_H
 

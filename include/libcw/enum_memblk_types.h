@@ -51,7 +51,7 @@ enum memblk_types_nt {
   memblk_type_malloc,           ///< Allocated with <code>%calloc()</code> or <code>%malloc()</code>
   memblk_type_realloc,          ///< Reallocated with <code>%realloc()</code>
   memblk_type_freed,            ///< Freed with <code>%free()</code>
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   memblk_type_marker,           ///< A memory allocation marker
   memblk_type_deleted_marker,   ///< A deleted memory allocation marker
 #endif

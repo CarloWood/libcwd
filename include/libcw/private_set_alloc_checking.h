@@ -29,18 +29,18 @@ namespace libcw {
   namespace debug {
     namespace _private_ {
 
-#ifdef DEBUGMALLOC
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_ALLOC
+#if CWDEBUG_DEBUGM
   extern void set_alloc_checking_off(LIBCWD_TSD_PARAM);
   extern void set_alloc_checking_on(LIBCWD_TSD_PARAM);
 #else
   __inline__ void set_alloc_checking_off(LIBCWD_TSD_PARAM) { ++__libcwd_tsd.internal; }
   __inline__ void set_alloc_checking_on(LIBCWD_TSD_PARAM) { --__libcwd_tsd.internal; }
 #endif
-#else // !DEBUGMALLOC
+#else // !CWDEBUG_ALLOC
   __inline__ void set_alloc_checking_off(LIBCWD_TSD_PARAM) { }
   __inline__ void set_alloc_checking_on(LIBCWD_TSD_PARAM) { }
-#endif // !DEBUGMALLOC
+#endif // !CWDEBUG_ALLOC
 
     } // namespace _private_
   } // namespace debug

@@ -18,18 +18,18 @@
 
 int main(int argc, char* argv[])
 {
-#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD)
+#if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
   Debug( check_configuration() );
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   // Don't show allocations that are allocated before main()
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)main) );
 #endif
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   Debug( dc::debug.off() );
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   Debug( dc::bfd.off() );
 #endif
 

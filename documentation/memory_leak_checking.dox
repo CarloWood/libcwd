@@ -20,7 +20,7 @@ This can be done recursively.
 A \em marker is created by passing it a description:
 
 \code
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   marker_ct* marker = marker_ct("Description of the marker");
 #endif
 \endcode

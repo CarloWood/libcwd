@@ -1,5 +1,70 @@
 libcwd-0.99.18
 
+	API changes:
+
+	All macros related to the configure options used have been
+	renamed and are no longer either defined or undefined, but
+	rather defined to 1 or 0 respectively.  The advantage of
+	that is that it allows the compiler to warn you when you
+	made a typo in a macro name.
+	This means that you will have to use #if macro_name
+	instead of #ifdef macro_name of course.
+	The names have changed as follows:
+	Locations:
+	DEBUGUSEBFD		-->	CWDEBUG_LOCATION
+	Memory allocation debugging:
+	DEBUGMALLOC		-->	CWDEBUG_ALLOC
+	DEBUGMAGICMALLOC	-->	CWDEBUG_MAGIC
+	DEBUGMARKER		-->	CWDEBUG_MARKER
+	Debugging libcwd itself:
+	DEBUGDEBUG		-->	CWDEBUG_DEBUG
+	DEBUGDEBUGOUTPUT	-->	CWDEBUG_DEBUGOUTPUT
+	DEBUGDEBUGMALLOC	-->	CWDEBUG_DEBUGM
+	DEBUGDEBUGTHREADS	-->	CWDEBUG_DEBUGT
+	The rationaly is that for a configure option
+	--enable-libcwd-xxx, the macro name is now CWDEBUG_XXX.
+	You are advised to automate the replacements of the
+	macros (use find and grep and reg.exp replaces);
+	The following substitutions are suggested (only
+	given for one of the macros):
+	:%s/defined(DEBUGDEBUG)/CWDEBUG_DEBUG/g
+	:%s/#ifdef DEBUGDEBUG /#if CWDEBUG_DEBUG /
+	:%s/#ifdef DEBUGDEBUG$/#if CWDEBUG_DEBUG/
+	:%s/#ifndef DEBUGDEBUG /#if !CWDEBUG_DEBUG /
+	:%s/#ifndef DEBUGDEBUG$/#if !CWDEBUG_DEBUG /
+	:%s%// DEBUGDEBUG$%// CWDEBUG_DEBUG%
+	:%s%// !DEBUGDEBUG$%// !CWDEBUG_DEBUG%
+	After that you still have to check if other instances
+	are left.
+
+	MACRO OVERVIEW:
+	Most macros now either start with LIBCWD_, LIBCW_, CWDEBUG_
+	or Libcw.  The macros that start with LIBCW should not
+	be used.  The macros that start with CWDEBUG_ are either
+	0 or 1 and should be used as #if CWDEBUG_XXX ...
+	CWDEBUG itself is still defined or undefined and should
+	be used as #ifdef CWDEBUG ...
+	The macros that start with Libcw are the more general
+	cases of Dout, DoutFatal and Debug (they are LibcwDebug,
+	LibcwDebugThreads, LibcwDout, LibcwDoutFatal, LibcwDoutFatalScopeBegin,
+	LibcwDoutFatalScopeEnd, LibcwDoutFatalStream, LibcwDoutScopeBegin,
+	LibcwDoutScopeEnd and LibcwDoutStream).  You are allowed to
+	use those to customize things.
+	The macros that do not start with one of those four prefixes
+	are part of the libcwd API (and should also be defined in
+	your custom debug.h):
+	  Debug, Dout, DoutFatal
+			: see documentation/html/debug_8h.html
+	  DEBUGCHANNELS	: see documentation/html/group__chapter__custom__debug__h.html
+	  ForAllDebugChannels and ForAllDebugObjects
+			: see documentation/html/group__group__special.html
+	  AllocTag, AllocTag1, AllocTag2, AllocTag_dynamic_description and NEW
+			: see documentation/html/group__group__annotation.html
+	When you don't have __libc_malloc (glibc *does* have that):
+	  malloc, calloc, realloc, free, strdup, wcsdup and RegisterExternalAlloc.
+	These are always defined because there is no accessible __libc_dlopen :/.
+	  dlclose, dlopen : In order to catch those when used.
+
 libcwd-0.99.17
 
 	A tutorial on debugging threaded applications was added.

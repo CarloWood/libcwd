@@ -14,12 +14,12 @@
 #include "sys.h"
 #include <libcw/debug_config.h>
 
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && CWDEBUG_ALLOC
 // This has to be very early (must not have been included elsewhere already).
 #define private public  // Ugly, I know.
 #include <bits/stl_alloc.h>
 #undef private
-#endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+#endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && CWDEBUG_ALLOC
 
 #include <errno.h>
 #include <iostream>
@@ -69,7 +69,7 @@ namespace libcw {
 
 namespace _private_ {
 
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && CWDEBUG_ALLOC
 // The following tries to take the "node allocator" lock -- the lock of the
 // default allocator for threaded applications. The parameter is the value to
 // return when no lock exist. This should probably be implemented as a macro
@@ -96,7 +96,7 @@ void allocator_unlock(void)
 #endif
   __gthread_mutex_unlock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
 }
-#endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+#endif // (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && CWDEBUG_ALLOC
 
 } // namespace _private_
 
@@ -114,19 +114,19 @@ void allocator_unlock(void)
     public:
 #ifdef LIBCWD_THREAD_SAFE
       void writeto(std::ostream* os, _private_::lock_interface_base_ct* mutex LIBCWD_COMMA_TSD_PARAM, debug_ct&
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 	  debug_object
 #endif
 	  )
 #else
       void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct&
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 	  debug_object
 #endif
 	  )
 #endif // LIBCWD_THREAD_SAFE
       {
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && CWDEBUG_ALLOC
 	typedef debug_message_st* msgbuf_t;
 	msgbuf_t msgbuf;
 	// Queue the message when the default (STL) allocator is locked and it could be that we
@@ -155,12 +155,12 @@ void allocator_unlock(void)
 	  msgbuf = (msgbuf_t)malloc(curlen + extra_size);
 	  free_msgbuf = true;
 	}
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && CWDEBUG_ALLOC
 	rdbuf()->sgetn(msgbuf->buf, curlen);
 #else
 	rdbuf()->sgetn(msgbuf, curlen);
 #endif
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 	// Writing to the final std::ostream (ie std::cerr) must be non-internal!
 	// LIBCWD_DISABLE_CANCEL/LIBCWD_ENABLE_CANCEL must be done non-internal too.
 	int saved_internal = __libcwd_tsd.internal;
@@ -183,7 +183,7 @@ void allocator_unlock(void)
 	  }
 	}
 #endif // !LIBCWD_THREAD_SAFE
-#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && defined(DEBUGMALLOC)
+#if (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97) && defined(LIBCWD_THREAD_SAFE) && CWDEBUG_ALLOC
 	if (queue_msg)			// Inside a call to malloc and possibly owning lock of std::__default_alloc_template<true, 0>?
 	{
 	  // We don't write debug output to the final ostream when inside malloc and std::__default_alloc_template<true, 0> is locked.
@@ -219,15 +219,15 @@ void allocator_unlock(void)
 	  // Then write the new message.
 	  os->write(msgbuf->buf, curlen);
 	}
-#else // !(defined(DEBUGMALLOC) && defined(LIBCWD_THREAD_SAFE))
+#else // !(CWDEBUG_ALLOC && defined(LIBCWD_THREAD_SAFE))
 	os->write(msgbuf, curlen);
-#endif // !DEBUGMALLOC
+#endif // !CWDEBUG_ALLOC
 #ifdef LIBCWD_THREAD_SAFE
 	if (mutex)
 	  mutex->unlock();
 	LIBCWD_ENABLE_CANCEL
 #endif // !LIBCWD_THREAD_SAFE
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	--__libcwd_tsd.library_call;
 	__libcwd_tsd.internal = saved_internal;
@@ -379,7 +379,7 @@ void allocator_unlock(void)
       }
     }
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
     namespace cwbfd { extern bool ST_init(void); }
 #endif
 
@@ -389,7 +389,7 @@ void allocator_unlock(void)
       if (ST_already_called)
 	return;
       ST_already_called = true;
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
       init_debugmalloc();
 #endif
 #ifdef LIBCWD_THREAD_SAFE
@@ -406,7 +406,7 @@ void allocator_unlock(void)
       channels::dc::malloc.NS_initialize("MALLOC");
       channels::dc::continued.NS_initialize(continued_maskbit);
       channels::dc::finish.NS_initialize(finish_maskbit);
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
       channels::dc::bfd.NS_initialize("BFD");
 #endif
       // What the heck, initialize all other debug channels too
@@ -446,10 +446,10 @@ void allocator_unlock(void)
       }
 #endif
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
       cwbfd::ST_init();				// Initialize BFD code.
 #endif
-#if defined(DEBUGDEBUG) && !defined(DEBUGDEBUGOUTPUT)
+#if CWDEBUG_DEBUG && !CWDEBUG_DEBUGOUTPUT
       // Force allocation of a __cxa_eh_globals struct in libsupc++.
       (void)std::uncaught_exception();
 #endif
@@ -509,7 +509,7 @@ void allocator_unlock(void)
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
 	  DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 	  // It is possible that malloc is not initialized yet.
 	  init_debugmalloc();
 #endif
@@ -534,7 +534,7 @@ void allocator_unlock(void)
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
 	  DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 	  // It is possible that malloc is not initialized yet.
 	  init_debugmalloc();
 #endif
@@ -563,7 +563,7 @@ void allocator_unlock(void)
 
     } // namespace _private_
 
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
     static long WST_debug_object_init_magic = 0;
 
     static void init_debug_object_init_magic(void)
@@ -765,7 +765,7 @@ void allocator_unlock(void)
 
     void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 #ifdef LIBCWD_THREAD_SAFE
       // Initialisation of the TSD part should be done from LIBCWD_TSD_DECLARATION inside Dout et al.
       LIBCWD_ASSERT( tsd_initialized );
@@ -803,7 +803,7 @@ void allocator_unlock(void)
 	    debug_object.M_mutex->unlock();
 #endif
 	  char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
 	  DoutFatal(dc::core, "Using `dc::" << channame << "' in " <<
 	      debug::location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) <<
 	      " without (first using) a matching `continued_cf'.");
@@ -812,7 +812,7 @@ void allocator_unlock(void)
 	      "' without (first using) a matching `continued_cf'.");
 #endif
 	}
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 	// MT: current != _private_::WST_dummy_laf, otherwise we didn't pass the previous if.
 	LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
 #endif
@@ -829,7 +829,7 @@ void allocator_unlock(void)
       // Is this an interrupting debug output (in the middle of a continued debug output)?
       if ((current->mask & continued_cf_maskbit) && unfinished_expected)
       {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 	// MT: if current == _private_::WST_dummy_laf then
 	//     (current->mask & continued_cf_maskbit) is false and this if is skipped.
 	LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
@@ -889,7 +889,7 @@ void allocator_unlock(void)
 	  write_whitespace_to(*current_oss, margin.size());
 	else
 	  current_oss->write(margin.c_str(), margin.size());
-#ifndef DEBUGDEBUGOUTPUT
+#if !CWDEBUG_DEBUGOUTPUT
 	if (!(channel_set.mask & nolabel_cf))
 #endif
 	{
@@ -918,7 +918,7 @@ void allocator_unlock(void)
 
     void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
       LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );
 #endif
       std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : debug_object.real_os;
@@ -1028,7 +1028,7 @@ void allocator_unlock(void)
       {
         current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);	// Used (MT: read-only!) in next debug_ct::start().
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 	current_oss = NULL;
 	DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
 #endif
@@ -1066,7 +1066,7 @@ void allocator_unlock(void)
       M_mutex = NULL;
 #endif
 
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
       if (!WST_debug_object_init_magic)
 	init_debug_object_init_magic();
       init_magic = WST_debug_object_init_magic;
@@ -1092,7 +1092,7 @@ void allocator_unlock(void)
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
 #ifdef LIBCWD_THREAD_SAFE
       WNS_index = S_index_count++;
-#ifdef DEBUGDEBUGTHREADS
+#if CWDEBUG_DEBUGT
       LIBCWD_ASSERT( pthread_self() == PTHREAD_THREADS_MAX );	// Only the initial thread should be initializing debug_ct objects.
 #endif
       LIBCWD_ASSERT( __libcwd_tsd.do_array[WNS_index] == NULL );
@@ -1101,7 +1101,7 @@ void allocator_unlock(void)
       tsd.init();
       set_alloc_checking_on(LIBCWD_TSD);
 
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
       LIBCWD_TSD_MEMBER_OFF = -1;		// Print as much debug output as possible right away.
 #else
       LIBCWD_TSD_MEMBER_OFF = 0;		// Don't print debug output till the REAL initialization of the debug system
@@ -1119,7 +1119,7 @@ void allocator_unlock(void)
 
     void debug_tsd_st::init(void)
     {
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
       LIBCWD_TSD_DECLARATION
       LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
@@ -1130,7 +1130,7 @@ void allocator_unlock(void)
       // current.mask needs to be 0 to avoid a crash in start():
       current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
       current_oss = NULL;
       DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
 #endif
@@ -1139,7 +1139,7 @@ void allocator_unlock(void)
       margin.NS_internal_init("", 0);
       marker.NS_internal_init(": ", 2);
 
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
       first_time = true;
 #endif
       off_count = 0;
@@ -1436,7 +1436,7 @@ void allocator_unlock(void)
 
     continued_channel_set_st& channel_set_st::operator|(continued_cf_nt)
     {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
       DEBUGDEBUG_CERR( "continued_cf detected" );
       if (!do_tsd_ptr || !do_tsd_ptr->tsd_initialized)
       {
@@ -1462,7 +1462,7 @@ void allocator_unlock(void)
 
     continued_channel_set_st& channel_set_bootstrap_st::operator|(continued_channel_ct const& cdc)
     {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
       if ((cdc.get_maskbit() & continued_maskbit))
 	DEBUGDEBUG_CERR( "dc::continued detected" );
       else
@@ -1496,7 +1496,7 @@ void allocator_unlock(void)
 
     channel_set_st& channel_set_bootstrap_st::operator|(fatal_channel_ct const&)
     {
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
       DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
           " : Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
 #else
@@ -1507,7 +1507,7 @@ void allocator_unlock(void)
 
     channel_set_st& channel_set_bootstrap_st::operator&(channel_ct const&)
     {
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
       DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
 	  " : Use dc::core or dc::fatal together with DoutFatal.");
 #else
@@ -1520,10 +1520,10 @@ void allocator_unlock(void)
 
       void assert_fail(char const* expr, char const* file, int line, char const* function)
       {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 	LIBCWD_TSD_DECLARATION
 	if (__libcwd_tsd.recursive_assert
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
 	    || __libcwd_tsd.inside_malloc_or_free
 #endif
 	    ) 
@@ -1534,7 +1534,7 @@ void allocator_unlock(void)
 	  core_dump();
 	}
 	__libcwd_tsd.recursive_assert = true;
-#ifdef DEBUGDEBUGTHREADS
+#if CWDEBUG_DEBUGT
 	__libcwd_tsd.internal_debugging_code = true;
 #endif
 #endif
@@ -1548,7 +1548,7 @@ void allocator_unlock(void)
       NS_init();
       LIBCWD_TSD_DECLARATION
       state._off = LIBCWD_TSD_MEMBER_OFF;
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
       state.first_time = LIBCWD_TSD_MEMBER(first_time);
 #endif
       LIBCWD_TSD_MEMBER_OFF = -1;					// Turn object on.
@@ -1557,7 +1557,7 @@ void allocator_unlock(void)
     void debug_ct::restore(debug_ct::OnOffState const& state)
     {
       LIBCWD_TSD_DECLARATION
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
       if (state.first_time != LIBCWD_TSD_MEMBER(first_time))		// state.first_time && !first_time.
 	core_dump();							// on() was called without first a call to off().
 #endif

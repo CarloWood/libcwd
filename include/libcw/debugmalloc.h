@@ -26,7 +26,7 @@
 #include <libcw/debug_config.h>
 #endif
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF
@@ -44,7 +44,7 @@
 #ifndef LIBCW_CLASS_MEMBLK_TYPES_H
 #include <libcw/class_memblk_types.h>
 #endif
-#if defined(DEBUGMARKER) && !defined(LIBCW_CLASS_MARKER_H)
+#if CWDEBUG_MARKER && !defined(LIBCW_CLASS_MARKER_H)
 #include <libcw/class_marker.h>
 #endif
 #ifndef LIBCW_MACRO_ALLOCTAG_H
@@ -89,7 +89,7 @@ extern bool test_delete(void const* ptr);
 // Manipulators:
 extern void make_invisible(void const* ptr);
 extern void make_all_allocations_invisible_except(void const* ptr);
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
 extern void move_outside(marker_ct*, void const* ptr);
 #endif
 
@@ -99,7 +99,7 @@ extern void init_debugmalloc(void);
   } // namespace debug
 } // namespace libcw
 
-#else // !DEBUGMALLOC
+#else // !CWDEBUG_ALLOC
 
 namespace libcw {
   namespace debug {
@@ -110,9 +110,9 @@ __inline__ void make_all_allocations_invisible_except(void const*) { }
   } // namespace debug
 } // namespace libcw
 
-#endif // !DEBUGMALLOC
+#endif // !CWDEBUG_ALLOC
 
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
 #define LIBCWD_DEBUGM_CERR(x) DEBUGDEBUG_CERR(x)
 #else
 #define LIBCWD_DEBUGM_CERR(x)
@@ -121,17 +121,17 @@ __inline__ void make_all_allocations_invisible_except(void const*) { }
 namespace libcw {
   namespace debug {
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 extern void list_allocations_on(debug_ct& debug_object);
-#else // !DEBUGMALLOC
+#else // !CWDEBUG_ALLOC
 __inline__ void list_allocations_on(debug_ct&) { }
-#endif // !DEBUGMALLOC
+#endif // !CWDEBUG_ALLOC
 
   } // namespace debug
 } // namespace libcw
 
-#ifndef DEBUGMALLOC_INTERNAL
-#ifdef DEBUGMALLOC
+#ifndef LIBCWD_DEBUGMALLOC_INTERNAL
+#if CWDEBUG_ALLOC
 
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 // Ugh, use kludge.
@@ -202,7 +202,7 @@ __libcwd_wcsdup(wchar_t const* str)
 #endif // HAVE_WMEMCPY
 #endif // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 
-#endif // DEBUGMALLOC
+#endif // CWDEBUG_ALLOC
 #endif // !DEBUG_INTERNAL
 
 #endif // LIBCW_DEBUGMALLOC_H

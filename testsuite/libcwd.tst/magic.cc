@@ -21,7 +21,7 @@
 
 int main(void)
 {
-#if !defined(DEBUGMALLOC)
+#if !CWDEBUG_ALLOC
   DoutFatal(dc::fatal, "Failure Expected.");
 #endif
 

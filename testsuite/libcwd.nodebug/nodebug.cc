@@ -3,13 +3,13 @@
 
 int main(void)
 {
-#if !defined(DEBUGMALLOC) || !defined(DEBUGUSEBFD)
+#if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
   Debug( dc::bfd.on() );
 #endif
 

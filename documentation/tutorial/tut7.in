@@ -416,7 +416,7 @@ int main(void)
   int* p1 = new int [10];
   AllocTag(p1, &quot;p1&quot;);
 
-<SPAN class="highlight">#ifdef DEBUGMARKER</SPAN>
+<SPAN class="highlight">#if CWDEBUG_MARKER</SPAN>
   <SPAN class="highlight">libcw::debug::marker_ct* marker = new libcw::debug::marker_ct(&quot;A test marker&quot;);</SPAN>
 <SPAN class="highlight">#endif</SPAN>
 
@@ -428,7 +428,7 @@ int main(void)
 
   Debug( list_allocations_on(libcw_do) );
 
-<SPAN class="highlight">#ifdef DEBUGMARKER</SPAN>
+<SPAN class="highlight">#if CWDEBUG_MARKER</SPAN>
   // Delete the marker while there are still allocations inside it
   <SPAN class="highlight">delete marker;</SPAN>
 <SPAN class="highlight">#endif</SPAN>
@@ -463,7 +463,7 @@ int main(void)
   int* p1 = new int [10];
   AllocTag(p1, &quot;p1&quot;);
 
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   libcw::debug::marker_ct* marker = new libcw::debug::marker_ct(&quot;A test marker&quot;);
 #endif
 
@@ -473,13 +473,13 @@ int main(void)
   int* p3 = new int [30];
   AllocTag(p3, &quot;p3&quot;);
 
-<SPAN class="highlight">#ifdef DEBUGMARKER</SPAN>
+<SPAN class="highlight">#if CWDEBUG_MARKER</SPAN>
   <SPAN class="highlight">Debug( move_outside(marker, p2) );</SPAN>
 <SPAN class="highlight">#endif</SPAN>
 
   Debug( list_allocations_on(libcw_do) );
 
-#ifdef DEBUGMARKER
+#if CWDEBUG_MARKER
   // Delete the marker while there are still allocations inside it
   delete marker;
 #endif

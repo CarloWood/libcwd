@@ -127,7 +127,7 @@ void* thread_function(void* arguments)
 int main(void)
 {
   Debug( check_configuration() );
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
   libcw::debug::make_all_allocations_invisible_except(NULL);
 #endif
   Debug( libcw_do.on() );

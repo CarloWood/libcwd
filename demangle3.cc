@@ -1898,7 +1898,7 @@ static char const* main_in;
 //
 void demangle_symbol(char const* input, internal_string& output)
 {
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION
   LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
@@ -1942,7 +1942,7 @@ void demangle_symbol(char const* input, internal_string& output)
 //
 void demangle_type(char const* in, internal_string& output)
 {
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION
   LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif

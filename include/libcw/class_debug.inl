@@ -172,7 +172,7 @@ void
 debug_ct::private_set_ostream(std::ostream* os)
 {
   real_os = os;
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION
   LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
   if (LIBCWD_TSD_MEMBER(laf_stack).size() == 0)
@@ -236,7 +236,7 @@ void
 debug_ct::on(void)
 {
   LIBCWD_TSD_DECLARATION
-#ifdef DEBUGDEBUGOUTPUT
+#if CWDEBUG_DEBUGOUTPUT
   if (LIBCWD_TSD_MEMBER(first_time) && LIBCWD_TSD_MEMBER_OFF == -1)
     LIBCWD_TSD_MEMBER(first_time) = false;
   else

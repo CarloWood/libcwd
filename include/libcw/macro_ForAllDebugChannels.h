@@ -56,7 +56,7 @@ __inline__
 debug_channels_ct::container_type&
 debug_channels_ct::write_locked(void)
 {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   LIBCWD_ASSERT( WNS_debug_channels );
 #endif
   return *WNS_debug_channels;
@@ -66,7 +66,7 @@ __inline__
 debug_channels_ct::container_type const&
 debug_channels_ct::read_locked(void) const
 {
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
   LIBCWD_ASSERT( WNS_debug_channels );
 #endif
   return *WNS_debug_channels;

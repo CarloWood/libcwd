@@ -100,7 +100,7 @@ __inline__
 std::string
 location_ct::file(void) const
 {
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION
   LIBCWD_ASSERT( !__libcwd_tsd.internal );		// Returning a string, using a userspace allocator!
 #endif

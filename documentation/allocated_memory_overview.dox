@@ -98,9 +98,9 @@ allocator types (see \link libcw::debug::memblk_types_nt memblk_types_nt \endlin
 
 The second column of the Allocated memory Overview gives the hexadecimal start address of the allocated memory block.&nbsp;
 This is the value returned by the allocator (<CODE>malloc</CODE>, <CODE>new</CODE> etc).&nbsp;
-Note that, when \ref enable_libcwd_magic "DEBUGMAGICMALLOC" is defined, a magic number is
+Note that, when \ref enable_libcwd_magic "CWDEBUG_MAGIC" is set, a magic number is
 put <I>in front of</I> this hexadecimal start address.&nbsp;
-The result is that you can ignore completely whether or not DEBUGMAGICMALLOC is defined, in your own program.
+The result is that you can ignore completely whether or not CWDEBUG_MAGIC is 1, in your own program.
 
 \subsection AMO_location source file location
 

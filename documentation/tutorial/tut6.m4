@@ -21,16 +21,13 @@ debugging of dynamic memory allocations.</P>
 
 <P>First make sure that support is compiled in.&nbsp;
 Check the headerfile <SPAN class="filename">libcw/debug_config.h</SPAN>
-and make sure that the macro <CODE>DEBUGMALLOC</CODE>
-is defined.&nbsp;
+and make sure that the macro <CODE>CWDEBUG_ALLOC</CODE>
+is set to 1.&nbsp;
 If it is not defined, then you'll have to reconfigure, recompile and install libcwd.&nbsp;
 Use <SPAN class="shell-command">./configure --enable-libcwd-alloc</SPAN> during configure.</P>
 
-<P>You also want the macros <CODE>DEBUGUSEBFD</CODE>
-and <CODE>DEBUGMAGICMALLOC</CODE> to be defined.&nbsp;
-Note that, in order to use <CODE>DEBUGUSEBFD</CODE>, you will need
-the libraries libbfd and libiberty.&nbsp; Both are part of <A HREF="http://www.gnu.org/software/binutils/">GNU binutils</A>
-(see your local GNU mirror).</P>
+<P>You also want the macros <CODE>CWDEBUG_LOCATION</CODE>
+and <CODE>CWDEBUG_MAGIC</CODE> to be defined to 1.</P>
 
 <H3>Header files</H3>
 
@@ -110,7 +107,7 @@ new[]     0x804f310             &lt;unknown type&gt;; (sz = 400)
 
 <P>The call to <CODE>list_allocations_on()</CODE> is responsible for the last two lines.</P>
 
-<P>There is something missing however!&nbsp; When we use <CODE>DEBUGUSEBFD</CODE>
+<P>There is something missing however!&nbsp; When we use <CODE>CWDEBUG_LOCATION</CODE>
 we expect source file and line number information of every memory allocation, and there is none.&nbsp;
 In order to find out what is wrong, we <EM>also turn on debug channel</EM><CODE> dc::bfd</CODE>:</P>
 

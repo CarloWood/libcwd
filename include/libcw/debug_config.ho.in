@@ -38,11 +38,23 @@
  * You can list all options of configure by issuing \shellcommand configure --help \endshellcommand.
  *
  * This section describes the configure options specific to libcwd.&nbsp;
- * The name of the macro that is defined when a given feature is used is given between parenthesis after the option.&nbsp;
- * You can not define or undefine these macros yourself, you may only use them in an <CODE>##ifdef ... ##endif</CODE> test.
+ * The name of the macros that are related to the respective features are given between parenthesis after the option.&nbsp;
+ * You can not define these macros yourself, you may only use them in an <CODE>##if ... ##endif</CODE> test.&nbsp;
+ * The macros are always defined; when a configure option was used then the macro is defined to <code>1</code>,
+ * otherwise it is defined to 0.&nbsp;
+ * This makes it possible for the compiler to warn you when you made a typo in the name of a macro.
+ *
+ * <b>Example:</b>
+ *
+ * \code
+ * // Use '#if' not '#ifdef'.
+ * #if CWDEBUG_ALLOC
+ * Dout(dc::malloc, malloc_report << '.');
+ * #endif
+ * \endcode
  */
 
-/** \defgroup enable_libcwd_alloc --enable-libcwd-alloc (DEBUGMALLOC)
+/** \defgroup enable_libcwd_alloc --enable-libcwd-alloc (CWDEBUG_ALLOC)
  * \ingroup group_configuration
  *
  * \par Description
@@ -63,9 +75,9 @@
  * \sa \ref book_allocations
  */
 
-#@CW_CONFIG_DEBUGMALLOC@ DEBUGMALLOC
+#define CWDEBUG_ALLOC @CW_CONFIG_ALLOC@
 
-/** \defgroup enable_libcwd_magic --enable-libcwd-magic (DEBUGMAGICMALLOC)
+/** \defgroup enable_libcwd_magic --enable-libcwd-magic (CWDEBUG_MAGIC)
  * \ingroup group_configuration
  *
  * \par Description
@@ -86,11 +98,9 @@
  * \sa \ref chapter_magic_numbers
  */
 
-#ifdef DEBUGMALLOC
-#@CW_CONFIG_DEBUGMAGICMALLOC@ DEBUGMAGICMALLOC
-#endif
+#define CWDEBUG_MAGIC (CWDEBUG_ALLOC && @CW_CONFIG_MAGIC@)
 
-/** \defgroup enable_libcwd_location --enable-libcwd-location (DEBUGUSEBFD)
+/** \defgroup enable_libcwd_location --enable-libcwd-location (CWDEBUG_LOCATION)
  * \ingroup group_configuration
  *
  * \par Description
@@ -116,9 +126,9 @@
  * \sa \ref chapter_alloc_locations
  */
 
-#@CW_CONFIG_DEBUGUSEBFD@ DEBUGUSEBFD
+#define CWDEBUG_LOCATION @CW_CONFIG_LOCATION@
 
-/** \defgroup enable_libcwd_libbfd --enable-libcwd-libbfd (DEBUGUSEGNULIBBFD)
+/** \defgroup enable_libcwd_libbfd --enable-libcwd-libbfd (CWDEBUG_LIBBFD)
  * \ingroup group_configuration
  *
  * \par Description
@@ -168,11 +178,9 @@
  * section "The Qt Public License (QPL)." ].
  */
 
-#ifdef DEBUGUSEBFD
-#@CW_CONFIG_DEBUGUSEGNULIBBFD@ DEBUGUSEGNULIBBFD
-#endif
+#define CWDEBUG_LIBBFD (CWDEBUG_LOCATION && @CW_CONFIG_LIBBFD@)
 
-/** \defgroup enable_libcwd_debug --enable-libcwd-debug (DEBUGDEBUG)
+/** \defgroup enable_libcwd_debug --enable-libcwd-debug (CWDEBUG_DEBUG)
  * \ingroup group_configuration
  *
  * \par Description
@@ -190,9 +198,9 @@
  * Use \shellcommand configure --enable-libcwd-debug \endshellcommand to enable it.
  */
 
-#@CW_CONFIG_DEBUGDEBUG@ DEBUGDEBUG
+#define CWDEBUG_DEBUG @CW_CONFIG_DEBUG@
 
-/** \defgroup enable_libcwd_debugoutput --enable-libcwd-debugoutput (DEBUGDEBUGOUTPUT)
+/** \defgroup enable_libcwd_debugoutput --enable-libcwd-debugoutput (CWDEBUG_DEBUGOUTPUT)
  * \ingroup group_configuration
  *
  * \par Description
@@ -213,19 +221,15 @@
  * Use \shellcommand configure --enable-libcwd-debugoutput \endshellcommand to enable it.
  */
 
-#ifdef DEBUGDEBUG
-#@CW_CONFIG_DEBUGDEBUGOUTPUT@ DEBUGDEBUGOUTPUT
-#endif
+#define CWDEBUG_DEBUGOUTPUT (CWDEBUG_DEBUG && @CW_CONFIG_DEBUGOUTPUT@)
 
-/** \defgroup enable_libcwd_debugm --enable-libcwd-debugm (DEBUGDEBUGMALLOC)
+/** \defgroup enable_libcwd_debugm --enable-libcwd-debugm (CWDEBUG_DEBUGM)
  * \ingroup group_configuration
  *
  * \par Description
  *
  * Turns on even more debug output: Internal memory allocations are written to cerr.&nbsp;
  * This is needed for debugging internal memory allocations which are done before libcwd is initialized.&nbsp;
- * (Example: On Solaris2.4 it turned out that at the termination of the program, in exit(2), an invalid pointer was free-ed.&nbsp;
- * Defining DEBUGDEBUGMALLOC was needed to find out when this memory block had been allocated, and what it was).
  *
  * \par When to use it
  *
@@ -234,14 +238,12 @@
  * \par Configure option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-libcwd-debugm \endshellcommand to enable it.
+ * Use \shellcommand configure --enable-libcwd-debug --enable-libcwd-debugm \endshellcommand to enable it.
  */
 
-#ifdef DEBUGDEBUG
-#@CW_CONFIG_DEBUGDEBUGMALLOC@ DEBUGDEBUGMALLOC
-#endif
+#define CWDEBUG_DEBUGM (CWDEBUG_DEBUG && @CW_CONFIG_DEBUGM@)
 
-/** \defgroup enable_libcwd_marker --enable-libcwd-marker (DEBUGMARKER)
+/** \defgroup enable_libcwd_marker --enable-libcwd-marker (CWDEBUG_MARKER)
  * \ingroup group_configuration
  *
  * \par Description
@@ -258,15 +260,13 @@
  * Use \shellcommand configure --disable-libcwd-marker \endshellcommand to disable it.
  */
 
-#ifdef DEBUGMALLOC
-#@CW_CONFIG_DEBUGMARKER@ DEBUGMARKER
-#endif
+#define CWDEBUG_MARKER (CWDEBUG_ALLOC && @CW_CONFIG_MARKER@)
 
 //
 // autoconf defines that are needed.
 //
 
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 #@CW_CONFIG_HAVE___LIBC_MALLOC@ LIBCWD_HAVE___LIBC_MALLOC
 #@CW_CONFIG_HAVE__LIBC_MALLOC@ LIBCWD_HAVE__LIBC_MALLOC
 #if defined(LIBCWD_HAVE___LIBC_MALLOC) || defined(LIBCWD_HAVE__LIBC_MALLOC)
@@ -274,7 +274,7 @@
 #endif
 #endif
 
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
 #@CW_CONFIG_HAVE_DLOPEN@ LIBCWD_DLOPEN_DEFINED
 #endif
 
@@ -287,7 +287,7 @@
 #define LIBCWD_DC_MAX 256                       // Maximal total number of debug channels in a single application.
 						// Costs 4 kb of memory per channel (exclusive the actual channels).
 
-/** \defgroup enable_libcwd_debugt --enable-libcwd-debugt (DEBUGDEBUGTHREADS)
+/** \defgroup enable_libcwd_debugt --enable-libcwd-debugt (CWDEBUG_DEBUGT)
  * \ingroup group_configuration
  *
  * \par Description
@@ -308,7 +308,7 @@
  * Use \shellcommand configure --enable-libcwd-debugt \endshellcommand to enable it.
  */
 
-#@CW_CONFIG_DEBUGDEBUGTHREADS@ DEBUGDEBUGTHREADS
+#define CWDEBUG_DEBUGT @CW_CONFIG_DEBUGT@
 #endif // LIBCWD_THREAD_SAFE
 
 //
@@ -322,28 +322,31 @@ namespace libcw {
 extern unsigned long const config_signature_lib_c;
 static unsigned long const config_signature_header_c =
 	(
-#ifdef DEBUGMALLOC
+#if CWDEBUG_ALLOC
 	1|
 #endif
-#ifdef DEBUGMAGICMALLOC
+#if CWDEBUG_MAGIC
 	2|
 #endif
-#ifdef DEBUGUSEBFD
+#if CWDEBUG_LOCATION
 	4|
 #endif
-#ifdef DEBUGUSEGNULIBBFD
+#if CWDEBUG_LIBBFD
 	8|
 #endif
-#ifdef DEBUGDEBUG
+#if CWDEBUG_DEBUG
 	16|
 #endif
-#ifdef DEBUGDEBUGMALLOC
+#if CWDEBUG_DEBUGM
 	32|
 #endif
-#ifdef DEBUGMARKER
+#if CWDEBUG_DEBUGT
 	64|
 #endif
-	(128 * (@VERSION_MAJOR@ + 128 * (@VERSION_MINOR@ + 128 * @VERSION_REVISION@))));
+#if CWDEBUG_MARKER
+	128|
+#endif
+	(256 * (@VERSION_MAJOR@ + 256 * (@VERSION_MINOR@ + 256 * @VERSION_REVISION@))));
 
 extern void conf_check_failed(void);
 extern void version_check_failed(void);
