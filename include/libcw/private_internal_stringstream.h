@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2001, by
+// Copyright (C) 2001 - 2002, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt

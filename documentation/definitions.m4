@@ -32,7 +32,7 @@ define(__PAGEHEADER, [[
       The C++ Debugging Support Library
       </DIV>
       <DIV class="header-copyright">
-      By Carlo Wood, &copy;1999 - 2001.
+      By Carlo Wood, &copy;1999 - 2002.
       </DIV>
     </TD>
   </TR>
@@ -40,7 +40,7 @@ define(__PAGEHEADER, [[
 </TABLE>]])dnl
 dnl
 define(__PAGEFOOTER, [[
-<ADDRESS>Copyright &copy; 2001 Carlo Wood.&nbsp; All rights reserved.</ADDRESS>]])dnl
+<ADDRESS>Copyright &copy; 2001, 2002 Carlo Wood.&nbsp; All rights reserved.</ADDRESS>]])dnl
 dnl
 define(__PAGESTART, [[
 <DIV class="body">]])dnl
