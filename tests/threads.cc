@@ -5,26 +5,26 @@
 RCSTAG_CC("$Id$")
 
 int const number_of_threads = 4;
-static int thread_counter = -1;
 static int volatile state_thread[number_of_threads];
 
-char const* in_the_middle(void)
+char const* in_the_middle(int my_id)
 {
-  if (thread_counter != number_of_threads - 1)
+  if (my_id != number_of_threads - 1)
   {
-    Dout(dc::notice, thread_counter << ": waiting for thread " << thread_counter + 1);
-    while(state_thread[thread_counter + 1] == 0);
+    Dout(dc::notice, my_id << ": waiting for thread " << my_id + 1);
+    while(state_thread[my_id + 1] == 0);
   }
-  state_thread[thread_counter] = 1;
+  state_thread[my_id] = 1;
   return "in the middle of a Dout.";
 }
 
 void* thread_function(void* arguments)
 {
-  ++thread_counter;
-  state_thread[thread_counter] = 0;
-  Dout(dc::notice, thread_counter << ": Entering thread " << pthread_self());
-  Dout(dc::notice, thread_counter << ": Here we are " << in_the_middle());
+  static int thread_counter = -1;
+  int my_id = ++thread_counter;
+  state_thread[my_id] = 0;
+  Dout(dc::notice, my_id << ": Entering thread " << pthread_self());
+  Dout(dc::notice, my_id << ": Here we are " << in_the_middle(my_id));
   return NULL;
 }
  
