@@ -361,8 +361,8 @@ fi
 cd ../..
 ])
 
-CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile utils/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
 exit 0
 
 dnl Keep automake happy
-AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile utils/Makefile testsuite/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
