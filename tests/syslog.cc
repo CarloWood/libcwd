@@ -18,7 +18,7 @@
 //
 // Compile as:
 //
-// g++ -g -DDEBUG -c syslog.cc
+// g++ -g -DCWDEBUG -c syslog.cc
 // g++ syslog.o -lcwd -o syslog
 //
 // On less divine operating systems as linux, you might need to
