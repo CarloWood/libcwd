@@ -2,3 +2,7 @@ libcwd.log
 libcwd.sum
 site.exp
 Makefile
+nodebug_*_shared
+nodebug_*_static
+tst_*_shared
+tst_*_static
