@@ -7,8 +7,9 @@ noinst_LTLIBRARIES = libutils.la
 EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
-CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
-INCLUDES = -I$(srcdir)/../include -I$(top_builddir)/include -DCWDEBUG
+CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
+INCLUDES = -I$(srcdir)/../include -I$(top_builddir)/include
+DEFAULT_INCLUDES =
 LIBS=
 
 libutils_la_SOURCES = \
