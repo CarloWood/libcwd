@@ -1,5 +1,5 @@
 NODEBUGCHECK = nodebug
-TSTCHECK = alloctag basic bfd cf continued dc demangler dlopen do flush leak lockable_auto_ptr magic marker strdup test_delete type_info undef
+TSTCHECK = alloctag basic bfd cf continued dc demangler dlopen do flush leak lockable_auto_ptr magic marker strdup test_delete type_info
 
 srcdir = @srcdir@
 top_builddir = ..
@@ -12,18 +12,19 @@ CXX = @CXX@
 EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
+TESTOPTS = @TESTOPTS@
 DEFS = -DHAVE_CONFIG_H -DCWDEBUG
-CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
+CXXFLAGS = $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS) $(TESTOPTS)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
-SHAREDLIBS = -L$(top_builddir)/.libs -lcwd @LIBS@ -Wl,--rpath,$(top_builddir)/.libs
-STATICLIBS = $(top_builddir)/.libs/libcwd.a @LIBS@
+SHAREDLIBS = -L$(top_builddir)/.libs -lcwd @LIBS@ @LIB_THREADS@ -Wl,--rpath,$(top_builddir)/.libs
+STATICLIBS = $(top_builddir)/.libs/libcwd.a @LIBS@ @LIB_THREADS@
 enable_shared = @enable_shared@
 enable_static = @enable_static@
 INCLUDES = -Ilibcwd.tst -I$(top_builddir)/include -I$(srcdir)/../include
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
-DISTFILES = Makefile.in config lib libcwd.tst libcwd.nodebug
+DISTFILES = Makefile.in module.cc config lib libcwd.tst libcwd.nodebug
 
 ifeq ($(enable_shared), yes)
 SHAREDTSTTARGETS := $(patsubst %,tst_%_shared,$(TSTCHECK))
@@ -75,7 +76,7 @@ site.exp: Makefile
 check: site.exp module.so
 	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS)
 
-module.so: module.cc
+module.so: module.cc $(top_builddir)/.libs/libcwd.so.*
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
 
 # Provide rules for manual compilation:
@@ -105,28 +106,45 @@ run: shared static module.so
 mostlyclean:
 	rm -f site.bak core *.core *.o
 clean: mostlyclean
-	rm -f site.exp libcwd.log libcwd.sum *_*_shared *_*_static module.so
+	rm -f site.exp libcwd.log libcwd.sum *_*_shared *_*_static module.so .\#* */.\#*
 distclean: clean
 	rm -f Makefile *.log *.sum
 
-distdir: $(DISTFILES)
+# Uninstall rule
+uninstall:
+
+# Maintainer rules
+maintainer-clean realclean: distdir-clean distclean
+
+distdir-clean:
+	(\
+	  cvsdirs="`find $(scrdir) -type d -name CVS`"; \
+	  dirs="`for d in $$cvsdirs; do echo $$d | sed -e 's%/CVS$$%%'; done`"; \
+	  for d in $$dirs; do \
+	    cvsfiles="`grep '^/' $$d/CVS/Entries | cut -d/ -f2`"; \
+	    echo "distclean in $$d"; \
+	    (cd $$d; \
+	       files="`find . -type f -maxdepth 1 | sed -e 's%.*/%%'`"; \
+	       rmfiles="`for i in $$files $$cvsfiles Makefile Makefile; do echo $$i; done | sort | uniq -u`"; \
+	       test -z "$$rmfiles" || echo "  removing $$rmfiles"; \
+	       rm -f $$rmfiles; \
+	    ); \
+	  done; \
+	);
+
+distdir: distdir-clean $(DISTFILES)
 	distdir=`cd $(distdir) && pwd`;
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    mkdir -p $(distdir)/$$file; \
+	    find $$d/$$file -type f -maxdepth 1 -exec cp -p {} $(distdir)/$$file \;; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
 	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
-
-# Uninstall rule
-uninstall:
-
-# Maintainer rules
-maintainer-clean realclean: distclean
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	cd $(top_builddir) && CONFIG_FILES=testsuite/Makefile CONFIG_HEADERS= $(SHELL) ./config.status

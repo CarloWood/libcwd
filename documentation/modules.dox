@@ -1,0 +1,8 @@
+/** \addtogroup book_writing Writing Debug Output */
+
+/** \addtogroup book_allocations Memory Allocation Debug Support */
+
+/** \addtogroup book_symbols Program Symbols Access And Interpretation */
+
+/** \addtogroup book_start Configuration, Installation And Getting Started */
+

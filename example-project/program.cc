@@ -10,7 +10,7 @@ int main(void)
 
   Dout(dc::custom, "This is debug output, written to a custom channel (see ./debug.h and ./debug.cc)");
 
-  cout << "This program works" << endl;
+  std::cout << "This program works" << std::endl;
 
   return 0;
 }

@@ -1,15 +1,15 @@
 #ifndef INSTANTIATE
 
 #include "sys.h"
-#include <iostream>
 #include <libcw/debug.h>
 #include <libcw/demangle.h>
+#include <iostream>
 
-#if __GXX_ABI_VERSION == 0
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
 char const* test_cases [] = {
    "add_option__H1Z12libcw_app_ct_12libcw_app_ctPMX01FPX01PCc_vPCccT2T2_v",
    "_Q35libcw17_GLOBAL_.N.fn__Fvt23compiler_bug_workaround1Zt6vector2ZQ25libcwt13omanip_id_tct1ZQ35libcw5debug32memblk_types_manipulator_data_ctZt9allocator1ZQ25libcwt13omanip_id_tct1ZQ35libcw5debug32memblk_types_manipulator_data_ct.ids",
-   "cwprint_using__H1ZQ35libcw10_internal_12GlobalObject_Q25libcw5debugRCX01PMX01CFPCX01R7ostream_v_Q35libcw5debugt17cwprint_using_tct1ZX01",
+   "cwprint_using__H1ZQ35libcw9_private_12GlobalObject_Q25libcw5debugRCX01PMX01CFPCX01R7ostream_v_Q35libcw5debugt17cwprint_using_tct1ZX01",
    "top__Ct14priority_queue3ZP27timer_event_request_base_ctZt5deque2ZP27timer_event_request_base_ctZt9allocator1ZP27timer_event_request_base_ctZ13timer_greater",
    "__eq__Ct15_Deque_iterator3ZP15memory_block_stZRCP15memory_block_stZPCP15memory_block_stRCt15_Deque_iterator3ZP15memory_block_stZRCP15memory_block_stZPCP15memory_block_st",
    "__mi__Ct17__normal_iterator2ZPC6optionZt6vector2Z6optionZt9allocator1Z6optionRCt17__normal_iterator2ZPC6optionZt6vector2Z6optionZt9allocator1Z6option",
@@ -24,7 +24,7 @@ char const* test_cases [] = {
 char const* test_cases [] = {
    "_ZN12libcw_app_ct10add_optionIS_EEvMT_FvPKcES3_cS3_S3_",
    "_ZGVN5libcw24_GLOBAL__N_cbll.cc0ZhUKa23compiler_bug_workaroundISt6vectorINS_13omanip_id_tctINS_5debug32memblk_types_manipulator_data_ctEEESaIS6_EEE3idsE",
-   "_ZN5libcw5debug13cwprint_usingINS_10_internal_12GlobalObjectEEENS0_17cwprint_using_tctIT_EERKS5_MS7_FvRSoE",
+   "_ZN5libcw5debug13cwprint_usingINS_9_private_12GlobalObjectEEENS0_17cwprint_using_tctIT_EERKS5_MS7_FvRSoE",
    "_ZNKSt14priority_queueIP27timer_event_request_base_ctSt5dequeIS1_SaIS1_EE13timer_greaterE3topEv",
    "_ZNKSt15_Deque_iteratorIP15memory_block_stRKS1_PS2_EeqERKS5_",
    "_ZNKSt17__normal_iteratorIPK6optionSt6vectorIS0_SaIS0_EEEmiERKS6_",
@@ -118,10 +118,10 @@ void g(void)
   libcw::dummy.ids.size();
 }
 
-// _ZN5libcw5debug13cwprint_usingINS_10_internal_12GlobalObjectEEENS0_17cwprint_using_tctIT_EERKS5_MS7_FvRSoE
+// _ZN5libcw5debug13cwprint_usingINS_9_private_12GlobalObjectEEENS0_17cwprint_using_tctIT_EERKS5_MS7_FvRSoE
 
 namespace libcw {
-  namespace _internal_ {
+  namespace _private_ {
     class GlobalObject { public: void dummy(std::ostream&) const; };
   }
   namespace debug {
@@ -135,8 +135,8 @@ namespace libcw {
 void h(void)
 {
   // Instantiation.
-  libcw::_internal_::GlobalObject dummy;
-  (void)libcw::debug::cwprint_using(dummy, &libcw::_internal_::GlobalObject::dummy);
+  libcw::_private_::GlobalObject dummy;
+  (void)libcw::debug::cwprint_using(dummy, &libcw::_private_::GlobalObject::dummy);
 }
 
 // _ZNKSt14priority_queueIP27timer_event_request_base_ctSt5dequeIS1_SaIS1_EE13timer_greaterE3topEv

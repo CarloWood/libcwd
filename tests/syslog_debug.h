@@ -13,7 +13,7 @@ namespace syslog_example {
     namespace channels {
       namespace dc {
 	using namespace ::libcw::debug::channels::dc;
-	extern ::libcw::debug::channel_ct const debug_syslog;
+	extern ::libcw::debug::channel_ct debug_syslog;
       }
     }
   }

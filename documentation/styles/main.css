@@ -1,0 +1,218 @@
+#include "defines.h"
+
+/*
+ * Style Sheet for the libcw documentation
+ */
+
+BODY {
+  color			: FOREGROUND_COLOR;
+  background-color	: BACKGROUND_COLOR;
+  NORMAL_FONT;
+#ifndef NETSCAPE4
+  margin-top		: 24px;	/* Netscape 4 thinks it is funny to add 24 to the margin top all by itself. */
+#else
+  margin-top		: 0;
+#endif
+  border-top		: 0;
+  padding-top		: 0;
+  word-spacing		: normal;
+  letter-spacing	: normal;
+  text-transform	: none;
+}
+
+.normal {
+  color: FOREGROUND_COLOR;
+  background-color	: BACKGROUND_COLOR;
+  NORMAL_FONT;
+  word-spacing		: normal;
+  letter-spacing	: normal;
+  text-transform	: none;
+}
+
+/*
+ * Style sheet in the TABLE of the header in order to get a solid
+ * horizontal line underneath the header.  This does not work in netscape 4.
+ */
+.header {
+  margin-top		: 0;
+  margin-bottom		: 1em;
+  border-top		: 0;
+  border-bottom		: 2px solid FOREGROUND_COLOR;
+  padding-top		: 0;
+#ifndef NETSCAPE4
+  padding-bottom	: 10px;
+#endif
+}
+
+.header-title {
+  font-family		: helvetica, sans-serif;
+  font-size		: HSIZE3;
+  font-weight		: normal;
+  margin-top		: 0;
+  margin-bottom		: 0;
+  margin-left		: 0;
+  margin-right		: 0;
+}
+
+.header-copyright {
+  font-family   	: MS sans serif, helvetica, sans-serif;
+  font-size     	: HSIZE5;
+  font-weight   	: normal;
+  margin-top    	: 0;
+  margin-bottom 	: 0;
+  margin-left   	: 0;
+  margin-right  	: 0;
+}
+
+/* Images and links */
+
+a:link img, a:visited img {
+  border-style		: none;
+}
+
+a:hover {
+  text-decoration	: none;
+  color:		: FOREGROUND_COLOR_HOVER;
+  background-color	: BACKGROUND_COLOR_HOVER;
+}
+
+a img {
+  color			: transparent;
+  background		: transparent;
+  text-decoration	: none;
+}
+
+address img {
+  float			: right;
+}
+
+address {
+  padding-top		: 0.5em;
+  padding-right		: 1em;
+  padding-left		: 1em;
+  padding-bottom	: 0.5em;
+  margin-top		: 3em;
+  border-top		: 2px solid FOREGROUND_COLOR;
+  color			: FOREGROUND_COLOR_ADDRESS;
+  background-color	: BACKGROUND_COLOR_ADDRESS;
+  clear			: both;
+  font-family		: sans-serif;
+  font-size		: HSIZE5;
+}
+
+/* Special classes */
+
+.table {
+  font-family		: helvetica, arial, sans-serif;
+  font-size		: 18pt;
+  font-weight		: bold;
+  margin-top		: 3px;
+  margin-bottom		: 3px
+  word-spacing		: normal;
+  letter-spacing	: normal;
+  text-transform	: none;
+}
+
+PRE, CODE, .output, .example-output {
+  font-family		: courier, monospace;
+#ifndef NETSCAPE4
+  font-size		: inherit;		/* Bug in netscape 4 causes large letter-spacing when using this. */
+#else
+  font-size		: NORMAL_SIZE;
+#endif
+  white-space		: pre;
+}
+
+PRE {
+  display		: block;
+}
+
+CODE {
+  display		: inline;
+}
+
+P {
+  font-size		: NORMAL_SIZE;
+}
+
+P.test-size2 {
+  font-size		: SIZE2;
+}
+
+P.test-size3 {
+  font-size		: SIZE3;
+}
+
+P.test-size4 {
+  font-size		: SIZE4;
+}
+
+P.test-size5 {
+  font-size		: SIZE5;
+}
+
+P.test-size6 {
+  font-size		: SIZE6;
+}
+
+/* Heading fonts and sizes */
+
+H1, H2, H3, H4, H5, H6 {
+  font-family		: helvetica, arial, sans-serif;
+}
+
+H1 { font-size: HSIZE1 }
+H2 { font-size: HSIZE2 }
+H3 { font-size: HSIZE3 }
+H4 { font-size: HSIZE4 }
+H5 { font-size: HSIZE5 }
+H6 { font-size: HSIZE6 }
+
+/* Colors */
+PRE, CODE {
+  color			: FOREGROUND_COLOR_CODE;
+  background-color	: BACKGROUND_COLOR_CODE;
+}
+.output {
+  color			: FOREGROUND_COLOR_OUTPUT;
+  background-color	: BACKGROUND_COLOR_OUTPUT;
+}
+.example, CODE.example, .example-output {
+  color			: FOREGROUND_COLOR_EXAMPLE;
+  background-color	: BACKGROUND_COLOR_EXAMPLE;
+}
+
+/* Indentation */
+
+PRE.example, PRE.example-output {
+  margin-left		: 30px;
+}
+
+PRE, PRE.output {
+  margin-left		: 10px;
+}
+
+/* Font styles */
+
+.filename {
+  font-family		: courier, monospace;
+}
+
+.para {
+  font-style		: italic;
+}
+
+.command-line-parameter {
+  font-weight		: bold
+}
+
+.command-line-variable {
+  font-weight		: normal;
+  font-style		: italic;
+}
+
+.shell-command {
+  font-family		: ludica;
+  font-size		: NORMAL_SIZE;
+}
+

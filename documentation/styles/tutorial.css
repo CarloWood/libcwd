@@ -1,0 +1,203 @@
+#include "defines.h"
+
+/*
+ * Style Sheets for tutorial.
+ */
+
+DIV.body {
+  margin-left		: 1cm;
+  margin-right		: 0;
+}
+
+P {
+  margin-left		: 0;
+  margin-right		: 2cm;
+}
+
+P.download {
+  font-size		: 80%;
+}
+
+H1, H2 {
+  color			: rgb(62, 122, 242);
+  background-color	: INHERIT;
+  font-family		: caligula, genoaroman, blackforest, arnoldboecklin, garamond, classicheavy, serif;
+}
+
+H1 {
+  font-size		: 400%;
+  text-align		: center;
+}
+
+H2 {
+  font-size		: H2SIZE;
+}
+
+FONT.hello {
+  font-family		: caligula, genoaroman, blackforest, arnoldboecklin, garamond, classicheavy, serif;
+  font-size		: SIZE2;
+  font-size		: 300%;
+}
+
+P.line {
+  margin-top		: 1em;
+  margin-bottom		: 1em;
+  margin-left		: 0;
+  margin-right		: 0;
+  padding		: 0;
+  text-align		: center;
+}
+
+DIV.buttons {
+  margin-top		: 0;
+#ifdef KONQUEROR
+  margin-bottom		: 0;		/* Konqueror already puts a large empty area between the buttons and the address :/ */
+#else
+  margin-bottom		: 1em;
+#endif
+  padding-top		: 0;
+  padding-bottom:	: 0;
+  text-align		: center;
+}
+
+DIV.buttons IMG {
+  margin-left		: 4px;
+  margin-right		: 4px;
+}
+
+DIV.faq-frame {
+  border-style		: solid;
+  border-bottom-width	: 0px;
+  border-left-width	: 5px;
+  border-right-width	: 0px;
+  border-top-width	: 0px;
+  margin-right		: 2cm;
+  padding-top		: 1px;
+  color			: #4c5e52;
+  background-color	: rgb(240, 240, 224);
+  padding-bottom	: 0.5em;
+  margin-bottom		: 1em;
+}
+
+DIV.faq-frame H4 {
+  margin-top		: 1.1ex;
+  margin-left		: 1em;
+  margin-bottom		: 0;
+  font-size		: HSIZE4;
+  font-weight		: bold;
+  color			: #4c5e52;
+  background-color	: rgb(240, 240, 224);
+}
+
+UL LI {
+  font-size		: smaller;
+  color			: FOREGROUND_COLOR;
+  background-color	: INHERIT;
+}
+
+.highlight {
+  font-weight		: normal;
+  color			: red;
+}
+
+PRE {
+  color			: FOREGROUND_COLOR_CODE;
+  background-color	: #eeeeee;
+  margin-left		: 0;
+  margin-right		: 2cm;
+  padding-left		: 1em;
+}
+
+/* Table of contents styles */
+
+BODY.toc {
+  background-color	: rgb(247, 252, 248);
+  font-family		: arial, helvetica, sans-serif;
+  font-size		: HSIZE5;
+  font-weight		: normal;
+  margin-top		: 10px;
+  margin-bottom		: 0px;
+  margin-left		: 3px;
+  margin-right		: 8px;
+}
+
+A.toc:link, A.toc:visited, A.toc:active, A.toc1:link, A.toc1:visited, A.toc1:active {
+  text-decoration	: none;
+  color			: rgb(0, 150, 100);
+  background-color	: INHERIT;
+}
+
+A.toc:link, A.toc1:link {
+  color			: rgb(0, 0, 255)
+  background-color	: INHERIT;
+}
+
+A.toc1:link {
+  text-decoration	: underline;
+}
+
+.toc-header1 {
+  font-family   	: helvetica;
+  font-size     	: SIZE2;
+  margin-bottom		: 4px;
+  margin-top		: 1px;
+  margin-left		: 0px;
+  font-weight		: bold;
+}
+
+.toc-number2f {
+  font-family		: times;
+  font-size     	: SIZE3;
+  margin-bottom		: 2px;
+  margin-top		: 0px;
+}
+
+.toc-header2f {
+  font-family   	: helvetica;
+  font-size     	: SIZE3;
+  margin-bottom		: 2px;
+  margin-top		: 0px;
+  font-weight		: normal;
+}
+
+.toc-number2 {
+  font-family		: times;
+  font-size     	: SIZE3;
+  margin-bottom		: 2px;
+  margin-top		: 15px;
+}
+
+.toc-header2 {
+  font-family   	: helvetica;
+  font-size     	: SIZE3;
+  margin-bottom		: 2px;
+  margin-top		: 15px;
+  font-weight		: normal;
+}
+
+.toc-number3 {
+  font-family		: times;
+  font-size     	: SIZE4;
+  margin-bottom		: 2px;
+}
+
+.toc-header3 {
+  font-family   	: helvetica;
+  font-size     	: SIZE4;
+  margin-bottom		: 2px;
+  margin-left		: 4px;
+}
+
+.toc-number4 {
+  font-family		: times;
+  font-size     	: SIZE5;
+  margin-bottom		: 2px;
+}
+
+.toc-header4 {
+  font-family   	: helvetica;
+  font-size     	: SIZE5;
+  margin-bottom		: 2px;
+  margin-left		: 8px;
+}
+

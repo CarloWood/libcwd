@@ -1,6 +1,7 @@
 #include "sys.h"
 #include "debug.h"
 #include "initbug_GlobalObject.h"
+#include <iostream>
 
 int main(void)
 {

@@ -1,0 +1,63 @@
+.SUFFIXES:
+.PHONY: examples html
+
+SOURCES5:=$(shell grep 'START CODE' tut5.in | cut -d \  -f4)
+SOURCES7:=$(shell grep 'START CODE' tut7.in | cut -d \  -f4)
+AOUT5:=$(shell grep 'START OUTPUT' tut5.in | cut -d \  -f4)
+AOUT7:=$(shell grep 'START OUTPUT' tut7.in | cut -d \  -f4)
+
+all: examples html
+
+examples: $(SOURCES5) $(SOURCES7)
+html: index.html faq.html intro.html tut1.html tut2.html tut3.html tut4.html tut5.html tut6.html tut7.html
+
+%.html: %.m4 ../definitions.m4
+	m4 -D__TUTORIAL=1 -I.. $< > $@
+
+tut5.m4: tut5.in $(AOUT5)
+	awk -f moo.awk $< > $@
+
+tut7.m4: tut7.in $(AOUT7)
+	awk -f moo.awk $< > $@
+	
+$(SOURCES5): tut5.in
+	@$(MAKE) -s $@-cc
+	@rm -f core
+
+$(SOURCES7): tut7.in
+	@$(MAKE) -s $@-cc
+
+%-cc:
+	@IN=`echo $* | sed -e 's/examples\([57]\).*/tut\1.in/'`; \
+	if grep "END CODE $*" $$IN >/dev/null; then \
+	  grep -A1000 "START CODE $*" $$IN |\
+	  grep -B1000 "END CODE $*" |\
+	  egrep -v "(START|END) CODE $*" |\
+	  sed -e 's/&lt;/</g' -e 's/&gt;/>/g' -e 's/&amp;/\&/g' -e 's/&quot;/"/g' -e 's/&sect;/§/g' \
+	      -e 's/<SPAN.[^>]*>//g' -e 's/<\/SPAN>//g' > $*.tmp; \
+	  if (test ! -f $* || ! cmp -s $* $*.tmp); then \
+	    echo "Extracting $* from $$IN."; \
+	    mv $*.tmp $*; \
+	  else \
+	    echo "$* wasn't changed."; \
+	    rm $*.tmp; \
+	  fi; \
+	else \
+	  echo "No line with \"END CODE $*\" in $$IN!"; \
+	  exit 1; \
+	fi
+
+examples5/%-bin: examples5/%.cc examples5/debug.o examples5/debug.h examples5/sys.h examples5/sysinclude/libbooster/debug.h examples5/sysinclude/libturbo/debug.h ../../.libs/libcwd.so
+	$(CXX) -g -pipe -DCWDEBUG -Iexamples5 -I- -Iexamples5/sysinclude -I../../include \
+		$< examples5/debug.o -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
+
+examples5/debug.o: examples5/debug.cc examples5/debug.h examples5/sys.h examples5/sysinclude/libbooster/debug.h examples5/sysinclude/libturbo/debug.h
+	$(CXX) -g -pipe -DCWDEBUG -Iexamples5 -Iexamples5/sysinclude -I../../include -c $< -o $@
+
+examples7/%-bin: examples7/%.cc examples7/sys.h examples7/debug.h ../../.libs/libcwd.so
+	$(CXX) -g -pipe -DCWDEBUG -Iexamples7 -I- -I../../include \
+		$< -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
+
+maintainer-clean:
+	rm -f examples5/debug.* examples5/test* core examples7/test* tut5.m4 tut7.m4 *.html
+

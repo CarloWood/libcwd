@@ -1,0 +1,64 @@
+/*!
+\defgroup chapter_magic_numbers Overflow/Underflow Protection (Red Zones)
+\ingroup book_allocations
+*/
+/*!
+\page page_magic_numbers
+\ingroup chapter_magic_numbers
+
+Memory corruption bugs are usually very hard to find because they often lead to a program
+crash in a source line far from the point of the actual bug.&nbsp;
+Buffer overruns are an important reason for memory corruption.&nbsp;
+Libcwd tries to help with finding buffer overruns by means of so called <i>magic numbers</i>.
+
+When \ref enable_libcwd_magic is defined, magic numbers are added to
+the beginning and the end of each allocated memory block.&nbsp;
+In addition to these two magic numbers, extra memory is allocated to hold the allocated <i>size</i>, this is necessary
+to find back the location of the magic number at the end with only a pointer to the beginning of the allocated memory block.&nbsp;
+The total size of actually allocated memory is therefore larger than was requested.&nbsp;
+The size of each field is equal to the size of a <CODE>size_t</CODE>.&nbsp;
+Moreover, a few bytes might be allocated extra just in front of the last magic number in order to word align this number.
+
+<CODE>new</CODE> and <CODE>malloc</CODE> etc. return a pointer just beyond this <i>size</i> field, see figure 1.
+
+\htmlonly
+<p STYLE="margin-left: 1.27cm">&nbsp;<br>
+<img width=340 height=165 src="../images/libcw_magic.png" alt="Memory layout of magic numbers" border=0>
+<br CLEAR=ALL>&nbsp;<br>
+Figure 1. Memory layout of an allocated memory block with <CODE>DEBUGMAGICMALLOC</CODE> defined.
+\endhtmlonly
+
+The magic numbers are checked when the memory is freed again.&nbsp;
+Libcwd uses twelve different magic numbers for six pairs, existing each of
+a <i>start</i> magic number and an <i>end</i> magic number.&nbsp;
+The six pairs consist of two groups: for memory allocated by the user
+and for memory allocated internally by libcwd as part of the debug malloc code itself.&nbsp;
+Thus, each group consists of three pairs: for memory allocated with
+<CODE>malloc</CODE>, <CODE>operator new</CODE> and <CODE>operator new[]</CODE> respectively.
+
+For example, the following code snippet:
+
+\code
+int* p = new int[4];
+AllocTag(p, "Test array");
+
+Debug( list_allocations_on(libcw_do) );
+
+p[4] = 5;	// Buffer overflow
+delete[] p;
+\endcode
+
+results in output like
+
+\exampleoutput <PRE class="example-output">
+MALLOC  : operator new[] (size = 16) = 0x8116460
+
+MALLOC  : Allocated memory: 16 bytes in 1 blocks.
+new[]     0x8116460         magic_tst.cc:174  int [4]; (sz = 16)  Test array
+
+MALLOC  : delete[] 0x8116460         magic_tst.cc:174  int [4]; (sz = 16)  Test array <unfinished>
+COREDUMP:     delete[]: magic number corrupt!
+Quit (core dumped)</PRE>
+\endexampleoutput
+
+*/

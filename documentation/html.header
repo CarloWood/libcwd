@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML LANG="en-us">
+ 
+<HEAD>
+<META name="Author" content="Carlo Wood">
+<META name="description" content="C++ debugging support library with ostream debug output">
+<META name="keywords" content="libcwd, debug output, debug facility, debug channel, object orientation, OO, C++, nested debug output, ostream, memory allocation, debugging, source file and line number">
+<META http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<META http-equiv="content-script-type" content="text/javascript">
+<TITLE>libcwd: The C++ Debugging Library - Reference Manual</TITLE>
+<SCRIPT src="../scripts/detect_browser.js"></SCRIPT>
+<SCRIPT>need_style_doxygen=1</SCRIPT>
+<SCRIPT src="../scripts/load_style_sheets.js"></SCRIPT>
+</HEAD>
+
+<BODY>
+<DIV class="normal">
+
+<center>
+<a class="qindex" href="index.html">Main Page</a> &nbsp;
+<a class="qindex" href="reference.html">Reference Manual</a> &nbsp;
+<a class="qindex" href="namespaces.html">Namespace List</a> &nbsp;
+<a class="qindex" href="annotated.html">Compound List</a> &nbsp;
+<a class="qindex" href="namespacemembers.html">Namespace Members</a> &nbsp;
+<a class="qindex" href="functions.html">Compound Members</a> &nbsp;
+<a class="qindex" href="globals.html">File Members</a> &nbsp;
+</center>
+
+<HR SIZE=1 NOSHADE>

@@ -13,5 +13,3 @@
 
 #include "sys.h"
 #include <libcw/buf2str.h>
-
-RCSTAG_CC("$Id$")

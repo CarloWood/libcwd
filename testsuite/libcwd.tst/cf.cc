@@ -12,7 +12,11 @@ int main(void)
 #ifdef LIBCWD_USE_STRSTREAM
   std::ostrstream buf;
 #else
-  std::ostringstream buf;
+#if __GNUC__ < 3
+  ::std::basic_stringstream<char, string_char_traits<char>, ::libcw::debug::_private_::userspace_allocator> buf;
+#else
+  ::std::basic_stringstream<char, ::std::char_traits<char>, ::libcw::debug::_private_::userspace_allocator> buf;
+#endif
 #endif
 
   Debug( check_configuration() );
@@ -61,7 +65,11 @@ int main(void)
   Debug( libcw_do.set_ostream(&buf) );
   Dout(dc::notice, "This is written to buf");
   Dout(dc::notice|cerr_cf, "cerr_cf");
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+  buf.rdbuf()->pubseekoff(0, std::ios::end);
+#else
   buf.rdbuf()->pubseekoff(0, std::ios_base::end);
+#endif
 
   exit(0);
 }

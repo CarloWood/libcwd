@@ -1,0 +1,50 @@
+/*!
+\defgroup chapter_alloc_locations Memory Allocation Debugging And Locations
+\ingroup book_start
+*/
+/*!
+\page page_alloc_locations
+\ingroup chapter_alloc_locations
+
+\section section_The_BFD_library The BFD library
+
+Libcwd attempts to determine the source file and line number where memory is allocated.&nbsp;
+It does this by directly reading the .stabs section of the ELF32 object files.&nbsp;
+If you are using an Operating System that isn't ELF then you need to enable the use of libbfd for
+this to work by configuring libcwd with \link enable_libcwd_libbfd --enable-libcwd-libbfd \endlink.&nbsp;
+If you don't have an ELF system and you don't have libbfd installed and are not able to install it
+yourself (note: you also need libiberty and libdl) then you can disable it
+using \link enable_libcwd_location --disable-libcwd-location \endlink.&nbsp;
+There is a seperate page that deals with libcwd and \link group_locations location \endlink support.&nbsp;
+This paragraph describes the effect of disabling source file and line number location support in
+relation to the memory allocation debugging support.
+
+\section section_With_location_support With location support
+
+With \link enable_libcwd_location --enable-libcwd-location \endlink, libcwd
+will write the source file and line number information about where memory allocations are done to the
+\link group_debug_channels debug channels \endlink \link libcw::debug::channels::dc::bfd dc::bfd \endlink.
+
+For example,
+
+\exampleoutput <PRE class="example-output">
+MALLOC  : operator new (size = 4) = &lt;unfinished&gt;
+BFD     :     0x804bc9b is at (deb.cc:179)
+MALLOC  : &lt;continued&gt; 0x8137220</PRE>
+\endexampleoutput
+
+which means that <CODE>operator new</CODE> was called
+at address 0x804bc9b corresponding to line 179 of source file <TT>deb.cc</TT>.
+
+Source file and line number information is also shown in the
+\ref group_overview "overview of allocated memory" and when a memory block is freed.
+
+\section section_Without_location_support Without location support
+
+Without support the source file and line number information will not be available.&nbsp;
+%Debug channel \link libcw::debug::channels::dc::bfd dc::bfd \endlink doesn't exist and
+the Allocated memory Overview will lack the source file location in column three.&nbsp;
+Finally, there will be no \link libcw::debug::alloc_ct::location alloc_ct::location() \endlink method.
+
+*/
+

@@ -1,0 +1,96 @@
+/*!
+\defgroup chapter_nesting Nesting Debug Output
+\ingroup book_writing
+*/
+/*!
+\page page_nesting
+\ingroup chapter_nesting
+
+\section section_nesting_calling Calling functions inside Dout
+
+Consider the following code:
+
+\code
+int foobar(void) __attribute__ ((const));
+
+int foobar(void)
+{
+  Dout( dc::notice, "Entering foobar()" );
+  Dout( dc::notice, "Leaving foobar()" );
+  return 1;
+}
+
+int main(void)
+{
+  Dout( dc::kernel, "The value of foobar() = " << foobar()
+      << ", aint that nice?" );
+  return foobar();
+}
+\endcode
+
+This code would start a new debug message before the previous debug message is finished.&nbsp;
+Libcwd detects this and will output:
+
+\exampleoutput <PRE class="example-output">
+NOTICE:     Entering foobar()
+NOTICE:     Leaving foobar()
+KERNEL: The value of foobar() = 2, aint that nice?</PRE>
+\endexampleoutput
+
+Note the indentation and the fact that the printing of the label KERNEL was delayed.
+
+\section using_continued Using continued_cf, dc::continued and dc::finish
+
+In the previous section <CODE>foobar()</CODE> was a const function: it didn't matter
+whether or not it was called for the functionality of the application.  But when
+it does matter, then one might want to do something like this:
+
+\code
+Dout( dc::kernel|flush_cf|continued_cf, "Generating tables... " );
+generate_tables();
+Dout( dc::finish, "done" );
+\endcode
+
+If generate_tables() would not print debug messages, then the output will look like:
+
+\exampleoutput <PRE class="example-output">
+KERNEL: Generating tables... done</PRE>
+\endexampleoutput
+
+When it does generated debug output, then the <unfinished> and <continued> labels are printed also:
+
+\exampleoutput <PRE class="example-output">
+KERNEL: Generating tables... <unfinished>
+NOTICE:     Inside generate_tables()
+KERNEL: <continued> done</PRE>
+\endexampleoutput
+
+Finally, it is also possible to split a debug line into more then two parts by using the special dc::continued debug channel.
+
+\code
+Dout( dc::notice|flush_cf|continued_cf, "Generating tables." );
+for(int i = 0; i < 8; ++i)
+{
+  generate_table(i);
+  Dout( dc::continued, '.' );
+}
+Dout( dc::finish, " done" );
+\endcode
+
+When generate_table(i) doesn't print debug messages, then the output will look like:
+
+\exampleoutput <PRE class="example-output">
+NOTICE: Generating tables......... done</PRE>
+\endexampleoutput
+
+When it does generate debug output, then each dot would be surrounded by a <continued> .<unfinished> :
+
+\exampleoutput <PRE class="example-output">
+NOTICE: Generating tables.<unfinished>
+TABLE :     Inside generate_table(0)
+NOTICE: <continued> .<unfinished></PRE>
+\endexampleoutput
+
+etc.
+
+*/

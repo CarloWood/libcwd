@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -12,12 +12,10 @@
 //
 
 #include "sys.h"
+#include <libcw/debug.h>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <libcw/debug.h>
-
-RCSTAG_CC("$Id$")
 
 using namespace libcw::debug;
 
@@ -27,15 +25,17 @@ private:
 public:
   void* leakAA;
 public:
-  AA(void)
-  {
-    ptr = malloc(1212);
-    AllocTag(ptr, "AA::ptr");
-    leakAA = malloc(7334);
-    AllocTag(leakAA, "AA::leakAA");
-  }
+  AA(void);
   ~AA() { free(ptr); }
 };
+
+AA::AA(void)
+{
+  ptr = malloc(1212);
+  AllocTag(ptr, "AA::ptr");
+  leakAA = malloc(7334);
+  AllocTag(leakAA, "AA::leakAA");
+}
 
 class test_object {
 public:
@@ -44,19 +44,21 @@ public:
   void* ptr;
   void* leak;
 public:
-  test_object(void)
-  {
-    a = new AA;
-    AllocTag(a, "test_object::a");
-    ptr = malloc(12345);
-    AllocTag(ptr, "test_object::ptr");
-    leak = malloc(111);
-    AllocTag(leak, "test_object::leak");
-    b = new AA;
-    AllocTag(b, "test_object::b");
-  }
+  test_object(void);
   ~test_object() { delete b; free(ptr); delete a; }
 };
+
+test_object::test_object(void)
+{
+  a = new AA;
+  AllocTag(a, "test_object::a");
+  ptr = malloc(12345);
+  AllocTag(ptr, "test_object::ptr");
+  leak = malloc(111);
+  AllocTag(leak, "test_object::leak");
+  b = new AA;
+  AllocTag(b, "test_object::b");
+}
 
 int main(int argc, char* argv[])
 {

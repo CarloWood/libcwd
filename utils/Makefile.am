@@ -12,11 +12,8 @@ INCLUDES = -I$(srcdir)/../include -I$(top_builddir)/include -DCWDEBUG
 LIBS=
 
 libutils_la_SOURCES = \
-bcd2str.cc \
 buf2str.cc \
 char2str.cc \
 exec_prog.cc
-
-EXTRA_DIST = perf.cc
 
 MAINTAINERCLEANFILES = Makefile.in

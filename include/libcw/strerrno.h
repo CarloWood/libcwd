@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -11,12 +11,13 @@
 // packaging of this file.
 //
 
+/** \file libcw/strerrno.h
+ * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ */
+
 #ifndef LIBCW_STRERRNO_H
 #define LIBCW_STRERRNO_H
 
-RCSTAG_H(strerrno, "$Id$")
-
-#ifdef CWDEBUG
 namespace libcw {
   namespace debug {
 
@@ -24,6 +25,5 @@ extern char const* strerrno(unsigned int err);
 
   } // namespace debug
 } // namespace libcw
-#endif
 
 #endif // LIBCW_STRERRNO_H

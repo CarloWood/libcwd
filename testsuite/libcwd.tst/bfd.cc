@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -13,14 +13,13 @@
 
 #include "sys.h"
 #include <libcw/debug.h>
-#include <libcw/bfd.h>
-
-RCSTAG_CC("$Id$")
+#include <iostream>
 
 #ifndef HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS
 static void* return_address[6];
 #define store_call_address(i) return_address[i] = __builtin_return_address(0)
-extern "C" int __start();
+#define START _start
+extern "C" int START();
 #endif
 
 #ifdef CW_FRAME_ADDRESS_OFFSET
@@ -74,7 +73,7 @@ void libcw_bfd_test3(void)
         retadr = return_address[i];
 	break;
       case 5:
-        retadr = (char*)&__start + 10;	// Whatever...
+        retadr = (char*)&START + 10;	// Whatever...
         break;
 #endif
       default:

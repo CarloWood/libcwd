@@ -1,0 +1,587 @@
+include(definitions.m4)dnl
+__HTMLHEADER
+__PAGEHEADER
+__PAGESTART
+
+<H2>Tutorial 5: Advanced examples</H2>
+
+<P>In this tutorial you will learn how to list all debugging channels
+and how to write a loop that runs over all existing debug channels.&nbsp;
+You will make four debug channels in their own namespace and write debug output to a combination of them.&nbsp;
+You will also learn how to add an error message after a debug message, how to format a debug message,
+how to supress the label and how to supress the newline at the end.&nbsp;
+Finally you will learn how to write interrupted debug output
+in an example that prints the call to a system call and the result of that.</P>
+
+<A NAME="Running"></A>
+<H3>5.1 Running over all Debug Channels</H3>
+
+<P>In <A HREF="tut2.html">tutorial 2</A> you have learned how to create new Debug Channels.&nbsp;
+Each new Debug Channel is stored in an internal list, allowing
+you to loop over all debug channels without knowing exactly which ones exist.&nbsp;
+For example, the following code will <A HREF="tut1.html#turn_on_channel">turn on</A> all
+debug channels.&nbsp; It is not allowed to call <CODE>on()</CODE>
+for a Debug Channel that is already <I>on</I>: that will result in a runtime error.</P>
+
+<P>A special shortcut function is provided to list all debug channels,
+the following code prints a list of all channels after they have been turned on.</P>
+
+<P>Compile as: <SPAN class="shell-command">g++ -g -DCWDEBUG test5.1.1.cc -lcwd -o turn_on</SPAN></P>
+<P class="download">[<A HREF="examples5/test5.1.1.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.1.1.cc -->
+#include &quot;sys.h&quot;	// See tutorial 2
+#include &lt;libcw/debug.h&gt;
+
+int main(void)
+{
+  // Turn on debug object `libcw_do'.
+  Debug( libcw_do.on() );
+
+  // Turn on all debug channels that are off.
+  <SPAN class="highlight">ForAllDebugChannels(</SPAN>
+    if (!<SPAN class="highlight">debugChannel</SPAN>.is_on())
+      <SPAN class="highlight">debugChannel</SPAN>.on();
+  <SPAN class="highlight">);</SPAN>
+
+  // Print a listing of all debug channels to debug object `libcw_do'.
+  Debug( <SPAN class="highlight">list_channels_on(</SPAN>libcw_do<SPAN class="highlight">)</SPAN> );
+
+  return 0;
+}
+<!-- END CODE examples5/test5.1.1.cc -->
+</PRE>
+
+<P>This program outputs:</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.1.1-bin -->
+</PRE>
+
+<A NAME="Debug"></A>
+<H3>5.2 Debug Channels and name spaces</H3>
+
+<P>The custom debug channel <CODE>dc::ghost</CODE> that you created
+in <A HREF="tut2.html">tutorial 2</A> was put in <CODE>namespace&nbsp;debug_channels</CODE>.&nbsp;
+The debug channels of libcw are put in namespace <CODE>libcw::debug::channels</CODE>.&nbsp;
+Nevertheless, it is not necessary to type</P>
+
+<PRE>Dout( libcw::debug::channels::dc::notice, "Hello World" );</PRE>
+
+<P>By default, the macro <CODE>Dout</CODE> et al. automatically include a<CODE> using&nbsp;namespace libcw::debug::channels</CODE>.&nbsp;
+It is possible to change this default namespace by defining <CODE>DEBUGCHANNELS</CODE>
+<EM>before</EM> including the header file <CODE>libcw/debug.h</CODE>.&nbsp;
+This is will be shown below.</P>
+
+<P>Of course, you can put your own debug channels also in namespace<CODE> libcw::debug::channels</CODE>
+but that wouldn't garantee not to collide with a new debug channel added to libcw in the future, or
+with debug channels of other libraries that would do the same.</P>
+
+<A NAME="debug.h"></A>
+<P>In the following example we will define four new debug channels in their own
+name space<CODE> example::debug::channels </CODE> by creating a project specific header file &quot;debug.h&quot;
+which needs to be included instead of the debug.h from libcw.</P>
+
+<P>The example application below uses the fictitious libraries <SPAN STYLE="font-family: courier">libbooster</SPAN>
+and <SPAN STYLE="font-family: courier">libturbo</SPAN>, both of which use libcwd themselfs and declare their own debug
+channel namespaces <CODE>booster::debug::channels</CODE> and <CODE>turbo::debug::channels</CODE> according to
+the rules as mentioned in the <A HREF="../html/group__chapter__custom__debug__h.html#libraries">reference manual</A>.</P>
+
+<P>The project header file &quot;debug.h&quot;:</P>
+<P class="download">[<A HREF="examples5/debug.h">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/debug.h -->
+#ifndef EXAMPLE_DEBUG_H
+#define EXAMPLE_DEBUG_H
+
+#ifdef CWDEBUG
+
+#ifndef DEBUGCHANNELS				// This test is only necessary in libraries
+#define DEBUGCHANNELS ::example::debug::channels
+#endif
+#include &lt;libbooster/debug.h&gt;			// Note that these will include
+#include &lt;libturbo/debug.h&gt;			//   libcw/debug.h for us.
+
+namespace example {
+  namespace debug {
+    namespace channels {
+      namespace dc {
+	using namespace libcw::debug;		// For class channel_ct
+
+	// The list of debug channel namespaces of the libraries that we use:
+	// (These two already include libcw::debug::channels::dc)
+	using namespace ::booster::debug::channels::dc;
+	using namespace ::turbo::debug::channels::dc;
+
+	// Our own debug channels:
+	extern channel_ct elephant;
+	extern channel_ct cat;
+	extern channel_ct mouse;
+	extern channel_ct owl;
+
+	// When the libraries use the same name for any debug channels,
+	// then here is the place to `hide' these channels by redefining them.
+	// For example, if `libbooster' defined `notice' too (as does libcw)
+	// then we have to redefine it again:
+	static channel_ct&amp; notice(libcw::debug::channels::dc::notice)
+	    __attribute__ ((unused));
+
+      } // namespace dc
+    } // namespace channels
+  } // namespace debug
+} // namespace example
+
+// The following is only necessary for libraries.
+// Libraries should not use Dout() et al. in their own header files,
+// instead we define our own macros here for use in those header files:
+#define MyLibHeaderDout(cntrl, data) \
+      LibcwDout(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+#define MyLibHeaderDoutFatal(cntrl, data) \
+      LibcwDoutFatal(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+
+#else // !CWDEBUG
+
+// This is needed so people who don't have libcwd installed can still compile it.
+// The file "nodebug.h" is provided in the libcwd and needs to be included in your
+// own package.
+#include "nodebug.h"
+#define MyLibHeaderDout(cntrl, data)
+#define MyLibHeaderDoutFatal(cntrl, data) LibcwDoutFatal(::std, /*nothing*/, cntrl, data)
+
+#endif // !CWDEBUG
+
+#endif // EXAMPLE_DEBUG_H
+<!-- END CODE examples5/debug.h -->
+</PRE>
+
+<P>The source file &quot;debug.cc&quot;:</P>
+<P class="download">[<A HREF="examples5/debug.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/debug.cc -->
+#include &quot;sys.h&quot;	// See tutorial 2
+#include &quot;debug.h&quot;
+
+#ifdef CWDEBUG
+using namespace libcw::debug;
+
+namespace example {
+  namespace debug {
+    namespace channels {
+      namespace dc {
+	channel_ct elephant("DUMBO");
+	channel_ct cat("FELIX");
+	channel_ct mouse("HILDAGO");
+	channel_ct owl("EINSTEIN");
+      }
+    }
+  }
+}
+#endif
+<!-- END CODE examples5/debug.cc -->
+</PRE>
+
+<A NAME="Combining"></A>
+<H3>5.3 Combining channels</H3>
+
+<P>Debug channels can be on or off and they have a label.&nbsp;
+Sometimes you might want to write certain debug output to a
+debug object when <EM>any</EM> of a given list of debug channels is turned on.&nbsp;
+The syntax to do that is based on the fact that debug channels can be viewed upon as a bit mask:
+using <CODE>operator|</CODE>.&nbsp;
+In the following example we will write debug output to several different combinations
+of the custom debug channels that we defined in the previous paragraph.</P>
+
+<P>The source file &quot;test5.3.1.cc&quot;:</P>
+<P class="download">[<A HREF="examples5/test5.3.1.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.3.1.cc -->
+#include &quot;sys.h&quot;		// See &sect; 2
+#include &quot;debug.h&quot;		// See &sect; 5.2
+
+int main(void)
+{
+  // Start with everything turned on:
+  Debug( libcw_do.on() );
+  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
+
+  Dout( dc::elephant|dc::owl, "The elephant is called Dumbo, the owl is called Einstein." );
+
+  return 0;
+}
+<!-- END CODE examples5/test5.3.1.cc -->
+</PRE>
+
+<P>This program outputs:</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.3.1-bin -->
+</PRE>
+
+<P>using the label of the left most channel that is turned on.</P>
+
+<P>If we turn off <CODE>dc::elephant</CODE>:</P>
+
+<P class="download">[<A HREF="examples5/test5.3.2.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.3.2.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  // Start with everything turned on:
+  Debug( libcw_do.on() );
+  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
+
+  <SPAN class="highlight">Debug( dc::elephant.off() );</SPAN>
+  Dout( dc::elephant|dc::owl, "The elephant is called Dumbo, the owl is called Einstein." );
+
+  return 0;
+}
+<!-- END CODE examples5/test5.3.2.cc -->
+</PRE>
+
+<P>Then the program outputs</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.3.2-bin -->
+</PRE>
+
+<A NAME="Formatting"></A>
+<H3>5.4 Formatting debug output</H3>
+
+<P>It is possible to control the format of debug output in two different ways:</P>
+<OL TYPE=1>
+<LI>Per call to Dout, using control flags.
+<LI>Persistantly per debug object, using methods of the debug object.
+</OL>
+
+<A NAME="Control"></A>
+<H4>5.4.1 Control flags</H4>
+
+<P>Control flags are unsigned integer bit-masks and are passed along to
+<CODE>Dout</CODE> together with the debug channel(s).&nbsp;
+For example, in the following code the newline that is normally printed after
+each output is suppressed in the first call:</P>
+
+<P class="download">[<A HREF="examples5/test5.4.1.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.4.1.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::notice.on() );
+
+  Dout( dc::notice|nonewline_cf, "Hello, " );
+  Dout( dc::notice, "World" );
+
+  return 0;
+}
+<!-- END CODE examples5/test5.4.1.cc -->
+</PRE>
+
+<P>This program outputs:</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.4.1-bin -->
+</PRE>
+
+<P>In order to supress the <EM>prefix</EM> in the second call we use
+<CODE>noprefix_cf</CODE>:</P>
+
+<P class="download">[<A HREF="examples5/test5.4.2.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.4.2.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::notice.on() );
+
+  Dout( dc::notice|nonewline_cf, "Hello, " );
+  Dout( dc::notice|<SPAN class="highlight">noprefix_cf</SPAN>, "World" );
+
+  return 0;
+}
+<!-- END CODE examples5/test5.4.2.cc -->
+</PRE>
+
+<P>Now the output is</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.4.2-bin -->
+</PRE>
+
+<P>There are in total eleven <EM>control flags</EM>,
+see the <A HREF="../html/reference.html">Reference Manual</A>
+for an <A HREF="../html/group__group__control__flags.html">overview</A>.</P>
+
+<P>Lets get a little bit more practical now.&nbsp;
+In the next example we perform a system call and write this fact to <CODE>dc::notice</CODE>
+in the same way as <SPAN class="filename">strace(1)</SPAN> would do; the fact that the call is made
+is printed first.&nbsp; After the call returns we print the results.</P>
+
+<P class="download">[<A HREF="examples5/test5.4.3.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.4.3.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+#include &lt;sys/stat.h&gt;
+#include &lt;unistd.h&gt;
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
+{
+  os &lt;&lt; &quot;inode:&quot; &lt;&lt; buf.st_ino &lt;&lt; &quot;; &quot; &lt;&lt; &quot;size:&quot; &lt;&lt; buf.st_size;
+  return os;
+}
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const* bufp)
+{
+  os &lt;&lt; &quot;{ &quot; &lt;&lt; *bufp &lt;&lt; &quot; }&quot;;
+  return os;
+}
+
+int main(int argc, char* argv[])
+{
+  Debug( libcw_do.on() );
+  Debug( dc::notice.on() );
+
+  if (argc != 2)
+  {
+    std::cerr &lt;&lt; &quot;Usage: &quot; &lt;&lt; argv[0] &lt;&lt; &quot; &lt;file_name&gt;\n&quot;;
+    exit(-1);
+  }
+
+  char const* file_name = argv[1];
+  struct stat buf;
+
+  // Warning: this is NOT the correct way to do this (see below)
+  Dout( dc::notice|nonewline_cf,
+	&quot;stat(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot; );
+
+  int ret = stat(file_name, &amp;buf);
+
+  Dout( dc::notice|noprefix_cf|cond_error_cf(ret != 0),
+	&amp;buf &lt;&lt; &quot;) = &quot; &lt;&lt; ret );
+
+  return 0;
+}
+<!-- END CODE examples5/test5.4.3.cc -->
+</PRE>
+
+<P>Note the use of <CODE>cond_error_cf(<EM>condition</EM>)</CODE> which is equal to
+<CODE>error_cf</CODE> if the condition passed is true, or zero otherwise.&nbsp;
+The result of <CODE>error_cf</CODE> is that an error message is printed
+after the debug output according to the current value of <CODE>errno</CODE>.&nbsp;
+When we run this program with parameter &quot;/bin/ls&quot; we get something like:</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.4.3-bin /bin/ls -->
+</PRE>
+
+<P>And when we use a file that doesn't exist, we get something like:</P>
+
+<PRE class="output">
+NOTICE       : stat(&quot;foobar&quot;, { inode:134572072; size:1 }) = -1: ENOENT (No such file or directory)
+</PRE>
+
+<P>As you already might have noticed from the comment in the program, this is not
+the correct way to do this.&nbsp; The reason that it is wrong is because the call
+to <CODE>stat</CODE> could cause debug output itself.&nbsp; Well, it
+couldn't in this case, but in a more general case it could :).</P>
+
+<P>Let us replace the call to <CODE>stat</CODE> by a function of
+ourselfs that allocates memory (as certain system calls could do too!):</P>
+
+<P class="download">[<A HREF="examples5/test5.4.4.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.4.4.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+#include &lt;sys/stat.h&gt;
+#include &lt;unistd.h&gt;
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
+{
+  os &lt;&lt; &quot;inode:&quot; &lt;&lt; buf.st_ino &lt;&lt; &quot;; &quot; &lt;&lt; &quot;size:&quot; &lt;&lt; buf.st_size;
+  return os;
+}
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const* bufp)
+{
+  os &lt;&lt; &quot;{ &quot; &lt;&lt; *bufp &lt;&lt; &quot; }&quot;;
+  return os;
+}
+
+// We only use this function to show what happens with the debug output,
+// you shouldn't do anything like this in a real program.
+int stat_with_buf_alloc(char const* file_name, struct stat*& bufp)
+{
+  bufp = new struct stat;
+  return stat(file_name, bufp);
+}
+
+int main(int argc, char* argv[])
+{
+  Debug( libcw_do.on() );
+  Debug( dc::notice.on() );
+  <SPAN class="highlight">Debug( dc::malloc.on() );</SPAN>
+
+  if (argc != 2)
+  {
+    std::cerr &lt;&lt; &quot;Usage: &quot; &lt;&lt; argv[0] &lt;&lt; &quot; &lt;file_name&gt;\n&quot;;
+    exit(-1);
+  }
+
+  char const* file_name = argv[1];
+  struct stat<SPAN class="highlight">*</SPAN> buf<SPAN class="highlight">p</SPAN>;
+
+  // This is NOT the correct way to do this.
+  Dout( dc::notice|nonewline_cf,
+	&quot;stat_with_buf_alloc(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot; );
+
+  int ret = stat<SPAN class="highlight">_with_buf_alloc</SPAN>(file_name, buf<SPAN class="highlight">p</SPAN>);
+
+  Dout( dc::notice|noprefix_cf|cond_error_cf(ret != 0),
+	bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret );
+
+  <SPAN class="highlight">
+  Debug( dc::malloc.off() );
+  delete bufp;</SPAN>
+  return 0;
+}
+<!-- END CODE examples5/test5.4.4.cc -->
+</PRE>
+
+<P>Now the call (to <CODE>stat_with_buf_alloc</CODE>) writes debug output
+itself which is completely messing up our beautiful attempt to look like the
+output of <SPAN class="filename">strace(1)</SPAN>:</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.4.4-bin /bin/ls -->
+</PRE>
+
+<A NAME="interrupted"></A>
+<P>Therefore it isn't a good idea to use <CODE>nonewline_cf</CODE> and <CODE>noprefix_cf</CODE> like this.&nbsp;
+Use instead <CODE>continued_cf</CODE>, <CODE>dc::continued</CODE> and <CODE>dc::finish</CODE>
+which are designed especially for <EM>interrupted debug output</EM>:</P>
+
+<P class="download">[<A HREF="examples5/test5.4.5.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.4.5.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+#include &lt;sys/stat.h&gt;
+#include &lt;unistd.h&gt;
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
+{
+  os &lt;&lt; &quot;inode:&quot; &lt;&lt; buf.st_ino &lt;&lt; &quot;; &quot; &lt;&lt; &quot;size:&quot; &lt;&lt; buf.st_size;
+  return os;
+}
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const* bufp)
+{
+  os &lt;&lt; &quot;{ &quot; &lt;&lt; *bufp &lt;&lt; &quot; }&quot;;
+  return os;
+}
+
+// We only use this function to show what happens with the debug output.
+// You shouldn't do anything like this in a real program.
+int stat_with_buf_alloc(char const* file_name, struct stat*& bufp)
+{
+  bufp = new struct stat;
+  return stat(file_name, bufp);
+}
+
+int main(int argc, char* argv[])
+{
+  Debug( libcw_do.on() );
+  Debug( dc::notice.on() );
+  Debug( dc::malloc.on() );
+
+  if (argc != 2)
+  {
+    std::cerr &lt;&lt; &quot;Usage: &quot; &lt;&lt; argv[0] &lt;&lt; &quot; &lt;file_name&gt;\n&quot;;
+    exit(-1);
+  }
+
+  char const* file_name = argv[1];
+  struct stat* bufp;
+
+  Dout( dc::notice|<SPAN class="highlight">continued_cf</SPAN>,
+	&quot;stat_with_buf_alloc(\&quot;&quot; &lt;&lt; file_name &lt;&lt; &quot;\&quot;, &quot; );
+
+  int ret = stat_with_buf_alloc(file_name, bufp);
+
+  Dout( <SPAN class="highlight">dc::finish</SPAN>|cond_error_cf(ret != 0),
+	bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret );
+
+  Debug( dc::malloc.off() );
+  delete bufp;
+  return 0;
+}
+<!-- END CODE examples5/test5.4.5.cc -->
+</PRE>
+
+<P>Now the output looks like</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.4.5-bin /bin/ls -->
+</PRE>
+
+<A NAME="Methods"></A>
+<H4>5.4.2 Methods of the debug object</H4>
+
+<P>You can also change the format of debug output by calling methods of the debug object.&nbsp;
+Consider the following example:</P>
+
+<P class="download">[<A HREF="examples5/test5.4.6.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples5/test5.4.6.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
+
+  Debug( libcw_do.<SPAN class="highlight">set_margin</SPAN>("<-- margin -->") );
+  Debug( libcw_do.<SPAN class="highlight">set_marker</SPAN>("<-- marker -->") );
+  Dout( dc::cat|dc::mouse, "The cat chases the mouse." );
+  Dout( dc::mouse|dc::elephant, "The mouse chases the elephant." );
+  Dout( dc::notice|<SPAN class="highlight">nolabel_cf</SPAN>, "Setting indentation to 8 spaces:" );
+  Dout( dc::notice|<SPAN class="highlight">blank_label_cf</SPAN>, "<------>" );
+  Debug( libcw_do.<SPAN class="highlight">set_indent(8)</SPAN> );
+  Dout( dc::cat, "The cat sleeps." );
+  Dout( dc::elephant, "The elephant looks around:" );
+  Dout( dc::elephant|<SPAN class="highlight">blank_label_cf|blank_marker_cf</SPAN>, "where did the mouse go?" );
+
+  return 0;
+}
+<!-- END CODE examples5/test5.4.6.cc -->
+</PRE>
+
+<P>This program outputs:</P>
+<PRE class="output">
+<!-- START OUTPUT examples5/test5.4.6-bin -->
+</PRE>
+
+<P>This concludes the first part of this tutorial about debug output.&nbsp;
+The following chapters handle the memory allocation debugging support of libcwd.</P>
+
+__PAGEEND
+<P class="line"><IMG width=870 height=25 src="../images/lines/owl.png"></P>
+<DIV class="buttons">
+<A HREF="tut4.html"><IMG width=64 height=32 src="../images/buttons/lr_prev.png" border="0"></A>
+<A HREF="index.html"><IMG width=64 height=32 src="../images/buttons/lr_index.png" border="0"></A>
+<A HREF="tut6.html"><IMG width=64 height=32 src="../images/buttons/lr_next.png" border="0"></A>
+</DIV>
+__PAGEFOOTER
+__HTMLFOOTER

@@ -20,28 +20,26 @@
 // it might be needed to regenerate it.
 //
 
+/** \file libcw/sysd.h
+ * Do not include this header file directly, instead include a custom \link preparation "sys.h" \endlink.
+ */
+
 #ifndef LIBCW_SYSD_H
 #define LIBCW_SYSD_H
 
-//
-// Offset to __builtin_return_address() needed to get
-// the correct line number from bfd_find_nearest_line().
-// Usage:
-// libcw::debug::pc_location(result, (char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset)
-// writes the location of the previous function call to `result'.
-//
-
 namespace libcw {
   namespace debug {
+    /**
+     * \brief Offset to __builtin_return_address() needed to get the correct line number from location_ct.
+     *
+     * \par Example
+     * \code
+     * libcw::debug::location_ct loc((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset);
+     * \endcode
+     */
     int const builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET@;
   }
 }
-
-// General macros that are used in all files.
-
-#define RCSTAG_CC(string) static char const* const rcs_ident __attribute__ ((__unused__)) = string;
-#define RCSTAG_H(name, string) static char const* const rcs_ident_##name##_h __attribute__ ((__unused__)) = string;
-#define RCSTAG_INL(name, string) static char const* const rcs_ident##name##_inl __attribute__ ((__unused__)) = string;
 
 // When to use <strstream> instead of <sstream>.
 
@@ -49,15 +47,23 @@ namespace libcw {
 #define LIBCWD_USE_STRSTREAM
 #endif
 
-// Include an ident for this header file
-
-RCSTAG_H(sysd, "$Id$")
-
 //
 // Compilers and preprocessor used.  Put here to cause a recompile when changed.
 // CC    : @CC_FINGER_PRINT@
 // CXX   : @CXX_FINGER_PRINT@
 // CXXCPP: @CXXCPP_FINGER_PRINT@
 //
+
+// Abort when someone tries to use MT with libcwd without MT support.
+#if defined(_REENTRANT) && !(@CW_CONFIG_THREAD_SAFE@)
+#error "Recompile libcwd with --enable-threading to enable support for Multi-Threading."
+#endif
+
+#ifdef _REENTRANT
+// See http://www.cuj.com/experts/1902/alexandr.htm?topic=experts
+#define LIBCWD_MT_VOLATILE volatile
+#else
+#define LIBCWD_MT_VOLATILE
+#endif
 
 #endif /* LIBCW_SYSD_H */

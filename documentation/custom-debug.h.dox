@@ -1,0 +1,147 @@
+// Work around for bug in doxygen.
+#define debug somethingelse
+
+/*!
+\defgroup chapter_custom_debug_h The Custom debug.h File
+\ingroup book_start
+*/
+/*!
+\page page_custom_debug_h
+\ingroup chapter_custom_debug_h
+
+\section debug_channels_and_namespace Debug channels and namespace
+
+\subsection applications Applications
+
+User applications have less strict requirements than libraries, because nobody else will link with it.&nbsp;
+The developer of an application directly controls and checks and resolves name collisions when needed.&nbsp;
+If you are writing an end-application then you are still urged to create a header file
+called %debug.h and use \em that in your source files, instead of including <libcw/debug.h> directly.&nbsp;
+You will benefit greatly from this in terms on flexibility (trust me).
+
+\sa \ref preparation
+
+\subsection libraries Libraries
+
+Libraries that use libcwd should not put their debug channels in libcw::debug::channels::dc.&nbsp;
+The correct way to declare new debug channels is by putting them in a namespace of the library and
+providing new macros for writing debug output.&nbsp;
+Also end applications will benefit by using this method (in terms of flexibility).
+
+The following code would define a debug channel \c warp in the namespace \c libexample:
+
+\code
+namespace libexample {
+  namespace channels {
+    namespace dc {
+      ::libcw::debug::channel_ct warp("WARP");
+    }
+  }
+}
+\endcode
+
+Then provide a debug header file (%debug.h) with the following:
+
+\code
+#ifndef LIBEXAMPLE_DEBUG_H
+#define LIBEXAMPLE_DEBUG_H
+
+#ifndef DEBUGCHANNELS
+#define DEBUGCHANNELS ::libexample::channels
+#endif
+#include <libcw/debug.h>
+
+namespace libexample {
+  namespace channels {
+    namespace dc {
+      using namespace libcw::debug::channels::dc;
+      extern libcw::debug::channel_ct warp;
+    }
+  }
+}
+
+// Define private debug output macros for use in header files of the library,
+// there is no reason to do this for normal applications.
+#ifdef CWDEBUG
+#define LibExampleDout(cntrl, data) \
+    LibcwDout(libexample::channels, libcw::debug::libcw_do, cntrl, data)
+#define LibExampleDoutFatal(cntrl, data) \
+    LibcwDoutFatal(libexample::channels, libcw::debug::libcw_do, cntrl, data)
+#else
+#define LibExampleDout(cntrl, data)
+#define LibExampleDoutFatal(cntrl, data) LibcwDoutFatal(::std, , cntrl, data)
+#endif
+
+#endif // LIBEXAMPLE_DEBUG_H
+\endcode
+
+This will make your debug channels available in the usual way (by using Dout and friends.&nbsp;
+LibExampleDout and friends are only for use in the header files of `libexample' itself) avoiding any linker name collisions.
+
+\subsection header_files_of_libraries Header files of libraries
+
+Don't use Dout etc. in header files of libraries, instead use (for example) LibExampleDout etc., as shown above.&nbsp;
+It is advisable not to include any %debug.h in your headerfiles.&nbsp;
+Instead, add the following lines to each header file that needs debugging:
+
+\code
+#ifndef LIBEXAMPLE_DEBUG_H
+#error "You need to include the appropriate debug.h in the source file, before including this header file."
+#endif
+\endcode
+
+Don't use "libexample/%debug.h" in this error message because someone else might write a library that is using your library and needs
+a different %debug.h to be included in end applications.
+
+\subsection debug_channel_name_collisions Debug channel name collisions
+
+The reason that libcwd uses the convention to put debug channels in the namespace dc is to avoid collisions between debug channel
+names of libraries.&nbsp;
+There are two types of name collisions possible: you upgrade or start to use a library which uses a debug channel
+that you had already defined, in that case you might need to change the name of your own channel, or you link with two or more
+libraries that both use libcwd and that defined the same debug channel, in that case you will have to make your own debug
+namespace as shown above and choose a new name for one of the channels.
+
+For example, suppose you link with two libraries: lib1 and lib2 who use the above convention and defined their own namespaces called
+lib1 and lib2, but both defined a debug channel called foobar.&nbsp;
+Then you can rename these channels as follows.&nbsp;
+Make a debug header file that contains:
+
+\code
+#ifndef DEBUGCHANNELS
+#define DEBUGCHANNELS ::application::channels
+#endif
+#include <lib1/debug.h>
+#include <lib2/debug.h>
+namespace application {
+  namespace channels {
+    namespace dc {
+      using namespace ::lib1::channels::dc;
+      using namespace ::lib2::channels::dc;
+      static libcw::debug::channel_ct& foobar1(::lib1::channels::dc::foobar) __attribute__ ((unused));
+      static libcw::debug::channel_ct& foobar2(::lib2::channels::dc::foobar) __attribute__ ((unused));
+    }
+  }
+}
+\endcode
+
+\htmlonly
+<DIV class="normal">
+\endhtmlonly
+The hiding mechanism of the above `cascading' of debug channel declarations of libraries works as follows.&nbsp;
+The debug macros use a using-directive to include the scope DEBUGCHANNELS.&nbsp;
+Because all debug channels are specified as <CODE>dc::channelname</CODE>
+(and there is no <CODE>using namespace someother::dc</CODE> in name space DEBUGCHANNELS!), the namespace \c dc is uniquely defined.&nbsp;
+For instance, in the case of the above example, when writing <CODE>dc::%notice</CODE> the \c dc will be unambiguously resolved to
+<CODE>application::debug::channels::dc</CODE>, because it is the only \c dc name space in DEBUGCHANNELS
+(<CODE>application::debug::channels</CODE>).&nbsp;
+The C++ standard states: "During the lookup of a name qualified by a namespace name, declarations that would otherwise be made
+visible by a using-directive can be hidden by declarations with the same name in the namespace containing the using-directive;".&nbsp;
+This allows us to put a list of using-directives in <CODE>application::debug::channels::dc</CODE> and then hide any collision by
+redefining it in <CODE>application::debug::channels::dc</CODE> itself, either as new debug channel, or as reference to one of the
+%debug %channels of the library of choice.
+\htmlonly
+</DIV>
+\endhtmlonly
+
+*/

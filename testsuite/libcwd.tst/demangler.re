@@ -6,7 +6,7 @@
 )*
 void libcw_app_ct::add_option<libcw_app_ct>\(void \(libcw_app_ct::\*\)\((libcw_app_ct\*, )*char const\*\), char const\*, char, char const\*, char const\*\)
 (guard variable for libcw::\(anonymous namespace\)|libcw::{anonymous})::compiler_bug_workaround<(std::)*vector<libcw::omanip_id_tct<libcw::debug::memblk_types_manipulator_data_ct>, (std::)*allocator<libcw::omanip_id_tct<libcw::debug::memblk_types_manipulator_data_ct> > > >::ids
-libcw::debug::cwprint_using_tct<libcw::_internal_::GlobalObject> libcw::debug::cwprint_using<libcw::_internal_::GlobalObject>\(libcw::_internal_::GlobalObject const&, void \(libcw::_internal_::GlobalObject::\*\)\((libcw::_internal_::GlobalObject const\*, )*(std::)*ostream&\) const\)
+libcw::debug::cwprint_using_tct<libcw::_private_::GlobalObject> libcw::debug::cwprint_using<libcw::_private_::GlobalObject>\(libcw::_private_::GlobalObject const&, void \(libcw::_private_::GlobalObject::\*\)\((libcw::_private_::GlobalObject const\*, )*(std::)*ostream&\) const\)
 (std::)*priority_queue<timer_event_request_base_ct\*, (std::)*deque<timer_event_request_base_ct\*, (std::)*allocator<timer_event_request_base_ct\*> >, timer_greater>::top\(void\) const
 (std::)*_Deque_iterator<memory_block_st\*, memory_block_st\* const&, memory_block_st\* const\*>::operator==\((std::)*_Deque_iterator<memory_block_st\*, memory_block_st\* const&, memory_block_st\* const\*> const&\) const
 (std::)*__normal_iterator<option const\*, (std::)*vector<option, (std::)*allocator<option> > >::operator-\((std::)*__normal_iterator<option const\*, (std::)*vector<option, (std::)*allocator<option> > > const&\) const

@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -15,17 +15,13 @@
 #include <libcw/debug_config.h>
 #include <libcw/strerrno.h>
 
-RCSTAG_CC("$Id$")
-
-#ifdef CWDEBUG
-
 namespace libcw {
   namespace debug {
 
     namespace {
 
     // {anonymous}::
-    char const* strerrno_table[] = {
+    char const* const strerrno_table_c[] = {
 	    "0",		/* No error */
 	    "EPERM",		/* Operation not permitted */
 	    "ENOENT",		/* No such file or directory */
@@ -153,14 +149,18 @@ namespace libcw {
 
     } // namespace {anonymous}
 
+    /**
+     * \brief Returns a pointer to a string literal that contains the usual macro name of \a err.
+     *
+     * For example, <code>strerrno(EAGAIN)</code> returns <code>"EAGAIN"</code>.&nbsp;
+     * When \p err is unknown then the string <code>"UNKNOWN ERROR"</code> is returned.
+     */
     char const* strerrno(unsigned int err)
     {
-      if (err >= (sizeof(strerrno_table) / sizeof(char const*)))
+      if (err >= (sizeof(strerrno_table_c) / sizeof(char const*)))
 	return "UNKNOWN ERROR";
-      return strerrno_table[err];
+      return strerrno_table_c[err];
     }
 
   } // namespace debug
 } // namespace libcw
-
-#endif

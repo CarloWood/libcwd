@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -16,26 +16,30 @@
 #endif
 
 #include "sys.h"
-#include <libcw/debug.h>
+#include "cwd_debug.h"
 #include <libcw/demangle.h>
 #include <libcw/type_info.h>
-
-RCSTAG_CC("$Id$")
 
 namespace libcw {
   namespace debug {
 
-type_info_ct unknown_type_info;
+extern void demangle_type(char const* in, _private_::internal_string& out);
 
-namespace _internal_ {
+/**
+ * \brief Returned by type_info_of() for unknown types.
+ * \ingroup group_type_info
+ */
+type_info_ct const unknown_type_info_c;
+
+namespace _private_ {
 
   // Warning: This LEAKS memory!
   // For internal use only
 
 #if __GXX_ABI_VERSION == 0
-  char const* extract_exact_name(char const* encap_mangled_name)
+  char const* extract_exact_name(char const* encap_mangled_name LIBCWD_COMMA_TSD_PARAM)
 #else
-  char const* extract_exact_name(char const* encap_mangled_name, char const* stripped_mangled_name)
+  char const* extract_exact_name(char const* encap_mangled_name, char const* stripped_mangled_name LIBCWD_COMMA_TSD_PARAM)
 #endif
   {
 #if __GXX_ABI_VERSION == 0
@@ -43,9 +47,9 @@ namespace _internal_ {
 #else
     size_t len = strlen(encap_mangled_name + 25) - 1;		// Strip "22libcwd_type_info_exactI" from the beginning and "E" from the end.
 #endif
-    set_alloc_checking_off();
+    set_alloc_checking_off(LIBCWD_TSD);
     char* exact_name = new char[len + 1];
-    set_alloc_checking_on();
+    set_alloc_checking_on(LIBCWD_TSD);
 #if __GXX_ABI_VERSION == 0
     strncpy(exact_name, encap_mangled_name + 27, len);
 #else
@@ -64,29 +68,28 @@ namespace _internal_ {
 
   char const* make_label(char const* mangled_name)
   {
-    char const* demangled_name;
-    size_t len;
-    std::string out;
-    demangle_type(mangled_name, out);
-    demangled_name = out.c_str();
-    len = out.size();
-    set_alloc_checking_off();
-    char* label = new char[len + 1];
-    set_alloc_checking_on();
-    strcpy(label, demangled_name);
+    char const* label;
+    LIBCWD_TSD_DECLARATION
+    set_alloc_checking_off(LIBCWD_TSD);
+    {
+      internal_string out;
+      demangle_type(mangled_name, out);
+      label = strcpy(new char[out.size() + 1], out.c_str());
+    }
+    set_alloc_checking_on(LIBCWD_TSD);
     return label;
   }
 
-  type_info_ct const type_info<void*>::value(typeid(void*).name(), sizeof(void*), 0 /* unknown */);
+  type_info_ct const type_info<void*>::value_c(typeid(void*).name(), sizeof(void*), 0 /* unknown */);
 
-} // namespace _internal_
+} // namespace _private_
 
   } // namespace debug
 } // namespace libcw
 
 #if __GXX_ABI_VERSION == 0
-::libcw::debug::type_info_ct const libcwd_type_info_exact<void*>::value(::libcw::debug::_internal_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name()), sizeof(void*), 0 /* unknown */);
+::libcw::debug::type_info_ct const libcwd_type_info_exact<void*>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
 #else
-::libcw::debug::type_info_ct const libcwd_type_info_exact<void*>::value(::libcw::debug::_internal_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(), typeid(void*).name()), sizeof(void*), 0 /* unknown */);
+::libcw::debug::type_info_ct const libcwd_type_info_exact<void*>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(), typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
 #endif
 

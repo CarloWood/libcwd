@@ -13,7 +13,7 @@ namespace example {
     namespace channels {
       namespace dc {
 	using namespace ::libcw::debug::channels::dc;
-	extern ::libcw::debug::channel_ct const warp;
+	extern ::libcw::debug::channel_ct warp;
       }
     }
   }

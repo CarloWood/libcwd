@@ -30,6 +30,7 @@
 #include <libcw/buf2str.h>
 // #include <locale> Not supported by early versions
 #include "syslog_debug.h"
+#include <iostream>
 
 using namespace std;
 
@@ -40,7 +41,7 @@ namespace syslog_example {
   namespace debug {
     namespace channels {
       namespace dc {
-	libcw::debug::channel_ct const debug_syslog("SYSLOG");
+	libcw::debug::channel_ct debug_syslog("SYSLOG");
       }
     }
   }

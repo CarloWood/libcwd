@@ -1,7 +1,7 @@
 // @configure_input@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -12,133 +12,253 @@
 // packaging of this file.
 //
 
-#ifndef LIBCW_DEBUGGING_DEFS_H
-#define LIBCW_DEBUGGING_DEFS_H
+/** \file libcw/debug_config.h
+ * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ */
+
+#ifndef LIBCW_DEBUG_CONFIG_H
+#define LIBCW_DEBUG_CONFIG_H
 
 //
 // DO NOT CHANGE THIS FILE
 //
 // The defines in this file are configuration options chosen during
-// compilation of libcwd.  To change these option, run `configure'
+// compilation of libcwd.  To change these options, run `configure'
 // with the appropriate commandline options (Use `configure --help'
 // for more details).  In order to be sure that a program is linking
 // with a library that was compiled with the same header file, call
-// Debug( check_configuration() ); at the top of your program.
-//
-// See http://libcw.sourceforge.net/debugging/
-// for more, detailed documentation.
+// Debug( check_configuration() ); at the top of main() in your program.
 //
 
-//
-// DEBUGMALLOC
-//
-// Turn on debugging for memory (de-) allocation. This
-// will warn you when you free an invalid block.
-// It also enables Memory Leak Detection (See html documentation).
+/**
+ * \addtogroup group_configuration Configuration Options And Macros
+ * \ingroup book_start
+ *
+ * Libcwd uses autoconf; configuration is done with the usual \shellcommand configure \endshellcommand script.&nbsp;
+ * You can list all options of configure by issuing \shellcommand configure --help \endshellcommand.
+ *
+ * This section describes the configure options specific to libcwd.&nbsp;
+ * The name of the macro that is defined when a given feature is used is given between parenthesis after the option.&nbsp;
+ * You can not define or undefine these macros yourself, you may only use them in an <CODE>##ifdef ... ##endif</CODE> test.
+ */
+
+/** \defgroup enable_libcwd_alloc --enable-libcwd-alloc (DEBUGMALLOC)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * Turns on debugging for memory (de-)allocation.&nbsp;
+ * This will warn you when you free an invalid block.&nbsp;
+ * It also enables memory leak detection.
+ *
+ * \par When to use it
+ *
+ * In general, this should be used as long as you are developing a program, unless you want to do speed tests.
+ *
+ * \par Configure option
+ *
+ * This is enabled by default.&nbsp;
+ * Use \shellcommand configure --disable-libcwd-alloc \endshellcommand to disable it.
+ *
+ * \sa \ref book_allocations
+ */
 
 #@CW_CONFIG_DEBUGMALLOC@ DEBUGMALLOC
 
-//
-// DEBUGMAGICMALLOC
-//
-// Add a magic number to the beginning and the end of each
-// allocated memory block, and check this when the block is
-// deleted or reallocated.
+/** \defgroup enable_libcwd_magic --enable-libcwd-magic (DEBUGMAGICMALLOC)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * Adds a magic number to the beginning and the end of each
+ * allocated memory block, and checks this when the block is
+ * deleted or reallocated.
+ *
+ * \par When to use it
+ *
+ * In general, this should be used as long as you are developing a program, unless you want to do speed tests.
+ *
+ * \par Configure option
+ *
+ * This is enabled by default (but \ref enable_libcwd_alloc must be enabled as well).&nbsp;
+ * Use \shellcommand configure --disable-libcwd-magic \endshellcommand to disable it.
+ *
+ * \sa \ref chapter_magic_numbers
+ */
 
 #ifdef DEBUGMALLOC
 #@CW_CONFIG_DEBUGMAGICMALLOC@ DEBUGMAGICMALLOC
 #endif
 
-//
-// DEBUGUSEBFD
-//
-// Add BFD code.
-//
-// Turning this on causes libcwd to print source file and line
-// number information about where memory was allocated in the
-// memory allocation overview.
-// It also provides an interface, allowing applications that link
-// with libcwd to print debugging information using the symbol table.
-//
+/** \defgroup enable_libcwd_location --enable-libcwd-location (DEBUGUSEBFD)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * Adds code that supports source-%file:line-number lookup.&nbsp;
+ * This will load debugging symbols at the start of a program allowing
+ * one to print source file / line number information.<BR><BR>
+ * Turning this on causes libcwd to print source file and line
+ * number information about where memory was allocated in the
+ * memory allocation overview.&nbsp;
+ * It also provides an interface, allowing applications that link
+ * with libcwd to print debugging information using the symbol table.
+ *
+ * \par When to use it
+ *
+ * As a developer, especially when you are debugging memory allocations.
+ *
+ * \par Configure option
+ *
+ * This is enabled by default.&nbsp;
+ * Use \shellcommand configure --disable-libcwd-location \endshellcommand to disable it.
+ *
+ * \sa \ref chapter_alloc_locations
+ */
 
-#ifdef CWDEBUG
 #@CW_CONFIG_DEBUGUSEBFD@ DEBUGUSEBFD
-#endif
 
-//
-// DEBUGUSEGNULIBBFD
-//
-// If you don't have an ELF32 system then you might need this.  You will need
-// libbfd.a and libiberty.a, which are part of GNU binutils.
-//
-// If you use this then you are not allowed to distribute the resulting executables
-// because the GPL of libbfd prohibbits distribution of code that is not GPL-ed
-// and the resulting executable will be partly QPL-ed (this is a restriction of
-// the GPL not the QPL).  Note that if you have an ELF system (like linux) then you
-// DON'T need this.
-//
-// Note that if you want to release *your* program under the GNU GPL, and still link
-// with libcwd (and distribute the resulting binaries) then you can easily do that.
-// You can resolve the legal conflict for your program by adding a notice like this
-// to it: 
-//
-//     As a special exception, you have permission to link this program
-//     with the libcwd library and distribute executables, as long as you
-//     follow the requirements of the GNU GPL in regard to all of the
-//     software in the executable aside from libcwd.
-//
-// You can do this, legally, if you are the copyright holder for the program.
-// Add it in the source files, after the notice that says the program is covered
-// by the GNU GPL.  [ Source: http://www.gnu.org/philosophy/license-list.html
-// section "The Qt Public License (QPL)." ].
-//
+/** \defgroup enable_libcwd_libbfd --enable-libcwd-libbfd (DEBUGUSEGNULIBBFD)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * This will cause libcwd to use GNU libbfd to load debug symbols and line number information.&nbsp;
+ * If you don't have an ELF32 system then you might need this.&nbsp;
+ * You will need libbfd.a and libiberty.a, which are part of GNU binutils.
+ *
+ * \sa \ref gpl_and_qpl
+ *
+ * \par When to use it
+ *
+ * Libcwd supports natively ELF32, stabs and DWARF-2 at the moment.&nbsp;
+ * If you have an operating system that is non-ELF32, or that uses natively COFF,
+ * then you might want to use this.&nbsp;  Otherwise there is no need to use libbfd.
+ *
+ * \par Configure option
+ *
+ * This is disabled by default.&nbsp;
+ * You can enable it by specifying \shellcommand --enable-libcwd-libbfd \endshellcommand during configuration.&nbsp;
+ * Of course you'll need a working libbfd installed in that case.
+ *
+ * \sa \ref chapter_alloc_locations
+ */
+/** \page gpl_and_qpl Using GPL-ed code together with QPL-ed code.
+ *
+ * If you use GNU's libbfd then you are not allowed to distribute the resulting
+ * executables because the GPL of libbfd prohibbits distribution of code that is not GPL-ed
+ * and the resulting executable will be partly QPL-ed (this is a restriction of
+ * the GPL not the QPL).&nbsp;
+ * Note that if you have an ELF system (like linux) then you <EM>don't</EM> need libbfd.
+ *
+ * Note that if you want to release \em your program under the GNU GPL, and still link
+ * with libcwd (and distribute the resulting binaries) then you can easily do that.&nbsp;
+ * You can resolve the legal conflict for your program by adding a notice like this
+ * to it: 
+ *
+ * <PRE>
+ *     As a special exception, you have permission to link this program
+ *     with the libcwd library and distribute executables, as long as you
+ *     follow the requirements of the GNU GPL in regard to all of the
+ *     software in the executable aside from libcwd.</PRE>
+ *
+ * You can do this, legally, if you are the copyright holder for the program.&nbsp;
+ * Add it in the source files, after the notice that says the program is covered
+ * by the GNU GPL.  [ Source: http://www.gnu.org/philosophy/license-list.html
+ * section "The Qt Public License (QPL)." ].
+ */
 
 #ifdef DEBUGUSEBFD
 #@CW_CONFIG_DEBUGUSEGNULIBBFD@ DEBUGUSEGNULIBBFD
 #endif
 
-//
-// DEBUGDEBUG
-//
-// Turns on a lot of extra debugging output concerning
-// global declarations prior to the initialisation of the
-// debug channels and concerning the 'alloc_list_ct'
-// structure used in debugmalloc (if DEBUGMALLOC is
-// defined). This will not be usefull to you unless
-// you manage to let the program coredump even before
-// it reaches main().
-// An added feature: With this defined, your program passes
-// debugdebugcheckpoint() every time you use the Dout()
-// macro, this is intended to be used to find a point in the
-// program close to an unknown bug (before main()), and thus
-// before debugger watch points can be used).
+/** \defgroup enable_libcwd_debug --enable-libcwd-debug (DEBUGDEBUG)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * Turns on internal consistency checks of libcwd.&nbsp;
+ * The use of these checks can slow down libcwd and are mainly intended for the maintainer of libcwd.
+ *
+ * \par When to use it
+ *
+ * When you think you found a bug in libcwd.
+ *
+ * \par Configure option
+ *
+ * This is disabled by default.&nbsp;
+ * Use \shellcommand configure --enable-libcwd-debug \endshellcommand to enable it.
+ */
 
-#ifdef CWDEBUG
 #@CW_CONFIG_DEBUGDEBUG@ DEBUGDEBUG
+
+/** \defgroup enable_libcwd_debugoutput --enable-libcwd-debugoutput (DEBUGDEBUGOUTPUT)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * When \ref enable_libcwd_debug is enabled, this turns on a lot of extra debugging
+ * output concerning the internal state of libcwd, and when \ref enable_libcwd_alloc
+ * is enabled, about internal allocations of libcwd.&nbsp;
+ * This will not be usefull to you unless you manage to let the program
+ * coredump even before it reaches main().
+ *
+ * \par When to use it
+ *
+ * Never, unless you are a developer of libcwd.
+ *
+ * \par Configure option
+ *
+ * This is disabled by default.&nbsp;
+ * Use \shellcommand configure --enable-libcwd-debugoutput \endshellcommand to enable it.
+ */
+
+#ifdef DEBUGDEBUG
+#@CW_CONFIG_DEBUGDEBUGOUTPUT@ DEBUGDEBUGOUTPUT
 #endif
 
-//
-// DEBUGDEBUGMALLOC
-//
-// Turns on even more debug output: Internal memory allocations
-// are written to cerr.  This is needed for debugging internal
-// memory allocations which are done before libcw is initialized.
-// (Example: On Solaris2.4 it turned out that at the termination
-//  of the program, in exit(2), an invalid pointer was free-ed.
-//  Defining DEBUGDEBUGMALLOC was needed to find out when this
-//  memory block had been allocated, and what it was).
+/** \defgroup enable_libcwd_debugm --enable-libcwd-debugm (DEBUGDEBUGMALLOC)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * Turns on even more debug output: Internal memory allocations are written to cerr.&nbsp;
+ * This is needed for debugging internal memory allocations which are done before libcwd is initialized.&nbsp;
+ * (Example: On Solaris2.4 it turned out that at the termination of the program, in exit(2), an invalid pointer was free-ed.&nbsp;
+ * Defining DEBUGDEBUGMALLOC was needed to find out when this memory block had been allocated, and what it was).
+ *
+ * \par When to use it
+ *
+ * Never, unless you are a developer of libcwd.
+ *
+ * \par Configure option
+ *
+ * This is disabled by default.&nbsp;
+ * Use \shellcommand configure --enable-libcwd-debugm \endshellcommand to enable it.
+ */
 
 #ifdef DEBUGDEBUG
 #@CW_CONFIG_DEBUGDEBUGMALLOC@ DEBUGDEBUGMALLOC
 #endif
 
-//
-// DEBUGMARKER
-//
-// Adds support for `markers'.  Always leave defined.
-//
+/** \defgroup enable_libcwd_marker --enable-libcwd-marker (DEBUGMARKER)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * Includes support for markers.
+ *
+ * \par When to use it
+ *
+ * Always.
+ *
+ * \par Configure option
+ *
+ * This is enabled by default.&nbsp;
+ * Use \shellcommand configure --disable-libcwd-marker \endshellcommand to disable it.
+ */
 
-#if defined(CWDEBUG) && defined(DEBUGMALLOC)
+#ifdef DEBUGMALLOC
 #@CW_CONFIG_DEBUGMARKER@ DEBUGMARKER
 #endif
 
@@ -146,43 +266,65 @@
 // Configuration signature
 //
 
-#ifdef CWDEBUG
 namespace libcw {
   namespace debug {
 
-extern unsigned long config_signature_lib;
-static unsigned long const config_signature_header = (0
+extern unsigned long const config_signature_lib_c;
+static unsigned long const config_signature_header_c =
+	(
 #ifdef DEBUGMALLOC
-	|1
+	1|
 #endif
 #ifdef DEBUGMAGICMALLOC
-	|2
+	2|
 #endif
 #ifdef DEBUGUSEBFD
-	|4
+	4|
 #endif
 #ifdef DEBUGUSEGNULIBBFD
-	|8
+	8|
 #endif
 #ifdef DEBUGDEBUG
-	|16
+	16|
 #endif
 #ifdef DEBUGDEBUGMALLOC
-	|32
+	32|
 #endif
 #ifdef DEBUGMARKER
-	|64
+	64|
 #endif
-	);
+	(128 * (@VERSION_MAJOR@ + 128 * (@VERSION_MINOR@ + 128 * @VERSION_REVISION@))));
+
 extern void conf_check_failed(void);
-inline void check_configuration(void) {
-  if (config_signature_lib != config_signature_header)
-    conf_check_failed();
+extern void version_check_failed(void);
+
+/**
+ * \ingroup chapter_special
+ *
+ * \brief Check if the linked library belongs to the header files being used.
+ *
+ * In order to be sure that the libcwd header files that are being used
+ * belong to the libcwd.so shared object that the application linked with,
+ * add the following line to the beginning of <CODE>main()</CODE>:
+ *
+ * \code
+ * Debug( check_configuration() );
+ * \endcode
+ */
+__inline__
+void
+check_configuration(void) {
+  if (config_signature_lib_c != config_signature_header_c)
+  {
+    if (config_signature_lib_c / 128 != config_signature_header_c / 128)
+      version_check_failed();
+    else
+      conf_check_failed();
+  }
 }
 
   } // namespace debug
 } // namespace libcw
-#endif // CWDEBUG
 
 //
 // autoconf defines that are needed.
@@ -196,4 +338,6 @@ inline void check_configuration(void) {
 #@CW_CONFIG_HAVE_DLOPEN@ CWDEBUG_DLOPEN_DEFINED
 #endif
 
-#endif // LIBCW_DEBUGGING_DEFS_H
+#@CW_CONFIG_HAVE_PTHREADS@ LIBCWD_HAVE_PTHREAD
+
+#endif // LIBCW_DEBUG_CONFIG_H

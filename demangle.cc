@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -32,7 +32,7 @@
 #if __GXX_ABI_VERSION == 0
 
 #include <cctype>
-#include <libcw/debug.h>
+#include "cwd_debug.h"
 #include <libcw/demangle.h>
 
 #ifdef HAVE_LIMITS
@@ -138,15 +138,13 @@ namespace libcw {
 } // namespace libcw
 #endif	// HAVE_LIMITS
 
-RCSTAG_CC("$Id$")
-
 #ifdef STANDALONE
 #ifdef CWDEBUG
 namespace libcw {
   namespace debug {
     namespace channels {
       namespace dc {
-	channel_ct const demangler("DEMANGLER");
+	channel_ct demangler("DEMANGLER");
       }
     }
   }
@@ -162,12 +160,11 @@ namespace libcw {
 #define Debug(x)
 #endif // !STANDALONE
 
-using namespace std;
-
 namespace libcw {
   namespace debug {
 
     namespace {	// Local definitions
+      using _private_::internal_string;
 
       // {anonymous}::
       enum cdtor_nt {
@@ -182,13 +179,13 @@ namespace libcw {
       vector<char const*>* previous_types;
 
       // {anonymous} prototypes.
-      bool symbol_type(char const*, cdtor_nt, string&, string&);
-      string symbol_name(char const*, size_t);
-      bool eat_template_type(char const*&, string&, string*);
-      bool eat_scope_type(char const*&, string&, string&);
-      bool eat_type(char const*&, string&);
+      bool symbol_type(char const*, cdtor_nt, internal_string&, internal_string&);
+      internal_string symbol_name(char const*, size_t);
+      bool eat_template_type(char const*&, internal_string&, internal_string*);
+      bool eat_scope_type(char const*&, internal_string&, internal_string&);
+      bool eat_type(char const*&, internal_string&);
       int eat_digits(char const*& input);
-      bool eat_type_internal(char const*&, string&, string&, string*, bool = false);
+      bool eat_type_internal(char const*&, internal_string&, internal_string&, internal_string*, bool = false);
 
     } // namespace {anonymous}
 
@@ -203,13 +200,13 @@ namespace libcw {
     // `input' should be a mangled_function_name as for instance returned
     // by `libcw::debug::pc_mangled_function_name'.
     //
-    void demangle_symbol(char const* input, string& output)
+    void demangle_symbol(char const* input, internal_string& output)
     {
 #ifdef STANDALONE
       if (input != main_in)
 	Debug( dc::demangler.off() );
 #endif
-      Dout(dc::demangler, "Entering demangle_symbol(\"" << input << "\", string& output)");
+      Dout(dc::demangler, "Entering demangle_symbol(\"" << input << "\", internal_string& output)");
 
       if (input == NULL)
       {
@@ -248,8 +245,8 @@ namespace libcw {
 
       size_t symbol_len = 0;
       char const* symbol = input;
-      string prefix;
-      string postfix;
+      internal_string prefix;
+      internal_string postfix;
       char const* p = input;
 
       // Initialize list of previous types and template parameters.
@@ -318,7 +315,7 @@ namespace libcw {
 	if (p[2] == 't' && !strncmp(p, "__thunk_", 8) && eat_digits(p2) >= 0 && *p2 == '_')
 	{
 	  prefix += "virtual function thunk (delta:-";
-	  prefix += string(p + 8, p2 - p - 8);
+	  prefix += internal_string(p + 8, p2 - p - 8);
 	  prefix += ") for ";
 	  p = p2 + 1;
 	  symbol = p;
@@ -334,7 +331,7 @@ namespace libcw {
 	  ++p;
 	  ++symbol_len;
 
-	  // Continue until we found the next "__" in the input string.
+	  // Continue until we found the next "__" in the input internal_string.
 	  if (p[0] == '_' && p[1] == '_')
 	  {
 	    double_underscore = true;
@@ -367,11 +364,11 @@ namespace libcw {
 	}
       }
 
-      // Write the result out, translate the symbol string if needed.
+      // Write the result out, translate the symbol internal_string if needed.
 
       Dout(dc::demangler, "symbol_len = " << symbol_len);
       Dout(dc::demangler, "prefix = \"" << prefix << '"');
-      Dout(dc::demangler, "symbol = \"" << string(symbol, symbol_len) << '"');
+      Dout(dc::demangler, "symbol = \"" << internal_string(symbol, symbol_len) << '"');
       Dout(dc::demangler, "postfix = \"" << postfix << '"');
 
       output += prefix;
@@ -399,13 +396,13 @@ namespace libcw {
     // `input' should be a mangled type as for returned
     // by the stdc++ `typeinfo::name()'.
     // 
-    void demangle_type(char const* input, string& output)
+    void demangle_type(char const* input, internal_string& output)
     {
 #ifdef STANDALONE
       if (input != main_in)
 	Debug( dc::demangler.off() );
 #endif
-      Dout(dc::demangler, "Entering demangle_type(\"" << input << "\", string& output)");
+      Dout(dc::demangler, "Entering demangle_type(\"" << input << "\", internal_string& output)");
 
       if (input == NULL)
       {
@@ -439,7 +436,7 @@ namespace libcw {
 
     namespace {	// Implementation of local functions
 
-      // Returns the length of a mangled string or the number of template parameters by reading the digits from the input string.
+      // Returns the length of a mangled internal_string or the number of template parameters by reading the digits from the input internal_string.
       // {anonymous}::
       int eat_digits(char const*& input)
       {
@@ -461,9 +458,9 @@ namespace libcw {
       }
 
       // {anonymous}::
-      bool symbol_type(char const* input, cdtor_nt cdtor, string& prefix, string& postfix)
+      bool symbol_type(char const* input, cdtor_nt cdtor, internal_string& prefix, internal_string& postfix)
       {
-	Dout(dc::demangler, "Entering symbol_type(\"" << input << "\", string& prefix, string& postfix)");
+	Dout(dc::demangler, "Entering symbol_type(\"" << input << "\", internal_string& prefix, internal_string& postfix)");
 
 	// `input' is of the form:
 	//
@@ -514,7 +511,7 @@ namespace libcw {
 
 	    postfix += '<';
 
-	    string template_type;
+	    internal_string template_type;
 	    for (int count = number_of_template_parameters; count > 0; --count)
 	    {
 	      template_parameters->push_back(input);
@@ -557,8 +554,8 @@ namespace libcw {
 	}
 
 	// Process <scope-type>, if any.
-	string last_class_name;
-	string scope_type;
+	internal_string last_class_name;
+	internal_string scope_type;
 	char const* input_store = input;
 	if (!eat_scope_type(input, scope_type, last_class_name))
 	{
@@ -643,7 +640,7 @@ namespace libcw {
 
 	prefix += scope_type;
 
-	// We must have reached the end of the string now
+	// We must have reached the end of the internal_string now
 	if (*input != 0)
 	{
 	  postfix.erase();
@@ -758,7 +755,7 @@ namespace libcw {
       };
 
       // {anonymous}::
-      string symbol_name(char const* symbol, size_t symbol_len)
+      internal_string symbol_name(char const* symbol, size_t symbol_len)
       {
 	// Only consider symbols of the form /__../ and /__a../.
 	if (symbol_len > 3 && symbol[0] == '_' && symbol[1] == '_' && symbol_len < 6 && (symbol_len == 4 || symbol[2] == 'a'))
@@ -782,7 +779,7 @@ namespace libcw {
 	      entry_st entry = symbol_name_table[hash];
 	      if (entry.opcode[0] == opcode[0] && entry.opcode[1] == opcode[1] && (symbol_len == 4 || entry.opcode[2] == '='))
 	      {
-		string operator_name(entry.symbol_name);
+		internal_string operator_name(entry.symbol_name);
 		if (symbol_len == 5)
 		  operator_name += '=';
 		return operator_name;
@@ -790,14 +787,14 @@ namespace libcw {
 	    }
 	  }
 	}
-	return string(symbol, symbol_len);
+	return internal_string(symbol, symbol_len);
       }
 
       // {anonymous}::
       template<class INTEGRAL_TYPE>
-	bool eat_integral_type(char const*& input, string& output)
+	bool eat_integral_type(char const*& input, internal_string& output)
 	{
-	  Dout(dc::demangler, "Entering eat_integral_type<" << type_info_of(INTEGRAL_TYPE(0)).demangled_name() << ">(\"" << input << "\", string& output)");
+	  Dout(dc::demangler, "Entering eat_integral_type<" << type_info_of(INTEGRAL_TYPE(0)).demangled_name() << ">(\"" << input << "\", internal_string& output)");
 
 	  // `input' is of the form
 	  //
@@ -855,9 +852,9 @@ namespace libcw {
 	}
 
       // {anonymous}::
-      bool eat_float_type(char const*& input, string& output)
+      bool eat_float_type(char const*& input, internal_string& output)
       {
-	Dout(dc::demangler, "Entering eat_float_type(\"" << input << "\", string& output)");
+	Dout(dc::demangler, "Entering eat_float_type(\"" << input << "\", internal_string& output)");
 	if (*input == 'm')
 	{
 	  ++input;
@@ -885,9 +882,9 @@ namespace libcw {
       }
 
       // {anonymous}::
-      bool eat_template_type(char const*& input, string& template_type, string* last_class_name)
+      bool eat_template_type(char const*& input, internal_string& template_type, internal_string* last_class_name)
       {
-	Dout(dc::demangler, "Entering eat_template_type(\"" << input << "\", string& template_type, " << (last_class_name ? "\", string* last_class_name" : "\", NULL") << ')');
+	Dout(dc::demangler, "Entering eat_template_type(\"" << input << "\", internal_string& template_type, " << (last_class_name ? "\", internal_string* last_class_name" : "\", NULL") << ')');
 	// `input' is of the form
 	//
 	// Z<type>
@@ -919,7 +916,7 @@ namespace libcw {
 	{
 	  ++input;
 	  // Process Z<type>
-	  string postfix;
+	  internal_string postfix;
 	  if (last_class_name && *input == 't')
 	    return true;	// Don't ask me why, but this is not a scope_type when it is a template parameter.
 	  if (eat_type_internal(input, template_type, postfix, last_class_name))
@@ -952,7 +949,7 @@ namespace libcw {
 	      return eat_integral_type<wchar_t>(++input, template_type);
 	    case 'P':
 	    {
-	      string tmp;
+	      internal_string tmp;
 	      if (eat_type(input, tmp))
 		return true;
 	      int len = eat_digits(input);
@@ -1013,9 +1010,9 @@ namespace libcw {
       }
 
       // {anonymous}::
-      bool eat_type_internal(char const*& input, string& prefix, string& postfix, string* last_class_name = NULL, bool has_qualifiers = false)
+      bool eat_type_internal(char const*& input, internal_string& prefix, internal_string& postfix, internal_string* last_class_name = NULL, bool has_qualifiers = false)
       {
-	Dout(dc::demangler, "Entering eat_type_internal(\"" << input << "\", \"" << prefix << "\", \"" << postfix << (last_class_name ? "\", string* last_class_name" : "\", NULL") << ", " << (has_qualifiers ? "true" : "false") << ')');
+	Dout(dc::demangler, "Entering eat_type_internal(\"" << input << "\", \"" << prefix << "\", \"" << postfix << (last_class_name ? "\", internal_string* last_class_name" : "\", NULL") << ", " << (has_qualifiers ? "true" : "false") << ')');
 
 	// `input' is of the form:
 	//
@@ -1200,7 +1197,7 @@ namespace libcw {
 	      case 'R':
 	      {
 		char what = (input[-1] == 'P') ? '*' : '&';
-		string member_function_pointer_scope;
+		internal_string member_function_pointer_scope;
 		if (*input == 'M')
 		{
 		  ++input;
@@ -1267,8 +1264,8 @@ namespace libcw {
 		return false;
 	      case 'O':
 	      {
-		string member_scope;
-		string postfix2;
+		internal_string member_scope;
+		internal_string postfix2;
 		if (eat_type_internal(input, member_scope, postfix2, NULL, true))
 		  return true;
 		member_scope += postfix2;
@@ -1337,7 +1334,7 @@ namespace libcw {
 	  if (count <= 0)
 	    return true;
 	  prefix += '<';
-	  string template_type;
+	  internal_string template_type;
 	  while(count--)
 	  {
 	    template_type.erase();
@@ -1381,10 +1378,10 @@ namespace libcw {
       }
 
       // {anonymous}::
-      bool eat_scope_type(char const*& input, string& type, string& last_class_name)
+      bool eat_scope_type(char const*& input, internal_string& type, internal_string& last_class_name)
       {
-	Dout(dc::demangler, "Entering eat_scope_type(\"" << input << "\", string& type, string& last_class_name)");
-	string postfix;
+	Dout(dc::demangler, "Entering eat_scope_type(\"" << input << "\", internal_string& type, internal_string& last_class_name)");
+	internal_string postfix;
 	if (eat_type_internal(input, type, postfix, &last_class_name))
 	{
 	  type.erase();
@@ -1395,10 +1392,10 @@ namespace libcw {
       }
 
       // {anonymous}::
-      bool eat_type(char const*& input, string& type)
+      bool eat_type(char const*& input, internal_string& type)
       {
-	Dout(dc::demangler, "Entering eat_type(\"" << input << "\", string& type)");
-	string postfix;
+	Dout(dc::demangler, "Entering eat_type(\"" << input << "\", internal_string& type)");
+	internal_string postfix;
 	size_t original_length = type.size();
 	if (eat_type_internal(input, type, postfix, NULL))
 	{

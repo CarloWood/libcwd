@@ -1,0 +1,30 @@
+/*!
+\defgroup book_allocations_intro Memory Allocation Debug Support: Introduction
+\ingroup book_allocations
+*/
+/*!
+\page page_allocations_intro
+\ingroup book_allocations_intro
+
+Unless \link enable_libcwd_alloc --disable-libcwd-alloc \endlink was specified during configuration then
+the following memory allocation and de-allocation debugging features are provided by libcwd:
+
+-# Checking if a pointer that is passed to a memory de-allocation function is \ref chapter_validation "valid";
+   and if this pointer was previously returned by a corresponding allocation function.
+-# Finding the start, size, place of allocation in the source code and allocator type of an
+   allocated memory block when given a pointer which points inside of it (see \ref group_finding).
+-# Providing means to add type info and a description to the Allocated memory Overview (using <CODE>AllocTag()</CODE></a>).
+-# Listing \ref group_overview "an overview of allocated memory" to a \ref group_debug_object "Debug Object".
+-# Boundary checks of allocated blocks, by means of \ref chapter_magic_numbers "magic numbers" (see also \ref enable_libcwd_magic).
+
+Unfortunately it is impossible to support feature 3. in C++ without putting hooks in your code:
+
+- After every memory allocation, the returned pointer should be passed to <CODE>AllocTag()</CODE>,
+  passing information that needs to be included in the Allocated memory Overview (this is not needed,
+  though allowed, after a call to <CODE>%realloc()</CODE>).
+
+A missing <CODE>AllocTag()</CODE> will only have effect on the Allocated memory Overview,
+showing <TT><unknown type></TT> instead of the type and a description of the allocated object.
+
+*/
+

@@ -161,12 +161,11 @@ dnl We don't want automake to put this in Makefile.in
 
 dnl CW_DEFINE_TYPE(NEWTYPE, OLDTYPE)
 dnl
-dnl Add `typedef OLDTYPE NEWTYPE' to the output variable CW_TYPEDEFS
+dnl Add `typedef OLDTYPE NEWTYPE;' to the output variable CW_TYPEDEFS
 dnl
 AC_DEFUN(CW_DEFINE_TYPE,
 [AC_REQUIRE([CW_DEFINE_TYPE_INITIALIZATION])
-CW_TYPEDEFS="$CW_TYPEDEFS\\
-typedef $2 $1;"
+CW_TYPEDEFS="typedef $2 $1; $CW_TYPEDEFS"
 ])
 
 dnl CW_TYPE_EXTRACT_FROM(FUNCTION, INIT, ARGUMENTS, ARGUMENT)
@@ -334,6 +333,7 @@ dnl
 AC_DEFUN(CW_MALLOC_OVERHEAD,
 [AC_CACHE_CHECK(malloc overhead in bytes, cw_cv_system_mallocoverhead,
 [CW_TRY_RUN([#include <cstddef>
+#include <cstdlib>
 
 bool bulk_alloc(size_t malloc_overhead_attempt, size_t size)
 {
@@ -377,12 +377,17 @@ dnl respectively size_t alignment or not.
 AC_DEFUN(CW_NEED_WORD_ALIGNMENT,
 [AC_CACHE_CHECK(if machine needs word alignment, cw_cv_system_needwordalignment,
 [CW_TRY_RUN([#include <cstddef>
+#include <cstdlib>
 
 int main(void)
 {
   size_t* p = reinterpret_cast<size_t*>((char*)malloc(5) + 1);
   *p = 0x12345678;
+#ifdef __alpha__	// Works, but still should use alignment.
+  exit(-1);
+#else
   exit ((((unsigned long)p & 1UL) && *p == 0x12345678) ? 0 : -1);
+#endif
 }],
 cw_cv_system_needwordalignment=no,
 cw_cv_system_needwordalignment=yes,
@@ -816,9 +821,7 @@ dnl In order to avoid duplication it is put here as macro.
 dnl CW_SETUP_RPM_DIRS
 dnl Set up rpm directory when on linux and in maintainer-mode
 AC_DEFUN(CW_SETUP_RPM_DIRS,
-[SPECCHANGELOG=spec.changelog
-if test "$USE_MAINTAINER_MODE" = yes; then
-  AC_SUBST_FILE(SPECCHANGELOG)
+[if test "$USE_MAINTAINER_MODE" = yes; then
   LSMFILE="$PACKAGE.lsm"
   AC_SUBST(LSMFILE)
   SPECFILE="$PACKAGE.spec"
@@ -886,7 +889,13 @@ dnl Chose reasonable default values for WARNOPTS, DEBUGOPTS and EXTRAOPTS
 AC_DEFUN(CW_DO_OPTIONS, [dnl
 dnl Choose warning options to use
 if test "$USE_MAINTAINER_MODE" = yes; then
-WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Winline -Wwrite-strings -Werror"
+AC_EGREP_CPP(Winline-broken,
+[#if __GNUC__ < 3
+Winline-broken
+#endif
+],
+WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Werror",
+WARNOPTS="-Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Werror -Winline")
 else
 WARNOPTS=
 fi
@@ -904,7 +913,11 @@ esac
 AC_SUBST(DEBUGOPTS)
 
 dnl Other options
-EXTRAOPTS=""
+if test "$USE_MAINTAINER_MODE" = yes; then
+EXTRAOPTS="-O"
+else
+EXTRAOPTS="-O"
+fi
 AC_SUBST(EXTRAOPTS)
 
 dnl Test options
@@ -929,6 +942,14 @@ if test x"$CXX" != "x" -o x"$CXXCPP" != "x"; then
   unset ac_cv_prog_cxx_works
   unset ac_cv_prog_gxx
   unset ac_cv_prog_gxx_version
+fi
+if test x"$CC" != "x" -o x"$CPP" != "x"; then
+  unset ac_cv_prog_CC
+  unset ac_cv_prog_CPP
+  unset ac_cv_prog_cc_cross
+  unset ac_cv_prog_g
+  unset ac_cv_prog_cc_works
+  unset ac_cv_prog_gcc
 fi
 ])
 

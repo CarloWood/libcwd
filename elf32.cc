@@ -30,10 +30,9 @@
 #include <set>
 #include <map>
 #include <vector>
-#include <libcw/debug.h>
-#include <libcw/elf32.h>
-
-RCSTAG_CC("$Id$")
+#include "cwd_debug.h"
+#include "elf32.h"
+#include <libcw/private_assert.h>
 
 #define DEBUGELF32 0
 #define DEBUGSTABS 0
@@ -587,15 +586,28 @@ static uLEB128_t const DW_LNE_set_address	= 2;
 static uLEB128_t const DW_LNE_define_file	= 3;
 
 //==========================================================================================================================================
+// Because the functions in this compilation unit can be called from malloc(), we need to use
+// the alternative allocators.  Moreover, `internal' should already be set everywhere and
+// the object_files_instance mutex should be write locked, so we will use `object_files_string'.
+// Also, define a replacement type for set<string> here.
+
+#if __GNUC__ < 3
+typedef std::basic_string<char, ::string_char_traits<char>, _private_::object_files_allocator> object_files_string;
+#else
+typedef std::basic_string<char, std::char_traits<char>, _private_::object_files_allocator> object_files_string;
+#endif
+typedef std::set<object_files_string, std::less<object_files_string>, _private_::object_files_allocator::rebind<object_files_string>::other> object_files_string_set_ct;
+
+//==========================================================================================================================================
 // struct location_st
 //
 // Internal representation for locations.
 //
 
 struct location_st {
-  std::set<std::string>::iterator source_iter;
+  object_files_string_set_ct::iterator source_iter;
   Elf32_Half line;
-  std::set<std::string>::iterator func_iter;
+  object_files_string_set_ct::iterator func_iter;
 };
 
 struct range_st {
@@ -611,7 +623,7 @@ bool operator==(range_st const& range1, range_st const& range2)
 #if DEBUGSTABS || DEBUGDWARF
 std::ostream& operator<<(std::ostream& os, range_st const& range)
 {
-  os << std::hex << range.start << " - " << range.start + range.size << ".";
+  os << std::hex << range.start << " - " << range.start + range.size;
   return os;
 }
 
@@ -658,6 +670,7 @@ struct hash_list_st {
 //
 
 class object_file_ct : public bfd_st {
+  typedef std::map<range_st, location_st, compare_range_st, _private_::object_files_allocator::rebind<std::pair<range_st const, location_st> >::other> object_files_range_location_map_ct;
 private:
   std::ifstream M_input_stream;
   Elf32_Ehdr M_header;
@@ -668,9 +681,9 @@ private:
   asymbol_st* M_symbols;
   int M_number_of_symbols;
   Elf32_Word M_symbol_table_type;
-  std::set<std::string> M_function_names;
-  std::set<std::string> M_source_files;
-  std::map<range_st, location_st, compare_range_st> M_ranges;
+  object_files_string_set_ct M_function_names;
+  object_files_string_set_ct M_source_files;
+  object_files_range_location_map_ct M_ranges;
   bool M_debug_info_loaded;
   Elf32_Word M_stabs_section_index;
   Elf32_Word M_dwarf_debug_info_section_index;
@@ -680,18 +693,11 @@ private:
   hash_list_st** M_hash_list;
 public:
   object_file_ct(char const* file_name);
-  ~object_file_ct()
-  {
-    delete [] M_section_header_string_table;
-    delete [] M_sections;
-    delete [] M_symbol_string_table;
-    delete [] M_dyn_symbol_string_table;
-    delete [] M_symbols;
-  }
+  ~object_file_ct();
   char const* get_section_header_string_table(void) const { return M_section_header_string_table; }
-  section_ct const& get_section(int index) const { CWASSERT( index < M_header.e_shnum ); return M_sections[index]; }
+  section_ct const& get_section(int index) const { LIBCWD_ASSERT( index < M_header.e_shnum ); return M_sections[index]; }
 protected:
-  virtual bool check_format(void) const { return M_header.check_format(); }
+  virtual bool check_format(void) const;
   virtual long get_symtab_upper_bound(void);
   virtual long canonicalize_symtab(asymbol_st**);
   virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int*);
@@ -708,8 +714,8 @@ private:
 //-------------------------------------------------------------------------------------------------------------------------------------------
 // Implementation
 
-static asection_st const abs_section = { 0, "*ABS*" };
-asection_st const* const absolute_section = &abs_section;
+static asection_st const abs_section_c = { 0, "*ABS*" };
+asection_st const* const absolute_section_c = &abs_section_c;
 
 bool Elf32_Ehdr::check_format(void) const
 {
@@ -758,9 +764,23 @@ bfd_st* bfd_st::openr(char const* file_name)
   return new object_file_ct(file_name);
 }
 
+object_file_ct::~object_file_ct()
+{
+  delete [] M_section_header_string_table;
+  delete [] M_sections;
+  delete [] M_symbol_string_table;
+  delete [] M_dyn_symbol_string_table;
+  delete [] M_symbols;
+}
+
 long object_file_ct::get_symtab_upper_bound(void)
 {
   return M_number_of_symbols * sizeof(asymbol_st*);
+}
+
+bool object_file_ct::check_format(void) const
+{
+  return M_header.check_format();
 }
 
 uint32_t object_file_ct::elf_hash(unsigned char const* name, unsigned char delim) const
@@ -807,7 +827,7 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	  // Skip all absolute symbols except "_end".
 	  if (new_symbol->name[1] != 'e' || new_symbol->name[0] != '_' || new_symbol->name[2] != 'n' || new_symbol->name[3] != 'd' || new_symbol->name[4] != 0)
 	    continue;
-	  new_symbol->section = absolute_section;
+	  new_symbol->section = absolute_section_c;
           M_s_end_vma = new_symbol->value = symbol.st_value;
 	}
         else if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
@@ -867,7 +887,7 @@ long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
       break;							// There *should* only be one symbol table section.
     }
   }
-  CWASSERT( M_number_of_symbols >= table_entries );
+  LIBCWD_ASSERT( M_number_of_symbols >= table_entries );
   M_number_of_symbols = table_entries;
   return M_number_of_symbols;
 }
@@ -888,7 +908,7 @@ template<>
     while(byte >= 0x80)
     {
       byte = (*++in) ^ 1;
-      CWASSERT( byte < (1UL << (number_of_bits_in_uLEB128_t - shift)) );
+      LIBCWD_ASSERT( byte < (1UL << (number_of_bits_in_uLEB128_t - shift)) );
       x ^= byte << shift;
       shift += 7;
     }
@@ -904,7 +924,7 @@ template<>
     while(byte >= 0x80)
     {
       byte = (*++in) ^ 1;
-      CWASSERT( byte < (1L << (number_of_bits_in_LEB128_t - shift)) );
+      LIBCWD_ASSERT( byte < (1L << (number_of_bits_in_LEB128_t - shift)) );
       x ^= byte << shift;
       shift += 7;
     }
@@ -942,11 +962,11 @@ void object_file_ct::load_dwarf(void)
   if (DEBUGDWARF)
   {
     // Not loaded already.
-    CWASSERT( !M_debug_info_loaded && M_dwarf_debug_line_section_index != 0 );
+    LIBCWD_ASSERT( !M_debug_info_loaded && M_dwarf_debug_line_section_index != 0 );
     // Don't have a fixed entry sizes.
-    CWASSERT( M_sections[M_dwarf_debug_line_section_index].section_header().sh_entsize == 0 );
-    CWASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
-    CWASSERT( M_sections[M_dwarf_debug_abbrev_section_index].section_header().sh_entsize == 0 );
+    LIBCWD_ASSERT( M_sections[M_dwarf_debug_line_section_index].section_header().sh_entsize == 0 );
+    LIBCWD_ASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
+    LIBCWD_ASSERT( M_sections[M_dwarf_debug_abbrev_section_index].section_header().sh_entsize == 0 );
     // Initialization of debug variable.
     total_length = 0;
   }
@@ -972,7 +992,7 @@ void object_file_ct::load_dwarf(void)
       total_length += length + 4;
       Dout(dc::bfd, "total length = " << total_length << " (of " <<
 	  M_sections[M_dwarf_debug_info_section_index].section_header().sh_size << ").");
-      CWASSERT( total_length <= M_sections[M_dwarf_debug_info_section_index].section_header().sh_size );
+      LIBCWD_ASSERT( total_length <= M_sections[M_dwarf_debug_info_section_index].section_header().sh_size );
     }
     uint16_t version;
     dwarf_read(debug_info_ptr, version);
@@ -984,10 +1004,10 @@ void object_file_ct::load_dwarf(void)
       DoutDwarf(dc::bfd, "abbrev_offset = " << std::hex << abbrev_offset);
       unsigned char address_size;
       dwarf_read(debug_info_ptr, address_size);
-      CWASSERT( address_size == sizeof(void*) );
+      LIBCWD_ASSERT( address_size == sizeof(void*) );
 
       unsigned int expected_code = 1;
-      std::vector<abbrev_st> abbrev_entries(256);
+      std::vector<abbrev_st, _private_::object_files_allocator::rebind<abbrev_st>::other> abbrev_entries(256);
       while(true)
       {
 	if (expected_code >= abbrev_entries.size())
@@ -998,7 +1018,7 @@ void object_file_ct::load_dwarf(void)
 	if (abbrev.code == 0)
 	  break;
 	DoutDwarf(dc::bfd, "code: " << abbrev.code);
-	CWASSERT( abbrev.code == expected_code );
+	LIBCWD_ASSERT( abbrev.code == expected_code );
 	++expected_code;
 
 	dwarf_read(debug_abbrev_ptr, abbrev.tag);
@@ -1053,12 +1073,12 @@ void object_file_ct::load_dwarf(void)
 	  if (--level <= 0)
 	  {
 	    if (DEBUGDWARF)
-	      CWASSERT( level == 0 );
+	      LIBCWD_ASSERT( level == 0 );
 	    break;
           }
 	  continue;
 	}
-	CWASSERT( code < abbrev_entries.size() );
+	LIBCWD_ASSERT( code < abbrev_entries.size() );
         if (DEBUGDWARF)
 	  Debug(libcw_do.inc_indent(4));
 	abbrev_st& abbrev(abbrev_entries[code]);
@@ -1074,9 +1094,9 @@ void object_file_ct::load_dwarf(void)
 	    );
 	}
 
-	std::string default_dir;
-	std::string cur_dir;
-	std::string default_source;
+	object_files_string default_dir;
+	object_files_string cur_dir;
+	object_files_string default_source;
 	bool found_stmt_list = false;
 
 	attr_st* attr = abbrev.attributes;
@@ -1088,7 +1108,7 @@ void object_file_ct::load_dwarf(void)
 	  {
 	    if (attr->attr == DW_AT_stmt_list)
 	    {
-	      CWASSERT( form == DW_FORM_data4 );
+	      LIBCWD_ASSERT( form == DW_FORM_data4 );
 	      uint32_t line_offset;
 	      dwarf_read(debug_info_ptr, line_offset);
 	      DoutDwarf(dc::finish, "0x" << std::hex << line_offset);
@@ -1098,7 +1118,7 @@ void object_file_ct::load_dwarf(void)
 	    }
 	    else if (attr->attr == DW_AT_name)
 	    {
-	      CWASSERT( form == DW_FORM_string );
+	      LIBCWD_ASSERT( form == DW_FORM_string );
 	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
 	      if (*debug_info_ptr == '/')
 		default_dir.erase();
@@ -1109,7 +1129,7 @@ void object_file_ct::load_dwarf(void)
 	    }
 	    else if (attr->attr == DW_AT_comp_dir)
 	    {
-	      CWASSERT( form == DW_FORM_string );
+	      LIBCWD_ASSERT( form == DW_FORM_string );
 	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
 	      if (*debug_info_ptr != '/')
 	      {
@@ -1269,8 +1289,8 @@ indirect:
 	  unsigned char line_range;	// This parameter affects the meaning of the special opcodes.
 	  unsigned char opcode_base;	// The number assigned to the first special opcode.
 	  unsigned char const* standard_opcode_lengths;
-	  std::vector<char const*> include_directories;
-	  std::vector<file_name_st> file_names;
+	  std::vector<char const*, _private_::object_files_allocator::rebind<char const*>::other> include_directories;
+	  std::vector<file_name_st, _private_::object_files_allocator::rebind<file_name_st>::other> file_names;
 	  dwarf_read(debug_line_ptr, total_length);
 	  unsigned char const* debug_line_ptr_end = debug_line_ptr + total_length;
 	  dwarf_read(debug_line_ptr, version);
@@ -1293,7 +1313,7 @@ indirect:
 	  while(true)
 	  {
 	    if (DEBUGDWARF)
-	      CWASSERT( debug_line_ptr < statement_program_start );
+	      LIBCWD_ASSERT( debug_line_ptr < statement_program_start );
 	    file_name_st file_name;
 	    file_name.name = reinterpret_cast<char const*>(debug_line_ptr);
 	    if (!*debug_line_ptr++)
@@ -1305,15 +1325,15 @@ indirect:
 	    DoutDwarf(dc::bfd, "File name: " << file_name.name);
 	    file_names.push_back(file_name);
 	  }
-	  CWASSERT( debug_line_ptr == statement_program_start );
+	  LIBCWD_ASSERT( debug_line_ptr == statement_program_start );
 
-	  std::string cur_dir;
-	  std::string cur_source;
+	  object_files_string cur_dir;
+	  object_files_string cur_source;
 	  location_st location;
 	  range_st range;
 
-	  std::string cur_func("-DWARF symbol\0");	// We don't add function names - this is used to see we're
-	  						// doing DWARF in find_nearest_line().
+	  object_files_string cur_func("-DWARF symbol\0");	// We don't add function names - this is used to see we're
+								// doing DWARF in find_nearest_line().
 	  location.func_iter = M_function_names.insert(cur_func).first;
 
 	  do
@@ -1345,15 +1365,15 @@ indirect:
 		  {
 		    uLEB128_t size;					// Size in bytes.
 		    dwarf_read(debug_line_ptr, size);
-		    CWASSERT( size > 0 );
+		    LIBCWD_ASSERT( size > 0 );
 		    uLEB128_t extended_opcode;
 		    dwarf_read(debug_line_ptr, extended_opcode);
-		    CWASSERT( extended_opcode < 0x80 );			// Then it's size is one:
+		    LIBCWD_ASSERT( extended_opcode < 0x80 );			// Then it's size is one:
 		    --size;
 		    switch(extended_opcode)
 		    {
 		      case DW_LNE_end_sequence:
-			CWASSERT( size == 0 );
+			LIBCWD_ASSERT( size == 0 );
 			end_sequence = true;
 			DoutDwarf(dc::bfd, "DW_LNE_end_sequence: Address: 0x" << std::hex << address);
 			range.size = address - range.start;
@@ -1361,7 +1381,7 @@ indirect:
 			  register_range(location, range);
 			break;
 		      case DW_LNE_set_address:
-			CWASSERT( size == sizeof(address) );
+			LIBCWD_ASSERT( size == sizeof(address) );
 			dwarf_read(debug_line_ptr, address);
 			DoutDwarf(dc::bfd, "DW_LNE_set_address: 0x" << std::hex << address);
 			if (!range.start)
@@ -1376,7 +1396,7 @@ indirect:
 			dwarf_read(debug_line_ptr, file_name.directory_index);
 			dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
 			dwarf_read(debug_line_ptr, file_name.length_in_bytes_of_the_file);
-			CWASSERT( debug_line_ptr == end );
+			LIBCWD_ASSERT( debug_line_ptr == end );
 			DoutDwarf(dc::bfd, "DW_LNE_define_file: " << file_name.name);
 			file_names.push_back(file_name);
 			break;
@@ -1502,7 +1522,7 @@ indirect:
 	    }
 	  }
 	  while( debug_line_ptr < debug_line_ptr_end );
-	  CWASSERT( debug_line_ptr == debug_line_ptr_end );
+	  LIBCWD_ASSERT( debug_line_ptr == debug_line_ptr_end );
 
 	  // End state machine code.
 	  // ===========================================================================================================================17"
@@ -1526,7 +1546,7 @@ indirect:
       // We didn't read till the end (see break above).
       debug_info_ptr = debug_info_ptr_end;
 #else
-      CWASSERT( debug_info_ptr == debug_info_ptr_end );
+      LIBCWD_ASSERT( debug_info_ptr == debug_info_ptr_end );
 #endif
     }
     else
@@ -1546,25 +1566,29 @@ void object_file_ct::load_stabs(void)
 {
   if (DEBUGSTABS)
   {
-    CWASSERT( !M_debug_info_loaded && M_stabs_section_index != 0 );
-    CWASSERT( M_sections[M_stabs_section_index].section_header().sh_entsize == sizeof(stab_st) );
+    LIBCWD_ASSERT( !M_debug_info_loaded && M_stabs_section_index != 0 );
+    LIBCWD_ASSERT( M_sections[M_stabs_section_index].section_header().sh_entsize == sizeof(stab_st) );
   }
   stab_st* stabs = (stab_st*)allocate_and_read_section(M_stabs_section_index);
   if (DEBUGSTABS)
   {
-    CWASSERT( !strcmp(&M_section_header_string_table[M_sections[M_sections[M_stabs_section_index].section_header().sh_link].section_header().sh_name], ".stabstr") );
-    CWASSERT( stabs->n_desc == (Elf32_Half)(M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize - 1) );
+    LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[M_sections[M_sections[M_stabs_section_index].section_header().sh_link].section_header().sh_name], ".stabstr") );
+    LIBCWD_ASSERT( stabs->n_desc == (Elf32_Half)(M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize - 1) );
   }
   char* stabs_string_table = allocate_and_read_section(M_sections[M_stabs_section_index].section_header().sh_link);
   if (DEBUGSTABS)
     Debug( libcw_do.inc_indent(4) );
-  Elf32_Addr func_addr;
-  std::string cur_dir;
-  std::string cur_source;
-  std::string cur_func;
+  Elf32_Addr func_addr = 0;
+  object_files_string cur_dir;
+  object_files_string cur_source;
+  object_files_string cur_func;
   location_st location;
   range_st range;
   bool skip_function = false;
+  bool source_file_changed_and_we_didnt_copy_it_yet = true;
+  bool source_file_changed_but_line_number_not_yet = true;
+  Elf32_Addr last_source_change_start = 0;
+  object_files_string_set_ct::iterator last_source_iter;
   for (unsigned int j = 0; j < M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize; ++j)
   {
     switch(stabs[j].n_type)
@@ -1591,8 +1615,9 @@ void object_file_ct::load_stabs(void)
 	  cur_source += filename;
 	}
 	cur_source += '\0';
-	location.source_iter = M_source_files.insert(cur_source).first; 
-	location.line = 0;	// See N_SLINE
+	last_source_iter = M_source_files.insert(cur_source).first; 
+	source_file_changed_and_we_didnt_copy_it_yet = source_file_changed_but_line_number_not_yet = true;
+	last_source_change_start = range.start;
 	if (DEBUGSTABS)
 	  Dout(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
 	break;
@@ -1614,7 +1639,7 @@ void object_file_ct::load_stabs(void)
 	  char const* fn_end = strchr(fn, ':');
 	  size_t fn_len = fn_end - fn;
 #if DEBUGSTABS
-	  CWASSERT( fn_end && (fn_end[1] == 'F' || fn_end[1] == 'f') );
+	  LIBCWD_ASSERT( fn_end && (fn_end[1] == 'F' || fn_end[1] == 'f') );
 #endif
 	  cur_func.assign(fn, fn_len);
 	  cur_func += '\0';
@@ -1663,11 +1688,11 @@ void object_file_ct::load_stabs(void)
 		  break;
 	        }
 	      }
-	    CWASSERT( func_addr_test == func_addr );
+	    LIBCWD_ASSERT( func_addr_test == func_addr );
 	  }
 #endif
 	  location.func_iter = M_function_names.insert(cur_func).first;
-	  location.line = 0;
+	  location.line = 0;	// See N_SLINE
 	}
 	break;
       }
@@ -1676,15 +1701,27 @@ void object_file_ct::load_stabs(void)
 	  Dout(dc::bfd, "N_SLINE: " << stabs[j].n_desc << " at " << std::hex << stabs[j].n_value << '.');
 	if (stabs[j].n_value != 0)
 	{
-	  // Always false when source or function was changed since last line because location.line is set to 0 in that case.
-	  if (location.line == stabs[j].n_desc)	// Catenate ranges with same location.
+	  // Always false when function was changed since last line because location.line is set to 0 in that case.
+	  // Catenate ranges with same location.
+	  if (!source_file_changed_and_we_didnt_copy_it_yet && stabs[j].n_desc == location.line)
 	    break;
 	  range.size = func_addr + stabs[j].n_value - range.start;
+	  // Delay one source/line change when there was no code since last source file change.
+	  // The is apparently needed to deal with inlined functions.
+	  if (range.size == 0 && source_file_changed_but_line_number_not_yet)
+	  {
+	    source_file_changed_but_line_number_not_yet = false;
+	    break;
+	  }
 	  if (!skip_function)
 	    register_range(location, range);
 	  range.start += range.size;
 	}
+	// Store the source/line for the next range.
+	location.source_iter = last_source_iter;
 	location.line = stabs[j].n_desc;
+	source_file_changed_and_we_didnt_copy_it_yet = false;
+	source_file_changed_but_line_number_not_yet = false;
 	break;
     }
   }
@@ -1700,15 +1737,23 @@ void object_file_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offs
 {
   if (!M_debug_info_loaded)
   {
+#ifdef LIBCWD_THREAD_SAFE
+  // `object_files_string' and the STL containers using `_private_::object_files_allocator' in the
+  // following functions need this lock.
+  _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
+#endif
     if (M_dwarf_debug_line_section_index)
       load_dwarf();
     else if (M_stabs_section_index)
       load_stabs();
+#ifdef LIBCWD_THREAD_SAFE
+    _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
+#endif
   }
   range_st range;
   range.start = offset;
   range.size = 1;
-  std::map<range_st, location_st, compare_range_st>::const_iterator i(M_ranges.find(static_cast<range_st const>(range)));
+  object_files_range_location_map_ct::const_iterator i(M_ranges.find(static_cast<range_st const>(range)));
   if (i == M_ranges.end() || (*(*(*i).second.func_iter).data() != '-' && strcmp((*(*i).second.func_iter).data(), symbol->name)))
   {
     *file = NULL;
@@ -1743,7 +1788,7 @@ void object_file_ct::register_range(location_st const& location, range_st const&
 	<< "; " << (*location.source_iter).data() << ':' << std::dec << location.line << " : \""
 	<< (*location.func_iter).data() << "\".");
 #if DEBUGSTABS || DEBUGDWARF
-  std::pair<std::map<range_st, location_st, compare_range_st>::iterator, bool> p(
+  std::pair<object_files_range_location_map_ct::iterator, bool> p(
 #endif
       M_ranges.insert(std::pair<range_st, location_st>(range, location))
 #if DEBUGSTABS || DEBUGDWARF
@@ -1777,9 +1822,9 @@ object_file_ct::object_file_ct(char const* file_name) :
   filename = file_name;
   M_input_stream.open(file_name);
   if (!M_input_stream)
-    DoutFatal(dc::fatal|error_cf, "std::fstream.open(\"" << file_name << "\")");
+    DoutFatal(dc::fatal|error_cf, "std::ifstream.open(\"" << file_name << "\")");
   M_input_stream >> M_header;
-  CWASSERT(M_header.e_shentsize == sizeof(Elf32_Shdr));
+  LIBCWD_ASSERT(M_header.e_shentsize == sizeof(Elf32_Shdr));
   if (M_header.e_shoff == 0 || M_header.e_shnum == 0)
     return;
   M_input_stream.rdbuf()->pubseekpos(M_header.e_shoff);
@@ -1787,12 +1832,12 @@ object_file_ct::object_file_ct(char const* file_name) :
   M_input_stream.read(reinterpret_cast<char*>(section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
   if (DEBUGELF32)
     Dout(dc::bfd, "Number of section headers: " << M_header.e_shnum);
-  CWASSERT( section_headers[M_header.e_shstrndx].sh_size > 0
+  LIBCWD_ASSERT( section_headers[M_header.e_shstrndx].sh_size > 0
       && section_headers[M_header.e_shstrndx].sh_size >= section_headers[M_header.e_shstrndx].sh_name );
   M_section_header_string_table = new char[section_headers[M_header.e_shstrndx].sh_size]; 
   M_input_stream.rdbuf()->pubseekpos(section_headers[M_header.e_shstrndx].sh_offset);
   M_input_stream.read(M_section_header_string_table, section_headers[M_header.e_shstrndx].sh_size);
-  CWASSERT( !strcmp(&M_section_header_string_table[section_headers[M_header.e_shstrndx].sh_name], ".shstrtab") );
+  LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[section_headers[M_header.e_shstrndx].sh_name], ".shstrtab") );
   M_sections = new section_ct[M_header.e_shnum];
   if (DEBUGELF32)
     Debug( libcw_do.inc_indent(4) );
@@ -1823,8 +1868,8 @@ object_file_ct::object_file_ct(char const* file_name) :
         && section_headers[i].sh_size > 0)
     {
       M_has_syms = true;
-      CWASSERT( section_headers[i].sh_entsize == sizeof(Elf32_sym) );
-      CWASSERT( M_symbol_table_type != SHT_SYMTAB || section_headers[i].sh_type != SHT_SYMTAB);	// There should only be one SHT_SYMTAB.
+      LIBCWD_ASSERT( section_headers[i].sh_entsize == sizeof(Elf32_sym) );
+      LIBCWD_ASSERT( M_symbol_table_type != SHT_SYMTAB || section_headers[i].sh_type != SHT_SYMTAB);	// There should only be one SHT_SYMTAB.
       if (M_symbol_table_type != SHT_SYMTAB)							// If there is one, use it.
       {
 	M_symbol_table_type = section_headers[i].sh_type;

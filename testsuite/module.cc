@@ -2,9 +2,6 @@
 #include <libcw/sysd.h>
 #include <libcw/debug.h>
 
-#include <sys/types.h>
-extern "C" void* malloc(size_t);
-
 static void* static_test_symbol(void)
 {
   void* ptr = malloc(300);

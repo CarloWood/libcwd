@@ -1,0 +1,508 @@
+include(definitions.m4)dnl
+__HTMLHEADER
+__PAGEHEADER
+__PAGESTART
+
+<H2>Tutorial 7: Advanced examples</H2>
+
+<P>In this tutorial you will learn how to make memory allocations
+&laquo;invisible&raquo; so that they will not show up in the
+Allocated memory Overview, how to find information about an
+allocated memory block given an arbitrary pointer pointing
+inside it and how to write simple memory-leak detection code.</P>
+
+<A NAME="Removing"></A>
+<H3>7.1 Removing allocations from the Allocated memory Overview</H3>
+
+<P>Sometimes a program can allocate a very large number of memory blocks.&nbsp;
+Having all of those in the Allocated memory Overview could make it
+impractically large.&nbsp; Therefore it is possible to remove items from this list.</P>
+
+<P>In the following example we make one allocation invisible by
+using the function <CODE>make_invisible()</CODE>:</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.1.1.cc -lcwd -o invisible</CODE></P>
+<P class="download">[<A HREF="examples7/test7.1.1.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.1.1.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+
+  int* first = new int;
+  AllocTag2(first, &quot;first&quot;);
+
+  int* second = new int;
+  AllocTag2(second, &quot;second&quot;);
+
+  Debug( list_allocations_on(libcw_do) );
+
+  Debug( <SPAN class="highlight">make_invisible(</SPAN>first<SPAN class="highlight">)</SPAN> );
+
+  Debug( list_allocations_on(libcw_do) );
+
+  delete second;
+  delete first;
+
+  return 0;
+}
+<!-- END CODE examples7/test7.1.1.cc -->
+</PRE>
+
+<P>The output of this program is</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.1.1-bin -->
+</PRE>
+
+<P>As you can see, the first allocation at line 9 disappeared from the
+overview after it was made invisible.</P>
+
+<P>Pointer validation at de-allocation is still performed however.&nbsp;
+For instance, when we make a mistake when freeing the first <CODE>int</CODE>:</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.1.2.cc -lcwd -o coredump</CODE></P>
+<P class="download">[<A HREF="examples7/test7.1.2.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.1.2.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+
+  int* first = new int;
+  AllocTag2(first, &quot;first&quot;);
+
+  int* second = new int;
+  AllocTag2(second, &quot;second&quot;);
+
+  Debug( list_allocations_on(libcw_do) );
+
+  Debug( make_invisible(first) );
+
+  Debug( list_allocations_on(libcw_do) );
+
+  delete second;
+  delete <SPAN class="highlight">[]</SPAN> first;	// Make a deliberate error
+
+  return 0;
+}
+<!-- END CODE examples7/test7.1.2.cc -->
+</PRE>
+
+<P>then the output becomes</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.1.2-bin -->
+</PRE>
+
+<P>Also the function <CODE>test_delete()</CODE> still works:</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.1.3.cc -lcwd -o test_delete</CODE></P>
+<P class="download">[<A HREF="examples7/test7.1.3.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.1.3.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+  Debug( dc::notice.on() );
+
+  void* p = malloc(3000);
+  
+  Debug( make_invisible(p) );
+  Debug( list_allocations_on(libcw_do) );
+
+  Dout(dc::notice, &quot;test_delete(&quot; &lt;&lt; p &lt;&lt; &quot;) = &quot; &lt;&lt; <SPAN class="highlight">test_delete(</SPAN>p<SPAN class="highlight">)</SPAN>);
+  free(p);
+  Dout(dc::notice, &quot;test_delete(&quot; &lt;&lt; p &lt;&lt; &quot;) = &quot; &lt;&lt; <SPAN class="highlight">test_delete(</SPAN>p<SPAN class="highlight">)</SPAN>);
+
+  return 0;
+}
+<!-- END CODE examples7/test7.1.3.cc -->
+</PRE>
+
+<P>results in</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.1.3-bin -->
+</PRE>
+
+<P>However, <CODE>find_alloc()</CODE>, the function that is explained in the next paragraph,
+will <EM>fail</EM> to find an &laquo;invisible&raquo; block (it will return <CODE>NULL</CODE>).</P>
+
+<A NAME="Retrieving"></A>
+<H3>7.2 Retrieving information about memory allocations</H3>
+
+<P>Libcwd allows the developer to generate powerful debugging output; aside from being able to test
+if a given pointer points to the start of an allocated memory block, using <CODE>test_delete()</CODE>,
+it is even possible to find all information about an allocated memory block that is also shown in the Allocated memory Overview
+when given a pointer pointing anywhere <EM>inside</EM> an allocated memory block.&nbsp; For example:</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.2.1.cc -lcwd -o find_alloc</CODE></P>
+<P class="download">[<A HREF="examples7/test7.2.1.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.2.1.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+using namespace libcw::debug;
+
+template&lt;typename T1, typename T2&gt;
+  struct Foo {
+    T1 for_me;
+    T2 for_you;
+    double d;
+  };
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+  Debug( dc::notice.on() );
+
+  Foo&lt;char, int&gt;* f = new Foo&lt;char, int&gt;;
+  AllocTag(f, &quot;Our test object&quot;);
+
+  int* p = &amp;f-&gt;for_you;	// Pointer that points inside `f'
+
+  Dout(dc::notice, &quot;f == &quot; &lt;&lt; static_cast&lt;void*&gt;(f));
+  Dout(dc::notice, &quot;p == &quot; &lt;&lt; static_cast&lt;void*&gt;(p));
+
+#ifdef CWDEBUG
+  alloc_ct const* alloc = <SPAN class="highlight">find_alloc(</SPAN>p<SPAN class="highlight">)</SPAN>;
+  Dout(dc::notice,
+	 &quot;p points inside \&quot;&quot;
+      &lt;&lt; <SPAN class="highlight">alloc-&gt;description()</SPAN>
+      &lt;&lt; &quot;\&quot; starting at &quot;
+      &lt;&lt; <SPAN class="highlight">alloc-&gt;start()</SPAN>
+      &lt;&lt; &quot; with size &quot;
+      &lt;&lt; <SPAN class="highlight">alloc-&gt;size()</SPAN>
+      &lt;&lt; '.');
+  Dout(dc::notice,
+	 &quot;This memory block contains a \&quot;&quot;
+      &lt;&lt; <SPAN class="highlight">alloc-&gt;type_info().demangled_name()</SPAN> &lt;&lt; &quot;\&quot;.&quot;);
+  Dout(dc::notice,
+	 &quot;The allocation type is `&quot;
+      &lt;&lt; <SPAN class="highlight">alloc-&gt;memblk_type()</SPAN>
+      &lt;&lt; &quot;' and was allocated at &quot;
+      &lt;&lt; <SPAN class="highlight">alloc-&gt;location()</SPAN>
+      &lt;&lt; '.');
+#endif
+
+  return 0;
+}
+<!-- END CODE examples7/test7.2.1.cc -->
+</PRE>
+
+<P>The output of this program is</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.2.1-bin -->
+</PRE>
+
+<P>Note that the <EM>type</EM> returned by <CODE>alloc-&gt;type_info().demangled_name()</CODE> is
+the type of the pointer passed to <CODE>AllocTag()</CODE>:
+This string will always end on a <CODE>'*'</CODE>.&nbsp;</P>
+
+<P>The original reason for supporting pointers that point <EM>inside</EM> a memory block
+and not just to the start of it, was so that it could be used in base classes of objects
+derived with multiple inheritance: <CODE>find_alloc(this)</CODE> will
+always return the correct memory block, even if there is an offset between <CODE>this</CODE>
+and the real start of the allocated block.&nbsp;
+The same holds for arrays of objects allocated with <CODE>new[]</CODE>.</P>
+
+<P>It is also possible to get the values for the number of bytes and blocks allocated
+in total, as is printed at the top of each Allocated memory Overview.&nbsp;
+See the next paragraph.</P>
+
+<A NAME="Memory"></A>
+<H3>7.3 Memory leak detection</H3>
+
+<P><CODE>mem_blocks()</CODE> and <CODE>mem_size()</CODE>
+(like everything else defined in namespace <CODE>libcw::debug</CODE>)
+can be used to write a very simply memory leak detection system:</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.3.1.cc -lcwd -o total_alloc</CODE></P>
+<P class="download">[<A HREF="examples7/test7.3.1.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.3.1.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+using namespace libcw::debug;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+
+  char* memory_leak = new char [300];
+  AllocTag(memory_leak, "memory_leak");
+
+  // Debug( make_invisible(memory_leak) );
+
+#ifdef CWDEBUG
+  if (<SPAN class="highlight">mem_blocks()</SPAN> &gt; 0)
+    Dout(dc::warning, &quot;There are still &quot; &lt;&lt; <SPAN class="highlight">mem_size()</SPAN> &lt;&lt; &quot; bytes allocated!&quot;);
+  else
+    Dout(dc::malloc, &quot;No memory leaks.&quot;);
+#endif
+
+  return 0;
+}
+<!-- END CODE examples7/test7.3.1.cc -->
+</PRE>
+
+<P>The output of this program is:</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.3.1-bin -->
+</PRE>
+
+<P>Invisible blocks are <B>not</B> detected!&nbsp;
+When you comment out the <CODE>Debug( make_invisible(memory_leak) );</CODE> then
+the output will read</P>
+
+<PRE class="output">
+MALLOC  : operator new[] (size = 300) = 0x804fc88
+MALLOC  : No memory leaks.
+</PRE>
+
+<P>This allows you to improve the memory leak detection a bit in the case
+of global objects that allocate memory.&nbsp; Nevertheless, that is bad
+coding: you shouldn't define global objects that allocate memory.</P>
+
+<P>Here is an example program anyway:</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.3.2.cc -lcwd -o memleak</CODE></P>
+<P class="download">[<A HREF="examples7/test7.3.2.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.3.2.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+class A {
+private:
+  char* dynamic_memory;
+public:
+  A(void)
+  {
+    dynamic_memory = new char [300];
+    AllocTag(dynamic_memory, "A::dynamic_memory");
+  }
+  ~A()
+  {
+    if (dynamic_memory)
+      delete [] dynamic_memory;
+  }
+};
+
+// Global object that allocates memory (bad programming!)
+A a;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+
+#ifdef CWDEBUG
+  if (libcw::debug::mem_blocks() &gt; 0)
+  {
+    Dout(dc::malloc|dc::warning, &quot;Memory leak&quot;);
+    Debug( list_allocations_on(libcw_do) );
+  }
+  else
+    Dout(dc::malloc, &quot;No memory leaks.&quot;);
+#endif
+
+  return 0;
+}
+<!-- END CODE examples7/test7.3.2.cc -->
+</PRE>
+
+<P>results in</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.3.2-bin -->
+</PRE>
+
+<P>simply because <CODE>A::dynamic_memory</CODE> is not deleted until <EM>after</EM> <CODE>main</CODE>.</P>
+
+<P>A simple kludge is to make all memory allocated <EM>before</EM> <CODE>main</CODE>, invisible:</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.3.3.cc -lcwd -o memleak2</CODE></P>
+<P class="download">[<A HREF="examples7/test7.3.3.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.3.3.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+class A {
+private:
+  char* dynamic_memory;
+public:
+  A(void)
+  {
+    dynamic_memory = new char [300];
+    AllocTag(dynamic_memory, "A::dynamic_memory");
+  }
+  ~A()
+  {
+    if (dynamic_memory)
+      delete [] dynamic_memory;
+  }
+};
+
+// Global object that allocates memory (bad programming!)
+A a;
+
+int main(void)
+{
+  <SPAN class="highlight">Debug( make_all_allocations_invisible_except(NULL) );</SPAN>
+
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+
+#ifdef CWDEBUG
+  if (libcw::debug::mem_blocks() &gt; 0)
+  {
+    Dout(dc::malloc|dc::warning, &quot;Memory leak&quot;);
+    Debug( list_allocations_on(libcw_do) );
+  }
+  else
+    Dout(dc::malloc, &quot;No memory leaks.&quot;);
+#endif
+
+  return 0;
+}
+<!-- END CODE examples7/test7.3.3.cc -->
+</PRE>
+
+<P>which will simply output</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.3.3-bin -->
+</PRE>
+
+<P>Libcwd provides an alternative way to check for memory leaks using so called &laquo;markers&raquo;.&nbsp;
+A marker is like a directory, any allocation made after a marker is created is put into that directory.&nbsp;
+When a marker is removed and there are still allocation inside it, you will get a warning!&nbsp;
+In the following example we allocate a memory block, then set a marker and next allocate two more memory
+blocks.&nbsp The Allocated memory Overview is then printed.</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.3.4.cc -lcwd -o marker</CODE></P>
+<P class="download">[<A HREF="examples7/test7.3.4.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.3.4.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+
+  int* p1 = new int [10];
+  AllocTag(p1, &quot;p1&quot;);
+
+<SPAN class="highlight">#ifdef DEBUGMARKER</SPAN>
+  <SPAN class="highlight">libcw::debug::marker_ct* marker = new libcw::debug::marker_ct(&quot;A test marker&quot;);</SPAN>
+<SPAN class="highlight">#endif</SPAN>
+
+  int* p2 = new int [20];
+  AllocTag(p2, &quot;p2&quot;);
+
+  int* p3 = new int [30];
+  AllocTag(p3, &quot;p3&quot;);
+
+  Debug( list_allocations_on(libcw_do) );
+
+<SPAN class="highlight">#ifdef DEBUGMARKER</SPAN>
+  // Delete the marker while there are still allocations inside it
+  <SPAN class="highlight">delete marker;</SPAN>
+<SPAN class="highlight">#endif</SPAN>
+
+  return 0;
+}
+<!-- END CODE examples7/test7.3.4.cc -->
+</PRE>
+
+<P>The output of this program is:</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.3.4-bin -->
+</PRE>
+
+<P>Individual allocations (or other markers, inclusive everything they contain)
+can be moved outside a marker with the function <CODE>move_outside()</CODE>.&nbsp;
+For example, we could move the allocation of <CODE>p2</CODE> outside our marker:</P>
+
+<P>Compile as: <CODE>g++ -g -DCWDEBUG test7.3.5.cc -lcwd -o marker2</CODE></P>
+<P class="download">[<A HREF="examples7/test7.3.5.cc">download</A>]</P>
+<PRE>
+<!-- START CODE examples7/test7.3.5.cc -->
+#include &quot;sys.h&quot;
+#include &quot;debug.h&quot;
+
+int main(void)
+{
+  Debug( libcw_do.on() );
+  Debug( dc::malloc.on() );
+
+  int* p1 = new int [10];
+  AllocTag(p1, &quot;p1&quot;);
+
+#ifdef DEBUGMARKER
+  libcw::debug::marker_ct* marker = new libcw::debug::marker_ct(&quot;A test marker&quot;);
+#endif
+
+  int* p2 = new int [20];
+  AllocTag(p2, &quot;p2&quot;);
+
+  int* p3 = new int [30];
+  AllocTag(p3, &quot;p3&quot;);
+
+<SPAN class="highlight">#ifdef DEBUGMARKER</SPAN>
+  <SPAN class="highlight">Debug( move_outside(marker, p2) );</SPAN>
+<SPAN class="highlight">#endif</SPAN>
+
+  Debug( list_allocations_on(libcw_do) );
+
+#ifdef DEBUGMARKER
+  // Delete the marker while there are still allocations inside it
+  delete marker;
+#endif
+
+  return 0;
+}
+<!-- END CODE examples7/test7.3.5.cc -->
+</PRE>
+
+<P>which results in the output</P>
+
+<PRE class="output">
+<!-- START OUTPUT examples7/test7.3.5-bin -->
+</PRE>
+
+<P>Congratulations, you are now a libcwd expert.&nbsp; If you still have any
+questions that you can't find here, feel free to mail me.</P>
+
+__PAGEEND
+<P class="line"><IMG width=870 height=25 src="../images/lines/owl.png"></P>
+<DIV class="buttons">
+<A HREF="tut6.html"><IMG width=64 height=32 src="../images/buttons/lr_prev.png" border="0"></A>
+<A HREF="index.html"><IMG width=64 height=32 src="../images/buttons/lr_index.png" border="0"></A>
+</DIV>
+__PAGEFOOTER
+__HTMLFOOTER

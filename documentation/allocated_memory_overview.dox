@@ -1,0 +1,212 @@
+/*!
+\defgroup group_overview Overview Of Allocated Memory
+\ingroup book_allocations
+*/
+/*!
+\page page_overview
+\ingroup group_overview
+
+<hr><h2>Detailed Description</h2>
+
+An example output, using libcw-0.2.5, is given below.&nbsp;
+Please follow the links to get a short explanation.
+
+\htmlonly
+<PRE class="output">
+MALLOC  : Allocated memory: 3100 bytes in 14 blocks.
+<A HREF="#AMO_allocator">malloc</A>        0x819f068              sock.cc:92   sockaddr_in []; (sz = 16)  <A HREF="#AMO_description">sockbuf_dbct::addr</A>
+malloc        0x819dea0        <A HREF="#AMO_location">dbstreambuf.h:582</A>  char []; (sz = 512)  dbstreambuf_ct::dbstreambuf_block_dct::block
+              0x8122240       dbstreambuf.cc:68   dbstreambuf_ct::dbstreambuf_block_dct; (sz = 20) 
+              0x81400e8 <A HREF="#AMO_location">streambuf::streambuf(int)</A> &lt;unknown type&gt;; <A HREF="#AMO_size">(sz = 24)</A> 
+              0x8122400               sock.h:225  dbstreambuf_ct; (sz = 144) 
+malloc        0x8140678        dbstreambuf.h:582  char []; (sz = 2048)  dbstreambuf_ct::dbstreambuf_block_dct::block
+              0x81405c8       dbstreambuf.cc:68   dbstreambuf_ct::dbstreambuf_block_dct; (sz = 20) 
+              0x8140558 streambuf::streambuf(int) &lt;unknown type&gt;; (sz = 24) 
+              0x8140428               sock.h:225  dbstreambuf_ct; (sz = 144) 
+              0x8140320        reduce_tst.cc:263  sock_dtct&lt;socket_input_ct, socket_ostream_ct&gt;; (sz = 100) 
+              <A HREF="#AMO_start">0x813fd80</A>            select.cc:106  list_tct&lt;sbll_list_ct, fd_dct&gt;; (sz = 8)  fd_dct::write_fd_list
+              0x8122360            select.cc:104  <A HREF="#AMO_type">list_tct&lt;sbll_list_ct, fd_dct&gt;</A>; (sz = 8)  fd_dct::readwrite_fd_list
+              0x81221e0            select.cc:102  list_tct&lt;sbll_list_ct, fd_dct&gt;; (sz = 8)  fd_dct::read_fd_list
+              0x80545c8           libcw_app.h:140  reduce_tst_app_ct; (sz = 24)  The application object
+</PRE>
+\endhtmlonly
+
+\subsection AMO_allocator allocator type
+
+A label in the first column of the Allocated memory Overview indicates
+with which type of allocator the memory block was allocated.&nbsp;
+Table&nbsp;3 lists the labels that are being used for each of the
+allocator types (see \link libcw::debug::memblk_types_nt memblk_types_nt \endlink for their meaning).
+
+\htmlonly
+<H5 ALIGN=CENTER>Table 3. The values of memblk_types_nt and the corresponding label in the Allocated memory Overview</H5>
+<CENTER>
+<TABLE BGCOLOR=Wheat BORDERCOLOR=#503c2c WIDTH=577 BORDER=1 CELLPADDING=4 CELLSPACING=0>
+  <TR>
+    <TD BGCOLOR="#a98061"><FONT COLOR="#ffffff">Type</FONT></TD>
+    <TD BGCOLOR="#a98061"><FONT COLOR="#ffffff">Label</FONT></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_new</CODE></TD>
+    <TD>&nbsp;</TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_deleted</CODE></TD>
+    <TD><CODE>(deleted)</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_new_array</CODE></TD>
+    <TD><CODE>new[]</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_deleted_array</CODE></TD>
+    <TD><CODE>(deleted)</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_malloc</CODE></TD>
+    <TD><CODE>malloc</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_realloc</CODE></TD>
+    <TD><CODE>realloc</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_freed</CODE></TD>
+    <TD><CODE>(freed)</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_noheap</CODE></TD>
+    <TD><CODE>(NO HEAP)</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_removed</CODE></TD>
+    <TD><CODE>(No heap)</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_marker</CODE></TD>
+    <TD><CODE>(MARKER)</CODE></TD>
+  </TR>
+  <TR>
+    <TD><CODE>memblk_type_deleted_marker</CODE></TD>
+    <TD><CODE>(deleted)</CODE></TD>
+  </TR>
+</TABLE>
+</CENTER>
+\endhtmlonly
+
+\subsection AMO_start start address
+
+The second column of the Allocated memory Overview gives the hexadecimal start address of the allocated memory block.&nbsp;
+This is the value returned by the allocator (<CODE>malloc</CODE>, <CODE>new</CODE> etc).&nbsp;
+Note that, when \ref enable_libcwd_magic "DEBUGMAGICMALLOC" is defined, a magic number is
+put <I>in front of</I> this hexadecimal start address.&nbsp;
+The result is that you can ignore completely whether or not DEBUGMAGICMALLOC is defined, in your own program.
+
+\subsection AMO_location source file location
+
+The third column of the Allocated memory Overview gives the source file
+location where the memory was allocated, or reallocated in the case of
+of <CODE>realloc</CODE>.&nbsp;
+The format is <TT><filename>:<line number></TT>.
+
+When the allocation is done in an object file without debug information
+and no source file or line number is known, then instead the name of the
+function in which the allocation was done is given.
+
+\subsection AMO_type type
+
+The fourth column of the Allocated memory Overview starts with the <TT>type</TT> of the allocated object
+(i.e., the <CODE>class</CODE> name).&nbsp;
+This information is only available when <CODE>AllocTag()</CODE>
+was called correctly for this allocation.&nbsp;
+Otherwise <TT><unknown type></TT> is shown instead.
+
+The given <TT>type</TT> is derived, but different,
+from what \ref libcw::debug::type_info_ct::demangled_name "type_info_ct::demangled_name()" returns.&nbsp;
+The <CODE>*</CODE> at the end of the type of the pointer is omitted when the
+memory block was allocated with <CODE>new</CODE>, it is replaced with
+<CODE>[<I>size</I>]</CODE> when the memory block was allocated with
+<CODE>new[]</CODE> and it is replaced with <CODE>[]</CODE> when the memory
+block was allocated with <CODE>malloc</CODE>.
+
+Examples were already given, but a summary is given in table 4 nonetheless.&nbsp;
+The <I><length></I> that is given between square brackets is the <I>rounded down</I> value of the size
+of the allocated memory block divided by the size of the object that is being pointed to.&nbsp;
+This will always be accurate for an <CODE>operator new []</CODE> of course,
+but its kinda fuzzy for an allocation with <CODE>malloc</CODE> et al.
+
+\htmlonly
+<H5 ALIGN=CENTER>Table 4. The format of the <I>type</I> field in the Allocated memory Overview, as function of the allocator.</H5>
+<CENTER>
+<TABLE BGCOLOR=Wheat BORDERCOLOR=#503c2c BORDER=1 CELLPADDING=4 CELLSPACING=0>
+<TR>
+  <TR>
+    <TD BGCOLOR="#a98061">
+      <FONT COLOR="#ffffff">Allocator</FONT>
+    </TD>
+    <TD BGCOLOR="#a98061">
+      <FONT COLOR="#ffffff">Type</FONT>
+    </TD>
+    <TD BGCOLOR="#a98061">
+      <FONT COLOR="#ffffff">Format</FONT>
+    </TD>
+  </TR>
+  <TR>
+    <TD>
+      <CODE>malloc/calloc/realloc</CODE>
+    </TD>
+    <TD>
+      <CODE>void*</CODE>
+    </TD>
+    <TD>
+      <CODE>void*</CODE>
+    </TD>
+  </TR>
+  <TR>
+    <TD>
+      <CODE>malloc/calloc/realloc</CODE>
+    </TD>
+    <TD>
+      <CODE>int*</CODE>
+    </TD>
+    <TD>
+      <CODE>int [<I>&lt;length&gt;</I>]</CODE>
+    </TD>
+  </TR>
+  <TR>
+    <TD>
+      <CODE>new</CODE>
+    </TD>
+    <TD>
+      <CODE>MyClass*</CODE>
+    </TD>
+    <TD>
+      <CODE>MyClass</CODE>
+    </TD>
+  </TR>
+  <TR>
+    <TD>
+      <CODE>new []</CODE>
+    </TD>
+    <TD>
+      <CODE>MyClass*</CODE>
+    </TD>
+    <TD>
+      <CODE>MyClass [<I>&lt;length&gt;</I>]</CODE>
+    </TD>
+  </TR>
+</TABLE>
+</CENTER>
+\endhtmlonly
+
+\subsection AMO_size size
+
+The number of allocated bytes is printed as
+<TT>(sz&nbsp;=&nbsp;</TT><I><size></I><TT>)</TT>,
+where <I><size></I> is the size of the returned memory block in bytes.
+
+\subsection AMO_description description
+
+Finally, the description that was passed along with <CODE>AllocTag()</CODE> is printed.
+
+*/

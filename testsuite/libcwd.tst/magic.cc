@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -15,10 +15,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <cstdio>
+#include <iostream>
 #include <unistd.h>
 #include <libcw/debug.h>
-
-RCSTAG_CC("$Id$")
 
 int main(void)
 {

@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -45,15 +45,13 @@ extern link_map* _dl_loaded;
 #endif
 #include <cstdio>		// Needed for vsnprintf.
 #include <algorithm>
-#include <libcw/debug.h>
-#include <libcw/bfd.h>
+#include "cwd_debug.h"
+#include "ios_base_Init.h"
 #ifdef CWDEBUG_DLOPEN_DEFINED
 #undef dlopen
 #undef dlclose
 #endif
-#include <libcw/exec_prog.h>
-#include <libcw/cwprint.h>
-#include <libcw/demangle.h>
+#include "exec_prog.h"
 #ifdef DEBUGUSEGNULIBBFD
 #if defined(BFD64) && !BFD_HOST_64BIT_LONG && defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)
 // libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
@@ -62,28 +60,59 @@ extern link_map* _dl_loaded;
 #error "Incompatible libbfd and libstdc++ (see comments in source code)."
 #endif
 #else // !DEBUGUSEGNULIBBFD
-#include <libcw/elf32.h>
+#include "elf32.h"
 #endif // !DEBUGUSEGNULIBBFD
 
-#ifdef DEBUGDEBUGBFD
-#include <iomanip>
-#endif
-
-RCSTAG_CC("$Id$")
-
-using namespace std;
+#ifdef LIBCWD_THREAD_SAFE
+using libcw::debug::_private_::rwlock_tct;
+using libcw::debug::_private_::mutex_tct;
+using libcw::debug::_private_::object_files_instance;
+using libcw::debug::_private_::dlopen_map_instance;
+#define BFD_ACQUIRE_WRITE_LOCK	        rwlock_tct<object_files_instance>::wrlock();
+#define BFD_RELEASE_WRITE_LOCK	        rwlock_tct<object_files_instance>::wrunlock();
+#define BFD_ACQUIRE_READ_LOCK	        rwlock_tct<object_files_instance>::rdlock();
+#define BFD_RELEASE_READ_LOCK	        rwlock_tct<object_files_instance>::rdunlock();
+#define BFD_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<object_files_instance>::rd2wrlock();
+#define BFD_ACQUIRE_WRITE2READ_LOCK     rwlock_tct<object_files_instance>::wr2rdlock();
+#define DLOPEN_MAP_ACQUIRE_LOCK	        mutex_tct<dlopen_map_instance>::lock();
+#define DLOPEN_MAP_RELEASE_LOCK	        mutex_tct<dlopen_map_instance>::unlock();
+#else // !LIBCWD_THREAD_SAFE
+#define BFD_ACQUIRE_WRITE_LOCK
+#define BFD_RELEASE_WRITE_LOCK
+#define BFD_ACQUIRE_READ_LOCK
+#define BFD_RELEASE_READ_LOCK
+#define BFD_ACQUIRE_READ2WRITE_LOCK
+#define BFD_ACQUIRE_WRITE2READ_LOCK
+#define DLOPEN_MAP_ACQUIRE_LOCK
+#define DLOPEN_MAP_RELEASE_LOCK
+#endif // !LIBCWD_THREAD_SAFE
 
 extern char** environ;
 
 namespace libcw {
   namespace debug {
 
+    extern void demangle_symbol(char const* in, _private_::internal_string& out);
+
     // New debug channel
     namespace channels {
       namespace dc {
-	channel_ct const bfd("BFD");
+	/** \addtogroup group_default_dc */
+	/* \{ */
+
+	/** The BFD channel. */
+	channel_ct bfd
+#ifndef HIDE_FROM_DOXYGEN
+	  ("BFD")
+#endif
+	  ;
+
+	/** \} */
       }
     }
+
+    using _private_::set_alloc_checking_on;
+    using _private_::set_alloc_checking_off;
 
     // Local stuff
     namespace cwbfd {
@@ -111,7 +140,7 @@ inline bool bfd_check_format(bfd const* abfd, int) { return abfd->check_format()
 inline uint32_t bfd_get_file_flags(bfd const* abfd) { return abfd->has_syms() ? HAS_SYMS : 0; }
 inline long bfd_get_symtab_upper_bound(bfd* abfd) { return abfd->get_symtab_upper_bound(); }
 inline long bfd_canonicalize_symtab(bfd* abfd, asymbol** symbol_table) { return abfd->canonicalize_symtab(symbol_table); }
-inline bool bfd_is_abs_section(asection const* sect) { return (sect == elf32::absolute_section); }
+inline bool bfd_is_abs_section(asection const* sect) { return (sect == elf32::absolute_section_c); }
 inline bool bfd_is_com_section(asection const* sect) { return false; }
 inline bool bfd_is_ind_section(asection const* sect) { return false; }
 inline bool bfd_is_und_section(asection const* sect) { return false; }
@@ -131,14 +160,15 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	va_end(vl);
 	if (len >= buf_size)
 	{
-	  set_alloc_checking_off();
+	  LIBCWD_TSD_DECLARATION
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  char* bufp = new char[len + 1];
-	  set_alloc_checking_on();
+	  set_alloc_checking_on(LIBCWD_TSD);
 	  vsnprintf(bufp, sizeof(buf), format, vl);
 	  Dout(dc::bfd, buf);
-	  set_alloc_checking_off();
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  delete [] bufp;
-	  set_alloc_checking_on();
+	  set_alloc_checking_on(LIBCWD_TSD);
 	}
 	else
 	  Dout(dc::bfd, buf);
@@ -164,10 +194,16 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       };
 
       // cwbfd::
-      typedef set<symbol_ct, symbol_key_greater> function_symbols_ct;
+      typedef std::set<symbol_ct, symbol_key_greater, _private_::object_files_allocator::rebind<symbol_ct>::other> function_symbols_ct;
 
       // cwbfd::
-      class object_file_ct {
+      class object_file_ct;
+
+      // cwbfd::
+      typedef std::list<object_file_ct*, _private_::object_files_allocator> object_files_ct;
+
+      // cwbfd::
+      class object_file_ct {					// All allocations related to object_file_ct must be `internal'.
       private:
 	bfd* abfd;
 	void* lbase;
@@ -187,6 +223,10 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	long get_number_of_symbols(void) const { return number_of_symbols; }
 	function_symbols_ct& get_function_symbols(void) { return function_symbols; }
 	function_symbols_ct const& get_function_symbols(void) const { return function_symbols; }
+      private:
+	friend object_files_ct const& NEEDS_READ_LOCK_object_files(void);	// Need access to `ST_list_instance'.
+	friend object_files_ct& NEEDS_WRITE_LOCK_object_files(void);		// Need access to `ST_list_instance'.
+	static char ST_list_instance[sizeof(object_files_ct)];
       };
 
       // cwbfd::
@@ -225,76 +265,85 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	return symbol_start_addr(a.symbol) >= reinterpret_cast<char const*>(symbol_start_addr(b.symbol)) + symbol_size(b.symbol);
       }
 
-      // Global object (but libcwd must stay independent of stuff in libcw/kernel, so we don't use Global<>)
       // cwbfd::
-      typedef list<object_file_ct*> object_files_ct;
-      // cwbfd::
-      static char object_files_instance_[sizeof(object_files_ct)] __attribute__((__aligned__));
-      // cwbfd::
-      object_files_ct& object_files(void) { return *reinterpret_cast<object_files_ct*>(object_files_instance_); }
+      char object_file_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
 
       // cwbfd::
-      object_file_ct* find_object_file(void const* addr)
+      inline object_files_ct const& NEEDS_READ_LOCK_object_files(void)
       {
-	object_files_ct::iterator i(object_files().begin());
-	for(; i != object_files().end(); ++i)
-	  if ((*i)->get_lbase() < addr && (char*)(*i)->get_lbase() + (*i)->size() > addr)
-	    break;
-	return (i != object_files().end()) ? (*i) : NULL;
+	return *reinterpret_cast<object_files_ct const*>(object_file_ct::ST_list_instance);
       }
 
       // cwbfd::
-      object_file_ct* find_object_file(bfd const* abfd)
+      inline object_files_ct& NEEDS_WRITE_LOCK_object_files(void)
       {
-	object_files_ct::iterator i(object_files().begin());
-	for(; i != object_files().end(); ++i)
+	return *reinterpret_cast<object_files_ct*>(object_file_ct::ST_list_instance);
+      }
+
+      // cwbfd::
+      object_file_ct* NEEDS_READ_LOCK_find_object_file(void const* addr)
+      {
+	object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
+	for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
+	  if ((*i)->get_lbase() < addr && (char*)(*i)->get_lbase() + (*i)->size() > addr)
+	    break;
+	return (i != NEEDS_READ_LOCK_object_files().end()) ? (*i) : NULL;
+      }
+
+      // cwbfd::
+      object_file_ct* NEEDS_READ_LOCK_find_object_file(bfd const* abfd)
+      {
+	object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
+	for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
 	  if ((*i)->get_bfd() == abfd)
 	    break;
-	return (i != object_files().end()) ? (*i) : NULL;
+	return (i != NEEDS_READ_LOCK_object_files().end()) ? (*i) : NULL;
       }
 
       // cwbfd::
       struct symbol_less {
-	bool operator()(asymbol const* a, asymbol const* b) const
-	{
-	  if (a == b)
-	    return false;
-	  if (bfd_get_section(a)->vma + a->value < bfd_get_section(b)->vma + b->value)
-	    return true;
-	  else if (bfd_get_section(a)->vma + a->value > bfd_get_section(b)->vma + b->value)
-	    return false;
-	  else if (!(a->flags & BSF_FUNCTION) && (b->flags & BSF_FUNCTION))
-	    return true;
-	  else if ((a->flags & BSF_FUNCTION) && !(b->flags & BSF_FUNCTION))
-	    return false;
-	  else if (*a->name == '.')
-	    return true;
-	  else if (*b->name == '.')
-	    return false;
-	  else if (!strcmp(a->name, "gcc2_compiled."))
-	    return true;
-	  else if (!strcmp(b->name, "gcc2_compiled."))
-	    return false;
-	  else if (!strcmp(a->name, "force_to_data"))
-	    return true;
-	  else if (!strcmp(b->name, "force_to_data"))
-	    return false;
-	  else if (!(a->flags & BSF_GLOBAL) && (b->flags & BSF_GLOBAL))
-	    return true;
-	  else if ((a->flags & BSF_GLOBAL) && !(b->flags & BSF_GLOBAL))
-	    return false;
-	  else if (!(a->flags & BSF_LOCAL) && (b->flags & BSF_LOCAL))
-	    return true;
-	  else if ((a->flags & BSF_LOCAL) && !(b->flags & BSF_LOCAL))
-	    return false;
-	  else if (!(a->flags & BSF_OBJECT) && (b->flags & BSF_OBJECT))
-	    return true;
-	  else if ((a->flags & BSF_OBJECT) && !(b->flags & BSF_OBJECT))
-	    return false;
-	  // Lets hope that IF it matters, that a long name is more important ;)
-	  return (strlen(a->name) < strlen(b->name));
-	}
+	bool operator()(asymbol const* a, asymbol const* b) const;
       };
+
+      bool symbol_less::operator()(asymbol const* a, asymbol const* b) const
+      {
+	if (a == b)
+	  return false;
+	if (bfd_get_section(a)->vma + a->value < bfd_get_section(b)->vma + b->value)
+	  return true;
+	else if (bfd_get_section(a)->vma + a->value > bfd_get_section(b)->vma + b->value)
+	  return false;
+	else if (!(a->flags & BSF_FUNCTION) && (b->flags & BSF_FUNCTION))
+	  return true;
+	else if ((a->flags & BSF_FUNCTION) && !(b->flags & BSF_FUNCTION))
+	  return false;
+	else if (*a->name == '.')
+	  return true;
+	else if (*b->name == '.')
+	  return false;
+	else if (!strcmp(a->name, "gcc2_compiled."))
+	  return true;
+	else if (!strcmp(b->name, "gcc2_compiled."))
+	  return false;
+	else if (!strcmp(a->name, "force_to_data"))
+	  return true;
+	else if (!strcmp(b->name, "force_to_data"))
+	  return false;
+	else if (!(a->flags & BSF_GLOBAL) && (b->flags & BSF_GLOBAL))
+	  return true;
+	else if ((a->flags & BSF_GLOBAL) && !(b->flags & BSF_GLOBAL))
+	  return false;
+	else if (!(a->flags & BSF_LOCAL) && (b->flags & BSF_LOCAL))
+	  return true;
+	else if ((a->flags & BSF_LOCAL) && !(b->flags & BSF_LOCAL))
+	  return false;
+	else if (!(a->flags & BSF_OBJECT) && (b->flags & BSF_OBJECT))
+	  return true;
+	else if ((a->flags & BSF_OBJECT) && !(b->flags & BSF_OBJECT))
+	  return false;
+	// Lets hope that IF it matters, that a long name is more important ;)
+	return (strlen(a->name) < strlen(b->name));
+      }
 
       // cwbfd::
       void* const unknown_l_addr = (void*)-1;
@@ -303,7 +352,10 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
       {
 #ifdef DEBUGDEBUGMALLOC
-	CWASSERT( libcw::debug::_internal_::internal );
+	{
+	  LIBCWD_TSD_DECLARATION
+	  LIBCWD_ASSERT( __libcwd_tsd.internal );
+	}
 #endif
 
 	abfd = bfd_openr(filename, NULL);
@@ -362,7 +414,6 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #endif
 
 	symbol_table = (asymbol**) malloc(storage_needed);
-	AllocTag_dynamic_description(symbol_table, "symbols of " << filename);
 
 	number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
 #ifdef DEBUGUSEGNULIBBFD
@@ -412,7 +463,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  if (lbase == unknown_l_addr)
 	  {
 #ifdef HAVE_DLOPEN
-	    libcw::debug::_internal_::internal = false;
+	    LIBCWD_TSD_DECLARATION
+	    int saved_internal = __libcwd_tsd.internal;
+	    __libcwd_tsd.internal = 0;
 	    void* handle = ::dlopen(filename, RTLD_LAZY);
 	    if (!handle)
 	    {
@@ -422,13 +475,13 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    char* val;
 	    if (s_end_vma && (val = (char*)dlsym(handle, "_end")))	// dlsym will fail when _end is a local symbol.
 	    {
-	      libcw::debug::_internal_::internal = true;
+	      __libcwd_tsd.internal = saved_internal;
 	      lbase = val - s_end_vma;
 	    }
 	    else
 #ifdef HAVE_LINK_H
             {
-	      libcw::debug::_internal_::internal = true;
+	      __libcwd_tsd.internal = saved_internal;
 	      for(link_map* p = _dl_loaded; p; p = p->l_next)
 	        if (!strcmp(p->l_name, filename))
 		{
@@ -438,9 +491,10 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    }
 #else // !HAVE_LINK_H
 	    {
-	      libcw::debug::_internal_::internal = true;
+	      __libcwd_tsd.internal = saved_internal;
 	      // The following code uses a heuristic approach to guess the start of an object file.
-	      map<void*, unsigned int> start_values;
+	      typedef std::map<void*, unsigned int, std::less<void*>, _private_::internal_allocator::rebind<void*>::other> start_values_map_ct;
+	      start_values_map_ct start_values;
 	      unsigned int best_count = 0;
 	      void* best_start = 0;
 	      for (asymbol** s = symbol_table; s <= &symbol_table[number_of_symbols - 1]; ++s)
@@ -450,13 +504,13 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 		asection const* sect = bfd_get_section(*s);
 		if (sect->name[1] == 't' && !strcmp(sect->name, ".text"))
 		{
-		  libcw::debug::_internal_::internal = false;
+		  __libcwd_tsd.internal = 0;
 		  void* val = dlsym(handle, (*s)->name);
 		  if (dlerror() == NULL)
 		  {
-		    libcw::debug::_internal_::internal = true;
+		    __libcwd_tsd.internal = saved_internal;
 		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->vma;
-		    pair<map<void*, unsigned int>::iterator, bool> p = start_values.insert(pair<void* const, unsigned int>(start, 0));
+		    std::pair<start_values_map_ct::iterator, bool> p = start_values.insert(std::pair<void* const, unsigned int>(start, 0));
 		    if (++(*(p.first)).second > best_count)
 		    {
 		      best_start = start;
@@ -465,7 +519,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 		    }
 		  }
 		  else
-		    libcw::debug::_internal_::internal = true;
+		    __libcwd_tsd.internal = saved_internal;
 		}
 	      }
 	      if (best_count < 3)
@@ -475,17 +529,17 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 		symbol_table  = NULL;
 		bfd_close(abfd);
 		number_of_symbols = 0;
-		libcw::debug::_internal_::internal = false;
+		__libcwd_tsd.internal = 0;
 		::dlclose(handle);
-		libcw::debug::_internal_::internal = true;
+		__libcwd_tsd.internal = saved_internal;
 		return;
 	      }
 	      lbase = best_start;
 	    }
 #endif // !HAVE_LINK_H
-	    libcw::debug::_internal_::internal = false;
+	    __libcwd_tsd.internal = 0;
 	    ::dlclose(handle);
-	    libcw::debug::_internal_::internal = true;
+	    __libcwd_tsd.internal = saved_internal;
 	    Dout(dc::continued, '(' << lbase << ") ... ");
 #else // !HAVE_DLOPEN
 	    DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure.");
@@ -506,7 +560,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  }
 
 	  // Sort the symbol table in order of start address.
-	  sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
+	  std::sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
 
 	  // Calculate sizes for every symbol
 	  for (int i = 0; i < number_of_symbols - 1; ++i)
@@ -545,15 +599,18 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	}
 
 	if (number_of_symbols > 0)
-	  object_files().push_back(this);
+	  NEEDS_WRITE_LOCK_object_files().push_back(this);
       }
 
       // cwbfd::
       object_file_ct::~object_file_ct()
       {
-        list<object_file_ct*>::iterator iter(find(object_files().begin(), object_files().end(), this));
-	if (iter != object_files().end())
-	  object_files().erase(iter);
+#if defined(LIBCWD_THREAD_SAFE) && defined(DEBUGDEBUG)
+	LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
+#endif
+	object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(), NEEDS_WRITE_LOCK_object_files().end(), this));
+	if (iter != NEEDS_WRITE_LOCK_object_files().end())
+	  NEEDS_WRITE_LOCK_object_files().erase(iter);
       }
 
       // cwbfd::
@@ -596,12 +653,12 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       // cwbfd::
-      string* argv0_ptr;
+      _private_::ST_internal_string* ST_argv0_ptr;		// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
       // cwbfd::
-      string const* pidstr_ptr;
+      _private_::ST_internal_string const* ST_pidstr_ptr;	// MT: Set in `ST_get_full_path_to_executable', used in `ST_decode_ps'.
 
       // cwbfd::
-      int decode_ps(char const* buf, size_t len)
+      int ST_decode_ps(char const* buf, size_t len)	// MT: Single Threaded function.
       {
 	static int pid_token = 0;
 	static int command_token = 0;
@@ -610,7 +667,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	bool found_PID = false;
 	bool eating_token = false;
 	size_t current_column = 1;
-	string token;
+	_private_::ST_internal_string token;
 
 	for (char const* p = buf; p < &buf[len]; ++p, ++current_column)
 	{
@@ -632,11 +689,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  {
 	    if (*p == ' ' || *p == '\t' || *p == '\n')
 	    {
-	      if (pid_token == current_token && token == *pidstr_ptr)
+	      if (pid_token == current_token && token == *ST_pidstr_ptr)
 		found_PID = true;
 	      else if (found_PID && (command_token == current_token || current_column >= command_column))
 	      {
-		*argv0_ptr = token + '\0';
+		*ST_argv0_ptr = token + '\0';
 		return 0;
 	      }
 	      else if (pid_token == 0 && token == "PID")
@@ -673,9 +730,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // program.
       // 
       // cwbfd::
-      void get_full_path_to_executable(string& result)
+      void ST_get_full_path_to_executable(_private_::ST_internal_string& result)
       {
-	string argv0;		// Like main()s argv[0], thus must be zero terminated.
+	_private_::ST_internal_string argv0;		// Like main()s argv[0], thus must be zero terminated.
 	char buf[6];
 	char* p = &buf[5];
 	*p = 0;
@@ -686,7 +743,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	strcpy(proc_path, "/proc/");
 	strcpy(proc_path + 6, p);
 	strcat(proc_path, "/cmdline");
-	ifstream proc_file(proc_path);
+	std::ifstream proc_file(proc_path);
 
 	if (proc_file)
 	{
@@ -695,7 +752,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	}
 	else
 	{
-	  string pidstr;
+	  _private_::ST_internal_string pidstr;
 
 	  size_t const max_pidstr = sizeof("65535\0");
 	  char pidstr_buf[max_pidstr];
@@ -714,19 +771,19 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  argv[2] = p;
 	  argv[3] = NULL;
 
-	  argv0_ptr = &argv0;		// Ugly way to pass these strings to decode_ps:
-	  pidstr_ptr = &pidstr;		// pidstr is input, argv0 is output.
+	  ST_argv0_ptr = &argv0;	// Ugly way to pass these ST_internal_strings to ST_decode_ps:
+	  ST_pidstr_ptr = &pidstr;	// pidstr is input, argv0 is output.
 
-	  if (exec_prog(ps_prog, argv, environ, decode_ps) == -1 || argv0.empty())
+	  if (ST_exec_prog(ps_prog, argv, environ, ST_decode_ps) == -1 || argv0.empty())
 	    DoutFatal(dc::fatal|error_cf, "Failed to execute \"" << ps_prog << "\"");
 	}
 
-	if (argv0.find('/') == string::npos)
+	if (argv0.find('/') == _private_::ST_internal_string::npos)
 	{
-	  string prog_name(argv0);
-	  string path_list(getenv("PATH"));
-	  string::size_type start_pos = 0, end_pos;
-	  string path;
+	  _private_::ST_internal_string prog_name(argv0);
+	  _private_::ST_internal_string path_list(getenv("PATH"));
+	  _private_::ST_internal_string::size_type start_pos = 0, end_pos;
+	  _private_::ST_internal_string path;
 	  struct stat finfo;
 	  prog_name += '\0';
 	  for (;;)
@@ -745,7 +802,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 		break;
 	      }
 	    }
-	    if (end_pos == string::npos)
+	    if (end_pos == _private_::ST_internal_string::npos)
 	      break;
 	    start_pos = end_pos + 1;
 	  }
@@ -758,11 +815,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  DoutFatal(dc::fatal|error_cf, "realpath(\"" << argv0.data() << "\", full_path_buf)");
 
 	Dout(dc::debug, "Full path to executable is \"" << full_path << "\".");
-	result = full_path;
+	result.assign(full_path);
       }
 
       // cwbfd::
-      static bool initialized = false;
+      static bool WST_initialized = false;			// MT: Set here to false, set to `true' once in `cwbfd::ST_init'.
 
       // cwbfd::
       struct my_link_map {
@@ -778,10 +835,12 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       };
 
       // cwbfd::
-      vector<my_link_map> shared_libs;
+      typedef _private_::internal_vector<my_link_map> ST_shared_libs_vector_ct;
+      ST_shared_libs_vector_ct ST_shared_libs;			// Written to only in `ST_decode_ldd' which is called from
+      								// `cwbfd::ST_init' and read from in a later part of `cwbfd::ST_init'.
 
       // cwbfd::
-      int decode(char const* buf, size_t len)
+      int ST_decode_ldd(char const* buf, size_t len)
       {
 	for (char const* p = buf; p < &buf[len]; ++p)
 	  if (p[0] == '=' && p[1] == '>' && p[2] == ' ' || p[2] == '\t')
@@ -795,7 +854,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	    for (q = p; q < &buf[len] && *q > ' '; ++q);
 	    if (*q == '\n')	// This ldd doesn't return an offset (ie, on solaris).
 	    {
-	      shared_libs.push_back(my_link_map(p, q - p, unknown_l_addr));
+	      ST_shared_libs.push_back(my_link_map(p, q - p, unknown_l_addr));
 	      break;
 	    }
 	    for (char const* r = q; r < &buf[len]; ++r)
@@ -803,7 +862,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	      {
 		char* s;
 		void* addr = reinterpret_cast<void*>(strtol(++r, &s, 0));
-		shared_libs.push_back(my_link_map(p, q - p, addr));
+		ST_shared_libs.push_back(my_link_map(p, q - p, addr));
 		break;
 	      }
 	    break;
@@ -837,7 +896,10 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       // cwbfd::
       object_file_ct* load_object_file(char const* name, void* l_addr)
       {
-	CWASSERT( libcw::debug::_internal_::internal );
+	{
+	  LIBCWD_TSD_DECLARATION
+	  LIBCWD_ASSERT( __libcwd_tsd.internal );
+	}
         if (l_addr == unknown_l_addr)
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << ' ');
 	else if (l_addr == 0)
@@ -847,7 +909,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	object_file_ct* object_file = new object_file_ct(name, l_addr);
 	if (object_file->get_number_of_symbols() > 0)
 	{
-	  Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+	  Dout(dc::finish, "done (" << std::dec << object_file->get_number_of_symbols() << " symbols)");
 #ifdef DEBUGDEBUGBFD
 	  dump_object_file_symbols(object_file);
 #endif
@@ -862,18 +924,22 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
       }
 
       // cwbfd::
-      int init(void)
+      bool ST_init(void)
       {
-	static bool being_initialized = false;
+	static bool WST_being_initialized = false;
 	// This should catch it when we call new or malloc while 'internal'.
-	if (being_initialized)
-	{
-#ifdef DEBUGMALLOC
-	  libcw::debug::_internal_::internal = false;
+	if (WST_being_initialized)
+	  return false;
+	WST_being_initialized = true;
+
+        // MT: We assume this is called before reaching main().
+	//     Therefore, no synchronisation is required.
+#if defined(DEBUGDEBUG) && defined(LIBCWD_THREAD_SAFE)
+	if (_private_::WST_multi_threaded)
+	  core_dump();
 #endif
-	  DoutFatal(dc::core, "Bug in libcwd: libcw_bfd_init() called twice or recursively entering itself!  Please submit a full bug report to libcw@alinoe.com.");
-	}
-	being_initialized = true;
+
+	LIBCWD_TSD_DECLARATION
 
 #if defined(DEBUGDEBUG) && defined(DEBUGMALLOC)
 	// First time we get here, this string is intialized - this must be with `internal' off!
@@ -881,13 +947,13 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	if (!second_time)
 	{
 	  second_time = true;
-	  CWASSERT( !libcw::debug::_internal_::internal );
+	  LIBCWD_ASSERT( !__libcwd_tsd.internal );
 	}
 #endif
 
 	// ****************************************************************************
 	// Start INTERNAL!
-	set_alloc_checking_off();
+	set_alloc_checking_off(LIBCWD_TSD);
 
 #ifdef DEBUGMALLOC
 	// Initialize the malloc library if not done yet.
@@ -910,22 +976,38 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  Debug( dc::bfd.on() );
 #endif
 
-	// Initialize object files list
-	new (object_files_instance_) object_files_ct;
+	// Initialize object files list, we don't really need the
+	// write lock because this function is Single Threaded.
+	new (&NEEDS_WRITE_LOCK_object_files()) object_files_ct;
 
 #ifdef DEBUGUSEGNULIBBFD
 	bfd_init();
 #endif
 
 	// Get the full path and name of executable
-	struct non_alloc_checking_string_st {
-	  string* value;
-          non_alloc_checking_string_st(void) { value = new string; }	// alloc checking already off.
-	  ~non_alloc_checking_string_st() { set_alloc_checking_off(); delete value; set_alloc_checking_on(); }
+	struct static_internal_string {
+	  _private_::ST_internal_string* value;
+          static_internal_string(void)
+	      {
+		value = new _private_::ST_internal_string;	// alloc checking already off.
+	      }
+	  ~static_internal_string()
+	      {
+		LIBCWD_TSD_DECLARATION
+		set_alloc_checking_off(LIBCWD_TSD);
+#if defined(DEBUGDEBUG) && defined(LIBCWD_THREAD_SAFE)
+		_private_::WST_multi_threaded = false;		// `fullpath' is static and will only be destroyed from exit().
+#endif
+		delete value;
+#if defined(DEBUGDEBUG) && defined(LIBCWD_THREAD_SAFE)
+		_private_::WST_multi_threaded = true;		// Make sure we catch other global strings (in order to avoid a static destructor ordering fiasco).
+#endif
+		set_alloc_checking_on(LIBCWD_TSD);
+	      }
         };
-	static non_alloc_checking_string_st fullpath;	// Must be static because bfd keeps a pointer to its data()
-	get_full_path_to_executable(*fullpath.value);
-	*fullpath.value += '\0';			// Make string null terminated so we can use data().
+	static static_internal_string fullpath;			// Must be static because bfd keeps a pointer to its data()
+	ST_get_full_path_to_executable(*fullpath.value);
+	*fullpath.value += '\0';				// Make string null terminated so we can use data().
 
 #ifdef DEBUGUSEGNULIBBFD
 	bfd_set_error_program_name(fullpath.value->data() + fullpath.value->find_last_of('/') + 1);
@@ -933,6 +1015,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #endif
 
 	// Load executable
+	// No write lock is really needed because this is a Single Threaded function,
+	// but the sanity checks inside the allocators used in load_object_file()
+	// require the lock to be set.  Fortunately is therefore also doesn't hurt
+	// that we keep the lock a long time (during the execution of ldd_prog).
+        BFD_ACQUIRE_WRITE_LOCK
 	load_object_file(fullpath.value->data(), 0);
 
 	// Load all shared objects
@@ -944,9 +1031,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	argv[0] = "ldd";
 	argv[1] = fullpath.value->data();
 	argv[2] = NULL;
-	exec_prog(ldd_prog, argv, environ, decode);
+	ST_exec_prog(ldd_prog, argv, environ, ST_decode_ldd);
 
-	for(vector<my_link_map>::iterator iter = shared_libs.begin(); iter != shared_libs.end(); ++iter)
+	for(ST_shared_libs_vector_ct::iterator iter = ST_shared_libs.begin(); iter != ST_shared_libs.end(); ++iter)
 	{
 	  my_link_map* l = &(*iter);
 #else
@@ -956,7 +1043,8 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  if (l->l_addr)
 	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	}
-	object_files().sort(object_file_greater());
+	NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
+	BFD_RELEASE_WRITE_LOCK
 
 #ifdef ALWAYS_PRINT_LOADING
 	if (libcwd_was_off)
@@ -965,9 +1053,9 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	  Debug( dc::bfd.off() );
 #endif
 
-	initialized = true;
+	WST_initialized = true;			// MT: Safe, this function is Single Threaded.
 
-	set_alloc_checking_on();
+	set_alloc_checking_on(LIBCWD_TSD);
 	// End INTERNAL!
 	// ****************************************************************************
 
@@ -977,19 +1065,21 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
           dump_object_file_symbols(*i);
 #endif
 
-	return 0;
+	return true;
       }
 
       // cwbfd::
       symbol_ct const* pc_symbol(bfd_vma addr, object_file_ct* object_file)
       {
-	static asymbol dummy_symbol;
-	static asection dummy_section;
 	if (object_file)
 	{
-	  // Make symbol_start_addr(&dummy_symbol) and symbol_size(&dummy_symbol) return the correct value
+	  asymbol dummy_symbol;				// A dummy symbol with size 1 and start `addr',
+	  asection dummy_section;
+
+	  // Make symbol_start_addr(&dummy_symbol) and symbol_size(&dummy_symbol) return the correct value:
 	  bfd_asymbol_bfd(&dummy_symbol) = object_file->get_bfd();
-	  dummy_symbol.section = &dummy_section;	// Has dummy_section.vma == 0.  Use dummy_symbol.value to store (value + vma):
+	  dummy_section.vma = 0;			// Use a vma of 0 and
+	  dummy_symbol.section = &dummy_section;	// use dummy_symbol.value to store (value + vma):
 	  dummy_symbol.value = reinterpret_cast<char const*>(addr) - reinterpret_cast<char const*>(object_file->get_lbase());
 	  symbol_size(&dummy_symbol) = 1;
 	  function_symbols_ct::iterator i(object_file->get_function_symbols().find(symbol_ct(&dummy_symbol, true)));
@@ -1008,24 +1098,48 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
     } // namespace cwbfd
 
+    /** \addtogroup group_locations */
+    /** \{ */
+
     char const* const unknown_function_c = "<unknown function>";
 
-    //
-    // Find the mangled function name of the address `addr'.
-    //
+    /**
+     * \brief Find the mangled function name of the address \a addr.
+     *
+     * \returns the same pointer that is returned by location_ct::mangled_function_name() on success,
+     * otherwise \ref unknown_function_c is returned.
+     */
     char const* pc_mangled_function_name(void const* addr)
     {
       using namespace cwbfd;
 
-      if (!initialized)
-	init();
+      if (!WST_initialized	// `WST_initialized' is only false when we are still Single Threaded.
+	  && !ST_init())
+	return unknown_function_c;
 
-      symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, find_object_file(addr));
+      BFD_ACQUIRE_READ_LOCK;
+      symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, NEEDS_READ_LOCK_find_object_file(addr));
+      BFD_RELEASE_READ_LOCK;
 
       if (!symbol)
 	return unknown_function_c;
 
       return symbol->get_symbol()->name;
+    }
+
+    /** \} */	// End of group 'group_locations'.
+
+    struct bfd_location_ct : public location_ct {
+      friend _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, bfd_location_ct const& data);
+    };
+
+    _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, bfd_location_ct const& location)
+    {
+      if (location.M_filepath)
+	os << location.M_filename << ':' << location.M_line;
+      else
+	os << "<unknown location>";
+      return os;
     }
 
     //
@@ -1043,34 +1157,46 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
     // file) and `M_line' (line number), and `M_filename' is set to point to the filename
     // part of `M_filepath'.  If a lookup fails then `M_filepath' is set to NULL.
     //
-    void location_ct::M_pc_location(void const* addr)
+    void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     {
       using namespace cwbfd;
 
-      if (!initialized)
+      if (!WST_initialized)
       {
+	// MT: `WST_initialized' is only false when we're still Single Threaded.
+	//     Therefore it is safe to call ST_* functions.
+
 #ifdef __GLIBCPP__	// Pre libstdc++ v3, there is no malloc done for initialization of cerr.
-        if (!_internal_::ios_base_initialized && _internal_::inside_ios_base_Init_Init())
+        if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
 	{
 	  M_filepath = NULL;
 	  M_func = "<pre ios initialization>";
 	  return;
 	}
 #endif
-	init();
+	if (!ST_init())	// Initialization of BFD code fails?
+	{
+	  M_filepath = NULL;
+	  M_func = "<pre libcwd initialization>";
+	  return;
+	}
       }
 
-      object_file_ct* object_file = find_object_file(addr);
+      BFD_ACQUIRE_READ_LOCK;
+      object_file_ct* object_file = NEEDS_READ_LOCK_find_object_file(addr);
 #ifdef HAVE_LINK_H
       if (!object_file)
       {
-	set_alloc_checking_off();
+	set_alloc_checking_off(LIBCWD_TSD);
         // Try to load everything again... previous loaded libraries are skipped based on load address.
+        BFD_ACQUIRE_READ2WRITE_LOCK;
 	for(link_map* l = _dl_loaded; l;)
 	{
 	  if (l->l_addr)
 	  {
-	    for (object_files_ct::iterator iter = object_files().begin(); iter != object_files().end(); ++iter)
+	    for (object_files_ct::const_iterator iter = NEEDS_READ_LOCK_object_files().begin();
+		 iter != NEEDS_READ_LOCK_object_files().end();
+		 ++iter)
 	      if (reinterpret_cast<void*>(l->l_addr) == (*iter)->get_lbase())
 		goto already_loaded;
 	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
@@ -1078,14 +1204,21 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 already_loaded:
 	  l = l->l_next;
 	}
-	object_files().sort(object_file_greater());
-	set_alloc_checking_on();
-	object_file = find_object_file(addr);
+	NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
+	set_alloc_checking_on(LIBCWD_TSD);
+	object_file = NEEDS_READ_LOCK_find_object_file(addr);
+        BFD_RELEASE_WRITE_LOCK;
       }
+      else
+      {
+        BFD_RELEASE_READ_LOCK;
+      }
+#else
+      BFD_RELEASE_READ_LOCK;
 #endif
       if (!object_file)
       {
-        Dout(dc::bfd, "No object file for address " << addr);
+        LIBCWD_Dout(dc::bfd, "No object file for address " << addr);
 	M_filepath = NULL;
 	M_func = unknown_function_c;
 	return;
@@ -1098,16 +1231,16 @@ already_loaded:
 	bfd* abfd = bfd_asymbol_bfd(p);
 	asection const* sect = bfd_get_section(p);
 	char const* file;
-	CWASSERT( object_file->get_bfd() == abfd );
-	set_alloc_checking_off();
+	LIBCWD_ASSERT( object_file->get_bfd() == abfd );
+	set_alloc_checking_off(LIBCWD_TSD);
 #ifdef DEBUGUSEGNULIBBFD
 	bfd_find_nearest_line(abfd, const_cast<asection*>(sect), const_cast<asymbol**>(object_file->get_symbol_table()),
 	    (char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &M_func, &M_line);
 #else
         abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line);
 #endif
-	set_alloc_checking_on();
-	CWASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
+	set_alloc_checking_on(LIBCWD_TSD);
+	LIBCWD_ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
 	M_func = p->name;
 
 	if (file && M_line)			// When line is 0, it turns out that `file' is nonsense.
@@ -1117,14 +1250,14 @@ already_loaded:
 	  // that will free `file' again a second call to `bfd_find_nearest_line' (for the
 	  // same value of `abfd': the allocated pointer is stored in a structure
 	  // that is kept for each bfd seperately).
-	  // The call to `new char [len + 1]' below could cause this function (pc_location)
+	  // The call to `new char [len + 1]' below could cause this function (M_pc_location)
 	  // to be called again (in order to store the file:line where the allocation
 	  // is done) and thus a new call to `bfd_find_nearest_line', which then would
 	  // free `file' before we copy it!
 	  // Therefore we need to call `set_alloc_checking_off', to prevent this.
-	  set_alloc_checking_off();
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  M_filepath = new char [len + 1];
-	  set_alloc_checking_on();
+	  set_alloc_checking_on(LIBCWD_TSD);
 	  strcpy(M_filepath, file);
 	  M_filename = strrchr(M_filepath, '/') + 1;
 	  if (M_filename == (char const*)1)
@@ -1142,31 +1275,31 @@ already_loaded:
 	    if (!(p->flags & BSF_WARNING_PRINTED))
 	    {
 	      const_cast<asymbol*>(p)->flags |= BSF_WARNING_PRINTED;
-	      set_alloc_checking_off();
+	      set_alloc_checking_off(LIBCWD_TSD);
 	      {
-		string demangled_name;
+		_private_::internal_string demangled_name;		// Alloc checking must be turned off already for this string.
 		demangle_symbol(p->name, demangled_name);
-		set_alloc_checking_on();
+		set_alloc_checking_on(LIBCWD_TSD);
 		char const* ofn = strrchr(abfd->filename, '/');
-		Dout(dc::bfd, "Warning: Address " << addr << " in section " << sect->name <<
+		LIBCWD_Dout(dc::bfd, "Warning: Address " << addr << " in section " << sect->name <<
 		    " of object file \"" << (ofn ? ofn + 1 : abfd->filename) << '"');
-		Dout(dc::bfd|blank_label_cf|blank_marker_cf, "does not have a line number, perhaps the unit containing the function");
-  #ifdef __FreeBSD__
-		Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb?");
-  #else
-		Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g?");
-  #endif
-		set_alloc_checking_off();
+		LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, "does not have a line number, perhaps the unit containing the function");
+#ifdef __FreeBSD__
+		LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb?");
+#else
+		LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g?");
+#endif
+		set_alloc_checking_off(LIBCWD_TSD);
 	      }
-	      set_alloc_checking_on();
+	      set_alloc_checking_on(LIBCWD_TSD);
 	    }
 	  }
 	  else
-	    Dout(dc::bfd, "Warning: Address in section " << sect->name <<
+	    LIBCWD_Dout(dc::bfd, "Warning: Address in section " << sect->name <<
 	        " of object file \"" << abfd->filename << "\" does not contain a function.");
 	}
 	else
-	  Dout(dc::bfd, "address " << addr << dec << " corresponds to " << *this);
+	  LIBCWD_Dout(dc::bfd, "address " << addr << " corresponds to " << *static_cast<bfd_location_ct*>(this));
 	return;
       }
 
@@ -1187,25 +1320,31 @@ already_loaded:
 	M_func = unknown_function_c;
     }
 
+    /**
+     * \brief Reset this location object (frees memory).
+     */
     void location_ct::clear(void)
     {
       if (M_filepath)
       {
-	set_alloc_checking_off();
+	LIBCWD_TSD_DECLARATION
+	set_alloc_checking_off(LIBCWD_TSD);
 	delete [] M_filepath;
 	M_filepath = NULL;
-	set_alloc_checking_on();
+	set_alloc_checking_on(LIBCWD_TSD);
       }
       M_func = "<cleared location_ct>";
     }
 
+    // Undocumented: shouldn't be used I think.
     location_ct::location_ct(location_ct const &prototype) : M_filepath(NULL)
     {
       if (prototype.M_filepath)
       {
-	set_alloc_checking_off();
+	LIBCWD_TSD_DECLARATION
+	set_alloc_checking_off(LIBCWD_TSD);
 	M_filepath = new char [strlen(prototype.M_filepath) + 1];
-	set_alloc_checking_on();
+	set_alloc_checking_on(LIBCWD_TSD);
 	strcpy(M_filepath, prototype.M_filepath);
 	M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
 	M_line = prototype.M_line;
@@ -1213,9 +1352,18 @@ already_loaded:
       }
     }
 
+    /**
+     * \brief Move \p prototype to this location object;
+     *
+     * \p prototype must be \ref is_known "known" and the current object \ref is_known "unknown";
+     * \p prototype is clear()-ed afterwards.
+     */
     void location_ct::move(location_ct& prototype)
     {
-      CWASSERT( !this->is_known() );
+      // MT: This method is used assuming that *only* attributes of the
+      //     location_ct objects `this' and `prototype' are accessed.
+      // (so no locking is needed when the shared objects are known to be unique for the current thread).
+      LIBCWD_ASSERT( !this->is_known() );
       M_filepath = prototype.M_filepath;
       M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
       M_line = prototype.M_line;
@@ -1224,6 +1372,7 @@ already_loaded:
       prototype.M_func = "<moved location_ct>";
     }
 
+    // Undocumented: shouldn't be used I think.
     location_ct& location_ct::operator=(location_ct const &prototype)
     {
       if (this != &prototype)
@@ -1231,9 +1380,10 @@ already_loaded:
 	clear();
 	if (prototype.M_filepath)
 	{
-	  set_alloc_checking_off();
+	  LIBCWD_TSD_DECLARATION
+	  set_alloc_checking_off(LIBCWD_TSD);
 	  M_filepath = new char [strlen(prototype.M_filepath) + 1];
-	  set_alloc_checking_on();
+	  set_alloc_checking_on(LIBCWD_TSD);
 	  strcpy(M_filepath, prototype.M_filepath);
 	  M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
 	  M_line = prototype.M_line;
@@ -1243,7 +1393,14 @@ already_loaded:
       return *this;
     }
 
-    ostream& operator<<(ostream& os, location_ct const& location)
+    /**
+     * \brief Write \a location to ostream \a os.
+     * \ingroup group_locations
+     *
+     * Write the contents of a location_ct object to an ostream in the form "source-%file:line-number",
+     * or writes "<unknown location>" when the location is unknown.
+     */
+    std::ostream& operator<<(std::ostream& os, location_ct const& location)
     {
       if (location.M_filepath)
 	os << location.M_filename << ':' << location.M_line;
@@ -1264,47 +1421,65 @@ struct dlloaded_st {
   dlloaded_st(cwbfd::object_file_ct* object_file, int flags) : M_object_file(object_file), M_flags(flags) { }
 };
 
-typedef map<void*, dlloaded_st> libcwd_dlopen_map_type;
-static libcwd_dlopen_map_type libcwd_dlopen_map;
+namespace libcw {
+  namespace debug {
+    namespace _private_ {
+      typedef std::map<void*, dlloaded_st, std::less<void*>, userspace_allocator::rebind<void*>::other> dlopen_map_ct;
+      static dlopen_map_ct dlopen_map;
+    }
+  }
+}
 
 extern "C" {
   void* __libcwd_dlopen(char const* name, int flags)
   {
-    CWASSERT( !libcw::debug::_internal_::internal );
+    LIBCWD_TSD_DECLARATION
+    LIBCWD_ASSERT( !__libcwd_tsd.internal );
     void* handle = ::dlopen(name, flags);
 #ifdef RTLD_NOLOAD
     if ((flags & RTLD_NOLOAD))
       return handle;
 #endif
-    set_alloc_checking_off();
+    set_alloc_checking_off(LIBCWD_TSD);
+    BFD_ACQUIRE_WRITE_LOCK;
     cwbfd::object_file_ct* object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
-    set_alloc_checking_on();
+    set_alloc_checking_on(LIBCWD_TSD);
     if (object_file)
     {
-      set_alloc_checking_off();
-      cwbfd::object_files().sort(cwbfd::object_file_greater());
-      set_alloc_checking_on();
-      libcwd_dlopen_map.insert(pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
+      set_alloc_checking_off(LIBCWD_TSD);
+      cwbfd::NEEDS_WRITE_LOCK_object_files().sort(cwbfd::object_file_greater());
+      BFD_RELEASE_WRITE_LOCK;
+      set_alloc_checking_on(LIBCWD_TSD);
+      DLOPEN_MAP_ACQUIRE_LOCK;
+      libcw::debug::_private_::dlopen_map.insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
+      DLOPEN_MAP_RELEASE_LOCK;
+    }
+    else
+    {
+      BFD_RELEASE_WRITE_LOCK;
     }
     return handle;
   }
 
   int __libcwd_dlclose(void *handle)
   {
-    CWASSERT( !libcw::debug::_internal_::internal );
+    LIBCWD_TSD_DECLARATION
+    LIBCWD_ASSERT( !__libcwd_tsd.internal );
     int ret = ::dlclose(handle);
-    libcwd_dlopen_map_type::iterator iter(libcwd_dlopen_map.find(handle));
-    if (iter != libcwd_dlopen_map.end())
+    DLOPEN_MAP_ACQUIRE_LOCK;
+    libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map.find(handle));
+    if (iter != libcw::debug::_private_::dlopen_map.end())
     {
 #ifdef RTLD_NODELETE
       if (!((*iter).second.M_flags & RTLD_NODELETE))
       {
-        set_alloc_checking_off();
+        set_alloc_checking_off(LIBCWD_TSD);
 	delete (*iter).second.M_object_file;
-        set_alloc_checking_on();
+        set_alloc_checking_on(LIBCWD_TSD);
       }
 #endif
-      libcwd_dlopen_map.erase(iter);
+      libcw::debug::_private_::dlopen_map.erase(iter);
+      DLOPEN_MAP_RELEASE_LOCK;
     }
     return ret;
   }

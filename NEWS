@@ -1,11 +1,81 @@
-libcwd-0.99.15
+libcwd-0.99.16
 
-	libcwd now works with (single threaded) qt applications.  A few major
-	bugs have been fixed.
+	libcwd is now thread-safe.
+
+	The source file line number lookup was improved for optimized code with
+	inlined functions (-O).
+
+	New configuration option --disable-libcwd-debug-output was added to
+	allow the use of the testsuite together with --enable-libcwd-debug.
+	(You shouldn't use either unless you are hacking libcwd itself).
 
 	Miscellaneous:
 	- The configuration option --disable-libcwd-location is fixed.
 	- Automake-1.5 now works.
+
+	API changes:
+
+	IMPORTANT: Debug channels have globally been renamed to Debug
+	selectors.  The word 'channel' had too much association with output
+	destinations (streams).
+
+	IMPORTANT: 'channel_ct const' -> 'selector_ct'.
+	Debug selectors (previously channels) should no longer be declared
+	constant.  Declarations like
+	libcw::debug::channel_ct const my_channel("FOO");
+	will have to be changed to
+	libcw::debug::selector_ct my_channel("FOO");
+
+	`long memblks()' has been renamed to `unsigned long mem_blocks()'.
+
+	In debug_ct, set_margin, get_margin, set_marker and get_marker are
+	a bit slow for heavy swapping of the margin and marker (std::string
+	is 'slow'); therefore (using internal allocations, which is not
+	possible with std::string (see bug fixes below)) public access
+	to members debug_ct::margin and debug_ct::marker is now granted,
+	providing the following methods of the returned object: size(),
+	c_str() (the terminating zero is already there, this just returns
+	an internal pointer), reserve(), capacity(), append(), prepend()
+	and assign() - all with meanings borrowed from std::string.
+	For example, when capacity() returns a value larger or equal to
+	the length of a string that would result from a call to append(),
+	then calling append is garanteed not to invalidate the pointer
+	returned by c_str().  The default capacity can be set with `reserve'.
+	append/prepend/assign accept both a std::string reference or a
+	char*/size_t pair.
+	Finally, the following methods are added to debug_ct directly:
+	`push_margin', `pop_margin', `push_marker' and `pop_marker'.
+	These functions can be used to quickly store and restore the
+	respective formatting strings.
+
+	A debug function for internal use (by the maintainers):
+	`debugdebugcheckpoint()' has been removed.  If you need a user
+	function to be called every Dout() then can define your own Dout
+	macro's, that makes more sense then recompiling libcwd.
+
+	CWASSERT was renamed to LIBCWD_ASSERT; Note that all macros that start
+	with LIBCWD_ should NOT be used by the user, they are for internal use
+	by libcwd.
+
+	Bug fixes:
+
+	When using .stabs, each first line of code after a source file scope change
+	as a result of an inlined function resulted in a location lookup failure
+	("No line number").
+
+	The default std::allocator implementation uses static pointers to keep
+	a private free list, allocating memory with malloc() in large chunks.
+	The sharing of this memory pool with all STL containers, including
+	std::string and std::stringstreams - and even the buffers of std::cout
+	and std::cerr - caused `internal' allocations being mixed with `userspace'
+	allocations and thus an incorrect error detection.
+	Libcwd now uses its own allocators, with their own memory pool, for
+	variables that need internal allocations.
+
+libcwd-0.99.15
+
+	libcwd now works with (single threaded) qt applications.  A few major
+	bugs have been fixed.
 
 	API changes:
 
@@ -40,17 +110,9 @@ libcwd-0.99.14
 	On systems where a 'char' is unsigned, the line number lookup of DWARF
 	failed.
 
-	Some systems (I had this on a powerpc-unknown-linux-gnu) and/or with
-	old binutils produce incorrect .stabs N_FUN entries, causing the line
-	number lookup of stabs to fail.  Libcwd now detects this and then uses
-	an alternative way to determining the start of a function (as a result
-	libcwd now succeeds where libbfd fails).
-
-	Added a workaround for a bug in libtools so that executables in the
-	tests/ directory no longer can accidently link with an old installed
-	version of libcwd.
-
-	Several fixes in the build system (all related to the testsuite).
+	Systems with old binutils produce incorrect .stabs entries, causing
+	the line number lookup of stabs to fail.  Libcwd now detects this and
+	then aborts.
 
 libcwd-0.99.13
 

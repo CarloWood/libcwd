@@ -27,7 +27,7 @@ int main(void)
     DoutFatal(dc::fatal, "Failed to load \"./module.so\": " << error_str);
   }
 
-#if __GXX_ABI_VERSION == 0
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
   char const* sym = "global_test_symbol__Fb";
 #else
   char const* sym = "_Z18global_test_symbolb";

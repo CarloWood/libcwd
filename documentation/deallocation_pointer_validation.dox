@@ -1,0 +1,51 @@
+/*!
+\defgroup chapter_validation De-Allocation Pointer Validation
+\ingroup book_allocations
+*/
+/*!
+\page page_validation
+\ingroup chapter_validation
+
+A pointer passed to a de-allocation (or re-allocation) function is checked to be valid;
+it should be previously returned by a corresponding (re-)allocation function and not
+have been de-allocated before.&nbsp;
+Table 1. shows the relationships between allocation and de-allocation functions.
+
+\htmlonly
+<h5 ALIGN=CENTER>Table 1. De-allocation functions and their corresponding allocation functions</h5>
+<center>
+<table BGCOLOR=Wheat BORDERCOLOR=#503c2c WIDTH=577 BORDER=1 CELLPADDING=4 CELLSPACING=0>
+<tr>
+<td BGCOLOR="#a98061"><font COLOR="#ffffff">De- or re-allocation function</font></td>
+<td BGCOLOR="#a98061"><font COLOR="#ffffff">Allocation function</font></td>
+</tr>
+<tr>
+<td><CODE>delete</CODE></td>
+<td><CODE>new</CODE></td>
+</tr>
+<tr>
+<td><CODE>delete&nbsp;[]</CODE></td>
+<td><CODE>new&nbsp;[]</CODE></td>
+</tr>
+<tr>
+<td><CODE>free()</CODE></td>
+<td><CODE>malloc()</CODE>, <CODE>calloc()</CODE> or <CODE>realloc()</CODE></td>
+</tr>
+<tr>
+<td><CODE>realloc()</CODE></td>
+<td><CODE>malloc()</CODE>, <CODE>calloc()</CODE> or <CODE>realloc()</CODE></td>
+</tr>
+</table>
+</center>
+\endhtmlonly
+
+The application will terminate with an informative message and a core dump when
+a pointer is de-allocated that was not previously allocated with the corresponding allocation function.
+
+Note: When libcwd was configured with \link enable_libcwd_magic --disable-libcwd-magic \endlink
+then the check whether or not the de-allocated memory block was allocated with the corresponding
+allocation function is \em not performed when the memory block is \ref group_invisible "invisible".&nbsp;
+The reason for this is that invisible memory blocks are simply not stored in the internal data structure:
+No information is known about them.
+
+*/

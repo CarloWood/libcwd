@@ -11,6 +11,6 @@ stamp-h
 Makefile
 maintMakefile
 .deps
-nodebug.h
+debug.h
 program
 confdefs.h

@@ -1,0 +1,20 @@
+/*!
+\addtogroup group_invisible Invisible Allocations
+\ingroup group_overview
+*/
+/*!
+\page page_invisible
+\ingroup group_invisible
+
+<hr><h2>Detailed Description</h2>
+
+Allocated memory blocks can be made invisible: They won't show up in
+the \ref group_overview "overview of allocated memory" anymore.&nbsp;
+Even more, the corresponding \ref libcw::debug::alloc_ct "alloc_ct" is destroyed:
+\ref libcw::debug::find_alloc "find_alloc" will not find them anymore.&nbsp;
+There is no other effect, \ref libcw::debug::test_delete "test_delete" will still work
+and they still can be deleted in the normal way.
+
+*/
+
+

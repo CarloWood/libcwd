@@ -15,8 +15,6 @@
 #include <libcw/char2str.h>
 #include <iostream>
 
-RCSTAG_CC("$Id$")
-
 namespace libcw {
   namespace debug {
 

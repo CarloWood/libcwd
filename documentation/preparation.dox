@@ -1,0 +1,48 @@
+/*!
+
+\page preparation Preparation
+
+This page describes the preparations that you need to perform
+before starting to use libcwd in your applications source code.
+
+\subsection installation Step 1: Installing libcwd
+
+Binary distributions should be installed the usual way.
+
+If you are installing libcwd from source then please read the
+\htmlonly<A HREF="../external/INSTALL">\endhtmlonly
+INSTALL\htmlonly</A>\endhtmlonly
+file that is included in the source distribution.<BR>
+See also: \ref group_configuration
+
+\anchor preparation_step2
+\subsection header_files Step 2: Creating the custom header files
+
+You need to add two custom header files to your application.<BR>
+The recommended names are "%debug.h" and "sys.h".
+
+You can use the following templates for a quick start:
+
+\par sys.h example template
+\include sys.h
+\htmlonly &laquo;<A HREF="../external/sys.h">download</A>&raquo;\endhtmlonly
+
+\par debug.h example template
+\include debug.h
+\htmlonly &laquo;<A HREF="../external/debug.h">download</A>&raquo;\endhtmlonly
+
+This %debug.h file is for applications; for more detailed information and for information
+for library developers who want to use libcwd, please also read \ref chapter_custom_debug_h.
+
+\subsection custom_debug_cc Step 3: Creating the custom source file
+
+If you added one or more custom %debug %channels to your namespace
+<CODE>DEBUGCHANNELS</CODE> in your custom "%debug.h", then of course you
+also need to add the definition somewhere.&nbsp;
+You can do that anywhere, or you could add a special source file for it.&nbsp;
+
+\par debug.cc example template
+\include debug.cc
+\htmlonly &laquo;<A HREF="../external/debug.cc">download</A>&raquo;\endhtmlonly
+
+*/

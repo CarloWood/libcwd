@@ -4,7 +4,7 @@ AC_REVISION($Revision$)dnl
 dnl General initialization of `autoconf' variables.
 dnl Ensure that the directory specified with --srcdir was correct
 dnl by demanding that it contains `debug.h'.
-AC_INIT(debug.h)
+AC_INIT(program.cc)
 
 dnl Include --enable-maintainer-mode option.
 AM_MAINTAINER_MODE
@@ -46,8 +46,9 @@ if test "$project_config_debugging" = yes; then
   LDFLAGS=\"-L/usr/local/lib\" CPPFLAGS=\"-I/usr/local/include\" ./configure])])])
 
   CXXFLAGS="-DCWDEBUG $CXXFLAGS"
+  AC_DEFINE(HAVE_LIBCWD)
 fi
 
 dnl Generate output files.
-AC_OUTPUT([Makefile maintMakefile])
+AC_OUTPUT([Makefile])
 

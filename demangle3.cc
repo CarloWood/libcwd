@@ -11,19 +11,28 @@
 // packaging of this file.
 //
   
+/*!
+\addtogroup group_demangle demangle_type() and demangle_symbol()
+\ingroup group_type_info
+
+Libcwd comes with its own demangler functions.&nbsp;
+
+demangle_type() writes the \em mangled type name \p input
+to the string \p output; \p input should be the mangled name
+as returned by <CODE>typeid(OBJECT).name()</CODE> (using gcc-2.95.1 or higher).
+
+demangle_symbol() writes the \em mangled symbol name \p input
+to the string \p output; \p input should be the mangled name 
+as returned by <CODE>asymbol::name</CODE> (\c asymbol is a structure defined
+by libbfd), which is what is returned by \ref location_ct::mangled_function_name()
+and pc_mangled_function_name().
+
+The direct use of these functions should be avoided, instead use the function type_info_of().
+
+*/
+
 //
-// void demangle_type(char const* in, std::string& out);
-//
-// where, `in' is a mangled type name as returned by typeid(OBJECT).name(),
-// `in' does not have to be null terminated.  When `in' is NULL then the string "(null)" is returned.
-//
-// void demangle_symbol(char const* in, std::string& out);
-//
-// where, `in' is a mangled symbol name as returned by asymbol::name (where asymbol is defined by libbfd),
-// which is the same as `location_st::func'.  Note that `in' must be null terminated.  When `in' is NULL
-// then the string "(null)" is returned.
-//
-// Currently this file has been tested with gcc-3.0.
+// This file has been tested with gcc-3.0.
 //
 // The description of how the mangling is done in the new ABI was found on
 // http://www.codesourcery.com/cxx-abi/abi.html#mangling
@@ -32,22 +41,21 @@
 #undef CPPFILTCOMPATIBLE
   
 #include "sys.h"
+#include "cwd_debug.h"
+#include <libcw/demangle.h>
+#include <libcw/private_assert.h>
 
 #if __GXX_ABI_VERSION > 0
 
 #include <limits>
-#include <libcw/debug.h>
-#include <libcw/demangle.h>
 
-RCSTAG_CC("$Id$")
- 
 #ifdef STANDALONE
 #ifdef CWDEBUG
 namespace libcw {
   namespace debug {
     namespace channels {
       namespace dc {
-        channel_ct const demangler("DEMANGLER");
+        channel_ct demangler("DEMANGLER");
       }
     }
   }
@@ -61,17 +69,16 @@ namespace libcw {
 #undef Dout
 #undef DoutFatal
 #undef Debug
-#undef CWASSERT
-#undef NEW
 #define Dout(cntrl, data)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(::std, /*nothing*/, cntrl, data)
 #define Debug(x)
-#define CWASSERT(x)
-#define NEW(x) new x
 #define DoutEntering(x)
 #define RETURN return M_result
 #define FAILURE do { M_result = false; return false; } while(0)
 #endif // !STANDALONE
+
+using libcw::debug::_private_::internal_string;
+using libcw::debug::_private_::internal_vector;
 
 namespace libcw {
   namespace debug {
@@ -110,10 +117,10 @@ namespace {
     bool M_name_is_conversion_operator;
     bool M_template_args_need_space;
     bool M_decoding_pointer_to_member_class_type;
-    std::string M_function_name;
-    std::vector<int> M_template_arg_pos;
+    internal_string M_function_name;
+    internal_vector<int> M_template_arg_pos;
     int M_template_arg_pos_offset;
-    std::vector<substitution_st> M_substitutions_pos;
+    internal_vector<substitution_st> M_substitutions_pos;
 #ifdef CWDEBUG
     bool M_inside_add_substitution;
 #endif
@@ -145,15 +152,14 @@ namespace {
 #endif
 	M_substitutions_pos.push_back(substitution_st(start_pos, sub_type, number_of_prefixes));
 #ifdef CWDEBUG
-	channel_ct const& c(DEBUGCHANNELS::dc::demangler);
-	if (!c.is_on())
+	if (!DEBUGCHANNELS::dc::demangler.is_on())
 	  return;
-        std::string substitution_name("S");
+        internal_string substitution_name("S");
 	int n = M_substitutions_pos.size() - 1;
 	if (n > 0)
 	  substitution_name += (n <= 10) ? (char)(n + '0' - 1) : (char)(n + 'A' - 11);
 	substitution_name += '_';
-	std::string subst;
+	internal_string subst;
 	int saved_pos = M_pos;
 	M_pos = start_pos;
 	M_inside_add_substitution = true;
@@ -204,29 +210,29 @@ namespace {
     }
 
   private:
-    bool decode_bare_function_type(std::string& output);
-    bool decode_builtin_type(std::string& output);
-    bool decode_call_offset(std::string& output);
-    bool decode_class_enum_type(std::string& output);
-    bool decode_expression(std::string& output);
-    bool decode_literal(std::string& output);
-    bool decode_local_name(std::string& output);
-    bool decode_name(std::string& output, std::string& nested_name_qualifiers);
-    bool decode_nested_name(std::string& output, std::string& qualifiers);
-    bool decode_number(std::string& output);
-    bool decode_operator_name(std::string& output);
-    bool decode_source_name(std::string& output);
-    bool decode_substitution(std::string& output, qualifiers_ct* qualifiers = NULL);
-    bool decode_template_args(std::string& output);
-    bool decode_template_param(std::string& output, qualifiers_ct* qualifiers = NULL);
-    bool decode_unqualified_name(std::string& output);
-    bool decode_unscoped_name(std::string& output);
-    inline bool decode_decimal_integer(std::string& output);
-    inline bool decode_special_name(std::string& output);
+    bool decode_bare_function_type(internal_string& output);
+    bool decode_builtin_type(internal_string& output);
+    bool decode_call_offset(internal_string& output);
+    bool decode_class_enum_type(internal_string& output);
+    bool decode_expression(internal_string& output);
+    bool decode_literal(internal_string& output);
+    bool decode_local_name(internal_string& output);
+    bool decode_name(internal_string& output, internal_string& nested_name_qualifiers);
+    bool decode_nested_name(internal_string& output, internal_string& qualifiers);
+    bool decode_number(internal_string& output);
+    bool decode_operator_name(internal_string& output);
+    bool decode_source_name(internal_string& output);
+    bool decode_substitution(internal_string& output, qualifiers_ct* qualifiers = NULL);
+    bool decode_template_args(internal_string& output);
+    bool decode_template_param(internal_string& output, qualifiers_ct* qualifiers = NULL);
+    bool decode_unqualified_name(internal_string& output);
+    bool decode_unscoped_name(internal_string& output);
+    inline bool decode_decimal_integer(internal_string& output);
+    inline bool decode_special_name(internal_string& output);
 
   public:
-    static int decode_encoding(char const*, std::string&);
-    bool decode_type(std::string& output, qualifiers_ct* qualifiers = NULL);
+    static int decode_encoding(char const*, internal_string&);
+    bool decode_type(internal_string& output, qualifiers_ct* qualifiers = NULL);
   };
 
   enum simple_qualifier_nt {
@@ -251,7 +257,7 @@ namespace {
     char M_qualifier2;
     char M_qualifier3;
     mutable unsigned char cnt;
-    std::string M_optional_type;
+    internal_string M_optional_type;
     int M_start_pos;
     bool M_part_of_substitution;
   public:
@@ -265,7 +271,7 @@ namespace {
 	M_qualifier3((count > 2) ? start[2] : '\0'),
 	M_start_pos(start_pos),
 	M_part_of_substitution(inside_substitution) { }
-    qualifier_ct(int start_pos, param_qualifier_nt qualifier, std::string optional_type, int inside_substitution) :
+    qualifier_ct(int start_pos, param_qualifier_nt qualifier, internal_string optional_type, int inside_substitution) :
         M_qualifier1(qualifier),
 	M_optional_type(optional_type),
 	M_start_pos(start_pos),
@@ -273,14 +279,14 @@ namespace {
     int start_pos(void) const { return M_start_pos; }
     char first_qualifier(void) const { cnt = 1; return M_qualifier1; }
     char next_qualifier(void) const { return (++cnt == 2) ? M_qualifier2 : (cnt == 3) ? M_qualifier3 : 0; }
-    std::string const& optional_type(void) const { return M_optional_type; }
+    internal_string const& optional_type(void) const { return M_optional_type; }
     bool part_of_substitution(void) const { return M_part_of_substitution; }
   };
 
   class qualifiers_ct {
   private:
     bool M_printing_suppressed;
-    std::vector<qualifier_ct> M_qualifier_starts;
+    internal_vector<qualifier_ct> M_qualifier_starts;
     demangler_ct& M_demangler;
   public:
     qualifiers_ct(demangler_ct& demangler) : M_printing_suppressed(false), M_demangler(demangler) { }
@@ -288,9 +294,9 @@ namespace {
         { M_qualifier_starts.push_back(qualifier_ct(start_pos, qualifier, inside_substitution)); }
     void add_qualifier_start(cv_qualifier_nt qualifier, int start_pos, int count, int inside_substitution)
         { M_qualifier_starts.push_back(qualifier_ct(start_pos, qualifier, &M_demangler.M_str[start_pos], count, inside_substitution)); }
-    void add_qualifier_start(param_qualifier_nt qualifier, int start_pos, std::string optional_type, int inside_substitution)
+    void add_qualifier_start(param_qualifier_nt qualifier, int start_pos, internal_string optional_type, int inside_substitution)
         { M_qualifier_starts.push_back(qualifier_ct(start_pos, qualifier, optional_type, inside_substitution)); }
-    void decode_qualifiers(std::string& output);
+    void decode_qualifiers(internal_string& output);
     bool suppressed(void) const { return M_printing_suppressed; }
     void printing_suppressed(void) { M_printing_suppressed = true; }
     size_t size(void) const { return M_qualifier_starts.size(); }
@@ -302,7 +308,7 @@ namespace {
   // <digit>           ::= 0|1|2|3|4|5|6|7|8|9
   //
   // {anonymous}::
-  inline bool demangler_ct::decode_decimal_integer(std::string& output)
+  inline bool demangler_ct::decode_decimal_integer(internal_string& output)
   {
     char c = current();
     if (c == '0')
@@ -326,7 +332,7 @@ namespace {
   // <number> ::= [n] <decimal-integer>
   //
   // {anonymous}::
-  bool demangler_ct::decode_number(std::string& output)
+  bool demangler_ct::decode_number(internal_string& output)
   {
     DoutEntering("decode_number");
     if (current() != 'n')
@@ -363,7 +369,7 @@ namespace {
   //                ::= z  # ellipsis
   //                ::= u <source-name>    # vendor extended type
   //
-  char const* builtin_type[26] = {
+  char const* const builtin_type_c[26] = {
     "signed char",	// a
     "bool",		// b
     "char",		// c
@@ -394,11 +400,11 @@ namespace {
 
   //
   // {anonymous}::
-  bool demangler_ct::decode_builtin_type(std::string& output)
+  bool demangler_ct::decode_builtin_type(internal_string& output)
   {
     DoutEntering("decode_builtin_type");
     char const* bt;
-    if (!islower(current()) || !(bt = builtin_type[current() - 'a']))
+    if (!islower(current()) || !(bt = builtin_type_c[current() - 'a']))
       FAILURE;
     output += bt;
     eat_current();
@@ -408,10 +414,10 @@ namespace {
   // <class-enum-type> ::= <name>
   //
   // {anonymous}::
-  bool demangler_ct::decode_class_enum_type(std::string& output)
+  bool demangler_ct::decode_class_enum_type(internal_string& output)
   {
     DoutEntering("decode_class_enum_type");
-    std::string nested_name_qualifiers;
+    internal_string nested_name_qualifiers;
     if (!decode_name(output, nested_name_qualifiers))
       FAILURE;
     output += nested_name_qualifiers;
@@ -431,10 +437,9 @@ namespace {
   // <seq-id> ::= 0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z [<seq-id>]	# Base 36 number
   //
   // {anonymous}::
-  bool demangler_ct::decode_substitution(std::string& output, qualifiers_ct* qualifiers = NULL)
+  bool demangler_ct::decode_substitution(internal_string& output, qualifiers_ct* qualifiers = NULL)
   {
     DoutEntering("decode_substitution");
-    CWASSERT( current() == 'S');
     unsigned int value = 0;
     char c = next();
     if (c != '_')
@@ -511,7 +516,7 @@ namespace {
 	    qualifiers->printing_suppressed();
 	  RETURN;
 	case 's':
-	  output += "std::string";
+	  output += "internal_string";
 	  if (!M_inside_template_args)
 	  {
 	    M_function_name = "string";
@@ -604,7 +609,7 @@ namespace {
   //                  ::= T <parameter-2 non-negative number> _
   //
   // {anonymous}::
-  bool demangler_ct::decode_template_param(std::string& output, qualifiers_ct* qualifiers = NULL)
+  bool demangler_ct::decode_template_param(internal_string& output, qualifiers_ct* qualifiers = NULL)
   {
     DoutEntering("decode_template_parameter");
     if (current() != 'T')
@@ -644,7 +649,7 @@ namespace {
     RETURN;
   }
 
-  bool demangler_ct::decode_literal(std::string& output)
+  bool demangler_ct::decode_literal(internal_string& output)
   {
     DoutEntering("decode_literal");
     eat_current();	// Eat the 'L'.
@@ -773,7 +778,7 @@ namespace {
   // Putting that solution in tables:
 
   // {anonymous}::
-  char offset_table[1 + CHAR_MAX - CHAR_MIN /* ascii value of first character */ ] = {
+  char const offset_table_c[1 + CHAR_MAX - CHAR_MIN /* ascii value of first character */ ] = {
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  
@@ -799,7 +804,7 @@ namespace {
   };
 
   // {anonymous}::
-  struct entry_st { char const* opcode; char const* symbol_name; bool unary; } symbol_name_table[39] = {
+  struct entry_st { char const* opcode; char const* symbol_name; bool unary; } const symbol_name_table_c[39] = {
     { "na",  "operator new[]", true },
     { "ge",  "operator>=", false },
     { "aa",  "operator&&", false },
@@ -842,7 +847,7 @@ namespace {
   };
 
   // {anonymous}::
-  bool demangler_ct::decode_operator_name(std::string& output)
+  bool demangler_ct::decode_operator_name(internal_string& output)
   {
     DoutEntering("decode_operator_name");
 
@@ -850,7 +855,7 @@ namespace {
     char opcode1 = tolower(next());
 
     register char hash;
-    if ((hash = offset_table[opcode0 - CHAR_MIN]))
+    if ((hash = offset_table_c[opcode0 - CHAR_MIN]))
     {
       hash += opcode1;
       if (
@@ -859,7 +864,7 @@ namespace {
 #endif
 	  hash < 39)
       {
-	entry_st entry = symbol_name_table[hash];
+	entry_st entry = symbol_name_table_c[hash];
 	if (entry.opcode[0] == opcode0 && entry.opcode[1] == opcode1 && (opcode1 == current() || entry.opcode[2] == '='))
 	{
 	  output += entry.symbol_name;
@@ -895,7 +900,7 @@ namespace {
   //                ::= L <mangled-name> E			# external name
   //
   // {anonymous}::
-  bool demangler_ct::decode_expression(std::string& output)
+  bool demangler_ct::decode_expression(internal_string& output)
   {
     DoutEntering("decode_expression");
     if (current() == 'T')
@@ -919,7 +924,7 @@ namespace {
       char opcode1 = tolower(next());
 
       register char hash;
-      if ((hash = offset_table[opcode0 - CHAR_MIN]))
+      if ((hash = offset_table_c[opcode0 - CHAR_MIN]))
       {
 	hash += opcode1;
 	if (
@@ -928,7 +933,7 @@ namespace {
 #endif
 	    hash < 39)
 	{
-	  entry_st entry = symbol_name_table[hash];
+	  entry_st entry = symbol_name_table_c[hash];
 	  if (entry.opcode[0] == opcode0 && entry.opcode[1] == opcode1 && (opcode1 == current() || entry.opcode[2] == '='))
 	  {
 	    char const* p = entry.symbol_name;
@@ -971,7 +976,7 @@ namespace {
   //                ::= L_Z <encoding> E			# external name
   //                ::= X <expression> E			# expression
   // {anonymous}::
-  bool demangler_ct::decode_template_args(std::string& output)
+  bool demangler_ct::decode_template_args(internal_string& output)
   {
     DoutEntering("decode_template_args");
     if (eat_current() != 'I')
@@ -1027,7 +1032,7 @@ namespace {
   // <bare-function-type> ::= <signature type>+		# types are parameter types
   //
   // {anonymous}::
-  bool demangler_ct::decode_bare_function_type(std::string& output)
+  bool demangler_ct::decode_bare_function_type(internal_string& output)
   {
     DoutEntering("decode_bare_function_type");
     if (M_saw_destructor)
@@ -1112,10 +1117,10 @@ namespace {
   // This ill-formed design results in rather ill-formed demangler code too however :/
   //
 
-  void qualifiers_ct::decode_qualifiers(std::string& output)
+  void qualifiers_ct::decode_qualifiers(internal_string& output)
   {
-    std::string postfix;
-    for(std::vector<qualifier_ct>::reverse_iterator iter = M_qualifier_starts.rbegin(); iter != M_qualifier_starts.rend();)
+    internal_string postfix;
+    for(internal_vector<qualifier_ct>::reverse_iterator iter = M_qualifier_starts.rbegin(); iter != M_qualifier_starts.rend();)
     {
       if (!(*iter).part_of_substitution())
       {
@@ -1146,7 +1151,7 @@ namespace {
 	    continue;
 	  case 'A':
 	  {
-	    std::string index = (*iter).optional_type();
+	    internal_string index = (*iter).optional_type();
 	    if (++iter != M_qualifier_starts.rend())
 	    {
 	      output += " (";
@@ -1182,13 +1187,13 @@ namespace {
 
   //
   // {anonymous}::
-  bool demangler_ct::decode_type(std::string& output, qualifiers_ct* qualifiers = NULL)
+  bool demangler_ct::decode_type(internal_string& output, qualifiers_ct* qualifiers = NULL)
   {
     DoutEntering("decode_type");
     ++M_inside_type;
     bool recursive_template_param_or_substitution_call;
     if (!(recursive_template_param_or_substitution_call = qualifiers))
-      qualifiers = NEW( qualifiers_ct(*this) );
+      qualifiers = new qualifiers_ct(*this);
 #ifdef CWDEBUG
     else
       Dout(dc::continued, "with qualifiers ");
@@ -1226,7 +1231,7 @@ namespace {
 	case 'U':
 	{
 	  eat_current();
-	  std::string source_name;
+	  internal_string source_name;
           if (!decode_source_name(source_name))
 	  {
 	    failure = true;
@@ -1240,7 +1245,7 @@ namespace {
 	  // <array-type> ::= A <positive dimension number> _ <element type>
 	  //              ::= A [<dimension expression>] _ <element type>
 	  //
-	  std::string index;
+	  internal_string index;
 	  int saved_pos;
 	  store(saved_pos);
 	  if (next() == 'n' || !decode_number(index))
@@ -1263,9 +1268,9 @@ namespace {
 	case 'M':
 	{
 	  eat_current();
-	  qualifiers_ct* class_type_qualifiers = NEW( qualifiers_ct(*this) );
+	  qualifiers_ct* class_type_qualifiers = new qualifiers_ct(*this);
 	  M_decoding_pointer_to_member_class_type = true;
-	  std::string class_type;
+	  internal_string class_type;
 	  if (!decode_type(class_type, class_type_qualifiers) || !class_type_qualifiers->suppressed())
 	  {
 	    delete class_type_qualifiers;
@@ -1278,7 +1283,7 @@ namespace {
 	  if (class_type_qualifiers->size() > 0)	// Must be CV-qualifiers and a member function pointer.
 	  {
 	    // <Q>M<Q2><C>F<R><B>E	==> R (C::*Q)B Q2		"<C>", "<Q2><C>", "F<R><B>E" (<R> and <B> recursive), "M<Q2><C>F<R><B>E".
-	    std::string member_function_qualifiers;
+	    internal_string member_function_qualifiers;
 	    class_type_qualifiers->decode_qualifiers(member_function_qualifiers);	// substitution(s): "<Q2><C>".
 	    delete class_type_qualifiers;
 	    if (eat_current() != 'F')
@@ -1295,7 +1300,7 @@ namespace {
 	    output += " (";
 	    output += class_type;
 	    output += "::*";
-	    std::string bare_function_type;
+	    internal_string bare_function_type;
 	    if (!decode_bare_function_type(bare_function_type) || eat_current() != 'E')
 	    {
 	      failure = true;
@@ -1341,7 +1346,7 @@ namespace {
 	    break;
 	  }
 	  output += " (";
-	  std::string bare_function_type;
+	  internal_string bare_function_type;
 	  if (!decode_bare_function_type(bare_function_type) || eat_current() != 'E')	// substitution: "<B>" (<B> recursive).
 	  {
 	    failure = true;
@@ -1461,7 +1466,7 @@ decode_type_exit:
   //                   ::= <substitution>
   //
   // {anonymous}::
-  bool demangler_ct::decode_nested_name(std::string& output, std::string& qualifiers)
+  bool demangler_ct::decode_nested_name(internal_string& output, internal_string& qualifiers)
   {
     DoutEntering("decode_nested_name");
 
@@ -1531,7 +1536,7 @@ decode_type_exit:
   // <discriminator> := _ <non-negative number>
   //
   // {anonymous}::
-  bool demangler_ct::decode_local_name(std::string& output)
+  bool demangler_ct::decode_local_name(internal_string& output)
   {
     DoutEntering("decode_local_name");
     if (current() != 'Z')
@@ -1546,12 +1551,12 @@ decode_type_exit:
     }
     else
     {
-      std::string nested_name_qualifiers;
+      internal_string nested_name_qualifiers;
       if (!decode_name(output, nested_name_qualifiers))
 	FAILURE;
       output += nested_name_qualifiers;
     }
-    std::string discriminator;
+    internal_string discriminator;
     if (current() == '_' && next() != 'n' && !decode_number(discriminator))
       FAILURE;
     RETURN;
@@ -1560,7 +1565,7 @@ decode_type_exit:
   // <source-name> ::= <positive length number> <identifier>
   //
   // {anonymous}::
-  bool demangler_ct::decode_source_name(std::string& output)
+  bool demangler_ct::decode_source_name(internal_string& output)
   {
     DoutEntering("decode_source_name");
     int length = current() - '0';
@@ -1589,7 +1594,7 @@ decode_type_exit:
   //                    ::= <source-name>   				# Starts with a digit
   //
   // {anonymous}::
-  bool demangler_ct::decode_unqualified_name(std::string& output)
+  bool demangler_ct::decode_unqualified_name(internal_string& output)
   {
     DoutEntering("decode_unqualified_name");
     if (isdigit(current()))
@@ -1660,7 +1665,7 @@ decode_type_exit:
   //                 ::= St <unqualified-name>		# ::std::
   //
   // {anonymous}::
-  bool demangler_ct::decode_unscoped_name(std::string& output)
+  bool demangler_ct::decode_unscoped_name(internal_string& output)
   {
     DoutEntering("decode_unscoped_name");
     if (current() == 'S')
@@ -1682,7 +1687,7 @@ decode_type_exit:
   // <unscoped-template-name> ::= <unscoped-name>
   //                          ::= <substitution>
   // {anonymous}::
-  bool demangler_ct::decode_name(std::string& output, std::string& nested_name_qualifiers)
+  bool demangler_ct::decode_name(internal_string& output, internal_string& nested_name_qualifiers)
   {
     DoutEntering("decode_name");
     int substitution_start = M_pos;
@@ -1720,12 +1725,12 @@ decode_type_exit:
   // <v-offset>    ::= <offset number> _ <virtual offset number> # virtual base override, with vcall offset
   //
   // {anonymous}::
-  bool demangler_ct::decode_call_offset(std::string& output)
+  bool demangler_ct::decode_call_offset(internal_string& output)
   {
     DoutEntering("decode_call_offset");
     if (current() == 'h')
     {
-      std::string dummy;
+      internal_string dummy;
       eat_current();
       if (decode_number(dummy) && current() == '_')
       {
@@ -1735,7 +1740,7 @@ decode_type_exit:
     }
     else if (current() == 'v')
     {
-      std::string dummy;
+      internal_string dummy;
       eat_current();
       if (decode_number(dummy) && current() == '_')
       {
@@ -1762,7 +1767,7 @@ decode_type_exit:
   //								# second call-offset is result adjustment
   //
   // {anonymous}::
-  inline bool demangler_ct::decode_special_name(std::string& output)
+  inline bool demangler_ct::decode_special_name(internal_string& output)
   {
     DoutEntering("decode_special_name");
     if (current() == 'G')
@@ -1770,7 +1775,7 @@ decode_type_exit:
       if (next() != 'V')
         FAILURE;
       output += "guard variable for ";
-      std::string nested_name_qualifiers;
+      internal_string nested_name_qualifiers;
       eat_current();
       if (!decode_name(output, nested_name_qualifiers))
         FAILURE;
@@ -1810,7 +1815,7 @@ decode_type_exit:
         RETURN;
       case 'C':		// GNU extention?
       {
-        std::string first;
+        internal_string first;
         output += "construction vtable for ";
 	eat_current();
 	if (!decode_type(first))
@@ -1842,17 +1847,17 @@ decode_type_exit:
   //            ::= <special-name>				# Starts with 'T' or 'G'.
   //
   // {anonymous}::
-  int demangler_ct::decode_encoding(char const* in, std::string& output)
+  int demangler_ct::decode_encoding(char const* in, internal_string& output)
   {
     Dout(dc::demangler, "Entering decode_encoding(\"" << in << "\", \"" << output << "\")");
     demangler_ct demangler(in);
-    std::string nested_name_qualifiers;
+    internal_string nested_name_qualifiers;
     int saved_pos;
     demangler.store(saved_pos);
     if (demangler.decode_special_name(output))
       return demangler.M_pos;
     demangler.restore(saved_pos);
-    std::string name;
+    internal_string name;
     if (!demangler.decode_name(name, nested_name_qualifiers))
       return INT_MIN;
     if (demangler.current() == 0 || demangler.current() == 'E')
@@ -1888,8 +1893,13 @@ static char const* main_in;
 // `input' should be a mangled_function_name as for instance returned
 // by `libcw::debug::pc_mangled_function_name'.
 //
-void demangle_symbol(char const* input, std::string& output)
+void demangle_symbol(char const* input, internal_string& output)
 {
+#ifdef DEBUGDEBUGMALLOC
+  LIBCWD_TSD_DECLARATION
+  LIBCWD_ASSERT( __libcwd_tsd.internal );
+#endif
+
 #ifdef STANDALONE
   if (input != main_in)
     Debug( dc::demangler.off() );
@@ -1927,8 +1937,12 @@ void demangle_symbol(char const* input, std::string& output)
 // `input' should be a mangled type as for returned
 // by the stdc++ `typeinfo::name()'.
 //
-void demangle_type(char const* in, std::string& output)
+void demangle_type(char const* in, internal_string& output)
 {
+#ifdef DEBUGDEBUGMALLOC
+  LIBCWD_TSD_DECLARATION
+  LIBCWD_ASSERT( __libcwd_tsd.internal );
+#endif
 #ifdef STANDALONE
   if (in != main_in)
     Debug( dc::demangler.off() );
@@ -1972,3 +1986,52 @@ int main(int argc, char* argv[])
 #endif // STANDALONE
 
 #endif // __GXX_ABI_VERSION > 0
+
+namespace libcw {
+  namespace debug {
+
+extern void demangle_symbol(char const* input, _private_::internal_string& output);
+extern void demangle_type(char const* input, _private_::internal_string& output);
+
+/** \addtogroup group_demangle */
+/** \{ */
+
+/**
+ * \brief Demangle mangled symbol name \p input and write the result to string \p output.
+ */
+void demangle_symbol(char const* input, std::string& output)
+{
+  LIBCWD_TSD_DECLARATION
+  _private_::set_alloc_checking_off(LIBCWD_TSD);
+  {
+    _private_::internal_string result;
+    demangle_symbol(input, result);
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
+    output.append(result.data(), result.size());
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+  }
+  _private_::set_alloc_checking_on(LIBCWD_TSD);
+}
+
+/**
+ * \brief Demangle mangled type name \p input and write the result to string \p output.
+ */
+void demangle_type(char const* input, std::string& output)
+{
+  LIBCWD_TSD_DECLARATION
+  _private_::set_alloc_checking_off(LIBCWD_TSD);
+  {
+    _private_::internal_string result;
+    demangle_type(input, result);
+    _private_::set_alloc_checking_on(LIBCWD_TSD);
+    output.append(result.data(), result.size());
+    _private_::set_alloc_checking_off(LIBCWD_TSD);
+  }
+  _private_::set_alloc_checking_on(LIBCWD_TSD);
+}
+
+/** \} */
+
+  } // namespace debug
+} // namespace libcw
+

@@ -1,10 +1,10 @@
 #include "sys.h"
+#include <libcw/debug.h>
 #include <unistd.h>
 #include <sys/poll.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
-#include <libcw/debug.h>
 
 using namespace std;
 
@@ -41,6 +41,10 @@ static strstream ss(ssbuf, sizeof(ssbuf));
 static stringstream ss;
 #endif
 static streambuf* old_buf;
+#endif
+
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#define ios_base ios			// Kludge.
 #endif
 
 void grab_cerr(void)

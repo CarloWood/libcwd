@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -11,414 +11,112 @@
 // packaging of this file.
 //
 
+/** \file libcw/debugmalloc.h
+ * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ */
+
 #ifndef LIBCW_DEBUGMALLOC_H
 #define LIBCW_DEBUGMALLOC_H
 
-RCSTAG_H(debugmalloc, "$Id$")
-
-#ifdef CWDEBUG
 #ifndef LIBCW_DEBUG_H
 #error "Don't include <libcw/debugmalloc.h> directly, include the appropriate \"debug.h\" instead."
 #endif
-#else // !CWDEBUG
+
+#ifndef LIBCW_DEBUG_CONFIG_H
 #include <libcw/debug_config.h>
-#endif // CWDEBUG
+#endif
 
 #ifdef DEBUGMALLOC
-#include <libcw/iomanip.h>
-#include <libcw/lockable_auto_ptr.h>
-#ifdef LIBCWD_USE_STRSTREAM
-#include <strstream>
-#define STRINGSTREAM std::strstream
-#else
-#include <sstream>
-#define STRINGSTREAM std::stringstream
+
+#ifndef LIBCW_CSTDDEF
+#define LIBCW_CSTDDEF
+#include <cstddef>		// Needed for size_t.
 #endif
-#ifdef DEBUGUSEBFD
-#include <libcw/bfd.h>
+#ifndef LIBCW_CLASS_ALLOC_H
+#include <libcw/class_alloc.h>
+#endif
+#ifndef LIBCW_LOCKABLE_AUTO_PTR_H
+#include <libcw/lockable_auto_ptr.h>
+#endif
+#ifndef LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
+#include <libcw/private_set_alloc_checking.h>
+#endif
+#ifndef LIBCW_CLASS_MEMBLK_TYPES_H
+#include <libcw/class_memblk_types.h>
+#endif
+#if defined(DEBUGMARKER) && !defined(LIBCW_CLASS_MARKER_H)
+#include <libcw/class_marker.h>
+#endif
+#ifndef LIBCW_MACRO_ALLOCTAG_H
+#include <libcw/macro_AllocTag.h>
 #endif
 
 namespace libcw {
   namespace debug {
 
-namespace _internal_ {
-  extern bool internal;
-  extern int library_call;
-#ifdef __GLIBCPP__
-  extern bool ios_base_initialized;
-#endif
-
-  static class Desperation { } const raw_write = { };
-
-#ifdef __GLIBCPP__
-  bool inside_ios_base_Init_Init(void);
-#endif
-} // namespace _internal_
-
-// Forward declaration
-class type_info_ct;
-
-//===========================================================================
-//
-// Flags used to mark the type of `memblk':
-//
-
-enum memblk_types_nt {
-  memblk_type_new,              // Allocated with `new'
-  memblk_type_deleted,          // Deleted with `delete'
-  memblk_type_new_array,        // Allocated with `new[]'
-  memblk_type_deleted_array,    // Deleted with `delete[]'
-  memblk_type_malloc,           // Allocated with `malloc'
-  memblk_type_realloc,          // Reallocated with `realloc'
-  memblk_type_freed,            // Freed with `free'
-  memblk_type_noheap,           // Allocated in data or stack segment
-#ifdef DEBUGMARKER
-  memblk_type_marker,           // A memory allocation "marker"
-  memblk_type_deleted_marker,   // A deleted memory allocation "marker"
-#endif
-  memblk_type_removed,          // No heap, corresponding `debugmalloc_newctor_ct' removed
-  memblk_type_external		// Externally allocated with `malloc' (no magic numbers!)
-};
-
-#ifdef CWDEBUG
-// Ostream manipulator for memblk_types_ct
-
-class memblk_types_manipulator_data_ct {
-private:
-  bool debug_channel;
-  bool amo_label;
-public:
-  memblk_types_manipulator_data_ct(void) : debug_channel(false), amo_label(false) { }
-  void setdebug(void) { debug_channel = true; }
-  void setlabel(bool what) { amo_label = what; }
-  bool is_debug_channel(void) const { return debug_channel; }
-  bool is_amo_label(void) const { return amo_label; }
-};
-#endif
-
-class memblk_types_ct {
-private:
-  memblk_types_nt memblk_type;
-public:
-  memblk_types_ct(memblk_types_nt mbt) : memblk_type(mbt) { }
-  memblk_types_nt operator()(void) const { return memblk_type; }
-#ifdef CWDEBUG
-  typedef memblk_types_manipulator_data_ct omanip_data_ct;
-  __DEFINE_OMANIP0(memblk_types_ct, setdebug)
-  __DEFINE_OMANIP1_OPERATOR(memblk_types_ct, bool)
-  __DEFINE_OMANIP1_FUNCTION(setlabel, bool)
-#endif
-};
-
-extern std::ostream& operator<<(std::ostream& os, memblk_types_ct);
-
-inline std::ostream& operator<<(std::ostream& os, memblk_types_nt memblk_type)
+//! Type of malloc_report.
+enum malloc_report_nt
 {
-  return os << memblk_types_ct(memblk_type);
-}
-
-//===========================================================================
-//
-// The class which describes allocated memory blocks.
-//
-
-class alloc_ct {
-protected:
-  void const* a_start;        			// Duplicate of (original) memblk_key_ct
-  size_t a_size;              			// Duplicate of (original) memblk_key_ct
-  memblk_types_nt a_memblk_type;		// A flag which indicates the type of allocation
-  type_info_ct const* type_info_ptr;		// Type info of related object
-  lockable_auto_ptr<char, true> a_description;	// A label describing this memblk
-#ifdef DEBUGUSEBFD
-  location_ct M_location;			// Source file, function and line number from where the allocator was called from
-#endif
-public:
-  alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti) :
-      a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti) { }
-  size_t size(void) const { return a_size; }
-  void const* start(void) const { return a_start; }
-  memblk_types_nt memblk_type(void) const { return a_memblk_type; }
-  type_info_ct const& type_info(void) const { return *type_info_ptr; }
-  char const* description(void) const { return a_description.get(); }
-#ifdef DEBUGUSEBFD
-  location_ct& location_reference(void) { return M_location; }
-  location_ct const& location(void) const { return M_location; }
-#endif
-protected:
-  virtual ~alloc_ct() {}
+  /**
+   * \brief Writing the current number of allocated bytes and blocks to an ostream.
+   *
+   * \sa mem_size(void)
+   *  \n mem_blocks(void)
+   *
+   * <b>Example:</b>
+   *
+   * \code
+   * Dout(dc::malloc, malloc_report << '.');
+   * \endcode
+   *
+   * will output something like
+   *
+   * \exampleoutput <PRE>
+   * MALLOC: Allocated 4350 bytes in 7 blocks.</PRE>
+   * \endexampleoutput
+   */
+  malloc_report
 };
-
-class dm_alloc_ct;
-
-#ifdef DEBUGMARKER
-class marker_ct {
-private:
-  void register_marker(char const* label);
-public:
-  marker_ct(char const* label)
-  {
-    register_marker(label);
-  }
-  marker_ct(void)
-  {
-    register_marker("An allocation marker");
-  }
-  ~marker_ct(void);
-};
-#endif
-
-class debugmalloc_newctor_ct {
-private:
-  dm_alloc_ct* no_heap_alloc_node;
-public:
-  debugmalloc_newctor_ct(void* object_ptr, type_info_ct const& label);
-  ~debugmalloc_newctor_ct(void);
-};
-
-class debugmalloc_report_ct {
-  friend std::ostream& operator<<(std::ostream& o, debugmalloc_report_ct);
-};
-debugmalloc_report_ct const malloc_report = { }; // Dummy
+extern std::ostream& operator<<(std::ostream&, malloc_report_nt);
 
 // Accessors:
+
+extern size_t mem_size(void);
+extern unsigned long mem_blocks(void);
 extern alloc_ct const* find_alloc(void const* ptr);
 extern bool test_delete(void const* ptr);
-extern size_t mem_size(void);
-extern long memblks(void);
 
 // Manipulators:
 extern void make_invisible(void const* ptr);
 extern void make_all_allocations_invisible_except(void const* ptr);
-
 #ifdef DEBUGMARKER
-extern void libcw_debug_move_outside(marker_ct*, void const* ptr);
-inline void move_outside(marker_ct* marker, void const* ptr)
-{
-  libcw_debug_move_outside(marker, ptr);
-}
+extern void move_outside(marker_ct*, void const* ptr);
 #endif
 
-// Undocumented (used inside AllocTag, AllocTag_dynamic_description, AllocTag1 and AllocTag2):
-extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description); // For static descriptions
-extern void set_alloc_label(void const* ptr,
-    type_info_ct const& ti, lockable_auto_ptr<char, true> description);	   // For dynamic descriptions
-																		    // allocated with new[]
 // Undocumented (libcw `internal' function)
 extern void init_debugmalloc(void);
 
   } // namespace debug
 } // namespace libcw
 
-#ifdef CWDEBUG
-
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-#define LIBCWD_GETBUFSIZE(buf) buf.rdbuf()->pubseekoff(0, ios::cur, ios::out)
-#else
-#define LIBCWD_GETBUFSIZE(buf) buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out)
-#endif
-
-#define AllocTag1(p) ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), (char const*)NULL)
-#define AllocTag2(p, desc) ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc))
-#define AllocTag(p, x) \
-    do { \
-      static char* desc; \
-      if (!desc) { \
-	::libcw::debug::set_alloc_checking_off(); \
-	if (1) \
-	{ \
-	  STRINGSTREAM buf; \
-	  buf << x << ::std::ends; \
-	  size_t size = LIBCWD_GETBUFSIZE(buf); \
-	  desc = new char [size]; /* This is never deleted anymore */ \
-	  buf.rdbuf()->sgetn(desc, size); \
-	} \
-	::libcw::debug::set_alloc_checking_on(); \
-      } \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), desc); \
-    } while(0)
-#define AllocTag_dynamic_description(p, x) \
-    do { \
-      char* desc; \
-      ::libcw::debug::set_alloc_checking_off(); \
-      if (1) \
-      { \
-	STRINGSTREAM buf; \
-	buf << x << ::std::ends; \
-	size_t size = LIBCWD_GETBUFSIZE(buf); \
-	desc = new char [size]; \
-	buf.rdbuf()->sgetn(desc, size); \
-      } \
-      ::libcw::debug::set_alloc_checking_on(); \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), ::libcw::lockable_auto_ptr<char, true>(desc)); \
-    } while(0)
-
-template<typename TYPE>
-inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
-  AllocTag1(new_ptr);
-  return new_ptr;
-};
-     
-#define NEW(x) __libcwd_allocCatcher(new x)
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
-#define RegisterExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
-#endif
-
-#include <libcw/type_info.h>
-
-#else // !CWDEBUG
-
-#define AllocTag(p, x)
-#define AllocTag_dynamic_description(p, x)
-#define AllocTag1(p)
-#define AllocTag2(p, desc)
-#define NEW(x) new x
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
-#define RegisterExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
-#endif
-
-#endif // !CWDEBUG
-
-namespace libcw {
-  namespace debug {
-
-extern void set_alloc_checking_off(void);
-extern void set_alloc_checking_on(void);
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
-extern void register_external_allocation(void const*, size_t);
-#endif
-
-  }
-}
-
-using libcw::debug::set_alloc_checking_off;
-using libcw::debug::set_alloc_checking_on;
-
 #else // !DEBUGMALLOC
 
-#define AllocTag(p, x)
-#define AllocTag_dynamic_description(p, x)
-#define AllocTag1(p)
-#define AllocTag2(p, desc)
-#define NEW(x) new x
-#ifndef DEBUGMALLOCEXTERNALCLINKAGE
-#define RegisterExternalAlloc(p, s)
-#endif
-#define set_alloc_checking_on()
-#define set_alloc_checking_off()
-
 namespace libcw {
   namespace debug {
 
-inline void make_invisible(void const*) { }
-inline void make_all_allocations_invisible_except(void const*) { }
+__inline__ void make_invisible(void const*) { } 
+__inline__ void make_all_allocations_invisible_except(void const*) { }
 
   } // namespace debug
 } // namespace libcw
 
 #endif // !DEBUGMALLOC
 
-#ifdef DEBUGDEBUG
-extern "C" ssize_t write(int fd, const void *buf, size_t count);
-
-namespace libcw {
-  namespace debug {
-
-inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, char const* data)
-{
-  write(2, data, strlen(data));
-  return raw_write;
-}
-
-inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, void const* data)
-{
-  size_t dat = (size_t)data;
-  write(2, "0x", 2);
-  char c[11];
-  char* p = &c[11];
-  do
-  {
-    int d = (dat % 16);
-    *--p = ((d < 10) ? '0' : ('a' - 10)) + d;
-    dat /= 16;
-  }
-  while(dat > 0);
-  write(2, p, &c[11] - p);
-  return raw_write;
-}
-
-inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, bool data)
-{
-  if (data)
-    write(2, "true", 4);
-  else
-    write(2, "false", 5);
-  return raw_write;
-}
-
-inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, char data)
-{
-  char c[1];
-  c[0] = data;
-  write(2, c, 1);
-  return raw_write;
-}
-
-inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, unsigned long data)
-{
-  char c[11];
-  char* p = &c[11];
-  do
-  {
-    *--p = '0' + (data % 10);
-    data /= 10;
-  }
-  while(data > 0);
-  write(2, p, &c[11] - p);
-  return raw_write;
-}
-
-inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, long data)
-{
-  if (data < 0)
-  {
-    write(2, "-", 1);
-    data = -data;
-  }
-  return operator<<(raw_write, (unsigned long)data);
-}
-
-inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, int data)
-{
-  return operator<<(raw_write, (long)data);
-}
-
-inline _internal_::Desperation const& operator<<(_internal_::Desperation const& raw_write, size_t data)
-{
-  return operator<<(raw_write, static_cast<unsigned long>(data));
-}
-
-  }  // namespace debug
-} // namespace libcw
-
-  // __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning.
-  #define DEBUGDEBUG_CERR(x)							\
-      do {									\
-        write(2, "DEBUGDEBUG: ", 12);						\
-	for (int __libcwd_lcwc = 0; __libcwd_lcwc < ::libcw::debug::_internal_::library_call; ++__libcwd_lcwc) 	\
-	  write(2, "    ", 4);							\
-	::libcw::debug::_internal_::raw_write << x << '\n';			\
-      } while(0)
-#else // !DEBUGDEBUG
-  #define DEBUGDEBUG_CERR(x)
-#endif // !DEBUGDEBUG
-
 #ifdef DEBUGDEBUGMALLOC
-  #define DEBUGDEBUGMALLOC_CERR(x) DEBUGDEBUG_CERR(x)
+#define DEBUGDEBUGMALLOC_CERR(x) DEBUGDEBUG_CERR(x)
 #else
-  #define DEBUGDEBUGMALLOC_CERR(x)
+#define DEBUGDEBUGMALLOC_CERR(x)
 #endif
-
-#ifdef CWDEBUG
 
 namespace libcw {
   namespace debug {
@@ -426,20 +124,19 @@ namespace libcw {
 #ifdef DEBUGMALLOC
 extern void list_allocations_on(debug_ct& debug_object);
 #else // !DEBUGMALLOC
-inline void list_allocations_on(debug_ct&) { }
+__inline__ void list_allocations_on(debug_ct&) { }
 #endif // !DEBUGMALLOC
 
   } // namespace debug
 } // namespace libcw
-
-#endif // CWDEBUG
 
 #ifndef DEBUGMALLOC_INTERNAL
 #ifdef DEBUGMALLOC
 
 #ifndef DEBUGMALLOCEXTERNALCLINKAGE
 // Ugh, use kludge.
-#include <cstdlib>	// Make sure the prototypes for malloc et al are declared before defining the macros!
+#include <cstdlib>	// Make sure the prototypes for malloc et al are declared
+			// before defining the macros!
 #define malloc __libcwd_malloc
 #define calloc __libcwd_calloc
 #define realloc __libcwd_realloc
@@ -451,10 +148,16 @@ inline void list_allocations_on(debug_ct&) { }
 // [ Note: if DEBUGMALLOCEXTERNALCLINKAGE wasn't defined, then these are the prototypes
 // for __libcwd_malloc et al of course.  We still use external "C" linkage in that case
 // in order to avoid a collision with possibily later included prototypes for malloc. ]
-extern "C" void* malloc(size_t size);
-extern "C" void* calloc(size_t nmemb, size_t size);
-extern "C" void* realloc(void* ptr, size_t size);
-extern "C" void  free(void* ptr);
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 96
+extern "C" void* malloc(size_t size) throw();
+extern "C" void* calloc(size_t nmemb, size_t size) throw();
+extern "C" void* realloc(void* ptr, size_t size) throw();
+#else
+extern "C" void* malloc(size_t size) throw() __attribute__((__malloc__));
+extern "C" void* calloc(size_t nmemb, size_t size) throw() __attribute__((__malloc__));
+extern "C" void* realloc(void* ptr, size_t size) throw() __attribute__((__malloc__));
+#endif
+extern "C" void  free(void* ptr) throw();
 
 #ifndef DEBUGMALLOCEXTERNALCLINKAGE
 // Use same kludge for other libc functions that return malloc-ed pointers.
@@ -463,7 +166,9 @@ extern "C" void  free(void* ptr);
 #define wcsdup __libcwd_wcsdup
 #endif
 
-inline char* __libcwd_strdup(char const* str)
+__inline__
+char*
+__libcwd_strdup(char const* str)
 {
   size_t size = strlen(str) + 1;
   char* p = (char*)malloc(size);
@@ -480,7 +185,10 @@ extern "C" {
   size_t wcslen(wchar_t const*);
   wchar_t* wmemcpy(wchar_t*, wchar_t const*, size_t);
 }
-inline wchar_t* __libcwd_wcsdup(wchar_t const* str)
+
+__inline__
+wchar_t*
+__libcwd_wcsdup(wchar_t const* str)
 {
   size_t size = wcslen(str) + 1;
   wchar_t* p = (wchar_t*)malloc(size * sizeof(wchar_t));

@@ -1,5 +1,6 @@
 #include "sys.h"
 #include "debug.h"
+#include <iostream>
 
 int main(void)
 {

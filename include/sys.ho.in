@@ -29,6 +29,7 @@
 //
 // getgroups_t          : The type of the array argument to getgroups
 //
+#include <sys/types.h>		// Needed for getgroups_t.
 @CW_TYPEDEFS@
 
 //

@@ -1,0 +1,41 @@
+/** \namespace libcw
+ *
+ * \brief namespace for libcw.
+ *
+ * The library libcwd is a spin-off of the larger libcw project.
+ * The header files of both are put in the same directory, called libcw (for example, /usr/include/libcw).
+ *
+ * The d in libcwd stands for Debugging.  The cw in libcw stand for the initials of the designer/developer of
+ * this life-span project.
+ *
+ * For historical reasons, the namespace of libcwd is called libcw::debug rather than \c libcwd.
+ * libcwd itself does not declare anything else in namespace libcw than its own '%debug' namespace.
+ *
+ * \sa libcw::debug
+ */
+namespace libcw {
+
+  /** \namespace libcw::debug
+   *
+   * \brief namespace for libcwd.
+   *
+   * This namespace contains all user accessible classes, functions and variables.\n
+   * Things defined in this namespace belong to the libcwd API and will be supported through-out version 1.x.
+   */
+  namespace debug {
+
+    /** \namespace libcw::debug::channels
+     *
+     * \brief The default DEBUGCHANNELS namespace.
+     *
+     * This macro should contain the namespace where your application defines the \link preparation dc \endlink namespace;
+     * If you want to define additional %debug %channels, next to the ones already \link libcw::debug::channels::dc provided \endlink
+     * by libcwd, then the macro DEBUGCHANNELS must be defined in the custom \link preparation debug.h \endlink
+     * header file of your application (or library) prior to including <libcw/debug.h>.
+     *
+     * \sa \ref preparation
+     */
+    namespace channels {
+    }
+  }
+}

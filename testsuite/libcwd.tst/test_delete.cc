@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -12,17 +12,8 @@
 //
 
 #include "sys.h"
-#include <iostream>
-#ifdef CWDEBUG
 #include <libcw/debug.h>
-#else
-#define DEBUGMALLOC
-#define Debug(x)
-#define Dout(x, y)
-#define ForAllDebugChannels(x)
-#define DoutFatal(x,y) do { std::cerr << y; exit(1); } while(1)
-#include <libcw/debugmalloc.h>
-#endif
+#include <iostream>
 
 class A {};
 
@@ -78,14 +69,15 @@ int main(void)
   if (libcw::debug::find_alloc(a))
     DoutFatal( dc::core, "Can STILL find that pointer?!" );
   // Test set_alloc_checking_off/set_alloc_checking_on, using test_delete
-  set_alloc_checking_off();
+  LIBCWD_TSD_DECLARATION
+  libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
   char* ptr = (char*)malloc(100);
-  set_alloc_checking_on();
+  libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);
   if (!libcw::debug::test_delete(ptr))
     DoutFatal( dc::core, "Can find an INTERNAL pointer?!" );
-  set_alloc_checking_off();
+  libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
   free(ptr);
-  set_alloc_checking_on();
+  libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);
 #endif
 
   Dout( dc::notice, "Finished successfully." );

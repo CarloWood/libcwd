@@ -12,7 +12,7 @@
 // user.
 //
 // g++ -dM -E $(CPPFLAGS) macrotest.cc | sed -e 's/#define \([^ ]*\).*/#undef \1/' > phase1.h
-// g++ -dM -E $(CPPFLAGS) -DPHASE2 macrotest.cc 2>/dev/null | egrep -v '(#define __|_H *$|DEBUG)' | sort > nodebug.h
+// g++ -dM -E $(CPPFLAGS) -DPHASE2 macrotest.cc 2>/dev/null | egrep -v '(#define __|_H *$|DEBUG|LIBCWD_)' | sort > nodebug.h
 //
 
 #undef DEBUG
@@ -21,7 +21,7 @@
 #include <libcw/debug_config.h>
 #undef DEBUGMALLOC
 #undef DEBUGMAGICMALLOC
-#define LIBCW_DEBUG_SYSD_H
+#define LIBCW_SYSD_H
 #define LIBCW_GENERATION_OF_NODEBUG_H
 #include <libcw/debug.h>
 #include "phase1.h"

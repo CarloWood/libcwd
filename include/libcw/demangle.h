@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000, by
+// Copyright (C) 2000 - 2001, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -11,18 +11,23 @@
 // packaging of this file.
 //
 
+/** \file libcw/demangle.h
+ * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ */
+
 #ifndef LIBCW_DEMANGLE_H
 #define LIBCW_DEMANGLE_H
 
-RCSTAG_H(demangle, "$Id$")
-
+#ifndef LIBCW_STRING
+#define LIBCW_STRING
 #include <string>
+#endif
 
 namespace libcw {
   namespace debug {
 
-extern void demangle_type(char const* in, std::string& out);
-extern void demangle_symbol(char const* in, std::string& out);
+extern void demangle_type(char const* input, std::string& output);
+extern void demangle_symbol(char const* input, std::string& output);
 
   } // namespace debug
 } // namespace libcw

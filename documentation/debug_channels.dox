@@ -1,0 +1,82 @@
+/*!
+\defgroup group_debug_channels Controlling The Output Level (Debug Channels)
+\ingroup book_writing
+*/
+/*!
+\page page_debug_channels
+\ingroup group_debug_channels
+
+<hr><h2>Detailed Description</h2>
+
+Whenever debug output is written, one or more <i>debug channels</i> must be specified.&nbsp;
+The debug output is then written to the ostream of the debug object
+unless the debug object is turned off or when all specified <i>debug channels</i> are off.&nbsp;
+Each <i>debug channel</i> can be turned \link libcw::debug::channel_ct::on on \endlink
+and \link libcw::debug::channel_ct::off off \endlink independently.&nbsp;
+
+Libcwd has defined six <i>debug channels</i> in namespace \link libcw::debug::channels::dc channels::dc \endlink
+(See \ref group_default_dc).&nbsp;
+New <i>debug channels</i> can be defined by the user, which is as simple as creating
+a new \link libcw::debug::channel_ct channel_ct \endlink object.
+
+Example,
+
+\code
+namespace dc {
+  channel_ct mychan("MYLABEL");
+}
+\endcode
+
+This declaration must be inside the namespace \ref DEBUGCHANNELS.
+
+Multiple <i>debug channels</i> can be given by using
+<CODE>operator|</CODE> between the channel names.&nbsp;
+This shouldn't be read as `or' but merely
+be seen as the bit-wise OR operation on the bit-masks that these
+channels actually represent.
+
+\sa group_control_flags
+
+<b>Example:</b>
+
+\code
+Dout(dc::notice, "Libcw is a great library");
+\endcode
+
+gives as result
+
+\exampleoutput <PRE class="example-output">
+NOTICE: Libcw is a great library</PRE>
+\endexampleoutput
+
+and
+
+\code
+#ifdef CWDEBUG
+namespace myapplication {
+  namespace debug {
+    namespace channels {	// Assuming DEBUGCHANNELS is ::myapplication::debug::channels
+
+      namespace dc {
+	libcw::debug::channel_ct hello("HELLO");
+      }
+
+    } // namespace DEBUGCHANNELS
+  }
+}
+#endif
+
+Dout(dc::hello, "Hello World!");
+Dout(dc::kernel|dc::io, "This is written when either the dc::kernel "
+    "or dc::io channel is turned on.");
+\endcode
+
+gives as result
+
+\exampleoutput <PRE class="example-output">
+HELLO : Hello World!
+KERNEL: This is written when either the kernel or io channel is turned on.</PRE>
+\endexampleoutput
+
+*/
+

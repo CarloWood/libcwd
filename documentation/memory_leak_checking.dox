@@ -1,0 +1,52 @@
+/*!
+\defgroup group_markers Memory Allocation Markers: Memory Leak Checking
+\ingroup book_allocations
+*/
+/*!
+\page page_markers
+\ingroup group_markers
+
+<hr><h2>Detailed Description</h2>
+
+Libcwd does a weak attempt to support debugging of memory leaks.&nbsp;
+I hope to greatly improve this in the future.
+
+It is possible to mark allocations that are done till that moment, and then later check for memory
+leaks by expecting no other memory allocations than those that already existed before the mark.&nbsp;
+This is done by creating a marker_ct object.&nbsp;
+The check for memory leaks is done when the marker is removed again.&nbsp;
+This can be done recursively.
+
+A \em marker is created by passing it a description:
+
+\code
+#ifdef DEBUGMARKER
+  marker_ct* marker = marker_ct("Description of the marker");
+#endif
+\endcode
+
+Any allocation done \em after the creation of this marker will be reported as a <B>leak</B> at the moment the \em marker is deleted.
+
+Markers are clearly visibly in the Allocated memory Overview.&nbsp;
+They are labeled MARKER (see also table FIXME).&nbsp;
+All memory that is allocated after a \em marker, is displayed indented and below that marker in the Allocated memory Overview.
+
+Finally, it is possible to move specific memory blocks outside markers, so they will not cause a memory leak detection.&nbsp;
+This is done with the function
+
+\code
+namespace libcw {
+  namespace debug {
+    void move_outside(marker_ct* marker, void const* ptr);
+  }
+}
+\endcode
+
+which would move the memory allocation pointed to by \a ptr outside the test region of \a marker.
+
+A complete example program with output is given here:
+
+\include markers.cc
+
+*/
+

@@ -8,9 +8,11 @@ Group: Development/Libraries
 Source: http://download.sourceforge.net/libcw/libcwd-%{version}.tar.gz
 Copyright: QPL
 %ifos linux
-Requires: gcc >= 2.95.1, gcc-c++ >= 2.95.1, binutils >= 2.9
+Requires: gcc-c++ >= 2.95.1, binutils >= 2.9
 %endif
 Buildroot: %{_tmppath}/%{name}-root
+BuildPrereq: make, m4, which >= 2.5, autoconf = 2.13, automake >= 1.4p1, libtool >= 1.4
+URL: http://libcw.sourceforge.net/debugging/
 
 %description
 Libcwd is a full-featured, professional, well documented library to support
@@ -39,16 +41,40 @@ PATH="$PATH:/sbin" ldconfig -n %{__prefix}/lib
 echo
 echo "Please look at %{__prefix}/doc/libcwd-%{version}/example-project.tar.gz"
 echo "for an example of how to write an application that uses libcwd."
-echo "Detailed documentation can be found on-line at http://libcw.sourceforge.net/debugging/"
+echo "Detailed documentation can be found in file://%{__prefix}/doc/libcwd-%{version}/html/index.html"
 echo
 
 %files
 %defattr(-,root,root)
-%doc README
 %doc example-project.tar.gz
+%doc documentation/README
+%doc documentation/tutorial
+%doc documentation/html
+%doc documentation/scripts
+%doc documentation/styles
+%doc documentation/images
+%doc documentation/external
+%doc documentation/doxygen-examples
 %dir %{__prefix}/include/libcw
 %{__prefix}/lib/*
 %{__prefix}/include/libcw/*
 
-%changelog@SPECCHANGELOG@
+%changelog
+* Sun Dec 09 2001 Carlo Wood <libcw@alinoe.com>
+- Added a URL: and BuildPrereq: entry.
+- Added doxygen documentation to the rpm.
+
+* Wed Sep 13 2000 Carlo Wood <libcw@alinoe.com>
+- Added example-project to doc/ and added a %post instruction echo.
+
+* Sat Sep 02 2000 Carlo Wood <libcw@alinoe.com>
+- Still generate libcwd.lsm and libcwd.spec in config.status, but only
+  when initiated from maintMakefile according to Makefile rules.
+  Put them in $(srcdir) because they need to be put in the distribution.
+- Add file list to %files.  Added a 'Requires:' and started to use macros for prefix and version.
+- Use '@@' instead of '!!' because now the spec file is generated from spec.in by config.status.
+
+* Thu Aug 31 2000 Carlo Wood <libcw@alinoe.com>
+- Remove build root in %clean.
+- Initial version.
 

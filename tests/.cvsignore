@@ -1,10 +1,13 @@
 Makefile
 Makefile.in
 hello_world
+mangling
 initbug
 syslog
 threads
-mangling
+threads2
+threads3
+stabs
 dout_alloc
 .deps
 .libs

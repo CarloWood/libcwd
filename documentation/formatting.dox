@@ -1,0 +1,56 @@
+/*!
+\addtogroup group_formatting Format Of The Debug Output
+\ingroup book_writing
+*/
+/*!
+\page page_formatting
+\ingroup group_formatting
+
+<hr><h2>Detailed Description</h2>
+
+All debug output is written in the following format:
+
+<margin> <label> <marker> <indentation> <data> <suffix> 
+
+The <margin> field can for instance be used to print the ID of the process or thread
+(useful when writing %debug messages from more than one process or thread to the same ostream device).&nbsp;
+
+The <marker> field can be used to identify regions (for example with a vertical line) depending on the current context.&nbsp;
+
+The <indentation> field consists of spaces and is intended to make %debug output better readable by grouping lines of %debug output
+as an easier alternative than using the marker field for that purpose.
+
+The <label> field exists of the channel label (as passed to the constructor of a \link libcw::debug::channel_ct channel_ct \endlink)
+padded by spaces to make this field constant in width (it is padded to the length of the longest existing channel label),
+followed by the marker, which is by default a colon plus a final space; for example "NOTICE&nbsp;:&nbsp;".
+
+The <data> field represents the second field of the \ref Dout macro, written to the %debug ostream with the operator<< inserters.
+
+Finally, the <suffix> field is by default a new-line, optionally followed by a flush.&nbsp;
+The %debug control flag error_cf however, causes an error message to be inserted first.&nbsp;
+The suffix field could become for example ":&nbsp;EAGAIN&nbsp;(Try&nbsp;again)\\n".
+
+\sa group_control_flags
+
+<b>Example:</b>
+
+\code
+Debug( libcw_do.margin.assign("*** ", 4) );
+Debug( libcw_do.marker.assign(": | ", 4) );
+Dout(dc::notice, "This line is not indented");
+Debug( libcw_do.set_indent(4) );
+Dout(dc::notice, "This line is indented 4 spaces");
+Debug( libcw_do.inc_indent(2) );
+Dout(dc::notice, "This line is indented 6 spaces");
+\endcode
+
+Outputs
+
+<PRE class="example-output">
+*** NOTICE  : | This line is not indented
+*** NOTICE  : |     This line is indented 4 spaces
+*** NOTICE  : |       This line is indented 6 spaces
+</PRE>
+
+*/
+

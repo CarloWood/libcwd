@@ -4,8 +4,8 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = include utils . tests testsuite
 
-BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec nodebug.h
-EXTRA_DIST = LICENSE.QPL README.FreeBSD README.openbsd README.nodebug.h debian $(BUILT_SOURCES)
+BUILT_SOURCES =@MAINTAINER_MODE_TRUE@ libcwd.lsm libcwd.spec
+EXTRA_DIST = LICENSE.QPL README.FreeBSD README.openbsd nodebug.h $(BUILT_SOURCES)
 DISTCLEANFILES = libcwd-@VERSION@.tar.gz
 
 VERSIONINFO=@VERSIONINFO@
@@ -18,17 +18,15 @@ INCLUDES = -I$(top_builddir) -I$(top_builddir)/include -I$(srcdir)/include
 lib_LTLIBRARIES = libcwd.la
 
 libcwd_la_SOURCES = \
+	threading.cc \
 	elf32.cc \
 	bfd.cc \
 	debug.cc \
-	debugdebugcheckpoint.cc \
 	debugmalloc.cc \
 	demangle.cc \
 	demangle3.cc \
-	cwprint.cc \
 	strerrno.cc \
-	type_info.cc \
-	no_alloc_checking_stringstream.cc
+	type_info.cc
 
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
 
@@ -36,12 +34,20 @@ libcwd_la_LIBADD = utils/libutils.la
 
 # --------------- Maintainer's Section
 
-dist-hook:
+dist-hook: example-project/debug.h documentation
+	cp -pr $(srcdir)/documentation $(distdir)/documentation
+	find $(distdir)/documentation -name CVS -print | xargs rm -rf
 	mkdir $(distdir)/example-project
 	for i in `grep '^/' $(srcdir)/example-project/CVS/Entries | cut -d/ -f2`; do \
 	  cp -p $(srcdir)/example-project/$$i $(distdir)/example-project; \
 	done
+	rm $(distdir)/example-project/debug.h.maintainer $(distdir)/example-project/macrotest.cc
+	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
 	chmod +x $(distdir)/install-sh
+	mkdir $(distdir)/debian
+	for i in `grep '^/' $(srcdir)/debian/CVS/Entries | cut -d/ -f2`; do \
+	  cp -p $(srcdir)/debian/$$i $(distdir)/debian; \
+	done
 
 distclean-local:
 	rm -rf rpm
