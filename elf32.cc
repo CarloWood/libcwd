@@ -37,7 +37,7 @@
 
 #define DEBUGELF32 0
 #define DEBUGSTABS 0
-#define DEBUGDWARF 1
+#define DEBUGDWARF 0
 
 // This assumes that DW_TAG_compile_unit is the first tag for each compile unit
 // which is not strictly garanteed in the standard but seems to be the case.
