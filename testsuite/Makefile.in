@@ -22,6 +22,7 @@ SHAREDLIBS = -L$(top_builddir)/.libs -lcwd @LIBS@ @LIB_THREADS@ -Wl,--rpath,$(to
 STATICLIBS = $(top_builddir)/.libs/libcwd.a @LIBS@ @LIB_THREADS@
 enable_shared = @enable_shared@
 enable_static = @enable_static@
+enable_threads = @libcwd_config_threading@
 INCLUDES = -Ilibcwd.tst -I$(top_builddir)/include -I$(srcdir)/../include
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
@@ -45,6 +46,13 @@ else
 STATICTSTTARGETS :=
 STATICNODEBUGTARGETS :=
 STATICTHREADSTARGETS :=
+endif
+ifeq ($(enable_threads), yes)
+SHAREDTARGETS := $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(SHAREDTHREADSTARGETS)
+EXPECT_SCRIPTS = nodebug.exp threads.exp tst.exp
+else
+SHAREDTARGETS := $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS)
+EXPECT_SCRIPTS = nodebug.exp tst.exp
 endif
 
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
@@ -79,7 +87,7 @@ site.exp: Makefile
 	-@rm -f ./tmp?
 
 check: site.exp module.so
-	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS)
+	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS) $(EXPECT_SCRIPTS)
 
 module.so: module.cc $(top_builddir)/.libs/libcwd.so.*
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
@@ -104,21 +112,20 @@ ifeq ($(enable_static), yes)
 	$(CXXLINK) $< -o $@ $(STATICLIBS)
 endif
 
-shared: $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(SHAREDTHREADSTARGETS)
-static: $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS) $(STATICTHREADSTARGETS)
+shared: $(SHAREDTARGETS)
+static: $(STATICTARGETS)
 
 run: shared static module.so
-	@for i in $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(SHAREDTHREADSTARGETS) \
-	          $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS) $(STATICTHREADSTARGETS); do \
+	@for i in $(SHAREDTARGETS) $(STATICTARGETS); do \
 	  echo -n "$$i: "; if ./$$i 2>/dev/null >/dev/null; then echo "OK"; else echo "ERROR"; fi ; done
 
 # Clean rules
 mostlyclean:
 	rm -f site.bak core *.core *.o
 clean: mostlyclean
-	rm -f site.exp libcwd.log libcwd.sum *_*_shared *_*_static module.so .\#* */.\#*
+	rm -f site.exp *.log *.sum *_*_shared *_*_static module.so .\#* */.\#*
 distclean: clean
-	rm -f Makefile *.log *.sum
+	rm -f Makefile
 
 # Uninstall rule
 uninstall:

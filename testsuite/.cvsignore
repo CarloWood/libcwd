@@ -1,5 +1,5 @@
-libcwd.log
-libcwd.sum
+*.log
+*.sum
 site.exp
 Makefile
 nodebug_*_shared
