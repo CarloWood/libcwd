@@ -99,7 +99,7 @@ shared: $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS)
 static: $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS)
 
 run: shared static module.so
-	@for i in $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS); do echo -n "$$i: "; if $$i 2>/dev/null >/dev/null; then echo "OK"; else echo "ERROR"; fi ; done
+	@for i in $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(STATICTSTTARGETS) $(STATICNODEBUGTARGETS); do echo -n "$$i: "; if ./$$i 2>/dev/null >/dev/null; then echo "OK"; else echo "ERROR"; fi ; done
 
 # Clean rules
 mostlyclean:
