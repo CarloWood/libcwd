@@ -1,0 +1,28 @@
+Source: libcwd
+Section: devel
+Priority: optional
+Maintainer: Carlo Wood <libcw@alinoe.com>
+Standards-Version: 3.0.1
+
+Package: libcwd-dev
+Architecture: any
+Depends: libcwd0 (= ${Source-Version}), libc6-dev
+Description: C++ Debugging Support Library
+ Libcwd is a full-featured, professional, well-documented library
+ to support C++ developers with debugging their applications.
+ It includes support for ostream-based debug output, custom debug
+ channels and devices, powerful memory allocation debugging,
+ run-time sourcefile:linenumber information, and demangled type
+ names of variables.
+
+Package: libcwd0
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: C++ Debugging Support Library
+ Libcwd is a full-featured, professional, well-documented library
+ to support C++ developers with debugging their applications.
+ It includes support for ostream-based debug output, custom debug
+ channels and devices, powerful memory allocation debugging,
+ run-time sourcefile:linenumber information, and demangled type
+ names of variables.
+ 
