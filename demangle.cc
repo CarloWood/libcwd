@@ -1142,7 +1142,7 @@ int main(int argc, char* argv[])
   Debug( dc::demangler.on() );
 
   string out;
-  demangle_type(argv[1], out);
+  demangle_symbol(argv[1], out);
   cout << out << endl;
   return 0;
 }
