@@ -589,6 +589,9 @@ namespace libcw {
     {
       // This is pretty much identical to fatal_channel_ct::fatal_channel_ct().
 
+      if (*label)
+        return;		// Already initialized.
+
       DEBUGDEBUG_CERR( "Entering `channel_ct::channel_ct(\"" << lbl << "\")'" );
 
       off_cnt = 0;
@@ -623,6 +626,9 @@ namespace libcw {
     fatal_channel_ct::fatal_channel_ct(char const* lbl, control_flag_t cb) : maskbit(cb)
     {
        // This is pretty much identical to channel_ct::channel_ct().
+
+      if (*label)
+        return;		// Already initialized.
 
       DEBUGDEBUG_CERR( "Entering `fatal_channel_ct::fatal_channel_ct(\"" << lbl << "\")'" );
 

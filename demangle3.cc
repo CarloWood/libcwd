@@ -10,8 +10,6 @@
 // version 1.0 as appearing in the file LICENSE.QPL included in the
 // packaging of this file.
 //
- 
-#if __GXX_ABI_VERSION > 0
   
 //
 // void demangle_type(char const* in, std::string& out);
@@ -34,6 +32,9 @@
 #undef CPPFILTCOMPATIBLE
   
 #include <libcw/sys.h>
+
+#if __GXX_ABI_VERSION > 0
+
 #include <limits>
 #include <libcw/debug.h>
 #include <libcw/demangle.h>

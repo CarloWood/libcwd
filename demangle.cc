@@ -11,8 +11,6 @@
 // packaging of this file.
 //
 
-#if __GXX_ABI_VERSION == 0
-
 //
 // void demangle_type(char const* in, string& out);
 //
@@ -30,6 +28,9 @@
 #undef CPPFILTCOMPATIBLE
 
 #include <libcw/sys.h>
+
+#if __GXX_ABI_VERSION == 0
+
 #include <cctype>
 #include <libcw/debug.h>
 #include <libcw/demangle.h>
@@ -1342,7 +1343,7 @@ int main(int argc, char* argv[])
   Debug( dc::demangler.on() );
 
   string out;
-  demangle_symbol(argv[1], out);
+  demangle_type(argv[1], out);
   cout << out << endl;
   return 0;
 }

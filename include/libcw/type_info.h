@@ -150,7 +150,7 @@ template<class T>
     {
       // T* tp;                                  			// Create pointer to object.
       new (const_cast<type_info_ct*>(&_internal_::type_info_exact<T>::value))
-          type_info_ct(_internal_::extract_exact_name(typeid(this).name()), sizeof(T), _internal_::sizeof_star<T>::value);	// In place initialize the static type_info_ct object.
+          type_info_ct(_internal_::extract_exact_name(typeid(_internal_::type_info_exact<T>).name()), sizeof(T), _internal_::sizeof_star<T>::value);	// In place initialize the static type_info_ct object.
     }
 #endif
     return _internal_::type_info_exact<T>::value;

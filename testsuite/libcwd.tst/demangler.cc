@@ -19,12 +19,15 @@ char const* test_cases [] = {
 
 int main(void)
 {
+#if __GXX_ABI_VERSION == 0
+  DoutFatal(dc::fatal, "Expected Failure.");
+#endif
   std::string result;
   for (size_t i = 0; i < sizeof(test_cases)/sizeof(char const*); ++i)
   {
     libcw::debug::demangle_symbol(test_cases[i], result);
     std::cout << result << '\n';
-    result.clear();
+    result.erase();
   }
   return 0;
 }

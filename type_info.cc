@@ -34,11 +34,19 @@ namespace _internal_ {
 
   char const* extract_exact_name(char const* mangled_name)
   {
+#if __GXX_ABI_VERSION == 0
+    size_t len = strlen(mangled_name) - 46;	// Strip "Q45libcw5debug10_internal_t15type_info_exact1Z" from the beginning.
+#else
     size_t len = strlen(mangled_name) - 45;
+#endif
     set_alloc_checking_off();
     char* exact_name = new char[len + 1];
     set_alloc_checking_on();
+#if __GXX_ABI_VERSION == 0
+    strncpy(exact_name, mangled_name + 46, len);
+#else
     strncpy(exact_name, mangled_name + 43, len);
+#endif
     exact_name[len] = 0;
     return exact_name;
   }
