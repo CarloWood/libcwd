@@ -54,9 +54,11 @@ endif
 ifeq ($(enable_threads), yes)
 SHAREDTARGETS := $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS) $(SHAREDTHREADSTARGETS)
 EXPECT_SCRIPTS = nodebug.exp threads.exp tst.exp
+MODULETARGETS = module.so module_r.so
 else
 SHAREDTARGETS := $(SHAREDTSTTARGETS) $(SHAREDNODEBUGTARGETS)
 EXPECT_SCRIPTS = nodebug.exp tst.exp
+MODULETARGETS = module.so
 endif
 
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
@@ -95,14 +97,16 @@ site.exp: Makefile
 	@cat site.bak | sed -e '1,/^## All variables above are.*##/ d' >> site.exp
 	-@rm -f ./tmp?
 
-check: site.exp module.so module_r.so
+check: site.exp $(MODULETARGETS)
 	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS) $(EXPECT_SCRIPTS)
 
 module.so: module.cc $(top_builddir)/.libs/libcwd.so.*
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
 
+ifeq ($(enable_threads), yes)
 module_r.so: module.cc $(top_builddir)/.libs/libcwd.so.*
 	$(CXXCOMPILE) -D_REENTRANT -pthread -shared -fpic -DPIC -w $< -o $@
+endif
 
 # Provide rules for manual compilation:
 tst_%.o: libcwd.tst/%.cc Makefile $(top_builddir)/include/libcw/*.h
@@ -139,7 +143,7 @@ endif
 shared: $(SHAREDTARGETS)
 static: $(STATICTARGETS)
 
-run: shared static module.so
+run: shared static $(MODULETARGETS)
 	@for i in $(SHAREDTARGETS) $(STATICTARGETS); do \
 	  echo -n "$$i: "; if ./$$i 2>/dev/null >/dev/null; then echo "OK"; else echo "ERROR"; fi ; done
 
