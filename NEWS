@@ -4,13 +4,12 @@ libcwd-0.99.10
 	::libcw_bfd_builtin_return_address_offset was renamed to
 	libcw::debug::builtin_return_address_offset.
 
-	strdup(3) is now treated like malloc(2), which means that it is a macro.  This means
-	that strdup and its corresponding free() does not, any longer, need to be put between
-	alloc_checking_off() and alloc_checking_on() and that it is included in the normal
-	memory allocation checks.  The default AllocTag used is "strdup()", but you can
-	easily override that.  For example:
-	char* s = strdup("\e[31mHello\tWorld!\e[0m");
-	AllocTag_dynamic_description(a, "strdup: \"" << libcw::debug::buf2str(a, strlen(a)) << '"');
+	strdup(3) and wcsdup(3) are now treated like malloc(2), which means that they are
+	macros.  The default AllocTag used is "strdup()" and "wcsdup()" respectively, but one
+	can easily override that.  For example:
+	  char* s = strdup("\e[31mHello\tWorld!\e[0m");
+	  AllocTag_dynamic_description(a, "strdup: \"" <<
+	                               libcw::debug::buf2str(a, strlen(a)) << '"');
 	will print 'strdup: "\e[31mHello\tWorld!\e[0m"' as description.
 
 libcwd-0.99.9
