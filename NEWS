@@ -1,3 +1,26 @@
+libcwd-0.99.8
+
+	This version now also compiles and works with g++ 2.95.3 and 3.0 20010523 (prerelease).
+	Demangling of variables and types with g++ 3.0 is still not implemented however.
+
+	As a result of how libstdc++-v3 works, I've been forced to make all allocations done
+	inside Dout() `internal'.  This has as disadvantage that memory allocations that are
+	allocated inside Dout (in the user program; for example: Dout(dc::foo, malloc(1)))  but
+	never freed will leak memory unnoticed.  Freeing this memory later, outside Dout(),
+	currently leads to the rather confusing error:
+
+	  COREDUMP: Trying to delete[] a pointer (0x80525d8) that appears to be internally
+	  allocated!  This might be a bug in libcwd.  The magic number diagnostic gives: You
+	  are 'delete[]'-ing a pointer (0x80525d8) that was allocated with 'new[]' internally
+	  by libcwd.  This might be a bug in libcwd.
+
+	template<typename T> type_info_of<T>(void) was changed so that it no longer ignores a
+	top-level `const' (in example, type_info_of<A const>()); except on g++ version 2.96
+	(RedHat) which has a bug that causes this `const' still to be ignored.
+
+	Several bugs were fixed that caused libcwd not to compile when the more exotic
+	configure options, like --disable-*, were used.
+
 libcwd-0.99.7
 
 	This version compiles with g++ 3.0 20010224 (prerelease).  That is of
