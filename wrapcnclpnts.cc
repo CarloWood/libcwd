@@ -11,7 +11,9 @@
 // packaging of this file.
 //
 
+#ifdef __linux				// This file is only used while debugging libcwd anyway...
 #define _LARGEFILE64_SOURCE
+#endif
 
 #include "sys.h"
 #include <libcw/debug_config.h>		// Needed for CWDEBUG_DEBUGT
@@ -83,7 +85,9 @@ CANCELLATION_POINT_SYSCALL (int, fsync, (int fd), (fd))
 CANCELLATION_POINT_SYSCALL (off_t, lseek, (int fd, off_t offset, int whence), (fd, offset, whence))
 strong_alias(lseek, __lseek)
 
+#ifdef _LARGEFILE64_SOURCE
 CANCELLATION_POINT_SYSCALL (off64_t, lseek64, (int fd, off64_t offset, int whence), (fd, offset, whence))
+#endif
 
 CANCELLATION_POINT_SYSCALL (int, msync, (__ptr_t addr, size_t length, int flags), (addr, length, flags))
 
@@ -92,20 +96,26 @@ CANCELLATION_POINT_SYSCALL (int, nanosleep, (const struct timespec *requested_ti
 CANCELLATION_POINT_SYSCALL_VA (int, open, (const char *pathname, int flags, ...), (pathname, flags, va_arg (ap, mode_t)), flags)
 strong_alias(open, __open)
 
+#ifdef _LARGEFILE64_SOURCE
 CANCELLATION_POINT_SYSCALL_VA (int, open64, (const char *pathname, int flags, ...), (pathname, flags, va_arg (ap, mode_t)), flags)
 strong_alias(open64, __open64)
+#endif
 
 CANCELLATION_POINT_SYSCALL (int, pause, (void), ())
 
 CANCELLATION_POINT_SYSCALL (ssize_t, pread, (int fd, void *buf, size_t count, off_t offset), (fd, buf, count, offset))
 
+#ifdef _LARGEFILE64_SOURCE
 CANCELLATION_POINT_SYSCALL (ssize_t, pread64, (int fd, void *buf, size_t count, off64_t offset), (fd, buf, count, offset))
 strong_alias(pread64, __pread64)
+#endif
 
 CANCELLATION_POINT_SYSCALL (ssize_t, pwrite, (int fd, const void *buf, size_t n, off_t offset), (fd, buf, n, offset))
 
+#ifdef _LARGEFILE64_SOURCE
 CANCELLATION_POINT_SYSCALL (ssize_t, pwrite64, (int fd, const void *buf, size_t n, off64_t offset), (fd, buf, n, offset))
 strong_alias(pwrite64, __pwrite64)
+#endif
 
 CANCELLATION_POINT_SYSCALL (ssize_t, read, (int fd, void *buf, size_t count), (fd, buf, count))
 strong_alias(read, __read)
