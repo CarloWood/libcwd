@@ -372,6 +372,8 @@ if test "$libcwd_config_threading" = yes; then
     dnl itself even!.
     AC_CHECK_LIB(pthread, pthread_create, [LIB_THREADS_SHARED=-lpthread])
   fi
+
+  AC_CHECK_TYPE([struct _pthread_cleanup_buffer],[AC_DEFINE(HAVE__PTHREAD_CLEANUP_BUFFER)],,[#include <pthread.h>])
 fi
 
 dnl This test needs the full set of libraries we just determined.
