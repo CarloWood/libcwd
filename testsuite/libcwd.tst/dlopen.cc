@@ -23,7 +23,7 @@ int main(void)
 
   if (!handle)
   {
-    char* error_str = dlerror();
+    char const* error_str = dlerror();
     DoutFatal(dc::fatal, "Failed to load \"./module.so\": " << error_str);
   }
 
@@ -36,7 +36,7 @@ int main(void)
 
   if (!f)
   {
-    char* error_str = dlerror();
+    char const* error_str = dlerror();
     DoutFatal(dc::fatal, "Failed find function \"" << sym << "\": " << error_str);
   }
 
