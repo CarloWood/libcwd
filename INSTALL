@@ -133,7 +133,7 @@ For example, I configure libcwd as follows to compile with the latest CVS
 version of g++, which I installed in /usr/local/bin/g++-cvs (and
 /usr/local/bin is in my PATH):
 
-CXX="g++-cvs" ./configure
+CC="gcc-cvs" CXX="g++-cvs" ./configure
 
 If libiberty.a or libbfd.so are in an unusual directory, then you
 will have to set LDFLAGS prior to running ./configure:
