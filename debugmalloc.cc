@@ -1090,9 +1090,6 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
 void location_ct::synchronize_with(ooam_filter_ct const& filter) const
 {
-#if defined(_REENTRANT) && CWDEBUG_DEBUG
-  LIBCWD_ASSERT( !M_known || M_hide == _private_::new_location || _private_::is_locked(location_cache_instance) );
-#endif
   if (!M_known)
     M_hide = _private_::unfiltered_location;
   else
@@ -2103,6 +2100,7 @@ void init_malloc_function_pointers(void)
   int i = 0;
   while (!handle && libc_filename[i])
   {
+    std::ios_base::Init dummy;
     handle = ::dlopen(libc_filename[i], RTLD_LAZY);
     ++i;
   }

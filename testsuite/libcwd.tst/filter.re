@@ -48,6 +48,10 @@ MALLOC  : Allocated memory: [0-9]* bytes in 1[0-9] blocks:
     [0-9:.]* malloc    0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:187  void\*; \(sz = 123\)  Allocated between the two markers
 MALLOC  : delete\[\] 0x[a-f0-9]*            module\.cc:47   char\[1000\]; \(sz = 1000\)  new1000 
 NOTICE  : dlclose\(0x[a-f0-9]*\)
+// input lines 2
+// output till ^MALLOC
+(WARNING : This compiler version is buggy, a call to dlclose\(\) will destruct the standard streams.*
+)*
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-version\.c:(289|298)|_dl_check_map_versions) *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:(119|131)|_dl_new_object) *<unknown type>; \(sz = 140\)  
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-load\.c:(164|149)|_dl_map_object) *<unknown type>; \(sz = 12\)  
@@ -62,6 +66,10 @@ MALLOC  : (Trying to free NULL - ignored\.|free\(0x[a-f0-9]*\) <pre libcwd initi
 )*|(MALLOC  : delete 0x[a-f0-9]* <pre ios initialization>  <unknown type>.*
 ))
 MALLOC  : Allocated memory: [0-9]* bytes in [5-9] blocks:
+// input lines 2
+// output till tst_filter_
+([0-9:.]* *0x[a-f0-9]* libcwd\.so\.0:              bfd\.cc:1684 std::ios_base::Init; \(sz = 1\)  Bug workaround\.  See WARNING about dlclose\(\) above\.
+)*
 [0-9:.]* \(deleted\) 0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:184  <marker>; \(sz = 8\)  marker1
     [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:38   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* malloc    0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:187  void\*; \(sz = 123\)  Allocated between the two markers

@@ -79,6 +79,10 @@ struct rtld_global {
 #include "cwd_bfd.h"
 #include <libcwd/core_dump.h>
 
+#define NEED_BUGWORKAROUND_FOR_IOS_INIT_DESTRUCTION (__GNUC__ == 3 && \
+    ((__GNUC_MINOR__ == 2 && __VERSION__ [3] == 0) || \
+     (__GNUC_MINOR__ == 1)))
+
 extern char** environ;
 
 namespace libcw {
@@ -1664,6 +1668,25 @@ extern "C" {
 #if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
+    if (NEED_BUGWORKAROUND_FOR_IOS_INIT_DESTRUCTION)
+    {
+      static bool not_first_time = false;
+      if (!not_first_time)
+      {
+        // g++ 3.2, 3.1.1 destruct all static std::ios_base::Init objects of libstdc++,
+	// destroying the standard streams.  As that stops printing debugging, fix it here.
+	Dout(dc::warning, "This compiler version is buggy, a call to dlclose() will destruct the standard streams.  "
+	                  "Libcwd works around this problem for the sake of the debug output but you will suffer from "
+			  "this WITHOUT libcwd!  Upgrade your compiler to version 3.2.1 or higher.");
+	Debug(dc::malloc.off());
+	Debug(dc::bfd.off());
+	std::ios_base::Init* dummy = new std::ios_base::Init;
+	AllocTag(dummy, "Bug workaround.  See WARNING about dlclose() above.");
+	Debug(dc::bfd.on());
+	Debug(dc::malloc.on());
+	not_first_time = true;
+      }
+    }
     // Block until printing of allocations is finished because it might be that
     // those allocations have type_info pointers to shared objectst that will be
     // removed by dlclose, causing a core dump in list_allocations_on in the other

@@ -31,6 +31,10 @@ malloc    0x[0-9a-f]*            module\.cc:24   void\*; \(sz = 310\)  Allocated
 )*)*
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:24 *void\*; \(sz = 310\)  Allocated inside global_test_symbol 
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:13 *void\*; \(sz = 300\)  Allocated inside static_test_symbol 
+// input lines 2
+// output till ^MALLOC
+(WARNING : This compiler version is buggy, a call to dlclose\(\) will destruct the standard streams.*
+)*
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-version.c:[0-9]*|_dl_check_map_versions) *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-object.c:[0-9]*|_dl_new_object) *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-load.c:[0-9]*|_dl_map_object|open_path) *<unknown type>; \(sz = [0-9]*\)  
