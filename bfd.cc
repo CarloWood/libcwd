@@ -412,7 +412,16 @@ void bfd_close(bfd* abfd)
 #endif // CWDEBUG_LIBBFD
 
 	  if (!s_end_offset && number_of_symbols > 0)
+	  {
+#if CWDEBUG_ALLOC
+	    int saved_internal = __libcwd_tsd.internal;
+	    __libcwd_tsd.internal = 0;
+#endif
 	    Dout(dc::warning, "Cannot find symbol _end");
+#if CWDEBUG_ALLOC
+	    __libcwd_tsd.internal = saved_internal;
+#endif
+	  }
 
 	  // Guess the start of the shared object when ldd didn't return it.
 	  if (lbase == unknown_l_addr)
