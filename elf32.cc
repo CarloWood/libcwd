@@ -1019,22 +1019,23 @@ inline string_t
 read_string(unsigned char const*& debug_info_ptr, uLEB128_t const form, unsigned char const* debug_str)
 {
   string_t result;
-  switch(form)
+  if (form == DW_FORM_string)
   {
-    case DW_FORM_string:
-    {
-      result = reinterpret_cast<string_t>(debug_info_ptr);
-      eat_string(debug_info_ptr);
-      break;
-    }
-    case DW_FORM_strp:
-    {
-      result = reinterpret_cast<string_t>(&debug_str[*reinterpret_cast<uint32_t const*>(debug_info_ptr)]);
-      debug_info_ptr += 4;
-      break;
-    }
+    result = reinterpret_cast<string_t>(debug_info_ptr);
+    eat_string(debug_info_ptr);
+  }
+  else
+#if DEBUGDWARF
+  if (form == DW_FORM_strp)
+#endif
+  {
+    result = reinterpret_cast<string_t>(&debug_str[*reinterpret_cast<uint32_t const*>(debug_info_ptr)]);
+    debug_info_ptr += 4;
   }
 #if DEBUGDWARF
+  else
+    DoutFatal(dc::core, "Calling read_string with form != DW_FORM_string && form != DW_FORM_strp");
+
   LIBCWD_TSD_DECLARATION;
   DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << result << '"');
 #endif
@@ -1100,9 +1101,10 @@ struct range_st {
 };
 
 struct location_st {
-  object_files_string_set_ct::iterator M_func_iter;
+  object_files_string_set_ct::iterator M_stabs_symbol_funcname_iter;		// Only valid when M_stabs_symbol is set.
   object_files_string_set_ct::iterator M_source_iter;
   Elf32_Half M_line;
+  bool M_stabs_symbol;
 
 #if DEBUGSTABS || DEBUGDWARF
   friend std::ostream& operator<<(std::ostream& os, location_st const& loc);
@@ -1121,7 +1123,8 @@ private:
   objfile_ct* M_object_file;
 
 public:
-  location_ct(objfile_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file) { M_prev_location.M_line = (Elf32_Half)-1; M_line = 0; M_range.start = 0; }
+  location_ct(objfile_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file)
+      { M_prev_location.M_line = (Elf32_Half)-1; M_line = 0; M_stabs_symbol = false; M_range.start = 0; }
 
   void invalidate(void) {
     M_flags = 0;
@@ -1186,8 +1189,10 @@ public:
       DoutDwarf(dc::bfd, "--> location not assumed valid (address is 0x0).");
 #endif
   }
-  void set_source_iter(object_files_string_set_ct::iterator const& iter) { M_source_iter = iter; M_used = false; }
-  void set_func_iter(object_files_string_set_ct::iterator const& iter) { M_func_iter = iter; }
+  void set_source_iter(object_files_string_set_ct::iterator const& iter)
+      { M_source_iter = iter; M_used = false; }
+  void set_func_iter(object_files_string_set_ct::iterator const& iter)
+      { M_stabs_symbol_funcname_iter = iter; M_stabs_symbol = true; }
   // load_stabs doesn't use out M_address.
   bool is_valid_stabs(void) const { return (M_flags == 1); }
   void increment_line(int increment) {
@@ -1260,7 +1265,10 @@ std::ostream& operator<<(std::ostream& os, range_st const& range)
 
 std::ostream& operator<<(std::ostream& os, location_st const& loc)
 {
-  os << (*loc.M_source_iter).data() << ':' << std::dec << loc.M_line << " : \"" << (*loc.M_func_iter).data() << "\".";
+  os << (*loc.M_source_iter).data() << ':' << std::dec << loc.M_line;
+  if (loc.M_stabs_symbol)
+    os << " : \"" << loc.M_stabs_symbol_funcname_iter->data();
+  os << "\".";
   return os;
 }
 
@@ -1410,7 +1418,8 @@ void location_ct::M_store(void)
     DoutDwarf(dc::bfd, "M_store(): M_range.start was 0.");
 #endif
   M_range.start = M_address;
-  M_prev_location.M_func_iter = M_func_iter;
+  M_prev_location.M_stabs_symbol_funcname_iter = M_stabs_symbol_funcname_iter;
+  M_prev_location.M_stabs_symbol = M_stabs_symbol;
   M_prev_location.M_source_iter = M_source_iter;
   M_prev_location.M_line = M_line;
   M_used = true;
@@ -2190,10 +2199,6 @@ void objfile_ct::load_dwarf(void)
 	    object_files_string cur_source;
 	    location_ct location(this);
 
-	    object_files_string cur_func("-\0");	// We don't add function names - this is used to see we're
-							// doing DWARF in find_nearest_line().  Keep that '-' thus!
-	    location.set_func_iter(M_function_names.insert(cur_func).first);
-
 	    while( debug_line_ptr < debug_line_ptr_end )
 	    {
 	      file = 0;			// One less than the `file' mentioned in the documentation.
@@ -2705,7 +2710,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
   range.start = offset;
   range.size = 1;
   object_files_range_location_map_ct::const_iterator i(M_ranges.find(static_cast<range_st const>(range)));
-  if (i == M_ranges.end() || (*(*(*i).second.M_func_iter).data() != '-' && strcmp((*(*i).second.M_func_iter).data(), symbol->name)))
+  if (i == M_ranges.end() || ((*i).second.M_stabs_symbol && strcmp((*(*i).second.M_stabs_symbol_funcname_iter).data(), symbol->name)))
   {
     *file = NULL;
     *func = symbol->name;
@@ -2714,9 +2719,9 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
   else
   {
     *file = (*(*i).second.M_source_iter).data();
-    if (*(*(*i).second.M_func_iter).data() != '-')	// '-' is used for DWARF symbols by load_dwarf() (see above).
-      *func = (*(*i).second.M_func_iter).data();
-    else
+    if ((*i).second.M_stabs_symbol)
+      *func = (*(*i).second.M_stabs_symbol_funcname_iter).data();
+    else	// dwarf
       *func = symbol->name;
     *line = (*i).second.M_line;
   }
@@ -2780,7 +2785,9 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 #if DEBUGSTABS || DEBUGDWARF
   _private_::set_alloc_checking_on(LIBCWD_TSD);
 #endif
-  if ((*p.first).second.M_func_iter != location.M_func_iter)
+  if (!location.M_stabs_symbol ||
+      !(*p.first).second.M_stabs_symbol ||
+      (*p.first).second.M_stabs_symbol_funcname_iter != location.M_stabs_symbol_funcname_iter)
 #if DEBUGSTABS || DEBUGDWARF
     if (doutdwarfon || doutstabson)
       Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
