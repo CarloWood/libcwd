@@ -24,7 +24,7 @@ malloc    0x[0-9a-f]*            module\.cc:19   void\*; \(sz = 310\)  Allocated
           0x[0-9a-f]* *streambuf::streambuf\(int\) <unknown type>; \(sz = [0-9]*\) 
 )|(BFD     : address 0x[0-9a-f]* corresponds to streambuf.cc:211
           0x[0-9a-f]* *streambuf.cc:211 *<unknown type>; \(sz = [0-9]*\) 
-))*(((malloc |realloc)   0x[0-9a-f]* *((dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]*|add_to_global|_dl_[a-z_]*) *<unknown type>; \(sz = [0-9]*\) 
+))*(((malloc |realloc)   0x[0-9a-f]* *((dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]*|add_to_global|open_path|_dl_[a-z_]*) *<unknown type>; \(sz = [0-9]*\) 
 )|(BFD     : Warning: Address 0x[0-9a-f]* in section \.text of object file "ld-linux.so\.2"
           does not have a line number, perhaps the unit containing the function
           `_dl_map_object_deps' wasn't compiled with flag -(g|gdb)\?
@@ -33,7 +33,7 @@ MALLOC  : free\(0x[0-9a-f]*\) *module.cc:19 *void\*; \(sz = 310\)  Allocated ins
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:10 *void\*; \(sz = 300\)  Allocated inside static_test_symbol 
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-version.c:[0-9]*|_dl_check_map_versions) *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-object.c:[0-9]*|_dl_new_object) *<unknown type>; \(sz = [0-9]*\)  
-MALLOC  : free\(0x[0-9a-f]*\) *(dl-load.c:[0-9]*|_dl_map_object) *<unknown type>; \(sz = [0-9]*\)  
+MALLOC  : free\(0x[0-9a-f]*\) *(dl-load.c:[0-9]*|_dl_map_object|open_path) *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-object.c:[0-9]*|_dl_new_object) *<unknown type>; \(sz = [0-9]*\)  

@@ -98,7 +98,7 @@ site.exp: Makefile
 	-@rm -f ./tmp?
 
 check: site.exp $(MODULETARGETS)
-	$(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS) $(EXPECT_SCRIPTS)
+	LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" $(RUNTEST) $(RUNTESTFLAGS) $(FLAGS_TO_PASS) $(EXPECT_SCRIPTS)
 
 module.so: module.cc $(top_builddir)/.libs/libcwd.so.*
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
