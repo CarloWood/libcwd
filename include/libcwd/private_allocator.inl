@@ -120,7 +120,7 @@ template <typename T1, class CharAlloc1, pool_nt internal1 LIBCWD_DEBUGDEBUG_COM
 	     allocator_adaptor<T2, CharAlloc2, internal2 LIBCWD_DEBUGDEBUG_COMMA(inst2)> const& a2)
   {
     return
-#if __GNUC_MINOR__ > 2
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ > 2)
 	// At least g++ 3.2.3 crashes on this.  Lets just hope that they are always equal (as they should).
         internal1 == internal2 &&
 #if CWDEBUG_DEBUG

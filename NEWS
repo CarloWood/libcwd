@@ -1,5 +1,7 @@
 libcwd-0.99.38
 
+	Added support for g++ 3.4.2 and 4.0.0.
+
 	Configuration with --disable-location has been fixed and
 	is now supported.
 

@@ -80,4 +80,4 @@ CXXFLAGS = -DCWDEBUG $(TESTOPTS)
 INCLUDES = -I. -I$(top_builddir)/include -I$(srcdir)/../include
 DEFAULT_INCLUDES =
 
-MAINTAINERCLEANFILES = Makefile.in
+MAINTAINERCLEANFILES = $(srcdir)/Makefile.in

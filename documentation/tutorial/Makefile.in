@@ -1,15 +1,16 @@
 CXX=@CXX@
 SHELL=@SHELL@
 top_srcdir=@top_srcdir@
+srcdir=@srcdir@
 top_builddir=../..
 
 .SUFFIXES:
 .PHONY: examples html
 
-SOURCES5:=$(shell grep 'START CODE' tut5.in | cut -d \  -f4)
-SOURCES7:=$(shell grep 'START CODE' tut7.in | cut -d \  -f4)
-AOUT5:=$(shell grep 'START OUTPUT' tut5.in | cut -d \  -f4)
-AOUT7:=$(shell grep 'START OUTPUT' tut7.in | cut -d \  -f4)
+SOURCES5:=$(shell grep 'START CODE' $(srcdir)/tut5.in | cut -d \  -f4)
+SOURCES7:=$(shell grep 'START CODE' $(srcdir)/tut7.in | cut -d \  -f4)
+AOUT5:=$(shell grep 'START OUTPUT' $(srcdir)/tut5.in | cut -d \  -f4)
+AOUT7:=$(shell grep 'START OUTPUT' $(srcdir)/tut7.in | cut -d \  -f4)
 
 all: examples html
 
@@ -19,25 +20,56 @@ Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/tutorial/Mak
 examples: $(SOURCES5) $(SOURCES7)
 html: index.html faq.html intro.html tut1.html tut2.html tut3.html tut4.html tut5.html tut6.html tut7.html tut8.html
 
-%.html: %.m4 ../definitions.m4
-	m4 -D__TUTORIAL=1 -I.. $< > $@
+index.html: $(srcdir)/index.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
 
-tut5.m4: tut5.in $(AOUT5)
-	awk -f moo.awk $< > $@
+faq.html: $(srcdir)/faq.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+intro.html: $(srcdir)/intro.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut1.html: $(srcdir)/tut1.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut2.html: $(srcdir)/tut2.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut3.html: $(srcdir)/tut3.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut4.html: $(srcdir)/tut4.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut5.html: tut5.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut6.html: $(srcdir)/tut6.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut7.html: tut7.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut8.html: $(srcdir)/tut8.m4 $(srcdir)/../definitions.m4
+	pwd="`pwd`"; (cd $(srcdir); m4 -D__TUTORIAL=1 -I.. $$pwd/$<) > $@
+
+tut5.m4: $(srcdir)/tut5.in $(AOUT5)
+	awk -f $(srcdir)/moo.awk $< > $@
 	@rm -f core.*
 
-tut7.m4: tut7.in $(AOUT7)
-	awk -f moo.awk $< > $@
+tut7.m4: $(srcdir)/tut7.in $(AOUT7)
+	awk -f $(srcdir)/moo.awk $< > $@
 	@rm -f core.*
-	
-$(SOURCES5): tut5.in
+
+$(SOURCES5): $(srcdir)/tut5.in
 	$(MAKE) -s $@-cc
 
-$(SOURCES7): tut7.in
+$(SOURCES7): $(srcdir)/tut7.in
 	$(MAKE) -s $@-cc
 
 %-cc:
-	@IN=`echo $* | sed -e 's/examples\([57]\).*/tut\1.in/'`; \
+	@mkdir -p examples5 examples7
+	@IN=`echo $(srcdir)/$* | sed -e 's%examples\([57]\).*%tut\1.in%'`; \
 	if grep "END CODE $*" $$IN >/dev/null; then \
 	  grep -A1000 "START CODE $*" $$IN |\
 	  grep -B1000 "END CODE $*" |\
@@ -56,14 +88,14 @@ $(SOURCES7): tut7.in
 	  exit 1; \
 	fi
 
-$(AOUT5): examples5/%-bin: examples5/%.cc examples5/debug.o examples5/debug.h examples5/sys.h examples5/sysinclude/libbooster/debug.h examples5/sysinclude/libturbo/debug.h ../../.libs/libcwd.so
-	$(CXX) -g -pipe -DCWDEBUG -Iexamples5 -Iexamples5/sysinclude -I../../include \
+$(AOUT5): examples5/%-bin: $(srcdir)/examples5/%.cc examples5/debug.o $(srcdir)/examples5/debug.h $(srcdir)/examples5/sys.h $(srcdir)/examples5/sysinclude/libbooster/debug.h $(srcdir)/examples5/sysinclude/libturbo/debug.h ../../.libs/libcwd.so
+	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples5 -I$(srcdir)/examples5/sysinclude -I$(srcdir)/../../include -I../../include \
 		$< examples5/debug.o -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
 
-examples5/debug.o: examples5/debug.cc examples5/debug.h examples5/sys.h examples5/sysinclude/libbooster/debug.h examples5/sysinclude/libturbo/debug.h ../../include/libcwd/sys.h
-	$(CXX) -g -pipe -DCWDEBUG -Iexamples5 -Iexamples5/sysinclude -I../../include -c $< -o $@
+examples5/debug.o: $(srcdir)/examples5/debug.cc $(srcdir)/examples5/debug.h $(srcdir)/examples5/sys.h $(srcdir)/examples5/sysinclude/libbooster/debug.h $(srcdir)/examples5/sysinclude/libturbo/debug.h ../../include/libcwd/sys.h
+	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples5 -I$(srcdir)/examples5/sysinclude -I$(srcdir)/../../include -I../../include -c $< -o $@
 
-$(AOUT7): examples7/%-bin: examples7/%.cc examples7/sys.h examples7/debug.h ../../.libs/libcwd.so
-	$(CXX) -g -pipe -DCWDEBUG -Iexamples7 -I../../include \
+$(AOUT7): examples7/%-bin: $(srcdir)/examples7/%.cc $(srcdir)/examples7/sys.h $(srcdir)/examples7/debug.h ../../.libs/libcwd.so
+	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples7 -I$(srcdir)/../../include -I../../include \
 		$< -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
 

@@ -17,13 +17,13 @@
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded 
 # by quotes) that should identify the project.
 
-PROJECT_NAME           = libcwd
+PROJECT_NAME           = @PACKAGE_NAME@
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = "libcwd 0.99.38"
+PROJECT_NUMBER         = "@PACKAGE_STRING@"
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -91,8 +91,8 @@ FULL_PATH_NAMES        = YES
 # only done if one of the specified strings matches the left-hand part of 
 # the path. It is allowed to use relative paths in the argument list.
 
-STRIP_FROM_PATH        = /home/carlo/c++/libcwd/include/ \
-                         /home/carlo/c++/libcwd/
+STRIP_FROM_PATH        = @top_srcdir@/include/ \
+                         @top_srcdir@/
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter 
 # (but less readable) file names. This can be useful is your file systems 
@@ -365,12 +365,12 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../debug.cc \
-                         ../debugmalloc.cc \
-                         ../bfd.cc \
-                         . \
-                         ../include/libcwd \
-                         ../demangle3.cc
+INPUT                  = @top_srcdir@/debug.cc \
+                         @top_srcdir@/debugmalloc.cc \
+                         @top_srcdir@/bfd.cc \
+                         @srcdir@ \
+                         @top_srcdir@/include/libcwd \
+                         @top_srcdir@/demangle3.cc
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -409,11 +409,11 @@ EXCLUDE_PATTERNS       = timestamp-*.h
 # The EXAMPLE_PATH tag can be used to specify one or more files or 
 # directories that contain example code fragments that are included (see 
 # the \include command).
-# The ".." is needed for the 'nodebug.h' file.
+# The "@top_srcdir@" is needed for the 'nodebug.h' file.
 
 EXAMPLE_PATH           = external \
-                         doxygen-examples \
-			 ..
+                         @srcdir@/doxygen-examples \
+			 @top_srcdir@
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -536,13 +536,13 @@ HTML_FILE_EXTENSION    = .html
 # each generated HTML page. If it is left blank doxygen will generate a 
 # standard header.
 
-HTML_HEADER            = html.header
+HTML_HEADER            = @srcdir@/html.header
 
 # The HTML_FOOTER tag can be used to specify a personal HTML footer for 
 # each generated HTML page. If it is left blank doxygen will generate a 
 # standard footer.
 
-HTML_FOOTER            = html.footer
+HTML_FOOTER            = @srcdir@/html.footer
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading 
 # style sheet that is used by each HTML page. It can be used to 

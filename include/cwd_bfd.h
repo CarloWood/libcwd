@@ -44,26 +44,9 @@
 #if LIBCWD_THREAD_SAFE
 using libcwd::_private_::rwlock_tct;
 using libcwd::_private_::mutex_tct;
-
-#if __GNUC_MINOR__ != 5
 using libcwd::_private_::object_files_instance;
 using libcwd::_private_::dlopen_map_instance;
 using libcwd::_private_::dlclose_instance;
-#else
-// gcc version 3.5.0 20040420 (experimental) ICEs on the above.
-namespace libcwd { namespace _private_ { namespace workaround_20040420 {
-  static mutex_instance_nt const object_files_instance = _private_::object_files_instance;
-  static mutex_instance_nt const dlopen_map_instance = _private_::dlopen_map_instance;
-  static mutex_instance_nt const dlclose_instance = _private_::dlclose_instance;
-#if CWDEBUG_ALLOC
-  static mutex_instance_nt const list_allocations_instance = _private_::list_allocations_instance;
-#endif
-}}}
-namespace workaround_20040420 = libcwd::_private_::workaround_20040420;
-#define object_files_instance workaround_20040420::object_files_instance
-#define dlopen_map_instance workaround_20040420::dlopen_map_instance
-#define dlclose_instance workaround_20040420::dlclose_instance
-#endif
 
 #define BFD_INITIALIZE_LOCK             rwlock_tct<object_files_instance>::initialize()
 #define BFD_ACQUIRE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrlock()
@@ -146,7 +129,7 @@ private:
   libcwd::object_file_ct M_object_file;
 public:
   bfile_ct(char const* filename, void* base);
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
   void initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM);
 #else
   void initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);

@@ -19,7 +19,7 @@
 namespace libcwd {
   namespace _private_ {
 
-#if __GNUC_MINOR__ < 3
+#if __GNUC__ == 3 && __GNUC_MINOR__ < 3
 extern bool WST_ios_base_initialized;
 extern bool inside_ios_base_Init_Init(void);
 #endif

@@ -43,4 +43,4 @@ rcfile.cc \
 attach_gdb.cc
 endif
 
-MAINTAINERCLEANFILES = Makefile.in
+MAINTAINERCLEANFILES = $(srcdir)/Makefile.in

@@ -1,0 +1,12 @@
+Libcwd will only compile on cygwin and mingw32 when you configure it with
+--disable-alloc and --disable-location.
+
+You then still have the debug output functionality, but no memory allocation
+tracking or the possibility to use 'location_ct' objects to print source-file
+and line number information of addresses.
+
+If you develop your application on GNU/Linux then you can still use libcwd
+for the debug output when testing the application on cygwin and mingw32, but
+you have to take care to add #if's for the macros CWDEBUG_ALLOC and
+CWDEBUG_LOCATION where appropriate.
+

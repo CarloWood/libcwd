@@ -38,7 +38,7 @@ Packages/versions needed
 i) The GNU compiler, version 3.2 or higher.
 
     Location: gnu/gcc/
-    Current version: 3.4.1
+    Current version: 3.4.2
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -67,7 +67,7 @@ Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
 libcwd-0.99.38 was tested with gcc-3.2.3, gcc-3.3.2, gcc-3.3.3,
-gcc-3.4.0, gcc-3.4.1 and gcc version 3.5.0 20040530 (experimental).
+gcc-3.4.0, gcc-3.4.1, gcc-3.4.2 and gcc version 4.0.0 20040922 (experimental)
 
 Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
 making the use of threading with NPTL impossible.
@@ -102,10 +102,8 @@ v)    GNU which	version 2.x
 vi)   autoconf	version 2.57 or higher
 vii)  automake	version 1.6 or higher
 viii) libtool	version 1.4.2 or higher (linux)
-      (Other OS probably need the latest CVS version
-       because libtool 1.4.x treats everything as C,
-       causing the constructors of global objects not
-       to be called; see http://www.gnu.org/software/libtool/).
+      (Other OS need 1.5 because libtool 1.4.x treats everything as C,
+       causing the constructors of global objects not to be called).
 
 Each of those can be downloaded from your local GNU site.
 

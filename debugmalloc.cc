@@ -167,28 +167,10 @@ using libcwd::_private_::mutex_tct;
 using libcwd::_private_::mutex_ct;
 using libcwd::_private_::threadlist_t;
 using libcwd::_private_::threadlist;
-
-#if __GNUC_MINOR__ != 5
 using libcwd::_private_::location_cache_instance;
 using libcwd::_private_::list_allocations_instance;
 using libcwd::_private_::threadlist_instance;
 using libcwd::_private_::dlclose_instance;
-#else
-// gcc version 3.5.0 20040420 (experimental) ICEs on the above.
-namespace libcwd { namespace _private_ {
-  namespace workaround_20040420 {
-    static mutex_instance_nt const location_cache_instance = _private_::location_cache_instance;
-    static mutex_instance_nt const list_allocations_instance = _private_::list_allocations_instance;
-    static mutex_instance_nt const threadlist_instance = _private_::threadlist_instance;
-    static mutex_instance_nt const dlclose_instance = _private_::dlclose_instance;
-  }
-}}
-namespace workaround_20040420 = ::libcwd::_private_::workaround_20040420;
-#define location_cache_instance workaround_20040420::location_cache_instance
-#define list_allocations_instance workaround_20040420::list_allocations_instance
-#define threadlist_instance workaround_20040420::threadlist_instance
-#define dlclose_instance workaround_20040420::dlclose_instance
-#endif
 
 // We can't use a read/write lock here because that leads to a deadlock.
 // rwlocks have to use condition variables or semaphores and both try to get a
@@ -530,7 +512,7 @@ namespace _private_ {
   //				  and do not call any library functions.
 
 // Initialization 3.3 and later is "garanteed" allocation free.
-#if __GNUC_MINOR__ < 3
+#if __GNUC__ == 3 && __GNUC_MINOR__ < 3
 
   //
   // The following kludge is needed because of a bug in libstdc++-v3.
@@ -558,7 +540,7 @@ namespace _private_ {
     DEBUGDEBUG_CERR( "Standard streams initialized." );
     return false;
   }
-#endif // __GNUC_MINOR__ < 3
+#endif // __GNUC__ == 3 && __GNUC_MINOR__ < 3
 
 #if CWDEBUG_DEBUGM
 // _private_::
@@ -2336,12 +2318,12 @@ void init_debugmalloc(void)
       _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
     if (1
-#if __GNUC_MINOR__ < 3
+#if __GNUC__ == 3 && __GNUC_MINOR__ < 3
         && !_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init()
 #endif
        )
     {
-#if __GNUC_MINOR__ >= 3
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3)
       std::ios_base::Init::Init dummy_init;
 #endif
       WST_initialization_state = 1;		// ST_initialize_globals() calls malloc again of course.

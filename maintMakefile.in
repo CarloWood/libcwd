@@ -88,35 +88,36 @@ ChangeLog:
 # Allow this file to be missing.
 example-project/debug.h.maintainer:
 
-example-project/debug.h: example-project/debug.h.maintainer nodebug.h
-	if test -f example-project/debug.h.maintainer; then \
-	  awk '/@NODEBUGMACROS@/ { exit } { print }' example-project/debug.h.maintainer > example-project/debug.h; \
-	  cat nodebug.h >> example-project/debug.h; \
-	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' example-project/debug.h.maintainer >> example-project/debug.h; \
+example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer $(srcdir)/nodebug.h
+	@mkdir -p example-project
+	if test -f $(srcdir)/example-project/debug.h.maintainer; then \
+	  awk '/@NODEBUGMACROS@/ { exit } { print }' $(srcdir)/example-project/debug.h.maintainer > example-project/debug.h; \
+	  cat $(srcdir)/nodebug.h >> example-project/debug.h; \
+	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> example-project/debug.h; \
 	fi
 
-# 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-# 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-# 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-# 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-# 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-#		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-#		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-#		'--enable-maintainer-mode --disable-pch --compilers=cvs-3.5' \
-#		'--enable-maintainer-mode --compilers=cvs-3.5,3.4.1,3.4.0,3.3.3,3.3.2,3.2.3' \
+# 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+# 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+# 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+# 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+# 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+#		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+#		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+#		'--enable-maintainer-mode --disable-pch --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0' \
+#		'--enable-maintainer-mode --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.3.2,3.2.3' \
 
 full-check: Makefile
 	@( \
 	  for c in \
- 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
- 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
- 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
- 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
- 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=cvs-3.5,3.4.1,3.3.3,3.2.3' \
-		'--enable-maintainer-mode --disable-pch --compilers=cvs-3.5' \
-		'--enable-maintainer-mode --compilers=cvs-3.5,3.4.1,3.4.0,3.3.3,3.3.2,3.2.3' \
+ 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+ 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+ 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+ 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+ 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.2.3' \
+		'--enable-maintainer-mode --disable-pch --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0' \
+		'--enable-maintainer-mode --compilers=cvs-4.0,3.4.2,3.4.1,3.4.0,3.3.3,3.3.2,3.2.3' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
 	    case "$$c" in \
@@ -129,7 +130,7 @@ full-check: Makefile
 	    for v in `echo $$compilers`; do \
 	      echo "*** COMPILER VERSION: \"$$v\""; \
 	      echo -n "Configuring... "; \
-	      if eval "CC=\"gcc-$$v\" CXX=\"g++-$$v\" ./configure $$config >/dev/null"; then \
+	      if eval "CC=\"gcc-$$v\" CXX=\"g++-$$v\" $(srcdir)/configure $$config >/dev/null"; then \
 		echo "done"; \
 	      else \
 	        echo "failed" && exit -1; \
@@ -167,7 +168,12 @@ syncwww: documentation
 	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=documentation/www/exclude --delete-excluded \
 		/usr/src/libcwd/libcwd/documentation/ xs2:"~/WWW/libcwd"
 
-cvs-clean: maintainer-clean
+cvs-clean:
 	$(MAKE) -C documentation maintainer-clean
 	(test -f example-project/Makefile && $(MAKE) -C example-project maintainer-clean) || true
-
+	$(MAKE) maintainer-clean
+	for d in documentation/tutorial/examples5 documentation/tutorial/examples7 documentation/tutorial \
+		 documentation/styles documentation/external documentation \
+		 example-project testsuite tests cutee utils include/libcwd include; do \
+	  test ! -d $$d || rmdir --ignore-fail-on-non-empty $$d; \
+	done

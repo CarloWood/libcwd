@@ -1,0 +1,85 @@
+SHELL=@SHELL@
+top_srcdir=@top_srcdir@
+srcdir=@srcdir@
+top_builddir=..
+
+include doxygen.config
+INPUT_FILES=$(shell for i in $(INPUT); do if test -f $(srcdir)/$$i; then echo $(srcdir)/$$i; else for j in $(FILE_PATTERNS); do ls $(srcdir)/$$i/$$j; done; fi done)
+EXAMPLE_FILES=$(shell find $(srcdir)/doxygen-examples -mindepth 1 -maxdepth 1 -type f -print)
+
+.PHONY: reference-manual external styles tutorial links
+
+all: reference-manual tutorial links
+
+Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/Makefile.in
+	cd $(top_builddir) && CONFIG_FILES=documentation/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
+
+doxygen.config: $(top_builddir)/config.status $(top_srcdir)/documentation/doxygen.config.in
+	cd $(top_builddir) && CONFIG_FILES=documentation/doxygen.config CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
+
+links:
+	if test "@srcdir@" != "."; then \
+	  test -e images || ln -s @srcdir@/images images; \
+	  test -e scripts || ln -s @srcdir@/scripts scripts; \
+	  test -e index.html || ln -s @srcdir@/index.html index.html; \
+	fi
+
+reference-manual: styles external
+	rm -rf reference-manual
+	doxygen doxygen.config
+	mv reference-manual/preparation.html reference-manual/preparation.tmp
+	cat reference-manual/preparation.tmp | \
+	  sed -e 's/href="debug_8h\.html">debug\.h/href="#preparation_step2">debug.h/' \
+	      -e 's/"sys\.h"/"<a class="code" href="#preparation_step2">sys.h<\/a>"/' \
+	  > reference-manual/preparation.html
+	rm reference-manual/preparation.tmp
+	for i in `grep -l '<h2>Modules</h2>' reference-manual/*.html`; do \
+	  mv $$i $$i.tmp; \
+	  cat $$i.tmp | \
+	  sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' > $$i; \
+	  rm $$i.tmp; \
+	done
+
+reference-manual-clean:
+	rm -rf reference-manual
+
+external: external/INSTALL external/sys.h external/debug.h external/debug.cc external/libcwdrc
+
+external-clean:
+	rm -f external/INSTALL external/sys.h external/debug.h external/debug.cc external/libcwdrc
+
+external/INSTALL: $(top_srcdir)/INSTALL
+	@mkdir -p external
+	cp $(top_srcdir)/INSTALL external/INSTALL
+
+external/sys.h: $(top_srcdir)/example-project/sys.h
+	@mkdir -p external
+	cp $(top_srcdir)/example-project/sys.h external/sys.h
+
+external/debug.h: $(top_builddir)/example-project/debug.h
+	@mkdir -p external
+	cp $(top_builddir)/example-project/debug.h external/debug.h
+
+$(top_builddir)/example-project/debug.h: $(top_srcdir)/example-project/debug.h.maintainer
+	$(MAKE) -C $(top_builddir) example-project/debug.h
+
+external/debug.cc: $(top_srcdir)/example-project/debug.cc
+	@mkdir -p external
+	cp $(top_srcdir)/example-project/debug.cc external/debug.cc
+
+external/libcwdrc: $(top_srcdir)/libcwdrc
+	@mkdir -p external
+	cp $(top_srcdir)/libcwdrc external/libcwdrc
+
+styles:
+	$(MAKE) -C styles
+
+tutorial:
+	$(MAKE) -s -C tutorial
+
+maintainer-clean: external-clean reference-manual-clean
+	$(MAKE) -C styles maintainer-clean
+	if test "@srcdir@" != "."; then \
+	  rm -f images scripts index.html; \
+	fi
+	cd tutorial; rm -f examples5/debug.* examples5/test* tutorial/core examples7/test* tut5.m4 tut7.m4 *.html

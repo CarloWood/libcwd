@@ -1,0 +1,40 @@
+SHELL=@SHELL@
+top_srcdir=@top_srcdir@
+srcdir=@srcdir@
+top_builddir=../..
+
+TEMPLATES=main.css doxygen.css tutorial.css tag-cw.css
+BROWSERS=netscape4 netscape6 mozilla konqueror ie
+OUTPUT=$(shell for b in $(BROWSERS); do for i in $(TEMPLATES); do echo $$b/$$i; done done)
+
+all: $(OUTPUT)
+
+Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/styles/Makefile.in
+	cd $(top_builddir) && CONFIG_FILES=documentation/styles/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
+
+netscape4/main.css netscape6/main.css mozilla/main.css konqueror/main.css ie/main.css: $(srcdir)/main.css $(srcdir)/defines.h
+	@mkdir -p $(BROWSERS)
+	@MACRO=`echo $@ | sed -e 's%\([^/]*\)/.*%\1%' | tr a-z A-Z`; \
+	cat $(srcdir)/main.css | gcc -I$(srcdir) -D$$MACRO -E -c - | egrep -v '^(#|$$)' > $@
+
+netscape4/doxygen.css netscape6/doxygen.css mozilla/doxygen.css konqueror/doxygen.css ie/doxygen.css: $(srcdir)/doxygen.css $(srcdir)/defines.h
+	@mkdir -p $(BROWSERS)
+	@MACRO=`echo $@ | sed -e 's%\([^/]*\)/.*%\1%' | tr a-z A-Z`; \
+	cat $(srcdir)/doxygen.css | gcc -I$(srcdir) -D$$MACRO -E -c - | egrep -v '^(#|$$)' > $@
+
+netscape4/tutorial.css netscape6/tutorial.css mozilla/tutorial.css konqueror/tutorial.css ie/tutorial.css: $(srcdir)/tutorial.css $(srcdir)/defines.h
+	@mkdir -p $(BROWSERS)
+	@MACRO=`echo $@ | sed -e 's%\([^/]*\)/.*%\1%' | tr a-z A-Z`; \
+	cat $(srcdir)/tutorial.css | gcc -I$(srcdir) -D$$MACRO -E -c - | egrep -v '^(#|$$)' > $@
+
+netscape4/tag-cw.css netscape6/tag-cw.css mozilla/tag-cw.css konqueror/tag-cw.css ie/tag-cw.css: $(srcdir)/tag-cw.css $(srcdir)/defines.h
+	@mkdir -p $(BROWSERS)
+	@MACRO=`echo $@ | sed -e 's%\([^/]*\)/.*%\1%' | tr a-z A-Z`; \
+	cat $(srcdir)/tag-cw.css | gcc -I$(srcdir) -D$$MACRO -E -c - | egrep -v '^(#|$$)' > $@
+
+test.html: $(srcdir)/test.m4 $(srcdir)/../definitions.m4
+	m4 -I$(srcdir)/.. $(srcdir)/test.m4 > test.html
+
+maintainer-clean:
+	for b in $(BROWSERS); do rm -f $$b/*.css; rmdir $$b 2>/dev/null || true; done
+

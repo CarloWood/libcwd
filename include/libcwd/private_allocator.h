@@ -77,7 +77,7 @@ Single-threaded case:
 
 */
 
-#if __GNUC_MINOR__ >= 4
+#if __GNUC__ == 3 && __GNUC_MINOR__ == 4
 #include <ext/pool_allocator.h>		// __gnu_cxx::__pool_alloc
 #endif
 
@@ -87,24 +87,30 @@ namespace libcwd {
 // This is a random number in the hope nobody else uses it.
 int const random_salt = 327665;
 
-#if __GNUC_MINOR__ < 4
+#if __GNUC__ == 3 && __GNUC_MINOR__ < 4
 template<bool needs_lock, int pool_instance>
   struct CharPoolAlloc : public std::__default_alloc_template<needs_lock, random_salt + pool_instance> {
     typedef char* pointer;
   };
-#elif __GNUC_MINOR__ == 4 && __GNUC_PATCHLEVEL__ == 0
+#elif __GNUC__ == 3 && __GNUC_MINOR__ == 4 && __GNUC_PATCHLEVEL__ == 0
 template<bool needs_lock, int pool_instance>
   struct CharPoolAlloc : public __gnu_cxx::__pool_alloc<needs_lock, random_salt + pool_instance> {
     typedef char* pointer;
   };
-#else
+#else // 3.4.1 and higher.
 template<int pool_instance>
   struct char_wrapper {
     char c;
   };
-// gcc 3.4.1 and higher always use a lock, in the threaded case.
+#if __GNUC__ == 3
+// gcc 3.4.1 and 3.4.2 always use a lock, in the threaded case.
 template<bool needs_lock, int pool_instance>
   class CharPoolAlloc : public __gnu_cxx::__pool_alloc<char_wrapper<pool_instance> > { };
+#else
+// gcc 4.0 never uses a lock, but doesn't need it.
+template<bool needs_lock, int pool_instance>
+  class CharPoolAlloc : public __gnu_cxx::__mt_alloc<char_wrapper<pool_instance> > { };
+#endif
 #endif
 
 // Dummy mutex instance numbers, these must be negative.

@@ -14,7 +14,7 @@
 #include "sys.h"
 #include <libcwd/config.h>
 
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
 // This has to be very early (must not have been included elsewhere already).
 #define private public  // Ugly, I know.
 #if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
@@ -47,10 +47,8 @@ extern "C" void _exit(int);
 
 #if LIBCWD_THREAD_SAFE
 using libcwd::_private_::rwlock_tct;
-#if __GNUC_MINOR__ != 5
 using libcwd::_private_::debug_objects_instance;
 using libcwd::_private_::debug_channels_instance;
-#endif
 #define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_objects_instance>::wrlock()
 #define DEBUG_OBJECTS_RELEASE_WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_objects_instance>::wrunlock()
 #define DEBUG_OBJECTS_ACQUIRE_READ_LOCK		rwlock_tct<libcwd::_private_::debug_objects_instance>::rdlock()
@@ -89,9 +87,15 @@ namespace libcwd {
 
 namespace _private_ {
 
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
-#if (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-__gnu_cxx::_STL_mutex_lock* _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr;
+// gcc 4.0 use mt_allocator.h as default, which doesn't use locks at all.
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
+
+#if (__GNUC_MINOR__ == 4)
+#if (__GNUC_PATCHLEVEL__ <= 1)
+__gnu_cxx::_STL_mutex_lock* pool_allocator_lock_symbol_ptr;
+#else
+__gthread_mutex_t* pool_allocator_lock_symbol_ptr;
+#endif
 #endif
 
 // The following tries to take the "node allocator" lock -- the lock of the
@@ -99,45 +103,62 @@ __gnu_cxx::_STL_mutex_lock* _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr;
 inline
 bool allocator_trylock(void)
 {
-#if (__GNUC__ < 3 || __GNUC_MINOR__ == 0)
-  if (!(__NODE_ALLOCATOR_THREADS)) return true;
-#endif
-#if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
+#if (__GNUC_MINOR__ < 4)
+
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
   if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
     std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
 #endif
+
   return (__gthread_mutex_trylock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock) == 0);
-#else
-#if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
-  if (!_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr)
+
+#else // __GNUC_MINOR__ == 4
+
+  if (!pool_allocator_lock_symbol_ptr)
     return false;
-  if (!_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_init_flag)
-    _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_initialize();
+
+  #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
+  #if (__GNUC_PATCHLEVEL__ <= 1)
+    if (!pool_allocator_lock_symbol_ptr->_M_init_flag)
+      pool_allocator_lock_symbol_ptr->_M_initialize();
+  #else
+  // If the lock is not initialized, it should be initialized here.
+  #error "Sorry, not implemented yet."
+  #endif
+  #endif
+
+#if (__GNUC_PATCHLEVEL__ <= 1)
+  return (__gthread_mutex_trylock(&pool_allocator_lock_symbol_ptr->_M_lock) == 0);
+#else
+  return (__gthread_mutex_trylock(pool_allocator_lock_symbol_ptr) == 0);
 #endif
-  return (_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr &&
-          __gthread_mutex_trylock(&_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_lock) == 0);
-#endif
+
+#endif // __GNUC_MINOR__ == 4
 }
 
 // The following unlocks the node allocator.
 inline
 void allocator_unlock(void)
 {
-#if (__GNUC__ < 3 || __GNUC_MINOR__ == 0)
-  if (!(__NODE_ALLOCATOR_THREADS)) return;
-#endif
-#if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
+#if (__GNUC_MINOR__ < 4)
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
   if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
     std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
 #endif
   __gthread_mutex_unlock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
+
+#else // __GNUC_MINOR__ == 4
+
+#if (__GNUC_PATCHLEVEL__ <= 1)
+  __gthread_mutex_unlock(&pool_allocator_lock_symbol_ptr->_M_lock);
 #else
-  __gthread_mutex_unlock(&_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_lock);
+  __gthread_mutex_unlock(pool_allocator_lock_symbol_ptr);
 #endif
+
+#endif // __GNUC_MINOR__ == 4
 }
-#endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
+
+#endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
 
 } // namespace _private_
 
@@ -198,7 +219,7 @@ void allocator_unlock(void)
       // ends_on_newline	: This output ends on a newline.
       // possible_nonewline_cf	: When `ends_on_newline' is false, then that was caused by the use of nonewline_cf.
 
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
       typedef debug_message_st* msgbuf_t;
       msgbuf_t msgbuf;
       // Queue the message when the default (STL) allocator is locked and it could be that we
@@ -227,12 +248,12 @@ void allocator_unlock(void)
 	msgbuf = (msgbuf_t)malloc(curlen + extra_size);
 	free_msgbuf = true;
       }
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
       this->sgetn(msgbuf->buf, curlen);
 #else
       this->sgetn(msgbuf, curlen);
 #endif
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
       if (queue_msg)	// Inside a call to malloc and possibly owning lock of std::LIBCWD_POOL_ALLOC<true, 0>?
       {
 	// We don't write debug output to the final ostream when inside malloc and std::LIBCWD_POOL_ALLOC<true, 0> is locked.
@@ -300,7 +321,7 @@ void allocator_unlock(void)
 	  locked_os->write("<continued> ", 12);
 	}
 #endif // LIBCWD_THREAD_SAFE
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
 	debug_message_st* message = debug_object.queue_top;
 	if (message)
 	{
@@ -365,7 +386,7 @@ void allocator_unlock(void)
 	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #endif
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
       }
 #endif
       if (free_msgbuf)

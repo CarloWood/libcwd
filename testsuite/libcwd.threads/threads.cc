@@ -23,7 +23,15 @@
 #define LIBTWD_LEAKTEST
 #endif
 
-#define PREFIX_CODE set_margin(); int __res; for(int __i = 0; __i < 10; ++__i) {
+#define PREFIX_CODE \
+    pthread_mutex_lock(&start_mut); \
+    set_margin(); \
+    int __res; \
+    heartbeat[thread_index(pthread_self())] = 1; \
+    ++started; \
+    pthread_cond_wait(&start_cond, &start_mut); \
+    pthread_mutex_unlock(&start_mut); \
+    for(int __i = 0; __i < 10; ++__i) {
 #define EXIT(res) \
     __res = (res); \
     ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() ); \
@@ -52,12 +60,15 @@
 
 pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t cerr_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t start_mut = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t start_cond = PTHREAD_COND_INITIALIZER;
 
 size_t const heartbeat_size = 1024;
 volatile int heartbeat[heartbeat_size];
 int prev_heartbeat[heartbeat_size];
 int bad[heartbeat_size];
 bool is_NPTL = false;
+int started = 0;
 
 unsigned long thread_index(pthread_t tid)
 {
@@ -205,6 +216,13 @@ pthread_mutex_t leak_mutex;
 
 extern int raise (int sig);
 
+#define WRITESTR(x) ::write(2, x, sizeof(x) - 1)
+#define WRITEINT(i) do { if (i == 0) ::write(2, "0", 1); else { \
+    int v = i; char b[32]; char* p = b + 32; \
+    while(v) { *--p = '0' + v % 10; v /= 10; }; \
+    ::write(2, p, b + sizeof(b) - p); \
+    } } while(0)
+
 int main(void)
 {
   Debug( check_configuration() );
@@ -229,12 +247,14 @@ int main(void)
   libcwd::make_all_allocations_invisible_except(NULL);
 #endif
 
+  pthread_cond_init(&start_cond, NULL);
+
 #ifdef TWDEBUG
   std::ofstream leakout;
   leakout.open("leakout");
 #endif
 
-  Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
+  Debug( libcw_do.set_ostream(&std::cerr, &cerr_mutex) );
 #ifdef TWDEBUG
   Debug2( leak_do.set_ostream(&leakout, &leak_mutex) );
 #endif
@@ -244,6 +264,7 @@ int main(void)
 #ifndef TWDEBUG
   Debug( dc::notice.on() );
   Debug( libcw_do.on() );
+  WRITESTR("HEARTBEAT: This is the main thread");
 #endif
 
   for (int i = 0; i < number_of_threads; ++i)
@@ -260,11 +281,41 @@ int main(void)
   pthread_t thread_id[number_of_threads];
   for (int i = 0; i < number_of_threads; ++i)
   {
-    Dout(dc::notice|continued_cf, "main: creating thread " << i << ", ");
+    WRITESTR("HEARTBEAT: creating thread ");
+    WRITEINT(i);
+    WRITESTR(", ");
     pthread_create(&thread_id[i], NULL, progs[i], NULL);
-    Dout(dc::finish, "id " << thread_id[i] << ".");
+    WRITESTR("id ");
+    WRITEINT(thread_id[i]);
+    WRITESTR(".\n");
   }
 
+  bool signal_sent = false;
+  do
+  {
+    pthread_mutex_lock(&start_mut);
+    if (started == number_of_threads)
+    {
+      pthread_mutex_unlock(&start_mut);
+      WRITESTR("HEARTBEAT: Sending broadcast\n");
+      pthread_cond_broadcast(&start_cond);
+      WRITESTR("HEARTBEAT: Returned from broadcast\n");
+      signal_sent = true;
+    }
+    else
+    {
+      pthread_mutex_unlock(&start_mut);
+      WRITESTR("HEARTBEAT: Number of started threads only: ");
+      WRITEINT(started);
+      WRITESTR("; waiting 1 second.\n");
+      struct timespec rqts = { 1, 0 };
+      struct timespec rmts;
+      nanosleep(&rqts, &rmts);
+    }
+  }
+  while(!signal_sent);
+
+  WRITESTR("HEARTBEAT: All threads started. Starting main loop\n");
   for(;;)
   {
     memcpy(prev_heartbeat, (void*)(heartbeat), sizeof(heartbeat));
@@ -273,7 +324,7 @@ int main(void)
       rqts.tv_sec = 10;
     struct timespec rmts;
     nanosleep(&rqts, &rmts);
-    std::cerr << "\nHEARTBEAT --start of new check-----------------------------\n";
+    WRITESTR("\nHEARTBEAT: --start of new check-----------------------------\n");
     int running = 0;
     for (int i = 0; i < number_of_threads; ++i)
     {
@@ -283,8 +334,23 @@ int main(void)
       if (heartbeat[ti] == 0)
       {
 	void* status;
+	WRITESTR("HEARTBEAT: Entering pthread_join(");
+	WRITEINT(thread_id[i]);
+	WRITESTR(")\n");
 	pthread_join(thread_id[i], &status);
-	Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] << " (" << ti << "), returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
+	WRITESTR("HEARTBEAT: Returned from pthread_join\n");
+	WRITESTR("HEARTBEAT: thread ");
+	WRITEINT(i);
+	WRITESTR(", id ");
+	WRITEINT(thread_id[i]);
+	WRITESTR(" (");
+	WRITEINT(ti);
+	WRITESTR("), returned with status ");
+	if ((bool)status)
+	  WRITESTR("OK");
+	else
+	  WRITESTR("ERROR");
+	WRITESTR(".\n");
 	++running;
 	heartbeat[ti] = -1;
       }
@@ -292,17 +358,31 @@ int main(void)
       {
 	if (++(bad[i]) == 30)
 	{
-	  std::cerr << "No heartbeat for thread " << thread_id[i] << '\n';
+	  WRITESTR("HEARTBEAT: No HEARTBEAT for thread ");
+	  WRITEINT(thread_id[i]);
+	  WRITESTR("\n");
 	  raise(6);
 	}
 	else
-	  std::cerr << "\nNO HEARTBEAT for " << thread_id[i] <<
-	    " since " << bad[i] << " seconds.  Value still: " << heartbeat[ti] << "\n";
+	{
+	  WRITESTR("\nHEARTBEAT: NO HEARTBEAT for ");
+	  WRITEINT(thread_id[i]);
+	  WRITESTR(" since ");
+	  WRITEINT(bad[i]);
+	  WRITESTR(" seconds.  Value still: ");
+	  WRITEINT(heartbeat[ti]);
+	  WRITESTR("\n");
+        }
       }
       else
       {
-	std::cerr << "\nGot HEARTBEAT for " << thread_id[i] <<
-	  ": " << heartbeat[ti] << " after " << bad[i] << " seconds.\n";
+        WRITESTR("\nHEARTBEAT: Got HEARTBEAT for ");
+	WRITEINT(thread_id[i]);
+	WRITESTR(": ");
+	WRITEINT(heartbeat[ti]);
+	WRITESTR(" after ");
+	WRITEINT(bad[i]);
+	WRITESTR(" seconds.\n");
 	bad[i] = 0;
 	++running;
       }
@@ -310,14 +390,15 @@ int main(void)
     if (running == 0)
       break;
 
-    std::cerr << "\nHEARTBEAT ----end of check---------------------------------\n";
+    WRITESTR("\nHEARTBEAT: ----end of check---------------------------------\n");
   }
 
+  WRITESTR("\nHEARTBEAT: Exiting from main(): printing memory allocations.\n");
   Debug( dc::malloc.on() );
 #if CWDEBUG_ALLOC
   libcwd::alloc_filter_ct filter(libcwd::show_allthreads);
   Debug( list_allocations_on(libcw_do, filter) );
 #endif
-  Dout(dc::notice, "Exiting from main()");
+  WRITESTR("\nHEARTBEAT: Exiting from main()\n");
   return 0;
 }

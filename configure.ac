@@ -577,10 +577,10 @@ touch timestamp-sys.h
 cd ..
 ])
 dnl Output the other configuration files.
-AC_CONFIG_FILES([libcwd.spec] [libcwd.lsm] [maintMakefile] [Makefile] [utils/Makefile]
-                [include/Makefile] [include/libcwd/Makefile] [testsuite/Makefile]
-		[cutee/Makefile] [tests/Makefile] [documentation/tutorial/Makefile]
-		[libcwd.pc] [libcwd_r.pc])
+AC_CONFIG_FILES([libcwd.spec] [libcwd.lsm] [maintMakefile] [Makefile] [utils/Makefile] [include/Makefile]
+		[include/libcwd/Makefile] [testsuite/Makefile] [cutee/Makefile] [tests/Makefile]
+		[documentation/doxygen.config] [documentation/Makefile] [documentation/styles/Makefile]
+		[documentation/tutorial/Makefile] [libcwd.pc] [libcwd_r.pc])
 
 AC_OUTPUT
 

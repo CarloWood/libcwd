@@ -18,7 +18,7 @@ INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 DEFAULT_INCLUDES =
 
 DISTCLEANFILES = $(BUILT_SOURCES)
-MAINTAINERCLEANFILES = Makefile.in
+MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
 
 global_dependencies=
 if MAINTAINER_MODE

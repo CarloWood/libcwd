@@ -37,4 +37,4 @@ runtest-clean:
 dist-hook:
 	rm -f $(distdir)/runtest.cc $(distdir)/$(t_runners)
 
-MAINTAINERCLEANFILES = Makefile.in
+MAINTAINERCLEANFILES = $(srcdir)/Makefile.in

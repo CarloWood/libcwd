@@ -10,6 +10,9 @@ program_SOURCES = debug.cc program.cc
 
 # --------------- Maintainer's Section
 
-MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h.in Makefile.in \
-        install-sh missing mkinstalldirs config.cache config.log config.status
+distclean-local:
+	rm -f config.cache config.log config.status
+
+MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure stamp-h.in $(srcdir)/Makefile.in \
+        $(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs
 

@@ -86,8 +86,8 @@ extern char** environ;
 namespace libcwd {
   namespace _private_ {
     extern void demangle_symbol(char const* in, _private_::internal_string& out);
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-    extern __gnu_cxx::_STL_mutex_lock* _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr;
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
+    extern char* pool_allocator_lock_symbol_ptr;
 #endif
   } // namespace _private_
 
@@ -279,7 +279,7 @@ void bfd_close(bfd* abfd)
 #endif
       }
 
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
       void bfile_ct::initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
 #else
       void bfile_ct::initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
@@ -362,7 +362,7 @@ void bfd_close(bfd* abfd)
 
 	if (M_number_of_symbols > 0)
 	{
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
 	  Elf32_Off S_lock_value = 0;
 #endif
 #if CWDEBUG_ALLOC
@@ -570,20 +570,18 @@ void bfd_close(bfd* abfd)
 	  asymbol** se2 = &M_symbol_table[M_number_of_symbols - 1];
 	  for (asymbol** s = M_symbol_table; s <= se2;)
 	  {
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
 	    if (is_libstdcpp && strcmp((*s)->name,
-#if __GNUC_MINOR__ == 4
 #if __GNUC_PATCHLEVEL__ == 0
 	    "_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE"
-#else
+#elif __GNUC_PATCHLEVEL__ == 1
 	    "_ZN9__gnu_cxx11__pool_baseILb1EE7_S_lockE"
-#endif
 #else
-	    "_ZN9__gnu_cxx12__pool_allocIcE7_S_lockE"
+	    "_ZN14__gnu_internal17palloc_init_mutexE"
 #endif
 	    ) == 0)
 	      S_lock_value = bfd_get_section(*s)->vma + (*s)->value;
-#endif
+#endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
 #if CWDEBUG_ALLOC
 	    if (is_libc && strcmp((*s)->name, "__exit_funcs") == 0)
 	      exit_funcs = bfd_get_section(*s)->vma + (*s)->value;
@@ -636,10 +634,9 @@ void bfd_close(bfd* abfd)
 	    Debug( libcw_do.restore(state) );
 	  }
 #endif
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
 	  if (is_libstdcpp && S_lock_value)
-	    _private_::_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr =
-	        (__gnu_cxx::_STL_mutex_lock*)((char*)M_lbase + S_lock_value);
+	    _private_::pool_allocator_lock_symbol_ptr = (char*)M_lbase + S_lock_value;
 #endif
 #if CWDEBUG_ALLOC
           if (is_libc && exit_funcs)
@@ -1024,7 +1021,7 @@ void bfd_close(bfd* abfd)
 	char const* slash = strrchr(name, '/');
 	if (!slash)
 	  slash = name - 1;
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
 	bool is_libstdcpp;
 	is_libstdcpp = (strncmp("libstdc++.so", slash + 1, 12) == 0);
 #endif
@@ -1036,7 +1033,7 @@ void bfd_close(bfd* abfd)
 	set_alloc_checking_off(LIBCWD_TSD);
 	object_file = new bfile_ct(name, l_addr);
 	BFD_RELEASE_WRITE_LOCK;
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
 	object_file->initialize(name, l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
 #else
 	object_file->initialize(name, l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
@@ -1348,7 +1345,7 @@ typedef location_ct bfd_location_ct;
 	// MT: `WST_initialized' is only false when we're still Single Threaded.
 	//     Therefore it is safe to call ST_* functions.
 
-#if CWDEBUG_ALLOC && __GNUC_MINOR__ < 3
+#if CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ < 3
         if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
 	{
 	  M_object_file = NULL;

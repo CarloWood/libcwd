@@ -102,8 +102,8 @@ distclean-local:
 	(cd example-project; rm -rf autom4te.cache .deps aclocal.m4 config.h config.h.in \
 	 config.log config.status configure Makefile Makefile.in stamp-h1 program *.o)
 
-MAINTAINERCLEANFILES = aclocal.m4 config.h.in configure stamp-h Makefile.in \
-	install-sh missing mkinstalldirs config.guess config.sub ltmain.sh ltconfig \
-	config.cache config.log config.status ChangeLog tags example-project/debug.h
+MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure $(srcdir)/Makefile.in \
+	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \
+	$(srcdir)/ltmain.sh $(srcdir)/ChangeLog tags example-project/debug.h
 
 @MAINTAINER_MODE_TRUE@include maintMakefile
