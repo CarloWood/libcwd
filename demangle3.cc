@@ -26,7 +26,7 @@
 // Currently this file has been tested with gcc-3.0.
 //
 // The description of how the mangling is done in the new ABI was found on
-// http://reality.sgi.com/dehnert_engr/cxx/abi.html#mangling-type:
+// http://www.codesourcery.com/cxx-abi/abi.html#mangling
 //
  
 #undef CPPFILTCOMPATIBLE
@@ -1964,7 +1964,7 @@ int main(int argc, char* argv[])
   Debug( dc::demangler.on() );
   std::string out;
   libcw::debug::main_in = argv[1];
-  libcw::debug::demangle_type(argv[1], out);
+  libcw::debug::demangle_symbol(argv[1], out);
   std::cout << out << std::endl;
   return 0;
 }

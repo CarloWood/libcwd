@@ -188,9 +188,13 @@ namespace libcw {
       bool eat_scope_type(char const*&, string&, string&);
       bool eat_type(char const*&, string&);
       int eat_digits(char const*& input);
-      bool eat_type_internal(char const*&, string&, string&, string*);
+      bool eat_type_internal(char const*&, string&, string&, string*, bool = false);
 
     } // namespace {anonymous}
+
+#ifdef STANDALONE
+    static char const* main_in;
+#endif
 
     //
     // demangle_symbol
@@ -201,11 +205,19 @@ namespace libcw {
     //
     void demangle_symbol(char const* input, string& output)
     {
+#ifdef STANDALONE
+      if (input != main_in)
+	Debug( dc::demangler.off() );
+#endif
       Dout(dc::demangler, "Entering demangle_symbol(\"" << input << "\", string& output)");
 
       if (input == NULL)
       {
 	output += "(null)";
+#ifdef STANDALONE
+	if (input != main_in)
+	  Debug( dc::demangler.on() );
+#endif
 	return;
       }
 
@@ -239,7 +251,14 @@ namespace libcw {
       string prefix;
       string postfix;
       char const* p = input;
-      template_parameters = NULL;
+
+      // Initialize list of previous types and template parameters.
+      vector<char const*> current_template_parameters;
+      vector<char const*> current_previous_types;
+      vector<char const*>* previous_template_parameters = template_parameters;
+      vector<char const*>* previous_previous_types = previous_types;
+      template_parameters = &current_template_parameters;
+      previous_types = &current_previous_types;
 
       if (p[0] == '_' && p[1] == 'G' && !strncmp(p, "_GLOBAL_.", 9) && (p[9] == 'D' || p[9] == 'I') && p[10] == '.')
       {
@@ -270,6 +289,12 @@ namespace libcw {
 	  {
 	    output += prefix;
 	    output += " virtual table";
+#ifdef STANDALONE
+	    if (input != main_in)
+	      Debug( dc::demangler.on() );
+#endif
+	    template_parameters = previous_template_parameters;
+	    previous_types = previous_previous_types;
 	    return;
 	  }
 	}
@@ -281,6 +306,12 @@ namespace libcw {
 	    output += " type_info node";
 	  else
 	    output += " type_info function";
+#ifdef STANDALONE
+	  if (input != main_in)
+	    Debug( dc::demangler.on() );
+#endif
+	  template_parameters = previous_template_parameters;
+	  previous_types = previous_previous_types;
 	  return;
 	}
 	char const* p2 = &p[8];
@@ -353,6 +384,12 @@ namespace libcw {
 	output += ' ';
 
       output += postfix;
+#ifdef STANDALONE
+      if (input != main_in)
+	Debug( dc::demangler.on() );
+#endif
+      template_parameters = previous_template_parameters;
+      previous_types = previous_previous_types;
     }
 
     //
@@ -364,11 +401,19 @@ namespace libcw {
     // 
     void demangle_type(char const* input, string& output)
     {
+#ifdef STANDALONE
+      if (input != main_in)
+	Debug( dc::demangler.off() );
+#endif
       Dout(dc::demangler, "Entering demangle_type(\"" << input << "\", string& output)");
 
       if (input == NULL)
       {
 	output += "(null)";
+#ifdef STANDALONE
+	if (input != main_in)
+	  Debug( dc::demangler.on() );
+#endif
 	return;
       }
 
@@ -386,6 +431,10 @@ namespace libcw {
 
       template_parameters = previous_template_parameters;
       previous_types = previous_previous_types;
+#ifdef STANDALONE
+      if (input != main_in)
+	Debug( dc::demangler.on() );
+#endif
     }
 
     namespace {	// Implementation of local functions
@@ -441,12 +490,6 @@ namespace libcw {
 	// <scope-type><types>			-> <scope-type>::~<class-name>(<type1>, <type2>, ..., <typeN>)
 	// 
 	// where <class-name> is the last qualifier of <scope-type>.
-
-	// Initialize list of previous types and template parameters.
-	vector<char const*> current_template_parameters;
-	vector<char const*> current_previous_types;
-	template_parameters = &current_template_parameters;
-	previous_types = &current_previous_types;
 
 	bool is_const = (*input == 'C');
 	bool is_template_function = (*input == 'H');
@@ -752,7 +795,7 @@ namespace libcw {
 
       // {anonymous}::
       template<class INTEGRAL_TYPE>
-	static bool eat_integral_type(char const*& input, string& output)
+	bool eat_integral_type(char const*& input, string& output)
 	{
 	  Dout(dc::demangler, "Entering eat_integral_type<" << type_info_of(INTEGRAL_TYPE(0)).demangled_name() << ">(\"" << input << "\", string& output)");
 
@@ -970,9 +1013,9 @@ namespace libcw {
       }
 
       // {anonymous}::
-      bool eat_type_internal(char const*& input, string& prefix, string& postfix, string* last_class_name = NULL)
+      bool eat_type_internal(char const*& input, string& prefix, string& postfix, string* last_class_name = NULL, bool has_qualifiers = false)
       {
-	Dout(dc::demangler, "Entering eat_type_internal(\"" << input << "\", \"" << prefix << "\", \"" << postfix << (last_class_name ? "\", string* last_class_name" : "\", NULL") << ')');
+	Dout(dc::demangler, "Entering eat_type_internal(\"" << input << "\", \"" << prefix << "\", \"" << postfix << (last_class_name ? "\", string* last_class_name" : "\", NULL") << ", " << (has_qualifiers ? "true" : "false") << ')');
 
 	// `input' is of the form:
 	//
@@ -1001,6 +1044,8 @@ namespace libcw {
 	// R<type>						PREFIX&					POSTFIX
 	// P[M<scope-type>][C]F<types>_<type>			<type> ([<scope-type>::]*		)(<type>, <type>, ..., <type>) [const]
 	// R[M<scope-type>][C]F<types>_<type>			<type> ([<scope-type>::]&		)(<type>, <type>, ..., <type>) [const]
+	// [<other-qualifiers>]A<digits>_			[(<other-qualifiers>			)] \[<digits>\]
+	// O<scope-type>_					PREFIX (<scope-type>::			) POSTFIX
 	//
 	// scope types:
 	// <digits><class-name>					<class-name>
@@ -1075,6 +1120,42 @@ namespace libcw {
 	      return true;
 	    prefix += "unsigned ";
 	  }
+	  if (*input == 'X')
+	  {
+	    int index;
+	    ++input;
+	    if (isdigit(*input))
+	      index = *input++ - '0';
+	    else if (*input != '_')
+	      return true;
+	    else if ((index = eat_digits(++input)) < 0)
+	      return true;
+	    if (!isdigit(*input++))
+	      return true;
+	    if ((size_t)index >= template_parameters->size())
+	      return true;
+	    char const* recursive_input = (*template_parameters)[index];
+	    return eat_template_type(recursive_input, prefix, last_class_name);
+	  }
+	  else if (*input == 'T')
+	  {
+	    ++input;
+	    int index = eat_digits(input);
+	    if (index < 0 || (index > 9 && *input++ != '_'))
+	      return true;
+	    if ((size_t)index >= previous_types->size())
+	    {
+	      char buf[32];
+	      char* p = &buf[31];
+	      *p = 0;
+	      do { *--p = '0' + (index % 10); } while((index /= 10) > 0);
+	      prefix += 'T';
+	      prefix += p;
+	      return false;
+	    }
+	    char const* recursive_input = (*previous_types)[index];
+	    return eat_type_internal(recursive_input, prefix, postfix, last_class_name);
+	  }
 	  for(;;)	// Skip all G's.
 	  {
 	    switch(*input++)
@@ -1123,8 +1204,7 @@ namespace libcw {
 		if (*input == 'M')
 		{
 		  ++input;
-		  string last_class_name_dummy;
-		  if (eat_type_internal(input, member_function_pointer_scope, postfix, &last_class_name_dummy))
+		  if (eat_type_internal(input, member_function_pointer_scope, postfix, NULL, true))
 		    return true;
 		  member_function_pointer_scope += postfix;
 		  member_function_pointer_scope += "::";
@@ -1162,11 +1242,49 @@ namespace libcw {
 		  prefix += what;
 		  return false;
 		}
-		if (eat_type_internal(input, prefix, postfix, NULL))
+		if (eat_type_internal(input, prefix, postfix, NULL, true))
 		  return true;
 		if (is_const)
 		  prefix += " const";
 		prefix += what;
+		return false;
+	      }
+	      case 'A':
+		if (has_qualifiers)
+		  postfix += ')';
+		postfix += " [";
+		if (!isdigit(*input))
+		  return true;
+		while (isdigit(*input))
+		  postfix += *input++;
+		if (*input++ != '_')
+		  return true;
+		postfix += ']';
+		if (eat_type_internal(input, prefix, postfix, NULL, has_qualifiers))
+		  return true;
+		if (has_qualifiers)
+		  prefix += " (";
+		return false;
+	      case 'O':
+	      {
+		string member_scope;
+		string postfix2;
+		if (eat_type_internal(input, member_scope, postfix2, NULL, true))
+		  return true;
+		member_scope += postfix2;
+		member_scope += "::";
+		if (*input++ != '_')
+		  return true;
+		if (eat_type_internal(input, prefix, postfix, NULL))
+		  return true;
+		if (*prefix.rbegin() != '(')
+		{
+		  prefix += " (";
+		  postfix2 = postfix;
+		  postfix = ')';
+		  postfix += postfix2;
+		}
+		prefix += member_scope;
 		return false;
 	      }
 	      default:
@@ -1186,43 +1304,7 @@ namespace libcw {
 	    }
 	  }
 	}
-	if (*input == 'X')
-	{
-	  int index;
-	  ++input;
-	  if (isdigit(*input))
-	    index = *input++ - '0';
-	  else if (*input != '_')
-	    return true;
-	  else if ((index = eat_digits(++input)) < 0)
-	    return true;
-	  if (!isdigit(*input++))
-	    return true;
-	  if (!template_parameters || (size_t)index >= template_parameters->size())
-	    return true;
-	  char const* recursive_input = (*template_parameters)[index];
-	  return eat_template_type(recursive_input, prefix, last_class_name);
-	}
-	else if (*input == 'T')
-	{
-	  ++input;
-	  int index = eat_digits(input);
-	  if (index < 0 || (index > 9 && *input++ != '_'))
-	    return true;
-	  if ((size_t)index >= previous_types->size())
-	  {
-	    char buf[32];
-	    char* p = &buf[31];
-	    *p = 0;
-	    do { *--p = '0' + (index % 10); } while((index /= 10) > 0);
-	    prefix += 'T';
-	    prefix += p;
-	    return false;
-	  }
-	  char const* recursive_input = (*previous_types)[index];
-	  return eat_type_internal(recursive_input, prefix, postfix, last_class_name);
-	}
-	else if (*input == 'Q')
+	if (*input == 'Q')
 	{
 	  // Process <number>
 	  input += 2;
@@ -1232,10 +1314,9 @@ namespace libcw {
 	  else if (input[-1] != '_' || (number = eat_digits(input)) <= 0)
 	    return true;
 	  // Process <scope-type><scope-type>...
-	  string last_class_name_dummy;
 	  while (--number)
 	  {
-	    if (eat_type_internal(input, prefix, postfix, &last_class_name_dummy))
+	    if (eat_type_internal(input, prefix, postfix, NULL))
 	      return true;
 	    prefix += "::";
 	  }
@@ -1290,7 +1371,7 @@ namespace libcw {
 	  input += len;
 	  return false;
 	}
-	if (*input == 'C' && !eat_type_internal(++input, prefix, postfix, last_class_name))
+	if (*input == 'C' && !eat_type_internal(++input, prefix, postfix, last_class_name, has_qualifiers))
 	{
 	  prefix += " const";
 	  return false;
@@ -1344,7 +1425,8 @@ int main(int argc, char* argv[])
   Debug( dc::demangler.on() );
 
   string out;
-  demangle_type(argv[1], out);
+  libcw::debug::main_in = argv[1];
+  demangle_symbol(argv[1], out);
   cout << out << endl;
   return 0;
 }

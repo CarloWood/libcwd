@@ -2,7 +2,7 @@ global srcdir subdir
 global SHAREDLIBS STATICLIBS
 
 catch "glob -nocomplain $srcdir/$subdir/*.cc" srcfiles
-# set srcfiles $srcdir/$subdir/dlopen.cc
+# set srcfiles $srcdir/$subdir/demangler.cc
 verbose "srcfiles are $srcfiles"
 
 set prefix ""
