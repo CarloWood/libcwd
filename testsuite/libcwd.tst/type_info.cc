@@ -66,18 +66,9 @@ int main(void)
     cout << type_info_of(b).demangled_name() << " : " << type_info_of(b).ref_size() << endl;
   }
   {
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-    // Initialize the static objects by using the hack in `type_info_of'.
-    type_info_of<B const>();
-    B const* bp;
-    type_info_of(bp);
-    B const* const* bpp;
-    type_info_of(bpp);
-    type_info_of<B const* const* const*>();
-#endif
-    cout << libcw::debug::type_info<B const>::value.demangled_name() << " : " << libcw::debug::type_info<B const>::value.ref_size() << endl;
-    cout << libcw::debug::type_info<B const*>::value.demangled_name() << " : " << libcw::debug::type_info<B const*>::value.ref_size() << endl;
-    cout << libcw::debug::type_info<void*>::value.demangled_name() << " : " << libcw::debug::type_info<void*>::value.ref_size() << endl;
+    cout << type_info_of<B const>().demangled_name() << " : " << type_info_of<B const>().ref_size() << endl;
+    cout << type_info_of<B const*>().demangled_name() << " : " << type_info_of<B const*>().ref_size() << endl;
+    cout << type_info_of<void*>().demangled_name() << " : " << type_info_of<void*>().ref_size() << endl;
   }
   {
     A const* a1;
@@ -88,9 +79,9 @@ int main(void)
     cout << type_info_of(a3).demangled_name() << endl;
   }
   {
-    cout << libcw::debug::type_info<B const*>::value.demangled_name() << endl;
-    cout << libcw::debug::type_info<B const* const*>::value.demangled_name() << endl;
-    cout << libcw::debug::type_info<B const* const* const*>::value.demangled_name() << endl;
+    cout << type_info_of<B const*>().demangled_name() << endl;
+    cout << type_info_of<B const* const*>().demangled_name() << endl;
+    cout << type_info_of<B const* const* const*>().demangled_name() << endl;
   }
 
   exit(0);

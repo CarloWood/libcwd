@@ -22,26 +22,6 @@ RCSTAG_H(type_info, "$Id$")
 namespace libcw {
   namespace debug {
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-    namespace _internal_ {
-
-      template<typename T>
-        struct sizeof_star {
-	  static size_t const value = 0;
-	};
-
-      template<typename T>
-        struct sizeof_star<T*> {
-	  static const size_t value = sizeof(T);
-	};
-
-      struct sizeof_star<void*> {
-	static size_t const value = 0;
-      };
-
-    }
-#endif
-
 extern char const* make_label(char const* mangled_name);
 
 class type_info_ct {
@@ -61,31 +41,57 @@ public:
   size_t ref_size(void) const { return type_ref_size; }
 };
 
-template<typename T>
-  struct type_info {
+namespace _internal_ {
+
+  // _internal_::
+  template<typename T>
+    struct type_info {
+      static type_info_ct const value;
+    };
+
+  // Specialization for general pointers.
+  // _internal_::
+  template<typename T>
+    struct type_info<T*> {
+      static type_info_ct const value;
+    };
+
+  // Specialization for `void*'.
+  // _internal_::
+  struct type_info<void*> {
     static type_info_ct const value;
   };
 
-// Specialization for general pointers.
-template<typename T>
-  struct type_info<T*> {
-    static type_info_ct const value;
+#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+  // _internal_::
+  template<typename T>
+    struct sizeof_star {
+      static size_t const value = 0;
+    };
+
+  // _internal_::
+  template<typename T>
+    struct sizeof_star<T*> {
+      static const size_t value = sizeof(T);
+    };
+
+  // _internal_::
+  struct sizeof_star<void*> {
+    static size_t const value = 0;
   };
- 
-// Specialization for `void*'.
-struct type_info<void*> {
-  static type_info_ct const value;
-};
+#endif
 
-extern type_info_ct unknown_type_info;
+  // _internal_::
+  template<typename T>
+    type_info_ct const type_info<T>::value(typeid(T), sizeof(T), 0);
 
-template<typename T>
-  type_info_ct const type_info<T>::value(typeid(T), sizeof(T), 0);
+  // _internal_::
+  template<typename T>
+    type_info_ct const type_info<T*>::value(typeid(T*), sizeof(T*), sizeof(T));
 
-template<typename T>
-  type_info_ct const type_info<T*>::value(typeid(T*), sizeof(T*), sizeof(T));
+} // namespace _internal_
 
-// Prototype
+// Prototype of `type_info_of'.
 template<typename T>
   __inline type_info_ct const& type_info_of(T);
 
@@ -104,7 +110,7 @@ template<class T>
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97
     // In early versions of g++, typeid is broken and doesn't work on a template parameter type.
     // We have to use the following hack.
-    if (type_info<T>::value.size() == 0)		// Not initialized already?
+    if (_internal_::type_info<T>::value.size() == 0)		// Not initialized already?
     {
       class type_info_with_name : public std::type_info {	// Nuke the 'protected' qualifier of this constructor.
       public:
@@ -113,11 +119,11 @@ template<class T>
 
       T* tp;                                  			// Create pointer to object.
       static type_info_with_name ti(typeid(tp).name() + 1);	// Strip leading 'P' in the mangled name to get rid of the 'pointer' again.
-      new (const_cast<type_info_ct*>(&type_info<T>::value))
+      new (const_cast<type_info_ct*>(&_internal_::type_info<T>::value))
           type_info_ct(ti, sizeof(T), _internal_::sizeof_star<T>::value);	// In place initialize the static type_info_ct object.
     }
 #endif
-    return type_info<T>::value;
+    return _internal_::type_info<T>::value;
   }
 
 // We could/should have used type_info_of<typeof(obj)>(), but typeof(obj) doesn't
@@ -130,9 +136,11 @@ template<typename T>
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97
     return type_info_of<T>();
 #else
-    return type_info<T>::value;
+    return _internal_::type_info<T>::value;
 #endif
   }
+
+extern type_info_ct unknown_type_info;
 
   } // namespace debug
 } // namespace libcw

@@ -49,7 +49,7 @@ namespace libcw {
       return label;
     }
 
-    type_info_ct const type_info<void*>::value(typeid(void*), sizeof(void*), 0 /* unknown */);
+    type_info_ct const _internal_::type_info<void*>::value(typeid(void*), sizeof(void*), 0 /* unknown */);
 
   } // namespace debug
 } // namespace libcw

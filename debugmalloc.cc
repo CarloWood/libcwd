@@ -1095,7 +1095,7 @@ void marker_ct::register_marker(char const* label)
   if (i == memblk_map->end() || (*i).first.start() != this || info.flags() != memblk_type_new)
     DoutFatal( dc::core, "Use 'new' for libcw::debug::marker_ct" );
 
-  info.change_label(type_info<marker_ct*>::value, label);
+  info.change_label(type_info_of(this), label);
   info.change_flags(memblk_type_marker);
   info.new_list();
 
