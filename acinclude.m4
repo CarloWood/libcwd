@@ -769,10 +769,13 @@ esac
 AC_SUBST(DEBUGOPTS)
 
 dnl Other options
+dnl -fno-exceptions is really only needed when using a compiler that was configured
+dnl with --enable-slsj-exceptions, in order to avoid calls to calloc() from
+dnl __pthread_setspecific when being 'internal'.
 if test "$USE_MAINTAINER_MODE" = yes; then
-EXTRAOPTS=""
+EXTRAOPTS="-fno-exceptions"
 else
-EXTRAOPTS="-O"
+EXTRAOPTS="-O -fno-exceptions"
 fi
 AC_SUBST(EXTRAOPTS)
 

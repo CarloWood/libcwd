@@ -36,9 +36,9 @@ libcwd-0.99.24
 	is using list_allocations_on() while another thread is demangling
 	a C++ type with demangle_type() or demangle_symbol().
 
-	Continued debug output now also works with multithreading,
-	printing <unfinished> and <continued> as expected with a
-	different thread is writing output in the mean time.
+	Continued debug output now also works with multi-threading,
+	printing <unfinished> and <continued> as expected when a
+	different thread is writing output in the meantime.
 	The use of nonewline_cf in combination with other threads
 	will result in "<no newline>\n" being appended to unfinised
 	output, for example:
@@ -46,7 +46,7 @@ libcwd-0.99.24
 	Thread2 NOTICE interrupt
 	efgh
 	Note that in this case the prefix is not repeated. The use
-	of nonewline_cf in a multithreaded application is therefore
+	of nonewline_cf in a multi-threaded application is therefore
 	dissuaded; use continued_cf instead to get for example:
 	Thread1 NOTICE abcd <unfinished>
 	Thread2 NOTICE interrupt

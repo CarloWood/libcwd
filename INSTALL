@@ -38,7 +38,7 @@ Packages/versions needed
 i) The GNU compiler, version 2.95.1 or higher.
 
     Location: gnu/gcc/
-    Current version: 3.1
+    Current version: 3.2
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
