@@ -341,6 +341,9 @@ namespace _internal_ {
   // _internal_::
   bool inside_ios_base_Init_Init(void)
   {
+#ifdef DEBUGDEBUGMALLOC
+  ASSERT( !internal );
+#endif
 #ifndef _GLIBCPP_USE_WCHAR_T
     if (std::cerr.flags() != std::ios_base::unitbuf)                // Still didn't reach the end of ios_base::Init::Init()?
 #else
@@ -348,7 +351,11 @@ namespace _internal_ {
 #endif
       return true;
     ios_base_initialized = true;
+    ++library_call;
+    ++libcw_do._off;
     make_all_allocations_invisible_except(NULL);    // Get rid of the <pre ios initialization> allocation list.
+    --libcw_do._off;
+    --library_call;
     DEBUGDEBUG_CERR( "Standard streams initialized." );
     return false;
   }
@@ -740,22 +747,17 @@ void dm_alloc_ct::print_description(void) const
         ':' << setw(5) << setiosflags(std::ios_base::left) << M_location.line());
   else if (M_location.mangled_function_name() != unknown_function_c)
   {
-    internal = true;
-    string* f = new string;
-    internal = false;
     ++library_call;
     ++libcw_do._off;
-    demangle_symbol(M_location.mangled_function_name(), *f);
+    {
+      string f;		// Can not be internal because we pass it to demangle_symbol.
+      demangle_symbol(M_location.mangled_function_name(), f);
+      if (f.size() < 25)
+	f.append(25 - f.size(), ' ');
+      DoutInternal_without_DEBUGDEBUG_CERR( dc::continued, f << ' ' );
+    }
     --libcw_do._off;
     --library_call;
-    internal = true;
-    if (f->size() < 25)
-      f->append(25 - f->size(), ' ');
-    internal = false;
-    DoutInternal_without_DEBUGDEBUG_CERR( dc::continued, *f << ' ' );
-    internal = true;
-    delete f;
-    internal = false;
   }
   else
     DoutInternal_without_DEBUGDEBUG_CERR( dc::continued, setw(25) << ' ' );
@@ -1101,11 +1103,11 @@ void list_allocations_on(debug_ct& debug_object)
 void make_invisible(void const* ptr)
 {
 #ifdef DEBUGDEBUGMALLOC
-  ASSERT( !recursive && !internal );
+  ASSERT( !internal && (!recursive || library_call) );
 #endif
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i == memblk_map->end() || (*i).first.start() != ptr)
-    DoutFatal( dc::core, "Trying to turn non-existing memory block (" << ptr << ") into an 'internal' block" );
+    DoutFatalInternal( dc::core, "Trying to turn non-existing memory block (" << ptr << ") into an 'internal' block" );
   DEBUGDEBUG_CERR( "make_invisible: internal == " << internal << "; setting it to true." );
   internal = true;
   (*i).second.make_invisible();
@@ -1115,6 +1117,9 @@ void make_invisible(void const* ptr)
 
 void make_all_allocations_invisible_except(void const* ptr)
 {
+#ifdef DEBUGDEBUGMALLOC
+  ASSERT( !internal && (!recursive || library_call) );
+#endif
   for (dm_alloc_ct const* alloc = base_alloc_list; alloc;)
   {
     dm_alloc_ct const* next = alloc->next_node();
@@ -1131,9 +1136,6 @@ static bool prev_internal;
 
 void set_alloc_checking_off(void)
 {
-#ifdef DEBUGDEBUGMALLOC
-  ASSERT( !internal && (!recursive || library_call) );
-#endif
   if (alloc_checking_off_counter++ == 0)
     prev_internal = internal;
   DEBUGDEBUG_CERR( "set_alloc_checking_off called from " << __builtin_return_address(0) << ": internal == " << internal << "; setting it to true." );
@@ -1142,9 +1144,6 @@ void set_alloc_checking_off(void)
 
 void set_alloc_checking_on(void)
 {
-#ifdef DEBUGDEBUGMALLOC
-  ASSERT( alloc_checking_off_counter == 1 && (!recursive || library_call) );
-#endif
 #ifdef CWDEBUG
   if (alloc_checking_off_counter == 0)
     DoutFatal( dc::core, "Calling `set_alloc_checking_on' while ALREADY on." );
@@ -1916,7 +1915,6 @@ void __libcwd_free(void* ptr)
 #ifdef DEBUGDEBUGMALLOC
   ASSERT( !recursive || internal || library_call );
   ++recursive;
-  int saved_marker = ++marker;
 #endif
 #if defined(DEBUGDEBUGMALLOC) && defined(__GLIBCPP__) && !defined(HAVE___LIBC_MALLOC)
   ASSERT( _internal_::ios_base_initialized );
@@ -1928,15 +1926,15 @@ void __libcwd_free(void* ptr)
 #ifdef DEBUGDEBUGMALLOC
     if (from == from_delete)
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")' [" << saved_marker << ']' );
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")'" );
     }
     else if (from == from_delete_array)
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")' [" << saved_marker << ']' );
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")'" );
     }
     else
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")' [" << saved_marker << ']' );
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")'" );
     }
 #endif // DEBUGDEBUGMALLOC
 #ifdef DEBUGMAGICMALLOC
@@ -2092,11 +2090,7 @@ void __libcwd_free(void* ptr)
 
 #ifdef CWDEBUG
     if (visible)
-#ifdef DEBUGDEBUGMALLOC
-      DoutInternal( dc::finish, " [" << saved_marker << ']' );
-#else
       DoutInternal( dc::finish, "" );
-#endif
 #endif // CWDEBUG
 
   }

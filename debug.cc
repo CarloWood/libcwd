@@ -54,7 +54,21 @@ namespace libcw {
       {
 	int curlen = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out) - rdbuf()->pubseekoff(0, ios_base::cur, ios_base::in);
 	for (char c = rdbuf()->sgetc(); --curlen >= 0; c = rdbuf()->snextc())
+	{
+#ifdef DEBUGMALLOC
+	  // Writing to the final ostream (ie cerr) must be non-internal!
+	  bool saved_internal = _internal_::internal;
+	  _internal_::internal = false;
+	  ++_internal_::library_call;
+	  ++libcw_do._off;
+#endif
 	  os->put(c);
+#ifdef DEBUGMALLOC
+	  --libcw_do._off;
+	  --_internal_::library_call;
+	  _internal_::internal = saved_internal;
+#endif
+        }
       }
       void store_position(void) {
 	position = rdbuf()->pubseekoff(0, ios_base::cur, ios_base::out);
@@ -441,8 +455,10 @@ namespace libcw {
       _off = 0;						// Turn off all debugging until initialization is completed.
       DEBUGDEBUG_CERR( "In debug_ct::init(void), _off set to 0" );
 
+      set_alloc_checking_off();				// debug_objects is internal.
       if (find(debug_objects().begin(), debug_objects().end(), this) == debug_objects().end()) // Not added before?
 	debug_objects().push_back(this);
+      set_alloc_checking_on();
 
       // Initialize this debug object:
       set_ostream(&cerr);				// Write to cerr by default.
@@ -537,9 +553,11 @@ namespace libcw {
 #endif
       marker.init("", 0);	// Free allocated memory
       margin.init("", 0);
+      set_alloc_checking_off();	// debug_objects is internal.
       debug_objects().erase(find(debug_objects().begin(), debug_objects().end(), this));
       if (debug_objects().empty())
         debug_objects.uninit();
+      set_alloc_checking_on();
     }
 
     void debug_ct::set_margin(string const& s) {

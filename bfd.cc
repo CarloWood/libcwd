@@ -308,6 +308,10 @@ int const BSF_DYNAMIC = 4096;
       // cwbfd::
       object_file_ct::object_file_ct(char const* filename, void* base) : lbase(base)
       {
+#ifdef DEBUGDEBUGMALLOC
+	ASSERT( libcw::debug::_internal_::internal );
+#endif
+
 	abfd = bfd_openr(filename, NULL);
 #ifdef DEBUGUSEGNULIBBFD
 	if (!abfd)
@@ -798,18 +802,8 @@ int const BSF_DYNAMIC = 4096;
 	// Get the full path and name of executable
 	struct non_alloc_checking_string_st {
 	  string* value;
-          non_alloc_checking_string_st(void)
-	  {
-	    set_alloc_checking_off();
-	    value = new string;
-	    set_alloc_checking_on();
-	  }
-	  ~non_alloc_checking_string_st()
-	  {
-	    set_alloc_checking_off();
-	    delete value;
-	    set_alloc_checking_on();
-	  }
+          non_alloc_checking_string_st(void) { value = new string; }	// alloc checking already off.
+	  ~non_alloc_checking_string_st() { set_alloc_checking_off(); delete value; set_alloc_checking_on(); }
         };
 	static non_alloc_checking_string_st fullpath;	// Must be static because bfd keeps a pointer to its data()
 	get_full_path_to_executable(*fullpath.value);
