@@ -11,10 +11,10 @@
 // packaging of this file.
 //
 
-#include "libcw/sys.h"
+#include <libcw/sys.h>
 #include <iostream>
-#include "libcw/h.h"
-#include "libcw/debug.h"
+#include <libcw/h.h>
+#include <libcw/debug.h>
 
 // A dummy class
 class A {
@@ -23,7 +23,7 @@ class A {
   char k;
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 #ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
@@ -43,33 +43,39 @@ int main(int argc, char *argv[])
   Debug( libcw_do.on() ); 
 
   // Allocate new object
-  A *a1 = new A;
+  A* a1 = new A;
   AllocTag(a1, "First created");
 
+#ifdef DEBUGMARKER
   // Create marker
-  debugmalloc_marker_ct *marker = new debugmalloc_marker_ct("A test marker");
+  debugmalloc_marker_ct* marker = new debugmalloc_marker_ct("A test marker");
+#endif
 
   // Allocate more objects
-  A *a2 = new A[10];
+  A* a2 = new A[10];
   AllocTag(a2, "Created after the marker");
-  int *p = new int[30];
+  int* p = new int[30];
   AllocTag(p, "Created after the marker");
 
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
-  Dout( dc::notice, "Moving the int array outside of the marker..." );
-  debug_move_outside(marker, p);
+  Dout(dc::notice, "Moving the int array outside of the marker...");
+#ifdef DEBUGMARKER
+  Debug( move_outside(marker, p) );
+#endif
 
   // Show Memory Allocation Overview
   Debug( list_allocations_on(libcw_do) );
 
+#ifdef DEBUGMARKER
   // Delete the marker
   delete marker;
+#endif
 
-  Dout( dc::notice, "Finished successfully." );
+  Dout(dc::notice, "Finished successfully.");
 
-#else // DEBUGMALLOC
+#else // !DEBUGMALLOC
   cerr << "Define DEBUGMALLOC in libcw/debugging_defs.h\n";
 #endif // !DEBUGMALLOC
 

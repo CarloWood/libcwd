@@ -14,21 +14,21 @@
 #ifdef __GNUG__
 #pragma implementation
 #endif
-#include "libcw/sys.h"
+#include <libcw/sys.h>
 #include <cstdio>
 #include <getopt.h>
 #include <cstdlib>
 #include <iostream>
-#include "libcw/h.h"
-#include "libcw/debug.h"
+#include <libcw/h.h>
+#include <libcw/debug.h>
 
 RCSTAG_CC("$Id$")
 
 class AA {
 private:
-  void *ptr;
+  void* ptr;
 public:
-  void *leakAA;
+  void* leakAA;
 public:
   AA(void)
   {
@@ -42,10 +42,10 @@ public:
 
 class test_object {
 public:
-  AA *a;
-  AA *b;
-  void *ptr;
-  void *leak;
+  AA* a;
+  AA* b;
+  void* ptr;
+  void* leak;
 public:
   test_object(void)
   {
@@ -61,7 +61,7 @@ public:
   ~test_object() { delete b; free(ptr); delete a; }
 };
 
-int main(int argc, char **argv)
+int main(int argc, char* argv[])
 {
 #ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
@@ -82,29 +82,33 @@ int main(int argc, char **argv)
   // List all debug channels
   Debug( list_channels_on(libcw_do) );
 
-  void *ptr1 = malloc(1111U); AllocTag(ptr1, "ptr1");
+  void* ptr1 = malloc(1111U); AllocTag2(ptr1, "ptr1");
   if (test_delete(ptr1))
-    DoutFatal( dc::core, "Huh 1 ?" );
-  void *ptr2 = malloc(2222); AllocTag(ptr2, "ptr2");
+    DoutFatal(dc::core, "Huh 1 ?");
+  void* ptr2 = malloc(2222); AllocTag2(ptr2, "ptr2");
   if (test_delete(ptr1) || test_delete(ptr2))
-    DoutFatal( dc::core, "Huh 2 ?" );
-  void *ptr3 = malloc(3333); AllocTag(ptr3, "ptr3");
+    DoutFatal(dc::core, "Huh 2 ?");
+  void* ptr3 = malloc(3333); AllocTag2(ptr3, "ptr3");
   if (test_delete(ptr1) || test_delete(ptr2) || test_delete(ptr3))
-    DoutFatal( dc::core, "Huh 3 ?" );
-  void *ptr4 = malloc(4444); AllocTag(ptr4, "ptr4");
+    DoutFatal(dc::core, "Huh 3 ?");
+  void* ptr4 = malloc(4444); AllocTag2(ptr4, "ptr4");
   if (test_delete(ptr1) || test_delete(ptr2) || test_delete(ptr3) || test_delete(ptr4))
-    DoutFatal( dc::core, "Huh 4 ?" );
+    DoutFatal(dc::core, "Huh 4 ?");
   if (!test_delete((void*)0x8000000))
-    DoutFatal( dc::core, "Huh 5 ?" );
+    DoutFatal(dc::core, "Huh 5 ?");
 
-  debugmalloc_marker_ct *marker = new debugmalloc_marker_ct("test marker");
+#ifdef DEBUGMARKER
+  debugmalloc_marker_ct* marker = new debugmalloc_marker_ct("test marker");
+#endif
 
-  test_object *t = new test_object();
-  void *leak1 = t->leak;
-  void *leak1a = t->a->leakAA;
-  void *leak1b = t->b->leakAA;
-  void *leak2, *leak2a, *leak2b;
-  void *ptr5 = malloc(5555);
+  test_object* t = new test_object();
+  void* leak1 = t->leak;
+  void* leak1a = t->a->leakAA;
+  void* leak1b = t->b->leakAA;
+  void* leak2;
+  void* leak2a;
+  void* leak2b;
+  void* ptr5 = malloc(5555);
   AllocTag(ptr5, "ptr5");
   {
     test_object NoHeap;
@@ -117,13 +121,17 @@ int main(int argc, char **argv)
 
   free(ptr1);
   free(ptr4);
-  debug_move_outside(marker, t);
+#ifdef DEBUGMARKER
+  Debug( move_outside(marker, t) );
+#endif
   delete t;
   free(ptr5);
 
   Debug( list_allocations_on(libcw_do) );
 
+#ifdef DEBUGMARKER
   delete marker;
+#endif
 
   free(leak1);
   Debug( list_allocations_on(libcw_do) );

@@ -135,7 +135,7 @@ RCSTAG_CC("$Id$")
 //
 // The current 'manipulator' functions are:
 //
-// - void debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
+// - void libcw_debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
 //		Move `ptr' outside the list of `marker'.
 // - void set_alloc_checking_off(void)
 //		After calling this function, new allocations are invisible.
@@ -183,8 +183,8 @@ static deallocated_from_nt expected_from[] = {
   from_free,
   error,
   error,
-  error,
   from_delete,
+  error,
   error
 };
 
@@ -223,12 +223,14 @@ ostream& operator<<(ostream& os, memblk_types_ct memblk_type)
       case memblk_type_removed:
 	os << "memblk_type_removed";
 	break;
+#ifdef DEBUGMARKER
       case memblk_type_marker:
 	os << "memblk_type_marker";
 	break;
       case memblk_type_deleted_marker:
 	os << "memblk_type_deleted_marker";
 	break;
+#endif
     }
     return os;
   }
@@ -247,11 +249,13 @@ ostream& operator<<(ostream& os, memblk_types_ct memblk_type)
     case memblk_type_realloc:
       os << "realloc   ";
       break;
+#ifdef DEBUGMARKER
     case memblk_type_marker:
       os << "(MARKER)  ";
       break;
-    case memblk_type_deleted:
     case memblk_type_deleted_marker:
+#endif
+    case memblk_type_deleted:
     case memblk_type_deleted_array:
       os << "(deleted) ";
       break;
@@ -290,8 +294,10 @@ alloc_ct::alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct 
 // a list, therefore we have to implement our own list (prev/next pointers).
 
 class dm_alloc_ct : public ::libcw::alloc_ct {
-friend class debugmalloc_marker_ct;
-friend void debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr);
+#ifdef DEBUGMARKER
+  friend class debugmalloc_marker_ct;
+  friend void libcw_debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr);
+#endif
 private:
   static dm_alloc_ct** current_alloc_list;
   static dm_alloc_ct* current_owner_node;
@@ -402,8 +408,10 @@ public:
 
 class memblk_info_ct {
 friend class dm_alloc_ct;
-friend class debugmalloc_marker_ct;
-friend void debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr);
+#ifdef DEBUGMARKER
+  friend class debugmalloc_marker_ct;
+  friend void libcw_debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr);
+#endif
 private:
   lockable_auto_ptr<dm_alloc_ct> a_alloc_node;
     // The associated `dm_alloc_ct' object.
@@ -489,7 +497,9 @@ unsigned long dm_alloc_ct::memblks = 0;
 inline bool dm_alloc_ct::is_deleted(void) const
 {
   return (a_memblk_type == memblk_type_deleted ||
+#ifdef DEBUGMARKER
       a_memblk_type == memblk_type_deleted_marker ||
+#endif
       a_memblk_type == memblk_type_freed ||
       a_memblk_type == memblk_type_removed);
 }
@@ -549,9 +559,12 @@ void dm_alloc_ct::print_description(void) const
     Dout( dc::continued, setw(25) << ' ' );
 #endif
 
+#ifdef DEBUGMARKER
   if (a_memblk_type == memblk_type_marker || a_memblk_type == memblk_type_deleted_marker)
     Dout( dc::continued, "<marker>;" );
   else
+#endif
+
   {
     set_alloc_checking_off();	/* for `buf' */
     char const* a_type = type_info_ptr->demangled_name();
@@ -561,21 +574,21 @@ void dm_alloc_ct::print_description(void) const
     {
       if (a_memblk_type == memblk_type_new || a_memblk_type == memblk_type_deleted)
       {
-        if (s > 1 && a_type[s - 2] == ' ')
+	if (s > 1 && a_type[s - 2] == ' ')
 	  buf->write(a_type, s - 2);
-        else
+	else
 	  buf->write(a_type, s - 1);
       }
       else /* if (a_memblk_type == memblk_type_new_array || a_memblk_type == memblk_type_deleted_array) */
       {
 	buf->write(a_type, s - 1);
-        *buf << '[' << (a_size / type_info_ptr->ref_size()) << ']';
+	*buf << '[' << (a_size / type_info_ptr->ref_size()) << ']';
       }
 #if 0
       else if (a_memblk_type == memblk_type_malloc || a_memblk_type == memblk_type_realloc || a_memblk_type == memblk_type_freed)
       {
 	buf->write(a_type, s - 1);
-        *buf << "[]";
+	*buf << "[]";
       }
 #endif
       *buf << ends;
@@ -678,14 +691,16 @@ void memblk_info_ct::erase(void)
       case memblk_type_noheap:
 	new_flag = memblk_type_removed;
 	break;
+#ifdef DEBUGMARKER
       case memblk_type_marker:
 	new_flag = memblk_type_deleted_marker;
 	break;
+      case memblk_type_deleted_marker:
+#endif
       case memblk_type_deleted:
       case memblk_type_deleted_array:
       case memblk_type_freed:
       case memblk_type_removed:
-      case memblk_type_deleted_marker:
 	DoutFatal( dc::core, "Deleting a memblk_info_ct twice ?" );
     }
     ap->change_flags(new_flag);
@@ -1573,6 +1588,7 @@ debugmalloc_newctor_ct::~debugmalloc_newctor_ct(void)
   }
 }
 
+#ifdef DEBUGMARKER
 void debugmalloc_marker_ct::register_marker(char const* label)
 {
   Dout( dc::debugmalloc, "New debugmalloc_marker_ct at " << this );
@@ -1615,7 +1631,7 @@ debugmalloc_marker_ct::~debugmalloc_marker_ct(void)
   dm_alloc_ct::descend_current_alloc_list();
 }
 
-void debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
+void libcw_debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
 {
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i == memblk_map->end() || (*i).first.start() != ptr)
@@ -1656,6 +1672,7 @@ void debug_move_outside(debugmalloc_marker_ct* marker, void const* ptr)
   }
   Dout( dc::warning, "Memory block at " << ptr << " is already outside the marker at " << (void*)marker << " (" << marker_alloc_node->type_info_ptr->demangled_name() << ") area!" );
 }
+#endif // DEBUGMARKER
 
 alloc_ct const* find_alloc(void const* ptr)
 { 

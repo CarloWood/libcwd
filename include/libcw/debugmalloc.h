@@ -48,9 +48,11 @@ namespace libcw {
     memblk_type_realloc,          // Reallocated with `realloc'
     memblk_type_freed,            // Freed with `free'
     memblk_type_noheap,           // Allocated in data or stack segment
-    memblk_type_removed,          // No heap, corresponding `debugmalloc_newctor_ct' removed
+#ifdef DEBUGMARKER
     memblk_type_marker,           // A memory allocation "marker"
-    memblk_type_deleted_marker    // A deleted memory allocation "marker"
+    memblk_type_deleted_marker,   // A deleted memory allocation "marker"
+#endif
+    memblk_type_removed           // No heap, corresponding `debugmalloc_newctor_ct' removed
   };
 
 #ifdef DEBUG
@@ -130,6 +132,7 @@ protected:
 
 class dm_alloc_ct;
 
+#ifdef DEBUGMARKER
 class debugmalloc_marker_ct {
 private:
   void register_marker(char const* label);
@@ -144,6 +147,7 @@ public:
   }
   ~debugmalloc_marker_ct(void);
 };
+#endif
 
 class debugmalloc_newctor_ct {
 private:
@@ -164,11 +168,18 @@ extern long debug_memblks(void);
 extern ostream& operator<<(ostream& o, debugmalloc_report_ct);
 
 // Manipulators:
-extern void debug_move_outside(debugmalloc_marker_ct*, void const* ptr);
 extern void set_alloc_checking_off(void);
 extern void set_alloc_checking_on(void);
 extern void make_invisible(void const* ptr);
 extern void make_all_allocations_invisible_except(void const* ptr);
+#ifdef DEBUGMARKER
+extern void libcw_debug_move_outside(debugmalloc_marker_ct*, void const* ptr);
+namespace libcw {
+  namespace debug {
+    inline void move_outside(debugmalloc_marker_ct* marker, void const* ptr) { libcw_debug_move_outside(marker, ptr); }
+  };
+};
+#endif
 
 // Undocumented (used inside AllocTag, AllocTag_dynamic_description, AllocTag1 and AllocTag2):
 extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description);			// For static descriptions
@@ -241,6 +252,9 @@ inline TYPE* __libcw_allocCatcher(TYPE* new_ptr) {
 #  define AllocTag1(p)
 #  define AllocTag2(p, desc)
 #  define NEW(x) new x
+
+inline void make_invisible(void const*) { }
+inline void make_all_allocations_invisible_except(void const*) { }
 
 #endif // !DEBUGMALLOC
 

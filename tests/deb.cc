@@ -14,12 +14,12 @@
 #ifdef __GNUG__
 #pragma implementation
 #endif
-#include "libcw/sys.h"
+#include <libcw/sys.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <iostream>
-#include "libcw/h.h"
-#include "libcw/debug.h"
+#include <libcw/h.h>
+#include <libcw/debug.h>
 
 RCSTAG_CC("$Id$")
 
@@ -39,7 +39,7 @@ namespace libcw {
 #endif
 #endif
 
-int main(int argc, char **argv)
+int main(int argc, char* argv[])
 {
 #ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
@@ -63,85 +63,85 @@ int main(int argc, char **argv)
   float f = 1.234;
 #endif
 
-  char *cp = new char[50];
+  char* cp = new char[50];
   AllocTag(cp, "Test of \"new char[50]\"");
 
-  int *i = new int;
+  int* i = new int;
   AllocTag(i, "Test of \"new int\"");
 
-  void *vp = malloc(33);
+  void* vp = malloc(33);
   AllocTag(vp, "Test of \"(void*)malloc(33)\"");
 
-  int *vpi = (int *)malloc(55);
+  int* vpi = (int*)malloc(55);
   AllocTag(vpi, "Test of \"(int*)malloc(55)\"");
 
-  void *cp2 = calloc(22, 10);
+  void* cp2 = calloc(22, 10);
   AllocTag(cp2, "Test of \"(void*)calloc(22, 10)\"");
 
-  int *cp2i = (int *)calloc(55, 10);
+  int* cp2i = (int*)calloc(55, 10);
   AllocTag(cp2i, "Test of \"(int*)calloc(55, 10)\"");
 
-  void *mp = malloc(11);
+  void* mp = malloc(11);
   AllocTag(mp, "Test of \"(void*)malloc(1100)\"");
 
-  void *rp = realloc(mp, 1000);
+  void* rp = realloc(mp, 1000);
   AllocTag(rp, "Test of \"(void*)realloc(mp, 1000)\"");
 
-  int *mpi = (int *)malloc(66);
+  int* mpi = (int*)malloc(66);
   AllocTag(mpi, "Test of \"(int*)malloc(66)\"");
 
-  int *rpi = (int *)realloc(mpi, 1000);
+  int* rpi = (int*)realloc(mpi, 1000);
   AllocTag(rpi, "Test of \"(int*)realloc(mpi, 1000)\"");
 
-#ifdef DEBUGMALLOC
-  debugmalloc_marker_ct *marker = new debugmalloc_marker_ct;
+#ifdef DEBUGMARKER
+  debugmalloc_marker_ct* marker = new debugmalloc_marker_ct;
 #endif
 
-  Dout( dc::malloc|wait_cf|continued_cf, "1. Hello" << " " << "world: " );
-  Dout( dc::finish, dec << a << ' ' << hex << a );
+  Dout(dc::malloc|wait_cf|continued_cf, "1. Hello" << " " << "world: ");
+  Dout(dc::finish, dec << a << ' ' << hex << a);
 
-  Dout( dc::notice|dc::warning|continued_cf, "2. " );
+  Dout(dc::notice|dc::warning|continued_cf, "2. ");
 #ifdef DEBUG
   ::libcw::debug::libcw_do.get_ostream()->form("%d %08u %.4f", a, a, f);
 #endif
-  Dout( dc::finish, "" );
+  Dout(dc::finish, "");
 
-  Dout( dc::notice|continued_cf|cerr_cf, "3. This is being written to cerr." );
+  Dout(dc::notice|continued_cf|cerr_cf, "3. This is being written to cerr.");
 
-  Dout( dc::notice|flush_cf, "4. This is flushed.\n" );
+  Dout(dc::notice|flush_cf, "4. This is flushed.\n");
   sleep(2);
-  Dout( dc::finish, "This is a continued message, after the flush." );
+  Dout(dc::finish, "This is a continued message, after the flush.");
 
-  Dout( dc::warning|flush_cf|cerr_cf, "5. Hit return." );
+  Dout(dc::warning|flush_cf|cerr_cf, "5. Hit return.");
   cin.get();
 
-  Dout( dc::notice, "And now something invisible:" );
+  Dout(dc::notice, "And now something invisible:");
 
   Debug( libcw_do.off() );
   Debug( libcw_do.off() );
-  Dout( dc::alt, "This should NOT be displayed" );
+  Dout(dc::alt, "This should NOT be displayed");
   Debug( libcw_do.on() );
-  Dout( dc::alt, "This should NOT be displayed" );
+  Dout(dc::alt, "This should NOT be displayed");
   Debug( libcw_do.on() );
-  Dout( dc::notice, "This should be displayed (again)" );
+  Dout(dc::notice, "This should be displayed (again)");
 
-  Dout( dc::notice|continued_cf, "Here is a nested debug call (1) that " );
-  Dout( dc::warning, "Interrupt1!" );
-  Dout( dc::notice, "Interrupt notice" );
-  Dout( dc::warning, "Interrupt2!" );
-  Dout( dc::notice|continued_cf, "Here is another nested debug call (2) that " );
-  Dout( dc::notice, "Interrupt notice" );
-  Dout( dc::warning, "Interrupt3!" );
-  Dout( dc::notice, "Interrupt notice" );
-  Dout( dc::warning, "Interrupt4!" );
-  Dout( dc::finish, "ends now (2)." );
-  Dout( dc::warning, "Interrupt5!" );
-  Dout( dc::warning, "Interrupt6!" );
-  Dout( dc::finish, "ends now (1)." );
+  Dout(dc::notice|continued_cf, "Here is a nested debug call (1) that ");
+  Dout(dc::warning, "Interrupt1!");
+  Dout(dc::notice, "Interrupt notice");
+  Dout(dc::warning, "Interrupt2!");
+  Dout(dc::notice|continued_cf, "Here is another nested debug call (2) that ");
+  Dout(dc::notice, "Interrupt notice");
+  Dout(dc::warning, "Interrupt3!");
+  Dout(dc::notice, "Interrupt notice");
+  Dout(dc::warning, "Interrupt4!");
+  Dout(dc::finish, "ends now (2).");
+  Dout(dc::warning, "Interrupt5!");
+  Dout(dc::warning, "Interrupt6!");
+  Dout(dc::finish, "ends now (1).");
 
-  Dout( dc::notice, "End of test." );
+  Dout(dc::notice, "End of test.");
 
-#ifdef DEBUGMALLOC
+#ifdef DEBUGMARKER
   delete marker;
 #endif
 

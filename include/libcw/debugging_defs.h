@@ -122,4 +122,15 @@
 
 //
 //
+// DEBUGMARKER
+//
+// Adds support for `markers'.  Always leave defined.
+//
+
+#if defined(DEBUG) && defined(DEBUGMALLOC)
+#define DEBUGMARKER
+#endif
+
+//
+//
 #endif // LIBCW_DEBUGGING_DEFS_H
