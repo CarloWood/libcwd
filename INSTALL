@@ -1,5 +1,5 @@
 Quick start
------------
+===========
 
 ./configure --prefix=/usr
 make
@@ -8,8 +8,64 @@ make install
 If that doesn't work, mail me: libcw@alinoe.com
 (include as much details as possible).
 
+
+Needed tools
+============
+
+Check if you have all GNU tools/libraries/packages that libcwd depends on:
+
+     Primary site:
+     ftp://ftp.gnu.org/gnu/
+
+     List of mirrors:
+     http://www.gnu.org/order/ftp.html
+
+     Packages/versions needed
+     ------------------------
+
+     i) gnu/gcc/gcc-2.95.1.tar.gz	or higher.
+
+     Alternatively you can install only
+     ia) gnu/gcc/gcc-core-2.95.1.tar.gz	or higher and
+     ib) gnu/gcc/gcc-g++-2.95.1.tar.gz	or higher.
+     
+     Note: It is very unlikely that you want to install
+     the source tree of gcc/g++.  Please try to upgrade your
+     compiler the usual way if needed.
+     If you are using rpm's then you will need to
+     install/upgrade to following: gcc (2.95.1 or higher),
+     gcc-c++ (of same version), libstdc++ (of same version),
+     cpp (of same version).  Check your installation on
+     RedHat with: rpm -qa | egrep '(gcc|libstdc|cpp)'
+
+     Note: If you don't use rpm's but are using tar balls,
+     then you do NOT need to download gnu/libstdc++/* because
+     gcc-2.95 and higher comes with libstdc++ included.
+     The gnu/libstdc++/ directory on GNU ftp sites are
+     for older compilers.  You also don't need libg++.
+     Don't delete those libraries if you have them though,
+     existing binaries might need to link with them.
+
+     ii) gnu/binutils/binutils-2.9.tar.gz	or higher.
+
+     (If you have any troubles on linux with binutils,
+      then first try upgrading to binutils-2.10.0.18.
+      You can download this from
+ftp://ftp.valinux.com/pub/support/hjl/binutils/binutils-2.10.0.18.tar.gz
+      If that solves your problem, please let me know: libcwd
+      should work with binutils-2.9 but I never thoughroughly
+      tested it and would like to know which version give a
+      problem, if any.)
+
+  libcwd-0.99.0 was tested with gcc-2.95.1 and gcc-ss-20000402.
+  libcwd-0.99.1
+    through
+  libcwd-0.99.3 were tested with gcc-2.95.2 and gcc-ss-20000813.
+  libcwd-0.99.3 was also tested with gcc-ss-20000724 on linux/RH6.9.
+
+
 Hackers info
-------------
+============
 
 -=i=-
 
@@ -41,7 +97,7 @@ CXX="g++-cvs" ./configure
 If libiberty.a or libbfd.so are in an unusual directory, then you
 will have to set LDFLAGS prior to running ./configure:
 
-LDFLAGS=-L/usr/gnu/lib CPPFLAGS=-I/usr/gnu/include ./configure
+LDFLAGS="-L/usr/gnu/lib" CPPFLAGS="-I/usr/gnu/include" ./configure
 
 -=iii=-
 

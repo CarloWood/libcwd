@@ -1,5 +1,5 @@
 Introduction
-------------
+============
 
 Libcwd is for use by developers while still developing: end
 applications don't need it.  While still developing, you
@@ -7,14 +7,18 @@ will compile with -DDEBUG and link with -lcwd (and add its
 install path to LD_LIBRARY_PATH).  A production version is then
 simply compiled without -DDEBUG and not linked with -lcwd.
 
+Please read the INSTALL file for a list of other needed
+libraries and tools before attempting to compile libcwd.
+
 The debug support can be divided into the following components:
 
 1) Support for Object Oriented debug output (using ostream and
    debug objects for `channels' and `devices').
 2) Support for memory allocation debugging.
 
+
 Documentation
--------------
+=============
 
 You can find extensive documentation online at
 http://libcw.sourceforge.net/debugging/.  There you will find
@@ -40,12 +44,13 @@ directory into the www directory and issuing:
 
 cvs update
 
-A European mirror has been set up in Amsterdam (the Netherlands)
-at http://www.alinoe.com/.  This is my home PC (cable) and
+A European mirror has been setup in Amsterdam (the Netherlands) at
+http://www.alinoe.com/.  This is my home PC (cable, 128cps) and
 therefore only contains the front page, using www.xs4all.nl
 (my other provider) for all the rest of the pages and images.
 Feel free to try this when sourceforge is too slow.
 
-Note this documentation includes the documentation of libcw
+Note that the documentation includes documentation of libcw
 (without a `d' at the end), libcw is not released to the public
 yet.  You can ignore everything not in the debugging/ directory.
+
