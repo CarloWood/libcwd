@@ -1,4 +1,4 @@
-29 Aug 2000
+07 Sept 2000
 
   Make sure to use `gmake' and not `make'; libcwd only works with GNU make.
 
@@ -15,16 +15,9 @@
   doesn't install a shared version of libbfd, nor does it install it in
   a place where it is found by default.  On my system libbfd.a was
   installed in /usr/local/lib, this means that you need to configure
-  libcwd with: "LDFLAGS=-L/usr/local/lib ./configure".  See also the
-  INSTALL file.  This still doesn't work however because no shared library
-  is installed and libtool fails to produce a library (which is probably
-  a bug in libtool).  There is also no bfd.h installed by a `make install'
-  in /usr/ports/devel/i386-rtems-binutils, so you can't compile it anyway.
-  If someone knows how to fix this on FreeBSD, please tell me and I'll
-  add it here.  Till then I advise to simply download binutils-2.10.x.tar.gz
-  and install everything manually; then use LDFLAGS to let configure
-  find whereever you installed it.  You might also need to add a
-  CPPFLAGS=-I/use/local/include (or whereever you installed bfd.h).
+  libcwd with:
+  LDFLAGS="-L/usr/local/lib" CPPFLAGS="-I/usr/local/include" ./configure
+  See also the INSTALL file.
 
   If you are trying to compile this package from a CVS check-out then
   you'll have to install autoconf, automake and libtool prior to running
@@ -32,6 +25,6 @@
   Please make sure you have these tools installed.  This is not needed
   when you are using the tar ball.
 
-  libcwd-0.99.2 was tested on FreeBSD-4.0-RELEASE
+  libcwd-0.99.3 was tested on FreeBSD-4.0-RELEASE
 
 Carlo Wood

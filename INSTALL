@@ -34,12 +34,12 @@ For example, I configure libcwd as follows to compile with the latest CVS
 version of g++, which I installed in /usr/local/bin/g++-cvs (and
 /usr/local/bin is in my PATH):
 
-CXX="g++-cvs -D_G_CLOG_CONFLICT=0 -D_G_HAS_LABS=1" ./configure
+CXX="g++-cvs" ./configure
 
 If libiberty.a or libbfd.so are in an unusual directory, then you
 will have to set LDFLAGS prior to running ./configure:
 
-LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include ./configure
+LDFLAGS=-L/usr/gnu/lib CPPFLAGS=-I/usr/gnu/include ./configure
 
 -=iii=-
 
@@ -71,10 +71,10 @@ well, ... heh.  Look in the Makefile for more targets ;)
 Finally, you can also build libcwd in a different directory than the source
 tree is in:
 
-tar xzf libcwd-0.99.2.tar.gz
+tar xzf libcwd-0.99.3.tar.gz
 mkdir libcwd-objdir
 cd libcwd-objdir
-../libcwd-0.99.2/configure --prefix=/usr
+../libcwd-0.99.3/configure --prefix=/usr
 make
 su
 make install
