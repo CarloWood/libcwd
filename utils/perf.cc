@@ -22,10 +22,19 @@
 #include <vector>
 #include <list>
 #include <iomanip>
+#include <sstream>
 #include <libcw/debug.h>
 #include <libcw/perf.h>
 #include <papi_internal.h>
 #include <papiStdEventDefs.h>
+
+using std::cout;
+using std::endl;
+using std::ends;
+using std::setw;
+using std::setprecision;
+using std::ostream;
+using std::ofstream;
 
 #undef TEST_STUDENT_T
 
@@ -168,7 +177,7 @@ char const* PAPI_event_name(unsigned int event)
   return "Unknown event";
 }
 
-static vector<data_ut> count_array[PAPI_max_event];
+static std::vector<data_ut> count_array[PAPI_max_event];
 
 unsigned int const PAPI_NONE = PAPI_max_event;
 
@@ -186,15 +195,11 @@ static struct event_st available_events[] = {
   { PAPI_L1_ICM,  1 },    // 0x80000001      Yes     No      Level 1 instruction cache misses (0x81)
   { PAPI_L2_TCM,  1 },    // 0x80000007      Yes     No      Level 2 cache misses (0x24)
   { PAPI_TLB_IM,  1 },    // 0x80000015      Yes     No      Instruction translation lookaside buffer misses (0x85)
-#endif
   { PAPI_MEM_SCY, 1 },    // 0x80000022      Yes     No      Cycles Stalled Waiting for Memory Access (0xa2)
-#if 0
   { PAPI_BR_TKN,  1 },    // 0x8000002c      Yes     No      Conditional Branch Instructions Taken (0xc9)
   { PAPI_BR_MSP,  1 },    // 0x8000002e      Yes     No      Conditional Branch Instructions Mispredicted (0xc5)
   { PAPI_TOT_IIS, 1 },    // 0x80000031      Yes     No      Instructions issued (0xd0)
-#endif
   { PAPI_TOT_INS, 1 },    // 0x80000032      Yes     No      Instructions completed (0xc0)
-#if 0
   { PAPI_FP_INS,  1 },    // 0x80000034      Yes     No      Floating Point Instructions (0xc1)
   { PAPI_BR_INS,  1 },    // 0x80000037      Yes     No      Branch Instructions (0xc4)
   { PAPI_VEC_INS, 1 },    // 0x80000038      Yes     No      Vector Instructions (0xb0)
@@ -223,7 +228,7 @@ struct event_status {
   friend ostream& operator<<(ostream& os, event_status const& ev) { os << PAPI_event_name(ev.event) << "; " << ev.count; return os; }
 };
 
-string header;
+std::string header;
 static bool _G_plot;
 
 void PERFstats_init(char const* name, bool plot = true)
@@ -232,7 +237,7 @@ void PERFstats_init(char const* name, bool plot = true)
   _G_plot = plot;
   if (plot)
   {
-    ostrstream date;
+    std::ostringstream date;
     struct tm inittime;
     time_t now = time(NULL);
     inittime = *localtime(&now);
@@ -247,19 +252,19 @@ void PERFstats_init(char const* name, bool plot = true)
     date << inittime.tm_min;
     date.width(2);
     date << inittime.tm_sec << ends;
-    mkdir(date.str(), 0755);
-    chdir(date.str());
+    mkdir(date.str().c_str(), 0755);
+    chdir(date.str().c_str());
   }
   PAPI_init();
   for (int i = 0; i < 64; ++i)
     PERF_eventsets[i] = PAPI_NULL;
-  list<event_status> event_list;
+  std::list<event_status> event_list;
   for (int c = 0; c < number_of_available_events; ++c)
     event_list.push_back(event_status(available_events[c].event));
   for(;;)
   {
     int count = 0;
-    for (list<event_status>::iterator i(event_list.begin()); i != event_list.end(); ++i)
+    for (std::list<event_status>::iterator i(event_list.begin()); i != event_list.end(); ++i)
     {
       int retval = PAPI_add_event(&PERF_eventsets[PERF_max_eventset_count], (*i).event);
       if (retval < PAPI_OK)
@@ -289,7 +294,7 @@ static int normal_distribution(int event, int certainty_index, double cut_off_hi
 {
   size_t n = count_array[event].size();
   double x_sum = 0;
-  for (vector<data_ut>::iterator iter(count_array[event].begin()); iter != count_array[event].end(); ++iter)
+  for (std::vector<data_ut>::iterator iter(count_array[event].begin()); iter != count_array[event].end(); ++iter)
   {
     double count = (*iter).i_data;
     if (count > cut_off_high || count < cut_off_low)
@@ -299,7 +304,7 @@ static int normal_distribution(int event, int certainty_index, double cut_off_hi
   }
   x_avg = x_sum/n;
   double vtn1 = 0; // variation times n - 1
-  for (vector<data_ut>::iterator iter(count_array[event].begin()); iter != count_array[event].end(); ++iter)
+  for (std::vector<data_ut>::iterator iter(count_array[event].begin()); iter != count_array[event].end(); ++iter)
   {
     double count = (*iter).i_data;
     if (count > cut_off_high || count < cut_off_low)
@@ -320,8 +325,9 @@ struct stats_st {
   double xleft;
 };
 
-static stats_st determine_stats(int certainty_index, unsigned int event) return stats;
+static stats_st determine_stats(int certainty_index, unsigned int event)
 {
+  stats_st stats;
   stats.x_avg = 0;
   stats.s_n1 = 1e30;
   double prev_s_n1;
@@ -338,7 +344,7 @@ static stats_st determine_stats(int certainty_index, unsigned int event) return 
 
   stats.xleft = 1e30;
   stats.xright = 0;
-  for (vector<data_ut>::iterator iter(count_array[event].begin()); iter != count_array[event].end(); ++iter)
+  for (std::vector<data_ut>::iterator iter(count_array[event].begin()); iter != count_array[event].end(); ++iter)
   {
     double count = (*iter).i_data;
     if (stats.xleft > stats.xright || stats.xleft > count)
@@ -376,18 +382,18 @@ void PERFstats_plot(int certainty_index)
       if (n == 0)
         continue;
       cout << setw(18) << PAPI_event_name(event) << " (" << setw(4) << n << ") : " << setw(10);
-      cout.setf(ios_base::fixed, ios_base::floatfield);
+      cout.setf(std::ios_base::fixed, std::ios_base::floatfield);
       cout << setprecision(0) << stats.x_avg << " +/- ";
       cout.width(10);
-      cout.setf(ios_base::left, ios_base::adjustfield);
+      cout.setf(std::ios_base::left, std::ios_base::adjustfield);
       if (n == 1)
         cout << "?\n";
       else
       {
 	double err = t(certainty_index, n - 1) * stats.s_n1 / sqrt(n);
 	cout << /*(long long)*/err;
-        cout.setf(ios_base::right, ios_base::adjustfield);
-        cout.setf(ios_base::fixed, ios_base::floatfield);
+        cout.setf(std::ios_base::right, std::ios_base::adjustfield);
+        cout.setf(std::ios_base::fixed, std::ios_base::floatfield);
 	cout.precision(1);
 	cout << '(' << setw(4) << 100.0 * err / stats.x_avg << " % )\n";
       }
@@ -404,7 +410,7 @@ void PERFstats_plot(int certainty_index)
 	  ya[i] = 0;
 	  xa[i] = stats.xleft + i * (stats.xright - stats.xleft) / (np - 1);
 	}
-	for (vector<data_ut>::iterator iter(count_array[event].begin()); iter != count_array[event].end(); ++iter)
+	for (std::vector<data_ut>::iterator iter(count_array[event].begin()); iter != count_array[event].end(); ++iter)
 	{
 	  double count = (*iter).i_data;
 	  if (count > stats.cut_off_high || count < stats.cut_off_low)
@@ -414,7 +420,7 @@ void PERFstats_plot(int certainty_index)
 	}
 	//for (int i = 0; i < np; ++i)
 	//  cout << "x, y = " << xa[i] << ", " << ya[i] << endl;
-	string filename(PAPI_event_name(event));
+	std::string filename(PAPI_event_name(event));
 	filename += ".xg";
 	ofstream xgdata;
 	xgdata.open(filename.c_str());
