@@ -1,46 +1,50 @@
 libcwd-0.99.13
 
-	Support for dlopen() was added.  Because there seems to be no hook for dlopen,
-	it is being defined as a macro (#define dlopen __libcwd_dlopen).  However,
-	if a dlopen isn't catched (for instance, because it is called from another
-	library that is not using libcwd) and when <link.h> is available (as is on
-	all OS that use glibc) then libcwd will automatically post-load any shared
-	libraries as soon as it can not find the address of a location_ct.
-	Actually, the correct usage of the macro is only important in order to assure
-	the correct unloading of symbols when a loaded module is dlclose-ed again
-	(which is also defined as a macro).
+	Support for dlopen() was added.  Because there seems to be no hook for
+	dlopen, it's being defined as a macro (#define dlopen __libcwd_dlopen).
+	However, if a dlopen isn't catched (for instance, because it is called
+	from another library that is not using libcwd) and when <link.h> is
+	available (as is on all OS that use glibc) then libcwd will
+	automatically post-load any shared libraries as soon as it can not find
+	the address of a location_ct.  Actually, the correct usage of the macro
+	is only important in order to assure the correct unloading of symbols
+	when a loaded module is dlclose-ed again (which is also defined as a
+	macro).
 
-	Improvement of the determination of the start of an object file.  Unknown starts
-	are now also correctly determined for very small shared objects.
+	Improvement of the determination of the start of an object file.
+	Unknown starts are now also correctly determined for very small shared
+	objects.
 
 	Support for the DWARF 2.0 debugging format has been added.
 
-	Bug fix: previously local symbols were all thrown away, including static
-	functions.  Now a source file / line number lookup inside a static function
-	will work too.
+	Bug fix: previously local symbols were all thrown away, including
+	static functions.  Now a source file / line number lookup inside a
+	static function will work too.
 
 	API changes:
 
 	IMPORTANT: sys.h -> sysd.h.
-	The header file sys.h has been renamed to sysd.h and was majorly cleaned up.
-	All macros that are not used in header files of libcwd have been removed.
-	Removed are: __restrict, NEED_SYS_TYPES, NEED_WORD_ALIGNMENT, NBLOCK_*,
-	HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS, HAVE_FRAME_ADDRESS_OFFSET,
-	CW_FRAME_ADDRESS_OFFSET, NO_ATTRIBUTE, NEED_FAKE_RETURN, UNUSED, USE,
-	and __GXX_ABI_VERSION.  No header file is included anymore (it was possible
-	that <sys/types.h>, <_G_config.h> and/or <streambuf.h> were included)
-	and no typedefs are included anymore (removed: socklen_t, optval_t, retsig_t,
-	sighandler_param_t and getgroups_t).  The constant malloc_overhead_c has
-	also been removed from sys.h.
+	The header file sys.h has been renamed to sysd.h and was majorly
+	cleaned up.  All macros that are not used in header files of libcwd
+	have been removed.  Removed are: __restrict, NEED_SYS_TYPES,
+	NEED_WORD_ALIGNMENT, NBLOCK_*, HAVE_RECURSIVE_BUILTIN_RETURN_ADDRESS,
+	HAVE_FRAME_ADDRESS_OFFSET, CW_FRAME_ADDRESS_OFFSET, NO_ATTRIBUTE,
+	NEED_FAKE_RETURN, UNUSED, USE, and __GXX_ABI_VERSION.  No header file
+	is included anymore (it was possible that <sys/types.h>, <_G_config.h>
+	and/or <streambuf.h> were included) and no typedefs are included
+	anymore (removed: socklen_t, optval_t, retsig_t, sighandler_param_t
+	and getgroups_t).  The constant malloc_overhead_c has also been
+	removed from sys.h.
 	YOU SHOULD HAVE been using #include "sys.h", containing:
 	  #ifdef CWDEBUG
 	  #include <libcw/sys.h>
 	  #endif
-	in effect causing the need to edit only one file (your "sys.h") and change
-	<libcw/sys.h> into <libcw/sysd.h>.
+	in effect causing the need to edit only one file (your "sys.h") and
+	change <libcw/sys.h> into <libcw/sysd.h>.
 
-	Debug channel WARNING is now on by default.  This means that you can't turn it
-	on at the start of main: remove lines with Debug( dc::warning.on() ).
+	Debug channel WARNING is now on by default.  This means that you can't
+	turn it on at the start of main: remove lines with
+	Debug( dc::warning.on() ).
 
 libcwd-0.99.12
 
@@ -48,74 +52,85 @@ libcwd-0.99.12
 
 libcwd-0.99.11
 
-	I changed my mind and renamed 'dc::stabs' back to 'dc::bfd'.  The label also is
-	again "BFD".
+	I changed my mind and renamed 'dc::stabs' back to 'dc::bfd'.  The label
+	also is again "BFD".
 
 libcwd-0.99.10
 
-	MAJOR CHANGE: malloc, calloc, realloc and free are no longer macros but are now
-	declared as external "C" functions.  This means that *all* allocations done by
-	an application are now being caught, including those done from libc, libstdc++
-	and any other library that might be linked.
+	MAJOR CHANGE: malloc, calloc, realloc and free are no longer macros but
+	are now declared as external "C" functions.  This means that *all*
+	allocations done by an application are now being caught, including
+	those done from libc, libstdc++ and any other library that might be
+	linked.
 
-	IMPORTANT: The way nodebug.h was generated in the example-project was wrong.
-	If you used the example-project for your own project, then please look at the
-	changes in maintMakefile.in and macrotest.cc.  Alternatively you can use the
-	nodebug.h file that is part of this distribution.
+	IMPORTANT: The way nodebug.h was generated in the example-project was
+	wrong.  If you used the example-project for your own project, then
+	please look at the changes in maintMakefile.in and macrotest.cc.
+	Alternatively you can use the nodebug.h file that is part of this
+	distribution.
 
-	Libcwd does not use libbfd anymore (and thus also not libiberty).  The symbol
-	table is now read by libcwd itself as is the source file and line number lookup.
-	The configure option --disable-libcwd-bfd was therefore renamed to
-	--disable-libcwd-location.  Added was the configure option --enable-libcwd-bfd
-	in order to allow you to still use libbfd.
+	Libcwd does not use libbfd anymore (and thus also not libiberty).  The
+	symbol table is now read by libcwd itself as is the source file and
+	line number lookup.  The configure option --disable-libcwd-bfd was
+	therefore renamed to --disable-libcwd-location.  Added was the
+	configure option --enable-libcwd-bfd in order to allow you to still
+	use libbfd.
 
-	The management of CWDEBUG has been made a bit clearer:  is not possible anymore
-	to #include <libcw/debug.h> without defining CWDEBUG.  This to avoid confusion.
+	The management of CWDEBUG has been made a bit clearer:  is not possible
+	anymore to #include <libcw/debug.h> without defining CWDEBUG.  This to
+	avoid confusion.
 
-	For gurus only: Note that now it *is* possible to include <libcw/debugmalloc.h>
-	directly, but only when CWDEBUG is *not* defined.  In that case you will need
-	to include a special "nodebug.h" that leaves the memory allocation support
-	intact.  For this stripped down functionality of libcwd a bug was fixed:
-	set_alloc_checking_off() and set_alloc_checking_on() are now still functional
-	in that case.  In case non-gurus are reading this: Those two functions are not
-	documented on purpose, just forget you ever saw this paragraph.
+	For gurus only: Note that now it *is* possible to include
+	<libcw/debugmalloc.h> directly, but only when CWDEBUG is *not* defined.
+	In that case you will need to include a special "nodebug.h" that leaves
+	the memory allocation support intact.  For this stripped down
+	functionality of libcwd a bug was fixed: set_alloc_checking_off() and
+	set_alloc_checking_on() are now still functional in that case.  In case
+	non-gurus are reading this: Those two functions are not documented on
+	purpose, just forget you ever saw this paragraph.
 
 	API changes:
 
 	::libcw_bfd_builtin_return_address_offset was renamed to
 	libcw::debug::builtin_return_address_offset.
 
-	The debug channel dc::bfd was renamed to dc::stabs and uses "STABS" as label now.
+	The debug channel dc::bfd was renamed to dc::stabs and uses "STABS"
+	as label now.
 
-	Two methods have been added to class libcw::debug::debug_ct: `inc_indent'
-	and `dec_indent' to increment and decrement the indentation respectively.
+	Two methods have been added to class libcw::debug::debug_ct:
+	`inc_indent' and `dec_indent' to increment and decrement the
+	indentation respectively.
 
-	The following only applies when __libc_malloc could not be found.  Instead of
-	using this you should really upgrade your libc.  If you use linux this most
-	likely is not of concern to you.
+	The following only applies when __libc_malloc could not be found.
+	Instead of using this you should really upgrade your libc.  If you use
+	linux this most likely is not of concern to you.
 
-	[ strdup(3) and wcsdup(3) are now treated like malloc(2), which means that
-	  they are macros.  The default AllocTag used is "strdup()" and "wcsdup()"
-	  respectively, but one can easily override that.  For example:
+	[ strdup(3) and wcsdup(3) are now treated like malloc(2), which means
+	  that they are macros.  The default AllocTag used is "strdup()" and
+	  "wcsdup()" respectively, but one can easily override that.  For
+	  example:
 	    char* s = strdup("\e[31mHello\tWorld!\e[0m");
-	    AllocTag_dynamic_description(a, "strdup: \"" << libcw::debug::buf2str(a, strlen(a)) << '"');
+	    AllocTag_dynamic_description(a, "strdup: \""
+	        << libcw::debug::buf2str(a, strlen(a)) << '"');
 	  will print 'strdup: "\e[31mHello\tWorld!\e[0m"' as description.
 
 	  Added a new macro: RegisterExternalAlloc(ptr).
-	  This macro calls libcw::debug::register_external_allocation(ptr) unless
-	  --disable-libcwd-alloc was used during configure; then the macro is empty.
-	  This function allows one to register an external allocation so it can now
-	  can be reallocated or freed by the application (as well as externally).
-	  Magic numbers are not added because that would need a realloc (and thus
-	  a pointer change) and it would break the case where the external library
-	  would occasionally free the allocation again. ]
+	  This macro calls libcw::debug::register_external_allocation(ptr)
+	  unless --disable-libcwd-alloc was used during configure; then the
+	  macro is empty.  This function allows one to register an external
+	  allocation so it can now can be reallocated or freed by the
+	  application (as well as externally).  Magic numbers are not added
+	  because that would need a realloc (and thus a pointer change) and
+	  it would break the case where the external library would occasionally
+	  free the allocation again. ]
 
 libcwd-0.99.9
 
-	template<typename T> type_info_of<T>(void) was changed so that it no longer ignores
-	any top-level qualifiers (in example, type_info_of<A const&>()); when using g++ 3.0.
-        Note that 0.99.8 still ignored those (including a `const') despite the release notes
-	saying it didn't.
+	template<typename T> type_info_of<T>(void) was changed so that it no
+	longer ignores any top-level qualifiers (in example,
+	type_info_of<A const&>()); when using g++ 3.0.  Note that 0.99.8 still
+	ignored those (including a `const') despite the release notes saying
+	it didn't.
 
 	The signature of template<typename T> type_info_of<T>(T) has been changed into
 	template<typename T> type_info_of<T const&> in order to allow it to be used for
@@ -139,13 +154,15 @@ libcwd-0.99.9
 
 libcwd-0.99.8
 
-	This version now also compiles and works with g++ 2.95.3 and 3.0 20010523 (prerelease).
-	Demangling of variables and types with g++ 3.0 is still not implemented however.
+	This version now also compiles and works with g++ 2.95.3 and
+	3.0 20010523 (prerelease).  Demangling of variables and types with
+	g++ 3.0 is still not implemented however.
 
-	As a result of how libstdc++-v3 works, I've been forced to make all allocations done
-	inside Dout() `internal'.  This has as disadvantage that memory allocations that are
-	allocated inside Dout (in the user program; for example: Dout(dc::foo, malloc(1)))  but
-	never freed will leak memory unnoticed.  Freeing this memory later, outside Dout(),
+	As a result of how libstdc++-v3 works, I've been forced to make all
+	allocations done inside Dout() `internal'.  This has as disadvantage
+	that memory allocations that are allocated inside Dout (in the user
+	program; for example: Dout(dc::foo, malloc(1)))  but never freed
+	will leak memory unnoticed.  Freeing this memory later, outside Dout(),
 	currently leads to the rather confusing error:
 
 	  COREDUMP: Trying to delete[] a pointer (0x80525d8) that appears to be internally
@@ -153,19 +170,20 @@ libcwd-0.99.8
 	  are 'delete[]'-ing a pointer (0x80525d8) that was allocated with 'new[]' internally
 	  by libcwd.  This might be a bug in libcwd.
 
-	template<typename T> type_info_of<T>(void) was changed so that it no longer ignores a
-	top-level `const' (in example, type_info_of<A const>()); except on g++ version 2.96
-	(RedHat) which has a bug that causes this `const' still to be ignored.
+	template<typename T> type_info_of<T>(void) was changed so that it no
+	longer ignores a top-level `const' (in example,
+	type_info_of<A const>()); except on g++ version 2.96 (RedHat) which
+	has a bug that causes this `const' still to be ignored.
 
-	Several bugs were fixed that caused libcwd not to compile when the more exotic
-	configure options, like --disable-*, were used.
+	Several bugs were fixed that caused libcwd not to compile when the
+	more exotic configure options, like --disable-*, were used.
 
 libcwd-0.99.7
 
 	This version compiles with g++ 3.0 20010224 (prerelease).  That is of
 	little use however because it still doesn't work with libstdc++ version 3
-	(some serious rewriting seems to be needed for that :().  Also note that
-	this version is (still) not Thread-Safe.
+	(some serious rewriting seems to be needed for that :().  Also note
+	that this version is (still) not Thread-Safe.
 
 	Removed the compile option "-fno-exceptions" as default,
 	the library now also compiles without it.
@@ -176,8 +194,9 @@ libcwd-0.99.7
 
 	API changes:
 
-	Support for the macro Dout_vform has been removed because ostream::vform
-	isn't conforming the standard and is gone in libstdc++ version 3.
+	Support for the macro Dout_vform has been removed because
+	ostream::vform isn't conforming the standard and is gone in
+	libstdc++ version 3.
 
 	libcw::debug::find was renamed to libcw::debug::find_channel.
 
@@ -247,15 +266,17 @@ libcwd-0.99.6
 	There is no danger to make errors: things are garanteed to not compile
 	until you fixed them except for the following changes in functionality
 	of the function name pointer as returned by location_ct::function():
-	- The function name pointer as returned by location_ct::mangled_function_name()
-	  is now the same as what is returned by pc_mangled_function_name (This
-	  makes it unnecessary to call pc_mangled_function_name after pc_location
-	  failed, in the hope that that will work).
+	- The function name pointer as returned by
+	  location_ct::mangled_function_name() is now the same as what is
+	  returned by pc_mangled_function_name (This makes it unnecessary
+	  to call pc_mangled_function_name after pc_location failed, in the
+	  hope that that will work).
 	- It is now possible to check if the function that is returned is known
 	  by comparing the returned function name pointer with
 	  `libcw::debug::unknown_function_c' (instead of needing a strcmp()).
-	- `pc_mangled_function_name' also returns `libcw::debug::unknown_function_c'
-	   on failure and not NULL as did `libcw_bfd_pc_function_name'.
+	- `pc_mangled_function_name' also returns
+	  `libcw::debug::unknown_function_c' on failure and not NULL as did
+	  `libcw_bfd_pc_function_name'.
 	[ "location_st" --> "libcw::debug::location_ct"               ]
 	[ "libcw_bfd_pc_function_name(addr)" -->
 	               "libcw::debug::pc_mangled_function_name(addr)"
@@ -281,18 +302,19 @@ libcwd-0.99.6
 
 	Bug fixes:
 
-	Fixed demangling `const' member functions aka: void Foo::foo(void) const;
+	Fixed demangling `const' member functions aka:
+	  void Foo::foo(void) const;
 
 	There was 'static initialisation order fiasco' bug that appeared
 	mainly on solaris (linux always first initializes the shared
 	libraries and only then constructs global objects of the application).
 	The bug occured in most cases when a memory allocation was done in the
 	constructor of a global object while the global objects of libcwd were
-	not initialized yet.  The main problem was that a debub object (libcw_do)
-	was NOT turned off before initialisation.  This fix allows the use of
-	malloc/new (of course), Dout and DoutFatal before libcwd is initialized.
-	Other libcwd functions can cause a core dump when used in constructors
-	of global objects.
+	not initialized yet.  The main problem was that a debub object
+	(libcw_do) was NOT turned off before initialisation.  This fix allows
+	the use of malloc/new (of course), Dout and DoutFatal before libcwd
+	is initialized.  Other libcwd functions can cause a core dump when
+	used in constructors of global objects.
 
 libcwd-0.99.5
 
