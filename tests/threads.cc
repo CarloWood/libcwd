@@ -4,7 +4,6 @@
 //#include "sys.h"
 #include "../include/sys.h"
 #include "threads_debug.h"
-#include <libcw/threading.h>
 #include <vector>
 #include <iostream>
 
@@ -94,6 +93,8 @@ void* thread_function(void* arguments)
 
   // Set Thread Specific on/off flags of the debug channels.
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
+  // And for the debug object.
+  Debug( libcw_do.on() );
 
   // Serialize incrementation.
   mutex_tct<test_instance0>::lock();

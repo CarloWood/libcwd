@@ -58,6 +58,9 @@ struct debug_tsd_st {
   int _off;
     // Debug output is turned on when this variable is -1, otherwise it is off.
 
+  bool tsd_initialized;
+    // Set after initialization is completed.
+
 #ifdef DEBUGDEBUGOUTPUT
   // Since with DEBUGDEBUG defined we start with _off is -1 instead of 0,
   // we need to ignore the call to on() the first time it is called.
@@ -108,8 +111,8 @@ struct debug_tsd_st {
   void fatal_finish(debug_ct&, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM) __attribute__ ((__noreturn__));
 
   // Initialization and de-initialization.
-  bool tsd_initialized;
   void init(void);
+  debug_tsd_st(void);
   ~debug_tsd_st();
 };
 

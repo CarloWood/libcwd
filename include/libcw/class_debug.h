@@ -74,6 +74,7 @@ public: // Only public because macro LibcwDout needs acces, don't access this di
   debug_tsd_st tsd;
 #else
   int WNS_index;
+  static int S_index_count;
 #endif
 
 protected:

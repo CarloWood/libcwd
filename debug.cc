@@ -263,6 +263,24 @@ namespace libcw {
 #ifdef LIBCWD_THREAD_SAFE
       _private_::initialize_global_mutexes();
 #endif
+
+      // Fatal channels need to be marked fatal, otherwise we get into an endless loop
+      // when they are used before they are created.
+      channels::dc::core.NS_initialize("COREDUMP", coredump_maskbit);
+      channels::dc::fatal.NS_initialize("FATAL", fatal_maskbit);
+      // Initialize other debug channels that might be used before we reach main().
+      channels::dc::debug.NS_initialize("DEBUG");
+      channels::dc::malloc.NS_initialize("MALLOC");
+      channels::dc::continued.NS_initialize(continued_maskbit);
+      channels::dc::finish.NS_initialize(finish_maskbit);
+#ifdef DEBUGUSEBFD
+      channels::dc::bfd.NS_initialize("BFD");
+#endif
+      // What the heck, initialize all other debug channels too
+      channels::dc::warning.NS_initialize("WARNING");
+      channels::dc::notice.NS_initialize("NOTICE");
+      channels::dc::system.NS_initialize("SYSTEM");
+
       libcw_do.NS_init();			// Initialize debug code.
 #ifdef DEBUGUSEBFD
       cwbfd::ST_init();				// Initialize BFD code.
@@ -842,6 +860,8 @@ namespace libcw {
       DoutFatal( dc::core, "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
     }
 
+    int debug_ct::S_index_count = 0;
+
     void debug_ct::NS_init(void)
     {
       ST_initialize_globals();		// Because all allocations for global objects are internal these days, we use
@@ -871,6 +891,9 @@ namespace libcw {
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
 #ifndef LIBCWD_THREAD_SAFE
       tsd.init();
+#else
+      WNS_index = ++S_index_count;
+      __libcwd_tsd.do_array[WNS_index].init();
 #endif
       set_alloc_checking_on(LIBCWD_TSD);
 
@@ -905,32 +928,17 @@ namespace libcw {
 #endif
     }
 
+    debug_tsd_st::debug_tsd_st(void) : _off(0), tsd_initialized(false) { }	// Turn off all debugging until initialization is completed.
+
     void debug_tsd_st::init(void)
     {
 #ifdef DEBUGDEBUGMALLOC
       LIBCWD_TSD_DECLARATION
       LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
-      _off = 0;						// Turn off all debugging until initialization is completed.
-      DEBUGDEBUG_CERR( "In debug_tsd_st::NS_init(void), _off set to 0" );
+      DEBUGDEBUG_CERR( "In debug_tsd_st::init(void), _off set to 0" );
 
       start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
-      // Fatal channels need to be marked fatal, otherwise we get into an endless loop
-      // when they are used before they are created.
-      channels::dc::core.NS_initialize("COREDUMP", coredump_maskbit);
-      channels::dc::fatal.NS_initialize("FATAL", fatal_maskbit);
-      // Initialize other debug channels that might be used before we reach main().
-      channels::dc::debug.NS_initialize("DEBUG");
-      channels::dc::malloc.NS_initialize("MALLOC");
-      channels::dc::continued.NS_initialize(continued_maskbit);
-      channels::dc::finish.NS_initialize(finish_maskbit);
-#ifdef DEBUGUSEBFD
-      channels::dc::bfd.NS_initialize("BFD");
-#endif
-      // What the heck, initialize all other debug channels too
-      channels::dc::warning.NS_initialize("WARNING");
-      channels::dc::notice.NS_initialize("NOTICE");
-      channels::dc::system.NS_initialize("SYSTEM");
       // `current' needs to be non-zero (saving us a check in start()) and
       // current.mask needs to be 0 to avoid a crash in start():
       current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
@@ -951,8 +959,20 @@ namespace libcw {
       _off = 0;			// Don't print debug output till the REAL initialization of the debug system has been performed
       				// (ie, the _application_ start (don't confuse that with the constructor - which does nothing)).
 #endif
-      DEBUGDEBUG_CERR( "After debug_tsd_st::NS_init(void), _off set to " << _off );
+      DEBUGDEBUG_CERR( "After debug_tsd_st::init(void), _off set to " << _off );
       tsd_initialized = true;
+    }
+
+    namespace _private_ {
+      void debug_tsd_init(void)
+      {
+	LIBCWD_TSD_DECLARATION
+	ForAllDebugObjects(
+	  set_alloc_checking_off(LIBCWD_TSD);
+	  LIBCWD_DO_TSD(debugObject).init();
+	  set_alloc_checking_on(LIBCWD_TSD);
+	);
+      }
     }
 
     debug_tsd_st::~debug_tsd_st()
@@ -1083,9 +1103,6 @@ namespace libcw {
 
       DEBUGDEBUG_CERR( "Entering `channel_ct::NS_initialize(\"" << label << "\")'" );
 
-      // Of course, dc::debug is off - so this won't do anything unless DEBUGDEBUG is #defined.
-      Dout( dc::debug, "Initializing channel_ct(\"" << label << "\")" );
-
       size_t label_len = strlen(label);
 
       if (label_len > max_label_len_c)	// Only happens for customized channels
@@ -1162,9 +1179,6 @@ namespace libcw {
       WNS_maskbit = maskbit;
 
       DEBUGDEBUG_CERR( "Entering `fatal_channel_ct::NS_initialize(\"" << label << "\")'" );
-
-      // Of course, dc::debug is off - so this won't do anything unless DEBUGDEBUG is #defined.
-      Dout( dc::debug, "Initializing fatal_channel_ct(\"" << label << "\")" );
 
       size_t label_len = strlen(label);
 

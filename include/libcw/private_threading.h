@@ -24,6 +24,10 @@
 #ifndef LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
 #include <libcw/private_set_alloc_checking.h>
 #endif
+#ifndef LIBCW_CSTRING
+#define LIBCW_CSTRING
+#include <cstring>			// Needed for std::memset and std::memcpy.
+#endif
 
 #ifdef LIBCWD_HAVE_PTHREAD
 #include <pthread.h>
@@ -50,10 +54,6 @@
 namespace libcw {
   namespace debug {
     namespace _private_ {
-
-//===================================================================================================
-// Thread Specific Data
-//
 
 #ifdef DEBUGDEBUG
 extern bool WST_multi_threaded;
@@ -467,6 +467,8 @@ template<class TSD>
     pthread_key_create(&S_key, S_destroy);
   }
 
+extern void debug_tsd_init(void);
+
 template<class TSD>
   TSD* thread_specific_data_tct<TSD>::S_initialize(void) throw()
   {
@@ -477,21 +479,24 @@ template<class TSD>
       mutex_tct<tsd_initialization_instance>::unlock();
       return S_temporary_instance;
     }
-    TSD new_TSD;
-    S_temporary_instance = &new_TSD;
+    char new_TSD_space[sizeof(TSD)];					// Allocate space on the stack.
+    S_temporary_instance = new (new_TSD_space) TSD;			// Create a temporary TSD.
     S_initializing = true;
-    set_alloc_checking_off(new_TSD);
+    LIBCWD_TSD_DECLARATION						// This will 'return' the temporary TSD if TSD == TSD_st.
+    set_alloc_checking_off(LIBCWD_TSD);
     TSD* instance = new TSD;
-    set_alloc_checking_on(new_TSD);
+    set_alloc_checking_on(LIBCWD_TSD);
     pthread_setspecific(S_key, instance);
     // Because pthread_setspecific calls calloc, it is possible that in
     // the mean time all of libcwd was initialized.  Therefore we need
     // to copy the temporary TSD to the real TSD because it might
     // contain relevant information.
-    *instance = new_TSD;		// This will not call malloc() et al, and thus not change new_TSD while we're copying it.
+    std::memcpy((void*)instance, new_TSD_space, sizeof(TSD));		// Put the temporary TSD in its final place.
     S_initializing = false;
     S_WNS_initialized = true;
     mutex_tct<tsd_initialization_instance>::unlock();
+    if (WST_multi_threaded)						// Is this a second (or later) thread?
+      debug_tsd_init();							// Initialize the TSD of existing debug objects.
     return instance;
   }
 #endif // defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
