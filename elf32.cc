@@ -66,7 +66,7 @@ struct Elf32_Ehdr {
   Elf32_Half		e_shnum;		// Number of entries in the Section Header.
   Elf32_Half		e_shstrndx;		// Section Header Index for the Section Header String Table.
 
-  friend istream& operator>>(istream& is, Elf32_Ehdr& header) { is.read(&header, sizeof(Elf32_Ehdr)); return is; }
+  friend std::istream& operator>>(std::istream& is, Elf32_Ehdr& header) { is.read(reinterpret_cast<char*>(&header), sizeof(Elf32_Ehdr)); return is; }
   inline bool check_format(void) const;
 };
 
@@ -167,7 +167,7 @@ struct Elf32_Shdr {
 class bfd_ct : public bfd_st {
 private:
   char const* M_filename;
-  ifstream M_input_stream;
+  std::ifstream M_input_stream;
   Elf32_Ehdr M_header;
   Elf32_Shdr* M_section_headers;
 public:
@@ -192,7 +192,7 @@ long bfd_ct::get_symtab_upper_bound(void)
     return 0;
   M_input_stream.rdbuf()->pubseekpos(M_header.e_shoff);
   M_section_headers = new Elf32_Shdr [M_header.e_shnum];
-  M_input_stream.read(M_section_headers, M_header.e_shnum * sizeof(Elf32_Shdr));
+  M_input_stream.read(reinterpret_cast<char*>(M_section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
   return 0;
 }
 
@@ -211,7 +211,7 @@ bfd_ct::bfd_ct(char const* filename) : M_filename(filename), M_section_headers(N
 {
   M_input_stream.open(filename);
   if (!M_input_stream)
-    Dout(dc::fatal|error_cf, "fstream.open(\"" << filename << "\")");
+    Dout(dc::fatal|error_cf, "std::fstream.open(\"" << filename << "\")");
   M_input_stream >> M_header;
 }
 

@@ -11,8 +11,10 @@
 // packaging of this file.
 //
 
-#include <libcw/debug_config.h>
+#undef ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading debug symbols from ..." lines.
+#undef DEBUGDEBUGBFD		// Define to add debug code for this file.
 
+#include <libcw/debug_config.h>
 #ifdef DEBUGUSEBFD
 
 #include <libcw/sys.h>
@@ -56,7 +58,6 @@
 #include <libcw/elf32.h>
 #endif // !DEBUGUSEGNULIBBFD
 
-#undef DEBUGDEBUGBFD
 #ifdef DEBUGDEBUGBFD
 #include <iomanip>
 #endif
