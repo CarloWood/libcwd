@@ -425,18 +425,22 @@ inline void list_allocations_on(debug_ct&) { }
 
 #ifndef HAVE___LIBC_MALLOC
 // Ugh, use kludge.
+extern void* __libcwd_malloc(size_t size);
+extern void* __libcwd_calloc(size_t nmemb, size_t size);
+extern void* __libcwd_realloc(void* ptr, size_t size);
+extern void  __libcwd_free(void* ptr);
 #define malloc __libcwd_malloc
 #define calloc __libcwd_calloc
 #define realloc __libcwd_realloc
 #define free __libcwd_free
-#endif
-
+#else
 // Use external linkage to catch ALL calls to all malloc/calloc/realloc/free functions,
 // also those that are done in libc, or any other shared library that might be linked.
 extern "C" void* malloc(size_t size);
 extern "C" void* calloc(size_t nmemb, size_t size);
 extern "C" void* realloc(void* ptr, size_t size);
 extern "C" void  free(void* ptr);
+#endif
 
 #ifndef HAVE___LIBC_MALLOC
 // Use same kludge for other libc functions that return malloc-ed pointers.
