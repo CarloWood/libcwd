@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#define ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading debug symbols from ..." lines.
+#define ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading symbol table from ..." lines.
 #undef DEBUGDEBUGBFD		// Define to add debug code for this file.
 
 #include <libcw/debug_config.h>
@@ -800,7 +800,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 
 	// Load executable
 /**/	set_alloc_checking_on();
-/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath.value->data() << "... ");
+/**/	Dout(dc::bfd|continued_cf|flush_cf, "Loading symbol table from " << fullpath.value->data() << "... ");
 /**/	set_alloc_checking_off();
 	object_file_ct* object_file = new object_file_ct(fullpath.value->data(), 0);
 /**/	set_alloc_checking_on();
@@ -827,7 +827,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	  if (l->l_addr)
 	  {
 /**/	    set_alloc_checking_on();
-/**/	    Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << ' ');
+/**/	    Dout(dc::bfd|continued_cf|flush_cf, "Loading symbol table from " << l->l_name << ' ');
 /**/	    if (l->l_addr != unknown_l_addr)
 /**/	      Dout(dc::continued, '(' << hex << l->l_addr << ") ... ");
 /**/	    set_alloc_checking_off();
@@ -984,7 +984,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	bfd_find_nearest_line(abfd, sect, const_cast<asymbol**>(object_file->get_symbol_table()),
 	    (char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &M_func, &M_line);
 #else
-        abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &M_func, &M_line);
+        abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line);
 #endif
 	set_alloc_checking_on();
 	ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.

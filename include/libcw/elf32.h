@@ -69,7 +69,7 @@ public:
   virtual bool check_format(void) const = 0;
   virtual long get_symtab_upper_bound(void) = 0;
   virtual long canonicalize_symtab(asymbol_st**) = 0;
-  virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int*) const = 0;
+  virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int*) = 0;
   bool has_syms(void) const { return M_has_syms; }
 };
 
