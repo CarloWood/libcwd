@@ -53,8 +53,8 @@ specific define like <CODE>DEBUG_YOURLIB</CODE>.</P>
 
 <P>Finally, in order for others to be able to compile your application without having
 libcwd installed, you need to include a custom "debug.h" and "sys.h" as is described
-in chapter <A HREF="../html/preparation.html#preparation">Preparation</A> of
-the <A HREF="../html/index.html">Reference Manual</A> and in <A HREF="tut2.html">tutorial 2</A>.</P>
+in chapter <A HREF="../reference-manual/preparation.html#preparation">Preparation</A> of
+the <A HREF="../reference-manual/index.html">Reference Manual</A> and in <A HREF="tut2.html">tutorial 2</A>.</P>
 
 __PAGEEND
 <P class="line"><IMG width=870 height=23 src="../images/lines/snail.png"></P>

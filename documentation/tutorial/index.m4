@@ -8,7 +8,7 @@ define(__TOC_START, [[
   <IMG width=34 height=34 src="../images/toc.png" alt="Main index" align=top border=0>
 </TD>
 <TD valign=center><DIV class="toc-header1">
-  <A class="toc1" href="../html/index.html" target="_top">
+  <A class="toc1" href="../reference-manual/index.html" target="_top">
     back to main index
   </A></DIV>
 </TD>

@@ -107,7 +107,7 @@ GHOST   : i = 3
 </PRE>
 
 <P>Note that when writing a <EM>library</EM> you are highly advised to follow the namespace guideline
-as set forth in the <A HREF="../html/group__chapter__custom__debug__h.html#libraries">Reference Manual</A>.</P>
+as set forth in the <A HREF="../reference-manual/group__chapter__custom__debug__h.html#libraries">Reference Manual</A>.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
 <LI><A HREF="faq.html#label">What is the maximum length of a label?</A></LI>

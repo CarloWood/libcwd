@@ -42,7 +42,7 @@ echo
 echo "Please look at %{__prefix}/doc/libcwd-%{version}/example-project.tar.gz"
 echo "for an example of how to write an application that uses libcwd."
 echo "Detailed documentation can be found in"
-echo "file://%{__prefix}/doc/libcwd-%{version}/html/index.html"
+echo "file://%{__prefix}/doc/libcwd-%{version}/index.html"
 echo
 
 %files
@@ -56,11 +56,16 @@ echo
 %doc documentation/images
 %doc documentation/external
 %doc documentation/doxygen-examples
+%doc documentation/www
+%doc documentation/index.html
 %dir %{__prefix}/include/libcw
 %{__prefix}/lib/*
 %{__prefix}/include/libcw/*
 
 %changelog
+* Wed Mar 14 2002 Carlo Wood <libcw@alinoe.com>
+- Added documentation/www and documentation/index.html as main page.
+
 * Wed Feb 13 2002 Carlo Wood <libcw@alinoe.com>
 - Allow also version of autoconf larger than 2.13.
 

@@ -4,7 +4,7 @@
 
 //-------------------------------------------------------------------------------
 // This block should really be part of custom header files!  Please ignore it
-// and read documentation/html/preparation.html#preparation_step2 instead.
+// and read documentation/reference-manual/preparation.html#preparation_step2 instead.
 // "sys.h":
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE

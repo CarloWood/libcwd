@@ -1,3 +1,5 @@
+libcwd-0.99.19
+
 libcwd-0.99.18
 
 	API changes:
@@ -56,12 +58,12 @@ libcwd-0.99.18
 	are part of the libcwd API (and should also be defined in
 	your custom debug.h):
 	  Debug, Dout, DoutFatal
-			: see documentation/html/debug_8h.html
-	  DEBUGCHANNELS	: see documentation/html/group__chapter__custom__debug__h.html
+			: see documentation/reference-manual/debug_8h.html
+	  DEBUGCHANNELS	: see documentation/reference-manual/group__chapter__custom__debug__h.html
 	  ForAllDebugChannels and ForAllDebugObjects
-			: see documentation/html/group__group__special.html
+			: see documentation/reference-manual/group__group__special.html
 	  AllocTag, AllocTag1, AllocTag2, AllocTag_dynamic_description and NEW
-			: see documentation/html/group__group__annotation.html
+			: see documentation/reference-manual/group__group__annotation.html
 	When you don't have __libc_malloc/_libc_malloc (glibc *does* have that):
 	  malloc, calloc, realloc, free, strdup, wcsdup and RegisterExternalAlloc.
 	These are always defined because there is no accessible __libc_dlopen:
@@ -198,7 +200,7 @@ libcwd-0.99.16
 	uses GNU extensions.  Of course, it is not necessary to define
 	_GNU_SOURCE when CWDEBUG isn't defined, so you may put it inside the
         #ifdef CWDEBUG ... #endif.
-	If you don't understand this, read documentation/html/preparation.html.
+	If you don't understand this, read documentation/reference-manual/preparation.html.
 
 	Bug fixes:
 

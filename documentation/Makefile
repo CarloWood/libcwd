@@ -2,20 +2,20 @@ include doxygen.config
 INPUT_FILES=$(shell for i in $(INPUT); do if test -f $$i; then echo $$i; else for j in $(FILE_PATTERNS); do ls $$i/$$j; done; fi done)
 EXAMPLE_FILES=$(shell find doxygen-examples -mindepth 1 -maxdepth 1 -type f -print)
 
-.PHONY: html external styles tutorial
+.PHONY: reference-manual external styles tutorial
 
-all: html tutorial
+all: reference-manual tutorial
 
-html: styles external
-	rm -rf html
+reference-manual: styles external
+	rm -rf reference-manual
 	doxygen doxygen.config
-	mv html/preparation.html html/preparation.tmp
-	cat html/preparation.tmp | \
+	mv reference-manual/preparation.html reference-manual/preparation.tmp
+	cat reference-manual/preparation.tmp | \
 	  sed -e 's/href="debug_8h\.html">debug\.h/href="#preparation_step2">debug.h/' \
 	      -e 's/"sys\.h"/"<a class="code" href="#preparation_step2">sys.h<\/a>"/' \
-	  > html/preparation.html
-	rm html/preparation.tmp
-	for i in `grep -l '<h2>Modules</h2>' html/*.html`; do \
+	  > reference-manual/preparation.html
+	rm reference-manual/preparation.tmp
+	for i in `grep -l '<h2>Modules</h2>' reference-manual/*.html`; do \
 	  mv $$i $$i.tmp; \
 	  cat $$i.tmp | \
 	  sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' > $$i; \

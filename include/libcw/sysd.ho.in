@@ -70,7 +70,7 @@ namespace libcw {
 #if defined(LIBCWD_TMP_THREAD_SAFE) && !defined(_GNU_SOURCE)
 #error "Sorry, libcwd with --enable-threading uses GNU extensions, also in the header files.  "
        "Therefore you must also define _GNU_SOURCE when you are linking with libcwd.  "
-       "Please add #define _GNU_SOURCE to your \"sys.h\", see html/preparation.html#preparation_step2."
+       "Please add #define _GNU_SOURCE to your \"sys.h\", see reference-manual/preparation.html#preparation_step2."
 #endif
 
 // Was only needed for the three tests above.

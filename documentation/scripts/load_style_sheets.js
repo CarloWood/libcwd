@@ -3,30 +3,24 @@ with (document)
   var styles_path;
   var rootpath;
   var rootpos;
-  rootpos = location.pathname.lastIndexOf("/documentation/");
+  rootpos = location.href.lastIndexOf("/www/");
   if (rootpos != -1)
-    rootpath = location.pathname.substring(0,rootpos) + "/documentation/";
+    rootpath = location.href.substring(0,rootpos) + "/";
   else
   {
-    rootpos = location.href.lastIndexOf(".sourceforge.net");
-    if (rootpos != -1)
-      rootpath = location.href.substring(0,rootpos) + ".sourceforge.net/";
+    rootpos = location.pathname.lastIndexOf("/reference-manual/");
+    if (rootpos != -1) 
+      rootpath = location.pathname.substring(0,rootpos) + "/";
     else
     {
-      rootpos = location.pathname.lastIndexOf("/html/");
+      rootpos = location.pathname.lastIndexOf("/tutorial/");
       if (rootpos != -1) 
 	rootpath = location.pathname.substring(0,rootpos) + "/";
       else
       {
-	rootpos = location.pathname.lastIndexOf("/tutorial/");
+	rootpos = location.pathname.lastIndexOf("/index.html");
 	if (rootpos != -1) 
 	  rootpath = location.pathname.substring(0,rootpos) + "/";
-	else
-	{
-	  rootpos = location.pathname.lastIndexOf("/libcwd/");
-	  if (rootpos != -1) 
-	    rootpath = location.pathname.substring(0,rootpos) + "/libcwd/";
-	}
       }
     }
   }

@@ -179,7 +179,7 @@ void allocator_unlock(void)
 	  {
 	    WST_second_time = true;
 	    DoutFatal(dc::core, "When using multiple threads, you must provide a locking mechanism for the debug output stream.  "
-		"You can pass a pointer to a mutex with `debug_ct::set_ostream' (see documentation/html/group__group__destination.html).");
+		"You can pass a pointer to a mutex with `debug_ct::set_ostream' (see documentation/reference-manual/group__group__destination.html).");
 	  }
 	}
 #endif // !LIBCWD_THREAD_SAFE
@@ -1653,7 +1653,7 @@ void debug_ct::set_ostream(std::ostream* os)
 {
 #ifdef LIBCWD_THREAD_SAFE
   if (_private_::WST_multi_threaded)
-    Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << ": You should passing a locking mechanism to `set_ostream' for the ostream (see documentation/html/group__group__destination.html)");
+    Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << ": You should passing a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
   LIBCWD_DEFER_CANCEL
   _private_::mutex_tct<_private_::set_ostream_instance>::lock();
 #endif

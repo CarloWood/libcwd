@@ -8,8 +8,8 @@ __PAGESTART
 <H3>Introduction</H3>
 
 <P>For an introduction please read chapter
-<A HREF="../html/group__book__allocations__intro.html">Memory Allocation Debug Support: Introduction</A>
-of the <A HREF="../html/index.html">Reference Manual</A>.</P>
+<A HREF="../reference-manual/group__book__allocations__intro.html">Memory Allocation Debug Support: Introduction</A>
+of the <A HREF="../reference-manual/index.html">Reference Manual</A>.</P>
 
 <H3>Conventions</H3>
 
@@ -48,8 +48,8 @@ happens when you make a mistake.</P>
 of all memory allocations to a debug object (to channel <CODE>dc::malloc</CODE>)
 or to an arbitrary ostream.&nbsp;
 All details of the Allocated memory Overview are described in chapter
-<A HREF="../html/group__group__overview.html">Overview Of Allocated Memory</A> of
-the <A HREF="../html/index.html">Reference Manual</A>.</P>
+<A HREF="../reference-manual/group__group__overview.html">Overview Of Allocated Memory</A> of
+the <A HREF="../reference-manual/index.html">Reference Manual</A>.</P>
 
 <P>The following example program writes the Allocated memory Overview to
 the default debug object <CODE>libcw_do</CODE>:</P>
@@ -153,7 +153,7 @@ new[]     0x804e898             &lt;unknown type&gt;; (sz = 400)
 <LI>The debugging symbols are loaded <EM>the first time</EM> an address is resolved,
 <A HREF="tut5.html#interrupted">interrupting</A> the debug output of the first allocation.</LI>
 <LI>The allocation is done somewhere inside a function <CODE>main</CODE></A> but
-no <A HREF="../html/group__group__locations.html">Source-file:Line-number Information</A> information is found.</LI>
+no <A HREF="../reference-manual/group__group__locations.html">Source-file:Line-number Information</A> information is found.</LI>
 <LI>Likely the 'Loading debug symbols from..' is done <EM>before</EM> the application reaches <CODE>main()</CODE>
 and is hence invisible (because the debug object, <CODE>libcw_do</CODE>, is still turned off).&nbsp;
 You can force libcwd to print it nevertheless by setting the environment variable <CODE>LIBCWD_PRINT_LOADING</CODE>.</LI>

@@ -41,7 +41,7 @@ and channels turned off, just as at the start of <CODE>main()</CODE>.</P>
 thread is printing the output.&nbsp; For example:</P>
 
 <PRE>
-#include "sys.h"	// See <A HREF="../html/preparation.html">documentation/html/preparation.html</A>
+#include "sys.h"	// See <A HREF="../reference-manual/preparation.html">documentation/reference-manual/preparation.html</A>
 #include "debug.h"
 #include &lt;iostream&gt;
 #include &lt;cstdio&gt;

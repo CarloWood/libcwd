@@ -81,14 +81,14 @@ collision in that case.</P>
 <H3>5. What is defined <EM>exactly</EM> in <SPAN class="H3code">libcw/debug.h</SPAN>?</H3>
 
 <P>Everything.&nbsp;
-Go and read the <A HREF="../html/index.html">Reference Manual</A> to get <EM>all</EM> gory details if you dare.</P>
+Go and read the <A HREF="../reference-manual/index.html">Reference Manual</A> to get <EM>all</EM> gory details if you dare.</P>
 
 <A name="macros"></A>
 <H3>6. Why are you using macros for <SPAN class="H3code">Debug</SPAN> and <SPAN class="H3code">Dout</SPAN>?</H3>
 
 <P>Because it is the only way to easy remove debugging code from an application as function of a macro
 and because it allows for the fastest possible code even without optimisation, which is often the case
-while debugging.&nbsp; A more detailed explanation is given in the <A HREF="../html/page_why_macro.html">Reference Manual</A>.</P>
+while debugging.&nbsp; A more detailed explanation is given in the <A HREF="../reference-manual/page_why_macro.html">Reference Manual</A>.</P>
 
 <A name="Debug"></A>
 <H3>7. Why do I need to type the <SPAN class="H3code">Debug(&nbsp;&nbsp;)</SPAN> around it?</H3>
@@ -112,14 +112,14 @@ The expression <SPAN class="code">Debug( STATEMENT );</SPAN> is equivalent with:
 
 <P>Please note that definitions within a <SPAN class="code">Debug()</SPAN> statement will be
 restricted to their own scope.&nbsp;
-Please read the <A HREF="../html/group__chapter__custom__debug__h.html">Reference Manual</A> for an
+Please read the <A HREF="../reference-manual/group__chapter__custom__debug__h.html">Reference Manual</A> for an
 explanation of <SPAN class="code">DEBUGCHANNELS</SPAN>.</P>
 
 <A name="DebugChannels"></A>
 <H3>8. Which Debug Channels exist?&nbsp; Can I make my own?</H3>
 
 <P>This question is covered in chapter
-<A HREF="../html/group__group__debug__channels.html">Controlling The Output Level (Debug Channels)</A>
+<A HREF="../reference-manual/group__group__debug__channels.html">Controlling The Output Level (Debug Channels)</A>
 of the Reference Manual.&nbsp;
 As is described there, creating your own debug channels is best done by writing your own <SPAN class="code">debug.h</SPAN>
 header file.&nbsp; The following template is a good start for such a <SPAN class="code">debug.h</SPAN> for an end application
@@ -190,11 +190,11 @@ to the output stream of the underlaying debug object.</P>
 <A name="OwnDebugObject"></A>
 <H3>11. Can I make my own Debug Object?</H3>
 
-<P><A HREF="../html/group__chapter__custom__do.html">Yes</A>, you can make as many debug objects as you like.&nbsp;
+<P><A HREF="../reference-manual/group__chapter__custom__do.html">Yes</A>, you can make as many debug objects as you like.&nbsp;
 Each debug object is associated with one ostream.&nbsp; However, the default debug output macros <CODE>Dout</CODE> and
 <CODE>DoutFatal</CODE> use the default debug object <CODE>libcw_do</CODE>.&nbsp;
 It isn't hard at all to define your own macros though; for example add something like the following to
-<A HREF="../html/group__chapter__custom__debug__h.html">your own &quot;debug.h&quot;</A> file:</P>
+<A HREF="../reference-manual/group__chapter__custom__debug__h.html">your own &quot;debug.h&quot;</A> file:</P>
 
 <PRE class="code">
 #ifdef CWDEBUG
@@ -347,7 +347,7 @@ In pseudo-code the macro expansion looks something like</P>
 
 <P>and so, &quot;your message&quot; is <EM>not</EM> evaluated when it isn't also
 actually written.&nbsp; This fact is also covered in the
-<A HREF="../html/classlibcw_1_1debug_1_1debug__ct.html#eval_example">Reference Manual</A>.</P>
+<A HREF="../reference-manual/classlibcw_1_1debug_1_1debug__ct.html#eval_example">Reference Manual</A>.</P>
 
 <P>Note that debug code should never have an effect on any of your variables (and thus on the application) anyway.&nbsp;
 In the production version of your application all debug code will be removed and you don't want it to behave differently then!</P>
@@ -434,12 +434,12 @@ at a time to select the current <SPAN class="code">dc</SPAN> namespace.</P>
 <P>If this is over your head then that is probably because I can't explain&nbsp;:).&nbsp;
 Don't worry however, you only need to know <EM>how</EM> to introduce new debug
 channels and not understand how it works.&nbsp; The correct procedure is described
-in the <A HREF="../html/group__group__debug__channels.html">Reference Manual</A>.</P>
+in the <A HREF="../reference-manual/group__group__debug__channels.html">Reference Manual</A>.</P>
 
 <A name="ownnamespace"></A>
 <H3>23. Can I put my debug channels in my own name space?</H3>
 
-<P>Yes.&nbsp; How, is described in the <A HREF="../html/group__group__debug__channels.html">Reference Manual</A>.&nbsp;
+<P>Yes.&nbsp; How, is described in the <A HREF="../reference-manual/group__group__debug__channels.html">Reference Manual</A>.&nbsp;
 For some background information on why this has to be so complex, please read the <A HREF="#prefix">previous question</A>.</P>
 
 <A name="labelwidth"></A>
