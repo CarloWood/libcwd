@@ -513,3 +513,29 @@ else
 fi
 ])
 
+dnl CW_PROG_CXXCPP
+dnl
+dnl Like AC_PROG_CXXCPP but with bug work around that allows user to override CXXCPP.
+AC_DEFUN(CW_PROG_CXXCPP,
+[dnl This triggers the bug:
+if test -n "$CXXCPP"; then
+dnl Work around:
+  unset ac_cv_prog_CXXCPP
+  eval "save_CXXCPP=\"$CXXCPP\""
+fi
+AC_PROG_CXXCPP
+dnl This is the result of the bug:
+if test x"$CXXCPP" = x; then
+  eval "CXXCPP=\"$save_CXXCPP\""; # Allow user to override
+  eval "ac_cv_prog_CXXCPP=\"$save_CXXCPP\""; # This is needed because the buggy AC_PROG_CXXCPP is called from many other places as well.
+fi])
+
+dnl CW_PROG_CXX_FINGER_PRINTS
+dnl
+dnl Extract finger prints of C++ compiler and preprocessor
+AC_DEFUN(CW_PROG_CXX_FINGER_PRINTS,
+[AC_REQUIRE([CW_PROG_CXX])
+AC_REQUIRE([CW_PROG_CXXCPP])
+cw_prog_cxx_finger_print="`$CXX -v 2>&1 | grep version | head -n 1`"
+cw_prog_cxxcpp_finger_print="`echo | $CXXCPP -v 2>&1 | grep version | head -n 1`"
+])

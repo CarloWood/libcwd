@@ -41,12 +41,6 @@ will have to set LDFLAGS prior to running ./configure:
 
 LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include ./configure
 
-IMPORTANT: If you change CXX or LDFLAGS etc., remove config.cache before
-running ./configure again: A lot of tests depend on the compiler and
-flags that are being used!  For example, if you forgot to add the
-LDFLAGS=... the first time and configure failed to find libiberty,
-then you need to remove config.cache before running ./configure again.
-
 -=iii=-
 
 You can install libcwd in a `staging' directory by issuing

@@ -95,9 +95,48 @@ AC_ARG_ENABLE(libcwd-debugm,
                           in libcwd itself.],
     libcwd_config_debugm=$enableval)
 
-dnl Checks for programs.
+dnl Always let these environment variables override cached values
+if test x"$CXX" != "x" -o x"$CXXCPP" != "x"; then
+  unset ac_cv_prog_CXX
+  unset ac_cv_prog_CXXCPP
+  unset ac_cv_prog_cxx_cross
+  unset ac_cv_prog_cxx_works
+  unset ac_cv_prog_gxx
+  unset ac_cv_prog_gxx_version
+fi
+
+dnl Check for compiler and preprocessor
 CW_PROG_CXX
-AC_PROG_CXXCPP
+CW_PROG_CXXCPP
+
+dnl Clear the cache values of all remaining tests if important
+dnl environment variables have been changed since last run.
+AC_MSG_CHECKING([if we can use cached result for the tests])
+CW_PROG_CXX_FINGER_PRINTS
+if test "$cw_cv_sys_CXX_finger_print" != "$cw_prog_cxx_finger_print" -o \
+        "$cw_cv_sys_CXXCPP_finger_print" != "$cw_prog_cxxcpp_finger_print" -o \
+	"$cw_cv_sys_CPPFLAGS" != "$CPPFLAGS" -o \
+	"$cw_cv_sys_CXXFLAGS" != "$CXXFLAGS" -o \
+	"$cw_cv_sys_LDFLAGS" != "$LDFLAGS" -o \
+	"$cw_cv_sys_LIBS" != "$LIBS"; then
+changequote(<<, >>)dnl
+for i in `set | grep -v '^ac_cv_prog_[Ccg][Xx]' | grep '^[a-z]*_cv_' | sed -e 's/=.*$//'`; do
+  unset $i
+done
+changequote([, ])dnl
+AC_MSG_RESULT([no])
+else
+AC_MSG_RESULT([yes])
+fi
+dnl Store important environment variables in the cache file
+cw_cv_sys_CXX_finger_print="$cw_prog_cxx_finger_print"
+cw_cv_sys_CXXCPP_finger_print="$cw_prog_cxxcpp_finger_print"
+cw_cv_sys_CPPFLAGS="$CPPFLAGS"
+cw_cv_sys_CXXFLAGS="$CXXFLAGS"
+cw_cv_sys_LDFLAGS="$LDFLAGS"
+cw_cv_sys_LIBS="$LIBS"
+
+dnl Checks for other programs.
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
