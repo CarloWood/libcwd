@@ -1,9 +1,9 @@
-DEBUG   : Disabled
-NOTICE  : Enabled
-WARNING : Enabled
-SYSTEM  : Enabled
-MALLOC  : Enabled
 BFD     : Disabled
+DEBUG   : Disabled
+MALLOC  : Enabled
+NOTICE  : Enabled
+SYSTEM  : Enabled
+WARNING : Enabled
 MALLOC  : operator new\[\] \(size = 50\) = 0x[0-9a-f]*
 MALLOC  : operator new \(size = 4\) = 0x[0-9a-f]*
 MALLOC  : malloc\(33\) = 0x[0-9a-f]*

@@ -1,13 +1,13 @@
 // type exact
-DEBUG   : Disabled
-NOTICE  : Enabled
-WARNING : Disabled
-SYSTEM  : Enabled
-MALLOC  : Disabled
-BFD     : Disabled
-FOO     : Enabled
 BAR     : Enabled
+BFD     : Disabled
+DEBUG   : Disabled
+FOO     : Enabled
+MALLOC  : Disabled
+NOTICE  : Enabled
 RUN     : Enabled
+SYSTEM  : Enabled
+WARNING : Disabled
 ===========================================================================
  Unnested tests
 

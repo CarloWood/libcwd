@@ -617,7 +617,15 @@ namespace libcw {
       strncpy(label, lbl, lbl_len);
       memset(label + lbl_len, ' ', max_label_len - lbl_len);
 
-      debug_channels().push_back(this);
+      // We store debug channels in some organized order, so that the
+      // order in which they appear in the ForAllDebugChannels is not
+      // dependent on the order in which these global objects are
+      // initialized.
+      debug_channels_ct::iterator i(debug_channels().begin());
+      for(; i != debug_channels().end(); ++i)
+        if (strncmp((*i)->label, label, max_label_len) > 0)
+	  break;
+      debug_channels().insert(i, this);
 
 #ifdef DEBUGDEBUG
       cerr << "DEBUGDEBUG: Leaving `channel_ct::channel_ct(\"" << lbl << "\")" << endl;

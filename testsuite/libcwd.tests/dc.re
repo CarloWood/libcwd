@@ -1,19 +1,19 @@
 // type regexp
 NOTICE  : Debug channel Test\.
 WARP    : Custom channel Test\.
-DEBUG   : Disabled
-NOTICE  : Disabled
-WARNING : Disabled
-SYSTEM  : Disabled
-MALLOC  : Disabled
 BFD     : Disabled
+DEBUG   : Disabled
+MALLOC  : Disabled
+NOTICE  : Disabled
+SYSTEM  : Disabled
+WARNING : Disabled
 WARP    : Disabled
-DEBUG   : Enabled
-NOTICE  : Enabled
-WARNING : Enabled
-SYSTEM  : Enabled
-MALLOC  : Enabled
 BFD     : Enabled
+DEBUG   : Enabled
+MALLOC  : Enabled
+NOTICE  : Enabled
+SYSTEM  : Enabled
+WARNING : Enabled
 WARP    : Enabled
 (BFD     : bfd Testing|NOTICE  : bfd Testing disabled)
 DEBUG   : debug Testing
