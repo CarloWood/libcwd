@@ -39,14 +39,15 @@ dnl Configuration defines
 if test "$project_config_debugging" = yes; then
 
   dnl Check if we have libcwd
-  AC_CHECK_LIB(cwd, __libcwd_version, [LIBS="-lcwd $LIBS"], [AC_CHECK_LIB(cwd, main,,
+  AC_CHECK_LIB(cwd, __libcwd_version,,
       [AC_MSG_ERROR([
   --enable-debugging: You need to have libcwd installed to enable debugging.
   Or perhaps you need to add its location to LDFLAGS and CPPFLAGS, for example:
-  LDFLAGS=\"-L/usr/local/lib\" CPPFLAGS=\"-I/usr/local/include\" ./configure])])])
+  LDFLAGS=\"-L/usr/local/lib\" CPPFLAGS=\"-I/usr/local/include\" ./configure])])
 
   CXXFLAGS="-DCWDEBUG $CXXFLAGS"
-  AC_DEFINE(HAVE_LIBCWD)
+
+  dnl" <- this quote is needed for the syntax highlighting of vim.
 fi
 
 dnl Generate output files.
