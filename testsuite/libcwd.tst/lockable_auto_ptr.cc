@@ -15,8 +15,8 @@
 #include <iostream>
 #include <libcwd/lockable_auto_ptr.h>
 
-using namespace libcw;
-using namespace libcw::debug;
+using namespace libcwd;
+using namespace libcwd;
 
 class Bl {};
 class Al : public Bl {};

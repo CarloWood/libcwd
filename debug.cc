@@ -42,23 +42,23 @@ extern "C" char* getenv(char const* name);	// Needed before including ext/pool_a
 extern "C" int raise(int);
 
 #if LIBCWD_THREAD_SAFE
-using libcw::debug::_private_::rwlock_tct;
+using libcwd::_private_::rwlock_tct;
 #if __GNUC_MINOR__ != 5
-using libcw::debug::_private_::debug_objects_instance;
-using libcw::debug::_private_::debug_channels_instance;
+using libcwd::_private_::debug_objects_instance;
+using libcwd::_private_::debug_channels_instance;
 #endif
-#define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_objects_instance>::wrlock()
-#define DEBUG_OBJECTS_RELEASE_WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_objects_instance>::wrunlock()
-#define DEBUG_OBJECTS_ACQUIRE_READ_LOCK		rwlock_tct<libcw::debug::_private_::debug_objects_instance>::rdlock()
-#define DEBUG_OBJECTS_RELEASE_READ_LOCK		rwlock_tct<libcw::debug::_private_::debug_objects_instance>::rdunlock()
-#define DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_objects_instance>::rd2wrlock()
-#define DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<libcw::debug::_private_::debug_objects_instance>::wr2rdlock()
-#define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::wrlock()
-#define DEBUG_CHANNELS_RELEASE_WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::wrunlock()
-#define DEBUG_CHANNELS_ACQUIRE_READ_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::rdlock()
-#define DEBUG_CHANNELS_RELEASE_READ_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::rdunlock()
-#define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::rd2wrlock()
-#define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<libcw::debug::_private_::debug_channels_instance>::wr2rdlock()
+#define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_objects_instance>::wrlock()
+#define DEBUG_OBJECTS_RELEASE_WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_objects_instance>::wrunlock()
+#define DEBUG_OBJECTS_ACQUIRE_READ_LOCK		rwlock_tct<libcwd::_private_::debug_objects_instance>::rdlock()
+#define DEBUG_OBJECTS_RELEASE_READ_LOCK		rwlock_tct<libcwd::_private_::debug_objects_instance>::rdunlock()
+#define DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_objects_instance>::rd2wrlock()
+#define DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<libcwd::_private_::debug_objects_instance>::wr2rdlock()
+#define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_channels_instance>::wrlock()
+#define DEBUG_CHANNELS_RELEASE_WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_channels_instance>::wrunlock()
+#define DEBUG_CHANNELS_ACQUIRE_READ_LOCK	rwlock_tct<libcwd::_private_::debug_channels_instance>::rdlock()
+#define DEBUG_CHANNELS_RELEASE_READ_LOCK	rwlock_tct<libcwd::_private_::debug_channels_instance>::rdunlock()
+#define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_channels_instance>::rd2wrlock()
+#define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<libcwd::_private_::debug_channels_instance>::wr2rdlock()
 #define COMMA_IFTHREADS(x) ,x
 #else // !LIBCWD_THREAD_SAFE
 #define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
@@ -81,8 +81,7 @@ using libcw::debug::_private_::debug_channels_instance;
      (__GNUC_MINOR__ == 1 && __VERSION__ [4] == '1') || \
      (__GNUC_MINOR__ == 0)))
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace _private_ {
 
@@ -604,7 +603,7 @@ void allocator_unlock(void)
       void debug_channels_ct::init(LIBCWD_TSD_PARAM)
       {
 #if LIBCWD_THREAD_SAFE
-	_private_::rwlock_tct<libcw::debug::_private_::debug_channels_instance>::initialize();
+	_private_::rwlock_tct<libcwd::_private_::debug_channels_instance>::initialize();
 #endif
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
@@ -625,7 +624,7 @@ void allocator_unlock(void)
       // _private_::
       void debug_channels_ct::init_and_rdlock(void)
       {
-	_private_::rwlock_tct<libcw::debug::_private_::debug_channels_instance>::initialize();
+	_private_::rwlock_tct<libcwd::_private_::debug_channels_instance>::initialize();
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
@@ -643,7 +642,7 @@ void allocator_unlock(void)
       void debug_objects_ct::init(LIBCWD_TSD_PARAM)
       {
 #if LIBCWD_THREAD_SAFE
-	_private_::rwlock_tct<libcw::debug::_private_::debug_objects_instance>::initialize();
+	_private_::rwlock_tct<libcwd::_private_::debug_objects_instance>::initialize();
 #endif
         DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
@@ -669,7 +668,7 @@ void allocator_unlock(void)
       // _private_::
       void debug_objects_ct::init_and_rdlock(void)
       {
-	_private_::rwlock_tct<libcw::debug::_private_::debug_objects_instance>::initialize();
+	_private_::rwlock_tct<libcwd::_private_::debug_objects_instance>::initialize();
 	DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
@@ -835,8 +834,9 @@ void allocator_unlock(void)
     // This is called with alloc checking on (or off).
     debug_string_ct::~debug_string_ct(void)
     {
-#if CWDEBUG_DEBUG
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
       LIBCWD_ASSERT(M_str == NULL);	// Need to call debug_string_ct::deinitialize() before destructor.
+      					// But not in the non-threaded case, see debug_tsd_st::~debug_tsd_st.
 #endif
     }
 
@@ -1003,7 +1003,7 @@ void allocator_unlock(void)
 	  char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #if CWDEBUG_LOCATION
 	  DoutFatal(dc::core, "Using `dc::" << channame << "' in " <<
-	      debug::location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) <<
+	      location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) <<
 	      " without (first using) a matching `continued_cf'.");
 #else
 	  DoutFatal(dc::core, "Using `dc::" << channame <<
@@ -1519,7 +1519,7 @@ void allocator_unlock(void)
 	LIBCWD_DEFER_CANCEL;
         _private_::debug_channels.init(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
-	LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<libcw::debug::_private_::debug_channels_instance>::cleanup, NULL);
+	LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<libcwd::_private_::debug_channels_instance>::cleanup, NULL);
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	    i != _private_::debug_channels.read_locked().end(); ++i)
@@ -1590,7 +1590,7 @@ void allocator_unlock(void)
       set_alloc_checking_on(LIBCWD_TSD);
 
 #if LIBCWD_THREAD_SAFE
-      // MT: Take advantage of the `libcw::debug::_private_::debug_channels_instance' lock to prefend simultaneous access
+      // MT: Take advantage of the `libcwd::_private_::debug_channels_instance' lock to prefend simultaneous access
       //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
       static int next_index;
       WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
@@ -1800,7 +1800,7 @@ void allocator_unlock(void)
     channel_set_st& channel_set_bootstrap_st::operator|(fatal_channel_ct const&)
     {
 #if CWDEBUG_LOCATION
-      DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
+      DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) <<
           " : Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
 #else
       DoutFatal(dc::core,
@@ -1811,7 +1811,7 @@ void allocator_unlock(void)
     channel_set_st& channel_set_bootstrap_st::operator&(channel_ct const&)
     {
 #if CWDEBUG_LOCATION
-      DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) <<
+      DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) <<
 	  " : Use dc::core or dc::fatal together with DoutFatal.");
 #else
       DoutFatal(dc::core,
@@ -1996,18 +1996,15 @@ void debug_ct::set_ostream(std::ostream* os)
 #endif
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 // This can be used in configure to see if libcwd exists.
 extern "C" char const* const __libcwd_version = VERSION;
 
 // The following functions can be invoked from gdb directly.
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
-      extern void demangle_symbol(char const* in, _private_::internal_string& out);
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+namespace libcwd {
+  namespace _private_ {
+    extern void demangle_symbol(char const* in, _private_::internal_string& out);
+  } // namespace _private_
+} // namespace libcwd

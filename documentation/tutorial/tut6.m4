@@ -40,7 +40,7 @@ and not create any custom debug channels.</P>
 
 <H3>The Allocated memory Overview</H3>
 
-<P>Libcw does some basic checks on de-allocations and memory leaks (at the end
+<P>Libcwd does some basic checks on de-allocations and memory leaks (at the end
 of the program), but there is nothing to teach about that: you'll see what
 happens when you make a mistake.</P>
 

@@ -29,12 +29,11 @@
 #include <list>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 class dm_alloc_ct;
 
-    namespace _private_ {
+  namespace _private_ {
 
 struct TSD_st;
 
@@ -82,9 +81,8 @@ public:
 typedef thread_ct::threadlist_type threadlist_t;
 extern threadlist_t* threadlist;
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_THREAD_H
 

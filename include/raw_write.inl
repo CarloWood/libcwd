@@ -21,8 +21,7 @@
 #include <libcwd/private_internal_string.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 __inline__
 _private_::raw_write_nt const&
@@ -112,14 +111,13 @@ operator<<(_private_::raw_write_nt const& raw_write, unsigned int data)
 
 __inline__
 _private_::raw_write_nt const&
-operator<<(_private_::raw_write_nt const& raw_write, libcw::debug::_private_::internal_string const& data)
+operator<<(_private_::raw_write_nt const& raw_write, libcwd::_private_::internal_string const& data)
 {
   write(2, data.data(), data.size());
   return raw_write;
 }
 
-  }  // namespace debug
-} // namespace libcw
+} // namespace libcwd
 #endif // CWDEBUG_DEBUG
 
 #endif // RAW_WRITE_INL

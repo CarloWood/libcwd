@@ -29,11 +29,9 @@
 extern "C" ssize_t write(int fd, const void *buf, size_t count);
 
 #if LIBCWD_THREAD_SAFE
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
-      extern pthread_mutex_t raw_write_mutex;
-    }
+namespace libcwd {
+  namespace _private_ {
+    extern pthread_mutex_t raw_write_mutex;
   }
 }
 #define LIBCWD_CANCELSTATE_DISABLE int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate)
@@ -57,16 +55,16 @@ namespace libcw {
 // disturb the testsuite.
 #define FATALDEBUGDEBUG_CERR(x)									\
     do {											\
-      if (1/*::libcw::debug::_private_::WST_ios_base_initialized FIXME: uncomment again*/) {	\
+      if (1/*::libcwd::_private_::WST_ios_base_initialized FIXME: uncomment again*/) {	\
 	LIBCWD_CANCELSTATE_DISABLE;								\
 	LIBCWD_TSD_DECLARATION;									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
-	LibcwDebugThreads( pthread_mutex_lock(&::libcw::debug::_private_::raw_write_mutex) );	\
+	LibcwDebugThreads( pthread_mutex_lock(&::libcwd::_private_::raw_write_mutex) );	\
 	::write(2, "CWDEBUG_DEBUG: ", 15);							\
 	LIBCWD_LIBRARY_CALL_INDENTATION;							\
-	LibcwDebugThreads( ::libcw::debug::_private_::raw_write << pthread_self() << ": ");	\
-	::libcw::debug::_private_::raw_write << x << '\n';					\
-	LibcwDebugThreads( pthread_mutex_unlock(&::libcw::debug::_private_::raw_write_mutex) );	\
+	LibcwDebugThreads( ::libcwd::_private_::raw_write << pthread_self() << ": ");	\
+	::libcwd::_private_::raw_write << x << '\n';					\
+	LibcwDebugThreads( pthread_mutex_unlock(&::libcwd::_private_::raw_write_mutex) );	\
 	LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );				\
 	LIBCWD_CANCELSTATE_RESTORE;								\
       }												\
@@ -82,8 +80,7 @@ namespace libcw {
 #endif // !CWDEBUG_DEBUGOUTPUT
 
 #if CWDEBUG_DEBUG
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace _private_ {
   // Dummy type used as fake 'ostream' to write to write(2).
@@ -99,8 +96,7 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, int data);
 _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, unsigned int data);
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 #endif // CWDEBUG_DEBUG
 
 #endif // RAW_WRITE_H
@@ -111,13 +107,11 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 #include <libcwd/private_internal_string.h>
 #endif
 #if CWDEBUG_DEBUG
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
-_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, libcw::debug::_private_::internal_string const& data);
+_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, libcwd::_private_::internal_string const& data);
 
-  }  // namespace debug
-} // namespace libcw
+} // namespace libcwd
 #endif // CWDEBUG_DEBUG
 #endif // !LIBCWD_NO_INTERNAL_STRING
 

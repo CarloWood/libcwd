@@ -43,8 +43,7 @@
 #include <sys/time.h>				// Needed for struct timeval.
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 // Forward declaration
 class type_info_ct;
@@ -90,7 +89,7 @@ public:
    * \brief A reference to the type info of the pointer to the allocated memory block.
    *
    * \returns a reference to the static \ref type_info_ct object that is returned
-   * by a call to \ref libcw::debug::type_info_of "type_info_of"(p1).&nbsp;
+   * by a call to \ref libcwd::type_info_of "type_info_of"(p1).&nbsp;
    * Where \p p1 is the first parameter that was passed to \ref AllocTag().
    */
   type_info_ct const& type_info(void) const { return *type_info_ptr; }
@@ -153,7 +152,6 @@ public:
   void alloctag_called(void) { M_tagged = true; }
 };
 
-  } //namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_ALLOC_H

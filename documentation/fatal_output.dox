@@ -33,8 +33,8 @@ The big difference with Dout is that DoutFatal is not replaced with white space 
 the macro CWDEBUG is not defined.
 
 There are two %debug %channels that can be used together with DoutFatal:
-\link libcw::debug::channels::dc::fatal dc::fatal \endlink and
-\link libcw::debug::channels::dc::core dc::core \endlink.&nbsp;
+\link libcwd::channels::dc::fatal dc::fatal \endlink and
+\link libcwd::channels::dc::core dc::core \endlink.&nbsp;
 The first terminates by calling <CODE>exit(254)</CODE>,
 the second terminates by raising SIGABORT, causing the application to core dump.
 

@@ -81,9 +81,8 @@ Single-threaded case:
 #include <ext/pool_allocator.h>		// __gnu_cxx::__pool_alloc
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 // This is a random number in the hope nobody else uses it.
 int const random_salt = 327665;
@@ -208,11 +207,11 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
 // at all times be called from malloc which might be called from std::allocator with its
 // lock set.  Therefore we also use a seperate allocator pool for the userspace, in the
 // threaded case.
-#define LIBCWD_CHARALLOCATOR_USERSPACE(instance) ::libcw::debug::_private_::			\
+#define LIBCWD_CHARALLOCATOR_USERSPACE(instance) ::libcwd::_private_::			\
 	allocator_adaptor<char,									\
 	  		  CharPoolAlloc<true, userspace_instance>,				\
 			  userspace_pool							\
-			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
+			  LIBCWD_DEBUGDEBUG_COMMA(::libcwd::_private_::instance)>
 #endif
 
 // Both, multi_threaded_internal_instance and memblk_map_instance use also locks for
@@ -223,27 +222,27 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
 // thread at a time.
 #if LIBCWD_THREAD_SAFE
 #define LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance)						\
-			        ::libcw::debug::_private_::instance ==				\
-			        ::libcw::debug::_private_::multi_threaded_internal_instance ||	\
-			        ::libcw::debug::_private_::instance ==				\
-			        ::libcw::debug::_private_::memblk_map_instance
+			        ::libcwd::_private_::instance ==				\
+			        ::libcwd::_private_::multi_threaded_internal_instance ||	\
+			        ::libcwd::_private_::instance ==				\
+			        ::libcwd::_private_::memblk_map_instance
 #else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance) false
 #endif // !LIBCWD_THREAD_SAFE
 
-#define LIBCWD_CHARALLOCATOR_INTERNAL(instance) ::libcw::debug::_private_::			\
+#define LIBCWD_CHARALLOCATOR_INTERNAL(instance) ::libcwd::_private_::			\
 	allocator_adaptor<char,									\
 			  CharPoolAlloc<LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),		\
-					::libcw::debug::_private_::instance >,			\
+					::libcwd::_private_::instance >,			\
 			  internal_pool								\
-			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
+			  LIBCWD_DEBUGDEBUG_COMMA(::libcwd::_private_::instance)>
 
-#define LIBCWD_CHARALLOCATOR_AUTO_INTERNAL(instance) ::libcw::debug::_private_::		\
+#define LIBCWD_CHARALLOCATOR_AUTO_INTERNAL(instance) ::libcwd::_private_::		\
 	allocator_adaptor<char,									\
 			  CharPoolAlloc<LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance),		\
-					::libcw::debug::_private_::instance >,			\
+					::libcwd::_private_::instance >,			\
 			  auto_internal_pool							\
-			  LIBCWD_DEBUGDEBUG_COMMA(::libcw::debug::_private_::instance)>
+			  LIBCWD_DEBUGDEBUG_COMMA(::libcwd::_private_::instance)>
 
 #if LIBCWD_THREAD_SAFE
 // Our allocator adaptor for the Non-Shared internal cases: Single Threaded
@@ -294,9 +293,8 @@ typedef LIBCWD_MT_AUTO_INTERNAL_ALLOCATOR auto_internal_allocator;
 // This general allocator can be used outside libcwd-specific critical areas.
 typedef LIBCWD_MT_USERSPACE_ALLOCATOR userspace_allocator;
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
  
 #endif // CWDEBUG_ALLOC
 #endif // LIBCWD_PRIVATE_ALLOCATOR_H

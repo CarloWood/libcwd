@@ -28,8 +28,7 @@
 #include <libcwd/control_flag.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 //===================================================================================================
 // class fatal_channel_ct
@@ -68,8 +67,7 @@ public:
   char const* get_label(void) const;
 };
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_FATAL_CHANNEL_H
 

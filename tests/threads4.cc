@@ -7,7 +7,7 @@
 #ifdef CWDEBUG
 namespace debug_channels {
   namespace dc {
-    libcw::debug::channel_ct hello("HELLO");
+    libcwd::channel_ct hello("HELLO");
   }
 }
 #endif
@@ -75,7 +75,7 @@ int main(void)
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   Debug( check_configuration() );
 #if CWDEBUG_ALLOC
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
   Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
   Debug( libcw_do.on() );

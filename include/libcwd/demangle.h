@@ -23,8 +23,7 @@
 #include <string>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /** \addtogroup group_demangle */
 /** \{ */
@@ -34,7 +33,6 @@ extern void demangle_symbol(char const* input, std::string& output);
 
 /** \} */
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_DEMANGLE_H

@@ -31,8 +31,7 @@
 #include <libcwd/private_struct_TSD.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /**
  * \class channel_ct class_channel.h libcwd/debug.h
@@ -55,13 +54,13 @@ namespace libcw {
  * <b>Example:</b>
  *
  * \code
- * Dout( dc::notice, "Libcw is a great library" );
+ * Dout( dc::notice, "Libcwd is a great library" );
  * \endcode
  *
  * gives as result
  *
  * \exampleoutput <PRE>
- * NOTICE: Libcw is a great library</PRE>
+ * NOTICE: Libcwd is a great library</PRE>
  * \endexampleoutput
  *
  * and
@@ -142,8 +141,7 @@ public:
 #endif
 };
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_CHANNEL_H
 

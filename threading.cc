@@ -27,9 +27,8 @@ pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;
 unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 bool WST_multi_threaded = false;
 bool WST_first_thread_initialized = false;
@@ -703,6 +702,5 @@ pthread_mutex_t raw_write_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #endif // CWDEBUG_DEBUGT
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd

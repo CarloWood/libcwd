@@ -31,7 +31,7 @@ MAIN_FUNCTION
   Debug( check_configuration() );
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
   new int;							// Make sure initialization of libcwd is done.
-  libcw::debug::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
+  libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
 #endif
 #if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
@@ -56,7 +56,7 @@ MAIN_FUNCTION
 
 #if CWDEBUG_MARKER
   // Create marker
-  libcw::debug::marker_ct* marker = new libcw::debug::marker_ct("A test marker");
+  libcwd::marker_ct* marker = new libcwd::marker_ct("A test marker");
 #endif
 
   // Allocate more objects

@@ -32,12 +32,11 @@
 // Macro ForAllDebugChannels
 //
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
-    class channel_ct;
+  class channel_ct;
 
-    namespace _private_ {
+  namespace _private_ {
 
 class debug_channels_ct {
 public:
@@ -74,9 +73,8 @@ debug_channels_ct::read_locked(void) const
 
 extern debug_channels_ct debug_channels;
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #if LIBCWD_THREAD_SAFE
 #if CWDEBUG_DEBUGT
@@ -86,13 +84,13 @@ extern debug_channels_ct debug_channels;
 #endif
 #define LIBCWD_ForAllDebugChannels_LOCK \
     LIBCWD_ForAllDebugChannels_LOCK_TSD_DECLARATION; \
-    LIBCWD_DEFER_CLEANUP_PUSH(&::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_channels_instance>::cleanup, NULL); \
-    ::libcw::debug::_private_::debug_channels.init_and_rdlock()
+    LIBCWD_DEFER_CLEANUP_PUSH(&::libcwd::_private_::rwlock_tct< ::libcwd::_private_::debug_channels_instance>::cleanup, NULL); \
+    ::libcwd::_private_::debug_channels.init_and_rdlock()
 #define LIBCWD_ForAllDebugChannels_UNLOCK \
-    ::libcw::debug::_private_::rwlock_tct< ::libcw::debug::_private_::debug_channels_instance>::rdunlock(); \
+    ::libcwd::_private_::rwlock_tct< ::libcwd::_private_::debug_channels_instance>::rdunlock(); \
     LIBCWD_CLEANUP_POP_RESTORE(false);
 #else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_ForAllDebugChannels_LOCK ::libcw::debug::_private_::debug_channels.init(LIBCWD_TSD)
+#define LIBCWD_ForAllDebugChannels_LOCK ::libcwd::_private_::debug_channels.init(LIBCWD_TSD)
 #define LIBCWD_ForAllDebugChannels_UNLOCK
 #endif // !LIBCWD_THREAD_SAFE
 
@@ -122,13 +120,13 @@ extern debug_channels_ct debug_channels;
 #define ForAllDebugChannels(STATEMENT) \
        do { \
 	 LIBCWD_ForAllDebugChannels_LOCK; \
-	 for( ::libcw::debug::_private_::debug_channels_ct::container_type::\
-	     const_iterator __libcwd_i(::libcw::debug::_private_::debug_channels.read_locked().begin());\
-	     __libcwd_i != ::libcw::debug::_private_::debug_channels.read_locked().end(); ++__libcwd_i) \
+	 for( ::libcwd::_private_::debug_channels_ct::container_type::\
+	     const_iterator __libcwd_i(::libcwd::_private_::debug_channels.read_locked().begin());\
+	     __libcwd_i != ::libcwd::_private_::debug_channels.read_locked().end(); ++__libcwd_i) \
 	 { \
-	   using namespace ::libcw::debug; \
+	   using namespace ::libcwd; \
 	   using namespace DEBUGCHANNELS; \
-	   ::libcw::debug::channel_ct& debugChannel(*(*__libcwd_i)); \
+	   ::libcwd::channel_ct& debugChannel(*(*__libcwd_i)); \
 	   { STATEMENT; } \
 	 } \
 	 LIBCWD_ForAllDebugChannels_UNLOCK \

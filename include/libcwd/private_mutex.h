@@ -23,9 +23,8 @@
 #include <pthread.h>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 #if CWDEBUG_DEBUGT
     struct TSD_st;
 #endif
@@ -60,9 +59,8 @@ public:
 #endif
 };
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_MUTEX_H
 

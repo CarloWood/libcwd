@@ -27,9 +27,8 @@
 #endif
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 // The different instance-ids used in libcwd.
 enum mutex_instance_nt {
@@ -84,9 +83,8 @@ int const read_lock_offset = instance_locked_size;
 int const high_priority_read_lock_offset = 2 * instance_locked_size;
 #endif
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_PRIVATE_MUTEX_INSTANCES_H

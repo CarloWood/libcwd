@@ -20,9 +20,8 @@
 #include <libcwd/private_thread.h>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
 template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
@@ -144,9 +143,8 @@ template <typename T1, class CharAlloc1, pool_nt internal1 LIBCWD_DEBUGDEBUG_COM
 	    a1.M_char_allocator != a2.M_char_allocator);
   }
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
  
 #endif // CWDEBUG_ALLOC
 #endif // LIBCWD_PRIVATE_ALLOCATOR_INL

@@ -35,13 +35,13 @@
 using namespace std;
 
 // New debug object which will write to syslog(3)
-libcw::debug::debug_ct syslog_do;
+libcwd::debug_ct syslog_do;
 // and a new debug channel to test this program
 namespace syslog_example {
   namespace debug {
     namespace channels {
       namespace dc {
-	libcw::debug::channel_ct debug_syslog("SYSLOG");
+	libcwd::channel_ct debug_syslog("SYSLOG");
       }
     }
   }
@@ -105,7 +105,7 @@ int main(int, char* argv[])
 
 #if CWDEBUG_ALLOC
   // Don't show allocations that are allocated before main()
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
 
   // Select channels (note that where 'on' is used, 'off' can be specified

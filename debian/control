@@ -1,7 +1,7 @@
 Source: libcwd
 Section: devel
 Priority: optional
-Maintainer: Carlo Wood <libcw@alinoe.com>
+Maintainer: Carlo Wood <libcwd@alinoe.com>
 Standards-Version: 3.0.1
 
 Package: libcwd-dev

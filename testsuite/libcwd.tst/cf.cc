@@ -7,7 +7,7 @@
 #include <sstream>
 #endif
 
-libcw::debug::debug_ct local_debug_object;
+libcwd::debug_ct local_debug_object;
 #define MyDout(cntrl, data) LibcwDout(DEBUGCHANNELS, local_debug_object, cntrl, data)
 
 #ifdef THREADTEST
@@ -22,9 +22,9 @@ MAIN_FUNCTION
   std::ostringstream buf;
 #else
 #if __GNUC__ < 3
-  ::std::basic_stringstream<char, string_char_traits<char>, ::libcw::debug::_private_::userspace_allocator> buf;
+  ::std::basic_stringstream<char, string_char_traits<char>, ::libcwd::_private_::userspace_allocator> buf;
 #else
-  ::std::basic_stringstream<char, ::std::char_traits<char>, ::libcw::debug::_private_::userspace_allocator> buf;
+  ::std::basic_stringstream<char, ::std::char_traits<char>, ::libcwd::_private_::userspace_allocator> buf;
 #endif
 #endif
 

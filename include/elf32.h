@@ -19,8 +19,7 @@
 #include <inttypes.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace cwbfd {
 class bfile_ct;
@@ -98,7 +97,6 @@ extern asection_st const* const absolute_section_c;
 
 } // namespace elf32
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // ELF32_H

@@ -83,14 +83,13 @@ struct rtld_global {
 
 extern char** environ;
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
-      extern void demangle_symbol(char const* in, _private_::internal_string& out);
+namespace libcwd {
+  namespace _private_ {
+    extern void demangle_symbol(char const* in, _private_::internal_string& out);
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-      extern __gnu_cxx::_STL_mutex_lock* _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr;
+    extern __gnu_cxx::_STL_mutex_lock* _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr;
 #endif
-    } // namespace _private_
+  } // namespace _private_
 
     // New debug channel
     namespace channels {
@@ -322,7 +321,7 @@ void bfd_close(bfd* abfd)
 	  if (bfd_get_error() == bfd_error_file_ambiguously_recognized)
 	  {
 	    Dout(dc::warning, "bfd_check_format_matches: ambiguously object format, recognized formats: " <<
-		cwprint(::libcw::debug::environment_ct(matching)));
+		cwprint(::libcwd::environment_ct(matching)));
 	    free(matching);
 	  }
 	  DoutFatal(dc::fatal, filename << ": cannot get addresses from object file: " << bfd_errmsg(bfd_get_error()));
@@ -609,7 +608,7 @@ void bfd_close(bfd* abfd)
 #if 0
 	  if (M_function_symbols.size() < 20000)
 	  {
-	    libcw::debug::debug_ct::OnOffState state;
+	    libcwd::debug_ct::OnOffState state;
 	    Debug( libcw_do.force_on(state) );
 #if CWDEBUG_ALLOC
 	    int saved_internal = __libcwd_tsd.internal;
@@ -1098,8 +1097,8 @@ void bfd_close(bfd* abfd)
 #endif
         new (fake_ST_shared_libs) ST_shared_libs_vector_ct;
 
-	libcw::debug::debug_ct::OnOffState state;
-	libcw::debug::channel_ct::OnOffState state2;
+	libcwd::debug_ct::OnOffState state;
+	libcwd::channel_ct::OnOffState state2;
 	if (_private_::always_print_loading && !_private_::suppress_startup_msgs)
 	{
 	  // We want debug output to BFD
@@ -1287,7 +1286,7 @@ void bfd_close(bfd* abfd)
 typedef location_ct bfd_location_ct;
 #endif
 
-    libcw::debug::object_file_ct::object_file_ct(char const* filepath) :
+    libcwd::object_file_ct::object_file_ct(char const* filepath) :
 #if CWDEBUG_ALLOC
         M_hide(false),
 #endif
@@ -1310,7 +1309,7 @@ typedef location_ct bfd_location_ct;
     // Like `pc_function', this function looks up the symbol (function) that
     // belongs to the address `addr' and stores the pointer to the name of that symbol
     // in the member `M_func'.  When no symbol could be found then `M_func' is set to
-    // `libcw::debug::unknown_function_c'.
+    // `libcwd::unknown_function_c'.
     //
     // If a symbol is found then this function attempts to lookup source file and line number
     // nearest to the given address.  The result - if any - is put into `M_filepath' (source
@@ -1593,11 +1592,10 @@ already_loaded:
       return os;
     }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #if defined(LIBCWD_DLOPEN_DEFINED) && defined(HAVE_DLOPEN)
-using namespace libcw::debug;
+using namespace libcwd;
 
 struct dlloaded_st {
   cwbfd::bfile_ct* M_object_file;
@@ -1606,16 +1604,15 @@ struct dlloaded_st {
   dlloaded_st(cwbfd::bfile_ct* object_file, int flags) : M_object_file(object_file), M_flags(flags), M_refcount(1) { }
 };
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 #if CWDEBUG_ALLOC
-      typedef std::map<void*, dlloaded_st, std::less<void*>,
-                       internal_allocator::rebind<std::pair<void* const, dlloaded_st> >::other> dlopen_map_ct;
+typedef std::map<void*, dlloaded_st, std::less<void*>,
+    internal_allocator::rebind<std::pair<void* const, dlloaded_st> >::other> dlopen_map_ct;
 #else
-      typedef std::map<void*, dlloaded_st, std::less<void*> > dlopen_map_ct;
+typedef std::map<void*, dlloaded_st, std::less<void*> > dlopen_map_ct;
 #endif
-      static dlopen_map_ct* dlopen_map;
+static dlopen_map_ct* dlopen_map;
 
 #if LIBCWD_THREAD_SAFE
 void dlopenclose_cleanup(void* arg)
@@ -1640,9 +1637,8 @@ void dlopen_map_cleanup(void* arg)
 }
 #endif
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 extern "C" {
 
@@ -1653,7 +1649,7 @@ extern "C" {
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
     void* handle = ::dlopen(name, flags);
-    if (libcw::debug::cwbfd::statically_linked)
+    if (libcwd::cwbfd::statically_linked)
     {
       Dout(dc::warning, "Calling dlopen(3) from statically linked application; this is not going to work if the loaded module uses libcwd too or when it allocates any memory!");
       return handle;
@@ -1667,16 +1663,16 @@ extern "C" {
 #if !CWDEBUG_DEBUGM
     LIBCWD_TSD_DECLARATION;
 #endif
-    LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlopen_map_cleanup, &__libcwd_tsd);
+    LIBCWD_DEFER_CLEANUP_PUSH(libcwd::_private_::dlopen_map_cleanup, &__libcwd_tsd);
     DLOPEN_MAP_ACQUIRE_LOCK;
-    if (!libcw::debug::_private_::dlopen_map)
+    if (!libcwd::_private_::dlopen_map)
     {
       set_alloc_checking_off(LIBCWD_TSD);
-      libcw::debug::_private_::dlopen_map = new libcw::debug::_private_::dlopen_map_ct;
+      libcwd::_private_::dlopen_map = new libcwd::_private_::dlopen_map_ct;
       set_alloc_checking_on(LIBCWD_TSD);
     }
-    libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map->find(handle));
-    if (iter != libcw::debug::_private_::dlopen_map->end())
+    libcwd::_private_::dlopen_map_ct::iterator iter(libcwd::_private_::dlopen_map->find(handle));
+    if (iter != libcwd::_private_::dlopen_map->end())
       ++(*iter).second.M_refcount;
     else
     {
@@ -1696,7 +1692,7 @@ extern "C" {
 	BFD_RELEASE_WRITE_LOCK;
 	LIBCWD_RESTORE_CANCEL;
 	set_alloc_checking_off(LIBCWD_TSD);
-	libcw::debug::_private_::dlopen_map->insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
+	libcwd::_private_::dlopen_map->insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
 	set_alloc_checking_on(LIBCWD_TSD);
       }
     }
@@ -1721,12 +1717,12 @@ extern "C" {
     ret = ::dlclose(handle);
     DLCLOSE_RELEASE_LOCK;
     LIBCWD_CLEANUP_POP_RESTORE(false);
-    if (ret != 0 || libcw::debug::cwbfd::statically_linked)
+    if (ret != 0 || libcwd::cwbfd::statically_linked)
       return ret;
     LIBCWD_DEFER_CLEANUP_PUSH(_private_::dlopen_map_cleanup, &__libcwd_tsd);
     DLOPEN_MAP_ACQUIRE_LOCK;
-    libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map->find(handle));
-    if (iter != libcw::debug::_private_::dlopen_map->end())
+    libcwd::_private_::dlopen_map_ct::iterator iter(libcwd::_private_::dlopen_map->find(handle));
+    if (iter != libcwd::_private_::dlopen_map->end())
     {
       if (--(*iter).second.M_refcount == 0)
       {
@@ -1738,7 +1734,7 @@ extern "C" {
 	}
 #endif
 	set_alloc_checking_off(LIBCWD_TSD);
-	libcw::debug::_private_::dlopen_map->erase(iter);
+	libcwd::_private_::dlopen_map->erase(iter);
 	set_alloc_checking_on(LIBCWD_TSD);
       }
     }
@@ -1751,9 +1747,7 @@ extern "C" {
 
 #endif // LIBCWD_DLOPEN_DEFINED
 
-#if CWDEBUG_LOCATION
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 void location_ct::print_filepath_on(std::ostream& os) const
 {
@@ -1767,8 +1761,6 @@ void location_ct::print_filename_on(std::ostream& os) const
   os << M_filename;
 }
 
-  } // namespace debug
-} // namespace libcw
-#endif // CWDEBUG_LOCATION
+} // namespace libcwd
 
 #endif // CWDEBUG_LOCATION

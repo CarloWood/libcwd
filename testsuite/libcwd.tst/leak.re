@@ -8,7 +8,7 @@ MALLOC  : malloc\(2222\) = 0x[0-9a-f]*
 MALLOC  : malloc\(3333\) = 0x[0-9a-f]*
 MALLOC  : malloc\(4444\) = 0x[0-9a-f]*
 MALLOC  : operator new \(size = 8\) = 0x[0-9a-f]*
-MALLOC  : New libcw::debug::marker_ct at 0x[0-9a-f]*
+MALLOC  : New libcwd::marker_ct at 0x[0-9a-f]*
 MALLOC  : operator new \(size = 16\) = 0x[0-9a-f]*
 MALLOC  : operator new \(size = 8\) = 0x[0-9a-f]*
 MALLOC  : malloc\(1212\) = 0x[0-9a-f]*
@@ -75,7 +75,7 @@ MALLOC  : Allocated memory: 35121 bytes in 9 blocks:
     malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
 malloc    0x[0-9a-f]*              leak\.cc:99   void\*; \(sz = 3333\)  ptr3
 malloc    0x[0-9a-f]*              leak\.cc:94   void\*; \(sz = 2222\)  ptr2
-MALLOC  : Removing libcw::debug::marker_ct at 0x[0-9a-f]* \(test marker\)
+MALLOC  : Removing libcwd::marker_ct at 0x[0-9a-f]* \(test marker\)
   \* WARNING : Memory leak detected!
   \* malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
   \* malloc    0x[0-9a-f]*              leak\.cc:57   void\*; \(sz = 111\)  test_object::leak

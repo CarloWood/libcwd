@@ -74,8 +74,7 @@ static bool doutelf32on = default_dout_c;
 #define DoutElf32(cntrl, x) do { } while(0)
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace elf32 {
 
@@ -1852,8 +1851,8 @@ void objfile_ct::load_dwarf(void)
   uint32_t total_length;
 #endif
 
-  libcw::debug::debug_ct::OnOffState state;
-  libcw::debug::channel_ct::OnOffState state2;
+  libcwd::debug_ct::OnOffState state;
+  libcwd::channel_ct::OnOffState state2;
   if (_private_::always_print_loading && !_private_::suppress_startup_msgs)
   {
     // We want debug output to BFD
@@ -3090,9 +3089,9 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
       S_thread_inside_find_nearest_line = pthread_self();
 #endif
 #if DEBUGSTABS || DEBUGDWARF
-      libcw::debug::debug_ct::OnOffState state;
+      libcwd::debug_ct::OnOffState state;
       Debug( libcw_do.force_on(state) );
-      libcw::debug::channel_ct::OnOffState state2;
+      libcwd::channel_ct::OnOffState state2;
       Debug( dc::bfd.force_on(state2, "BFD") );
 #endif
       if (M_dwarf_debug_line_section_index)
@@ -3458,28 +3457,25 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
 
 } // namespace elf32
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #if DEBUGSTABS || DEBUGDWARF
-namespace libcw {
-  namespace debug {
-    namespace cwbfd {
-      bfile_ct* load_object_file(char const* name, void* l_addr);
-    }
+namespace libcwd {
+  namespace cwbfd {
+    bfile_ct* load_object_file(char const* name, void* l_addr);
   }
 }
 
 // This can be used to load and print an arbitrary object file (for debugging purposes).
 void debug_load_object_file(char const* filename, bool shared)
 {
-  using namespace libcw::debug;
+  using namespace libcwd;
   cwbfd::bfile_ct* bfile = cwbfd::load_object_file(filename, 0);
   if (!bfile)
     return;
   LIBCWD_TSD_DECLARATION;
-  libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
-  using namespace libcw::debug::elf32;
+  libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD);
+  using namespace libcwd::elf32;
   doutdwarfon = true;
   objfile_ct* of = static_cast<objfile_ct*>(bfile->get_bfd());
   if (of->M_dwarf_debug_line_section_index)
@@ -3487,14 +3483,14 @@ void debug_load_object_file(char const* filename, bool shared)
   else if (!of->M_stabs_section_index && !of->object_file->get_object_file()->has_no_debug_line_sections())
   {
     of->object_file->get_object_file()->set_has_no_debug_line_sections();
-    libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);
+    libcwd::_private_::set_alloc_checking_on(LIBCWD_TSD);
     Dout( dc::warning, "Object file " << of->filename << " does not have debug info.  Address lookups inside "
 	"this object file will result in a function name only, not a source file location.");
-    libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
+    libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD);
   }
   if (of->M_stabs_section_index)
     of->load_stabs();
-  libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);
+  libcwd::_private_::set_alloc_checking_on(LIBCWD_TSD);
   of->M_input_stream->close();
   doutdwarfon = false;
 }

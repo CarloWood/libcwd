@@ -14,12 +14,10 @@
 #ifndef LIBCWD_ATTACH_GDB_H
 #define LIBCWD_ATTACH_GDB_H
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 void attach_gdb(void);
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_ATTACH_GDB_H

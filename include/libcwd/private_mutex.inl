@@ -15,9 +15,8 @@
 #define LIBCWD_PRIVATE_MUTEX_INL
 #if LIBCWD_THREAD_SAFE
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 __inline__
 void mutex_ct::initialize(void)
@@ -152,9 +151,8 @@ bool mutex_ct::is_locked(void)
 }
 #endif
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_PRIVATE_MUTEX_INL

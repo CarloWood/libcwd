@@ -15,8 +15,8 @@
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 
-#ifndef LIBCW_LOCKABLE_AUTO_PTR_H
-#define LIBCW_LOCKABLE_AUTO_PTR_H
+#ifndef LIBCWD_LOCKABLE_AUTO_PTR_H
+#define LIBCWD_LOCKABLE_AUTO_PTR_H
 
 // This header file is really part of libcw, and must be allowed to be used
 // without that libcwd installed or used.
@@ -30,7 +30,7 @@
 #endif
 #endif // CWDEBUG
 
-namespace libcw {
+namespace libcwd {
 
 //===================================================================================================
 // class lockable_auto_ptr
@@ -172,6 +172,6 @@ template<class X, bool array>
       return *this;
     }
 
-} // namespace libcw
+} // namespace libcwd
 
-#endif // LIBCW_LOCKABLE_AUTO_PTR_H
+#endif // LIBCWD_LOCKABLE_AUTO_PTR_H

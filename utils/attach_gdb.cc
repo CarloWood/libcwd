@@ -20,8 +20,7 @@
 
 int libcwd_attach_gdb_hook = 0;
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 void attach_gdb(void)
 {
@@ -63,5 +62,4 @@ void attach_gdb(void)
   }
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd

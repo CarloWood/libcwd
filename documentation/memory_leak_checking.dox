@@ -21,7 +21,7 @@ A \em marker is created by passing it a description:
 
 \code
 #if CWDEBUG_MARKER
-  libcw::debug::marker_ct* marker = new libcw::debug::marker_ct("Description of the marker");
+  libcwd::marker_ct* marker = new libcwd::marker_ct("Description of the marker");
 #endif
 \endcode
 
@@ -35,10 +35,8 @@ Finally, it is possible to move specific memory blocks outside markers, so they 
 This is done with the function
 
 \code
-namespace libcw {
-  namespace debug {
-    void move_outside(marker_ct* marker, void const* ptr);
-  }
+namespace libcwd {
+  void move_outside(marker_ct* marker, void const* ptr);
 }
 \endcode
 

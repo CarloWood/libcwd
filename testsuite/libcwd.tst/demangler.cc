@@ -8,17 +8,17 @@
 char const* test_cases [] = {
    "_ZN12libcw_app_ct10add_optionIS_EEvMT_FvPKcES3_cS3_S3_",
    "_ZGVN5libcw24_GLOBAL__N_cbll.cc0ZhUKa23compiler_bug_workaroundISt6vectorINS_13omanip_id_tctINS_5debug32memblk_types_manipulator_data_ctEEESaIS6_EEE3idsE",
-   "_ZN5libcw5debug13cwprint_usingINS_9_private_12GlobalObjectEEENS0_17cwprint_using_tctIT_EERKS5_MS5_KFvRSt7ostreamE",
+   "_ZN6libcwd13cwprint_usingIN5libcw9_private_12GlobalObjectEEENS_17cwprint_using_tctIT_EERKS5_MS5_KFvRSt7ostreamE",
    "_ZNKSt14priority_queueIP27timer_event_request_base_ctSt5dequeIS1_SaIS1_EE13timer_greaterE3topEv",
    "_ZNKSt15_Deque_iteratorIP15memory_block_stRKS1_PS2_EeqERKS5_",
    "_ZNKSt17__normal_iteratorIPK6optionSt6vectorIS0_SaIS0_EEEmiERKS6_",
-   "_ZNSbIcSt11char_traitsIcEN5libcw5debug27no_alloc_checking_allocatorEE12_S_constructIPcEES6_T_S7_RKS3_",
+   "_ZNSbIcSt11char_traitsIcEN6libcwd27no_alloc_checking_allocatorEE12_S_constructIPcEES5_T_S6_RKS2_",
    "_Z1fI1APS0_PKS0_EvT_T0_T1_PA4_S3_M1CS8_",
    "_Z3fooiPiPS_PS0_PS1_PS2_PS3_PS4_PS5_PS6_PS7_PS8_PS9_PSA_PSB_PSC_",
    "_ZSt1BISt1DIP1ARKS2_PS3_ES0_IS2_RS2_PS2_ES2_ET0_T_SB_SA_PT1_",
    "_ZngILi42EEvN1AIXplT_Li2EEE1TE",
    "_X11TransParseAddress",
-   "_ZNSt13_Alloc_traitsISbIcSt18string_char_traitsIcEN5libcw5debug9_private_17allocator_adaptorIcSt24__default_alloc_templateILb0ELi327664EELb1EEEENS5_IS9_S7_Lb1EEEE15_S_instancelessE",
+   "_ZNSt13_Alloc_traitsISbIcSt18string_char_traitsIcEN6libcwd9_private_17allocator_adaptorIcSt24__default_alloc_templateILb0ELi327664EELb1EEEENS4_IS8_S6_Lb1EEEE15_S_instancelessE",
    "_GLOBAL__I__Z2fnv",
    "_Z1rM1GFivEMS_KFivES_M1HFivES1_4whatIKS_E5what2IS8_ES3_",
    "_Z1xINiEE",
@@ -42,7 +42,7 @@ MAIN_FUNCTION
   std::string result;
   for (size_t i = 0; i < sizeof(test_cases)/sizeof(char const*); ++i)
   {
-    libcw::debug::demangle_symbol(test_cases[i], result);
+    libcwd::demangle_symbol(test_cases[i], result);
 #ifndef _REENTRANT
     std::cout << result << '\n';
 #else
@@ -155,25 +155,25 @@ void g(void)
   libcw::dummy.ids.size();
 }
 
-// _ZN5libcw5debug13cwprint_usingINS_9_private_12GlobalObjectEEENS0_17cwprint_using_tctIT_EERKS5_MS7_FvRSoE
+// _ZN6libcwd13cwprint_usingIN5libcw9_private_12GlobalObjectEEENS_17cwprint_using_tctIT_EERKS5_MS5_KFvRSt7ostreamE
 
 namespace libcw {
   namespace _private_ {
     class GlobalObject { public: void dummy(std::ostream&) const; };
   }
-  namespace debug {
-    template<typename T>
-      class cwprint_using_tct { };
-    template<typename T>
-      cwprint_using_tct<T> cwprint_using(T const&, void (T::*)(std::ostream&) const);
-  }
+}
+namespace libcwd {
+  template<typename T>
+    class cwprint_using_tct { };
+  template<typename T>
+    cwprint_using_tct<T> cwprint_using(T const&, void (T::*)(std::ostream&) const);
 }
 
 void h(void)
 {
   // Instantiation.
   libcw::_private_::GlobalObject dummy;
-  (void)libcw::debug::cwprint_using(dummy, &libcw::_private_::GlobalObject::dummy);
+  (void)libcwd::cwprint_using(dummy, &libcw::_private_::GlobalObject::dummy);
 }
 
 // _ZNKSt14priority_queueIP27timer_event_request_base_ctSt5dequeIS1_SaIS1_EE13timer_greaterE3topEv
@@ -224,12 +224,10 @@ void k(void)
   dummy.operator-(dummy);
 }
 
-// _ZNSbIcSt11char_traitsIcEN5libcw5debug27no_alloc_checking_allocatorEE12_S_constructIPcEES6_T_S7_RKS3_
+// _ZNSbIcSt11char_traitsIcEN6libcwd27no_alloc_checking_allocatorEE12_S_constructIPcEES5_T_S6_RKS2_
 
-namespace libcw {
-  namespace debug {
-    class no_alloc_checking_allocator { };
-  }
+namespace libcwd {
+  class no_alloc_checking_allocator { };
 }
 namespace std {
   template<typename T>
@@ -245,9 +243,9 @@ namespace std {
 void l(void)
 {
   // Instantiation.
-  std::basic_string<char, std::char_traits<char>, libcw::debug::no_alloc_checking_allocator> dummy;
+  std::basic_string<char, std::char_traits<char>, libcwd::no_alloc_checking_allocator> dummy;
   char* cp;
-  libcw::debug::no_alloc_checking_allocator alloc;
+  libcwd::no_alloc_checking_allocator alloc;
   dummy._S_construct(cp, cp, alloc);
 }
 
@@ -351,12 +349,10 @@ namespace std {
   template<class BASIC_STRING, class ADAPTOR>
     char _Alloc_traits<BASIC_STRING, ADAPTOR>::_S_instanceless;
 }
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
-      template<typename CHAR, class ALLOCATOR, bool b>
-	class allocator_adaptor { };
-    }
+namespace libcwd {
+  namespace _private_ {
+    template<typename CHAR, class ALLOCATOR, bool b>
+      class allocator_adaptor { };
   }
 }
 
@@ -367,17 +363,17 @@ void q(void)
     std::basic_string<
       char,
       std::string_char_traits<char>,
-      libcw::debug::_private_::allocator_adaptor<
+      libcwd::_private_::allocator_adaptor<
 	char,
         std::__default_alloc_template<false, 327664>,
 	true
       >
     >,
-    libcw::debug::_private_::allocator_adaptor<
+    libcwd::_private_::allocator_adaptor<
       std::basic_string<
 	char,
         std::string_char_traits<char>,
-	libcw::debug::_private_::allocator_adaptor<
+	libcwd::_private_::allocator_adaptor<
 	  char,
 	  std::__default_alloc_template<false, 327664>,
 	  true

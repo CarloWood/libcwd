@@ -2,7 +2,7 @@
 #include <libcwd/debug.h>
 #include <libcwd/type_info.h>
 
-#define builtin_return_address(addr) ((char*)__builtin_return_address(addr) + libcw::debug::builtin_return_address_offset)
+#define builtin_return_address(addr) ((char*)__builtin_return_address(addr) + libcwd::builtin_return_address_offset)
 
 template<typename T>
   class A {
@@ -30,8 +30,8 @@ template<typename T>
 B<T>::~B(void)
 {
   Dout(dc::notice, "Calling the destructor of " <<
-                   libcw::debug::type_info_of(*this).demangled_name() << " (this == " << this << ")");
-  libcw::debug::alloc_ct const* alloc = libcw::debug::find_alloc(this);
+                   libcwd::type_info_of(*this).demangled_name() << " (this == " << this << ")");
+  libcwd::alloc_ct const* alloc = libcwd::find_alloc(this);
   if (sizeof(*this) != alloc->size())
   {
     Debug( dc::malloc.off() );

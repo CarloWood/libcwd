@@ -20,7 +20,7 @@ Using a macro has its advantages however:
 </OL>
 
 Points 1, 2 and 3 are the most important reasons that lead to the decision to use a macro.&nbsp;
-Please note that  the author of %libcw[d] used the alternative for <B>two years</B> before finally deciding
+Please note that  the author of %libcwd used the alternative for <B>two years</B> before finally deciding
 to <B>rewrite</B> the debug facility, being convinced that it was better to do it the way it is done now.&nbsp;
 While points 4 and 5 are trivial, the first three advantages might need some explanation:
 

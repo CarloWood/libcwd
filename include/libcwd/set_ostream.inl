@@ -22,8 +22,7 @@
 #endif
 
 #if LIBCWD_THREAD_SAFE || defined(LIBCWD_DOXYGEN)
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /**
  * \brief Set output device and provide external lock.
@@ -71,8 +70,7 @@ template<class T>
     LIBCWD_RESTORE_CANCEL;
   }
 
-  }  // namespace debug
-}  // namespace libcw
+}  // namespace libcwd
 
 #endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_SET_OSTREAM_INL

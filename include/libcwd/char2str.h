@@ -13,10 +13,10 @@
 
 /** \file libcwd/char2str.h
  *
- * \brief Definition of utility class \link libcw::debug::char2str char2str \endlink.
+ * \brief Definition of utility class \link libcwd::char2str char2str \endlink.
  *
  * This header file provides the declaration and definition of utility class
- * \link libcw::debug::char2str char2str \endlink.
+ * \link libcwd::char2str char2str \endlink.
  */
 
 #ifndef LIBCWD_CHAR2STR_H
@@ -27,8 +27,7 @@
 #include <iosfwd>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /**
  * \class char2str char2str.h libcwd/char2str.h
@@ -40,7 +39,7 @@ namespace libcw {
  * sequence when needed using the octal representation or one of \c \\a, \c \\b, \c \\t, \c \\n,
  * \c \\f, \c \\r, \c \\e or \c \\\\.
  *
- * \sa libcw::debug::buf2str
+ * \sa libcwd::buf2str
  *
  * <b>Example:</b>
  *
@@ -77,7 +76,6 @@ public:
   }
 };
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CHAR2STR_H

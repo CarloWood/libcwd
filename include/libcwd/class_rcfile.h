@@ -31,8 +31,7 @@
 #include <string>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 class channel_ct;
 
@@ -42,9 +41,9 @@ class channel_ct;
  *
  * \brief This object represents a runtime configuration file.
  *
- * Libcwd contains one object of this type, <code>libcw::debug::rcfile</code>.
+ * Libcwd contains one object of this type, <code>libcwd::rcfile</code>.
  * This is the object that is used by
- * <code>\link libcw::debug::read_rcfile read_rcfile() \endlink</code>.
+ * <code>\link libcwd::read_rcfile read_rcfile() \endlink</code>.
  */
 class rcfile_ct {
 private:
@@ -109,7 +108,7 @@ protected:
 extern rcfile_ct rcfile;
 
 /**
- * \brief Calls libcw::debug::rcfile.read().
+ * \brief Calls libcwd::rcfile.read().
  *
  * \sa group_rcfile
  */
@@ -118,7 +117,6 @@ inline void read_rcfile(void)
   rcfile.read();
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_RCFILE_H

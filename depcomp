@@ -77,8 +77,14 @@ pch)
       ;;
     *)
       if test x$eatpch = xyes; then
-        shift
-        eatpch=
+        if test "$arg" = "pch.h"; then
+	  shift
+	else
+	  set fnord "$@" -include "$arg"
+	  shift # fnord
+	  shift # $arg
+	fi
+	eatpch=
       else
 	set fnord "$@" "$arg"
 	shift # fnord

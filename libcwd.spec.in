@@ -65,46 +65,46 @@ echo
 %{__prefix}/share/libcwd/libcwdrc
 
 %changelog
-* Fri Mar 12 2004 Carlo Wood <libcw@alinoe.com>
+* Fri Mar 12 2004 Carlo Wood <libcwd@alinoe.com>
 - Added pkgconfig support.
 
-* Sat May  3 2003 Carlo Wood <libcw@alinoe.com>
+* Sat May  3 2003 Carlo Wood <libcwd@alinoe.com>
 - 0.99.29 needs g++ 3.0 or higher.
 - Headers were moved to include/libcwd.
 
-* Mon Apr 14 2003 Carlo Wood <libcw@alinoe.com>
+* Mon Apr 14 2003 Carlo Wood <libcwd@alinoe.com>
 - Renamed include/libcw to include/libcwd.
 
-* Tue Mar 19 2002 Carlo Wood <libcw@alinoe.com>
+* Tue Mar 19 2002 Carlo Wood <libcwd@alinoe.com>
 - Corrected URL and source url.
 - Reference manual sits in documentation/reference-manual as of 0.99.19.
 - Require libtool 1.4.2 or higher.
 - Improved summary.
 
-* Mon Mar 18 2002 Carlo Wood <libcw@alinoe.com>
+* Mon Mar 18 2002 Carlo Wood <libcwd@alinoe.com>
 - Require automake 1.5 or higher.
 
-* Wed Mar 14 2002 Carlo Wood <libcw@alinoe.com>
+* Wed Mar 14 2002 Carlo Wood <libcwd@alinoe.com>
 - Added documentation/www and documentation/index.html as main page.
 
-* Wed Feb 13 2002 Carlo Wood <libcw@alinoe.com>
+* Wed Feb 13 2002 Carlo Wood <libcwd@alinoe.com>
 - Allow also version of autoconf larger than 2.13.
 
-* Sun Dec 09 2001 Carlo Wood <libcw@alinoe.com>
+* Sun Dec 09 2001 Carlo Wood <libcwd@alinoe.com>
 - Added a URL: and BuildPrereq: entry.
 - Added doxygen documentation to the rpm.
 
-* Wed Sep 13 2000 Carlo Wood <libcw@alinoe.com>
+* Wed Sep 13 2000 Carlo Wood <libcwd@alinoe.com>
 - Added example-project to doc/ and added a %post instruction echo.
 
-* Sat Sep 02 2000 Carlo Wood <libcw@alinoe.com>
+* Sat Sep 02 2000 Carlo Wood <libcwd@alinoe.com>
 - Still generate libcwd.lsm and libcwd.spec in config.status, but only
   when initiated from maintMakefile according to Makefile rules.
   Put them in $(srcdir) because they need to be put in the distribution.
 - Add file list to %files.  Added a 'Requires:' and started to use macros for prefix and version.
 - Use '@@' instead of '!!' because now the spec file is generated from spec.in by config.status.
 
-* Thu Aug 31 2000 Carlo Wood <libcw@alinoe.com>
+* Thu Aug 31 2000 Carlo Wood <libcwd@alinoe.com>
 - Remove build root in %clean.
 - Initial version.
 

@@ -42,22 +42,22 @@
 #endif
 
 #if LIBCWD_THREAD_SAFE
-using libcw::debug::_private_::rwlock_tct;
-using libcw::debug::_private_::mutex_tct;
+using libcwd::_private_::rwlock_tct;
+using libcwd::_private_::mutex_tct;
 
 #if __GNUC_MINOR__ != 5
-using libcw::debug::_private_::object_files_instance;
-using libcw::debug::_private_::dlopen_map_instance;
-using libcw::debug::_private_::dlclose_instance;
+using libcwd::_private_::object_files_instance;
+using libcwd::_private_::dlopen_map_instance;
+using libcwd::_private_::dlclose_instance;
 #else
 // gcc version 3.5.0 20040420 (experimental) ICEs on the above.
-namespace libcw { namespace debug { namespace _private_ { namespace workaround_20040420 {
+namespace libcwd { namespace _private_ { namespace workaround_20040420 {
   static mutex_instance_nt const object_files_instance = _private_::object_files_instance;
   static mutex_instance_nt const dlopen_map_instance = _private_::dlopen_map_instance;
   static mutex_instance_nt const dlclose_instance = _private_::dlclose_instance;
   static mutex_instance_nt const list_allocations_instance = _private_::list_allocations_instance;
-}}}}
-namespace workaround_20040420 = libcw::debug::_private_::workaround_20040420;
+}}}
+namespace workaround_20040420 = libcwd::_private_::workaround_20040420;
 #define object_files_instance workaround_20040420::object_files_instance
 #define dlopen_map_instance workaround_20040420::dlopen_map_instance
 #define dlclose_instance workaround_20040420::dlclose_instance
@@ -90,9 +90,8 @@ namespace workaround_20040420 = libcw::debug::_private_::workaround_20040420;
 #define DLCLOSE_RELEASE_LOCK
 #endif // !LIBCWD_THREAD_SAFE
 
-namespace libcw {
-  namespace debug {
-    namespace cwbfd {
+namespace libcwd {
+  namespace cwbfd {
 
 #if !CWDEBUG_LIBBFD
 typedef char* PTR;
@@ -140,7 +139,7 @@ private:
   asymbol** M_symbol_table;
   long M_number_of_symbols;
   function_symbols_ct M_function_symbols;
-  libcw::debug::object_file_ct M_object_file;
+  libcwd::object_file_ct M_object_file;
 public:
   bfile_ct(char const* filename, void* base);
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
@@ -155,8 +154,8 @@ public:
   size_t size(void) const { return M_size; }
   asymbol** get_symbol_table(void) const { return M_symbol_table; }
   long get_number_of_symbols(void) const { return M_number_of_symbols; }
-  libcw::debug::object_file_ct const* get_object_file(void) const { return &M_object_file; }
-  libcw::debug::object_file_ct* get_object_file(void) { return &M_object_file; }
+  libcwd::object_file_ct const* get_object_file(void) const { return &M_object_file; }
+  libcwd::object_file_ct* get_object_file(void) { return &M_object_file; }
   function_symbols_ct& get_function_symbols(void) { return M_function_symbols; }
   function_symbols_ct const& get_function_symbols(void) const { return M_function_symbols; }
 private:
@@ -218,10 +217,9 @@ inline size_t& symbol_size(asymbol* s)
 }
 #endif
 
-    } // namespace cwbfd
+  } // namespace cwbfd
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // CWDEBUG_LOCATION
 #endif // CWD_BFD_H

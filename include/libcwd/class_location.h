@@ -42,8 +42,7 @@
 #include <iosfwd>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
     namespace _private_ {
 
@@ -68,7 +67,7 @@ extern char const* const unknown_function_c;
  * The normal usage of this class is to print file-name:line-number information as follows:
  * \code
  * Dout(dc::notice, "Called from " <<
- *     location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) );
+ *     location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) );
  * \endcode
  */
 class location_ct {
@@ -89,7 +88,7 @@ private:
 #endif
 
 protected:
-  // M_func can point to one of these constants, or to libcw::debug::unknown_function_c
+  // M_func can point to one of these constants, or to libcwd::unknown_function_c
   // or to a static string with the mangled function name.
   static char const* const S_uninitialized_location_ct_c;
   static char const* const S_pre_ios_initialization_c;
@@ -216,8 +215,7 @@ public:
 
 /** \} */ // End of group 'group_locations'
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // CWDEBUG_LOCATION
 #endif // LIBCWD_CLASS_LOCATION_H

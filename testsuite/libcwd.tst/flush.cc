@@ -3,12 +3,10 @@
 #include <libcwd/debug.h>
 #include <iostream>
 
-namespace libcw {
-  namespace debug {
-    namespace channels {
-      namespace dc {
-	channel_ct generate("GENERATE");
-      }
+namespace libcwd {
+  namespace channels {
+    namespace dc {
+      channel_ct generate("GENERATE");
     }
   }
 }
@@ -41,7 +39,7 @@ MAIN_FUNCTION
   Debug( libcw_do.set_ostream(&std::cout) );
 #endif
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
 
   // Select channels

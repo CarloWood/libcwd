@@ -21,8 +21,7 @@
 #include <libcwd/control_flag.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 __inline__
 fatal_channel_ct::fatal_channel_ct(char const* label, control_flag_t maskbit)
@@ -45,7 +44,6 @@ fatal_channel_ct::get_label(void) const
   return WNS_label;
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_FATAL_CHANNEL_INL

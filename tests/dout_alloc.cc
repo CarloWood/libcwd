@@ -11,7 +11,7 @@ int main(void)
  
 #if CWDEBUG_ALLOC
   // Don't show allocations that are allocated before main()
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
  
   // Select channels (note that where 'on' is used, 'off' can be specified

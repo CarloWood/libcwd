@@ -25,14 +25,12 @@ using namespace std;
 #define DEBUG_CERR
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace channels {
-      namespace dc {
-	channel_ct foo("FOO");
-	channel_ct bar("BAR");
-	channel_ct run("RUN");
-      }
+namespace libcwd {
+  namespace channels {
+    namespace dc {
+      channel_ct foo("FOO");
+      channel_ct bar("BAR");
+      channel_ct run("RUN");
     }
   }
 }
@@ -197,9 +195,9 @@ char const* continued_func(unsigned int what)
   // The order of evaluation of x() and y() in f(x(), y()) is undetermined,
   // therefore we call the recursive functions outside the << << <<, forcing
   // a fixed order.
-  Dout( dc::foo, ""; char const* str3 = nested_foo(what & 2, what & 1); char const* str2 = continued_func(what); char const* str1 = nested_foo(what & 1, what & 2); (*LIBCWD_DO_TSD_MEMBER(::libcw::debug::libcw_do, current_bufferstream)) << str1 << what << str2 << what << str3 );
+  Dout( dc::foo, ""; char const* str3 = nested_foo(what & 2, what & 1); char const* str2 = continued_func(what); char const* str1 = nested_foo(what & 1, what & 2); (*LIBCWD_DO_TSD_MEMBER(::libcwd::libcw_do, current_bufferstream)) << str1 << what << str2 << what << str3 );
   Dout( dc::continued, "2" );
-  Dout( dc::foo, ""; char const* str3 = nested_foo(what & 2, what & 1); char const* str2 = continued_func(what); char const* str1 = nested_foo(what & 1, what & 2); (*LIBCWD_DO_TSD_MEMBER(::libcw::debug::libcw_do, current_bufferstream)) << str1 << what << str2 << what << str3 );
+  Dout( dc::foo, ""; char const* str3 = nested_foo(what & 2, what & 1); char const* str2 = continued_func(what); char const* str1 = nested_foo(what & 1, what & 2); (*LIBCWD_DO_TSD_MEMBER(::libcwd::libcw_do, current_bufferstream)) << str1 << what << str2 << what << str3 );
   Dout( dc::finish, "3" );
   return ":";
 }
@@ -291,45 +289,45 @@ MAIN_FUNCTION
   Dout( dc::finish, "World" );
 
   cout << "---------------------------------------------------------------------------\n";
-  Dout( dc::run|continued_cf, "Libcw " );
+  Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::finish, "library!" );
 
   cout << "---------------------------------------------------------------------------\n";
-  Dout( dc::run|continued_cf, "Libcw " );
+  Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::foo, "Single interruption before." );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::finish, "library!" );
 
   cout << "---------------------------------------------------------------------------\n";
-  Dout( dc::run|continued_cf, "Libcw " );
+  Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::foo, "Single interruption after." );
   Dout( dc::finish, "library!" );
 
   cout << "---------------------------------------------------------------------------\n";
-  Dout( dc::run|continued_cf, "Libcw " );
+  Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::foo, "Single interruption before and" );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::foo, "a single interruption after." );
   Dout( dc::finish, "library!" );
 
   cout << "---------------------------------------------------------------------------\n";
-  Dout( dc::run|continued_cf, "Libcw " );
+  Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::foo, "Double interruption before," );
   Dout( dc::foo, "double means two lines." );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::finish, "library!" );
 
   cout << "---------------------------------------------------------------------------\n";
-  Dout( dc::run|continued_cf, "Libcw " );
+  Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::foo, "Double interruption after," );
   Dout( dc::foo, "double means two lines." );
   Dout( dc::finish, "library!" );
 
   cout << "---------------------------------------------------------------------------\n";
-  Dout( dc::run|continued_cf, "Libcw " );
+  Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::foo, "Double interruption before and" );
   Dout( dc::foo, "(double means two lines)" );
   Dout( dc::continued, "is an awesome " );
@@ -342,7 +340,7 @@ MAIN_FUNCTION
     {
       bool a, b;
       cout << "---------------------------------------------------------------------------\n";
-      Dout( dc::run|continued_cf, "Libcw " );
+      Dout( dc::run|continued_cf, "Libcwd " );
       a = (i & 2);
       b = (i & 1);
       Dout( dc::notice, "`nested_foo(" << a << ", " << b << ")' returns the string \"" << nested_foo(a, b) << "\" when I call it." );
@@ -357,7 +355,7 @@ MAIN_FUNCTION
   {
     bool a = (i & 8), b = (i & 4), c = (i & 2), d = (i & 1);
     cout << "---------------------------------------------------------------------------\n";
-    Dout( dc::run|continued_cf, "Libcw " );
+    Dout( dc::run|continued_cf, "Libcwd " );
     Dout( dc::notice, "`nested_bar(" << a << ", " << b << ", " << c << ", " << d << ")' returns the string \"" << nested_bar(a, b, c, d) << "\" when I call it." );
     Dout( dc::continued, "is an awesome " );
     Dout( dc::finish, "library!" );
@@ -367,7 +365,7 @@ MAIN_FUNCTION
   {
     bool a = (i & 8), b = (i & 4), c = (i & 2), d = (i & 1);
     cout << "---------------------------------------------------------------------------\n";
-    Dout( dc::run|continued_cf, "Libcw " );
+    Dout( dc::run|continued_cf, "Libcwd " );
     Dout( dc::continued, "is an awesome " );
     Dout( dc::notice, "`nested_bar(" << a << ", " << b << ", " << c << ", " << d << ")' returns the string \"" << nested_bar(a, b, c, d) << "\" when I call it." );
     Dout( dc::finish, "library!" );

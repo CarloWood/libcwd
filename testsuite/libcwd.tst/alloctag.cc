@@ -16,11 +16,11 @@
 #include <cstdlib>
 #include <iostream>
 
-libcw::debug::debug_ct list_allocations_on_test_do;
+libcwd::debug_ct list_allocations_on_test_do;
 
 MAIN_FUNCTION
 { PREFIX_CODE
-  using namespace libcw::debug;
+  using namespace libcwd;
 
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
@@ -64,7 +64,7 @@ MAIN_FUNCTION
 
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
   // Don't show allocations that are allocated before main() and while creating the filter.
-  libcw::debug::make_all_allocations_invisible_except(cp);
+  libcwd::make_all_allocations_invisible_except(cp);
 #endif
 
   int* i = new int;

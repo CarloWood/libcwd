@@ -32,18 +32,16 @@
 #include <sstream>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 #if CWDEBUG_ALLOC
-typedef ::std::basic_stringstream<char, ::std::char_traits<char>, ::libcw::debug::_private_::auto_internal_allocator> auto_internal_stringstream;
+typedef ::std::basic_stringstream<char, ::std::char_traits<char>, ::libcwd::_private_::auto_internal_allocator> auto_internal_stringstream;
 #else
 typedef ::std::stringstream auto_internal_stringstream;
 #endif
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_INTERNAL_STRINGSTREAM_H

@@ -25,8 +25,7 @@
 #include <libcwd/control_flag.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 //===================================================================================================
 // class always_channel_ct
@@ -40,8 +39,7 @@ public:
   static char const label[];
 };
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_ALWAYS_CHANNEL_H
 

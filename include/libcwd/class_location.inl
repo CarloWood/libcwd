@@ -34,8 +34,7 @@
 #include <string>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /**
  * \brief Construct a location for address \p addr.
@@ -128,8 +127,7 @@ location_ct::mangled_function_name(void) const
   return M_func;
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // CWDEBUG_LOCATION
 #endif // LIBCWD_CLASS_LOCATION_INL

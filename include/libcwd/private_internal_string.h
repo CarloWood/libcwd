@@ -29,9 +29,8 @@
 #include <string>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 // This is the string type that we use in Multi Threaded internal functions.
 #if CWDEBUG_ALLOC
@@ -40,9 +39,8 @@ typedef ::std::basic_string<char, ::std::char_traits<char>, internal_allocator> 
 typedef ::std::string internal_string;
 #endif
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_INTERNAL_STRING_H
 

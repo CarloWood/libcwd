@@ -20,19 +20,19 @@ int a;
 
 int h28()
 {
-  char const* addr = (char const*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset;
+  char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   Dout(dc::always, "h28() was called from " << location_ct(addr));
 }
 
 int h29()
 {
-  char const* addr = (char const*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset;
+  char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   Dout(dc::always, "h29() was called from " << location_ct(addr));
 }
 
 int h38()
 {
-  char const* addr = (char const*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset;
+  char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   Dout(dc::always, "h38() was called from " << location_ct(addr));
 }
 

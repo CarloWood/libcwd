@@ -25,8 +25,7 @@
 #include <libcwd/config.h>
 
 #if CWDEBUG_ALLOC
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /** \addtogroup group_alloc_format */
 /** \{ */
@@ -70,8 +69,8 @@ private:
   static int S_id;		// MT: protected by list_allocations_instance
   int M_id;
 #endif
-  friend class ::libcw::debug::dm_alloc_base_ct;
-  friend class ::libcw::debug::dm_alloc_copy_ct;
+  friend class ::libcwd::dm_alloc_base_ct;
+  friend class ::libcwd::dm_alloc_copy_ct;
   ooam_format_t M_flags;
   struct timeval M_start;
   struct timeval M_end;
@@ -164,8 +163,7 @@ private:
 #endif
 };
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // CWDEBUG_ALLOC
 #endif // LIBCWD_CLASS_OOAM_FILTER_H

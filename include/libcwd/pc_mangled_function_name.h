@@ -18,12 +18,10 @@
 #ifndef LIBCWD_PC_MANGLED_FUNCTION_NAME_H
 #define LIBCWD_PC_MANGLED_FUNCTION_NAME_H
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 extern char const* pc_mangled_function_name(void const* addr);
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_PC_MANGLED_FUNCTION_NAME_H

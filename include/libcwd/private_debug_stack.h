@@ -26,9 +26,8 @@
 #include <cstddef>		// Needed for size_t
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 // Stack implementation that doesn't have a constructor.
 // The size of 64 should be MORE then enough.
@@ -47,8 +46,7 @@ template<typename T>		// T must be a builtin type.
     size_t size(void) const;
   };
 
-    } // namespace _private_
-  }  // namespace debug
-}  // namespace libcw
+  } // namespace _private_
+}  // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_DEBUG_STACK_H

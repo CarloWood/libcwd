@@ -37,7 +37,7 @@ MAIN_FUNCTION
 
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
   // Don't show allocations that are allocated before main()
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
 
   // Select channels
@@ -59,7 +59,7 @@ MAIN_FUNCTION
 #if CWDEBUG_ALLOC
   do
   {
-    using namespace libcw::debug;
+    using namespace libcwd;
     ooam_filter_ct filter(
 #if CWDEBUG_LOCATION
       show_objectfile|show_path
@@ -85,7 +85,7 @@ MAIN_FUNCTION
 #if CWDEBUG_ALLOC
   do
   {
-    using namespace libcw::debug;
+    using namespace libcwd;
     ooam_filter_ct filter(
 #if CWDEBUG_LOCATION
       show_objectfile|show_path
@@ -106,11 +106,11 @@ MAIN_FUNCTION
 #else // !STATIC
 
 #if CWDEBUG_ALLOC
-  libcw::debug::ooam_filter_ct list_filter(
+  libcwd::ooam_filter_ct list_filter(
 #if CWDEBUG_LOCATION
-      libcw::debug::show_objectfile|
+      libcwd::show_objectfile|
 #endif
-      libcw::debug::show_time);
+      libcwd::show_time);
 #if CWDEBUG_LOCATION
   Debug( dc::malloc.off() );
   std::vector<std::string> list_masks;
@@ -163,17 +163,17 @@ MAIN_FUNCTION
   f3 = (f2_type)dlsym(handle, sym3);
 
 #if CWDEBUG_ALLOC
-  libcw::debug::ooam_filter_ct marker1_filter(
+  libcwd::ooam_filter_ct marker1_filter(
 #if CWDEBUG_LOCATION
-      libcw::debug::show_objectfile|libcw::debug::show_path
+      libcwd::show_objectfile|libcwd::show_path
 #else
       0
 #endif
       );
   marker1_filter.hide_untagged_allocations(true);
-  libcw::debug::ooam_filter_ct marker2_filter(
+  libcwd::ooam_filter_ct marker2_filter(
 #if CWDEBUG_LOCATION
-      libcw::debug::show_objectfile|libcw::debug::show_path
+      libcwd::show_objectfile|libcwd::show_path
 #else
       0
 #endif
@@ -187,13 +187,13 @@ MAIN_FUNCTION
 #endif
 #endif // CWDEBUG_ALLOC
 #if CWDEBUG_MARKER
-  libcw::debug::marker_ct* marker1 = new libcw::debug::marker_ct("marker1", marker1_filter);
+  libcwd::marker_ct* marker1 = new libcwd::marker_ct("marker1", marker1_filter);
 #endif
   void* p1 = malloc(500);
   void* p4 = malloc(123);
   AllocTag(p4, "Allocated between the two markers");
 #if CWDEBUG_MARKER
-  libcw::debug::marker_ct* marker2 = new libcw::debug::marker_ct("marker2", marker2_filter);
+  libcwd::marker_ct* marker2 = new libcwd::marker_ct("marker2", marker2_filter);
 #endif
   p1 = (*f1)(p1);
   void* p2 = malloc(600);

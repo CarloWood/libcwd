@@ -6,7 +6,7 @@ make
 su
 make install
 
-If that doesn't work, mail me: libcw@alinoe.com
+If that doesn't work, mail me: libcwd@alinoe.com
 (include as many details as possible).
 
 Building RPMs

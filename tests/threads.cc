@@ -7,9 +7,9 @@
 #include <vector>
 #include <iostream>
 
-using libcw::debug::_private_::mutex_tct;
-using libcw::debug::_private_::rwlock_tct;
-using libcw::debug::_private_::test_instance0;
+using libcwd::_private_::mutex_tct;
+using libcwd::_private_::rwlock_tct;
+using libcwd::_private_::test_instance0;
 
 template<class TYPE>
   class foo_tct {
@@ -131,7 +131,7 @@ int main(void)
 {
   Debug( check_configuration() );
 #if CWDEBUG_ALLOC
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
   Debug( libcw_do.on() );
   Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );

@@ -33,8 +33,7 @@
 #include <libcwd/class_debug_string.inl>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /** \addtogroup group_formatting */
 /* \{ */
@@ -269,7 +268,6 @@ channel_set_bootstrap_st::operator&(fatal_channel_ct const& fdc)
   return *reinterpret_cast<channel_set_st*>(this);
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_DEBUG_INL

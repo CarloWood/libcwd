@@ -20,7 +20,7 @@ The &lt;marker&gt; field can be used to identify regions (for example with a ver
 The &lt;indentation&gt; field consists of spaces and is intended to make %debug output better readable by grouping lines of %debug output
 as an easier alternative than using the marker field for that purpose.
 
-The &lt;label&gt; field exists of the channel label (as passed to the constructor of a \link libcw::debug::channel_ct channel_ct \endlink)
+The &lt;label&gt; field exists of the channel label (as passed to the constructor of a \link libcwd::channel_ct channel_ct \endlink)
 padded by spaces to make this field constant in width (it is padded to the length of the longest existing channel label),
 followed by the marker, which is by default a colon plus a final space; for example "NOTICE&nbsp;:&nbsp;".
 

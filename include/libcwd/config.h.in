@@ -316,8 +316,7 @@
 //
 
 #ifdef __cplusplus
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 static unsigned long const config_signature_header_c =
 	(
@@ -379,8 +378,7 @@ check_configuration(void) {
   }
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 #endif // __cplusplus
 
 #endif // LIBCWD_CONFIG_H

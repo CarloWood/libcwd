@@ -9,13 +9,13 @@
 \section section_writing_into_introduction Introduction
 
 Libcwd is an <code>ostream</code> oriented debug output facility.&nbsp;
-The class libcw::debug::debug_ct represents a single <code>ostream</code>.&nbsp;
+The class libcwd::debug_ct represents a single <code>ostream</code>.&nbsp;
 
 Libcwd defines and internally uses only one object of that class, called a \ref group_debug_object "debug object",
-being libcw::debug::libcw_do.&nbsp;
+being libcwd::libcw_do.&nbsp;
 
 Debug output is written using \ref page_why_macro "macros" (\ref Dout and \ref DoutFatal),
-both of which are defined to use libcw::debug::libcw_do.&nbsp;
+both of which are defined to use libcwd::libcw_do.&nbsp;
 More general macros exist (\ref LibcwDout and \ref LibcwDoutFatal) that allow you
 to use a different (\ref chapter_custom_do "custom") debug object.
 

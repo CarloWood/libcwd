@@ -21,8 +21,7 @@
 #include <libcwd/control_flag.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 __inline__
 channel_set_st&
@@ -34,7 +33,6 @@ channel_set_bootstrap_st::operator|(always_channel_ct const& adc)
   return *reinterpret_cast<channel_set_st*>(this);
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_ALWAYS_CHANNEL_INL

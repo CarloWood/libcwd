@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
 #if CWDEBUG_MARKER
   // Create marker
-  libcw::debug::marker_ct* marker = new libcw::debug::marker_ct("A test marker");
+  libcwd::marker_ct* marker = new libcwd::marker_ct("A test marker");
 #endif
 
   // Allocate more objects

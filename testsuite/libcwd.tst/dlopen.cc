@@ -12,7 +12,7 @@ MAIN_FUNCTION
 
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
   new int;							// Make sure initialization of libcwd is done.
-  libcw::debug::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
+  libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
 #endif
 
   Debug( libcw_do.on() );

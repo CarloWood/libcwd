@@ -45,8 +45,7 @@
 #include <libcwd/private_internal_stringstream.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /** \addtogroup group_annotation */
 /** \{ */
@@ -63,8 +62,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
 
 /** \} */ // End of group 'group_annotation'.
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 //===================================================================================================
 // Macro AllocTag
@@ -136,7 +134,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
 #define AllocTag1(p) \
     do { \
       LIBCWD_TSD_DECLARATION; \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), (char const*)NULL LIBCWD_COMMA_TSD); \
+      ::libcwd::set_alloc_label(p, ::libcwd::type_info_of(p), (char const*)NULL LIBCWD_COMMA_TSD); \
     } while(0)
 /**
  * \brief Annotate <I>type</I> of \a p with string literal \a desc as description.
@@ -144,7 +142,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
 #define AllocTag2(p, desc) \
     do { \
       LIBCWD_TSD_DECLARATION; \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc) LIBCWD_COMMA_TSD); \
+      ::libcwd::set_alloc_label(p, ::libcwd::type_info_of(p), const_cast<char const*>(desc) LIBCWD_COMMA_TSD); \
     } while(0)
 
 #if LIBCWD_THREAD_SAFE
@@ -170,22 +168,22 @@ extern void register_external_allocation(void const* ptr, size_t size);
       static char* WS_desc; \
       LIBCWD_ALLOCTAG_LOCK; \
       if (!WS_desc) { \
-	++LIBCWD_DO_TSD_MEMBER_OFF(::libcw::debug::libcw_do); \
+	++LIBCWD_DO_TSD_MEMBER_OFF(::libcwd::libcw_do); \
 	if (1) \
 	{ \
-	  ::libcw::debug::_private_::auto_internal_stringstream buf; \
+	  ::libcwd::_private_::auto_internal_stringstream buf; \
 	  buf << x << ::std::ends; \
 	  ::std::streampos pos = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	  size_t size = pos - ::std::streampos(0); \
-	  ::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
+	  ::libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	  WS_desc = new char [size]; /* This is never deleted anymore */ \
-	  ::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
+	  ::libcwd::_private_::set_alloc_checking_on(LIBCWD_TSD); \
 	  buf.rdbuf()->sgetn(WS_desc, size); \
 	} \
-	--LIBCWD_DO_TSD_MEMBER_OFF(::libcw::debug::libcw_do); \
+	--LIBCWD_DO_TSD_MEMBER_OFF(::libcwd::libcw_do); \
       } \
       LIBCWD_ALLOCTAG_UNLOCK; \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), WS_desc LIBCWD_COMMA_TSD); \
+      ::libcwd::set_alloc_label(p, ::libcwd::type_info_of(p), WS_desc LIBCWD_COMMA_TSD); \
     } while(0)
 
 /**
@@ -195,21 +193,21 @@ extern void register_external_allocation(void const* ptr, size_t size);
     do { \
       char* desc; \
       LIBCWD_TSD_DECLARATION; \
-      ++LIBCWD_DO_TSD_MEMBER_OFF(::libcw::debug::libcw_do); \
+      ++LIBCWD_DO_TSD_MEMBER_OFF(::libcwd::libcw_do); \
       if (1) \
       { \
-	::libcw::debug::_private_::auto_internal_stringstream buf; \
+	::libcwd::_private_::auto_internal_stringstream buf; \
 	buf << x << ::std::ends; \
 	::std::streampos pos = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	size_t size = pos - ::std::streampos(0); \
-	::libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD); \
+	::libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD); \
 	desc = new char [size]; \
-	::libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD); \
+	::libcwd::_private_::set_alloc_checking_on(LIBCWD_TSD); \
 	buf.rdbuf()->sgetn(desc, size); \
       } \
-      --LIBCWD_DO_TSD_MEMBER_OFF(::libcw::debug::libcw_do); \
-      ::libcw::debug::set_alloc_label(p, ::libcw::debug::type_info_of(p), \
-	  			      ::libcw::debug::_private_::smart_ptr(desc) LIBCWD_COMMA_TSD); \
+      --LIBCWD_DO_TSD_MEMBER_OFF(::libcwd::libcw_do); \
+      ::libcwd::set_alloc_label(p, ::libcwd::type_info_of(p), \
+	  			      ::libcwd::_private_::smart_ptr(desc) LIBCWD_COMMA_TSD); \
     } while(0)
 
 template<typename TYPE>
@@ -236,7 +234,7 @@ template<typename TYPE>
 /**
  * \brief Register an externally allocated memory block at position \a ptr with size \a size.
  */
-#define RegisterExternalAlloc(p, s) ::libcw::debug::register_external_allocation(p, s)
+#define RegisterExternalAlloc(p, s) ::libcwd::register_external_allocation(p, s)
 #endif
 
 /** \} */ // End of group 'group_annotation'.

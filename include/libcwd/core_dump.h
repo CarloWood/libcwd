@@ -22,13 +22,11 @@
 #include <libcwd/config.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 extern void core_dump(void) __attribute__ ((__noreturn__));
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CORE_DUMP_H
 

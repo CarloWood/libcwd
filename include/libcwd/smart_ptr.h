@@ -22,9 +22,8 @@
 #include <libcwd/private_struct_TSD.h>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 class refcnt_charptr_ct {
 private:
@@ -96,8 +95,7 @@ private:
   void decrement(LIBCWD_TSD_PARAM);
 };
 		
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_SMART_PTR_H

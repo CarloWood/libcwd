@@ -21,13 +21,12 @@
 #include <libcwd/private_threading.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /**
  * \brief Construct a new %debug channel with name \a label.
  *
- * A newly created channel is off by default (except \ref libcw::debug::channels::dc::warning "dc::warning").&nbsp;
+ * A newly created channel is off by default (except \ref libcwd::channels::dc::warning "dc::warning").&nbsp;
  * All channel objects must be global objects.
  *
  * \sa \ref chapter_custom_debug_h
@@ -74,8 +73,7 @@ channel_ct::get_label(void) const
   return WNS_label;
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_CHANNEL_INL
 

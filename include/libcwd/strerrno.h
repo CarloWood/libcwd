@@ -18,12 +18,10 @@
 #ifndef LIBCWD_STRERRNO_H
 #define LIBCWD_STRERRNO_H
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 extern char const* strerrno(unsigned int err);
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_STRERRNO_H

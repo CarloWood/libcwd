@@ -23,8 +23,7 @@
 #include <string>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 // Forward declarations.
 #if CWDEBUG_ALLOC
@@ -69,7 +68,6 @@ public:
 
 /** \} */ // End of group 'group_locations'
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_OBJECT_FILE_H

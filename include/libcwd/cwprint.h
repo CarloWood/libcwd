@@ -13,22 +13,21 @@
 
 /** \file libcwd/cwprint.h
  *
- * \brief Definition of the utilities \link libcw::debug::cwprint cwprint \endlink and
- *        \link libcw::debug::cwprint_using cwprint_using \endlink.
+ * \brief Definition of the utilities \link libcwd::cwprint cwprint \endlink and
+ *        \link libcwd::cwprint_using cwprint_using \endlink.
  *
  * This header file provides the declaration and definition of two debug utility functions,
  * intended to print objects to an ostream without using the \c operator<< inserter for
  * that class, if any.
  *
- * \sa libcw::debug::cwprint
- *  \n libcw::debug::cwprint_using
+ * \sa libcwd::cwprint
+ *  \n libcwd::cwprint_using
  */
 
 #ifndef LIBCWD_CWPRINT_H
 #define LIBCWD_CWPRINT_H
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 //===================================================================================================
 // cwprint
@@ -163,7 +162,6 @@ template<class T, class T_OR_BASE_OF_T>
     return cwprint_using_tct<T_OR_BASE_OF_T>(base, print_on_method);
   }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CWPRINT_H

@@ -4,8 +4,8 @@ namespace booster {
   namespace debug {
     namespace channels {
       namespace dc {
-	using namespace libcw::debug;
-	using namespace libcw::debug::channels::dc;
+	using namespace libcwd;
+	using namespace libcwd::channels::dc;
 	extern channel_ct booster;
 	extern channel_ct foobar;
       }

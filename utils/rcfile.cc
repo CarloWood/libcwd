@@ -23,14 +23,13 @@
 #include <unistd.h>	// Needed for 'stat', 'access' and 'getuid'.
 #include <pwd.h>	// Needed for 'getpwuid'.
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
-    namespace channels {
-      namespace dc {
-        channel_ct rcfile("RCFILE", false);
-      }
+  namespace channels {
+    namespace dc {
+      channel_ct rcfile("RCFILE", false);
     }
+  }
 
 bool rcfile_ct::S_exists(char const* name)
 {
@@ -188,8 +187,8 @@ void rcfile_ct::read(void)
   int lines_read = 0;
   int channels_default_set = 0;
   bool syntax_error = false;
-  M_malloc_on = libcw::debug::channels::dc::malloc.is_on();
-  M_bfd_on = libcw::debug::channels::dc::bfd.is_on();
+  M_malloc_on = libcwd::channels::dc::malloc.is_on();
+  M_bfd_on = libcwd::channels::dc::bfd.is_on();
   while(getline(rc, line))
   {
     lines_read++;
@@ -303,5 +302,4 @@ void rcfile_ct::read(void)
 
 rcfile_ct rcfile;
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd

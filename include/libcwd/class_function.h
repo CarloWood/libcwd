@@ -23,8 +23,7 @@
 #include <map>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace _private_ {
 
@@ -231,7 +230,6 @@ public:
   void rmlabel(void) { M_label = NULL; }
 };
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_FUNCTION_H

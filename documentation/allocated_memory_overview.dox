@@ -36,7 +36,7 @@ malloc        0x8140678        dbstreambuf.h:582  char []; (sz = 2048)  dbstream
 A label in the first column of the Allocated memory Overview indicates
 with which type of allocator the memory block was allocated.&nbsp;
 Table&nbsp;3 lists the labels that are being used for each of the
-allocator types (see \link libcw::debug::memblk_types_nt memblk_types_nt \endlink for their meaning).
+allocator types (see \link libcwd::memblk_types_nt memblk_types_nt \endlink for their meaning).
 
 \htmlonly
 <H5 ALIGN=CENTER>Table 3. The values of memblk_types_nt and the corresponding label in the Allocated memory Overview</H5>
@@ -122,7 +122,7 @@ was called correctly for this allocation.&nbsp;
 Otherwise <TT>&lt;unknown type&gt;</TT> is shown instead.
 
 The given <TT>type</TT> is derived, but different,
-from what \ref libcw::debug::type_info_ct::demangled_name "type_info_ct::demangled_name()" returns.&nbsp;
+from what \ref libcwd::type_info_ct::demangled_name "type_info_ct::demangled_name()" returns.&nbsp;
 The <CODE>*</CODE> at the end of the type of the pointer is omitted when the
 memory block was allocated with <CODE>new</CODE>, it is replaced with
 <CODE>[<I>size</I>]</CODE> when the memory block was allocated with

@@ -27,18 +27,16 @@
 #ifndef LIBCWD_SYS_H
 #define LIBCWD_SYS_H
 
-namespace libcw {
-  namespace debug {
-    /**
-     * \brief Offset to __builtin_return_address() needed to get the correct line number from location_ct.
-     *
-     * \par Example
-     * \code
-     * libcw::debug::location_ct loc((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset);
-     * \endcode
-     */
-    int const builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET@;
-  }
+namespace libcwd {
+  /**
+   * \brief Offset to __builtin_return_address() needed to get the correct line number from location_ct.
+   *
+   * \par Example
+   * \code
+   * libcwd::location_ct loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
+   * \endcode
+   */
+  int const builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET@;
 }
 
 //

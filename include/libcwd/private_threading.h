@@ -106,8 +106,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 
 #if LIBCWD_THREAD_SAFE
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
 __inline__
@@ -125,7 +124,7 @@ operator<<(_private_::raw_write_nt const& raw_write, pthread_mutex_t const& mute
 }
 #endif
 
-    namespace _private_ {
+  namespace _private_ {
 
 extern void initialize_global_mutexes(void);
 extern bool WST_multi_threaded;
@@ -235,11 +234,11 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 #endif // !LIBCWD_USE_LINUXTHREADS
 
 #define LIBCWD_PUSH_DEFER_TRYLOCK_MUTEX(instance, unlock_routine) \
-      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)(void)>(unlock_routine), &::libcw::debug::_private_::mutex_tct<(instance)>::S_mutex); \
-      bool __libcwd_lock_successful = ::libcw::debug::_private_::mutex_tct<(instance)>::trylock()
+      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)(void)>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
+      bool __libcwd_lock_successful = ::libcwd::_private_::mutex_tct<(instance)>::trylock()
 #define LIBCWD_DEFER_PUSH_LOCKMUTEX(instance, unlock_routine) \
-      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)(void)>(unlock_routine), &::libcw::debug::_private_::mutex_tct<(instance)>::S_mutex); \
-      ::libcw::debug::_private_::mutex_tct<(instance)>::lock(); \
+      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)(void)>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
+      ::libcwd::_private_::mutex_tct<(instance)>::lock(); \
       bool const __libcwd_lock_successful = true
 #define LIBCWD_UNLOCKMUTEX_POP_RESTORE(instance) \
       LIBCWD_CLEANUP_POP_RESTORE(__libcwd_lock_successful)
@@ -1004,9 +1003,8 @@ template <int instance>
 
 extern void fatal_cancellation(void*);
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_DISABLE_CANCEL

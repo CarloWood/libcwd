@@ -14,14 +14,12 @@
 #ifndef MATCH_H
 #define MATCH_H
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 extern bool match(char const* mask, size_t masklen, char const* name);
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif

@@ -206,7 +206,7 @@ B&lt;T&gt;::~B(void)
 {
   Dout(dc::notice, &quot;Calling the destructor of &quot; &lt;&lt;
                    type_info_of(*this).demangled_name() &lt;&lt; &quot; (this == &quot; &lt;&lt; this &lt;&lt; &quot;)&quot;);
-  libcw::debug::alloc_ct const* alloc = libcw::debug::find_alloc(this);
+  libcwd::alloc_ct const* alloc = libcwd::find_alloc(this);
   if (sizeof(*this) != alloc-&gt;size())
   {
     Debug( dc::malloc.off() );

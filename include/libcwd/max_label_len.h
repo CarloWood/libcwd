@@ -18,13 +18,11 @@
 #ifndef LIBCWD_MAX_LABEL_LEN_H
 #define LIBCWD_MAX_LABEL_LEN_H
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 //! The maximum number of characters that are allowed in a %debug channel label.
 unsigned short const max_label_len_c = 16;
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_MAX_LABEL_LEN_H

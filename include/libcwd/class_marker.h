@@ -22,8 +22,7 @@
 #include <libcwd/class_ooam_filter.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 extern ooam_filter_ct const default_ooam_filter;
 
@@ -74,8 +73,7 @@ public:
   ~marker_ct();
 };
 
-  } //namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_MARKER_H
 

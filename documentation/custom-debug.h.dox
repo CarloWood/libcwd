@@ -23,7 +23,7 @@ You will benefit greatly from this in terms on flexibility (trust me).
 
 \subsection libraries Libraries
 
-Libraries that use libcwd should not put their debug channels in libcw::debug::channels::dc.&nbsp;
+Libraries that use libcwd should not put their debug channels in libcwd::channels::dc.&nbsp;
 The correct way to declare new debug channels is by putting them in a namespace of the library and
 providing new macros for writing debug output.&nbsp;
 Also end applications will benefit by using this method (in terms of flexibility).
@@ -34,7 +34,7 @@ The following code would define a debug channel \c warp in the namespace \c libe
 namespace libexample {
   namespace channels {
     namespace dc {
-      ::libcw::debug::channel_ct warp("WARP");
+      ::libcwd::channel_ct warp("WARP");
     }
   }
 }
@@ -54,8 +54,8 @@ Then provide a debug header file (%debug.h) with the following:
 namespace libexample {
   namespace channels {
     namespace dc {
-      using namespace libcw::debug::channels::dc;
-      extern libcw::debug::channel_ct warp;
+      using namespace libcwd::channels::dc;
+      extern libcwd::channel_ct warp;
     }
   }
 }
@@ -64,9 +64,9 @@ namespace libexample {
 // there is no reason to do this for normal applications.
 #ifdef CWDEBUG
 #define LibExampleDout(cntrl, data) \
-    LibcwDout(libexample::channels, libcw::debug::libcw_do, cntrl, data)
+    LibcwDout(libexample::channels, libcwd::libcw_do, cntrl, data)
 #define LibExampleDoutFatal(cntrl, data) \
-    LibcwDoutFatal(libexample::channels, libcw::debug::libcw_do, cntrl, data)
+    LibcwDoutFatal(libexample::channels, libcwd::libcw_do, cntrl, data)
 #else
 #define LibExampleDout(cntrl, data)
 #define LibExampleDoutFatal(cntrl, data) LibcwDoutFatal(::std, , cntrl, data)
@@ -118,8 +118,8 @@ namespace application {
     namespace dc {
       using namespace ::lib1::channels::dc;
       using namespace ::lib2::channels::dc;
-      static libcw::debug::channel_ct& foobar1(::lib1::channels::dc::foobar);
-      static libcw::debug::channel_ct& foobar2(::lib2::channels::dc::foobar);
+      static libcwd::channel_ct& foobar1(::lib1::channels::dc::foobar);
+      static libcwd::channel_ct& foobar2(::lib2::channels::dc::foobar);
     }
   }
 }

@@ -26,7 +26,7 @@ MAIN_FUNCTION
   Debug( check_configuration() );
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
   new int;							// Make sure initialization of libcwd is done.
-  libcw::debug::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
+  libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
 #endif
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
@@ -45,9 +45,9 @@ MAIN_FUNCTION
 
 #if CWDEBUG_ALLOC
   // Check test_delete
-  if (libcw::debug::test_delete(a))	// Should return false
+  if (libcwd::test_delete(a))	// Should return false
     DoutFatal( dc::core, "CANNOT find that pointer?!" );
-  if (!libcw::debug::find_alloc(a))
+  if (!libcwd::find_alloc(a))
     DoutFatal( dc::core, "CANNOT find that pointer?!" );
 #endif
 
@@ -56,7 +56,7 @@ MAIN_FUNCTION
   Debug( list_allocations_on(libcw_do) );
 
   // Make allocation invisible
-  libcw::debug::make_invisible(a);
+  libcwd::make_invisible(a);
 
   // Show Memory Allocation Overview
   Dout( dc::notice, "After making allocation invisible:" );
@@ -64,20 +64,20 @@ MAIN_FUNCTION
 
 #if CWDEBUG_ALLOC
   // Check test_delete
-  if (libcw::debug::test_delete(a))	// Should still return false
+  if (libcwd::test_delete(a))	// Should still return false
     DoutFatal( dc::core, "CANNOT find that pointer?!" );
-  if (libcw::debug::find_alloc(a))
+  if (libcwd::find_alloc(a))
     DoutFatal( dc::core, "Can STILL find that pointer?!" );
   // Test set_alloc_checking_off/set_alloc_checking_on, using test_delete
   LIBCWD_TSD_DECLARATION;
-  libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
+  libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD);
   char* ptr = (char*)malloc(100);
-  libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);
-  if (!libcw::debug::test_delete(ptr))
+  libcwd::_private_::set_alloc_checking_on(LIBCWD_TSD);
+  if (!libcwd::test_delete(ptr))
     DoutFatal( dc::core, "Can find an INTERNAL pointer?!" );
-  libcw::debug::_private_::set_alloc_checking_off(LIBCWD_TSD);
+  libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD);
   free(ptr);
-  libcw::debug::_private_::set_alloc_checking_on(LIBCWD_TSD);
+  libcwd::_private_::set_alloc_checking_on(LIBCWD_TSD);
 #endif
 
   Dout( dc::notice, "Finished successfully." );

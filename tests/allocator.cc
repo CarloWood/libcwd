@@ -9,13 +9,13 @@
 
 size_t const _MAX_BYTES = std::alloc::_MAX_BYTES;
 
-using libcw::debug::_private_::allocator_adaptor;
+using libcwd::_private_::allocator_adaptor;
 
 int main(void)
 {
   Debug( check_configuration() );
 #if CWDEBUG_ALLOC
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   Debug( dc::bfd.off() );

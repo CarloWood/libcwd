@@ -11,7 +11,7 @@
 
 #if CWDEBUG_ALLOC
   // Remove all current (pre- main) allocations from the Allocated Memory Overview.
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
 
   //-------------------------------------------------------------------------------

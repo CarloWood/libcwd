@@ -16,8 +16,8 @@
 
 #include <libcwd/private_internal_string.h>
 #include <libcwd/class_function.h>
-#ifndef LIBCW_VECTOR_H
-#define LIBCW_VECTOR_H
+#ifndef LIBCW_VECTOR
+#define LIBCW_VECTOR
 #include <vector>
 #endif
 #ifndef LIBCW_INTTYPES_H
@@ -25,9 +25,8 @@
 #include <inttypes.h>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 class compilation_unit_ct {
 private:
@@ -70,9 +69,8 @@ typedef std::vector<compilation_unit_ct, object_files_allocator::rebind<compilat
 typedef std::vector<compilation_unit_ct> compilation_units_vector_ct;
 #endif
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // COMPILATION_UNIT_H
 

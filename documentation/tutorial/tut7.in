@@ -156,7 +156,7 @@ when given a pointer pointing anywhere <EM>inside</EM> an allocated memory block
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-using namespace libcw::debug;
+using namespace libcwd;
 
 template&lt;typename T1, typename T2&gt;
   struct Foo {
@@ -230,7 +230,7 @@ See the next paragraph.</P>
 <H3>7.3 Memory leak detection</H3>
 
 <P><CODE>mem_blocks()</CODE> and <CODE>mem_size()</CODE>
-(like everything else defined in namespace <CODE>libcw::debug</CODE>)
+(like everything else defined in namespace <CODE>libcwd</CODE>)
 can be used to write a very simply memory leak detection system:</P>
 
 <P>Compile as: <CODE>g++ -g -DCWDEBUG test7.3.1.cc -lcwd -o total_alloc</CODE></P>
@@ -240,7 +240,7 @@ can be used to write a very simply memory leak detection system:</P>
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-using namespace libcw::debug;
+using namespace libcwd;
 
 int main(void)
 {
@@ -317,7 +317,7 @@ int main(void)
   Debug( dc::malloc.on() );
 
 #ifdef CWDEBUG
-  if (libcw::debug::mem_blocks() &gt; 0)
+  if (libcwd::mem_blocks() &gt; 0)
   {
     Dout(dc::malloc|dc::warning, &quot;Memory leak&quot;);
     Debug( list_allocations_on(libcw_do) );
@@ -375,7 +375,7 @@ int main(void)
   Debug( dc::malloc.on() );
 
 #ifdef CWDEBUG
-  if (libcw::debug::mem_blocks() &gt; 0)
+  if (libcwd::mem_blocks() &gt; 0)
   {
     Dout(dc::malloc|dc::warning, &quot;Memory leak&quot;);
     Debug( list_allocations_on(libcw_do) );
@@ -418,7 +418,7 @@ int main(void)
   AllocTag(p1, &quot;p1&quot;);
 
 <SPAN class="highlight">#if CWDEBUG_MARKER</SPAN>
-  <SPAN class="highlight">libcw::debug::marker_ct* marker = new libcw::debug::marker_ct(&quot;A test marker&quot;);</SPAN>
+  <SPAN class="highlight">libcwd::marker_ct* marker = new libcwd::marker_ct(&quot;A test marker&quot;);</SPAN>
 <SPAN class="highlight">#endif</SPAN>
 
   int* p2 = new int [20];
@@ -466,7 +466,7 @@ int main(void)
   AllocTag(p1, &quot;p1&quot;);
 
 #if CWDEBUG_MARKER
-  libcw::debug::marker_ct* marker = new libcw::debug::marker_ct(&quot;A test marker&quot;);
+  libcwd::marker_ct* marker = new libcwd::marker_ct(&quot;A test marker&quot;);
 #endif
 
   int* p2 = new int [20];

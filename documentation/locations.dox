@@ -10,6 +10,6 @@
 
 When libcwd was configured with \ref enable_location "--enable-location",
 then libcwd allows one to easily obtain source-file / line-number information of a given address
-using the class \ref libcw::debug::location_ct "location_ct".
+using the class \ref libcwd::location_ct "location_ct".
 
 */

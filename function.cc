@@ -30,8 +30,7 @@ extern "C" {
   size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 }
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 void Function::M_init(void)
 {
@@ -215,5 +214,4 @@ void Function::M_init(char const* expr, unsigned int flags)
 #endif
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd

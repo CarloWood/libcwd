@@ -59,11 +59,10 @@
  * This macro is internally used by libcwd macros to include the chosen set of %debug %channels.&nbsp;
  * For details please read section \ref chapter_custom_debug_h.
  */
-#define DEBUGCHANNELS ::libcw::debug::channels
+#define DEBUGCHANNELS ::libcwd::channels
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace channels {
 
@@ -100,8 +99,7 @@ namespace channels {
   } // namespace dc
 } // namespace channels
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 
 //===================================================================================================
@@ -110,13 +108,11 @@ namespace channels {
 
 #include <libcwd/class_debug.h>
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 extern debug_ct libcw_do;
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 //===================================================================================================
 // Macros
@@ -127,11 +123,11 @@ extern debug_ct libcw_do;
 // For use in library header files: do not redefine these!
 // Developers of libraries are recommended to define their own macro names.
 #define __Debug(x) \
-    LibcwDebug(::libcw::debug::channels, x)
+    LibcwDebug(::libcwd::channels, x)
 #define __Dout(cntrl, data) \
-    LibcwDout(::libcw::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+    LibcwDout(::libcwd::channels, ::libcwd::libcw_do, cntrl, data)
 #define __DoutFatal(cntrl, data) \
-    LibcwDoutFatal(::libcw::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+    LibcwDoutFatal(::libcwd::channels, ::libcwd::libcw_do, cntrl, data)
 
 // For use in applications
 /** \def Debug
@@ -141,7 +137,7 @@ extern debug_ct libcw_do;
  * The parameter of this macro can be arbitrary code that will be eliminated
  * from the application when the macro CWDEBUG is \em not defined.
  *
- * It uses the namespaces \ref DEBUGCHANNELS and libcw::debug, making it unnecessary to
+ * It uses the namespaces \ref DEBUGCHANNELS and libcwd, making it unnecessary to
  * use the the full scopes for debug channels and utility functions provided by
  * libcwd.
  *
@@ -168,11 +164,11 @@ extern debug_ct libcw_do;
  * \brief Macro for writing %debug output.
  *
  * This macro is used for writing %debug output to the default %debug object
- * \link libcw::debug::libcw_do libcw_do \endlink.&nbsp;
+ * \link libcwd::libcw_do libcw_do \endlink.&nbsp;
  * No code is generated when the macro CWDEBUG is not defined, in that case the macro
  * Dout is replaced by white space.
  *
- * The macro \ref Dout uses libcwds debug object \link libcw::debug::libcw_do libcw_do \endlink.&nbsp;
+ * The macro \ref Dout uses libcwds debug object \link libcwd::libcw_do libcw_do \endlink.&nbsp;
  * You will have to define your own macro when you want to use a second debug object.&nbsp;
  * Read chapter \ref page_why_macro for an explanation of why a macro was used instead of an inline function.
  *
@@ -191,40 +187,38 @@ extern debug_ct libcw_do;
  * \endcode
  */
 #define Dout(cntrl, data) \
-    LibcwDout(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, data)
+    LibcwDout(DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, data)
 
 /**
  * \def DoutFatal
  * \ingroup group_fatal_output
  *
  * \brief Macro for writing fatal %debug output to the default %debug object
- * \link libcw::debug::libcw_do libcw_do \endlink.
+ * \link libcwd::libcw_do libcw_do \endlink.
  */
 #define DoutFatal(cntrl, data) \
-    LibcwDoutFatal(DEBUGCHANNELS, ::libcw::debug::libcw_do, cntrl, data)
+    LibcwDoutFatal(DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, data)
 
 //===================================================================================================
 // Miscellaneous
 //
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 extern channel_ct* find_channel(char const* label);
 extern void list_channels_on(debug_ct& debug_object);
 
-// Make the inserter functions of std accessible in libcw::debug.
+// Make the inserter functions of std accessible in libcwd.
 using std::operator<<;
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
-// Make the inserter functions of libcw::debug accessible in global namespace.
+// Make the inserter functions of libcwd accessible in global namespace.
 #ifndef HIDE_FROM_DOXYGEN
-namespace libcw_debug_inserters {
-  using libcw::debug::operator<<;
-} // namespace libcw_debug_inserters
-using namespace libcw_debug_inserters;
+namespace libcwd_inserters {
+  using libcwd::operator<<;
+} // namespace libcwd_inserters
+using namespace libcwd_inserters;
 #endif
 
 #include <libcwd/macro_ForAllDebugChannels.h>

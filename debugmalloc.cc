@@ -140,7 +140,7 @@
 #if defined(__STL_GTHREADS)
 #include "bits/gthr.h"
 #else
-#error You have an unsupported configuraton of gcc. Please tell that you dont have gthreads along with the output of gcc -v to libcw@alinoe.com.
+#error You have an unsupported configuraton of gcc. Please tell that you dont have gthreads along with the output of gcc -v to libcwd@alinoe.com.
 #endif // __STL_GTHREADS
 
 
@@ -161,28 +161,28 @@
 #define UNSET_TARGETHREAD
 #endif
 #include <libcwd/private_mutex.inl>
-using libcw::debug::_private_::rwlock_tct;
-using libcw::debug::_private_::mutex_tct;
-using libcw::debug::_private_::mutex_ct;
-using libcw::debug::_private_::threadlist_t;
-using libcw::debug::_private_::threadlist;
+using libcwd::_private_::rwlock_tct;
+using libcwd::_private_::mutex_tct;
+using libcwd::_private_::mutex_ct;
+using libcwd::_private_::threadlist_t;
+using libcwd::_private_::threadlist;
 
 #if __GNUC_MINOR__ != 5
-using libcw::debug::_private_::location_cache_instance;
-using libcw::debug::_private_::list_allocations_instance;
-using libcw::debug::_private_::threadlist_instance;
-using libcw::debug::_private_::dlclose_instance;
+using libcwd::_private_::location_cache_instance;
+using libcwd::_private_::list_allocations_instance;
+using libcwd::_private_::threadlist_instance;
+using libcwd::_private_::dlclose_instance;
 #else
 // gcc version 3.5.0 20040420 (experimental) ICEs on the above.
-namespace libcw { namespace debug { namespace _private_ {
+namespace libcwd { namespace _private_ {
   namespace workaround_20040420 {
     static mutex_instance_nt const location_cache_instance = _private_::location_cache_instance;
     static mutex_instance_nt const list_allocations_instance = _private_::list_allocations_instance;
     static mutex_instance_nt const threadlist_instance = _private_::threadlist_instance;
     static mutex_instance_nt const dlclose_instance = _private_::dlclose_instance;
   }
-}}}
-namespace workaround_20040420 = ::libcw::debug::_private_::workaround_20040420;
+}}
+namespace workaround_20040420 = ::libcwd::_private_::workaround_20040420;
 #define location_cache_instance workaround_20040420::location_cache_instance
 #define list_allocations_instance workaround_20040420::list_allocations_instance
 #define threadlist_instance workaround_20040420::threadlist_instance
@@ -286,14 +286,12 @@ namespace workaround_20040420 = ::libcw::debug::_private_::workaround_20040420;
 #define __libc_calloc (*libc_calloc)
 #define __libc_realloc (*libc_realloc)
 #define __libc_free (*libc_free)
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 void* malloc_bootstrap1(size_t size);
 void* calloc_bootstrap1(size_t nmemb, size_t size);
-  } // namespace debug
-} // namespace libcw
-void* __libc_malloc(size_t size) = libcw::debug::malloc_bootstrap1;
-void* __libc_calloc(size_t nmemb, size_t size) = libcw::debug::calloc_bootstrap1;
+} // namespace libcwd
+void* __libc_malloc(size_t size) = libcwd::malloc_bootstrap1;
+void* __libc_calloc(size_t nmemb, size_t size) = libcwd::calloc_bootstrap1;
 void* __libc_realloc(void* ptr, size_t size);
 void __libc_free(void* ptr);
 void (*libc_free_final)(void* ptr) = (void (*)(void*))0;
@@ -323,8 +321,7 @@ void* valgrind_realloc(void*, size_t) { return 0; }
 void valgrind_free(void*) { }
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
     
 namespace _private_ {
 
@@ -409,8 +406,7 @@ void smart_ptr::copy_from(char* ptr)
 
 extern void ST_initialize_globals(LIBCWD_TSD_PARAM);
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #if CWDEBUG_DEBUGM
 #define DEBUGDEBUG_DoutInternal_MARKER DEBUGDEBUG_CERR( "DoutInternal at " << __FILE__ << ':' << __LINE__ )
@@ -483,8 +479,7 @@ extern void ST_initialize_globals(LIBCWD_TSD_PARAM);
     }																\
   } while(0)
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace _private_ {
   //
@@ -2336,7 +2331,7 @@ void init_debugmalloc(void)
       WST_initialization_state = 1;		// ST_initialize_globals() calls malloc again of course.
       int recursive_store = __libcwd_tsd.inside_malloc_or_free;
       __libcwd_tsd.inside_malloc_or_free = 0;	// Allow that (this call to malloc will not have done from STL allocator).
-      libcw::debug::ST_initialize_globals(LIBCWD_TSD);	// This doesn't belong in the malloc department at all, but malloc()
+      libcwd::ST_initialize_globals(LIBCWD_TSD);	// This doesn't belong in the malloc department at all, but malloc()
       							// happens to be a function that is called _very_ early - and hence
 							// this is a good moment to initialize ALL of libcwd.
       __libcwd_tsd.inside_malloc_or_free = recursive_store;
@@ -2486,8 +2481,8 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
  * Debug( list_allocations_on(libcw_do) );	// libcw_do is the (default) debug object.
  * \endcode
  *
- * which would print on \link libcw::debug::libcw_do libcw_do \endlink using
- * \ref group_debug_channels "debug channel" \link libcw::debug::dc::malloc dc::malloc \endlink.
+ * which would print on \link libcwd::libcw_do libcw_do \endlink using
+ * \ref group_debug_channels "debug channel" \link libcwd::dc::malloc dc::malloc \endlink.
  *
  * Note that not passing formatting information is equivalent with,
  *
@@ -2537,8 +2532,8 @@ static void list_allocations_cleanup(void)
  * );
  * \endcode
  *
- * which would print on \link libcw::debug::libcw_do libcw_do \endlink using
- * \ref group_debug_channels "debug channel" \link libcw::debug::dc::malloc dc::malloc \endlink,
+ * which would print on \link libcwd::libcw_do libcw_do \endlink using
+ * \ref group_debug_channels "debug channel" \link libcwd::dc::malloc dc::malloc \endlink,
  * not showing allocations that belong to shared libraries matching "libc.so*" or "libstdc++*".
  * The remaining items would show which object file (shared library name or the executable name)
  * they belong to, because we used \c show_objectfile as flag.
@@ -2764,7 +2759,7 @@ void marker_ct::register_marker(char const* label)
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
-  Dout( dc_malloc, "New libcw::debug::marker_ct at " << this );
+  Dout( dc_malloc, "New libcwd::marker_ct at " << this );
   bool error = false;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
@@ -2782,7 +2777,7 @@ void marker_ct::register_marker(char const* label)
   RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL;
   if (error)
-    DoutFatal( dc::core, "Use 'new' for libcw::debug::marker_ct" );
+    DoutFatal( dc::core, "Use 'new' for libcwd::marker_ct" );
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
   Debug( list_allocations_on(libcw_do) );
 #endif
@@ -2818,7 +2813,7 @@ marker_ct::~marker_ct()
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
-    Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description.get() << ')' );
+    Dout( dc_malloc, "Removing libcwd::marker_ct at " << this << " (" << description.get() << ')' );
     DoutFatal( dc::core, "Deleting a marker must be done in the same \"scope\" as where it was allocated; for example, "
 	"you cannot allocate marker A, then allocate marker B and then delete marker A before deleting first marker B." );
   }
@@ -2828,7 +2823,7 @@ marker_ct::~marker_ct()
   RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
 
-  Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description.get() << ')' );
+  Dout( dc_malloc, "Removing libcwd::marker_ct at " << this << " (" << description.get() << ')' );
   if (marker_alloc_node->next_list())
   {
     dm_alloc_copy_ct* list;
@@ -3035,7 +3030,7 @@ static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, v
  * \code
  * char* buf = new char [40];
  * AllocTag(buf, "A buffer");
- * libcw::debug::alloc_ct const* alloc = libcw::debug::find_alloc(&buf[10]);
+ * libcwd::alloc_ct const* alloc = libcwd::find_alloc(&buf[10]);
  * std::cout << '"' << alloc->description() << "\" is " << alloc->size() << " bytes.\n";
  * \endcode
  *
@@ -3148,10 +3143,9 @@ void register_external_allocation(void const* mptr, size_t size)
 }
 #endif // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
-using namespace ::libcw::debug;
+using namespace ::libcwd;
 
 extern "C" {
 
@@ -3167,12 +3161,12 @@ void __libcwd_free(void* ptr)
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
-  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
+  libcwd::_private_::TSD_st& __libcwd_tsd(libcwd::_private_::TSD_st::instance_free());
 #endif
   internal_free(ptr, from_free LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
   // Mark the end of free() - now a static tsd might be re-used by other threads.
-  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+  libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif
 }
 
@@ -3915,7 +3909,7 @@ void operator delete(void* ptr) throw()
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
-  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
+  libcwd::_private_::TSD_st& __libcwd_tsd(libcwd::_private_::TSD_st::instance_free());
 #endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3931,7 +3925,7 @@ void operator delete(void* ptr) throw()
 #endif
   internal_free(ptr, from_delete LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
-  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+  libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif
 }
 
@@ -3940,7 +3934,7 @@ void operator delete(void* ptr, std::nothrow_t const&) throw()
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
-  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
+  libcwd::_private_::TSD_st& __libcwd_tsd(libcwd::_private_::TSD_st::instance_free());
 #endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3953,7 +3947,7 @@ void operator delete(void* ptr, std::nothrow_t const&) throw()
 #endif
   internal_free(ptr, from_delete LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
-  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+  libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif
 }
 
@@ -3962,7 +3956,7 @@ void operator delete[](void* ptr) throw()
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
-  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
+  libcwd::_private_::TSD_st& __libcwd_tsd(libcwd::_private_::TSD_st::instance_free());
 #endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3980,7 +3974,7 @@ void operator delete[](void* ptr) throw()
   								// This forces everyone to overload both, operator delete() and operator
 								// delete[]() and not only operator delete().
 #if LIBCWD_THREAD_SAFE
-  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+  libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif
 }
 
@@ -3989,7 +3983,7 @@ void operator delete[](void* ptr, std::nothrow_t const&) throw()
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
-  libcw::debug::_private_::TSD_st& __libcwd_tsd(libcw::debug::_private_::TSD_st::instance_free());
+  libcwd::_private_::TSD_st& __libcwd_tsd(libcwd::_private_::TSD_st::instance_free());
 #endif
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -4002,7 +3996,7 @@ void operator delete[](void* ptr, std::nothrow_t const&) throw()
 #endif
   internal_free(ptr, from_delete_array LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
-  libcw::debug::_private_::TSD_st::free_instance(__libcwd_tsd);
+  libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif
 }
 
@@ -4022,7 +4016,7 @@ static void const* debug_watch(void const* ptr) __attribute__ ((unused));
  */
 static void const* debug_watch(void const* ptr)
 {
-  using namespace libcw::debug;
+  using namespace libcwd;
   LIBCWD_TSD_DECLARATION;
   ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
   _private_::set_invisible_on(LIBCWD_TSD);
@@ -4059,7 +4053,7 @@ static int debug_alloc(void const* ptr) __attribute__ ((unused));
  */
 static int debug_alloc(void const* ptr)
 {
-  using namespace libcw::debug;
+  using namespace libcwd;
   LIBCWD_TSD_DECLARATION;
   ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
   _private_::set_invisible_on(LIBCWD_TSD);

@@ -29,9 +29,8 @@
 #include <vector>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 // This is the vector type that we use in Multi Threaded internal functions.
 #if CWDEBUG_ALLOC
@@ -44,9 +43,8 @@ template <typename T>
   { };
 #endif
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_INTERNAL_VECTOR_H
 

@@ -23,8 +23,7 @@
 #include <libcwd/class_ooam_filter.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 #if LIBCWD_THREAD_SAFE
 #define ACQUIRE_LISTALLOC_LOCK mutex_tct<list_allocations_instance>::lock()
@@ -35,7 +34,7 @@ using _private_::mutex_tct;
 using _private_::list_allocations_instance;
 #else
 // gcc version 3.5.0 20040420 (experimental) ICEs on the above.
-namespace workaround_20040420 = ::libcw::debug::_private_::workaround_20040420;
+namespace workaround_20040420 = ::libcwd::_private_::workaround_20040420;
 #define list_allocations_instance workaround_20040420::list_allocations_instance
 #endif
 
@@ -218,7 +217,6 @@ ooam_filter_ct::ooam_filter_ct(ooam_format_t flags) : M_flags(flags & format_mas
 #endif
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // CWDEBUG_ALLOC

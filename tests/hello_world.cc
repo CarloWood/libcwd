@@ -33,19 +33,17 @@
 #ifdef CWDEBUG
 namespace debug_channels {
   namespace dc {
-    libcw::debug::channel_ct hello("HELLO");
+    libcwd::channel_ct hello("HELLO");
   }
 }
 #endif
 
 extern void debug_load_object_file(char const* filename, bool shared);
 
-namespace libcw {
-  namespace debug {
-    void test(void);
-  }
+namespace libcwd {
+  void test(void);
 }
-using libcw::debug::test;
+using libcwd::test;
 
 int main(void)
 {
@@ -56,7 +54,7 @@ int main(void)
 
 #if CWDEBUG_ALLOC
   // Don't show allocations that are allocated before main()
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
 
   // Select channels (note that where 'on' is used, 'off' can be specified
@@ -84,7 +82,7 @@ int main(void)
   Dout(dc::hello, "Hello World!");
 
   //Debug( attach_gdb() );
-  using libcw::debug::Function;
+  using libcwd::Function;
   Function test;
   //debug_load_object_file("libcwd.so.0.99.32.O2", true);
   //test.init("inline_test", Function::regexp|Function::cpp_linkage|Function::c_linkage);

@@ -63,17 +63,17 @@ int main(void)
 
 <P>The custom debug channel <CODE>dc::ghost</CODE> that you created
 in <A HREF="tut2.html">tutorial 2</A> was put in <CODE>namespace&nbsp;debug_channels</CODE>.&nbsp;
-The debug channels of libcw are put in namespace <CODE>libcw::debug::channels</CODE>.&nbsp;
+The debug channels of libcwd are put in namespace <CODE>libcwd::channels</CODE>.&nbsp;
 Nevertheless, it is not necessary to type</P>
 
-<PRE>Dout(libcw::debug::channels::dc::notice, "Hello World");</PRE>
+<PRE>Dout(libcwd::channels::dc::notice, "Hello World");</PRE>
 
-<P>By default, the macro <CODE>Dout</CODE> et al. automatically include a<CODE> using&nbsp;namespace libcw::debug::channels</CODE>.&nbsp;
+<P>By default, the macro <CODE>Dout</CODE> et al. automatically include a<CODE> using&nbsp;namespace libcwd::channels</CODE>.&nbsp;
 It is possible to change this default namespace by defining <CODE>DEBUGCHANNELS</CODE>
 <EM>before</EM> including the header file <CODE>libcwd/debug.h</CODE>.&nbsp;
 This is will be shown below.</P>
 
-<P>Of course, you can put your own debug channels also in namespace<CODE> libcw::debug::channels</CODE>
+<P>Of course, you can put your own debug channels also in namespace<CODE> libcwd::channels</CODE>
 but that wouldn't garantee not to collide with a new debug channel added to libcwd in the future, or
 with debug channels of other libraries that would do the same.</P>
 
@@ -106,10 +106,10 @@ namespace example {
   namespace debug {
     namespace channels {
       namespace dc {
-	using namespace libcw::debug;		// For class channel_ct
+	using namespace libcwd;		// For class channel_ct
 
 	// The list of debug channel namespaces of the libraries that we use:
-	// (These two already include libcw::debug::channels::dc)
+	// (These two already include libcwd::channels::dc)
 	using namespace ::booster::debug::channels::dc;
 	using namespace ::turbo::debug::channels::dc;
 
@@ -123,7 +123,7 @@ namespace example {
 	// then here is the place to `hide' these channels by redefining them.
 	// For example, if `libbooster' defined `notice' too (as does libcwd)
 	// then we have to redefine it again:
-	using libcw::debug::channels::dc::notice;
+	using libcwd::channels::dc::notice;
 
       } // namespace dc
     } // namespace channels
@@ -134,9 +134,9 @@ namespace example {
 // Libraries should not use Dout() et al. in their own header files,
 // instead we define our own macros here for use in those header files:
 #define MyLibHeaderDout(cntrl, data) \
-      LibcwDout(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+      LibcwDout(::example::debug::channels, ::libcwd::libcw_do, cntrl, data)
 #define MyLibHeaderDoutFatal(cntrl, data) \
-      LibcwDoutFatal(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+      LibcwDoutFatal(::example::debug::channels, ::libcwd::libcw_do, cntrl, data)
 
 #else // !CWDEBUG
 
@@ -161,7 +161,7 @@ namespace example {
 #include &quot;debug.h&quot;
 
 #ifdef CWDEBUG
-using namespace libcw::debug;
+using namespace libcwd;
 
 namespace example {
   namespace debug {

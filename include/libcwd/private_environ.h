@@ -18,9 +18,8 @@
 #error "You need to #include "sys.h" at the top of every source file (which in turn should #include <libcwd/sys.h>)."
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 extern void process_environment_variables(void);
 
@@ -36,8 +35,7 @@ extern bool always_print_loading;
 // This overrides LIBCWD_PRINT_LOADING.
 extern bool suppress_startup_msgs;
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_ENVIRON_H

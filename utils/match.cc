@@ -14,9 +14,8 @@
 #include "sys.h"
 #include <match.h>
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 bool match(char const* mask, size_t masklen, char const* name)
 {
@@ -47,7 +46,6 @@ bool match(char const* mask, size_t masklen, char const* name)
   return true;
 }
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 

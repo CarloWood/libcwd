@@ -16,8 +16,7 @@
 #include <libcwd/demangle.h>
 #include <libcwd/type_info.h>
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /**
  * \brief Returned by type_info_of() for unknown types.
@@ -80,12 +79,11 @@ namespace _private_ {
 
 } // namespace _private_
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #if __GXX_ABI_VERSION == 0
-::libcw::debug::type_info_ct const libcwd_type_info_exact<void*>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
+::libcwd::type_info_ct const libcwd_type_info_exact<void*>::value_c(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
 #else
-::libcw::debug::type_info_ct const libcwd_type_info_exact<void*>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(), typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
+::libcwd::type_info_ct const libcwd_type_info_exact<void*>::value_c(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(), typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(void*), 0 /* unknown */);
 #endif
 

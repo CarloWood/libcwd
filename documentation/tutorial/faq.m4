@@ -78,16 +78,16 @@ while debugging.&nbsp; A more detailed explanation is given in the <A HREF="../r
 <H3>6. Why do I need to type the <SPAN class="H3code">Debug(&nbsp;&nbsp;)</SPAN> around it?</H3>
 
 <P>The macro <SPAN class="code">Debug()</SPAN> is used for two things. 1) The code inside it is only included
-when the macro <SPAN class="code">CWDEBUG</SPAN> is defined. 2) It includes the namespace <SPAN class="code">libcw::debug</SPAN>.</P>
+when the macro <SPAN class="code">CWDEBUG</SPAN> is defined. 2) It includes the namespace <SPAN class="code">libcwd</SPAN>.</P>
 
 <P>As a result, you don't have to add <SPAN class="code">#ifdef CWDEBUG ... #endif</SPAN> around the code and
-in most cases you don't have to type <SPAN class="code">libcw::debug</SPAN>.&nbsp;
+in most cases you don't have to type <SPAN class="code">libcwd</SPAN>.&nbsp;
 The expression <SPAN class="code">Debug( STATEMENT );</SPAN> is equivalent with:</P>
 
 <PRE class="code">
 #ifdef CWDEBUG
   do {
-    using namespace ::libcw::debug;
+    using namespace ::libcwd;
     using namespace DEBUGCHANNELS;
     { STATEMENT; }
   } while(0);
@@ -120,8 +120,8 @@ namespace myapplication {
   namespace debug {
     namespace channels {
       namespace dc {
-        using namespace ::libcw::debug::channels::dc;
-        extern ::libcw::debug::channel_ct mychannel;
+        using namespace ::libcwd::channels::dc;
+        extern ::libcwd::channel_ct mychannel;
 	// ... more channels here
       }
     }
@@ -182,7 +182,7 @@ It isn't hard at all to define your own macros though; for example add something
 
 <PRE class="code">
 #ifdef CWDEBUG
-extern libcw::debug::debug_ct <SPAN class="highlight">my_debug_object</SPAN>;
+extern libcwd::debug_ct <SPAN class="highlight">my_debug_object</SPAN>;
 #define <SPAN class="highlight">MyDout</SPAN>(cntrl, data) LibcwDout(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, data)
 #define <SPAN class="highlight">MyDoutFatal</SPAN>(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, data)
 #else // !CWDEBUG
@@ -331,7 +331,7 @@ In pseudo-code the macro expansion looks something like</P>
 
 <P>and so, &quot;your message&quot; is <EM>not</EM> evaluated when it isn't also
 actually written.&nbsp; This fact is also covered in the
-<A HREF="../reference-manual/classlibcw_1_1debug_1_1debug__ct.html#eval_example">Reference Manual</A>.</P>
+<A HREF="../reference-manual/classlibcwd_1_1debug__ct.html#eval_example">Reference Manual</A>.</P>
 
 <P>Note that debug code should never have an effect on any of your variables (and thus on the application) anyway.&nbsp;
 In the production version of your application all debug code will be removed and you don't want it to behave differently then!</P>
@@ -345,7 +345,7 @@ In the production version of your application all debug code will be removed and
 <H3>20. What is the maximum length of a label?</H3>
 
 <P>The maximum length of the label of a new Debug Channel is given
-by the constant<SPAN class="code"> libcw::debug::max_label_len_c</SPAN>.&nbsp;
+by the constant<SPAN class="code"> libcwd::max_label_len_c</SPAN>.&nbsp;
 At this moment that is 16.</P>
 
 <A name="prefix"></A>

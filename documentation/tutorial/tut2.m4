@@ -49,7 +49,7 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 // This must be defined before &lt;libcwd/debug.h&gt; is included and must be the
 // name of the namespace containing your `dc' namespace (see below).
 // You can use any namespace(s) you like, except existing namespaces
-// (like ::, ::std and ::libcw).
+// (like ::, ::std and ::libcwd).
 #define DEBUGCHANNELS ::myproject::debug::channels
 #endif
 #include &lt;libcwd/debug.h&gt;
@@ -58,11 +58,11 @@ namespace myproject {
   namespace debug {
     namespace channels {
       namespace dc {
-	using namespace ::libcw::debug::channels::dc;
+	using namespace ::libcwd::channels::dc;
 
 	// Add the declaration of new debug channels here
 	// and their definition in a custom debug.cc file.
-	extern ::libcw::debug::channel_ct custom;
+	extern ::libcwd::channel_ct custom;
 
       } // namespace dc
     } // namespace DEBUGCHANNELS
@@ -83,7 +83,7 @@ namespace debug_channels {	// Actually, you will need a series of
 				// "namespace xyz {" here, to match whatever
 				// DEBUGCHANNELS is.
   namespace dc {
-    libcw::debug::channel_ct <SPAN class="highlight">ghost</SPAN>("GHOST");
+    libcwd::channel_ct <SPAN class="highlight">ghost</SPAN>("GHOST");
   }
 }
 

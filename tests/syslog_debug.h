@@ -9,17 +9,15 @@
 #include <libcwd/debug.h>
 
 namespace syslog_example {
-  namespace debug {
-    namespace channels {
-      namespace dc {
-	using namespace ::libcw::debug::channels::dc;
-	extern ::libcw::debug::channel_ct debug_syslog;
-      }
+  namespace channels {
+    namespace dc {
+      using namespace ::libcwd::channels::dc;
+      extern ::libcwd::channel_ct debug_syslog;
     }
   }
 }
 
-extern libcw::debug::debug_ct syslog_do;
+extern libcwd::debug_ct syslog_do;
 #define SyslogDout(cntrl, data) LibcwDout(DEBUGCHANNELS, syslog_do, cntrl|flush_cf, data)
 #define SyslogDoutFatal(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, syslog_do, cntrl|flush_cf, data)
 

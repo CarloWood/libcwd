@@ -18,7 +18,7 @@
 
 using std::cout;
 using std::endl;
-using libcw::debug::type_info_of;
+using libcwd::type_info_of;
 
 class A {
 private:

@@ -10,4 +10,4 @@ dpkg-buildpackage -rfakeroot
 in the directory containing this debian directory.
 Both .deb files need to be installed.
 
-Carlo Wood <libcw@alinoe.com>
+Carlo Wood <libcwd@alinoe.com>

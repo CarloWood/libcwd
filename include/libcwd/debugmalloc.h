@@ -58,8 +58,7 @@
 #include <sys/time.h>		// Needed for struct timeval.
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 //! Type of malloc_report.
 enum malloc_report_nt
@@ -103,19 +102,16 @@ extern void move_outside(marker_ct*, void const* ptr);
 // Undocumented (libcwd `internal' function)
 extern void init_debugmalloc(void);
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #else // !CWDEBUG_ALLOC
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 __inline__ void make_invisible(void const*) { } 
 __inline__ void make_all_allocations_invisible_except(void const*) { }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // !CWDEBUG_ALLOC
 
@@ -125,8 +121,7 @@ __inline__ void make_all_allocations_invisible_except(void const*) { }
 #define LIBCWD_DEBUGM_CERR(x)
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 #if CWDEBUG_ALLOC
 extern void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& format);
@@ -135,8 +130,7 @@ extern void list_allocations_on(debug_ct& debug_object);
 __inline__ void list_allocations_on(debug_ct&) { }
 #endif // !CWDEBUG_ALLOC
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #ifndef LIBCWD_DEBUGMALLOC_INTERNAL
 #if CWDEBUG_ALLOC

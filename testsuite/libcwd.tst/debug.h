@@ -12,8 +12,8 @@ namespace example {
   namespace debug {
     namespace channels {
       namespace dc {
-	using namespace ::libcw::debug::channels::dc;
-	extern ::libcw::debug::channel_ct warp;
+	using namespace ::libcwd::channels::dc;
+	extern ::libcwd::channel_ct warp;
       }
     }
   }
@@ -22,8 +22,8 @@ namespace example {
 #undef Dout
 #undef DoutFatal
 
-#define Dout(cntrl, data) LibcwDout(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
-#define DoutFatal(cntrl, data) LibcwDoutFatal(::example::debug::channels, ::libcw::debug::libcw_do, cntrl, data)
+#define Dout(cntrl, data) LibcwDout(::example::debug::channels, ::libcwd::libcw_do, cntrl, data)
+#define DoutFatal(cntrl, data) LibcwDoutFatal(::example::debug::channels, ::libcwd::libcw_do, cntrl, data)
 
 #else
 

@@ -49,7 +49,7 @@ REL=1
 TAG:=${shell echo "V@VERSION@" | sed -e 's/\./_/g'}
 PREVTAG:=${shell test -f .prevtag && cat .prevtag}
 CVSREADACCESS:=${shell if test -f $(srcdir)/CVS/Entries; then echo "yes"; else echo "no"; fi}
-CVSWRITEACCESS:=${shell if test x"$$LIBCW_WRITE_ACCESS" = "xyes"; then echo $(CVSREADACCESS); else echo "no"; fi}
+CVSWRITEACCESS:=${shell if test x"$$LIBCWD_WRITE_ACCESS" = "xyes"; then echo $(CVSREADACCESS); else echo "no"; fi}
 AWK=@AWK@
 
 test-values:

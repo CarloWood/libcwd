@@ -30,8 +30,7 @@
 #include <string>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 // String class for debug_ct::margin and debug_ct::marker.
 // This class can not have a constructor.
@@ -93,7 +92,6 @@ public:
   debug_string_stack_element_ct(debug_string_ct const& ds);
 };
 
-  }  // namespace debug
-}  // namespace libcw
+}  // namespace libcwd
 
 #endif // LIBCWD_CLASS_DEBUG_STRING_H

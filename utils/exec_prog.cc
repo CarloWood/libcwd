@@ -26,8 +26,7 @@
 #include <fstream>
 #include <streambuf>
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace {
   class environment_ct {
@@ -448,5 +447,4 @@ namespace {		// Implementation of local functions
 
 } // namespace {anonymous}
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd

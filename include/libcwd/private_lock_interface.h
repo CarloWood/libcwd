@@ -19,9 +19,8 @@
 #define LIBCWD_PRIVATE_LOCK_INTERFACE_H
 
 #if LIBCWD_THREAD_SAFE
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 class lock_interface_base_ct {
 public:
@@ -52,9 +51,8 @@ class pthread_lock_interface_ct : public lock_interface_base_ct {
     pthread_lock_interface_ct(pthread_mutex_t* mutex) : ptr(mutex) { }
 };
 
-    } // namespace _private_
-  }  // namespace debug
-}  // namespace libcw
+  } // namespace _private_
+}  // namespace libcwd
 
 #endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_PRIVATE_LOCK_INTERFACE_H

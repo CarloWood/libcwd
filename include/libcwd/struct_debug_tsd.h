@@ -34,8 +34,7 @@
 #include <iosfwd>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 #if CWDEBUG_LOCATION
     namespace cwbfd {
@@ -127,8 +126,7 @@ struct debug_tsd_st {
   ~debug_tsd_st();
 };
 
-  }  // namespace debug
-}  // namespace libcw
+}  // namespace libcwd
 
 #endif // LIBCWD_STRUCT_DEBUG_TSD_H
 

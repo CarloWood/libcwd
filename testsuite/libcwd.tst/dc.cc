@@ -5,7 +5,7 @@ namespace example {
   namespace debug {
     namespace channels {
       namespace dc {
-	::libcw::debug::channel_ct warp("WARP");
+	::libcwd::channel_ct warp("WARP");
       }
     }
   }
@@ -18,7 +18,7 @@ MAIN_FUNCTION
 #endif
   Debug( check_configuration() );
 #if !defined(THREADTEST) && CWDEBUG_ALLOC
-  libcw::debug::make_all_allocations_invisible_except(NULL);
+  libcwd::make_all_allocations_invisible_except(NULL);
 #endif
   Debug( libcw_do.on() );
   Debug( dc::warp.on() );

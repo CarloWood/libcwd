@@ -21,8 +21,7 @@
 #include <libcwd/control_flag.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 __inline__
 continued_channel_ct::continued_channel_ct(control_flag_t maskbit)
@@ -37,7 +36,6 @@ continued_channel_ct::get_maskbit(void) const
   return WNS_maskbit;
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_CONTINUED_CHANNEL_INL

@@ -18,7 +18,7 @@ int main()
 \endcode
 
 <code>read_rcfile()</code> can be used to turn on or off debug <em>channels</em>, but you still have to turn on the
-debug <em>object</em>(s); in particular the debug object <code>\link libcw::debug::libcw_do libcw_do \endlink</code>
+debug <em>object</em>(s); in particular the debug object <code>\link libcwd::libcw_do libcw_do \endlink</code>
 that is used to print WARNING messages in case something is wrong with your rcfile.
 
 The default rcfile is

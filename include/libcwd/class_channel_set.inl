@@ -33,8 +33,7 @@
 #include <libcwd/class_fatal_channel.inl>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 __inline__
 continued_channel_set_st&
@@ -77,8 +76,7 @@ channel_set_st::operator|(fatal_channel_ct const& fdc)
   return *this;
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_CHANNEL_SET_INL
 

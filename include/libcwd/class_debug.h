@@ -38,8 +38,7 @@
 #include <iosfwd>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 class buffer_ct;
 
@@ -63,7 +62,7 @@ struct debug_message_st {
 // and is still printed when this object is already destructed.
 // This is why initialization is done with method init() *before* construction
 // and debug is turned off when this object is destructed.
-// I hope that this is no problem because debug::libcw_do is a global object.
+// I hope that this is no problem because libcwd::libcw_do is a global object.
 // It means however that this object can not contain any attributes that have
 // a constructor of their own!
 
@@ -104,7 +103,7 @@ protected:
     // The original output ostream (as set with set_ostream()).
     //
 #if LIBCWD_THREAD_SAFE
-  friend class libcw::debug::buffer_ct;		// buffer_ct::writeto() needs access.
+  friend class libcwd::buffer_ct;		// buffer_ct::writeto() needs access.
   _private_::lock_interface_base_ct* M_mutex;
     // Pointer to the mutex that should be used for `real_os' or NULL when no lock is used.
     // A value of NULL is only allowed prior to creating a second thread.
@@ -262,8 +261,7 @@ template<>
   void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex);
 #endif
 
-  }  // namespace debug
-}  // namespace libcw
+}  // namespace libcwd
 
 #ifndef LIBCWD_SET_OSTREAM_INL
 #include <libcwd/set_ostream.inl>

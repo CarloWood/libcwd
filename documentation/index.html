@@ -354,7 +354,7 @@ backtraces in case of internal errors.</P>
 If there is anything you would like to be added, or when you find a bug, <B>mail me</B>.&nbsp;
 <EM>It won't get fixed when you don't tell me about it!</EM>&nbsp;
 But if you are just a happy user without any complaint, I'd really love to hear from you too!
-Click <A HREF="http://www.xs4all.nl/~carlo17/anti/spam/bots/dont/like/deep/dirs/mail2.html?libcw">here</A> and drop me mail!</P>
+Click <A HREF="http://www.xs4all.nl/~carlo17/anti/spam/bots/dont/like/deep/dirs/mail2.html?libcwd">here</A> and drop me mail!</P>
 <DT><B>29 May 2001</B>
 <P class="news">libcwd-0.99.8 is released.&nbsp;
 Finally, after a long delay a new release - and as promised one that works with libstdc++ version 3!
@@ -404,9 +404,9 @@ Note that this release still doesn't work with libstdc++ version 3, hopefully th
 This release deals with namespace issues and therefore contains a few major API changes.&nbsp; 
 The most important changes follow.&nbsp; The macro DEBUG has been renamed to CWDEBUG because
 the former was too general and collided with other libraries.&nbsp;
-All functions have been moved to namespace <SPAN class="code">libcw::debug</SPAN>;
+All functions have been moved to namespace <SPAN class="code">libcwd</SPAN>;
 this will break compilation of programs that use earlier versions of libcwd,
-unless one includes a &quot;<SPAN class="code">using namespace libcw::debug;</SPAN>&quot;
+unless one includes a &quot;<SPAN class="code">using namespace libcwd;</SPAN>&quot;
 line in the source files using more than just <SPAN class="code">Dout</SPAN> and
 <SPAN class="code">Debug</SPAN>.&nbsp;
 Four functions have not only been moved to the new namespace but were also renamed.&nbsp;

@@ -13,10 +13,10 @@
 
 /** \file libcwd/buf2str.h
  *
- * \brief Definition of utility class \link libcw::debug::buf2str buf2str \endlink.
+ * \brief Definition of utility class \link libcwd::buf2str buf2str \endlink.
  *
  * This header file provides the declaration and definition of utility class
- * \link libcw::debug::buf2str buf2str \endlink.
+ * \link libcwd::buf2str buf2str \endlink.
  */
 
 #ifndef LIBCWD_BUF2STR_H
@@ -34,8 +34,7 @@
 #include <iosfwd>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /**
  * \class buf2str buf2str.h libcwd/buf2str.h
@@ -48,7 +47,7 @@ namespace libcw {
  * characters by either printing the character itself, the octal representation or one of
  * \c \\a, \c \\b, \c \\t, \c \\n, \c \\f, \c \\r, \c \\e or \c \\\\.
  *
- * \sa libcw::debug::char2str
+ * \sa libcwd::char2str
  *
  * <b>Example:</b>
  *
@@ -85,7 +84,6 @@ public:
   }
 };
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_BUF2STR_H

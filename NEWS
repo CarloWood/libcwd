@@ -6,6 +6,16 @@ libcwd-0.99.34
 	channels are turned off at the start of processing the rcfile
 	even if they are temporarily turned on.
 
+	API changes:
+
+	Namespace libcw::debug has been replaced with namespace libcwd.
+	In most case you should be able to just replace all occurances
+	of 'libcw::debug' with libcwd without problems.  If for some
+	reason this change has a too dramatic effect on your application
+	then you can also add this to your custom debug.h file:
+	namespace libcw { namespace debug = ::libcwd; }
+	directly after including libcwd/debug.h.
+
 	Bug fixes:
 
         A Shared Object file with more than 256 .debug_abbrev entries

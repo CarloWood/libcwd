@@ -25,8 +25,8 @@ namespace myproject {
     namespace channels {	//  >---> This namespace must match DEBUGCHANNELS
 
       namespace dc {
-	using namespace ::libcw::debug::channels::dc;
-	using ::libcw::debug::channel_ct;
+	using namespace ::libcwd::channels::dc;
+	using ::libcwd::channel_ct;
 
 	// Add the declaration of new debug channels here
 	// and add their definition in a custom debug.cc file.

@@ -121,9 +121,9 @@ int main(void)
 
   void* ptr = (void*)nonscopetype_void;
   std::string result;
-  libcw::debug::demangle_symbol(libcw::debug::pc_mangled_function_name(ptr), result);
+  libcwd::demangle_symbol(libcwd::pc_mangled_function_name(ptr), result);
   std::cout << result << '\n';
-  std::cout << libcw::debug::type_info_of(instantiate).demangled_name() << '\n';
+  std::cout << libcwd::type_info_of(instantiate).demangled_name() << '\n';
   return 0;
 }
 

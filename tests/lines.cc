@@ -6,7 +6,7 @@
 
 void print_line(void)
 {
-  libcw::debug::location_ct loc((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset);
+  libcwd::location_ct loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   Dout(dc::notice, loc);
 }
 

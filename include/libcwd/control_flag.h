@@ -22,8 +22,7 @@
 #include <libcwd/config.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /** \addtogroup group_control_flags */
 /** \{ */
@@ -88,8 +87,7 @@ __inline__ control_flag_t const cond_error_cf(bool err) { return err ? error_cf 
 
 /** \} */
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CONTROL_FLAG_H
 

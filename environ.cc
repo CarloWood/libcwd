@@ -15,9 +15,8 @@
 #include <cstdlib>
 #include "cwd_debug.h"
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 bool always_print_loading = false;
 bool suppress_startup_msgs = false;
@@ -28,6 +27,5 @@ void process_environment_variables(void)
   suppress_startup_msgs = (getenv("LIBCWD_NO_STARTUP_MSGS") != NULL);
 }
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd

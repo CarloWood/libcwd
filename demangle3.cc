@@ -25,7 +25,7 @@ demangle_symbol() writes the \em mangled symbol name \p input
 to the string \p output; \p input should be the mangled name 
 as returned by <CODE>asymbol::name</CODE> (\c asymbol is a structure defined
 by libbfd), which is what is returned by
-\ref libcw::debug::location_ct::mangled_function_name "location_ct::mangled_function_name()"
+\ref libcwd::location_ct::mangled_function_name "location_ct::mangled_function_name()"
 and pc_mangled_function_name().
 
 The direct use of these functions should be avoided, instead use the function type_info_of().
@@ -51,15 +51,13 @@ The direct use of these functions should be avoided, instead use the function ty
 
 #ifdef STANDALONE
 #ifdef CWDEBUG
-namespace libcw {
-  namespace debug {
-    namespace channels {
-      namespace dc {
-        channel_ct demangler("DEMANGLER");
-      } // namespace dc
-    } // namespace channels
-  } // namespace debug
-} // namespace libcw
+namespace libcwd {
+  namespace channels {
+    namespace dc {
+      channel_ct demangler("DEMANGLER");
+    } // namespace dc
+  } // namespace channels
+} // namespace libcwd
 #endif
 #define _GLIBCXX_DEMANGLER_DEBUG(x) Debug(x)
 #define _GLIBCXX_DEMANGLER_DOUT(cntrl, data) Dout(cntrl, data)
@@ -647,8 +645,7 @@ void print_IEEE_fp(char* buf, unsigned long* words,
 
 } // namespace
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 #ifdef STANDALONE
 static char const* main_in;
@@ -690,7 +687,7 @@ typedef __gnu_cxx::demangler::session<std::allocator<char> > session_type;
 //
 // Demangle `input' and append to `output'.
 // `input' should be a mangled_function_name as for instance returned
-// by `libcw::debug::pc_mangled_function_name'.
+// by `libcwd::pc_mangled_function_name'.
 //
 void demangle_symbol(char const* input, internal_string& output)
 {
@@ -797,9 +794,8 @@ void demangle_type(char const* input, internal_string& output)
 #endif
 }
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #ifdef STANDALONE
 #include <iostream>
@@ -809,16 +805,15 @@ int main(int argc, char* argv[])
   Debug( libcw_do.on() );
   Debug( dc::demangler.on() );
   std::string out;
-  libcw::debug::main_in = argv[1];
-  libcw::debug::demangle_symbol(argv[1], out);
+  libcwd::main_in = argv[1];
+  libcwd::demangle_symbol(argv[1], out);
   std::cout << out << std::endl;
   return 0;
 }
  
 #endif // STANDALONE
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /** \addtogroup group_demangle */
 /** \{ */
@@ -859,7 +854,6 @@ void demangle_type(char const* input, std::string& output)
 
 /** \} */
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 

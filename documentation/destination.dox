@@ -8,13 +8,13 @@
 
 <hr><h2>Detailed Description</h2>
 
-Basically, a %debug object (\link libcw::debug::debug_ct debug_ct \endlink) is a pointer to an ostream
-with a few extra attributes added to give it an internal state for \link libcw::debug::debug_ct::on() on \endlink
-(pass output on) and \link libcw::debug::debug_ct::off() off \endlink (don't pass output on)
+Basically, a %debug object (\link libcwd::debug_ct debug_ct \endlink) is a pointer to an ostream
+with a few extra attributes added to give it an internal state for \link libcwd::debug_ct::on() on \endlink
+(pass output on) and \link libcwd::debug_ct::off() off \endlink (don't pass output on)
 as well as some \link group_formatting formatting \endlink information of how to write the
 data that is passed on to its ostream.
 
-The methods of \link libcw::debug::debug_ct debug_ct \endlink given here allow you to set
+The methods of \link libcwd::debug_ct debug_ct \endlink given here allow you to set
 or get this ostream (pointer).
 
 */

@@ -23,7 +23,7 @@ relation to the memory allocation debugging support.
 
 With \link enable_location --enable-location \endlink, libcwd
 will write the source file and line number information about where memory allocations are done to the
-\link group_debug_channels debug channels \endlink \link libcw::debug::channels::dc::bfd dc::bfd \endlink.
+\link group_debug_channels debug channels \endlink \link libcwd::channels::dc::bfd dc::bfd \endlink.
 
 For example,
 
@@ -42,9 +42,9 @@ Source file and line number information is also shown in the
 \section section_Without_location_support Without location support
 
 Without support the source file and line number information will not be available.&nbsp;
-%Debug channel \link libcw::debug::channels::dc::bfd dc::bfd \endlink doesn't exist and
+%Debug channel \link libcwd::channels::dc::bfd dc::bfd \endlink doesn't exist and
 the Allocated memory Overview will lack the source file location in column three.&nbsp;
-Finally, there will be no \link libcw::debug::alloc_ct::location alloc_ct::location() \endlink method.
+Finally, there will be no \link libcwd::alloc_ct::location alloc_ct::location() \endlink method.
 
 */
 

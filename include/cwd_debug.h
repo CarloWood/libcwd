@@ -31,8 +31,7 @@
 
 extern "C" size_t strlen(const char *s) throw();
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 #if CWDEBUG_ALLOC
 namespace _private_ {
@@ -59,7 +58,7 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
   return os;
 }
 
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, libcw::debug::_private_::internal_string const& data)
+inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, libcwd::_private_::internal_string const& data)
 {
   os.M_os.write(data.data(), data.size());
   return os;
@@ -145,7 +144,6 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
     LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);			\
   } while(0)
 
-  }  // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // CWD_DEBUG_H

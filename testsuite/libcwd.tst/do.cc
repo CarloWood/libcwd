@@ -17,10 +17,10 @@ using namespace std;
 
 // Creation of debug objects
 
-libcw::debug::debug_ct my_own_do;
-namespace example { libcw::debug::debug_ct my_own_do; }
-#define MyOwnDout(cntrl, data) LibcwDout(::libcw::debug::channels, my_own_do, cntrl, data)
-#define ExampleDout(cntrl, data) LibcwDout(::libcw::debug::channels, example::my_own_do, cntrl, data)
+libcwd::debug_ct my_own_do;
+namespace example { libcwd::debug_ct my_own_do; }
+#define MyOwnDout(cntrl, data) LibcwDout(::libcwd::channels, my_own_do, cntrl, data)
+#define ExampleDout(cntrl, data) LibcwDout(::libcwd::channels, example::my_own_do, cntrl, data)
 
 #ifdef THREADTEST
 pthread_mutex_t dummy_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -43,7 +43,7 @@ MAIN_FUNCTION
 
   // Test initial ostreams.
   ostream* my_own_os = my_own_do.get_ostream();
-  ostream* libcwd_os = libcw::debug::libcw_do.get_ostream();
+  ostream* libcwd_os = libcwd::libcw_do.get_ostream();
   ostream* coutp = &cout;
   ostream* cerrp = &cerr;
 
@@ -127,7 +127,7 @@ MAIN_FUNCTION
 
   // 1.1.2.3 Retrieving the prefix formatting attributes
 
-  Dout(dc::warning, "Dout text " << libcw::debug::libcw_do.get_indent() << ", \"" << libcw::debug::libcw_do.margin().c_str() << "\", \"" << libcw::debug::libcw_do.marker().c_str() << "\".");
+  Dout(dc::warning, "Dout text " << libcwd::libcw_do.get_indent() << ", \"" << libcwd::libcw_do.margin().c_str() << "\", \"" << libcwd::libcw_do.marker().c_str() << "\".");
   MyOwnDout(dc::warning, "MyOwnDout text " << my_own_do.get_indent() << ", \"" << my_own_do.margin().c_str() << "\", \"" << my_own_do.marker().c_str() << "\".");
   ExampleDout(dc::warning, "ExampleDout text " << example::my_own_do.get_indent() << ", \"" << example::my_own_do.margin().c_str() << "\", \"" << example::my_own_do.marker().c_str() << "\".");
 
@@ -141,7 +141,7 @@ MAIN_FUNCTION
   Debug( my_own_do.margin().append("1Amy_own_do1", 12) );
   Debug( example::my_own_do.margin().append("1Aexample::my_own_do1", 21) );
 
-  Dout(dc::warning, "Dout text " << libcw::debug::libcw_do.get_indent() << ", \"" << libcw::debug::libcw_do.margin().c_str() << "\", \"" << libcw::debug::libcw_do.marker().c_str() << "\".");
+  Dout(dc::warning, "Dout text " << libcwd::libcw_do.get_indent() << ", \"" << libcwd::libcw_do.margin().c_str() << "\", \"" << libcwd::libcw_do.marker().c_str() << "\".");
   MyOwnDout(dc::warning, "MyOwnDout text " << my_own_do.get_indent() << ", \"" << my_own_do.margin().c_str() << "\", \"" << my_own_do.marker().c_str() << "\".");
   ExampleDout(dc::warning, "ExampleDout text " << example::my_own_do.get_indent() << ", \"" << example::my_own_do.margin().c_str() << "\", \"" << example::my_own_do.marker().c_str() << "\".");
 
@@ -153,7 +153,7 @@ MAIN_FUNCTION
   Debug( my_own_do.push_margin() );
   Debug( example::my_own_do.push_margin() );
 
-  Dout(dc::warning, "Dout text " << libcw::debug::libcw_do.get_indent() << ", \"" << libcw::debug::libcw_do.margin().c_str() << "\", \"" << libcw::debug::libcw_do.marker().c_str() << "\".");
+  Dout(dc::warning, "Dout text " << libcwd::libcw_do.get_indent() << ", \"" << libcwd::libcw_do.margin().c_str() << "\", \"" << libcwd::libcw_do.marker().c_str() << "\".");
   MyOwnDout(dc::warning, "MyOwnDout text " << my_own_do.get_indent() << ", \"" << my_own_do.margin().c_str() << "\", \"" << my_own_do.marker().c_str() << "\".");
   ExampleDout(dc::warning, "ExampleDout text " << example::my_own_do.get_indent() << ", \"" << example::my_own_do.margin().c_str() << "\", \"" << example::my_own_do.marker().c_str() << "\".");
 
@@ -161,7 +161,7 @@ MAIN_FUNCTION
   Debug( my_own_do.margin().assign("*", 1) );
   Debug( example::my_own_do.margin().assign("XYZ", 3) );
 
-  Dout(dc::warning, "Dout text " << libcw::debug::libcw_do.get_indent() << ", \"" << libcw::debug::libcw_do.margin().c_str() << "\", \"" << libcw::debug::libcw_do.marker().c_str() << "\".");
+  Dout(dc::warning, "Dout text " << libcwd::libcw_do.get_indent() << ", \"" << libcwd::libcw_do.margin().c_str() << "\", \"" << libcwd::libcw_do.marker().c_str() << "\".");
   MyOwnDout(dc::warning, "MyOwnDout text " << my_own_do.get_indent() << ", \"" << my_own_do.margin().c_str() << "\", \"" << my_own_do.marker().c_str() << "\".");
   ExampleDout(dc::warning, "ExampleDout text " << example::my_own_do.get_indent() << ", \"" << example::my_own_do.margin().c_str() << "\", \"" << example::my_own_do.marker().c_str() << "\".");
 
@@ -169,7 +169,7 @@ MAIN_FUNCTION
   Debug( my_own_do.margin().append("2Amy_own_do2", 12) );
   Debug( example::my_own_do.margin().append("2Aexample::my_own_do2", 21) );
 
-  Dout(dc::warning, "Dout text " << libcw::debug::libcw_do.get_indent() << ", \"" << libcw::debug::libcw_do.margin().c_str() << "\", \"" << libcw::debug::libcw_do.marker().c_str() << "\".");
+  Dout(dc::warning, "Dout text " << libcwd::libcw_do.get_indent() << ", \"" << libcwd::libcw_do.margin().c_str() << "\", \"" << libcwd::libcw_do.marker().c_str() << "\".");
   MyOwnDout(dc::warning, "MyOwnDout text " << my_own_do.get_indent() << ", \"" << my_own_do.margin().c_str() << "\", \"" << my_own_do.marker().c_str() << "\".");
   ExampleDout(dc::warning, "ExampleDout text " << example::my_own_do.get_indent() << ", \"" << example::my_own_do.margin().c_str() << "\", \"" << example::my_own_do.marker().c_str() << "\".");
 
@@ -177,7 +177,7 @@ MAIN_FUNCTION
   Debug( my_own_do.pop_margin() );
   Debug( example::my_own_do.pop_margin() );
 
-  Dout(dc::warning, "Dout text " << libcw::debug::libcw_do.get_indent() << ", \"" << libcw::debug::libcw_do.margin().c_str() << "\", \"" << libcw::debug::libcw_do.marker().c_str() << "\".");
+  Dout(dc::warning, "Dout text " << libcwd::libcw_do.get_indent() << ", \"" << libcwd::libcw_do.margin().c_str() << "\", \"" << libcwd::libcw_do.marker().c_str() << "\".");
   MyOwnDout(dc::warning, "MyOwnDout text " << my_own_do.get_indent() << ", \"" << my_own_do.margin().c_str() << "\", \"" << my_own_do.marker().c_str() << "\".");
   ExampleDout(dc::warning, "ExampleDout text " << example::my_own_do.get_indent() << ", \"" << example::my_own_do.margin().c_str() << "\", \"" << example::my_own_do.marker().c_str() << "\".");
 
@@ -185,7 +185,7 @@ MAIN_FUNCTION
   Debug( my_own_do.margin().append("3Amy_own_do3", 12) );
   Debug( example::my_own_do.margin().append("3Aexample::my_own_do3", 21) );
 
-  Dout(dc::warning, "Dout text " << libcw::debug::libcw_do.get_indent() << ", \"" << libcw::debug::libcw_do.margin().c_str() << "\", \"" << libcw::debug::libcw_do.marker().c_str() << "\".");
+  Dout(dc::warning, "Dout text " << libcwd::libcw_do.get_indent() << ", \"" << libcwd::libcw_do.margin().c_str() << "\", \"" << libcwd::libcw_do.marker().c_str() << "\".");
   MyOwnDout(dc::warning, "MyOwnDout text " << my_own_do.get_indent() << ", \"" << my_own_do.margin().c_str() << "\", \"" << my_own_do.marker().c_str() << "\".");
   ExampleDout(dc::warning, "ExampleDout text " << example::my_own_do.get_indent() << ", \"" << example::my_own_do.margin().c_str() << "\", \"" << example::my_own_do.marker().c_str() << "\".");
 
@@ -193,7 +193,7 @@ MAIN_FUNCTION
   Debug( my_own_do.pop_margin() );
   Debug( example::my_own_do.pop_margin() );
 
-  Dout(dc::warning, "Dout text " << libcw::debug::libcw_do.get_indent() << ", \"" << libcw::debug::libcw_do.margin().c_str() << "\", \"" << libcw::debug::libcw_do.marker().c_str() << "\".");
+  Dout(dc::warning, "Dout text " << libcwd::libcw_do.get_indent() << ", \"" << libcwd::libcw_do.margin().c_str() << "\", \"" << libcwd::libcw_do.marker().c_str() << "\".");
   MyOwnDout(dc::warning, "MyOwnDout text " << my_own_do.get_indent() << ", \"" << my_own_do.margin().c_str() << "\", \"" << my_own_do.marker().c_str() << "\".");
   ExampleDout(dc::warning, "ExampleDout text " << example::my_own_do.get_indent() << ", \"" << example::my_own_do.margin().c_str() << "\", \"" << example::my_own_do.marker().c_str() << "\".");
 
@@ -213,7 +213,7 @@ MAIN_FUNCTION
 
   my_own_do.set_ostream(&cout COMMA_THREADED(&cout_mutex));
   my_own_os = my_own_do.get_ostream();
-  libcwd_os = libcw::debug::libcw_do.get_ostream();
+  libcwd_os = libcwd::libcw_do.get_ostream();
 
   if (my_own_os != coutp
 #ifndef THREADTEST

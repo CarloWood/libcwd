@@ -11,13 +11,13 @@
 Whenever debug output is written, one or more <i>debug channels</i> must be specified.&nbsp;
 The debug output is then written to the ostream of the debug object
 unless the debug object is turned off or when all specified <i>debug channels</i> are off.&nbsp;
-Each <i>debug channel</i> can be turned \link libcw::debug::channel_ct::on on \endlink
-and \link libcw::debug::channel_ct::off off \endlink independently.&nbsp;
+Each <i>debug channel</i> can be turned \link libcwd::channel_ct::on on \endlink
+and \link libcwd::channel_ct::off off \endlink independently.&nbsp;
 
-Libcwd has defined six <i>debug channels</i> in namespace \link libcw::debug::channels::dc channels::dc \endlink
+Libcwd has defined six <i>debug channels</i> in namespace \link libcwd::channels::dc channels::dc \endlink
 (See \ref group_default_dc).&nbsp;
 New <i>debug channels</i> can be defined by the user, which is as simple as creating
-a new \link libcw::debug::channel_ct channel_ct \endlink object.
+a new \link libcwd::channel_ct channel_ct \endlink object.
 
 Example,
 
@@ -40,13 +40,13 @@ channels actually represent.
 <b>Example:</b>
 
 \code
-Dout(dc::notice, "Libcw is a great library");
+Dout(dc::notice, "Libcwd is a great library");
 \endcode
 
 gives as result
 
 \exampleoutput <PRE class="example-output">
-NOTICE: Libcw is a great library</PRE>
+NOTICE: Libcwd is a great library</PRE>
 \endexampleoutput
 
 and
@@ -58,7 +58,7 @@ namespace myapplication {
     namespace channels {	// Assuming DEBUGCHANNELS is ::myapplication::debug::channels
 
       namespace dc {
-	libcw::debug::channel_ct hello("HELLO");
+	libcwd::channel_ct hello("HELLO");
       }
 
     } // namespace DEBUGCHANNELS

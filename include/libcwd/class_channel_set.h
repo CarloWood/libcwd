@@ -28,8 +28,7 @@
 #include <libcwd/private_struct_TSD.h>
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 class debug_ct;
 struct debug_tsd_st;
@@ -129,8 +128,7 @@ public:
   continued_channel_set_st& operator|(control_flag_t cf);
 };
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_CHANNEL_SET_H
 

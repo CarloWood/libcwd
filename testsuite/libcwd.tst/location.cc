@@ -82,13 +82,13 @@ void libcwd_bfd_test3(void)
     }
 
 #if CWDEBUG_LOCATION
-    libcw::debug::location_ct loc((char*)retadr + libcw::debug::builtin_return_address_offset);
+    libcwd::location_ct loc((char*)retadr + libcwd::builtin_return_address_offset);
     Dout(dc::notice, "called from " << loc);
 
 #ifdef CW_FRAME_ADDRESS_OFFSET
     if (i < 5 && frame_return_address(i) != retadr)
       DoutFatal(dc::fatal, "frame_return_address(" << i << ") returns " <<
-          libcw::debug::location_ct((char*)frame_return_address(i) + builtin_return_address_offset) << "!");
+          libcwd::location_ct((char*)frame_return_address(i) + builtin_return_address_offset) << "!");
 #endif
 
     if (!loc.is_known())

@@ -30,11 +30,11 @@ MALLOC  : <continued> 0x[a-f0-9]*
 )
 NOTICE  : dlopen\(\./module\.so, RTLD_NOW\|RTLD_GLOBAL\) == 0x[a-f0-9]*
 MALLOC  : operator new \(size = 8\) = 0x[a-f0-9]*
-MALLOC  : New libcw::debug::marker_ct at 0x[a-f0-9]*
+MALLOC  : New libcwd::marker_ct at 0x[a-f0-9]*
 MALLOC  : malloc\(500\) = 0x[a-f0-9]*
 MALLOC  : malloc\(123\) = 0x[a-f0-9]*
 MALLOC  : operator new \(size = 8\) = 0x[a-f0-9]*
-MALLOC  : New libcw::debug::marker_ct at 0x[a-f0-9]*
+MALLOC  : New libcwd::marker_ct at 0x[a-f0-9]*
 // input lines 4
 // output till ^MALLOC  : malloc\(600\)
 (MALLOC  : realloc\(0x[a-f0-9]*, 1000\) = (|<unfinished>
@@ -50,9 +50,9 @@ MALLOC  : Allocated memory: [0-9]* bytes in 1[0-9] blocks:
         [0-9:.]* new\[\]     0x[a-f0-9]* module\.so:           module\.cc:47   char\[1000\]; \(sz = 1000\)  new1000
         [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:38   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* malloc    0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:193  void\*; \(sz = 123\)  Allocated between the two markers
-MALLOC  : Removing libcw::debug::marker_ct at 0x[a-f0-9]* \(marker2\)
+MALLOC  : Removing libcwd::marker_ct at 0x[a-f0-9]* \(marker2\)
 MALLOC  : delete 0x[a-f0-9]*            filter\.cc:196  <marker>; \(sz = 8\)  marker2 
-MALLOC  : Removing libcw::debug::marker_ct at 0x[a-f0-9]* \(marker1\)
+MALLOC  : Removing libcwd::marker_ct at 0x[a-f0-9]* \(marker1\)
   \* WARNING : Memory leak detected!
   \* realloc   0x[a-f0-9]* module\.so:/.*/testsuite/module\.cc:38   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
   \* new\[\]     0x[a-f0-9]* module\.so:/.*/testsuite/module\.cc:47   char\[1000\]; \(sz = 1000\)  new1000

@@ -18,11 +18,11 @@ the debug output better human readable.&nbsp;
 \code
 #ifdef CWDEBUG
 // Get the location that we were called from.
-libcw::debug::location_ct location((char*)__builtin_return_address(0)
-    + libcw::debug::builtin_return_address_offset);
+libcwd::location_ct location((char*)__builtin_return_address(0)
+    + libcwd::builtin_return_address_offset);
 // Demangle the function name of the location that we were called from.
 std::string demangled_function_name;
-libcw::debug::demangle_symbol(location.mangled_function_name(), demangled_function_name);
+libcwd::demangle_symbol(location.mangled_function_name(), demangled_function_name);
 // Print it.
 Dout(dc::notice, "This function was called from " << demangled_function_name << '(' << location << ')');
 #endif

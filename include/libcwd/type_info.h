@@ -30,8 +30,7 @@
 #include <cstddef>		// Needed for size_t
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 namespace _private_ {
   extern char const* make_label(char const* mangled_name);
@@ -112,38 +111,37 @@ namespace _private_ {
   template<typename T>
     type_info_ct const type_info<T*>::value_c(typeid(T*).name(), sizeof(T*), sizeof(T));
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+} // namespace _private_
+
+} // namespace libcwd
 
 //---------------------------------------------------------------------------------------------------
 // libcwd_type_info_exact
 
 template<typename T>
   struct libcwd_type_info_exact {
-    static ::libcw::debug::type_info_ct const value_c;
+    static ::libcwd::type_info_ct const value_c;
   };
 
 // Specialization for general pointers.
 template<typename T>
   struct libcwd_type_info_exact<T*> {
-    static ::libcw::debug::type_info_ct const value_c;
+    static ::libcwd::type_info_ct const value_c;
   };
 
 // Specialization for `void*'.
 template<>
   struct libcwd_type_info_exact<void*> {
-    static ::libcw::debug::type_info_ct const value_c;
+    static ::libcwd::type_info_ct const value_c;
   };
 
 template<typename T>
-  ::libcw::debug::type_info_ct const libcwd_type_info_exact<T>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(), typeid(T).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T), 0);
+  ::libcwd::type_info_ct const libcwd_type_info_exact<T>::value_c(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(), typeid(T).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T), 0);
 
 template<typename T>
-  ::libcw::debug::type_info_ct const libcwd_type_info_exact<T*>::value_c(::libcw::debug::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), sizeof(T));
+  ::libcwd::type_info_ct const libcwd_type_info_exact<T*>::value_c(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), sizeof(T));
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /** \addtogroup group_type_info */
 /** \{ */
@@ -159,7 +157,7 @@ template<typename T>
       );
 
 // This is really only necessary for GNU g++ version 2, otherwise
-// libcw::debug::type_info<>::value_c could be used directly.
+// libcwd::type_info<>::value_c could be used directly.
 /**
  * \brief Get type information of a given class or type.
  *
@@ -207,7 +205,6 @@ extern type_info_ct const unknown_type_info_c;
 
 /** \} */
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_TYPE_INFO_H

@@ -26,8 +26,7 @@
 #include <iosfwd>		// Needed for ostream.
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 //===================================================================================================
 // Flags used to mark the type of `memblk':
@@ -60,8 +59,7 @@ enum memblk_types_nt {
 
 extern ::std::ostream& operator<<(::std::ostream& os, memblk_types_nt);
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_ENUM_MEMBLK_TYPES_H
 

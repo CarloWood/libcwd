@@ -25,9 +25,8 @@
 #include <libcwd/private_struct_TSD.h>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 #if CWDEBUG_ALLOC
 #if CWDEBUG_DEBUGM
@@ -62,8 +61,7 @@ namespace libcw {
   __inline__ void set_invisible_off(LIBCWD_TSD_PARAM) { }
 #endif // !CWDEBUG_ALLOC
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H

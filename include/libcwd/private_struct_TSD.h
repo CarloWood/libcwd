@@ -45,13 +45,11 @@
 #endif
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
-      struct TSD_st;
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+namespace libcwd {
+  namespace _private_ {
+    struct TSD_st;
+  } // namespace _private_
+} // namespace libcwd
 
 // When LIBCWD_THREAD_SAFE is set then `__libcwd_tsd' is a local variable
 // (see LIBCWD_TSD_DECLARATION) or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
@@ -61,13 +59,13 @@ namespace libcw {
 
 #define LIBCWD_TSD __libcwd_tsd				// Optional `__libcwd_tsd' parameter (foo() or foo(__libcwd_tsd)).
 #define LIBCWD_COMMA_TSD , LIBCWD_TSD			// Idem, but as second or higher parameter.
-#define LIBCWD_TSD_PARAM ::libcw::debug::_private_::TSD_st& __libcwd_tsd
+#define LIBCWD_TSD_PARAM ::libcwd::_private_::TSD_st& __libcwd_tsd
 							// Optional function parameter (foo(void) or foo(TSD_st& __libcwd_tsd)).
 #define LIBCWD_COMMA_TSD_PARAM , LIBCWD_TSD_PARAM	// Idem, but as second or higher parameter.
-#define LIBCWD_TSD_INSTANCE ::libcw::debug::_private_::TSD_st::instance()
+#define LIBCWD_TSD_INSTANCE ::libcwd::_private_::TSD_st::instance()
 							// For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
 #define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE	// Idem, but as second or higher parameter.
-#define LIBCWD_TSD_DECLARATION ::libcw::debug::_private_::TSD_st& __libcwd_tsd(::libcw::debug::_private_::TSD_st::instance())
+#define LIBCWD_TSD_DECLARATION ::libcwd::_private_::TSD_st& __libcwd_tsd(::libcwd::_private_::TSD_st::instance())
 							// Declaration of local `__libcwd_tsd' structure reference.
 #define LIBCWD_DO_TSD(debug_object) (*__libcwd_tsd.do_array[(debug_object).WNS_index])
     							// For use inside class debug_ct to access member `m'.
@@ -102,9 +100,8 @@ namespace libcw {
 #include <libcwd/private_thread.h>
 #endif
 
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
+namespace libcwd {
+  namespace _private_ {
 
 extern int WST_initializing_TSD;
 class thread_ct;
@@ -215,14 +212,13 @@ TSD_st& TSD_st::instance_free(void)
 }
 #endif
 
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
+  } // namespace _private_
+} // namespace libcwd
  
 #if !LIBCWD_THREAD_SAFE
 // Put __libcwd_tsd in global namespace because anywhere we always refer to it
 // as `__libcwd_tsd' because when LIBCWD_THREAD_SAFE is set it is local variable.
-using ::libcw::debug::_private_::__libcwd_tsd;
+using ::libcwd::_private_::__libcwd_tsd;
 #endif
 
 #endif // LIBCWD_PRIVATE_STRUCT_TSD_H

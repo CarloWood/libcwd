@@ -18,9 +18,9 @@
 
 void test(void)
 {
-  libcw::debug::location_ct loc((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset);
+  libcwd::location_ct loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   std::string funcname;
-  libcw::debug::demangle_symbol(loc.mangled_function_name(), funcname);
+  libcwd::demangle_symbol(loc.mangled_function_name(), funcname);
   Dout(dc::notice, "Called from " << funcname );
 }
 
@@ -31,7 +31,7 @@ class A {
 
 A::A(void)
 {
-  Dout(dc::notice, "Called from " << location_ct((char*)__builtin_return_address(0) + libcw::debug::builtin_return_address_offset) );
+  Dout(dc::notice, "Called from " << location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) );
   test();
 }
 

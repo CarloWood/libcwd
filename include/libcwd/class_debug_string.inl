@@ -28,8 +28,7 @@
 #include <cstddef>		// Needed for size_t
 #endif
 
-namespace libcw {
-  namespace debug {
+namespace libcwd {
 
 /**
  * \brief Copy constructor.
@@ -147,7 +146,6 @@ debug_string_stack_element_ct::debug_string_stack_element_ct(debug_string_ct con
 {
 }
 
-  } // namespace debug
-} // namespace libcw
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_DEBUG_STRING_INL
