@@ -627,7 +627,15 @@ namespace {
     if (M_inside_type > 20)		// Rather than core dump.
       FAILURE;
     ++M_inside_substitution;
-    decode_type(output, qualifiers);
+    if (current() == 'X')
+    {
+      eat_current();
+      decode_expression(output);
+    }
+    else if (current() == 'L')
+      decode_literal(output);
+    else
+      decode_type(output, qualifiers);
     --M_inside_substitution;
     M_pos = saved_pos;
     RETURN;
@@ -636,6 +644,7 @@ namespace {
   bool demangler_ct::decode_literal(std::string& output)
   {
     DoutEntering("decode_literal");
+    eat_current();	// Eat the 'L'.
     if (current() == '_')
     {
       if (next() != 'Z')
@@ -894,7 +903,6 @@ namespace {
     }
     else if (current() == 'L')
     {
-      eat_current();
       if (!decode_literal(output))
         FAILURE;
       if (current() != 'E')
@@ -988,7 +996,6 @@ namespace {
       }
       else if (current() == 'L')
       {
-        eat_current();
         if (!decode_literal(output))
 	  FAILURE;
 	if (current() != 'E')
