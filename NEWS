@@ -6,6 +6,9 @@ libcwd-0.99.3
 	the construct that was used.  The new workaround works always
 	and is not anymore dependend on the CXXFLAGS being used.
 
+	Support for solaris has been added.  Tests were done on a 
+	sparc-sun-solaris2.7.
+
 libcwd-0.99.2
 
 	Configuration is now automated, using autoconf.  This removes
