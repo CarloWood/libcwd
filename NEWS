@@ -23,8 +23,8 @@ libcwd-0.99.29
 	The directory include/libcw was renamed to include/libcwd.
 	The headerfile sysd.h was renamed to sys.h.
 	The headerfile debug_config.h was renamed to config.h.
-	This means that will have to update your debug.h and sys.h
-	files for the applications that use libcwd:
+	This means that you will have to update your debug.h and
+	sys.h files for the applications that use libcwd:
 	#include <libcw/sysd.h>     --> #include <libcwd/sys.h>
 	#include <libcw/debug.h>    --> #include <libcwd/debug.h>
 	And, in case you use these:

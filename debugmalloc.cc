@@ -1529,7 +1529,7 @@ char const* diagnose_from(deallocated_from_nt from, bool internal, bool visible 
   return "Huh? Bug in libcwd!";
 }
 
-#define REST_OF_EXPLANATION " with alloc checking OFF (a libcwd 'internal' allocation).  Note that allocations done inside a 'Dout()' are 'internal' (which means that alloc_checking is off): don't allocate memory while writing debug output!"
+#define REST_OF_EXPLANATION " with alloc checking OFF (a libcwd 'internal' allocation)."
 
 char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 {
