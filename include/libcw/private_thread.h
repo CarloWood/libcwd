@@ -60,9 +60,9 @@ public:
 #endif
   pthread_t tid;			// Thread ID.
 
-  thread_ct(TSD_st* tsd_ptr) throw();
-  void initialize(TSD_st* tsd_ptr) throw();
-  void tsd_destroyed(void) throw();
+  thread_ct(TSD_st* tsd_ptr);
+  void initialize(TSD_st* tsd_ptr);
+  void tsd_destroyed(void);
   bool is_zombie(void) const { return !tsd; }
 };
 

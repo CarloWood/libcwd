@@ -26,7 +26,7 @@
 #else
 #define WRITE write
 #endif
-extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
+extern "C" ssize_t write(int fd, const void *buf, size_t count);
 
 #ifdef _REENTRANT
 #define LIBCWD_CANCELSTATE_DISABLE int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate)

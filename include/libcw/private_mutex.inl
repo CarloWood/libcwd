@@ -20,7 +20,7 @@ namespace libcw {
     namespace _private_ {
 
 __inline__
-void mutex_ct::initialize(void) throw()
+void mutex_ct::initialize(void)
 {
   if (M_initialized)	// Check if `M_mutex' already has been initialized.
     return;		// No need to lock: `M_initialized' is only set after it is
@@ -29,7 +29,7 @@ void mutex_ct::initialize(void) throw()
 }
 
 __inline__
-bool mutex_ct::trylock(void) throw()
+bool mutex_ct::trylock(void)
 {
   LibcwDebugThreads( LIBCWD_ASSERT( M_initialized ) );
   LibcwDebugThreads( LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ) );
@@ -53,7 +53,7 @@ bool mutex_ct::trylock(void) throw()
 }
 
 __inline__
-void mutex_ct::lock(void) throw()
+void mutex_ct::lock(void)
 {
   LibcwDebugThreads( LIBCWD_ASSERT( M_initialized ) );
   LibcwDebugThreads( LIBCWD_TSD_DECLARATION; LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ) );
@@ -87,7 +87,7 @@ void mutex_ct::lock(void) throw()
 }
 
 __inline__
-void mutex_ct::unlock(void) throw()
+void mutex_ct::unlock(void)
 {
 #if CWDEBUG_DEBUG
   M_instance_locked -= 1;
@@ -108,7 +108,7 @@ void mutex_ct::unlock(void) throw()
 
 #if CWDEBUG_DEBUG
 __inline__
-bool mutex_ct::is_locked(void) throw()
+bool mutex_ct::is_locked(void)
 {
   return M_instance_locked > 0;
 }

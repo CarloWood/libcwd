@@ -95,15 +95,15 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
     static void deallocate(deallocate_pointer p, size_t n);
     static void deallocate(deallocate_pointer p);
 
-    allocator_adaptor(void) throw() { }
-    allocator_adaptor(allocator_adaptor const& a) throw() :
+    allocator_adaptor(void) { }
+    allocator_adaptor(allocator_adaptor const& a) :
         M_underlying_alloc(a.M_underlying_alloc) { }
     template <class T1>
-      allocator_adaptor(allocator_adaptor<T1, X, internal LIBCWD_COMMA_INSTANCE> const& a) throw() :
+      allocator_adaptor(allocator_adaptor<T1, X, internal LIBCWD_COMMA_INSTANCE> const& a) :
           M_underlying_alloc(a.M_underlying_alloc) { }
-    ~allocator_adaptor() throw() { }
+    ~allocator_adaptor() { }
 
-    size_type max_size(void) const throw() { return size_t(-1) / sizeof(T); }
+    size_type max_size(void) const { return size_t(-1) / sizeof(T); }
        
     void construct(pointer p, const_reference t) { new((void*)p) T(t); }
     void destroy(pointer p) { p->~T(); }

@@ -40,15 +40,15 @@ public:
 #endif
 protected:
   bool M_initialized;
-  void M_initialize(void) throw();
+  void M_initialize(void);
 public:
-  void initialize(void) throw();
+  void initialize(void);
 public:
-  bool trylock(void) throw();
-  void lock(void) throw();
-  void unlock(void) throw();
+  bool trylock(void);
+  void lock(void);
+  void unlock(void);
 #if CWDEBUG_DEBUG
-  bool is_locked(void) throw();
+  bool is_locked(void);
 #endif
 };
 

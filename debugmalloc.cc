@@ -794,7 +794,7 @@ public:
   bool is_deleted(void) const;
   size_t size(void) const { return a_size; }
   void printOn(std::ostream& os) const;
-  static void descend_current_alloc_list(LIBCWD_TSD_PARAM) throw();			// MT-safe: write lock is set.
+  static void descend_current_alloc_list(LIBCWD_TSD_PARAM);			// MT-safe: write lock is set.
   friend inline std::ostream& operator<<(std::ostream& os, dm_alloc_ct const& alloc) { alloc.printOn(os); return os; }
   friend inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, dm_alloc_ct const& alloc) { alloc.printOn(os.M_os); return os; }
 };
@@ -832,7 +832,7 @@ dm_alloc_copy_ct* dm_alloc_copy_ct::deep_copy(dm_alloc_ct const* alloc)
 typedef dm_alloc_ct const const_dm_alloc_ct;
 
 // Set `CURRENT_ALLOC_LIST' back to its parent list.
-void dm_alloc_ct::descend_current_alloc_list(LIBCWD_TSD_PARAM) throw()			// MT-safe: write lock is set.
+void dm_alloc_ct::descend_current_alloc_list(LIBCWD_TSD_PARAM)			// MT-safe: write lock is set.
 {
   if (CURRENT_OWNER_NODE)
   {

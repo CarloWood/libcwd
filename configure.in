@@ -139,6 +139,10 @@ dnl Clear the cache values of all remaining tests if important
 dnl environment variables have been changed since last run.
 CW_CLEAN_CACHE
 
+dnl We need to use this in order to avoid calls to calloc()
+dnl from __pthread_setspecific when being 'internal'.
+EXTRAOPTS='-fno-exceptions'
+
 dnl Add -pipe to EXTRAOPTS if possible
 CW_PIPE_EXTRAOPTS
 

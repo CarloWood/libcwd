@@ -85,7 +85,7 @@ namespace libcw {
   namespace debug {
     namespace _private_ {
 
-extern void initialize_global_mutexes(void) throw();
+extern void initialize_global_mutexes(void);
 extern bool WST_multi_threaded;
 
 #if CWDEBUG_DEBUGT
@@ -226,10 +226,10 @@ template <int instance>
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   protected:
     static bool S_initialized;
-    static void S_initialize(void) throw();
+    static void S_initialize(void);
 #endif
   public:
-    static void initialize(void) throw()
+    static void initialize(void)
 #if LIBCWD_USE_LINUXTHREADS && !CWDEBUG_DEBUGT
 	{ }
 #else
@@ -241,7 +241,7 @@ template <int instance>
         }
 #endif
   public:
-    static bool trylock(void) throw()
+    static bool trylock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
@@ -263,7 +263,7 @@ template <int instance>
       LibcwDebugThreads( if (success) { LIBCWD_TSD_DECLARATION; ++__libcwd_tsd.inside_critical_area; } );
       return success;
     }
-    static void lock(void) throw()
+    static void lock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
@@ -303,7 +303,7 @@ template <int instance>
 #endif
 #endif
     }
-    static void unlock(void) throw()
+    static void unlock(void)
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG
@@ -322,7 +322,7 @@ template <int instance>
       LibcwDebugThreads( if (instance != tsd_initialization_instance) { LIBCWD_TSD_DECLARATION; --__libcwd_tsd.inside_critical_area; } );
     }
     // This is used as cleanup handler with LIBCWD_DEFER_CLEANUP_PUSH.
-    static void cleanup(void*) throw();
+    static void cleanup(void*);
   };
 
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
@@ -330,7 +330,7 @@ template <int instance>
   bool mutex_tct<instance>::S_initialized = false;
 
 template <int instance>
-  void mutex_tct<instance>::S_initialize(void) throw()
+  void mutex_tct<instance>::S_initialize(void)
   {
     if (instance == mutex_initialization_instance)	// Specialization.
     {
@@ -392,7 +392,7 @@ template <>
 #endif // !LIBCWD_USE_LINUXTHREADS
 
 template <int instance>
-  void mutex_tct<instance>::cleanup(void*) throw()
+  void mutex_tct<instance>::cleanup(void*)
   {
     unlock();
   }
@@ -407,10 +407,10 @@ template <int instance>
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
     static bool S_initialized;
   private:
-    static void S_initialize(void) throw();
+    static void S_initialize(void);
 #endif
   public:
-    static void initialize(void) throw()
+    static void initialize(void)
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
 	{
 	  if (S_initialized)
@@ -433,7 +433,7 @@ template <int instance>
 
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
 template <int instance>
-  void cond_tct<instance>::S_initialize(void) throw()
+  void cond_tct<instance>::S_initialize(void)
   {
 #if !LIBCWD_USE_LINUXTHREADS
     mutex_tct<mutex_initialization_instance>::initialize();
@@ -500,7 +500,7 @@ template <int instance>
     static bool S_initialized;				// Set when initialized.
 #endif
   public:
-    static void initialize(void) throw()
+    static void initialize(void)
     {
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
       if (S_initialized)
@@ -512,7 +512,7 @@ template <int instance>
       S_initialized = true;
 #endif
     }
-    static bool tryrdlock(void) throw()
+    static bool tryrdlock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
@@ -553,7 +553,7 @@ template <int instance>
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::tryrdlock()");
       return success;
     }
-    static bool trywrlock(void) throw()
+    static bool trywrlock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
@@ -589,7 +589,7 @@ template <int instance>
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::trywrlock()");
       return success;
     }
-    static void rdlock(bool high_priority = false) throw()
+    static void rdlock(bool high_priority = false)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
@@ -652,7 +652,7 @@ template <int instance>
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdlock()");
     }
-    static void rdunlock(void) throw()
+    static void rdunlock(void)
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::rdunlock()");
@@ -676,7 +676,7 @@ template <int instance>
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdunlock()");
     }
-    static void wrlock(void) throw()
+    static void wrlock(void)
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
@@ -712,7 +712,7 @@ template <int instance>
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrlock()");
     }
-    static void wrunlock(void) throw()
+    static void wrunlock(void)
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG
@@ -731,7 +731,7 @@ template <int instance>
       S_no_holders_condition.unlock();
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrunlock()");
     }
-    static void rd2wrlock(void) throw()
+    static void rd2wrlock(void)
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::rd2wrlock()");
@@ -776,7 +776,7 @@ template <int instance>
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rd2wrlock()");
     }
-    static void wr2rdlock(void) throw()
+    static void wr2rdlock(void)
     {
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG
@@ -838,7 +838,7 @@ template <int instance>
       rdunlock();
   }
 
-extern void fatal_cancellation(void*) throw();
+extern void fatal_cancellation(void*);
 
     } // namespace _private_
   } // namespace debug

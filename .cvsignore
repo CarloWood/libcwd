@@ -31,3 +31,4 @@ libcwd.spec
 libcwd.lsm
 rpm
 autom4te*.cache
+ChangeLog

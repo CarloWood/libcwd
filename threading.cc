@@ -35,7 +35,7 @@ void const* locked_from[instance_locked_size];
 #endif
 #endif
 
-void initialize_global_mutexes(void) throw()
+void initialize_global_mutexes(void)
 {
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   mutex_tct<mutex_initialization_instance>::initialize();
@@ -65,7 +65,7 @@ template <>
   pthread_mutex_t mutex_tct<tsd_initialization_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
-void mutex_ct::M_initialize(void) throw()
+void mutex_ct::M_initialize(void)
 {
   pthread_mutexattr_t mutex_attr;
 #if CWDEBUG_DEBUGT
@@ -77,7 +77,7 @@ void mutex_ct::M_initialize(void) throw()
   M_initialized = true;
 }
 
-void fatal_cancellation(void* arg) throw()
+void fatal_cancellation(void* arg)
 {
   char* text = static_cast<char*>(arg);
   Dout(dc::core, "Cancelling a thread " << text << ".  This is not supported by libcwd, sorry.");
@@ -96,7 +96,7 @@ pthread_once_t TSD_st::S_exit_key_once = PTHREAD_ONCE_INIT;
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
 void threading_tsd_init(LIBCWD_TSD_PARAM);
 
-void TSD_st::S_initialize(void) throw()
+void TSD_st::S_initialize(void)
 {
   int oldtype;
   pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldtype);
@@ -136,12 +136,12 @@ void TSD_st::S_initialize(void) throw()
   pthread_setcanceltype(oldtype, NULL);
 }
 
-void TSD_st::S_exit_key_alloc(void) throw()
+void TSD_st::S_exit_key_alloc(void)
 {
   pthread_key_create(&S_exit_key, &TSD_st::S_cleanup_routine);
 }
 
-void TSD_st::cleanup_routine(void) throw()
+void TSD_st::cleanup_routine(void)
 {
   set_alloc_checking_off(*this);
   for (int i = 0; i < LIBCWD_DO_MAX; ++i)
@@ -159,7 +159,7 @@ void TSD_st::cleanup_routine(void) throw()
   terminated = true;
 }
 
-void TSD_st::S_cleanup_routine(void* arg) throw()
+void TSD_st::S_cleanup_routine(void* arg)
 {
   TSD_st* obj = reinterpret_cast<TSD_st*>(arg);
   obj->cleanup_routine();
@@ -279,7 +279,7 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
 // (see thread_ct::initialize) will use allocator_adaptor<> which will
 // try to dereference TSD_st::thread_iter which is not initialized yet because
 // this object isn't yet added to threadlist at the moment of its construction.
-thread_ct::thread_ct(TSD_st* tsd_ptr) throw()
+thread_ct::thread_ct(TSD_st* tsd_ptr)
 {
   std::memset(this, 0 , sizeof(thread_ct));		// This is ok: we have no virtual table or base classes.
   tsd = tsd_ptr;
@@ -294,7 +294,7 @@ thread_ct::thread_ct(TSD_st* tsd_ptr) throw()
 #if CWDEBUG_ALLOC
 extern void* new_memblk_map(LIBCWD_TSD_PARAM);
 #endif
-void thread_ct::initialize(TSD_st* tsd_ptr) throw()
+void thread_ct::initialize(TSD_st* tsd_ptr)
 {
 #if CWDEBUG_ALLOC
 #if CWDEBUG_DEBUGT
@@ -319,7 +319,7 @@ void thread_ct::initialize(TSD_st* tsd_ptr) throw()
 // is being reused, which is currently our only way to know
 // for sure that the corresponding thread has terminated.
 extern bool delete_memblk_map(void* memblk_map LIBCWD_COMMA_TSD_PARAM);
-void thread_ct::tsd_destroyed(void) throw()
+void thread_ct::tsd_destroyed(void)
 {
 #if CWDEBUG_ALLOC
 #if CWDEBUG_DEBUGT

@@ -1,3 +1,21 @@
+libcwd-0.99.24
+
+        Bug fixes:
+
+	https://sourceforge.net/tracker/?func=detail&atid=449767&aid=573370&group_id=47536
+	has been fixed.  When gcc is configured with --enable-sjlj-exceptions
+	then every call to C++ functions is accompanied by a call to
+	_Unwind_SjLj_Register that calls __pthread_setspecific that
+	calls calloc.  We can't have that for two reasons: Firstly,
+	it causes easily an infinite recursion when a C++ function is
+	called from calloc (which is what we obviously do) and
+	secondly, when libcwd is doing internal allocations it also
+	calls (C++) functions which then would cause the allocations
+	done by __pthread_setspecific to be 'internal' and that causes
+	problems as well.  The solution was to compile libcwd with
+	-fno-exceptions.  Of course you can still use exceptions in
+	the applications that link with libcwd.
+
 libcwd-0.99.23
 
 	The "Overview Of Allocated Memory" filter (ooam_filter_ct)

@@ -149,11 +149,11 @@ public:
   pid_t pid;				// Process ID.
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
-  void cleanup_routine(void) throw();
+  void cleanup_routine(void);
   int off_cnt_array[LIBCWD_DC_MAX];	// Thread Specific Data of Debug Channels.
 #endif
 
-  void S_initialize(void) throw();
+  void S_initialize(void);
 
 #if LIBCWD_THREAD_SAFE
 //-------------------------------------------------------
@@ -161,11 +161,11 @@ public:
 private:
   static pthread_key_t S_exit_key;
   static pthread_once_t S_exit_key_once;
-  static void S_exit_key_alloc(void) throw();
-  static void S_cleanup_routine(void* arg) throw();
+  static void S_exit_key_alloc(void);
+  static void S_cleanup_routine(void* arg);
 
 public:
-  static TSD_st& instance(void) throw();
+  static TSD_st& instance(void);
 #endif // LIBCWD_THREAD_SAFE
 };
 
@@ -188,7 +188,7 @@ get_tsd_instance(pthread_t tid)
 }
 
 __inline__
-TSD_st& TSD_st::instance(void) throw()
+TSD_st& TSD_st::instance(void)
 {
   pthread_t tid = pthread_self();
   TSD_st* instance = get_tsd_instance(tid);
