@@ -68,6 +68,7 @@ using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::object_files_instance;
 using libcw::debug::_private_::dlopen_map_instance;
+#define BFD_INITIALIZE_LOCK		rwlock_tct<object_files_instance>::initialize();
 #define BFD_ACQUIRE_WRITE_LOCK	        rwlock_tct<object_files_instance>::wrlock();
 #define BFD_RELEASE_WRITE_LOCK	        rwlock_tct<object_files_instance>::wrunlock();
 #define BFD_ACQUIRE_READ_LOCK	        rwlock_tct<object_files_instance>::rdlock();
@@ -77,6 +78,7 @@ using libcw::debug::_private_::dlopen_map_instance;
 #define DLOPEN_MAP_ACQUIRE_LOCK	        mutex_tct<dlopen_map_instance>::lock();
 #define DLOPEN_MAP_RELEASE_LOCK	        mutex_tct<dlopen_map_instance>::unlock();
 #else // !LIBCWD_THREAD_SAFE
+#define BFD_INITIALIZE_LOCK
 #define BFD_ACQUIRE_WRITE_LOCK
 #define BFD_RELEASE_WRITE_LOCK
 #define BFD_ACQUIRE_READ_LOCK
@@ -1010,6 +1012,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	// but the sanity checks inside the allocators used in load_object_file()
 	// require the lock to be set.  Fortunately is therefore also doesn't hurt
 	// that we keep the lock a long time (during the execution of ldd_prog).
+	BFD_INITIALIZE_LOCK
         BFD_ACQUIRE_WRITE_LOCK
 	load_object_file(fullpath.value->data(), 0);
 

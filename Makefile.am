@@ -26,6 +26,7 @@ libcwd_la_SOURCES = \
 	debugmalloc.cc \
 	demangle.cc \
 	demangle3.cc \
+	semwrapper.cc \
 	strerrno.cc \
 	type_info.cc
 

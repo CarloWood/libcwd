@@ -39,7 +39,7 @@
 
 #ifdef LIBCWD_HAVE_PTHREAD
 #include <pthread.h>
-#include <semaphore.h>
+#include <libcw/semwrapper.h>
 #if defined(PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP) && defined(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP)
 #define LIBCWD_USE_LINUXTHREADS
 #else
@@ -60,6 +60,30 @@
 #endif
 #endif
 
+#ifdef LIBCWD_THREAD_SAFE
+#define LIBCWD_TSD_INSTANCE ::libcw::debug::_private_::\
+    thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance()
+	// For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
+#define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE
+	// Idem, but as second or higher parameter.
+#define LIBCWD_TSD_DECLARATION ::libcw::debug::_private_::\
+    TSD_st& __libcwd_tsd(::libcw::debug::_private_::\
+	                 thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance());
+	// Declaration of local `__libcwd_tsd' structure reference.
+#define LIBCWD_DO_TSD(debug_object) (__libcwd_tsd.do_array[(debug_object).WNS_index])
+    	// For use inside class debug_ct to access member `m'.
+#else // !LIBCWD_THREAD_SAFE
+#define LIBCWD_TSD_INSTANCE
+#define LIBCWD_COMMA_TSD_INSTANCE
+#define LIBCWD_TSD_DECLARATION
+#define LIBCWD_DO_TSD(debug_object) ((debug_object).tsd)
+#endif // !LIBCWD_THREAD_SAFE
+
+#define LIBCWD_DO_TSD_MEMBER(debug_object, m) (LIBCWD_DO_TSD(debug_object).m)
+#define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
+
+#ifdef LIBCWD_THREAD_SAFE
+
 namespace libcw {
   namespace debug {
     namespace _private_ {
@@ -67,9 +91,6 @@ namespace libcw {
 #ifdef DEBUGDEBUG
 extern bool WST_multi_threaded;
 #endif
-
-//===================================================================================================
-// Thread Specific Data.
 
 #if defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
 template<class TSD>
@@ -94,41 +115,6 @@ template<class TSD>
     static bool initialized(void) { return S_WNS_initialized; }
   };
 #endif // defined(LIBCWD_USE_POSIX_THREADS) || defined(LIBCWD_USE_LINUXTHREADS)
-
-    } // namespace _private_
-  } // namespace debug
-} // namespace libcw
- 
-#ifdef LIBCWD_THREAD_SAFE
-#define LIBCWD_TSD_INSTANCE ::libcw::debug::_private_::\
-    thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance()
-	// For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
-#define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE
-	// Idem, but as second or higher parameter.
-#define LIBCWD_TSD_DECLARATION ::libcw::debug::_private_::\
-    TSD_st& __libcwd_tsd(::libcw::debug::_private_::\
-	                 thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance());
-	// Declaration of local `__libcwd_tsd' structure reference.
-#define LIBCWD_DO_TSD(debug_object) (__libcwd_tsd.do_array[(debug_object).WNS_index])
-    	// For use inside class debug_ct to access member `m'.
-#else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_TSD_INSTANCE
-#define LIBCWD_COMMA_TSD_INSTANCE
-#define LIBCWD_TSD_DECLARATION
-#define LIBCWD_DO_TSD(debug_object) ((debug_object).tsd)
-#endif // !LIBCWD_THREAD_SAFE
-
-#define LIBCWD_DO_TSD_MEMBER(debug_object, m) (LIBCWD_DO_TSD(debug_object).m)
-#define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
-
-// End of Thread Specific Data
-//===================================================================================================
-
-#ifdef LIBCWD_THREAD_SAFE
-
-namespace libcw {
-  namespace debug {
-    namespace _private_ {
 
 //===================================================================================================
 //
@@ -349,10 +335,10 @@ template <int instance>
 #if LIBCWD_DEBUGTHREADS
       int res =
 #endif
-      sem_init(&S_no_readers_left, 0, 1);
+      LIBCWD_SEM(init)(&S_no_readers_left, 0, 1);
       FATALDEBUGDEBUG_CERR("res == " << res << "; &S_no_readers_left = " << (void*)&S_no_readers_left);
       int val;
-      sem_getvalue(&S_no_readers_left, &val);
+      LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
       FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " contains value " << val << "; (__sem_value = " << S_no_readers_left.__sem_value << ')');
       FATALDEBUGDEBUG_CERR(pthread_self() << ": S_no_readers_left.__sem_lock: __status = " << S_no_readers_left.__sem_lock.__status << ", __spinlock = " << S_no_readers_left.__sem_lock.__spinlock << ", __sem_waiting = " << S_no_readers_left.__sem_waiting);
 #if LIBCWD_DEBUGTHREADS
@@ -379,7 +365,7 @@ template <int instance>
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::tryrdlock()");
         return false;
       }
-      bool success = (++S_readers_count != 1) || (sem_trywait(&S_no_readers_left) == 0);
+      bool success = (++S_readers_count != 1) || (LIBCWD_SEM(trywait)(&S_no_readers_left) == 0);
       if (!success)
 	S_readers_count = 0;
       mutex_tct<readers_count_instance>::unlock();
@@ -394,9 +380,9 @@ template <int instance>
       FATALDEBUGDEBUG_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::trywrlock()");
 #ifndef DEBUGDEBUG
       FATALDEBUGDEBUG_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::trywrlock()");
-      return sem_trywait(&S_no_readers_left) == 0;
+      return LIBCWD_SEM(trywait)(&S_no_readers_left) == 0;
 #else
-      bool res = (sem_trywait(&S_no_readers_left) == 0);
+      bool res = (LIBCWD_SEM(trywait)(&S_no_readers_left) == 0);
       if (res)
 	instance_locked[instance] += 1;
       FATALDEBUGDEBUG_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::trywrlock()");
@@ -424,12 +410,12 @@ template <int instance>
       if (++S_readers_count == 1)
       {
 	int val;
-	sem_getvalue(&S_no_readers_left, &val);
+	LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " contains value " << val << "; (__sem_value = " << S_no_readers_left.__sem_value << ')');
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": S_no_readers_left.__sem_lock: __status = " << S_no_readers_left.__sem_lock.__status << ", __spinlock = " << S_no_readers_left.__sem_lock.__spinlock << ", __sem_waiting = " << S_no_readers_left.__sem_waiting);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": Calling sem_wait...");
-        sem_wait(&S_no_readers_left);			// Warning: must be done while S_readers_count is still locked!
-	sem_getvalue(&S_no_readers_left, &val);
+        LIBCWD_SEM(wait)(&S_no_readers_left);			// Warning: must be done while S_readers_count is still locked!
+	LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " now contains value " << val);
       }
       mutex_tct<readers_count_instance>::unlock();
@@ -448,12 +434,12 @@ template <int instance>
       if (--S_readers_count == 0)
       {
 	int val;
-	sem_getvalue(&S_no_readers_left, &val);
+	LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " contains value " << val << "; (__sem_value = " << S_no_readers_left.__sem_value << ')');
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": S_no_readers_left.__sem_lock: __status = " << S_no_readers_left.__sem_lock.__status << ", __spinlock = " << S_no_readers_left.__sem_lock.__spinlock << ", __sem_waiting = " << S_no_readers_left.__sem_waiting);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": Calling sem_post...");
-        sem_post(&S_no_readers_left);
-	sem_getvalue(&S_no_readers_left, &val);
+        LIBCWD_SEM(post)(&S_no_readers_left);
+	LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " now contains value " << val);
       }
       mutex_tct<readers_count_instance>::unlock();
@@ -470,12 +456,12 @@ template <int instance>
       if (1)
       {
 	int val;
-	sem_getvalue(&S_no_readers_left, &val);
+	LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " contains value " << val << "; (__sem_value = " << S_no_readers_left.__sem_value << ')');
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": S_no_readers_left.__sem_lock: __status = " << S_no_readers_left.__sem_lock.__status << ", __spinlock = " << S_no_readers_left.__sem_lock.__spinlock << ", __sem_waiting = " << S_no_readers_left.__sem_waiting);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": Calling sem_wait...");
-        sem_wait(&S_no_readers_left);			// Warning: must be done while S_readers_count is still locked!
-	sem_getvalue(&S_no_readers_left, &val);
+        LIBCWD_SEM(wait)(&S_no_readers_left);			// Warning: must be done while S_readers_count is still locked!
+	LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " now contains value " << val);
       }
       if (instance < end_recursive_types)
@@ -498,12 +484,12 @@ template <int instance>
       if(1)
       {
 	int val;
-	sem_getvalue(&S_no_readers_left, &val);
+	LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " contains value " << val << "; (__sem_value = " << S_no_readers_left.__sem_value << ')');
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": S_no_readers_left.__sem_lock: __status = " << S_no_readers_left.__sem_lock.__status << ", __spinlock = " << S_no_readers_left.__sem_lock.__spinlock << ", __sem_waiting = " << S_no_readers_left.__sem_waiting);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": Calling sem_post...");
-        sem_post(&S_no_readers_left);
-	sem_getvalue(&S_no_readers_left, &val);
+        LIBCWD_SEM(post)(&S_no_readers_left);
+	LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " now contains value " << val);
       }
       FATALDEBUGDEBUG_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrunlock()");
@@ -521,12 +507,12 @@ template <int instance>
 	if (1)
 	{
 	  int val;
-	  sem_getvalue(&S_no_readers_left, &val);
+	  LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	  FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " contains value " << val << "; (__sem_value = " << S_no_readers_left.__sem_value << ')');
 	  FATALDEBUGDEBUG_CERR(pthread_self() << ": S_no_readers_left.__sem_lock: __status = " << S_no_readers_left.__sem_lock.__status << ", __spinlock = " << S_no_readers_left.__sem_lock.__spinlock << ", __sem_waiting = " << S_no_readers_left.__sem_waiting);
 	  FATALDEBUGDEBUG_CERR(pthread_self() << ": Calling sem_wait...");
-	  sem_wait(&S_no_readers_left);			// Warning: must be done while S_readers_count is still locked!
-	  sem_getvalue(&S_no_readers_left, &val);
+	  LIBCWD_SEM(wait)(&S_no_readers_left);			// Warning: must be done while S_readers_count is still locked!
+	  LIBCWD_SEM(getvalue)(&S_no_readers_left, &val);
 	  FATALDEBUGDEBUG_CERR(pthread_self() << ": &S_no_readers_left " << &S_no_readers_left << " now contains value " << val);
 	}
         if (instance < end_recursive_types)
@@ -650,6 +636,8 @@ extern void initialize_global_mutexes(void) throw();
     } // namespace _private_
   } // namespace debug
 } // namespace libcw
+
+#undef LIBCWD_SEM
 
 #endif // LIBCWD_THREAD_SAFE
 #endif // LIBCW_PRIVATE_THREADING_H
