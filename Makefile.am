@@ -1,4 +1,5 @@
 ## Process this file with automake to generate Makefile.in
+.PHONY: example-project_debug.h
 
 AUTOMAKE_OPTIONS = foreign
 
