@@ -151,9 +151,26 @@ libtw::debug::ooam_filter_ct leak_filter(libtw::debug::show_time);
 #include "../libcwd.tst/filter.cc"
 
 typedef void* (*thread_func_t)(void*);
-thread_func_t progs[] = { alloctag_prog, basic_prog, location_prog, cf_prog, /*continued_prog,*/ dc_prog,
-    demangler_prog, dlopen_prog, do_prog, flush_prog, leak_prog, lockable_auto_ptr_prog, /*magic_prog,*/
-    marker_prog, strdup_prog, test_delete_prog, type_info_prog, filter_prog };
+thread_func_t progs[] = {
+    alloctag_prog,
+    basic_prog,
+    location_prog,
+    cf_prog,
+    //continued_prog,
+    dc_prog,
+    demangler_prog,
+    dlopen_prog,
+    do_prog,
+    flush_prog,
+    leak_prog,
+    lockable_auto_ptr_prog,
+    //magic_prog,
+    marker_prog,
+    strdup_prog,
+    test_delete_prog,
+    type_info_prog,
+    filter_prog
+};
 int const number_of_threads = sizeof(progs)/sizeof(thread_func_t);
 
 #ifdef TWDEBUG
