@@ -2,8 +2,8 @@
 // input lines 3
 // output till ^void
 ((WARNING : core size is limited.*
-)*BFD     : Loading debug info from.*
-)*
+)*(BFD     : Loading debug info from.*
+)*)
 void libcw_app_ct::add_option<libcw_app_ct>\(void \(libcw_app_ct::\*\)\((libcw_app_ct\*, )*char const\*\), char const\*, char, char const\*, char const\*\)
 (guard variable for libcw::\(anonymous namespace\)|libcw::{anonymous})::compiler_bug_workaround<(std::)*vector<libcw::omanip_id_tct<libcw::debug::memblk_types_manipulator_data_ct>, (std::)*allocator<libcw::omanip_id_tct<libcw::debug::memblk_types_manipulator_data_ct> > > >::ids
 libcw::debug::cwprint_using_tct<libcw::_private_::GlobalObject> libcw::debug::cwprint_using<libcw::_private_::GlobalObject>\(libcw::_private_::GlobalObject const&, void \(libcw::_private_::GlobalObject::\*\)\((libcw::_private_::GlobalObject const\*, )*(std::)*ostream&\) const\)

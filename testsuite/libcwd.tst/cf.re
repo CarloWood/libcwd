@@ -1,8 +1,8 @@
 // input lines 3
 // output till ^MARGINNOTICE
 ((WARNING : core size is limited.*
-)*BFD     : Loading debug info from.*
-)*
+)*(BFD     : Loading debug info from.*
+)*)
 // type exact
 MARGINNOTICE  MARKER   xMARGINNOTICE  MARKER   yMARGINNOTICE  MARKER   z<newline>
 MARGINNOTICE  MARKER   <no flags>

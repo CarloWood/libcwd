@@ -1,8 +1,8 @@
 // input lines 3
 // output till ^BFD     : Disabled
 ((WARNING : core size is limited.*
-)*BFD     : Loading debug info from.*
-)*
+)*(BFD     : Loading debug info from.*
+)*)
 BFD     : Disabled
 DEBUG   : Disabled
 MALLOC  : Enabled
