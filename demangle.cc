@@ -168,6 +168,7 @@ namespace libcw {
 
     namespace {	// Local definitions
       using _private_::internal_string;
+      using _private_::internal_vector;
 
       // {anonymous}::
       enum cdtor_nt {
@@ -177,9 +178,9 @@ namespace libcw {
       };
 
       // {anonymous}::
-      vector<char const*>* template_parameters;
+      internal_vector<char const*>* template_parameters;
       // {anonymous}::
-      vector<char const*>* previous_types;
+      internal_vector<char const*>* previous_types;
 
       // {anonymous} prototypes.
       bool symbol_type(char const*, cdtor_nt, internal_string&, internal_string&);
@@ -253,10 +254,10 @@ namespace libcw {
       char const* p = input;
 
       // Initialize list of previous types and template parameters.
-      vector<char const*> current_template_parameters;
-      vector<char const*> current_previous_types;
-      vector<char const*>* previous_template_parameters = template_parameters;
-      vector<char const*>* previous_previous_types = previous_types;
+      internal_vector<char const*> current_template_parameters;
+      internal_vector<char const*> current_previous_types;
+      internal_vector<char const*>* previous_template_parameters = template_parameters;
+      internal_vector<char const*>* previous_previous_types = previous_types;
       template_parameters = &current_template_parameters;
       previous_types = &current_previous_types;
 
@@ -418,10 +419,10 @@ namespace libcw {
       }
 
       // Initialize list of previous types and template parameters.
-      vector<char const*> current_template_parameters;
-      vector<char const*> current_previous_types;
-      vector<char const*>* previous_template_parameters = template_parameters;
-      vector<char const*>* previous_previous_types = previous_types;
+      internal_vector<char const*> current_template_parameters;
+      internal_vector<char const*> current_previous_types;
+      internal_vector<char const*>* previous_template_parameters = template_parameters;
+      internal_vector<char const*>* previous_previous_types = previous_types;
       template_parameters = &current_template_parameters;
       previous_types = &current_previous_types;
 

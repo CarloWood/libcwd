@@ -186,9 +186,14 @@ using libcw::debug::_private_::memblk_map_instance;
 #define ACQUIRE_WRITE2READ_LOCK
 #endif // !_REENTRANT
 
+#ifdef LIBCW_DOXYGEN
+// Doxygen doesn't parse the define below.  On linux this evaluates to 0.
+#define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE 0
+#else
 #define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE \
     (defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && defined(HAVE_DLOPEN) \
      && !defined(LIBCWD_HAVE__LIBC_MALLOC) && !defined(LIBCWD_HAVE___LIBC_MALLOC))
+#endif
 
 #ifdef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 

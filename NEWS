@@ -12,6 +12,19 @@ libcwd-0.99.19
 	ALL allocations are accounted, including those done by third
 	party libraries.
 
+	Bug fixes:
+
+	The demangler for the old ABI (g++ versions <= 2.96)
+	still contained a (non-internal) std::vector causing a
+	dead lock while demangling the functionname in which another
+	STL allocation is done (which uses a single mutex).
+	[ Thus: STL container allocation --> sets lock --> calls
+	  malloc --> looks up location --> demangles function name
+	  --> uses STL vector --> tries another allocation -->
+	  dead lock ].  This problem did not occur for g++ 3.x
+	because then we _already_ used _private_::internal_vector,
+	as should be.
+
 libcwd-0.99.18
 
 	API changes:
