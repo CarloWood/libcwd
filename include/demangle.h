@@ -95,7 +95,9 @@ namespace __gnu_cxx
     template<typename Allocator>
       class qualifier
       {
-	typedef std::basic_string<char, std::char_traits<char>, Allocator>
+	typedef typename Allocator::template rebind<char>::other
+	        char_Allocator;
+	typedef std::basic_string<char, std::char_traits<char>, char_Allocator>
 	    string_type;
 
       private:
@@ -188,17 +190,22 @@ namespace __gnu_cxx
     template<typename Allocator>
       class qualifier_list
       {
-	typedef std::basic_string<char, std::char_traits<char>, Allocator>
+	typedef typename Allocator::template rebind<char>::other
+  	  char_Allocator;
+	typedef std::basic_string<char, std::char_traits<char>, char_Allocator>
 	  string_type;
 
       private:
 	mutable bool M_printing_suppressed;
-	std::vector<qualifier<Allocator>, Allocator> M_qualifier_starts;
+	typedef qualifier<Allocator> qual;
+        typedef typename Allocator::template rebind<qual>::other qual_Allocator;
+	typedef std::vector<qual, qual_Allocator> qual_vector;
+	qual_vector M_qualifier_starts;
 	session<Allocator>& M_demangler;
 
 	void decode_KVrA(string_type& prefix, string_type& postfix, int cvq,
-          typename std::vector<qualifier<Allocator>, Allocator>::
-	      const_reverse_iterator const& iter_array) const;
+			 typename qual_vector::
+			   const_reverse_iterator const& iter_array) const;
 
       public:
 	qualifier_list(session<Allocator>& demangler_obj)
@@ -252,7 +259,7 @@ namespace __gnu_cxx
 #if _GLIBCXX_DEMANGLER_CWDEBUG
 	friend std::ostream& operator<<(std::ostream& os, qualifier_list const& list)
 	{
-	  typename std::vector<qualifier<Allocator>, Allocator>::const_iterator
+	  typename qual_vector::const_iterator
 	      iter = list.M_qualifier_starts.begin();
 	  if (iter != list.M_qualifier_starts.end())
 	  {
@@ -317,15 +324,18 @@ namespace __gnu_cxx
 	bool get_style_sizeof_typename(void) const
 	    { return (M_style & style_sizeof_typename); }
         // This can be overridden by user implementations.
-	virtual bool decode_real(char* output, unsigned long* input,
-                                 size_t size_of_real) const { return false; }
+        virtual bool decode_real(char* /* output */, unsigned long* /* input */,
+				 size_t /* size_of_real */) const
+            { return false; }
     };
 
     template<typename Allocator>
       class session
       {
 	friend class qualifier_list<Allocator>;
-	typedef std::basic_string<char, std::char_traits<char>, Allocator>
+	typedef typename Allocator::template rebind<char>::other
+    	    char_Allocator;
+	typedef std::basic_string<char, std::char_traits<char>, char_Allocator>
 	    string_type;
 
       private:
@@ -342,9 +352,13 @@ namespace __gnu_cxx
 	bool M_name_is_conversion_operator;
 	bool M_template_args_need_space;
 	string_type M_function_name;
-	std::vector<int, Allocator> M_template_arg_pos;
+        typedef typename Allocator::template rebind<int>::other
+                int_Allocator;
+        typedef typename Allocator::template rebind<substitution_st>::other
+                subst_Allocator;
+	std::vector<int, int_Allocator> M_template_arg_pos;
 	int M_template_arg_pos_offset;
-	std::vector<substitution_st, Allocator> M_substitutions_pos;
+	std::vector<substitution_st, subst_Allocator> M_substitutions_pos;
 	implementation_details const& M_implementation_details;
 #if _GLIBCXX_DEMANGLER_CWDEBUG
 	bool M_inside_add_substitution;
@@ -1671,8 +1685,7 @@ namespace __gnu_cxx
       void
       qualifier_list<Allocator>::decode_KVrA(
           string_type& prefix, string_type& postfix, int cvq,
-          typename std::vector<qualifier<Allocator>, Allocator>::
-	      const_reverse_iterator const& iter_array) const
+          typename qual_vector::const_reverse_iterator const& iter_array) const
 	{
 	  _GLIBCXX_DEMANGLER_DOUT_ENTERING3("decode_KVrA");
 	  if ((cvq & cvq_K))
@@ -1684,7 +1697,7 @@ namespace __gnu_cxx
 	  if ((cvq & cvq_A))
 	  {
 	    int n = cvq >> 5;
-	    for (typename std::vector<qualifier<Allocator>, Allocator>::
+	    for (typename qual_vector::
 	        const_reverse_iterator iter = iter_array;
 		iter != M_qualifier_starts.rend(); ++iter)
 	    {
@@ -1725,9 +1738,8 @@ namespace __gnu_cxx
       {
 	_GLIBCXX_DEMANGLER_DOUT_ENTERING3("decode_qualifiers");
 	int cvq = 0;
-	typename std::vector<qualifier<Allocator>, Allocator>::
-	    const_reverse_iterator iter_array;
-	for(typename std::vector<qualifier<Allocator>, Allocator>::
+	typename qual_vector::const_reverse_iterator iter_array;
+	for(typename qual_vector::
 	    const_reverse_iterator iter = M_qualifier_starts.rbegin();
 	    iter != M_qualifier_starts.rend(); ++iter)
 	{
@@ -2635,12 +2647,14 @@ namespace __gnu_cxx
 	  return demangler_session.M_pos;
 	}
 	// Must have been a <function name>.
+	string_type return_type_postfix;
 	if (demangler_session.M_name_is_template
 	    && !(demangler_session.M_name_is_cdtor
 	         || demangler_session.M_name_is_conversion_operator))
 	{
-	  if (!demangler_session.decode_type(output))
-	      // Return type of function
+	  // Return type of function
+	  if (!demangler_session.decode_type_with_postfix(output,
+	      return_type_postfix))
 	    return INT_MIN;
 	  output += ' ';
 	}
@@ -2648,6 +2662,7 @@ namespace __gnu_cxx
 	if (!demangler_session.decode_bare_function_type(output))
 	  return INT_MIN;
 	output += nested_name_qualifiers;
+	output += return_type_postfix;
 	return demangler_session.M_pos;
       }
 
@@ -2657,8 +2672,8 @@ namespace __gnu_cxx
   template<typename Allocator>
     struct demangle
     {
-      typedef Allocator allocator_type;
-      typedef std::basic_string<char, std::char_traits<char>, Allocator> 
+      typedef typename Allocator::template rebind<char>::other char_Allocator;
+      typedef std::basic_string<char, std::char_traits<char>, char_Allocator> 
 	  string_type;
       static string_type symbol(char const* in,
                                 demangler::implementation_details const& id);
@@ -2671,7 +2686,7 @@ namespace __gnu_cxx
   // Demangle `input' which should be a mangled function name as for
   // instance returned by nm(1).
   template<typename Allocator>
-    std::basic_string<char, std::char_traits<char>, Allocator>
+    typename demangle<Allocator>::string_type
     demangle<Allocator>::symbol(char const* input,
                                 demangler::implementation_details const& id)
     {
@@ -2722,7 +2737,7 @@ namespace __gnu_cxx
   // Demangle `input' which must be a zero terminated mangled type
   // name as for instance returned by std::type_info::name().
   template<typename Allocator>
-    std::basic_string<char, std::char_traits<char>, Allocator> 
+    typename demangle<Allocator>::string_type
     demangle<Allocator>::type(char const* input,
                               demangler::implementation_details const& id)
     {
