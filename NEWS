@@ -15,6 +15,17 @@ libcwd-0.99.23
 	Possible leaks are then listed using the show_* flags of the
 	filter.
 
+        Bug fixes:
+
+	dlopen() can now be called multiple times for the same module
+	the related symbol table will not be deleted until dlclose()
+	has been called as often as dlopen() was called.
+
+	An allocation done in an object file  that was opened with dlopen()
+	would cause a core dump in list_allocations_on using a filter
+	with show_objectfile, when in the meantime dlclose() was called
+	for that object file.
+
 libcwd-0.99.22
 
         Bug fixes:

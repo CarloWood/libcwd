@@ -703,6 +703,9 @@ void bfd_close(bfd* abfd)
 	  free(symbol_table);
 	  symbol_table  = NULL;
 	}
+	BFD_ACQUIRE_WRITE_LOCK;
+	function_symbols.erase(function_symbols.begin(), function_symbols.end());
+	BFD_RELEASE_WRITE_LOCK;
 	set_alloc_checking_on(LIBCWD_TSD);
       }
 
@@ -1697,15 +1700,16 @@ using namespace libcw::debug;
 struct dlloaded_st {
   cwbfd::bfile_ct* M_object_file;
   int M_flags;
-  dlloaded_st(cwbfd::bfile_ct* object_file, int flags) : M_object_file(object_file), M_flags(flags) { }
+  int M_refcount;
+  dlloaded_st(cwbfd::bfile_ct* object_file, int flags) : M_object_file(object_file), M_flags(flags), M_refcount(1) { }
 };
 
 namespace libcw {
   namespace debug {
     namespace _private_ {
       typedef std::map<void*, dlloaded_st, std::less<void*>,
-                       userspace_allocator::rebind<std::pair<void* const, dlloaded_st> >::other> dlopen_map_ct;
-      static dlopen_map_ct dlopen_map;
+                       internal_allocator::rebind<std::pair<void* const, dlloaded_st> >::other> dlopen_map_ct;
+      static dlopen_map_ct* dlopen_map;
 
 #ifdef _REENTRANT
 void dlopenclose_cleanup(void* arg)
@@ -1717,7 +1721,7 @@ void dlopenclose_cleanup(void* arg)
   rwlock_tct<object_files_instance>::cleanup(arg);
 }
 
-void dlclose_cleanup1(void* arg)
+void dlopen_map_cleanup(void* arg)
 {
   TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
   if (__libcwd_tsd.internal)
@@ -1731,38 +1735,49 @@ void dlclose_cleanup1(void* arg)
 } // namespace libcw
 
 extern "C" {
+
   void* __libcwd_dlopen(char const* name, int flags)
   {
     LIBCWD_TSD_DECLARATION;
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
     void* handle = ::dlopen(name, flags);
+    if (handle == NULL)
+      return handle;
 #ifdef RTLD_NOLOAD
     if ((flags & RTLD_NOLOAD))
       return handle;
 #endif
-    cwbfd::bfile_ct* object_file;
-    object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
-    if (object_file)
+    LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlopen_map_cleanup, &__libcwd_tsd);
+    DLOPEN_MAP_ACQUIRE_LOCK;
+    if (!libcw::debug::_private_::dlopen_map)
     {
-      LIBCWD_DEFER_CANCEL;
-      BFD_ACQUIRE_WRITE_LOCK;
       set_alloc_checking_off(LIBCWD_TSD);
-      cwbfd::NEEDS_WRITE_LOCK_object_files().sort(cwbfd::object_file_greater());
+      libcw::debug::_private_::dlopen_map = new libcw::debug::_private_::dlopen_map_ct;
       set_alloc_checking_on(LIBCWD_TSD);
-      BFD_RELEASE_WRITE_LOCK;
-      LIBCWD_RESTORE_CANCEL;
     }
-    if (object_file)
+    libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map->find(handle));
+    if (iter != libcw::debug::_private_::dlopen_map->end())
+      ++(*iter).second.M_refcount;
+    else
     {
-      // MT: dlopen_map uses a userspace_allocator and might therefore write to dc::malloc.
-      // This means that the thread can be cancelled inside the insert() call, leaving
-      // dlopen_map in an undefined state.  Therefore we disable cancellation.
-      LIBCWD_DISABLE_CANCEL;
-      DLOPEN_MAP_ACQUIRE_LOCK;
-      libcw::debug::_private_::dlopen_map.insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
-      DLOPEN_MAP_RELEASE_LOCK;
-      LIBCWD_ENABLE_CANCEL;
+      cwbfd::bfile_ct* object_file;
+      object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
+      if (object_file)
+      {
+	LIBCWD_DEFER_CANCEL;
+	BFD_ACQUIRE_WRITE_LOCK;
+	set_alloc_checking_off(LIBCWD_TSD);
+	cwbfd::NEEDS_WRITE_LOCK_object_files().sort(cwbfd::object_file_greater());
+	set_alloc_checking_on(LIBCWD_TSD);
+	BFD_RELEASE_WRITE_LOCK;
+	LIBCWD_RESTORE_CANCEL;
+	set_alloc_checking_off(LIBCWD_TSD);
+	libcw::debug::_private_::dlopen_map->insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
+	set_alloc_checking_on(LIBCWD_TSD);
+      }
     }
+    DLOPEN_MAP_RELEASE_LOCK;
+    LIBCWD_CLEANUP_POP_RESTORE(false);
     return handle;
   }
 
@@ -1771,40 +1786,32 @@ extern "C" {
     LIBCWD_TSD_DECLARATION;
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
     int ret = ::dlclose(handle);
-    LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlclose_cleanup1, &__libcwd_tsd); // The delete calls close().
+    if (ret != 0)
+      return ret;
+    LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlopen_map_cleanup, &__libcwd_tsd);
     DLOPEN_MAP_ACQUIRE_LOCK;
-    libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map.find(handle));
-    if (iter != libcw::debug::_private_::dlopen_map.end())
+    libcw::debug::_private_::dlopen_map_ct::iterator iter(libcw::debug::_private_::dlopen_map->find(handle));
+    if (iter != libcw::debug::_private_::dlopen_map->end())
     {
-#ifdef RTLD_NODELETE
-      if (!((*iter).second.M_flags & RTLD_NODELETE))
+      if (--(*iter).second.M_refcount == 0)
       {
-	(*iter).second.M_object_file->deinitialize(LIBCWD_TSD);
-	LIBCWD_DEFER_CLEANUP_PUSH(libcw::debug::_private_::dlopenclose_cleanup, &__libcwd_tsd); // The delete calls close().
-	BFD_ACQUIRE_WRITE_LOCK;
-        set_alloc_checking_off(LIBCWD_TSD);
-	delete (*iter).second.M_object_file;
-        set_alloc_checking_on(LIBCWD_TSD);
-	BFD_RELEASE_WRITE_LOCK;
-	LIBCWD_CLEANUP_POP_RESTORE(false);
+#ifdef RTLD_NODELETE
+	if (!((*iter).second.M_flags & RTLD_NODELETE))
+	{
+	  (*iter).second.M_object_file->deinitialize(LIBCWD_TSD);
+	  // M_object_file is not deleted because location_ct objects still point to it.
+	}
+#endif
+	set_alloc_checking_off(LIBCWD_TSD);
+	libcw::debug::_private_::dlopen_map->erase(iter);
+	set_alloc_checking_on(LIBCWD_TSD);
       }
-#endif
-#ifdef _REENTRANT
-      // MT: dlopen_map uses a userspace_allocator and might therefore write to dc::malloc.
-      // This means that the thread can be cancelled inside the erase() call, leaving
-      // dlopen_map in an undefined state.  Therefore we disable cancellation.
-      int oldstate;
-      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldstate);
-#endif
-      libcw::debug::_private_::dlopen_map.erase(iter);
-#ifdef _REENTRANT
-      pthread_setcancelstate(oldstate, NULL);
-#endif
     }
     DLOPEN_MAP_RELEASE_LOCK;
     LIBCWD_CLEANUP_POP_RESTORE(false);
     return ret;
   }
+
 } // extern "C"
 
 #endif // LIBCWD_DLOPEN_DEFINED

@@ -39,6 +39,7 @@ MAIN_FUNCTION
   // Select channels
   ForAllDebugChannels( while (debugChannel.is_on()) debugChannel.off(); );
   Debug( dc::warning.on() );
+  Debug( dc::notice.on() );
 #ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
@@ -86,6 +87,7 @@ MAIN_FUNCTION
     char const* module_name = "./module.so";
 #endif
     handle = dlopen(module_name, RTLD_NOW|RTLD_GLOBAL);
+    Dout(dc::notice, "dlopen(" << module_name << ", RTLD_NOW|RTLD_GLOBAL) == " << handle);
 
     if (!handle)
     {
@@ -137,12 +139,16 @@ MAIN_FUNCTION
   delete marker1;
   Debug( list_allocations_on(libcw_do, list_filter));
 
-  Debug( libcw_do.off() );
+//  Debug( libcw_do.off() );
   delete [] (char*)p3;
+
+  Dout(dc::notice, "dlclose(" << handle << ")");
+  dlclose(handle);
+  Debug( list_allocations_on(libcw_do, list_filter));
+
   free(p2);
   free(p1);
   free(p4);
-  dlclose(handle);
 
   EXIT(0);
 }

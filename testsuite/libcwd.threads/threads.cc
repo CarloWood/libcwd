@@ -157,11 +157,15 @@ int main(void)
     for (int i = 0; i < number_of_threads; ++i)
     {
       int ti = thread_index(thread_id[i]);
+      if (heartbeat[ti] == -1)
+	continue;
       if (heartbeat[ti] == 0)
       {
 	void* status;
 	pthread_join(thread_id[i], &status);
 	Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] << " (" << ti << "), returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
+	++running;
+	heartbeat[ti] = -1;
       }
       else if (prev_heartbeat[ti] == heartbeat[ti])
       {
