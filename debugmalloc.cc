@@ -126,6 +126,7 @@
 #include <map>
 #include <new>
 #include <csignal>
+#include <inttypes.h>
 
 #if LIBCWD_THREAD_SAFE
 
