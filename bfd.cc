@@ -112,7 +112,11 @@ namespace libcw {
     // Local stuff
     namespace cwbfd {
 
-bool statically_linked;
+#ifdef __PIC__
+static bool const statically_linked = false;
+#else
+static bool const statically_linked = true;
+#endif
 
 #if !CWDEBUG_LIBBFD
 
@@ -1022,11 +1026,10 @@ void bfd_close(bfd* abfd)
 #endif
 
 #ifdef HAVE__DL_LOADED
-	// Initialize dl_loaded_ptr.
-	void* handle = ::dlopen(NULL, RTLD_LAZY);
-	statically_linked = (handle == NULL);
 	if (!statically_linked)
 	{
+	  // Initialize dl_loaded_ptr.
+	  void* handle = ::dlopen(NULL, RTLD_LAZY);
 #ifdef HAVE__RTLD_GLOBAL
 	  rtld_global* rtld_global_ptr = (rtld_global*)::dlsym(handle, "_rtld_global");
 	  if (!rtld_global_ptr)
@@ -1360,7 +1363,6 @@ already_loaded:
 	asection const* sect = bfd_get_section(p);
 	char const* file;
 	LIBCWD_ASSERT( object_file->get_bfd() == abfd );
-	LIBCWD_DEFER_CANCEL;
 	set_alloc_checking_off(LIBCWD_TSD);
 #if CWDEBUG_LIBBFD
 	bfd_find_nearest_line(abfd, const_cast<asection*>(sect), const_cast<asymbol**>(object_file->get_symbol_table()),
@@ -1369,7 +1371,6 @@ already_loaded:
         abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line LIBCWD_COMMA_TSD);
 #endif
 	set_alloc_checking_on(LIBCWD_TSD);
-	LIBCWD_RESTORE_CANCEL;
 	LIBCWD_ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
 	M_func = p->name;
 

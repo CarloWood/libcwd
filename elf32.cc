@@ -3031,7 +3031,16 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
   {
     // The call to load_dwarf()/load_stabs() below can call malloc, causing us to recursively enter this function
     // for this object or another objfile_ct.
-#if LIBCWD_THREAD_SAFE
+#if !LIBCWD_THREAD_SAFE
+    if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
+    {
+      *file = NULL;
+      *func = symbol->name;
+      *line = 0;
+      return;
+    }
+    M_inside_find_nearest_line = true;
+#else // LIBCWD_THREAD_SAFE
     // `S_thread_inside_find_nearest_line' is only *changed* inside the critical area
     // of `object_files_instance'.  Therefore, when it is set to our thread id at
     // this moment - then other threads can't change it.
@@ -3045,57 +3054,56 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
     }
     // Ok, now we are sure that THIS thread doesn't hold the following lock, try to acquire it.
     // `object_files_string' and the STL containers using `_private_::object_files_allocator' in the following functions need this lock.
+    int saved_internal;
+    LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct< _private_::object_files_instance>::cleanup, NULL);
     _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
     // Now we acquired the lock, check again if another thread not already read the debug info.
-    if (M_debug_info_loaded)
+    if (!M_debug_info_loaded)
     {
-      _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
-      break;
-    }
-    S_thread_inside_find_nearest_line = pthread_self();
-#else // !LIBCWD_THREAD_SAFE
-    if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
-    {
-      *file = NULL;
-      *func = symbol->name;
-      *line = 0;
-      return;
-    }
-    M_inside_find_nearest_line = true;
+      S_thread_inside_find_nearest_line = pthread_self();
 #endif
 #if DEBUGSTABS || DEBUGDWARF
-    libcw::debug::debug_ct::OnOffState state;
-    Debug( libcw_do.force_on(state) );
-    libcw::debug::channel_ct::OnOffState state2;
-    Debug( dc::bfd.force_on(state2, "BFD") );
+      libcw::debug::debug_ct::OnOffState state;
+      Debug( libcw_do.force_on(state) );
+      libcw::debug::channel_ct::OnOffState state2;
+      Debug( dc::bfd.force_on(state2, "BFD") );
 #endif
-    if (M_dwarf_debug_line_section_index)
-      load_dwarf();
-    else if (!M_stabs_section_index && !this->object_file->get_object_file()->has_no_debug_line_sections())
-    {
-      this->object_file->get_object_file()->set_has_no_debug_line_sections();
+      if (M_dwarf_debug_line_section_index)
+	load_dwarf();
+      else if (!M_stabs_section_index && !this->object_file->get_object_file()->has_no_debug_line_sections())
+      {
+	this->object_file->get_object_file()->set_has_no_debug_line_sections();
 #if CWDEBUG_ALLOC
-      int saved_internal = __libcwd_tsd.internal;
-      __libcwd_tsd.internal = false;
+	int saved_internal2 = __libcwd_tsd.internal;
+	__libcwd_tsd.internal = false;
 #endif
-      Dout( dc::warning, "Object file " << this->filename << " does not have debug info.  Address lookups inside "
-          "this object file will result in a function name only, not a source file location.");
+	Dout( dc::warning, "Object file " << this->filename << " does not have debug info.  Address lookups inside "
+	    "this object file will result in a function name only, not a source file location.");
 #if CWDEBUG_ALLOC
-      __libcwd_tsd.internal = saved_internal;
+	__libcwd_tsd.internal = saved_internal2;
 #endif
-    }
-    if (M_stabs_section_index)
-      load_stabs();
+      }
+      if (M_stabs_section_index)
+	load_stabs();
 #if DEBUGSTABS || DEBUGDWARF
-    Debug( dc::bfd.restore(state2) );
-    Debug( libcw_do.restore(state) );
+      Debug( dc::bfd.restore(state2) );
+      Debug( libcw_do.restore(state) );
 #endif
-    int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-    M_input_stream->close();
-    _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
+      int saved_internal3 = _private_::set_library_call_on(LIBCWD_TSD);
+      M_input_stream->close();
+      _private_::set_library_call_off(saved_internal3 LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
-    S_thread_inside_find_nearest_line = (pthread_t) 0;
+      S_thread_inside_find_nearest_line = (pthread_t) 0;
+    }
     _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
+#if CWDEBUG_ALLOC
+    saved_internal = __libcwd_tsd.internal;
+    __libcwd_tsd.internal = false;
+#endif
+    LIBCWD_CLEANUP_POP_RESTORE(false);
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = saved_internal;
+#endif
 #else
     M_inside_find_nearest_line = false;
 #endif

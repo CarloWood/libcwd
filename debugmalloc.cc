@@ -2290,6 +2290,9 @@ void init_debugmalloc(void)
 #endif
        )
     {
+#if __GNUC_MINOR__ >= 3
+      std::ios_base::Init::Init dummy_init;
+#endif
       WST_initialization_state = 1;		// ST_initialize_globals() calls malloc again of course.
       int recursive_store = __libcwd_tsd.inside_malloc_or_free;
       __libcwd_tsd.inside_malloc_or_free = 0;	// Allow that (this call to malloc will not have done from STL allocator).
