@@ -226,6 +226,7 @@ using namespace libcw_debug_inserters;
 
 #include <libcw/macro_ForAllDebugChannels.h>
 #include <libcw/macro_ForAllDebugObjects.h>
+#include <libcw/private_environ.h>
 
 // Include the inline functions.
 #include <libcw/class_channel.inl>		// Debug channels.

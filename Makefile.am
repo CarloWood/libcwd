@@ -21,6 +21,7 @@ lib_LTLIBRARIES = libcwd.la
 libcwd_la_SOURCES = \
 	threading.cc \
 	elf32.cc \
+	environ.cc \
 	bfd.cc \
 	debug.cc \
 	debugmalloc.cc \

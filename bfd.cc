@@ -11,7 +11,6 @@
 // packaging of this file.
 //
 
-#define ALWAYS_PRINT_LOADING	// Define to temporally turn on dc::bfd in order to print the "Loading debug info from ..." lines.
 #undef DEBUGDEBUGBFD		// Define to add debug code for this file.
 
 #include <libcw/debug_config.h>
@@ -964,13 +963,14 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	init_debugmalloc();
 #endif
 
-#ifdef ALWAYS_PRINT_LOADING
-	// We want debug output to BFD
 	libcw::debug::debug_ct::OnOffState state;
-	Debug( libcw_do.force_on(state) );
 	libcw::debug::channel_ct::OnOffState state2;
-	Debug( dc::bfd.force_on(state2, "BFD") );
-#endif
+	if (_private_::always_print_loading && !_private_::suppress_startup_msgs)
+	{
+	  // We want debug output to BFD
+	  Debug( libcw_do.force_on(state) );
+	  Debug( dc::bfd.force_on(state2, "BFD") );
+	}
 
 	// Initialize object files list, we don't really need the
 	// write lock because this function is Single Threaded.
@@ -1054,10 +1054,11 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	// We put this outside the 'internal' region because it might call __pthread_do_exit.
 	LIBCWD_CLEANUP_POP_RESTORE(false)
 
-#ifdef ALWAYS_PRINT_LOADING
-	Debug( dc::bfd.restore(state2) );
-	Debug( libcw_do.restore(state) );
-#endif
+        if (_private_::always_print_loading)
+	{
+	  Debug( dc::bfd.restore(state2) );
+	  Debug( libcw_do.restore(state) );
+	}
 
 	WST_initialized = true;			// MT: Safe, this function is Single Threaded.
 

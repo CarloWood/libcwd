@@ -39,6 +39,7 @@ libcwd_HEADERS = \
 	private_allocator.h \
 	private_assert.h \
 	private_debug_stack.h \
+	private_environ.h \
 	private_internal_string.h \
 	private_internal_stringstream.h \
 	private_internal_vector.h \

@@ -265,6 +265,7 @@ namespace libcw {
 #ifdef LIBCWD_THREAD_SAFE
       _private_::initialize_global_mutexes();
 #endif
+      _private_::process_environment_variables();
 
       // Fatal channels need to be marked fatal, otherwise we get into an endless loop
       // when they are used before they are created.
@@ -292,7 +293,7 @@ namespace libcw {
       if (getrlimit(RLIMIT_CORE, &corelim))
 	DoutFatal(dc::fatal|error_cf, "getrlimit(RLIMIT_CORE, &corelim)");
       corelim.rlim_cur = corelim.rlim_max;
-      if (corelim.rlim_max != RLIM_INFINITY)
+      if (corelim.rlim_max != RLIM_INFINITY && !_private_::suppress_startup_msgs)
       {
 	debug_ct::OnOffState state;
 	libcw_do.force_on(state);
@@ -304,10 +305,13 @@ namespace libcw {
       if (setrlimit(RLIMIT_CORE, &corelim))
 	  DoutFatal(dc::fatal|error_cf, "unlimit core size failed");
 #else
-      debug_ct::OnOffState state;
-      libcw_do.force_on(state);
-      Dout(dc::warning, "Please unlimit core size manually");
-      libcw_do.restore(state);
+      if (!_private_::suppress_startup_msgs)
+      {
+	debug_ct::OnOffState state;
+	libcw_do.force_on(state);
+	Dout(dc::warning, "Please unlimit core size manually");
+	libcw_do.restore(state);
+      }
 #endif
 
 #ifdef DEBUGUSEBFD

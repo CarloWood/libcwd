@@ -10,6 +10,13 @@ libcwd-0.99.16
 	allow the use of the testsuite together with --enable-libcwd-debug.
 	(You shouldn't use either unless you are hacking libcwd itself).
 
+        New are environment variables that influence libcwd.
+	At the moment there are two:
+	LIBCWD_NO_STARTUP_MSGS : Don't print anything before main().
+	LIBCWD_ALWAYS_PRINT_LOADING : Print messages about loading
+	the shared libraries, even when this is done before libcw_do
+	is turned on (except when LIBCWD_NO_STARTUP_MSGS is defined).
+
 	Miscellaneous:
 	- The configuration option --disable-libcwd-location is fixed.
 	- Automake-1.5 now works.
