@@ -1,6 +1,7 @@
 libcwddir = $(includedir)/libcwd
 
 libcwd_HEADERS = \
+	attach_gdb.h \
 	bfd.h \
 	buf2str.h \
 	char2str.h \
@@ -25,6 +26,7 @@ libcwd_HEADERS = \
 	class_marker.h \
 	class_object_file.h \
 	class_ooam_filter.h \
+	class_rcfile.h \
 	control_flag.h \
 	core_dump.h \
 	cwprint.h \
