@@ -839,12 +839,10 @@ void location_ct::M_store(void)
     M_used = true;
     return;
   }
+  LIBCWD_ASSERT( M_range.start <= M_address );
   if (M_range.start == M_address)
-  {
     DoutDwarf(dc::bfd, "Skipping M_store: address range is zero.");
-    return;
-  }
-  if (M_range.start)
+  else if (M_range.start)
   {
     DoutDwarf(dc::bfd, "M_store(): Registering new range.");
     M_range.size = M_address - M_range.start;
