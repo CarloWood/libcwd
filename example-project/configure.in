@@ -19,7 +19,6 @@ AC_PREREQ(2.57)
 
 # Include --enable-maintainer-mode option.
 AM_MAINTAINER_MODE
-ACLOCAL_AMFLAGS="-I m4"
 
 # Manual configuration options of project.
 AC_ARG_ENABLE(debugging, [  --enable-debugging      enable debugging code.])
