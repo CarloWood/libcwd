@@ -251,8 +251,12 @@ test ! -d include && mkdir include
 
 dnl Set up rpm directory when in maintainer mode
 if test "$USE_MAINTAINER_MODE" = yes; then
+  LSMFILE="$PACKAGE.lsm"
+  AC_SUBST(LSMFILE)
   SPECFILE="$PACKAGE.spec"
   AC_SUBST(SPECFILE)
+  SPECCHANGELOG=spec.changelog
+  AC_SUBST_FILE(SPECCHANGELOG)
   top_builddir="`pwd`"
   test -d rpm || mkdir rpm
   cd rpm
@@ -278,35 +282,8 @@ if test "$USE_MAINTAINER_MODE" = yes; then
   cd ..
 fi
 
-AC_OUTPUT_COMMANDS([
-echo "CONFIG_FILES=\"$CONFIG_FILES\""
-if (echo "$CONFIG_FILES" | grep $SPECFILE) && test $use_maintainer_mode = yes; then
-  if test -f "$srcdir/CVS/Entries"; then
-    CVSREADACCESS=yes
-  else
-    CVSREADACCESS=no
-  fi
-  if test x"$LIBCW_WRITE_ACCESS" = "xyes"; then
-    CVSWRITEACCESS=$CVSREADACCESS
-  else
-    CVSWRITEACCESS=no
-  fi
-  if test ! -f $SPECFILE || test $SPECFILE -ot "$srcdir/$SPECFILE.in" -o $SPECFILE -ot config.status; then
-    echo "creating $SPECFILE"
-    if test $CVSWRITEACCESS = yes; then
-      (cd "$srcdir"; cvs commit $SPECFILE.in)
-    fi
-    sed -e "s/@VERSION@/$VERSION/g" "$srcdir/$SPECFILE.in" | grep -B2000 '@CHANGELOG@' | grep -v '@CHANGELOG@' > $SPECFILE
-    echo -n "%changelog" >> $SPECFILE
-    if test $CVSREADACCESS = yes; then
-      (cd "$srcdir"; cvs log $SPECFILE.in) | grep -A2000 '^-----' | egrep -v '^-----|^=====|^revision' | awk -F'[ ;]' --assign lastdate="" '{ if ($0~/^date: /) { if (lastdate != $2) { lastdate=$2; printf("\n* "); system("echo -n `date --date \""$2" "$3"\" \"+%a %b %d %Y\"`"); printf(" Carlo Wood <libcw@alinoe.com>\n"); } } else if ($0~/^[A-Z]/) { printf("- %s\n", $0); } else if ($0~/./) { printf("  %s\n", $0); } else {print} }' >> $SPECFILE
-    fi
-    grep -A2000 '@CHANGELOG@' "$srcdir/$SPECFILE.in" | grep -v '@CHANGELOG@' >> $SPECFILE
-  fi
-fi], [use_maintainer_mode=$USE_MAINTAINER_MODE; srcdir="$srcdir"; SPECFILE="$SPECFILE"; VERSION=$VERSION])
-
-CW_OUTPUT(Makefile maintMakefile libcwd.lsm include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+CW_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
 exit 0
 
 dnl Keep automake happy
-AC_OUTPUT(Makefile maintMakefile libcwd.lsm include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)
+AC_OUTPUT(Makefile maintMakefile include/Makefile include/libcw/Makefile tests/Makefile utils/Makefile include/libcw/debug_config.ho include/libcw/sys.ho)

@@ -29,11 +29,6 @@
 # The remaining targets can be used to test a part of the distribution process,
 # but are not really useful on their own otherwise.
 #
-# - $(SPECFILE)
-#	Generates the rpm spec file from the file `$(SPECFILE).in' by
-#	replacing "!VERSION!" by @VERSION@ and "!CHANGELOG!" by an
-#	rpm %changelog list generated from the CVS repository log.
-#
 # - tar
 #	Generates the tar.gz distribution file.
 #
@@ -43,10 +38,12 @@
 RPMDIR=$(top_builddir)/rpm
 TARGET=@TARGET@
 SPECFILE=@SPECFILE@
+LSMFILE=@LSMFILE@
 REL=1
 TAG:=${shell echo "V@VERSION@" | sed -e 's/\./_/g'}
 PREVTAG:=${shell test -f .prevtag && cat .prevtag}
 CVSREADACCESS:=${shell if test -f $(srcdir)/CVS/Entries; then echo "yes"; else echo "no"; fi}
+CVSWRITEACCESS:=${shell if test x"$$LIBCW_WRITE_ACCESS" = "xyes"; then echo $(CVSREADACCESS); else echo "no"; fi}
 
 test-values:
 	@echo "srcdir	= \"$(srcdir)\""
@@ -57,6 +54,7 @@ test-values:
 	@echo "TARGET   = \"$(TARGET)\""
 	@echo "REL      = \"$(REL)\""
 	@echo "CVSREADACCESS = \"$(CVSREADACCESS)\""
+	@echo "CVSWRITEACCESS = \"$(CVSWRITEACCESS)\""
 	@echo "TAG      = \"$(TAG)\""
 	@echo "PREVTAG  = \"$(PREVTAG)\""
 
@@ -67,8 +65,43 @@ tar:
 	$(MAKE) dist
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
 
-rpm: tar $(SPECFILE)
-	cd rpm; rpm --rcfile /usr/lib/rpm/rpmrc:rpmrc --target $(TARGET) --sign --clean -ba ../$(SPECFILE)
+rpm: tar $(srcdir)/$(SPECFILE)
+	cd rpm; rpm --rcfile /usr/lib/rpm/rpmrc:rpmrc --target $(TARGET) --sign --clean -ba $(srcdir)/$(SPECFILE)
+
+$(srcdir)/$(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
+	if test $(CVSWRITEACCESS) = yes; then \
+	  (cd $(srcdir); cvs commit $(SPECFILE).in); \
+	fi
+	if test $(CVSREADACCESS) = yes; then \
+	  (cd $(srcdir); cvs log $(SPECFILE).in) | \
+	      grep -A2000 '^-----' | \
+	      egrep -v '^-----|^=====|^revision' | \
+	      awk -F'[ ;]' --assign lastdate="" \
+	      '{ \
+		if ($$0~/^date: /) { \
+		  if (lastdate != $$2) { \
+		    if (lastdate != "") { \
+		      printf("\n"); \
+		    } \
+		    lastdate=$$2; \
+		    system("echo \"* \"`date --date \""$$2" "$$3"\" \"+%a %b %d %Y\"`\" Carlo Wood <libcw@alinoe.com>\""); \
+		  } \
+		} else if ($$0~/^[A-Z]/) { \
+		  printf("- %s\n", $$0); \
+		} else if ($$0~/./) { \
+		  printf("  %s\n", $$0); \
+		} else { \
+		  print \
+		} \
+	      }' > spec.changelog; \
+	else \
+	  touch spec.changelog; \
+	fi
+	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+	rm spec.changelog
+
+$(srcdir)/$(LSMFILE): $(srcdir)/$(LSMFILE).in $(srcdir)/configure.in
+	CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 ChangeLog:
 	if test $(CVSREADACCESS) = yes; then \
@@ -80,5 +113,3 @@ ChangeLog:
 	else \
 	  touch ChangeLog; \
 	fi
-
-##-----------------------------------------------------------------------------
