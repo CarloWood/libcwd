@@ -22,7 +22,7 @@
 <table border=0 cellspacing=0 cellpadding=0 width=100%>
 <tr><td width=88>&nbsp;</td>
     <td class="tag-cw-main-header" align=middle><B><SPAN class="H1code">libcw<FONT color=red>d</FONT></SPAN></B></td>
-    <td width=88><IMG width=88 height=31 src="http://24.132.80.10/tracker/alinoe.png" border=0 alt="an alinoe production" width=88 height=31 align=right></td>
+    <td width=88><IMG width=88 height=31 src="http://www.alinoe.com/tracker/alinoe.png" border=0 alt="an alinoe production" width=88 height=31 align=right></td>
 </tr></table>
 </TD></TR>
 
@@ -85,6 +85,18 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>12 February 2003</B>
+<P class="news">libcwd-0.99.28 is released.&nbsp;
+This release adds support for <CODE>new(std::size_t, std::nothrow_t const&)</CODE>
+allowing it to be used with gtkmm-2.0 among others.&nbsp;
+The demangler was fixed to match the mangling of g++ 3.1, which uses a slightly
+different way to mangle constant member functions than g++ 3.0 did.&nbsp;
+The decoding of line numbers has once again been improved and is now perfect
+(assuming you don't use a compiler that generates broken debug information).&nbsp;
+Finally, this release fixes a bug where dlopen() could only read
+libraries with an absolute path, failing for libraries that
+reside somewhere in <CODE>LD_LIBRARY_PATH</CODE>.</P>
+
 <DT><B>16 November 2002</B>
 <P class="news">libcwd-0.99.27 is released.&nbsp;
 This release fixes a few minor bugs.  Well, minor unless you run into them of course: libcwd would core dump

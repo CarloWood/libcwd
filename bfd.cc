@@ -763,7 +763,7 @@ void bfd_close(bfd* abfd)
       // program.
       // 
       // cwbfd::
-      void ST_get_full_path_to_executable(_private_::ST_string& result)
+      void ST_get_full_path_to_executable(_private_::internal_string& result LIBCWD_COMMA_TSD_PARAM)
       {
 	_private_::ST_string argv0;		// Like main()s argv[0], thus must be zero terminated.
 	char buf[6];
@@ -850,7 +850,10 @@ void bfd_close(bfd* abfd)
 	  DoutFatal(dc::fatal|error_cf, "realpath(\"" << argv0.data() << "\", full_path_buf)");
 
 	Dout(dc::debug, "Full path to executable is \"" << full_path << "\".");
+	set_alloc_checking_off(LIBCWD_TSD);
 	result.assign(full_path);
+	result += '\0';				// Make string null terminated so we can use data().
+	set_alloc_checking_on(LIBCWD_TSD);
       }
 
       // cwbfd::
@@ -1043,20 +1046,23 @@ void bfd_close(bfd* abfd)
 
 	// Get the full path and name of executable
 	struct static_string {
-	  _private_::ST_string* value;
+	  _private_::internal_string const* value;
           static_string(void)
 	      {
-		value = new _private_::ST_string;
-#if CWDEBUG_ALLOC
-		AllocTag2(value, "Full path and name of executable");
-#endif
+		LIBCWD_TSD_DECLARATION;
+		set_alloc_checking_off(LIBCWD_TSD);
+		value = new _private_::internal_string;
+		set_alloc_checking_on(LIBCWD_TSD);
 	      }
 	  ~static_string()
 	      {
 #if CWDEBUG_DEBUG && defined(_REENTRANT)
 		_private_::WST_multi_threaded = false;		// `fullpath' is static and will only be destroyed from exit().
 #endif
+		LIBCWD_TSD_DECLARATION;
+		set_alloc_checking_off(LIBCWD_TSD);
 		delete value;
+		set_alloc_checking_on(LIBCWD_TSD);
 #if CWDEBUG_DEBUG && defined(_REENTRANT)
 		_private_::WST_multi_threaded = true;		// Make sure we catch other global strings (in order to avoid a static destructor ordering fiasco).
 #endif
@@ -1064,8 +1070,8 @@ void bfd_close(bfd* abfd)
         };
 	set_alloc_checking_on(LIBCWD_TSD);
 	static static_string fullpath;				// Must be static because bfd keeps a pointer to its data()
-	ST_get_full_path_to_executable(*fullpath.value);
-	*fullpath.value += '\0';				// Make string null terminated so we can use data().
+	ST_get_full_path_to_executable(*const_cast<_private_::internal_string*>(fullpath.value) LIBCWD_COMMA_TSD);
+	    // Result is '\0' terminated so we can use data() as a C string.
 
 #if CWDEBUG_LIBBFD
 	bfd_set_error_program_name(fullpath.value->data() + fullpath.value->find_last_of('/') + 1);
