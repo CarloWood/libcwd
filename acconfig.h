@@ -22,7 +22,7 @@
 // Defined when both -lpthread and pthread.h could be found.
 #undef LIBCWD_HAVE_PTHREAD
 
-#if __GNUC__ < 3
+#ifndef _GNU_SOURCE	// Might already be defined: g++ 3.x is currently defining this as a hack to get libstdc++ headers work properly.
 // This is needed when using threading, for example to get `pthread_kill_other_threads_np'.
 #undef _GNU_SOURCE
 #endif
