@@ -13,7 +13,8 @@ initbug \
 dout_alloc \
 mangling \
 allocator \
-stabs
+stabs \
+lines
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
@@ -28,6 +29,7 @@ threads3_SOURCES = threads3.cc
 threads4_SOURCES = threads4.cc
 allocator_SOURCES = allocator.cc
 stabs_SOURCES = stabs.cc
+lines_SOURCES = lines.cc
 
 include_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h
 
