@@ -203,55 +203,6 @@ CXXFLAGS="$save_CXXFLAGS"
 rm -f conftest*
 ])
 
-dnl CW_TYPE_SOCKLEN_T
-dnl
-dnl If `socklen_t' is not defined in sys/socket.h,
-dnl define it to be the type of the fifth argument
-dnl of `setsockopt'.
-dnl
-AC_DEFUN(CW_TYPE_SOCKLEN_T,
-[AC_CACHE_CHECK(type socklen_t, cw_cv_type_socklen_t,
-[AC_EGREP_HEADER(socklen_t, sys/socket.h, cw_cv_type_socklen_t=exists,
-[CW_TYPE_EXTRACT_FROM(setsockopt, [#include <sys/types.h>
-#include <sys/socket.h>], 5, 5)
-eval "cw_cv_type_socklen_t=\"$cw_result\""])])
-if test "$cw_cv_type_socklen_t" != exists; then
-  CW_DEFINE_TYPE(socklen_t, [$cw_cv_type_socklen_t])
-fi
-])
-
-dnl CW_TYPE_OPTVAL_T
-dnl
-dnl If `optval_t' is not defined in sys/socket.h,
-dnl define it to be the type of the fourth argument
-dnl of `getsockopt'.
-dnl
-AC_DEFUN(CW_TYPE_OPTVAL_T,
-[AC_CACHE_CHECK(type optval_t, cw_cv_type_optval_t,
-[AC_EGREP_HEADER(optval_t, sys/socket.h, cw_cv_type_optval_t=exists,
-[CW_TYPE_EXTRACT_FROM(getsockopt, [#include <sys/types.h>
-#include <sys/socket.h>], 5, 4)
-eval "cw_cv_type_optval_t=\"$cw_result\""])])
-if test "$cw_cv_type_optval_t" != exists; then
-  CW_DEFINE_TYPE(optval_t, [$cw_cv_type_optval_t])
-fi
-])
-
-dnl CW_TYPE_SIGHANDLER_PARAM_T
-dnl
-dnl If `sighandler_param_t' is not defined in signal.h,
-dnl define it to be the type of the the first argument of `SIG_IGN'.
-dnl
-AC_DEFUN(CW_TYPE_SIGHANDLER_PARAM_T,
-[AC_CACHE_CHECK(type sighandler_param_t, cw_cv_type_sighandler_param_t,
-[AC_EGREP_HEADER(sighandler_param_t, signal.h, cw_cv_type_sighandler_param_t=exists,
-[CW_TYPE_EXTRACT_FROM(SIG_IGN, [#include <signal.h>], 1, 1)
-eval "cw_cv_type_sighandler_param_t=\"$cw_result\""])])
-if test "$cw_cv_type_sighandler_param_t" != exists; then
-  CW_DEFINE_TYPE(sighandler_param_t, [$cw_cv_type_sighandler_param_t])
-fi
-])
-
 dnl CW_TRY_RUN
 dnl
 dnl Like `AC_TRY_RUN' but also works when the language is C++.
@@ -367,72 +318,6 @@ if test "$cw_cv_system_needwordalignment" != no; then
   AC_DEFINE_UNQUOTED([LIBCWD_NEED_WORD_ALIGNMENT], 1)
 fi
 ])
-
-dnl CW_NBLOCK
-dnl
-dnl Defines CW_CONFIG_NBLOCK to be `POSIX', `BSD' or `SYSV'
-dnl depending on whether socket non-blocking stuff is
-dnl posix, bsd or sysv style respectively.
-AC_DEFUN(CW_NBLOCK,
-[save_LIBS="$LIBS"
-AC_CHECK_LIB(c, socket, [true],
-[AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS")])
-AC_CACHE_CHECK(non-blocking socket flavour, cw_cv_system_nblock,
-[AC_REQUIRE([AC_TYPE_SIGNAL])
-CW_TYPE_EXTRACT_FROM(recvfrom, [#include <sys/types.h>
-#include <sys/socket.h>], 6, 6)
-cw_recvfrom_param_six_t="$cw_result"
-AC_LANG_SAVE
-AC_LANG_C
-AC_TRY_RUN([#include <sys/types.h>
-#include <sys/socket.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/file.h>
-#include <signal.h>
-#include <unistd.h>
-$ac_cv_type_signal alarmed() { exit(1); }
-int main(int argc, char* argv[])
-{
-  char b[12];
-  struct sockaddr x;
-  size_t l = sizeof(x);
-  int f = socket(AF_INET, SOCK_DGRAM, 0);
-  if (argc == 1)
-    exit(0);
-  if (f >= 0 && !(fcntl(f, F_SETFL, (*argv[1] == 'P') ? O_NONBLOCK : O_NDELAY)))
-  {
-    signal(SIGALRM, alarmed);
-    alarm(2);
-    recvfrom(f, b, 12, 0, &x, ($cw_recvfrom_param_six_t)&l);
-    alarm(0);
-    exit(0);
-  }
-  exit(1);
-}],
-[./conftest POSIX
-if test "$?" = "0"; then
-  cw_cv_system_nblock=POSIX
-else
-  ./conftest BSD
-  if test "$?" = "0"; then
-    cw_cv_system_nblock=BSD
-  else
-    cw_cv_system_nblock=SYSV
-  fi
-fi],
-[AC_MSG_ERROR(Failed to compile a test program!?)],
-[cw_cv_system_nblock=crosscompiled_set_to_POSIX_BSD_or_SYSV
-AC_CACHE_SAVE
-AC_MSG_WARN(Cannot set cw_cv_system_nblock for unknown platform (you are cross-compiling).)
-AC_MSG_ERROR(Please edit config.cache and rerun ./configure to correct this!)])
-AC_LANG_RESTORE])
-if test "$cw_cv_system_nblock" = crosscompiled_set_to_POSIX_BSD_or_SYSV; then
-  AC_MSG_ERROR(Please edit config.cache and correct the value of cw_cv_system_nblock, then rerun ./configure)
-fi
-CW_CONFIG_NBLOCK=$cw_cv_system_nblock
-AC_SUBST(CW_CONFIG_NBLOCK)
-LIBS="$save_LIBS"])
 
 dnl CW_TYPE_GETGROUPS
 dnl

@@ -812,6 +812,7 @@ private:
   static pthread_t S_thread_inside_find_nearest_line;
 #endif
   Elf32_Word M_stabs_section_index;
+  Elf32_Word M_stabstr_section_index;
   Elf32_Word M_dwarf_debug_info_section_index;
   Elf32_Word M_dwarf_debug_abbrev_section_index;
   Elf32_Word M_dwarf_debug_line_section_index;
@@ -1742,10 +1743,14 @@ void objfile_ct::load_stabs(void)
   stab_st* stabs = (stab_st*)allocate_and_read_section(M_stabs_section_index);
   if (DEBUGSTABS)
   {
-    LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[M_sections[M_sections[M_stabs_section_index].section_header().sh_link].section_header().sh_name], ".stabstr") );
+#ifdef __linux
+    // The native Solaris 2.8 linker (ld) doesn't fill in the value of sh_link.
+    LIBCWD_ASSERT( M_stabstr_section_index == M_sections[M_stabs_section_index].section_header().sh_link );
+#endif
+    LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[M_sections[M_stabstr_section_index].section_header().sh_name], ".stabstr") );
     LIBCWD_ASSERT( stabs->n_desc == (Elf32_Half)(M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize - 1) );
   }
-  char* stabs_string_table = allocate_and_read_section(M_sections[M_stabs_section_index].section_header().sh_link);
+  char* stabs_string_table = allocate_and_read_section(M_stabstr_section_index);
   if (DEBUGSTABS)
     Debug( libcw_do.inc_indent(4) );
   Elf32_Addr func_addr = 0;
@@ -2086,6 +2091,8 @@ objfile_ct::objfile_ct(char const* file_name) :
       M_dyn_symbol_string_table = allocate_and_read_section(i);
     else if (M_dwarf_debug_line_section_index == 0 && !strcmp(M_sections[i].name, ".stab"))
       M_stabs_section_index = i;
+    else if (!strcmp(M_sections[i].name, ".stabstr"))
+      M_stabstr_section_index = i;
     else if (!strcmp(M_sections[i].name, ".debug_line"))
     {
       M_dwarf_debug_line_section_index = i;
