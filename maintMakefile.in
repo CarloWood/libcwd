@@ -104,12 +104,15 @@ full-check: Makefile
 	@( \
 	  for c in \
 	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugt --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
 		'--enable-maintainer-mode --enable-libcwd-debugm --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
 	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --compilers=3.0.3,2.96,2.95.3' \
 		'--enable-maintainer-mode --enable-libcwd-debugm --compilers=3.0.3,2.96,2.95.3' \
 	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
+	  	'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugt --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
 		'--enable-maintainer-mode --enable-libcwd-debug --disable-libcwd-debug-output --compilers=3.0.3,2.96,2.95.3' \
 		'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugm --enable-libcwd-debug --compilers=3.0.3,2.96,2.95.3' \
+		'--enable-maintainer-mode --enable-libcwd-threading --enable-libcwd-debugt --enable-libcwd-debugm --enable-libcwd-debug --compilers=3.0.3,2.96,2.95.3' \
 		'--enable-maintainer-mode --enable-libcwd-debugm --enable-libcwd-debug --compilers=3.0.3,2.96,2.95.3' \
 	  	'--enable-maintainer-mode --enable-libcwd-threading --compilers=3.0.3,3.0.2,3.0.1,2.96,2.95.3,2.95.2' \
 		'--enable-maintainer-mode --compilers=3.0.3,3.0.2,3.0.1,2.96,2.95.3,2.95.2' \

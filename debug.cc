@@ -285,7 +285,9 @@ namespace libcw {
       channels::dc::system.NS_initialize("SYSTEM");
 
       libcw_do.NS_init();			// Initialize debug code.
+#ifdef LIBCWD_THREAD_SAFE
       libcw_do.keep_tsd(true);
+#endif
 
       // Unlimit core size.
 #ifdef RLIMIT_CORE
@@ -989,6 +991,7 @@ namespace libcw {
       tsd_initialized = true;
     }
 
+#ifdef LIBCWD_THREAD_SAFE
     namespace _private_ {
       void debug_tsd_init(LIBCWD_TSD_PARAM)
       {
@@ -1002,6 +1005,7 @@ namespace libcw {
 	);
       }
     }
+#endif
 
     debug_tsd_st::~debug_tsd_st()
     {

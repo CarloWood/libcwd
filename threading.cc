@@ -84,7 +84,7 @@ void TSD_st::S_initialize(void) throw()
   tid = pthread_self();
   initialize_global_mutexes();			// This is a good moment to initialize all pthread mutexes.
   mutex_tct<tsd_initialization_instance>::unlock();
-  if (WST_multi_threaded)			// Is this a second (or later) thread?
+  if (thread_index(pthread_self()) != 0)	// Is this a second (or later) thread?
   {
     set_alloc_checking_off(*this);
     for (int i = 0; i < LIBCWD_DO_MAX; ++i)
