@@ -776,6 +776,17 @@ int const BSF_DYNAMIC = 4096;
 	}
 	being_initialized = true;
 
+#if defined(DEBUGDEBUG) && defined(DEBUGMALLOC)
+	// First time we get here, this string is intialized - this must be with `internal' off!
+	static bool second_time = false;
+	if (!second_time)
+	{
+	  second_time = true;
+	  ASSERT( !libcw::debug::_internal_::internal );
+	}
+#endif
+	static string fullpath;					// Must be static because bfd keeps a pointer to its data()
+
 	// ****************************************************************************
 	// Start INTERNAL!
 	set_alloc_checking_off();
@@ -809,7 +820,6 @@ int const BSF_DYNAMIC = 4096;
 #endif
 
 	// Get the full path and name of executable
-	static string fullpath;					// Must be static because bfd keeps a pointer to its data()
 	get_full_path_to_executable(fullpath);
 	fullpath += '\0';
 
