@@ -32,6 +32,8 @@ libcwd-0.99.5
 
 	Now using the namespace of std::type_info in libcw/type_info.h.
 
+	Lots of bug fixes and additions in the demangler.
+
 libcwd-0.99.4
 
 	A real testsuite was added, based on dejagnu.
