@@ -14,7 +14,7 @@
 #include "sys.h"
 #include "cwd_debug.h"
 
-#if _WIN32
+#ifdef _WIN32
 
 namespace libcwd {
 

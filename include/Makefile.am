@@ -38,29 +38,29 @@ if ENABLETHREADING
 @true@endif
 endif
 
-pch.h.gch/libcwd_pch.h pch.h.gch/libcwd_r_pch.h: pch-source.h Makefile
+pch.h.gch/libcwd_pch.h pch.h.gch/libcwd_r_pch.h: $(srcdir)/pch-source.h Makefile
 	test -d pch.h.gch || mkdir -p pch.h.gch
 	rm -f $@
 	test -d $(DEPDIR) || mkdir $(DEPDIR)
 if ENABLENONTHREADING
 	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	    -DCWDEBUG $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
-	    -M -MT pch.h.gch/libcwd_pch.h -MF $(DEPDIR)/libcwd_pch.Tpo -DPIC -fPIC pch-source.h >/dev/null; then \
+	    -M -MT pch.h.gch/libcwd_pch.h -MF $(DEPDIR)/libcwd_pch.Tpo -DPIC -fPIC $(srcdir)/pch-source.h >/dev/null; then \
 	  cmp -s $(DEPDIR)/libcwd_pch.Tpo $(DEPDIR)/libcwd_pch.po || mv $(DEPDIR)/libcwd_pch.Tpo $(DEPDIR)/libcwd_pch.po; \
 	fi
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	    -DCWDEBUG $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
-	    -c -o pch.h.gch/libcwd_pch.h pch-source.h
+	    -c -o pch.h.gch/libcwd_pch.h $(srcdir)/pch-source.h
 endif
 if ENABLETHREADING
 	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	    -DCWDEBUG -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
-	    -M -MT pch.h.gch/libcwd_r_pch.h -MF $(DEPDIR)/libcwd_r_pch.Tpo -DPIC -fPIC pch-source.h >/dev/null; then \
+	    -M -MT pch.h.gch/libcwd_r_pch.h -MF $(DEPDIR)/libcwd_r_pch.Tpo -DPIC -fPIC $(srcdir)/pch-source.h >/dev/null; then \
 	  cmp -s $(DEPDIR)/libcwd_r_pch.Tpo $(DEPDIR)/libcwd_r_pch.po || mv $(DEPDIR)/libcwd_r_pch.Tpo $(DEPDIR)/libcwd_r_pch.po; \
 	fi
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	    -DCWDEBUG -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
-	    -c -o pch.h.gch/libcwd_r_pch.h pch-source.h
+	    -c -o pch.h.gch/libcwd_r_pch.h $(srcdir)/pch-source.h
 endif
 
 clean-local:
