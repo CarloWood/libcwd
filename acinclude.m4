@@ -949,7 +949,7 @@ AC_DEFUN(CW_RPATH_OPTION,
 AC_LANG_SAVE
 AC_LANG_CPLUSPLUS
 CXXFLAGS="$save_CXXFLAGS -Wl,--rpath,/tmp"
-AC_TRY_COMPILE(,,[cw_cv_rpath_option="-Wl,--rpath,"],[cw_cv_rpath_option="-Wl,-R"])
+AC_TRY_LINK(,,[cw_cv_rpath_option="-Wl,--rpath,"],[cw_cv_rpath_option="-Wl,-R"])
 AC_LANG_RESTORE
 CXXFLAGS="$save_CXXFLAGS"])
 RPATH_OPTION="$cw_cv_rpath_option"
