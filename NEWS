@@ -1,12 +1,24 @@
-libcwd-1.0.0
-
-	Final release.
+libcwd-0.99.28
 
 	Bug fixes:
 
 	Configuration with --disable-alloc was still broken on SunOS.
-	Bug fixes for the demangler (mangling changed per g++ 3.1).
-	Bug fixes for DWARF2 location lookup.
+
+	The mangling was changed in g++ version 3.1 (making C++ libraries
+	compiled with versions before 3.1, binary incompatible).  The demangler
+	of libcwd was updated to reflect this change.  Note that libcwd
+	will not always demangle applications, that were compiled with a g++
+	version 3.0.x, correctly anymore.
+
+	Under certain circumstances the decoding of the line numbers
+	of DWARF2 .debug_line section failed.  In particular, the
+	last source line of functions was failing often.  Most notably
+	that was confusing when the last line of an inlined function
+	needed to be located.  The lookup now has been extensively tested
+	(to correctly lookup every possible location in a -O2 compiled
+	libstdc++-5.0.2).
+
+	TODO: http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view%20audit-trail&database=gcc&pr=38
 
 libcwd-0.99.27
 

@@ -71,6 +71,7 @@ struct asymbol_st {
 
 struct asection_st {
   Elf32_Addr vma;
+  Elf32_Addr offset;
   char const* name;
 };
 
@@ -82,12 +83,12 @@ struct bfd_st {
   };
   bool cacheable;
   bool M_has_syms;
-  size_t M_s_end_vma;
+  size_t M_s_end_offset;
 public:
   bfd_st(void) : M_has_syms(false) { }
   virtual ~bfd_st() { }
 public:
-  static bfd_st* openr(char const* file_name);
+  static bfd_st* openr(char const* file_name, bool shared_library);
   virtual void close(void) = 0;
   virtual bool check_format(void) const = 0;
   virtual long get_symtab_upper_bound(void) = 0;

@@ -709,23 +709,15 @@ public:
       M_used = false;
     M_address += increment;
     DoutDwarf(dc::bfd, "--> location.M_address = 0x" << std::hex << M_address);
-#if DEBUGDWARF
-    bool was_not_valid = !(M_flags & 2);
-#endif
     M_flags |= 2;
-    if (is_valid())
-    {
-#if DEBUGDWARF
-      if (was_not_valid)
-	DoutDwarf(dc::bfd, "--> location now valid.");
-#endif
-      M_store();
-    }
   }
   void sequence_end(void) {
     DoutDwarf(dc::bfd, "--> Sequence end.");
     if (is_valid())
+    {
+      M_line = 0;	// Force storing of range, no range catenation is needed.
       M_store();
+    }
     // Invalidate range tracking, we will start all over.
     M_range.start = 0;
   }
@@ -781,7 +773,7 @@ private:
   Elf32_Shdr M_section_header;
 public:
   section_ct(void) { }
-  void init(char const* section_header_string_table, Elf32_Shdr const& section_header);
+  void init(char const* section_header_string_table, Elf32_Shdr const& section_header, bool shared_library);
   Elf32_Shdr const& section_header(void) const { return M_section_header; }
 };
 
@@ -835,7 +827,7 @@ private:
   void delete_hash_list(void);
 public:
   objfile_ct(void);
-  void initialize(char const* file_name);
+  void initialize(char const* file_name, bool shared_library);
   ~objfile_ct();
   char const* get_section_header_string_table(void) const { return M_section_header_string_table; }
   section_ct const& get_section(int index) const { LIBCWD_ASSERT( index < M_header.e_shnum ); return M_sections[index]; }
@@ -873,7 +865,6 @@ void location_ct::M_store(void)
   if (M_prev_location.M_source_iter == M_source_iter && M_prev_location.M_line == M_line)
   {
     DoutDwarf(dc::bfd, "Skipping M_store: location didn't change.");
-    M_used = true;
     return;
   }
 #if DEBUGDWARF
@@ -907,7 +898,7 @@ inline void location_ct::stabs_range(range_st const& range) const
 //-------------------------------------------------------------------------------------------------------------------------------------------
 // Implementation
 
-static asection_st const abs_section_c = { 0, "*ABS*" };
+static asection_st const abs_section_c = { 0, 0, "*ABS*" };
 asection_st const* const absolute_section_c = &abs_section_c;
 
 bool Elf32_Ehdr::check_format(void) const
@@ -944,15 +935,19 @@ bool Elf32_Ehdr::check_format(void) const
   return true;
 }
 
-void section_ct::init(char const* section_header_string_table, Elf32_Shdr const& section_header)
+void section_ct::init(char const* section_header_string_table, Elf32_Shdr const& section_header, bool shared_library)
 {
   std::memcpy(&M_section_header, &section_header, sizeof(M_section_header));
   // Duplicated values:
   vma = M_section_header.sh_addr;
+  if (shared_library)
+    offset = M_section_header.sh_offset;
+  else
+    offset = vma;	// We work with lbase == 0, so the offset must be (set) equal to vma.
   name = &section_header_string_table[M_section_header.sh_name];
 }
 
-bfd_st* bfd_st::openr(char const* file_name)
+bfd_st* bfd_st::openr(char const* file_name, bool shared_library)
 {
 #ifdef _REENTRANT
   _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
@@ -961,7 +956,7 @@ bfd_st* bfd_st::openr(char const* file_name)
 #ifdef _REENTRANT
   _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
 #endif
-  objfile->initialize(file_name);
+  objfile->initialize(file_name, shared_library);
   return objfile;
 }
 
@@ -1035,7 +1030,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	  if (new_symbol->name[1] != 'e' || new_symbol->name[0] != '_' || new_symbol->name[2] != 'n' || new_symbol->name[3] != 'd' || new_symbol->name[4] != 0)
 	    continue;
 	  new_symbol->section = absolute_section_c;
-          M_s_end_vma = new_symbol->value = symbol.st_value;
+          M_s_end_offset = new_symbol->value = symbol.st_value;
 	}
         else if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
 	  continue;							// Skip Special Sections and Undefined Symbols.
@@ -1047,7 +1042,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 #ifdef __sun__
 	  // On solaris 2.8 _end is not absolute but in .bss.
 	  if (new_symbol->name[1] == 'e' && new_symbol->name[0] == '_' && new_symbol->name[2] == 'n' && new_symbol->name[3] == 'd' && new_symbol->name[4] == 0)
-	    M_s_end_vma = symbol.st_value;
+	    M_s_end_offset = symbol.st_value;
 #endif
 	  									// to start of section.
           if (DEBUGELF32)
@@ -1720,7 +1715,7 @@ indirect:
 		    LEB128_t line_increment;
 		    dwarf_read(debug_line_ptr, line_increment);
 		    DoutDwarf(dc::bfd, "DW_LNS_advance_line: " << line_increment);
-		    location.invalidate();	// FIXME? Is this ok?
+		    location.invalidate();
 		    location.increment_line(line_increment);
 		    break;
 		  }
@@ -1789,7 +1784,6 @@ indirect:
 		unsigned int address_increment = (opcode - opcode_base) / line_range;
 		DoutDwarf(dc::bfd, "Special opcode.  Address/Line increments: 0x" <<
 		    std::hex << address_increment << ", " << std::dec << line_increment);
-		location.invalidate();	// Make sure we won't add a new range until after also line was incremented.
 		location.increment_address(minimum_instruction_length * address_increment);
 		location.increment_line(line_increment);
 		basic_block = false;
@@ -2191,7 +2185,7 @@ objfile_ct::objfile_ct(void) :
 {
 }
 
-void objfile_ct::initialize(char const* file_name)
+void objfile_ct::initialize(char const* file_name, bool shared_library)
 {
   filename = file_name;
   LIBCWD_TSD_DECLARATION;
@@ -2244,7 +2238,7 @@ void objfile_ct::initialize(char const* file_name)
   {
     if (DEBUGELF32 && section_headers[i].sh_name)
       Dout(dc::bfd, "Section name: \"" << &M_section_header_string_table[section_headers[i].sh_name] << '"');
-    M_sections[i].init(M_section_header_string_table, section_headers[i]);
+    M_sections[i].init(M_section_header_string_table, section_headers[i], shared_library);
     if (!strcmp(M_sections[i].name, ".strtab"))
       M_symbol_string_table = allocate_and_read_section(i);
     else if (!strcmp(M_sections[i].name, ".dynstr"))

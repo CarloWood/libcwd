@@ -16,7 +16,7 @@ MALLOC  : <continued> 0x[0-9a-f]*
 MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks:
 malloc    0x[0-9a-f]*            module\.cc:10   void\*; \(sz = 300\)  Allocated inside static_test_symbol
 malloc    0x[0-9a-f]*            module\.cc:19   void\*; \(sz = 310\)  Allocated inside global_test_symbol
-// input lines 8
+// input lines 11
 // output till ^MALLOC
 ((BFD     : Warning: Address 0x[0-9a-f]* in section \.text of object file "libstdc.*"
           does not have a line number, perhaps the unit containing the function
@@ -24,8 +24,11 @@ malloc    0x[0-9a-f]*            module\.cc:19   void\*; \(sz = 310\)  Allocated
           0x[0-9a-f]* *streambuf::streambuf\(int\) <unknown type>; \(sz = [0-9]*\) 
 )|(BFD     : address 0x[0-9a-f]* corresponds to streambuf.cc:211
           0x[0-9a-f]* *streambuf.cc:211 *<unknown type>; \(sz = [0-9]*\) 
-))*((malloc |realloc)   0x[0-9a-f]* *((dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]*|add_to_global|_dl_[a-z_]*) *<unknown type>; \(sz = [0-9]*\) 
-)*
+))*(((malloc |realloc)   0x[0-9a-f]* *((dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]*|add_to_global|_dl_[a-z_]*) *<unknown type>; \(sz = [0-9]*\) 
+)|(BFD     : Warning: Address 0x[0-9a-f]* in section \.text of object file "ld-linux.so\.2"
+          does not have a line number, perhaps the unit containing the function
+          `_dl_map_object_deps' wasn't compiled with flag -(g|gdb)\?
+)*)*
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:19 *void\*; \(sz = 310\)  Allocated inside global_test_symbol 
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:10 *void\*; \(sz = 300\)  Allocated inside static_test_symbol 
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-version.c:[0-9]*|_dl_check_map_versions) *<unknown type>; \(sz = [0-9]*\)  

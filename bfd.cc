@@ -121,7 +121,6 @@ uint32_t const HAS_SYMS = 0xffffffff;
 inline asection const* bfd_get_section(asymbol const* s) { return s->section; }
 inline bfd*& bfd_asymbol_bfd(asymbol* s) { return s->bfd_ptr; }
 inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
-inline bfd* bfd_openr(char const* filename, void*) { return bfd::openr(filename); }
 inline bool bfd_check_format(bfd const* abfd, int) { return abfd->check_format(); }
 inline uint32_t bfd_get_file_flags(bfd const* abfd) { return abfd->has_syms() ? HAS_SYMS : 0; }
 inline long bfd_get_symtab_upper_bound(bfd* abfd) { return abfd->get_symtab_upper_bound(); }
@@ -192,7 +191,7 @@ void bfd_close(bfd* abfd)
       inline addr_const_ptr_t
       symbol_start_addr(asymbol const* s)
       {
-	return s->value + bfd_get_section(s)->vma
+	return s->value + bfd_get_section(s)->offset
 	    + reinterpret_cast<char const*>(reinterpret_cast<bfile_ct const*>(bfd_asymbol_bfd(s)->usrdata)->get_lbase());
       }
 
@@ -307,13 +306,14 @@ void bfd_close(bfd* abfd)
 #endif
 #endif
 
-	abfd = bfd_openr(filename, NULL);
 #if CWDEBUG_LIBBFD
+	abfd = bfd_openr(filename, NULL);
 	if (!abfd)
 	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
 	abfd->cacheable = bfd_tttrue;
 #else
-	abfd->M_s_end_vma = 0;
+	abfd = bfd::openr(filename, base != 0);
+	abfd->M_s_end_offset = 0;
 #endif
 	abfd->usrdata = (addr_ptr_t)this;
 
@@ -373,9 +373,9 @@ void bfd_close(bfd* abfd)
 	if (number_of_symbols > 0)
 	{
 #if !CWDEBUG_LIBBFD
-	  size_t s_end_vma = abfd->M_s_end_vma;
+	  size_t s_end_offset = abfd->M_s_end_offset;
 #else
-	  size_t s_end_vma = 0;
+	  size_t s_end_offset = 0;
 	  // Throw away symbols that can endanger determining the size of functions
 	  // like: local symbols, debugging symbols.  Also throw away all symbols
 	  // in uninteresting sections to safe time with sorting.
@@ -390,7 +390,7 @@ void bfd_close(bfd* abfd)
 	    }
 	    // Find the start address of the last symbol: "_end".
 	    else if ((*s)->name[0] == '_' && (*s)->name[1] == 'e' && (*s)->name[2] == 'n' && (*s)->name[3] == 'd' && (*s)->name[4] == 0)
-	      s_end_vma = (*s++)->value;		// Relative to (yet unknown) lbase.
+	      s_end_offset = (*s++)->value;		// Relative to (yet unknown) lbase.
 	    else if (((*s)->flags & (BSF_GLOBAL|BSF_FUNCTION|BSF_OBJECT)) == 0
 		|| ((*s)->flags & (BSF_DEBUGGING|BSF_CONSTRUCTOR|BSF_WARNING|BSF_FILE)) != 0
 		|| bfd_is_abs_section(bfd_get_section(*s))
@@ -405,7 +405,7 @@ void bfd_close(bfd* abfd)
 	  }
 #endif // CWDEBUG_LIBBFD
 
-	  if (!s_end_vma && number_of_symbols > 0)
+	  if (!s_end_offset && number_of_symbols > 0)
 	    Dout(dc::warning, "Cannot find symbol _end");
 
 	  // Guess the start of the shared object when ldd didn't return it.
@@ -428,12 +428,12 @@ void bfd_close(bfd* abfd)
 	      DoutFatal(dc::fatal, "::dlopen(" << filename << ", RTLD_LAZY): " << dlerror_str);
 	    }
 	    char* val;
-	    if (s_end_vma && (val = (char*)dlsym(handle, "_end")))	// dlsym will fail when _end is a local symbol.
+	    if (s_end_offset && (val = (char*)dlsym(handle, "_end")))	// dlsym will fail when _end is a local symbol.
 	    {
 #if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
 #endif
-	      lbase = val - s_end_vma;
+	      lbase = val - s_end_offset;
 	    }
 	    else
 #ifdef HAVE__DL_LOADED
@@ -448,7 +448,8 @@ void bfd_close(bfd* abfd)
 		  break;
 		}
 	    }
-#else // !HAVE_LINK_H
+#endif // HAVE__DL_LOADED
+	    if (lbase == 0 || lbase == unknown_l_addr)
 	    {
 #if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
@@ -477,7 +478,7 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 		    __libcwd_tsd.internal = saved_internal;
 #endif
-		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->vma;
+		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->offset;
 		    std::pair<start_values_map_ct::iterator, bool> p = start_values.insert(std::pair<void* const, unsigned int>(start, 0));
 		    if (++(*(p.first)).second > best_count)
 		    {
@@ -514,7 +515,6 @@ void bfd_close(bfd* abfd)
 	      }
 	      lbase = best_start;
 	    }
-#endif // !HAVE_LINK_H
 #if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = 0;
 #endif
@@ -530,10 +530,10 @@ void bfd_close(bfd* abfd)
 
 	  void const* s_end_start_addr;
 	  
-	  if (s_end_vma)
+	  if (s_end_offset)
 	  {
-	    s_end_start_addr = (char*)lbase + s_end_vma;
-	    M_size = s_end_vma;
+	    s_end_start_addr = (char*)lbase + s_end_offset;
+	    M_size = s_end_offset;
           }
 	  else
 	  {
@@ -584,6 +584,15 @@ void bfd_close(bfd* abfd)
 	    if (!M_size)
 	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)lbase;
 	  }
+
+#if 0
+	  if (function_symbols.size() < 100)
+	    for(function_symbols_ct::iterator i(function_symbols.begin()); i != function_symbols.end(); ++i)
+	    {
+	      asymbol const* s = i->get_symbol();
+	      Dout(dc::bfd, s->name << " (" << s->section->name << ") = " << s->value);
+	    }
+#endif
 	}
 
 	if (number_of_symbols > 0)
@@ -1090,6 +1099,8 @@ void bfd_close(bfd* abfd)
 #endif
 	  if (l->l_addr)
 	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+	  else if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
+	    load_object_file(l->l_name, unknown_l_addr);
 	}
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
@@ -1133,8 +1144,8 @@ void bfd_close(bfd* abfd)
 
 	  // Make symbol_start_addr(&dummy_symbol) and symbol_size(&dummy_symbol) return the correct value:
 	  bfd_asymbol_bfd(&dummy_symbol) = object_file->get_bfd();
-	  dummy_section.vma = 0;			// Use a vma of 0 and
-	  dummy_symbol.section = &dummy_section;	// use dummy_symbol.value to store (value + vma):
+	  dummy_section.offset = 0;			// Use an offset of 0 and
+	  dummy_symbol.section = &dummy_section;	// use dummy_symbol.value to store (value + offset):
 	  dummy_symbol.value = reinterpret_cast<char const*>(addr) - reinterpret_cast<char const*>(object_file->get_lbase());
 	  symbol_size(&dummy_symbol) = 1;
 	  function_symbols_ct::iterator i(object_file->get_function_symbols().find(symbol_ct(&dummy_symbol, true)));
@@ -1330,7 +1341,7 @@ already_loaded:
 	set_alloc_checking_off(LIBCWD_TSD);
 #if CWDEBUG_LIBBFD
 	bfd_find_nearest_line(abfd, const_cast<asection*>(sect), const_cast<asymbol**>(object_file->get_symbol_table()),
-	    (char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &M_func, &M_line);
+	    (char*)addr - (char*)object_file->get_lbase() - sect->offset, &file, &M_func, &M_line);
 #else
         abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line LIBCWD_COMMA_TSD);
 #endif

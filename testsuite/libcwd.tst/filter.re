@@ -1,3 +1,8 @@
+// input lines 3
+// output till ^MALLOC
+((WARNING : core size is limited.*
+)*(BFD     : Loading debug info from.*
+)*)
 // type regexp
 MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
           0x[a-f0-9]* tst_filter_shared:/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
@@ -49,7 +54,7 @@ MALLOC  : free\(0x[a-f0-9]*\) *(dl-load\.c:164|_dl_map_object) *<unknown type>; 
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = 54[4|8]\)  
-MALLOC  : free\(0x[a-f0-9]*\) *(dl-deps\.c:528|_dl_map_object_deps) *<unknown type>; \(sz = [0-9]*\)  
+MALLOC  : free\(0x[a-f0-9]*\) *(dl-deps\.c:528|_dl_map_object_deps|<pre libcwd initialization>) *<unknown type>; \(sz = [0-9]*\)  
 // input lines 3
 // output till MALLOC  : Allocated memory
 (MALLOC  : .*<pre libcwd initialization> <unknown type>; \(sz = [0-9]*\)  
