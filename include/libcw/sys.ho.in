@@ -95,12 +95,6 @@ int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_AD
 #define CW_FRAME_ADDRESS_OFFSET @CW_FRAME_ADDRESS_OFFSET_C@
 #endif
 
-//
-// bfd.h uses long long.
-//
-
-#@CW_CONFIG_GLIBCPP_USE_LONG_LONG@ _GLIBCPP_USE_LONG_LONG
-
 // Bug work arounds
 
 // Including certain header files fail with a warning.  For example:
