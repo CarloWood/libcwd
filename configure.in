@@ -368,7 +368,8 @@ if test "$libcwd_config_threading" = yes; then
   if test "$ac_cv_search_pthread_create" = "none required"; then
     dnl Even if nothing is required, we still need to use -lpthread explicitly
     dnl while linking a shared library, otherwise the versioning info of
-    dnl versioned symbols will be missing!  This is needed for the sem_* calls.
+    dnl versioned symbols will be missing!  This is needed for pthread_create
+    dnl itself even!.
     AC_CHECK_LIB(pthread, pthread_create, [LIB_THREADS_SHARED=-lpthread])
   fi
 fi
