@@ -939,3 +939,17 @@ else
   AC_MSG_RESULT([yes])
 fi
 ])
+
+dnl CW_RPATH_OPTION
+dnl Figure out the commandline option to gcc needed to pass
+dnl a runtime path to the linker.
+AC_DEFUN(CW_RPATH_OPTION,
+[AC_CACHE_CHECK([how to pass a runtime path to the linker], cw_cv_rpath_option,
+[save_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$save_CXXFLAGS -Wl,--rpath,/tmp"
+AC_TRY_COMPILE(,,[cw_cv_rpath_option="-Wl,--rpath,"],[cw_cv_rpath_option="-Wl,-R"])
+CXXFLAGS="$save_CXXFLAGS"])
+RPATH_OPTION="$cw_cv_rpath_option"
+AC_SUBST(RPATH_OPTION)
+])
+

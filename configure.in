@@ -136,6 +136,9 @@ CW_CLEAN_CACHE
 dnl Add -pipe to EXTRAOPTS if possible
 CW_PIPE_EXTRAOPTS
 
+dnl Figure out linker characteristics
+CW_RPATH_OPTION
+
 dnl Checks for other programs.
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
