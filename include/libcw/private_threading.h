@@ -163,8 +163,10 @@ extern bool WST_multi_threaded;
 	    --__libcwd_tsd.cleanup_handler_installed; \
 	    LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred > 0 ); \
 	    LIBCWD_ASSERT( !__libcwd_tsd.internal ) ); \
-    pthread_cleanup_pop_restore_np(static_cast<int>(execute)); \
-	    --__libcwd_tsd.cancel_explicitely_deferred
+      pthread_cleanup_pop_restore_np(static_cast<int>(execute)); \
+      LibcwDebugThreads(\
+	    LIBCWD_TSD_DECLARATION; \
+	    --__libcwd_tsd.cancel_explicitely_deferred; )
 #else // !LIBCWD_USE_LINUXTHREADS
 #define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg) \
       LIBCWD_DEFER_CANCEL; \
