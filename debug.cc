@@ -67,8 +67,56 @@ namespace libcw {
       };
     };
 
-    debug_channels_ct* debug_channels = NULL;	// List with all channel_ct objects.
-    debug_objects_ct* debug_objects = NULL;	// List with all debug devices.
+    debug_channels_singleton_ct debug_channels;	// List with all channel_ct objects.
+    debug_objects_singleton_ct debug_objects;	// List with all debug devices.
+
+    void debug_channels_singleton_ct::init(void)
+    {
+      if (!_debug_channels)
+      {
+#ifdef DEBUGMALLOC
+        set_alloc_checking_off();
+#endif
+        _debug_channels = new debug_channels_ct;
+#ifdef DEBUGMALLOC
+        set_alloc_checking_on();
+#endif
+      }
+    }
+
+    void debug_objects_singleton_ct::init(void)
+    {
+      if (!_debug_objects)
+      {
+#ifdef DEBUGDEBUG
+        cerr << "DEBUGDEBUG: _debug_objects == NULL; initializing it" << endl;
+#endif
+#ifdef DEBUGMALLOC
+	// It is possible that malloc is not initialized yet.
+	init_debugmalloc();
+        set_alloc_checking_off();
+#endif
+        _debug_objects = new debug_objects_ct;
+#ifdef DEBUGMALLOC
+        set_alloc_checking_on();
+#endif
+      }
+    }
+
+    void debug_objects_singleton_ct::uninit(void)
+    {
+      if (_debug_objects)
+      {
+#ifdef DEBUGMALLOC
+	set_alloc_checking_off();
+#endif
+	delete _debug_objects;
+#ifdef DEBUGMALLOC
+	set_alloc_checking_on();
+#endif
+	_debug_objects = NULL;
+      }
+    }
 
 #ifdef DEBUGDEBUG
     static long debug_object_init_magic = 0;
@@ -376,25 +424,8 @@ namespace libcw {
       cerr << "DEBUGDEBUG: In debug_ct::init(void), _off set to 1" << endl;
 #endif
 
-      // The first time we get here, initialize the list with debug devices:
-      if (!debug_objects)
-      {
-#ifdef DEBUGDEBUG
-        cerr << "DEBUGDEBUG: debug_objects == NULL; initializing it" << endl;
-#endif
-#ifdef DEBUGMALLOC
-	// It is possible that malloc is not initialized yet.
-	init_debugmalloc();
-	set_alloc_checking_off();
-#endif
-        debug_objects = new debug_objects_ct;
-#ifdef DEBUGMALLOC
-	set_alloc_checking_on();
-#endif
-      }
-
-      if (::std::find(debug_objects->begin(), debug_objects->end(), this) == debug_objects->end()) // Not added before?
-	debug_objects->push_back(this);
+      if (::std::find(debug_objects().begin(), debug_objects().end(), this) == debug_objects().end()) // Not added before?
+	debug_objects().push_back(this);
 
       // Initialize this debug object:
       set_ostream(&cerr);				// Write to cerr by default.
@@ -480,18 +511,9 @@ namespace libcw {
 #endif
       marker.init("", 0);	// Free allocated memory
       margin.init("", 0);
-      debug_objects->erase(::std::find(debug_objects->begin(), debug_objects->end(), this));
-      if (debug_objects->empty())
-      {
-#ifdef DEBUGMALLOC
-	set_alloc_checking_off();
-#endif
-        delete debug_objects;
-	debug_objects = NULL;
-#ifdef DEBUGMALLOC
-	set_alloc_checking_on();
-#endif
-      }
+      debug_objects().erase(::std::find(debug_objects().begin(), debug_objects().end(), this));
+      if (debug_objects().empty())
+        debug_objects.uninit();
     }
 
     void debug_ct::set_margin(string const& s) {
@@ -532,7 +554,7 @@ namespace libcw {
     channel_ct const* find(char const* label)
     {
       channel_ct const* tmp = NULL;
-      for(debug_channels_ct::iterator i(debug_channels->begin()); i != debug_channels->end(); ++i)
+      for(debug_channels_ct::iterator i(debug_channels().begin()); i != debug_channels().end(); ++i)
       {
         if (!strncasecmp(label, (*i)->get_label(), strlen(label)))
           tmp = (*i);
@@ -543,7 +565,7 @@ namespace libcw {
     void list_channels_on(debug_ct const& debug_object)
     {
       if (!debug_object._off)
-	for(debug_channels_ct::iterator i(debug_channels->begin()); i != debug_channels->end(); ++i)
+	for(debug_channels_ct::iterator i(debug_channels().begin()); i != debug_channels().end(); ++i)
 	{
 	  char const* txt = (*i)->is_on() ? ": Enabled" : ": Disabled";
 	  debug_object.get_os().write((*i)->get_label(), max_len);
@@ -573,18 +595,7 @@ namespace libcw {
       strncpy(label, lbl, lbl_len);
       memset(label + lbl_len, ' ', max_label_len - lbl_len);
 
-      if (!debug_channels)
-      {
-#ifdef DEBUGMALLOC
-        set_alloc_checking_off();
-#endif
-        debug_channels = new debug_channels_ct;		// Leaks 12 bytes of memory
-#ifdef DEBUGMALLOC
-        set_alloc_checking_on();
-#endif
-      }
-
-      debug_channels->push_back(this);
+      debug_channels().push_back(this);
 
 #ifdef DEBUGDEBUG
       cerr << "DEBUGDEBUG: Leaving `channel_ct::channel_ct(\"" << lbl << "\")" << endl;
