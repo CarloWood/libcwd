@@ -1204,7 +1204,7 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, alloc_filter_ct
     if (object_file)
       LibcwDoutStream << object_file->filename() << ':';
     else
-      LibcwDoutStream << "<unknown object file> (at " << (void*)M_location->unknown_pc() << ") :";
+      LibcwDoutStream << "<unknown object file> (at " << M_location->unknown_pc() << ") :";
   }
   bool print_mangled_function_name = filter.M_flags & show_function;
   if (print_mangled_function_name)

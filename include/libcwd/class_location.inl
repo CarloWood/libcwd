@@ -157,8 +157,10 @@ template<class OSTREAM>
       else
 	os << location.M_filename << ':' << location.M_line;
     }
-    else
+    else if (location.M_object_file)
       os << location.M_object_file->filename() << ':' << location.M_func;
+    else
+      os << "<unknown object file> (at " << location.unknown_pc() << ')';
   }
 
 } // namespace _private_
