@@ -13,7 +13,7 @@
 
 //=============================================================================
 //
-// This is version 2 of libcw's "debugmalloc", it should be a hundered times
+// This is version 2 of libcw's "debugmalloc", it should be a hundred times
 // more surveyable then the first version ;).
 //
 // This file can be viewed at as an object, with static variables instead of
@@ -39,7 +39,7 @@
 // 2) A tree of objects that allows us to see which object allocated what.
 //
 // The first tree is used for two main things:
-// - Checking wether or not a call to free(2) or realloc(2) contains a valid
+// - Checking whether or not a call to free(3) or realloc(3) contains a valid
 //   pointer, and
 // - Allowing us to quickly find back which allocated block belongs to any
 //   arbitrary pointer (or interval if needed).
@@ -1395,7 +1395,7 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 
 //=============================================================================
 //
-// malloc(2) and calloc(2) replacements:
+// malloc(3) and calloc(3) replacements:
 //
 
 void* __libcwd_malloc(size_t size)
@@ -1508,7 +1508,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 
 //=============================================================================
 //
-// __libcwd_realloc, replacement for realloc(2)
+// __libcwd_realloc, replacement for realloc(3)
 //
 // reallocates a block and updates the internal administration.
 //
@@ -1634,7 +1634,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 
 //=============================================================================
 //
-// __libcwd_free, replacement for free(2)
+// __libcwd_free, replacement for free(3)
 //
 // frees a block and updates the internal administration.
 //
