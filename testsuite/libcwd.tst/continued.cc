@@ -250,7 +250,6 @@ int main(void)
   Dout( dc::notice|error_cf|cerr_cf, "CERR: This is a single line with an error message behind it written to cerr" );
   flush_cerr();
 
-#if 0
   //===================================================================================
   // Simple nests
 
@@ -374,7 +373,6 @@ int main(void)
   cout << " Continued tests, deep\n\n";
 
   Dout( dc::notice, continued_func(5) );
-#endif
 
   release_cerr();
 

@@ -1814,7 +1814,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << internal << "; setting it to false." );
     internal = false;
     DoutInternal( dc::finish, "" );
-#ifdef DEBUGMAGICMALLOC
+#ifdef DEBUGDEBUGMALLOC
     DoutFatalInternal( dc::core, "Trying to realloc() an invalid pointer (" << ptr << ") [" << saved_marker << ']' );
 #else
     DoutFatalInternal( dc::core, "Trying to realloc() an invalid pointer (" << ptr << ')' );
@@ -1842,7 +1842,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   if ((mptr = static_cast<char*>(__libc_realloc(static_cast<size_t*>(ptr) - 2, SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
   {
-#ifdef DEBUGMAGICMALLOC
+#ifdef DEBUGDEBUGMALLOC
     DoutInternal( dc::finish, "NULL [" << saved_marker << ']' );
 #else
     DoutInternal( dc::finish, "NULL" );
