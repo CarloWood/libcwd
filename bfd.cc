@@ -13,11 +13,11 @@
 
 #undef LIBCWD_DEBUGBFD		// Define to add debug code for this file.
 
+#include "sys.h"
 #include <libcwd/config.h>
 
 #if CWDEBUG_LOCATION
 
-#include "sys.h"
 #include <unistd.h>
 #include <cstdarg>
 #include <inttypes.h>
@@ -435,7 +435,7 @@ void bfd_close(bfd* abfd)
 	    void* handle = ::dlopen(filename, RTLD_LAZY);
 	    if (!handle)
 	    {
-#if defined(_REENTRANT) && CWDEBUG_DEBUG
+#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
 	      LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
 #endif
 	      char const* dlerror_str;
@@ -1035,7 +1035,7 @@ void bfd_close(bfd* abfd)
 
         // MT: We assume this is called before reaching main().
 	//     Therefore, no synchronisation is required.
-#if CWDEBUG_DEBUG && defined(_REENTRANT)
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
 	if (_private_::WST_multi_threaded)
 	  core_dump();
 #endif
@@ -1109,14 +1109,14 @@ void bfd_close(bfd* abfd)
 	      }
 	  ~static_string()
 	      {
-#if CWDEBUG_DEBUG && defined(_REENTRANT)
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
 		_private_::WST_multi_threaded = false;		// `fullpath' is static and will only be destroyed from exit().
 #endif
 		LIBCWD_TSD_DECLARATION;
 		set_alloc_checking_off(LIBCWD_TSD);
 		delete value;
 		set_alloc_checking_on(LIBCWD_TSD);
-#if CWDEBUG_DEBUG && defined(_REENTRANT)
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
 		_private_::WST_multi_threaded = true;		// Make sure we catch other global strings (in order to avoid a static destructor ordering fiasco).
 #endif
 	      }
@@ -1604,7 +1604,7 @@ namespace libcw {
 #endif
       static dlopen_map_ct* dlopen_map;
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 void dlopenclose_cleanup(void* arg)
 {
 #if CWDEBUG_ALLOC

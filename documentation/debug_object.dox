@@ -13,7 +13,8 @@ Libcwd declares a %debug class (\ref libcw::debug::debug_ct "debug_ct") which ca
 Such a %debug object can dynamically be turned \link libcw::debug::debug_ct::on on \endlink
 and \link libcw::debug::debug_ct::off off \endlink.&nbsp;
 When the %debug object is turned off, no %debug output is written to its \link group_destination ostream \endlink;
-in fact, the data that otherwise would be written is not even evaluated (see \ref eval_example "example").&nbsp;
+in fact, the data that otherwise would be written is
+not even evaluated (see \ref libcw::debug::debug_ct::on "example").&nbsp;
 The %debug code can also completely be omitted, by not defining the macro CWDEBUG.
 
 Libcwd defines and uses only one %debug object: \ref libcw::debug::libcw_do "libcw_do" (the _do stands for %Debug Object).

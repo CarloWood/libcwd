@@ -48,7 +48,18 @@ namespace libcw {
 // CXXCPP: @CXXCPP_FINGER_PRINT@
 //
 
-#if (defined(_REENTRANT) || defined(_THREAD_SAFE)) && !defined(_GNU_SOURCE)
+//
+// g++ 3.4 (20030816) defines _REENTRANT regardless when including
+// certain standard libstdc++ header files.  Therefore we can ONLY
+// test on _REENTRANT here, before including any other header file.
+//
+#if defined(_REENTRANT) || defined(_THREAD_SAFE)
+#define LIBCWD_THREAD_SAFE 1
+#else
+#define LIBCWD_THREAD_SAFE 0
+#endif
+
+#if LIBCWD_THREAD_SAFE && !defined(_GNU_SOURCE)
 #error Sorry, libcwd_r uses GNU extensions, also in the header files.
 #error Therefore you must also define _GNU_SOURCE when you are linking with -lcwd_r.
 #error Please add #define _GNU_SOURCE to your "sys.h", see reference-manual/preparation.html#preparation_step2.

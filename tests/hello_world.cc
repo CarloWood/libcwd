@@ -52,7 +52,7 @@ int main(void)
   // Select channels (note that where 'on' is used, 'off' can be specified
   // and vica versa).
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
-  Debug( dc::notice.off() );	// Just an example
+//  Debug( dc::notice.off() );	// Just an example
 
   // Write debug output to cout (the default is cerr)
   Debug( libcw_do.set_ostream(&std::cout) );
@@ -60,6 +60,8 @@ int main(void)
   // Turn debug object on.  Turning it off can be done recursively.
   // It starts with 'off' depth 1.
   Debug( libcw_do.on() );
+
+  Debug( read_rcfile() );
 
   // List all debug channels (not very usefull unless you allow to turn
   // channels on and off from the commandline; this is supported in libcw).
@@ -70,6 +72,8 @@ int main(void)
 
   // Write "Hello World" to our own channel:
   Dout(dc::hello, "Hello World!");
+
+  Debug( attach_gdb() );
 
   return 0;
 }

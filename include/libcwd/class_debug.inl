@@ -212,7 +212,6 @@ debug_ct::off(void)
  * Calls to off() and on() has to be done in pairs (first off() then on()).
  * These pairs can be nested.
  *
- * \anchor eval_example
  * <b>Example:</b>
  *
  * \code

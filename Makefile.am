@@ -27,21 +27,22 @@ else
 LIBCWD =
 endif
 
+dist_pkgdata_DATA = libcwdrc
 lib_LTLIBRARIES = $(LIBCWD) $(LIBCWD_R)
 
 if ENABLENONTHREADING
 libcwd_la_CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
 libcwd_la_SOURCES = \
-        elf32.cc \
-        environ.cc \
-        bfd.cc \
-        debug.cc \
-        debugmalloc.cc \
-        demangle.cc \
-        demangle3.cc \
+	elf32.cc \
+	environ.cc \
+	bfd.cc \
+	debug.cc \
+	debugmalloc.cc \
+	demangle.cc \
+	demangle3.cc \
 	ooam_filter.cc \
-        strerrno.cc \
-        type_info.cc
+	strerrno.cc \
+	type_info.cc
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
 libcwd_la_LIBADD = utils/libutils.la
 endif
@@ -49,18 +50,18 @@ endif
 if ENABLETHREADING
 libcwd_r_la_CXXFLAGS = -DCWDEBUG -D_REENTRANT -pthread $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
 libcwd_r_la_SOURCES = \
-        elf32.cc \
-        environ.cc \
-        bfd.cc \
-        debug.cc \
-        debugmalloc.cc \
-        demangle.cc \
-        demangle3.cc \
+	elf32.cc \
+	environ.cc \
+	bfd.cc \
+	debug.cc \
+	debugmalloc.cc \
+	demangle.cc \
+	demangle3.cc \
 	ooam_filter.cc \
-        strerrno.cc \
-        type_info.cc \
-        threading.cc \
-        wrapcnclpnts.cc
+	strerrno.cc \
+	type_info.cc \
+	threading.cc \
+	wrapcnclpnts.cc
 libcwd_r_la_LDFLAGS = -version-info $(VERSIONINFO) $(LIB_THREADS_SHARED)
 libcwd_r_la_LIBADD = utils/libutils_r.la
 endif

@@ -108,10 +108,10 @@ public:
   // MT: All channel objects must be global so that `WNS_initialized' is false 
   //     at the start of the program and initialization occurs before other threads
   //     share the object.
-  explicit channel_ct(char const* label);
+  explicit channel_ct(char const* label, bool add_to_channel_list = true);
 
   // MT: May only be called from the constructors of global objects (or single threaded functions).
-  void NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM);
+  void NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool add_to_channel_list);
     // Force initialization in case the constructor of this global object
     // wasn't called yet.  Does nothing when the object was already initialized.
 

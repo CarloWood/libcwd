@@ -25,10 +25,10 @@ reference-manual: styles external
 reference-manual-clean:
 	rm -rf reference-manual
 
-external: external/INSTALL external/sys.h external/debug.h external/debug.cc
+external: external/INSTALL external/sys.h external/debug.h external/debug.cc external/libcwdrc
 
 external-clean:
-	rm -f external/INSTALL external/sys.h external/debug.h external/debug.cc
+	rm -f external/INSTALL external/sys.h external/debug.h external/debug.cc external/libcwdrc
 
 external/INSTALL: ../INSTALL
 	cp ../INSTALL external/INSTALL
@@ -41,6 +41,9 @@ external/debug.h: ../example-project/debug.h
 
 external/debug.cc: ../example-project/debug.cc
 	cp ../example-project/debug.cc external/debug.cc
+
+external/libcwdrc: ../libcwdrc
+	cp ../libcwdrc external/libcwdrc
 
 styles:
 	$(MAKE) -C styles

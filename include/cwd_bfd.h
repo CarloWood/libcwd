@@ -41,7 +41,7 @@
 #include <libcwd/private_mutex_instances.h>
 #endif
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::object_files_instance;
@@ -59,7 +59,7 @@ using libcw::debug::_private_::dlclose_instance;
 #define DLOPEN_MAP_RELEASE_LOCK         mutex_tct<dlopen_map_instance>::unlock()
 #define DLCLOSE_ACQUIRE_LOCK            mutex_tct<dlclose_instance>::lock()
 #define DLCLOSE_RELEASE_LOCK            mutex_tct<dlclose_instance>::unlock()
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 #define BFD_INITIALIZE_LOCK
 #define BFD_ACQUIRE_WRITE_LOCK
 #define BFD_RELEASE_WRITE_LOCK
@@ -72,7 +72,7 @@ using libcw::debug::_private_::dlclose_instance;
 #define DLOPEN_MAP_RELEASE_LOCK
 #define DLCLOSE_ACQUIRE_LOCK
 #define DLCLOSE_RELEASE_LOCK
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 
 namespace libcw {
   namespace debug {

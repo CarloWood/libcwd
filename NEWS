@@ -1,5 +1,23 @@
 libcwd-0.99.32
 
+	Support for a runtime configuration file (.libcwdrc) has been
+	added.  This file can be used to set the debug channels.
+
+	A new function `attach_gdb()' was added.  When called, it
+	opens a terminal window with a gdb session allowing one to
+	debug the application from that point onwards.
+
+	Documentation for both functions above has been added to the
+	reference manual.
+
+	API changes:
+
+	The debug channel constructor was changed from
+	channel_ct::channel_ct(char const* label) to
+	channel_ct::channel_ct(char const* label, bool add_to_channel_list = true).
+        When add_to_channel_list is false, the channel will not be added
+	to the list of channels as accessible with ForAllDebugChannels().
+
 	Bug fixes:
 
 	It happened that the location of an allocation done before

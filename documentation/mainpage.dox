@@ -45,6 +45,13 @@
   </ul>
 </ul>
 
+<h2>Miscellaneous Runtime</h2>
+<ul>
+  <li>\ref chapter_rcfile
+  <li>\ref chapter_attach_gdb
+  <li>\ref chapter_core_dump
+</ul>
+
 <h2>Configuration, Installation And Getting Started</h2>
 <ul>
   <li>\ref chapter_custom_debug_h

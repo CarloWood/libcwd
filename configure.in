@@ -22,7 +22,7 @@ dnl INTERFACE_VERSION_REVISION	: Revision, increment every public release; or se
 dnl INTERFACE_AGE		: Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
 INTERFACE_VERSION=99		dnl 0.99 actually
-INTERFACE_VERSION_REVISION=31
+INTERFACE_VERSION_REVISION=32
 INTERFACE_AGE=99		dnl 0.99 actually
 
 VERSION_MAJOR=`expr $INTERFACE_VERSION - $INTERFACE_AGE`
@@ -479,6 +479,10 @@ test ! -d include && mkdir include
 
 dnl Set up rpm directory when in maintainer mode
 CW_SETUP_RPM_DIRS
+
+dnl The install prefix is hardcoded in the library in order to find the default rc file.
+libcwd_datadir=`eval echo "$datadir/$PACKAGE" | sed -e 's|NONE|'$ac_default_prefix'|'`
+AC_DEFINE_UNQUOTED([CW_DATADIR], "$libcwd_datadir", [Data directory where the default rcfile is read from.])
 
 dnl Generate include/libcwd/config.h, include/libcwd/sys.h and include/sys.h, preserving timestamp when they are not changed.
 AC_CONFIG_FILES(include/libcwd/timestamp-config.h:include/libcwd/config.ho, [

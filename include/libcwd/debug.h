@@ -230,6 +230,8 @@ using namespace libcw_debug_inserters;
 #include <libcwd/macro_ForAllDebugChannels.h>
 #include <libcwd/macro_ForAllDebugObjects.h>
 #include <libcwd/private_environ.h>
+#include <libcwd/class_rcfile.h>
+#include <libcwd/attach_gdb.h>
 #include <libcwd/demangle.h>
 
 // Include the inline functions.

@@ -28,7 +28,7 @@
 #endif
 extern "C" ssize_t write(int fd, const void *buf, size_t count);
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 namespace libcw {
   namespace debug {
     namespace _private_ {

@@ -2,6 +2,8 @@
 
 /** \addtogroup book_allocations Memory Allocation Debug Support */
 
+/** \addtogroup book_runtime Miscellaneous Runtime */
+
 /** \addtogroup book_symbols Program Symbols Access And Interpretation */
 
 /** \addtogroup book_start Configuration, Installation And Getting Started */

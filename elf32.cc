@@ -16,11 +16,11 @@
 // ELF32 object files.
 //
 
+#include "sys.h"
 #include <libcwd/config.h>
 
 #if CWDEBUG_LOCATION && !CWDEBUG_LIBBFD
 
-#include "sys.h"
 #include <inttypes.h>	// ISO C99 header, needed for int32_t etc.
 #include <iomanip>
 #ifdef HAVE_DLOPEN
@@ -842,7 +842,7 @@ private:
   object_files_range_location_map_ct M_ranges;
   bool M_debug_info_loaded;
   bool M_brac_relative_to_fun;
-#ifndef _REENTRANT
+#if !LIBCWD_THREAD_SAFE
   bool M_inside_find_nearest_line;
 #else
   static pthread_t S_thread_inside_find_nearest_line;
@@ -871,8 +871,7 @@ protected:
   virtual void close(void);
 private:
   char* allocate_and_read_section(int i);
-  friend void location_ct::M_store(void);
-  friend void location_ct::stabs_range(range_st const& range) const;
+  friend class location_ct;	// location_ct::M_store and location_ct::stabs_range need access to `register_range'.
   void register_range(location_st const& location, range_st const& range);
   void load_stabs(void);
   void load_dwarf(void);
@@ -881,7 +880,7 @@ private:
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
 };
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 pthread_t objfile_ct::S_thread_inside_find_nearest_line;
 #endif
 
@@ -984,11 +983,11 @@ void section_ct::init(char const* section_header_string_table, Elf32_Shdr const&
 
 bfd_st* bfd_st::openr(char const* file_name, bool shared_library)
 {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
 #endif
   objfile_ct* objfile = new objfile_ct;
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
 #endif
   objfile->initialize(file_name, shared_library);
@@ -2108,7 +2107,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
   {
     // The call to load_dwarf()/load_stabs() below can call malloc, causing us to recursively enter this function
     // for this object or another objfile_ct.
-#ifndef _REENTRANT
+#if !LIBCWD_THREAD_SAFE
     if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
     {
       *file = NULL;
@@ -2157,7 +2156,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
     int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
     M_input_stream->close();
     _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-#ifndef _REENTRANT
+#if !LIBCWD_THREAD_SAFE
     M_inside_find_nearest_line = false;
 #else
     S_thread_inside_find_nearest_line = (pthread_t) 0;
@@ -2287,7 +2286,7 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
     Debug( libcw_do.inc_indent(4) );
   M_debug_info_loaded = false;
   M_brac_relative_to_fun = false;
-#ifndef _REENTRANT
+#if !LIBCWD_THREAD_SAFE
   M_inside_find_nearest_line = false;
 #endif
   M_stabs_section_index = 0;

@@ -1,0 +1,49 @@
+/*!
+\defgroup chapter_rcfile Runtime Configuration File (rcfile)
+\ingroup book_rcfile
+*/
+/*!
+\page page_rcfile
+\ingroup chapter_rcfile
+
+In order to use <code>\link chapter_attach_gdb attach_gdb() \endlink</code> and/or to read debug channel states
+from an external file, you should call <code>read_rcfile()</code>,
+for example,
+
+\code
+int main()
+{
+  Debug( libcw_do.on() );		// In order to get RCFILE messages.
+  Debug( read_rcfile() );
+\endcode
+
+<code>read_rcfile()</code> can be used to turn on or off debug <em>channels</em>, but you still have to turn on the
+debug <em>object</em>(s); in particular the debug object <code>\link libcw::debug::libcw_do libcw_do \endlink</code>
+that is used to print WARNING messages in case something is wrong with your rcfile.
+
+The default rcfile is
+\htmlonly
+<SPAN class="filename">
+\endhtmlonly
+.libcwdrc
+\htmlonly
+</SPAN>
+\endhtmlonly
+(you can change that by setting
+the environment variable \link chapter_environment LIBCWD_RCFILE_NAME \endlink
+).&nbsp;
+The application will first attempt to read this file from the <em>current directory</em>.&nbsp;
+If that fails then it will try to read the rcfile from the users <em>home directory</em>.&nbsp;
+If that fails too then it will fall back to reading
+\htmlonly
+<SPAN class="filename">
+\endhtmlonly
+<install-prefix>/share/libcwd/libcwdrc
+\htmlonly
+</SPAN>
+\endhtmlonly
+.&nbsp;
+You can use the latter as a template and/or \htmlonly<A HREF="../external/libcwdrc">\endhtmlonly
+example\htmlonly</A>\endhtmlonly file for writing your own rcfile.
+
+*/

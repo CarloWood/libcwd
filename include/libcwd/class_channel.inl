@@ -33,10 +33,10 @@ namespace libcw {
  * \sa \ref chapter_custom_debug_h
  */
 __inline__
-channel_ct::channel_ct(char const* label)
+channel_ct::channel_ct(char const* label, bool add_to_channel_list)
 {
   LIBCWD_TSD_DECLARATION;
-  NS_initialize(label LIBCWD_COMMA_TSD);
+  NS_initialize(label LIBCWD_COMMA_TSD, add_to_channel_list);
 }
 
 #if LIBCWD_THREAD_SAFE

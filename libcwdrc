@@ -1,0 +1,37 @@
+# This is the default rcfile of libcwd.
+# It will be read when you issue a Debug(read_rcfile());
+# in your program and there is no ./.libcwdrc or $HOME/.libcwdrc.
+
+# Usage:
+#
+# int main()
+# {
+#   Debug( libcw_do.on() );
+#   Debug( read_rcfile() );
+
+# Turn this on if you don't want detailed RCFILE messages to be printed.
+# If you also don't want to see any warnings that this file might produce,
+# then don't turn on the debug object before calling Debug(read_rcfile());
+silent = off
+
+# Turn all channels off by default.
+channels_default = off
+
+# Toggle (turn on) channels matching these masks.
+# This must be a comma seperated list of channel label masks
+# that will be matched case insensitive against the labels
+# of the channels.
+channels_toggle = M*,BFD, n*tice
+
+# Always turn on the WARNING channel!
+channels_on = warning
+
+# You can also just give a list
+#channels_off = notice,malloc
+
+# Where to find gdb.
+gdb = /usr/bin/gdb
+
+# Commandline to execute in order to open a window (for starting gdb at run time).
+xterm = konsole -geometry =1024x400+0+0 -e %s
+

@@ -11,9 +11,9 @@
 // packaging of this file.
 //
 
+#include "sys.h"
 #include <libcwd/config.h>
 #if CWDEBUG_ALLOC
-#include "sys.h"
 #include "cwd_debug.h"
 #include "cwd_bfd.h"
 #ifndef LIBCWD_PRIVATE_THREADING_H
@@ -165,7 +165,7 @@ void ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const& m
 #if CWDEBUG_LOCATION
 void ooam_filter_ct::M_synchronize(void) const
 {
-#if defined(_REENTRANT) && CWDEBUG_DEBUG
+#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
   LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
 #endif
   BFD_ACQUIRE_WRITE_LOCK;

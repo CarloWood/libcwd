@@ -14,16 +14,17 @@
 #include "sys.h"
 #include <libcwd/config.h>
 
-#if defined(_REENTRANT) && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
 // This has to be very early (must not have been included elsewhere already).
 #define private public  // Ugly, I know.
 #if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
 #include <bits/stl_alloc.h>
 #else
+extern "C" char* getenv(char const* name);	// Needed before including ext/pool_allocator.h.
 #include <ext/pool_allocator.h>
 #endif
 #undef private
-#endif // defined(_REENTRANT) && CWDEBUG_ALLOC
+#endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
 
 #include <cerrno>
 #include <iostream>
@@ -39,7 +40,7 @@
 
 extern "C" int raise(int);
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::debug_objects_instance;
 using libcw::debug::_private_::debug_channels_instance;
@@ -56,7 +57,7 @@ using libcw::debug::_private_::debug_channels_instance;
 #define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<debug_channels_instance>::rd2wrlock()
 #define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<debug_channels_instance>::wr2rdlock()
 #define COMMA_IFTHREADS(x) ,x
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 #define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
 #define DEBUG_OBJECTS_RELEASE_WRITE_LOCK
 #define DEBUG_OBJECTS_ACQUIRE_READ_LOCK
@@ -70,7 +71,7 @@ using libcw::debug::_private_::debug_channels_instance;
 #define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK
 #define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK
 #define COMMA_IFTHREADS(x)
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 
 #define NEED_SUPRESSION_OF_MALLOC_AND_BFD (__GNUC__ == 3 && \
     ((__GNUC_MINOR__ == 2 && __VERSION__ [3] == 0) || \
@@ -82,7 +83,7 @@ namespace libcw {
 
 namespace _private_ {
 
-#if defined(_REENTRANT) && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
 // The following tries to take the "node allocator" lock -- the lock of the
 // default allocator for threaded applications.
 __inline__
@@ -127,7 +128,7 @@ void allocator_unlock(void)
   __gthread_mutex_unlock(&LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_lock);
 #endif
 }
-#endif // defined(_REENTRANT) && CWDEBUG_ALLOC
+#endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
 
 } // namespace _private_
 
@@ -141,13 +142,13 @@ void allocator_unlock(void)
     private:
       typedef pos_type streampos_t;
       streampos_t position;
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       // These two are protected by the ostream lock of a debug object.
       bool unfinished_already_printed;
       bool continued_needed;
 #endif
     public:
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       buffer_ct(void) : unfinished_already_printed(false), continued_needed(false) { }
 #endif
       void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object,
@@ -159,7 +160,7 @@ void allocator_unlock(void)
       void restore_position(void) {
 	this->pubseekoff(position, std::ios_base::beg, std::ios_base::out);
 	this->pubseekoff(0, std::ios_base::beg, std::ios_base::in);
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	continued_needed = false;
 #endif
       }
@@ -187,7 +188,7 @@ void allocator_unlock(void)
       // ends_on_newline	: This output ends on a newline.
       // possible_nonewline_cf	: When `ends_on_newline' is false, then that was caused by the use of nonewline_cf.
 
-#if defined(_REENTRANT) && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
       typedef debug_message_st* msgbuf_t;
       msgbuf_t msgbuf;
       // Queue the message when the default (STL) allocator is locked and it could be that we
@@ -216,12 +217,12 @@ void allocator_unlock(void)
 	msgbuf = (msgbuf_t)malloc(curlen + extra_size);
 	free_msgbuf = true;
       }
-#if defined(_REENTRANT) && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
       this->sgetn(msgbuf->buf, curlen);
 #else
       this->sgetn(msgbuf, curlen);
 #endif
-#if defined(_REENTRANT) && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
       if (queue_msg)	// Inside a call to malloc and possibly owning lock of std::LIBCWD_POOL_ALLOC<true, 0>?
       {
 	// We don't write debug output to the final ostream when inside malloc and std::LIBCWD_POOL_ALLOC<true, 0> is locked.
@@ -245,7 +246,7 @@ void allocator_unlock(void)
 	int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
 	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	LIBCWD_DISABLE_CANCEL;			// We don't want Dout() to be a cancellation point.
 	_private_::mutex_tct<_private_::set_ostream_instance>::lock();
 	bool got_lock = debug_object.M_mutex;
@@ -264,7 +265,7 @@ void allocator_unlock(void)
 	  }
 	}
 #endif
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	if (debug_object.newlineless_tsd && debug_object.newlineless_tsd != &__libcwd_tsd)
 	{
 	  if (debug_object.unfinished_oss)
@@ -285,8 +286,8 @@ void allocator_unlock(void)
 	  write_prefix_to(locked_os);
 	  locked_os->write("<continued> ", 12);
 	}
-#endif // _REENTRANT
-#if defined(_REENTRANT) && CWDEBUG_ALLOC
+#endif // LIBCWD_THREAD_SAFE
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
 	debug_message_st* message = debug_object.queue_top;
 	if (message)
 	{
@@ -305,14 +306,14 @@ void allocator_unlock(void)
 	}
 	// Then write the new message.
 	locked_os->write(msgbuf->buf, curlen);
-#else // !(CWDEBUG_ALLOC && defined(_REENTRANT))
-#ifdef _REENTRANT
+#else // !(CWDEBUG_ALLOC && LIBCWD_THREAD_SAFE)
+#if LIBCWD_THREAD_SAFE
 	locked_os->write(msgbuf, curlen);
-#else // !_REENTRANT
+#else // !LIBCWD_THREAD_SAFE
 	os->write(msgbuf, curlen);
-#endif // !_REENTRANT
-#endif // !(CWDEBUG_ALLOC && defined(_REENTRANT))
-#ifdef _REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
+#endif // !(CWDEBUG_ALLOC && LIBCWD_THREAD_SAFE)
+#if LIBCWD_THREAD_SAFE
 	if (request_unfinished && !unfinished_already_printed)
 	  locked_os->write("<unfinished>\n", 13);
 #else
@@ -320,12 +321,12 @@ void allocator_unlock(void)
 	  os->write("<unfinished>\n", 13);
 #endif
 	if (do_flush)
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	  locked_os->flush();
 #else
 	  os->flush();
 #endif
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	unfinished_already_printed = ends_on_newline;
 	if (ends_on_newline)
 	{
@@ -343,12 +344,12 @@ void allocator_unlock(void)
 	if (got_lock)
 	  debug_object.M_mutex->unlock();
 	LIBCWD_ENABLE_CANCEL;
-#endif // !_REENTRANT
+#endif // !LIBCWD_THREAD_SAFE
 #if CWDEBUG_ALLOC
 	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #endif
-#if defined(_REENTRANT) && CWDEBUG_ALLOC
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
       }
 #endif
       if (free_msgbuf)
@@ -511,7 +512,7 @@ void allocator_unlock(void)
 #if CWDEBUG_ALLOC
       init_debugmalloc();
 #endif
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       _private_::initialize_global_mutexes();
 #endif
       _private_::process_environment_variables();
@@ -521,17 +522,17 @@ void allocator_unlock(void)
       channels::dc::core.NS_initialize("COREDUMP", coredump_maskbit LIBCWD_COMMA_TSD);
       channels::dc::fatal.NS_initialize("FATAL", fatal_maskbit LIBCWD_COMMA_TSD);
       // Initialize other debug channels that might be used before we reach main().
-      channels::dc::debug.NS_initialize("DEBUG" LIBCWD_COMMA_TSD);
-      channels::dc::malloc.NS_initialize("MALLOC" LIBCWD_COMMA_TSD);
+      channels::dc::debug.NS_initialize("DEBUG" LIBCWD_COMMA_TSD, true);
+      channels::dc::malloc.NS_initialize("MALLOC" LIBCWD_COMMA_TSD, true);
       channels::dc::continued.NS_initialize(continued_maskbit);
       channels::dc::finish.NS_initialize(finish_maskbit);
 #if CWDEBUG_LOCATION
-      channels::dc::bfd.NS_initialize("BFD" LIBCWD_COMMA_TSD);
+      channels::dc::bfd.NS_initialize("BFD" LIBCWD_COMMA_TSD, true);
 #endif
       // What the heck, initialize all other debug channels too
-      channels::dc::warning.NS_initialize("WARNING" LIBCWD_COMMA_TSD);
-      channels::dc::notice.NS_initialize("NOTICE" LIBCWD_COMMA_TSD);
-      channels::dc::system.NS_initialize("SYSTEM" LIBCWD_COMMA_TSD);
+      channels::dc::warning.NS_initialize("WARNING" LIBCWD_COMMA_TSD, true);
+      channels::dc::notice.NS_initialize("NOTICE" LIBCWD_COMMA_TSD, true);
+      channels::dc::system.NS_initialize("SYSTEM" LIBCWD_COMMA_TSD, true);
 
       libcw_do.NS_init(LIBCWD_TSD);		// Initialize debug code.
 
@@ -573,10 +574,10 @@ void allocator_unlock(void)
 
     namespace _private_ {
 
-#ifndef _REENTRANT
+#if !LIBCWD_THREAD_SAFE
       TSD_st __libcwd_tsd;
 #endif
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       extern bool WST_is_NPTL;
 #endif
 
@@ -586,7 +587,7 @@ void allocator_unlock(void)
       // _private_::
       void debug_channels_ct::init(LIBCWD_TSD_PARAM)
       {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	_private_::rwlock_tct<_private_::debug_channels_instance>::initialize();
 #endif
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
@@ -598,13 +599,13 @@ void allocator_unlock(void)
 	  set_alloc_checking_on(LIBCWD_TSD);
 	  DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
 	}
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	else
 	  DEBUG_CHANNELS_RELEASE_READ_LOCK;
 #endif
       }
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       // _private_::
       void debug_channels_ct::init_and_rdlock(void)
       {
@@ -625,7 +626,7 @@ void allocator_unlock(void)
       // _private_::
       void debug_objects_ct::init(LIBCWD_TSD_PARAM)
       {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	_private_::rwlock_tct<_private_::debug_objects_instance>::initialize();
 #endif
         DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
@@ -642,13 +643,13 @@ void allocator_unlock(void)
 	  set_alloc_checking_on(LIBCWD_TSD);
 	  DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
 	}
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	else
 	  DEBUG_OBJECTS_RELEASE_READ_LOCK;
 #endif
       }
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       // _private_::
       void debug_objects_ct::init_and_rdlock(void)
       {
@@ -733,13 +734,27 @@ void allocator_unlock(void)
 
     /**
      * \fn void core_dump(void)
-     * \ingroup group_special
+     * \ingroup chapter_core_dump
      *
      * \brief Dump core of current thread.
+     *
+     * <b>Example:</b>
+     *
+     * \code
+     * Debug( core_dump() );
+     * \endcode
+     *
+     * Normally you don't call <code>core_dump()</code> directly though.
+     * Instead you'd do for example:
+     *
+     * \code
+     * if (error_condition)
+     *   DoutFatal(dc::core, "Something went wrong");
+     * \endcode
      */
     void core_dump(void)
     {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       // Are we the first thread that tries to generate a core?
 #if CWDEBUG_DEBUGT || CWDEBUG_ALLOC
       LIBCWD_TSD_DECLARATION;
@@ -763,7 +778,7 @@ void allocator_unlock(void)
       //pthread_kill_other_threads_np(); // Only causes a deadlock.
 #endif
 #endif
-#if defined(_REENTRANT) && CWDEBUG_DEBUG
+#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
       if (!_private_::WST_is_NPTL && pthread_self() == (pthread_t)2049)
       {
 	::write(1, "WARNING: Thread manager core dumped.  Going into infinite loop.  Please detach process with gdb.\n", 97);
@@ -771,7 +786,7 @@ void allocator_unlock(void)
       }
 #endif
       raise(6);
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       LIBCWD_ENABLE_CANCEL;
 #endif
       exit(6);		// Never reached.
@@ -927,7 +942,7 @@ void allocator_unlock(void)
     void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       // Initialisation of the TSD part should be done from LIBCWD_TSD_DECLARATION inside Dout et al.
       LIBCWD_ASSERT( tsd_initialized );
 #else
@@ -951,7 +966,7 @@ void allocator_unlock(void)
 	if (!(current->mask & continued_expected_maskbit))
 	{
 	  std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	  // Try to get the lock, but don't try too long...
 	  int res;
 	  struct timespec const t = { 0, 5000000 };
@@ -965,7 +980,7 @@ void allocator_unlock(void)
 	  while(++count < 40);
 #endif
 	  target_os->put('\n');
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	  if (res == 0)
 	    debug_object.M_mutex->unlock();
 #endif
@@ -1181,7 +1196,7 @@ void allocator_unlock(void)
 	  if (__libcwd_tsd.internal)			// Still internal?  Are we ever calling DoutFatal while internal?
 	    _private_::set_library_call_on(LIBCWD_TSD);	// Indefinetely turn library call on before terminating threads.
 #endif
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	  LIBCWD_DISABLE_CANCEL;
 	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
 	  {
@@ -1205,7 +1220,7 @@ void allocator_unlock(void)
 	  current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
 	      false, debug_object.interactive COMMA_IFTHREADS(!(current->mask & nonewline_cf))
 	      COMMA_IFTHREADS(true));
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	  debug_object.M_mutex->lock();
 #endif
 	  *target_os << "(type return)";
@@ -1214,7 +1229,7 @@ void allocator_unlock(void)
 	    *target_os << std::flush;
 	    while(std::cin.get() != '\n');
 	  }
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	  debug_object.M_mutex->unlock();
 #endif
 	}
@@ -1274,7 +1289,7 @@ void allocator_unlock(void)
       DoutFatal( dc::core, "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
     }
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
     int debug_ct::S_index_count = 0;
 #endif
 
@@ -1287,7 +1302,7 @@ void allocator_unlock(void)
       if (WNS_initialized)
         return;
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       M_mutex = NULL;
       unfinished_oss = NULL;
 #endif
@@ -1309,7 +1324,7 @@ void allocator_unlock(void)
 	  == _private_::debug_objects.write_locked().end()) // Not added before?
 	_private_::debug_objects.write_locked().push_back(this);
       DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_RESTORE_CANCEL;
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
@@ -1319,7 +1334,7 @@ void allocator_unlock(void)
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
       _private_::set_invisible_off(LIBCWD_TSD);
       _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
       LIBCWD_ASSERT( !_private_::WST_multi_threaded ); // Only the first thread should be initializing debug_ct objects.
@@ -1375,7 +1390,7 @@ void allocator_unlock(void)
       tsd_initialized = true;
     }
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
     namespace _private_ {
       void debug_tsd_init(LIBCWD_TSD_PARAM)
       {
@@ -1393,13 +1408,13 @@ void allocator_unlock(void)
 
     debug_tsd_st::~debug_tsd_st()
     {
-#ifndef _REENTRANT
+#if !LIBCWD_THREAD_SAFE
       // In the threaded case, we are called with `internal' set already.
       set_alloc_checking_off();
 #endif
       margin.deinitialize();
       marker.deinitialize();
-#ifndef _REENTRANT
+#if !LIBCWD_THREAD_SAFE
       set_alloc_checking_on();
 #endif
       if (!tsd_initialized)	// Skip the rest when it wasn't initialized.
@@ -1505,7 +1520,7 @@ void allocator_unlock(void)
       }
     }
 
-    void channel_ct::NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM)	// Single Threaded function (or just Non-Shared if you take dlopen into account).
+    void channel_ct::NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool add_to_channel_list)
     {
       // This is pretty much identical to fatal_channel_ct::fatal_channel_ct().
 
@@ -1546,7 +1561,7 @@ void allocator_unlock(void)
 	const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
       set_alloc_checking_on(LIBCWD_TSD);
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       // MT: Take advantage of the `debug_channels_instance' lock to prefend simultaneous access
       //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
       static int next_index;
@@ -1565,14 +1580,14 @@ void allocator_unlock(void)
       // order in which they appear in the ForAllDebugChannels is not
       // dependent on the order in which these global objects are
       // initialized.
-      if (1)
+      if (add_to_channel_list)
       {
 	set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
 	_private_::debug_channels_ct::container_type::iterator i(channels.begin());
 	for(; i != channels.end(); ++i)
 	  if (strncmp((*i)->get_label(), WNS_label, WST_max_len) > 0)
 	    break;
-        channels.insert(i, this);
+	channels.insert(i, this);
 	set_alloc_checking_on(LIBCWD_TSD);
       }
 
@@ -1581,7 +1596,7 @@ void allocator_unlock(void)
 
       // Turn debug channel "WARNING" on by default.
       if (strncmp(WNS_label, "WARNING", label_len) == 0)
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 	__libcwd_tsd.off_cnt_array[WNS_index] = -1;
 #else
         off_cnt = -1;
@@ -1650,7 +1665,7 @@ void allocator_unlock(void)
      */
     void channel_ct::off(void)
     {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.off_cnt_array[WNS_index] += 1;
 #else
@@ -1665,14 +1680,14 @@ void allocator_unlock(void)
      */
     void channel_ct::on(void)
     {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION;
       if (__libcwd_tsd.off_cnt_array[WNS_index] == -1)
 #else
       if (off_cnt == -1)
 #endif
 	DoutFatal( dc::core, "Calling channel_ct::on() more often than channel_ct::off()" );
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       __libcwd_tsd.off_cnt_array[WNS_index] -= 1;
 #else
       --off_cnt;
@@ -1818,8 +1833,8 @@ void allocator_unlock(void)
     void channel_ct::force_on(channel_ct::OnOffState& state, char const* label)
     {
       LIBCWD_TSD_DECLARATION;
-      NS_initialize(label LIBCWD_COMMA_TSD);
-#ifdef _REENTRANT
+      NS_initialize(label LIBCWD_COMMA_TSD, true);
+#if LIBCWD_THREAD_SAFE
       int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
 #endif
       state.off_cnt = off_cnt;
@@ -1828,7 +1843,7 @@ void allocator_unlock(void)
 
     void channel_ct::restore(channel_ct::OnOffState const& state)
     {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION;
       int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
 #endif
@@ -1837,7 +1852,7 @@ void allocator_unlock(void)
       off_cnt = state.off_cnt;				// Restore.
     }
 
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
 /**
  * \brief Set output device and provide external pthread mutex.
  * \ingroup group_destination
@@ -1884,7 +1899,7 @@ template<>
     _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
     LIBCWD_RESTORE_CANCEL;
   }
-#endif // _REENTRANT
+#endif // LIBCWD_THREAD_SAFE
 
 /**
  * \brief Set output device (single threaded applications).
@@ -1895,7 +1910,7 @@ template<>
  */
 void debug_ct::set_ostream(std::ostream* os)
 {
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
   if (_private_::WST_multi_threaded)
 #if CWDEBUG_LOCATION
     Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << ": You should passing a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
@@ -1909,7 +1924,7 @@ void debug_ct::set_ostream(std::ostream* os)
   _private_::mutex_tct<_private_::set_ostream_instance>::lock();
 #endif
   private_set_ostream(os);
-#ifdef _REENTRANT
+#if LIBCWD_THREAD_SAFE
   _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
   LIBCWD_RESTORE_CANCEL;
 #endif

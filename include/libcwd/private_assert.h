@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-/** \file libcwd/dprivate_assert.h
+/** \file libcwd/private_assert.h
  * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
  */
 

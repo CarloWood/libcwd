@@ -38,7 +38,7 @@ Packages/versions needed
 i) The GNU compiler, version 3.0 or higher.
 
     Location: gnu/gcc/
-    Current version: 3.3
+    Current version: 3.3.1
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -66,9 +66,9 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.31 was tested with gcc-3.0.4, gcc-3.1,
+libcwd-0.99.32 was tested with gcc-3.0.4, gcc-3.1,
 gcc-3.1.1, gcc-3.2, gcc-3.2.1, gcc-3.2.2, gcc-3.2.3,
-gcc-3.3 and gcc version 3.4 20030626 (experimental).
+gcc-3.3, gcc-3.3.1 and gcc version 3.4 20030816 (experimental).
 
 Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
 making the use of dlclose() and/or threading with NPTL
