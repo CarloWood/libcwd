@@ -25,7 +25,7 @@
 pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t cerr_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int heartbeat[32];
+volatile int heartbeat[32];
 int prev_heartbeat[32];
 int bad[32];
 
@@ -132,7 +132,7 @@ int main(void)
   Debug( libcw_do.on() );
 
   for (int i = 0; i < number_of_threads; ++i)
-    ++heartbeat[i];
+    ++heartbeat[i + 2];
 
   pthread_t thread_id[number_of_threads];
   for (int i = 0; i < number_of_threads; ++i)
@@ -144,7 +144,7 @@ int main(void)
 
   for(;;)
   {
-    memcpy(prev_heartbeat, heartbeat, sizeof(heartbeat));
+    memcpy(prev_heartbeat, (void*)(heartbeat), sizeof(heartbeat));
     struct timespec rqts = { 1, 0 };
     struct timespec rmts;
     nanosleep(&rqts, &rmts);
@@ -152,30 +152,31 @@ int main(void)
     int running = 0;
     for (int i = 0; i < number_of_threads; ++i)
     {
-      if (heartbeat[i] == 0)
+      int ti = thread_index(thread_id[i]);
+      if (heartbeat[ti] == 0)
       {
 	void* status;
 	pthread_join(thread_id[i], &status);
-	Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] << " (" << thread_index(thread_id[i]) << "), returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
+	Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] << " (" << ti << "), returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
       }
-      else if (prev_heartbeat[i] == heartbeat[i])
+      else if (prev_heartbeat[ti] == heartbeat[ti])
       {
 	if (++(bad[i]) == 30)
 	{
 	  std::cerr << "No heartbeat for thread " << thread_id[i] << '/' <<
-	    libcw::debug::_private_::__libcwd_tsd_array[thread_index(thread_id[i])].pid << '\n';
+	    libcw::debug::_private_::__libcwd_tsd_array[ti].pid << '\n';
 	  raise(6);
 	}
 	else
 	  std::cerr << "\nNO HEARTBEAT for " << thread_id[i] << '/' <<
-	    libcw::debug::_private_::__libcwd_tsd_array[thread_index(thread_id[i])].pid <<
-	    " since " << bad[i] << " seconds.  Value still: " << heartbeat[i] << "\n";
+	    libcw::debug::_private_::__libcwd_tsd_array[ti].pid <<
+	    " since " << bad[i] << " seconds.  Value still: " << heartbeat[ti] << "\n";
       }
       else
       {
 	std::cerr << "\nGot HEARTBEAT for " << thread_id[i] << '/' <<
-	  libcw::debug::_private_::__libcwd_tsd_array[thread_index(thread_id[i])].pid <<
-	  ": " << heartbeat[i] << " after " << bad[i] << " seconds.\n";
+	  libcw::debug::_private_::__libcwd_tsd_array[ti].pid <<
+	  ": " << heartbeat[ti] << " after " << bad[i] << " seconds.\n";
 	bad[i] = 0;
 	++running;
       }
