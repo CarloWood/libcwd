@@ -181,7 +181,10 @@ void demangle_symbol(char const* input, string& output)
   // `input' is of the form:
   //
   // <symbol>[__<symbol-type>]
-  // _._<symbol-type>
+  // __<scope-type><types>		--> <scope-type>::<class-name>(<type1>, <type2>, ..., <typeN>)
+  // __<scope-type>			--> <scope-type>::<class-name>(void)
+  // _._<scope-type>			--> <scope-type>::~<class-name>()
+  // _<scope-type>.<symbol>		--> <scope-type>::<symbol>
   // __vt_<scope-type>			--> <scope-type> virtual table
   // __ti<type>				--> <type> type_info node
   // __tf<type>				--> <type> type_info function
@@ -237,6 +240,23 @@ void demangle_symbol(char const* input, string& output)
 	break;
     }
     while (*p);
+
+    // If this failed then try _<scope-type>.<symbol>
+    if (!*p && *input == '_')
+    {
+      p = input + 1;
+      if (!eat_type(p, prefix))
+      {
+        if (*p != '.')
+	  prefix.erase();
+	else
+	{
+	  prefix += "::";
+	  symbol_len -= (p + 1 - input);
+	  input = p + 1;
+	}
+      }
+    }
   }
 
   // Write the result out, translate the symbol string if needed.
