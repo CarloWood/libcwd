@@ -39,7 +39,7 @@
 #include <cstring>
 #include <cstdlib>
 #endif
-#ifdef HAVE_LINK_H
+#ifdef HAVE__DL_LOADED
 #include <link.h>
 extern link_map* _dl_loaded;
 #endif
@@ -479,7 +479,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	      lbase = val - s_end_vma;
 	    }
 	    else
-#ifdef HAVE_LINK_H
+#ifdef HAVE__DL_LOADED
             {
 	      __libcwd_tsd.internal = saved_internal;
 	      for(link_map* p = _dl_loaded; p; p = p->l_next)
@@ -1023,7 +1023,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 	load_object_file(fullpath.value->data(), 0);
 
 	// Load all shared objects
-#ifndef HAVE_LINK_H
+#ifndef HAVE__DL_LOADED
 	// Path to `ldd'
 	char const ldd_prog[] = "/usr/bin/ldd";
 
@@ -1184,7 +1184,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 
       BFD_ACQUIRE_READ_LOCK;
       object_file_ct* object_file = NEEDS_READ_LOCK_find_object_file(addr);
-#ifdef HAVE_LINK_H
+#ifdef HAVE__DL_LOADED
       if (!object_file)
       {
 	set_alloc_checking_off(LIBCWD_TSD);

@@ -385,6 +385,11 @@ dnl Checks for header files.
 AC_HEADER_STAT
 AC_CHECK_HEADERS(_G_config.h link.h)
 
+dnl Check for global variable.
+if test "$ac_cv_header_link_h" = yes; then
+  AC_CHECK_FUNCS(_dl_loaded)
+fi
+
 dnl Check for typedefs.
 AC_TYPE_UID_T
 CW_TYPE_GETGROUPS
