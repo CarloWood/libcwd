@@ -1,5 +1,9 @@
 libcwd-0.99.21
 
+	The library now compiles with g++ version 3.1 and
+	was fixed to understand the changes in the DWARF2
+	format of gcc 3.1.
+
 	API changes:
 
 	location_ct::location_reference() has been removed.
@@ -11,6 +15,13 @@ libcwd-0.99.21
 	The write access (via location_reference) now had to
 	be removed because it is not thread-safe to allow the
 	user to write to the cached location objects.
+
+	Bug fixes:
+
+	Location lookups done before libcwd is initialized are
+	delayed until the first time list_alloctions_on is
+	called.  This was broken in 0.99.20 but has been fixed
+	again now.
 
 libcwd-0.99.20
 
