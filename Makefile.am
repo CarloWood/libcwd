@@ -35,7 +35,7 @@ libcwd_la_LIBADD = utils/libutils.la
 
 dist-hook:
 	mkdir $(distdir)/example-project
-	for i in `grep '^/' example-project/CVS/Entries | cut -d/ -f2`; do \
+	for i in `grep '^/' $(srcdir)/example-project/CVS/Entries | cut -d/ -f2`; do \
 	  cp -p $(srcdir)/example-project/$$i $(distdir)/example-project; \
 	done
 	chmod +x $(distdir)/install-sh
