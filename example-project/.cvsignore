@@ -15,4 +15,4 @@ debug.h
 program
 confdefs.h
 stamp-h1
-autom4te-*.cache
+autom4te.cache
