@@ -1,0 +1,25 @@
+8 Sep 2000
+
+openbsd is not supported.
+
+It will configure and compile, but openbsd has a terrible bug: it doesn't
+call the '.init' of loaded shared libraries.  As a result, global objects
+are not initialized (their constructor is never called).  This causes a
+core dump as soon as one of these objects are used.
+
+A solution would be to remove the need to call any global constructor by
+using singletons for everything (which get initialized on first use).
+A good platform for global objects (and singletons) has been designed
+(see http://libcw.sourceforge.net/templates/index.html?global); the reason
+that libcwd didn't use it till now was that it wasn't needed, it is still
+part of libcw.  It doesn't really belong in a debugging library imho.
+However, the research on this topic was done and the result is that there
+is the Need to call a "hook" function when main() is entered.  Unless
+thousands of people using openbsd mail me, asking to support their broken
+openbsd - I don't want to force everyone else to add that extra hook to
+their programs.
+
+Support for openbsd might be added in the future when I get a better
+idea (or when you tell me how to fix this problem!).
+
+Carlo Wood
