@@ -38,14 +38,14 @@
 #include <libcw/debug.h>
 #include <libcw/bfd.h>
 #include <libcw/exec_prog.h>
+#include <libcw/cwprint.h>
+
+#undef DEBUGDEBUGBFD
+#ifdef DEBUGDEBUGBFD
+#include <iomanip>
+#endif
 
 RCSTAG_CC("$Id$")
-
-extern "C" {
-char* cplus_demangle (char const* mangled, int options);
-}
-#define DMGL_PARAMS 1
-#define DMGL_ANSI 2
 
 #ifdef DEBUG
 #ifndef DEBUGNONAMESPACE
@@ -71,108 +71,39 @@ namespace {	// Local stuff
   {
     va_list vl;
     va_start(vl, format);
-    Dout_vform(NAMESPACE_LIBCW_DEBUG::channels::dc::bfd, format, vl);
+    Dout_vform(dc::bfd, format, vl);
     va_end(vl);
   }
 
-  ostream& operator<<(ostream& os, bfd_format _bfd_format)
-  {
-    os << bfd_format_string(_bfd_format);
-    return os;
-  }
-
-  ostream& operator<<(ostream& os, bfd_flavour _bfd_flavour)
-  {
-    switch(_bfd_flavour)
-    {
-      case bfd_target_unknown_flavour:
-	os << "unknown";
-	break;
-      case bfd_target_aout_flavour:
-	os << "aout";
-	break;
-      case bfd_target_coff_flavour:
-	os << "coff";
-	break;
-      case bfd_target_ecoff_flavour:
-	os << "ecoff";
-	break;
-      case bfd_target_elf_flavour:
-	os << "elf";
-	break;
-      default:
-	os << "other";
-	break;
-    }
-    return os;
-  }
-
-  ostream& operator<<(ostream& os, bfd_target const& _bfd_target)
-  {
-    os << _bfd_target.name << " (" << _bfd_target.flavour << ')';
-    return os;
-  }
-
-  ostream& operator<<(ostream& os, asection const& _asection)
-  {
-    os << _asection.name;
-    return os;
-  }
-
-  void print_section(bfd* abfd, asection* sect, PTR obj)
-  {
-    (*(ostream*)obj) << "\n\tSection: " << *sect;
-  }
-
-  ostream& operator<<(ostream& os, bfd const& _bfd)
-  {
-    os << "\n\tFilename: " << _bfd.filename;
-    os << "\n\tTarget  : " << *_bfd.xvec;
-    os << "\n\tFormat  : " << _bfd.format;
-    os << "\n\tStart   : 0x" << hex << _bfd.start_address << dec;
-
-    bfd_map_over_sections(const_cast<bfd*>(&_bfd), print_section, (PTR)&os);
-
-    return os;
-  }
-
-  ostream& operator<<(ostream& os, alent const& _alent)
-  {
-    os << _alent.line_number;
-    return os;
-  }
-
-  class symbol_key_ct {
+  class symbol_ct {
   private:
     asymbol* symbol;
+    bool defined;
   public:
-    symbol_key_ct(asymbol* p) : symbol(p) { }
+    symbol_ct(asymbol* p, bool def) : symbol(p), defined(def) { }
     asymbol const* get_symbol(void) const { return symbol; }
-    bool operator==(symbol_key_ct const& UNUSED(b)) const
-	{ DoutFatal(dc::core, "Calling operator=="); }
+    bool is_defined(void) const { return defined; }
+    bool operator==(symbol_ct const&) const { DoutFatal(dc::core, "Calling operator=="); }
     friend struct symbol_key_greater;
   };
 
   struct symbol_key_greater {
     // Returns true when the start of a lays behond the end of b (ie, no overlap).
-    bool operator()(symbol_key_ct const& a, symbol_key_ct const& b) const;
+    bool operator()(symbol_ct const& a, symbol_ct const& b) const;
   };
 
-  typedef set<symbol_key_ct, symbol_key_greater> function_symbols_ct;
-
-  void process_section(bfd* abfd, asection* sect, PTR obj);
+  typedef set<symbol_ct, symbol_key_greater> function_symbols_ct;
 
   class object_file_ct {
   private:
     bfd* abfd;
-    void* lbase;
+    void* const lbase;
     asymbol** symbol_table;
     long number_of_symbols;
     function_symbols_ct function_symbols;
   public:
     object_file_ct(void) : lbase(0) { }
     object_file_ct(char const* filename, void* base);
-    friend void process_section(bfd* abfd, asection* sect, PTR obj);
 
     bfd* get_bfd(void) const { return abfd; }
     void* const get_lbase(void) const { return lbase; }
@@ -182,7 +113,10 @@ namespace {	// Local stuff
     function_symbols_ct const& get_function_symbols(void) const { return function_symbols; }
   };
 
-  inline const PTR /* Yuk, PTR is a #define! Must put the `const' in front of it */
+  typedef PTR addr_ptr_t;
+  typedef const PTR addr_const_ptr_t;	// Warning: PTR is a macro, must put `const' in front of it
+
+  inline addr_const_ptr_t
   symbol_start_addr(asymbol const* s)
   {
     return s->value + bfd_get_section(s)->vma
@@ -194,37 +128,14 @@ namespace {	// Local stuff
     return reinterpret_cast<size_t>(s->udata.p);
   }
 
-  bool symbol_key_greater::operator()(symbol_key_ct const& a, symbol_key_ct const& b) const
+  inline size_t& symbol_size(asymbol* s)
   {
-    return symbol_start_addr(a.symbol) >= reinterpret_cast<char const*>(symbol_start_addr(b.symbol)) + symbol_size(b.symbol);
+    return *reinterpret_cast<size_t*>(&s->udata.p);
   }
 
-  void process_section(bfd* abfd, asection* sect, PTR obj)
+  bool symbol_key_greater::operator()(symbol_ct const& a, symbol_ct const& b) const
   {
-    object_file_ct* object_file = (object_file_ct*)obj;
-    long storage_needed = bfd_get_reloc_upper_bound(abfd, sect);
-    if (storage_needed < 0)
-      DoutFatal(dc::bfd, "bfd_get_reloc_upper_bound: " << bfd_errmsg(bfd_get_error()));
-    else if (storage_needed > 0)
-    {
-      arelent** relocation_table = (arelent**) malloc (storage_needed);
-      long number_of_relocations = bfd_canonicalize_reloc(abfd, sect, relocation_table, object_file->symbol_table);
-      if (number_of_relocations < 0)
-	DoutFatal(dc::bfd, "bfd_canonicalize_reloc: " << bfd_errmsg(bfd_get_error()));
-      else if (number_of_relocations > 0)
-      {
-	Dout(dc::warning, abfd->filename << ": " << sect->name << " section contains relocation data; libcw doesn't know how to deal with that");
-	Dout(dc::bfd, sect->name << ": Number of relocations: " << number_of_relocations);
-      }
-    }
-
-    for (int i = 0; i < object_file->number_of_symbols; ++i)
-    {
-      asymbol* p = object_file->symbol_table[i];
-
-      if (sect == bfd_get_section(p))
-	object_file->function_symbols.insert(function_symbols_ct::key_type(p));
-    }
+    return symbol_start_addr(a.symbol) >= reinterpret_cast<char const*>(symbol_start_addr(b.symbol)) + symbol_size(b.symbol);
   }
 
   // Global object (but libcwd must stay independent of stuff in libcw/kernel, so we don't use Global<>)
@@ -236,7 +147,16 @@ namespace {	// Local stuff
   {
     object_files_ct::iterator i(object_files().begin());
     for(; i != object_files().end(); ++i)
-      if ((void*)(*i)->get_lbase() < addr)
+      if ((*i)->get_lbase() < addr)
+	break;
+    return (i != object_files().end()) ? (*i) : NULL;
+  }
+
+  object_file_ct* find_object_file(bfd const* abfd)
+  {
+    object_files_ct::iterator i(object_files().begin());
+    for(; i != object_files().end(); ++i)
+      if ((*i)->get_bfd() == abfd)
 	break;
     return (i != object_files().end()) ? (*i) : NULL;
   }
@@ -274,7 +194,7 @@ namespace {	// Local stuff
 	return true;
       else if ((a->flags & BSF_OBJECT) && !(b->flags & BSF_OBJECT))
 	return false;
-      /* Lets hope that IF it matters, that a long name is more important ;) */
+      // Lets hope that IF it matters, that a long name is more important ;)
       return (strlen(a->name) < strlen(b->name));
     }
   };
@@ -285,15 +205,31 @@ namespace {	// Local stuff
     if (!abfd)
       DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
     abfd->cacheable = bfd_tttrue;
-    abfd->usrdata = (PTR)this;
+    abfd->usrdata = (addr_ptr_t)this;
 
-    if (!bfd_check_format (abfd, bfd_object))
+    if (bfd_check_format(abfd, bfd_archive))
     {
       bfd_close(abfd);
-      DoutFatal(dc::bfd, '"' << filename << "\": not in executable format: " << bfd_errmsg(bfd_get_error()));
+      DoutFatal(dc::bfd, filename << ": can not get addresses from archive: " << bfd_errmsg(bfd_get_error()));
+    }
+    char** matching;
+    if (!bfd_check_format_matches(abfd, bfd_object, &matching))
+    {
+      if (bfd_get_error() == bfd_error_file_ambiguously_recognized)
+      {
+        Dout(dc::warning, "bfd_check_format_matches: ambiguously object format, recognized formats: " << cwprint(::libcw::debug::environment_ct(matching)));
+	free(matching);
+      }
+      DoutFatal(dc::fatal, filename << ": can not get addresses from object file: " << bfd_errmsg(bfd_get_error()));
     }
 
-    //Dout(dc::bfd, "Opened BFD: " << *abfd);
+    if (!(bfd_get_file_flags(abfd) & HAS_SYMS))
+    {
+      Dout(dc::warning, filename << " has no symbols, skipping.");
+      bfd_close(abfd);
+      delete this;
+      return;
+    }
 
     long storage_needed = bfd_get_symtab_upper_bound (abfd);
     if (storage_needed < 0)
@@ -303,19 +239,33 @@ namespace {	// Local stuff
     number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
     if (number_of_symbols < 0)
       DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
-    //Dout(dc::bfd, "Number of symbols: " << number_of_symbols);
 
     if (number_of_symbols > 0)
     {
-      // Throw away symbols that we don't want
+      // Sort the symbol table in order of start address.
+      sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
+
+      // Calculate sizes for every symbol (forced to be larger than 0)
+      for (int i = 0; i < number_of_symbols - 1; ++i)
+      {
+	int j;
+	for (j = i + 1; j < number_of_symbols; ++j)
+	  if (symbol_start_addr(symbol_table[j]) != symbol_start_addr(symbol_table[i]))
+	    break;
+	symbol_size(symbol_table[i]) = (char*)symbol_start_addr(symbol_table[j]) - (char*)symbol_start_addr(symbol_table[i]);
+      }
+
+      // Use reasonable size for last one:
+      symbol_size(symbol_table[number_of_symbols - 1]) = 100000;
+
+      // Throw away useless or meaningless symbols
       asymbol** se = &symbol_table[number_of_symbols - 1];
       for (asymbol** s = symbol_table; s <= se;)
       {
-	if ((*s)->name == 0 || (*s)->value == 0 || ((*s)->flags & (BSF_LOCAL|BSF_GLOBAL|BSF_FUNCTION|BSF_OBJECT)) == 0
+	if ((*s)->name == 0 || ((*s)->flags & (BSF_LOCAL|BSF_GLOBAL|BSF_FUNCTION|BSF_OBJECT)) == 0
 	    || ((*s)->flags & (BSF_DEBUGGING|BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|
 			       BSF_CONSTRUCTOR|BSF_WARNING|BSF_INDIRECT|BSF_FILE|BSF_DYNAMIC)) != 0
 	    || ((*s)->flags == BSF_LOCAL && (*s)->name[0] == '.')	// Some labels have a size(?!), their flags seem to be always 1
-	    || bfd_is_und_section(bfd_get_section(*s))
 	    || bfd_is_abs_section(bfd_get_section(*s))
 	    || bfd_is_com_section(bfd_get_section(*s))
 	    || bfd_is_ind_section(bfd_get_section(*s)))
@@ -324,24 +274,15 @@ namespace {	// Local stuff
 	  --number_of_symbols;
 	}
 	else
+	{
+	  function_symbols.insert(function_symbols_ct::key_type(*s, !bfd_is_und_section(bfd_get_section(*s))));
 	  ++s;
+        }
       }
 
-      // Sort the symbol table in order of start address.
-      sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
-
-      for (int i = 0; i < number_of_symbols - 1; ++i)
-      {
-	symbol_table[i]->udata.p =
-	    reinterpret_cast<void*>((size_t)((char*)symbol_start_addr(symbol_table[i + 1])
-					    - (char*)symbol_start_addr(symbol_table[i])));
-      }
-
-      // Use reasonable size for last one:
-      symbol_table[number_of_symbols - 1]->udata.p = reinterpret_cast<void*>((size_t)100000);
+      if (symbol_size(symbol_table[number_of_symbols - 1]) == 100000)
+        Dout( dc::warning, "Unknown size of symbol " << symbol_table[number_of_symbols - 1]->name);
     }
-
-    bfd_map_over_sections(abfd, process_section, (PTR)this);
 
     object_files().push_back(this);
   }
@@ -449,7 +390,7 @@ int decode(char const* buf, size_t len)
 
 static int libcw_bfd_init(void)
 {
-#ifdef DEBUGDEBUG
+#if defined(DEBUGDEBUG) || defined(DEBUGDEBUGBFD)
   static bool entered = false;
   if (entered)
     DoutFatal(dc::core, "Bug in libcwd: libcw_bfd_init() called twice or recursively entering itself!  Please submit a full bug report to libcw@alinoe.com.");
@@ -462,15 +403,20 @@ static int libcw_bfd_init(void)
   bfd_init();
 
   // Get the full path and name of executable
-  string const fullpath(full_path_to_executable());
+  static string const fullpath(full_path_to_executable());		// Must be static because bfd keeps a pointer to its data()
 
   bfd_set_error_program_name(fullpath.data() + fullpath.find_last_of('/') + 1);
   bfd_set_error_handler(libcw_bfd_error_handler);
 
   // Load executable
   Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << fullpath << "... ");
-  new object_file_ct(fullpath.data(), 0);
-  Dout(dc::finish, "done");
+  object_file_ct* object_file = new object_file_ct(fullpath.data(), 0);
+#ifdef DEBUG
+  if (object_file->get_number_of_symbols() > 0)
+    Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+  else
+    Dout(dc::finish, "No symbols found");
+#endif
 
   // Load all shared objects
 #if 0 //def __linux /* Commented out because it gives different results than ldd ?! */
@@ -500,8 +446,13 @@ static int libcw_bfd_init(void)
     if (l->l_addr)
     {
       Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << " (" << hex << l->l_addr << ") ... ");
-      new object_file_ct(l->l_name, reinterpret_cast<void*>(l->l_addr));
-      Dout(dc::finish, "done");
+      object_file_ct* object_file = new object_file_ct(l->l_name, reinterpret_cast<void*>(l->l_addr));
+#ifdef DEBUG
+      if (object_file->get_number_of_symbols() > 0)
+	Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+      else
+	Dout(dc::finish, "No symbols found");
+#endif
     }
   }
 
@@ -509,26 +460,33 @@ static int libcw_bfd_init(void)
 
   initialized = true;
 
-#if 0
-  for (object_files_ct::iterator i(object_files().begin()); i != object_files().end(); ++i)
-    if (!strcmp((*i)->get_bfd()->filename, "/home/carlo/c++/libcw/lib/libcw.so.0"))
+#ifdef DEBUGDEBUGBFD
+  // Dump all symbols
+  cout << setiosflags(ios::left) << setw(15) << "Start address" << setw(50) << "BFD name" << setw(20) << "Number of symbols" << endl;
+  for (object_files_ct::reverse_iterator i(object_files().rbegin()); i != object_files().rend(); ++i)
+  {
+    cout << "0x" << setfill('0') << setiosflags(ios::right) << setw(8) << hex << (unsigned long)(*i)->get_lbase() << "     ";
+    cout << setfill(' ') << setiosflags(ios::left) << setw(50) << (*i)->get_bfd()->filename;
+    cout << dec << setiosflags(ios::left);
+    cout << (*i)->get_number_of_symbols() << endl;
+
+    cout << setiosflags(ios::left) << setw(12) << "Start";
+    cout << ' ' << setiosflags(ios::right) << setw(6) << "Size" << ' ';
+    cout << "Name value flags\n";
+    asymbol** symbol_table = (*i)->get_symbol_table();
+    for (long n = (*i)->get_number_of_symbols() - 1; n > 0; --n)
     {
-      asymbol** symbol_table = (*i)->get_symbol_table();
-      for (long n = (*i)->get_number_of_symbols(); n > 0; --n)
-      {
-	cout << symbol_table[n]->name << ' ' <<
-		symbol_table[n]->value << ' ' <<
-	 oct << symbol_table[n]->flags << ' ' <<
-	 hex << symbol_start_addr(symbol_table[n]) << ' ' <<
-	 dec << symbol_size(symbol_table[n]) << endl;
-      }
+      cout << setiosflags(ios::left) << hex << setw(12) << symbol_start_addr(symbol_table[n]);
+      cout << ' ' << setiosflags(ios::right) << setw(6) << symbol_size(symbol_table[n]) << ' ';
+      cout << symbol_table[n]->name << ' ' << hex <<	symbol_table[n]->value << ' ' << oct << symbol_table[n]->flags << endl;
     }
+  }
 #endif
 
   return 0;
 }
 
-static asymbol const* libcw_bfd_pc_symbol(void const* addr, object_file_ct const* object_file)
+static symbol_ct const* libcw_bfd_pc_symbol(bfd_vma addr, object_file_ct* object_file)
 {
   static asymbol dummy_symbol;
   static asection dummy_section;
@@ -538,13 +496,13 @@ static asymbol const* libcw_bfd_pc_symbol(void const* addr, object_file_ct const
     bfd_asymbol_bfd(&dummy_symbol) = object_file->get_bfd();
     dummy_symbol.section = &dummy_section;	// Has dummy_section.vma == 0.  Use dummy_symbol.value to store (value + vma):
     dummy_symbol.value = reinterpret_cast<char const*>(addr) - reinterpret_cast<char const*>(object_file->get_lbase());
-    dummy_symbol.udata.i = 1;
-    function_symbols_ct::iterator i(object_file->get_function_symbols().find(symbol_key_ct(&dummy_symbol)));
+    symbol_size(&dummy_symbol) = 1;
+    function_symbols_ct::iterator i(object_file->get_function_symbols().find(symbol_ct(&dummy_symbol, true)));
     if (i != object_file->get_function_symbols().end())
     {
       asymbol const* p = (*i).get_symbol();
-      if (addr < (char*)symbol_start_addr(p) + symbol_size(p))
-        return p;
+      if (addr < (bfd_vma)symbol_start_addr(p) + symbol_size(p))
+        return &(*i);
     }
     Dout(dc::bfd, "No symbol found: " << hex << addr);
   }
@@ -572,13 +530,22 @@ char const* libcw_bfd_pc_function_name(void const* addr)
 #endif
   }
 
-  asymbol const* p = libcw_bfd_pc_symbol(addr, find_object_file(addr));
+  symbol_ct const* symbol = libcw_bfd_pc_symbol((bfd_vma)addr, find_object_file(addr));
 
-  if (!p)
+  if (!symbol)
     return NULL;
 
-  return p->name;
+  return symbol->get_symbol()->name;
 }
+
+#ifdef DEBUG
+// demangle.h doesn't include the extern "C", so we do it this way
+extern "C" {
+  char* cplus_demangle (char const* mangled, int options);
+}
+#define DMGL_PARAMS 1
+#define DMGL_ANSI 2
+#endif
 
 //
 // Find source file, (mangled) function name and line number of the address `addr'.
@@ -596,22 +563,26 @@ location_st libcw_bfd_pc_location(void const* addr) return location
 #endif
   }
 
-  object_file_ct const* object_file = find_object_file(addr);
-  asymbol const* p = libcw_bfd_pc_symbol(addr, object_file);
-  if (p)
+  object_file_ct* object_file = find_object_file(addr);
+  symbol_ct const* symbol = libcw_bfd_pc_symbol((bfd_vma)addr, object_file);
+  if (symbol && symbol->is_defined())
   {
+    asymbol const* p = symbol->get_symbol();
+    bfd* abfd = bfd_asymbol_bfd(p);
     asection* sect = bfd_get_section(p);
-    bfd *abfd = bfd_asymbol_bfd(p);
     char const* file;
+    ASSERT( object_file->get_bfd() == abfd );
     bfd_find_nearest_line(abfd, sect, const_cast<asymbol**>(object_file->get_symbol_table()),
-	(char*)addr - sect->vma - (char*)((object_file_ct*)abfd->usrdata)->get_lbase(), &file, &location.func, &location.line);
+	(char*)addr - (char*)object_file->get_lbase() - sect->vma, &file, &location.func, &location.line);
 
     if (file && location.line)	// When line is 0, it turns out that `file' is nonsense.
     {
+      Debug( dc::bfd.off() );	// This get annoying pretty fast
       size_t len = strlen(file);
-      char* filename = (char*)malloc(len + 1);
+      char* filename = new char [len + 1];
       AllocTag(filename, "location_st::file");
       location.file = strcpy(filename, file);
+      Debug( dc::bfd.on() );
     }
     else
       location.file = NULL;
@@ -624,7 +595,7 @@ location_st libcw_bfd_pc_location(void const* addr) return location
     }
 
 #ifdef DEBUG
-    /* Sanity check */
+    // Sanity check
     if (!p->name || location.line == 0)
     {
       if (p->name)
@@ -639,12 +610,21 @@ location_st libcw_bfd_pc_location(void const* addr) return location
 	Dout(dc::bfd, "Warning: Address in section " << sect->name << " does not contain a function");
     }
     else
-      Dout(dc::bfd, hex << addr << dec << " is at (" << location << ')');
+      Dout(dc::bfd, "address " << hex << addr << dec << " corresponds to " << location);
 #endif
     return location;
   }
   location.line = 0;
-  location.func = "<unknown function>";
+  if (symbol)
+  {
+    Debug( dc::bfd.off() );
+    ostrstream os;
+    os << "<undefined symbol: " << symbol->get_symbol()->name << '>' << ends;
+    location.func = os.str();
+    Debug( dc::bfd.on() );
+  }
+  else
+    location.func = "<unknown function>";
   location.file = NULL;
 
   return location;
