@@ -5,6 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 EXTRAOPTS = @EXTRAOPTS@
 DEBUGOPTS = @DEBUGOPTS@
 WARNOPTS = @WARNOPTS@
+CXXFLAGS =
 INCLUDES = -I$(srcdir)/../include -I$(top_builddir)/include
 DEFAULT_INCLUDES =
 LIBS=
