@@ -14,7 +14,7 @@ MALLOC  : <continued> 0x[0-9a-f]*
 MALLOC  : malloc\(300\) = <unfinished>
 BFD     :     address 0x[0-9a-f]* corresponds to module.cc:13
 MALLOC  : <continued> 0x[0-9a-f]*
-MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks:
+MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
 malloc    0x[0-9a-f]*            module\.cc:13   void\*; \(sz = 300\)  Allocated inside static_test_symbol
 malloc    0x[0-9a-f]*            module\.cc:24   void\*; \(sz = 310\)  Allocated inside global_test_symbol
 // input lines 11

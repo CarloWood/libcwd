@@ -3,7 +3,7 @@ dnl		 [, ACTION-IF-NOT-FOUND  [, OTHER-LIBRARIES]]])
 dnl Like AC_CHECK_LIB but looking for static libraries, however
 dnl unlike AC_CHECK_LIB this macro adds OTHER-LIBRARIES to LIBS
 dnl when successful.  LIBRARY must be of the form libxxx.a.
-AC_DEFUN(CW_CHECK_STATICLIB,
+AC_DEFUN([CW_CHECK_STATICLIB],
 [AC_MSG_CHECKING([for $2 in $1 $5])
 dnl Use a cache variable name containing both the library and function name,
 dnl because the test really is for library $1 defining function $2, not
@@ -65,7 +65,7 @@ fi
 
 dnl CW_BUG_REDEFINES_INITIALIZATION
 dnl
-AC_DEFUN(CW_BUG_REDEFINES_INITIALIZATION,
+AC_DEFUN([CW_BUG_REDEFINES_INITIALIZATION],
 CW_REDEFINES_FIX=
 dnl We don't want automake to put this in Makefile.in
 [AC_SUBST](CW_REDEFINES_FIX))
@@ -74,7 +74,7 @@ dnl CW_BUG_REDEFINES([HEADERFILE])
 dnl
 dnl Check whether the HEADERFILE causes macros to be redefined
 dnl
-AC_DEFUN(CW_BUG_REDEFINES,
+AC_DEFUN([CW_BUG_REDEFINES],
 [AC_REQUIRE([CW_BUG_REDEFINES_INITIALIZATION])
 changequote(, )dnl
 cw_bug_var=`echo $1 | sed -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/' -e 's/ //g' -e 's/[^a-z0-9]/_/g'`
@@ -126,7 +126,7 @@ done])
 
 dnl CW_DEFINE_TYPE_INITIALIZATION
 dnl
-AC_DEFUN(CW_DEFINE_TYPE_INITIALIZATION,
+AC_DEFUN([CW_DEFINE_TYPE_INITIALIZATION],
 CW_TYPEDEFS=
 dnl We don't want automake to put this in Makefile.in
 [AC_SUBST](CW_TYPEDEFS))
@@ -135,7 +135,7 @@ dnl CW_DEFINE_TYPE(NEWTYPE, OLDTYPE)
 dnl
 dnl Add `typedef OLDTYPE NEWTYPE;' to the output variable CW_TYPEDEFS
 dnl
-AC_DEFUN(CW_DEFINE_TYPE,
+AC_DEFUN([CW_DEFINE_TYPE],
 [AC_REQUIRE([CW_DEFINE_TYPE_INITIALIZATION])
 CW_TYPEDEFS="typedef $2 $1; $CW_TYPEDEFS"
 ])
@@ -145,7 +145,7 @@ dnl
 dnl Extract the type of ARGUMENT argument of function FUNCTION with ARGUMENTS arguments.
 dnl INIT are possibly needed #includes.  The result is put in `cw_result'.
 dnl
-AC_DEFUN(CW_TYPE_EXTRACT_FROM,
+AC_DEFUN([CW_TYPE_EXTRACT_FROM],
 [cat > conftest.$ac_ext <<EOF
 [$2]
 #ifdef __cplusplus
@@ -208,7 +208,7 @@ dnl
 dnl Like `AC_TRY_RUN' but also works when the language is C++.
 dnl
 dnl CW_TRY_RUN(PROGRAM, [ACTION-IF-TRUE [, ACTION-IF-FALSE [, ACTION-IF-CROSS-COMPILING]]])
-AC_DEFUN(CW_TRY_RUN,
+AC_DEFUN([CW_TRY_RUN],
 [if test "$cross_compiling" = yes; then
   ifelse([$4], ,
     [errprint(__file__:__line__: warning: [CW_TRY_RUN] called without default to allow cross compiling
@@ -225,7 +225,7 @@ dnl
 dnl Like `AC_TRY_RUN_NATIVE' but also works when the language is C++.
 dnl Like CW_TRY_RUN but assumes a native-environment (non-cross) compiler.
 dnl CW_TRY_RUN_NATIVE(PROGRAM, [ACTION-IF-TRUE [, ACTION-IF-FALSE]])
-AC_DEFUN(CW_TRY_RUN_NATIVE,
+AC_DEFUN([CW_TRY_RUN_NATIVE],
 [cat > conftest.$ac_ext <<EOF
 [#]line __oline__ "configure"
 #include "confdefs.h"
@@ -252,7 +252,7 @@ dnl
 dnl Defines CW_MALLOC_OVERHEAD_C to be the number of bytes extra
 dnl allocated for a call to malloc.
 dnl
-AC_DEFUN(CW_MALLOC_OVERHEAD,
+AC_DEFUN([CW_MALLOC_OVERHEAD],
 [AC_CACHE_CHECK(malloc overhead in bytes, cw_cv_system_mallocoverhead,
 [CW_TRY_RUN([#include <cstddef>
 #include <cstdlib>
@@ -296,7 +296,7 @@ dnl CW_NEED_WORD_ALIGNMENT
 dnl
 dnl Defines LIBCWD_NEED_WORD_ALIGNMENT when the host needs
 dnl respectively size_t alignment or not.
-AC_DEFUN(CW_NEED_WORD_ALIGNMENT,
+AC_DEFUN([CW_NEED_WORD_ALIGNMENT],
 [AC_CACHE_CHECK(if machine needs word alignment, cw_cv_system_needwordalignment,
 [CW_TRY_RUN([#include <cstddef>
 #include <cstdlib>
@@ -323,7 +323,7 @@ dnl CW_TYPE_GETGROUPS
 dnl
 dnl Like AC_TYPE_GETGROUPS but with bug fix for C++ and adding a
 dnl typedef getgroups_t instead of defining the macro GETGROUPS_T.
-AC_DEFUN(CW_TYPE_GETGROUPS,
+AC_DEFUN([CW_TYPE_GETGROUPS],
 [AC_REQUIRE([AC_TYPE_UID_T])dnl
 AC_CACHE_CHECK(type of array argument to getgroups, ac_cv_type_getgroups,
 [CW_TRY_RUN(
@@ -372,7 +372,7 @@ dnl CW_PROG_CXX
 dnl
 dnl Like AC_PROG_CXX, except that it demands that GNU g++-3.0
 dnl or higher is available.
-AC_DEFUN(CW_PROG_CXX,
+AC_DEFUN([CW_PROG_CXX],
 [AC_BEFORE([$0], [CW_PROG_CXXCPP])
 AC_REQUIRE([AC_PROG_CXX])
 AC_CACHE_CHECK(whether we are using GNU C++ version 3.0 or later, ac_cv_prog_gxx_version,
@@ -409,7 +409,7 @@ fi
 dnl CW_PROG_CXXCPP
 dnl
 dnl Like AC_PROG_CXXCPP but with bug work around that allows user to override CXXCPP.
-AC_DEFUN(CW_PROG_CXXCPP,
+AC_DEFUN([CW_PROG_CXXCPP],
 [AC_BEFORE([$0], [AC_PROG_CXXCPP])
 AC_REQUIRE([CW_PROG_CXX])
 dnl This triggers the bug:
@@ -428,7 +428,7 @@ fi])
 dnl CW_PROG_CXX_FINGER_PRINTS
 dnl
 dnl Extract finger prints of C++ compiler and preprocessor and C compiler which is used for linking.
-AC_DEFUN(CW_PROG_CXX_FINGER_PRINTS,
+AC_DEFUN([CW_PROG_CXX_FINGER_PRINTS],
 [AC_REQUIRE([AC_PROG_CXX])
 AC_REQUIRE([CW_PROG_CXXCPP])
 AC_REQUIRE([AC_PROG_CC])
@@ -442,7 +442,7 @@ dnl
 dnl Determines the size of a call, in other words: what needs to be substracted
 dnl from __builtin_return_address(0) to get the start of the assembly instruction
 dnl that did the call.
-AC_DEFUN(CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET,
+AC_DEFUN([CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET],
 [AC_CACHE_CHECK(needed offset to __builtin_return_address(), cw_cv_sys_builtin_return_address_offset,
 [save_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS=""
@@ -474,7 +474,7 @@ AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
 dnl CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS
 dnl
 dnl Determines if __builtin_return_address(1) is supported by compiler.
-AC_DEFUN(CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS,
+AC_DEFUN([CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS],
 [AC_CACHE_CHECK([whether __builtin_return_address(1) works], cw_cv_sys_recursive_builtin_return_address,
 [AC_LANG_SAVE
 AC_LANG_C
@@ -501,7 +501,7 @@ dnl
 dnl Defines CW_FRAME_ADDRESS_OFFSET_C to be the number of void*
 dnl between a frame pointer and the next frame pointer.
 dnl
-AC_DEFUN(CW_SYS_FRAME_ADDRESS_OFFSET,
+AC_DEFUN([CW_SYS_FRAME_ADDRESS_OFFSET],
 [AC_REQUIRE([CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS])
 CW_CONFIG_FRAME_ADDRESS_OFFSET=undef
 if test "$cw_cv_sys_recursive_builtin_return_address" != "no"; then
@@ -567,7 +567,7 @@ AC_SUBST(CW_CONFIG_FRAME_ADDRESS_OFFSET)
 
 dnl CW_BUG_G_CONFIG_H
 dnl Check if /usr/include/_G_config.h forgets to define a few macros
-AC_DEFUN(CW_BUG_G_CONFIG_H,
+AC_DEFUN([CW_BUG_G_CONFIG_H],
 [AC_LANG_SAVE
 AC_LANG_C
 AC_CHECK_FUNCS(labs)
@@ -610,7 +610,7 @@ AC_SUBST(CW_HAVE_LABS)
 dnl CW_RPM
 dnl Generate directories and files needed for an rpm target.
 dnl For this to work, the Makefile.am needs to contain the string @RPM_TARGET@
-AC_DEFUN(CW_RPM,
+AC_DEFUN([CW_RPM],
 [if test "$USE_MAINTAINER_MODE" = yes; then
 AC_CHECK_PROGS(rpm)
 if test "$ac_cv_prog_rpm" = yes; then
@@ -620,7 +620,7 @@ fi])
 
 dnl CW_SYS_PS_WIDE_PID_OPTION
 dnl Determines the options needed for `ps' to print the full command of a specified PID
-AC_DEFUN(CW_SYS_PS_WIDE_PID_OPTION,
+AC_DEFUN([CW_SYS_PS_WIDE_PID_OPTION],
 [AC_CACHE_CHECK([for option of ps to print the full command of a specified PID], cw_cv_sys_ps_wide_pid_option,
 [if $PS -ww >/dev/null 2>/dev/null; then
 cw_cv_sys_ps_wide_pid_option="-ww"
@@ -662,7 +662,7 @@ dnl In order to avoid duplication it is put here as macro.
 
 dnl CW_SETUP_RPM_DIRS
 dnl Set up rpm directory when on linux and in maintainer-mode
-AC_DEFUN(CW_SETUP_RPM_DIRS,
+AC_DEFUN([CW_SETUP_RPM_DIRS],
 [if test "$USE_MAINTAINER_MODE" = yes; then
   LSMFILE="$PACKAGE.lsm"
   AC_SUBST(LSMFILE)
@@ -701,7 +701,7 @@ fi
 ])
 
 dnl CW_CLEAN_CACHE
-AC_DEFUN(CW_CLEAN_CACHE,
+AC_DEFUN([CW_CLEAN_CACHE],
 [AC_MSG_CHECKING([if we can use cached results for the tests])
 CW_PROG_CXX_FINGER_PRINTS
 if test "$cw_cv_sys_CXX_finger_print" != "$cw_prog_cxx_finger_print" -o \
@@ -732,7 +732,7 @@ cw_cv_sys_LIBS="$LIBS"
 
 dnl CW_DO_OPTIONS
 dnl Chose reasonable default values for WARNOPTS, DEBUGOPTS and EXTRAOPTS
-AC_DEFUN(CW_DO_OPTIONS, [dnl
+AC_DEFUN([CW_DO_OPTIONS], [dnl
 dnl Other options
 dnl -fno-exceptions is really only needed when using a compiler that was configured
 dnl with --enable-slsj-exceptions, in order to avoid calls to calloc() from
@@ -775,7 +775,7 @@ AC_SUBST(TESTOPTS)
 dnl CW_ENVIRONMENT
 dnl Load environment from cache when invoked as config.status --recheck.
 dnl Always let CXX and CXXCPP override cached values
-AC_DEFUN(CW_ENVIRONMENT,
+AC_DEFUN([CW_ENVIRONMENT],
 [if test x"$no_create" = xyes -a x"$no_recursion" = xyes; then
   eval "CPPFLAGS=\"$cw_cv_sys_CPPFLAGS\""
   eval "CXXFLAGS=\"$cw_cv_sys_CXXFLAGS\""
@@ -802,7 +802,7 @@ fi
 
 dnl CW_COMPILER_VERSIONS
 dnl Test if the version of both, C and C++ compiler match.
-AC_DEFUN(CW_COMPILER_VERSIONS,
+AC_DEFUN([CW_COMPILER_VERSIONS],
 [AC_MSG_CHECKING([whether the versions C and C++ compiler match])
 CC_VERSION=`$CC -v 2>&1 | grep '^gcc version'`
 CXX_VERSION=`$CXX -v 2>&1 | grep '^gcc version'`
@@ -819,7 +819,7 @@ fi
 dnl CW_RPATH_OPTION
 dnl Figure out the commandline option to gcc needed to pass
 dnl a runtime path to the linker.
-AC_DEFUN(CW_RPATH_OPTION,
+AC_DEFUN([CW_RPATH_OPTION],
 [AC_CACHE_CHECK([how to pass a runtime path to the linker], cw_cv_rpath_option,
 [save_CXXFLAGS="$CXXFLAGS"
 AC_LANG_SAVE
@@ -837,7 +837,7 @@ dnl Test if g++ was configured with --enable-__cxa_atexit,
 dnl otherwise a call to dlopen() will destruct all global
 dnl objects and might cause a segfault in libcwd, for which
 dnl we don't want to get the blame.
-AC_DEFUN(CW_ATEXITTEST,
+AC_DEFUN([CW_ATEXITTEST],
 [AC_CACHE_CHECK([if the compiler was configured for __cxa_atexit], cw_cv_cxa_atexit,
 [if $CXX -v 2>&1 >/dev/null | grep -- '--enable-__cxa_atexit' >/dev/null; then
   cw_cv_cxa_atexit=yes

@@ -2634,7 +2634,7 @@ unsigned long list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& 
   LIBCWD_CLEANUP_POP_RESTORE(true);
   LibcwDout(channels, debug_object, dc_malloc, "Total allocated memory: " << total_memsize << " bytes in " << total_memblks << " blocks (" << printed_memblks << " shown).");
 #else
-  if (printed_memblks > 0)
+  if (printed_memblks > 0 && printed_memblks != memblks)
     LibcwDout(channels, debug_object, dc_malloc, "Number of visible memory blocks: " << printed_memblks << ".");
 #endif
   return printed_memblks;

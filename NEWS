@@ -4,8 +4,15 @@ libcwd-0.99.37
 	(only `internal' memory) making it better suitable to use it
 	as a filter to show memory leaks at program termination.
 
-	list_allocations_on now returns the number of actually
-	printed allocations (unfilter and not invisible).
+	list_allocations_on now returns the number of printed
+	allocations (unfiltered and not invisible). If that number
+	is different from the real number of allocation, it will
+	append a line like this one:
+	MALLOC  : Number of visible memory blocks: 5\.
+	Note that 'visible' there means that it was printed, not
+	that they are not invisible (it is possible to have
+	not-invisible memory blocks not being printed when they are
+	being filtered by the ooam_filter_ct object that was passed).
 
 	Added was a function ooam_filter_ct::hide_functions_matching
 	that allows to hide allocations from the overview of allocated
@@ -16,6 +23,8 @@ libcwd-0.99.37
 	list_allocations_on to print the mangled function name from
 	which an allocation was done, even when the sourcefile and
 	line number is known.
+
+	Support for automake version 1.8 has been added.
 
 libcwd-0.99.36
 
