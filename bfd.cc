@@ -777,8 +777,14 @@ char const* libcw_bfd_pc_function_name(void const* addr)
 //
 // Find source file, (mangled) function name and line number of the address `addr'.
 //
+#ifdef BUG_INPLACE_STRUCT_RETURN
+location_st libcw_bfd_pc_location(void const* addr)
+{
+  location_st location;
+#else
 location_st libcw_bfd_pc_location(void const* addr) return location
 {
+#endif
   if (!initialized)
   {
 #ifdef DEBUGMALLOC
