@@ -58,7 +58,7 @@ public:
   ~smart_ptr() { if (!M_string_literal) reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->decrement(); }
 
   // Copy constructor.
-  smart_ptr(smart_ptr const& ptr) : M_string_literal(true) { copy_from(ptr); }
+  smart_ptr(smart_ptr const& ptr) : M_ptr(NULL), M_string_literal(true) { copy_from(ptr); }
 
   // Other constructors.
   smart_ptr(char const* ptr) : M_string_literal(true) { copy_from(ptr); }
