@@ -603,11 +603,20 @@ void bfd_close(bfd* abfd)
 
 	  if (M_function_symbols.size() > 0)
 	  {
-	    asymbol const* last_symbol = (*M_function_symbols.rbegin()).get_symbol();
+	    // M_function_symbols is a set<> that sorts in reverse order (using symbol_key_greater)!
+	    // So use begin() here in order to get the last symbol.
+	    asymbol const* last_symbol = (*M_function_symbols.begin()).get_symbol();
 	    if (symbol_size(last_symbol) == 100000)
 	    {
 	      BFD_RELEASE_WRITE_LOCK;
-	      Dout( dc::warning, "Unknown size of symbol " << last_symbol->name);
+#if CWDEBUG_ALLOC
+	      int saved_internal = __libcwd_tsd.internal;
+	      __libcwd_tsd.internal = 0;
+#endif
+	      Dout(dc::warning, "Unknown size of symbol " << last_symbol->name);
+#if CWDEBUG_ALLOC
+	      __libcwd_tsd.internal = saved_internal;
+#endif
 	      BFD_ACQUIRE_WRITE_LOCK;
 	    }
 	    if (!M_size)
