@@ -519,7 +519,7 @@ namespace {
 	    qualifiers->printing_suppressed();
 	  RETURN;
 	case 's':
-	  output += "internal_string";
+	  output += "std::string";
 	  if (!M_inside_template_args)
 	  {
 	    M_function_name = "string";
