@@ -20,9 +20,6 @@ INCLUDEFLAGS=
 STATICLIBS=#-L/usr/src/perf-papi/src -lpapi
 
 # Extra static libraries to link with:
-# If you defined DEBUGUSEBFD in include/libcw/debugging_defs.h,
-# then you need to link with -lbfd -liberty -ldl.
-# libbfd.a and liberty.a are part of GNU binutils.
 SHAREDLIBS:=$(shell ./get_libraries)
 
 #-----------------------------------------------------------------------------
