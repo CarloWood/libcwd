@@ -439,7 +439,7 @@ inline bool bfd_is_und_section(asection const* sect) { return false; }
 #else // !HAVE_LINK_H
 	    {
 	      libcw::debug::_internal_::internal = true;
-	      // Warning: the following code is black magic.
+	      // The following code uses a heuristic approach to guess the start of an object file.
 	      map<void*, unsigned int> start_values;
 	      unsigned int best_count = 0;
 	      void* best_start = 0;

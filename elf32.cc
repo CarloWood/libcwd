@@ -36,7 +36,7 @@
 RCSTAG_CC("$Id$")
 
 #define DEBUGELF32 0
-#define DEBUGSTABS 0
+#define DEBUGSTABS 1
 #define DEBUGDWARF 0
 
 // This assumes that DW_TAG_compile_unit is the first tag for each compile unit
@@ -204,7 +204,7 @@ static int const STT_LOPROC = 13;		// Start of range reserved for processor-spec
 static int const STT_HIPROC = 15;		// End of range reserved for processor-specific semantics.
 
 //==========================================================================================================================================
-// The information about stabs (Symbol TABleS) was obtained from http://www.informatik.uni-frankfurt.de/doc/texi/stabs_1.html.
+// The information about stabs (Symbol TABleS) was obtained from http://www.informatik.uni-frankfurt.de/doc/texi/stabs_toc.html.
 //
 
 // http://www.informatik.uni-frankfurt.de/doc/texi/stabs_6.html#SEC46
@@ -642,6 +642,12 @@ public:
   Elf32_Shdr const& section_header(void) const { return M_section_header; }
 };
 
+struct hash_list_st {
+  char const* name;
+  Elf32_Addr addr;
+  hash_list_st* next;
+};
+
 //
 // class object_file_ct
 //
@@ -667,6 +673,8 @@ private:
   Elf32_Word M_dwarf_debug_info_section_index;
   Elf32_Word M_dwarf_debug_abbrev_section_index;
   Elf32_Word M_dwarf_debug_line_section_index;
+  static uint32_t const hash_table_size = 2049;		// Lets use a prime number.
+  hash_list_st** M_hash_list;
 public:
   object_file_ct(char const* file_name);
   ~object_file_ct()
@@ -691,6 +699,7 @@ private:
   void load_dwarf(void);
   template<typename T>
     inline void object_file_ct::dwarf_read(unsigned char const*& debug_info_ptr, T& x);
+  uint32_t elf_hash(unsigned char const* name, size_t len) const;
 };
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
@@ -751,9 +760,25 @@ long object_file_ct::get_symtab_upper_bound(void)
   return M_number_of_symbols * sizeof(asymbol_st*);
 }
 
+uint32_t object_file_ct::elf_hash(unsigned char const* name, size_t len) const
+{
+  uint32_t h = 0;
+  uint32_t g;
+  while (len--)
+  {
+    h = (h << 4) + *name++;
+    if ((g = (h & 0xf0000000)))
+      h ^= g >> 24;
+    h &= ~g;
+  }
+  return (h % hash_table_size);
+}
+
 long object_file_ct::canonicalize_symtab(asymbol_st** symbol_table)
 {
   M_symbols = new asymbol_st[M_number_of_symbols];
+  M_hash_list = new hash_list_st* [hash_table_size];
+  std::memset(M_hash_list, 0, hash_table_size * sizeof(hash_list_st*));
   asymbol_st* new_symbol = M_symbols;
   int table_entries = 0;
   for(int i = 0; i < M_header.e_shnum; ++i)
@@ -1570,16 +1595,32 @@ void object_file_ct::load_stabs(void)
 	}
 	else
 	{
-	  range.start = func_addr = stabs[j].n_value;
-	  if (func_addr == 0 && location.line)
-	    DoutFatal(dc::fatal, "Upgrade your binutils: it produces wrong .stabs debug info (2.10.91 should work).");
 	  char const* fn = &stabs_string_table[stabs[j].n_strx];
-	  cur_func.assign(fn, strchr(fn, ':') - fn);
+	  char const* fn_end = strchr(fn, ':');
+	  size_t fn_len = fn_end - fn;
+#if DEBUGSTABS
+	  ASSERT( fn_end && (fn_end[1] == 'F' || fn_end[1] == 'f') );
+#endif
+	  cur_func.assign(fn, fn_len);
 	  cur_func += '\0';
-	  location.func_iter = M_function_names.insert(cur_func).first;
-	  location.line = 0;
+	  range.start = func_addr = stabs[j].n_value;
           if (DEBUGSTABS)
 	    Dout(dc::bfd, "N_FUN: " << std::hex << func_addr << " : \"" << &stabs_string_table[stabs[j].n_strx] << "\".");
+	  if (func_addr == 0 && location.line)
+	  {
+	    // Start of function is not given (bug in assembler?), try to find it by name:
+	    uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(fn), fn_len);
+	    hash_list_st* p = M_hash_list[hash];
+	    while(p && strncmp(p->name, fn, fn_len))
+	      p = p->next;
+	    if (p)
+	      range.start = func_addr =  p->addr;
+	    ASSERT( func_addr );
+	    if (DEBUGSTABS)
+	      Dout(dc::bfd, "Hash lookup: " << std::hex << range.start << '.');
+	  }
+	  location.func_iter = M_function_names.insert(cur_func).first;
+	  location.line = 0;
 	}
 	break;
       }
@@ -1603,6 +1644,7 @@ void object_file_ct::load_stabs(void)
     Debug( libcw_do.dec_indent(4) );
   delete [] stabs;
   delete [] stabs_string_table;
+  delete [] M_hash_list;
   M_debug_info_loaded = true;
 }
 
@@ -1748,12 +1790,6 @@ object_file_ct::object_file_ct(char const* file_name) :
     Dout(dc::bfd, "Number of symbols: " << M_number_of_symbols);
   }
   delete [] section_headers;
-
-  // Temporally preload them here.
-  if (M_dwarf_debug_line_section_index)
-    load_dwarf();
-  else if (M_stabs_section_index)
-    load_stabs();
 }
 
 } // namespace elf32
