@@ -48,7 +48,7 @@ echo
 %files
 %defattr(-,root,root)
 %doc example-project.tar.gz
-%doc documentation/README
+%doc documentation/0README
 %doc documentation/tutorial
 %doc documentation/reference-manual
 %doc documentation/scripts
