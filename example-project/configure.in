@@ -1,0 +1,53 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_REVISION($Revision$)dnl
+
+dnl General intialization of `autoconf' varaibles.
+dnl Ensure that the directory specified with --srcdir was correct
+dnl by demanding that it contains `debug.h'.
+AC_INIT(debug.h)
+
+dnl Include --enable-maintainer-mode option.
+AM_MAINTAINER_MODE
+
+dnl Put resulting configuration defines in this header file.
+AM_CONFIG_HEADER(config.h)
+
+dnl Demand at least version 2.13 of autoconf.
+AC_PREREQ(2.13)
+
+dnl Automake package name and version
+AM_INIT_AUTOMAKE(project, [0.0.1])
+
+dnl Manual configuration options of project.
+AC_ARG_ENABLE(debugging,
+    [  --enable-debugging      enable debugging code.],
+    project_config_debugging=$enableval)
+
+dnl Check for compiler and preprocessor
+AC_PROG_CXX
+AC_PROG_CXXCPP
+
+dnl Checks for other programs.
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+dnl Set language requirements for the tests below.
+AC_LANG_CPLUSPLUS
+AC_REQUIRE_CPP
+
+dnl Configuration defines
+if test "$project_config_debugging" = yes; then
+
+  dnl Check if we have libcwd
+  AC_CHECK_LIB(cwd, libcw_bfd_pc_location__FPCv, [LIBS="-lcwd -lbfd -liberty $LIBS"], [AC_CHECK_LIB(cwd, main,,
+      [AC_MSG_ERROR([
+  --enable-debugging: You need to have libcwd installed to enable debugging.
+  Or perhaps you need to adds its location to LDFLAGS and CPPFLAGS, for example:
+  LDFLAGS=\"-L/usr/local/lib\" CPPFLAGS=\"-I/usr/local/include\" ./configure])])], -lbfd -liberty)
+
+  CXXFLAGS="-DDEBUG $CXXFLAGS"
+fi
+
+dnl Generate output files.
+AC_OUTPUT([Makefile maintMakefile])
+

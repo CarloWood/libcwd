@@ -7,6 +7,12 @@ will compile with -DDEBUG and link with -lcwd (and add its
 install path to LD_LIBRARY_PATH).  A production version is then
 simply compiled without -DDEBUG and not linked with -lcwd.
 
+The directory `example-project' contains a fully functional
+example project that uses autoconf, automake and libcwd.
+Please read example-project/README for more info and a little
+tutorial on the automake build environment.  For the example
+project to work, you *first* need to install libcwd.
+
 Please read the INSTALL file for a list of other needed
 libraries and tools before attempting to compile libcwd.
 

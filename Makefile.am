@@ -33,4 +33,10 @@ libcwd_la_LIBADD = utils/libutils.la
 
 # --------------- Maintainer's Section
 
+dist-hook:
+	mkdir $(distdir)/example-project
+	for i in `grep '^/' example-project/CVS/Entries | cut -d/ -f2`; do \
+	  cp -p $(srcdir)/example-project/$$i $(distdir)/example-project; \
+	done
+
 @MAINTAINER_MODE_TRUE@include maintMakefile

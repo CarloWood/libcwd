@@ -1,0 +1,7 @@
+nodebug.h: macrotest.cc debug.h
+	g++ -dM -E macrotest.cc | sed -e 's/#define/#undef/' > phase1.h
+	g++ -dM -E -DPHASE2 macrotest.cc | egrep -v '(#define __|_H *$)' | sort > nodebug.h
+	rm -f phase1.h
+
+# See the maintMakefile.in in the libwd distribution for more interesting ideas.
+
