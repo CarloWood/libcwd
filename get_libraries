@@ -1,5 +1,5 @@
-#! /bin/bash
+#! /bin/sh
 
-if grep -l '^#define[   ]*DEBUGUSEBFD' include/libcw/debugging_defs.h >/dev/null; then
+if grep -l '^#define[   ]*DEBUGUSEBFD' `dirname $0`/include/libcw/debugging_defs.h >/dev/null; then
   echo "-lbfd -liberty -ldl";
 fi

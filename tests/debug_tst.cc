@@ -136,23 +136,23 @@ const char *nested_bar(bool bar_with_error, bool bar_to_cerr, bool foo_with_erro
   {
     if (bar_to_cerr)
     {
-      errno = EADV;
+      errno = EINVAL;
       Dout( dc::bar|cerr_cf|error_cf, "Entering `nested_bar()'" );
       flush_cerr();
-      errno = EADV;
+      errno = EINVAL;
       Dout( dc::bar|cerr_cf|error_cf, "`nested_foo(" << foo_with_error << ", " << foo_to_cerr << ")' returns the string \"" << nested_foo(foo_with_error, foo_to_cerr) << "\" when I call it." );
       flush_cerr();
-      errno = EADV;
+      errno = EINVAL;
       Dout( dc::bar|cerr_cf|error_cf, "Leaving `nested_bar()'" );
       flush_cerr();
     }
     else
     {
-      errno = EADV;
+      errno = EINVAL;
       Dout( dc::bar|error_cf, "Entering `nested_bar()'" );
-      errno = EADV;
+      errno = EINVAL;
       Dout( dc::bar|error_cf, "`nested_foo(" << foo_with_error << ", " << foo_to_cerr << ")' returns the string \"" << nested_foo(foo_with_error, foo_to_cerr) << "\" when I call it." );
-      errno = EADV;
+      errno = EINVAL;
       Dout( dc::bar|error_cf, "Leaving `nested_bar()'" );
     }
   }

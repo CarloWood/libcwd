@@ -11,7 +11,7 @@ SUBDIRS=
 STATICLIBS=
 
 # Extra shared libraries to link with:
-SHAREDLIBS=-lcwd -lbfd -liberty
+SHAREDLIBS=-lcwd $(shell ../get_libraries)
 
 # Use -L${LIBCWDIR}/lib to use the latest alpha version:
 LIBFLAGS=-L${BASEDIR}/lib

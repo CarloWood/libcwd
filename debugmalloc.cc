@@ -20,7 +20,7 @@
 
 #ifdef DEBUGMALLOC
 
-#include <malloc.h>
+#include <cstdlib>	// Needed for malloc prototypes
 #include <cstring>
 #include <string>
 #include <map>
