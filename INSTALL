@@ -54,7 +54,8 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      Don't delete those libraries if you have them though
      since existing binaries might need to link with them.
 
-  libcwd-0.99.10 was tested with gcc-2.95.x, gcc-2.96 (RedHat) and gcc-3.0.
+  libcwd-0.99.10 was tested with gcc-2.95.x, gcc-2.96 (RedHat),
+  gcc-20010507, gcc-3.0 and gcc-20010716.
 
      Packages needed to run the testsuite
      ------------------------------------
@@ -70,6 +71,9 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      Alternatively, you can get dejagnu directly from the cvs repository
      at http://www.gnu.org/software/dejagnu/ where this bug already has been
      fixed (as it will be in any version *after* 1.4.1).
+
+     You will also need expect-5.32.2 (and tcl/tk 8.3.3?).  At least, expect 5.31.2
+     is known to hang.
 
      Packages/versions needed as maintainer or when using CVS
      --------------------------------------------------------
