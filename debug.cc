@@ -448,7 +448,7 @@ namespace libcw {
      */
     void core_dump(void)
     {
-#ifdef LIBCWD_THREAD_SAFE
+#if defined(LIBCWD_THREAD_SAFE) && defined(HAVE_PTHREAD_KILL_OTHER_THREADS_NP)
       pthread_kill_other_threads_np();
 #endif
       raise(6);
