@@ -16,12 +16,13 @@ namespace example { libcw::debug::debug_ct my_own_do; };
 
 int main(void)
 {
-  // Make sure we initialized the bfd stuff:
+  Debug( check_configuration() );
+
+  // Make sure we initialized the bfd stuff before we turn on WARNING.
   (void)libcw_bfd_pc_function_name(main);
 
   ostrstream dummy;	// Do this before turning on debug output
 
-  Debug( check_configuration() );
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
   Debug( dc::debug.on() );

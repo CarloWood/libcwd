@@ -22,10 +22,11 @@ int main(int argc, char* argv[])
 {
   Debug( check_configuration() );
 
-#ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
-#endif
+
+  // Make sure we initialized the bfd stuff before we turn on WARNING.
+  (void)libcw_bfd_pc_function_name(main);
 
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
