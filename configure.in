@@ -109,6 +109,8 @@ CW_ENVIRONMENT
 dnl Check for compiler and preprocessor
 if test -n "$CC"; then
   unset ac_cv_prog_CC
+  unset am_cv_CC_dependencies_compiler_type
+  unset am_cv_CXX_dependencies_compiler_type
 fi
 AC_PROG_CC
 AC_PROG_CXX
