@@ -105,9 +105,9 @@ run: shared static module.so
 mostlyclean:
 	rm -f site.bak core *.core *.o
 clean: mostlyclean
-	rm -f libcwd.log libcwd.sum *_*_shared *_*_static module.so
+	rm -f site.exp libcwd.log libcwd.sum *_*_shared *_*_static module.so
 distclean: clean
-	rm -f Makefile site.exp *.log *.sum
+	rm -f Makefile *.log *.sum
 
 distdir: $(DISTFILES)
 	distdir=`cd $(distdir) && pwd`;
