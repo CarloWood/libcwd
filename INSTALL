@@ -23,7 +23,9 @@ Actually, I forgot why they are there :).  You can read more about what
 they do in Chapter 4 "Debugging compile options" here:
 http://libcw.sourceforge.net/templates/index.html?debugging
 If you want to change Makefile.am files and the-like then you'll need to
-use --enable-maintainer-mode.
+use --enable-maintainer-mode.  If you enable maintainer-mode then you
+will need GNU make, other make won't work (you also need a lot of other
+extra tools installed on your system).
 
 -=ii=-
 

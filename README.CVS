@@ -1,9 +1,17 @@
+If you downloaded a tar ball (a *.tar.gz file)
+then this file does not apply to you.
+
 If you checked out this source tree using CVS
 (see http://sourceforge.net/cvs/?group_id=354)
 then you will need to generate a few files that
 are normally included in the release.
 
-In order to generate these files you will need
+You will also need GNU make in order to compile
+this package when checked out using CVS.  Trying
+to compile this with a non-GNU make might result
+in a `Must be a seperator' error.
+
+In order to generate the needed files you will need
 to have installed the tools `automake', `autoconf'
 and `libtool'.
 
