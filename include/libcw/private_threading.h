@@ -503,8 +503,18 @@ template <int instance>
 	    LIBCWD_TSD_DECLARATION;
 	    ++__libcwd_tsd.inside_critical_area;
 	    __libcwd_tsd.instance_rdlocked[instance] += 1;
-	    __libcwd_tsd.rdlocked_by[instance] = pthread_self();
-	    __libcwd_tsd.rdlocked_from[instance] = __builtin_return_address(0);
+	    if (__libcwd_tsd.instance_rdlocked[instance] == 1)
+	    {
+	      __libcwd_tsd.rdlocked_by1[instance] = pthread_self();
+	      __libcwd_tsd.rdlocked_from1[instance] = __builtin_return_address(0);
+	    }
+	    else if (__libcwd_tsd.instance_rdlocked[instance] == 2)
+	    {
+	      __libcwd_tsd.rdlocked_by2[instance] = pthread_self();
+	      __libcwd_tsd.rdlocked_from2[instance] = __builtin_return_address(0);
+	    }
+	    else
+	      core_dump();
 	  }
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::tryrdlock()");
@@ -575,8 +585,18 @@ template <int instance>
 	  LIBCWD_TSD_DECLARATION;
 	  ++__libcwd_tsd.inside_critical_area;
 	  __libcwd_tsd.instance_rdlocked[instance] += 1;
-	  __libcwd_tsd.rdlocked_by[instance] = pthread_self();
-	  __libcwd_tsd.rdlocked_from[instance] = __builtin_return_address(0);
+	  if (__libcwd_tsd.instance_rdlocked[instance] == 1)
+	  {
+	    __libcwd_tsd.rdlocked_by1[instance] = pthread_self();
+	    __libcwd_tsd.rdlocked_from1[instance] = __builtin_return_address(0);
+	  }
+	  else if (__libcwd_tsd.instance_rdlocked[instance] == 2)
+	  {
+	    __libcwd_tsd.rdlocked_by2[instance] = pthread_self();
+	    __libcwd_tsd.rdlocked_from2[instance] = __builtin_return_address(0);
+	  }
+	  else
+	    core_dump();
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdlock()");
     }
@@ -596,8 +616,11 @@ template <int instance>
       S_no_holders_condition.unlock();
       LibcwDebugThreads(
 	  LIBCWD_TSD_DECLARATION;
+	  if (__libcwd_tsd.instance_rdlocked[instance] == 2)
+	    __libcwd_tsd.rdlocked_by2[instance] = 0;
+	  else
+	    __libcwd_tsd.rdlocked_by1[instance] = 0;
 	  __libcwd_tsd.instance_rdlocked[instance] -= 1;
-	  __libcwd_tsd.rdlocked_by[instance] = 0;
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdunlock()");
     }
@@ -687,8 +710,11 @@ template <int instance>
 #endif
       LibcwDebugThreads(
 	  LIBCWD_TSD_DECLARATION;
+	  if (__libcwd_tsd.instance_rdlocked[instance] == 2)
+	    __libcwd_tsd.rdlocked_by2[instance] = 0;
+	  else
+	    __libcwd_tsd.rdlocked_by1[instance] = 0;
 	  __libcwd_tsd.instance_rdlocked[instance] -= 1;
-	  __libcwd_tsd.rdlocked_by[instance] = 0;
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rd2wrlock()");
     }
@@ -708,8 +734,18 @@ template <int instance>
       LibcwDebugThreads(
 	  LIBCWD_TSD_DECLARATION;
 	  __libcwd_tsd.instance_rdlocked[instance] += 1;
-	  __libcwd_tsd.rdlocked_by[instance] = pthread_self();
-	  __libcwd_tsd.rdlocked_from[instance] = __builtin_return_address(0);
+	  if (__libcwd_tsd.instance_rdlocked[instance] == 1)
+	  {
+	    __libcwd_tsd.rdlocked_by1[instance] = pthread_self();
+	    __libcwd_tsd.rdlocked_from1[instance] = __builtin_return_address(0);
+	  }
+	  else if (__libcwd_tsd.instance_rdlocked[instance] == 2)
+	  {
+	    __libcwd_tsd.rdlocked_by2[instance] = pthread_self();
+	    __libcwd_tsd.rdlocked_from2[instance] = __builtin_return_address(0);
+	  }
+	  else
+	    core_dump();
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wr2rdlock()");
     }

@@ -169,7 +169,7 @@ int main(void)
 	else
 	  std::cerr << "\nNO HEARTBEAT for " << thread_id[i] << '/' <<
 	    libcw::debug::_private_::__libcwd_tsd_array[thread_index(thread_id[i])].pid <<
-	    " since " << bad[i] << " seconds.\n";
+	    " since " << bad[i] << " seconds.  Value still: " << heartbeat[i] << "\n";
       }
       else
       {

@@ -136,8 +136,10 @@ public:
   int waiting_for_lock;			// The instance of the lock that this thread is waiting for.
   int waiting_for_rdlock;		// The instance of the rdlock that this thread is waiting for.
   int instance_rdlocked[instance_rdlocked_size];
-  pthread_t rdlocked_by[instance_rdlocked_size];
-  void const* rdlocked_from[instance_rdlocked_size];
+  pthread_t rdlocked_by1[instance_rdlocked_size];
+  pthread_t rdlocked_by2[instance_rdlocked_size];
+  void const* rdlocked_from1[instance_rdlocked_size];
+  void const* rdlocked_from2[instance_rdlocked_size];
 #endif
 #if LIBCWD_THREAD_SAFE
   pthread_t tid;			// Thread ID.

@@ -21,8 +21,15 @@ LIBCWD_R = libcwd_r.la
 else
 LIBCWD_R =
 endif
-lib_LTLIBRARIES = libcwd.la $(LIBCWD_R)
+if ENABLENONTHREADING
+LIBCWD = libcwd.la
+else
+LIBCWD =
+endif
 
+lib_LTLIBRARIES = $(LIBCWD) $(LIBCWD_R)
+
+if ENABLENONTHREADING
 libcwd_la_CXXFLAGS = -DCWDEBUG $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)
 libcwd_la_SOURCES = \
         elf32.cc \
@@ -36,6 +43,7 @@ libcwd_la_SOURCES = \
         type_info.cc
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO)
 libcwd_la_LIBADD = utils/libutils.la
+endif
 
 if ENABLETHREADING
 libcwd_r_la_CXXFLAGS = -DCWDEBUG -D_REENTRANT -pthread $(DEBUGOPTS) $(EXTRAOPTS) $(WARNOPTS)

@@ -53,8 +53,18 @@ class pthread_lock_interface_ct : public lock_interface_base_ct {
       {
 	LIBCWD_TSD_DECLARATION
 	__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
-	__libcwd_tsd.rdlocked_by[pthread_lock_interface_instance] = pthread_self();
-        __libcwd_tsd.rdlocked_from[pthread_lock_interface_instance] = __builtin_return_address(0); 
+	if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
+	{
+	  __libcwd_tsd.rdlocked_by1[pthread_lock_interface_instance] = pthread_self();
+	  __libcwd_tsd.rdlocked_from1[pthread_lock_interface_instance] = __builtin_return_address(0); 
+	}
+	else if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
+	{
+	  __libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = pthread_self();
+	  __libcwd_tsd.rdlocked_from2[pthread_lock_interface_instance] = __builtin_return_address(0); 
+	}
+	else
+	  core_dump();
       }
       return success;
 #else
@@ -71,16 +81,29 @@ class pthread_lock_interface_ct : public lock_interface_base_ct {
 #if CWDEBUG_DEBUGT
       __libcwd_tsd.waiting_for_rdlock = 0;
       __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
-      __libcwd_tsd.rdlocked_by[pthread_lock_interface_instance] = pthread_self();
-      __libcwd_tsd.rdlocked_from[pthread_lock_interface_instance] = __builtin_return_address(0); 
+      if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
+      {
+	__libcwd_tsd.rdlocked_by1[pthread_lock_interface_instance] = pthread_self();
+	__libcwd_tsd.rdlocked_from1[pthread_lock_interface_instance] = __builtin_return_address(0); 
+      }
+      else if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
+      {
+	__libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = pthread_self();
+	__libcwd_tsd.rdlocked_from2[pthread_lock_interface_instance] = __builtin_return_address(0); 
+      }
+      else
+	core_dump();
 #endif
     }
     virtual void unlock(void)
     {
 #if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION
+      if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
+	__libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = 0;
+      else
+	__libcwd_tsd.rdlocked_by1[pthread_lock_interface_instance] = 0;
       __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] -= 1;
-      __libcwd_tsd.rdlocked_by[pthread_lock_interface_instance] = 0;
 #endif
       pthread_mutex_unlock(ptr);
     }

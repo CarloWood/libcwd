@@ -104,7 +104,7 @@ module.so: module.cc $(top_builddir)/.libs/libcwd.so.*
 	$(CXXCOMPILE) -shared -fpic -DPIC -w $< -o $@
 
 ifeq ($(enable_threads), yes)
-module_r.so: module.cc $(top_builddir)/.libs/libcwd.so.*
+module_r.so: module.cc $(top_builddir)/.libs/libcwd_r.so.*
 	$(CXXCOMPILE) -D_REENTRANT -pthread -shared -fpic -DPIC -w $< -o $@
 endif
 
