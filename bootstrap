@@ -23,8 +23,8 @@ test -n "$ZSH_NAME" && disable which		# zsh has a builtin which that is turned o
 (libtool --version) >/dev/null 2>/dev/null || (echo "You need GNU libtool $required_libtool_version to install from CVS (ftp://ftp.gnu.org/gnu/libtool/)"; exit 1) || exit 1
 
 # Determine the version of libtool.
-libtool_version=`libtool --version | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
-libtool_develversion=`libtool --version | sed -e 's/.*[12]\.[0-9].*(\([^ ]*\).*/\1/'`
+libtool_version=`libtool --version | head -1 | sed -e 's/[^12]*\([12]\.[0-9][^ ]*\).*/\1/'`
+libtool_develversion=`libtool --version | head -1 | sed -e 's/.*[12]\.[0-9].*(\([^ ]*\).*/\1/'`
 
 # libcwd requires version 1.4.2 because previous versions are broken.
 # On OS other then Linux we require 1.4d or higher because libtool
