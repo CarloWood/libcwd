@@ -5,15 +5,14 @@ class parameterI { };
 class parameterII { };
 class parameterIII { };
 struct scopetype {
-  return_type f1(parameterI, parameterII, parameterIII) { }
-  return_type f2(parameterI, parameterII, parameterIII) const { }
+  return_type symbol_scopetype_func(parameterI, parameterII, parameterIII);
+  return_type symbol_scopetype_func_const(parameterI, parameterII, parameterIII) const;
 };
+return_type scopetype::symbol_scopetype_func(parameterI, parameterII, parameterIII) { }
+return_type scopetype::symbol_scopetype_func_const(parameterI, parameterII, parameterIII) const { }
 class ttypeI { };
 class ttypeII { };
 class ttypeIII { };
-
-// A symbol.
-int symbol;			// <symbol>				--> <symbol>
 
 // Non-scope parameters (as parameter of nonscopetype_*).
 void nonscopetype_void(void) { }
@@ -37,23 +36,38 @@ void nonscopetype_long_long(long long) { }
 void nonscopetype_pointer(prefix*) { }
 void nonscopetype_reference(prefix&) { }
 void nonscopetype_function_pointer(return_type (*)(parameterI, parameterII, parameterIII)) { }
+void nonscopetype_function_pointer_const(return_type (* const)(parameterI, parameterII, parameterIII)) { }
 void nonscopetype_function_reference(return_type (&)(parameterI, parameterII, parameterIII)) { }
-void nonscopetype_member_function_pointer(return_type (scopetype::*foo)(parameterI, parameterII, parameterIII)) { }
-void nonscopetype_const_member_function_pointer(return_type (scopetype::*foo)(parameterI, parameterII, parameterIII) const) { }
+void nonscopetype_member_function_pointer(return_type (scopetype::*)(parameterI, parameterII, parameterIII)) { }
+void nonscopetype_member_function_pointer_const(return_type (scopetype::* const)(parameterI, parameterII, parameterIII)) { }
+void nonscopetype_const_member_function_pointer(return_type (scopetype::*)(parameterI, parameterII, parameterIII) const) { }
+void nonscopetype_const_member_function_pointer_const(return_type (scopetype::* const)(parameterI, parameterII, parameterIII) const) { }
 
 // Scope types.
 struct class_name {
   void scopetype_class_name(void);
+  void scopetype_class_name_const(void) const;
 };
 void class_name::scopetype_class_name(void) { }
+void class_name::scopetype_class_name_const(void) const { }
+void scopetype_member_function_pointer_example_class_name(return_type (class_name::*)(parameterI, parameterII, parameterIII)) { }
+void scopetype_member_function_pointer_const_example_class_name(return_type (class_name::* const)(parameterI, parameterII, parameterIII)) { }
+void scopetype_const_member_function_pointer_example_class_name(return_type (class_name::*)(parameterI, parameterII, parameterIII) const) { }
+void scopetype_const_member_function_pointer_const_example_class_name(return_type (class_name::* const)(parameterI, parameterII, parameterIII) const) { }
 
 template<typename ttypeI, typename ttypeII, typename ttypeIII>
   struct template_name {
     void scopetype_template_name_ttypes(void);
+    void scopetype_template_name_ttypes_const(void) const;
   };
 template<typename ttypeI, typename ttypeII, typename ttypeIII>
   void template_name<ttypeI, ttypeII, ttypeIII>::scopetype_template_name_ttypes(void) { }
-template_name<ttypeI, ttypeII, ttypeIII> instantiate;
+template<typename ttypeI, typename ttypeII, typename ttypeIII>
+  void template_name<ttypeI, ttypeII, ttypeIII>::scopetype_template_name_ttypes_const(void) const { }
+void scopetype_member_function_pointer_example_template_name_ttypes(return_type (template_name<ttypeI, ttypeII, ttypeIII>::*)(parameterI, parameterII, parameterIII)) { }
+void scopetype_member_function_pointer_const_example_template_name_ttypes(return_type (template_name<ttypeI, ttypeII, ttypeIII>::* const)(parameterI, parameterII, parameterIII)) { }
+void scopetype_const_member_function_pointer_example_template_name_ttypes(return_type (template_name<ttypeI, ttypeII, ttypeIII>::*)(parameterI, parameterII, parameterIII) const) { }
+void scopetype_const_member_function_pointer_const_example_template_name_ttypes(return_type (template_name<ttypeI, ttypeII, ttypeIII>::* const)(parameterI, parameterII, parameterIII) const) { }
 
 // Possible scope types
 scopetype const st = { };
@@ -68,6 +82,30 @@ struct scopetypeI {
 };
 void possiblescopetype_scopetypes_type(scopetypeI::scopetypeII::scopetypeIII::type) { }
 
+// Symbols
+
+int symbol_int;
+int symbol_func(parameterI, parameterII, parameterIII) { return 0; }
+
+struct scopetypeIV {
+  struct symbol_constructor_void {
+    symbol_constructor_void(void);
+    ~symbol_constructor_void();
+  };
+  struct symbol_constructor_types {
+    symbol_constructor_types(parameterI, parameterII, parameterIII);
+    ~symbol_constructor_types();
+  };
+  virtual void virtual_func(void);
+  static int symbol_scopetype_symbol;
+};
+scopetypeIV::symbol_constructor_void::symbol_constructor_void(void) { }
+scopetypeIV::symbol_constructor_types::symbol_constructor_types(parameterI, parameterII, parameterIII) { }
+scopetypeIV::symbol_constructor_void::~symbol_constructor_void() { }
+scopetypeIV::symbol_constructor_types::~symbol_constructor_types() { }
+void scopetypeIV::virtual_func(void) { }
+int scopetypeIV::symbol_scopetype_symbol;
+
 // Template instantiation
 int main(void)
 {
@@ -76,3 +114,8 @@ int main(void)
   possiblescopetype_const(st);
   return 0;
 }
+
+namespace {
+  int anonymous;
+}
+
