@@ -66,6 +66,7 @@ extern link_map* _dl_loaded;
 #ifdef LIBCWD_THREAD_SAFE
 using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
+using libcw::debug::_private_::cancel_buffer_t;
 using libcw::debug::_private_::object_files_instance;
 using libcw::debug::_private_::dlopen_map_instance;
 #define BFD_INITIALIZE_LOCK		rwlock_tct<object_files_instance>::initialize();
@@ -75,8 +76,8 @@ using libcw::debug::_private_::dlopen_map_instance;
 #define BFD_RELEASE_READ_LOCK	        rwlock_tct<object_files_instance>::rdunlock();
 #define BFD_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<object_files_instance>::rd2wrlock();
 #define BFD_ACQUIRE_WRITE2READ_LOCK     rwlock_tct<object_files_instance>::wr2rdlock();
-#define DLOPEN_MAP_ACQUIRE_LOCK	        mutex_tct<dlopen_map_instance>::lock();
-#define DLOPEN_MAP_RELEASE_LOCK	        mutex_tct<dlopen_map_instance>::unlock();
+#define DLOPEN_MAP_ACQUIRE_LOCK	        cancel_buffer_t buffer; mutex_tct<dlopen_map_instance>::lock(buffer);
+#define DLOPEN_MAP_RELEASE_LOCK	        mutex_tct<dlopen_map_instance>::unlock(buffer);
 #else // !LIBCWD_THREAD_SAFE
 #define BFD_INITIALIZE_LOCK
 #define BFD_ACQUIRE_WRITE_LOCK

@@ -27,9 +27,6 @@
 
 // Defined when --enable-libcwd-threading is used.
 #undef LIBCWD_THREAD_SAFE
-
-// Defined when having struct _pthread_cleanup_buffer.
-#undef HAVE__PTHREAD_CLEANUP_BUFFER
 @BOTTOM@
 
 #endif // LIBCW_CONFIG_H

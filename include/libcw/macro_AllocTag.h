@@ -148,11 +148,12 @@ extern void register_external_allocation(void const* ptr, size_t size);
     set_alloc_label(p, ::libcw::debug::type_info_of(p), const_cast<char const*>(desc))
 
 #ifdef LIBCWD_THREAD_SAFE
-#define LIBCWD_LOCK_desc__if_still_NULL_then ::libcw::debug::_private_::\
-    mutex_tct< ::libcw::debug::_private_::alloc_tag_desc_instance>::lock(); \
+#define LIBCWD_LOCK_desc__if_still_NULL_then \
+    ::libcw::debug::_private_::cancel_buffer_t __libcwd_buffer; \
+    ::libcw::debug::_private_::mutex_tct< ::libcw::debug::_private_::alloc_tag_desc_instance>::lock(__libcwd_buffer); \
     if (!desc)
-#define LIBCWD_UNLOCK_desc ::libcw::debug::_private_::\
-    mutex_tct< ::libcw::debug::_private_::alloc_tag_desc_instance>::unlock();
+#define LIBCWD_UNLOCK_desc \
+    ::libcw::debug::_private_::mutex_tct< ::libcw::debug::_private_::alloc_tag_desc_instance>::unlock(__libcwd_buffer);
 #else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_LOCK_desc__if_still_NULL_then
 #define LIBCWD_UNLOCK_desc

@@ -220,10 +220,11 @@ template<typename T>
     {
 #ifdef LIBCWD_THREAD_SAFE
       volatile static bool spin_lock = false;
-      _private_::mutex_tct<_private_::type_info_of_instance>::lock();
+      _private_::cancel_buffer_t buffer;
+      _private_::mutex_tct<_private_::type_info_of_instance>::lock(buffer);
       while(spin_lock);
       spin_lock = true;
-      _private_::mutex_tct<_private_::type_info_of_instance>::unlock();
+      _private_::mutex_tct<_private_::type_info_of_instance>::unlock(buffer);
       if (::libcwd_type_info_exact<T>::value_c.size() == 0)		// Recheck now that we acquired the lock.
 #endif
       {

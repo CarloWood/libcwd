@@ -1110,7 +1110,8 @@ namespace libcw {
 
 #ifdef LIBCWD_THREAD_SAFE
       _private_::mutex_tct<_private_::write_max_len_instance>::initialize();
-      _private_::mutex_tct<_private_::write_max_len_instance>::lock();
+      _private_::cancel_buffer_t buffer;
+      _private_::mutex_tct<_private_::write_max_len_instance>::lock(buffer);
 #endif
       // MT: This is not strict thread safe because it is possible that after threads are already
       //     running, a new shared library is dlopen-ed with a new global channel_ct with a larger
@@ -1128,7 +1129,7 @@ namespace libcw {
       static int next_index;
       WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
        
-      _private_::mutex_tct<_private_::write_max_len_instance>::unlock();
+      _private_::mutex_tct<_private_::write_max_len_instance>::unlock(buffer);
 
       __libcwd_tsd.off_cnt_array[WNS_index] = 0;
 #else
@@ -1187,13 +1188,14 @@ namespace libcw {
 
 #ifdef LIBCWD_THREAD_SAFE
       _private_::mutex_tct<_private_::write_max_len_instance>::initialize();
-      _private_::mutex_tct<_private_::write_max_len_instance>::lock();
+      _private_::cancel_buffer_t buffer;
+      _private_::mutex_tct<_private_::write_max_len_instance>::lock(buffer);
 #endif
       // MT: See comment in channel_ct::NS_initialize above.
       if (label_len > WST_max_len)
 	WST_max_len = label_len;
 #ifdef LIBCWD_THREAD_SAFE
-      _private_::mutex_tct<_private_::write_max_len_instance>::unlock();
+      _private_::mutex_tct<_private_::write_max_len_instance>::unlock(buffer);
 #endif
 
       strncpy(WNS_label, label, label_len);

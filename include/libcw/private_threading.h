@@ -56,6 +56,7 @@
 
 #ifndef LIBCWD_USE_LINUXTHREADS
 #define LIBCWD_USE_LINUXTHREADS 0
+#undef HAVE__PTHREAD_CLEANUP_BUFFER
 #endif
 #ifndef LIBCWD_USE_POSIX_THREADS
 #define LIBCWD_USE_POSIX_THREADS 0
@@ -98,19 +99,10 @@
 
 #ifdef LIBCWD_THREAD_SAFE
 
-#if LIBCWD_USE_LINUXTHREADS
-#define LIBCWD_CLEANUP_PUSH_DEFER(routine, arg) pthread_cleanup_push_defer_np(routine, arg)
-#define LIBCWD_CLEANUP_POP_DEFER(execute) pthread_cleanup_pop_defer_np(execute)
-#elif LIBCWD_USE_POSIX_THREADS
-#define LIBCWD_CLEANUP_PUSH_DEFER(routine, arg) \
-    { \
-      int __libcwd_oldtype; \
-      pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &__libcwd_oldtype); \
-      pthread_cleanup_push(routine, arg);
-#define LIBCWD_CLEANUP_POP_DEFER(execute) \
-      pthread_cleanup_pop(execute); \
-      pthread_setcanceltype(__libcwd_oldtype, NULL); \
-    }
+#if LIBCWD_USE_LINUXTHREADS && defined(HAVE__PTHREAD_CLEANUP_BUFFER)
+#define LIBCWD_USE_PTHREAD_CLEANUP_BUFFER 1
+#else
+#define LIBCWD_USE_PTHREAD_CLEANUP_BUFFER 0
 #endif
 
 namespace libcw {
@@ -162,13 +154,6 @@ template<class TSD>
 // (using -O2 this is at most a single test and nothing at all when
 // Linuxthreads are being used.
 //
-// Examples.
-//
-// mutex_tct<instance_id_const>::initialize();
-// if (mutex_tct<instance_id_const>::trylock()) ...
-// mutex_tct<instance_id_const>::lock();
-// mutex_tct<instance_id_const>::unlock();
-//
 
 // The different instance-ids used in libcwd.
 enum mutex_instance_nt {
@@ -203,6 +188,47 @@ extern int instance_locked[instance_locked_size];	// MT: Each element is locked 
 __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; }
 #endif
 
+#if LIBCWD_USE_PTHREAD_CLEANUP_BUFFER
+typedef struct _pthread_cleanup_buffer cancel_buffer_t;
+
+__inline__
+void
+cleanup_push_defer(int (*routine)(pthread_mutex_t*) throw(), pthread_mutex_t& mutex, cancel_buffer_t& buffer)
+{
+  _pthread_cleanup_push_defer (&(buffer), reinterpret_cast<void(*)(void*)>(routine), reinterpret_cast<void*>(&mutex));
+}
+
+__inline__
+void
+cleanup_pop_restore(bool execute, cancel_buffer_t& buffer)
+{
+  _pthread_cleanup_pop_restore (&buffer, execute ? 1 : 0);
+}
+
+#else // !LIBCWD_USE_PTHREAD_CLEANUP_BUFFER
+typedef int cancel_buffer_t;
+
+__inline__
+void
+cleanup_push_defer(int (*routine)(pthread_mutex_t*) throw(), pthread_mutex_t& mutex, cancel_buffer_t& buffer)
+{
+  pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &buffer);
+  pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(routine), reinterpret_cast<void*>(&mutex));
+}
+
+#if defined(pthread_cleanup_pop) && defined(pthread_cleanup_push)
+#warning "If next you get a 'parse error before `{' token' error, then contact the author of libcwd to get your threads library supported."
+#endif
+
+__inline__
+void
+cleanup_pop_restore(bool execute, cancel_buffer_t& buffer)
+{
+  pthread_cleanup_pop(execute ? 1 : 0);
+  pthread_setcanceltype(buffer, NULL);
+}
+#endif // !LIBCWD_USE_PTHREAD_CLEANUP_BUFFER
+
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 template <int instance>
   class mutex_tct {
@@ -226,22 +252,24 @@ template <int instance>
         }
 #endif
   public:
-    static bool trylock(void) throw()
+    static bool trylock(cancel_buffer_t& buffer) throw()
     {
-#ifndef DEBUGDEBUG
-      return (pthread_mutex_trylock(&S_mutex) == 0);
-#else
-      bool res = (pthread_mutex_trylock(&S_mutex) == 0);
-      if (res)
+      cleanup_push_defer(pthread_mutex_unlock, S_mutex, buffer);
+      bool success = (pthread_mutex_trylock(&S_mutex) == 0);
+      if (!success)
+	cleanup_pop_restore(false, buffer);
+#ifdef DEBUGDEBUG
+      else
 	instance_locked[instance] += 1;
-      return res;
 #endif
+      return success;
     }
-    static void lock(void) throw()
+    static void lock(cancel_buffer_t& buffer) throw()
     {
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": locking mutex " << instance);
 #endif
+      cleanup_push_defer(pthread_mutex_unlock, S_mutex, buffer);
 #if LIBCWD_DEBUGTHREADS
       int res =
 #endif
@@ -256,7 +284,7 @@ template <int instance>
       instance_locked[instance] += 1;
 #endif
     }
-    static void unlock(void) throw()
+    static void unlock(cancel_buffer_t& buffer) throw()
     {
 #ifdef DEBUGDEBUG
       instance_locked[instance] -= 1;
@@ -264,13 +292,7 @@ template <int instance>
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": unlocking mutex " << instance);
 #endif
-#if LIBCWD_DEBUGTHREADS
-      int res =
-#endif
-      pthread_mutex_unlock(&S_mutex);
-#if LIBCWD_DEBUGTHREADS
-      assert( res == 0 );
-#endif
+      cleanup_pop_restore(true, buffer);
 #if LIBCWD_DEBUGDEBUGRWLOCK
       if (instance != tsd_initialization_instance) LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << instance << " unlocked");
 #endif
@@ -281,12 +303,9 @@ template <int instance>
 template <int instance>
   void mutex_tct<instance>::S_initialize(void) throw()
   {
-    if (instance != mutex_initialization_instance)
-    {
-      mutex_tct<mutex_initialization_instance>::initialize();
-      mutex_tct<mutex_initialization_instance>::lock();
-    }
-
+    mutex_tct<mutex_initialization_instance>::initialize();
+    cancel_buffer_ct buffer;
+    mutex_tct<mutex_initialization_instance>::lock(buffer);
     if (!S_initialized)					// Check again now that we are locked.
     {
       pthread_mutexattr_t mutex_attr;
@@ -303,8 +322,20 @@ template <int instance>
       pthread_mutex_init(&S_mutex, &mutex_attr);
       S_initialized = true;
     }
-    if (instance != mutex_initialization_instance)
-      mutex_tct<mutex_initialization_instance>::unlock();
+    mutex_tct<mutex_initialization_instance>::unlock(buffer);
+  }
+
+template <>
+  void mutex_tct<mutex_initialization_instance>::S_initialize(void) throw()
+  {
+    pthread_mutexattr_t mutex_attr;
+#if LIBCWD_DEBUGTHREADS
+    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
+#else
+    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
+#endif
+    pthread_mutex_init(&S_mutex, &mutex_attr);
+    S_initialized = true;
   }
 #endif // !LIBCWD_USE_LINUXTHREADS
 
@@ -369,15 +400,14 @@ template <int instance>
   void cond_tct<instance>::S_initialize(void) throw()
   {
     mutex_tct<mutex_initialization_instance>::initialize();
-    mutex_tct<mutex_initialization_instance>::lock();
-
+    cancel_buffer_t buffer;
+    mutex_tct<mutex_initialization_instance>::lock(buffer);
     if (!S_initialized)					// Check again now that we are locked.
     {
       pthread_cond_init(&S_condition, NULL);
       S_initialized = true;
     }
-
-    mutex_tct<mutex_initialization_instance>::unlock();
+    mutex_tct<mutex_initialization_instance>::unlock(buffer);
   }
 #endif // !LIBCWD_USE_LINUXTHREADS
 
@@ -454,12 +484,13 @@ template <int instance>
 	return;						// No error checking is done.
       }
       // Give a writer a higher priority (kinda fuzzy).
-      if (S_writer_is_waiting || !S_cond_no_holders.trylock())
+      cancel_buffer_t buffer;
+      if (S_writer_is_waiting || !S_cond_no_holders.trylock(buffer))
         return false;
       bool success = (S_holders_count != -1);
       if (success)
 	++S_holders_count;				// Add one reader.
-      S_cond_no_holders.unlock();
+      S_cond_no_holders.unlock(buffer);
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::tryrdlock()");
       return success;
     }
@@ -469,24 +500,25 @@ template <int instance>
       assert(S_initialized);
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::trywrlock()");
-      bool success;
-      success = mutex_tct<readers_instance>::trylock();	// Block new readers,
+      cancel_buffer_t buffer;
+      bool success = mutex_tct<readers_instance>::trylock(buffer);	// Block new readers,
       while (success)
       {
-	S_writer_is_waiting = true;			// from this moment on.
-	if (!S_cond_no_holders.trylock())
+	S_writer_is_waiting = true;					// from this moment on.
+	cancel_buffer_t buffer2;
+	if (!S_cond_no_holders.trylock(buffer2))
 	{
 	  S_writer_is_waiting = false;
-	  mutex_tct<readers_instance>::unlock();
+	  mutex_tct<readers_instance>::unlock(buffer);
 	  success = false;
 	  break;
 	}
 	while (S_holders_count != 0)			// Other readers or writers have this lock?
 	  S_cond_no_holders.wait();			// Wait until all current holders are done.
 	S_writer_is_waiting = false;			// Stop checking the lock for new readers.
-	mutex_tct<readers_instance>::unlock();		// Release blocked readers.
+	mutex_tct<readers_instance>::unlock(buffer);	// Release blocked readers.
 	S_holders_count = -1;				// Mark that we have a writer.
-	S_cond_no_holders.unlock();
+	S_cond_no_holders.unlock(buffer2);
 	if (instance < end_recursive_types)
 	  S_writer_id = pthread_self();
       }
@@ -507,14 +539,16 @@ template <int instance>
       // Give a writer a higher priority (kinda fuzzy).
       if (S_writer_is_waiting)				// If there is a writer interested,
       {
-	mutex_tct<readers_instance>::lock();		// then give it precedence and wait here.
-        mutex_tct<readers_instance>::unlock();
+	cancel_buffer_t buffer;
+	mutex_tct<readers_instance>::lock(buffer);	// then give it precedence and wait here.
+        mutex_tct<readers_instance>::unlock(buffer);
       }
-      S_cond_no_holders.lock();
+      cancel_buffer_t buffer2;
+      S_cond_no_holders.lock(buffer2);
       while (S_holders_count == -1)			// Writer locked it?
 	S_cond_no_holders.wait();			// Wait for writer to finish.
       ++S_holders_count;				// Add one reader.
-      S_cond_no_holders.unlock();
+      S_cond_no_holders.unlock(buffer2);
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdlock()");
     }
     static void rdunlock(void) throw()
@@ -525,10 +559,11 @@ template <int instance>
 	LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdunlock() (skipped: thread has write lock)");
 	return;						// No error checking is done.
       }
-      S_cond_no_holders.lock();
+      cancel_buffer_t buffer;
+      S_cond_no_holders.lock(buffer);
       if (--S_holders_count == 0)			// Was this the last reader?
         S_cond_no_holders.signal();			// Tell waiting threads.
-      S_cond_no_holders.unlock();
+      S_cond_no_holders.unlock(buffer);
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdunlock()");
     }
     static void wrlock(void) throw()
@@ -537,15 +572,17 @@ template <int instance>
       assert(S_initialized);
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wrlock()");
-      mutex_tct<readers_instance>::lock();		// Block new readers,
+      cancel_buffer_t buffer;
+      mutex_tct<readers_instance>::lock(buffer);	// Block new readers,
       S_writer_is_waiting = true;			// from this moment on.
-      S_cond_no_holders.lock();
+      cancel_buffer_t buffer2;
+      S_cond_no_holders.lock(buffer2);
       while (S_holders_count != 0)			// Other readers or writers have this lock?
 	S_cond_no_holders.wait();			// Wait until all current holders are done.
       S_writer_is_waiting = false;			// Stop checking the lock for new readers.
-      mutex_tct<readers_instance>::unlock();		// Release blocked readers.
+      mutex_tct<readers_instance>::unlock(buffer);	// Release blocked readers.
       S_holders_count = -1;				// Mark that we have a writer.
-      S_cond_no_holders.unlock();
+      S_cond_no_holders.unlock(buffer2);
       if (instance < end_recursive_types)
         S_writer_id = pthread_self();
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrlock()");
@@ -561,27 +598,30 @@ template <int instance>
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wrunlock()");
       if (instance < end_recursive_types)
         S_writer_id = 0;
-      S_cond_no_holders.lock();
+      cancel_buffer_t buffer;
+      S_cond_no_holders.lock(buffer);
       S_holders_count = 0;				// We have no writer anymore.
       S_cond_no_holders.signal();			// No readers and no writers left.
-      S_cond_no_holders.unlock();
+      S_cond_no_holders.unlock(buffer);
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrunlock()");
     }
     static void rd2wrlock() throw()
     {
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::rd2wrlock()");
-      S_cond_no_holders.lock();
+      cancel_buffer_t buffer2;
+      S_cond_no_holders.lock(buffer2);
       if (--S_holders_count > 0)
       {
-	mutex_tct<readers_instance>::lock();		// Block new readers.
+	cancel_buffer_t buffer;
+	mutex_tct<readers_instance>::lock(buffer);	// Block new readers.
 	S_writer_is_waiting = true;
 	while (S_holders_count != 0)
 	  S_cond_no_holders.wait();
 	S_writer_is_waiting = false;
-	mutex_tct<readers_instance>::unlock();		// Release blocked readers.
+	mutex_tct<readers_instance>::unlock(buffer);	// Release blocked readers.
       }
       S_holders_count = -1;				// We are a writer now.
-      S_cond_no_holders.unlock();
+      S_cond_no_holders.unlock(buffer2);
       if (instance < end_recursive_types)
 	S_writer_id = pthread_self();
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rd2wrlock()");
@@ -664,10 +704,11 @@ template<class TSD>
   TSD* thread_specific_data_tct<TSD>::S_initialize(void) throw()
   {
     pthread_once(&S_key_once, S_alloc_key);
-    mutex_tct<tsd_initialization_instance>::lock();
+    cancel_buffer_t cancel_buffer;
+    mutex_tct<tsd_initialization_instance>::lock(cancel_buffer);
     if (S_initializing)
     {
-      mutex_tct<tsd_initialization_instance>::unlock();
+      mutex_tct<tsd_initialization_instance>::unlock(cancel_buffer);
       return S_temporary_instance;
     }
     char new_TSD_space[sizeof(TSD)];					// Allocate space on the stack.
@@ -685,7 +726,7 @@ template<class TSD>
     std::memcpy((void*)instance, new_TSD_space, sizeof(TSD));		// Put the temporary TSD in its final place.
     S_initializing = false;
     S_initialized = true;
-    mutex_tct<tsd_initialization_instance>::unlock();
+    mutex_tct<tsd_initialization_instance>::unlock(cancel_buffer);
     if (WST_multi_threaded)						// Is this a second (or later) thread?
       debug_tsd_init();							// Initialize the TSD of existing debug objects.
     return instance;

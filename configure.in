@@ -336,6 +336,8 @@ AC_SUBST(CW_CONFIG_HAVE_PTHREADS)
 CW_CONFIG_HAVE_PTHREADS=undef
 AC_SUBST(LIB_THREADS)
 AC_SUBST(LIB_THREADS_SHARED)
+CW_CONFIG_HAVE__PTHREAD_CLEANUP_BUFFER=undef
+AC_SUBST(CW_CONFIG_HAVE__PTHREAD_CLEANUP_BUFFER)
 if test "$libcwd_config_threading" = yes; then
 
   dnl Check if we have POSIX threads
@@ -373,7 +375,7 @@ if test "$libcwd_config_threading" = yes; then
     AC_CHECK_LIB(pthread, pthread_create, [LIB_THREADS_SHARED=-lpthread])
   fi
 
-  AC_CHECK_TYPE([struct _pthread_cleanup_buffer],[AC_DEFINE(HAVE__PTHREAD_CLEANUP_BUFFER)],,[#include <pthread.h>])
+  AC_CHECK_TYPE([struct _pthread_cleanup_buffer],[CW_CONFIG_HAVE__PTHREAD_CLEANUP_BUFFER=define],,[#include <pthread.h>])
 fi
 
 dnl This test needs the full set of libraries we just determined.
