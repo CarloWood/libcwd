@@ -222,7 +222,7 @@ template <int instance>
     if (instance != mutex_initialization_instance)
       mutex_tct<mutex_initialization_instance>::unlock();
   }
-#endif
+#endif // LIBCWD_USE_LINUXTHREADS
 
 #ifndef LIBCWD_USE_LINUXTHREADS
 template <int instance>

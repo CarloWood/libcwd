@@ -122,12 +122,12 @@
 #define DEBUGMALLOC_INTERNAL
 #include "sys.h"
 #include <libcw/debug_config.h>
-#ifdef LIBCWD_THREAD_SAFE
+#if defined(LIBCWD_THREAD_SAFE) && (__GNUC__ >= 3 || __GNUC_MINOR__ >= 97)
 // This has to be very early (must not have been included elsewhere already).
 #define private public  // Ugly, I know.
 #include <bits/stl_alloc.h>
 #undef private
-#endif // LIBCWD_THREAD_SAFE
+#endif // __GNUC__ >= 3 && LIBCWD_THREAD_SAFE
 
 #if defined(DEBUGMALLOC) || defined(LIBCW_DOXYGEN)
 
@@ -212,6 +212,7 @@ namespace libcw {
     
 namespace _private_ {
 
+#if __GNUC__ >= 3 || __GNUC_MINOR__ >= 97
 #ifdef LIBCWD_THREAD_SAFE
 // The following tries to take the "node allocator" lock -- the lock of the
 // default allocator for threaded applications. The parameter is the value to
@@ -239,7 +240,8 @@ void allocator_unlock(void)
 #endif
   __gthread_mutex_unlock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
 }
-#endif  // LIBCWD_THREAD_SAFE
+#endif // LIBCWD_THREAD_SAFE
+#endif // __GNUC__ >= 3
 
 void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal)
 {

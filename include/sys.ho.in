@@ -18,6 +18,11 @@
 #include "../config.h"
 
 //
+// Use all GNU extensions.
+//
+#define _GNU_SOURCE
+
+//
 // Define _REENTRANT to make sure that the glibc functions are thread safe too.
 //
 #ifdef LIBCWD_THREAD_SAFE
