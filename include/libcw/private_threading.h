@@ -41,11 +41,10 @@
 #endif
 
 #ifdef LIBCWD_HAVE_PTHREAD
+#ifdef __linux
 #ifndef _GNU_SOURCE
-#error "You need to use -D_GNU_SOURCE for full threading support."
+#error "You need to use define _GNU_SOURCE in order to make use of the extensions of Linux Threads."
 #endif
-#ifndef __USE_GNU	// Should be defined if _GNU_SOURCE was defined.
-#error "__USE_GNU is not defined!?"
 #endif
 #include <pthread.h>
 #if defined(PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP) && defined(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP)
