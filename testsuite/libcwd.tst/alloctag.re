@@ -1,15 +1,28 @@
 // input lines 3
-// output till ^BFD     : Disabled
+// output till ^BFD     : (Disabled|Loading debug info)
 ((WARNING : core size is limited.*
 )*(BFD     : Loading debug symbols from.*
 )*)
+// input lines 2
+// output till ^BFD     : Disabled
+(BFD     : Loading debug info from .*/libcwd\.so\.0\.\.\. done
+)*
 BFD     : Disabled
 DEBUG   : Disabled
 MALLOC  : Enabled
 NOTICE  : Enabled
 SYSTEM  : Enabled
 WARNING : Enabled
-MALLOC  : operator new\[\] \(size = 50\) = 0x[0-9a-f]*
+// input lines 2
+// output till ^MALLOC
+(BFD     : Loading debug info from .*/libstdc\+\+\.so\.6\.\.\. done
+)*
+// input lines 4
+// output till ^MALLOC  : operator new \(size = 4\)
+(MALLOC  : operator new\[\] \(size = 50\) = (|<unfinished>
+BFD     :     Loading debug info from .*/tst_alloctag_s.....\.\.\. done
+MALLOC  : <continued> )0x[0-9a-f]*
+)
 MALLOC  : operator new \(size = 4\) = 0x[0-9a-f]*
 MALLOC  : malloc\(33\) = 0x[0-9a-f]*
 MALLOC  : malloc\(55\) = 0x[0-9a-f]*

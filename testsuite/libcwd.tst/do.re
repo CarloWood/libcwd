@@ -1,7 +1,7 @@
 // input lines 3
 // output till ^NOTICE
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug symbols from.*
+)*(BFD     : Loading debug .*
 )*)
 // type exact
 NOTICE  : Dout Turned on 1
@@ -48,7 +48,13 @@ XYZ2Aexample::my_own_do2WARNING |marker3|             ExampleDout text 13, "XYZ2
 ***********libcw_do*WARNING |marker1|        Dout text 8, "***********libcw_do*", "|marker1|".
 **********my_own_do*WARNING |marker2|           MyOwnDout text 11, "**********my_own_do*", "|marker2|".
 *example::my_own_do*WARNING |marker3|             ExampleDout text 13, "*example::my_own_do*", "|marker3|".
-* NOTICE  : This is written to cout
+// type regexp
+// input lines 2
+// output till ^\* NOTICE  : This is written to cout
+(> BFD     : Loading debug info from .*/libstdc\+\+\.so\.6\.\.\. done
+)*
+\* NOTICE  : This is written to cout
+// type exact
 > NOTICE  : This is written to cerr
 * NOTICE  : This is written to cerr
 > WARNING : Was written to ostringstream: "* NOTICE  : This is written to an ostringstream

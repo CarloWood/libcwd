@@ -30,7 +30,8 @@ char const* test_cases [] = {
    "_Z1fILi5E1AEvN1CIXstN1T1tEEXszsrS2_1tEE1qE",
    "_Z1fILi1ELc120EEv1AIXplT_cviLd4028ae147ae147aeEEE",
    "_Z1fILi1ELc120EEv1AIXplT_cviLf3f800000EEE",
-   "_Z9hairyfuncM1YKFPVPFrPA2_PM1XKFKPA3_ilEPcEiE"
+   "_Z9hairyfuncM1YKFPVPFrPA2_PM1XKFKPA3_ilEPcEiE",
+   "_Z4dep9ILi3EEvP3fooIXgtT_Li2EEE"
 };
 
 MAIN_FUNCTION

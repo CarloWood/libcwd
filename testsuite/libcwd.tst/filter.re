@@ -1,7 +1,7 @@
 // input lines 3
 // output till ^MALLOC
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug symbols from.*
+)*(BFD     : Loading debug.*
 )*)
 // type regexp
 MALLOC  : Allocated memory: [0-9]* bytes in [2-5] blocks:
@@ -17,7 +17,7 @@ WARNING :     Object file /lib/ld-linux\.so\.2 does not have debug info\.  Addre
 MALLOC  : <continued> 0x[a-f0-9]*
 )|(MALLOC  : malloc\(12\) = 0x[a-f0-9]*
 )
-MALLOC  : calloc\((572|544|548), 1\) = 0x[a-f0-9]*
+MALLOC  : calloc\((572|544|548|576), 1\) = 0x[a-f0-9]*
 MALLOC  : (malloc\(140\)|realloc\(0x0, 140\)) = 0x[a-f0-9]*
 MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]*
 MALLOC  : calloc\([3-7], 16\) = 0x[a-f0-9]*
@@ -35,7 +35,12 @@ MALLOC  : malloc\(500\) = 0x[a-f0-9]*
 MALLOC  : malloc\(123\) = 0x[a-f0-9]*
 MALLOC  : operator new \(size = 8\) = 0x[a-f0-9]*
 MALLOC  : New libcw::debug::marker_ct at 0x[a-f0-9]*
-MALLOC  : realloc\(0x[a-f0-9]*, 1000\) = 0x[a-f0-9]*
+// input lines 4
+// output till ^MALLOC  : malloc\(600\)
+(MALLOC  : realloc\(0x[a-f0-9]*, 1000\) = (|<unfinished>
+BFD     :     Loading debug info from .*/module\.so\.\.\. done
+MALLOC  : <continued> )0x[a-f0-9]*
+)
 MALLOC  : malloc\(600\) = 0x[a-f0-9]*
 MALLOC  : realloc\(0x[a-f0-9]*, 1000\) = 0x[a-f0-9]*
 MALLOC  : operator new\[\] \(size = 1000\) = 0x[a-f0-9]*
@@ -69,7 +74,7 @@ MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:(119|131)|_dl_new_object) *<unknown
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-load\.c:(164|149)|_dl_map_object) *<unknown type>; \(sz = 12\)  
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
-MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = (572|544|548)\)  
+MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576)\)  
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-deps\.c:(528|489)|_dl_map_object_deps|<pre libcwd initialization>) *<unknown type>; \(sz = [0-9]*\)  
 // input lines 4
 // output till MALLOC  : Allocated memory

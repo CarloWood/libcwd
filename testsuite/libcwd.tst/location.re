@@ -1,11 +1,8 @@
-// type regexp
-// input lines 4
-// output till ^BFD     : (address|Loading debug info)
+// input lines 3
+// output till ^BFD     : address
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug symbols from .*/tst_location_s.....\.\.\. done \([0-9]+ symbols\)
-(BFD     : Loading debug symbols from (.*\.so.* \(0x[0-9a-f]+\)|/usr/lib/libdl\.so\.1) \.\.\. (done \([0-9]+ symbols\)|No symbols found)
-)+)*)
-BFD     : Loading debug info from .*/testsuite/tst_location_s.....\.\.\. done
+)*(BFD     : Loading debug .*
+)*)
 BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:110
 NOTICE  : called from location\.cc:110
 BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:118

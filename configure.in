@@ -334,7 +334,7 @@ if test "$libcwd_config_bfd" = yes; then
 
 * You used --enable-libbfd: The license of libbfd (GPL) forbids to link
 * with libraries that are non-GPL.  Therefore you are not allowed to
-* distribute the resulting executable!  See include/libcwd/config.ho.in
+* distribute the resulting executable!  See include/libcwd/config.h.in
 * under DEBUGUSEGNULIBBFD for more information.
 ])],
       [AC_MSG_ERROR([
@@ -512,46 +512,50 @@ dnl The install prefix is hardcoded in the library in order to find the default 
 libcwd_datadir=`eval echo "$datadir/$PACKAGE" | sed -e 's|NONE|'$ac_default_prefix'|'`
 AC_DEFINE_UNQUOTED([CW_DATADIR], "$libcwd_datadir", [Data directory where the default rcfile is read from.])
 
-dnl Generate include/libcwd/config.h, include/libcwd/sys.h and include/sys.h, preserving timestamp when they are not changed.
-AC_CONFIG_FILES(include/libcwd/timestamp-config.h:include/libcwd/config.ho, [
-cd include/libcwd
-if cmp -s config.h config.ho 2> /dev/null; then
-  echo "config.h is unchanged"
-else
-  echo "creating config.h"
-  cp config.ho config.h
-fi
-touch timestamp-config.h
-cd ../..
-])
-AC_CONFIG_FILES(include/libcwd/timestamp-sys.h:include/libcwd/sys.ho, [
-cd include/libcwd
-if cmp -s sys.h sys.ho 2> /dev/null; then
-  echo "sys.h is unchanged"
-else
-  echo "creating sys.h"
-  cp sys.ho sys.h
-fi
-touch timestamp-sys.h
-cd ../..
-])
-AC_CONFIG_FILES(include/timestamp-sys.h:include/sys.ho, [
-cd include
-if cmp -s sys.h sys.ho 2> /dev/null; then
-  echo "sys.h is unchanged"
-else
-  echo "creating sys.h"
-  cp sys.ho sys.h
-fi
-touch timestamp-sys.h
-cd ..
-])
-
 dnl These options are needed, but cannot be used during the configure tests.
 if test "$cw_cv_prog_CXX_pch" = "yes"; then
   WARNOPTS="$WARNOPTS -Winvalid-pch"
   EXTRAOPTS="-include pch.h $EXTRAOPTS"
 fi
 
-AC_OUTPUT(libcwd.spec libcwd.lsm Makefile maintMakefile include/sys.ho include/Makefile include/libcwd/config.ho include/libcwd/sys.ho include/libcwd/Makefile utils/Makefile tests/Makefile testsuite/Makefile documentation/tutorial/Makefile)
+dnl Generate include/libcwd/config.h, include/libcwd/sys.h and include/sys.h, preserving timestamp when they are not changed.
+AC_CONFIG_FILES(include/libcwd/timestamp-config.h:include/libcwd/config.h.in, [
+cd include/libcwd
+if cmp -s config.h timestamp-config.h 2> /dev/null; then
+  echo "config.status: config.h is unchanged"
+else
+  echo "config.status: creating config.h"
+  cp timestamp-config.h config.h
+fi
+touch timestamp-config.h
+cd ../..
+])
+AC_CONFIG_FILES(include/libcwd/timestamp-sys.h:include/libcwd/sys.h.in, [
+cd include/libcwd
+if cmp -s sys.h timestamp-sys.h 2> /dev/null; then
+  echo "config.status: sys.h is unchanged"
+else
+  echo "config.status: creating sys.h"
+  cp timestamp-sys.h sys.h
+fi
+touch timestamp-sys.h
+cd ../..
+])
+AC_CONFIG_FILES(include/timestamp-sys.h:include/sys.h.in, [
+cd include
+if cmp -s sys.h timestamp-sys.h 2> /dev/null; then
+  echo "config.status: sys.h is unchanged"
+else
+  echo "config.status: creating sys.h"
+  cp timestamp-sys.h sys.h
+fi
+touch timestamp-sys.h
+cd ..
+])
+dnl Output the other configuration files.
+AC_CONFIG_FILES([libcwd.spec] [libcwd.lsm] [maintMakefile]
+                [Makefile] [utils/Makefile] [include/Makefile] [include/libcwd/Makefile]
+		[testsuite/Makefile] [tests/Makefile] [documentation/tutorial/Makefile])
+
+AC_OUTPUT
 

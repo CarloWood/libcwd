@@ -121,9 +121,9 @@ private:
   bfd* abfd;
   void* lbase;
   size_t M_size;
-  asymbol** symbol_table;
+  asymbol** M_symbol_table;
   long number_of_symbols;
-  function_symbols_ct function_symbols;
+  function_symbols_ct M_function_symbols;
   libcw::debug::object_file_ct M_object_file;
 public:
   bfile_ct(char const* filename, void* base);
@@ -134,12 +134,12 @@ public:
   bfd* get_bfd(void) const { return abfd; }
   void* const get_lbase(void) const { return lbase; }
   size_t size(void) const { return M_size; }
-  asymbol** get_symbol_table(void) const { return symbol_table; }
+  asymbol** get_symbol_table(void) const { return M_symbol_table; }
   long get_number_of_symbols(void) const { return number_of_symbols; }
   libcw::debug::object_file_ct const* get_object_file(void) const { return &M_object_file; }
   libcw::debug::object_file_ct* get_object_file(void) { return &M_object_file; }
-  function_symbols_ct& get_function_symbols(void) { return function_symbols; }
-  function_symbols_ct const& get_function_symbols(void) const { return function_symbols; }
+  function_symbols_ct& get_function_symbols(void) { return M_function_symbols; }
+  function_symbols_ct const& get_function_symbols(void) const { return M_function_symbols; }
 private:
   friend object_files_ct const& NEEDS_READ_LOCK_object_files(void);       // Need access to `ST_list_instance'.
   friend object_files_ct& NEEDS_WRITE_LOCK_object_files(void);            // Need access to `ST_list_instance'.

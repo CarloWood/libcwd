@@ -2,7 +2,7 @@
 // input lines 3
 // output till ^void
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug symbols from.*
+)*(BFD     : Loading debug .*
 )*)
 void libcw_app_ct::add_option<libcw_app_ct>\(void \(libcw_app_ct::\*\)\((libcw_app_ct\*, )*char const\*\), char const\*, char, char const\*, char const\*\)
 (guard variable for libcw::\(anonymous namespace\)|libcw::{anonymous})::compiler_bug_workaround<(std::)*vector<libcw::omanip_id_tct<libcw::debug::memblk_types_manipulator_data_ct>, (std::)*allocator<libcw::omanip_id_tct<libcw::debug::memblk_types_manipulator_data_ct> > > >::ids
@@ -21,7 +21,7 @@ global constructors keyed to _Z2fnv
 (r\(int \(G::\*\)\(void\), int \(G::\*\)\(void\) const, G, int \(H::\*\)\(void\), int \(G::\*\)\(void\), what<G const>, what2<G const>, int \(G::\*\)\(void\) const\)|r\(int \(G::\*\)\(G\*\), int \(G::\*\)\(G const\*\) const, G, int \(H::\*\)\(H\*\), int \(G::\*\)\(G\*\), what<G const>, what2<G const>, int \(G::\*\)\(G const\*\) const\))
 _Z1xINiEE
 void foo<int const \[6\]>\(int const \[9\]\[6\], int const restrict \(\* volatile restrict\) \[9\]\[6\]\)
-void f<5, A>\(C<\(\(5\) > \(0\)\) \? \(1\) : \(2\)>::q\)
+void f<5, A>\(C<\(\(\(5\) > \(0\)\)\) \? \(1\) : \(2\)>::q\)
 void f<5>\(A<\(int\)\(\(5\) \* \(22\)\)>::q\)
 f\(int \(\*\(\*\) \[extern "C"\] \(int\)\)\(int\)\)
 X::t f<X>\(X::t\)
@@ -29,4 +29,4 @@ void f<5, A>\(C<sizeof \(T::t\), sizeof \(T::t\)>::q\)
 void f<1, \(char\)120>\(A<\(1\) \+ \(\(int\)\(\(double\)1\.234e\+1\)\)>\)
 void f<1, \(char\)120>\(A<\(1\) \+ \(\(int\)\(\(float\)1\)\)>\)
 hairyfunc\(int \(\* const \(X::\*\* \(\* restrict \(\* volatile\* \(Y::\*\)\(int\) const\)\(char\*\)\) \[2\]\)\(long\) const\) \[3\]\)
-
+void dep9<3>\(foo<\(\(3\) > \(2\)\)>\*\)

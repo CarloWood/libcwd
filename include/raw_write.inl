@@ -1,4 +1,4 @@
-// Generated automatically from sys.ho.in by configure.
+// Generated automatically from sys.h.in by configure.
 // $Header$
 //
 // Copyright (C) 2001 - 2003, by

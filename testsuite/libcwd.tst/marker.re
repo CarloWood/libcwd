@@ -1,7 +1,7 @@
 // input lines 3
 // output till ^MALLOC
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug symbols from.*
+)*(BFD     : Loading debug .*
 )*)
 MALLOC  : operator new \(size = 12\) = 0x[0-9a-f]*
 MALLOC  : operator new \(size = 8\) = 0x[0-9a-f]*

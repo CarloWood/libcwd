@@ -38,7 +38,7 @@
 
 #define DEBUGELF32 0
 #define DEBUGSTABS 0
-#define DEBUGDWARF 0
+#define DEBUGDWARF 1
 
 #if DEBUGELF32 || DEBUGSTABS || DEBUGDWARF
 static bool const default_dout_c = false;
@@ -452,7 +452,7 @@ char const* print_DW_TAG_name(uLEB128_t tag)
     case DW_TAG_GNU_EINCL: return "DW_TAG_GNU_EINCL";
   }
   static char unknown_tag[32];
-  sprintf(unknown_tag, "UNKNOWN DW_TAG 0x%x", tag);
+  sprintf(unknown_tag, "UNKNOWN DW_TAG 0x%lx", tag);
   return unknown_tag;
 }
 #endif
@@ -668,7 +668,7 @@ char const* print_DW_AT_name(uLEB128_t attr)
     case DW_AT_VMS_rtnbeg_pd_address: return "DW_AT_VMS_rtnbeg_pd_address";
   }
   static char unknown_at[32];
-  sprintf(unknown_at, "UNKNOWN DW_AT 0x%x", attr);
+  sprintf(unknown_at, "UNKNOWN DW_AT 0x%lx", attr);
   return unknown_at;
 }
 #endif
@@ -855,7 +855,10 @@ read_address(unsigned char const*& debug_info_ptr, uLEB128_t const DEBUGDWARF_OP
 #endif
   address_t result;
   dwarf_read(debug_info_ptr, result);
+#if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
   DoutDwarf(dc::finish, result);
+#endif
   return result;
 }
 
@@ -962,6 +965,7 @@ read_reference(unsigned char const*& debug_info_ptr, uLEB128_t const form,
                unsigned char const* debug_info_root, unsigned char const* debug_info_start)
 {
 #if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT(form == DW_FORM_ref1 || form == DW_FORM_ref2 || form == DW_FORM_ref4 ||
                 form == DW_FORM_ref_udata || form == DW_FORM_ref_addr);
   size_t compilation_unit_offset = debug_info_root - debug_info_start;
@@ -1030,7 +1034,10 @@ read_string(unsigned char const*& debug_info_ptr, uLEB128_t const form, unsigned
       break;
     }
   }
+#if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
   DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << result << '"');
+#endif
   return result;
 }
 
@@ -1038,6 +1045,7 @@ inline lineptr_t
 read_lineptr(unsigned char const*& debug_info_ptr DEBUGDWARF_OPT_COMMA(uLEB128_t const form), lineptr_t debug_line)
 {
 #if DEBUGDWARF
+  LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT(form == DW_FORM_data4);
 #endif
   uint32_t line_offset;
@@ -1799,6 +1807,14 @@ void objfile_ct::load_dwarf(void)
   uint32_t total_length;
 #endif
 
+  libcw::debug::debug_ct::OnOffState state;
+  libcw::debug::channel_ct::OnOffState state2;
+  if (_private_::always_print_loading && !_private_::suppress_startup_msgs)
+  {
+    // We want debug output to BFD
+    Debug( libcw_do.force_on(state) );
+    Debug( dc::bfd.force_on(state2, "BFD") );
+  }
 #if CWDEBUG_ALLOC
   int saved_internal = __libcwd_tsd.internal;
   __libcwd_tsd.internal = false;
@@ -2389,6 +2405,11 @@ void objfile_ct::load_dwarf(void)
 #if CWDEBUG_ALLOC
   __libcwd_tsd.internal = saved_internal;
 #endif
+  if (_private_::always_print_loading)
+  {
+    Debug( dc::bfd.restore(state2) );
+    Debug( libcw_do.restore(state) );
+  }
 }
 
 void objfile_ct::load_stabs(void)

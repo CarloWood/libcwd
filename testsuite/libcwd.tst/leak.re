@@ -1,7 +1,7 @@
 // input lines 3
 // output till ^MALLOC
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug symbols from.*
+)*(BFD     : Loading debug .*
 )*)
 MALLOC  : malloc\(1111\) = 0x[0-9a-f]*
 MALLOC  : malloc\(2222\) = 0x[0-9a-f]*

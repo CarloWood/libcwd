@@ -980,7 +980,7 @@ template <int instance>
   int rwlock_tct<instance>::S_holders_count = 0;
 
 template <int instance>
-  bool rwlock_tct<instance>::S_writer_is_waiting = 0;
+  bool volatile rwlock_tct<instance>::S_writer_is_waiting = 0;
 
 template <int instance>
   pthread_t rwlock_tct<instance>::S_writer_id = 0;

@@ -110,6 +110,8 @@ namespace libcw {
   } while(0)
 #endif // STANDALONE
 
+#include <demangle.h>			// The actual demangler code.
+
 namespace
 {
 
@@ -207,26 +209,26 @@ int const p1024 = 19;
 #endif
 
 decimal_float_data const constants[] = {
-  { 6915, 3600, 2925, 5369, 1112, -327, true  },	// m1023; 2 ** -1023
-  { 3487,   41, 4624, 6681, 1491, -173, true  },	// m511; 2 ** -511
-  { 9251, 8888, 1101, 2337, 1727,  -96, true  },	// m255; 2 ** -255
-  { 5398, 1437, 5411, 4717, 5877,  -58, true  },	// m127; 2 ** -127
-  { 4340, 5504, 7248, 2021, 1084,  -38, true  },	// m63; 2 ** -63
-  { 5781, 7392, 7307, 6128, 4656,  -29, true  },	// m31; 2 ** -31
-  {    0,    0, 1250, 7578, 3051,  -24, true  },	// m15; 2 ** -15
-  {    5,    0,    0,    0,    0,   -1, false },	// m1; 2 ** -1
-  {   10,    0,    0,    0,    0,   -1, false },	// m0; 2 ** 0
-  {    2,    0,    0,    0,    0,    0, false },	// p1; 2 ** 1
-  {    4,    0,    0,    0,    0,    0, false },	// p2; 2 ** 2
-  {   16,    0,    0,    0,    0,    0, false },	// p4; 2 ** 4
-  {  256,    0,    0,    0,    0,    0, false },	// p8; 2 ** 8
-  { 5536,    6,    0,    0,    0,    0, false },	// p16; 2 ** 16
-  { 7296, 9496,   42,    0,    0,    0, false },	// p32; 2 ** 32
-  { 1616,  955,  737, 6744, 1844,    0, true  },	// p64; 2 ** 64
-  { 6346, 9384, 6920, 8236, 3402,   19, true  },	// p128; 2 ** 128
-  { 9542, 3161, 9237, 9208, 1157,   58, true  },	// p256; 2 ** 256
-  { 7100, 4259, 9299, 7807, 1340,  135, true  },	// p512; 2 ** 512
-  { 9077, 2315, 3486, 6931, 1797,  289, true  },	// p1024; 2 ** 1024
+  { { 6915, 3600, 2925, 5369, 1112 }, -327, true  },	// m1023; 2 ** -1023
+  { { 3487,   41, 4624, 6681, 1491 }, -173, true  },	// m511; 2 ** -511
+  { { 9251, 8888, 1101, 2337, 1727 },  -96, true  },	// m255; 2 ** -255
+  { { 5398, 1437, 5411, 4717, 5877 },  -58, true  },	// m127; 2 ** -127
+  { { 4340, 5504, 7248, 2021, 1084 },  -38, true  },	// m63; 2 ** -63
+  { { 5781, 7392, 7307, 6128, 4656 },  -29, true  },	// m31; 2 ** -31
+  { {    0,    0, 1250, 7578, 3051 },  -24, true  },	// m15; 2 ** -15
+  { {    5,    0,    0,    0,    0 },   -1, false },	// m1; 2 ** -1
+  { {   10,    0,    0,    0,    0 },   -1, false },	// m0; 2 ** 0
+  { {    2,    0,    0,    0,    0 },    0, false },	// p1; 2 ** 1
+  { {    4,    0,    0,    0,    0 },    0, false },	// p2; 2 ** 2
+  { {   16,    0,    0,    0,    0 },    0, false },	// p4; 2 ** 4
+  { {  256,    0,    0,    0,    0 },    0, false },	// p8; 2 ** 8
+  { { 5536,    6,    0,    0,    0 },    0, false },	// p16; 2 ** 16
+  { { 7296, 9496,   42,    0,    0 },    0, false },	// p32; 2 ** 32
+  { { 1616,  955,  737, 6744, 1844 },    0, true  },	// p64; 2 ** 64
+  { { 6346, 9384, 6920, 8236, 3402 },   19, true  },	// p128; 2 ** 128
+  { { 9542, 3161, 9237, 9208, 1157 },   58, true  },	// p256; 2 ** 256
+  { { 7100, 4259, 9299, 7807, 1340 },  135, true  },	// p512; 2 ** 512
+  { { 9077, 2315, 3486, 6931, 1797 },  289, true  }	// p1024; 2 ** 1024
 };
 
 // Handle excess digits in the most significant
@@ -524,15 +526,6 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
   *p = 0;
 }
 
-} // namespace
-
-namespace __gnu_cxx
-{
-  namespace demangler
-  {
-
-// External interface (used by include/demangle.h):
-
 // print_IEEE_fp(buf, words, nbits_exponent, nbits_fraction, precision)
 //
 // buf                  : Output buffer, the result is written to this buffer
@@ -651,11 +644,7 @@ void print_IEEE_fp(char* buf, unsigned long* words,
   result.print_to_with_precision(buf, precision);
 }
 
-  } // namespace demangler
-} // namespace __gnu_cxx
-
-#define _GLIBCXX_DEMANGLER_STYLE_VOID
-#include <demangle.h>			// The actual demangler code.
+} // namespace
 
 namespace libcw {
   namespace debug {
@@ -666,6 +655,31 @@ static char const* main_in;
 
 namespace _private_ {
 
+class implementation_details : public __gnu_cxx::demangler::implementation_details {
+public:
+  implementation_details(unsigned int flags) : __gnu_cxx::demangler::implementation_details(flags) { }
+protected:
+  virtual bool
+  decode_real(char* output, unsigned long* input, size_t size_of_real) const;
+};
+
+// GNU/Linux uses IEEE encoding for floats.
+bool
+implementation_details::decode_real(char* output, unsigned long* input, size_t size_of_real) const
+{
+  if (size_of_real != 4 && size_of_real !=8)		// Only decode single and double precision IEEE.
+    return false;
+
+  if (size_of_real == 8)
+    print_IEEE_fp(output, input, 11, 52, 17);
+  else
+    print_IEEE_fp(output, input, 8, 23, 8);
+
+  return true;
+}
+
+typedef __gnu_cxx::demangler::session<internal_allocator> session_type;
+
 //
 // demangle_symbol
 //
@@ -675,8 +689,6 @@ namespace _private_ {
 //
 void demangle_symbol(char const* input, internal_string& output)
 {
-  using namespace __gnu_cxx;
-
 #if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( __libcwd_tsd.internal );
@@ -710,7 +722,8 @@ void demangle_symbol(char const* input, internal_string& output)
     if (input[1] == 'Z')
     {
       // C++ name?
-      int cnt = demangler::session<internal_allocator>::decode_encoding(output, input + 2, INT_MAX);
+      implementation_details id(implementation_details::style_void);
+      int cnt = session_type::decode_encoding(output, input + 2, INT_MAX, id);
       if (cnt < 0 || input[cnt + 2] != 0)
 	failure = true;
     }
@@ -751,7 +764,6 @@ void demangle_symbol(char const* input, internal_string& output)
 //
 void demangle_type(char const* input, internal_string& output)
 {
-  using namespace __gnu_cxx;
 #if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( __libcwd_tsd.internal );
@@ -770,7 +782,8 @@ void demangle_type(char const* input, internal_string& output)
 #endif
     return;
   }
-  demangler::session<internal_allocator> demangler_session(input, INT_MAX);
+  implementation_details id(implementation_details::style_void);
+  session_type demangler_session(input, INT_MAX, id);
   if (!demangler_session.decode_type(output) || demangler_session.remaining_input_characters())
     output.assign(input, strlen(input));	// Failure to demangle, return the mangled type name.
 #ifdef STANDALONE

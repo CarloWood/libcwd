@@ -79,10 +79,6 @@ struct rtld_global {
 #include "cwd_bfd.h"
 #include <libcwd/core_dump.h>
 
-#define NEED_BUGWORKAROUND_FOR_IOS_INIT_DESTRUCTION (__GNUC__ == 3 && \
-    ((__GNUC_MINOR__ == 2 && __VERSION__ [3] == 0) || \
-     (__GNUC_MINOR__ == 1)))
-
 extern char** environ;
 
 namespace libcw {
@@ -338,9 +334,9 @@ void bfd_close(bfd* abfd)
 	}
 #endif
 
-	symbol_table = (asymbol**) malloc(storage_needed);	// Leaks memory.
+	M_symbol_table = (asymbol**) malloc(storage_needed);	// Leaks memory.
 
-	number_of_symbols = bfd_canonicalize_symtab(abfd, symbol_table);
+	number_of_symbols = bfd_canonicalize_symtab(abfd, M_symbol_table);
 #if CWDEBUG_LIBBFD
 	if (number_of_symbols < 0)
 	  DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
@@ -356,8 +352,8 @@ void bfd_close(bfd* abfd)
 	  // like: local symbols, debugging symbols.  Also throw away all symbols
 	  // in uninteresting sections to safe time with sorting.
 	  // Also try to find symbol _end to determine the size of the bfd.
-	  asymbol** se = &symbol_table[number_of_symbols - 1];
-	  for (asymbol** s = symbol_table; s <= se;)
+	  asymbol** se = &M_symbol_table[number_of_symbols - 1];
+	  for (asymbol** s = M_symbol_table; s <= se;)
 	  {
 	    if ((*s)->name == 0)
 	    {
@@ -447,7 +443,7 @@ void bfd_close(bfd* abfd)
 	      start_values_map_ct start_values;
 	      unsigned int best_count = 0;
 	      void* best_start = 0;
-	      for (asymbol** s = symbol_table; s <= &symbol_table[number_of_symbols - 1]; ++s)
+	      for (asymbol** s = M_symbol_table; s <= &M_symbol_table[number_of_symbols - 1]; ++s)
 	      {
 		if ((*s)->name == 0 || ((*s)->flags & BSF_FUNCTION) == 0 || ((*s)->flags & (BSF_GLOBAL|BSF_WEAK)) == 0)
 		  continue;
@@ -487,8 +483,8 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = saved_internal;
 #endif
-		free(symbol_table);
-		symbol_table  = NULL;
+		free(M_symbol_table);
+		M_symbol_table  = NULL;
 		if (abfd)
 		{
 		  bfd_close(abfd);
@@ -533,21 +529,22 @@ void bfd_close(bfd* abfd)
 	  }
 
 	  // Sort the symbol table in order of start address.
-	  std::sort(symbol_table, &symbol_table[number_of_symbols], symbol_less());
+	  std::sort(M_symbol_table, &M_symbol_table[number_of_symbols], symbol_less());
 
 	  // Calculate sizes for every symbol
 	  for (int i = 0; i < number_of_symbols - 1; ++i)
-	    symbol_size(symbol_table[i]) = (char*)symbol_start_addr(symbol_table[i + 1]) - (char*)symbol_start_addr(symbol_table[i]);
+	    symbol_size(M_symbol_table[i]) =
+	        (char*)symbol_start_addr(M_symbol_table[i + 1]) - (char*)symbol_start_addr(M_symbol_table[i]);
 
 	  // Use reasonable size for last one.
 	  // This should be "_end", or one behond it, and will be thrown away in the next loop.
-	  symbol_size(symbol_table[number_of_symbols - 1]) = 100000;
+	  symbol_size(M_symbol_table[number_of_symbols - 1]) = 100000;
 
-          BFD_ACQUIRE_WRITE_LOCK;	// Needed for function_symbols.
+          BFD_ACQUIRE_WRITE_LOCK;	// Needed for M_function_symbols.
 
 	  // Throw away all symbols that are not a global variable or function, store the rest in a vector.
-	  asymbol** se2 = &symbol_table[number_of_symbols - 1];
-	  for (asymbol** s = symbol_table; s <= se2;)
+	  asymbol** se2 = &M_symbol_table[number_of_symbols - 1];
+	  for (asymbol** s = M_symbol_table; s <= se2;)
 	  {
 	    if (((*s)->name[0] == '.' && (*s)->name[1] == 'L')
 	        || ((*s)->flags & (BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|BSF_INDIRECT|BSF_DYNAMIC)) != 0
@@ -559,14 +556,14 @@ void bfd_close(bfd* abfd)
 	    }
 	    else
 	    {
-	      function_symbols.insert(function_symbols_ct::key_type(*s, !bfd_is_und_section(bfd_get_section(*s))));
+	      M_function_symbols.insert(function_symbols_ct::key_type(*s, !bfd_is_und_section(bfd_get_section(*s))));
 	      ++s;
 	    }
 	  }
 
-	  if (function_symbols.size() > 0)
+	  if (M_function_symbols.size() > 0)
 	  {
-	    asymbol const* last_symbol = (*function_symbols.rbegin()).get_symbol();
+	    asymbol const* last_symbol = (*M_function_symbols.rbegin()).get_symbol();
 	    if (symbol_size(last_symbol) == 100000)
 	    {
 	      BFD_RELEASE_WRITE_LOCK;
@@ -578,7 +575,7 @@ void bfd_close(bfd* abfd)
 	  }
 
 #if 0
-	  if (function_symbols.size() < 20000)
+	  if (M_function_symbols.size() < 20000)
 	  {
 	    libcw::debug::debug_ct::OnOffState state;
 	    Debug( libcw_do.force_on(state) );
@@ -586,7 +583,7 @@ void bfd_close(bfd* abfd)
 	    int saved_internal = __libcwd_tsd.internal;
 	    __libcwd_tsd.internal = 0;
 #endif
-	    for(function_symbols_ct::iterator i(function_symbols.begin()); i != function_symbols.end(); ++i)
+	    for(function_symbols_ct::iterator i(M_function_symbols.begin()); i != M_function_symbols.end(); ++i)
 	    {
 	      asymbol const* s = i->get_symbol();
 	      Dout(dc::always, s->name << " (" << s->section->name << ") = " << s->value);
@@ -635,13 +632,13 @@ void bfd_close(bfd* abfd)
 	  bfd_close(abfd);
 	  abfd = NULL;
 	}
-	if (symbol_table)
+	if (M_symbol_table)
 	{
-	  free(symbol_table);
-	  symbol_table  = NULL;
+	  free(M_symbol_table);
+	  M_symbol_table  = NULL;
 	}
 	BFD_ACQUIRE_WRITE_LOCK;
-	function_symbols.erase(function_symbols.begin(), function_symbols.end());
+	M_function_symbols.erase(M_function_symbols.begin(), M_function_symbols.end());
 	BFD_RELEASE_WRITE_LOCK;
 	set_alloc_checking_on(LIBCWD_TSD);
       }
@@ -1688,25 +1685,6 @@ extern "C" {
 #if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
-    if (NEED_BUGWORKAROUND_FOR_IOS_INIT_DESTRUCTION)
-    {
-      static bool not_first_time = false;
-      if (!not_first_time)
-      {
-        // g++ 3.2, 3.1.1 destruct all static std::ios_base::Init objects of libstdc++,
-	// destroying the standard streams.  As that stops printing debugging, fix it here.
-	Dout(dc::warning, "This compiler version is buggy, a call to dlclose() will destruct the standard streams.  "
-	                  "Libcwd works around this problem for the sake of the debug output but you will suffer from "
-			  "this WITHOUT libcwd!  Upgrade your compiler to version 3.2.1 or higher.");
-	Debug(dc::malloc.off());
-	Debug(dc::bfd.off());
-	std::ios_base::Init* dummy = new std::ios_base::Init;
-	AllocTag(dummy, "Bug workaround.  See WARNING about dlclose() above.");
-	Debug(dc::bfd.on());
-	Debug(dc::malloc.on());
-	not_first_time = true;
-      }
-    }
     // Block until printing of allocations is finished because it might be that
     // those allocations have type_info pointers to shared objectst that will be
     // removed by dlclose, causing a core dump in list_allocations_on in the other

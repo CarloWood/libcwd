@@ -1,7 +1,7 @@
 // input lines 3
 // output till ^BAR     : Enabled
 ((WARNING : core size is limited.*
-)*(BFD     : Loading debug symbols from.*
+)*(BFD     : Loading debug .*
 )*)
 BAR     : Enabled
 BFD     : Disabled
@@ -22,7 +22,8 @@ NOTICE  : This is a single line
 ---------------------------------------------------------------------------
 NOTICE  : This is a single line with an error message behind it: 0 \((Success|Error 0|Undefined error: 0)\)
 ---------------------------------------------------------------------------
-\[31mNOTICE  : CERR: This is a single line with an error message behind it written to cerr: 0 \((Success|Error 0|Undefined error: 0)\)
+\[31mBFD     :     Loading debug info from .*/libstdc\+\+\.so\.6\.\.\. done
+\[0m\[31mNOTICE  : CERR: This is a single line with an error message behind it written to cerr: 0 \((Success|Error 0|Undefined error: 0)\)
 \[0m===========================================================================
  Simple nests
 
