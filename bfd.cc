@@ -1183,10 +1183,13 @@ void bfd_close(bfd* abfd)
 	  }
 #endif
 #endif
-	    if (l->l_addr)
-	      load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
-	    else if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
-	      load_object_file(l->l_name, unknown_l_addr);
+	    if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
+	    {
+	      if (l->l_addr)
+		load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+	      else
+		load_object_file(l->l_name, unknown_l_addr);
+	    }
 	  }
 
 	  LIBCWD_DEFER_CANCEL;
