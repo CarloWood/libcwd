@@ -66,11 +66,10 @@ tar:
 	$(MAKE) dist
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
 
-rpm: tar $(srcdir)/$(SPECFILE)
-	abssrcdir=`cd $(srcdir); pwd`; \
-	cd rpm; rpm --rcfile /usr/lib/rpm/rpmrc:rpmrc --target $(TARGET) --sign --clean -ba $$abssrcdir/$(SPECFILE)
+rpm: tar $(SPECFILE)
+	cd rpm; rpm --rcfile /usr/lib/rpm/rpmrc:rpmrc --target $(TARGET) --sign --clean -ba ../$(SPECFILE)
 
-$(srcdir)/$(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
+$(SPECFILE): $(srcdir)/$(SPECFILE).in $(srcdir)/configure.in
 	if test $(CVSWRITEACCESS) = yes; then \
 	  (cd $(srcdir); cvs commit $(SPECFILE).in); \
 	fi
