@@ -96,13 +96,9 @@ namespace libcw {
     {
       if (!_debug_channels)
       {
-#ifdef DEBUGMALLOC
         set_alloc_checking_off();
-#endif
         _debug_channels = new debug_channels_ct;
-#ifdef DEBUGMALLOC
         set_alloc_checking_on();
-#endif
       }
     }
 
@@ -114,12 +110,10 @@ namespace libcw {
 #ifdef DEBUGMALLOC
 	// It is possible that malloc is not initialized yet.
 	init_debugmalloc();
+#endif
         set_alloc_checking_off();
-#endif
         _debug_objects = new debug_objects_ct;
-#ifdef DEBUGMALLOC
         set_alloc_checking_on();
-#endif
       }
     }
 
@@ -127,13 +121,9 @@ namespace libcw {
     {
       if (_debug_objects)
       {
-#ifdef DEBUGMALLOC
 	set_alloc_checking_off();
-#endif
 	delete _debug_objects;
-#ifdef DEBUGMALLOC
 	set_alloc_checking_on();
-#endif
 	_debug_objects = NULL;
       }
     }
@@ -194,6 +184,8 @@ namespace libcw {
       }
 #endif
 
+      set_alloc_checking_off();
+
       // Skip `start()' for a `continued' debug output.
       // Generating the "prefix: <continued>" is already taken care of while generating the "<unfinished>" (see next `if' block).
       if ((channel_set.mask & (continued_maskbit|finish_maskbit)))
@@ -242,16 +234,12 @@ namespace libcw {
       unfinished_expected = true;
 
       // Create a new laf.
-#ifdef DEBUGMALLOC
-      set_alloc_checking_off();
-#endif
+      //set_alloc_checking_off();
       DEBUGDEBUG_CERR( "creating new laf_ct" );
       current = new laf_ct(channel_set.mask, channel_set.label, saved_os, errno);
       current_oss = &current->oss;
       DEBUGDEBUG_CERR( "laf_ct created" );
-#ifdef DEBUGMALLOC
-      set_alloc_checking_on();
-#endif
+      //set_alloc_checking_on();
 
       // Print prefix if requested.
       // Handle most common case first: no special flags set
@@ -315,6 +303,7 @@ namespace libcw {
 	  // finished.
 	  *os << flush;
 	}
+	set_alloc_checking_on();
         return;
       }
 
@@ -326,9 +315,7 @@ namespace libcw {
       channel_set.mask = current->mask;
       channel_set.label = current->label;
       saved_os = current->saved_os;
-#ifdef DEBUGMALLOC
-      set_alloc_checking_off();
-#endif
+      //set_alloc_checking_off();
       DEBUGDEBUG_CERR( "Deleting `current'" );
       if (current == reinterpret_cast<laf_ct*>(dummy_laf))
       {
@@ -345,9 +332,7 @@ namespace libcw {
       }
       delete current;
       DEBUGDEBUG_CERR( "Done deleting `current'" );
-#ifdef DEBUGMALLOC
-      set_alloc_checking_on();
-#endif
+      //set_alloc_checking_on();
 
       // Handle control flags, if any:
       if (channel_set.mask == 0)
@@ -374,6 +359,7 @@ namespace libcw {
 	    debug_internal2 = true;
 	    *os << endl;
 	  }
+	  set_alloc_checking_on();
 	  exit(254);
 	}
 	if ((channel_set.mask & wait_cf))
@@ -414,6 +400,8 @@ namespace libcw {
 
       --_off;
       DEBUGDEBUG_CERR( "Leaving debug_ct::finish(), _off became " << _off );
+
+      set_alloc_checking_on();
     }
 
     void debug_ct::fatal_finish(void)
@@ -452,14 +440,10 @@ namespace libcw {
       new (const_cast<fatal_channel_ct*>(&channels::dc::core)) fatal_channel_ct const ("COREDUMP", coredump_maskbit);
       // `current' needs to be non-zero (saving us a check in start()) and
       // current.mask needs to be 0 to avoid a crash in start():
-#ifdef DEBUGMALLOC
       set_alloc_checking_off();
-#endif
       current = new (dummy_laf) laf_ct(0, channels::dc::debug.label, NULL, 0);	// Leaks 24 bytes of memory
       current_oss = &current->oss;
-#ifdef DEBUGMALLOC
       set_alloc_checking_on();
-#endif
       laf_stack.init();
       continued_stack.init();
       margin.init("", 0, true);				// Note: These first time strings need to be static/const.
@@ -719,9 +703,7 @@ namespace libcw {
         str_is_allocated = false;
 	return;
       }
-#ifdef DEBUGMALLOC
       set_alloc_checking_off();
-#endif
       if (str_is_allocated)
 	delete [] const_cast<char*>(str);
       if ((len = l) > 0)
@@ -737,9 +719,7 @@ namespace libcw {
 	str_is_allocated = false;
 	len = strlen(str);
       }
-#ifdef DEBUGMALLOC
       set_alloc_checking_on();
-#endif
     }
 
   }	// namespace debug

@@ -137,6 +137,7 @@ int const libcw_bfd_builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_AD
 // Fix for gcc-2.96 and earlier
 
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97
+#define __GXX_ABI_VERSION 0
 #include <streambuf.h>
 namespace std {
   class ios_base : private ios {

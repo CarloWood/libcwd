@@ -38,13 +38,9 @@ namespace libcw {
       demangle_type(mangled_name, out);
       demangled_name = out.c_str();
       len = out.size();
-#ifdef DEBUGMALLOC
       set_alloc_checking_off();
-#endif
       char* label = new char[len + 1];
-#ifdef DEBUGMALLOC
       set_alloc_checking_on();
-#endif
       strcpy(label, demangled_name);
       return label;
     }

@@ -79,7 +79,7 @@ no_alloc_checking_stringstream::~no_alloc_checking_stringstream()
   } // namespace debug
 } // namespace libcw
 
-#if __GNUC__ > 2 || __GNUC_MINOR__ > 96
+#if __GXX_ABI_VERSION >= 100
 // Explicit instantiation
 template class std::basic_stringbuf<char, std::char_traits<char>, libcw::debug::no_alloc_checking_allocator>;
 template std::basic_ostream<char, std::char_traits<char> >& std::operator<< <char, std::char_traits<char>, libcw::debug::no_alloc_checking_allocator>(std::basic_ostream<char, std::char_traits<char> >&, std::basic_string<char, std::char_traits<char>, libcw::debug::no_alloc_checking_allocator> const&);

@@ -85,22 +85,14 @@ namespace libcw {
 	va_end(vl);
 	if (len >= buf_size)
 	{
-#ifdef DEBUGMALLOC
 	  set_alloc_checking_off();
-#endif
 	  char* bufp = new char[len + 1];
-#ifdef DEBUGMALLOC
 	  set_alloc_checking_on();
-#endif
 	  vsnprintf(bufp, sizeof(buf), format, vl);
 	  Dout(dc::bfd, buf);
-#ifdef DEBUGMALLOC
 	  set_alloc_checking_off();
-#endif
 	  delete [] bufp;
-#ifdef DEBUGMALLOC
 	  set_alloc_checking_on();
-#endif
 	}
 	else
 	  Dout(dc::bfd, buf);
@@ -877,13 +869,9 @@ namespace libcw {
 	  // is done) and thus a new call to `bfd_find_nearest_line', which then would
 	  // free `file' before we copy it!
 	  // Therefore we need to call `set_alloc_checking_off', to prevent this.
-#ifdef DEBUGMALLOC
 	  set_alloc_checking_off();
-#endif
 	  M_filepath = new char [len + 1];
-#ifdef DEBUGMALLOC
 	  set_alloc_checking_on();
-#endif
 	  strcpy(M_filepath, file);
 	  M_filename = strrchr(M_filepath, '/') + 1;
 	  if (M_filename == (char const*)1)
@@ -936,14 +924,10 @@ namespace libcw {
     {
       if (M_filepath)
       {
-#ifdef DEBUGMALLOC
 	set_alloc_checking_off();
-#endif
 	delete [] M_filepath;
 	M_filepath = NULL;
-#ifdef DEBUGMALLOC
 	set_alloc_checking_on();
-#endif
       }
       M_func = "<cleared location_ct>";
     }
@@ -952,13 +936,9 @@ namespace libcw {
     {
       if (prototype.M_filepath)
       {
-#ifdef DEBUGMALLOC
 	set_alloc_checking_off();
-#endif
 	M_filepath = new char [strlen(prototype.M_filepath) + 1];
-#ifdef DEBUGMALLOC
 	set_alloc_checking_on();
-#endif
 	strcpy(M_filepath, prototype.M_filepath);
 	M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
 	M_line = prototype.M_line;
@@ -984,13 +964,9 @@ namespace libcw {
 	clear();
 	if (prototype.M_filepath)
 	{
-#ifdef DEBUGMALLOC
 	  set_alloc_checking_off();
-#endif
 	  M_filepath = new char [strlen(prototype.M_filepath) + 1];
-#ifdef DEBUGMALLOC
 	  set_alloc_checking_on();
-#endif
 	  strcpy(M_filepath, prototype.M_filepath);
 	  M_filename = M_filepath + (prototype.M_filename - prototype.M_filepath);
 	  M_line = prototype.M_line;

@@ -255,6 +255,8 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
+#define set_alloc_checking_on()
+#define set_alloc_checking_off()
 
 #endif // !CWDEBUG
 
@@ -265,6 +267,8 @@ inline TYPE* __libcwd_allocCatcher(TYPE* new_ptr) {
 #define AllocTag1(p)
 #define AllocTag2(p, desc)
 #define NEW(x) new x
+#define set_alloc_checking_on()
+#define set_alloc_checking_off()
 
 namespace libcw {
   namespace debug {
