@@ -602,9 +602,13 @@ static string symbol_name(char const* symbol, size_t symbol_len)
     if ((hash = offset_table[*opcode - CHAR_MIN]))
     {
       hash += opcode[1];
-      if (hash >= 0 && hash < 40)
+      if (
+#if (CHAR_MIN<0)
+	  hash >= 0 &&
+#endif
+	  hash < 40)
       {
-	entry_st entry = symbol_name_table[(unsigned char)hash];
+	entry_st entry = symbol_name_table[hash];
 	if (entry.opcode[0] == opcode[0] && entry.opcode[1] == opcode[1] && (symbol_len == 4 || entry.opcode[2] == '='))
 	{
 	  string operator_name(entry.symbol_name);
