@@ -43,7 +43,7 @@ int main(void)
 
   pid_t pid = fork();
   if (pid == -1)
-    DoutFatal(error_cf, "fork");
+    DoutFatal(dc::fatal|error_cf, "fork");
   if (pid == 0)
   {
     // This must core dump:
