@@ -568,12 +568,14 @@ fi])
 
 dnl CW_PROG_CXX_FINGER_PRINTS
 dnl
-dnl Extract finger prints of C++ compiler and preprocessor
+dnl Extract finger prints of C++ compiler and preprocessor and C compiler which is used for linking.
 AC_DEFUN(CW_PROG_CXX_FINGER_PRINTS,
 [AC_REQUIRE([CW_PROG_CXX])
 AC_REQUIRE([CW_PROG_CXXCPP])
+AC_REQUIRE([AC_PROG_CC])
 cw_prog_cxx_finger_print="`$CXX -v 2>&1 | grep version | head -n 1`"
 cw_prog_cxxcpp_finger_print="`echo | $CXXCPP -v 2>&1 | grep version | head -n 1`"
+cw_prog_cc_finger_print="`$CC -v 2>&1 | grep version | head -n 1`"
 ])
 
 dnl CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
@@ -882,12 +884,13 @@ AC_DEFUN(CW_CLEAN_CACHE,
 CW_PROG_CXX_FINGER_PRINTS
 if test "$cw_cv_sys_CXX_finger_print" != "$cw_prog_cxx_finger_print" -o \
         "$cw_cv_sys_CXXCPP_finger_print" != "$cw_prog_cxxcpp_finger_print" -o \
+	"$cw_cv_sys_CC_finger_print" != "$cw_prog_cc_finger_print" -o \
         "$cw_cv_sys_CPPFLAGS" != "$CPPFLAGS" -o \
         "$cw_cv_sys_CXXFLAGS" != "$CXXFLAGS" -o \
         "$cw_cv_sys_LDFLAGS" != "$LDFLAGS" -o \
         "$cw_cv_sys_LIBS" != "$LIBS"; then
 changequote(<<, >>)dnl
-for i in `set | grep -v '^ac_cv_prog_[Ccg][Xx]' | grep '^[a-z]*_cv_' | sed -e 's/=.*$//'`; do
+for i in `set | grep -v '^ac_cv_prog_[Ccg][CXx]' | grep '^[a-z]*_cv_' | sed -e 's/=.*$//'`; do
   unset $i
 done
 changequote([, ])dnl
@@ -898,6 +901,7 @@ fi
 dnl Store important environment variables in the cache file
 cw_cv_sys_CXX_finger_print="$cw_prog_cxx_finger_print"
 cw_cv_sys_CXXCPP_finger_print="$cw_prog_cxxcpp_finger_print"
+cw_cv_sys_CC_finger_print="$cw_prog_cc_finger_print"
 cw_cv_sys_CPPFLAGS="$CPPFLAGS"
 cw_cv_sys_CXXFLAGS="$CXXFLAGS"
 cw_cv_sys_LDFLAGS="$LDFLAGS"
@@ -951,3 +955,18 @@ if test x"$CXX" != "x" -o x"$CXXCPP" != "x"; then
 fi
 ])
 
+dnl CW_COMPILER_VERSIONS
+dnl Test if the version of both, C and C++ compiler match.
+AC_DEFUN(CW_COMPILER_VERSIONS,
+[AC_MSG_CHECKING([whether the versions C and C++ compiler match])
+CC_VERSION=`$CC -v 2>&1 | grep '^gcc version'`
+CXX_VERSION=`$CXX -v 2>&1 | grep '^gcc version'`
+if test x"$CC_VERSION" != x"$CXX_VERSION"; then
+  AC_MSG_RESULT([no])
+  AC_MSG_ERROR([Versions of CC and CXX do not match.
+                  $CC gives \"$CC_VERSION\" and $CXX  gives \"$CXX_VERSION\".
+                  Please specify both, CC and CXX environment variables.])
+else
+  AC_MSG_RESULT([yes])
+fi
+])

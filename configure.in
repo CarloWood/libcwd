@@ -90,6 +90,13 @@ CW_ENVIRONMENT
 dnl Check for compiler and preprocessor
 CW_PROG_CXX
 CW_PROG_CXXCPP
+if test -n "$CC"; then
+  unset ac_cv_prog_CC
+fi
+AC_PROG_CC
+
+dnl Check if C compiler and C++ compiler versions match.
+CW_COMPILER_VERSIONS
 
 dnl Clear the cache values of all remaining tests if important
 dnl environment variables have been changed since last run.
