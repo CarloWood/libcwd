@@ -1,6 +1,5 @@
 #include "sys.h"
 #include "threads_debug.h"
-#include <libcw/threading.h>
 #include <iostream>
 
 #ifdef CWDEBUG
@@ -17,6 +16,8 @@ void* thread_function(void* arguments)
 {
   // Set Thread Specific on/off flags of the debug channels.
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
+  // And for the debug object.
+  Debug( libcw_do.on() );
 
   std::cout << "COUT:Entering thread " << pthread_self() << ":COUT\n";
   Dout(dc::notice, "Entering thread " << pthread_self());
