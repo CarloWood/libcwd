@@ -6,8 +6,15 @@ dnl Ensure that the directory specified with --srcdir was correct
 dnl by demanding that it contains `debugmalloc.cc'.
 AC_INIT(debugmalloc.cc)
 
+dnl Use a different default cache_file.
+if test "$cache_file" = ./config.cache; then
+  rm -f ./config.cache
+  cache_file=../../config.cache
+  AC_CACHE_LOAD
+fi
+
 dnl Put resulting configuration defines in this header file.
-AC_CONFIG_HEADER(include/config.h)
+AM_CONFIG_HEADER(include/config.h)
 
 dnl Demand at least version 2.13 of autoconf.
 AC_PREREQ(2.13)
@@ -52,6 +59,7 @@ dnl Checks for programs.
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_INSTALL
+AM_PROG_LIBTOOL
 
 dnl Set language requirements for the tests below.
 AC_LANG_CPLUSPLUS
