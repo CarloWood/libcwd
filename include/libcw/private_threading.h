@@ -181,9 +181,9 @@ __inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; 
 	LIBCWD_TSD_DECLARATION; \
 	LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred > 0 ); \
 	--__libcwd_tsd.cancel_explicitely_deferred; \
-	/* pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL) will calls */ \
-	/* __pthread_do_exit() when the thread is cancelled in the meantime.   */ \
-	/* This might free allocations that are allocated in userspace.        */ \
+	/* pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL) will call */ \
+	/* __pthread_do_exit() when the thread is cancelled in the meantime.  */ \
+	/* This might free allocations that are allocated in userspace.       */ \
 	LIBCWD_ASSERT( !__libcwd_tsd.internal || __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.cancel_explicitely_deferred ); \
       ); \
       pthread_setcanceltype(__libcwd_oldtype, NULL)

@@ -70,8 +70,8 @@ pthread_key_t TSD_st::S_exit_key;
 pthread_once_t TSD_st::S_exit_key_once = PTHREAD_ONCE_INIT;
 
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
-extern void* new_memblk_map(void);
-extern void delete_memblk_map(void*);
+extern void* new_memblk_map(LIBCWD_TSD_PARAM);
+extern void delete_memblk_map(void* LIBCWD_COMMA_TSD_PARAM);
 
 void TSD_st::S_initialize(void) throw()
 {
@@ -100,11 +100,11 @@ void TSD_st::S_initialize(void) throw()
     for (int i = 0; i < LIBCWD_DO_MAX; ++i)
       if (old_array[i])
 	delete old_array[i];			// Free old objects when this structure is being reused.
-    if (old_memblk_map)
-      delete_memblk_map(old_memblk_map);	// Free old memblk_map when this structure is being reused.
-    memblk_map = new_memblk_map();
     set_alloc_checking_on(*this);
     debug_tsd_init(*this);			// Initialize the TSD of existing debug objects.
+    if (old_memblk_map)
+      delete_memblk_map(old_memblk_map, *this);	// Free old memblk_map when this structure is being reused.
+    memblk_map = new_memblk_map(*this);
   }
   pthread_once(&S_exit_key_once, &TSD_st::S_exit_key_alloc);
   pthread_setspecific(S_exit_key, (void*)this);

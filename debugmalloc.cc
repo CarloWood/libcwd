@@ -1883,26 +1883,36 @@ void* calloc_bootstrap1(size_t nmemb, size_t size)
 
 namespace _private_ {
 
-void* new_memblk_map(void)
+void* new_memblk_map(LIBCWD_TSD_PARAM)
 {
   // Already internal.  Called from TSD_st::S_initialize()
   void* memblk_map;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
+  DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
+  __libcwd_tsd.internal = 1;
   memblk_map = new memblk_map_ct;
+  DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
+  __libcwd_tsd.internal = 0;
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL;
   return memblk_map;
 }
 
-void delete_memblk_map(void* ptr)
+void delete_memblk_map(void* ptr LIBCWD_COMMA_TSD_PARAM)
 {
   // Already internal.  Called from TSD_st::S_initialize()
   memblk_map_ct* memblk_map = reinterpret_cast<memblk_map_ct*>(ptr);
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
   if (memblk_map->size() == 0)
+  {
+    DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
+    __libcwd_tsd.internal = 1;
     delete memblk_map;
+    DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
+    __libcwd_tsd.internal = 0;
+  }
   else
     core_dump();	// FIXME, map needs to be kept somehow.
   RELEASE_WRITE_LOCK
