@@ -4,7 +4,7 @@ Initial Initialisation
 If you checked out this directory with cvs (see below for instructions), then
 you will need to execute:
 
-./bootstrap
+./autogen.sh
 
 You only need to do this once.
 
