@@ -1,5 +1,16 @@
 libcwd-0.99.10
 
+	MAJOR CHANGE: malloc, calloc, realloc and free are no longer macros but are now
+	declared as external "C" functions.  This means that *all* allocations done by
+	an application are now being caught, including those done from libc, libstdc++
+	and any other library that might be linked.
+
+	Libcwd does not use libbfd anymore (and thus also libiberty).  The symbol table
+	is now read by libcwd itself as is the source file and line number lookup.
+	The configure option --disable-libcwd-bfd was therefore renamed to
+	--disable-libcwd-location.  Added was the configure option --enable-libcwd-bfd
+	in order to allow you to still use libbfd.
+
 	The management of CWDEBUG has been made a bit clearer:  is not possible anymore
 	to #include <libcw/debug.h> without defining CWDEBUG.  This to avoid confusion.
 
@@ -16,22 +27,27 @@ libcwd-0.99.10
 	::libcw_bfd_builtin_return_address_offset was renamed to
 	libcw::debug::builtin_return_address_offset.
 
-	strdup(3) and wcsdup(3) are now treated like malloc(2), which means that they are
-	macros.  The default AllocTag used is "strdup()" and "wcsdup()" respectively, but one
-	can easily override that.  For example:
-	  char* s = strdup("\e[31mHello\tWorld!\e[0m");
-	  AllocTag_dynamic_description(a, "strdup: \"" <<
-	                               libcw::debug::buf2str(a, strlen(a)) << '"');
-	will print 'strdup: "\e[31mHello\tWorld!\e[0m"' as description.
+	Two methods have been added to class libcw::debug::debug_ct: `inc_indent'
+	and `dec_indent' to increment and decrement the indentation respectively.
 
-	Added a new macro: RegisterExternalAlloc(ptr).
-	This macro calls libcw::debug::register_external_allocation(ptr) unless
-	--disable-libcwd-alloc was used during configure; then the macro is empty.
-	This function allows one to register an external allocation so it can now
-	can be reallocated or freed by the application (as well as externally).
-	Magic numbers are not added because that would need a realloc (and thus
-	a pointer change) and it would break the case where the external library
-	would occasionally free the allocation again.
+	The following only applies when __libc_malloc could not be found.  Instead of
+	using this you should really upgrade your libc.
+
+	[ strdup(3) and wcsdup(3) are now treated like malloc(2), which means that
+	  they are macros.  The default AllocTag used is "strdup()" and "wcsdup()"
+	  respectively, but one can easily override that.  For example:
+	    char* s = strdup("\e[31mHello\tWorld!\e[0m");
+	    AllocTag_dynamic_description(a, "strdup: \"" << libcw::debug::buf2str(a, strlen(a)) << '"');
+	  will print 'strdup: "\e[31mHello\tWorld!\e[0m"' as description.
+
+	  Added a new macro: RegisterExternalAlloc(ptr).
+	  This macro calls libcw::debug::register_external_allocation(ptr) unless
+	  --disable-libcwd-alloc was used during configure; then the macro is empty.
+	  This function allows one to register an external allocation so it can now
+	  can be reallocated or freed by the application (as well as externally).
+	  Magic numbers are not added because that would need a realloc (and thus
+	  a pointer change) and it would break the case where the external library
+	  would occasionally free the allocation again. ]
 
 libcwd-0.99.9
 
