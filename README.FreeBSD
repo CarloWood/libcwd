@@ -1,3 +1,13 @@
+11 March 2002
+
+  FreeBSDs threading implementation is unfortunately not supported.
+  You'll need to configure libcwd with --disable-threading.
+  Note that FreeBSD also doesn't provide a __libc_malloc hook, so
+  that we have to use the dirty marco trick :(.  This means that
+  calls from inside a third part library will not be caught by
+  libcwd.  So far nobody is developing C++ applications on freeBSD
+  as far as I know, mail me if you are and I'll try to fix this.
+
 9 Januari 2002
 
   FreeBSD (4.5-PRERELEASE) now works.  Libcwd uses the external command
