@@ -1,3 +1,13 @@
+libcwd-0.99.5
+
+	Support for openBSD was finished: it is now possible to
+	compile a static library.  Unfortunately, it is still not
+	possible to compile a shared library on this OS.
+
+	Writing "DoutFatal(error_cf, ..." is no longer allowed, it now
+	is required to explicitely add the debug channel and write
+	"DoutFatal(dc::fatal|error_cf, ...".
+
 libcwd-0.99.4
 
 	A real testsuite was added, based on dejagnu.

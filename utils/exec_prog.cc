@@ -62,14 +62,14 @@ int exec_prog(char const* prog_name, char const* const argv[], char const* const
   int ret;
   
   if ((ret = pipe(stdout_filedes)) == -1)
-    DoutFatal(error_cf, "pipe");
+    DoutFatal(dc::fatal|error_cf, "pipe");
   Dout(dc::system, "pipe([" << stdout_filedes[0] << ", " << stdout_filedes[1] << "]) = " << ret);
   if ((ret = pipe(stderr_filedes)) == -1)
-    DoutFatal(error_cf, "pipe");
+    DoutFatal(dc::fatal|error_cf, "pipe");
   Dout(dc::system, "pipe([" << stderr_filedes[0] << ", " << stderr_filedes[1] << "]) = " << ret);
 #ifdef DEBUG
   if ((ret = pipe(debug_filedes)) == -1)
-    DoutFatal(error_cf, "pipe");
+    DoutFatal(dc::fatal|error_cf, "pipe");
 #ifdef DEBUGDEBUG
   Dout(dc::system, "pipe([" << debug_filedes[0] << ", " << debug_filedes[1] << "]) = " << ret);
 #endif

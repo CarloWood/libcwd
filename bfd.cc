@@ -529,7 +529,7 @@ static string full_path_to_executable(void) return result
     argv[1] = "w";
     argv[2] = NULL;
     if (exec_prog(ps_prog, argv, environ, decode_ps) == -1 || argv0.empty())
-      DoutFatal(error_cf, "Failed to execute \"" << ps_prog << "\"");
+      DoutFatal(dc::fatal|error_cf, "Failed to execute \"" << ps_prog << "\"");
   }
 
   if (argv0.find('/') == string::npos)
@@ -566,7 +566,7 @@ static string full_path_to_executable(void) return result
   char* full_path = realpath(argv0.data(), full_path_buf);
 
   if (!full_path)
-    DoutFatal(error_cf, "realpath(\"" << argv0.data() << "\", full_path_buf)");
+    DoutFatal(dc::fatal|error_cf, "realpath(\"" << argv0.data() << "\", full_path_buf)");
 
   Dout(dc::debug, "Full path to executable is \"" << full_path << "\".");
   result = full_path;
