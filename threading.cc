@@ -204,9 +204,10 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
 // (see thread_ct::initialize) will use allocator_adaptor<> which will
 // try to dereference TSD_st::thread_iter which is not initialized yet because
 // this object isn't yet added to threadlist at the moment of its construction.
-thread_ct::thread_ct(TSD_st* tsd_ptr) throw() : tsd(tsd_ptr), memblk_map(NULL)
+thread_ct::thread_ct(TSD_st* tsd_ptr) throw()
 {
-  std::memset(&thread_mutex, 0 , sizeof(thread_mutex));
+  std::memset(this, 0 , sizeof(thread_ct));		// This is ok: we have no virtual table or base classes.
+  tsd = tsd_ptr;
 }
 
 // Initialization of a freshly added thread_ct.
