@@ -398,7 +398,7 @@ static int libcw_bfd_init(void)
   for (struct link_map* l = _dl_loaded; l; l = l->l_next)
     if (l->l_addr)
     {
-      Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << "... ");
+      Dout(dc::bfd|continued_cf, "Loading debug symbols from " << l->l_name << " (" << hex << l->l_addr << ") ... ");
       new object_file_ct(l->l_name, reinterpret_cast<void*>(l->l_addr));
       Dout(dc::finish, "done");
     }
