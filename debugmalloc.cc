@@ -2116,11 +2116,7 @@ void* __libcwd_malloc(size_t size)
 #if __GNUC__ >= 3 || __GNUC_MINOR__ >= 97 && defined(LIBCWD_THREAD_SAFE)
   bool locked = false;
   if (_private_::WST_multi_threaded)
-  {
     locked = _private_::allocator_trylock(true);	// Fake a std::string (etc) lock.
-    if (!locked)
-      core_dump();
-  }
 #endif
 
   LIBCWD_TSD_DECLARATION
