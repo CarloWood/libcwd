@@ -2099,15 +2099,15 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
     Debug( dc::bfd.restore(state2) );
     Debug( libcw_do.restore(state) );
 #endif
+    int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
+    M_input_stream->close();
+    _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #ifndef _REENTRANT
     M_inside_find_nearest_line = false;
 #else
     S_thread_inside_find_nearest_line = (pthread_t) 0;
     _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
 #endif
-    int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-    M_input_stream->close();
-    _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
     break;
   }
   range_st range;
