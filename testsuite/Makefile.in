@@ -1,5 +1,5 @@
 NODEBUGCHECK = nodebug
-TSTCHECK = alloctag basic bfd cf continued dc do flush leak lockable_auto_ptr magic marker test_delete type_info
+TSTCHECK = alloctag basic bfd cf continued dc demangler do flush leak lockable_auto_ptr magic marker test_delete type_info
 SHAREDTSTTARGETS := $(patsubst %,tst_%_shared,$(TSTCHECK))
 STATICTSTTARGETS := $(patsubst %,tst_%_static,$(TSTCHECK))
 SHAREDNODEBUGTARGETS := $(patsubst %,nodebug_%_shared,$(NODEBUGCHECK))
