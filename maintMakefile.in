@@ -148,5 +148,5 @@ full-check: Makefile
 	  done; \
 	)
 
-documentation:
+documentation: example-project/debug.h
 	$(MAKE) -C documentation

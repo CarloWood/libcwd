@@ -34,7 +34,7 @@ libcwd_la_LIBADD = utils/libutils.la
 
 # --------------- Maintainer's Section
 
-dist-hook: example-project/debug.h documentation
+dist-hook: documentation
 	cp -pr $(srcdir)/documentation $(distdir)/documentation
 	find $(distdir)/documentation -name CVS -print | xargs rm -rf
 	mkdir $(distdir)/example-project
