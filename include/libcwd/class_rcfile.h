@@ -55,6 +55,9 @@ private:
   bool M_env_set;					// Whether or not LIBCWD_RCFILE_NAME is set.
   bool M_read_called;
 
+  bool M_malloc_on;					// Used on rcfile_ct::read.
+  bool M_bfd_on;
+
 public:
   /**
    * \brief Construct a rcfile object.
@@ -69,8 +72,8 @@ private:
   std::string M_determine_rcfile_name(void);
 
   enum action_nt { toggle, on, off };
-  static void S_process_channel(channel_ct& debugChannel, std::string const& mask, action_nt const action);
-  static void S_process_channels(std::string list, action_nt const action);
+  void M_process_channel(channel_ct& debugChannel, std::string const& mask, action_nt const action);
+  void M_process_channels(std::string list, action_nt const action);
 
 public:
   /**

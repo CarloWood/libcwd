@@ -1,3 +1,17 @@
+libcwd-0.99.34
+
+	Turning on of dc::malloc and dc::bfd in rcfile_ct::read is
+	delayed till all of the rcfile is processed.  This prevents
+	printing of MALLOC and BFD messages in the case that those
+	channels are turned off at the start of processing the rcfile
+	even if they are temporarily turned on.
+
+	Bug fixes:
+
+        A Shared Object file with more than 256 .debug_abbrev entries
+	caused undefined behaviour.  Thanks to Vladimir Prus for
+	reporting this problem.
+
 libcwd-0.99.33
 
 	New function debug_watch(ptr).  You can call this from within

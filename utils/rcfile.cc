@@ -97,7 +97,7 @@ std::string rcfile_ct::M_determine_rcfile_name(void)
   return rcfile_name;
 }
 
-void rcfile_ct::S_process_channel(channel_ct& debugChannel, std::string const& mask, action_nt const action)
+void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& mask, action_nt const action)
 {
   std::string label = debugChannel.get_label();
   int pos2 = label.find_first_of(" ");
@@ -106,7 +106,33 @@ void rcfile_ct::S_process_channel(channel_ct& debugChannel, std::string const& m
   std::transform(label.begin(), label.end(), label.begin(), (int(*)(int)) toupper);
   if (_private_::match(mask.data(), mask.length(), label.c_str()))
   {
-    if (!debugChannel.is_on() && (action == on || action == toggle))
+    if (label == "MALLOC")
+    {
+      if (!M_malloc_on && (action == on || action == toggle))
+      {
+	M_malloc_on = true;
+	Dout(dc::rcfile, "Turned on MALLOC");
+      }
+      else if (M_malloc_on && (action == off || action == toggle))
+      {
+        M_malloc_on = false;
+	Dout(dc::rcfile, "Turned off MALLOC");
+      }
+    }
+    else if (label == "BFD")
+    {
+      if (!M_bfd_on && (action == on || action == toggle))
+      {
+	M_bfd_on = true;
+	Dout(dc::rcfile, "Turned on BFD");
+      }
+      else if (M_bfd_on && (action == off || action == toggle))
+      {
+        M_bfd_on = false;
+	Dout(dc::rcfile, "Turned off BFD");
+      }
+    }
+    else if (!debugChannel.is_on() && (action == on || action == toggle))
     {
       do
       {
@@ -123,7 +149,7 @@ void rcfile_ct::S_process_channel(channel_ct& debugChannel, std::string const& m
   }
 }
 
-void rcfile_ct::S_process_channels(std::string list, action_nt const action)
+void rcfile_ct::M_process_channels(std::string list, action_nt const action)
 {
   Debug( libcw_do.inc_indent(4) );
   while(list.length())
@@ -137,7 +163,7 @@ void rcfile_ct::S_process_channels(std::string list, action_nt const action)
     if (pos != -1)
       mask.erase(pos);
     std::transform(mask.begin(), mask.end(), mask.begin(), (int(*)(int)) toupper);
-    ForAllDebugChannels( S_process_channel(debugChannel, mask, action) );
+    ForAllDebugChannels( M_process_channel(debugChannel, mask, action) );
     if (pos == -1)
       break;
     list.erase(0, pos);
@@ -160,6 +186,8 @@ void rcfile_ct::read(void)
   int lines_read = 0;
   int channels_default_set = 0;
   bool syntax_error = false;
+  M_malloc_on = libcw::debug::channels::dc::malloc.is_on();
+  M_bfd_on = libcw::debug::channels::dc::bfd.is_on();
   while(getline(rc, line))
   {
     lines_read++;
@@ -211,15 +239,22 @@ void rcfile_ct::read(void)
 	}
 	channels_default_set = lines_read;
         if (value == "on")
+	{
 	  ForAllDebugChannels(
-	    while (!debugChannel.is_on())
+	    std::string label = debugChannel.get_label();
+	    while (!debugChannel.is_on() && label != "MALLOC" && label != "BFD")
 	      debugChannel.on()
 	  );
+	  M_malloc_on = M_bfd_on = true;
+	}
         else if (value == "off")
+	{
 	  ForAllDebugChannels(
 	    if (debugChannel.is_on())
 	      debugChannel.off()
 	  );
+	  M_malloc_on = M_bfd_on = false;
+	}
 	else
 	{
 	  syntax_error = true;
@@ -231,12 +266,12 @@ void rcfile_ct::read(void)
         if (!channels_default_set)
 	  DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read <<
 	      ": channels_toggle used before channels_default.");
-        S_process_channels(value, toggle);
+        M_process_channels(value, toggle);
       }
       else if (keyword == "channels_on")
-        S_process_channels(value, on);
+        M_process_channels(value, on);
       else if (keyword == "channels_off")
-        S_process_channels(value, off);
+        M_process_channels(value, off);
       else if (unknown_keyword(keyword, value))
       {
 	bool warning_on = channels::dc::warning.is_on();
@@ -252,6 +287,12 @@ void rcfile_ct::read(void)
     DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read << ": syntax error.");
   rc.close();
   Debug(dc::rcfile.off());
+  if (M_malloc_on)
+    while (!channels::dc::malloc.is_on())
+      channels::dc::malloc.on();
+  if (M_bfd_on)
+    while (!channels::dc::bfd.is_on())
+      channels::dc::bfd.on();
   M_read_called = true;
 }
 
