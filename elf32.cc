@@ -1626,7 +1626,7 @@ indirect:
 	    if (default_dir[0] == '.' && default_dir[1] == '.' && default_dir[2] == '/')
 	    {
 	      cur_source.assign(cur_dir, 0, cur_dir.find_last_of('/', cur_dir.size() - 2) + 1);
-	      cur_source.append(default_source, 3, std::string::npos);
+	      cur_source.append(default_source, 3, object_files_string::npos);
 	    }
 	    else
 	      cur_source = cur_dir + default_source;
