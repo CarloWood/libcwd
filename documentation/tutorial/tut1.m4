@@ -43,7 +43,7 @@ If you do not define this macro and libcwd needs it, then you will get
 a compile error in &lt;libcw/sysd.h&gt; telling you so.</P>
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
-<LI><A HREF="faq.html#GNU_SOURCE">Won't this define make my code non-portable?</LI>
+<LI><A HREF="faq.html#GNU_SOURCE">Won't this define make my code non-portable?</A></LI>
 </UL></DIV>
 
 <H3><CODE>#include &lt;libcw/sysd.h&gt;</CODE></H3>
