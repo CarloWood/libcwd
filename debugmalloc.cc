@@ -1492,10 +1492,6 @@ void init_debugmalloc(void)
       _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
     if (1
-#ifdef LIBCWD_THREAD_SAFE
-	// Don't initialize libcwd while having only a 'temporal' __libcwd_tsd!
-	&& ::libcw::debug::_private_::thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::initialized()
-#endif
 #ifdef __GLIBCPP__
         // "ios_base" is always initialized for libstdc++ version 2.
 	&& !_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init()
