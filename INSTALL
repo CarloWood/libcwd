@@ -17,7 +17,7 @@ Hackers info
 
 ./configure --help
 
-There is no reason to `libcwd' feature options (--disable-libcwd-alloc,
+There is no reason to use libcwd's feature options (--disable-libcwd-alloc,
 --disable-libcwd-magic, --disable-libcwd-marker and --disable-libcwd-bfd).
 Actually, I forgot why they are there :).  You can read more about what
 they do in Chapter 4 "Debugging compile options" here:
