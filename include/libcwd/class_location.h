@@ -160,7 +160,7 @@ public:
 public:
   // Accessors
   /**
-    * \brief Returns <CODE>false</CODE> if no source-%file:line-number information is known for this location
+    * \brief Returns <CODE>false</CODE> if no source-file:line-number information is known for this location
     * (or when it is uninitialized or clear()-ed).
     */
   bool is_known(void) const;
@@ -178,8 +178,8 @@ public:
 
   /** \brief Returns the mangled function name or \ref unknown_function_c when no function could be found.
    *
-   * Two other strings that can be returned are "<uninitialized %location_ct>" and
-   * "<cleared %location_ct>", the idea is to never print that: you should know it when a
+   * Two other strings that can be returned are "<uninitialized location_ct>" and
+   * "<cleared location_ct>", the idea is to never print that: you should know it when a
    * location object is in these states.
    */
   char const* mangled_function_name(void) const;

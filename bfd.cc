@@ -188,11 +188,13 @@ void bfd_close(bfd* abfd)
       // cwbfd::
       typedef PTR addr_ptr_t;
 
+#ifndef HIDE_FROM_DOXYGEN	// Bug in doxygen
       // cwbfd::
       bool symbol_key_greater::operator()(symbol_ct const& a, symbol_ct const& b) const
       {
 	return symbol_start_addr(a.symbol) >= reinterpret_cast<char const*>(symbol_start_addr(b.symbol)) + symbol_size(b.symbol);
       }
+#endif
 
       // cwbfd::
       char bfile_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
@@ -265,6 +267,7 @@ void bfd_close(bfd* abfd)
       // cwbfd::
       void* const unknown_l_addr = (void*)-1;
 
+#ifndef HIDE_FROM_DOXYGEN	// Bug in doxygen
       // cwbfd::
       bfile_ct::bfile_ct(char const* filename, void* base) : M_lbase(base), M_object_file(filename)
       {
@@ -669,6 +672,7 @@ void bfd_close(bfd* abfd)
 	}
 	set_alloc_checking_on(LIBCWD_TSD);
       }
+#endif // HIDE_FROM_DOXYGEN
 
       // cwbfd::
       struct object_file_greater {

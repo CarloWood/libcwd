@@ -46,7 +46,7 @@ namespace libcw {
  *
  * Converts \a size characters from character buffer pointed to by \a buf into all printable
  * characters by either printing the character itself, the octal representation or one of
- * \c \a, \c \b, \c \t, \c \n, \c \f, \c \r, \c \e or \c \\.
+ * \c \\a, \c \\b, \c \\t, \c \\n, \c \\f, \c \\r, \c \\e or \c \\\\.
  *
  * \sa libcw::debug::char2str
  *

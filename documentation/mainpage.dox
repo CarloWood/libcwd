@@ -50,6 +50,7 @@
   <li>\ref chapter_rcfile
   <li>\ref chapter_attach_gdb
   <li>\ref chapter_core_dump
+  <li>\ref chapter_gdb
 </ul>
 
 <h2>Configuration, Installation And Getting Started</h2>

@@ -6,7 +6,7 @@
 \page page_overview
 \ingroup group_overview
 
-<hr><h2>Detailed Description</h2>
+\section amo_detailed_description Detailed Description
 
 An example output, using libcw-0.2.5, is given below.&nbsp;
 Please follow the links to get a short explanation.
@@ -107,7 +107,7 @@ The result is that you can ignore completely whether CWDEBUG_MAGIC is 0 or 1, in
 The third column of the Allocated memory Overview gives the source file
 location where the memory was allocated, or reallocated in the case of
 of <CODE>realloc</CODE>.&nbsp;
-The format is <TT><filename>:<line number></TT>.
+The format is <TT>&lt;filename&gt;:&lt;line number&gt;</TT>.
 
 When the allocation is done in an object file without debug information
 and no source file or line number is known, then instead the name of the
@@ -119,7 +119,7 @@ The fourth column of the Allocated memory Overview starts with the <TT>type</TT>
 (i.e., the <CODE>class</CODE> name).&nbsp;
 This information is only available when <CODE>AllocTag()</CODE>
 was called correctly for this allocation.&nbsp;
-Otherwise <TT><unknown type></TT> is shown instead.
+Otherwise <TT>&lt;unknown type&gt;</TT> is shown instead.
 
 The given <TT>type</TT> is derived, but different,
 from what \ref libcw::debug::type_info_ct::demangled_name "type_info_ct::demangled_name()" returns.&nbsp;
@@ -130,7 +130,7 @@ memory block was allocated with <CODE>new</CODE>, it is replaced with
 block was allocated with <CODE>malloc</CODE>.
 
 Examples were already given, but a summary is given in table 4 nonetheless.&nbsp;
-The <I><length></I> that is given between square brackets is the <I>rounded down</I> value of the size
+The <I>&lt;length&gt;</I> that is given between square brackets is the <I>rounded down</I> value of the size
 of the allocated memory block divided by the size of the object that is being pointed to.&nbsp;
 This will always be accurate for an <CODE>operator new []</CODE> of course,
 but its kinda fuzzy for an allocation with <CODE>malloc</CODE> et al.
@@ -202,8 +202,8 @@ but its kinda fuzzy for an allocation with <CODE>malloc</CODE> et al.
 \subsection AMO_size size
 
 The number of allocated bytes is printed as
-<TT>(sz&nbsp;=&nbsp;</TT><I><size></I><TT>)</TT>,
-where <I><size></I> is the size of the returned memory block in bytes.
+<TT>(sz&nbsp;=&nbsp;</TT><I>&lt;size&gt;</I><TT>)</TT>,
+where <I>&lt;size&gt;</I> is the size of the returned memory block in bytes.
 
 \subsection AMO_description description
 

@@ -56,7 +56,7 @@ MALLOC  : operator new[] (size = 16) = 0x8116460
 MALLOC  : Allocated memory: 16 bytes in 1 blocks.
 new[]     0x8116460         magic_tst.cc:174  int [4]; (sz = 16)  Test array
 
-MALLOC  : delete[] 0x8116460         magic_tst.cc:174  int [4]; (sz = 16)  Test array <unfinished>
+MALLOC  : delete[] 0x8116460         magic_tst.cc:174  int [4]; (sz = 16)  Test array &lt;unfinished&gt;
 COREDUMP:     delete[]: magic number corrupt!
 Quit (core dumped)</PRE>
 \endexampleoutput

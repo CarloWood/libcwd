@@ -85,6 +85,15 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>23 Apr 2004</B>
+<P class="news">libcwd-0.99.33 is released.&nbsp;
+Added support for gcc version 3.4.0.  The latest gcc CVS version 3.5 is working again.&nbsp;
+Two new features have been added:
+<a href="reference-manual/group__chapter__gdb.html#a1"><CODE>debug_alloc(ptr)</CODE></a>
+and <a href="reference-manual/group__chapter__gdb.html#a0"><CODE>debug_watch(ptr)</CODE></a>.&nbsp;
+Both can only be called from within gdb.&nbsp; The first prints information about the memory
+allocation (if any) under the pointer <code>ptr</code> and the second causes gdb to stop
+as soon as the memory allocation under <code>ptr</code> is deleted or freed.</P>
 <DT><B>22 Feb 2004</B>
 <P class="news">libcwd-0.99.32 is released.&nbsp;
 This release fixes a possible deadlock during initialization, in the threaded case.&nbsp;

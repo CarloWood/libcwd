@@ -37,8 +37,8 @@ namespace libcw {
  * \brief Print a \c char to a %debug ostream, escaping non-printable characters as needed.
  *
  * Prints the character \a c (see example below) to an ostream, converting it into a printable
- * sequence when needed using the octal representation or one of \c \a, \c \b, \c \t, \c \n,
- * \c \f, \c \r, \c \e or \c \\.
+ * sequence when needed using the octal representation or one of \c \\a, \c \\b, \c \\t, \c \\n,
+ * \c \\f, \c \\r, \c \\e or \c \\\\.
  *
  * \sa libcw::debug::buf2str
  *

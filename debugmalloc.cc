@@ -4011,6 +4011,9 @@ extern "C" {
 static void const* debug_watch(void const* ptr) __attribute__ ((unused));
 
 /**
+ * \fn void const* debug_watch(void const* ptr)
+ * \ingroup chapter_gdb
+ *
  * \brief Add a watch point for freeing \a ptr
  *
  * This function can be called from inside gdb.  After continuing the
@@ -4044,6 +4047,9 @@ static void const* debug_watch(void const* ptr)
 static int debug_alloc(void const* ptr) __attribute__ ((unused));
 
 /**
+ * \fn int debug_alloc(void const* ptr)
+ * \ingroup chapter_gdb
+ *
  * \brief Print information about the memory at the location \a ptr
  *
  * This function can be called from inside gdb.  It can be used

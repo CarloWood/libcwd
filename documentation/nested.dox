@@ -57,12 +57,12 @@ If generate_tables() would not print debug messages, then the output will look l
 KERNEL: Generating tables... done</PRE>
 \endexampleoutput
 
-When it does generated debug output, then the <unfinished> and <continued> labels are printed also:
+When it does generated debug output, then the &lt;unfinished&gt; and &lt;continued&gt; labels are printed also:
 
 \exampleoutput <PRE class="example-output">
-KERNEL: Generating tables... <unfinished>
+KERNEL: Generating tables... &lt;unfinished&gt;
 NOTICE:     Inside generate_tables()
-KERNEL: <continued> done</PRE>
+KERNEL: &lt;continued&gt; done</PRE>
 \endexampleoutput
 
 Finally, it is also possible to split a debug line into more than two parts by using the special dc::continued debug channel.
@@ -83,12 +83,12 @@ When generate_table(i) doesn't print debug messages, then the output will look l
 NOTICE: Generating tables......... done</PRE>
 \endexampleoutput
 
-When it does generate debug output, then each dot would be surrounded by a <continued> .<unfinished> :
+When it does generate debug output, then each dot would be surrounded by a &lt;continued&gt; .&lt;unfinished&gt; :
 
 \exampleoutput <PRE class="example-output">
-NOTICE: Generating tables.<unfinished>
+NOTICE: Generating tables.&lt;unfinished&gt;
 TABLE :     Inside generate_table(0)
-NOTICE: <continued> .<unfinished></PRE>
+NOTICE: &lt;continued&gt; .&lt;unfinished&gt;</PRE>
 \endexampleoutput
 
 etc.

@@ -24,7 +24,7 @@ Unfortunately it is impossible to support feature 3. in C++ without putting hook
   though allowed, after a call to <CODE>%realloc()</CODE>).
 
 A missing <CODE>AllocTag()</CODE> will only have effect on the Allocated memory Overview,
-showing <TT><unknown type></TT> instead of the type and a description of the allocated object.
+showing <TT>&lt;unknown type&gt;</TT> instead of the type and a description of the allocated object.
 
 */
 
