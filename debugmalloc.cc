@@ -246,7 +246,7 @@ DEBUGDEBUG_CERR( "Entering 'DoutFatalInternal(cntrl, \"" << data << "\")'.  inte
       internal = false;					\
       {							\
 	using namespace channels;			\
-	libcw_do|cntrl;					\
+	libcw_do&cntrl;					\
       }							\
       libcw_do.start();					\
       ++libcw_do._off;					\

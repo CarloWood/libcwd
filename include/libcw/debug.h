@@ -592,7 +592,7 @@ public: // Only public because these are accessed from LibcwDout().
     return channel_set;
   }
 
-  channel_set_st& operator|(fatal_channel_ct const& fdc)
+  channel_set_st& operator&(fatal_channel_ct const& fdc)	// Using operator& just to detect that we indeed used LibcwDoutFatal!
   {
     channel_set.mask = fdc.maskbit;
     channel_set.label = fdc.label;
@@ -601,6 +601,9 @@ public: // Only public because these are accessed from LibcwDout().
   }
 
   continued_channel_set_st& operator|(continued_channel_ct const& cdc);
+
+  channel_set_st& operator|(fatal_channel_ct const&);
+  channel_set_st& operator&(channel_ct const&);
 };
 
 namespace channels {
@@ -697,7 +700,7 @@ extern void list_channels_on(debug_ct const& debug_object);
     using namespace ::libcw::debug;			\
     {							\
       using namespace dc_namespace;			\
-      debug_obj|cntrl;					\
+      debug_obj&cntrl;					\
     }							\
     debug_obj.start();					\
     (*debug_obj.current_oss) << data;			\

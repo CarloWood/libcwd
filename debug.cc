@@ -740,6 +740,16 @@ namespace libcw {
       return continued_channel_set;
     }
 
+    channel_set_st& debug_ct::operator|(fatal_channel_ct const&)
+    {
+      DoutFatal(dc::fatal, location_ct(__builtin_return_address(0)) << " : Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
+    }
+
+    channel_set_st& debug_ct::operator&(channel_ct const&)
+    {
+      DoutFatal(dc::fatal, location_ct(__builtin_return_address(0)) << " : Use dc::core or dc::fatal together with DoutFatal.");
+    }
+
     void buf_st::init(char const* s, size_t l, bool first_time)
     {
       if (first_time)

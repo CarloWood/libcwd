@@ -38,7 +38,8 @@ libcwd-0.99.10
 	and `dec_indent' to increment and decrement the indentation respectively.
 
 	The following only applies when __libc_malloc could not be found.  Instead of
-	using this you should really upgrade your libc.
+	using this you should really upgrade your libc.  If you use linux this most
+	likely is not of concern to you.
 
 	[ strdup(3) and wcsdup(3) are now treated like malloc(2), which means that
 	  they are macros.  The default AllocTag used is "strdup()" and "wcsdup()"

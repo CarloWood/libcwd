@@ -703,7 +703,7 @@ object_file_ct::object_file_ct(char const* file_name) :
   Dout(dc::stabs, "Number of symbols: " << M_number_of_symbols);
 #endif
   delete [] section_headers;
-  // load_stabs();
+  // load_stabs();	// Preload stabs.
 }
 
 } // namespace elf32
