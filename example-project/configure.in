@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision$)dnl
 
-dnl General intialization of `autoconf' varaibles.
+dnl General initialization of `autoconf' variables.
 dnl Ensure that the directory specified with --srcdir was correct
 dnl by demanding that it contains `debug.h'.
 AC_INIT(debug.h)
