@@ -8,7 +8,7 @@ int : 0
 int const* : 4
 A : 0
 A const* : 64
-B const : 0
+B const& : 0
 B const* : 64
 void* : 0
 A const*

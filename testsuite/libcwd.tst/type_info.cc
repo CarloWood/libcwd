@@ -62,7 +62,7 @@ int main(void)
     cout << type_info_of(b).demangled_name() << " : " << type_info_of(b).ref_size() << endl;
   }
   {
-    cout << type_info_of<B const>().demangled_name() << " : " << type_info_of<B const>().ref_size() << endl;
+    cout << type_info_of<B const&>().demangled_name() << " : " << type_info_of<B const&>().ref_size() << endl;
     cout << type_info_of<B const*>().demangled_name() << " : " << type_info_of<B const*>().ref_size() << endl;
     cout << type_info_of<void*>().demangled_name() << " : " << type_info_of<void*>().ref_size() << endl;
   }

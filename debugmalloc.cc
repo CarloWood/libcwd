@@ -668,7 +668,7 @@ void dm_alloc_ct::print_description(void) const
 
   {
     char const* a_type = type_info_ptr->demangled_name();
-    size_t s = strlen(a_type);
+    size_t s = a_type ? strlen(a_type) : 0;		// Can be 0 while deleting a qualifiers_ct object in demangle3.cc
     if (s > 0 && a_type[s - 1] == '*' && type_info_ptr->ref_size() != 0)
     {
       set_alloc_checking_off();	/* for `buf' */

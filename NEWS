@@ -1,3 +1,24 @@
+libcwd-0.99.9
+
+	template<typename T> type_info_of<T>(void) was changed so that it no longer ignores
+	any top-level qualifiers (in example, type_info_of<A const&>()); when using g++ 3.0.
+        Note that 0.99.8 still ignored those (including a `const') despite the release notes
+	saying it didn't.
+
+	The signature of template<typename T> type_info_of<T>(T) has been changed into
+	template<typename T> type_info_of<T const&> in order to allow it to be used for
+	abstract objects and/or objects with protected constructors.  This also avoids
+	that a copy constructor for type T is called.  This version of type_info_of
+	*does* ignore the top-level qualifiers (just like typeid() does).
+
+	demangle_type(char const* in, std::string& out) now can be passed a string `in' that
+	is not zero terminated.  This allows to demangle types in the middle of a mangled
+	name without first copying the type (which is often impossible because you don't know
+	what the type is in the first place).
+
+	A new demangler was added for g++-3.0 and higher (the new ABI).  This took me weeks
+	and weeks of hard work!
+
 libcwd-0.99.8
 
 	This version now also compiles and works with g++ 2.95.3 and 3.0 20010523 (prerelease).

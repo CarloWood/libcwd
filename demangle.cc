@@ -11,11 +11,12 @@
 // packaging of this file.
 //
 
+#if __GXX_ABI_VERSION == 0
+
 //
 // void demangle_type(char const* in, string& out);
 //
 // where, `in' is a mangled type name as returned by typeid(OBJECT).name().
-// 
 // When `in' is NULL then the string "(null)" is returned.
 //
 // void demangle_symbol(char const* in, string& out);
@@ -23,7 +24,7 @@
 // where, `in' is a mangled symbol name as returned by asymbol::name (where asymbol is defined by libbfd),
 // which is the same as `location_st::func'.  When `in' is NULL then the string "(null)" is returned.
 //
-// Currently this file has been tested with gcc-2.95.2 and gcc-2.96.
+// Currently this file has been tested with gcc-2.95.2 and gcc-2.96 (RedHat).
 //
 
 #undef CPPFILTCOMPATIBLE
@@ -378,7 +379,7 @@ namespace libcw {
       previous_types = &current_previous_types;
 
       char const* in = input;
-      if (eat_type(in, output) || *in != 0)
+      if (eat_type(in, output))
 	output.assign(input, strlen(input));
 
       template_parameters = previous_template_parameters;
@@ -1347,3 +1348,6 @@ int main(int argc, char* argv[])
 }
 
 #endif // STANDALONE
+
+#endif // __GXX_ABI_VERSION == 0
+

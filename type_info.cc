@@ -32,6 +32,19 @@ namespace _internal_ {
   // Warning: This LEAKS memory!
   // For internal use only
 
+  char const* extract_exact_name(char const* mangled_name)
+  {
+    size_t len = strlen(mangled_name) - 45;
+    set_alloc_checking_off();
+    char* exact_name = new char[len + 1];
+    set_alloc_checking_on();
+    strncpy(exact_name, mangled_name + 43, len);
+    exact_name[len] = 0;
+    return exact_name;
+  }
+
+  // Idem
+
   char const* make_label(char const* mangled_name)
   {
     char const* demangled_name;
@@ -47,7 +60,8 @@ namespace _internal_ {
     return label;
   }
 
-  type_info_ct const type_info<void*>::value(typeid(void*), sizeof(void*), 0 /* unknown */);
+  type_info_ct const type_info<void*>::value(typeid(void*).name(), sizeof(void*), 0 /* unknown */);
+  type_info_ct const type_info_exact<void*>::value(extract_exact_name(typeid(type_info_exact<void*>).name()), sizeof(void*), 0 /* unknown */);
 
 } // namespace _internal_
 

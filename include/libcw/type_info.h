@@ -28,22 +28,27 @@ namespace _internal_ {
 
 class type_info_ct {
 protected:
-  std::type_info const* a_type_info;	// Pointer to type_info of T
-  size_t type_size;			// sizeof(T)
-  size_t type_ref_size;			// sizeof(*T) or 0 when T is not a pointer
-  char const* dem_name;			// Demangled type name of T
+  size_t M_type_size;				// sizeof(T)
+  size_t M_type_ref_size;			// sizeof(*T) or 0 when T is not a pointer
+  char const* M_name;				// Encoded type of T (as returned by typeid(T).name()).
+  char const* M_dem_name;			// Demangled type name of T
 public:
   type_info_ct(void) :
-      a_type_info(0), type_size(0), type_ref_size(0), dem_name("<unknown type>") {}
-  type_info_ct(std::type_info const& ti, size_t s, size_t rs) :
-      a_type_info(&ti), type_size(s), type_ref_size(rs), dem_name(_internal_::make_label(ti.name())) {}
-  char const* demangled_name(void) const { return dem_name; }
-  char const* name(void) const { return a_type_info->name(); }
-  size_t size(void) const { return type_size; }
-  size_t ref_size(void) const { return type_ref_size; }
+      M_type_size(0), M_type_ref_size(0), M_name(NULL), M_dem_name("<unknown type>") {}
+  type_info_ct(char const* type_encoding, size_t s, size_t rs) :
+      M_type_size(s), M_type_ref_size(rs), M_name(type_encoding), M_dem_name(_internal_::make_label(type_encoding)) {}
+  char const* demangled_name(void) const { return M_dem_name; }
+  char const* name(void) const { return M_name; }
+  size_t size(void) const { return M_type_size; }
+  size_t ref_size(void) const { return M_type_ref_size; }
 };
 
 namespace _internal_ {
+
+  extern char const* extract_exact_name(char const*);
+
+  //------------------------------------------------------------------------------------
+  // type_info_of
 
   // _internal_::
   template<typename T>
@@ -64,7 +69,48 @@ namespace _internal_ {
     static type_info_ct const value;
   };
 
+  // _internal_::
+  template<typename T>
+    type_info_ct const type_info<T>::value(typeid(T).name(), sizeof(T), 0);
+
+  // _internal_::
+  template<typename T>
+    type_info_ct const type_info<T*>::value(typeid(T*).name(), sizeof(T*), sizeof(T));
+
+  //------------------------------------------------------------------------------------
+  // type_info_exact
+
+  // _internal_::
+  template<typename T>
+    struct type_info_exact {
+      static type_info_ct const value;
+    };
+
+  // Specialization for general pointers.
+  // _internal_::
+  template<typename T>
+    struct type_info_exact<T*> {
+      static type_info_ct const value;
+    };
+
+  // Specialization for `void*'.
+  // _internal_::
+  struct type_info_exact<void*> {
+    static type_info_ct const value;
+  };
+
+  // _internal_::
+  template<typename T>
+    type_info_ct const type_info_exact<T>::value(extract_exact_name(typeid(type_info_exact<T>).name()), sizeof(T), 0);
+
+  // _internal_::
+  template<typename T>
+    type_info_ct const type_info_exact<T*>::value(extract_exact_name(typeid(type_info_exact<T*>).name()), sizeof(T*), sizeof(T));
+
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
+  //------------------------------------------------------------------------------------
+  // sizeof_star
+
   // _internal_::
   template<typename T>
     struct sizeof_star {
@@ -83,27 +129,15 @@ namespace _internal_ {
   };
 #endif
 
-  // _internal_::
-  template<typename T>
-    type_info_ct const type_info<T>::value(typeid(T), sizeof(T), 0);
-
-  // _internal_::
-  template<typename T>
-    type_info_ct const type_info<T*>::value(typeid(T*), sizeof(T*), sizeof(T));
-
 } // namespace _internal_
 
 // Prototype of `type_info_of'.
 template<typename T>
-  __inline type_info_ct const& type_info_of(T);
+  __inline type_info_ct const& type_info_of(T const&);
 
 // Specialization that allows to specify a type without an object.
 // This is really only necessary for GNU g++ version 2, otherwise
 // libcw::debug::type_info<>:value could be used directly.
-//
-// You also need to use this for constants since passing an object
-// to a function (the function type_info(T) below) strips the 'const'
-// from a parameter.
 //
 template<class T>
   __inline type_info_ct const&
@@ -112,20 +146,14 @@ template<class T>
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
     // In early versions of g++, typeid is broken and doesn't work on a template parameter type.
     // We have to use the following hack.
-    if (_internal_::type_info<T>::value.size() == 0)		// Not initialized already?
+    if (_internal_::type_info_exact<T>::value.size() == 0)		// Not initialized already?
     {
-      class type_info_with_name : public std::type_info {	// Nuke the 'protected' qualifier of this constructor.
-      public:
-	type_info_with_name(char const* name) : std::type_info(name) { }
-      };
-
-      T* tp;                                  			// Create pointer to object.
-      static type_info_with_name ti(typeid(tp).name() + 1);	// Strip leading 'P' in the mangled name to get rid of the 'pointer' again.
-      new (const_cast<type_info_ct*>(&_internal_::type_info<T>::value))
-          type_info_ct(ti, sizeof(T), _internal_::sizeof_star<T>::value);	// In place initialize the static type_info_ct object.
+      // T* tp;                                  			// Create pointer to object.
+      new (const_cast<type_info_ct*>(&_internal_::type_info_exact<T>::value))
+          type_info_ct(_internal_::extract_exact_name(typeid(this).name()), sizeof(T), _internal_::sizeof_star<T>::value);	// In place initialize the static type_info_ct object.
     }
 #endif
-    return _internal_::type_info<T>::value;
+    return _internal_::type_info_exact<T>::value;
   }
 
 // We could/should have used type_info_of<typeof(obj)>(), but typeof(obj) doesn't
@@ -133,7 +161,9 @@ template<class T>
 // broken in 3.0; see also http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view&pr=2703&database=gcc).
 template<typename T>
   __inline type_info_ct const&
-  type_info_of(T)
+  type_info_of(T const&)		// If we don't use a reference, this would _still_ cause the copy constructor to be called.
+  					// Besides, using `const&' doesn't harm the result as typeid() always ignores the top-level
+					// CV-qualifiers anyway (see C++ standard ISO+IEC+14882, 5.2.8 point 5).
   {
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 96
     return type_info_of<T>();

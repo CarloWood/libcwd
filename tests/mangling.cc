@@ -2,6 +2,7 @@
 #include <iostream>
 #include <libcw/bfd.h>
 #include <libcw/type_info.h>
+#include <libcw/demangle.h>
 
 // Used helper types.
 class prefix { };
@@ -119,7 +120,9 @@ int main(void)
   possiblescopetype_const(st);
 
   void* ptr = (void*)nonscopetype_void;
-  std::cout << libcw::debug::pc_mangled_function_name(ptr) << '\n';
+  std::string result;
+  libcw::debug::demangle_symbol(libcw::debug::pc_mangled_function_name(ptr), result);
+  std::cout << result << '\n';
   std::cout << libcw::debug::type_info_of(instantiate).demangled_name() << '\n';
   return 0;
 }

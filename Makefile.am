@@ -23,6 +23,7 @@ libcwd_la_SOURCES = \
 	debugdebugcheckpoint.cc \
 	debugmalloc.cc \
 	demangle.cc \
+	demangle3.cc \
 	cwprint.cc \
 	strerrno.cc \
 	type_info.cc \
