@@ -26,7 +26,16 @@ libcwd-0.99.32
 	function can ONLY be called from within gdb, to assist in
 	debugging memory allocation related problems.
 
-        *** WIP: functions / stack stuff
+	More bugs in the demangler have been fixed - however, if you
+	write code that actually needs the cases that have been fixed
+	then you should go and see a doctor.
+
+        Work In Progress:
+	
+	The following is partically finished but not yet usable.
+	I won't be in the way of normal usage though.
+	- functions / stack stuff
+	- New test environment (cutee)
 
 	API changes:
 
@@ -53,6 +62,18 @@ libcwd-0.99.32
 	Assertion `!__libcwd_tsd.internal' failed.
 	This was because 'internal' was still set, while since 0.99.29
 	allocations inside Dout are treated as normal (non-internal).
+
+	Several potential deadlocks have been fixed (potential means
+	that I ran into a rare circumstance in which two locks were
+	called in the reverse order than is usual - it is a thousand times
+	less likely however that that happens at the same time another
+	thread is locking them too, in the right order, causing the
+	actual dead lock).  All of these potential deadlocks were related
+	to initialization (and only would happen immedeately after
+	starting the application) and ranged from 'probably nobody ran
+	into this yet' to 'only when there really exist an infinite
+	number of parallel universes there is a slight chance that
+	this might actually happen - not in THIS universe however.'
 
 libcwd-0.99.31
 
