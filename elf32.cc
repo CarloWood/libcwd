@@ -942,9 +942,13 @@ void section_ct::init(char const* section_header_string_table, Elf32_Shdr const&
 
 bfd_st* bfd_st::openr(char const* file_name)
 {
+#ifdef _REENTRANT
   _private_::rwlock_tct<_private_::object_files_instance>::wrlock();
+#endif
   objfile_ct* objfile = new objfile_ct;
+#ifdef _REENTRANT
   _private_::rwlock_tct<_private_::object_files_instance>::wrunlock();
+#endif
   objfile->initialize(file_name);
   return objfile;
 }
