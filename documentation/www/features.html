@@ -1,0 +1,246 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML LANG="en-us">
+<!-- $Id$ -->
+
+<HEAD>
+<META name="Author" content="Carlo Wood">
+<META http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<TITLE>libcw: An Object Oriented C++ library for networking applications</TITLE>
+<SCRIPT TYPE="text/javascript" SRC="../scripts/break_out_of_frame.js"></SCRIPT>
+<SCRIPT TYPE="text/javascript" SRC="../scripts/detect_browser.js"></SCRIPT>
+<SCRIPT TYPE="text/javascript">need_style_tag_cw=1;</SCRIPT>
+<SCRIPT TYPE="text/javascript" SRC="../scripts/load_style_sheets.js"></SCRIPT>
+</HEAD>
+
+<BODY>
+
+<table border=0 cellspacing=15 cellpadding=0 width=100%>
+
+<!-- *** Page Header *** -->
+<tr>
+  <td class="tag-cw-main-header" colspan=4 align=middle><B><SPAN class="H1code">libcw<FONT color=red>d</FONT></SPAN></B></td>
+</tr>
+<tr>
+  <td colspan=2><H2>Features</H2></td>
+</tr>
+<tr>
+  <td width=50% valign=top>
+    <table border=0 cellspacing=5 cellpadding=0 width=100%>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+End-users of an application don't need to install libcwd.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+The use of namespaces prevents name collisions between debug channels of different libraries.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Debug channels and devices can be turned on or off on a per thread basis.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+All debug code can be omitted from the executable by not defining a single <SPAN class=code>CWDEBUG</SPAN> macro.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+<SPAN class="features">Code using libcwd looks clean and is surveyable as a result of using a few well-defined macros, avoiding the need
+of disturbing <SPAN class=code>#ifdef&nbsp;CWDEBUG</SPAN> ... <SPAN class=code>#endif</SPAN> constructs.</SPAN>
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Debug output is written to an ostream and as such type-safe and customizable as is usual for C++ ostreams.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+An arbitrary number of debug channels and debug devices can be created without any penalty in terms of cpu usage.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Full support for all forms of iterative and recursive calls.
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td width=50% valign=top>
+    <table border=0 cellspacing=5 cellpadding=0 width=100%>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Debug output is surveyable as a result of several possibilities to format the output, like
+a margin string, a marker string, indentation and fixed-width channel labels.&nbsp;
+All formatting is thread specific.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Printing the type of arbitrary variables in demangled form.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Printing addresses in <I>source file</I><SPAN class=code>:</SPAN><I>line number</I> presentation.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Deallocation pointer validation.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Magic numbers around allocated memory blocks in order to detect buffer overruns.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+Printing an overview of current memory allocations, including
+start address, size, type of allocated object, source file and line number of allocation and a user definable description.
+      </td>
+    </tr>
+    <tr>
+      <td width=16 valign=top><img width=16 height=16 src="../images/ball_neon_gimp.gif"></td>
+      <td width=100%>
+        Finding allocation information with only a pointer that points <EM>inside</EM> an allocated memory block,
+	in logarithmic time.
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+<A NAME="screenshot"></A>
+<div class="screenshot">
+
+<H2>&quot;Screen shot&quot;</H2>
+
+<h5>code example</h5>
+
+<pre class="code" STYLE="margin-left: 0">Dout(dc::notice|error_cf,&nbsp;"Hello World");</pre>
+
+<table border=0 cellspacing=0 cellpadding=0>
+<tr>
+  <td width=10% class="margin" valign=middle align=middle>
+    &lt;-&nbsp;margin&nbsp;-&gt;
+  </td>
+  <td width=10% class="label" valign=top align=left>
+    <span class="output"><B>NOTICE</B></span>
+  </td>
+  <td width=10 class="marker" valign=top align=middle>
+    &lt;-&nbsp;marker&nbsp;-&gt;
+  </td>
+  <td width=10% class="indentation" valign=top align=middle>
+    &lt;-&nbsp;indentation&nbsp;-&gt;
+  </td>
+  <td width=60% class="text" valign=top align=left>
+    <span class="output">&nbsp;<B>Hello World&nbsp;:&nbsp;</B></span><I>error string</I>&nbsp;&lt;new-line&gt;
+  </td>
+</tr>
+</table>
+
+<h5>output example</h5>
+
+<pre class="output" STYLE="margin-left: 0">
+NOTICE  : Entering exec_prog()
+SYSTEM  : pipe([3, 4]) = 0
+SYSTEM  : pipe([5, 6]) = 0
+  child MALLOC  : operator new (size = 24) = &lt;unfinished&gt;
+  child BFD     :     Loading debug symbols from /home/carlo/c++/bfd/bfd...  done
+SYSTEM  : fork() = 13078 [parent process]
+SYSTEM  : close(4) = 0
+SYSTEM  : close(6) = 0
+  child BFD     :     Loading debug symbols from /home/carlo/c++/libcw/lib/libcwd.so.0 (40013000) ... done
+  child BFD     :     Loading debug symbols from /usr/lib/libstdc++-libc6.1-2.so.3 (40057000) ... done
+  child BFD     :     Loading debug symbols from /lib/libm.so.6 (4009e000) ... done
+  child BFD     :     Loading debug symbols from /lib/libc.so.6 (400ba000) ... done
+  child BFD     :     Loading debug symbols from /usr/lib/libbfd-2.9.5.0.14.so (401ad000) ... done
+  child BFD     :     Loading debug symbols from /lib/ld-linux.so.2 (40000000) ... done
+  child BFD     :     0x40082003 is at (streambuf.cc:211)
+  child MALLOC  : &lt;continued&gt; 0x8053a68
+SYSTEM  : poll( [ { 3, POLLIN, 0 }, { 5, POLLIN, 0 }, { 7, POLLIN, POLLIN } ], 3, -1) = 1
+  child SYSTEM  : fork() = 0 [child process]
+  child SYSTEM  : close(3) = 0
+  child SYSTEM  : close(5) = 0
+  child SYSTEM  : close(1) = 0
+  child SYSTEM  : close(2) = 0
+  child SYSTEM  : dup2(4, 1) = 1
+  child SYSTEM  : dup2(6, 2) = 2
+  child SYSTEM  : close(4) = 0
+SYSTEM  : poll( [ { 3, POLLIN, POLLIN }, { 5, POLLIN, 0 }, { 7, POLLIN, 0 } ], 3, -1) = 1
+SYSTEM  : read(3, "\t", 128) = 1
+SYSTEM  : read(3, "libcwd.so.0", 128) = 11
+SYSTEM  : read(3, " =&gt; ", 128) = 4
+SYSTEM  : read(3, "/usr/lib/libcwd.so.0", 128) = 20
+SYSTEM  : read(3, " (0x", 128) = 4
+SYSTEM  : read(3, "40018000", 128) = 8
+SYSTEM  : read(3, ")\n", 128) = 2
+NOTICE  : child process stdout: "\tlibcwd.so.0 =&gt; /usr/lib/libcwd.so.0 (0x40018000)\n"
+</pre>
+
+<h5>code example</h5>
+
+<pre class="code" STYLE="margin-left: 0">
+template&lt;typename T&gt;
+B&lt;T&gt;::~B(void)
+{
+  Dout(dc::notice, &quot;Calling the destructor of &quot; &lt;&lt;
+                   type_info_of(*this).demangled_name() &lt;&lt; &quot; (this == &quot; &lt;&lt; this &lt;&lt; &quot;)&quot;);
+  libcw::debug::alloc_ct const* alloc = libcw::debug::find_alloc(this);
+  if (sizeof(*this) != alloc-&gt;size())
+  {
+    Debug( dc::malloc.off() );
+    Debug( libcw_do.set_marker(&quot;: | &quot;) );
+    Dout(dc::notice, &quot;This is a base class of an object starting at &quot; &lt;&lt; alloc-&gt;start());
+    Dout(dc::notice, &quot;The type of the pointer to the allocated object is &quot; &lt;&lt;
+                     alloc-&gt;type_info().demangled_name());
+    Debug( libcw_do.set_marker(&quot;: ` &quot;) );
+    Dout(dc::notice, &quot;The destructor was called from &quot; &lt;&lt; location_ct(builtin_return_address(0)));
+    Debug( dc::malloc.on() );
+    Debug( libcw_do.set_marker(&quot;: &quot;) );
+  }
+}
+</pre>
+
+<P>(<FONT size=-1>Click <A HREF="screenshot.cc">here</A> to download/view the complete program.</FONT>)</P>
+
+<h5>output</h5>
+
+<pre class="output" STYLE="margin-left: 0">
+MALLOC  : operator new (size = 4) = 0x80518a8
+NOTICE  : b is 0x80518a8
+MALLOC  : operator new (size = 12) = 0x81371f0
+NOTICE  : c is 0x81371f0
+NOTICE  : Calling the destructor of B&lt;int&gt; (this == 0x80518a8)
+MALLOC  : delete 0x80518a8        screenshot.cc:56   B&lt;int&gt;; (sz = 4)  object `b' 
+NOTICE  : Calling the destructor of B&lt;B&lt;char&gt; &gt; (this == 0x81371f4)
+NOTICE  : | This is a base class of an object starting at 0x81371f0
+NOTICE  : | The type of the pointer to the allocated object is C&lt;double, B&lt;char&gt; &gt;*
+NOTICE  : ` The destructor was called from screenshot.cc:65
+MALLOC  : delete 0x81371f0        screenshot.cc:60   C&lt;double, B&lt;char&gt; &gt;; (sz = 12)  object `c'
+</pre>
+
+</div> <!-- screenshot -->
+
+</BODY>
+</HTML>

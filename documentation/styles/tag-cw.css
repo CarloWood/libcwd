@@ -1,0 +1,79 @@
+#include "defines.h"
+
+/*
+ * Styles sheet for libcwd front page
+ */
+
+.tag-cw-main-header {
+  background-color: rgb(147, 153, 236);
+}
+
+TABLE.tag-cw {
+  background-color: rgb(98, 90, 85);
+}
+
+SPAN.tag-cw-header-first {
+  font-family: sans-serif;
+  font-size: HSIZE4;
+}
+
+TD.tag-cw-header {
+  font-family: helvetica-narrow, sans-serif;
+  font-size: HSIZE4;
+  font-weight: bold;
+  color: rgb(234, 184, 140);
+}
+
+TD.tag-cw-inner {
+  NORMAL_FONT;
+  background-color: rgb(247, 252, 248);
+}
+
+UL.features {
+  line-height: 150%;
+}
+
+SPAN.features {
+  line-height: 100%;
+}
+
+.label {
+  background-color: #f0f0ff;
+}
+
+.margin {
+  background-color: #fff0f0;
+}
+
+.indentation {
+  background-color: #f0f0f0;
+}
+
+.marker {
+  background-color: #f0fff0;
+}
+
+.text {
+  background-color: #fffff0;
+}
+
+.screenshot-code {
+  font-family: courier, monospace;
+  white-space: pre;
+}
+
+.screenshot {
+  margin-left: 15px;
+}
+
+P.news {
+  NORMAL_FONT;
+  margin-top: 0;
+  margin-left: 4ex;
+}
+
+.H1code {
+  font-family: lucidux sans, avantgarde, sans-serif;
+  font-size: HSIZE1;
+  font-weight: bold;
+}

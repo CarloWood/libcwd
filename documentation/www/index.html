@@ -1,0 +1,317 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML LANG="en-us">
+<!-- $Id$ -->
+
+<HEAD>
+<META name="Author" content="Carlo Wood">
+<META http-equiv="content-type" content="text/html; charset=iso-8859-1">
+<TITLE>libcw: An Object Oriented C++ library for networking applications</TITLE>
+<!-- SCRIPT TYPE="text/javascript" SRC="../scripts/xbDebug.js"></SCRIPT -->
+<SCRIPT TYPE="text/javascript" SRC="../scripts/break_out_of_frame.js"></SCRIPT>
+<SCRIPT TYPE="text/javascript" SRC="../scripts/detect_browser.js"></SCRIPT>
+<SCRIPT TYPE="text/javascript">need_style_tag_cw=1;</SCRIPT>
+<SCRIPT TYPE="text/javascript" SRC="../scripts/load_style_sheets.js"></SCRIPT>
+</HEAD>
+
+<BODY>
+
+<TABLE border=0 cellspacing=15 cellpadding=0 width=100%>
+
+<!-- *** Page Header *** -->
+<TR><TD class="tag-cw-main-header" colspan=2>
+<table border=0 cellspacing=0 cellpadding=0 width=100%>
+<tr><td width=88>&nbsp;</td>
+    <td class="tag-cw-main-header" align=middle><B><SPAN class="H1code">libcw<FONT color=red>d</FONT></SPAN></B></td>
+    <td width=88><IMG width=88 height=31 src="http://24.132.80.10/tracker/alinoe.png" border=0 alt="an alinoe production" width=88 height=31 align=right></td>
+</tr></table>
+</TD></TR>
+
+<!-- *** Left column width *** -->
+<TR><TD width=25% valign=top>
+
+<table class="tag-cw" border=0 cellspacing=0 cellpadding=0 width=100%><tr><td>
+
+<!-- *** Table Header top-left *** -->
+<table width=100% cellpadding=5 border=0><tr><td class=tag-cw-header>
+<span class=tag-cw-header-first>D</span>ESCRIPTION
+</td></tr></table>
+
+</td></tr><tr><td>
+
+<!-- *** Table Contents top-left *** -->
+<table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+Libcwd is a thread-safe, full-featured debugging support library for C++ developers.&nbsp;
+It includes ostream-based debug output with custom debug channels and devices,
+powerful memory allocation debugging support,
+as well as run-time support for printing <I>source file</I><SPAN class="code">:</SPAN><I>line number</I>
+information and demangled type names.
+</td></tr></table>
+
+</td></tr></table>
+<br>
+<TABLE class="tag-cw" border=0 cellspacing=0 cellpadding=0 width=100%><tr><td>
+
+<!-- *** Table Header bottom-left *** -->
+<table width=100% cellpadding=5 border=0><tr><td class=tag-cw-header>
+<span class="tag-cw-header-first">L</span>INKS
+</td></tr></table>
+
+</td></tr><tr><td>
+
+<!-- *** Table Contents bottom-left *** -->
+<table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<A href="features.html">Features</A><BR>
+<A href="features.html#screenshot">&quot;Screenshot&quot;</A><BR>
+<A href="../documentation/html/reference.html">Reference Manual</A><BR>
+<A href="../documentation/tutorial/index.html">Tutorial</A><BR>
+<A href="http://sourceforge.net/project/showfiles.php?group_id=354">Download</A>
+</td></tr></table>
+
+</td></tr></TABLE>
+
+<!-- *** Right column width *** -->
+</TD><TD rowspan=2 width=75% valign=top>
+<table class="tag-cw" border=0 cellspacing=0 cellpadding=0 width=100%><tr><td>
+
+<!-- *** Table Header top-right *** -->
+<table width=100% cellpadding=5 border=0><tr><td class=tag-cw-header>
+<span class=tag-cw-header-first>N</span>EWS
+</td></tr></table>
+
+</td></tr><tr><td>
+
+<!-- *** Table Contents top-right *** -->
+<table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>18 February 2002</B>
+<P class="news">libcwd-0.99.17 is released.&nbsp;
+This release fixes a few bugs related to threading.&nbsp;
+Also a few typos in the tutorial have been fixed and a new chapter
+on debugging threaded applications was added.</P>
+<P class="news">Errata: There is a typo in the documentation.&nbsp;
+The environment variable isn't <SPAN class="code">LIBCWD_ALWAYS_PRINT_LOADING</SPAN>
+but <SPAN class="code">LIBCWD_PRINT_LOADING</SPAN>.</P>
+<DT><B>13 February 2002</B>
+<P class="news">libcwd-0.99.16 is released.&nbsp;
+Five months of non-stop, hard work, but here it finally is: libcwd is now thread-safe!&nbsp;
+In order to get a thread-safe version you have to use the configuration option
+<SPAN class="code">--enable-libcwd-threading</SPAN>.&nbsp;
+This release also contains new documentation that was generated with
+<a href="http://www.doxygen.org">doxygen</A>; no more slow on-line browsing,
+now you can read the reference manual locally.</P>
+<P class="news">There are a few major API changes again (I know, I know - but if you don't
+like it then wait till release 1.0).&nbsp;
+If you are upgrading from a previous version:
+<b>Read the NEWS file that comes with the source distribution</b>
+for details about these API changes!&nbsp;</P>
+<DT><B>22 September 2001</B>
+<P class="news">libcwd-0.99.15 is released.&nbsp;
+This release contains one API change: you now <EM>must</EM> define <SPAN class="code">CWDEBUG</SPAN> when compiling.&nbsp;
+Using <SPAN class="code">-DDEBUG</SPAN> will not work any longer.&nbsp;
+A few major bugs have been fixed in this release.  Two demangle bugs, a bug related to symbol
+name lookup and a compilation error (gcc-3.0 couldn't find the header file <SPAN class="filename">gthr-default.h</SPAN>,
+which is actually a bug in the header files of the compiler).&nbsp;
+A bug in the demangler for gcc-2.96 and earlier caused core dumps for symbols that
+started with <SPAN class="code">_X...</SPAN>.&nbsp; Since those are used a lot in
+X libs, libcwd was unusable with X windowing system applications (like those using qt).&nbsp;
+This version of libcwd has been tested (for the first time) with a single threaded
+qt application.&nbsp; Another major problem was an erronous assertion in the ELF
+symbol lookup code that failed on glibc-2.2.4, making libcwd unusable with that version.
+</P>
+<DT><B>28 August 2001</B>
+<P class="news">libcwd-0.99.14 is released.&nbsp;
+Nobody did notice it (nobody mailed me about it), but under certain circumstances the previous version could
+horribly fail in determining the correct line number of a location.&nbsp; This version should fix that!&nbsp;
+There is more news however, we have a new developer for libcwd!&nbsp; Eric is an experienced coder who I've
+known for about eight months now (on our IRC channel #g++ on Undernet).&nbsp; I've already been enjoying many
+fruitful discussions with him before, and now he joined the coding forces in order to attack the thread-safety
+problem.&nbsp; We're hoping to make libcwd thread-safe in the foreseeable future.&nbsp; In the meantime you
+can see what we're doing using CVS and the unstable alpha branch:<SPAN class="code"> branch-threading</SPAN>.</P>
+<DT><B>20 August 2001</B>
+<P class="news">libcwd-0.99.13 is released.&nbsp;
+New in this release is support for dynamically loaded shared object files (<SPAN class="code">dlopen()</SPAN>).&nbsp;
+Also new is native support for the DWARF 2 debug format (this is used when you compile with <SPAN class="code">-ggdb</SPAN>
+or <SPAN class="code">-gdwarf-2</SPAN>.&nbsp;
+It is also used for <SPAN class="code">-g</SPAN> when DWARF is the native debug format, as is the case on IRIX 6).&nbsp;
+The advantage of DWARF is that it is much faster to load: it is very compact and stores the line number information
+in a seperate section so that we don't have to load other debug info.&nbsp;
+In the case of stabs (the native debug format of linux) we need to load <EM>all</EM> debug information.&nbsp;
+You'll notice that libcwd now prints "Loading debug info from ..." under all circumstances when an application is started.&nbsp;
+It uses debug channel <SPAN class="code">dc::bfd</SPAN> and in most cases <EM>before</EM> <SPAN class="code">main()</SPAN>
+is reached.&nbsp; This is achieved by forcing the debug object as well as <SPAN class="code">dc::bfd</SPAN> to <EM>on</EM>
+prior to loading the debug information from the object files.&nbsp; This was disabled in previous versions because it's a bit
+tricky: at this point the debug object might not be initialized yet!&nbsp; Previously, only a snap shot version of g++ that
+I kept around caused a crash because of this (it depends highly on the order in which global objects are initialized), but now
+I made a few changes that make me feel confident enough to enable it by default.&nbsp; If you still get a crash, or if you want
+to disable this printing for other reasons, then you can <SPAN class="code">#undef ALWAYS_PRINT_LOADING</SPAN> in
+<SPAN class="code">src/libcwd/bfd.cc</SPAN>.</P>
+<P class="news">This release contains <B>two API changes</B> - and rather annoying ones I am afraid:
+Firstly, the header file <SPAN class="code">&lt;sys.h&gt;</SPAN> has been renamed to <SPAN class="code">&lt;sysd.h&gt;</SPAN>.&nbsp;
+Please manually remove the old <SPAN class="code">&lt;sys.h&gt;</SPAN> if you install libcwd over an old install: that is the
+only way to be sure that you are not accidently including it somewhere.&nbsp;
+Secondly, the debug channel <SPAN class="code">dc::warning</SPAN> is turned on by default - which will cause a core dump
+if you try to turn it on yourself at the start of <SPAN class="code">main()</SPAN>: You have to remove an explicit
+<SPAN class="code">Debug(&nbsp;dc::warning.on()&nbsp;)</SPAN> if you have one.</P>
+<DT><B>1 August 2001</B>
+<P class="news">libcwd-0.99.12 is released.&nbsp;
+This release fixes the bug that libcwd was accessing recently freed memory.&nbsp;
+In all that time this never lead to a crash for me, amazing.</P>
+<DT><B>31 July 2001</B>
+<P class="news">libcwd-0.99.11 is released.&nbsp;
+Debug channel <SPAN class="code">dc::stabs</SPAN> was renamed <EM>back</EM> to
+<SPAN class="code">dc::bfd</SPAN>.&nbsp; Possible confusion was now solved
+differently by renaming the configure option <SPAN class="code">--enable-libcwd-bfd</SPAN>
+into <SPAN class="code">--enable-libcwd-libbfd</SPAN>.</P>
+<DT><B>31 July 2001</B>
+<P class="news">libcwd-0.99.10 is released.&nbsp;
+This release comes with two major changes.&nbsp; <SPAN class="code">malloc(3)</SPAN> and friends are now
+exported with external "C" linkage instead of being a macro; this means that also allocations done from
+other shared libraries like libc are caught now.&nbsp; Most notably, this fixes the bug that
+<SPAN class="code">strdup(3)</SPAN> couldn't be used (thanks for the feedback I now got!).&nbsp;
+This release doesn't depend anymore on GNU's <SPAN class="code">libbfd</SPAN>; it is now capable of understanding stabs debug
+info read from ELF32 object files directly.&nbsp; You will need to use the configure option <SPAN class="code">--enable-libcwd-bfd</SPAN>
+to get the old behaviour back and still link with <SPAN class="code">libbfd</SPAN>.&nbsp; Note that due to the viral nature
+of the GPL (that doesn't allow one to link a program with a GPL-ed library and then distribute it under
+any other license but the GPL (unlike the LGPL and QPL)), you are not allowed to <EM>distribute</EM> executables
+that are linked against <SPAN class="code">libbfd</SPAN> because you could only do so under the GPL and that violates the license of libcwd (QPL).&nbsp;
+I trust that this is not a problem as these are purely test-executables.</P>
+<DT><B>9 July 2001</B>
+<P class="news">libcwd-0.99.9 is released.&nbsp;
+This release comes with a brand new demangler for the new C++ ABI as promised.&nbsp;
+I am happy to have learned that there exists interest in libcwd in the Open Source community: the maintainer
+of gdb wrote me that he translated the new demangler into C and will incorporate it into GNU libiberty
+and gdb (the current demangler in libiberty doesn't handle qualifiers correctly in all cases).&nbsp;
+The maintainer of clisp expressed his interest in the bfd.cc file in order to be able to print
+backtraces in case of internal errors.</P>
+<P class="news">I have very little feedback from users of libcwd itself though.&nbsp;
+If there is anything you would like to be added, or when you find a bug, <B>mail me</B>.&nbsp;
+<EM>It won't get fixed when you don't tell me about it!</EM>&nbsp;
+But if you are just a happy user without any complaint, I'd really love to hear from you too!
+Click <A HREF="http://www.xs4all.nl/~carlo17/anti/spam/bots/dont/like/deep/dirs/mail2.html?libcw">here</A> and drop me mail!</P>
+<DT><B>29 May 2001</B>
+<P class="news">libcwd-0.99.8 is released.&nbsp;
+Finally, after a long delay a new release - and as promised one that works with libstdc++ version 3!
+This release still lacks a demangler for the new C++ ABI however (that is part of g++-2.97 and higher), which
+will be added to the next release.</P>
+<P class="news">Making libcwd suitable for libstdc++-v3 wasn't an easy task.&nbsp; One of the major problems is
+that during the writing of debug output (for example <SPAN class="code">operator&lt;&lt;(ostream&, int)</SPAN>)
+memory is being allocated under certain circumstances by libstdc++-v3.&nbsp; While it is unacceptable that
+due to writing debug output other debug output is generated, there were only two options: 1) turning off
+the <SPAN class="code">malloc</SPAN> and <SPAN class="code">bfd</SPAN> debug channels but still storing all
+memory allocations in memory allocation overview, or 2) making all memory allocations done from a
+<SPAN class="code">Dout</SPAN> <I>internal</I>, disabling any checks.&nbsp; With in mind that the existance of
+debug code shouldn't matter (after all, it won't be in the final production version of an application) it follows
+that no memory should be allocated in the first place as part of a <SPAN class="code">Dout</SPAN>
+and when it <EM>is</EM> it isn't important if it leaks or not - I decided to go for solution two because that
+uses less cpu.</P>
+<P class="news">Other changes involve mostly a rewrite of certain parts that were depending on a specific GNU implementation
+of libstdc++, using the now available standard.&nbsp;
+While most of these changes are invisible, there was a small change to the interface of <A HREF="bfd.html#type_info_of"><SPAN class="code">type_info_of</SPAN></A>
+resulting at the same time in preserving a top-level <SPAN class="code">const</SPAN> qualifier as well as faster code
+(with g++-3.0 that is; older versions of g++ are still so much broken that slower work-arounds were needed).&nbsp;
+The only kludge left in libcwd at the moment is the detection of when the standard streams are initialized.&nbsp; I blame the need
+for this kludge on a bug in libstdc++-v3 and have reported it as such; perhaps also this can be gotten rid of in the
+future.</P>
+<P class="news">At the moment of writing two problems are already known with 0.99.8:</P>
+<P class="news">Using a libbfd on a 32bit machine
+that was compiled with 64bit target support will fail to work with libstdc++-v3 when the latter is compiled without
+support for <SPAN class="code">long long</SPAN> (<SPAN class="code">long long</SPAN> is <EM>not</EM> a part of the
+C++ standard, while it <EM>is</EM> part of C99.&nbsp; libbfd being a C library, this results in problems).&nbsp; I added
+a test for this to 0.99.8 but accidently forgot to test for libstdc++-v3 causing libcwd to fail always with g++-2.95.x!
+If you get this error:
+<I>libbfd is compiled with 64bit support on a 32bit host, but your libstdc++ is not compiled with support for long long.</I>
+and you are using g++-2.95.x then just remove the <SPAN class="code">#error</SPAN> line from bfd.cc and it should compile just fine.</P>
+<P class="news">Finally, it is known that many operating systems can't deal with shared C++ libraries and global objects.&nbsp; While this
+means that those operating systems are broken, I decided to fix this problem by removing all global objects in the next
+release.&nbsp; So, if libcwd core dumps on you for even very simple programs then please try 0.99.9 when it gets released.</P>
+<DT><B>2 March 2001</B>
+<P class="news">libcwd-0.99.7 is released.&nbsp;
+This release includes a work-around for the compiler crash in <SPAN class="filename">lockable_auto_ptr.h</SPAN>
+that occured with g++-2.95.x.&nbsp;
+There are a few other changes however; most notably, the support for the macro <SPAN class="code">Dout_vform</SPAN>
+has been removed because <SPAN class="code">ostream::vform</SPAN> isn't conforming to the Standard and is gone in
+libstdc++ version 3.&nbsp;
+Note that this release still doesn't work with libstdc++ version 3, hopefully the next release will.</P>
+<DT><B>10 February 2001</B>
+<P class="news">libcwd-0.99.6 is released.&nbsp;
+This release deals with namespace issues and therefore contains a few major API changes.&nbsp; 
+The most important changes follow.&nbsp; The macro DEBUG has been renamed to CWDEBUG because
+the former was too general and collided with other libraries.&nbsp;
+All functions have been moved to namespace <SPAN class="code">libcw::debug</SPAN>;
+this will break compilation of programs that use earlier versions of libcwd,
+unless one includes a &quot;<SPAN class="code">using namespace libcw::debug;</SPAN>&quot;
+line in the source files using more than just <SPAN class="code">Dout</SPAN> and
+<SPAN class="code">Debug</SPAN>.&nbsp;
+Four functions have not only been moved to the new namespace but were also renamed.&nbsp;
+Apart from this all, also the interface to BFD has been redesigned; among others the
+structure <SPAN class="code">location_st</SPAN> has been replaced by a class <SPAN class="code">location_ct</SPAN>.&nbsp; Also here
+functions have been renamed or even removed.&nbsp;
+<EM>Please read the <B>NEWS</B> file contained in the source distribution for details.</EM>&nbsp;
+A new template function has been added: <SPAN class="code">cwprint_using</SPAN>.&nbsp;
+This utility allows one to easily print objects using a method of the object rather
+than <SPAN class="code">operator&lt;&lt;</SPAN>.&nbsp; Finally, two bugs have been
+fixed: one in the demangler which still couldn't demangle const member functions, and
+a bug that could cause a core dump when memory was allocated from the constructor of
+a global object that was initialized before libcwd was initialized, this has only been
+reported for solaris.</P>
+<DT><B>29 January 2001</B>
+<P class="news">libcwd-0.99.5 is released.&nbsp;
+This release contains mostly bug fixes, especially for the demangler.&nbsp;
+Otherwise it mainly contains support for the compiler that is released with
+RedHat-7.0: gcc-2.96.&nbsp;
+Version 0.99.5 contains two API changes: the prototype of <SPAN class="code">libcw_bfd_pc_location</SPAN>
+was changed in order to get rid of the <EM>named return values</EM> gcc extension that has been
+deprecated in g++-2.96 and higher.&nbsp;
+Secondly, <SPAN class="code">DoutFatal</SPAN> doesn't have a default
+debug channel anymore and <SPAN class="code">dc::fatal</SPAN>,
+which was the default in prior releases, must explicitly be specified.</P>
+<DT><B>11 October 2000</B>
+<P class="news">libcwd-0.99.4 is released.&nbsp;
+This release comes with a testsuite and again allows Linux users to
+just link their application with <SPAN class="code">-lcwd</SPAN>
+(without the need to also specify <SPAN class="code">-lbfd -liberty</SPAN>).&nbsp;
+All reported bugs (two) have been fixed, as well as a third that showed
+up while I wrote the testsuite: a locked <SPAN class="code">lockable_auto_ptr</SPAN>
+does <EM>not</EM> transfer ownership anymore when using the assignment operator.</P>
+<DT><B>13 September 2000</B>
+<P class="news">libcwd-0.99.3 is released.&nbsp;
+This release includes an example showing how to use libcwd in
+an <SPAN class="filename"><A HREF="http://sources.redhat.com/autoconf/">autoconf</A></SPAN>/<SPAN class="filename"><A HREF="http://sources.redhat.com/automake/">automake</A></SPAN> project.&nbsp;
+<STRONG>Please note</STRONG> that, due to constraints of libtool, your programs need to be linked with
+<SPAN class="code">-lcwd -lbfd -liberty</SPAN> now (as opposed to just <SPAN class="code">-lcwd</SPAN>).&nbsp;
+Support for Solaris has been added.&nbsp;
+The autoconf/automake configuration setup has been improved;
+also the configuration on FreeBSD should work out of the box now (assuming you have binutils installed).&nbsp;
+Finally, a <SPAN class="filename">.spec</SPAN> file for building an RPM has been added to this release.</P>
+<DT><B>29 August 2000</B>
+<P class="news">libcwd-0.99.2 is released.&nbsp; Added autoconf/automake/libtool for configuration.&nbsp;
+This obsoletes the need for the <A HREF="http://www.xs4all.nl/~carlo17/prototype/index.html">prototype</A> package.&nbsp;
+The source file <span class=filename>demangle.cc</span> was completely rewritten and now supports demangling of
+<A HREF="bfd.html#demangle">symbols</A> as well as types.</P>
+<DT><B>15 August 2000</B>
+<P class="news">libcwd-0.99.1 is released.&nbsp; Apart from a few minor bug fixes, support for FreeBSD has been added!</P>
+<DT><B>08 August 2000</B>
+<P class="news">The web site has been improved in order to give new visitors a quicker overview:
+libcwd now has its own home page.&nbsp; A page with features and "screenshots" was added.</P>
+<DT><B>04 August 2000</B>
+<P class="news">First public announcement of libcwd on freshmeat.</P>
+<DT><B>23 July 2000</B>
+<P class="news">First public release of libcwd on sourceforge.</P>
+</td></tr></table>
+
+</td></tr></TABLE>
+
+</TD></TR><TR><TD>
+&nbsp;
+</TD></TR>
+</TABLE>
+
+<BR>
+<HR SIZE=1 NOSHADE>
+<TABLE BORDER=0><TR>
+<TD VALIGN=top><A class="image-link" href="http://sourceforge.net"><IMG width="88" height="31" src="../images/sflogo.png" border="0"></A></TD>
+<TD VALIGN=top><A class="image-link" href="http://www.w3.org/Style/CSS/Buttons" target="_blank"><IMG width=88 height=31 src="../images/css.gif" border=0 alt="Cascading Style Sheets" align=top></A></TD>
+<TD VALIGN=bottom width=0><A class="image-link" href="http://sourceforge.net"><IMG width="1" height="1" src="http://sourceforge.net/sflogo.php?group_id=354&type=1" border="0"></A></TD>
+</TR></TABLE>
+
+</BODY>
+</HTML>

@@ -52,6 +52,11 @@ with (document)
     }
   }
 
+  // See http://devedge.netscape.com/evangelism/docs/api/xbDebug/
+  // xbDEBUG.push();
+  // xbDEBUG.dump("styles_path = " + styles_path);
+  // xbDEBUG.pop();
+
   write("<LINK REL=StyleSheet HREF=\"" + styles_path + "main.css\" TYPE=\"text/css\">");
   if (need_style_tutorial == 1)
     write("<LINK REL=StyleSheet HREF=\"" + styles_path + "tutorial.css\" TYPE=\"text/css\">");
