@@ -23,30 +23,53 @@ Check if you have all GNU tools/libraries/packages that libcwd depends on:
      Packages/versions needed
      ------------------------
 
-     i) gnu/gcc/gcc-2.95.1.tar.gz	or higher.
+     i) The GNU compiler, version 2.95.1 or higher.
+
+     Location: gnu/gcc/
+     Current version: 2.95.3
+     The development versions are supported.
 
      Alternatively you can install only
-     ia) gnu/gcc/gcc-core-2.95.1.tar.gz	or higher and
-     ib) gnu/gcc/gcc-g++-2.95.1.tar.gz	or higher.
+     ia) gnu/gcc/gcc-core-<version>.tar.gz	and
+     ib) gnu/gcc/gcc-g++-<version>.tar.gz
      
      Note: It is very unlikely that you want to install
      the source tree of gcc/g++.  Please try to upgrade your
      compiler the usual way if needed.
      If you are using rpm's then you will need to
-     install/upgrade to following: gcc (2.95.1 or higher),
-     gcc-c++ (of same version), libstdc++ (of same version),
-     cpp (of same version).  Check your installation on
-     RedHat with: rpm -qa | egrep '(gcc|libstdc|cpp)'
+     install/upgrade the following:
+       gcc (2.95.1 or higher),
+       gcc-c++ (of same version),
+       libstdc++ (of same version) and
+       cpp (of same version).
+     Check your installation on RedHat with:
+       rpm -qa | egrep '(gcc|libstdc|cpp)'
 
      Note: If you don't use rpm's but are using tar balls,
      then you do NOT need to download gnu/libstdc++/* because
      gcc-2.95 and higher comes with libstdc++ included.
      The gnu/libstdc++/ directory on GNU ftp sites are
-     for older compilers.  You also don't need libg++.
+     for older compilers or to be used as source drop-in
+     when you compile g++ (replacing the normal stdc++ with
+     an alpha version).  You also don't need libg++.
      Don't delete those libraries if you have them though,
      existing binaries might need to link with them.
 
-     ii) gnu/binutils/binutils-2.9.tar.gz	or higher.
+  libcwd-0.99.0 was tested with gcc-2.95.1 and gcc-ss-20000402.
+  libcwd-0.99.1
+    through
+  libcwd-0.99.3 were tested with gcc-2.95.2 and gcc-ss-20000813.
+  libcwd-0.99.3 was also tested with gcc-ss-20000724 on linux/RH6.9.
+  libcwd-0.99.4 was tested with gcc-2.95.2.
+
+     ii) GNU binutils, version 2.9 or higher.
+
+     Location: gnu/binutils/binutils-<version>.tar.gz
+     Current version: 2.10
+
+     This is only needed for libbfd.  On some OS you also
+     need this for libiberty (although on most OS libiberty
+     comes with the GNU compiler).
 
      (If you have any troubles on linux with binutils,
       then first try upgrading to binutils-2.10.0.18.
@@ -57,12 +80,32 @@ ftp://ftp.valinux.com/pub/support/hjl/binutils/binutils-2.10.0.18.tar.gz
       tested it and would like to know which version gives a
       problem, if any.)
 
-  libcwd-0.99.0 was tested with gcc-2.95.1 and gcc-ss-20000402.
-  libcwd-0.99.1
-    through
-  libcwd-0.99.3 were tested with gcc-2.95.2 and gcc-ss-20000813.
-  libcwd-0.99.3 was also tested with gcc-ss-20000724 on linux/RH6.9.
+     Packages needed to run the testsuite
+     ------------------------------------
 
+     If you want to run the testsuite then you will have to install
+     dejagnu-20000518.tar.bz2 which can be downloaded from
+     ftp://sourceware.cygnus.com/pub/dejagnu/.  This tar is broken
+     however: after running ./configure you need to edit the Makefile
+     and remove every trace of 'iberty', for example by opening
+     the Makefile in vi and issuing:
+     :1,$s/[-0-9a-zA-Z_]*iberty //g
+     :1,$s/[-0-9a-zA-Z_]*iberty$//
+
+     Packages/versions needed as maintainer or when using CVS
+     --------------------------------------------------------
+
+     If you want to generate maintainer files (and you need that when
+     you got this package via CVS) then you also need to have the
+     following tools:
+
+     iii) GNU make
+     iv) GNU m4
+     v) autoconf
+     vi) automake
+     vii) libtool
+
+     Each of those can be downloaded from your local GNU site.
 
 Hackers info
 ============
@@ -129,10 +172,10 @@ well, ... heh.  Look in the Makefile for more targets ;)
 Finally, you can also build libcwd in a different directory than the source
 tree is in:
 
-tar xzf libcwd-0.99.3.tar.gz
+tar xzf libcwd-0.99.5.tar.gz
 mkdir libcwd-objdir
 cd libcwd-objdir
-../libcwd-0.99.3/configure --prefix=/usr
+../libcwd-0.99.5/configure --prefix=/usr
 make
 su
 make install
