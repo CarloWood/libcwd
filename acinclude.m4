@@ -85,7 +85,10 @@ AC_CACHE_VAL(cw_cv_bug_redefines_$cw_bug_var,
 #include <sys/types.h>
 #include <sys/time.h>
 #include <$1>
-int main() { return 0; }
+#ifdef __cplusplus
+extern "C" void exit(int);
+#endif
+int main() { exit(0); }
 EOF
 save_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS="`echo $CXXFLAGS | sed -e 's/-Werror//g'`"
@@ -587,7 +590,12 @@ dnl
 dnl Determines if __builtin_return_address(1) is supported by compiler.
 AC_DEFUN(CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS,
 [AC_CACHE_CHECK([whether __builtin_return_address(1) works], cw_cv_sys_recursive_builtin_return_address,
-[AC_TRY_RUN([int main(void) { return __builtin_return_address(1) == 0; }],
+[AC_TRY_RUN(
+[#ifdef __cplusplus
+extern "C" void exit(int);
+#endif
+void f(void) { exit(__builtin_return_address(1) ? 0 : 1); }
+int main(void) { f(); }],
 cw_cv_sys_recursive_builtin_return_address=yes,
 cw_cv_sys_recursive_builtin_return_address=no,
 cw_cv_sys_recursive_builtin_return_address=unknown
