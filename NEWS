@@ -7,6 +7,10 @@ libcwd-0.99.21
 	README.threads has been updated with important
 	information.
 
+	make_all_allocations_invisible_except() now only makes
+	allocations invisible that were allocated by the
+	current thread.
+
 	API changes:
 
 	location_ct::location_reference() has been removed.

@@ -95,12 +95,16 @@ namespace libcw {
 #ifndef LIBCW_STRUCT_DEBUG_TSD
 #include <libcw/struct_debug_tsd.h>
 #endif
+#ifndef LIBCW_PRIVATE_THREAD_H
+#include <libcw/private_thread.h>
+#endif
 
 namespace libcw {
   namespace debug {
     namespace _private_ {
 
 extern int WST_initializing_TSD;
+class thread_ct;
 
 #if LIBCWD_THREAD_SAFE
 __inline__ TSD_st* get_tsd_instance(pthread_t tid);
@@ -111,15 +115,18 @@ public:
 #if CWDEBUG_ALLOC
   int internal;
   int library_call;
-  int inside_malloc_or_free;	// Set when entering a (de)allocation routine non-internal.
-  void* memblk_map;		// Pointer to the memblk_map_ct of this thread.
+  int inside_malloc_or_free;		// Set when entering a (de)allocation routine non-internal.
+#if LIBCWD_THREAD_SAFE
+  threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).
+  bool thread_iter_valid;
+#endif
 #if CWDEBUG_DEBUGM
   int marker;
 #endif
 #endif // CWDEBUG_ALLOC
-  bool recursive_fatal;		// Detect loop involving dc::fatal or dc::core.
+  bool recursive_fatal;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
-  bool recursive_assert;	// Detect loop involving LIBCWD_ASSERT.
+  bool recursive_assert;		// Detect loop involving LIBCWD_ASSERT.
 #endif
 #if CWDEBUG_DEBUGT
   int cancel_explicitely_deferred;
@@ -130,7 +137,6 @@ public:
 #endif
 #if LIBCWD_THREAD_SAFE
   pthread_t tid;
-  mutex_ct memblk_map_mutex;		// Mutex for memblk_map.
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
   void cleanup_routine(void) throw();

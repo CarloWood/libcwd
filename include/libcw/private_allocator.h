@@ -22,10 +22,10 @@
 #include <libcw/debug_config.h>
 #endif
 
-#if CWDEBUG_ALLOC		// This file is not used unless --enable-alloc was used.
+#if CWDEBUG_ALLOC		// This file is not used when --disable-alloc was used.
 
-#ifndef LIBCW_PRIVATE_THREADING_H
-#include <libcw/private_threading.h>
+#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#include <libcw/private_mutex_instances.h>
 #endif
 #ifndef LIBCW_CORE_DUMP_H
 #include <libcw/core_dump.h>
@@ -113,120 +113,6 @@ template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
     static void sanity_check(void);
 #endif
   };
-
-#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
-  void allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::sanity_check(void)
-  {
-#if CWDEBUG_DEBUGM || (CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE)
-    LIBCWD_TSD_DECLARATION
-#endif
-#if CWDEBUG_DEBUGM
-    if ((__libcwd_tsd.internal > 0) != internal) 
-      core_dump();
-#endif
-#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
-    if (instance == single_threaded_internal_instance && WST_multi_threaded)
-      core_dump();
-    if (instance == memblk_map_instance)
-    {
-      if (WST_multi_threaded && !__libcwd_tsd.memblk_map_mutex.is_locked())
-	core_dump();
-    }
-    else if (instance >= 0 && WST_multi_threaded && !is_locked(instance))
-      core_dump();
-#endif
-  }
-#endif
-
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
-  __inline__
-  T*
-  allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::allocate(size_t n)
-  {
-#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
-    sanity_check();
-#endif
-    return (T*) X::allocate(n * sizeof(T));
-  }
-
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
-  __inline__
-  T*
-  allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::allocate(void)
-  {
-#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
-    sanity_check();
-#endif
-    return (T*) X::allocate(sizeof(T));
-  }
-
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
-  __inline__
-  void
-  allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::
-  deallocate(deallocate_pointer p, size_t n)
-  {
-#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
-    sanity_check();
-#endif
-    X::deallocate(p, n * sizeof(T));
-  }
-
-template<class T, class X, bool internal LIBCWD_COMMA_INT_INSTANCE>
-  __inline__
-  void
-  allocator_adaptor<T, X, internal LIBCWD_COMMA_INSTANCE>::deallocate(deallocate_pointer p)
-  {
-#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
-    sanity_check();
-#endif
-    X::deallocate(p, sizeof(T));
-  }
-
-#if !CWDEBUG_DEBUG
-template <class T1, class X1, bool internal1,
-          class T2, class X2, bool internal2>
-  __inline__
-  bool
-  operator==(allocator_adaptor<T1, X1, internal1> const& a1,
-             allocator_adaptor<T2, X2, internal2> const& a2)
-  {
-    return (internal1 == internal2 && a1.M_underlying_alloc == a2.M_underlying_alloc);
-  }
- 
-template <class T1, class X1, bool internal1,
-          class T2, class X2, bool internal2>
-  __inline__
-  bool
-  operator!=(allocator_adaptor<T1, X1, internal1> const& a1,
-             allocator_adaptor<T2, X2, internal2> const& a2)
-  {
-    return (internal1 != internal2 || a1.M_underlying_alloc != a2.M_underlying_alloc);
-  }
-#else
-template <class T1, class X1, bool internal1, int inst1,
-          class T2, class X2, bool internal2, int inst2>
-  __inline__
-  bool
-  operator==(allocator_adaptor<T1, X1, internal1, inst1> const& a1,
-             allocator_adaptor<T2, X2, internal2, inst2> const& a2)
-  {
-    return (internal1 == internal2 && inst1 == inst2
-	    && a1.M_underlying_alloc == a2.M_underlying_alloc);
-  }
- 
-template <class T1, class X1, bool internal1, int inst1,
-          class T2, class X2, bool internal2, int inst2>
-  __inline__
-  bool
-  operator!=(allocator_adaptor<T1, X1, internal1, inst1> const& a1,
-             allocator_adaptor<T2, X2, internal2, inst2> const& a2)
-  {
-    return (internal1 != internal2 || inst1 != inst2
-	    || a1.M_underlying_alloc != a2.M_underlying_alloc);
-  }
-#endif
 
 #if CWDEBUG_DEBUG
 #define LIBCWD_DEBUGDEBUG_COMMA(x) , x

@@ -25,15 +25,18 @@
 #include <raw_write.h>
 #undef LIBCWD_NO_INTERNAL_STRING
 #define LIBCWD_DEBUGDEBUGRWLOCK_CERR(x) FATALDEBUGDEBUG_CERR(x)
-#else
+#else // !LIBCWD_DEBUGDEBUGRWLOCK
 #define LIBCWD_DEBUGDEBUGRWLOCK_CERR(x)
-#endif // LIBCWD_DEBUGDEBUGRWLOCK
+#endif // !LIBCWD_DEBUGDEBUGRWLOCK
 
 #ifndef LIBCW_PRIVATE_SET_ALLOC_CHECKING_H
 #include <libcw/private_set_alloc_checking.h>
 #endif
 #ifndef LIBCW_PRIVATE_STRUCT_TSD_H
 #include <libcw/private_struct_TSD.h>
+#endif
+#ifndef LIBCW_PRIVATE_MUTEX_INSTANCES_H
+#include <libcw/private_mutex_instances.h>
 #endif
 #ifndef LIBCW_CSTRING
 #define LIBCW_CSTRING
@@ -99,47 +102,6 @@ extern bool WST_multi_threaded;
 // (using -O2 this is at most a single test and nothing at all when
 // Linuxthreads are being used.
 //
-
-// The different instance-ids used in libcwd.
-enum mutex_instance_nt {
-  // Recursive mutexes.
-  tsd_initialization_instance,
-  object_files_instance,	// rwlock
-  end_recursive_types,
-  // Fast mutexes.
-  memblk_map_instance,
-  location_cache_instance,	// rwlock
-  mutex_initialization_instance,
-  ids_singleton_tct_S_ids_instance,
-  alloc_tag_desc_instance,
-  type_info_of_instance,
-  dlopen_map_instance,
-  write_max_len_instance,
-  set_ostream_instance,
-  kill_threads_instance,
-  debug_objects_instance,	// rwlock
-  debug_channels_instance,	// rwlock
-  list_allocations_instance,
-  // Values reserved for read/write locks.
-  reserved_instance_low,
-  reserved_instance_high = 3 * reserved_instance_low,
-  // Values reserved for test executables.
-  test_instance0 = reserved_instance_high,
-  test_instance1,
-  test_instance2,
-  test_instance3,
-  instance_locked_size		// Must be last in list
-};
-
-#if CWDEBUG_DEBUG
-extern int instance_locked[instance_locked_size];	// MT: Each element is locked by the
-							//     corresponding instance.
-#if CWDEBUG_DEBUGT
-extern pthread_t locked_by[instance_locked_size];	// The id of the thread that last locked it, or 0 when that thread unlocked it.
-extern void const* locked_from[instance_locked_size];	// and where is was locked.
-#endif
-__inline__ bool is_locked(int instance) { return instance_locked[instance] > 0; }
-#endif
 
 //========================================================================================================================================17"
 // class mutex_tct

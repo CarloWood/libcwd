@@ -162,10 +162,10 @@ using libcw::debug::_private_::list_allocations_instance;
 // rwlocks have to use condition variables or semaphores and both try to get a
 // (libpthread internal) self-lock that is already set by libthread when it calls
 // free() in order to destroy thread specific data 1st level arrays.
-#define ACQUIRE_WRITE_LOCK	__libcwd_tsd.memblk_map_mutex.lock();
-#define RELEASE_WRITE_LOCK	__libcwd_tsd.memblk_map_mutex.unlock();
-#define ACQUIRE_READ_LOCK	__libcwd_tsd.memblk_map_mutex.lock();
-#define RELEASE_READ_LOCK	__libcwd_tsd.memblk_map_mutex.unlock();
+#define ACQUIRE_WRITE_LOCK	(*__libcwd_tsd.thread_iter).memblk_map_mutex.lock();
+#define RELEASE_WRITE_LOCK	(*__libcwd_tsd.thread_iter).memblk_map_mutex.unlock();
+#define ACQUIRE_READ_LOCK	(*__libcwd_tsd.thread_iter).memblk_map_mutex.lock();
+#define RELEASE_READ_LOCK	(*__libcwd_tsd.thread_iter).memblk_map_mutex.unlock();
 #define ACQUIRE_READ2WRITE_LOCK
 #define ACQUIRE_WRITE2READ_LOCK
 // We can rwlock_tct here, because this lock is never used from free(),
@@ -899,10 +899,17 @@ typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>,
                  _private_::memblk_map_allocator::rebind<memblk_ct>::other> memblk_map_ct;
   // The map containing all `memblk_ct' objects.
 
+#if LIBCWD_THREAD_SAFE
 // Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
-#define memblk_map_write (reinterpret_cast<memblk_map_ct*>(__libcwd_tsd.memblk_map))
+#define memblk_map_write (reinterpret_cast<memblk_map_ct*>((*__libcwd_tsd.thread_iter).memblk_map))
 // Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
-#define memblk_map_read  (reinterpret_cast<memblk_map_ct const*>(__libcwd_tsd.memblk_map))
+#define memblk_map_read  (reinterpret_cast<memblk_map_ct const*>((*__libcwd_tsd.thread_iter).memblk_map))
+#else // !LIBCWD_THREAD_SAFE
+static memblk_map_ct* memblk_map;
+#define memblk_map_write memblk_map
+#define memblk_map_read  memblk_map
+#endif // !LIBCWD_THREAD_SAFE
+
 #define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
 
 //=============================================================================
@@ -1314,7 +1321,7 @@ void memblk_info_ct::make_invisible(void)
 {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION
-  LIBCWD_ASSERT( __libcwd_tsd.memblk_map_mutex.is_locked() ); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
+  LIBCWD_ASSERT( (*__libcwd_tsd.thread_iter).memblk_map_mutex.is_locked() ); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
 #endif
   LIBCWD_ASSERT( a_alloc_node.strict_owner() );
 
@@ -1795,7 +1802,7 @@ void free_bootstrap2(void* ptr)
 void* calloc_bootstrap2(size_t nmemb, size_t size)
 {
   void* ptr = malloc_bootstrap2(nmemb * size);
-  memset(ptr, 0, nmemb * size);
+  std::memset(ptr, 0, nmemb * size);
   return ptr;
 }
 
@@ -1885,45 +1892,34 @@ void* calloc_bootstrap1(size_t nmemb, size_t size)
 //---------------------------------------------------------------------------------------------
 #endif // USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
 
+#if LIBCWD_THREAD_SAFE
 namespace _private_ {
 
 void* new_memblk_map(LIBCWD_TSD_PARAM)
 {
-  // Already internal.  Called from TSD_st::S_initialize()
-  void* memblk_map;
-  LIBCWD_DEFER_CANCEL;
-  ACQUIRE_WRITE_LOCK
-  DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
-  __libcwd_tsd.internal = 1;
-  memblk_map = new memblk_map_ct;
-  DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
-  __libcwd_tsd.internal = 0;
-  RELEASE_WRITE_LOCK
-  LIBCWD_RESTORE_CANCEL;
-  return memblk_map;
+  // Already internal.  Called from thread_ct::initialize()
+  return new memblk_map_ct;
 }
 
-void delete_memblk_map(void* ptr LIBCWD_COMMA_TSD_PARAM)
+bool delete_memblk_map(void* ptr LIBCWD_COMMA_TSD_PARAM)
 {
-  // Already internal.  Called from TSD_st::S_initialize()
+  // Already internal.  Called from thread_ct::tsd_destroyed()
   memblk_map_ct* memblk_map = reinterpret_cast<memblk_map_ct*>(ptr);
+  bool deleted = false;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
   if (memblk_map->size() == 0)
   {
-    DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
-    __libcwd_tsd.internal = 1;
     delete memblk_map;
-    DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
-    __libcwd_tsd.internal = 0;
+    deleted = true;
   }
-  else
-    core_dump();	// FIXME, map needs to be kept somehow.
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL;
+  return deleted;
 }
 
 } // namespace _private_
+#endif // LIBCWD_THREAD_SAFE
 
 void init_debugmalloc(void)
 {
@@ -1939,8 +1935,10 @@ void init_debugmalloc(void)
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
       LIBCWD_ASSERT( !_private_::WST_multi_threaded );
 #endif
-      // The memblk_map of the second and later threads are initialized in 'LIBCWD_TSD_DECLARATION' (by calling new_memblk_map()).
-      __libcwd_tsd.memblk_map = new memblk_map_ct;
+#if !LIBCWD_THREAD_SAFE
+      // With threads, memblk_map is initialized in 'LIBCWD_TSD_DECLARATION'.
+      memblk_map = new memblk_map_ct;
+#endif
       WST_initialization_state = -1;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
@@ -2220,16 +2218,6 @@ void make_all_allocations_invisible_except(void const* ptr)
   LIBCWD_TSD_DECLARATION
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#endif
-#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
-  if (_private_::WST_multi_threaded)
-  {
-    location_ct loc(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset);
-    DoutFatal(dc::core, loc <<
-	": You cannot call 'make_all_allocations_invisible_except' while there are already other threads running.  "
-	"This function is actually only provided to make it easier to write the testsuite of libcwd.  "
-        "Only use it at the top of main in order to get rid of allocations done as part of the initialization of the Operating System.");
-  }
 #endif
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK
@@ -2794,7 +2782,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
     void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(nmemb * size));
     if (!ptr)
       return NULL;
-    memset(static_cast<void*>(static_cast<size_t*>(ptr) + 2), 0, nmemb * size);
+    std::memset(static_cast<void*>(static_cast<size_t*>(ptr) + 2), 0, nmemb * size);
     ((size_t*)ptr)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
     ((size_t*)ptr)[1] = nmemb * size;
     ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(nmemb * size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
@@ -2814,7 +2802,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
   void* ptr;
   size *= nmemb;
   if ((ptr = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD SAVEDMARKER)))
-    memset(ptr, 0, size);
+    std::memset(ptr, 0, size);
 #if CWDEBUG_MAGIC
   if (ptr)
   {

@@ -231,6 +231,7 @@ using namespace libcw_debug_inserters;
 #include <libcw/demangle.h>
 
 // Include the inline functions.
+#include <libcw/private_allocator.inl>		// Implementation of allocator_adaptor template.
 #include <libcw/class_channel.inl>		// Debug channels.
 #include <libcw/class_fatal_channel.inl>
 #include <libcw/class_continued_channel.inl>

@@ -38,6 +38,7 @@ libcwd_HEADERS = \
 	max_label_len.h \
 	pc_mangled_function_name.h \
 	private_allocator.h \
+	private_allocator.inl \
 	private_assert.h \
 	private_debug_stack.h \
 	private_environ.h \
@@ -45,9 +46,13 @@ libcwd_HEADERS = \
 	private_internal_stringstream.h \
 	private_internal_vector.h \
 	private_lock_interface.h \
+	private_mutex.h \
+	private_mutex.inl \
+	private_mutex_instances.h \
 	private_set_alloc_checking.h \
 	private_string.h \
 	private_struct_TSD.h \
+	private_thread.h \
 	private_threading.h \
 	set_ostream.inl \
 	smart_ptr.h \

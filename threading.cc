@@ -40,6 +40,7 @@ void initialize_global_mutexes(void) throw()
   mutex_tct<dlopen_map_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
   mutex_tct<kill_threads_instance>::initialize();
+  mutex_tct<threadlist_instance>::initialize();
 #if CWDEBUG_ALLOC
   mutex_tct<alloc_tag_desc_instance>::initialize();
   mutex_tct<memblk_map_instance>::initialize();
@@ -87,8 +88,7 @@ pthread_key_t TSD_st::S_exit_key;
 pthread_once_t TSD_st::S_exit_key_once = PTHREAD_ONCE_INIT;
 
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
-extern void* new_memblk_map(LIBCWD_TSD_PARAM);
-extern void delete_memblk_map(void* LIBCWD_COMMA_TSD_PARAM);
+void threading_tsd_init(LIBCWD_TSD_PARAM);
 
 void TSD_st::S_initialize(void) throw()
 {
@@ -98,11 +98,11 @@ void TSD_st::S_initialize(void) throw()
   mutex_tct<tsd_initialization_instance>::lock();
   debug_tsd_st* old_array[LIBCWD_DO_MAX];
   std::memcpy(old_array, do_array, sizeof(old_array));
-  void* old_memblk_map = memblk_map;
+  threadlist_t::iterator old_thread_iter = thread_iter;
+  bool old_thread_iter_valid = thread_iter_valid;
   std::memset(this, 0, sizeof(struct TSD_st));	// This structure might be reused and therefore already contain data.
   tid = pthread_self();
   mutex_tct<tsd_initialization_instance>::unlock();
-  memblk_map_mutex.initialize();		// Initialize the mutex that will be used for memblk_map.
   // We assume that the main() thread will call malloc() at least
   // once before it reaches main() and thus before any other thread is created.
   // When it does we get here; and thus are still single threaded.
@@ -120,10 +120,10 @@ void TSD_st::S_initialize(void) throw()
 	delete old_array[i];			// Free old objects when this structure is being reused.
     set_alloc_checking_on(*this);
     debug_tsd_init(*this);			// Initialize the TSD of existing debug objects.
-    if (old_memblk_map)
-      delete_memblk_map(old_memblk_map, *this);	// Free old memblk_map when this structure is being reused.
-    memblk_map = new_memblk_map(*this);
   }
+  if (old_thread_iter_valid)
+    (*old_thread_iter).tsd_destroyed();
+  threading_tsd_init(*this);			// Initialize the TSD of stuff that goes in threading.cc.
   pthread_once(&S_exit_key_once, &TSD_st::S_exit_key_alloc);
   pthread_setspecific(S_exit_key, (void*)this);
   pthread_setcanceltype(oldtype, NULL);
@@ -162,9 +162,103 @@ void TSD_st::S_cleanup_routine(void* arg) throw()
 // End of Thread Specific Data
 //===================================================================================================
 
-class thread_ct { };
+//---------------------------------------------------------------------------------------------------
+// Below is the implementation of a list with thread specific objects
+// that are kept even after the destruction of a thread, and even
+// after the TSD_st structure is reused for another thread.
+//
+// At this moment the only use of this object (thread_ct) is the
+// memblk_map with memory allocations per thread.  Allocations
+// done by a thread are stored in this map.  If the thread
+// exists before all the memory is freed, then the thread_ct
+// object is kept (until all memory is finally freed by other
+// threads).
+//
 
-typedef std::vector<thread_ct, internal_allocator::rebind<thread_ct>::other> threadlist_t;
+// A pointer to the global list with thread_ct objects.
+// This must be a pointer -and not a global object- because
+// it is being used before the global objects are initialized.
+// Access to this list is locked with threadlist_instance.
+threadlist_t* threadlist;
+
+// Called when a new thread is detected.
+// Adds a new thread_ct to threadlist and initializes it.
+void threading_tsd_init(LIBCWD_TSD_PARAM)
+{
+  LIBCWD_DEFER_CANCEL;
+  mutex_tct<threadlist_instance>::lock();
+  set_alloc_checking_off(__libcwd_tsd);
+  if (!threadlist)
+    threadlist = new threadlist_t;
+  __libcwd_tsd.thread_iter = threadlist->insert(threadlist->end(), thread_ct(&__libcwd_tsd));
+  __libcwd_tsd.thread_iter_valid = true;
+  (*__libcwd_tsd.thread_iter).initialize(&__libcwd_tsd);
+  set_alloc_checking_on(__libcwd_tsd);
+  mutex_tct<threadlist_instance>::unlock();
+  LIBCWD_RESTORE_CANCEL;
+}
+
+// The default constructor of a thread_ct object.
+// No real initialization is done yet, for that thread_ct::initialize
+// needs to be called.  The reason for that is because 'new_memblk_map'
+// (see thread_ct::initialize) will use allocator_adaptor<> which will
+// try to dereference TSD_st::thread_iter which is not initialized yet because
+// this object isn't yet added to threadlist at the moment of its construction.
+thread_ct::thread_ct(TSD_st* tsd_ptr) throw() : tsd(tsd_ptr), memblk_map(NULL)
+{
+  std::memset(&memblk_map_mutex, 0 , sizeof(memblk_map_mutex));
+}
+
+// Initialization of a freshly added thread_ct.
+// The threadlist_instance mutex needs to be locked
+// before insertion of the thread_ct takes place and
+// not be unlocked untill initialization of the object
+// has finished.
+extern void* new_memblk_map(LIBCWD_TSD_PARAM);
+void thread_ct::initialize(TSD_st* tsd_ptr) throw()
+{
+#if CWDEBUG_DEBUGT
+  if (!tsd_ptr->internal || !is_locked(threadlist_instance))
+    core_dump();
+#endif
+  memblk_map_mutex.initialize();
+  memblk_map_mutex.lock();			// Need to be lock because the othewise sanity_check() of the maps allocator will fail.
+  						// Its not really necessary to lock of course, because threadlist_instance is locked as
+						// well and thus this is the only thread that could possibly access the map.
+  // new_memblk_map allocates a new map<> for the current thread.
+  // The implementation of new_memblk_map resides in debugmalloc.cc.
+  memblk_map = new_memblk_map(*tsd_ptr);
+  memblk_map_mutex.unlock();
+}
+
+// This member function is called when the TSD_st structure
+// is being reused, which is currently our only way to know
+// for sure that the corresponding thread has terminated.
+extern bool delete_memblk_map(void* memblk_map LIBCWD_COMMA_TSD_PARAM);
+void thread_ct::tsd_destroyed(void) throw()
+{
+#if CWDEBUG_DEBUGT
+  if (!tsd->internal)
+    core_dump();
+#endif
+  // Must lock the threadlist because we might delete the map (if it is empty)
+  // at which point another thread shouldn't be trying to search that map,
+  // looping over all elements of threadlist.
+  mutex_tct<threadlist_instance>::lock();
+  // delete_memblk_map will delete memblk_map (which is actually a
+  // pointer to the type memblk_map_ct) if the map is empty and
+  // return true, or it does nothing and returns false.
+  // Also this function is implemented in debugmalloc.cc because
+  // memblk_map_ct is undefined here.
+  if (delete_memblk_map(memblk_map, *tsd))	// Returns true if memblk_map was deleted.
+  {
+    threadlist->erase(tsd->thread_iter);	// We're done with this thread object.
+    tsd->thread_iter_valid = false;
+  }
+  mutex_tct<threadlist_instance>::unlock();
+  tsd = NULL;					// This causes the memblk_map to be deleted as soon as the last
+  						// allocation belonging to this thread is freed.
+}
 
     } // namespace _private_
   } // namespace debug

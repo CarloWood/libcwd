@@ -1378,7 +1378,7 @@ void allocator_unlock(void)
 #endif
 
       strncpy(WNS_label, label, label_len);
-      memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
+      std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
 
       // We store debug channels in some organized order, so that the
       // order in which they appear in the ForAllDebugChannels is not
@@ -1443,7 +1443,7 @@ void allocator_unlock(void)
 #endif
 
       strncpy(WNS_label, label, label_len);
-      memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
+      std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
 
       DEBUGDEBUG_CERR( "Leaving `fatal_channel_ct::NS_initialize(\"" << label << "\")" );
     }

@@ -1618,7 +1618,7 @@ namespace libcw {
   namespace debug {
     namespace _private_ {
       typedef std::map<void*, dlloaded_st, std::less<void*>,
-                       userspace_allocator::rebind<pair<void* const, dlloaded_st> >::other> dlopen_map_ct;
+                       userspace_allocator::rebind<std::pair<void* const, dlloaded_st> >::other> dlopen_map_ct;
       static dlopen_map_ct dlopen_map;
 
 #ifdef _REENTRANT
