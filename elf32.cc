@@ -23,6 +23,10 @@
 // library.
 //
 
+#include <libcw/debug_config.h>
+
+#ifndef DEBUGUSEGNULIBBFD
+
 #include <libcw/sys.h>
 #include <inttypes.h>	// ISO C99 header, needed for int32_t etc.
 #ifdef HAVE_DLOPEN
@@ -215,3 +219,5 @@ bfd_ct::bfd_ct(char const* filename) : M_filename(filename), M_section_headers(N
 
   } // namespace debug
 } // namespace libcw
+
+#endif // !DEBUGUSEGNULIBBFD
