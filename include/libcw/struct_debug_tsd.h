@@ -55,8 +55,10 @@ class laf_ct;
 struct debug_tsd_st {
   friend class debug_ct;
 
+#ifndef LIBCWD_THREAD_SAFE
   int _off;
     // Debug output is turned on when this variable is -1, otherwise it is off.
+#endif
 
   bool tsd_initialized;
     // Set after initialization is completed.
@@ -112,7 +114,11 @@ struct debug_tsd_st {
 
   // Initialization and de-initialization.
   void init(void);
-  debug_tsd_st(void);
+  debug_tsd_st(void) :
+#ifndef LIBCWD_THREAD_SAFE
+      _off(0),
+#endif
+      tsd_initialized(false) { }
   ~debug_tsd_st();
 };
 

@@ -82,7 +82,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count) throw();
   {																\
     DEBUGDEBUGLIBCWDOUTMARKER													\
     LIBCWD_TSD_DECLARATION													\
-    if (LIBCWD_DO_TSD_MEMBER(debug_obj, _off) < 0)										\
+    if (LIBCWD_DO_TSD_MEMBER_OFF(debug_obj) < 0)										\
     {																\
       using namespace ::libcw::debug;												\
       ::libcw::debug::channel_set_bootstrap_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\

@@ -61,6 +61,43 @@ void fatal_cancellation(void* arg) throw()
   Dout(dc::core, "Cancelling a thread " << text << ".  This is not supported by libcwd, sorry.");
 }
 
+//===================================================================================================
+// Implementation of Thread Specific Data.
+
+TSD_st __libcwd_tsd_array[PTHREAD_THREADS_MAX];
+
+#if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
+extern void debug_tsd_init(LIBCWD_TSD_PARAM);
+
+void TSD_st::S_initialize(void) throw()
+{
+  int oldtype;
+  pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldtype);
+  mutex_tct<tsd_initialization_instance>::initialize();
+  mutex_tct<tsd_initialization_instance>::lock();
+  debug_tsd_st* old_array[LIBCWD_DO_MAX];
+  std::memcpy(old_array, do_array, sizeof(old_array));
+  std::memset(this, 0, sizeof(struct TSD_st));	// This structure might be reused and therefore already contain data.
+  tid = pthread_self();
+  initialize_global_mutexes();			// This is a good moment to initialize all pthread mutexes.
+  mutex_tct<tsd_initialization_instance>::unlock();
+  if (WST_multi_threaded)			// Is this a second (or later) thread?
+  {
+    set_alloc_checking_off(*this);
+    for (int i = 0; i < LIBCWD_DO_MAX; ++i)
+      if (old_array[i])
+	delete old_array[i];			// Free old objects when this structure is being reused.
+    set_alloc_checking_on(*this);
+    debug_tsd_init(*this);			// Initialize the TSD of existing debug objects.
+  }
+  pthread_setcanceltype(oldtype, NULL);
+}
+
+#endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
+
+// End of Thread Specific Data
+//===================================================================================================
+
     } // namespace _private_
   } // namespace debug
 } // namespace libcw

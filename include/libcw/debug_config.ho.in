@@ -278,6 +278,11 @@
 #@CW_CONFIG_HAVE_PTHREADS@ LIBCWD_HAVE_PTHREAD
 
 #ifdef LIBCWD_THREAD_SAFE
+#define LIBCWD_DO_MAX 8                         // Maximal total number of debug objects in a single application.
+                                                // This costs about 640 kb of memory per object! (640 bytes * PTHREAD_THREADS_MAX).
+#define LIBCWD_DC_MAX 256                       // Maximal total number of debug channels in a single application.
+						// Costs 4 kb of memory per channel (exclusive the actual channels).
+
 /** \defgroup enable_libcwd_debugt --enable-libcwd-debugt (DEBUGDEBUGTHREADS)
  * \ingroup group_configuration
  *

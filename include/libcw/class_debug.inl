@@ -210,7 +210,7 @@ void
 debug_ct::off(void)
 {
   LIBCWD_TSD_DECLARATION
-  ++LIBCWD_TSD_MEMBER(_off);
+  ++LIBCWD_TSD_MEMBER_OFF;
 }
 
 /**
@@ -243,12 +243,12 @@ debug_ct::on(void)
 {
   LIBCWD_TSD_DECLARATION
 #ifdef DEBUGDEBUGOUTPUT
-  if (LIBCWD_TSD_MEMBER(first_time) && LIBCWD_TSD_MEMBER(_off) == -1)
+  if (LIBCWD_TSD_MEMBER(first_time) && LIBCWD_TSD_MEMBER_OFF == -1)
     LIBCWD_TSD_MEMBER(first_time) = false;
   else
-    --LIBCWD_TSD_MEMBER(_off);
+    --LIBCWD_TSD_MEMBER_OFF;
 #else
-  --LIBCWD_TSD_MEMBER(_off);
+  --LIBCWD_TSD_MEMBER_OFF;
 #endif
 }
 

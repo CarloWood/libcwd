@@ -289,7 +289,7 @@ extern void ST_initialize_globals(void);
   do																\
   {																\
     DEBUGDEBUG_DoutInternal_MARKER;												\
-    if (__libcwd_tsd.library_call == 0 && LIBCWD_DO_TSD_MEMBER(libcw_do, _off) < 0)						\
+    if (__libcwd_tsd.library_call == 0 && LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0)						\
     {																\
       DEBUGDEBUG_CERR( "Entering 'DoutInternal(cntrl, \"" << data << "\")'.  internal == " << __libcwd_tsd.internal << '.' );	\
       channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);						\
@@ -301,10 +301,10 @@ extern void ST_initialize_globals(void);
       if (on)															\
       {																\
         LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);							\
-	++ LIBCWD_DO_TSD_MEMBER(libcw_do, _off);										\
+	++ LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
 	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss)); 				\
         no_alloc_ostream << data;												\
-	-- LIBCWD_DO_TSD_MEMBER(libcw_do, _off);										\
+	-- LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
         LIBCWD_DO_TSD(libcw_do).finish(libcw_do, channel_set LIBCWD_COMMA_TSD);							\
       }																\
       DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal = " << __libcwd_tsd.internal << '.' ); 	\
@@ -327,10 +327,10 @@ extern void ST_initialize_globals(void);
 	channel_set&cntrl;													\
       }																\
       LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);							\
-      ++ LIBCWD_DO_TSD_MEMBER(libcw_do, _off);											\
+      ++ LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
       _private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_oss)); 				\
       no_alloc_ostream << data;													\
-      -- LIBCWD_DO_TSD_MEMBER(libcw_do, _off);											\
+      -- LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
       LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);	/* Never returns */			\
       LIBCWD_ASSERT( !"Bug in libcwd!" );											\
     }																\
@@ -413,9 +413,9 @@ namespace _private_ {
 #endif
       return true;
     WST_ios_base_initialized = true;
-    ++LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
+    ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
     make_all_allocations_invisible_except(NULL);		// Get rid of the <pre ios initialization> allocation list.
-    --LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
+    --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
     DEBUGDEBUG_CERR( "Standard streams initialized." );
     return false;
   }
@@ -1202,15 +1202,15 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
   if (WST_initialization_state <= 0)		// Only true prior to initialization of std::ios_base::Init.
   {
 #ifdef DEBUGDEBUG
-    bool continued_debug_output = (__libcwd_tsd.library_call == 0 && LIBCWD_DO_TSD_MEMBER(libcw_do, _off) < 0);
+    bool continued_debug_output = (__libcwd_tsd.library_call == 0 && LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0);
 #endif
     init_debugmalloc();
 #ifdef DEBUGDEBUG
-    // It is possible that libcwd is not initialized at this point, libcw_do._off == 0 (turned off)
+    // It is possible that libcwd is not initialized at this point,  LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) == 0 (turned off)
     // and thus no unfinished debug output was printed before entering this function.
     // Initialization of libcwd with DEBUGDEBUG defined turns on libcwd_do.  In order to balance the
     // continued stack, we print an unfinished debug message here.
-    if (continued_debug_output != (__libcwd_tsd.library_call == 0 && LIBCWD_DO_TSD_MEMBER(libcw_do, _off) < 0))
+    if (continued_debug_output != (__libcwd_tsd.library_call == 0 && LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0))
       DoutInternal( dc_malloc|continued_cf, "internal_malloc(" << size << ", " << flag << ") = " );
 #endif
   }
@@ -1233,10 +1233,10 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 
 #ifdef DEBUGUSEBFD
   if (__libcwd_tsd.library_call++)
-    ++LIBCWD_DO_TSD_MEMBER(libcw_do, _off);	// Otherwise debug output will be generated from bfd.cc (location_ct)
+    ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);	// Otherwise debug output will be generated from bfd.cc (location_ct)
   location_ct loc(call_addr LIBCWD_COMMA_TSD);
   if (--__libcwd_tsd.library_call)
-    --LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
+    --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
 
 #ifdef DEBUGDEBUGMALLOC
@@ -2111,10 +2111,10 @@ void register_external_allocation(void const* mptr, size_t size)
 
 #ifdef DEBUGUSEBFD
   if (__libcwd_tsd.library_call++)
-    libcw_do._off++;	// Otherwise debug output will be generated from bfd.cc (location_ct)
+    ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);	// Otherwise debug output will be generated from bfd.cc (location_ct)
   location_ct loc(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset LIBCWD_COMMA_TSD);
   if (--__libcwd_tsd.library_call)
-    libcw_do._off--;
+    --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
 
   DEBUGDEBUG_CERR( "register_external_allocation: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
@@ -2448,10 +2448,10 @@ void* __libcwd_realloc(void* ptr, size_t size)
 
 #ifdef DEBUGUSEBFD
   if (__libcwd_tsd.library_call++)
-    ++LIBCWD_DO_TSD_MEMBER(libcw_do, _off);    // Otherwise debug output will be generated from bfd.cc (location_ct)
+    ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);    // Otherwise debug output will be generated from bfd.cc (location_ct)
   location_ct loc(reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset LIBCWD_COMMA_TSD);
   if (--__libcwd_tsd.library_call)
-    --LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
+    --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
 
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 1." );

@@ -70,60 +70,15 @@
 #endif
 
 #ifdef LIBCWD_THREAD_SAFE
-#define LIBCWD_TSD_INSTANCE ::libcw::debug::_private_::\
-    thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance()
-	// For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
-#define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE
-	// Idem, but as second or higher parameter.
-#define LIBCWD_TSD_DECLARATION ::libcw::debug::_private_::\
-    TSD_st& __libcwd_tsd(::libcw::debug::_private_::\
-	                 thread_specific_data_tct< ::libcw::debug::_private_::TSD_st>::instance());
-	// Declaration of local `__libcwd_tsd' structure reference.
-#define LIBCWD_DO_TSD(debug_object) (__libcwd_tsd.do_array[(debug_object).WNS_index])
-    	// For use inside class debug_ct to access member `m'.
-#else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_TSD_INSTANCE
-#define LIBCWD_COMMA_TSD_INSTANCE
-#define LIBCWD_TSD_DECLARATION
-#define LIBCWD_DO_TSD(debug_object) ((debug_object).tsd)
-#endif // !LIBCWD_THREAD_SAFE
-
-#define LIBCWD_DO_TSD_MEMBER(debug_object, m) (LIBCWD_DO_TSD(debug_object).m)
-#define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
-
-#ifdef LIBCWD_THREAD_SAFE
 
 namespace libcw {
   namespace debug {
     namespace _private_ {
 
+extern void initialize_global_mutexes(void) throw();
 #ifdef DEBUGDEBUG
 extern bool WST_multi_threaded;
 #endif
-
-#if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
-template<class TSD>
-  class thread_specific_data_tct {
-  private:
-    static pthread_once_t S_key_once;
-    static pthread_key_t S_key;
-    static TSD* S_temporary_instance;
-    static bool S_initializing;
-    static bool S_initialized;
-    static void S_alloc_key(void) throw();
-    static TSD* S_initialize(void) throw();
-    static void S_destroy(void* tsd_ptr) throw();
-  public:
-    static TSD& instance(void) throw()
-    {
-      TSD* instance = reinterpret_cast<TSD*>(pthread_getspecific(S_key));
-      if (!instance)
-	instance = S_initialize();
-      return *instance;
-    }
-    static bool initialized(void) { return S_initialized; }
-  };
-#endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 
 //===================================================================================================
 //
@@ -738,89 +693,6 @@ template <int instance>
     else
       rdunlock();
   }
-
-//===================================================================================================
-// Implementation of Thread Specific Data.
-
-#if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
-template<class TSD>
-  pthread_once_t thread_specific_data_tct<TSD>::S_key_once = PTHREAD_ONCE_INIT;
-
-template<class TSD>
-  pthread_key_t thread_specific_data_tct<TSD>::S_key;
-
-template<class TSD>
-  TSD* thread_specific_data_tct<TSD>::S_temporary_instance;
-
-template<class TSD>
-  bool thread_specific_data_tct<TSD>::S_initializing;
-
-template<class TSD>
-  bool thread_specific_data_tct<TSD>::S_initialized;
-
-template<class TSD>
-  void thread_specific_data_tct<TSD>::S_destroy(void* tsd_ptr) throw()
-  {
-    TSD* instance = reinterpret_cast<TSD*>(tsd_ptr);
-    LIBCWD_TSD_DECLARATION
-    set_alloc_checking_off(LIBCWD_TSD);
-    delete instance;
-    // Hopefully S_destroy doesn't get called in the thread itself!
-    LibcwDebugThreads( LIBCWD_ASSERT( instance != &thread_specific_data_tct<TSD>::instance() ) );
-    set_alloc_checking_on(LIBCWD_TSD);
-  }
-
-template<class TSD>
-  void thread_specific_data_tct<TSD>::S_alloc_key(void) throw()
-  {
-    pthread_key_create(&S_key, S_destroy);
-  }
-
-extern void debug_tsd_init(LIBCWD_TSD_PARAM);
-extern void initialize_global_mutexes(void) throw();
-
-template<class TSD>
-  TSD* thread_specific_data_tct<TSD>::S_initialize(void) throw()
-  {
-    TSD* instance;
-    bool initialization_of_second_or_later_thread;
-    pthread_once(&S_key_once, S_alloc_key);
-    int oldtype;
-    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldtype);		// Defer cancellation.
-    mutex_tct<tsd_initialization_instance>::initialize();
-    mutex_tct<tsd_initialization_instance>::lock();
-    initialization_of_second_or_later_thread = WST_multi_threaded && !S_initializing;
-    if (S_initializing)
-      instance = S_temporary_instance;
-    else
-    {
-      char new_TSD_space[sizeof(TSD)];					// Allocate space on the stack.
-      S_temporary_instance = new (new_TSD_space) TSD;			// Create a temporary TSD.
-      S_initializing = true;
-      LIBCWD_TSD_DECLARATION						// This will 'return' the temporary TSD if TSD == TSD_st.
-      initialize_global_mutexes();						// This is a good moment to initialize all pthread mutexes.
-      set_alloc_checking_off(LIBCWD_TSD);
-      instance = new TSD;
-      set_alloc_checking_on(LIBCWD_TSD);
-      pthread_setspecific(S_key, instance);
-      // Because pthread_setspecific calls calloc, it is possible that in
-      // the mean time all of libcwd was initialized.  Therefore we need
-      // to copy the temporary TSD to the real TSD because it might
-      // contain relevant information.
-      std::memcpy((void*)instance, new_TSD_space, sizeof(TSD));		// Put the temporary TSD in its final place.
-      S_initializing = false;
-      S_initialized = true;
-    }
-    mutex_tct<tsd_initialization_instance>::unlock();
-    if (initialization_of_second_or_later_thread)			// Is this a second (or later) thread?
-      debug_tsd_init(*instance);					// Initialize the TSD of existing debug objects.
-    pthread_setcanceltype(oldtype, NULL);				// Restore cancellation.
-    return instance;
-  }
-#endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
-
-// End of Thread Specific Data
-//===================================================================================================
 
 extern void fatal_cancellation(void*) throw();
 

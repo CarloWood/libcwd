@@ -88,13 +88,13 @@ namespace libcw {
 	int saved_internal = __libcwd_tsd.internal;
 	__libcwd_tsd.internal = 0;
 	++__libcwd_tsd.library_call;
-	++LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
+	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 #endif
 	LIBCWD_DISABLE_CANCEL			// We don't want Dout() to be a cancellation point.
 	os->write(buf, curlen);
 	LIBCWD_ENABLE_CANCEL
 #ifdef DEBUGMALLOC
-	--LIBCWD_DO_TSD_MEMBER(libcw_do, _off);
+	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
 	--__libcwd_tsd.library_call;
 	__libcwd_tsd.internal = saved_internal;
 #endif
@@ -284,6 +284,31 @@ namespace libcw {
       channels::dc::system.NS_initialize("SYSTEM");
 
       libcw_do.NS_init();			// Initialize debug code.
+
+      // Unlimit core size.
+#ifdef RLIMIT_CORE
+      struct rlimit corelim;
+      if (getrlimit(RLIMIT_CORE, &corelim))
+	DoutFatal(dc::fatal|error_cf, "getrlimit(RLIMIT_CORE, &corelim)");
+      corelim.rlim_cur = corelim.rlim_max;
+      if (corelim.rlim_max != RLIM_INFINITY)
+      {
+	debug_ct::OnOffState state;
+	libcw_do.force_on(state);
+	// The cast is necessary on platforms where corelim.rlim_max is long long
+	// and libstdc++ was not compiled with support for long long.
+	Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
+	libcw_do.restore(state);
+      }
+      if (setrlimit(RLIMIT_CORE, &corelim))
+	  DoutFatal(dc::fatal|error_cf, "unlimit core size failed");
+#else
+      debug_ct::OnOffState state;
+      libcw_do.force_on(state);
+      Dout(dc::warning, "Please unlimit core size manually");
+      libcw_do.restore(state);
+#endif
+
 #ifdef DEBUGUSEBFD
       cwbfd::ST_init();				// Initialize BFD code.
 #endif
@@ -641,8 +666,8 @@ namespace libcw {
         return;
       }
 
-      ++_off;
-      DEBUGDEBUG_CERR( "Entering debug_ct::start(), _off became " << _off );
+      ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
+      DEBUGDEBUG_CERR( "Entering debug_ct::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
 
       // Is this an interrupting debug output (in the middle of a continued debug output)?
       if ((current->mask & continued_cf_maskbit) && unfinished_expected)
@@ -730,8 +755,8 @@ namespace libcw {
         static_cast<buffer_ct*>(current_oss)->store_position();
       }
 
-      --_off;
-      DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << _off );
+      --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
+      DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
     }
 
     void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
@@ -762,8 +787,8 @@ namespace libcw {
         return;
       }
 
-      ++_off;
-      DEBUGDEBUG_CERR( "Entering debug_ct::finish(), _off became " << _off );
+      ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
+      DEBUGDEBUG_CERR( "Entering debug_ct::finish(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
 
       // Handle control flags, if any:
       if ((current->mask & error_cf))
@@ -849,8 +874,8 @@ namespace libcw {
       start_expected = true;
       unfinished_expected = false;
 
-      --_off;
-      DEBUGDEBUG_CERR( "Leaving debug_ct::finish(), _off became " << _off );
+      --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
+      DEBUGDEBUG_CERR( "Leaving debug_ct::finish(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
 
       set_alloc_checking_on(LIBCWD_TSD);
     }
@@ -898,46 +923,32 @@ namespace libcw {
       set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
 #endif
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
-#ifndef LIBCWD_THREAD_SAFE
-      tsd.init();
-#else
-      WNS_index = ++S_index_count;
-      __libcwd_tsd.do_array[WNS_index].init();
+#ifdef LIBCWD_THREAD_SAFE
+      WNS_index = S_index_count++;
+#ifdef DEBUGDEBUGTHREADS
+      LIBCWD_ASSERT( pthread_self() == PTHREAD_THREADS_MAX );	// Only the initial thread should be initializing debug_ct objects.
 #endif
+      LIBCWD_ASSERT( __libcwd_tsd.do_array[WNS_index] == NULL );
+      debug_tsd_st& tsd(*(__libcwd_tsd.do_array[WNS_index] =  new debug_tsd_st));
+#endif
+      tsd.init();
       set_alloc_checking_on(LIBCWD_TSD);
 
-      // This set current_oss and must be called after tsd.init().
+#ifdef DEBUGDEBUGOUTPUT
+      LIBCWD_TSD_MEMBER_OFF = -1;		// Print as much debug output as possible right away.
+#else
+      LIBCWD_TSD_MEMBER_OFF = 0;		// Don't print debug output till the REAL initialization of the debug system
+      						// has been performed (ie, the _application_ start (don't confuse that with
+						// the constructor - which does nothing)).
+#endif
+      DEBUGDEBUG_CERR( "debug_ct::NS_init(void), _off set to " << LIBCWD_TSD_MEMBER_OFF );
+
+      // This sets current_oss and must be called after tsd.init().
       set_ostream(&std::cerr);				// Write to std::cerr by default.
       interactive = true;				// and thus we're interactive.
 
       WNS_initialized = true;
-
-      // Unlimit core size.
-#ifdef RLIMIT_CORE
-      struct rlimit corelim;
-      if (getrlimit(RLIMIT_CORE, &corelim))
-	DoutFatal(dc::fatal|error_cf, "getrlimit(RLIMIT_CORE, &corelim)");
-      corelim.rlim_cur = corelim.rlim_max;
-      if (corelim.rlim_max != RLIM_INFINITY)
-      {
-	OnOffState state;
-	force_on(state);
-	// The cast is necessary on platforms where corelim.rlim_max is long long
-	// and libstdc++ was not compiled with support for long long.
-	Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
-	restore(state);
-      }
-      if (setrlimit(RLIMIT_CORE, &corelim))
-	  DoutFatal(dc::fatal|error_cf, "unlimit core size failed");
-#else
-      OnOffState state;
-      force_on(state);
-      Dout(dc::warning, "Please unlimit core size manually");
-      restore(state);
-#endif
     }
-
-    debug_tsd_st::debug_tsd_st(void) : _off(0), tsd_initialized(false) { }	// Turn off all debugging until initialization is completed.
 
     void debug_tsd_st::init(void)
     {
@@ -945,9 +956,9 @@ namespace libcw {
       LIBCWD_TSD_DECLARATION
       LIBCWD_ASSERT( __libcwd_tsd.internal );
 #endif
-      DEBUGDEBUG_CERR( "In debug_tsd_st::init(void), _off set to 0" );
-
       start_expected = true;				// Of course, we start with expecting the beginning of a debug output.
+      unfinished_expected = false;
+
       // `current' needs to be non-zero (saving us a check in start()) and
       // current.mask needs to be 0 to avoid a crash in start():
       current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
@@ -962,13 +973,14 @@ namespace libcw {
       marker.NS_internal_init(": ", 2);
 
 #ifdef DEBUGDEBUGOUTPUT
-      _off = -1;		// Print as much debug output as possible right away.
-      first_time = true;	// Needed to ignore the first time we call on().
-#else
-      _off = 0;			// Don't print debug output till the REAL initialization of the debug system has been performed
-      				// (ie, the _application_ start (don't confuse that with the constructor - which does nothing)).
+      first_time = true;
 #endif
-      DEBUGDEBUG_CERR( "After debug_tsd_st::init(void), _off set to " << _off );
+      off_count = 0;
+      M_margin_stack = NULL;
+      M_marker_stack = NULL;
+      indent = 0;
+
+
       tsd_initialized = true;
     }
 
@@ -977,8 +989,11 @@ namespace libcw {
       {
 	ForAllDebugObjects(
 	  set_alloc_checking_off(LIBCWD_TSD);
-	  LIBCWD_DO_TSD(debugObject).init();
+	  LIBCWD_ASSERT( __libcwd_tsd.do_array[(debugObject).WNS_index] == NULL );
+	  debug_tsd_st& tsd(*(__libcwd_tsd.do_array[(debugObject).WNS_index] =  new debug_tsd_st));
+	  tsd.init();
 	  set_alloc_checking_on(LIBCWD_TSD);
+	  LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;
 	);
       }
     }
@@ -993,9 +1008,6 @@ namespace libcw {
       if (laf_stack.size())
         DoutFatal( dc::core|cerr_cf, "Destructing debug_tsd_st with a non-empty laf_stack" );
 
-      ++_off;		// Turn all debug output premanently off, otherwise we might re-initialize
-                        // this object again when we try to write debug output to it!
-      DEBUGDEBUG_CERR( "debug_tsd_st destructed: _off became " << _off );
       LIBCWD_TSD_DECLARATION
       set_alloc_checking_off(LIBCWD_TSD);
       marker.ST_internal_deinit();
@@ -1088,7 +1100,7 @@ namespace libcw {
     void list_channels_on(debug_ct& debug_object)
     {
       LIBCWD_TSD_DECLARATION
-      if (LIBCWD_DO_TSD_MEMBER(debug_object, _off) < 0)
+      if (LIBCWD_DO_TSD_MEMBER_OFF(debug_object) < 0)
       {
 	LIBCWD_DEFER_CANCEL
         _private_::debug_channels.init(LIBCWD_TSD);
@@ -1395,11 +1407,11 @@ namespace libcw {
     {
       NS_init();
       LIBCWD_TSD_DECLARATION
-      state._off = LIBCWD_TSD_MEMBER(_off);
+      state._off = LIBCWD_TSD_MEMBER_OFF;
 #ifdef DEBUGDEBUGOUTPUT
       state.first_time = LIBCWD_TSD_MEMBER(first_time);
 #endif
-      LIBCWD_TSD_MEMBER(_off) = -1;					// Turn object on.
+      LIBCWD_TSD_MEMBER_OFF = -1;					// Turn object on.
     }
 
     void debug_ct::restore(debug_ct::OnOffState const& state)
@@ -1409,9 +1421,9 @@ namespace libcw {
       if (state.first_time != LIBCWD_TSD_MEMBER(first_time))		// state.first_time && !first_time.
 	core_dump();							// on() was called without first a call to off().
 #endif
-      if (LIBCWD_TSD_MEMBER(_off) != -1)
+      if (LIBCWD_TSD_MEMBER_OFF != -1)
 	core_dump();							// off() and on() where called and not in equal pairs.
-      LIBCWD_TSD_MEMBER(_off) = state._off;				// Restore.
+      LIBCWD_TSD_MEMBER_OFF = state._off;				// Restore.
     }
 
     void channel_ct::force_on(channel_ct::OnOffState& state, char const* label)

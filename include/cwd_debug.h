@@ -101,7 +101,7 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
 #define LIBCWD_Dout( cntrl, data )									\
   do													\
   {													\
-    if (LIBCWD_DO_TSD_MEMBER(libcw_do, _off) < 0)							\
+    if (LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0)							\
     {													\
       bool on;												\
       channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);			\
