@@ -104,6 +104,8 @@ public:
   friend std::ostream& operator<<(std::ostream& os, location_ct const& location);		// Prints a default "M_filename:M_line".
 };
 
+void* dlopen(char const*, int);
+
   } // namespace debug
 } // namespace libcw
 

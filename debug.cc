@@ -197,6 +197,8 @@ namespace libcw {
         os.put(' ');
     }
 
+    static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
+
     void debug_ct::start(void)
     {
       // It's possible we get here before this debug object is initialized: The order of calling global is undefined :(.
@@ -268,7 +270,9 @@ namespace libcw {
       //set_alloc_checking_off();
       DEBUGDEBUG_CERR( "creating new laf_ct" );
       current = new laf_ct(channel_set.mask, channel_set.label, saved_os, errno);
+      DEBUGDEBUG_CERR( "current = " << (void*)current );
       current_oss = &current->oss;
+      DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
       DEBUGDEBUG_CERR( "laf_ct created" );
       //set_alloc_checking_on();
 
@@ -320,8 +324,6 @@ namespace libcw {
 #endif
     }
 
-    static char dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
-
     void debug_ct::finish(void)
     {
       // Skip `finish()' for a `continued' debug output.
@@ -352,8 +354,8 @@ namespace libcw {
       channel_set.mask = current->mask;
       channel_set.label = current->label;
       saved_os = current->saved_os;
-      //set_alloc_checking_off();
-      DEBUGDEBUG_CERR( "Deleting `current'" );
+
+      // Do this check before handling dc::fatal or dc::core.
       if (current == reinterpret_cast<laf_ct*>(dummy_laf))
       {
 	*os << '\n';
@@ -367,9 +369,6 @@ namespace libcw {
 	    "' without (first using) a matching `continue_cf'.");
 #endif
       }
-      delete current;
-      DEBUGDEBUG_CERR( "Done deleting `current'" );
-      //set_alloc_checking_on();
 
       // Handle control flags, if any:
       if (channel_set.mask == 0)
@@ -396,6 +395,11 @@ namespace libcw {
 	    debug_internal2 = true;
 	    *os << endl;
 	  }
+	  //set_alloc_checking_off();
+	  DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
+	  delete current;
+	  DEBUGDEBUG_CERR( "Done deleting `current'" );
+	  //set_alloc_checking_on();
 	  debug_alloc_checking_off();
 	  exit(254);
 	}
@@ -416,6 +420,12 @@ namespace libcw {
 	  os = saved_os;
       }
 
+      //set_alloc_checking_off();
+      DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
+      delete current;
+      DEBUGDEBUG_CERR( "Done deleting `current'" );
+      //set_alloc_checking_on();
+
       if (start_expected)
       {
         // Ok, we're done with the last buffer.
@@ -423,13 +433,20 @@ namespace libcw {
         laf_stack.pop();
       }
 
-      // Restore previous buffer as being the current one.
+      // Restore previous buffer as being the current one, if any.
       if (laf_stack.size())
       {
         current = laf_stack.top();
+	DEBUGDEBUG_CERR( "current = " << (void*)current );
 	current_oss = &current->oss;
+	DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
 	if ((channel_set.mask & flush_cf))
 	  current->mask |= flush_cf;	// Propagate flush to real ostream.
+      }
+      else
+      {
+        current = reinterpret_cast<laf_ct*>(dummy_laf);
+	current_oss = NULL;
       }
 
       start_expected = true;
@@ -483,7 +500,9 @@ namespace libcw {
       // current.mask needs to be 0 to avoid a crash in start():
       debug_alloc_checking_on();
       current = new (dummy_laf) laf_ct(0, channels::dc::debug.label, NULL, 0);	// Leaks 24 bytes of memory
+      DEBUGDEBUG_CERR( "current = " << (void*)current );
       current_oss = &current->oss;
+      DEBUGDEBUG_CERR( "current_oss = " << (void*)current_oss );
       debug_alloc_checking_off();
       laf_stack.init();
       continued_stack.init();

@@ -368,7 +368,7 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
 	    map<void*, unsigned int> start_values;
 	    unsigned int best_count = 0;
 	    void* best_start = 0;
-	    void* handle = dlopen(NULL, RTLD_LAZY);
+	    void* handle = ::dlopen(NULL, RTLD_LAZY);
 	    for (asymbol** s = symbol_table; s <= &symbol_table[number_of_symbols - 1]; ++s)
 	    {
 	      if ((*s)->name == 0 || ((*s)->flags & BSF_FUNCTION) == 0 || ((*s)->flags & (BSF_GLOBAL|BSF_WEAK)) == 0)
@@ -1122,6 +1122,27 @@ inline bool bfd_is_und_section(asection* sect) { return false; }
       else
 	os << "<unknown location>";
       return os;
+    }
+
+    void* dlopen(char const* name, int flags)
+    {
+#ifdef HAVE_DLOPEN
+      Dout(dc::bfd, "Calling libcw::debug::dlopen \"" << (name ? "(nil)" : NULL) << "\".");
+      Debug( libcw_do.inc_indent(4) );
+      void* addr = ::dlopen(name, flags);
+      Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << name << "... ");
+      set_alloc_checking_off();
+      cwbfd::object_file_ct* object_file = new cwbfd::object_file_ct(name, cwbfd::unknown_l_addr);
+      set_alloc_checking_on();
+      if (object_file->get_number_of_symbols() > 0)
+        Dout(dc::finish, "done (" << dec << object_file->get_number_of_symbols() << " symbols)");
+      else
+        Dout(dc::finish, "No symbols found");
+      Debug( libcw_do.dec_indent(4) );
+      return addr;
+#else
+      DoutFatal(dc::fatal, "Calling libcw::debug::dlopen \"" << (name ? "(nil)" : NULL) << "\", but you don't HAVE dlopen.");
+#endif
     }
 
   } // namespace debug

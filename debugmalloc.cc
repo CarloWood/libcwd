@@ -1645,15 +1645,15 @@ void __libcwd_free(void* ptr)
 #ifdef DEBUGDEBUGMALLOC
     if (from == from_delete)
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")'" );
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete(" << ptr << ")' [" << ++marker << ']' );
     }
     else if (from == from_delete_array)
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")'" );
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `delete[](" << ptr << ")' [" << ++marker << ']' );
     }
     else
     {
-      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")'" );
+      DEBUGDEBUGMALLOC_CERR( "DEBUGDEBUGMALLOC: Internal `free(" << ptr << ")' [" << ++marker << ']' );
     }
 #endif // DEBUGDEBUGMALLOC
 #ifdef DEBUGMAGICMALLOC
@@ -1698,9 +1698,11 @@ void __libcwd_free(void* ptr)
 
   if (!ptr)
   {
-    DoutInternal( dc_malloc, "Trying to free NULL - ignored." );
 #ifdef DEBUGDEBUGMALLOC
+    DoutInternal( dc_malloc, "Trying to free NULL - ignored [" << ++marker << "]." );
     --recursive;
+#else
+    DoutInternal( dc_malloc, "Trying to free NULL - ignored." );
 #endif
     return;
   }
@@ -1732,7 +1734,11 @@ void __libcwd_free(void* ptr)
 	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
 	  << ptr << ((from == from_free) ? ") " : " ") );
       (*i).second.print_description();
+#ifdef DEBUGDEBUGMALLOC
+      DoutInternal( dc::continued, " [" << ++marker << "] " );
+#else
       DoutInternal( dc::continued, ' ' );
+#endif
     }
 #endif // CWDEBUG
     if (expected_from[f] != from)
