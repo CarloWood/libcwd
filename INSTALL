@@ -89,8 +89,8 @@ get this package via CVS; in that case you also need to configure using
 iii)  GNU make
 iv)   GNU m4
 v)    GNU which	version 2.x
-vi)   autoconf	version 2.13 or 2.52 or higher
-vii)  automake	version 1.5 or higher
+vi)   autoconf	version 2.52 or higher
+vii)  automake	version 1.6 or higher
 viii) libtool	version 1.4.2 or higher (linux)
       (Other OS probably need the latest CVS version
        because libtool 1.4.x treats everything as C,
