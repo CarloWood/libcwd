@@ -20,7 +20,7 @@ RCSTAG_CC("$Id$")
 int main(int UNUSED(argc), char *argv[])
 {
   // Select channels
-  ForAllDebugChannels( while(debugChannel.is_on()) debugChannel.off(); );
+  ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
   Debug( warning_dc.on() );
   Debug( notice_dc.on() );
   Debug( malloc_dc.on() );

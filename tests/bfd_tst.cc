@@ -72,7 +72,7 @@ void libcw_bfd_test(void)
 int main(int argc, char *argv[])
 {
   // Select channels
-  ForAllDebugChannels( while(debugChannel.is_on()) debugChannel.off(); );
+  ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
   Debug( warning_dc.on() );
   Debug( bfd_dc.on() );
   Debug( notice_dc.on() );

@@ -333,7 +333,7 @@ public:
         dm_alloc_ct::current_owner_node = this; }
     // Start a new list in this node.
   void change_flags(memblk_types_nt new_memblk_type) { a_memblk_type = new_memblk_type; }
-  void change_label(type_info_ct const& ti, lockable_auto_ptr<char> description) { type_info_ptr = &ti; a_description = description; }
+  void change_label(type_info_ct const& ti, lockable_auto_ptr<char, true> description) { type_info_ptr = &ti; a_description = description; }
   type_info_ct const* typeid_ptr(void) const { return type_info_ptr; }
   char const* description(void) const { return a_description.get(); }
   dm_alloc_ct const* next_node(void) const { return next; }
@@ -424,10 +424,10 @@ public:
       { if (has_alloc_node()) return a_alloc_node.get(); return NULL; }
   type_info_ct const* typeid_ptr(void) const { return a_alloc_node.get()->typeid_ptr(); }
   char const* description(void) const { return a_alloc_node.get()->description(); }
-  void change_label(type_info_ct const& ti, lockable_auto_ptr<char> description) const
+  void change_label(type_info_ct const& ti, lockable_auto_ptr<char, true> description) const
       { if (has_alloc_node()) a_alloc_node.get()->change_label(ti, description); }
   void change_label(type_info_ct const& ti, char const* description) const
-      { lockable_auto_ptr<char> desc(const_cast<char*>(description), true);
+      { lockable_auto_ptr<char, true> desc(const_cast<char*>(description));
         /* Make sure we won't delete it: */ if (description) desc.release(); change_label(ti, desc); }
   void change_flags(memblk_types_nt new_flag) const
       { if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
@@ -1434,13 +1434,13 @@ namespace libcw {
     {
 #if 0
       // Print out the entire `map':
-      LibcwDout( debug_object, malloc_dc, "map:" );
+      LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, malloc_dc, "map:" );
       int cnt = 0;
       for(memblk_map_ct::const_iterator i(memblk_map->begin()); i != memblk_map->end(); ++i)
-	LibcwDout( debug_object, malloc_dc|nolabel_cf, << ++cnt << ":\t(*i).first = " << (*i).first << '\n' << "\t(*i).second = " << (*i).second );
+	LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, malloc_dc|nolabel_cf, << ++cnt << ":\t(*i).first = " << (*i).first << '\n' << "\t(*i).second = " << (*i).second );
 #endif
 
-      LibcwDout( debug_object, malloc_dc, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks." );
+      LibcwDout( NAMESPACE_LIBCW_DEBUG, debug_object, malloc_dc, "Allocated memory: " << dm_alloc_ct::get_mem_size() << " bytes in " << dm_alloc_ct::get_memblks() << " blocks." );
       if (base_alloc_list)
 	base_alloc_list->show_alloc_list(1, NAMESPACE_LIBCW_DEBUG::malloc_dc);
     }
@@ -1522,7 +1522,7 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* descri
     (*i).second.change_label(ti, description);
 }
 
-void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<char> description)
+void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<char, true> description)
 {
   memblk_map_ct::iterator const& i(memblk_map->find(memblk_key_ct(ptr, 0)));
   if (i != memblk_map->end() && (*i).first.start() == ptr)

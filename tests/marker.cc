@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
   make_all_allocations_invisible_except(NULL);
 
   // Select channels
-  ForAllDebugChannels( while (debugChannel.is_on()) debugChannel.off() );
+  ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
   Debug( notice_dc.on() );
   Debug( malloc_dc.on() );
   Debug( warning_dc.on() );

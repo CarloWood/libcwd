@@ -22,7 +22,7 @@ STATICLIBS=#-L/usr/src/perf-papi/src -lpapi
 # Extra static libraries to link with:
 # If you defined DEBUGUSEBFD in include/libcw/debugging_defs.h,
 # then you need this line; libbfd.a is part of GNU binutils.
-SHAREDLIBS=-lbfd -liberty -ldl
+SHAREDLIBS=#-lbfd -liberty -ldl
 
 #-----------------------------------------------------------------------------
 

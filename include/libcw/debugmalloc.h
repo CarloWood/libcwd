@@ -103,7 +103,7 @@ namespace libcw {
     size_t a_size;              	// Duplicate of (original) memblk_key_ct
     memblk_types_nt a_memblk_type;	// A flag which indicates the type of allocation
     type_info_ct const* type_info_ptr;	// Type info of related object
-    lockable_auto_ptr<char> a_description;	// A label describing this memblk
+    lockable_auto_ptr<char, true> a_description;	// A label describing this memblk
 #ifdef DEBUGUSEBFD
     location_st location;		// Source file, function and line number from where the allocator was called from
 #endif
@@ -112,7 +112,7 @@ namespace libcw {
     alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti, void* call_addr);
 #else
     alloc_ct(void const* s, size_t sz, memblk_types_nt type, type_info_ct const& ti) :
-        a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti) {}
+        a_start(s), a_size(sz), a_memblk_type(type), type_info_ptr(&ti) { }
 #endif
     size_t size(void) const { return a_size; }
     void const* start(void) const { return a_start; }
@@ -171,7 +171,7 @@ extern void make_all_allocations_invisible_except(void const* ptr);
 
 // Undocumented (used inside AllocTag, AllocTag_dynamic_description, AllocTag1 and AllocTag2):
 extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description);			// For static descriptions
-extern void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<char> description);	// For descriptions
+extern void set_alloc_label(void const* ptr, type_info_ct const& ti, lockable_auto_ptr<char, true> description);// For descriptions
 														// allocated with new[]
 // Undocumented (libcw `internal' function)
 extern void init_debugmalloc(void);
@@ -220,7 +220,7 @@ namespace libcw {
 	    desc = buf.str(); /* Implicit buf.freeze(1) */ \
 	  } \
 	  set_alloc_checking_on(); \
-	  set_alloc_label(p, type_info_of(p), lockable_auto_ptr<char>(desc, true)); \
+	  set_alloc_label(p, type_info_of(p), lockable_auto_ptr<char, true>(desc)); \
 	} while(0)
 
 template<typename TYPE>

@@ -181,7 +181,7 @@ int main(void)
   grab_cerr();
 
   // Select channels
-  ForAllDebugChannels( while(debugChannel.is_on()) debugChannel.off(); );
+  ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
   Debug( notice_dc.on() );
   Debug( system_dc.on() );
   Debug( foo_dc.on() );

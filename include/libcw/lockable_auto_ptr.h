@@ -19,6 +19,8 @@
 
 RCSTAG_H(lockable_auto_ptr, "$Id$")
 
+#include <libcw/type_info.h>
+
 //=========================================================================
 //
 // class lockable_auto_ptr
@@ -35,7 +37,7 @@ RCSTAG_H(lockable_auto_ptr, "$Id$")
 // not transfered, but stays on the same (locked) `lockable_auto_ptr'.
 //
 
-template<class X>
+template<class X, bool array = false>	// Use array == true when `ptr' was allocated with new [].
 class lockable_auto_ptr {
   typedef X element_type;
 
@@ -43,24 +45,23 @@ private:
   X* ptr;			// Pointer to object of type X, or NULL when not pointing to anything.
   bool locked;			// Set if this lockable_auto_ptr object is locked.
   mutable bool owner;		// Set if this lockable_auto_ptr object is the owner of the object that `ptr' points too.
-  const bool array;		// Set when `ptr' was allocated with new [].
 
 public:
   //-----------------------------------------------------------------------
   // Constructors
   //
 
-  explicit lockable_auto_ptr(X* p = 0, bool is_array = false) : ptr(p), locked(false), owner(p), array(is_array) {}
+  explicit lockable_auto_ptr(X* p = 0) : ptr(p), locked(false), owner(p) { }
       // Explicit constructor that creates a lockable_auto_ptr pointing to `p'.
 
-  lockable_auto_ptr(lockable_auto_ptr const& r) : ptr(r.ptr), locked(false), owner(r.owner && !r.locked), array(r.array)
+  lockable_auto_ptr(lockable_auto_ptr const& r) : ptr(r.ptr), locked(false), owner(r.owner && !r.locked)
       { if (!r.locked) r.owner = 0; }
       // The default copy constructor.
 
-  template<class Y> friend class lockable_auto_ptr;
+  template<class Y, bool ARRAY> friend class lockable_auto_ptr;
 
   template<class Y>
-  lockable_auto_ptr(lockable_auto_ptr<Y> const& r) : ptr(r.ptr), locked(false), owner(r.owner && !r.locked), array(r.array)
+  lockable_auto_ptr(lockable_auto_ptr<Y, array> const& r) : ptr(r.ptr), locked(false), owner(r.owner && !r.locked)
       { if (!r.locked) r.owner = 0; }
       // Constructor to copy a lockable_auto_ptr that point to an object derived from X.
 
@@ -69,7 +70,7 @@ public:
   //
 
   template<class Y>
-  lockable_auto_ptr& operator=(lockable_auto_ptr<Y> const& r);
+  lockable_auto_ptr& operator=(lockable_auto_ptr<Y, array> const& r);
 
   lockable_auto_ptr& operator=(lockable_auto_ptr const& r) { return operator= <X> (r); }
       // The default assignment operator.
@@ -121,13 +122,12 @@ public:
     // Unlock the ownership (if any).
 };
 
-template<class X>
+template<class X, bool array>
 template<class Y>
-lockable_auto_ptr<X>& lockable_auto_ptr<X>::operator=(lockable_auto_ptr<Y> const& r)
+lockable_auto_ptr<X, array>& lockable_auto_ptr<X, array>::operator=(lockable_auto_ptr<Y, array> const& r)
 {
   if ((void*)&r != (void*)this)
   {
-    ASSERT(array == r.array);
     if (owner) 
     {
       if (array)
