@@ -17,9 +17,9 @@ URL: http://libcw.sourceforge.net/debugging/
 %description
 Libcwd is a full-featured, professional, well documented library to support
 C++ developers with debugging their applications.  It includes support for
-ostream-based debug output, custom debug channels and devices, powerful
-memory allocation debugging, run-time sourcefile:linenumber information and
-demangled type-names of variables.
+ostream-based debug output, custom debug channels and devices, threading,
+powerful memory allocation debugging, run-time sourcefile:linenumber
+information and demangled type-names of variables.
 
 %prep
 %setup
@@ -41,7 +41,8 @@ PATH="$PATH:/sbin" ldconfig -n %{__prefix}/lib
 echo
 echo "Please look at %{__prefix}/doc/libcwd-%{version}/example-project.tar.gz"
 echo "for an example of how to write an application that uses libcwd."
-echo "Detailed documentation can be found in file://%{__prefix}/doc/libcwd-%{version}/html/index.html"
+echo "Detailed documentation can be found in"
+echo "file://%{__prefix}/doc/libcwd-%{version}/html/index.html"
 echo
 
 %files
@@ -60,6 +61,9 @@ echo
 %{__prefix}/include/libcw/*
 
 %changelog
+* Wed Feb 13 2002 Carlo Wood <libcw@alinoe.com>
+- Allow also version of autoconf larger than 2.13.
+
 * Sun Dec 09 2001 Carlo Wood <libcw@alinoe.com>
 - Added a URL: and BuildPrereq: entry.
 - Added doxygen documentation to the rpm.
