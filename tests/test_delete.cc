@@ -19,6 +19,8 @@ class A {};
 
 int main(int argc, char *argv[])
 {
+  Debug( check_configuration() );
+
 #ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
@@ -65,7 +67,9 @@ int main(int argc, char *argv[])
   Dout( dc::notice, "Finished successfully." );
 
 #else // !DEBUGMALLOC
-  cerr << "Define DEBUGMALLOC in libcw/debugging_defs.h\n";
+  cerr << "`libcwd' does not have memory allocation debugging compiled in.\n"
+          "Configure `libcwd' using the `configure' option --enable-alloc.\n" 
+          "Then recompile libcwd.\n";
 #endif // !DEBUGMALLOC
 
   return 0;

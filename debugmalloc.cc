@@ -13,7 +13,7 @@
 
 #define DEBUGMALLOC_INTERNAL
 #include <libcw/sys.h>
-#include <libcw/debugging_defs.h>
+#include <libcw/debug_config.h>
 
 #ifdef DEBUGMALLOC
 

@@ -180,6 +180,8 @@ const char *nested_bar(bool bar_with_error, bool bar_to_cerr, bool foo_with_erro
 int main(void)
 {
 #ifdef DEBUG
+  Debug( check_configuration() );
+
   grab_cerr();
 
   // Select channels
@@ -348,7 +350,7 @@ int main(void)
   cout << " Continued tests, depth 2\n\n";
 
 #else // !DEBUG
-  cerr << "Define DEBUG in libcw/debugging_defs.h\n";
+  cerr << "DEBUG is not defined?\n";
 #endif // !DEBUG
 
   return 0;

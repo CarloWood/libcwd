@@ -19,6 +19,8 @@ RCSTAG_CC("$Id$")
 
 int main(int UNUSED(argc), char *argv[])
 {
+  Debug( check_configuration() );
+
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
   Debug( dc::warning.on() );
@@ -38,7 +40,9 @@ int main(int UNUSED(argc), char *argv[])
   // Print memory allocations
   Debug( list_allocations_on(libcw_do) );
 #else
-  cerr << "Define DEBUGMALLOC in libcw/debugging_defs.h\n";
+  cerr << "`libcwd' does not have memory allocation debugging compiled in.\n"
+          "Configure `libcwd' using the `configure' option --enable-alloc.\n" 
+          "Then recompile libcwd.\n";
 #endif
 
   delete [] p;

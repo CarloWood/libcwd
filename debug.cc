@@ -34,6 +34,15 @@ namespace libcw {
   namespace debug {
 #endif
 
+    // Configuration signature
+    unsigned long config_signature_lib = config_signature_header;
+
+    // Put this here to decrease the code size of `check_configuration'
+    void conf_check_failed(void)
+    {
+      DoutFatal(dc::fatal, "check_configuration: This version of libcwd was compiled with a different configuration than is currently used in libcw/debug_config.h!");
+    }
+
     debug_ct libcw_do;				// The Debug Object that is used by default by Dout(), the only debug object used
     						// by libcw itself.
 

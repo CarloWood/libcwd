@@ -18,7 +18,7 @@
 #error "You need to #include <libcw/sys.h> at the top of every source file."
 #endif
 
-#include <libcw/debugging_defs.h>
+#include <libcw/debug_config.h>
 
 RCSTAG_H(debug, "$Id$")
 

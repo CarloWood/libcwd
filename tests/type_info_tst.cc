@@ -35,6 +35,7 @@ private:
 
 int main(void)
 {
+  Debug( check_configuration() );
   {
     int i;
     cout << type_info_of(i).demangled_name() << " : " << type_info_of(i).ref_size() << endl;

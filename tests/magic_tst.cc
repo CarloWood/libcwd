@@ -23,6 +23,8 @@ RCSTAG_CC("$Id$")
 
 int main(int argc, char **argv)
 {
+  Debug( check_configuration() );
+
 #ifdef DEBUGMAGICMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);
@@ -49,7 +51,9 @@ int main(int argc, char **argv)
   delete[] p;
 
 #else // !DEBUGMAGICMALLOC
-  cerr << "Define DEBUGMALLOC and DEBUGMAGICMALLOC in libcw/debugging_defs.h\n";
+  cerr << "`libcwd' does not have memory allocation debugging compiled in.\n"
+          "Configure `libcwd' using the `configure' options --enable-alloc.\n" 
+          "and --enable-magic.  Then recompile libcwd.\n";
 #endif // !DEBUGMAGICMALLOC
 
   return 0;

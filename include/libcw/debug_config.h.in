@@ -1,3 +1,4 @@
+// @configure_input@
 // $Header$
 //
 // Copyright (C) 2000, by
@@ -14,32 +15,29 @@
 #ifndef LIBCW_DEBUGGING_DEFS_H
 #define LIBCW_DEBUGGING_DEFS_H
 
-// Read the README file in this directory
+//
+// DO NOT CHANGE THIS FILE
+//
+// The defines in this file are configuration options chosen during
+// compilation of libcwd.  To change these option, run `configure'
+// with the appropriate commandline options (Use `configure --help'
+// for more details).  In order to be sure that a program is linking
+// with a library that was compiled with the same header file, call
+// Debug( check_configuration() ); at the top of your program.
+//
+// See http://libcw.sourceforge.net/debugging/
+// for more, detailed documentation.
 //
 
-//
-//
-// Add to CFLAGS and CXXFLAGS: -DDEBUG
-// Then link with -lcwd
-//
-// In general, this enables debug output and adds several
-// double checking in the code. The level of output can
-// be choosen seperately when supported.
-// In general, this should be defined as long as you are
-// develloping the program, unless you want to do
-// speed tests.
-
-//
 //
 // DEBUGMALLOC
 //
 // Turn on debugging for memory (de-) allocation. This
 // will warn you when you free an invalid block.
-// It also enables Memory Leak Detection (See ...).
+// It also enables Memory Leak Detection (See html documentation).
 
-#define DEBUGMALLOC
+#@CONFIG_DEBUGMALLOC@ DEBUGMALLOC
 
-//
 //
 // DEBUGMAGICMALLOC
 //
@@ -48,30 +46,27 @@
 // deleted or reallocated.
 
 #ifdef DEBUGMALLOC
-#define DEBUGMAGICMALLOC
+#@CONFIG_DEBUGMAGICMALLOC@ DEBUGMAGICMALLOC
 #endif
 
-//
 //
 // DEBUGUSEBFD
 //
 // Add BFD code.
 //
 // You will need libbfd.a and libiberty.a, which are part of GNU binutils.
-// This will only work when you have ELF.
 //
-// Turning this on causes libcw to print source file and line
+// Turning this on causes libcwd to print source file and line
 // number information about where memory was allocated in the
 // memory allocation overview.
 // It also provides an interface, allowing applications that link
-// with libcw to print debugging information using the symbol table.
+// with libcwd to print debugging information using the symbol table.
 //
 
-#if defined(DEBUG) && defined(__ELF__)
-#define DEBUGUSEBFD
+#ifdef DEBUG
+#@CONFIG_DEBUGUSEBFD@ DEBUGUSEBFD
 #endif
 
-//
 //
 // DEBUGDEBUG
 //
@@ -89,10 +84,9 @@
 // before debugger watch points can be used).
 
 #ifdef DEBUG
-#undef DEBUGDEBUG
+#@CONFIG_DEBUGDEBUG@ DEBUGDEBUG
 #endif
 
-//
 //
 // DEBUGDEBUGMALLOC
 //
@@ -105,22 +99,9 @@
 //  memory block had been allocated, and what it was).
 
 #ifdef DEBUGDEBUG
-#define DEBUGDEBUGMALLOC
+#@CONFIG_DEBUGDEBUGMALLOC@ DEBUGDEBUGMALLOC
 #endif
 
-//
-//
-// DEBUGNONAMESPACE
-//
-// Puts everything of ::libcw::debug in global namespace, needed when debugging
-// the debug code because gdb can't deal with namespaces correctly yet.
-//
-
-#ifdef DEBUG
-#undef DEBUGNONAMESPACE
-#endif
-
-//
 //
 // DEBUGMARKER
 //
@@ -128,9 +109,46 @@
 //
 
 #if defined(DEBUG) && defined(DEBUGMALLOC)
-#define DEBUGMARKER
+#@CONFIG_DEBUGMARKER@ DEBUGMARKER
 #endif
 
 //
+// Configuration signature
 //
+
+#ifdef DEBUG
+namespace libcw {
+  namespace debug {
+
+extern unsigned long config_signature_lib;
+static unsigned long const config_signature_header = (0
+#ifdef DEBUGMALLOC
+	|1
+#endif
+#ifdef DEBUGMAGICMALLOC
+	|2
+#endif
+#ifdef DEBUGUSEBFD
+	|4
+#endif
+#ifdef DEBUGDEBUG
+	|8
+#endif
+#ifdef DEBUGDEBUGMALLOC
+	|16
+#endif
+#ifdef DEBUGMARKER
+	|32
+#endif
+	);
+extern void conf_check_failed(void);
+inline void check_configuration(void) {
+  if (config_signature_lib != config_signature_header)
+    conf_check_failed();
+}
+
+  } // namespace ::libw::debug
+}
+#endif
+
 #endif // LIBCW_DEBUGGING_DEFS_H

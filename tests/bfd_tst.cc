@@ -73,6 +73,8 @@ void libcw_bfd_test(void)
 
 int main(int argc, char* argv[])
 {
+  Debug( check_configuration() );
+
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );
   Debug( dc::warning.on() );

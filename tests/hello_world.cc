@@ -52,6 +52,8 @@ int main(int argc, char **argv)
   //----------------------------------------------------------------------
   // The following calls will be done in almost every program using libcwd
 
+  Debug( check_configuration() );
+
 #ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);

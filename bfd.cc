@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#include <libcw/debugging_defs.h>
+#include <libcw/debug_config.h>
 
 #ifdef DEBUGUSEBFD
 

@@ -1,0 +1,145 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_REVISION($Revision$)dnl
+
+dnl General intialization of `autoconf' varaibles.
+dnl Ensure that the directory specified with --srcdir was correct
+dnl by demanding that it contains `debugmalloc.cc'.
+AC_INIT(debugmalloc.cc)
+
+dnl Put resulting configuration defines in this header file.
+AC_CONFIG_HEADER(include/libcw/config.h)
+
+dnl Demand at least version 2.13 of autoconf.
+AC_PREREQ(2.13)
+
+dnl Set package name and version
+AM_INIT_AUTOMAKE(libcwd, 0.99.2)
+
+dnl Manual configuration options.
+libcwd_config_alloc=yes
+AC_ARG_ENABLE(libcwd-alloc,
+    [  --disable-libcwd-alloc  disable memory allocation debugging support.],
+    libcwd_config_alloc=$enableval)
+
+libcwd_config_magic=yes
+AC_ARG_ENABLE(libcwd-magic,
+    [  --disable-libcwd-magic  disable magic numbers in memory allocation debugging.],
+    libcwd_config_magic=$enableval)
+
+libcwd_config_marker=yes
+AC_ARG_ENABLE(libcwd-marker,
+    [  --disable-libcwd-marker disable memory allocation markers.],
+    libcwd_config_marker=$enableval)
+
+libcwd_config_bfd=yes
+AC_ARG_ENABLE(libcwd-bfd,
+    [  --disable-libcwd-bfd    do not try to find and use the bfd library,
+                          this will disable sourcefile:linenumber support.],
+    libcwd_config_bfd=$enableval)
+
+libcwd_config_debug=no
+AC_ARG_ENABLE(libcwd-debug,
+    [  --enable-libcwd-debug   enable debugging of libcwd itself.],
+    libcwd_config_debug=$enableval)
+
+libcwd_config_debugm=no
+AC_ARG_ENABLE(libcwd-debugm,
+    [  --enable-libcwd-debugm  enable debugging of memory allocation debugging code
+                          in libcwd itself.],
+    libcwd_config_debugm=$enableval)
+
+dnl Checks for programs.
+AC_PROG_CXX
+AC_PROG_CXXCPP
+AC_PROG_INSTALL
+
+dnl Set language requirements for the tests below.
+AC_LANG_CPLUSPLUS
+AC_REQUIRE_CPP
+
+dnl Configuration defines of debug_config.h
+AC_SUBST(CW_CONFIG_DEBUGMALLOC)
+CW_CONFIG_DEBUGMALLOC=undef
+AC_SUBST(CW_CONFIG_DEBUGMAGICMALLOC)
+CW_CONFIG_DEBUGMAGICMALLOC=undef
+AC_SUBST(CW_CONFIG_DEBUGUSEBFD)
+CW_CONFIG_DEBUGUSEBFD=undef
+AC_SUBST(CW_CONFIG_DEBUGDEBUG)
+CW_CONFIG_DEBUGDEBUG=undef
+AC_SUBST(CW_CONFIG_DEBUGDEBUGMALLOC)
+CW_CONFIG_DEBUGDEBUGMALLOC=undef
+AC_SUBST(CW_CONFIG_DEBUGMARKER)
+CW_CONFIG_DEBUGMARKER=undef
+
+if test "$libcwd_config_alloc" = yes; then
+  CW_CONFIG_DEBUGMALLOC=define
+fi
+
+if test "$libcwd_config_magic" = yes; then
+  CW_CONFIG_DEBUGMAGICMALLOC=define
+fi
+
+if test "$libcwd_config_bfd" = yes; then
+
+  dnl Checks for libraries.
+
+  dnl Check if we have `cplus_demangle' in libiberty.a
+  CW_CHECK_STATICLIB(libiberty.a, cplus_demangle,,
+      [dnl If that failed, try linking with -ldl:
+      unset ac_cv_lib_static_libiberty_a_cplus_demangle
+      CW_CHECK_STATICLIB(libiberty.a, cplus_demangle,,, -ldl)])
+
+  dnl Check if we have `bfd_init' in -lbfd
+  AC_CHECK_LIB(bfd, bfd_init,,
+      [dnl If that failed, try linking with -lintl:
+      unset ac_cv_lib_bfd_bfd_init
+      AC_CHECK_LIB(bfd, bfd_init, [LIBS="-lbfd -lintl $LIBS"],, -lintl)])
+
+  dnl If both succeeded, then enable DEBUGUSEBFD
+  if test "$ac_cv_lib_static_libiberty_a_cplus_demangle" != "no" -a "ac_cv_lib_bfd_bfd_init" != "no"; then
+    AC_CHECK_HEADER(bfd.h,
+      [CW_CONFIG_DEBUGUSEBFD=define],
+      [AC_MSG_WARN([You have libbfd, but I cannot find bfd.h!?  Look up of function names and source:line information will be disabled.])])
+  else
+    AC_MSG_WARN([Cannot find a working libbfd;  Look up of function names and source:line information will be disabled.])
+  fi
+fi
+
+if test "$libcwd_config_debug" = yes; then
+  CW_CONFIG_DEBUGDEBUG=define
+fi
+
+if test "$libcwd_config_debugm" = yes; then
+  CW_CONFIG_DEBUGDEBUGMALLOC=define
+fi
+
+if test "$libcwd_config_marker" = yes; then
+  CW_CONFIG_DEBUGMARKER=define
+fi
+
+dnl Checks for header files.
+
+dnl Check for typedefs.
+AC_TYPE_SIGNAL
+CW_DEFINE_TYPE(retsig_t, [$ac_cv_type_signal])
+CW_TYPE_SOCKLEN_T
+CW_TYPE_OPTVAL_T
+CW_TYPE_SIGHANDLER_PARAM_T
+
+dnl Check for structures.
+
+dnl Check for compiler/system characteristics.
+CW_BUG_20000813
+CW_BUG_REDEFINES([sys/resource.h])
+CW_MALLOC_OVERHEAD
+CW_NEED_WORD_ALIGNMENT
+CW_NBLOCK
+
+dnl Check for library functions.
+
+dnl Check for system services.
+
+dnl Set up build directory
+test ! -d include && mkdir include
+
+CW_OUTPUT([include/libcw/debug_config.h include/libcw/sys.h])

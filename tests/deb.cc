@@ -41,6 +41,8 @@ namespace libcw {
 
 int main(int argc, char* argv[])
 {
+  Debug( check_configuration() );
+
 #ifdef DEBUGMALLOC
   // Don't show allocations that are allocated before main()
   make_all_allocations_invisible_except(NULL);

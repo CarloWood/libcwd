@@ -45,6 +45,8 @@ void generate_tables(void)
 
 int main(void)
 {
+  Debug( check_configuration() );
+
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
 

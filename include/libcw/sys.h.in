@@ -1,0 +1,95 @@
+// @configure_input@
+// $Header$
+//
+// Copyright (C) 2000, by
+// 
+// Carlo Wood, Run on IRC <carlo@alinoe.com>
+// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
+// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
+//
+// This file may be distributed under the terms of the Q Public License
+// version 1.0 as appearing in the file LICENSE.QPL included in the
+// packaging of this file.
+//
+
+//
+// NOTE:
+//
+// This header file was generated with the `configure' script of libcwd-@VERSION@
+// If you change your system header files (like glibc or kernel header)
+// it might be needed to regenerate it.
+//
+
+#ifndef LIBCW_SYS_H
+#define LIBCW_SYS_H
+
+//
+// typedefs
+//
+// socklen_t		: The type of the fifth argument of `setsockopt'
+// optval_t		: The type of the fourth argument of `getsockopt'
+// retsig_t		: The return type of a signal handler
+// sighandler_param_t	: The type of the parameter of a signal handler
+//
+@CW_TYPEDEFS@
+
+//
+// malloc overhead
+//
+
+unsigned int const malloc_overhead_c = @CW_MALLOC_OVERHEAD_C@;
+
+//
+// Need word alignment or not
+//
+
+#@CW_CONFIG_NEED_WORD_ALIGNMENT@ NEED_WORD_ALIGNMENT
+
+//
+// Define blocking method
+//
+// NBLOCK_POSIX: posix non-blocking sockets
+// NBLOCK_BSD  : bsd   non-blocking sockets
+// NBLOCK_SYSV : sysv  non-blocking sockets
+//
+
+#define NBLOCK_@CW_CONFIG_NBLOCK@
+
+// Bug work arounds
+
+// Including certain header files fail with a warning.  For example:
+// /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
+// Word around (if any):
+@CW_REDEFINES_FIX@
+
+// At least gcc-2.95.2 crashes in dwarf2out.c when compiling with -ggdb
+// when we try to put a static vector<> inside an inline function.
+// Either upgrade your compile, don't use -ggdb or define this bug
+// work around.  FreeBSD needs -ggdb to get sourcefile:linenumber information.
+
+#@CW_CONFIG_DWARF2OUT_BUG@ DWARF2OUT_BUG
+
+// This package needs GNU gcc-2.95 or higher, period.
+// However, I'll leave this in for now.
+
+#ifdef NO_ATTRIBUTE
+  #define __attribute__(x)
+  #define NEED_FAKE_RETURN(x) return x;
+#else
+  #define NEED_FAKE_RETURN(x)
+#endif
+
+// General macros that are used in all files.
+
+#define RCSTAG_CC(string) static char const* const rcs_ident __attribute__ ((__unused__)) = string;
+#define RCSTAG_H(name, string) static char const* const rcs_ident_##name##_h __attribute__ ((__unused__)) = string;
+#define RCSTAG_INL(name, string) static char const* const rcs_ident##name##_inl __attribute__ ((__unused__)) = string;
+
+#define UNUSED(x)
+#define USE(var) static void* use_##var = (use_##var = (void*)&use_##var, (void*)&var)
+
+// Include an ident for this header file
+
+RCSTAG_H(sys, "$Id$")
+
+#endif /* LIBCW_SYS_H */
