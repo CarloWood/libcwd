@@ -154,15 +154,22 @@
 #define UNSET_TARGETHREAD
 #endif
 #include <libcw/private_mutex.inl>
+using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::mutex_tct;
 using libcw::debug::_private_::mutex_ct;
-using libcw::debug::_private_::rwlock_tct;
 using libcw::debug::_private_::location_cache_instance;
 using libcw::debug::_private_::list_allocations_instance;
+using libcw::debug::_private_::threadlist_instance;
+using libcw::debug::_private_::threadlist_t;
+using libcw::debug::_private_::threadlist;
 // We can't use a read/write lock here because that leads to a dead lock.
 // rwlocks have to use condition variables or semaphores and both try to get a
 // (libpthread internal) self-lock that is already set by libthread when it calls
 // free() in order to destroy thread specific data 1st level arrays.
+// Note that we use rwlock_tct<threadlist_instance>, but that is safe because
+// the free() from __pthread_destroy_specifics (in the pthread library) will only
+// be trying to free memory that was allocated (for glibc-2.2.4 at specific.c:109)
+// by the same thread and thus will not attempt to acquire the rwlock.
 #define ACQUIRE_WRITE_LOCK(tt)	do { __libcwd_tsd.target_thread = tt; __libcwd_tsd.target_thread->thread_mutex.lock(); } while(0)
 #define RELEASE_WRITE_LOCK	do { __libcwd_tsd.target_thread->thread_mutex.unlock(); UNSET_TARGETHREAD } while(0)
 #define ACQUIRE_READ_LOCK(tt)	do { __libcwd_tsd.target_thread = tt; __libcwd_tsd.target_thread->thread_mutex.lock(); } while(0)
@@ -796,20 +803,28 @@ private:
   dm_alloc_copy_ct* next;
   dm_alloc_copy_ct* a_next_list;
 public:
-  dm_alloc_copy_ct(dm_alloc_ct const& alloc);
+  dm_alloc_copy_ct(dm_alloc_ct const& alloc) : dm_alloc_base_ct(alloc), next(NULL), a_next_list(NULL) { }
+  static dm_alloc_copy_ct* deep_copy(dm_alloc_ct const* alloc);
   void show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
 };
 
-dm_alloc_copy_ct::dm_alloc_copy_ct(dm_alloc_ct const& alloc) : dm_alloc_base_ct(alloc)
+dm_alloc_copy_ct* dm_alloc_copy_ct::deep_copy(dm_alloc_ct const* alloc)
 {
-  if (alloc.next)
-    next = new dm_alloc_copy_ct(*alloc.next);
-  else
-    next = NULL;
-  if (alloc.a_next_list)
-    a_next_list = new dm_alloc_copy_ct(*alloc.a_next_list);
-  else
-    a_next_list = NULL;
+  dm_alloc_copy_ct* dm_alloc_copy = new dm_alloc_copy_ct(*alloc);
+  if (alloc->a_next_list)
+    dm_alloc_copy->a_next_list = deep_copy(alloc->a_next_list);
+  dm_alloc_copy_ct* prev = dm_alloc_copy;
+  for(;;)
+  {
+    alloc = alloc->next;
+    if (!alloc)
+      break;
+    prev->next = new dm_alloc_copy_ct(*alloc);
+    prev = prev->next;
+    if (alloc->a_next_list)
+      prev->a_next_list = dm_alloc_copy_ct::deep_copy(alloc->a_next_list);
+  }
+  return dm_alloc_copy;
 }
 
 typedef dm_alloc_ct const const_dm_alloc_ct;
@@ -1576,11 +1591,15 @@ static void* internal_malloc(size_t size, memblk_types_nt flag LIBCWD_COMMA_TSD_
 #if LIBCWD_THREAD_SAFE
 static bool search_in_maps_of_other_threads(void const* ptr, memblk_map_ct::const_iterator& iter LIBCWD_COMMA_TSD_PARAM)
 {
-  using _private_::threadlist_instance;
-  using _private_::threadlist_t;
-  using _private_::threadlist;
   bool found = false;
-  mutex_tct<threadlist_instance>::lock();
+  rwlock_tct<threadlist_instance>::rdlock();
+  // Using threadlist_t::iterator instead of threadlist_t::const_iterator because
+  // we need to pass &(*thread_iter) to ACQUIRE_READ_LOCK.  This should be safe
+  // because inside the critical area of a READ_LOCK we should only be reading,
+  // of course, except trying to lock the target_thread->thread_mutex.  This means
+  // that despite this threadlist_instance rdlock(), multiple threads may be trying
+  // to write to (threadlist_element).thread_mutex in terms of trying to acquire
+  // that lock.  This is of course ok.
   for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)
   {
     if (thread_iter == __libcwd_tsd.thread_iter)
@@ -1592,7 +1611,7 @@ static bool search_in_maps_of_other_threads(void const* ptr, memblk_map_ct::cons
       break;
     RELEASE_READ_LOCK;
   }
-  mutex_tct<threadlist_instance>::unlock();
+  rwlock_tct<threadlist_instance>::rdunlock();
   return found;
 }
 #endif
@@ -2065,8 +2084,9 @@ size_t mem_size(void)
   LIBCWD_TSD_DECLARATION
 #endif
   LIBCWD_DEFER_CANCEL;
-  _private_::mutex_tct<_private_::threadlist_instance>::lock();
-  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
+  rwlock_tct<threadlist_instance>::rdlock();
+  // See comment in search_in_maps_of_other_threads.
+  for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)
   {
     ACQUIRE_READ_LOCK(&(*thread_iter));
 #endif
@@ -2074,7 +2094,7 @@ size_t mem_size(void)
 #if LIBCWD_THREAD_SAFE
     RELEASE_READ_LOCK;
   }
-  _private_::mutex_tct<_private_::threadlist_instance>::unlock();
+  rwlock_tct<threadlist_instance>::rdunlock();
   LIBCWD_RESTORE_CANCEL;
 #endif
   return memsize;
@@ -2092,8 +2112,9 @@ unsigned long mem_blocks(void)
   LIBCWD_TSD_DECLARATION
 #endif
   LIBCWD_DEFER_CANCEL;
-  _private_::mutex_tct<_private_::threadlist_instance>::lock();
-  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
+  rwlock_tct<threadlist_instance>::rdlock();
+  // See comment in search_in_maps_of_other_threads.
+  for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)
   {
     ACQUIRE_READ_LOCK(&(*thread_iter));
 #endif
@@ -2101,7 +2122,7 @@ unsigned long mem_blocks(void)
 #if LIBCWD_THREAD_SAFE
     RELEASE_READ_LOCK;
   }
-  _private_::mutex_tct<_private_::threadlist_instance>::unlock();
+  rwlock_tct<threadlist_instance>::rdunlock();
   LIBCWD_RESTORE_CANCEL;
 #endif
   return memblks;
@@ -2122,8 +2143,9 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
   LIBCWD_TSD_DECLARATION
 #endif
   LIBCWD_DEFER_CANCEL;
-  _private_::mutex_tct<_private_::threadlist_instance>::lock();
-  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
+  rwlock_tct<threadlist_instance>::rdlock();
+  // See comment in search_in_maps_of_other_threads.
+  for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)
   {
     ACQUIRE_READ_LOCK(&(*thread_iter));
 #endif
@@ -2132,7 +2154,7 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
 #if LIBCWD_THREAD_SAFE
     RELEASE_READ_LOCK;
   }
-  _private_::mutex_tct<_private_::threadlist_instance>::unlock();
+  rwlock_tct<threadlist_instance>::rdunlock();
   LIBCWD_RESTORE_CANCEL;
 #endif
   o << "Allocated memory: " << memsize << " bytes in " << memblks << " blocks";
@@ -2179,16 +2201,13 @@ void list_allocations_on(debug_ct& debug_object, ooam_filter_ct const& filter)
   size_t memsize;
   unsigned long memblks;
   LIBCWD_DEFER_CANCEL;
-#if LIBCWD_THREAD_SAFE
-  __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);
-#endif
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
   memsize = MEMSIZE;
   memblks = MEMBLKS;
   if (BASE_ALLOC_LIST)
   {
     _private_::set_alloc_checking_off(LIBCWD_TSD);
-    list = new dm_alloc_copy_ct(*BASE_ALLOC_LIST);
+    list = dm_alloc_copy_ct::deep_copy(BASE_ALLOC_LIST);
     _private_::set_alloc_checking_on(LIBCWD_TSD);
   }
   RELEASE_READ_LOCK;
@@ -2421,9 +2440,6 @@ marker_ct::~marker_ct()
   _private_::smart_ptr description;
 
   LIBCWD_DEFER_CANCEL_NO_BRACE;
-#if LIBCWD_THREAD_SAFE
-  __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);
-#endif
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
   memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(this, 0)));
   if (iter == memblk_map_read->end() || (*iter).first.start() != this)
@@ -2438,7 +2454,7 @@ marker_ct::~marker_ct()
   if ((*iter).second.a_alloc_node.get()->next_list())
   {
     _private_::set_alloc_checking_off(LIBCWD_TSD);
-    list = new dm_alloc_copy_ct(*(*iter).second.a_alloc_node.get()->next_list());
+    list = dm_alloc_copy_ct::deep_copy((*iter).second.a_alloc_node.get()->next_list());
     _private_::set_alloc_checking_on(LIBCWD_TSD);
   }
 

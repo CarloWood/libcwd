@@ -11,6 +11,12 @@ libcwd-0.99.21
 	allocations invisible that were allocated by the
 	current thread.
 
+	The administration of allocated memory is now kept
+	in an STL map *per* thread instead of one big global
+	map.  The advantage of that is that in general a
+	call to new/malloc etc. will not cause a thread to
+	have to wait for other threads anymore.
+
 	API changes:
 
 	location_ct::location_reference() has been removed.
@@ -32,6 +38,15 @@ libcwd-0.99.21
 
 	Version 0.99.19/20 did not compile on Suse (7.1) because
 	of a missing #include <sys/time.h>.
+
+	list_alloctions_on could cause a stack overflow due to
+	recursive deep copying of the allocation linked list;
+	now using an iterative copy.
+
+	As a result of seperating the allocation administration,
+	memory allocation markers now function again as they will
+	only report memory leaks when the *current* thread has
+	allocated memory.
 
 libcwd-0.99.20
 

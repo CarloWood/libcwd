@@ -40,7 +40,7 @@ void initialize_global_mutexes(void) throw()
   mutex_tct<dlopen_map_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
   mutex_tct<kill_threads_instance>::initialize();
-  mutex_tct<threadlist_instance>::initialize();
+  rwlock_tct<threadlist_instance>::initialize();
 #if CWDEBUG_ALLOC
   mutex_tct<alloc_tag_desc_instance>::initialize();
   mutex_tct<memblk_map_instance>::initialize();
@@ -186,7 +186,7 @@ threadlist_t* threadlist;
 void threading_tsd_init(LIBCWD_TSD_PARAM)
 {
   LIBCWD_DEFER_CANCEL;
-  mutex_tct<threadlist_instance>::lock();
+  rwlock_tct<threadlist_instance>::wrlock();
   set_alloc_checking_off(__libcwd_tsd);
   if (!threadlist)
     threadlist = new threadlist_t;
@@ -194,7 +194,7 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
   __libcwd_tsd.thread_iter_valid = true;
   (*__libcwd_tsd.thread_iter).initialize(&__libcwd_tsd);
   set_alloc_checking_on(__libcwd_tsd);
-  mutex_tct<threadlist_instance>::unlock();
+  rwlock_tct<threadlist_instance>::wrunlock();
   LIBCWD_RESTORE_CANCEL;
 }
 
@@ -246,7 +246,7 @@ void thread_ct::tsd_destroyed(void) throw()
   // Must lock the threadlist because we might delete the map (if it is empty)
   // at which point another thread shouldn't be trying to search that map,
   // looping over all elements of threadlist.
-  mutex_tct<threadlist_instance>::lock();
+  rwlock_tct<threadlist_instance>::wrlock();
   // delete_memblk_map will delete memblk_map (which is actually a
   // pointer to the type memblk_map_ct) if the map is empty and
   // return true, or it does nothing and returns false.
@@ -257,7 +257,7 @@ void thread_ct::tsd_destroyed(void) throw()
     threadlist->erase(tsd->thread_iter);	// We're done with this thread object.
     tsd->thread_iter_valid = false;
   }
-  mutex_tct<threadlist_instance>::unlock();
+  rwlock_tct<threadlist_instance>::wrunlock();
   tsd = NULL;					// This causes the memblk_map to be deleted as soon as the last
   						// allocation belonging to this thread is freed.
 }
