@@ -1,3 +1,13 @@
+libcwd-0.99.25
+
+        Bug fixes:
+
+	The previous version erroneously did not compile with -O.
+
+	When using g++ version 2.95.x or 2.96 then multi-threaded
+	applications could core dump because demangle_symbol and
+	demangle_type were not thread safe.
+
 libcwd-0.99.24
 
         Bug fixes:

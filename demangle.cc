@@ -179,18 +179,19 @@ namespace libcw {
       };
 
       // {anonymous}::
-      internal_vector<char const*>* template_parameters;
-      // {anonymous}::
-      internal_vector<char const*>* previous_types;
+      struct current_st {
+	internal_vector<char const*> template_parameters;
+	internal_vector<char const*> previous_types;
+      };
 
       // {anonymous} prototypes.
-      bool symbol_type(char const*, cdtor_nt, internal_string&, internal_string&);
+      bool symbol_type(current_st&, char const*, cdtor_nt, internal_string&, internal_string&);
       internal_string symbol_name(char const*, size_t);
-      bool eat_template_type(char const*&, internal_string&, internal_string*);
-      bool eat_scope_type(char const*&, internal_string&, internal_string&);
-      bool eat_type(char const*&, internal_string&);
+      bool eat_template_type(current_st&, char const*&, internal_string&, internal_string*);
+      bool eat_scope_type(current_st&, char const*&, internal_string&, internal_string&);
+      bool eat_type(current_st&, char const*&, internal_string&);
       int eat_digits(char const*& input);
-      bool eat_type_internal(char const*&, internal_string&, internal_string&, internal_string*, bool = false);
+      bool eat_type_internal(current_st&, char const*&, internal_string&, internal_string&, internal_string*, bool = false);
 
     } // namespace
 
@@ -254,15 +255,8 @@ namespace _private_ {
       char const* symbol = input;
       internal_string prefix;
       internal_string postfix;
+      current_st current;
       char const* p = input;
-
-      // Initialize list of previous types and template parameters.
-      internal_vector<char const*> current_template_parameters;
-      internal_vector<char const*> current_previous_types;
-      internal_vector<char const*>* previous_template_parameters = template_parameters;
-      internal_vector<char const*>* previous_previous_types = previous_types;
-      template_parameters = &current_template_parameters;
-      previous_types = &current_previous_types;
 
       if (p[0] == '_' && p[1] == 'G' && !strncmp(p, "_GLOBAL_.", 9) && (p[9] == 'D' || p[9] == 'I') && p[10] == '.')
       {
@@ -276,14 +270,14 @@ namespace _private_ {
       if (p[0] == '_' && p[1] == '_' && (p[2] == 't' || p[2] == 'v'))
       {
 	char const* q = p + 5;
-	if (p[2] == 'v' && p[3] == 't' && p[4] == '_' && !eat_type(q, prefix))
+	if (p[2] == 'v' && p[3] == 't' && p[4] == '_' && !eat_type(current, q, prefix))
 	{
 	  if (*q == '.')
 	  {
 	    size_t original_length = prefix.size();
 	    ++q;
 	    prefix += "::";
-	    if (eat_type(q, prefix) || *q != 0)
+	    if (eat_type(current, q, prefix) || *q != 0)
 	    {
 	      --q;
 	      prefix.erase(original_length);
@@ -297,13 +291,11 @@ namespace _private_ {
 	    if (input != main_in)
 	      Debug( dc::demangler.on() );
 #endif
-	    template_parameters = previous_template_parameters;
-	    previous_types = previous_previous_types;
 	    return;
 	  }
 	}
 	--q;
-	if (p[2] == 't' && (p[3] == 'i' || p[3] == 'f') && !eat_type(q, prefix) && *q == 0)
+	if (p[2] == 't' && (p[3] == 'i' || p[3] == 'f') && !eat_type(current, q, prefix) && *q == 0)
 	{
 	  output += prefix;
 	  if (p[3] == 'i')
@@ -314,8 +306,6 @@ namespace _private_ {
 	  if (input != main_in)
 	    Debug( dc::demangler.on() );
 #endif
-	  template_parameters = previous_template_parameters;
-	  previous_types = previous_previous_types;
 	  return;
 	}
 	char const* p2 = &p[8];
@@ -330,7 +320,7 @@ namespace _private_ {
       }
       if (p[0] != '_'
 	  || (p[1] != '_' && (p[1] != '.' || p[2] != '_'))
-	  || symbol_type(p + (p[1] == '_' ? 2 : 3), p[1] == '_' ? constructor : destructor, prefix, postfix))
+	  || symbol_type(current, p + (p[1] == '_' ? 2 : 3), p[1] == '_' ? constructor : destructor, prefix, postfix))
       {
 	bool double_underscore = false;
 	do
@@ -343,7 +333,7 @@ namespace _private_ {
 	  {
 	    double_underscore = true;
 	    // If the rest is a valid <symbol-type> (or an error occured) then break out of the loop.
-	    if (!symbol_type(p + 2, normal_symbol, prefix, postfix))
+	    if (!symbol_type(current, p + 2, normal_symbol, prefix, postfix))
 	      break;
 	  }
 	}
@@ -354,7 +344,7 @@ namespace _private_ {
 	{
 	  size_t original_size = prefix.size();
 	  p = symbol + 1;
-	  if (*symbol == '_' && !eat_type(p, prefix) && *p == '.')
+	  if (*symbol == '_' && !eat_type(current, p, prefix) && *p == '.')
 	  {
 	    symbol_len -= (p + 1 - symbol);
 	    symbol = p + 1;
@@ -392,8 +382,6 @@ namespace _private_ {
       if (input != main_in)
 	Debug( dc::demangler.on() );
 #endif
-      template_parameters = previous_template_parameters;
-      previous_types = previous_previous_types;
     }
 
     //
@@ -421,20 +409,11 @@ namespace _private_ {
 	return;
       }
 
-      // Initialize list of previous types and template parameters.
-      internal_vector<char const*> current_template_parameters;
-      internal_vector<char const*> current_previous_types;
-      internal_vector<char const*>* previous_template_parameters = template_parameters;
-      internal_vector<char const*>* previous_previous_types = previous_types;
-      template_parameters = &current_template_parameters;
-      previous_types = &current_previous_types;
-
+      current_st current;
       char const* in = input;
-      if (eat_type(in, output))
+      if (eat_type(current, in, output))
 	output.assign(input, strlen(input));
 
-      template_parameters = previous_template_parameters;
-      previous_types = previous_previous_types;
 #ifdef STANDALONE
       if (input != main_in)
 	Debug( dc::demangler.on() );
@@ -468,7 +447,7 @@ namespace _private_ {
       }
 
       // {anonymous}::
-      bool symbol_type(char const* input, cdtor_nt cdtor, internal_string& prefix, internal_string& postfix)
+      bool symbol_type(current_st& current, char const* input, cdtor_nt cdtor, internal_string& prefix, internal_string& postfix)
       {
 	Dout(dc::demangler, "Entering symbol_type(\"" << input << "\", internal_string& prefix, internal_string& postfix)");
 
@@ -524,9 +503,9 @@ namespace _private_ {
 	    internal_string template_type;
 	    for (int count = number_of_template_parameters; count > 0; --count)
 	    {
-	      template_parameters->push_back(input);
+	      current.template_parameters.push_back(input);
 	      template_type.erase();
-	      if (eat_template_type(input, template_type, NULL))
+	      if (eat_template_type(current, input, template_type, NULL))
 	      {
 		postfix.erase();
 		return true;
@@ -567,9 +546,9 @@ namespace _private_ {
 	internal_string last_class_name;
 	internal_string scope_type;
 	char const* input_store = input;
-	if (!eat_scope_type(input, scope_type, last_class_name))
+	if (!eat_scope_type(current, input, scope_type, last_class_name))
 	{
-	  previous_types->push_back(input_store);
+	  current.previous_types.push_back(input_store);
 	  scope_type += "::";
 	  switch(cdtor)
 	  {
@@ -613,8 +592,8 @@ namespace _private_ {
 	  postfix += "void";
 	else
 	{
-	  previous_types->push_back(input);
-	  if (eat_type(input, postfix))
+	  current.previous_types.push_back(input);
+	  if (eat_type(current, input, postfix))
 	  {
 	    postfix.erase();
 	    return true;
@@ -624,8 +603,8 @@ namespace _private_ {
 	  while (*input && *input != '_')
 	  {
 	    postfix += ", ";
-	    previous_types->push_back(input);
-	    if (eat_type(input, postfix))
+	    current.previous_types.push_back(input);
+	    if (eat_type(current, input, postfix))
 	    {
 	      postfix.erase();
 	      return true;
@@ -639,7 +618,7 @@ namespace _private_ {
 	if (cdtor == normal_symbol && is_template_function && *input == '_')
 	{
 	  ++input;
-	  if (eat_type(input, prefix))
+	  if (eat_type(current, input, prefix))
 	  {
 	    postfix.erase();
 	    prefix.erase();
@@ -895,7 +874,7 @@ namespace _private_ {
       }
 
       // {anonymous}::
-      bool eat_template_type(char const*& input, internal_string& template_type, internal_string* last_class_name)
+      bool eat_template_type(current_st& current, char const*& input, internal_string& template_type, internal_string* last_class_name)
       {
 	Dout(dc::demangler, "Entering eat_template_type(\"" << input << "\", internal_string& template_type, " << (last_class_name ? "\", internal_string* last_class_name" : "\", NULL") << ')');
 	// `input' is of the form
@@ -932,7 +911,7 @@ namespace _private_ {
 	  internal_string postfix;
 	  if (last_class_name && *input == 't')
 	    return true;	// Don't ask me why, but this is not a scope_type when it is a template parameter.
-	  if (eat_type_internal(input, template_type, postfix, last_class_name))
+	  if (eat_type_internal(current, input, template_type, postfix, last_class_name))
 	    return true;
 	  template_type += postfix;
 	}
@@ -963,7 +942,7 @@ namespace _private_ {
 	    case 'P':
 	    {
 	      internal_string tmp;
-	      if (eat_type(input, tmp))
+	      if (eat_type(current, input, tmp))
 		return true;
 	      int len = eat_digits(input);
 	      if (len <= 0)
@@ -1023,7 +1002,7 @@ namespace _private_ {
       }
 
       // {anonymous}::
-      bool eat_type_internal(char const*& input, internal_string& prefix, internal_string& postfix, internal_string* last_class_name = NULL, bool has_qualifiers = false)
+      bool eat_type_internal(current_st& current, char const*& input, internal_string& prefix, internal_string& postfix, internal_string* last_class_name = NULL, bool has_qualifiers = false)
       {
 	Dout(dc::demangler, "Entering eat_type_internal(\"" << input << "\", \"" << prefix << "\", \"" << postfix << (last_class_name ? "\", internal_string* last_class_name" : "\", NULL") << ", " << (has_qualifiers ? "true" : "false") << ')');
 
@@ -1102,16 +1081,16 @@ namespace _private_ {
 	    if (!isdigit(*input))
 	      return true;
 	    int index = eat_digits(input);
-	    if (index < 0 || (size_t)(index + 1) >= previous_types->size())
+	    if (index < 0 || (size_t)(index + 1) >= current.previous_types.size())
 	      return true;
-	    char const* const previous_type((*previous_types)[index]);
+	    char const* const previous_type(current.previous_types[index]);
 	    for (int i = 0; i < count; ++i)
 	    {
 	      if (i != 0)
 		postfix += ", ";
 	      char const* recursive_input = previous_type;
-	      previous_types->push_back(recursive_input);
-	      if (eat_type(recursive_input, postfix))
+	      current.previous_types.push_back(recursive_input);
+	      if (eat_type(current, recursive_input, postfix))
 		return true;
 	    }
 	    return false;
@@ -1142,10 +1121,10 @@ namespace _private_ {
 	      return true;
 	    if (!isdigit(*input++))
 	      return true;
-	    if ((size_t)index >= template_parameters->size())
+	    if ((size_t)index >= current.template_parameters.size())
 	      return true;
-	    char const* recursive_input = (*template_parameters)[index];
-	    return eat_template_type(recursive_input, prefix, last_class_name);
+	    char const* recursive_input = current.template_parameters[index];
+	    return eat_template_type(current, recursive_input, prefix, last_class_name);
 	  }
 	  else if (*input == 'T')
 	  {
@@ -1153,7 +1132,7 @@ namespace _private_ {
 	    int index = eat_digits(input);
 	    if (index < 0 || (index > 9 && *input++ != '_'))
 	      return true;
-	    if ((size_t)index >= previous_types->size())
+	    if ((size_t)index >= current.previous_types.size())
 	    {
 	      char buf[32];
 	      char* p = &buf[31];
@@ -1163,8 +1142,8 @@ namespace _private_ {
 	      prefix += p;
 	      return false;
 	    }
-	    char const* recursive_input = (*previous_types)[index];
-	    return eat_type_internal(recursive_input, prefix, postfix, last_class_name);
+	    char const* recursive_input = current.previous_types[index];
+	    return eat_type_internal(current, recursive_input, prefix, postfix, last_class_name);
 	  }
 	  for(;;)	// Skip all G's.
 	  {
@@ -1214,7 +1193,7 @@ namespace _private_ {
 		if (*input == 'M')
 		{
 		  ++input;
-		  if (eat_type_internal(input, member_function_pointer_scope, postfix, NULL, true))
+		  if (eat_type_internal(current, input, member_function_pointer_scope, postfix, NULL, true))
 		    return true;
 		  member_function_pointer_scope += postfix;
 		  member_function_pointer_scope += "::";
@@ -1228,13 +1207,13 @@ namespace _private_ {
 		  postfix += ")(";
 
 		  // There must be at least one <type>.
-		  if (eat_type(input, postfix))
+		  if (eat_type(current, input, postfix))
 		    return true;
 		  // Eat optional other <type>s.
 		  while (*input && *input != '_')
 		  {
 		    postfix += ", ";
-		    if (eat_type(input, postfix))
+		    if (eat_type(current, input, postfix))
 		      return true;
 		  }
 
@@ -1245,14 +1224,14 @@ namespace _private_ {
 		  // Process _<type>.
 		  if (*input++ != '_')
 		    return true;
-		  if (eat_type(input, prefix))
+		  if (eat_type(current, input, prefix))
 		    return true;
 		  prefix += " (";
 		  prefix += member_function_pointer_scope;
 		  prefix += what;
 		  return false;
 		}
-		if (eat_type_internal(input, prefix, postfix, NULL, true))
+		if (eat_type_internal(current, input, prefix, postfix, NULL, true))
 		  return true;
 		if (is_const)
 		  prefix += " const";
@@ -1270,7 +1249,7 @@ namespace _private_ {
 		if (*input++ != '_')
 		  return true;
 		postfix += ']';
-		if (eat_type_internal(input, prefix, postfix, NULL, has_qualifiers))
+		if (eat_type_internal(current, input, prefix, postfix, NULL, has_qualifiers))
 		  return true;
 		if (has_qualifiers)
 		  prefix += " (";
@@ -1279,13 +1258,13 @@ namespace _private_ {
 	      {
 		internal_string member_scope;
 		internal_string postfix2;
-		if (eat_type_internal(input, member_scope, postfix2, NULL, true))
+		if (eat_type_internal(current, input, member_scope, postfix2, NULL, true))
 		  return true;
 		member_scope += postfix2;
 		member_scope += "::";
 		if (*input++ != '_')
 		  return true;
-		if (eat_type_internal(input, prefix, postfix, NULL))
+		if (eat_type_internal(current, input, prefix, postfix, NULL))
 		  return true;
 		if (*prefix.rbegin() != '(')
 		{
@@ -1326,12 +1305,12 @@ namespace _private_ {
 	  // Process <scope-type><scope-type>...
 	  while (--number)
 	  {
-	    if (eat_type_internal(input, prefix, postfix, NULL))
+	    if (eat_type_internal(current, input, prefix, postfix, NULL))
 	      return true;
 	    prefix += "::";
 	  }
 	  // Process last <type>
-	  return eat_type_internal(input, prefix, postfix, last_class_name);
+	  return eat_type_internal(current, input, prefix, postfix, last_class_name);
 	}
 	else if (*input == 't')
 	{
@@ -1351,7 +1330,7 @@ namespace _private_ {
 	  while(count--)
 	  {
 	    template_type.erase();
-	    if (eat_template_type(input, template_type, NULL))
+	    if (eat_template_type(current, input, template_type, NULL))
 	      return true;
 	    prefix += template_type;
 	    if (count > 0)
@@ -1381,7 +1360,7 @@ namespace _private_ {
 	  input += len;
 	  return false;
 	}
-	if (*input == 'C' && !eat_type_internal(++input, prefix, postfix, last_class_name, has_qualifiers))
+	if (*input == 'C' && !eat_type_internal(current, ++input, prefix, postfix, last_class_name, has_qualifiers))
 	{
 	  prefix += " const";
 	  return false;
@@ -1391,11 +1370,11 @@ namespace _private_ {
       }
 
       // {anonymous}::
-      bool eat_scope_type(char const*& input, internal_string& type, internal_string& last_class_name)
+      bool eat_scope_type(current_st& current, char const*& input, internal_string& type, internal_string& last_class_name)
       {
 	Dout(dc::demangler, "Entering eat_scope_type(\"" << input << "\", internal_string& type, internal_string& last_class_name)");
 	internal_string postfix;
-	if (eat_type_internal(input, type, postfix, &last_class_name))
+	if (eat_type_internal(current, input, type, postfix, &last_class_name))
 	{
 	  type.erase();
 	  return true;
@@ -1405,12 +1384,12 @@ namespace _private_ {
       }
 
       // {anonymous}::
-      bool eat_type(char const*& input, internal_string& type)
+      bool eat_type(current_st& current, char const*& input, internal_string& type)
       {
 	Dout(dc::demangler, "Entering eat_type(\"" << input << "\", internal_string& type)");
 	internal_string postfix;
 	size_t original_length = type.size();
-	if (eat_type_internal(input, type, postfix, NULL))
+	if (eat_type_internal(current, input, type, postfix, NULL))
 	{
 	  type.erase(original_length);
 	  return true;

@@ -998,7 +998,7 @@ location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
 {
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
   bool found;
-  location_ct* location_info;
+  location_ct* location_info = NULL;	// Avoid compiler warning.
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_LC_READ_LOCK;
   location_cache_map_ct::const_iterator const_iter(location_cache_map_read->find(addr));

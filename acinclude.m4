@@ -444,7 +444,9 @@ dnl from __builtin_return_address(0) to get the start of the assembly instructio
 dnl that did the call.
 AC_DEFUN(CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET,
 [AC_CACHE_CHECK(needed offset to __builtin_return_address(), cw_cv_sys_builtin_return_address_offset,
-[CW_TRY_RUN(
+[save_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS=""
+CW_TRY_RUN(
 changequote(<<, >>)dnl
 <<int size;
 
@@ -463,7 +465,8 @@ int main(int argc, char* argv[])
 changequote([, ])dnl
 cw_cv_sys_builtin_return_address_offset=0,
 cw_cv_sys_builtin_return_address_offset=-1,
-cw_cv_sys_builtin_return_address_offset=-1)])
+cw_cv_sys_builtin_return_address_offset=-1)
+CXXFLAGS="$save_CXXFLAGS"])
 eval "CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET=\"$cw_cv_sys_builtin_return_address_offset\""
 AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
 ])
@@ -475,12 +478,15 @@ AC_DEFUN(CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS,
 [AC_CACHE_CHECK([whether __builtin_return_address(1) works], cw_cv_sys_recursive_builtin_return_address,
 [AC_LANG_SAVE
 AC_LANG_C
+save_CFLAGS="$CFLAGS"
+CFLAGS=""
 AC_TRY_RUN(
 [void f(void) { exit(__builtin_return_address(1) ? 0 : 1); }
 int main(void) { f(); }],
 cw_cv_sys_recursive_builtin_return_address=yes,
 cw_cv_sys_recursive_builtin_return_address=no,
 cw_cv_sys_recursive_builtin_return_address=unknown)
+CFLAGS="$save_CFLAGS"
 AC_LANG_RESTORE])
 if test "$cw_cv_sys_recursive_builtin_return_address" = "no"; then
 CW_CONFIG_RECURSIVE_BUILTIN_RETURN_ADDRESS=undef
@@ -500,7 +506,9 @@ AC_DEFUN(CW_SYS_FRAME_ADDRESS_OFFSET,
 CW_CONFIG_FRAME_ADDRESS_OFFSET=undef
 if test "$cw_cv_sys_recursive_builtin_return_address" != "no"; then
 AC_CACHE_CHECK(frame pointer offset in frame structure, cw_sys_frame_address_offset,
-[CW_TRY_RUN([
+[save_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS=""
+CW_TRY_RUN([
 int func4(int offset)
 {
   void* f0 = __builtin_frame_address(0);
@@ -549,7 +557,8 @@ CW_CONFIG_FRAME_ADDRESS_OFFSET=define
 fi,
 [AC_MSG_ERROR(Failed to compile a test program!?)],
 cw_sys_frame_address_offset=0 dnl Guess a default for cross compiling
-)])
+)
+CXXFLAGS="$save_CXXFLAGS"])
 fi
 eval "CW_FRAME_ADDRESS_OFFSET_C=$cw_sys_frame_address_offset"
 AC_SUBST(CW_FRAME_ADDRESS_OFFSET_C)
@@ -773,7 +782,7 @@ dnl -fno-exceptions is really only needed when using a compiler that was configu
 dnl with --enable-slsj-exceptions, in order to avoid calls to calloc() from
 dnl __pthread_setspecific when being 'internal'.
 if test "$USE_MAINTAINER_MODE" = yes; then
-EXTRAOPTS="-fno-exceptions"
+EXTRAOPTS="-O3 -fno-exceptions"
 else
 EXTRAOPTS="-O -fno-exceptions"
 fi
