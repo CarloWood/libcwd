@@ -2083,10 +2083,11 @@ void register_external_allocation(void const* mptr, size_t size)
   __libcwd_tsd.internal = 1;
 
   // Update our administration:
+  std::pair<memblk_map_ct::iterator, bool> iter;
   LIBCWD_DEFER_CANCEL
   ACQUIRE_WRITE_LOCK
   memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_external));	// MT: memblk_info_ct() needs wrlock.
-  std::pair<memblk_map_ct::iterator, bool> const& iter(memblk_map_write->insert(memblk));
+  iter = memblk_map_write->insert(memblk);
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL
 

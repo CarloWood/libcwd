@@ -44,7 +44,7 @@ void initialize_global_mutexes(void) throw()
 #endif // !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 }
 
-#ifdef LIBCWD_USE_LINUXTHREADS
+#if LIBCWD_USE_LINUXTHREADS
 // Specialization.
 template <>
   pthread_mutex_t mutex_tct<tsd_initialization_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
