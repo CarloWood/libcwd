@@ -73,13 +73,10 @@ unsigned long thread_index(pthread_t tid)
 }
 
 pthread_once_t test_keys_once = PTHREAD_ONCE_INIT;
-static pthread_key_t keys[32];
+static pthread_key_t keys[100];
 
 static void cleanup_routine(void* arg)
 {
-  pthread_mutex_lock(&cerr_mutex);
-  std::cerr << "Key destruction routine " << (int)arg << ".\n";
-  pthread_mutex_unlock(&cerr_mutex);
 }
 
 void test_keys_alloc(void)
@@ -92,7 +89,7 @@ void set_margin(void)
 {
   char margin[32];
   sprintf(margin, "%-10lu ", pthread_self());
-  Debug( libcw_do.margin().assign(margin, 18) );
+  Debug( libcw_do.margin().assign(margin, 11) );
 #if CWDEBUG_DEBUGT
   pthread_once(&test_keys_once, &test_keys_alloc);
   for (unsigned int i = 0; i < sizeof(keys) / sizeof(pthread_key_t); ++i)
