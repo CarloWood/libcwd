@@ -30,7 +30,14 @@ libcwd-0.99.28
 	void operator delete(void*, std::nothrow_t const&) throw();
 	void operator delete[](void*, std::nothrow_t const&) throw();
 
-	TODO: http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view%20audit-trail&database=gcc&pr=38
+	There is a bug in the g++ compiler that is not likely to be
+	fixed very soon; see http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view%20audit-trail&database=gcc&pr=38
+	Therefore, a workaround for this bug was adding in order to
+	make cwprint_using work when the print method is a method of
+	the base class.  The latter now takes two template parameters:
+	template<T, T_OR_BASE_OF_T>
+	  cwprint_using_tct<T_OR_BASE_OF_T>
+	  cwprint_using(T const&, void (T_OR_BASE_OF_T::*)(std::ostream&) const);
 
 libcwd-0.99.27
 

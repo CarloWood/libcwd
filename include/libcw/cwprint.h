@@ -149,12 +149,18 @@ template<class PRINTABLE_OBJECT>
  * calling the method \a arbitrary_method_name.
  */
 
-template<class T>
+// The use of T_OR_BASE_OF_T as extra parameter is a compiler bug around.
+// Without it you'd run into bug
+// http://gcc.gnu.org/cgi-bin/gnatsweb.pl?cmd=view%20audit-trail&database=gcc&pr=38
+// when `print_on_method' is a method of the base class of T.
+
+template<class T, class T_OR_BASE_OF_T>
   __inline__
-  cwprint_using_tct<T>
-  cwprint_using(T const& printable_object, void (T::*print_on_method)(std::ostream&) const)
+  cwprint_using_tct<T_OR_BASE_OF_T>
+  cwprint_using(T const& printable_object, void (T_OR_BASE_OF_T::*print_on_method)(std::ostream&) const)
   {
-    return cwprint_using_tct<T>(printable_object, print_on_method);
+    T_OR_BASE_OF_T const& base(printable_object);
+    return cwprint_using_tct<T_OR_BASE_OF_T>(base, print_on_method);
   }
 
   } // namespace debug
