@@ -166,9 +166,32 @@ dnl Set language requirements for the tests below.
 AC_LANG_CPLUSPLUS
 AC_REQUIRE_CPP
 
-dnl Disable building static libraries by default
-AC_DISABLE_STATIC
+case "$host" in
+  *openbsd*) dnl openBSD has a buggy ld, no way that a shared library will work.
+    AC_DISABLE_SHARED
+    ;;
+  *) dnl Disable building static libraries by default
+    AC_DISABLE_STATIC
+    ;;
+esac
 AM_PROG_LIBTOOL
+
+dnl The testsuite needs these values, extract them from the generated `libtool'
+enable_shared=`grep '^build_libtool_libs=' libtool | sed -e 's/build_libtool_libs=//'`
+enable_static=`grep '^build_old_libs=' libtool | sed -e 's/build_old_libs=//'`
+
+if test "$enable_shared" = "yes"; then
+  case "$host" in
+    *openbsd*)
+      AC_MSG_ERROR([
+
+The dynamic linker (ld) on openBSD is too buggy for C++ shared libraries.
+Static libraries are supported however, please configure using
+--enable-static --disable-shared, which is the default for openBSD.
+])
+      ;;
+  esac
+fi
 
 dnl Configuration defines of debug_config.h
 AC_SUBST(CW_CONFIG_DEBUGMALLOC)
