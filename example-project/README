@@ -7,7 +7,7 @@ This example shows how to use libcwd in your project.
 You can add new debug channels by adding them to debug.cc
 and debug.h.  The example is ready-to-use, you only need
 to edit the name of the namespace that the channels are
-put into (also in debug.cc and debug.h).  You are free to
+put into (again, in debug.cc and debug.h).  You are free to
 choose whatever you like for "::myproject::debug::channels"
 except "::" (or "").  Of course, you are highly advised to
 use a namespace that minimizes the chance of a collision
@@ -85,7 +85,8 @@ It goes straight to "clean" instead of "dist clean",
 because normally you will always ./configure the source
 tree the same way anyway.  Most notably, you will
 always use --enable-maintainer-mode for ./configure
-in order to enable the maintainer targets.
+in order to enable the maintainer targets (maintainer-clean
+is one of those targets).
 
 Have a look at `makefile' to see what you just did.
 
