@@ -2491,6 +2491,7 @@ void marker_ct::register_marker(char const* label)
   else
   {
     info.change_label(type_info_of(this), label);
+    info.alloctag_called();
     info.change_flags(memblk_type_marker);
     info.new_list(LIBCWD_TSD);					// MT: needs write lock set.
   }
