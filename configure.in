@@ -340,7 +340,9 @@ if test "$libcwd_config_threading" = yes; then
 
   dnl Check if we have POSIX threads
   EXTRAOPTS="$EXTRAOPTS -pthread"
-  CXXFLAGS="$DEBUGOPTS $EXTRAOPTS"
+  AC_LANG_SAVE
+  AC_LANG_C
+  CFLAGS="$DEBUGOPTS $EXTRAOPTS"
   AC_SEARCH_LIBS(pthread_create, pthread,
     [AC_CHECK_HEADER(pthread.h,
       [CW_CONFIG_HAVE_PTHREADS=define],
@@ -356,7 +358,7 @@ if test "$libcwd_config_threading" = yes; then
 * include posix threads by itself and I can't find -lpthread.
 * Use --disable-libcwd-threading to compile a libcwd that is not thread safe.
 ])])
-
+  AC_LANG_RESTORE
   CW_CONFIG_THREAD_SAFE=define
   SAVE_LIBS="$LIBS"
   LIBS="$LIBS $LIB_THREADS"
