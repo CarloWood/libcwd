@@ -1739,7 +1739,6 @@ void make_all_allocations_invisible_except(void const* ptr)
 #ifdef DEBUGDEBUGMALLOC
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
-  //LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<memblk_map_instance>::cleanup, NULL);
   LIBCWD_DEFER_CANCEL
   ACQUIRE_WRITE_LOCK
   for (memblk_map_ct::iterator iter(memblk_map_write->begin()); iter != memblk_map_write->end(); ++iter)
@@ -1753,7 +1752,6 @@ void make_all_allocations_invisible_except(void const* ptr)
     }
   RELEASE_WRITE_LOCK
   LIBCWD_RESTORE_CANCEL
-  //LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
 // Undocumented (used in macro AllocTag)
