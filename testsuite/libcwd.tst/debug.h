@@ -3,9 +3,7 @@
 
 #ifdef CWDEBUG
 
-//#ifndef DEBUGCHANNELS
 #define DEBUGCHANNELS ::example::debug::channels
-//#endif
 #include <libcwd/debug.h>
 
 namespace example {
@@ -18,12 +16,6 @@ namespace example {
     }
   }
 }
-
-#undef Dout
-#undef DoutFatal
-
-#define Dout(cntrl, data) LibcwDout(::example::debug::channels, ::libcwd::libcw_do, cntrl, data)
-#define DoutFatal(cntrl, data) LibcwDoutFatal(::example::debug::channels, ::libcwd::libcw_do, cntrl, data)
 
 #else
 

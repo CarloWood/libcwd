@@ -474,7 +474,7 @@ namespace __gnu_cxx
 	      push_back(substitution_st(start_pos,
 		  sub_type, number_of_prefixes));
 #if _GLIBCXX_DEMANGLER_CWDEBUG
-	  if (!DEBUGCHANNELS::dc::demangler.is_on())
+	  if (!libcwd::channels::dc::demangler.is_on())
 	    return;
 	  string_type substitution_name("S");
 	  int n = M_substitutions_pos.size() - 1;

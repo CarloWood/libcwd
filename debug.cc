@@ -106,8 +106,10 @@ bool allocator_trylock(void)
   return (__gthread_mutex_trylock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock) == 0);
 #else
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
-  if (!LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_init_flag)
-    LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_initialize();
+  if (!_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr)
+    return false;
+  if (!_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_init_flag)
+    _ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_initialize();
 #endif
   return (_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr &&
           __gthread_mutex_trylock(&_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_lock) == 0);
@@ -128,10 +130,6 @@ void allocator_unlock(void)
 #endif
   __gthread_mutex_unlock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
 #else
-#if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
-  if (!LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_init_flag)
-    LIBCWD_POOL_ALLOC<true, 0>::_S_lock._M_initialize();
-#endif
   __gthread_mutex_unlock(&_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr->_M_lock);
 #endif
 }
@@ -1524,7 +1522,7 @@ void allocator_unlock(void)
 	for(_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
 	    i != _private_::debug_channels.read_locked().end(); ++i)
 	{
-	  LibcwDoutScopeBegin(DEBUGCHANNELS, debug_object, dc::always|noprefix_cf);
+	  LibcwDoutScopeBegin(LIBCWD_DEBUGCHANNELS, debug_object, dc::always|noprefix_cf);
 	  if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
 	  {
 	    channels::dc::malloc.on();

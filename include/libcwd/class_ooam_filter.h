@@ -18,7 +18,7 @@
 #ifndef LIBCWD_CLASS_OOAM_FILTER_H
 #define LIBCWD_CLASS_OOAM_FILTER_H
 
-#ifndef LIBCWD_DEBUG_H
+#ifndef LIBCWD_LIBRARIES_DEBUG_H
 #error "Don't include <libcwd/class_ooam_filter.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 

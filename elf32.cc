@@ -1851,14 +1851,6 @@ void objfile_ct::load_dwarf(void)
   uint32_t total_length;
 #endif
 
-  libcwd::debug_ct::OnOffState state;
-  libcwd::channel_ct::OnOffState state2;
-  if (_private_::always_print_loading && !_private_::suppress_startup_msgs)
-  {
-    // We want debug output to BFD
-    Debug( libcw_do.force_on(state) );
-    Debug( dc::bfd.force_on(state2, "BFD") );
-  }
 #if CWDEBUG_ALLOC
 #if !DEBUGDWARF
   LIBCWD_TSD_DECLARATION;
@@ -2831,11 +2823,6 @@ void objfile_ct::load_dwarf(void)
 #if CWDEBUG_ALLOC
   __libcwd_tsd.internal = saved_internal;
 #endif
-  if (_private_::always_print_loading)
-  {
-    Debug( dc::bfd.restore(state2) );
-    Debug( libcw_do.restore(state) );
-  }
 }
 
 void objfile_ct::load_stabs(void)
@@ -3088,12 +3075,15 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
     {
       S_thread_inside_find_nearest_line = pthread_self();
 #endif
-#if DEBUGSTABS || DEBUGDWARF
       libcwd::debug_ct::OnOffState state;
-      Debug( libcw_do.force_on(state) );
       libcwd::channel_ct::OnOffState state2;
-      Debug( dc::bfd.force_on(state2, "BFD") );
-#endif
+      if (DEBUGSTABS || DEBUGDWARF ||
+          (_private_::always_print_loading && !_private_::suppress_startup_msgs))
+      {
+	// We want debug output to BFD
+	Debug( libcw_do.force_on(state) );
+	Debug( dc::bfd.force_on(state2, "BFD") );
+      }
       if (M_dwarf_debug_line_section_index)
 	load_dwarf();
       else if (!M_stabs_section_index && !this->object_file->get_object_file()->has_no_debug_line_sections())
@@ -3111,10 +3101,12 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
       }
       if (M_stabs_section_index)
 	load_stabs();
-#if DEBUGSTABS || DEBUGDWARF
-      Debug( dc::bfd.restore(state2) );
-      Debug( libcw_do.restore(state) );
-#endif
+      if (DEBUGSTABS || DEBUGDWARF ||
+          (_private_::always_print_loading && !_private_::suppress_startup_msgs))
+      {
+	Debug(dc::bfd.restore(state2));
+	Debug(libcw_do.restore(state));
+      }
       int saved_internal3 = _private_::set_library_call_on(LIBCWD_TSD);
       M_input_stream->close();
       _private_::set_library_call_off(saved_internal3 LIBCWD_COMMA_TSD);
@@ -3357,9 +3349,9 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
   Debug( libcw_do.off() );
   _private_::set_invisible_on(LIBCWD_TSD);
   M_input_stream = new std::ifstream;
+  M_input_stream->open(file_name);
   _private_::set_invisible_off(LIBCWD_TSD);
   Debug( libcw_do.on() );
-  M_input_stream->open(file_name);
   if (!M_input_stream->good())
     DoutFatal(dc::fatal|error_cf, "std::ifstream.open(\"" << file_name << "\")");
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);

@@ -3,17 +3,18 @@
 
 #ifndef CWDEBUG
 
+#include <iostream>     // std::cerr
+#include <cstdlib>      // std::exit, EXIT_FAILURE
+
 @NODEBUGMACROS@
 
 #else // CWDEBUG
 
-#ifndef DEBUGCHANNELS
 // This must be defined before <libcwd/debug.h> is included and must be the
 // name of the namespace containing your `dc' (Debug Channels) namespace
 // (see below).  You can use any namespace(s) you like, except existing
 // namespaces (like ::, ::std and ::libcwd).
 #define DEBUGCHANNELS ::myproject::debug::channels
-#endif
 #include <libcwd/debug.h>
 
 namespace myproject {
@@ -22,18 +23,17 @@ namespace myproject {
     void init(void);		// Initialize debugging code from main().
     void init_thread(void);	// Initialize debugging code from new threads.
 
-    namespace channels {	//  >---> This namespace must match DEBUGCHANNELS
+    namespace channels {	// This is the DEBUGCHANNELS namespace, see above.
+      namespace dc {		// 'dc' is defined inside DEBUGCHANNELS.
 
-      namespace dc {
-	using namespace ::libcwd::channels::dc;
-	using ::libcwd::channel_ct;
+	using namespace libcwd::channels::dc;
+	using libcwd::channel_ct;
 
 	// Add the declaration of new debug channels here
 	// and add their definition in a custom debug.cc file.
 	extern channel_ct custom;
 
       } // namespace dc
-
     } // namespace DEBUGCHANNELS
   }
 }

@@ -76,6 +76,7 @@ protected:
   union {
     char* M_filename;				//!< Points inside M_filepath just after the last '/' or to the beginning.
     void const* M_initialization_delayed;	//!< If M_object_file == NULL and M_func points to S_pre_ios_initialization_c or S_pre_libcwd_initialization_c, then this is the address that M_pc_location was called with.
+    void const* M_unknown_pc;			//!< If M_object_file == NULL and M_func points to unknown_function_c, then this is the address that M_pc_location was called with.
   };
   unsigned int M_line;				//!< The line number of this location.
   char const* M_func;				//!< Pointer to static string containing the mangled function name of this location.
@@ -205,6 +206,7 @@ public:
 
   // This is used in list_allocations_on.
   bool initialization_delayed(void) const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
+  void const* unknown_pc(void) const { return (!M_object_file && M_func == unknown_function_c) ? M_unknown_pc : initialization_delayed() ? M_initialization_delayed : 0; }
 #if CWDEBUG_ALLOC
   void handle_delayed_initialization(ooam_filter_ct const& filter);
   bool hide_from_alloc_list(void) const { return M_hide == _private_::filtered_location; }

@@ -59,10 +59,7 @@ The first one (the %debug.h that will be installed) would look something like th
 
 #ifdef CWDEBUG
 
-#ifndef DEBUGCHANNELS
-#define DEBUGCHANNELS ::libexample::channels	// Wherever you put your 'dc' namespace.
-#endif
-#include <libcwd/debug.h>
+#include <libcwd/libraries_debug.h>
 
 namespace libexample {
   namespace channels {
@@ -80,11 +77,20 @@ namespace libexample {
     LibcwDout(libexample::channels, libcwd::libcw_do, cntrl, data)
 #define LibExampleDoutFatal(cntrl, data) \
     LibcwDoutFatal(libexample::channels, libcwd::libcw_do, cntrl, data)
+#define LibExampleDebug(x) \
+    LibcwdDebug(libexample::channels, x)
+#define ForAllDebugChannels(STATEMENT) \
+    LibcwdForAllDebugChannels(libexample::channels, STATEMENT)
+#define ForAllDebugObjects(STATEMENT) \
+    LibcwdForAllDebugObjects(libexample::channels, STATEMENT)
 
 #else // !CWDEBUG
 
 #define LibExampleDout(cntrl, data)
 #define LibExampleDoutFatal(cntrl, data) LibcwDoutFatal(::std, , cntrl, data)
+#define LibExampleDebug(x)
+#define ForAllDebugChannels(STATEMENT)
+#define ForAllDebugObjects(STATEMENT)
 
 #endif // !CWDEBUG
 
@@ -118,7 +124,9 @@ the .cpp files (that #include "debug.h") of your library itself, then looks like
 #define ForAllDebugObjects(STATEMENT)
 #define LibcwDebug(dc_namespace, x)
 #define LibcwDout(a, b, c, d)
-#define LibcwDoutFatal(a, b, c, d) do { std::cerr << d << std::endl; std::exit(EXIT_FAILURE); } while(1)
+#define LibcwDoutFatal(a, b, c, d) do { ::std::cerr << d << ::std::endl; ::std::exit(EXIT_FAILURE); } while(1)
+#define LibcwdForAllDebugChannels(dc_namespace, STATEMENT)
+#define LibcwdForAllDebugObjects(dc_namespace, STATEMENT)
 #define NEW(x) new x
 #define CWDEBUG_ALLOC 0
 #define CWDEBUG_MAGIC 0
@@ -140,25 +148,10 @@ the .cpp files (that #include "debug.h") of your library itself, then looks like
 \subsection header_files_of_libraries Header files of libraries
 
 Don't use Dout etc. in header files of libraries, instead use (for example) LibExampleDout etc., as shown above.&nbsp;
-Also, do not include any %debug.h in your header files.&nbsp;
-Instead, add the following lines to each header file that needs debugging:
-
-\code
-#ifndef LIBEXAMPLE_DEBUG_H
-#error "You need to include the appropriate debug.h in the source file, before including this header file."
-#endif
-\endcode
-
-Don't use "libexample/debug.h" in this error message because someone else might write a library that is using your library and needs
-a different %debug.h to be included in end applications.&nbsp;
-The reason for this is that if you'd use #include "debug.h" in your headerfiles, then the compiler will
-include <libexample/debug.h> because the current directory of the headerfile that is doing the include is
-searched first.&nbsp;
-Using #include "debug.h" has the same effect as #include <libexample/debug.h> here thus.&nbsp;
-And we don't want that because that would mean that if a user includes a header of your library
-before including his own application defined %debug.h first, then DEBUGCHANNELS gets set wrong.&nbsp;
-What we want in that case is a compile error pointing out to the user that he needs to #include "debug.h"
-before including your library header file.
+If you want to use Dout etc. in your \em source files then you can do so but then you will have to
+specifically include <libcwd/debug.h> in your .cpp files after first including "debug.h", in order to
+get Dout etc. defined.  You might want to create a special header file for inclusion in your source
+files for this, for example
 
 \subsection debug_channel_name_collisions Debug channel name collisions
 
@@ -175,9 +168,7 @@ Then you can rename these channels as follows.&nbsp;
 Make a debug header file that contains:
 
 \code
-#ifndef DEBUGCHANNELS
 #define DEBUGCHANNELS ::application::channels
-#endif
 #include <lib1/debug.h>
 #include <lib2/debug.h>
 namespace application {
@@ -196,11 +187,12 @@ namespace application {
 <DIV class="normal">
 \endhtmlonly
 The hiding mechanism of the above `cascading' of debug channel declarations of libraries works as follows.&nbsp;
-The debug macros use a using-directive to include the scope DEBUGCHANNELS.&nbsp;
-Because all debug channels are specified as <CODE>dc::channelname</CODE>
-(and there is no <CODE>using namespace someother::dc</CODE> in name space DEBUGCHANNELS!), the namespace \c dc is uniquely defined.&nbsp;
-For instance, in the case of the above example, when writing <CODE>dc::%notice</CODE> the \c dc will be unambiguously resolved to
-<CODE>application::debug::channels::dc</CODE>, because it is the only \c dc name space in DEBUGCHANNELS
+The debug macros use a using-directive to include the scope LIBCWD_DEBUGCHANNELS, which is set to DEBUGCHANNELS
+if you defined that and to libcwd::channels otherwise.&nbsp;
+All debug channels are specified as <CODE>dc::channelname</CODE> in the source code and the namespace \c dc will
+be uniquely defined.&nbsp;
+For instance, in the case of the above example, when writing <CODE>dc::%notice</CODE> the \c dc will be unambiguously
+resolved to <CODE>application::debug::channels::dc</CODE>, because it is the only \c dc name space in LIBCWD_DEBUGCHANNELS
 (<CODE>application::debug::channels</CODE>).&nbsp;
 The C++ standard states: "During the lookup of a name qualified by a namespace name, declarations that would otherwise be made
 visible by a using-directive can be hidden by declarations with the same name in the namespace containing the using-directive;".&nbsp;

@@ -36,6 +36,19 @@ extern "C" void* dlopen(char const*, int);
 extern "C" int dlclose(void*);
 #endif // LIBCWD_DLOPEN_DEFINED
 
+#if CWDEBUG_ALLOC
+namespace libcwd {
+  namespace _private_ {
+    struct exit_function_list
+    {
+      struct exit_function_list* next;
+      // More here...
+    };
+    extern struct exit_function_list** __exit_funcs_ptr;
+  }
+}
+#endif
+
 // Include the inline functions.
 #ifndef LIBCWD_CLASS_LOCATION_INL
 #include <libcwd/class_location.inl>

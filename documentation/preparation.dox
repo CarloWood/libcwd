@@ -46,4 +46,17 @@ You can do that anywhere, or you could add a special source file for it.&nbsp;
 \include debug.cc
 \htmlonly &laquo;<A HREF="../external/debug.cc">download</A>&raquo;\endhtmlonly
 
+The above is just an example of course.&nbsp; But if you'd use it, then you
+would initialize libcwd by including the following at the top of main:
+
+\code
+int main()
+{
+#ifdef CWDEBUG
+  myproject::debug::init();
+#endif
+// ...
+\endcode
+
+And every thread would call <code>myproject::debug::init_thread();</code> when started.
 */

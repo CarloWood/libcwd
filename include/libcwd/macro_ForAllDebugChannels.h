@@ -94,30 +94,7 @@ extern debug_channels_ct debug_channels;
 #define LIBCWD_ForAllDebugChannels_UNLOCK
 #endif // !LIBCWD_THREAD_SAFE
 
-/**
- * \def ForAllDebugChannels
- * \ingroup group_special
- *
- * \brief Looping over all debug channels.
- *
- * The macro \c ForAllDebugChannels allows you to run over all %debug %channels.
- *
- * For example,
- *
- * \code
- * ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );
- * \endcode
- *
- * which turns all %channels on.&nbsp;
- * And
- *
- * \code
- * ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
- * \endcode
- *
- * which turns all channels off.
- */
-#define ForAllDebugChannels(STATEMENT) \
+#define LibcwdForAllDebugChannels(dc_namespace, STATEMENT...) \
        do { \
 	 LIBCWD_ForAllDebugChannels_LOCK; \
 	 for( ::libcwd::_private_::debug_channels_ct::container_type::\
@@ -125,7 +102,7 @@ extern debug_channels_ct debug_channels;
 	     __libcwd_i != ::libcwd::_private_::debug_channels.read_locked().end(); ++__libcwd_i) \
 	 { \
 	   using namespace ::libcwd; \
-	   using namespace DEBUGCHANNELS; \
+	   using namespace dc_namespace; \
 	   ::libcwd::channel_ct& debugChannel(*(*__libcwd_i)); \
 	   { STATEMENT; } \
 	 } \

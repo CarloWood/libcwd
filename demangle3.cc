@@ -59,52 +59,52 @@ namespace libcwd {
   } // namespace channels
 } // namespace libcwd
 #endif
-#define _GLIBCXX_DEMANGLER_DEBUG(x) Debug(x)
-#define _GLIBCXX_DEMANGLER_DOUT(cntrl, data) Dout(cntrl, data)
+#define _GLIBCXX_DEMANGLER_DEBUG(x) __Debug(x)
+#define _GLIBCXX_DEMANGLER_DOUT(cntrl, data) __Dout(cntrl, data)
 #define _GLIBCXX_DEMANGLER_DOUT_ENTERING(x) \
-    Dout(dc::demangler|continued_cf|flush_cf, "Entering " << x << "(\"" << &M_str[M_pos] << "\", \"" << output << "\") ")
+    __Dout(dc::demangler|continued_cf|flush_cf, "Entering " << x << "(\"" << &M_str[M_pos] << "\", \"" << output << "\") ")
 #define _GLIBCXX_DEMANGLER_RETURN \
     do { \
       if (M_result) \
-        Dout(dc::finish, '[' << M_pos << "; \"" << output << "\"]" ); \
+        __Dout(dc::finish, '[' << M_pos << "; \"" << output << "\"]" ); \
       else \
-        Dout(dc::finish, "(failed)"); return M_result; \
+        __Dout(dc::finish, "(failed)"); return M_result; \
     } while(0)
 #define _GLIBCXX_DEMANGLER_FAILURE \
     do { \
       if (M_result) \
       { \
         M_result = false; \
-	Dout(dc::finish, "[failure]"); \
+	__Dout(dc::finish, "[failure]"); \
       } \
       else \
-        Dout(dc::finish, "(failed)"); \
+        __Dout(dc::finish, "(failed)"); \
 	return false; \
     } while(0)
 #define _GLIBCXX_DEMANGLER_DOUT_ENTERING2(x) \
   do { \
-    Dout(dc::demangler|continued_cf|flush_cf, "Entering " << x); \
+    __Dout(dc::demangler|continued_cf|flush_cf, "Entering " << x); \
     if (qualifiers) \
-      Dout(dc::continued, " [with qualifiers: " << *qualifiers << ']'); \
-    Dout(dc::continued, "(\"" << &M_str[M_pos] << "\", \"" << prefix << "\", \"" << postfix << "\") "); \
+      __Dout(dc::continued, " [with qualifiers: " << *qualifiers << ']'); \
+    __Dout(dc::continued, "(\"" << &M_str[M_pos] << "\", \"" << prefix << "\", \"" << postfix << "\") "); \
   } while(0)
 #define _GLIBCXX_DEMANGLER_RETURN2 \
   do { \
     if (M_result) \
-      Dout(dc::finish, '[' << M_pos << "; \"" << prefix << "\", \"" << postfix << "\"]" ); \
+      __Dout(dc::finish, '[' << M_pos << "; \"" << prefix << "\", \"" << postfix << "\"]" ); \
     else \
-      Dout(dc::finish, "(failed)"); \
+      __Dout(dc::finish, "(failed)"); \
     return M_result; \
   } while(0)
 #define _GLIBCXX_DEMANGLER_DOUT_ENTERING3(x) \
   do { \
-    Dout(dc::demangler|continued_cf|flush_cf, "Entering " << x); \
-    Dout(dc::continued, " [with qualifier list: " << *this << ']'); \
-    Dout(dc::continued, " (\"" << prefix << "\", \"" << postfix << "\") "); \
+    __Dout(dc::demangler|continued_cf|flush_cf, "Entering " << x); \
+    __Dout(dc::continued, " [with qualifier list: " << *this << ']'); \
+    __Dout(dc::continued, " (\"" << prefix << "\", \"" << postfix << "\") "); \
   } while(0)
 #define _GLIBCXX_DEMANGLER_RETURN3 \
   do { \
-    Dout(dc::finish, "[\"" << prefix << "\", \"" << postfix << "\"]" ); \
+    __Dout(dc::finish, "[\"" << prefix << "\", \"" << postfix << "\"]" ); \
     return; \
   } while(0)
 #endif // STANDALONE

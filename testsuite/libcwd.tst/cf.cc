@@ -8,7 +8,7 @@
 #endif
 
 libcwd::debug_ct local_debug_object;
-#define MyDout(cntrl, data) LibcwDout(DEBUGCHANNELS, local_debug_object, cntrl, data)
+#define MyDout(cntrl, data) LibcwDout(LIBCWD_DEBUGCHANNELS, local_debug_object, cntrl, data)
 
 #ifdef THREADTEST
 pthread_mutex_t buf_mutex = PTHREAD_MUTEX_INITIALIZER;

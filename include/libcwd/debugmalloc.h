@@ -18,7 +18,7 @@
 #ifndef LIBCWD_DEBUGMALLOC_H
 #define LIBCWD_DEBUGMALLOC_H
 
-#ifndef LIBCWD_DEBUG_H
+#ifndef LIBCWD_LIBRARIES_DEBUG_H
 #error "Don't include <libcwd/debugmalloc.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 
@@ -95,6 +95,7 @@ extern bool test_delete(void const* ptr);
 // Manipulators:
 extern void make_invisible(void const* ptr);
 extern void make_all_allocations_invisible_except(void const* ptr);
+extern void make_exit_function_list_invisible(void);
 #if CWDEBUG_MARKER
 extern void move_outside(marker_ct*, void const* ptr);
 #endif

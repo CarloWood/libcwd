@@ -18,7 +18,7 @@
 #ifndef LIBCWD_MACRO_ALLOCTAG_H
 #define LIBCWD_MACRO_ALLOCTAG_H
 
-#ifndef LIBCWD_DEBUG_H
+#ifndef LIBCWD_LIBRARIES_DEBUG_H
 #error "Don't include <libcwd/macro_AllocTag.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 

@@ -1,9 +1,15 @@
 This is a little example project using autoconf and automake.
 
+IMPORTANT: This example project only works of you already
+           compiled and *installed* libcwd!
+
 What and How
 ------------
 
-This example shows how to use libcwd in your project.
+This example shows how to use libcwd in your application project.
+It doesn't show how to use libcwd for a library project, please
+read the reference manual for that.
+
 You can add new debug channels by adding them to debug.cc
 and debug.h.  The example is ready-to-use, you only need
 to edit the name of the namespace that the channels are
@@ -45,8 +51,14 @@ A project source knows four states:
   those that are dependent on the target machine.  Most
   notably the cache file with test results is still
   around so that a reconfiguration is much faster (but
-  doesn't really re-test anything).  All object files
+  doesn't really re-test anything *)).  All object files
   and executables are removed however.
+
+  *) Recent versions of autoconf have changed this
+  default behaviour.  The default is to have no cache
+  anymore: it was doing more bad than good because it would
+  not properly detect changes in the environment (or changes
+  in the compiler version) between runs.
 
 "built" means that the package has been compiled.
   It is ready for a 'make install'.
@@ -62,7 +74,7 @@ these states:
 
 Of course these targets are not available when the
 source tree is "distclean" because then no Makefiles
-exist.  Therefore you can not go directly from
+exist.  Therefore you cannot go directly from
 "dist clean" to "maintainer clean".
 
 
@@ -89,6 +101,11 @@ in order to enable the maintainer targets (maintainer-clean
 is one of those targets).
 
 Have a look at `makefile' to see what you just did.
+
+Note that many projects do not use this method.  Instead
+they use a script (usually called 'autogen.sh') that has
+to be run to go from "maintainer clean" to "dist clean"
+and then one has to manually run ./configure after that.
 
 * Next type: "make" again to go from
 
@@ -171,4 +188,9 @@ make
 PS If you see a file 'debug.h.maintainer' then you probably checked
    out this directory from the libcwd CVS repository.  That file
    is not supposed to be a part of your project, just remove it.
+   Before removing it however, make sure you have a file called
+   debug.h in the current directory.  If not, generate it from
+   debug.h.maintainer by going one directory down - configure
+   libcwd with --enable-maintainer-mode (which you should always
+   do when using CVS) and running: make example-project/debug.h
 

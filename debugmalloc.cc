@@ -1209,7 +1209,7 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, ooam_filter_ct 
     if (object_file)
       LibcwDoutStream << object_file->filename() << ':';
     else
-      LibcwDoutStream << "<unknown object file>:";
+      LibcwDoutStream << "<unknown object file> (at " << (void*)M_location->unknown_pc() << ") :";
   }
   if (M_location->is_known())
   {
@@ -1403,7 +1403,7 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
     LibcwDoutStream << alloc->a_start << ' ';
     LibcwDoutScopeEnd;
     alloc->print_description(debug_object, filter LIBCWD_COMMA_TSD);
-    LibcwDout(DEBUGCHANNELS, debug_object, dc::finish, "");
+    LibcwDout(LIBCWD_DEBUGCHANNELS, debug_object, dc::finish, "");
     if (alloc->M_next_list)
       alloc->M_next_list->show_alloc_list(debug_object, depth + 1, channel, filter);
   }
@@ -2709,6 +2709,38 @@ void make_all_allocations_invisible_except(void const* ptr)
   RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL;
 }
+
+#if CWDEBUG_ALLOC
+namespace _private_ {
+  struct exit_function_list** __exit_funcs_ptr;
+}
+
+/**
+ * \brief Make allocations done in libc.so:__new_exitfn invisible.
+ * \ingroup group_invisible
+ *
+ * This makes the allocation done in __new_exitfn (libc.so)
+ * invisible because it is not freed until after all
+ * __cxa_atexit functions have been called and would therefore
+ * always falsely trigger a memory leak detection.
+ * This function can be called first thing in main().
+ *
+ * \sa \ref group_invisible
+ * \sa \ref group_overview
+ *
+ * <b>Example:</b>
+ *
+ * \code
+ * Debug( make_exit_function_list_invisible() );
+ * \endcode
+ */
+void make_exit_function_list_invisible(void)
+{
+  if (libcwd::_private_::__exit_funcs_ptr)
+    for (libcwd::_private_::exit_function_list* l = *libcwd::_private_::__exit_funcs_ptr; l->next; l = l->next)
+      libcwd::make_invisible(l);
+}
+#endif
 
 // Undocumented (used in macro AllocTag)
 void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description LIBCWD_COMMA_TSD_PARAM)
@@ -4048,7 +4080,7 @@ static int debug_alloc(void const* ptr) __attribute__ ((unused));
  *
  * This function can be called from inside gdb.  It can be used
  * to figure out what/where some memory location was allocated.
- * This is especially handy in large application where about everything
+ * This is especially handy in large applications where about everything
  * is dynamically allocated, like GUI applications.
  */
 static int debug_alloc(void const* ptr)

@@ -280,9 +280,9 @@ void bfd_close(bfd* abfd)
       }
 
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-      void bfile_ct::initialize(char const* filename, void* base, bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename, void* base, bool is_libc, bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
 #else
-      void bfile_ct::initialize(char const* filename, void* base LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename, void* base, bool is_libc  LIBCWD_COMMA_TSD_PARAM)
 #endif
       {
 #if CWDEBUG_DEBUGM
@@ -364,6 +364,9 @@ void bfd_close(bfd* abfd)
 	{
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
 	  Elf32_Off S_lock_value;
+#endif
+#if CWDEBUG_ALLOC
+	  Elf32_Off exit_funcs;
 #endif
 #if !CWDEBUG_LIBBFD
 	  size_t s_end_offset = M_abfd->M_s_end_offset;
@@ -577,6 +580,10 @@ void bfd_close(bfd* abfd)
 	    ) == 0)
 	      S_lock_value = bfd_get_section(*s)->vma + (*s)->value;
 #endif
+#if CWDEBUG_ALLOC
+	    if (is_libc && strcmp((*s)->name, "__exit_funcs") == 0)
+	      exit_funcs = bfd_get_section(*s)->vma + (*s)->value;
+#endif
 	    if (((*s)->name[0] == '.' && (*s)->name[1] == 'L')
 	        || ((*s)->flags & (BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|BSF_INDIRECT|BSF_DYNAMIC)) != 0
 		|| (s_end_start_addr != NULL && symbol_start_addr(*s) >= s_end_start_addr)
@@ -629,6 +636,10 @@ void bfd_close(bfd* abfd)
 	  if (is_libstdcpp && S_lock_value)
 	    _private_::_ZN9__gnu_cxx12__pool_allocILb1ELi0EE7_S_lockE_ptr =
 	        (__gnu_cxx::_STL_mutex_lock*)((char*)M_lbase + S_lock_value);
+#endif
+#if CWDEBUG_ALLOC
+          if (is_libc && exit_funcs)
+	    _private_::__exit_funcs_ptr = (_private_::exit_function_list**)((char*)M_lbase + exit_funcs);
 #endif
 	}
 
@@ -1006,12 +1017,15 @@ void bfd_close(bfd* abfd)
 	else
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << " (" << l_addr << ") ... ");
 	bfile_ct* object_file;
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-	bool is_libstdcpp;
 	char const* slash = strrchr(name, '/');
 	if (!slash)
 	  slash = name - 1;
+#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
+	bool is_libstdcpp;
 	is_libstdcpp = (strncmp("libstdc++.so", slash + 1, 12) == 0);
+#endif
+#if CWDEBUG_ALLOC
+	bool is_libc = (strncmp("libc.so", slash + 1, 7) == 0);
 #endif
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
@@ -1019,9 +1033,9 @@ void bfd_close(bfd* abfd)
 	object_file = new bfile_ct(name, l_addr);
 	BFD_RELEASE_WRITE_LOCK;
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ >= 4
-	object_file->initialize(name, l_addr, is_libstdcpp LIBCWD_COMMA_TSD);
+	object_file->initialize(name, l_addr, is_libc, is_libstdcpp LIBCWD_COMMA_TSD);
 #else
-	object_file->initialize(name, l_addr LIBCWD_COMMA_TSD);
+	object_file->initialize(name, l_addr, is_libc LIBCWD_COMMA_TSD);
 #endif
 	set_alloc_checking_on(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
@@ -1413,6 +1427,7 @@ already_loaded:
         LIBCWD_Dout(dc::bfd, "No object file for address " << addr);
 	M_object_file = NULL;
 	M_func = unknown_function_c;
+	M_unknown_pc = addr;
 	return;
       }
       M_object_file = object_file->get_object_file();

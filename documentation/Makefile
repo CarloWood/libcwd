@@ -39,6 +39,9 @@ external/sys.h: ../example-project/sys.h
 external/debug.h: ../example-project/debug.h
 	cp ../example-project/debug.h external/debug.h
 
+../example-project/debug.h: ../example-project/debug.h.maintainer
+	cd ..; $(MAKE) example-project/debug.h
+
 external/debug.cc: ../example-project/debug.cc
 	cp ../example-project/debug.cc external/debug.cc
 

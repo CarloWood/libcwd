@@ -34,6 +34,7 @@ libcwd_HEADERS = \
 	debugmalloc.h \
 	demangle.h \
 	enum_memblk_types.h \
+	libraries_debug.h \
 	lockable_auto_ptr.h \
 	macro_AllocTag.h \
 	macro_ForAllDebugChannels.h \

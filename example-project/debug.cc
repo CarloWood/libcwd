@@ -23,30 +23,30 @@ void init_thread(void)
   // thread function, because every thread starts in a completely
   // reset state with all debug channels off etc.
 
-#ifdef _REENTRANT	// This is done by the rcfile now.
+#ifdef LIBCWD_THREAD_SAFE	// For the non-threaded case this is set by the rcfile.
   // Turn on all debug channels by default.
-  ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );
+  ForAllDebugChannels(while(!debugChannel.is_on()) debugChannel.on());
   // Turn off specific debug channels.
-  Debug( dc::bfd.off() );
-  Debug( dc::malloc.off() );
+  Debug(dc::bfd.off());
+  Debug(dc::malloc.off());
 #endif
 
   // Turn on debug output.
   // Only turn on debug output when the environment variable SUPPRESS_DEBUG_OUTPUT is not set.
-  Debug( if (getenv("SUPPRESS_DEBUG_OUTPUT") == NULL) libcw_do.on() );
-#ifdef _REENTRANT
-  Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
+  Debug(if (getenv("SUPPRESS_DEBUG_OUTPUT") == NULL) libcw_do.on());
+#ifdef LIBCWD_THREAD_SAFE
+  Debug(libcw_do.set_ostream(&std::cout, &cout_mutex));
 
   // Set the thread id in the margin.
   char margin[12];
   sprintf(margin, "%-10lu ", pthread_self());
-  Debug( libcw_do.margin().assign(margin, 11) );
+  Debug(libcw_do.margin().assign(margin, 11));
 #else
-  Debug( libcw_do.set_ostream(&std::cout) );
+  Debug(libcw_do.set_ostream(&std::cout));
 #endif
 
   // Write a list of all existing debug channels to the default debug device.
-  Debug( list_channels_on(libcw_do) );
+  Debug(list_channels_on(libcw_do));
 }
 
 // Initialize debugging code from main().
@@ -59,14 +59,14 @@ void init(void)
 
   // This will warn you when you are using header files that do not belong to the
   // shared libcwd object that you linked with.
-  Debug( check_configuration() );
+  Debug(check_configuration());
 
 #if CWDEBUG_ALLOC
   // Remove all current (pre- main) allocations from the Allocated Memory Overview.
   libcwd::make_all_allocations_invisible_except(NULL);
 #endif
 
-  Debug( read_rcfile() );
+  Debug(read_rcfile());
 
   init_thread();
 }

@@ -96,23 +96,7 @@ extern debug_objects_ct debug_objects;
 #define LIBCWD_ForAllDebugObjects_UNLOCK
 #endif // !LIBCWD_THREAD_SAFE
 
-/**
- * \def ForAllDebugObjects
- * \ingroup group_special
- *
- * \brief Looping over all debug objects.
- *
- * The macro \c ForAllDebugObjects allows you to run over all %debug objects.
- *
- * For example,
- *
- * \code
- * ForAllDebugObjects( debugObject.set_ostream(&std::cerr, &cerr_mutex) );
- * \endcode
- *
- * would set the output stream of all %debug objects to <CODE>std::cerr</CODE>.
- */
-#define ForAllDebugObjects(STATEMENT) \
+#define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...) \
        do { \
          LIBCWD_ForAllDebugObjects_LOCK; \
 	 for( ::libcwd::_private_::debug_objects_ct::container_type::\
@@ -120,7 +104,7 @@ extern debug_objects_ct debug_objects;
 	     __libcwd_i != ::libcwd::_private_::debug_objects.read_locked().end(); ++__libcwd_i) \
 	 { \
 	   using namespace ::libcwd; \
-	   using namespace DEBUGCHANNELS; \
+	   using namespace dc_namespace; \
 	   ::libcwd::debug_ct& debugObject(*(*__libcwd_i)); \
 	   { STATEMENT; } \
 	 } \
