@@ -39,17 +39,17 @@ RCSTAG_CC("$Id$")
 #define DEBUGSTABS 0
 #define DEBUGDWARF 0
 
-#if DEBUGDWARF
-#define DoutDwarf(cntrl, x) Dout(cntrl, x)
-#else
-#define DoutDwarf(cntrl, x)
-#endif
-
 // This assumes that DW_TAG_compile_unit is the first tag for each compile unit
 // which is not strictly garanteed in the standard but seems to be the case.
 // Moreover it assumes that DW_TAG_compile_unit is the first entry in the
 // .debug_info section for each compile unit.
 #define DWARFSPEEDUP
+
+#if DEBUGDWARF
+#define DoutDwarf(cntrl, x) Dout(cntrl, x)
+#else
+#define DoutDwarf(cntrl, x)
+#endif
 
 namespace libcw {
   namespace debug {
@@ -1047,39 +1047,42 @@ void object_file_ct::load_dwarf(void)
 	{
 	  uLEB128_t form = attr->form;
 	  DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
-	  if (attr->attr == DW_AT_stmt_list)
+	  if (abbrev.tag == DW_TAG_compile_unit)
 	  {
-	    ASSERT( form == DW_FORM_data4 );
-	    uint32_t line_offset;
-	    dwarf_read(debug_info_ptr, line_offset);
-	    DoutDwarf(dc::finish, "0x" << std::hex << line_offset);
-	    debug_line_ptr = debug_line + line_offset;
-	    found_stmt_list = true;
-	    continue;
-          }
-	  else if (attr->attr == DW_AT_name)
-	  {
-	    ASSERT( form == DW_FORM_string );
-	    DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
-	    if (*debug_info_ptr == '/')
-	      default_dir.erase();
-            default_source.assign(reinterpret_cast<char const*>(debug_info_ptr));
-	    default_source += '\0';
-	    while(*debug_info_ptr++);
-	    continue;
-	  }
-	  else if (attr->attr == DW_AT_comp_dir)
-	  {
-	    ASSERT( form == DW_FORM_string );
-	    DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
-	    if (*debug_info_ptr != '/')
+	    if (attr->attr == DW_AT_stmt_list)
 	    {
-	      default_dir.assign(reinterpret_cast<char const*>(debug_info_ptr));
-	      default_dir += '/';
+	      ASSERT( form == DW_FORM_data4 );
+	      uint32_t line_offset;
+	      dwarf_read(debug_info_ptr, line_offset);
+	      DoutDwarf(dc::finish, "0x" << std::hex << line_offset);
+	      debug_line_ptr = debug_line + line_offset;
+	      found_stmt_list = true;
+	      continue;
 	    }
-	    while(*debug_info_ptr++);
-	    continue;
-          }
+	    else if (attr->attr == DW_AT_name)
+	    {
+	      ASSERT( form == DW_FORM_string );
+	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
+	      if (*debug_info_ptr == '/')
+		default_dir.erase();
+	      default_source.assign(reinterpret_cast<char const*>(debug_info_ptr));
+	      default_source += '\0';
+	      while(*debug_info_ptr++);
+	      continue;
+	    }
+	    else if (attr->attr == DW_AT_comp_dir)
+	    {
+	      ASSERT( form == DW_FORM_string );
+	      DoutDwarf(dc::finish, '(' << print_DW_FORM_name(form) << ") \"" << reinterpret_cast<char const*>(debug_info_ptr) << '"');
+	      if (*debug_info_ptr != '/')
+	      {
+		default_dir.assign(reinterpret_cast<char const*>(debug_info_ptr));
+		default_dir += '/';
+	      }
+	      while(*debug_info_ptr++);
+	      continue;
+	    }
+	  }
 indirect:
 	  DoutDwarf(dc::continued, '(' << print_DW_FORM_name(form) << ") ");
 	  switch(form)
