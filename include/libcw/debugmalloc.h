@@ -25,6 +25,7 @@ RCSTAG_H(debugmalloc, "$Id$")
 #endif // CWDEBUG
 
 #ifdef DEBUGMALLOC
+#include <libcw/iomanip.h>
 #include <libcw/lockable_auto_ptr.h>
 #ifdef LIBCW_USE_STRSTREAM
 #include <strstream>
@@ -53,14 +54,6 @@ namespace _internal_ {
   bool inside_ios_base_Init_Init(void);
 #endif
 } // namespace _internal_
-
-  } // namespace debug
-} // namespace libcw
-
-#include <libcw/iomanip.h>
-
-namespace libcw {
-  namespace debug {
 
 // Forward declaration
 class type_info_ct;

@@ -45,6 +45,16 @@ template<class IMANIP_DATA>
     IMANIP_DATA& get_imanip_data(void) { return imanip_data; }
   };
 
+#ifdef DEBUGMALLOC
+namespace debug {
+  extern void set_alloc_checking_off(void);
+  extern void set_alloc_checking_on(void);
+  namespace _internal_ {
+    extern bool internal;
+  }
+}
+#endif
+
 namespace {
 
   template<class TYPE>
@@ -60,10 +70,14 @@ namespace {
       }
       ~ids_singleton_tct()
       {
-        set_alloc_checking_off();
+#ifdef DEBUGMALLOC
+        debug::set_alloc_checking_off();
+#endif
         delete S_ids;
 	S_ids = NULL;
-        set_alloc_checking_on();
+#ifdef DEBUGMALLOC
+        debug::set_alloc_checking_on();
+#endif
       }
     };
 
