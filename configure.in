@@ -63,8 +63,10 @@ esac
 AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
 
 dnl Other options
-EXTRAOPTS="-fno-exceptions -pipe"
+EXTRAOPTS="-fno-exceptions"
 AC_SUBST(EXTRAOPTS)
+dnl Add -pipe if possible
+CW_PIPE_EXTRAOPTS
 
 dnl Manual configuration options of libcwd.
 AC_ARG_ENABLE(libcwd,

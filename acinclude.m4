@@ -659,3 +659,19 @@ fi
 AC_SUBST(CW_CONFIG_INPLACE_STRUCT_RETURN)
 ])
 
+dnl CW_PIPE_EXTRAOPTS
+dnl If the compiler understands -pipe, add it to EXTRAOPTS if not already.
+AC_DEFUN(CW_PIPE_EXTRAOPTS,
+[AC_CACHE_CHECK([if the compiler understands -pipe], cw_cv_pipe_flag,
+[save_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="-pipe"
+AC_TRY_COMPILE(,,cw_cv_pipe_flag=yes,)
+CXXFLAGS="$save_CXXFLAGS"])
+if test "$cw_cv_pipe_flag" = yes ; then
+  x=`echo "$EXTRAOPTS" | grep 'pipe' 2>/dev/null`
+  if test "$x" = "" ; then
+    EXTRAOPTS="$EXTRAOPTS -pipe"
+  fi
+fi
+])
+
