@@ -37,7 +37,7 @@
 
 #define DEBUGELF32 0
 #define DEBUGSTABS 0
-#define DEBUGDWARF 0
+#define DEBUGDWARF 1
 
 // This assumes that DW_TAG_compile_unit is the first tag for each compile unit
 // which is not strictly garanteed in the standard but seems to be the case.
@@ -1233,6 +1233,7 @@ void objfile_ct::load_dwarf(void)
   unsigned char* debug_info_end = debug_info + M_sections[M_dwarf_debug_info_section_index].section_header().sh_size;
   // Start of .debug_line section.
   unsigned char* debug_line = (unsigned char*)allocate_and_read_section(M_dwarf_debug_line_section_index);
+  unsigned char* debug_line_end = debug_line + M_sections[M_dwarf_debug_line_section_index].section_header().sh_size;
   unsigned char const* debug_line_ptr;
   // Start of .debug_str section.
 #if __GNUC__ == 3 && __GNUC_MINOR__ >= 1
@@ -1329,11 +1330,7 @@ void objfile_ct::load_dwarf(void)
 	if (code == 0)
 	{
           if (DEBUGDWARF)
-	    Debug(
-	      std::string marker = libcw_do.get_marker();
-	      marker.erase(marker.size() - 1);
-	      libcw_do.set_marker(marker);
-	    );
+	    Debug( libcw_do.marker().assign(libcw_do.marker().c_str(), libcw_do.marker().size() - 1) );
 	  if (--level <= 0)
 	  {
 	    if (DEBUGDWARF)
@@ -1351,17 +1348,15 @@ void objfile_ct::load_dwarf(void)
 	{
 	  ++level;
           if (DEBUGDWARF)
-	    Debug(
-	      std::string marker = libcw_do.get_marker();
-	      marker += '|';
-	      libcw_do.set_marker(marker);
-	    );
+	    Debug( libcw_do.marker().append("|", 1) );
 	}
 
 	object_files_string default_dir;
 	object_files_string cur_dir;
 	object_files_string default_source;
 	bool found_stmt_list = false;
+	void* low_pc = NULL;
+	void* high_pc = NULL;
 
 	attr_st* attr = abbrev.attributes;
 	for (int i = 0; i < abbrev.attributes_size; ++i, ++attr)
@@ -1412,6 +1407,16 @@ void objfile_ct::load_dwarf(void)
 		default_source.assign(str);
 		default_source += '\0';
 	      }
+	      continue;
+	    }
+	    else if (attr->attr == DW_AT_high_pc || attr->attr == DW_AT_low_pc)
+	    {
+	      LIBCWD_ASSERT( form == DW_FORM_addr );
+	      DoutDwarf(dc::finish, *reinterpret_cast<void* const*>(debug_info_ptr));
+	      if (attr->attr == DW_AT_high_pc)
+		dwarf_read(debug_info_ptr, high_pc);
+	      else
+		dwarf_read(debug_info_ptr, low_pc);
 	      continue;
 	    }
 	  }
@@ -1536,7 +1541,8 @@ indirect:
         if (DEBUGDWARF)
 	  Debug(libcw_do.dec_indent(4));
 
-	if (abbrev.tag == DW_TAG_compile_unit && found_stmt_list)
+	if (abbrev.tag == DW_TAG_compile_unit && found_stmt_list &&
+	    debug_line_ptr < debug_line_end && !(low_pc && high_pc && low_pc == high_pc))
 	{
 	  // ===========================================================================================================================17"
 	  // State machine.
@@ -1805,11 +1811,7 @@ indirect:
         if (abbrev.tag == DW_TAG_compile_unit)
 	{
           if (DEBUGDWARF && level > 0)	// Will be 1, but whatever.
-	    Debug(
-	      std::string marker = libcw_do.get_marker();
-	      marker.erase(marker.size() - level);
-	      libcw_do.set_marker(marker);
-	    );
+	    Debug( libcw_do.marker().assign(libcw_do.marker().c_str(), libcw_do.marker().size() - level) );
 	  break;
 	}
 #endif

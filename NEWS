@@ -1,3 +1,11 @@
+libcwd-0.99.27
+
+	Bug fixes:
+
+	Libcwd would core dump when reading the DWARF debug info from
+	a library whose last compilation unit did not contain a
+	.debug_line section.
+
 libcwd-0.99.26
 
 	Changes:
