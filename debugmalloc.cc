@@ -1396,9 +1396,7 @@ void dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int depth, channe
     struct tm* tbuf_ptr;
     if (filter.M_flags & show_time)
     {
-      ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);	// localtime() can allocate memory, don't show it.
-      // Maybe we should show it because it will turn up in allocation overviews and even memory leaks.
-      // The user should be able to see where it was allocated in the debug output.
+      ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);		// localtime() can allocate memory, don't show it.
 #if CWDEBUG_MARKER
       ooam_filter_ct filter;
       filter.hide_untagged_allocations();

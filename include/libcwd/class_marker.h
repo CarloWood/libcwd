@@ -45,8 +45,8 @@ public:
    * which are not deleted when the marker gets destructed and which are not hidden
    * by the filter will be listed.
    *
-   * If \a make_invisible is set true then all filtered allocations will not only
-   * be placed outside the marker but also made \ref group_invisible "invisible".
+   * If \a make_invisible is set true then all filtered allocations will be made
+   * \ref group_invisible "invisible" at the destruction of the marker.
    */
   marker_ct(char const* label, ooam_filter_ct const& filter, bool make_invisible = false) :
       M_filter(filter), M_make_invisible(make_invisible) { register_marker(label); }
@@ -62,8 +62,8 @@ public:
    * which are not deleted when the marker gets destructed and which are not hidden
    * by the filter will be listed.
    *
-   * If \a make_invisible is set true then all filtered allocations will not only
-   * be placed outside the marker but also made \ref group_invisible "invisible".
+   * If \a make_invisible is set true then all filtered allocations will be made
+   * \ref group_invisible "invisible" at the destruction of the marker.
    */
   marker_ct(ooam_filter_ct const& filter, bool make_invisible = false) :
       M_filter(filter), M_make_invisible(make_invisible) { register_marker("An allocation marker"); }
