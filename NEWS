@@ -2,9 +2,18 @@ libcwd-0.99.23
 
 	The "Overview Of Allocated Memory" filter (ooam_filter_ct)
 	has been extended with the ability to discriminate on the
-	source filename of the allocation location.  It now also
-	allows to only show allocations for which explicitely an
-	allocation annotation (AllocTag et al) has been used.
+	source filename of the allocation location
+	[ ooam_filter_ct::hide_sourcefiles_matching(std::vector<std::string> const&); ].
+	
+	It is now also possible to only show allocations for which
+	explicitly an allocation annotation (AllocTag et al) has
+	been used [ ooam_filter_ct::hide_untagged_allocations(bool) ].
+
+	An allocation marker (marker_ct) now accepts a filter
+	argument which is subsequently used to move 'hidden'
+	allocations outside of the marker before testing for leaks.
+	Possible leaks are then listed using the show_* flags of the
+	filter.
 
 libcwd-0.99.22
 

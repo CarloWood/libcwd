@@ -801,29 +801,30 @@ public:
 
 class dm_alloc_copy_ct : public dm_alloc_base_ct {
 private:
-  dm_alloc_copy_ct* next;
-  dm_alloc_copy_ct* a_next_list;
+  dm_alloc_copy_ct* M_next;
+  dm_alloc_copy_ct* M_next_list;
 public:
-  dm_alloc_copy_ct(dm_alloc_ct const& alloc) : dm_alloc_base_ct(alloc), next(NULL), a_next_list(NULL) { }
+  dm_alloc_copy_ct(dm_alloc_ct const& alloc) : dm_alloc_base_ct(alloc), M_next(NULL), M_next_list(NULL) { }
   static dm_alloc_copy_ct* deep_copy(dm_alloc_ct const* alloc);
   void show_alloc_list(int depth, channel_ct const& channel, ooam_filter_ct const& filter) const;
+  dm_alloc_copy_ct const* next(void) const { return M_next; }
 };
 
 dm_alloc_copy_ct* dm_alloc_copy_ct::deep_copy(dm_alloc_ct const* alloc)
 {
   dm_alloc_copy_ct* dm_alloc_copy = new dm_alloc_copy_ct(*alloc);
   if (alloc->a_next_list)
-    dm_alloc_copy->a_next_list = deep_copy(alloc->a_next_list);
+    dm_alloc_copy->M_next_list = deep_copy(alloc->a_next_list);
   dm_alloc_copy_ct* prev = dm_alloc_copy;
   for(;;)
   {
     alloc = alloc->next;
     if (!alloc)
       break;
-    prev->next = new dm_alloc_copy_ct(*alloc);
-    prev = prev->next;
+    prev->M_next = new dm_alloc_copy_ct(*alloc);
+    prev = prev->M_next;
     if (alloc->a_next_list)
-      prev->a_next_list = dm_alloc_copy_ct::deep_copy(alloc->a_next_list);
+      prev->M_next_list = dm_alloc_copy_ct::deep_copy(alloc->a_next_list);
   }
   return dm_alloc_copy;
 }
@@ -1271,7 +1272,7 @@ void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooa
 #endif
   dm_alloc_copy_ct const* alloc;
   LIBCWD_TSD_DECLARATION;
-  for (alloc = this; alloc; alloc = alloc->next)
+  for (alloc = this; alloc; alloc = alloc->M_next)
   {
     if ((filter.M_flags & hide_untagged) && !alloc->is_tagged())
       continue;
@@ -1321,8 +1322,8 @@ void dm_alloc_copy_ct::show_alloc_list(int depth, channel_ct const& channel, ooa
     LibcwDoutScopeEnd;
     alloc->print_description(filter LIBCWD_COMMA_TSD);
     Dout( dc::finish, "" );
-    if (alloc->a_next_list)
-      alloc->a_next_list->show_alloc_list(depth + 1, channel, filter);
+    if (alloc->M_next_list)
+      alloc->M_next_list->show_alloc_list(depth + 1, channel, filter);
   }
 }
 
@@ -1660,7 +1661,8 @@ static bool search_in_maps_of_other_threads(void const* ptr, memblk_map_ct::cons
 }
 #endif
 
-static ooam_filter_ct const default_ooam_filter(0);
+ooam_filter_ct const default_ooam_filter(0);
+
 static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUGM
@@ -2511,7 +2513,6 @@ marker_ct::~marker_ct()
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
 #endif
 
-  dm_alloc_copy_ct* list = NULL;
   _private_::smart_ptr description;
 
   LIBCWD_DEFER_CANCEL_NO_BRACE;
@@ -2526,15 +2527,9 @@ marker_ct::~marker_ct()
 
   description = (*iter).second.description();		// This won't call malloc.
 
-  if ((*iter).second.a_alloc_node.get()->next_list())
-  {
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
-    list = dm_alloc_copy_ct::deep_copy((*iter).second.a_alloc_node.get()->next_list());
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
-  }
+  dm_alloc_ct* marker_alloc_node = (*iter).second.a_alloc_node.get();
 
-  // Set `CURRENT_ALLOC_LIST' one list back
-  if (*CURRENT_ALLOC_LIST != (*iter).second.a_alloc_node.get()->next_list())
+  if (*CURRENT_ALLOC_LIST != marker_alloc_node->next_list())
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
@@ -2543,31 +2538,67 @@ marker_ct::~marker_ct()
 	"you cannot allocate marker A, then allocate marker B and then delete marker A before deleting first marker B." );
   }
   ACQUIRE_READ2WRITE_LOCK;
+  // Set `CURRENT_ALLOC_LIST' one list back
   dm_alloc_ct::descend_current_alloc_list(LIBCWD_TSD);		// MT: needs write lock.
   RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
 
   Dout( dc_malloc, "Removing libcw::debug::marker_ct at " << this << " (" << description.get() << ')' );
-  if (list)
+  if (marker_alloc_node->next_list())
   {
 #if LIBCWD_THREAD_SAFE
-    LIBCWD_DEFER_CANCEL;
-    pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(&mutex_tct<list_allocations_instance>::cleanup), NULL);
+    LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);
     mutex_tct<list_allocations_instance>::lock();
 #endif
-    default_ooam_filter.M_check_synchronization();
-    libcw_do.push_margin();
-    libcw_do.margin().append("  * ", 4);
-    Dout( dc::warning, "Memory leak detected!" );
-    list->show_alloc_list(1, channels::dc::warning, default_ooam_filter);
-    libcw_do.pop_margin();
-#if LIBCWD_THREAD_SAFE
-    pthread_cleanup_pop(1);
-    LIBCWD_RESTORE_CANCEL;
-#endif
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
-    delete list;
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
+    M_filter.M_check_synchronization();
+    for (dm_alloc_ct* alloc_node = marker_alloc_node->a_next_list; alloc_node;)
+    {
+      dm_alloc_ct* next_alloc_node = alloc_node->next;
+      object_file_ct const* object_file = alloc_node->location().object_file();
+      if (((M_filter.M_flags & hide_untagged) && !alloc_node->is_tagged()) ||
+	  (alloc_node->location().hide_from_alloc_list()) ||
+	  (object_file && object_file->hide_from_alloc_list()) ||
+          ((M_filter.M_start.tv_sec != 1) &&
+	   (alloc_node->time().tv_sec < M_filter.M_start.tv_sec || 
+	       (alloc_node->time().tv_sec == M_filter.M_start.tv_sec && alloc_node->time().tv_usec < M_filter.M_start.tv_usec))) ||
+          ((M_filter.M_end.tv_sec != 1) &&
+	    (alloc_node->time().tv_sec > M_filter.M_end.tv_sec ||
+	        (alloc_node->time().tv_sec == M_filter.M_end.tv_sec && alloc_node->time().tv_usec > M_filter.M_end.tv_usec))))
+      {
+	// Delink it:
+	ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
+	if (alloc_node->next)
+	  alloc_node->next->prev = alloc_node->prev;
+	if (alloc_node->prev)
+	  alloc_node->prev->next = alloc_node->next;
+	else if (!(*alloc_node->my_list = alloc_node->next) && alloc_node->my_owner_node->is_deleted())
+	  delete alloc_node->my_owner_node;
+	// Relink it:
+	alloc_node->prev = NULL;
+	alloc_node->next = *marker_alloc_node->my_list;
+	*marker_alloc_node->my_list = alloc_node;
+	alloc_node->next->prev = alloc_node;
+	alloc_node->my_list = marker_alloc_node->my_list;
+	alloc_node->my_owner_node = marker_alloc_node->my_owner_node;
+	RELEASE_WRITE_LOCK;
+      }
+      alloc_node = next_alloc_node;
+    }
+    if (marker_alloc_node->next_list())
+    {
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      dm_alloc_copy_ct* list = dm_alloc_copy_ct::deep_copy(marker_alloc_node->next_list());
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+      libcw_do.push_margin();
+      libcw_do.margin().append("  * ", 4);
+      Dout( dc::warning, "Memory leak detected!" );
+      list->show_alloc_list(1, channels::dc::warning, M_filter);
+      libcw_do.pop_margin();
+      _private_::set_alloc_checking_off(LIBCWD_TSD);
+      delete list;
+      _private_::set_alloc_checking_on(LIBCWD_TSD);
+    }
+    LIBCWD_CLEANUP_POP_RESTORE(true);
   }
 }
 

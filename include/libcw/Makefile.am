@@ -23,6 +23,7 @@ libcwd_HEADERS = \
 	class_location.inl \
 	class_marker.h \
 	class_object_file.h \
+	class_ooam_filter.h \
 	control_flag.h \
 	core_dump.h \
 	cwprint.h \

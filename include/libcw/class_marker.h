@@ -21,6 +21,8 @@
 namespace libcw {
   namespace debug {
 
+extern ooam_filter_ct const default_ooam_filter;
+
 /**
  * \brief A memory allocation marker.
  * \ingroup group_markers
@@ -28,12 +30,35 @@ namespace libcw {
 class marker_ct {
 private:
   void register_marker(char const* label);
+  ooam_filter_ct const& M_filter;
 public:
+  /** \brief Construct a marker with label \p label.
+   *
+   * The \a filter must exist until the marker is deleted; it is used by the destructor
+   * of the marker.  Allocations that are hidden as a result of the filter will be
+   * placed outside the marker.  Allocations done after the creation of the marker
+   * which are not deleted when the marker gets destructed and which are not hidden
+   * by the filter will be listed.
+   */
+  marker_ct(char const* label, ooam_filter_ct const& filter) : M_filter(filter) { register_marker(label); }
+
   /** \brief Construct a marker with label \p label. */
-  marker_ct(char const* label) { register_marker(label); }
+  marker_ct(char const* label) : M_filter(default_ooam_filter) { register_marker(label); }
+
+  /** \brief Construct a marker with label "An allocation marker".
+   *
+   * The \a filter must exist until the marker is deleted; it is used by the destructor
+   * of the marker.  Allocations that are hidden as a result of the filter will be
+   * placed outside the marker.  Allocations done after the creation of the marker
+   * which are not deleted when the marker gets destructed and which are not hidden
+   * by the filter will be listed.
+   */
+  marker_ct(ooam_filter_ct const& filter) : M_filter(filter) { register_marker("An allocation marker"); }
+
   /** \brief Construct a marker with label "An allocation marker". */
-  marker_ct(void) { register_marker("An allocation marker"); }
-  ~marker_ct(void);
+  marker_ct(void) : M_filter(default_ooam_filter) { register_marker("An allocation marker"); }
+
+  ~marker_ct();
 };
 
   } //namespace debug
