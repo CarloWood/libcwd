@@ -120,7 +120,6 @@ int main(void)
     Dout(dc::notice|continued_cf, "main: creating thread " << i << ", ");
     pthread_create(&thread_id[i], NULL, progs[i], NULL);
     Dout(dc::finish, "id " << thread_id[i] << " (" << thread_index(thread_id[i]) << ").");
-    break;
   }
 
   for (int i = 0; i < number_of_threads; ++i)
@@ -128,7 +127,6 @@ int main(void)
     void* status;
     pthread_join(thread_id[i], &status);
     Dout(dc::notice, "main loop: thread " << i << ", id " << thread_id[i] << " (" << thread_index(thread_id[i]) << "), returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
-    break;
   }
 
   Dout(dc::notice, "Exiting from main()");
