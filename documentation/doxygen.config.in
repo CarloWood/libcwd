@@ -410,11 +410,14 @@ EXCLUDE_PATTERNS       = timestamp-*.h
 # The EXAMPLE_PATH tag can be used to specify one or more files or 
 # directories that contain example code fragments that are included (see 
 # the \include command).
-# The "@top_srcdir@" is needed for the 'nodebug.h' file.
+# The '@top_srcdir@' is needed for the 'nodebug.h' file.
+# 'external' is put before and after @top_srcdir@ in order to make sure
+# that we find 'debug.cc' in 'external' and don't use the one in top_srcdir.
 
 EXAMPLE_PATH           = external \
                          @srcdir@/doxygen-examples \
-			 @top_srcdir@
+			 @top_srcdir@ \
+			 external
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

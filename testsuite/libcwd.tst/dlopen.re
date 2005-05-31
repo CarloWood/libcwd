@@ -38,11 +38,24 @@ MALLOC  : free\(0x[0-9a-f]*\) *module.cc:13 *void\*; \(sz = 300\)  Allocated ins
 )*
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-version.c:[0-9]*|_dl_check_map_versions) *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-object.c:[0-9]*|_dl_new_object) *<unknown type>; \(sz = [0-9]*\)  
+// input lines 2
+// output till sz =
+(MALLOC  : Trying to free NULL - ignored\.
+)*
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-load.c:[0-9]*|_dl_map_object|open_path) *<unknown type>; \(sz = [0-9]*\)  
-MALLOC  : Trying to free NULL - ignored\.
+// input lines 4
+// output till (dl-deps.c:[0-9]*|_dl_map_object_deps)
+(MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-object.c:[0-9]*|_dl_new_object) *<unknown type>; \(sz = [0-9]*\)  
+)*
 MALLOC  : free\(0x[0-9a-f]*\) *(dl-deps.c:[0-9]*|_dl_map_object_deps) *<unknown type>; \(sz = [0-9]*\)  
+// input lines 4
+// output till delete
+(MALLOC  : Trying to free NULL - ignored\.
+MALLOC  : Trying to free NULL - ignored\.
+MALLOC  : free\(0x[0-9a-f]*\) *(dl-object.c:[0-9]*|_dl_new_object) *<unknown type>; \(sz = [0-9]*\)  
+)*
 // input lines 3
 // output till ^NOTICE
 (MALLOC  : delete 0x[0-9a-f]* *(streambuf::streambuf\(int\)|streambuf\.cc:211|ios\.cc:326|memory:183) *<unknown type>; \(sz = [0-9]*\)  

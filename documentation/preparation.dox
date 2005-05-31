@@ -25,11 +25,11 @@ The recommended names are "debug.h" and "sys.h".
 You can use the following templates for a quick start:
 
 \par sys.h example template
-\include sys.h
+\include "sys.h"
 \htmlonly &laquo;<A HREF="../external/sys.h">download</A>&raquo;\endhtmlonly
 
 \par debug.h example template
-\include debug.h
+\include "debug.h"
 \htmlonly &laquo;<A HREF="../external/debug.h">download</A>&raquo;\endhtmlonly
 
 This %debug.h file is for applications; for more detailed information and for information
@@ -43,7 +43,7 @@ also need to add the definition somewhere.&nbsp;
 You can do that anywhere, or you could add a special source file for it.&nbsp;
 
 \par debug.cc example template
-\include debug.cc
+\include "debug.cc"
 \htmlonly &laquo;<A HREF="../external/debug.cc">download</A>&raquo;\endhtmlonly
 
 The above is just an example of course.&nbsp; But if you'd use it, then you

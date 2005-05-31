@@ -10,7 +10,7 @@ MALLOC  : Number of visible memory blocks: 1\.
 MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
           0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
 MALLOC  : Number of visible memory blocks: 1\.
-MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:(115|157)|          stl_alloc.h:(103|108|109)|          stl-inst.cc:104|      new_allocator.h:(50|81)|     pool_allocator.h:(293|294)|       mt_allocator.h:[0-9]*|                     ) *<unknown type>; \(sz = 4096\)  
+MALLOC  : (free\(|delete )0x[a-f0-9]*( <pre libcwd initialization>|\) <pre ios initialization> |\)          stl_alloc.h:(115|157)|          stl_alloc.h:(103|108|109)|          stl-inst.cc:104|      new_allocator.h:(50|81|88)|     pool_allocator.h:(293|294)|       mt_allocator.h:[0-9]*|                     ) *<unknown type>; \(sz = 4096\)  
 MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc 
 // input lines 5
 // output till ^MALLOC  : calloc
@@ -81,14 +81,24 @@ NOTICE  : dlclose\(0x[a-f0-9]*\)
 )*
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-version\.c:(289|298)|_dl_check_map_versions) *<unknown type>; \(sz = [0-9]*\)  
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:(119|131)|_dl_new_object) *<unknown type>; \(sz = 140\)  
+// input lines 2
+// output till free\(
+(MALLOC  : Trying to free NULL - ignored\.
+)*
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-load\.c:(164|149)|_dl_map_object|expand_dynamic_string_token) *<unknown type>; \(sz = 12\)  
-MALLOC  : Trying to free NULL - ignored\.
+// input lines 4
+// output till (dl-deps\.c:(528|489)|_dl_map_object_deps|<pre libcwd initialization>)
+(MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600)\)  
+)*
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-deps\.c:(528|489)|_dl_map_object_deps|<pre libcwd initialization>) *<unknown type>; \(sz = [0-9]*\)  
-// input lines 4
+// input lines 7
 // output till MALLOC  : Allocated memory
-((MALLOC  : .*<pre libcwd initialization> <unknown type>; \(sz = [0-9]*\)  
+(MALLOC  : Trying to free NULL - ignored\.
+MALLOC  : Trying to free NULL - ignored\.
+MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600)\)  
+)|((MALLOC  : .*<pre libcwd initialization> <unknown type>; \(sz = [0-9]*\)  
 MALLOC  : (Trying to free NULL - ignored\.|free\(0x[a-f0-9]*\) <pre libcwd initialization> <unknown type>.*)
 )*|(MALLOC  : delete 0x[a-f0-9]* <pre ios initialization>  <unknown type>.*
 ))

@@ -84,6 +84,9 @@ Single-threaded case:
 #if __GNUC__ == 3 && __GNUC_MINOR__ == 4
 #include <ext/pool_allocator.h>		// __gnu_cxx::__pool_alloc
 #endif
+#if __GNUC__ >= 4
+#include <ext/mt_allocator.h>		// __gnu_cxx::__pool
+#endif
 
 namespace libcwd {
   namespace _private_ {

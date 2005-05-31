@@ -57,7 +57,9 @@ enum memblk_types_nt {
   memblk_type_external		///< Externally allocated with <code>%malloc()</code> (no magic numbers!)
 };
 
+#ifndef HIDE_FROM_DOXYGEN     // Bug in doxygen
 extern ::std::ostream& operator<<(::std::ostream& os, memblk_types_nt);
+#endif
 
 } // namespace libcwd
 
