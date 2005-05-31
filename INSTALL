@@ -38,7 +38,7 @@ Packages/versions needed
 i) The GNU compiler, version 3.2 or higher.
 
     Location: gnu/gcc/
-    Current version: 3.4.2
+    Current version: 4.0.0
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -66,8 +66,8 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.38 was tested with gcc-3.2.3, gcc-3.3.2, gcc-3.3.3,
-gcc-3.4.0, gcc-3.4.1, gcc-3.4.2 and gcc version 4.0.0 20041008 (experimental)
+libcwd-0.99.40 was tested with gcc-3.3, gcc-3.3.5, gcc-3.4.0
+gcc-3.4.1, gcc-3.4.4, gcc-4.0.0 and gcc version 4.1.0 20050306 (experimental)
 
 Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
 making the use of threading with NPTL impossible.
@@ -77,7 +77,7 @@ distribution with NPTL at the moment).  The current
 development version of NPTL has this fixed.  It tries
 to free a pointer that is really a global struct -
 libcwd will CORE when it detects that.
-Other 3.x versions should work but that is not garanteed.
+Other 3.[12].x versions should work but that is not garanteed.
 
 Packages needed to run the testsuite
 ------------------------------------
