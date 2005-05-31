@@ -1,3 +1,10 @@
+libcwd-0.99.40
+
+	Bug fixes:
+	
+	libcwd didn't compile with the g++ 4.0.0 that was actually
+	released.
+
 libcwd-0.99.39
 
 	Updated support for g++ 4.0.0.

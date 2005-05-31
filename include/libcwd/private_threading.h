@@ -459,14 +459,6 @@ template <int instance>
 #else
       	PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP;
 #endif
-
-// Specialization.
-#if 0	// FIXME, uncomment when http://gcc.gnu.org/bugzilla/show_bug.cgi?id=20350 is fixed.
-template <>
-  extern pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex;
-#endif
-      // = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-
 #else // !LIBCWD_USE_LINUXTHREADS
       ;
 #endif // !LIBCWD_USE_LINUXTHREADS
