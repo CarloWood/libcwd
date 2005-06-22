@@ -7,5 +7,5 @@ Name: libcwd_r
 Description: C++ Debugging Support Library for threaded applications
 Version: @VERSION@
 Libs: -L${libdir} -lcwd_r
-Cflags: -DCWDEBUG -I${includedir}
+Cflags: -DCWDEBUG -DLIBCWD_THREAD_SAFE -I${includedir}
 

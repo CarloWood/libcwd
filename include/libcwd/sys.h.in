@@ -60,10 +60,33 @@ namespace libcwd {
 // test on _REENTRANT here, before including any other header file.
 //
 #if defined(_REENTRANT) || defined(_THREAD_SAFE)
-#define LIBCWD_THREAD_SAFE 1
-#else
+// Some (broken) third party libraries include -D_REENTRANT in the
+// pkg-config --cflags output (for example, several X libraries).
+// Therefore we can't even rely here on it anymore.  Instead use
+// our own define to know if this is a threaded application or not.
+#ifndef LIBCWD_THREAD_SAFE
+// This could be a #warning -- if gcc SHOWED warnings in system headers.
+#error Please use -DLIBCWD_THREAD_SAFE on the command line if you intend to link with libcwd_r! \
+       To fix this error, remove -D_REENTRANT (and/or -D_THREAD_SAFE) from your compile flags \
+       when you are compiling a single threaded application (and link with libcwd), or add \
+       -DLIBCWD_THREAD_SAFE to the compile flags (and link with libcwd_r). Alternatively you \
+       can suppress this warning by adding -DLIBCWD_THREAD_SAFE=0 (and link with libcwd). \
+       You are strongly advised to use pkg-config to determine the correct flags \
+       (see example-project/m4/CW_LIB_LIBCWD.m4)!
+#endif	// LIBCWD_THREAD_SAFE
+
+#else	// !(defined(_REENTRANT) || defined(_THREAD_SAFE))
+
+#ifndef LIBCWD_THREAD_SAFE
 #define LIBCWD_THREAD_SAFE 0
+#elif LIBCWD_THREAD_SAFE
+// This could be a #warning -- if gcc SHOWED warnings in system headers.
+#error LIBCWD_THREAD_SAFE is set, which implies the use of threads. \
+       You should also define _REENTRANT (or _THREAD_SAFE on some OS) for the sake of other libraries in this case! \
+       Add -D_REENTRANT -pthread to your CXXFLAGS for threaded applications.
 #endif
+
+#endif	// defined(_REENTRANT) || defined(_THREAD_SAFE)
 
 #if LIBCWD_THREAD_SAFE && !defined(_GNU_SOURCE)
 #error Sorry, libcwd_r uses GNU extensions, also in the header files.

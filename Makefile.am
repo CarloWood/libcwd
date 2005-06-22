@@ -49,7 +49,7 @@ libcwd_la_LIBADD = utils/libutils.la
 endif
 
 if ENABLETHREADING
-libcwd_r_la_CXXFLAGS = $(PCHOPTS) -DCWDEBUG -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS)
+libcwd_r_la_CXXFLAGS = $(PCHOPTS) -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS)
 libcwd_r_la_SOURCES = \
 	elf32.cc \
 	environ.cc \

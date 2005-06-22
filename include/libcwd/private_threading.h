@@ -81,7 +81,10 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #endif
 #else
 #if LIBCWD_THREAD_SAFE
-#error Fatal error: thread support was not detected during configuration of libcwd (did you use --disable-threading?)! How come you are trying to compile a threaded program now?
+#error Fatal error: thread support was not detected during configuration of libcwd (did you use --disable-threading?)! \
+       How come you are trying to compile a threaded program now? \
+       To fix this problem, either link with libcwd_r (install it), or when you are indeed compiling a \
+       single threaded application, then get rid of the -D_REENTRANT and/or -D_THREAD_SAFE in your compile flags.
 #endif
 #endif // LIBCWD_HAVE_PTHREAD
 

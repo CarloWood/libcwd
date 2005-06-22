@@ -33,7 +33,7 @@ attach_gdb.cc
 endif
 
 if ENABLETHREADING
-libutils_r_la_CXXFLAGS = -DCWDEBUG -D_REENTRANT -pthread $(WARNOPTS)
+libutils_r_la_CXXFLAGS = -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(WARNOPTS)
 libutils_r_la_SOURCES = \
 buf2str.cc \
 char2str.cc \

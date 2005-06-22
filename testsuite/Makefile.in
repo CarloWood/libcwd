@@ -119,7 +119,7 @@ endif
 ifeq ($(enable_threading), yes)
 ifeq ($(enable_shared), yes)
 module_r.so: module.cc $(top_builddir)/include/libcwd/*.h
-	$(CXXCOMPILE) -D_REENTRANT -pthread -shared -fPIC -DPIC -w $< -o $@
+	$(CXXCOMPILE) -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread -shared -fPIC -DPIC -w $< -o $@
 endif
 endif
 
@@ -141,7 +141,7 @@ endif
 
 ifeq ($(enable_threading), yes)
 threads_%.o: libcwd.threads/%.cc Makefile $(top_builddir)/include/libcwd/*.h
-	$(CXXCOMPILE) -D_REENTRANT -pthread -c $< -o $@
+	$(CXXCOMPILE) -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread -c $< -o $@
 endif
 
 ifeq ($(enable_shared), yes)
@@ -154,7 +154,7 @@ threads_%_shared: threads_%.o $(top_builddir)/.libs/libcwd_r.so.*
 endif
 ifeq ($(enable_nonthreading), yes)
 tst_dlopen_shared: tst_dlopen.o $(top_builddir)/.libs/libcwd.so.* module.so
-	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
+	$(CXXLINK) $< -o $@ $(SHAREDLIBS) -ldl
 
 tst_filter_shared: tst_filter.o $(top_builddir)/.libs/libcwd.so.* module.so
 	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
@@ -177,7 +177,7 @@ threads_%_static: threads_%.o $(top_builddir)/.libs/libcwd_r.a
 endif
 ifeq ($(enable_nonthreading), yes)
 tst_dlopen_static: tst_dlopen_static.o $(top_builddir)/.libs/libcwd.a
-	$(CXXLINK) $< -o $@ $(STATICLIBS)
+	$(CXXLINK) $< -o $@ $(STATICLIBS) -ldl
 
 tst_filter_static: tst_filter_static.o $(top_builddir)/.libs/libcwd.a
 	$(CXXLINK) $< -o $@ $(STATICLIBS)
