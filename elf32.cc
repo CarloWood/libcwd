@@ -756,7 +756,7 @@ static unsigned char address_size;	// Should be sizeof(void*) - at least it is c
 // address	: Refers to some location in the address space of the described program.
 typedef Elf32_Addr address_t;
 // block	: An arbitrary number of uninterpreted bytes of data.
-struct block_t { Elf32_Addr begin; size_t number_of_bytes; };
+struct block_t { unsigned char const* begin; size_t number_of_bytes; };
 // constant	: One, two, four or eight bytes of uninterpreted data, or data encoded
 //                in the variable length format known as LEB128 (see section 7.6).
 // We don't handle 8 byte sizes if uLEB128_t doesn't either.
@@ -873,7 +873,7 @@ read_block(unsigned char const*& debug_info_ptr, uLEB128_t const form)
   LIBCWD_ASSERT(form == DW_FORM_block1 || form == DW_FORM_block2 || form == DW_FORM_block4 || form == DW_FORM_block);
 #endif
   block_t result;
-  result.begin = (Elf32_Addr)debug_info_ptr;
+  result.begin = debug_info_ptr;
   switch(form)
   {
     case DW_FORM_block1:
