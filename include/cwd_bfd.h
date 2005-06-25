@@ -81,7 +81,7 @@ namespace libcwd {
 #if !CWDEBUG_LIBBFD
 typedef char* PTR;
 typedef elf32::bfd_st bfd;
-typedef elf32::Elf32_Addr bfd_vma;
+typedef char* bfd_vma;
 typedef elf32::asection_st asection;
 typedef elf32::asymbol_st asymbol;
 #endif
