@@ -121,7 +121,8 @@ typedef std::list<bfile_ct*> object_files_ct;
 class bfile_ct {                                  // All allocations related to bfile_ct must be `internal'.
 private:
   bfd* M_abfd;
-  void* M_lbase;
+  void* M_lbase;	// The 'load address', or 0 for the executable.
+  void const* M_start;	// For shared libraries, this is equal to M_lbase.
   size_t M_size;
   asymbol** M_symbol_table;
   long M_number_of_symbols;
@@ -138,6 +139,7 @@ public:
 
   bfd* get_bfd(void) const { return M_abfd; }
   void* const get_lbase(void) const { return M_lbase; }
+  void const* const get_start(void) const { return M_start; }
   size_t size(void) const { return M_size; }
   asymbol** get_symbol_table(void) const { return M_symbol_table; }
   long get_number_of_symbols(void) const { return M_number_of_symbols; }

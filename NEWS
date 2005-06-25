@@ -1,3 +1,18 @@
+libcwd-0.99.41
+
+	Bug fixes:
+
+	Although the 'load address', relative to which ELF32 symbols
+	are given, is 0 for the main executable, it doesn't have to
+	be the REAL load address.  It turned out that it is possible
+	that shared libraries are loaded into memory BELOW the
+	executable. This resulted in a problem when the executable
+	dynamically loads a library in this low region: a symbol
+	look up for shared libraries that are loaded later was thought
+	to be part of the executable and not resolved correctly.
+	The 'start' of the executable is now set to be the start
+	address of the first function, instead of 0.
+
 libcwd-0.99.40
 
 	Bug fixes:

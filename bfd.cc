@@ -203,7 +203,7 @@ void bfd_close(bfd* abfd)
       {
 	object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
 	for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
-	  if ((*i)->get_lbase() < addr && (char*)(*i)->get_lbase() + (*i)->size() > addr)
+	  if ((*i)->get_start() < addr && (char*)(*i)->get_start() + (*i)->size() > addr)
 	    break;
 	return (i != NEEDS_READ_LOCK_object_files().end()) ? (*i) : NULL;
       }
@@ -621,7 +621,16 @@ void bfd_close(bfd* abfd)
 	    }
 	    if (!M_size)
 	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_lbase;
+	    if (M_lbase == 0)
+	    {
+	      asymbol const* first_symbol = (*M_function_symbols.rbegin()).get_symbol();
+	      M_start = symbol_start_addr(first_symbol); // For the executable, use the lowest start address of all symbols.
+	    }
+	    else
+	      M_start = M_lbase;		// Ok for shared libraries.
 	  }
+	  else
+	    M_start = M_lbase;			// Probably a shared library, need to initialize this anyway.
 
 #if 0
 	  if (M_function_symbols.size() < 20000)
