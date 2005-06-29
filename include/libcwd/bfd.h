@@ -28,14 +28,6 @@
 #include <libcwd/pc_mangled_function_name.h>
 #endif
 
-#ifdef LIBCWD_DLOPEN_DEFINED
-#include <dlfcn.h>
-#define dlopen __libcwd_dlopen
-#define dlclose __libcwd_dlclose
-extern "C" void* dlopen(char const*, int);
-extern "C" int dlclose(void*);
-#endif // LIBCWD_DLOPEN_DEFINED
-
 #if CWDEBUG_ALLOC
 namespace libcwd {
   namespace _private_ {

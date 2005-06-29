@@ -150,6 +150,7 @@ private:
 public:
   bool is_tagged(void) const { return M_tagged; }
   void alloctag_called(void) { M_tagged = true; }
+  void reset_type_info(void) { type_info_ptr = &unknown_type_info_c; }
 };
 
 } // namespace libcwd

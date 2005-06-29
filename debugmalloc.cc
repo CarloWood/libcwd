@@ -2775,6 +2775,29 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_p
   LIBCWD_RESTORE_CANCEL;
 }
 
+#if CWDEBUG_LOCATION
+namespace _private_ {
+
+// This is called from bfile_ct::deinitialize.
+void remove_type_info_references(object_file_ct const* object_file_ptr LIBCWD_COMMA_TSD_PARAM)
+{
+  LIBCWD_DEFER_CANCEL;
+  ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
+  
+  for (memblk_map_ct::const_iterator iter = memblk_map_read->begin(); iter != memblk_map_read->end(); ++iter)
+  {
+    alloc_ct* alloc = iter->second.get_alloc_node();
+    if (alloc && alloc->location().object_file() == object_file_ptr)
+      alloc->reset_type_info();
+  }
+
+  RELEASE_READ_LOCK;
+  LIBCWD_RESTORE_CANCEL;
+}
+
+} // namespace _private_
+#endif
+
 #undef CALL_ADDRESS
 #if CWDEBUG_LOCATION
 #define CALL_ADDRESS , reinterpret_cast<char*>(__builtin_return_address(0)) + builtin_return_address_offset

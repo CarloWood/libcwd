@@ -410,7 +410,7 @@ void allocator_unlock(void)
 
     void version_check_failed(void)
     {
-      DoutFatal(dc::fatal, "check_configuration: This version of libcwd does not match the version of libcwd/config.h!  Are your paths correct?");
+      DoutFatal(dc::fatal, "check_configuration: This version of libcwd does not match the version of libcwd/config.h! Are your paths correct? Did you recently upgrade libcwd and forgot to recompile this application?");
     }
 
     /**

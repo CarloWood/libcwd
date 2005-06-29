@@ -13,6 +13,18 @@ libcwd-0.99.41
 	The 'start' of the executable is now set to be the start
 	address of the first function, instead of 0.
 
+	The trick of #defining dlopen and dlclose in order to catch
+	calls to them simply doesn't work. A better method is being
+	used now that actually catches all calls to dlopen/dlclose.
+	This also allowed to reliably reset type_info pointers in the
+	alloc_ct of allocations done from a loaded module that used
+	AllocTag and is leaking that memory. Before, an application
+	would core dump when dumping (apparently leaking) allocations
+	done in a module that was dlclosed already and for which
+	AllocTag was used, because the static type info object is
+	part of the shared object which was unloaded, leading to
+	reading invalid memory.
+
 libcwd-0.99.40
 
 	Bug fixes:

@@ -23,9 +23,6 @@
 
 #include <inttypes.h>	// ISO C99 header, needed for int32_t etc.
 #include <iomanip>
-#ifdef HAVE_DLOPEN
-#include <dlfcn.h>
-#endif
 #include <fstream>
 #include <set>
 #include <map>

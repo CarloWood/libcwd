@@ -58,10 +58,6 @@ struct rtld_global {
 #endif
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
-#ifdef LIBCWD_DLOPEN_DEFINED
-#undef dlopen
-#undef dlclose
-#endif
 #include "exec_prog.h"
 #include "match.h"
 #include <libcwd/class_object_file.h>
@@ -89,6 +85,7 @@ namespace libcwd {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
     extern char* pool_allocator_lock_symbol_ptr;
 #endif
+    extern void remove_type_info_references(object_file_ct const* object_file_ptr LIBCWD_COMMA_TSD_PARAM);
   } // namespace _private_
 
     // New debug channel
@@ -110,6 +107,14 @@ namespace libcwd {
 
     using _private_::set_alloc_checking_on;
     using _private_::set_alloc_checking_off;
+
+#ifdef HAVE_DLOPEN
+extern "C" {
+    // dlopen and dlclose function pointers into libdl.
+    static union { void* symptr; void* (*func)(char const*, int); } real_dlopen;
+    static union { void* symptr; int (*func)(void*); } real_dlclose;
+}
+#endif
 
     // Local stuff
     namespace cwbfd {
@@ -422,7 +427,9 @@ void bfd_close(bfd* abfd)
 	    int saved_internal = __libcwd_tsd.internal;
 	    __libcwd_tsd.internal = 0;
 #endif
-	    void* handle = ::dlopen(filename, RTLD_LAZY);
+	    if (!real_dlopen.symptr)
+	      real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen");
+	    void* handle = real_dlopen.func(filename, RTLD_LAZY);
 	    if (!handle)
 	    {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
@@ -518,7 +525,9 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = 0;
 #endif
-		::dlclose(handle);
+		if (!real_dlclose.symptr)
+		  real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose");
+		real_dlclose.func(handle);
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = saved_internal;
 #endif
@@ -529,7 +538,9 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = 0;
 #endif
-	    ::dlclose(handle);
+	    if (!real_dlclose.symptr)
+	      real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose");
+	    real_dlclose.func(handle);
 	    Dout(dc::continued, '(' << M_lbase << ") ... ");
 #if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = saved_internal;
@@ -677,6 +688,7 @@ void bfd_close(bfd* abfd)
 	LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] != __libcwd_tsd.tid && __libcwd_tsd.rdlocked_by2[object_files_instance] != __libcwd_tsd.tid );
 #endif
 #endif
+	_private_::remove_type_info_references(&M_object_file LIBCWD_COMMA_TSD);
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
 	set_alloc_checking_off(LIBCWD_TSD);
@@ -1101,7 +1113,9 @@ void bfd_close(bfd* abfd)
 	if (!statically_linked)
 	{
 	  // Initialize dl_loaded_ptr.
-	  void* handle = ::dlopen(NULL, RTLD_LAZY);
+	  if (!real_dlopen.symptr)
+	    real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen");
+	  void* handle = real_dlopen.func(NULL, RTLD_LAZY);
 #ifdef HAVE__RTLD_GLOBAL
 	  rtld_global* rtld_global_ptr = (rtld_global*)::dlsym(handle, "_rtld_global");
 	  if (!rtld_global_ptr)
@@ -1112,7 +1126,9 @@ void bfd_close(bfd* abfd)
 	  if (!dl_loaded_ptr)
 	    DoutFatal(dc::core, "Configuration of libcwd detected _dl_loaded, but I can't find it now?!");
 #endif
-	  ::dlclose(handle);
+	  if (!real_dlclose.symptr)
+	    real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose");
+	  real_dlclose.func(handle);
 	}
 #endif // HAVE__DL_LOADED
 
@@ -1615,7 +1631,7 @@ already_loaded:
 
 } // namespace libcwd
 
-#if defined(LIBCWD_DLOPEN_DEFINED) && defined(HAVE_DLOPEN)
+#ifdef HAVE_DLOPEN
 using namespace libcwd;
 
 struct dlloaded_st {
@@ -1659,17 +1675,22 @@ void dlopen_map_cleanup(void* arg)
 #endif
 
   } // namespace _private_
+
 } // namespace libcwd
 
 extern "C" {
 
-  void* __libcwd_dlopen(char const* name, int flags)
+  void* dlopen(char const* name, int flags)
   {
 #if CWDEBUG_DEBUGM
     LIBCWD_TSD_DECLARATION;
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
-    void* handle = ::dlopen(name, flags);
+    // One time initialization.
+    if (!real_dlopen.symptr)
+      real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen");
+    // Call the real dlopen.
+    void* handle = real_dlopen.func(name, flags);
     if (libcwd::cwbfd::statically_linked)
     {
       Dout(dc::warning, "Calling dlopen(3) from statically linked application; this is not going to work if the loaded module uses libcwd too or when it allocates any memory!");
@@ -1699,22 +1720,29 @@ extern "C" {
     {
       cwbfd::bfile_ct* object_file;
 #ifdef HAVE__DL_LOADED
-      name = ((link_map*)handle)->l_name;	// This is dirty, but its the only reasonable way to get
-      						// the full path to the loaded library.
-#endif
-      object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
-      if (object_file)
+      if (name)
       {
-	LIBCWD_DEFER_CANCEL;
-	BFD_ACQUIRE_WRITE_LOCK;
-	set_alloc_checking_off(LIBCWD_TSD);
-	cwbfd::NEEDS_WRITE_LOCK_object_files().sort(cwbfd::object_file_greater());
-	set_alloc_checking_on(LIBCWD_TSD);
-	BFD_RELEASE_WRITE_LOCK;
-	LIBCWD_RESTORE_CANCEL;
-	set_alloc_checking_off(LIBCWD_TSD);
-	libcwd::_private_::dlopen_map->insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
-	set_alloc_checking_on(LIBCWD_TSD);
+	name = ((link_map*)handle)->l_name;	// This is dirty, but its the only reasonable way to get
+						// the full path to the loaded library.
+      }
+#endif
+      // Don't call cwbfd::load_object_file when dlopen() was called with NULL as argument.
+      if (name)
+      {
+	object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
+	if (object_file)
+	{
+	  LIBCWD_DEFER_CANCEL;
+	  BFD_ACQUIRE_WRITE_LOCK;
+	  set_alloc_checking_off(LIBCWD_TSD);
+	  cwbfd::NEEDS_WRITE_LOCK_object_files().sort(cwbfd::object_file_greater());
+	  set_alloc_checking_on(LIBCWD_TSD);
+	  BFD_RELEASE_WRITE_LOCK;
+	  LIBCWD_RESTORE_CANCEL;
+	  set_alloc_checking_off(LIBCWD_TSD);
+	  libcwd::_private_::dlopen_map->insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
+	  set_alloc_checking_on(LIBCWD_TSD);
+	}
       }
     }
     DLOPEN_MAP_RELEASE_LOCK;
@@ -1722,12 +1750,15 @@ extern "C" {
     return handle;
   }
 
-  int __libcwd_dlclose(void *handle)
+  int dlclose(void* handle)
   {
     LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
     LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
+    // One time initialization.
+    if (!real_dlclose.symptr)
+      real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose");
     // Block until printing of allocations is finished because it might be that
     // those allocations have type_info pointers to shared objectst that will be
     // removed by dlclose, causing a core dump in list_allocations_on in the other
@@ -1735,7 +1766,7 @@ extern "C" {
     int ret;
     LIBCWD_DEFER_CLEANUP_PUSH(&_private_::mutex_tct<dlclose_instance>::cleanup, &__libcwd_tsd);
     DLCLOSE_ACQUIRE_LOCK;
-    ret = ::dlclose(handle);
+    ret = real_dlclose.func(handle);
     DLCLOSE_RELEASE_LOCK;
     LIBCWD_CLEANUP_POP_RESTORE(false);
     if (ret != 0 || libcwd::cwbfd::statically_linked)
@@ -1766,7 +1797,7 @@ extern "C" {
 
 } // extern "C"
 
-#endif // LIBCWD_DLOPEN_DEFINED
+#endif // HAVE_DLOPEN
 
 namespace libcwd {
 

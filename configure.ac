@@ -259,8 +259,6 @@ AC_SUBST(CW_CONFIG_HAVE___LIBC_MALLOC)
 CW_CONFIG_HAVE___LIBC_MALLOC=undef
 AC_SUBST(CW_CONFIG_HAVE__LIBC_MALLOC)
 CW_CONFIG_HAVE__LIBC_MALLOC=undef
-AC_SUBST(CW_CONFIG_HAVE_DLOPEN)
-CW_CONFIG_HAVE_DLOPEN=undef
 
 dnl Configuration needed by the testsuite
 AC_SUBST(enable_shared)
@@ -283,10 +281,8 @@ AC_REQUIRE_CPP
 if test "$libcwd_config_location" = yes; then
 
 dnl Check if we have dlopen in libc or libdl
-AC_CHECK_LIB(c, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN, 1, [Defined if dlopen is available.])
-CW_CONFIG_HAVE_DLOPEN=define],
-    [AC_CHECK_LIB(dl, dlopen, [LIBS="-ldl $LIBS"; AC_DEFINE_UNQUOTED(HAVE_DLOPEN)
-CW_CONFIG_HAVE_DLOPEN=define])])
+AC_CHECK_LIB(c, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN, 1, [Defined if dlopen is available.])],
+    [AC_CHECK_LIB(dl, dlopen, [LIBS="-ldl $LIBS"; AC_DEFINE_UNQUOTED(HAVE_DLOPEN)])])
 
 CW_CONFIG_LOCATION=1
 
