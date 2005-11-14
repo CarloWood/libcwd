@@ -703,11 +703,14 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
   write(2, "<memblk_key_ct>", 15);
   return raw_write;
 }
-
-_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, location_ct const& data)
+#endif
+#if CWDEBUG_LOCATION && CWDEBUG_DEBUG
+inline
+_private_::raw_write_nt const&
+operator<<(_private_::raw_write_nt const& os, location_ct const& location)
 {
-  write(2, "<location_ct>", 13);
-  return raw_write;
+  _private_::print_location_on(os, location);
+  return os;
 }
 #endif
 
