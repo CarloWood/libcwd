@@ -6,7 +6,7 @@ Version: %{version}
 Release: 1
 Group: Development/Libraries
 Source: http://download.sourceforge.net/libcwd/libcwd-%{version}.tar.gz
-Copyright: QPL
+License: QPL
 %ifos linux
 Requires: gcc-c++ >= 3.0, binutils >= 2.9
 %endif
