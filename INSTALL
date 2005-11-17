@@ -53,8 +53,8 @@ install/upgrade the following:
     gcc-c++ (of same version),
     libstdc++ (of same version) and
     cpp (of same version).
-Check your installation on RedHat with:
-    rpm -qa | egrep '(gcc|libstdc|cpp)'
+Check your installation on Fedora with:
+    rpm -qa | egrep '^(gcc|libstdc|cpp)'
 
 Note: If you don't use rpm's but are using tar balls,
 then you do NOT need to download gnu/libstdc++/* because
@@ -73,9 +73,9 @@ Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
 making the use of threading with NPTL impossible.
 The problem of nptl is actually a bug in the version
 of nptl that is distributed with RedHat 9 (the only
-distribution with NPTL at the moment).  The current
-development version of NPTL has this fixed.  It tries
-to free a pointer that is really a global struct -
+distribution with NPTL at the moment of writing.
+The current development version of NPTL has this fixed).
+It tries to free a pointer that is really a global struct -
 libcwd will CORE when it detects that.
 Other 3.[12].x versions should work but that is not garanteed.
 
