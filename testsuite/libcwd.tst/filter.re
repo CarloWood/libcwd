@@ -108,9 +108,9 @@ MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
 ([0-9:.]* *0x[a-f0-9]* libcwd\.so\.0:              bfd\.cc:1684 std::ios_base::Init; \(sz = 1\)  Bug workaround\.  See WARNING about dlclose\(\) above\.
 )*
 [0-9:.]* \(deleted\) 0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:197  <marker>; \(sz = 8\)  marker1
-    [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:38   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
+    [0-9:.]* realloc   0x[a-f0-9]* module\.so:           module\.cc:38   <unknown type>; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* malloc    0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:200  void\*; \(sz = 123\)  Allocated between the two markers
 MALLOC  : Number of visible memory blocks: 3\.
-MALLOC  : free\(0x[a-f0-9]*\)            module\.cc:38   void\*; \(sz = 1000\)  realloc1000_with_AllocTag 
+MALLOC  : free\(0x[a-f0-9]*\)            module\.cc:38   <unknown type>; \(sz = 1000\)  realloc1000_with_AllocTag 
 MALLOC  : free\(0x[a-f0-9]*\)            module\.cc:33   <unknown type>; \(sz = 1000\)  
 MALLOC  : free\(0x[a-f0-9]*\)            filter\.cc:200  void\*; \(sz = 123\)  Allocated between the two markers 
