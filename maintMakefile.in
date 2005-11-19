@@ -96,28 +96,28 @@ example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer $(srcdir)/
 	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> example-project/debug.h; \
 	fi
 
-# 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-# 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-# 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-# 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-# 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-#		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-#		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-#		'--enable-maintainer-mode --disable-pch --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-#		'--enable-maintainer-mode --compilers=cvs-4.1,4.0.0,3.4.4,3.4.1,3.4.0,3.3.5,3.3' \
+# 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+# 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+# 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+# 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+# 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+#		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+#		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+#		'--enable-maintainer-mode --disable-pch --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+#		'--enable-maintainer-mode --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.4.1,3.4.0,3.3.5,3.3' \
 
 full-check: Makefile
 	@( \
 	  for c in \
- 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
- 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
- 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
- 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
- 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-		'--enable-maintainer-mode --disable-pch --compilers=cvs-4.1,4.0.0,3.4.4,3.3.5' \
-		'--enable-maintainer-mode --compilers=cvs-4.1,4.0.0,3.4.4,3.4.1,3.4.0,3.3.5,3.3' \
+ 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+ 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+ 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+ 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+ 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+		'--enable-maintainer-mode --disable-pch --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
+		'--enable-maintainer-mode --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.4.1,3.4.0,3.3.5,3.3' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
 	    case "$$c" in \
