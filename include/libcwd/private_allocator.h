@@ -32,8 +32,12 @@
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF
-#include <cstddef>		// Needed for size_t
+#include <cstddef>			// Needed for size_t
 #endif
+#if __GNUC__ > 3 && LIBCWD_THREAD_SAFE
+#include <libcwd/private_mutex.h>	// mutex_ct
+#endif
+#include <memory>
 
 //===================================================================================================
 // Allocators
@@ -84,9 +88,6 @@ Single-threaded case:
 #if __GNUC__ == 3 && __GNUC_MINOR__ == 4
 #include <ext/pool_allocator.h>		// __gnu_cxx::__pool_alloc
 #endif
-#if __GNUC__ >= 4
-#include <ext/mt_allocator.h>		// __gnu_cxx::__pool
-#endif
 
 namespace libcwd {
   namespace _private_ {
@@ -99,6 +100,7 @@ int const multi_threaded_internal_instance = -1;
 int const single_threaded_internal_instance = -2;
 int const userspace_instance = -3;
 
+// Definition of CharPoolAlloc.
 #if __GNUC__ == 3 && __GNUC_MINOR__ < 4
 template<bool needs_lock, int pool_instance>
   struct CharPoolAlloc : public std::__default_alloc_template<needs_lock, random_salt + pool_instance> {
@@ -109,91 +111,154 @@ template<bool needs_lock, int pool_instance>
   struct CharPoolAlloc : public __gnu_cxx::__pool_alloc<needs_lock, random_salt + pool_instance> {
     typedef char* pointer;
   };
-#else // gcc 3.4.1 and higher.
+#elif __GNUC__ == 3
+// gcc 3.4.1 and higher.
 template<int pool_instance>
   struct char_wrapper {
     char c;
   };
-#if __GNUC__ == 3
 // gcc 3.4.1 and 3.4.2 always use a lock, in the threaded case.
 template<bool needs_lock, int pool_instance>
   class CharPoolAlloc : public __gnu_cxx::__pool_alloc<char_wrapper<pool_instance> > { };
 #else // gcc 4.0 and higher.
-// A wrapper around a pointer to the actual pool type (__gnu_cxx::__pool<>)
-// that automatically deletes its pointer on destruction.
-// This class does not need a reference counter because we only use it for static objects.
-template<class __pool_type>
-  struct static_pool_instance {
-    __pool_type* ptr;
-    bool M_internal;
-    static_pool_instance(void) { }	// Do NOT initialize `ptr'! It is automatically initialized
-    					// to NULL because this is a static POD object and ptr might
-					// already be initialized before the global constructor of
-					// this object would be called.
-    void create(void);			// This does the initialization.
-  };
-// The class that holds the actual pool instance.
-// This class also defines policies (so far only whether or not threading is used).
-template<int pool_instance, bool needs_lock>
-  struct pool_instance_and_policy {
-    typedef __gnu_cxx::__pool<needs_lock> pool_type;		// Underlaying pool type.
-    static static_pool_instance<pool_type> _S_pool_instance;	// The actual pool instance.
+// Sometimes reusing code isn't possibly anymore (die gcc developers die).
 
-    // The following is needed as interface of a 'pool_policy' class as used by __gnu_cxx::__mt_alloc.
-    static pool_type& _S_get_pool(void)				// Accessor to the pool_type singleton.
-        { return *_S_pool_instance.ptr; }
-    static void _S_initialize_once(void) 			// This is called every time a new allocation is done.
-    { 
-      static bool __init;
-      if (__builtin_expect(__init == false, false))
-      {
-        _S_pool_instance.create();
-	_S_pool_instance.ptr->_M_initialize_once(); 
-	__init = true;
-      }
-    }
-  };
+static size_t const maximum_size_exp = 10;			// The log2 of the maximum size that is
+								// allocated in a pool. Larger sizes are
+								// allocated directly with operator new.
+static size_t const maximum_size = (1U << maximum_size_exp);	// 1024 bytes.
 
-#ifdef __GTHREADS
-// Specialization, needed because in this case more interface is needed for the
-// 'pool_policy' class as used by __gnu_cxx::__mt_alloc.
-template<int pool_instance>
-  struct pool_instance_and_policy<pool_instance, true>
+struct Node {
+  Node* M_next;
+  Node* M_prev;
+
+  Node* next(void) const { return M_next; }
+  Node* prev(void) const { return M_prev; }
+
+  void unlink(void)
   {
-    typedef __gnu_cxx::__pool<true> pool_type;			// Underlaying pool type.
-    static static_pool_instance<pool_type> _S_pool_instance;	// The actual pool instance.
-    
-    // The following is needed as interface of a 'pool_policy' class as used by __gnu_cxx::__mt_alloc.
-    static pool_type& _S_get_pool(void)				// Accessor to the pool_type singleton.
-        { return *_S_pool_instance.ptr; }
-    static void _S_initialize_once(void) 			// This is called every time a new allocation is done.
-    { 
-      static bool __init;
-      if (__builtin_expect(__init == false, false))
-      {
-        _S_pool_instance.create();
-	_S_pool_instance.ptr->_M_initialize_once(_S_initialize);	// Passes _S_initialize in this case.
-	__init = true;
-      }
-    }
-    // And the extra interface:
-    static void _S_destroy_thread_key(void* __freelist_pos) { _S_get_pool()._M_destroy_thread_key(__freelist_pos); }
-    static void _S_initialize(void) { _S_get_pool()._M_initialize(_S_destroy_thread_key); }
-  };
+    M_prev->M_next = M_next;
+    M_next->M_prev = M_prev;
+  }
+};
 
-template<int pool_instance>
-  static_pool_instance<typename pool_instance_and_policy<pool_instance, true>::pool_type>
-      pool_instance_and_policy<pool_instance, true>::_S_pool_instance;
-#endif // __GTHREADS
+// The log2 of minimum_size. 2^(minimum_size_exp - 1) < sizeof(Node) <= 2^minimum_size_exp.
+template <unsigned int N> struct log2 { enum { result = 1 + log2<N/2>::result }; };
+template<> struct log2<0> { enum { result = -1 }; };
+static size_t const minimum_size_exp = log2<sizeof(Node) - 1>::result + 1;	// Calculate rounded up log2 value.
 
-template<int pool_instance, bool needs_lock>
-  static_pool_instance<typename pool_instance_and_policy<pool_instance, needs_lock>::pool_type>
-      pool_instance_and_policy<pool_instance, needs_lock>::_S_pool_instance;
+static size_t const minimum_size = (1U << minimum_size_exp);	// The minimum chunk size, must be a power of 2.
+// The number of different buckets (with repsective chunk sizes: 8, 16, 32, 64, 128, 256, 512 and 1024).
+static int const bucket_sizes = maximum_size_exp - minimum_size_exp + 1;
+
+struct List : public Node {
+  bool empty(void) const { return M_next == this; }
+  void insert(Node* node)
+  {
+    node->M_prev = M_next->M_prev;
+    node->M_next = M_next;
+    M_next->M_prev = node;
+    M_next = node;
+  }
+private:
+  using Node::next;
+  using Node::prev;
+};
+
+struct ChunkNode : public Node {
+  // This is commented out because it's 'virtual' (it can be zero size too).
+  // char M_padding[size_of(ChunkNode) - sizeof(Node)];
+
+  ChunkNode* next(void) const { return static_cast<ChunkNode*>(M_next); }
+  ChunkNode* prev(void) const { return static_cast<ChunkNode*>(M_prev); }
+};
+
+struct ChunkList : public List {
+  unsigned int M_used_count;	// Number of _used_ chunks (thus, that are allocated and not in the list anymore).
+  ChunkNode* begin(void) const { return static_cast<ChunkNode*>(M_next); }
+  Node const* end(void) const { return this; }
+};
+
+struct BlockNode : public Node {
+  ChunkList M_chunks;
+  ChunkNode M_data[1];		// One or more Chunks.
+
+  BlockNode* next(void) const { return static_cast<BlockNode*>(M_next); }
+  BlockNode* prev(void) const { return static_cast<BlockNode*>(M_prev); }
+};
+
+struct BlockList : public List {
+  unsigned int M_count;		// Number of blocks (thus, that are in the list).
+  unsigned short M_keep;	// Number of blocks that shouldn't be freed.
+  unsigned short M_internal;	// Whether or not this block list contains internal blocks or not.
+
+  BlockNode* begin(void) const { return static_cast<BlockNode*>(M_next); }
+  Node const* end(void) const { return this; }
+
+  void initialize(unsigned short internal);
+  void uninitialize(void);
+  ~BlockList() { uninitialize(); }
+};
+
+struct TSD_st;
+
+struct FreeList {
+#if LIBCWD_THREAD_SAFE
+  pthread_mutex_t M_mutex;
+#endif
+  bool M_initialized;
+  BlockList M_list[bucket_sizes];
+
+#if LIBCWD_THREAD_SAFE
+  void initialize(TSD_st& __libcwd_tsd);
+#else
+  void initialize(void);
+#endif
+  char* allocate(int power, size_t size);
+  void deallocate(char* p, int power, size_t size);
+};
 
 template<bool needs_lock, int pool_instance>
-  class CharPoolAlloc : public __gnu_cxx::__mt_alloc<char, pool_instance_and_policy<pool_instance, needs_lock> > { };
+  class CharPoolAlloc {
+  private:
+    static FreeList S_freelist;
+
+  public:
+    // Type definitions.
+    typedef char	value_type;
+    typedef size_t	size_type;
+    typedef ptrdiff_t	difference_type;
+    typedef char*	pointer;
+    typedef char const*	const_pointer;
+    typedef char&	reference;
+    typedef char const&	const_reference;
+
+    // Allocate but don't initialize num elements of type T.
+#if LIBCWD_THREAD_SAFE
+    pointer allocate(size_type num, TSD_st&);
+#else
+    pointer allocate(size_type num);
+#endif
+
+    // Deallocate storage p of deleted elements.
+#if LIBCWD_THREAD_SAFE
+    void deallocate(pointer p, size_type num, TSD_st&);
+#else
+    void deallocate(pointer p, size_type num);
+#endif
+
+    template <bool needs_lock1, int pool_instance1,
+              bool needs_lock2, int pool_instance2>
+      friend inline
+      bool operator==(CharPoolAlloc<needs_lock1, pool_instance1> const& a1,
+		      CharPoolAlloc<needs_lock2, pool_instance2> const& a2);
+    template <bool needs_lock1, int pool_instance1,
+              bool needs_lock2, int pool_instance2>
+      friend inline
+      bool operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const& a1,
+		      CharPoolAlloc<needs_lock2, pool_instance2> const& a2);
+  };
 #endif // gcc 4.0 and higher.
-#endif // gcc 3.4.1 and higher.
 
 // Convenience macros.
 #if CWDEBUG_DEBUG

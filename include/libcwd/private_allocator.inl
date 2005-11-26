@@ -29,18 +29,6 @@
 namespace libcwd {
   namespace _private_ {
 
-#if __GNUC__ > 3
-template<class __pool_type>
-  void static_pool_instance<__pool_type>::create(void)
-  {
-    LIBCWD_TSD_DECLARATION;
-    M_internal = __libcwd_tsd.internal;
-    ptr = new __pool_type;
-    if (!M_internal)
-      AllocTag(ptr, "Memory pool base of libcwd::_private_::userspace_allocator, used in libcwd::_private_::string.  Will never be freed again.");
-  }
-#endif
-
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
 template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   void
@@ -75,29 +63,19 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
   inline T*
   allocator_adaptor<T, CharAlloc, internal LIBCWD_COMMA_INSTANCE>::allocate(size_t num)
   {
-#if LIBCWD_THREAD_SAFE
-    TSD_st* tsd;
-#endif
+    LIBCWD_TSD_DECLARATION;
     if (internal == auto_internal_pool)
-    {
-#if LIBCWD_THREAD_SAFE
-      LIBCWD_TSD_DECLARATION;
-      tsd = &(LIBCWD_TSD);
-#endif
       set_alloc_checking_off(LIBCWD_TSD);
-    }
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
-    T* ret = (T*) M_char_allocator.allocate(num * sizeof(T));
-    if (internal == auto_internal_pool)
-    {
-#if LIBCWD_THREAD_SAFE
-      set_alloc_checking_on(*tsd);
-#else
-      set_alloc_checking_on(LIBCWD_TSD);
+    T* ret = (T*) M_char_allocator.allocate(num * sizeof(T)
+#if __GNUC__ == 4
+        LIBCWD_COMMA_TSD
 #endif
-    }
+	);
+    if (internal == auto_internal_pool)
+      set_alloc_checking_on(LIBCWD_TSD);
     return ret;
   }
 
@@ -106,30 +84,40 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
   allocator_adaptor<T, CharAlloc, internal LIBCWD_COMMA_INSTANCE>::
   deallocate(pointer p, size_t num)
   {
-#if LIBCWD_THREAD_SAFE
-    TSD_st* tsd;
-#endif
+    LIBCWD_TSD_DECLARATION;
     if (internal == auto_internal_pool)
-    {
-#if LIBCWD_THREAD_SAFE
-      LIBCWD_TSD_DECLARATION;
-      tsd = &(LIBCWD_TSD);
-#endif
       set_alloc_checking_off(LIBCWD_TSD);
-    }
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     sanity_check();
 #endif
-    M_char_allocator.deallocate((typename CharAlloc::pointer)p, num * sizeof(T));
-    if (internal == auto_internal_pool)
-    {
-#if LIBCWD_THREAD_SAFE
-      set_alloc_checking_on(*tsd);
-#else
-      set_alloc_checking_on(LIBCWD_TSD);
+    M_char_allocator.deallocate((typename CharAlloc::pointer)p, num * sizeof(T)
+#if __GNUC__ == 4
+        LIBCWD_COMMA_TSD
 #endif
-    }
+        );
+    if (internal == auto_internal_pool)
+      set_alloc_checking_on(LIBCWD_TSD);
   }
+
+#if __GNUC__ == 4
+template <bool needs_lock1, int pool_instance1,
+	  bool needs_lock2, int pool_instance2>
+  inline bool
+  operator==(CharPoolAlloc<needs_lock1, pool_instance1> const& a1,
+	     CharPoolAlloc<needs_lock2, pool_instance2> const& a2)
+  {
+    return needs_lock1 == needs_lock2 && pool_instance1 == pool_instance2;
+  }
+
+template <bool needs_lock1, int pool_instance1,
+	  bool needs_lock2, int pool_instance2>
+  inline bool
+  operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const& a1,
+  	     CharPoolAlloc<needs_lock2, pool_instance2> const& a2)
+  {
+    return needs_lock1 != needs_lock2 || pool_instance1 != pool_instance2;
+  }
+#endif
 
 template <typename T1, class CharAlloc1, pool_nt internal1 LIBCWD_DEBUGDEBUG_COMMA(int inst1),
 	  typename T2, class CharAlloc2, pool_nt internal2 LIBCWD_DEBUGDEBUG_COMMA(int inst2)>
@@ -160,6 +148,84 @@ template <typename T1, class CharAlloc1, pool_nt internal1 LIBCWD_DEBUGDEBUG_COM
 #endif
 	    a1.M_char_allocator != a2.M_char_allocator);
   }
+
+
+#if __GNUC__ == 4
+// Find the most significant bit in an unsigned long.
+// This function is fastest for small values of 'val',
+// but 'val' should be larger than 15 (otherwise 4
+// is returned regardless).
+inline int find1(unsigned long val)
+{
+  unsigned long mask = ~(minimum_size - 1);	// ...1111100000
+  int bit = minimum_size_exp - 1;		// bit: 76543210
+  while ((mask & val))
+  {
+    mask <<= 1;
+    ++bit;
+  }
+  return bit;
+}
+
+template <bool needs_lock, int pool_instance>
+  FreeList CharPoolAlloc<needs_lock, pool_instance>::S_freelist;
+
+template <bool needs_lock, int pool_instance>
+  char* CharPoolAlloc<needs_lock, pool_instance>::allocate(size_type size LIBCWD_COMMA_TSD_PARAM)
+  {
+    int power = find1((unsigned long)size - 1) + 1;	// Round up to first power of 2;
+    // power >= minimum_size_exp
+    size = (1U << power);				// Is at least minimum_size.
+    if (size > maximum_size)				// No free lists for large chunks.
+      return (char*)::operator new(size);
+    if (!S_freelist.M_initialized)
+      S_freelist.initialize(LIBCWD_TSD);
+    char* ptr;
+#if LIBCWD_THREAD_SAFE
+    if (needs_lock)
+    {
+      LIBCWD_DEFER_CANCEL_NO_BRACE;
+      pthread_mutex_lock(&S_freelist.M_mutex);
+      ptr = S_freelist.allocate(power, size);
+      pthread_mutex_unlock(&S_freelist.M_mutex);
+      int internal_saved = __libcwd_tsd.internal;
+      __libcwd_tsd.internal = 0;
+      LIBCWD_RESTORE_CANCEL_NO_BRACE;
+      __libcwd_tsd.internal = internal_saved;
+    }
+    else
+#endif
+      ptr = S_freelist.allocate(power, size);
+    return ptr;
+  }
+
+template <bool needs_lock, int pool_instance>
+  void CharPoolAlloc<needs_lock, pool_instance>::deallocate(pointer p, size_type size LIBCWD_COMMA_TSD_PARAM)
+  {
+    int power = find1((unsigned long)size - 1) + 1;
+    size = (1U << power);
+    if (size > maximum_size)		// No free lists for large chunks.
+    {
+      ::operator delete(p);
+      return;
+    }
+#if LIBCWD_THREAD_SAFE
+    if (needs_lock)
+    {
+      LIBCWD_DEFER_CANCEL_NO_BRACE;
+      pthread_mutex_lock(&S_freelist.M_mutex);
+      S_freelist.deallocate(p, power, size);
+      pthread_mutex_unlock(&S_freelist.M_mutex);
+      int internal_saved = __libcwd_tsd.internal;
+      __libcwd_tsd.internal = 0;
+      LIBCWD_RESTORE_CANCEL_NO_BRACE;
+      __libcwd_tsd.internal = internal_saved;
+    }
+    else
+#endif
+      S_freelist.deallocate(p, power, size);
+  }
+#endif
 
   } // namespace _private_
 } // namespace libcwd

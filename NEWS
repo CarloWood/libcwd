@@ -25,6 +25,12 @@ libcwd-0.99.41
 	part of the shared object which was unloaded, leading to
 	reading invalid memory.
 
+	As of g++-4.0.2 yet ANOTHER mt_alloc implementation was released
+	with the gcc compiler. This time making it near impossible to
+	use it. Getting really tired of this, libcwd now comes with it's
+	own allocator, so that this upgrade problem has been solved once
+	and for all. The new allocator is used with gcc-4.0.0 and higher.
+
 libcwd-0.99.40
 
 	Bug fixes:

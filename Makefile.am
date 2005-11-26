@@ -38,6 +38,7 @@ libcwd_la_SOURCES = \
 	bfd.cc \
 	debug.cc \
 	debugmalloc.cc \
+	private_allocator.cc \
 	demangle3.cc \
 	alloc_filter.cc \
 	strerrno.cc \
@@ -56,6 +57,7 @@ libcwd_r_la_SOURCES = \
 	bfd.cc \
 	debug.cc \
 	debugmalloc.cc \
+	private_allocator.cc \
 	demangle3.cc \
 	alloc_filter.cc \
 	strerrno.cc \

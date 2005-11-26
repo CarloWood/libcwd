@@ -249,7 +249,7 @@ rm -fr conftest*])
 
 dnl CW_MALLOC_OVERHEAD
 dnl
-dnl Defines CW_MALLOC_OVERHEAD_C to be the number of bytes extra
+dnl Defines LIBCWD_MALLOC_OVERHEAD to be the number of bytes extra
 dnl allocated for a call to malloc.
 dnl
 AC_DEFUN([CW_MALLOC_OVERHEAD],
@@ -286,10 +286,19 @@ int main(int argc, char* argv[])
 ./conftest run
 cw_cv_system_mallocoverhead=$?,
 [AC_MSG_ERROR(Failed to compile a test program!?)],
-cw_cv_system_mallocoverhead=4 dnl Guess a default for cross compiling
-)])
-eval "CW_MALLOC_OVERHEAD_C=$cw_cv_system_mallocoverhead"
-AC_SUBST(CW_MALLOC_OVERHEAD_C)
+[case $host_alias in						#(
+  *-mingw32)
+    cw_cv_system_mallocoverhead=8
+    ;;								#(
+  *-cygwin)
+    cw_cv_system_mallocoverhead=8
+    ;;								#(
+  *)
+    cw_cv_system_mallocoverhead=4 dnl Guess a default for cross compiling
+    ;;
+esac])])
+AC_DEFINE_UNQUOTED([LIBCWD_MALLOC_OVERHEAD], $cw_cv_system_mallocoverhead,
+    [The number of bytes that malloc(3) allocates MORE than requested (for internal administration).])
 ])
 
 dnl CW_NEED_WORD_ALIGNMENT
