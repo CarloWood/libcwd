@@ -86,16 +86,15 @@ information and demangled type names.
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
 <DT><B>26 Nov 2005</B>
 <P class="news">libcwd-0.99.41 is released.&nbsp;
-This release adds support for g++-4.0.2.
+This release adds support for g++-4.0.2.&bsp;
 Addresses in libraries that are loaded on addresses lower than
-the executable (yeah, I didn't know that was possible either)
-are now resolved. dlopen/dlclose are now caught at link time
-instead of #defining them, solving a bug that could cause a crash
-when for example dumping memory alloations done in already dlclosed
-modules. Finally, the .spec file was fixed so that
-rpmbuild -ta libcwd-0.99.41.tar.gz
-should work again on the latest Fedora release (that uses a new
-version of rpm).
+the executable (yeah, I didn't know that was possible either) are now resolved.&nbsp;
+<code>dlopen/dlclose</code> are now caught at link time
+instead of <code>#defining</code> them, solving a bug that could cause a crash
+when for example dumping memory allocations done in already dlclosed modules.&nbsp;
+Finally, the .spec file was fixed so that
+&apos;<code>rpmbuild&nbps;-ta&nbsp;libcwd-0.99.41.tar.gz</code>&apos;
+should work again on the latest Fedora release (that uses a new version of rpm).
 </P>
 <DT><B>31 May 2005</B>
 <P class="news">libcwd-0.99.40 is released.&nbsp;
