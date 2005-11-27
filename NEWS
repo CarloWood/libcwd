@@ -1,3 +1,10 @@
+libcwd-0.99.42
+
+	Bug fixes:
+
+	Compile warning for unused 'a1' and 'a2' in private_allocator.h
+	was fixed (only needed for g++-4.x).
+
 libcwd-0.99.41
 
 	Bug fixes:
