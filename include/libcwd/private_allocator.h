@@ -250,13 +250,13 @@ template<bool needs_lock, int pool_instance>
     template <bool needs_lock1, int pool_instance1,
               bool needs_lock2, int pool_instance2>
       friend inline
-      bool operator==(CharPoolAlloc<needs_lock1, pool_instance1> const& a1,
-		      CharPoolAlloc<needs_lock2, pool_instance2> const& a2);
+      bool operator==(CharPoolAlloc<needs_lock1, pool_instance1> const&,
+		      CharPoolAlloc<needs_lock2, pool_instance2> const&);
     template <bool needs_lock1, int pool_instance1,
               bool needs_lock2, int pool_instance2>
       friend inline
-      bool operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const& a1,
-		      CharPoolAlloc<needs_lock2, pool_instance2> const& a2);
+      bool operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const&,
+		      CharPoolAlloc<needs_lock2, pool_instance2> const&);
   };
 #endif // gcc 4.0 and higher.
 

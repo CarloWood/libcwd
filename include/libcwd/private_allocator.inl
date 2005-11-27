@@ -103,8 +103,8 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
 template <bool needs_lock1, int pool_instance1,
 	  bool needs_lock2, int pool_instance2>
   inline bool
-  operator==(CharPoolAlloc<needs_lock1, pool_instance1> const& a1,
-	     CharPoolAlloc<needs_lock2, pool_instance2> const& a2)
+  operator==(CharPoolAlloc<needs_lock1, pool_instance1> const&,
+	     CharPoolAlloc<needs_lock2, pool_instance2> const&)
   {
     return needs_lock1 == needs_lock2 && pool_instance1 == pool_instance2;
   }
@@ -112,8 +112,8 @@ template <bool needs_lock1, int pool_instance1,
 template <bool needs_lock1, int pool_instance1,
 	  bool needs_lock2, int pool_instance2>
   inline bool
-  operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const& a1,
-  	     CharPoolAlloc<needs_lock2, pool_instance2> const& a2)
+  operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const&,
+  	     CharPoolAlloc<needs_lock2, pool_instance2> const&)
   {
     return needs_lock1 != needs_lock2 || pool_instance1 != pool_instance2;
   }
