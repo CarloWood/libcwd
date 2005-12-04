@@ -1,3 +1,14 @@
+libcwd-0.99.43
+
+	Bug fixes:
+
+	It was still possible that unnamed 'shared libraries' that are
+	mapped and listed in the dl_loaded list caused libcwd to crash
+	with the error:
+	FATAL  : std::ifstream.open(""): ENOENT (No such file or directory)
+	I thought this was fixed in 0.99.38, but there was another place
+	in the source where a test for this case was needed.
+
 libcwd-0.99.42
 
 	Bug fixes:

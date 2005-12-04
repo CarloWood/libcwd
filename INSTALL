@@ -66,7 +66,7 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.42 was tested with gcc-3.3, gcc-3.3.5, gcc-3.4.0
+libcwd-0.99.43 was tested with gcc-3.3, gcc-3.3.5, gcc-3.4.0
 gcc-3.4.1, gcc-3.4.4, gcc-4.0.0, gcc-4.0.1, gcc-4.0.2 and
 gcc version 4.1.0 20051026 (experimental)
 
