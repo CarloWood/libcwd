@@ -1443,7 +1443,8 @@ typedef location_ct bfd_location_ct;
 		goto already_loaded;
 	      }
             BFD_RELEASE_READ_LOCK;
-	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+	    if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
+	      load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	  }
 already_loaded:
 	  l = l->l_next;
