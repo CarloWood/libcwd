@@ -11,6 +11,7 @@ endif
 endif
 EXTRA_DIST = sys.h.in cwd_debug.h cwd_bfd.h raw_write.h raw_write.inl ios_base_Init.h elf32.h exec_prog.h \
              match.h private_debug_stack.inl compilation_unit.h demangle.h pch-source.h
+TAGS_FILES = $(EXTRA_DIST)
 
 CXXFLAGS = @CXXFLAGS@
 WARNOPTS = @WARNOPTS@

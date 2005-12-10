@@ -1257,6 +1257,8 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, alloc_filter_ct
 	_private_::demangle_symbol(mangled_function_name, f);
 	_private_::set_alloc_checking_on(LIBCWD_TSD);
 	s = f.size();
+	if (print_mangled_function_name)
+	  LibcwDoutStream.put(':');
 	LibcwDoutStream.write(f.data(), s);
 	_private_::set_alloc_checking_off(LIBCWD_TSD);
       }

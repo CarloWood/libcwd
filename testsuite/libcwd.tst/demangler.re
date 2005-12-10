@@ -1,7 +1,8 @@
 // type regexp
-// input lines 3
+// input lines 4
 // output till ^void
 ((WARNING : core size is limited.*
+)*(WARNING : Object file .* does not have debug info\..*
 )*(BFD     : Loading debug .*
 )*)
 void libcw_app_ct::add_option<libcw_app_ct>\(void \(libcw_app_ct::\*\)\((libcw_app_ct\*, )*char const\*\), char const\*, char, char const\*, char const\*\)

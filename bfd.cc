@@ -270,6 +270,7 @@ void bfd_close(bfd* abfd)
 
       // cwbfd::
       void* const unknown_l_addr = (void*)-1;
+      void* const executable_l_addr = (void*)-2;
 
 #ifndef HIDE_FROM_DOXYGEN	// Bug in doxygen
       // cwbfd::
@@ -285,9 +286,9 @@ void bfd_close(bfd* abfd)
       }
 
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-      void bfile_ct::initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename, bool shared_library LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
 #else
-      void bfile_ct::initialize(char const* filename, void* base LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename, bool shared_library LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 #endif
       {
 #if CWDEBUG_DEBUGM
@@ -304,7 +305,7 @@ void bfd_close(bfd* abfd)
 	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
 	M_abfd->cacheable = bfd_tttrue;
 #else
-	M_abfd = bfd::openr(filename, base != 0);
+	M_abfd = bfd::openr(filename, shared_library);
 	M_abfd->M_s_end_offset = 0;
 #endif
 	M_abfd->usrdata = (addr_ptr_t)this;
@@ -429,7 +430,7 @@ void bfd_close(bfd* abfd)
 #endif
 	    if (!real_dlopen.symptr)
 	      real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen");
-	    void* handle = real_dlopen.func(filename, RTLD_LAZY);
+	    void* handle = real_dlopen.func(NULL, RTLD_LAZY);		// filename is already loaded.
 	    if (!handle)
 	    {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
@@ -437,22 +438,11 @@ void bfd_close(bfd* abfd)
 #endif
 	      char const* dlerror_str;
 	      dlerror_str = dlerror();
-	      DoutFatal(dc::fatal, "::dlopen(" << filename << ", RTLD_LAZY): " << dlerror_str);
+	      DoutFatal(dc::fatal, "::dlopen(NULL, RTLD_LAZY): " << dlerror_str);
 	    }
-	    char* val;
-	    if (s_end_offset && (val = (char*)dlsym(handle, "_end")))	// dlsym will fail when _end is a local symbol.
-	    {
-#if CWDEBUG_ALLOC
-	      __libcwd_tsd.internal = saved_internal;
-#endif
-	      M_lbase = val - s_end_offset;
-	    }
-	    else if (!statically_linked)
 #ifdef HAVE__DL_LOADED
+	    if (!statically_linked)
             {
-#if CWDEBUG_ALLOC
-	      __libcwd_tsd.internal = saved_internal;
-#endif
 	      for(link_map* p = *dl_loaded_ptr; p; p = p->l_next)
 	        if (!strcmp(p->l_name, filename))
 		{
@@ -461,7 +451,10 @@ void bfd_close(bfd* abfd)
 		}
 	    }
 #endif // HAVE__DL_LOADED
-	    if (M_lbase == 0 || M_lbase == unknown_l_addr)
+#if CWDEBUG_ALLOC
+	    __libcwd_tsd.internal = saved_internal;
+#endif
+	    if (M_lbase == unknown_l_addr)
 	    {
 #if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = saved_internal;
@@ -491,12 +484,21 @@ void bfd_close(bfd* abfd)
 		    __libcwd_tsd.internal = saved_internal;
 #endif
 		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->offset;
-		    std::pair<start_values_map_ct::iterator, bool> p = start_values.insert(std::pair<void* const, unsigned int>(start, 0));
-		    if (++(*(p.first)).second > best_count)
+		    // Shared object seem to be loaded at boundaries of 4096 bytes (a page size).
+		    // It is possible that we looked up a symbol of the library we are looking
+		    // for and got a symbol in a different library with the same name. The chance
+		    // that that results in a load address that is a multiple is very small; make
+		    // use of that fact and skip random looking start addresses.
+		    if (((size_t)start & 0xfff) == 0)
 		    {
-		      best_start = start;
-		      if (++best_count == 10)	// Its unlikely that even more than 2 wrong values will have the same value.
-			break;			// So if we reach 10 then this is value we are looking for.
+		      std::pair<start_values_map_ct::iterator, bool> p =
+			  start_values.insert(std::pair<void* const, unsigned int>(start, 0));
+		      if (++(*(p.first)).second > best_count)
+		      {
+			best_start = start;
+			if (++best_count == 10)	// Its unlikely that even more than 2 wrong values will have the same value.
+			  break;			// So if we reach 10 then this is value we are looking for.
+		      }
 		    }
 		  }
 #if CWDEBUG_ALLOC
@@ -549,6 +551,8 @@ void bfd_close(bfd* abfd)
 	    DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure.");
 #endif
 	  }
+	  else if (M_lbase == executable_l_addr)
+	    M_lbase = 0;
 
 	  void const* s_end_start_addr;
 	  
@@ -632,13 +636,8 @@ void bfd_close(bfd* abfd)
 	    }
 	    if (!M_size)
 	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_lbase;
-	    if (M_lbase == 0)
-	    {
-	      asymbol const* first_symbol = (*M_function_symbols.rbegin()).get_symbol();
-	      M_start = symbol_start_addr(first_symbol); // For the executable, use the lowest start address of all symbols.
-	    }
-	    else
-	      M_start = M_lbase;		// Ok for shared libraries.
+	    asymbol const* first_symbol = (*M_function_symbols.rbegin()).get_symbol();
+	    M_start = symbol_start_addr(first_symbol); // Use the lowest start address of all symbols.
 	  }
 	  else
 	    M_start = M_lbase;			// Probably a shared library, need to initialize this anyway.
@@ -1043,7 +1042,7 @@ void bfd_close(bfd* abfd)
 #endif
         if (l_addr == unknown_l_addr)
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << ' ');
-	else if (l_addr == 0)
+	else if (l_addr == executable_l_addr)
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << "... ");
 	else
 	  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << " (" << l_addr << ") ... ");
@@ -1064,9 +1063,9 @@ void bfd_close(bfd* abfd)
 	object_file = new bfile_ct(name, l_addr);
 	BFD_RELEASE_WRITE_LOCK;
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-	object_file->initialize(name, l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
+	object_file->initialize(name, l_addr != executable_l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
 #else
-	object_file->initialize(name, l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
+	object_file->initialize(name, l_addr != executable_l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
 #endif
 	set_alloc_checking_on(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
@@ -1188,7 +1187,7 @@ void bfd_close(bfd* abfd)
 
 	// Load executable
 	BFD_INITIALIZE_LOCK;
-	load_object_file(fullpath->data(), 0);
+	load_object_file(fullpath->data(), executable_l_addr);
 
 	if (!statically_linked)
 	{
@@ -1215,12 +1214,7 @@ void bfd_close(bfd* abfd)
 #endif
 #endif
 	    if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
-	    {
-	      if (l->l_addr)
-		load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
-	      else
-		load_object_file(l->l_name, unknown_l_addr);
-	    }
+	      load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	  }
 
 	  LIBCWD_DEFER_CANCEL;
@@ -1429,25 +1423,25 @@ typedef location_ct bfd_location_ct;
       if (!object_file && !statically_linked)
       {
         // Try to load everything again... previous loaded libraries are skipped based on load address.
-	for(link_map* l = *dl_loaded_ptr; l;)
+	for(link_map* l = *dl_loaded_ptr; l; l = l->l_next)
 	{
-	  if (l->l_addr)
-	  {
-	    BFD_ACQUIRE_READ_LOCK;
-	    for (object_files_ct::const_iterator iter = NEEDS_READ_LOCK_object_files().begin();
-		 iter != NEEDS_READ_LOCK_object_files().end();
-		 ++iter)
-	      if (reinterpret_cast<void*>(l->l_addr) == (*iter)->get_lbase())
-	      {
-		BFD_RELEASE_READ_LOCK;
-		goto already_loaded;
-	      }
-            BFD_RELEASE_READ_LOCK;
-	    if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
-	      load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+	  bool already_loaded = false;
+	  BFD_ACQUIRE_READ_LOCK;
+	  for (object_files_ct::const_iterator iter = NEEDS_READ_LOCK_object_files().begin();
+	       iter != NEEDS_READ_LOCK_object_files().end(); ++iter)
+          {
+	    Dout(dc::always, "Got " << (*iter)->get_object_file()->filename() << " loaded at " << (*iter)->get_lbase());
+	    // FIXME
+	    if (reinterpret_cast<void*>(l->l_addr) == (*iter)->get_lbase())
+	    {
+	      LIBCWD_ASSERT(strcmp(l->l_name, (*iter)->get_object_file()->filename()) == 0);
+	      already_loaded = true;
+	      break;
+	    }
 	  }
-already_loaded:
-	  l = l->l_next;
+	  BFD_RELEASE_READ_LOCK;
+	  if (!already_loaded && l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
+	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	}
         BFD_ACQUIRE_WRITE_LOCK;
 	set_alloc_checking_off(LIBCWD_TSD);

@@ -1,6 +1,7 @@
-// input lines 3
+// input lines 4
 // output till ^MALLOC
 ((WARNING : core size is limited.*
+)*(WARNING : Object file .* does not have debug info\..*
 )*(BFD     : Loading debug.*
 )*)
 // type regexp
@@ -19,7 +20,7 @@ WARNING :     Object file /lib/ld-linux\.so\.2 does not have debug info\.  Addre
 MALLOC  : <continued> 0x[a-f0-9]* \[ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)\]
 )|(MALLOC  : malloc\(12\) = 0x[a-f0-9]*  \[ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)\]
 )
-MALLOC  : calloc\((600|572|544|548|576|588), 1\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_new_object\]
+MALLOC  : calloc\((600|572|544|548|576|588|596), 1\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_new_object\]
 MALLOC  : (malloc\(140\)|realloc\(0x0, 140\)) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_new_object\]
 MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_map_object_deps\]
 MALLOC  : calloc\([3-8], 16\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_check_map_versions\]
@@ -27,8 +28,8 @@ MALLOC  : calloc\([3-8], 16\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_check_map_vers
 // output till ^NOTICE  : dlopen
 (MALLOC  : malloc\([0-9]*\) = <unfinished>
 WARNING :     Object file .*/libc\.so\.6 does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
-MALLOC  : <continued> 0x[a-f0-9]* \[libc\.so\.6:(dl_open_worker|_dl_open)\]
-)|(MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[libc\.so\.6:(dl_open_worker|_dl_open)\]
+MALLOC  : <continued> 0x[a-f0-9]* \[libc\.so\.6:(dl_open_worker|_dl_open|add_to_global)\]
+)|(MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[(libc\.so\.6:(dl_open_worker|_dl_open)|ld-linux.so\.2:add_to_global)\]
 )
 NOTICE  : dlopen\(\./module\.so, RTLD_NOW\|RTLD_GLOBAL\) == 0x[a-f0-9]*
 MALLOC  : operator new \(size = 8\) = 0x[a-f0-9]* \[filter\.cc:197\]
@@ -90,14 +91,14 @@ MALLOC  : free\(0x[a-f0-9]*\) *(dl-load\.c:(164|149)|_dl_map_object|expand_dynam
 // output till (dl-deps\.c:(528|489)|_dl_map_object_deps|<pre libcwd initialization>)
 (MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
-MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600)\)  
+MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600|596)\)  
 )*
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-deps\.c:(528|489)|_dl_map_object_deps|<pre libcwd initialization>) *<unknown type>; \(sz = [0-9]*\)  
 // input lines 7
 // output till MALLOC  : Allocated memory
 (MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
-MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600)\)  
+MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:43|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600|596)\)  
 )|((MALLOC  : .*<pre libcwd initialization> <unknown type>; \(sz = [0-9]*\)  
 MALLOC  : (Trying to free NULL - ignored\.|free\(0x[a-f0-9]*\) <pre libcwd initialization> <unknown type>.*)
 )*|(MALLOC  : delete 0x[a-f0-9]* <pre ios initialization>  <unknown type>.*

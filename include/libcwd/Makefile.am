@@ -69,6 +69,7 @@ libcwd_HEADERS = \
 
 BUILT_SOURCES = sys.h config.h
 EXTRA_HEADERS = sys.h config.h
+TAGS_FILES = $(EXTRA_HEADERS)
 
 DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in
