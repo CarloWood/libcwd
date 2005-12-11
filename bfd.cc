@@ -576,7 +576,7 @@ void bfd_close(bfd* abfd)
 	        (char*)symbol_start_addr(M_symbol_table[i + 1]) - (char*)symbol_start_addr(M_symbol_table[i]);
 
 	  // Use reasonable size for last one.
-	  // This should be "_end", or one behond it, and will be thrown away in the next loop.
+	  // This should be "_end", or one beyond it, and will be thrown away in the next loop.
 	  symbol_size(M_symbol_table[M_number_of_symbols - 1]) = 100000;
 
           BFD_ACQUIRE_WRITE_LOCK;	// Needed for M_function_symbols.
@@ -634,13 +634,16 @@ void bfd_close(bfd* abfd)
 #endif
 	      BFD_ACQUIRE_WRITE_LOCK;
 	    }
-	    if (!M_size)
-	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_lbase;
 	    asymbol const* first_symbol = (*M_function_symbols.rbegin()).get_symbol();
 	    M_start = symbol_start_addr(first_symbol); // Use the lowest start address of all symbols.
+	    if (!M_size)
+	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_start;
 	  }
 	  else
+	  {
 	    M_start = M_lbase;			// Probably a shared library, need to initialize this anyway.
+	    M_size = 0;
+	  }
 
 #if 0
 	  if (M_function_symbols.size() < 20000)
@@ -673,8 +676,26 @@ void bfd_close(bfd* abfd)
 	}
 
 	if (M_number_of_symbols > 0)
+	{
+	  BFD_ACQUIRE_WRITE2READ_LOCK;
+	  std::cout << "Adding new library with name \"" << get_object_file()->filepath() << "\", load address " <<
+	      get_lbase() << ", start " << get_start() << " and end " << (void*)((size_t)get_start() + size()) << std::endl;
+	  // Find out if there is any overlap.
+	  for (object_files_ct::const_iterator iter = NEEDS_READ_LOCK_object_files().begin();
+	       iter != NEEDS_READ_LOCK_object_files().end(); ++iter)
+          {
+	    bool shared_libraries_overlap = (size_t)(*iter)->get_start() < (size_t)get_start() + size() &&
+	        (size_t)(*iter)->get_start() + (*iter)->size() > (size_t)get_start();
+	    if (shared_libraries_overlap)
+	      std::cout << "It collides with \"" << (*iter)->get_object_file()->filepath() << "\", load address " <<
+		  (*iter)->get_lbase() << ", start " << (*iter)->get_start() << " and end " <<
+		  (void*)((size_t)(*iter)->get_start() + (*iter)->size()) << std::endl;
+	    LIBCWD_ASSERT (!shared_libraries_overlap);
+	    // FIXME: correct the size of the last symbol of either if that size is 100000.
+	  }
+	  BFD_ACQUIRE_READ2WRITE_LOCK;
 	  NEEDS_WRITE_LOCK_object_files().push_back(this);
-
+        }
 	BFD_RELEASE_WRITE_LOCK;
       }
 
@@ -1430,11 +1451,15 @@ typedef location_ct bfd_location_ct;
 	  for (object_files_ct::const_iterator iter = NEEDS_READ_LOCK_object_files().begin();
 	       iter != NEEDS_READ_LOCK_object_files().end(); ++iter)
           {
-	    Dout(dc::always, "Got " << (*iter)->get_object_file()->filename() << " loaded at " << (*iter)->get_lbase());
-	    // FIXME
 	    if (reinterpret_cast<void*>(l->l_addr) == (*iter)->get_lbase())
 	    {
-	      LIBCWD_ASSERT(strcmp(l->l_name, (*iter)->get_object_file()->filename()) == 0);
+	      // This paths are very likely the same, but I don't want to take any risk.
+	      struct stat statbuf1;
+	      struct stat statbuf2;
+	      if (stat(l->l_name, &statbuf1) == -1 ||
+	          stat((*iter)->get_object_file()->filename(), &statbuf2) == -1 ||
+		  statbuf1.st_ino != statbuf2.st_ino)
+		continue;
 	      already_loaded = true;
 	      break;
 	    }
@@ -1719,6 +1744,8 @@ extern "C" {
       {
 	name = ((link_map*)handle)->l_name;	// This is dirty, but its the only reasonable way to get
 						// the full path to the loaded library.
+        LIBCWD_ASSERT(*name == '/' || *name == '.');	// To catch total disasters, i.e. when dlopen
+							// doesn't return a link_map* anymore!
       }
 #endif
       // Don't call cwbfd::load_object_file when dlopen() was called with NULL as argument.

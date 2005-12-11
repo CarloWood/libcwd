@@ -2596,7 +2596,7 @@ void objfile_ct::load_dwarf(void)
 		  LIBCWD_ASSERT( low_pc == symbol.get_symbol()->value + bfd_get_section(symbol.get_symbol())->offset );
 		  if (low_pc + symbol_size(symbol.get_symbol()) != high_pc )
 		  {
-		    // Alignment can cause the next function to start behond the end of this function.
+		    // Alignment can cause the next function to start beyond the end of this function.
 		    LIBCWD_ASSERT( low_pc + symbol_size(symbol.get_symbol()) > high_pc );
 		    // The alignment is maximal 16.
 		    LIBCWD_ASSERT( low_pc + symbol_size(symbol.get_symbol()) - high_pc < 16 );

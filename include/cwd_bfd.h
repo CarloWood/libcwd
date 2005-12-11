@@ -99,7 +99,7 @@ public:
 };
 
 struct symbol_key_greater {
-  // Returns true when the start of a lays behond the end of b (ie, no overlap).
+  // Returns true when the start of a lays beyond the end of b (ie, no overlap).
   bool operator()(symbol_ct const& a, symbol_ct const& b) const;
 };
 
@@ -122,8 +122,8 @@ class bfile_ct {                                  // All allocations related to 
 private:
   bfd* M_abfd;
   void* M_lbase;	// The 'load address', or 0 for the executable.
-  void const* M_start;	// For shared libraries, this is equal to M_lbase.
-  size_t M_size;
+  void const* M_start;	// The start address of the first symbol.
+  size_t M_size;	// The difference between M_start and the end of the last symbol.
   asymbol** M_symbol_table;
   long M_number_of_symbols;
   function_symbols_ct M_function_symbols;
