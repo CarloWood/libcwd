@@ -274,7 +274,7 @@ void bfd_close(bfd* abfd)
 
 #ifndef HIDE_FROM_DOXYGEN	// Bug in doxygen
       // cwbfd::
-      bfile_ct::bfile_ct(char const* filename, void* base) : M_lbase(base), M_object_file(filename)
+      bfile_ct::bfile_ct(char const* filename, void* base) : M_lbase(base), M_start_last_symbol(0), M_object_file(filename)
       {
 #if CWDEBUG_DEBUGM
 	LIBCWD_TSD_DECLARATION;
@@ -557,15 +557,9 @@ void bfd_close(bfd* abfd)
 	  void const* s_end_start_addr;
 	  
 	  if (s_end_offset)
-	  {
 	    s_end_start_addr = (char*)M_lbase + s_end_offset;
-	    M_size = s_end_offset;
-          }
 	  else
-	  {
 	    s_end_start_addr = NULL;
-	    M_size = 0;			// We will determine this later.
-	  }
 
 	  // Sort the symbol table in order of start address.
 	  std::sort(M_symbol_table, &M_symbol_table[M_number_of_symbols], symbol_less());
@@ -577,7 +571,7 @@ void bfd_close(bfd* abfd)
 
 	  // Use reasonable size for last one.
 	  // This should be "_end", or one beyond it, and will be thrown away in the next loop.
-	  symbol_size(M_symbol_table[M_number_of_symbols - 1]) = 100000;
+	  symbol_size(M_symbol_table[M_number_of_symbols - 1]) = 100001;
 
           BFD_ACQUIRE_WRITE_LOCK;	// Needed for M_function_symbols.
 
@@ -604,7 +598,7 @@ void bfd_close(bfd* abfd)
 	    if (((*s)->name[0] == '.' && (*s)->name[1] == 'L')
 	        || ((*s)->flags & (BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|BSF_INDIRECT|BSF_DYNAMIC)) != 0
 		|| (s_end_start_addr != NULL && symbol_start_addr(*s) >= s_end_start_addr)
-		|| (*s)->flags & BSF_FUNCTION == 0)	// Only keep functions.
+		|| ((*s)->flags & BSF_FUNCTION) == 0)	// Only keep functions.
 	    {
 	      *s = *se2--;
 	      --M_number_of_symbols;
@@ -621,7 +615,7 @@ void bfd_close(bfd* abfd)
 	    // M_function_symbols is a set<> that sorts in reverse order (using symbol_key_greater)!
 	    // So use begin() here in order to get the last symbol.
 	    asymbol const* last_symbol = (*M_function_symbols.begin()).get_symbol();
-	    if (symbol_size(last_symbol) == 100000)
+	    if (symbol_size(last_symbol) == 100001)
 	    {
 	      BFD_RELEASE_WRITE_LOCK;
 #if CWDEBUG_ALLOC
@@ -636,12 +630,18 @@ void bfd_close(bfd* abfd)
 	    }
 	    asymbol const* first_symbol = (*M_function_symbols.rbegin()).get_symbol();
 	    M_start = symbol_start_addr(first_symbol); // Use the lowest start address of all symbols.
-	    if (!M_size)
+	    if (s_end_start_addr)
+	      M_size = (char*)s_end_start_addr - (char*)M_start;
+	    else
+	    {
+	      if (symbol_size(last_symbol) == 100001)			// In fact unknown?
+		M_start_last_symbol = symbol_start_addr(last_symbol);	// Initialize M_start_last_symbol.
 	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_start;
+	    }
 	  }
 	  else
 	  {
-	    M_start = M_lbase;			// Probably a shared library, need to initialize this anyway.
+	    M_start = M_lbase;			// Initialize to arbitrary value.
 	    M_size = 0;
 	  }
 
@@ -677,23 +677,49 @@ void bfd_close(bfd* abfd)
 
 	if (M_number_of_symbols > 0)
 	{
-	  BFD_ACQUIRE_WRITE2READ_LOCK;
-	  std::cout << "Adding new library with name \"" << get_object_file()->filepath() << "\", load address " <<
-	      get_lbase() << ", start " << get_start() << " and end " << (void*)((size_t)get_start() + size()) << std::endl;
+	  Dout(dc::bfd, "Adding \"" << get_object_file()->filepath() << "\", load address " <<
+	      get_lbase() << ", start " << get_start() << " and end " << (void*)((size_t)get_start() + size()));
 	  // Find out if there is any overlap.
-	  for (object_files_ct::const_iterator iter = NEEDS_READ_LOCK_object_files().begin();
-	       iter != NEEDS_READ_LOCK_object_files().end(); ++iter)
+	  for (object_files_ct::iterator iter = NEEDS_WRITE_LOCK_object_files().begin();
+	       iter != NEEDS_WRITE_LOCK_object_files().end(); ++iter)
           {
 	    bool shared_libraries_overlap = (size_t)(*iter)->get_start() < (size_t)get_start() + size() &&
 	        (size_t)(*iter)->get_start() + (*iter)->size() > (size_t)get_start();
 	    if (shared_libraries_overlap)
-	      std::cout << "It collides with \"" << (*iter)->get_object_file()->filepath() << "\", load address " <<
+	    {
+	      Dout(dc::bfd, "It collides with \"" << (*iter)->get_object_file()->filepath() << "\", load address " <<
 		  (*iter)->get_lbase() << ", start " << (*iter)->get_start() << " and end " <<
-		  (void*)((size_t)(*iter)->get_start() + (*iter)->size()) << std::endl;
-	    LIBCWD_ASSERT (!shared_libraries_overlap);
-	    // FIXME: correct the size of the last symbol of either if that size is 100000.
+		  (void*)((size_t)(*iter)->get_start() + (*iter)->size()));
+	       
+	      bfile_ct* lowbf;
+	      bfile_ct* highbf;
+	      // Real size:
+	      // <----lowbf----><----highbf---->
+	      // Since only the end can be too large, overlap means we have either:
+	      // <----lowbf----------->
+	      //                <----highbf---->
+	      // or
+	      // <----lowbf------------------------>
+	      //                <----highbf---->
+	      // Hence, it suffices to check the start.
+	      if ((size_t)(*iter)->get_start() < (size_t)get_start())
+	      {
+	        lowbf = *iter;
+	        highbf = this;
+	      }
+	      else
+	      {
+	        lowbf = this;
+	        highbf = *iter;
+	      }
+	      LIBCWD_ASSERT(lowbf->M_start_last_symbol);			// Must be set to be variable.
+	      LIBCWD_ASSERT(lowbf->M_start_last_symbol < highbf->get_start());	// At most last symbol size can be wrong.
+	      lowbf->M_size = (char*)highbf->M_start - (char*)lowbf->M_start;
+	      Dout(dc::bfd, "End of \"" << lowbf->get_object_file()->filepath() << "\" corrected to be " <<
+	          (void*)((size_t)lowbf->get_start() + lowbf->size()));
+	      break;
+	    }
 	  }
-	  BFD_ACQUIRE_READ2WRITE_LOCK;
 	  NEEDS_WRITE_LOCK_object_files().push_back(this);
         }
 	BFD_RELEASE_WRITE_LOCK;
@@ -1744,8 +1770,6 @@ extern "C" {
       {
 	name = ((link_map*)handle)->l_name;	// This is dirty, but its the only reasonable way to get
 						// the full path to the loaded library.
-        LIBCWD_ASSERT(*name == '/' || *name == '.');	// To catch total disasters, i.e. when dlopen
-							// doesn't return a link_map* anymore!
       }
 #endif
       // Don't call cwbfd::load_object_file when dlopen() was called with NULL as argument.

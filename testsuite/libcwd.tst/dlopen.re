@@ -2,7 +2,9 @@
 // output till Loading debug symbols from .*module\.so
 (.*
 )*
-BFD     : Loading debug symbols from .*module\.so \(0x[a-f0-9]*\) \.\.\. done \([0-9]* symbols\)
+BFD     : Loading debug symbols from .*module\.so \(0x[a-f0-9]*\) \.\.\. <unfinished>
+BFD     :     Adding ".*module\.so", load address 0x[a-f0-9]*000, start 0x[a-f0-9]* and end 0x[a-f0-9]*
+BFD     : <continued> done \(128 symbols\)
 // input lines 2
 // output till malloc\(310\)
 (.*

@@ -121,9 +121,10 @@ typedef std::list<bfile_ct*> object_files_ct;
 class bfile_ct {                                  // All allocations related to bfile_ct must be `internal'.
 private:
   bfd* M_abfd;
-  void* M_lbase;	// The 'load address', or 0 for the executable.
-  void const* M_start;	// The start address of the first symbol.
-  size_t M_size;	// The difference between M_start and the end of the last symbol.
+  void* M_lbase;			// The 'load address', or 0 for the executable.
+  void const* M_start;			// The start address of the first symbol.
+  void const* M_start_last_symbol;	// The start address of the last symbol, or 0 if not relevant.
+  size_t M_size;			// The difference between M_start and the end of the last symbol.
   asymbol** M_symbol_table;
   long M_number_of_symbols;
   function_symbols_ct M_function_symbols;
