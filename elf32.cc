@@ -1306,7 +1306,7 @@ private:
   Elf32_Shdr M_section_header;
 public:
   section_ct(void) { }
-  void init(char const* section_header_string_table, Elf32_Shdr const& section_header, bool shared_library);
+  void init(char const* section_header_string_table, Elf32_Shdr const& section_header, bool lbase_is_zero);
   Elf32_Shdr const& section_header(void) const { return M_section_header; }
 };
 
@@ -1372,7 +1372,7 @@ private:
   compilation_units_vector_ct M_compilation_units;	// Canonical list of compilation units of this DSO.
 public:
   objfile_ct(void);
-  void initialize(char const* file_name, bool shared_library);
+  void initialize(char const* file_name, bool lbase_is_zero);
   ~objfile_ct();
   char const* get_section_header_string_table(void) const { return M_section_header_string_table; }
   section_ct const& get_section(int index) const { LIBCWD_ASSERT( index < M_header.e_shnum ); return M_sections[index]; }
@@ -1485,19 +1485,19 @@ bool Elf32_Ehdr::check_format(void) const
   return true;
 }
 
-void section_ct::init(char const* section_header_string_table, Elf32_Shdr const& section_header, bool shared_library)
+void section_ct::init(char const* section_header_string_table, Elf32_Shdr const& section_header, bool lbase_is_zero)
 {
   std::memcpy(&M_section_header, &section_header, sizeof(M_section_header));
   // Duplicated values:
   vma = M_section_header.sh_addr;
-  if (shared_library)
-    offset = M_section_header.sh_offset;
-  else
+  if (lbase_is_zero)
     offset = vma;	// We work with lbase == 0, so the offset must be (set) equal to vma.
+  else
+    offset = M_section_header.sh_offset;
   name = &section_header_string_table[M_section_header.sh_name];
 }
 
-bfd_st* bfd_st::openr(char const* file_name, bool shared_library)
+bfd_st* bfd_st::openr(char const* file_name, bool lbase_is_zero)
 {
 #if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<object_files_instance>::wrlock();
@@ -1506,7 +1506,7 @@ bfd_st* bfd_st::openr(char const* file_name, bool shared_library)
 #if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<object_files_instance>::wrunlock();
 #endif
-  objfile->initialize(file_name, shared_library);
+  objfile->initialize(file_name, lbase_is_zero);
   return objfile;
 }
 
@@ -3340,7 +3340,7 @@ objfile_ct::objfile_ct(void) :
 {
 }
 
-void objfile_ct::initialize(char const* file_name, bool shared_library)
+void objfile_ct::initialize(char const* file_name, bool lbase_is_zero)
 {
   filename = file_name;
   LIBCWD_TSD_DECLARATION;
@@ -3406,7 +3406,7 @@ void objfile_ct::initialize(char const* file_name, bool shared_library)
       Dout(dc::bfd, "Section name: \"" << &M_section_header_string_table[section_headers[i].sh_name] << '"');
       _private_::set_alloc_checking_off(LIBCWD_TSD);
     }
-    M_sections[i].init(M_section_header_string_table, section_headers[i], shared_library);
+    M_sections[i].init(M_section_header_string_table, section_headers[i], lbase_is_zero);
     if (!strcmp(M_sections[i].name, ".strtab"))
       M_symbol_string_table = allocate_and_read_section(i);
     else if (!strcmp(M_sections[i].name, ".dynstr"))

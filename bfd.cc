@@ -18,7 +18,6 @@
 
 #if CWDEBUG_LOCATION
 
-#include <unistd.h>
 #include <cstdarg>
 #include <inttypes.h>
 #include <sys/stat.h>
@@ -76,6 +75,20 @@ struct rtld_global {
 #include <libcwd/private_string.h>
 #include "cwd_bfd.h"
 #include <libcwd/core_dump.h>
+
+#if defined(HAVE_DLOPEN) && (defined(HAVE__DL_LOADED) || defined(HAVE__RTLD_GLOBAL))
+// Needed for cwdebug_dyn
+#include <iostream>
+#include <link.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <vector>
+#include <sstream>
+#include <climits>
+#include <cstdlib>
+
+extern "C" void cwdebug_dyn(void) __attribute__ ((unused));
+#endif
 
 extern char** environ;
 
@@ -286,9 +299,9 @@ void bfd_close(bfd* abfd)
       }
 
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-      void bfile_ct::initialize(char const* filename, bool shared_library LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename, bool lbase_is_zero LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
 #else
-      void bfile_ct::initialize(char const* filename, bool shared_library LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename, bool lbase_is_zero LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 #endif
       {
 #if CWDEBUG_DEBUGM
@@ -305,7 +318,7 @@ void bfd_close(bfd* abfd)
 	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
 	M_abfd->cacheable = bfd_tttrue;
 #else
-	M_abfd = bfd::openr(filename, shared_library);
+	M_abfd = bfd::openr(filename, lbase_is_zero);
 	M_abfd->M_s_end_offset = 0;
 #endif
 	M_abfd->usrdata = (addr_ptr_t)this;
@@ -1110,9 +1123,11 @@ void bfd_close(bfd* abfd)
 	object_file = new bfile_ct(name, l_addr);
 	BFD_RELEASE_WRITE_LOCK;
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-	object_file->initialize(name, l_addr != executable_l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
+	object_file->initialize(name, (l_addr == executable_l_addr || l_addr == NULL)
+            LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
 #else
-	object_file->initialize(name, l_addr != executable_l_addr LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
+	object_file->initialize(name, (l_addr == executable_l_addr || l_addr == NULL)
+            LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
 #endif
 	set_alloc_checking_on(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
@@ -1260,7 +1275,7 @@ void bfd_close(bfd* abfd)
 	  }
 #endif
 #endif
-	    if (l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
+	    if (l->l_name && ((l->l_name[0] == '/') || (l->l_name[0] == '.')))
 	      load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	  }
 
@@ -1482,16 +1497,17 @@ typedef location_ct bfd_location_ct;
 	      // This paths are very likely the same, but I don't want to take any risk.
 	      struct stat statbuf1;
 	      struct stat statbuf2;
-	      if (stat(l->l_name, &statbuf1) == -1 ||
-	          stat((*iter)->get_object_file()->filename(), &statbuf2) == -1 ||
-		  statbuf1.st_ino != statbuf2.st_ino)
-		continue;
-	      already_loaded = true;
-	      break;
+	      int res1 = stat(l->l_name, &statbuf1);
+	      int res2 = stat((*iter)->get_object_file()->filepath(), &statbuf2);
+	      if (res1 == 0 && res2 == 0 && statbuf1.st_ino == statbuf2.st_ino)
+	      {
+		already_loaded = true;
+		break;
+	      }
 	    }
 	  }
 	  BFD_RELEASE_READ_LOCK;
-	  if (!already_loaded && l->l_name && (l->l_name[0] == '/') || (l->l_name[0] == '.'))
+	  if (!already_loaded && l->l_name && ((l->l_name[0] == '/') || (l->l_name[0] == '.')))
 	    load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
 	}
         BFD_ACQUIRE_WRITE_LOCK;
@@ -1860,5 +1876,100 @@ void location_ct::print_filename_on(std::ostream& os) const
 }
 
 } // namespace libcwd
+
+#if defined(HAVE_DLOPEN) && (defined(HAVE__DL_LOADED) || defined(HAVE__RTLD_GLOBAL))
+struct ln_st {
+  std::string libname;
+  bool found;
+  ln_st(std::string const& s) : libname(s), found(false) { }
+};
+
+extern "C" {
+
+void cwdebug_dyn(void)
+{
+  struct r_debug* r_debug;
+  ElfW(Dyn)* dyn;
+  for (dyn = _DYNAMIC; dyn->d_tag != DT_NULL; ++dyn)
+    if (dyn->d_tag == DT_DEBUG)
+      r_debug = (struct r_debug *) dyn->d_un.d_ptr;
+
+  std::cout << "r_debug = " << r_debug <<
+      " (version " << r_debug->r_version << ")." << std::endl;
+  std::cout << "The dynamic linker is loaded at " << std::hex <<
+      "0x" << r_debug->r_ldbase << '.' << std::endl;
+
+  struct link_map* r_map = r_debug->r_map;
+
+  std::vector<ln_st> libnames;
+  char realp[PATH_MAX];
+  while (r_map)
+  {
+    if (r_map->l_name[0] == '/' || r_map->l_name[0] == '.')
+    {
+      realpath(r_map->l_name, realp);
+      libnames.push_back(ln_st(realp));
+      std::cout << "Load address of " << r_map->l_name << " (" << realp << ") is " <<
+          std::hex << "0x" << r_map->l_addr << '.' << std::endl;
+    }
+    r_map = r_map->l_next;
+  }
+  
+  pid_t pid = getpid();
+  std::ostringstream tmp;
+  tmp << "/proc/" << pid << "/maps";
+  std::ifstream mapfile;
+  mapfile.open(tmp.str().c_str());
+  std::string line;
+  while (std::getline(mapfile, line))
+  {
+    if (line[19] != 'w' && line[49] == '/')
+    {
+      std::cout << "line = \"" << line << "\"." << std::endl;
+      std::string libname = line.substr(49);
+      std::vector<ln_st>::iterator iter;
+      for (iter = libnames.begin(); iter != libnames.end(); ++iter)
+	if (iter->libname == libname)
+	  break;
+      if (iter != libnames.end() && !iter->found)
+      {
+	iter->found = true;
+	std::cout << line << std::endl;
+      }
+    }
+  }
+  mapfile.close();
+
+  void* handle;
+  void* symptr;
+
+  struct st {
+    char const* libname;
+    unsigned int symoffset;
+    char const* symname;
+  };
+  struct st t[] = {
+    { "/lib/libdl.so.2", 0x008570cc, "dlerror" },
+    { "/lib/libm.so.6" , 0x00864830, "cos" },
+    { "/lib/libc.so.6", 0x007b5b21, "endpwent" },
+    { "/lib/ld-linux.so.2", 0x0071b8fb, "_dl_mcount" },
+    { "/lib/libgcc_s.so.1", 0x0097d810, "__ashldi3" },
+    { "/usr/lib/libstdc++.so.6", 0x00bd36fc, "__cxa_free_exception" }
+  };
+
+  for (unsigned int i = 0; i < sizeof(t) / sizeof(st); ++i)
+  {
+    handle = dlopen(NULL, RTLD_LAZY);
+    symptr = dlsym(handle, t[i].symname);
+    realpath(t[i].libname, realp);
+    if (symptr)
+      std::cout << "The Real load address of " << realp << " is " <<
+	  (void*)((char*)symptr - t[i].symoffset) << '.' << std::endl;
+    dlclose(handle);
+  }
+}
+
+} // extern "C"
+#endif // defined(HAVE_DLOPEN) && (defined(HAVE__DL_LOADED) || defined(HAVE__RTLD_GLOBAL))
 
 #endif // CWDEBUG_LOCATION

@@ -1,9 +1,9 @@
 // input lines 4
 // output till ^MALLOC
-((WARNING : core size is limited.*
-)*(WARNING : Object file .* does not have debug info\..*
+(WARNING : core size is limited.*
+)*((WARNING : Object file .* does not have debug info\..*
 )*(BFD     : Loading debug.*
-)*)
+)*)*
 // type regexp
 MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
           0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc
@@ -48,6 +48,10 @@ MALLOC  : malloc\(600\) = 0x[a-f0-9]* \[filter\.cc:206\]
 MALLOC  : realloc\(0x[a-f0-9]*, 1000\) = 0x[a-f0-9]* \[module\.cc:38\]
 MALLOC  : operator new\[\] \(size = 1000\) = 0x[a-f0-9]* \[module\.cc:47\]
 MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
+// input lines 2
+// output till ^[0-9:.]* \(MARKER\)
+(WARNING : Object file /lib/libc\.so.* does not have debug info.*
+)*
 [0-9:.]* \(MARKER\)  0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:197  <marker>; \(sz = 8\)  marker1
     [0-9:.]* \(MARKER\)  0x[a-f0-9]* tst_filter_(static|shared):           filter\.cc:203  <marker>; \(sz = 8\)  marker2
         [0-9:.]* new\[\]     0x[a-f0-9]* module\.so:           module\.cc:47   char\[1000\]; \(sz = 1000\)  new1000

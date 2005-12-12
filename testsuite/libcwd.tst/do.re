@@ -57,5 +57,11 @@ XYZ2Aexample::my_own_do2WARNING |marker3|             ExampleDout text 13, "XYZ2
 // type exact
 > NOTICE  : This is written to cerr
 * NOTICE  : This is written to cerr
+// type regexp
+// input lines 2
+// output till ^> WARNING : Was written
+(> WARNING :     Object file .*/libstdc\+\+\.so\.6 does not have debug info.*
+)*
+// type exact
 > WARNING : Was written to ostringstream: "* NOTICE  : This is written to an ostringstream
 "
