@@ -648,8 +648,17 @@ void bfd_close(bfd* abfd)
 	    else
 	    {
 	      if (symbol_size(last_symbol) == 100001)			// In fact unknown?
+	      {
 		M_start_last_symbol = symbol_start_addr(last_symbol);	// Initialize M_start_last_symbol.
-	      M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_start;
+#if !CWDEBUG_LIBBFD
+		M_size = (char*)last_symbol->section->vma + last_symbol->section->M_size - (char*)M_start;
+		symbol_size(const_cast<asymbol*>(last_symbol)) = M_size - ((char*)symbol_start_addr(last_symbol) - (char*)M_start);
+#endif
+	      }
+#if !CWDEBUG_LIBBFD
+	      else
+#endif
+		M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_start;
 	    }
 	  }
 	  else

@@ -1488,6 +1488,7 @@ bool Elf32_Ehdr::check_format(void) const
 void section_ct::init(char const* section_header_string_table, Elf32_Shdr const& section_header)
 {
   std::memcpy(&M_section_header, &section_header, sizeof(M_section_header));
+  static_cast<asection_st*>(this)->M_size = M_section_header.sh_size;	// Used to guess the size of the last symbol in a section.
   // Duplicated values:
   vma = M_section_header.sh_addr;
   name = &section_header_string_table[M_section_header.sh_name];
