@@ -76,20 +76,6 @@ struct rtld_global {
 #include "cwd_bfd.h"
 #include <libcwd/core_dump.h>
 
-#if defined(HAVE_DLOPEN) && (defined(HAVE__DL_LOADED) || defined(HAVE__RTLD_GLOBAL))
-// Needed for cwdebug_dyn
-#include <iostream>
-#include <link.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <vector>
-#include <sstream>
-#include <climits>
-#include <cstdlib>
-
-extern "C" void cwdebug_dyn(void) __attribute__ ((unused));
-#endif
-
 extern char** environ;
 
 namespace libcwd {
@@ -1883,100 +1869,5 @@ void location_ct::print_filename_on(std::ostream& os) const
 }
 
 } // namespace libcwd
-
-#if defined(HAVE_DLOPEN) && (defined(HAVE__DL_LOADED) || defined(HAVE__RTLD_GLOBAL))
-struct ln_st {
-  std::string libname;
-  bool found;
-  ln_st(std::string const& s) : libname(s), found(false) { }
-};
-
-extern "C" {
-
-void cwdebug_dyn(void)
-{
-  struct r_debug* r_debug;
-  ElfW(Dyn)* dyn;
-  for (dyn = _DYNAMIC; dyn->d_tag != DT_NULL; ++dyn)
-    if (dyn->d_tag == DT_DEBUG)
-      r_debug = (struct r_debug *) dyn->d_un.d_ptr;
-
-  std::cout << "r_debug = " << r_debug <<
-      " (version " << r_debug->r_version << ")." << std::endl;
-  std::cout << "The dynamic linker is loaded at " << std::hex <<
-      "0x" << r_debug->r_ldbase << '.' << std::endl;
-
-  struct link_map* r_map = r_debug->r_map;
-
-  std::vector<ln_st> libnames;
-  char realp[PATH_MAX];
-  while (r_map)
-  {
-    if (r_map->l_name[0] == '/' || r_map->l_name[0] == '.')
-    {
-      realpath(r_map->l_name, realp);
-      libnames.push_back(ln_st(realp));
-      std::cout << "Load address of " << r_map->l_name << " (" << realp << ") is " <<
-          std::hex << "0x" << r_map->l_addr << '.' << std::endl;
-    }
-    r_map = r_map->l_next;
-  }
-  
-  pid_t pid = getpid();
-  std::ostringstream tmp;
-  tmp << "/proc/" << pid << "/maps";
-  std::ifstream mapfile;
-  mapfile.open(tmp.str().c_str());
-  std::string line;
-  while (std::getline(mapfile, line))
-  {
-    if (line[19] != 'w' && line[49] == '/')
-    {
-      std::cout << "line = \"" << line << "\"." << std::endl;
-      std::string libname = line.substr(49);
-      std::vector<ln_st>::iterator iter;
-      for (iter = libnames.begin(); iter != libnames.end(); ++iter)
-	if (iter->libname == libname)
-	  break;
-      if (iter != libnames.end() && !iter->found)
-      {
-	iter->found = true;
-	std::cout << line << std::endl;
-      }
-    }
-  }
-  mapfile.close();
-
-  void* handle;
-  void* symptr;
-
-  struct st {
-    char const* libname;
-    unsigned int symoffset;
-    char const* symname;
-  };
-  struct st t[] = {
-    { "/lib/libdl.so.2", 0x008570cc, "dlerror" },
-    { "/lib/libm.so.6" , 0x00864830, "cos" },
-    { "/lib/libc.so.6", 0x007b5b21, "endpwent" },
-    { "/lib/ld-linux.so.2", 0x0071b8fb, "_dl_mcount" },
-    { "/lib/libgcc_s.so.1", 0x0097d810, "__ashldi3" },
-    { "/usr/lib/libstdc++.so.6", 0x00bd36fc, "__cxa_free_exception" }
-  };
-
-  for (unsigned int i = 0; i < sizeof(t) / sizeof(st); ++i)
-  {
-    handle = dlopen(NULL, RTLD_LAZY);
-    symptr = dlsym(handle, t[i].symname);
-    realpath(t[i].libname, realp);
-    if (symptr)
-      std::cout << "The Real load address of " << realp << " is " <<
-	  (void*)((char*)symptr - t[i].symoffset) << '.' << std::endl;
-    dlclose(handle);
-  }
-}
-
-} // extern "C"
-#endif // defined(HAVE_DLOPEN) && (defined(HAVE__DL_LOADED) || defined(HAVE__RTLD_GLOBAL))
 
 #endif // CWDEBUG_LOCATION

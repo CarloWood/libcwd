@@ -9,6 +9,9 @@ libcwd-0.99.43
 	I thought this was fixed in 0.99.38, but there was another place
 	in the source where a test for this case was needed.
 
+	Several serious bugs have been fixed related to the calculation
+	of the load address of a shared library.
+
 libcwd-0.99.42
 
 	Bug fixes:
