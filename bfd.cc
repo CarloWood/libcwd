@@ -299,9 +299,9 @@ void bfd_close(bfd* abfd)
       }
 
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-      void bfile_ct::initialize(char const* filename, bool lbase_is_zero LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
 #else
-      void bfile_ct::initialize(char const* filename, bool lbase_is_zero LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
+      void bfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 #endif
       {
 #if CWDEBUG_DEBUGM
@@ -318,7 +318,7 @@ void bfd_close(bfd* abfd)
 	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
 	M_abfd->cacheable = bfd_tttrue;
 #else
-	M_abfd = bfd::openr(filename, lbase_is_zero);
+	M_abfd = bfd::openr(filename);
 	M_abfd->M_s_end_offset = 0;
 #endif
 	M_abfd->usrdata = (addr_ptr_t)this;
@@ -496,7 +496,7 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 		    __libcwd_tsd.internal = saved_internal;
 #endif
-		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->offset;
+		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->vma;
 		    // Shared object seem to be loaded at boundaries of 4096 bytes (a page size).
 		    // It is possible that we looked up a symbol of the library we are looking
 		    // for and got a symbol in a different library with the same name. The chance
@@ -1123,11 +1123,9 @@ void bfd_close(bfd* abfd)
 	object_file = new bfile_ct(name, l_addr);
 	BFD_RELEASE_WRITE_LOCK;
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-	object_file->initialize(name, (l_addr == executable_l_addr || l_addr == NULL)
-            LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
+	object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
 #else
-	object_file->initialize(name, (l_addr == executable_l_addr || l_addr == NULL)
-            LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
+	object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
 #endif
 	set_alloc_checking_on(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
@@ -1312,7 +1310,7 @@ void bfd_close(bfd* abfd)
 
 	  // Make symbol_start_addr(&dummy_symbol) and symbol_size(&dummy_symbol) return the correct value:
 	  bfd_asymbol_bfd(&dummy_symbol) = object_file->get_bfd();
-	  dummy_section.offset = 0;			// Use an offset of 0 and
+	  dummy_section.vma = 0;			// Use a vma of 0 and
 	  dummy_symbol.section = &dummy_section;	// use dummy_symbol.value to store (value + offset):
 	  dummy_symbol.value = reinterpret_cast<char const*>(addr) - reinterpret_cast<char const*>(object_file->get_lbase());
 	  symbol_size(&dummy_symbol) = 1;

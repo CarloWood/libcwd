@@ -132,9 +132,9 @@ private:
 public:
   bfile_ct(char const* filename, void* base);
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-  void initialize(char const* filename, bool shared_library LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM);
+  void initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM);
 #else
-  void initialize(char const* filename, bool shared_library LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);
+  void initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);
 #endif
   void deinitialize(LIBCWD_TSD_PARAM);
 
@@ -190,7 +190,7 @@ inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
 inline addr_const_ptr_t
 symbol_start_addr(asymbol const* s)
 {
-  return s->value + bfd_get_section(s)->offset
+  return s->value + bfd_get_section(s)->vma
       + reinterpret_cast<char const*>(reinterpret_cast<bfile_ct const*>(bfd_asymbol_bfd(s)->usrdata)->get_lbase());
 }
 
