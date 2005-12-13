@@ -10,7 +10,45 @@ libcwd-0.99.43
 	in the source where a test for this case was needed.
 
 	Several serious bugs have been fixed related to the calculation
-	of the load address of a shared library.
+	of the load address of a shared library. A problem was that
+	a load address returned by the dynamic linker of zero was
+	treated as 'unknown' (falling back to more heuristic methods
+	in that case). However, it turns out that on some machines,
+	sometimes, system libraries are loaded "at" address 0. Avoiding
+	overlaps between libraries in this case is done by having
+	some 'empty' section at the beginning of the shared object
+	that gives the library it's required offset, instead of loading
+	each library at a different address (this only works when
+	all those libraries have such empty sections that are 'tuned'
+	in size to be compatible with one another). Apparently, this
+	only works as a 'hint' for the dynamic linker, because it can
+	still put the real image somewhere else in memory, possibly even
+	with a negative 'load address'. This method was so different
+	from how it worked on my system that libcwd totally messed up.
+	On top of that, libcwd used the FILE offset to calculate the
+	start of a section in memory, instead of the 'memory image'
+	offset of the section (the VMA). That worked on my machine
+	because all executable sections are at the start of the the
+	shared library, so that the vma and the file offset were
+	equal (with the exception of the executable, but libcwd made
+	a special exception for that case). Blame this on the extremely
+	bad availability of documentation on how dynamic linkers work.
+	Anyway, thanks to an american soldier, who let me login on
+	his laptop, via an ppp-over-ssh tunnel to get around the
+	firewall for their army base in Irak (how juice, and all that
+	via a satelite link of course), I've been finally able to
+	debug on a machine that used this different way of linking
+	and finally understand what VMA really is ;).
+	Note that this also means that there is a huge difference
+	between the load address of a shared library and the first
+	(lowest) address that can actually be part of executable
+	code of that library, something that was already fixed for
+	the executable on 0.99.41 -- now also for all other shared
+	objects.
+
+	There was a missing colon between the mangled function name
+	and the demangled function name (using a filter that printed
+	both) in the allocated memory overview.
 
 libcwd-0.99.42
 
