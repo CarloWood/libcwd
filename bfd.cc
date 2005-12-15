@@ -409,12 +409,11 @@ void bfd_close(bfd* abfd)
 	  if (!s_end_offset && M_number_of_symbols > 0)
 	  {
 #if CWDEBUG_ALLOC
-	    int saved_internal = __libcwd_tsd.internal;
 	    __libcwd_tsd.internal = 0;
 #endif
 	    Dout(dc::warning, "Cannot find symbol _end");
 #if CWDEBUG_ALLOC
-	    __libcwd_tsd.internal = saved_internal;
+	    __libcwd_tsd.internal = 1;
 #endif
 	  }
 
@@ -424,7 +423,6 @@ void bfd_close(bfd* abfd)
 #ifdef HAVE_DLOPEN
 #if CWDEBUG_ALLOC
 	    LIBCWD_TSD_DECLARATION;
-	    int saved_internal = __libcwd_tsd.internal;
 	    __libcwd_tsd.internal = 0;
 #endif
 	    if (!real_dlopen.symptr)
@@ -451,12 +449,12 @@ void bfd_close(bfd* abfd)
 	    }
 #endif // HAVE__DL_LOADED
 #if CWDEBUG_ALLOC
-	    __libcwd_tsd.internal = saved_internal;
+	    __libcwd_tsd.internal = 1;
 #endif
 	    if (M_lbase == unknown_l_addr)
 	    {
 #if CWDEBUG_ALLOC
-	      __libcwd_tsd.internal = saved_internal;
+	      __libcwd_tsd.internal = 1;
 	      typedef std::map<void*, unsigned int, std::less<void*>,
 	                       _private_::internal_allocator::rebind<std::pair<void* const, unsigned int> >::other> start_values_map_ct;
 #else
@@ -480,7 +478,7 @@ void bfd_close(bfd* abfd)
 		  if (dlerror() == NULL)
 		  {
 #if CWDEBUG_ALLOC
-		    __libcwd_tsd.internal = saved_internal;
+		    __libcwd_tsd.internal = 1;
 #endif
 		    void* start = reinterpret_cast<char*>(val) - (*s)->value - sect->vma;
 		    // Shared object seem to be loaded at boundaries of 4096 bytes (a page size).
@@ -502,7 +500,7 @@ void bfd_close(bfd* abfd)
 		  }
 #if CWDEBUG_ALLOC
 		  else
-		    __libcwd_tsd.internal = saved_internal;
+		    __libcwd_tsd.internal = 1;
 #endif
 		}
 	      }
@@ -513,7 +511,7 @@ void bfd_close(bfd* abfd)
 #endif
 		Dout(dc::warning, "Unable to determine start of \"" << filename << "\", skipping.");
 #if CWDEBUG_ALLOC
-		__libcwd_tsd.internal = saved_internal;
+		__libcwd_tsd.internal = 1;
 #endif
 		free(M_symbol_table);
 		M_symbol_table  = NULL;
@@ -530,7 +528,7 @@ void bfd_close(bfd* abfd)
 		  real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose");
 		real_dlclose.func(handle);
 #if CWDEBUG_ALLOC
-		__libcwd_tsd.internal = saved_internal;
+		__libcwd_tsd.internal = 1;
 #endif
 		return;
 	      }
@@ -544,7 +542,7 @@ void bfd_close(bfd* abfd)
 	    real_dlclose.func(handle);
 	    Dout(dc::continued, '(' << M_lbase << ") ... ");
 #if CWDEBUG_ALLOC
-	    __libcwd_tsd.internal = saved_internal;
+	    __libcwd_tsd.internal = 1;
 #endif
 #else // !HAVE_DLOPEN
 	    DoutFatal(dc::fatal, "Can't determine start of shared library: you will need libdl to be detected by configure.");
@@ -618,12 +616,11 @@ void bfd_close(bfd* abfd)
 	    {
 	      BFD_RELEASE_WRITE_LOCK;
 #if CWDEBUG_ALLOC
-	      int saved_internal = __libcwd_tsd.internal;
 	      __libcwd_tsd.internal = 0;
 #endif
 	      Dout(dc::warning, "Unknown size of symbol " << last_symbol->name);
 #if CWDEBUG_ALLOC
-	      __libcwd_tsd.internal = saved_internal;
+	      __libcwd_tsd.internal = 1;
 #endif
 	      BFD_ACQUIRE_WRITE_LOCK;
 	    }
@@ -659,7 +656,6 @@ void bfd_close(bfd* abfd)
 	    libcwd::debug_ct::OnOffState state;
 	    Debug( libcw_do.force_on(state) );
 #if CWDEBUG_ALLOC
-	    int saved_internal = __libcwd_tsd.internal;
 	    __libcwd_tsd.internal = 0;
 #endif
 	    for(function_symbols_ct::iterator i(M_function_symbols.begin()); i != M_function_symbols.end(); ++i)
@@ -668,7 +664,7 @@ void bfd_close(bfd* abfd)
 	      Dout(dc::always, s->name << " (" << s->section->name << ") = " << s->value);
 	    }
 #if CWDEBUG_ALLOC
-	    __libcwd_tsd.internal = saved_internal;
+	    __libcwd_tsd.internal = 1;
 #endif
 	    Debug( libcw_do.restore(state) );
 	  }
@@ -685,6 +681,9 @@ void bfd_close(bfd* abfd)
 
 	if (M_number_of_symbols > 0)
 	{
+#if CWDEBUG_ALLOC
+	  __libcwd_tsd.internal = 0;
+#endif
 	  Dout(dc::bfd, "Adding \"" << get_object_file()->filepath() << "\", load address " <<
 	      get_lbase() << ", start " << get_start() << " and end " << (void*)((size_t)get_start() + size()));
 	  // Find out if there is any overlap.
@@ -728,6 +727,9 @@ void bfd_close(bfd* abfd)
 	      break;
 	    }
 	  }
+#if CWDEBUG_ALLOC
+	  __libcwd_tsd.internal = 1;
+#endif
 	  NEEDS_WRITE_LOCK_object_files().push_back(this);
         }
 	BFD_RELEASE_WRITE_LOCK;

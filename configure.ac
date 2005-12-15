@@ -182,7 +182,7 @@ fi
 AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS", [Full path to the 'ps' executable.])
 
 dnl We need to use these options for the tests too
-CXXFLAGS="$DEBUGOPTS $EXTRAOPTS"
+CXXFLAGS="$CXXFLAGS $DEBUGOPTS $EXTRAOPTS"
 
 dnl This block cannot be replaced by a macro because the DISABLE_* and the
 dnl AM_PROG_LIBTOOL macro need to be in configure.ac itself for some reason.

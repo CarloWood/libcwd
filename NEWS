@@ -35,10 +35,10 @@ libcwd-0.99.43
 	bad availability of documentation on how dynamic linkers work.
 	Anyway, thanks to an american soldier, who let me login on
 	his laptop, via an ppp-over-ssh tunnel to get around the
-	firewall for their army base in Irak (how juice, and all that
-	via a satelite link of course), I've been finally able to
-	debug on a machine that used this different way of linking
-	and finally understand what VMA really is ;).
+	firewall for their army base in Irak (how exciting, and all
+	that via a satelite link into the desert, of course), I've
+	been finally able to debug on a machine that used this different
+	way of linking and finally understand what VMA really is ;).
 	Note that this also means that there is a huge difference
 	between the load address of a shared library and the first
 	(lowest) address that can actually be part of executable
