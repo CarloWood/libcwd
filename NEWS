@@ -50,6 +50,15 @@ libcwd-0.99.43
 	and the demangled function name (using a filter that printed
 	both) in the allocated memory overview.
 
+	Libcwd's new allocator got a face lift. It had some problems
+	with large numbers of requested chunks due to two linear list
+	searches over allocated memory blocks (even though each block
+	is 8192 bytes, in some cases several thousand blocks are needed,
+	making those linear searches rather slow). The current
+	implementation is even faster than the allocator of libstdc++
+	(constant allocation and deallocation times for any ammount
+	allocated chunks).
+
 libcwd-0.99.42
 
 	Bug fixes:
