@@ -155,10 +155,17 @@ struct List : public Node {
   bool empty(void) const { return M_next == this; }
   void insert(Node* node)
   {
-    node->M_prev = M_next->M_prev;
+    node->M_prev = this;
     node->M_next = M_next;
     M_next->M_prev = node;
     M_next = node;
+  }
+  void insert_back(Node* node)
+  {
+    node->M_prev = M_prev;
+    node->M_next = this;
+    M_prev->M_next = node;
+    M_prev = node;
   }
 private:
   using Node::next;
@@ -188,14 +195,13 @@ struct BlockNode : public Node {
 };
 
 struct BlockList : public List {
-  unsigned int M_count;		// Number of blocks (thus, that are in the list).
-  unsigned short M_keep;	// Number of blocks that shouldn't be freed.
+  unsigned int* M_count_ptr;	// Pointer to number of blocks (thus, that are in the (full+notfull) list).
   unsigned short M_internal;	// Whether or not this block list contains internal blocks or not.
 
   BlockNode* begin(void) const { return static_cast<BlockNode*>(M_next); }
   Node const* end(void) const { return this; }
 
-  void initialize(unsigned short internal);
+  void initialize(unsigned int* count_ptr, unsigned short internal);
   void uninitialize(void);
   ~BlockList() { uninitialize(); }
 };
@@ -207,13 +213,18 @@ struct FreeList {
   pthread_mutex_t M_mutex;
 #endif
   bool M_initialized;
-  BlockList M_list[bucket_sizes];
+  unsigned int M_count[bucket_sizes];		// Number of blocks (in the full+notfull list).
+  unsigned short M_keep[bucket_sizes];		// Number of blocks that shouldn't be freed.
+  BlockList M_list_notfull[bucket_sizes];
+  BlockList M_list_full[bucket_sizes];
 
 #if LIBCWD_THREAD_SAFE
   void initialize(TSD_st& __libcwd_tsd);
 #else
   void initialize(void);
 #endif
+  void uninitialize(void);
+  ~FreeList() { uninitialize(); }
   char* allocate(int power, size_t size);
   void deallocate(char* p, int power, size_t size);
 };

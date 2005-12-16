@@ -173,11 +173,12 @@ template <bool needs_lock, int pool_instance>
 template <bool needs_lock, int pool_instance>
   char* CharPoolAlloc<needs_lock, pool_instance>::allocate(size_type size LIBCWD_COMMA_TSD_PARAM)
   {
+    size += sizeof(void*);				// We'll add a pointer at the start of the returned memory block.
     int power = find1((unsigned long)size - 1) + 1;	// Round up to first power of 2;
     // power >= minimum_size_exp
     size = (1U << power);				// Is at least minimum_size.
     if (size > maximum_size)				// No free lists for large chunks.
-      return (char*)::operator new(size);
+      return (char*)::operator new(size - sizeof(void*));
     if (!S_freelist.M_initialized)
       S_freelist.initialize(LIBCWD_TSD);
     char* ptr;
@@ -202,6 +203,7 @@ template <bool needs_lock, int pool_instance>
 template <bool needs_lock, int pool_instance>
   void CharPoolAlloc<needs_lock, pool_instance>::deallocate(pointer p, size_type size LIBCWD_COMMA_TSD_PARAM)
   {
+    size += sizeof(void*);
     int power = find1((unsigned long)size - 1) + 1;
     size = (1U << power);
     if (size > maximum_size)		// No free lists for large chunks.

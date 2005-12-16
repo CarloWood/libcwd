@@ -37,14 +37,10 @@ static size_t const block_size_c = 8192 - malloc_overhead_c;
 
 char* FreeList::allocate(int power, size_t size)
 {
-  BlockList& list(M_list[power - minimum_size_exp]);	// The root of the linked list.
-  BlockNode* const begin = list.begin();		// Make block point to begin.
-  Node const* const end = list.end();			// The 'end' node of the list.
-  // Search for first non-empty BlockNode.
-  BlockNode* block = begin;
-  while (block != end && block->M_chunks.empty())
-    block = block->next();
-  if (block == end)
+  BlockList& list(M_list_notfull[power - minimum_size_exp]);	// The linked list with Block's that aren't full yet.
+  Node const* const end = list.end();				// The 'end' node of the list.
+  BlockNode* block = list.begin();				// Make block point to begin.
+  if (block == end)						// No non-empty blocks left?
   {
     // Allocate a new BlockNode.
     block = reinterpret_cast<BlockNode*>(::operator new(block_size_c));
@@ -70,81 +66,47 @@ char* FreeList::allocate(int power, size_t size)
 
     // Insert block at the front of the chain.
     list.insert(block);
-    ++list.M_count;
+    ++M_count[power - minimum_size_exp];
   }
-  else if (block != begin)
+  ChunkNode* chunk = block->M_chunks.begin();			// Get the first chunk of this (free) list.
+  chunk->unlink();						// Unlink the chunk from the free list.
+  ++block->M_chunks.M_used_count;				// Number of chunks in use in this block.
+  if (block->M_chunks.empty())
   {
-    // In order to speed up subsequential allocations, put full blocks at the end of the list.
-    list.M_prev->M_next = begin;
-    begin->M_prev = list.M_prev;
-    block->M_prev->M_next = &list;
-    list.M_prev = block->M_prev;
-    list.M_next = block;
-    block->M_prev = &list;
+    // There are no more (free) chunks in this block, need to move
+    // it from M_list_notfull to M_list_full.
+    block->unlink();							// Remove it from M_list_notfull.
+    M_list_full[power - minimum_size_exp].insert(block);		// Add it to M_list_full.
   }
-  ChunkNode* chunk = block->M_chunks.begin();
-  chunk->unlink();
-  ++block->M_chunks.M_used_count;
-  return (char*)chunk;
+  *reinterpret_cast<BlockNode**>(chunk) = block;
+  return (char*)chunk + sizeof(BlockNode*);
 }
 
 void FreeList::deallocate(char* ptr, int power, size_t /*size*/)
 {
+  ptr -= sizeof(BlockNode*);
+  BlockNode* block = *reinterpret_cast<BlockNode**>(ptr);
   Node* chunk = reinterpret_cast<Node*>(ptr);
-  BlockList& list(M_list[power - minimum_size_exp]);		// The root of the linked list.
-  BlockNode* block = list.begin();				// Make block point to begin.
-  // Find the block that the chunk belongs to.
-#if 0
-  while (ptr < (char*)block || ptr > (char*)block + block_size_c)
-    block = block->next();
-#else
-  // Faster code(?) ... attempt to short circuit the boolean expression
-  // by assuming that the blocks are reasonably ordered in memory.
-  // Also unroll the loops a factor of two.
-  if (ptr > (char*)block + block_size_c)
+  if (block->M_chunks.empty())
   {
-    do
-    {
-      BlockNode* block2 = (BlockNode*)block->M_next;
-      if (__builtin_expect(ptr <= (char*)block2 + block_size_c && ptr >= (char*)block2, false))
-      {
-        block = block2;
-	break;
-      }
-      block = (BlockNode*)block2->M_next;
-    }
-    while (__builtin_expect(ptr > (char*)block + block_size_c || ptr < (char*)block, true));
+    // Move the block back to M_list_notfull.
+    block->unlink();							// Remove it from M_list_full.
+    M_list_notfull[power - minimum_size_exp].insert_back(block);	// Add it to M_list_notfull.
   }
-  else if (ptr < (char*)block)
-  {
-    do
-    {
-      BlockNode* block2 = (BlockNode*)block->M_next;
-      if (__builtin_expect(ptr >= (char*)block2 && ptr <= (char*)block2 + block_size_c, false))
-      {
-        block = block2;
-	break;
-      }
-      block = (BlockNode*)block2->M_next;
-    }
-    while (__builtin_expect(ptr < (char*)block || ptr > (char*)block + block_size_c, true));
-  }
-#endif
   block->M_chunks.insert(chunk);
-  if (--block->M_chunks.M_used_count == 0 && list.M_count > list.M_keep)
+  if (--block->M_chunks.M_used_count == 0 && M_count[power - minimum_size_exp] > M_keep[power - minimum_size_exp])
   {
     // ChunkList of block empty (and not the last block): remove it.
     block->unlink();
     ::operator delete(block);
-    --list.M_count;
+    --M_count[power - minimum_size_exp];
   }
 }
 
-void BlockList::initialize(unsigned short internal)
+void BlockList::initialize(unsigned int* count_ptr, unsigned short internal)
 {
   M_next = M_prev = this;
-  M_count = 0;
-  M_keep = 1;
+  M_count_ptr = count_ptr;
   M_internal = internal;
 }
 
@@ -164,11 +126,16 @@ void BlockList::uninitialize(void)
     ::operator delete(block);
     if (M_internal)
       set_alloc_checking_on(LIBCWD_TSD);
-    --list.M_count;
+    --(*M_count_ptr);
     block = block->next();
   }
+}
+
+void FreeList::uninitialize(void)
+{
   // Delete all empty blocks from now on.
-  M_keep = 0;
+  for (int i = 0; i < bucket_sizes; ++i)
+    M_keep[i] = 0;
 }
 
 void FreeList::initialize(LIBCWD_TSD_PARAM)
@@ -184,7 +151,12 @@ void FreeList::initialize(LIBCWD_TSD_PARAM)
   pthread_mutex_init(&M_mutex, &mutex_attr);
 #endif
   for (int i = 0; i < bucket_sizes; ++i)
-    M_list[i].initialize((__libcwd_tsd.internal > 0) ? 1 : 0);
+  {
+    M_count[i] = 0;
+    M_keep[i] = 1;
+    M_list_notfull[i].initialize(&M_count[i], (__libcwd_tsd.internal > 0) ? 1 : 0);
+    M_list_full[i].initialize(&M_count[i], (__libcwd_tsd.internal > 0) ? 1 : 0);
+  }
   M_initialized = true;
 }
 
