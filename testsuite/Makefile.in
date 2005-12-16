@@ -213,7 +213,7 @@ maintainer-clean realclean: distdir-clean distclean
 
 distdir-clean:
 	(\
-	  cvsdirs="`find $(scrdir) -type d -name CVS`"; \
+	  cvsdirs="`find $(srcdir) -type d -name CVS`"; \
 	  dirs="`for d in $$cvsdirs; do echo $$d | sed -e 's%/CVS$$%%'; done`"; \
 	  for d in $$dirs; do \
 	    cvsfiles="`grep '^/' $$d/CVS/Entries | cut -d/ -f2`"; \
