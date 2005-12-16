@@ -219,7 +219,7 @@ distdir-clean:
 	    cvsfiles="`grep '^/' $$d/CVS/Entries | cut -d/ -f2`"; \
 	    echo "distclean in $$d"; \
 	    (cd $$d; \
-	       files="`find . -type f -maxdepth 1 | sed -e 's%.*/%%'`"; \
+	       files="`find . -maxdepth 1 -type f | sed -e 's%.*/%%'`"; \
 	       rmfiles="`for i in $$files $$cvsfiles Makefile Makefile; do echo $$i; done | sort | uniq -u`"; \
 	       test -z "$$rmfiles" || echo "  removing $$rmfiles"; \
 	       rm -f $$rmfiles; \
@@ -233,7 +233,7 @@ distdir: distdir-clean $(DISTFILES)
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
 	    mkdir -p $(distdir)/$$file; \
-	    find $$d/$$file -type f -maxdepth 1 -exec cp -p {} $(distdir)/$$file \;; \
+	    find $$d/$$file -maxdepth 1 -type f -exec cp -p {} $(distdir)/$$file \;; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
