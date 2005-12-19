@@ -3,18 +3,25 @@ top_srcdir=@top_srcdir@
 srcdir=@srcdir@
 top_builddir=..
 
-include doxygen.config
-INPUT_FILES=$(shell for i in $(INPUT); do if test -f $(srcdir)/$$i; then echo $(srcdir)/$$i; else for j in $(FILE_PATTERNS); do ls $(srcdir)/$$i/$$j; done; fi done)
+include @srcdir@/doxygen.config.in
+INPUT_FILES=$(shell for i in `echo $(INPUT) | \
+    sed -e 's%@top_srcdir\@%'$(top_srcdir)'%g' \
+        -e 's%@srcdir\@%'$(srcdir)'%g' \
+	-e 's%@top_builddir\@%'$(top_builddir)'%g'`; \
+    do if test -f "$$i"; then echo "$$i"; \
+       else set -o noglob; for j in $(FILE_PATTERNS); do set +o noglob; ls $$i/$$j 2> /dev/null; done; fi done)
 EXAMPLE_FILES=$(shell find $(srcdir)/doxygen-examples -mindepth 1 -maxdepth 1 -type f -print)
 
 .PHONY: reference-manual external styles tutorial documentation_src
 
 all: reference-manual tutorial documentation_src
 
-Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/Makefile.in
+Makefile: doxygen.config $(top_builddir)/config.status $(srcdir)/Makefile.in
+	@rm -f Makefile.in
 	cd $(top_builddir) && CONFIG_FILES=documentation/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 
-doxygen.config: $(top_builddir)/config.status $(top_srcdir)/documentation/doxygen.config.in
+doxygen.config: $(top_builddir)/config.status $(srcdir)/doxygen.config.in
+	@rm -f doxygen.config.in
 	cd $(top_builddir) && CONFIG_FILES=documentation/doxygen.config CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 
 documentation_src:

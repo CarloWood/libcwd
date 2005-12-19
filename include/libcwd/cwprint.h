@@ -51,7 +51,7 @@ template<class PRINTABLE_OBJECT>
   };
 
 /**
- * \interface cwprint cwprint.h libcwd/cwprint.h
+ * \interface libcwd::cwprint cwprint.h libcwd/cwprint.h
  * \ingroup group_special
  *
  * \brief Print an object to a %debug stream without needing an operator<<.
@@ -116,7 +116,7 @@ template<class PRINTABLE_OBJECT>
   };
 
 /**
- * \interface cwprint_using cwprint.h libcwd/cwprint.h
+ * \interface libcwd::cwprint_using cwprint.h libcwd/cwprint.h
  * \ingroup group_special
  *
  * \brief Print an object to an ostream using an arbitrary method of that object.

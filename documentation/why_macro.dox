@@ -102,7 +102,7 @@ When the debug is omitted and inline functions are used for the <CODE>Dout()</CO
 variables still need to exist: they are passed to the <CODE>Dout()</CODE>
 function (or actually, to the <CODE>no_dstream %operator<<()</CODE>'s).&nbsp;
 Using a macro allows one to really get rid of such variables by
-surrounding them with <CODE>#ifdef CWDEBUG ... #endif</CODE> preprocessor directives.
+surrounding them with <CODE>\#ifdef CWDEBUG ... \#endif</CODE> preprocessor directives.
 
 Example:
 

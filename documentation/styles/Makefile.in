@@ -10,6 +10,7 @@ OUTPUT=$(shell for b in $(BROWSERS); do for i in $(TEMPLATES); do echo $$b/$$i; 
 all: $(OUTPUT)
 
 Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/styles/Makefile.in
+	@rm -f Makefile.in
 	cd $(top_builddir) && CONFIG_FILES=documentation/styles/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 
 netscape4/main.css netscape6/main.css mozilla/main.css konqueror/main.css ie/main.css: $(srcdir)/main.css $(srcdir)/defines.h

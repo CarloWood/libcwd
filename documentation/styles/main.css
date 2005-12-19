@@ -113,7 +113,7 @@ address {
   text-transform	: none;
 }
 
-PRE, CODE, .output, .example-output {
+PRE, CODE {
   font-family		: courier, monospace;
 #ifndef NETSCAPE4
   font-size		: inherit;		/* Bug in netscape 4 causes large letter-spacing when using this. */

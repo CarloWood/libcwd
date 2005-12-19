@@ -59,8 +59,8 @@ namespace libcwd {
  *
  * gives as result
  *
- * \exampleoutput <PRE>
- * NOTICE: Libcwd is a great library</PRE>
+ * \exampleoutput
+ * NOTICE: Libcwd is a great library
  * \endexampleoutput
  *
  * and
@@ -73,9 +73,9 @@ namespace libcwd {
  *
  * gives as result
  *
- * \exampleoutput <PRE>
+ * \exampleoutput
  * HELLO : Hello World!
- * KERNEL: This is written when either the kernel or io channel is turned on.</PRE>
+ * KERNEL: This is written when either the kernel or io channel is turned on.
  * \endexampleoutput
  */
 

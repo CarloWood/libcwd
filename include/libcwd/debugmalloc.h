@@ -83,7 +83,10 @@ enum malloc_report_nt
    */
   malloc_report
 };
+
+#ifndef LIBCWD_DOXYGEN
 extern std::ostream& operator<<(std::ostream&, malloc_report_nt);
+#endif
 
 // Accessors:
 

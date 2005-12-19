@@ -118,12 +118,10 @@ using std::operator<<;
 } // namespace libcwd
 
 // Make the inserter functions of libcwd accessible in global namespace.
-#ifndef HIDE_FROM_DOXYGEN
 namespace libcwd_inserters {
   using libcwd::operator<<;
 } // namespace libcwd_inserters
 using namespace libcwd_inserters;
-#endif
 
 #include <libcwd/macro_ForAllDebugChannels.h>
 #include <libcwd/macro_ForAllDebugObjects.h>

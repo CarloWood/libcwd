@@ -15,6 +15,7 @@ AOUT7:=$(shell grep 'START OUTPUT' $(srcdir)/tut7.in | cut -d \  -f4)
 all: examples html
 
 Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/tutorial/Makefile.in
+	@rm -f Makefile.in
 	cd $(top_builddir) && CONFIG_FILES=documentation/tutorial/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 
 examples: $(SOURCES5) $(SOURCES7)

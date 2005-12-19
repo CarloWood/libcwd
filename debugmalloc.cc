@@ -2482,7 +2482,7 @@ std::ostream& operator<<(std::ostream& o, malloc_report_nt)
  * \endcode
  *
  * which would print on \link libcwd::libcw_do libcw_do \endlink using
- * \ref group_debug_channels "debug channel" \link libcwd::dc::malloc dc::malloc \endlink.
+ * \ref group_debug_channels "debug channel" \link libcwd::channels::dc::malloc dc::malloc \endlink.
  *
  * Note that not passing formatting information is equivalent with,
  *
@@ -2535,7 +2535,7 @@ static void list_allocations_cleanup(void)
  * \endcode
  *
  * which would print on \link libcwd::libcw_do libcw_do \endlink using
- * \ref group_debug_channels "debug channel" \link libcwd::dc::malloc dc::malloc \endlink,
+ * \ref group_debug_channels "debug channel" \link libcwd::channels::dc::malloc dc::malloc \endlink,
  * not showing allocations that belong to shared libraries matching "libc.so*" or "libstdc++*".
  * The remaining items would show which object file (shared library name or the executable name)
  * they belong to, because we used \c show_objectfile as flag.
