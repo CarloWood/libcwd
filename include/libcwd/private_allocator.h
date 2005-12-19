@@ -12,7 +12,7 @@
 //
 
 /** \file libcwd/private_allocator.h
- * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_PRIVATE_ALLOCATOR_H

@@ -12,7 +12,7 @@
 //
 
 /** \file libcwd/macro_ForAllDebugObjects.h
- * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_MACRO_FORALLDEBUGOBJECTS_H

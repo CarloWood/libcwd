@@ -12,7 +12,7 @@
 //
 
 /** \file libcwd/private_debug_stack.h
- * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_PRIVATE_DEBUG_STACK_H

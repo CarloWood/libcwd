@@ -12,7 +12,7 @@
 //
 
 /** \file libcwd/pc_mangled_function_name.h
- * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_PC_MANGLED_FUNCTION_NAME_H

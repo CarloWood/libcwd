@@ -12,7 +12,7 @@
 //
 
 /** \file libcwd/macro_Libcwd_macros.h
- * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+ * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_MACRO_LIBCWD_MACROS_H
