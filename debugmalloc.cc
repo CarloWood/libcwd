@@ -886,12 +886,13 @@ void dm_alloc_ct::descend_current_alloc_list(LIBCWD_TSD_PARAM)			// MT-safe: wri
 // Note that ALL allocated memory blocks have a related `memblk_ct'
 // unless they are allocated from within this file (with `internal' set).
 
+class appblock;
 class memblk_key_ct {
 private:
   void const* a_start;		// Start of allocated memory block
   void const* a_end;		// End of allocated memory block
 public:
-  memblk_key_ct(void const* s, size_t size) : a_start(s), a_end(static_cast<char const*>(s) + size) { }
+  memblk_key_ct(appblock const* s, size_t size) : a_start(s), a_end(reinterpret_cast<char const*>(s) + size) { }
   void const* start(void) const { return a_start; }
   void const* end(void)   const { return a_end; }
   size_t size(void)       const { return (char*)a_end - (char*)a_start; }
@@ -946,7 +947,8 @@ private:
     // after this memblk_info_ct is deleted (dm_alloc_ct marked `is_deleted'),
     // when it still has allocated 'childeren' in `a_next_list' of its own.
 public:
-  memblk_info_ct(void const* s, size_t sz, memblk_types_nt f, struct timeval const& t LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_LOCATION(location_ct const* l));
+  memblk_info_ct(appblock const* s, size_t sz, memblk_types_nt f,
+      struct timeval const& t LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_LOCATION(location_ct const* l));
   memblk_info_ct(memblk_types_nt f);
   bool erase(bool owner LIBCWD_COMMA_TSD_PARAM);
   void lock(void) { a_alloc_node.lock(); }
@@ -1429,7 +1431,7 @@ unsigned long dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int dept
 // memblk_ct methods
 //
 
-inline memblk_info_ct::memblk_info_ct(void const* s, size_t sz,
+inline memblk_info_ct::memblk_info_ct(appblock const* s, size_t sz,
     memblk_types_nt f, struct timeval const& t LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_LOCATION(location_ct const* l))
   : memblk_info_base_ct(f), a_alloc_node(new dm_alloc_ct(s, sz, f, t LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(l))) { }	// MT-safe: write lock is set.
 
@@ -1513,7 +1515,165 @@ void memblk_info_ct::make_invisible(void)
   a_alloc_node.reset(); 
 }
 
+// A dummy struct.  We'll only ever use 'appblock*'.
+struct appblock {
+  char appblock_id;
+};
+
 #if CWDEBUG_MAGIC
+// The size of the 'prezone' struct must be a multiple of 8 bytes, because it's
+// size will be added to the value returned by malloc(2) -- and programs might
+// depend on the fact that glibc's malloc returns memory aligned to 8 bytes.
+//
+// In the case of a minor underflow (assuming that contigious memory corruption
+// is the most likely), we don't want the 'size' to be corrupted and the 'magic'
+// not; therefore the magic needs to come after the 'size'. Because a size_t
+// (for the 'size') might be 8 bytes, we can't use a fixed 32 bit magic: it
+// wouldn't be aligned: the 'magic' also has to be of type 'size_t'.
+
+// LIBCWD_REDZONE should be a positive integer, being the minimum size
+// of redzones in bytes; It's defined during configure with "--with-redzone=value".
+#define LIBCWD_REDZONE_BLOCKS (((LIBCWD_REDZONE) + 7) / 8)
+
+// This will be even when sizeof(size_t) is 4 (LIBCWD_REDZONE_BLOCKS * 2), still resulting in
+// a redzone of a multiple of 8 bytes. In the case sizeof(size_t) is larger than 8,
+// the actual size in bytes will be rounded up.
+static int const redzone_size = ((int)LIBCWD_REDZONE_BLOCKS * 8 - 1) / sizeof(size_t) + 1;
+
+struct prezone {
+  size_t magic;
+  size_t size;		// Requested size (rs)
+#if LIBCWD_REDZONE_BLOCKS > 0
+  size_t redzone[redzone_size];
+#endif
+};
+
+struct postzone {
+#if LIBCWD_REDZONE_BLOCKS > 0
+  size_t redzone[redzone_size];
+#endif
+  size_t magic;
+};
+
+// Assertions, used to make sure we don't accidently use the wrong pointer (both NOOPS):
+#define ASSERT_APPBLOCK(ptr2) ((void)((ptr2)->appblock_id), ptr2)
+#define ASSERT_PREZONE(ptr1) ((void)((ptr1)->size), ptr1)
+
+// The characters used to fill the red zones.
+static int const prezone_char = 0x9a;
+static int const postzone_char = 0xa9;
+
+// Memory is allocated as follows:
+//
+// Pointer returned by libc's malloc (ptr1)
+// |<-------------- allocated size (as) ------------------->
+// v        <---- requested size (rs) --->
+// [prezone][block returned to allocation][OFFSET][postzone]
+// ^        ^                                     ^
+// ptr1     ptr2                                  3
+// Addresses at 1, 2 and 3 will be aligned to sizeof(size_t) boundaries.
+// If the address returned by malloc is aligned on an 8 byte boundary,
+// then so are the addresses 1 and 2.
+//
+// In order to make the code in this file more robust, we
+// use the following convention (inside the functions:
+// internal_malloc, internal_free, __libcwd_malloc, __libcwd_calloc
+// __libcwd_realloc, operator delete, operator new, operator new[],
+// operator delete and operator delete[]):
+//
+// Pointer 1 is written as ptr1 has always type 'prezone*'.
+// Pointer 2 is written as ptr2 and has type 'appblock*'
+// (where appblock is a dummy class).
+//
+// The size of OFFSET (in bytes) is thus a function of rs (in bytes) (2 OPS):
+// This uses the fact that -rs == ~rs + 1 in twos complement.
+#define OFFSET(rs) (-(rs) & (sizeof(size_t) - 1))
+// The postzone offset is then rs + OFFSET(rs), which can be written as (2 OPS):
+#define RS_OFFSET(rs) ((sizeof(size_t) - 1 + (rs)) & ~(sizeof(size_t) - 1))
+// The to-be-allocated size (as) is therefore (3 OPS):
+#define REAL_SIZE(rs) (sizeof(prezone) + sizeof(postzone) + RS_OFFSET(rs))
+// The prezone structure can be reached with (NOOP):
+#define PREZONE(ptr1) ASSERT_PREZONE(ptr1)[0]
+// The 'size' field in the prezone structure is filled with RS_OFFSET + OFFSET
+// for efficiency reasons (see SET_MAGIC). That means that the last three bits
+// are equal to OFFSET, while the higher bits are equal to RS_OFFSET.
+// Thus, to get the OFFSET back from a prezone pointer (1 OP):
+#define ZONE2OFFSET(ptr1) (PREZONE(ptr1).size & (sizeof(size_t) - 1))
+// And to get RS_OFFSET back from a prezone pointer (1 OP):
+#define ZONE2RS_OFFSET(ptr1) (PREZONE(ptr1).size & ~(sizeof(size_t) - 1))
+// In order to get back the REAL_SIZE from a ptr1, we need therefore (2 OPS):
+#define ZONE2REAL_SIZE(ptr1) (sizeof(prezone) + sizeof(postzone) + ZONE2RS_OFFSET(ptr1))
+// And the requested size (3 OPS):
+#define ZONE2RS(ptr1) (ZONE2RS_OFFSET(ptr1) - ZONE2OFFSET(ptr1))
+// The postzone structure can be reached as follows (3 OPS):
+#define POSTZONE(ptr1) reinterpret_cast<postzone*>((char*)ptr1 + ZONE2REAL_SIZE(ptr1))[-1]
+// Convert from one pointer to the other (both 1 OP):
+#define ZONE2APP(ptr1) (reinterpret_cast<appblock*>(ASSERT_PREZONE(ptr1) + 1))
+#define APP2ZONE(ptr2) (reinterpret_cast<prezone*>(ASSERT_APPBLOCK(ptr2)) - 1)
+// Set the 'size' field, magic numbers and zone.
+#define SET_MAGIC(ptr1, rs, magic_begin, magic_end) \
+  do { \
+    size_t offset = OFFSET(rs); \
+    PREZONE(ptr1).magic = magic_begin; \
+    PREZONE(ptr1).size = RS_OFFSET(rs) + offset; \
+    POSTZONE(ptr1).magic = magic_end; \
+    FILLREDZONES(ptr1, offset); \
+  } while(0)
+// Return true if the magic is corrupt.
+#define CHECK_MAGIC_BEGIN(ptr1, magic_begin) \
+  (PREZONE(ptr1).magic != magic_begin || CHECK_REDZONE_BEGIN(ptr1))
+#define CHECK_MAGIC_END(ptr1, magic_end) \
+  (POSTZONE(ptr1).magic != magic_end || CHECK_REDZONE_END(ptr1))
+#define CHECK_MAGIC(ptr1, magic_begin, magic_end) \
+  (CHECK_MAGIC_BEGIN(ptr1, magic_begin) || CHECK_MAGIC_END(ptr1, magic_end))
+
+static size_t offsetfill;
+static size_t offsetmask[sizeof(size_t)];
+#define INITOFFSETZONE \
+  do { \
+    std::memset(&offsetfill, postzone_char, sizeof(offsetfill)); \
+    for (unsigned int offset = 0; offset < sizeof(size_t); ++offset) \
+    { \
+      offsetmask[offset] = ~(size_t)0; \
+      char* p = reinterpret_cast<char*>(&offsetmask[offset]); \
+      for (unsigned int cnt = 0; cnt < sizeof(size_t) - offset; ++cnt, ++p) \
+        *p = 0; \
+    } \
+  } while(0)
+#if LIBCWD_REDZONE_BLOCKS > 0
+static size_t preredzone[redzone_size];
+static size_t postredzone[redzone_size + 1];	// One extra for the OFFSET.
+#define FILLREDZONES(ptr1, offset) \
+  std::memset(PREZONE(ptr1).redzone, prezone_char, sizeof(preredzone)); \
+  std::memset((char*)POSTZONE(ptr1).redzone - offset, postzone_char, sizeof(size_t) * redzone_size + offset);
+#define INITREDZONES \
+  do { \
+    std::memset(preredzone, prezone_char, sizeof(preredzone)); \
+    std::memset(postredzone, postzone_char, sizeof(postredzone)); \
+    INITOFFSETZONE; \
+  } while(0)
+#define CHECK_REDZONE_BEGIN(ptr1) \
+  (std::memcmp(PREZONE(ptr1).redzone, preredzone, sizeof(preredzone)))
+#define CHECK_REDZONE_END(ptr1) \
+  (std::memcmp((char*)POSTZONE(ptr1).redzone - ZONE2OFFSET(ptr1), postredzone, \
+      sizeof(size_t) * redzone_size + ZONE2OFFSET(ptr1)))
+#else
+#define FILLREDZONES(ptr1, offset) \
+  do { \
+    if (offset) \
+    { \
+      size_t* ptr = reinterpret_cast<size_t*>(&POSTZONE(ptr1)) - 1; \
+      size_t value = *ptr; \
+      size_t mask = offsetmask[offset]; \
+      *ptr = (value & ~mask) | (offsetfill & mask); \
+    } \
+  } while(0)
+#define INITREDZONES INITOFFSETZONE
+#define CHECK_REDZONE_BEGIN(ptr1) false
+#define CHECK_REDZONE_END(ptr1) \
+  (reinterpret_cast<size_t*>(&POSTZONE(ptr1))[-1] & offsetmask[ZONE2OFFSET(ptr1)] == \
+   offsetfill & offsetmask[ZONE2OFFSET(ptr1)])
+#endif
 
 size_t const INTERNAL_MAGIC_NEW_BEGIN = 0x7af45b1c;
 size_t const INTERNAL_MAGIC_NEW_END = 0x3b9f018a;
@@ -1552,8 +1712,44 @@ char const* diagnose_from(deallocated_from_nt from, bool internal, bool visible 
 
 #define REST_OF_EXPLANATION ") that is a libcwd internal allocation "
 
-char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
+char const* diagnose_magic(prezone const* ptr1, size_t expected_magic_begin, size_t expected_magic_end)
 {
+  size_t magic_begin = PREZONE(ptr1).magic;
+  size_t* magic_end = &POSTZONE(ptr1).magic;
+  if (magic_begin == expected_magic_begin)
+  {
+    if (CHECK_MAGIC_BEGIN(ptr1, expected_magic_begin))
+    {
+      switch(magic_begin)
+      {
+	case INTERNAL_MAGIC_NEW_BEGIN:
+        case INTERNAL_MAGIC_NEW_ARRAY_BEGIN:
+	case INTERNAL_MAGIC_MALLOC_BEGIN:
+	  return REST_OF_EXPLANATION "with a corrupt redzone prefix (you wrote to a pointer that was already freed?)!";
+        case MAGIC_NEW_BEGIN:
+        case MAGIC_NEW_ARRAY_BEGIN:
+        case MAGIC_MALLOC_BEGIN:
+	  return ") with a corrupt redzone prefix (buffer underrun?)!";
+      }
+    }
+    if (*magic_end == expected_magic_end)
+    {
+      if (CHECK_MAGIC_END(ptr1, expected_magic_end))
+      {
+        switch(*magic_end)
+	{
+	  case INTERNAL_MAGIC_NEW_END:
+	  case INTERNAL_MAGIC_NEW_ARRAY_END:
+	  case INTERNAL_MAGIC_MALLOC_END:
+	    return REST_OF_EXPLANATION "with a corrupt redzone postfix (you wrote to a pointer that was already freed?)!";
+	  case MAGIC_NEW_END:
+	  case MAGIC_NEW_ARRAY_END:
+	  case MAGIC_MALLOC_END:
+	    return ") with a corrupt redzone postfix (buffer overrun?)!";
+	}
+      }
+    }
+  }
   switch(magic_begin)
   {
     case INTERNAL_MAGIC_NEW_BEGIN:
@@ -1596,7 +1792,7 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
         case ~MAGIC_MALLOC_BEGIN:
 	  return ") which appears to be a deleted block that was originally allocated with 'malloc()'.";
       }
-      return ") which seems uninitialized, or has a corrupt first magic number (buffer underrun?).";
+      return ") which seems uninitialized (already deleted?), or has a corrupt first magic number (buffer underrun?)!";
   }
   switch (*magic_end)
   {
@@ -1616,27 +1812,22 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
   }
   return ") with a corrupt second magic number (buffer overrun?)!";
 }
-
-#endif // CWDEBUG_MAGIC
-
-//=============================================================================
-//
-// internal_malloc
-//
-// Allocs a new block of size `size' and updates the internal administration.
-//
-// Note: This function is called by `__libcwd_malloc', `__libcwd_calloc' and
-// `operator new' which end with a call to DoutInternal( dc_malloc|continued_cf, ...)
-// and should therefore end with a call to DoutInternal( dc::finish, ptr ).
-//
-
-#  ifdef LIBCWD_NEED_WORD_ALIGNMENT
-#define SIZE_PLUS_TWELVE(s) ((((s) + sizeof(size_t) - 1) & ~(sizeof(size_t) - 1)) + 3 * sizeof(size_t))
-#define SIZE_PLUS_FOUR(s) ((((s) + sizeof(size_t) - 1) & ~(sizeof(size_t) - 1)) + sizeof(size_t))
-#  else // !LIBCWD_NEED_WORD_ALIGNMENT
-#define SIZE_PLUS_TWELVE(s) ((s) + 3 * sizeof(size_t))
-#define SIZE_PLUS_FOUR(s) ((s) + sizeof(size_t))
-#  endif
+#else // !CWDEBUG_MAGIC
+// Dummy class
+struct prezone {
+  char prezone_id;
+};
+// Convert from one pointer to the other.
+#define ZONE2APP(ptr1) (reinterpret_cast<appblock*>(ASSERT_PREZONE(ptr1)))
+#define APP2ZONE(ptr2) (reinterpret_cast<prezone*>(ASSERT_APPBLOCK(ptr2)))
+// Assertions, used to make sure we don't accidently use the wrong pointer.
+#define ASSERT_APPBLOCK(ptr2) ((void)((ptr2)->appblock_id), ptr2)
+#define ASSERT_PREZONE(ptr1) ((void)((ptr1)->prezone_id), ptr1)
+// Size doesn't change.
+#define REAL_SIZE(rs) (rs)
+#endif // !CWDEBUG_MAGIC
+// Used to print a pointer.
+#define PRINT_PTR(ptr2) (void*)ASSERT_APPBLOCK(ptr2)
 
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
 #define LIBCWD_DEBUGM_OPT(x) x
@@ -1656,7 +1847,17 @@ char const* diagnose_magic(size_t magic_begin, size_t const* magic_end)
 #define LIBCWD_LOCATION_OPT(x)
 #endif
 
-static void* internal_malloc(size_t size, memblk_types_nt flag
+//=============================================================================
+//
+// internal_malloc
+//
+// Allocs a new block of size `size' and updates the internal administration.
+//
+// Note: This function is called by `__libcwd_malloc', `__libcwd_calloc' and
+// `operator new' which end with a call to DoutInternal( dc_malloc|continued_cf, ...)
+// and should therefore end with a call to DoutInternal( dc::finish, ptr ).
+//
+static appblock* internal_malloc(size_t size, memblk_types_nt flag
     LIBCWD_COMMA_LOCATION_OPT(void* call_addr) LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_DEBUGM_OPT(int saved_marker))
 {
   if (WST_initialization_state <= 0)		// Only true prior to initialization of std::ios_base::Init.
@@ -1675,23 +1876,23 @@ static void* internal_malloc(size_t size, memblk_types_nt flag
 #endif
   }
 
-  register void* mptr;
-#if !CWDEBUG_MAGIC
-  if (!(mptr = __libc_malloc(size)))
-#else
-  if (size > static_cast<size_t>(-1) - 12 - sizeof(size_t))
+  prezone* ptr1;
+  size_t real_size = REAL_SIZE(size);
+#if CWDEBUG_MAGIC
+  if (size > real_size)	// Overflow?
   {
     DoutInternal(dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
     DoutInternal( dc_malloc, "Size too large: no space left for magic numbers." );
     return NULL;	// A fatal error should occur directly after this
   }
-  if ((mptr = static_cast<char*>(__libc_malloc(SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
+  if ((ptr1 = static_cast<prezone*>(__libc_malloc(real_size))) == NULL)
   {
     DoutInternal(dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
     DoutInternal( dc_malloc, "Out of memory ! this is only a pre-detection!" );
     return NULL;	// A fatal error should occur directly after this
   }
+  appblock* ptr2 = ZONE2APP(ptr1);
 
 #if CWDEBUG_LOCATION
   if (__libcwd_tsd.library_call++)
@@ -1716,7 +1917,7 @@ static void* internal_malloc(size_t size, memblk_types_nt flag
 #if CWDEBUG_DEBUGM
     std::pair<memblk_map_ct::iterator, bool> const& iter =
 #endif
-    memblk_map_write->insert(memblk_ct(memblk_key_ct(mptr, size), memblk_info_ct(flag)));
+    memblk_map_write->insert(memblk_ct(memblk_key_ct(ptr2, size), memblk_info_ct(flag)));
 #if CWDEBUG_DEBUGM
     error = !iter.second;
 #endif
@@ -1728,8 +1929,8 @@ static void* internal_malloc(size_t size, memblk_types_nt flag
     gettimeofday(&alloc_time, 0);
     ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
     std::pair<memblk_map_ct::iterator, bool> const&
-	iter(memblk_map_write->insert(memblk_ct(memblk_key_ct(mptr, size),
-		memblk_info_ct(mptr, size, flag, alloc_time LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(loc)))));
+	iter(memblk_map_write->insert(memblk_ct(memblk_key_ct(ptr2, size),
+		memblk_info_ct(ptr2, size, flag, alloc_time LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(loc)))));
     (*iter.first).second.lock();				// Lock ownership (doesn't call malloc).
 #if CWDEBUG_DEBUGM
     error = !iter.second;
@@ -1747,16 +1948,17 @@ static void* internal_malloc(size_t size, memblk_types_nt flag
     DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
 #endif
 
-  DoutInternal(dc::finish, (void*)(mptr)
+  DoutInternal(dc::finish, PRINT_PTR(ptr2)
       LIBCWD_LOCATION_OPT(<< " [" << *loc << ']')
       << (__libcwd_tsd.invisible ? " (invisible)" : "")
       LIBCWD_DEBUGM_OPT(<< " [" << saved_marker << ']'));
-  return mptr;
+  return ptr2;
 }
 
 #if LIBCWD_THREAD_SAFE
-static bool search_in_maps_of_other_threads(void const* ptr, memblk_map_ct::const_iterator& iter LIBCWD_COMMA_TSD_PARAM)
+static bool search_in_maps_of_other_threads(void const* void_ptr, memblk_map_ct::const_iterator& iter LIBCWD_COMMA_TSD_PARAM)
 {
+  appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   bool found = false;
   rwlock_tct<threadlist_instance>::rdlock(true);
   // Using threadlist_t::iterator instead of threadlist_t::const_iterator because
@@ -1772,7 +1974,7 @@ static bool search_in_maps_of_other_threads(void const* ptr, memblk_map_ct::cons
       continue;	// Already searched.
     ACQUIRE_READ_LOCK(&(*thread_iter));
     DEBUGDEBUG_CERR("Looking inside memblk_map " << (void*)target_memblk_map_read << "(thread_ct at  " << (void*)__libcwd_tsd.target_thread << ", thread_iter at " << (void*)&thread_iter << ')');
-    iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+    iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
     found = (iter != target_memblk_map_read->end());
     if (found)
       break;
@@ -1859,7 +2061,7 @@ static void annotation_free(size_t size)
 }
 #endif
 
-static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_PARAM)
+static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -1878,59 +2080,56 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
     if (from == from_delete)
     {
-      LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal `delete(" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
+      LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal `delete(" << PRINT_PTR(ptr2) << ")' [" << ++__libcwd_tsd.marker << ']' );
     }
     else if (from == from_delete_array)
     {
-      LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal `delete[](" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
+      LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal `delete[](" << PRINT_PTR(ptr2) << ")' [" << ++__libcwd_tsd.marker << ']' );
     }
     else
     {
-      LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal `free(" << ptr << ")' [" << ++__libcwd_tsd.marker << ']' );
+      LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal `free(" << PRINT_PTR(ptr2) << ")' [" << ++__libcwd_tsd.marker << ']' );
     }
 #endif // CWDEBUG_DEBUGM
 #if CWDEBUG_MAGIC
-    if (!ptr)
+    if (!ptr2)
       return;
-    ptr = static_cast<size_t*>(ptr) - 2;
+    prezone* ptr1 = APP2ZONE(ptr2);
     if (from == from_delete)
     {
-      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_NEW_BEGIN ||
-          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_END)
-        DoutFatalInternal( dc::core, "internal delete: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
-	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
+      if (CHECK_MAGIC(ptr1, INTERNAL_MAGIC_NEW_BEGIN, INTERNAL_MAGIC_NEW_END))
+        DoutFatalInternal(dc::core, "internal delete: " << diagnose_from(from, true) <<
+	    PRINT_PTR(ptr2) << diagnose_magic(ptr1, INTERNAL_MAGIC_NEW_BEGIN, INTERNAL_MAGIC_NEW_END));
     }
     else if (from == from_delete_array)
     {
-      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_NEW_ARRAY_BEGIN ||
-          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_NEW_ARRAY_END)
-        DoutFatalInternal( dc::core, "internal delete[]: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
-	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
+      if (CHECK_MAGIC(ptr1, INTERNAL_MAGIC_NEW_ARRAY_BEGIN, INTERNAL_MAGIC_NEW_ARRAY_END))
+        DoutFatalInternal(dc::core, "internal delete[]: " << diagnose_from(from, true) <<
+	    PRINT_PTR(ptr2) << diagnose_magic(ptr1, INTERNAL_MAGIC_NEW_ARRAY_BEGIN, INTERNAL_MAGIC_NEW_ARRAY_END));
     }
     else
     {
-      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_MALLOC_BEGIN ||
-          ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
-        DoutFatalInternal( dc::core, "internal free: " << diagnose_from(from, true) << (static_cast<size_t*>(ptr) + 2) <<
-	    diagnose_magic(((size_t*)ptr)[0], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])) - 1) );
+      if (CHECK_MAGIC(ptr1, INTERNAL_MAGIC_MALLOC_BEGIN, INTERNAL_MAGIC_MALLOC_END))
+        DoutFatalInternal(dc::core, "internal free: " << diagnose_from(from, true) <<
+	    PRINT_PTR(ptr2) << diagnose_magic(ptr1, INTERNAL_MAGIC_MALLOC_BEGIN, INTERNAL_MAGIC_MALLOC_END));
     }
-    ((size_t*)ptr)[0] ^= (size_t)-1;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] ^= (size_t)-1;
+    PREZONE(ptr1).magic ^= (size_t)-1;
+    POSTZONE(ptr1).magic ^= (size_t)-1;
 #if CWDEBUG_DEBUGM
     if (!__libcwd_tsd.annotation)
     {
       __libcwd_tsd.annotation = 1;
-      annotation_free(((size_t*)ptr)[1]);
+      annotation_free(ZONE2RS(ptr1));
       __libcwd_tsd.annotation = 0;
     }
 #endif
 #endif // CWDEBUG_MAGIC
-    __libc_free(ptr);
+    __libc_free(APP2ZONE(ptr2));
     return;
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
-  if (!ptr)
+  if (!ptr2)
   {
     DoutInternal( dc_malloc, "Trying to free NULL - ignored" LIBCWD_DEBUGM_OPT(" [" << ++__libcwd_tsd.marker << "]") "." );
     --__libcwd_tsd.inside_malloc_or_free;
@@ -1940,11 +2139,11 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL_NO_BRACE;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
-  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
+  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr2);
 #if LIBCWD_THREAD_SAFE
   bool found_in_current_thread = found;
   if (!found)
@@ -1952,12 +2151,12 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     RELEASE_READ_LOCK;
     // The following will acquire a lock in another target thread if the
     // ptr is found, when the ptr is not found then no lock will be set.
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
+    found = search_in_maps_of_other_threads(ptr2, iter, __libcwd_tsd);
   }
 #endif
   if (!found
 #if LIBCWD_THREAD_SAFE
-      || (*iter).first.start() != ptr
+      || (*iter).first.start() != ptr2
 #endif
     )
   {
@@ -1965,17 +2164,37 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
       RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
 #if CWDEBUG_MAGIC
-    if (((size_t*)ptr)[-2] == INTERNAL_MAGIC_NEW_BEGIN ||
-        ((size_t*)ptr)[-2] == INTERNAL_MAGIC_NEW_ARRAY_BEGIN ||
-	((size_t*)ptr)[-2] == INTERNAL_MAGIC_MALLOC_BEGIN)
-      DoutFatalInternal( dc::core, "Trying to " <<
+    prezone* ptr1 = APP2ZONE(ptr2);
+    if (PREZONE(ptr1).magic == INTERNAL_MAGIC_NEW_BEGIN ||
+        PREZONE(ptr1).magic == INTERNAL_MAGIC_NEW_ARRAY_BEGIN ||
+	PREZONE(ptr1).magic == INTERNAL_MAGIC_MALLOC_BEGIN)
+    {
+      size_t expected_magic_begin, expected_magic_end;
+      if (from == from_delete)
+      {
+	expected_magic_begin = MAGIC_NEW_BEGIN;
+	expected_magic_end = MAGIC_NEW_END;
+      }
+      else if (from == from_free)
+      {
+	expected_magic_begin = MAGIC_MALLOC_BEGIN;
+	expected_magic_end = MAGIC_MALLOC_END;
+      }	
+      else
+      {
+	expected_magic_begin = MAGIC_NEW_ARRAY_BEGIN;
+	expected_magic_end = MAGIC_NEW_ARRAY_END;
+      }
+      DoutFatalInternal(dc::core, "Trying to " <<
           ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) <<
-	  " a pointer (" << ptr << ") that appears to be a libcwd internal allocation!  The magic number diagnostic gives: " <<
-	  diagnose_from(from, false) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
-
+	  " a pointer (" << PRINT_PTR(ptr2) <<
+	  ") that appears to be a libcwd internal allocation!  The magic number diagnostic gives: " <<
+	  diagnose_from(from, false) << PRINT_PTR(ptr2) << diagnose_magic(ptr1, expected_magic_begin, expected_magic_end));
+    }
 #endif
-    DoutFatalInternal( dc::core, "Trying to " <<
-        ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) << " an invalid pointer (" << ptr << ')' );
+    DoutFatalInternal(dc::core, "Trying to " <<
+        ((from == from_delete) ? "delete" : ((from == from_free) ? "free" : "delete[]")) <<
+	" an invalid pointer (" << PRINT_PTR(ptr2) << ')' );
   }
   else
   {
@@ -1998,7 +2217,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
       {
 	DoutInternal( dc_malloc|continued_cf,
 	    ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
-	    << ptr << ((from == from_free) ? ") " : " ") );
+	    << PRINT_PTR(ptr2) << ((from == from_free) ? ") " : " ") );
 	if (channels::dc_malloc.is_on(LIBCWD_TSD))
 	  alloc_node->print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
 	DoutInternal(dc::continued, " " LIBCWD_DEBUGM_OPT("[" << ++__libcwd_tsd.marker << "] "));
@@ -2066,7 +2285,7 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     {
       DoutInternal( dc_malloc|continued_cf,
 	  ((from == from_free) ? "free(" : ((from == from_delete) ? "delete " : "delete[] "))
-	  << ptr << ((from == from_free) ? ") " : " ") );
+	  << PRINT_PTR(ptr2) << ((from == from_free) ? ") " : " ") );
       if (channels::dc_malloc.is_on(LIBCWD_TSD))
 	alloc_node->print_description(libcw_do, default_ooam_filter LIBCWD_COMMA_TSD);
       if (!keep)
@@ -2081,35 +2300,32 @@ static void internal_free(void* ptr, deallocated_from_nt from LIBCWD_COMMA_TSD_P
     }
 
 #if CWDEBUG_MAGIC
-    if (f == memblk_type_external)
-      __libc_free(ptr);
-    else
+    prezone* ptr1 = APP2ZONE(ptr2);
+    if (f != memblk_type_external)
     {
       if (from == from_delete)
       {
-	if (((size_t*)ptr)[-2] != MAGIC_NEW_BEGIN ||
-	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_NEW_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, false, has_alloc_node) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+	if (CHECK_MAGIC(ptr1, MAGIC_NEW_BEGIN, MAGIC_NEW_END))
+	  DoutFatalInternal(dc::core, diagnose_from(from, false, has_alloc_node) <<
+	      PRINT_PTR(ptr2) << diagnose_magic(ptr1, MAGIC_NEW_BEGIN, MAGIC_NEW_END));
       }
       else if (from == from_delete_array)
       {
-	if (((size_t*)ptr)[-2] != MAGIC_NEW_ARRAY_BEGIN ||
-	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_NEW_ARRAY_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, false, has_alloc_node) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+	if (CHECK_MAGIC(ptr1, MAGIC_NEW_ARRAY_BEGIN, MAGIC_NEW_ARRAY_END))
+	  DoutFatalInternal(dc::core, diagnose_from(from, false, has_alloc_node) <<
+	      PRINT_PTR(ptr2) << diagnose_magic(ptr1, MAGIC_NEW_ARRAY_BEGIN, MAGIC_NEW_ARRAY_END));
       }
       else
       {
-	if (((size_t*)ptr)[-2] != MAGIC_MALLOC_BEGIN ||
-	    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_MALLOC_END)
-	  DoutFatalInternal( dc::core, diagnose_from(from, false, has_alloc_node) << ptr << diagnose_magic(((size_t*)ptr)[-2], (size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])) - 1) );
+	if (CHECK_MAGIC(ptr1, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END))
+	  DoutFatalInternal(dc::core, diagnose_from(from, false, has_alloc_node) <<
+	      PRINT_PTR(ptr2) << diagnose_magic(ptr1, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END));
       }
-      ((size_t*)ptr)[-2] ^= (size_t)-1;
-      ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] ^= (size_t)-1;
-      __libc_free(static_cast<size_t*>(ptr) - 2);		// Free memory block
+      PREZONE(ptr1).magic ^= (size_t)-1;
+      POSTZONE(ptr1).magic ^= (size_t)-1;
     }
-#else // !CWDEBUG_MAGIC
-    __libc_free(ptr);			// Free memory block
 #endif // !CWDEBUG_MAGIC
+    __libc_free(APP2ZONE(ptr2));		// Free memory block
 
     if (visible)
       DoutInternal( dc::finish, "" );
@@ -2307,6 +2523,7 @@ void init_debugmalloc(void)
     // This block is Single Threaded.
     if (WST_initialization_state == 0)			// Only true once.
     {
+      INITREDZONES;
       _private_::set_alloc_checking_off(LIBCWD_TSD);
       // MT-safe: There are no threads created yet when we get here.
 #if CWDEBUG_LOCATION
@@ -2354,27 +2571,28 @@ void init_debugmalloc(void)
  *
  * Unlike \ref find_alloc, \c test_delete also works for \ref group_invisible "invisible" memory blocks.
  */
-bool test_delete(void const* ptr)
+bool test_delete(void const* void_ptr)
 {
+  appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   bool found;
 #if LIBCWD_THREAD_SAFE
   LIBCWD_TSD_DECLARATION;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
   // MT: Because the expression `(*iter).first.start()' is included inside the locked
   //     area too, no core dump will occur when another thread would be deleting
   //     this allocation at the same time.  The behaviour of the application would
   //     still be undefined however because it makes it possible that this function
   //     returns false (not deleted) for a deleted memory block.
-  found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
+  found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr2);
 #if LIBCWD_THREAD_SAFE
   RELEASE_READ_LOCK;
   if (!found)
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd) && (*iter).first.start() == ptr;
+    found = search_in_maps_of_other_threads(ptr2, iter, __libcwd_tsd) && (*iter).first.start() == ptr2;
   LIBCWD_RESTORE_CANCEL;
 #endif
   return !found;
@@ -2638,8 +2856,9 @@ unsigned long list_allocations_on(debug_ct& debug_object, alloc_filter_ct const&
  * Debug( make_invisible(p) );
  * \endcode
  */
-void make_invisible(void const* ptr)
+void make_invisible(void const* void_ptr)
 {
+  appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
@@ -2647,28 +2866,29 @@ void make_invisible(void const* ptr)
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
-  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
+  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr2);
 #if LIBCWD_THREAD_SAFE
   if (!found)
   {
     RELEASE_READ_LOCK;
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
+    found = search_in_maps_of_other_threads(ptr2, iter, __libcwd_tsd);
   }
 #endif
   if (!found
 #if LIBCWD_THREAD_SAFE
-      || (*iter).first.start() != ptr
+      || (*iter).first.start() != ptr2
 #endif
       )
   {
     if (found)
       RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
-    DoutFatalInternal( dc::core, "Trying to turn non-existing memory block (" << ptr << ") into an 'internal' block" );
+    DoutFatalInternal( dc::core, "Trying to turn non-existing memory block (" <<
+        PRINT_PTR(ptr2) << ") into an 'internal' block" );
   }
   DEBUGDEBUG_CERR( "make_invisible: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
   __libcwd_tsd.internal = 1;
@@ -2752,12 +2972,13 @@ void make_exit_function_list_invisible(void)
 #endif
 
 // Undocumented (used in macro AllocTag)
-void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* description LIBCWD_COMMA_TSD_PARAM)
+void set_alloc_label(void const* void_ptr, type_info_ct const& ti, char const* description LIBCWD_COMMA_TSD_PARAM)
 {
+  appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::iterator const& iter(memblk_map_write->find(memblk_key_ct(ptr, 0)));
-  if (iter != memblk_map_write->end() && (*iter).first.start() == ptr)
+  memblk_map_ct::iterator const& iter(memblk_map_write->find(memblk_key_ct(ptr2, 0)));
+  if (iter != memblk_map_write->end() && (*iter).first.start() == ptr2)
   {
     (*iter).second.change_label(ti, description);
     (*iter).second.alloctag_called();
@@ -2766,12 +2987,13 @@ void set_alloc_label(void const* ptr, type_info_ct const& ti, char const* descri
   LIBCWD_RESTORE_CANCEL;
 }
 
-void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description LIBCWD_COMMA_TSD_PARAM)
+void set_alloc_label(void const* void_ptr, type_info_ct const& ti, _private_::smart_ptr description LIBCWD_COMMA_TSD_PARAM)
 {
+  appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::iterator const& iter(memblk_map_write->find(memblk_key_ct(ptr, 0)));
-  if (iter != memblk_map_write->end() && (*iter).first.start() == ptr)
+  memblk_map_ct::iterator const& iter(memblk_map_write->find(memblk_key_ct(ptr2, 0)));
+  if (iter != memblk_map_write->end() && (*iter).first.start() == ptr2)
   {
     (*iter).second.change_label(ti, description);
     (*iter).second.alloctag_called();
@@ -2821,7 +3043,7 @@ void marker_ct::register_marker(char const* label)
   bool error = false;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::iterator const& iter(memblk_map_write->find(memblk_key_ct(this, 0)));
+  memblk_map_ct::iterator const& iter(memblk_map_write->find(memblk_key_ct(reinterpret_cast<appblock*>(this), 0)));
   memblk_info_ct& info((*iter).second);
   if (iter == memblk_map_write->end() || (*iter).first.start() != this || info.flags() != memblk_type_new)
     error = true;
@@ -2855,7 +3077,7 @@ marker_ct::~marker_ct()
 
   LIBCWD_DEFER_CANCEL_NO_BRACE;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(this, 0)));
+  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(reinterpret_cast<appblock*>(this), 0)));
   if (iter == memblk_map_read->end() || (*iter).first.start() != this)
   {
     RELEASE_READ_LOCK;
@@ -2963,8 +3185,9 @@ marker_ct::~marker_ct()
  * \brief Move memory allocation pointed to by \a ptr outside \a marker.
  * \ingroup group_markers
  */
-void move_outside(marker_ct* marker, void const* ptr)
+void move_outside(marker_ct* marker, void const* void_ptr)
 {
+  appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
@@ -2972,14 +3195,15 @@ void move_outside(marker_ct* marker, void const* ptr)
 
   LIBCWD_DEFER_CANCEL_NO_BRACE;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(ptr, 0)));
-  if (iter == memblk_map_read->end() || (*iter).first.start() != ptr)
+  memblk_map_ct::const_iterator const& iter(memblk_map_read->find(memblk_key_ct(ptr2, 0)));
+  if (iter == memblk_map_read->end() || (*iter).first.start() != ptr2)
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
-    DoutFatal( dc::core, "Trying to move non-existing memory block (" << ptr << ") outside memory leak test marker" );
+    DoutFatal( dc::core, "Trying to move non-existing memory block (" <<
+        PRINT_PTR(ptr2) << ") outside memory leak test marker" );
   }
-  memblk_map_ct::const_iterator const& iter2(memblk_map_read->find(memblk_key_ct(marker, 0)));
+  memblk_map_ct::const_iterator const& iter2(memblk_map_read->find(memblk_key_ct(reinterpret_cast<appblock*>(marker), 0)));
   if (iter2 == memblk_map_read->end() || (*iter2).first.start() != marker)
   {
     RELEASE_READ_LOCK;
@@ -3030,27 +3254,28 @@ void move_outside(marker_ct* marker, void const* ptr)
   }
   RELEASE_READ_LOCK;
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
-  Dout( dc::warning, "Memory block at " << ptr << " is already outside the marker at " <<
+  Dout( dc::warning, "Memory block at " << PRINT_PTR(ptr2) << " is already outside the marker at " <<
       (void*)marker << " (" << marker_alloc_node->type_info_ptr->demangled_name() << ") area!" );
 }
 #endif // CWDEBUG_MARKER
 
-static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, void const* ptr LIBCWD_COMMA_TSD_PARAM)
+static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, void const* void_ptr LIBCWD_COMMA_TSD_PARAM)
 { 
+  appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   alloc_ct* alloc;
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
   bool found = (iter != target_memblk_map_read->end());
 #if LIBCWD_THREAD_SAFE
   if (!found)
   {
     RELEASE_READ_LOCK;
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
+    found = search_in_maps_of_other_threads(ptr2, iter, __libcwd_tsd);
   }
 #endif
   if (!found)
@@ -3124,7 +3349,7 @@ alloc_ct const* find_alloc(void const* ptr)
 // again in the application will lead to a crash without that it is detected that
 // free(3) was called twice.
 // 
-void register_external_allocation(void const* mptr, size_t size)
+void register_external_allocation(void const* ptr2, size_t size)
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -3138,7 +3363,7 @@ void register_external_allocation(void const* mptr, size_t size)
                                  "You can't use RegisterExternalAlloc() inside a Dout() et. al. "
 				 "(or whenever alloc_checking is off)." );
   ++__libcwd_tsd.inside_malloc_or_free;
-  DoutInternal( dc_malloc, "register_external_allocation(" << (void*)mptr << ", " << size << ')' );
+  DoutInternal( dc_malloc, "register_external_allocation(" << PRINT_PTR(ptr2) << ", " << size << ')' );
 
   if (WST_initialization_state == 0)		// Only true once.
   {
@@ -3169,7 +3394,7 @@ void register_external_allocation(void const* mptr, size_t size)
   LIBCWD_DEFER_CANCEL;
   if (__libcwd_tsd.invisible)
   {
-    memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(memblk_type_external));
+    memblk_ct memblk(memblk_key_ct(ptr2, size), memblk_info_ct(memblk_type_external));
     ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
     iter = memblk_map_write->insert(memblk);
     RELEASE_WRITE_LOCK;
@@ -3179,7 +3404,7 @@ void register_external_allocation(void const* mptr, size_t size)
     struct timeval alloc_time;
     gettimeofday(&alloc_time, 0);
     ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));	// MT: visible memblk_info_ct() needs wrlock too.
-    memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(mptr, size, memblk_type_external, alloc_time LIBCWD_COMMA_LOCATION(loc)));
+    memblk_ct memblk(memblk_key_ct(ptr2, size), memblk_info_ct(ptr2, size, memblk_type_external, alloc_time LIBCWD_COMMA_LOCATION(loc)));
     iter = memblk_map_write->insert(memblk);
     RELEASE_WRITE_LOCK;
   }
@@ -3214,14 +3439,15 @@ extern "C" {
 // frees a block and updates the internal administration.
 //
 
-void __libcwd_free(void* ptr)
+void __libcwd_free(void* void_ptr)
 {
+  appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
   libcwd::_private_::TSD_st& __libcwd_tsd(libcwd::_private_::TSD_st::instance_free());
 #endif
-  internal_free(ptr, from_free LIBCWD_COMMA_TSD);
+  internal_free(ptr2, from_free LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
   // Mark the end of free() - now a static tsd might be re-used by other threads.
   libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
@@ -3259,18 +3485,16 @@ void* __libcwd_malloc(size_t size)
     return __libc_malloc(size);
 #else // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
 
-#if !CWDEBUG_MAGIC
-    void* ptr = __libc_malloc(size);
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_malloc': " << ptr << " [" << saved_marker << ']' );
-    return ptr;
-#else // CWDEBUG_MAGIC
-    void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(size));
-    if (!ptr)
+    size_t real_size = REAL_SIZE(size);
+#if CWDEBUG_MAGIC
+    if (size > real_size)	// Overflow?
       return NULL;
-    ((size_t*)ptr)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
-    ((size_t*)ptr)[1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_malloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+#endif
+    prezone* ptr1 = static_cast<prezone*>(__libc_malloc(real_size));
+    if (!ptr1)
+      return NULL;
+#if CWDEBUG_MAGIC
+    SET_MAGIC(ptr1, size, INTERNAL_MAGIC_MALLOC_BEGIN, INTERNAL_MAGIC_MALLOC_END);
 #if CWDEBUG_DEBUGM
     if (!__libcwd_tsd.annotation)
     {
@@ -3279,25 +3503,26 @@ void* __libcwd_malloc(size_t size)
       __libcwd_tsd.annotation = 0;
     }
 #endif
-    return static_cast<size_t*>(ptr) + 2;
 #endif // CWDEBUG_MAGIC
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_malloc': " <<
+        PRINT_PTR(ZONE2APP(ptr1)) << " [" << saved_marker << ']' );
+    return ZONE2APP(ptr1);
 
 #endif // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
   DoutInternal(dc_malloc|continued_cf, "malloc(" << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
-  void* ptr = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
+  appblock* ptr2 = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
 #if CWDEBUG_MAGIC
-  if (ptr)
+  if (ptr2)
   {
-    ((size_t*)ptr)[-2] = MAGIC_MALLOC_BEGIN;
-    ((size_t*)ptr)[-1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_MALLOC_END;
+    prezone* ptr1 = APP2ZONE(ptr2);
+    SET_MAGIC(ptr1, size, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END);
   }
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
-  return ptr;
+  return ASSERT_APPBLOCK(ptr2);
 }
 
 void* __libcwd_calloc(size_t nmemb, size_t size)
@@ -3305,7 +3530,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 #if LIBCWD_THREAD_SAFE && !VALGRIND
   static bool WST_libpthread_initialized = false;
   struct delayed_calloc_st {
-    void* ptr;
+    appblock* ptr;
     size_t size;
   };
   static delayed_calloc_st WST_delayed_calloc[2];
@@ -3330,22 +3555,24 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
       // We can't call pthread_self() or any other function of libpthread yet.
       // Doing LIBCWD_TSD_DECLARATION would core without creating a usable backtrace.
 #if CWDEBUG_MAGIC
-      void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(nmemb * size));
-#else
-      void* ptr = __libc_calloc(nmemb, size);    
-#endif
-      if (!ptr)
+      size_t real_size = REAL_SIZE(nmemb * size);
+      if (nmemb * size > real_size)	// Overflow?
 	return NULL;
-#if CWDEBUG_MAGIC
-      std::memset(static_cast<void*>(static_cast<size_t*>(ptr) + 2), 0, nmemb * size);
-      ((size_t*)ptr)[0] = MAGIC_MALLOC_BEGIN;
-      ((size_t*)ptr)[1] = nmemb * size;
-      ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(nmemb * size)))[-1] = MAGIC_MALLOC_END;
-      ptr = static_cast<size_t*>(ptr) + 2;
+      prezone* ptr1 = static_cast<prezone*>(__libc_malloc(real_size));
+      if (!ptr1)
+	return NULL;
+      appblock* ptr2 = ZONE2APP(ptr1);
+      std::memset(ptr2, 0, nmemb * size);
+      SET_MAGIC(ptr1, nmemb * size, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END);
+#else
+      prezone* ptr1 = static_cast<prezone*>(__libc_calloc(nmemb, size));
+      if (!ptr1)
+	return NULL;
+      appblock* ptr2 = ZONE2APP(ptr1);
 #endif
-      WST_delayed_calloc[ST_libpthread_init_count].ptr = ptr;
+      WST_delayed_calloc[ST_libpthread_init_count].ptr = ptr2;
       WST_delayed_calloc[ST_libpthread_init_count++].size = nmemb * size;
-      return ptr;
+      return ASSERT_APPBLOCK(ptr2);
     }
   }
 #endif // LIBCWD_THREAD_SAFE && !VALGRIND
@@ -3373,19 +3600,15 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
     return __libc_calloc(nmemb, size);
 #else // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
 
-#if !CWDEBUG_MAGIC
-    void* ptr = __libc_calloc(nmemb, size);
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_calloc': " << ptr << " [" << saved_marker << ']' );
-    return ptr;
-#else // CWDEBUG_MAGIC
-    void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(nmemb * size));
-    if (!ptr)
+#if CWDEBUG_MAGIC
+    size_t real_size = REAL_SIZE(nmemb * size);
+    if (nmemb * size > real_size)	// Overflow?
       return NULL;
-    std::memset(static_cast<void*>(static_cast<size_t*>(ptr) + 2), 0, nmemb * size);
-    ((size_t*)ptr)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
-    ((size_t*)ptr)[1] = nmemb * size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(nmemb * size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_calloc': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+    prezone* ptr1 = static_cast<prezone*>(__libc_malloc(real_size));
+    if (!ptr1)
+      return NULL;
+    std::memset(ZONE2APP(ptr1), 0, nmemb * size);
+    SET_MAGIC(ptr1, nmemb * size, INTERNAL_MAGIC_MALLOC_BEGIN, INTERNAL_MAGIC_MALLOC_END);
 #if CWDEBUG_DEBUGM
     if (!__libcwd_tsd.annotation)
     {
@@ -3394,28 +3617,31 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
       __libcwd_tsd.annotation = 0;
     }
 #endif
-    return static_cast<size_t*>(ptr) + 2;
+#else
+    prezone* ptr1 = static_cast<prezone*>(__libc_calloc(nmemb, size));
 #endif // CWDEBUG_MAGIC
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_calloc': " <<
+        PRINT_PTR(ZONE2APP(ptr1)) << " [" << saved_marker << ']' );
+    return ZONE2APP(ptr1);
 
 #endif // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
   DoutInternal(dc_malloc|continued_cf, "calloc(" << nmemb << ", " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
-  void* ptr;
+  appblock* ptr2;
   size *= nmemb;
-  if ((ptr = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker))))
-    std::memset(ptr, 0, size);
+  if ((ptr2 = internal_malloc(size, memblk_type_malloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker))))
+    std::memset(ptr2, 0, size);
 #if CWDEBUG_MAGIC
-  if (ptr)
+  if (ptr2)
   {
-    ((size_t*)ptr)[-2] = MAGIC_MALLOC_BEGIN;
-    ((size_t*)ptr)[-1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_MALLOC_END;
+    prezone* ptr1 = APP2ZONE(ptr2);
+    SET_MAGIC(ptr1, size, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END);
   }
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
-  return ptr;
+  return ASSERT_APPBLOCK(ptr2);
 }
 
 //=============================================================================
@@ -3425,8 +3651,9 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 // reallocates a block and updates the internal administration.
 //
 
-void* __libcwd_realloc(void* ptr, size_t size)
+void* __libcwd_realloc(void* void_ptr, size_t size)
 {
+  appblock* ptr2 = static_cast<appblock*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   // We can't use `assert' here, because that can call malloc.
@@ -3445,46 +3672,52 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #endif
   if (__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `__libcwd_realloc(" << ptr << ", " << size << ")' [" << saved_marker << ']' << " from " << (void*)__builtin_return_address(0) );
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Entering `__libcwd_realloc(" << PRINT_PTR(ptr2) << ", " << size << ")' [" << saved_marker << ']' << " from " << (void*)__builtin_return_address(0) );
 
 #if !CWDEBUG_DEBUGM && !CWDEBUG_MAGIC
-    return __libc_realloc(ptr, size);
+    return __libc_realloc(ptr2, size);
 #else // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
 
 #if !CWDEBUG_MAGIC
-    void* ptr1 = __libc_realloc(ptr, size);
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_realloc': " << ptr1 << " [" << saved_marker << ']' );
-    return ptr1;
+    prezone* ptr1 = static_cast<prezone*>(__libc_realloc(APP2ZONE(ptr2), size));
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_realloc': " <<
+        PRINT_PTR(ZONE2APP(ptr1)) << " [" << saved_marker << ']' );
+    return ZONE2APP(ptr1);
 #else // CWDEBUG_MAGIC
-    void* ptr1;
-    if (ptr)
+    prezone* ptr1;
+    size_t real_size = REAL_SIZE(size);
+    if (size > real_size)	// Overflow?
     {
-      ptr = static_cast<size_t*>(ptr) - 2;
-      if (((size_t*)ptr)[0] != INTERNAL_MAGIC_MALLOC_BEGIN ||
-	  ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(((size_t*)ptr)[1])))[-1] != INTERNAL_MAGIC_MALLOC_END)
+      DoutInternal( dc_malloc, "Size too large: no space left for magic numbers." );
+      LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_realloc': NULL [" << saved_marker << ']' );
+      return NULL;
+    }
+    if (ptr2)
+    {
+      ptr1 = APP2ZONE(ptr2);
+      if (PREZONE(ptr1).magic != INTERNAL_MAGIC_MALLOC_BEGIN || POSTZONE(ptr1).magic != INTERNAL_MAGIC_MALLOC_END)
 	DoutFatalInternal( dc::core, "internal realloc: magic number corrupt!" );
 #if CWDEBUG_DEBUGM
       if (!__libcwd_tsd.annotation)
       {
 	__libcwd_tsd.annotation = 1;
-	annotation_free(((size_t*)ptr)[1]);
+	annotation_free(ZONE2RS(ptr1));
 	__libcwd_tsd.annotation = 0;
       }
 #endif
       if (size == 0)
       {
-        __libc_free(ptr);
+        __libc_free(ptr1);
 	LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_realloc': NULL [" << saved_marker << ']' );
 	return NULL;
       }
-      ptr1 = __libc_realloc(ptr, SIZE_PLUS_TWELVE(size));
+      ptr1 = static_cast<prezone*>(__libc_realloc(ptr1, real_size));
     }
     else
-      ptr1 = __libc_malloc(SIZE_PLUS_TWELVE(size));
-    ((size_t*)ptr1)[0] = INTERNAL_MAGIC_MALLOC_BEGIN;
-    ((size_t*)ptr1)[1] = size;
-    ((size_t*)(static_cast<char*>(ptr1) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_MALLOC_END;
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_realloc': " << static_cast<size_t*>(ptr1) + 2 << " [" << saved_marker << ']' );
+      ptr1 = static_cast<prezone*>(__libc_malloc(real_size));
+    SET_MAGIC(ptr1, size, INTERNAL_MAGIC_MALLOC_BEGIN, INTERNAL_MAGIC_MALLOC_END);
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `__libcwd_realloc': " <<
+        PRINT_PTR(ZONE2APP(ptr1)) << " [" << saved_marker << ']' );
 #if CWDEBUG_DEBUGM
     if (!__libcwd_tsd.annotation)
     {
@@ -3493,29 +3726,28 @@ void* __libcwd_realloc(void* ptr, size_t size)
       __libcwd_tsd.annotation = 0;
     }
 #endif
-    return static_cast<size_t*>(ptr1) + 2;
+    return ZONE2APP(ptr1);
 #endif // CWDEBUG_MAGIC
 
 #endif // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
-  DoutInternal(dc_malloc|continued_cf, "realloc(" << ptr << ", " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
+  DoutInternal(dc_malloc|continued_cf, "realloc(" << PRINT_PTR(ptr2) << ", " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
 
-  if (ptr == NULL)
+  if (ptr2 == NULL)
   {
-    void* mptr = internal_malloc(size, memblk_type_realloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
+    ptr2 = internal_malloc(size, memblk_type_realloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
 
 #if CWDEBUG_MAGIC
-    if (mptr)
+    if (ptr2)
     {
-      ((size_t*)mptr)[-2] = MAGIC_MALLOC_BEGIN;
-      ((size_t*)mptr)[-1] = size;
-      ((size_t*)(static_cast<char*>(mptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_MALLOC_END;
+      prezone* ptr1 = APP2ZONE(ptr2);
+      SET_MAGIC(ptr1, size, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END);
     }
 #endif
     --__libcwd_tsd.inside_malloc_or_free;
-    return mptr;
+    return ASSERT_APPBLOCK(ptr2);
   }
 
 #if CWDEBUG_LOCATION
@@ -3532,17 +3764,17 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL_NO_BRACE;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr, 0));
+  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr, 0)));
+  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
-  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr);
+  bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr2);
 #if LIBCWD_THREAD_SAFE
   _private_::thread_ct* other_target_thread;
   if (!found)
   {
     RELEASE_READ_LOCK;
-    found = search_in_maps_of_other_threads(ptr, iter, __libcwd_tsd);
+    found = search_in_maps_of_other_threads(ptr2, iter, __libcwd_tsd);
     other_target_thread = __libcwd_tsd.target_thread;
   }
   else
@@ -3550,7 +3782,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
 #endif
   if (!found
 #if LIBCWD_THREAD_SAFE
-      || (*iter).first.start() != ptr
+      || (*iter).first.start() != ptr2
 #endif
       )
   {
@@ -3560,7 +3792,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
     __libcwd_tsd.internal = 0;
     DoutInternal( dc::finish, "" );
-    DoutFatalInternal(dc::core, "Trying to realloc() an invalid pointer (" << ptr << ")" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
+    DoutFatalInternal(dc::core, "Trying to realloc() an invalid pointer (" << PRINT_PTR(ptr2) << ")" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
   }
 
   if (size == 0)
@@ -3573,7 +3805,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
     //     It might print "free" instead of "realloc", but the program is ill-formed
     //     anyway in this case.
     --__libcwd_tsd.inside_malloc_or_free;
-    internal_free(ptr, from_free LIBCWD_COMMA_TSD);
+    internal_free(ptr2, from_free LIBCWD_COMMA_TSD);
     ++__libcwd_tsd.inside_malloc_or_free;
     DoutInternal(dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
     --__libcwd_tsd.inside_malloc_or_free;
@@ -3583,25 +3815,21 @@ void* __libcwd_realloc(void* ptr, size_t size)
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
 
-  register void* mptr;
-
-#if !CWDEBUG_MAGIC
-  if (!(mptr = __libc_realloc(ptr, size)))
-#else
-  if (((size_t*)ptr)[-2] != MAGIC_MALLOC_BEGIN ||
-      ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] != MAGIC_MALLOC_END)
+  prezone* ptr1;
+  size_t real_size = REAL_SIZE(size);
+#if CWDEBUG_MAGIC
+  ptr1 = APP2ZONE(ptr2);
+  if (PREZONE(ptr1).magic != MAGIC_MALLOC_BEGIN || POSTZONE(ptr1).magic != MAGIC_MALLOC_END)
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
-    if (((size_t*)ptr)[-2] == MAGIC_NEW_BEGIN &&
-	((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_END)
+    if (PREZONE(ptr1).magic == MAGIC_NEW_BEGIN && POSTZONE(ptr1).magic == MAGIC_NEW_END)
       DoutFatalInternal( dc::core, "You can't realloc() a block that was allocated with `new'!" );
-    if (((size_t*)ptr)[-2] == MAGIC_NEW_ARRAY_BEGIN &&
-	((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(((size_t*)ptr)[-1])))[-1] == MAGIC_NEW_ARRAY_END)
+    if (PREZONE(ptr1).magic == MAGIC_NEW_ARRAY_BEGIN && POSTZONE(ptr1).magic == MAGIC_NEW_ARRAY_END)
       DoutFatalInternal( dc::core, "You can't realloc() a block that was allocated with `new[]'!" );
     DoutFatalInternal( dc::core, "realloc: magic number corrupt!" );
   }
-  if (size > static_cast<size_t>(-1) - 12 - sizeof(size_t))
+  if (size > real_size)	// Overflow?
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
@@ -3609,8 +3837,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
     DoutInternal( dc_malloc, "Size too large: no space left for magic numbers." );
     return NULL;	// A fatal error should occur directly after this
   }
-  if ((mptr = static_cast<char*>(__libc_realloc(static_cast<size_t*>(ptr) - 2, SIZE_PLUS_TWELVE(size))) + 2 * sizeof(size_t)) == (void*)(2 * sizeof(size_t)))
 #endif
+  if ((ptr1 = static_cast<prezone*>(__libc_realloc(APP2ZONE(ptr2), real_size))) == NULL)
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
@@ -3620,9 +3848,9 @@ void* __libcwd_realloc(void* ptr, size_t size)
     return NULL; // A fatal error should occur directly after this
   }
 #if CWDEBUG_MAGIC
-  ((size_t*)mptr)[-1] = size;
-  ((size_t*)(static_cast<char*>(mptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_MALLOC_END;
+  SET_MAGIC(ptr1, size, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END);
 #endif
+  ptr2 = ZONE2APP(ptr1);
 
   // Update administration
   bool insertion_succeeded;
@@ -3631,7 +3859,7 @@ void* __libcwd_realloc(void* ptr, size_t size)
   bool invisible = __libcwd_tsd.invisible || !(*iter).second.has_alloc_node();
   if (invisible)
   {
-    memblk_ct memblk(memblk_key_ct(mptr, size), memblk_info_ct(memblk_type_realloc));
+    memblk_ct memblk(memblk_key_ct(ptr2, size), memblk_info_ct(memblk_type_realloc));
 #if LIBCWD_THREAD_SAFE
     if (other_target_thread)
       ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
@@ -3665,8 +3893,8 @@ void* __libcwd_realloc(void* ptr, size_t size)
     else
       ACQUIRE_READ2WRITE_LOCK;
 #endif
-    memblk_ct memblk(memblk_key_ct(mptr, size),
-		     memblk_info_ct(mptr, size, memblk_type_realloc,
+    memblk_ct memblk(memblk_key_ct(ptr2, size),
+		     memblk_info_ct(ptr2, size, memblk_type_realloc,
 		     realloc_time LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(loc)));
     target_memblk_map_write->erase(memblk_iter_write);
 #if LIBCWD_THREAD_SAFE
@@ -3697,12 +3925,12 @@ void* __libcwd_realloc(void* ptr, size_t size)
   if (!insertion_succeeded)
     DoutFatalInternal( dc::core, "memblk_map corrupt: Newly allocated block collides with existing memblk!" );
 
-  DoutInternal(dc::finish, (void*)(mptr)
+  DoutInternal(dc::finish, PRINT_PTR(ptr2)
       LIBCWD_LOCATION_OPT(<< " [" << *loc << ']')
       << (__libcwd_tsd.invisible ? " (invisible)" : "")
       LIBCWD_DEBUGM_OPT(<< " [" << saved_marker << ']'));
   --__libcwd_tsd.inside_malloc_or_free;
-  return mptr;
+  return ASSERT_APPBLOCK(ptr2);
 }
 
 } // extern "C"
@@ -3735,20 +3963,14 @@ void* operator new(size_t size) throw (std::bad_alloc)
     return __libc_malloc(size);
 #else // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
 
-#if !CWDEBUG_MAGIC
-    void* ptr = __libc_malloc(size);
-    if (!ptr)
-      DoutFatalInternal( dc::core, "Out of memory in `operator new'" );
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `operator new': " << ptr << " [" << saved_marker << ']' );
-    return ptr;
-#else // CWDEBUG_MAGIC
-    void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(size));
-    if (!ptr)
-      DoutFatalInternal( dc::core, "Out of memory in `operator new'" );
-    ((size_t*)ptr)[0] = INTERNAL_MAGIC_NEW_BEGIN;
-    ((size_t*)ptr)[1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_NEW_END;
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `operator new': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+    size_t real_size = REAL_SIZE(size);
+    if (size > real_size)
+      DoutFatalInternal(dc::core, "Size too large: no space left for magic numbers in `operator new'");
+    prezone* ptr1 = static_cast<prezone*>(__libc_malloc(real_size));
+    if (!ptr1)
+      DoutFatalInternal(dc::core, "Out of memory in `operator new'");
+#if CWDEBUG_MAGIC
+    SET_MAGIC(ptr1, size, INTERNAL_MAGIC_NEW_BEGIN, INTERNAL_MAGIC_NEW_END);
 #if CWDEBUG_DEBUGM
     if (!__libcwd_tsd.annotation)
     {
@@ -3757,27 +3979,28 @@ void* operator new(size_t size) throw (std::bad_alloc)
       __libcwd_tsd.annotation = 0;
     }
 #endif
-    return static_cast<size_t*>(ptr) + 2;
 #endif // CWDEBUG_MAGIC
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `operator new': " <<
+        PRINT_PTR(ZONE2APP(ptr1)) << " [" << saved_marker << ']' );
+    return ZONE2APP(ptr1);
 
 #endif // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
   DoutInternal(dc_malloc|continued_cf, "operator new (size = " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
-  void* ptr = internal_malloc(size, memblk_type_new CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
-  if (!ptr)
+  appblock* ptr2 = internal_malloc(size, memblk_type_new CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
+  if (!ptr2)
     DoutFatalInternal( dc::core, "Out of memory in `operator new'" );
 #if CWDEBUG_MAGIC
   else
   {
-    ((size_t*)ptr)[-2] = MAGIC_NEW_BEGIN;
-    ((size_t*)ptr)[-1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_NEW_END;
+    prezone* ptr1 = APP2ZONE(ptr2);
+    SET_MAGIC(ptr1, size, MAGIC_NEW_BEGIN, MAGIC_NEW_END);
   }
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
-  return ptr;
+  return ASSERT_APPBLOCK(ptr2);
 }
 
 void* operator new(size_t size, std::nothrow_t const&) throw ()
@@ -3798,19 +4021,18 @@ void* operator new(size_t size, std::nothrow_t const&) throw ()
 
   ++__libcwd_tsd.inside_malloc_or_free;
   DoutInternal(dc_malloc|continued_cf, "operator new (size = " << size << ", std::nothrow_t const&) = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
-  void* ptr = internal_malloc(size, memblk_type_new CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
-  if (!ptr)
+  appblock* ptr2 = internal_malloc(size, memblk_type_new CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
+  if (!ptr2)
     DoutFatalInternal( dc::core, "Out of memory in `operator new'" );
 #if CWDEBUG_MAGIC
   else
   {
-    ((size_t*)ptr)[-2] = MAGIC_NEW_BEGIN;
-    ((size_t*)ptr)[-1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_NEW_END;
+    prezone* ptr1 = APP2ZONE(ptr2);
+    SET_MAGIC(ptr1, size, MAGIC_NEW_BEGIN, MAGIC_NEW_END);
   }
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
-  return ptr;
+  return ASSERT_APPBLOCK(ptr2);
 }
 
 void* operator new[](size_t size) throw (std::bad_alloc)
@@ -3836,20 +4058,14 @@ void* operator new[](size_t size) throw (std::bad_alloc)
     return __libc_malloc(size);
 #else // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
 
-#if !CWDEBUG_MAGIC
-    void* ptr = __libc_malloc(size);
-    if (!ptr)
-      DoutFatalInternal( dc::core, "Out of memory in `operator new[]'" );
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `operator new[]': " << ptr << " [" << saved_marker << ']' );
-    return ptr;
-#else // CWDEBUG_MAGIC
-    void* ptr = __libc_malloc(SIZE_PLUS_TWELVE(size));
-    if (!ptr)
-      DoutFatalInternal( dc::core, "Out of memory in `operator new[]'" );
-    ((size_t*)ptr)[0] = INTERNAL_MAGIC_NEW_ARRAY_BEGIN;
-    ((size_t*)ptr)[1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_TWELVE(size)))[-1] = INTERNAL_MAGIC_NEW_ARRAY_END;
-    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `operator new[]': " << static_cast<size_t*>(ptr) + 2 << " [" << saved_marker << ']' );
+    size_t real_size = REAL_SIZE(size);
+    if (size > real_size)
+      DoutFatalInternal(dc::core, "Size too large: no space left for magic numbers in `operator new[]'");
+    prezone* ptr1 = static_cast<prezone*>(__libc_malloc(real_size));
+    if (!ptr1)
+      DoutFatalInternal(dc::core, "Out of memory in `operator new[]'");
+#if CWDEBUG_MAGIC
+    SET_MAGIC(ptr1, size, INTERNAL_MAGIC_NEW_ARRAY_BEGIN, INTERNAL_MAGIC_NEW_ARRAY_END);
 #if CWDEBUG_DEBUGM
     if (!__libcwd_tsd.annotation)
     {
@@ -3858,27 +4074,28 @@ void* operator new[](size_t size) throw (std::bad_alloc)
       __libcwd_tsd.annotation = 0;
     }
 #endif
-    return static_cast<size_t*>(ptr) + 2;
 #endif // CWDEBUG_MAGIC
+    LIBCWD_DEBUGM_CERR( "CWDEBUG_DEBUGM: Internal: Leaving `operator new[]': " <<
+        PRINT_PTR(ZONE2APP(ptr1)) << " [" << saved_marker << ']' );
+    return ZONE2APP(ptr1);
 
 #endif // CWDEBUG_DEBUGM || CWDEBUG_MAGIC
   } // internal
 
   ++__libcwd_tsd.inside_malloc_or_free;
   DoutInternal(dc_malloc|continued_cf, "operator new[] (size = " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
-  void* ptr = internal_malloc(size, memblk_type_new_array CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
-  if (!ptr)
+  appblock* ptr2 = internal_malloc(size, memblk_type_new_array CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
+  if (!ptr2)
     DoutFatalInternal( dc::core, "Out of memory in `operator new[]'" );
 #if CWDEBUG_MAGIC
   else
   {
-    ((size_t*)ptr)[-2] = MAGIC_NEW_ARRAY_BEGIN;
-    ((size_t*)ptr)[-1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_NEW_ARRAY_END;
+    prezone* ptr1 = APP2ZONE(ptr2);
+    SET_MAGIC(ptr1, size, MAGIC_NEW_ARRAY_BEGIN, MAGIC_NEW_ARRAY_END);
   }
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
-  return ptr;
+  return ASSERT_APPBLOCK(ptr2);
 }
 
 void* operator new[](size_t size, std::nothrow_t const&) throw ()
@@ -3899,19 +4116,18 @@ void* operator new[](size_t size, std::nothrow_t const&) throw ()
 
   ++__libcwd_tsd.inside_malloc_or_free;
   DoutInternal(dc_malloc|continued_cf, "operator new[] (size = " << size << ", std::nothrow_t const&) = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
-  void* ptr = internal_malloc(size, memblk_type_new_array CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
-  if (!ptr)
+  appblock* ptr2 = internal_malloc(size, memblk_type_new_array CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker));
+  if (!ptr2)
     DoutFatalInternal( dc::core, "Out of memory in `operator new[]'" );
 #if CWDEBUG_MAGIC
   else
   {
-    ((size_t*)ptr)[-2] = MAGIC_NEW_ARRAY_BEGIN;
-    ((size_t*)ptr)[-1] = size;
-    ((size_t*)(static_cast<char*>(ptr) + SIZE_PLUS_FOUR(size)))[-1] = MAGIC_NEW_ARRAY_END;
+    prezone* ptr1 = APP2ZONE(ptr2);
+    SET_MAGIC(ptr1, size, MAGIC_NEW_ARRAY_BEGIN, MAGIC_NEW_ARRAY_END);
   }
 #endif
   --__libcwd_tsd.inside_malloc_or_free;
-  return ptr;
+  return ASSERT_APPBLOCK(ptr2);
 }
 
 //=============================================================================
@@ -3919,8 +4135,9 @@ void* operator new[](size_t size, std::nothrow_t const&) throw ()
 // operator `delete' and `delete []' replacements.
 //
 
-void operator delete(void* ptr) throw()
+void operator delete(void* void_ptr) throw()
 {
+  appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
@@ -3938,14 +4155,15 @@ void operator delete(void* ptr) throw()
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && LIBCWD_IOSBASE_INIT_ALLOCATES
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
-  internal_free(ptr, from_delete LIBCWD_COMMA_TSD);
+  internal_free(ptr2, from_delete LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
   libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif
 }
 
-void operator delete(void* ptr, std::nothrow_t const&) throw()
+void operator delete(void* void_ptr, std::nothrow_t const&) throw()
 {
+  appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
@@ -3960,14 +4178,15 @@ void operator delete(void* ptr, std::nothrow_t const&) throw()
     core_dump();
   }
 #endif
-  internal_free(ptr, from_delete LIBCWD_COMMA_TSD);
+  internal_free(ptr2, from_delete LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
   libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif
 }
 
-void operator delete[](void* ptr) throw()
+void operator delete[](void* void_ptr) throw()
 {
+  appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
@@ -3985,7 +4204,7 @@ void operator delete[](void* ptr) throw()
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && LIBCWD_IOSBASE_INIT_ALLOCATES
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
-  internal_free(ptr, from_delete_array LIBCWD_COMMA_TSD);	// Note that the standard demands that we call free(), and not delete().
+  internal_free(ptr2, from_delete_array LIBCWD_COMMA_TSD);	// Note that the standard demands that we call free(), and not delete().
   								// This forces everyone to overload both, operator delete() and operator
 								// delete[]() and not only operator delete().
 #if LIBCWD_THREAD_SAFE
@@ -3993,8 +4212,9 @@ void operator delete[](void* ptr) throw()
 #endif
 }
 
-void operator delete[](void* ptr, std::nothrow_t const&) throw()
+void operator delete[](void* void_ptr, std::nothrow_t const&) throw()
 {
+  appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
   // This marks the returned tsd as 'inside_free'.  Such tsds are static if the thread is
   // terminating and are never overwritten by other threads.
@@ -4009,7 +4229,7 @@ void operator delete[](void* ptr, std::nothrow_t const&) throw()
     core_dump();
   }
 #endif
-  internal_free(ptr, from_delete_array LIBCWD_COMMA_TSD);
+  internal_free(ptr2, from_delete_array LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
   libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);
 #endif

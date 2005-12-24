@@ -16,7 +16,8 @@ mangling \
 allocator \
 stabs \
 lines \
-inlined
+inlined \
+memalign
 
 CLEANFILES=$(EXTRA_PROGRAMS)
 
@@ -43,6 +44,9 @@ allocator_SOURCES = allocator.cc
 
 lines_CXXFLAGS = -g
 lines_SOURCES = lines.cc
+
+memalign_CXXFLAGS = -g
+memalign_SOURCES = memalign.cc
 
 stabs_CXXFLAGS = -O2
 stabs_SOURCES = stabs.cc

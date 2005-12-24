@@ -112,6 +112,9 @@ void BlockList::initialize(unsigned int* count_ptr, unsigned short internal)
 
 void BlockList::uninitialize(void)
 {
+#if CWDEBUG_DEBUG
+  consistency_check();
+#endif
   // No need for locking here-- this is only called when there is just one thread left.
   BlockList& list(*this);
   BlockNode* block = list.begin();		// There can be at most M_keep empty blocks.
@@ -120,6 +123,7 @@ void BlockList::uninitialize(void)
   while (block != end && block->M_chunks.M_used_count == 0)
   {
     block->unlink();
+    BlockNode* next = block->next();
     LIBCWD_TSD_DECLARATION;
     if (M_internal)
       set_alloc_checking_off(LIBCWD_TSD);
@@ -127,12 +131,15 @@ void BlockList::uninitialize(void)
     if (M_internal)
       set_alloc_checking_on(LIBCWD_TSD);
     --(*M_count_ptr);
-    block = block->next();
+    block = next;
   }
 }
 
 void FreeList::uninitialize(void)
 {
+#if CWDEBUG_DEBUG
+  consistency_check();
+#endif
   // Delete all empty blocks from now on.
   for (int i = 0; i < bucket_sizes; ++i)
     M_keep[i] = 0;
@@ -159,6 +166,46 @@ void FreeList::initialize(LIBCWD_TSD_PARAM)
   }
   M_initialized = true;
 }
+
+#if CWDEBUG_DEBUG
+void FreeList::consistency_check(void)
+{
+  assert(M_initialized);
+  // M_mutex is either already locked when we get here, or there is just one thread.
+  for (int i = 0; i < bucket_sizes; ++i)
+  {
+    assert(M_keep[i] == 1);
+    assert(M_list_notfull[i].M_count_ptr == &M_count[i]);
+    assert(M_list_full[i].M_count_ptr == &M_count[i]);
+    M_list_notfull[i].consistency_check();
+    M_list_full[i].consistency_check();
+    unsigned int count = 0;
+    for (Node* iter = M_list_notfull[i].begin(); iter != M_list_notfull[i].end(); iter = iter->M_next)
+      ++count;
+    for (Node* iter = M_list_full[i].begin(); iter != M_list_full[i].end(); iter = iter->M_next)
+      ++count;
+    assert(count == M_count[i]);
+  }
+}
+
+void BlockList::consistency_check(void)
+{
+  assert(begin() == M_next);
+  assert(end() == this);
+  Node* prev_node = this;
+  Node* node = begin();
+  int count = 0;
+  do
+  {
+    assert(node->M_prev == prev_node);
+    prev_node = node;
+    node = node->M_next;
+    ++count;
+  }
+  while (node != M_next && count != 123456);
+  assert(count != 123456);
+}
+#endif
 
   } // namespace _private_
 } // namespace libcwd

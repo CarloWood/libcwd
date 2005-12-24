@@ -204,6 +204,9 @@ struct BlockList : public List {
   void initialize(unsigned int* count_ptr, unsigned short internal);
   void uninitialize(void);
   ~BlockList() { uninitialize(); }
+#if CWDEBUG_DEBUG
+  void consistency_check(void);
+#endif
 };
 
 struct TSD_st;
@@ -227,6 +230,9 @@ struct FreeList {
   ~FreeList() { uninitialize(); }
   char* allocate(int power, size_t size);
   void deallocate(char* p, int power, size_t size);
+#if CWDEBUG_DEBUG
+  void consistency_check(void);
+#endif
 };
 
 template<bool needs_lock, int pool_instance>

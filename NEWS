@@ -1,3 +1,59 @@
+libcwd-0.99.44
+
+	Allocated memory (operator new/new[], malloc/calloc/realloc)
+	now can be extended with 'redzones'. The foot print of
+	allocated memory will look as follows:
+
+	pointer returned -->  +------------------------+
+	by libc's malloc      |  magic number          |
+	                      +------------------------+
+			      |  size                  |
+			      +------------------------+
+			      |                        |
+			      |       RED ZONE         |
+			      |                        |
+	pointer returned -->  +------------------------+
+	to the application    |                        |
+	                      |  Application space     |
+                              ~                        ~
+			      |                        |
+			      +------------------------+
+			      |                        |
+			      |       RED ZONE         |
+			      |                        |
+			      +------------------------+
+			      |  magic number          |
+			      |________________________|
+
+	The 'size' is the size of the application space
+	(the requested space), incremented by a few bytes,
+	if necessary, to align it to a multiple times size_t,
+	and then increment that same amount again (not
+	that you're supposed to access that value anyway).
+	'size' and 'magic number' are size_t. The first red
+	zone has a size such that the the difference between
+	the pointer returned by libc's malloc and the pointer
+	returned to the application is a multiple times 8
+	bytes (the alignment garanteed by glibc's malloc).
+	The redzone at the end has the same size incremented
+	by a few bytes, if necessary, to align the last magic
+	number to a sizeof(size_t) boundary. The pre- and post-
+	redzones are filled with two different characters.
+	At the moment a memory block is freed, these values
+	are tested.
+	You can chose the size of the redzone (default is 0)
+	with the configure option --with-redzone=x in bytes.
+	The real size will likely be larger because of the
+	alignment constrains.
+
+	Bug fixes:
+
+	BlockList::uninitialize() accessed a struct that it just
+	deleted, with a possible core dump as result. Fortunately,
+	this bug wasn't too serious, because this function is
+	only called as part of the global deinitialization
+	of the application, after leaving main or calling exit.
+
 libcwd-0.99.43
 
 	Bug fixes:

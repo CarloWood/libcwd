@@ -70,6 +70,11 @@ AC_ARG_ENABLE(magic,
     [  --disable-magic         disable magic numbers in memory allocation debugging.],
     libcwd_config_magic=$enableval)
 
+AC_ARG_WITH(redzone,
+    [  --with-redzone          The minimum size of a redzone in bytes [default=0]],
+    [libcwd_config_redzone=$withval], [libcwd_config_redzone=0])
+AC_DEFINE_UNQUOTED([LIBCWD_REDZONE], $libcwd_config_redzone, [The minimum size of a redzone in bytes.])
+
 libcwd_config_marker=yes
 AC_ARG_ENABLE(marker,
     [  --disable-marker        disable memory allocation markers.],
