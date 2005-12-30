@@ -20,20 +20,28 @@
 
 #include <libcwd/private_allocator.h>
 #include <libcwd/private_set_alloc_checking.h>
+#include "zone.h"
 
 namespace libcwd {
   namespace _private_ {
 
 // Maximum overhead needed for non-internal allocations.
-#ifdef LIBCWD_NEED_WORD_ALIGNMENT
-static size_t const malloc_overhead_c = 16 + LIBCWD_MALLOC_OVERHEAD;
+#if CWDEBUG_MAGIC
+static size_t const malloc_overhead_c = sizeof(prezone) + sizeof(size_t) - 1 + sizeof(postzone) + LIBCWD_MALLOC_OVERHEAD;
 #else
-static size_t const malloc_overhead_c = 12 + LIBCWD_MALLOC_OVERHEAD;
+static size_t const malloc_overhead_c = LIBCWD_MALLOC_OVERHEAD;
 #endif
-// The minimum size we allocate: two page sizes minus the (maximum) malloc overhead.
-// Since this is rather large, we assume the same for internal allocation (which is only
-// not true when configuring libcwd with --disable-magic.
-static size_t const block_size_c = 8192 - malloc_overhead_c;
+
+// The minimum size we allocate: two or three page sizes minus the (maximum) malloc
+// overhead (modulo the page size). Since this is rather large, we assume
+// the same for internal allocations (which is only not true when configuring
+// libcwd with --disable-magic).
+static size_t const page_size_c = 4096;
+#if defined(LIBCWD_REDZONE_BLOCKS) && LIBCWD_REDZONE_BLOCKS > 0
+static size_t const block_size_c = 3 * page_size_c - (malloc_overhead_c % page_size_c);
+#else
+static size_t const block_size_c = 2 * page_size_c - malloc_overhead_c;
+#endif
 
 char* FreeList::allocate(int power, size_t size)
 {

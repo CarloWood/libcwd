@@ -171,7 +171,7 @@ inline void list_allocations_on(debug_ct&) { }
 #if CWDEBUG_ALLOC
 
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
-// Ugh, use kludge.
+// Ugh, use macro kludge.
 #include <cstdlib>	// Make sure the prototypes for malloc et al are declared
 			// before defining the macros!
 #define malloc __libcwd_malloc
@@ -179,6 +179,25 @@ inline void list_allocations_on(debug_ct&) { }
 #define realloc __libcwd_realloc
 #define free __libcwd_free
 #endif
+
+#ifndef LIBCWD_HAVE_DLOPEN
+// Use macro kludge for these (too):
+#ifdef LIBCWD_HAVE_POSIX_MEMALIGN
+// Include this header before defining the macro 'posix_memalign'.
+#include <cstdlib>
+#define posix_memalign __libcwd_posix_memalign
+#endif
+#if defined(LIBCWD_HAVE_MEMALIGN) || defined(LIBCWD_HAVE_VALLOC)
+// Include this header before defining the macro 'memalign' or 'valloc'.
+#include <malloc.h>
+#endif
+#ifdef LIBCWD_HAVE_MEMALIGN
+#define memalign __libcwd_memalign
+#endif
+#ifdef LIBCWD_HAVE_VALLOC
+#define valloc __libcwd_valloc
+#endif
+#endif // !LIBCWD_HAVE_DLOPEN
 
 // Use external linkage to catch ALL calls to all malloc/calloc/realloc/free functions,
 // also those that are done in libc, or any other shared library that might be linked.
@@ -189,6 +208,15 @@ extern "C" void* malloc(size_t size) throw() __attribute__((__malloc__));
 extern "C" void* calloc(size_t nmemb, size_t size) throw() __attribute__((__malloc__));
 extern "C" void* realloc(void* ptr, size_t size) throw() __attribute__((__malloc__));
 extern "C" void  free(void* ptr) throw();
+#ifdef LIBCWD_HAVE_POSIX_MEMALIGN
+extern "C" int posix_memalign(void **memptr, size_t alignment, size_t size);
+#endif
+#ifdef LIBCWD_HAVE_VALLOC
+extern "C" void *valloc(size_t size) throw() __attribute__((__malloc__));
+#endif
+#ifdef LIBCWD_HAVE_MEMALIGN
+extern "C" void *memalign(size_t boundary, size_t size) throw() __attribute__((__malloc__));
+#endif
 
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 // Use same kludge for other libc functions that return malloc-ed pointers.
@@ -234,6 +262,6 @@ __libcwd_wcsdup(wchar_t const* str)
 #endif // !LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 
 #endif // CWDEBUG_ALLOC
-#endif // !DEBUG_INTERNAL
+#endif // !LIBCWD_DEBUGMALLOC_INTERNAL
 
 #endif // LIBCWD_DEBUGMALLOC_H

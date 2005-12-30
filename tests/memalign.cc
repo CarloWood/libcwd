@@ -12,9 +12,13 @@ int main()
   Debug( libcw_do.on() );
 
   void* ptr;
-#if 1
+#if 0
   Dout(dc::notice|continued_cf, "memalign(128, 3302) = ");
   ptr = memalign(128, 3302);
+  Dout(dc::finish|cond_error_cf(ptr == NULL), ptr);
+#elif 1
+  Dout(dc::notice|continued_cf, "valloc(3302) = ");
+  ptr = valloc(3302);
   Dout(dc::finish|cond_error_cf(ptr == NULL), ptr);
 #else
   Dout(dc::notice|continued_cf, "posix_memalign(&ptr, 128, 3302) = ");

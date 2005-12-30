@@ -54,7 +54,11 @@ enum memblk_types_nt {
   memblk_type_marker,           ///< A memory allocation marker
   memblk_type_deleted_marker,   ///< A deleted memory allocation marker
 #endif
-  memblk_type_external		///< Externally allocated with <code>%malloc()</code> (no magic numbers!)
+  memblk_type_external,		///< Externally allocated with <code>%malloc()</code> (no magic numbers!)
+  // These three must be last (we use if (f >= memblk_type_posix_memalign) in debugmalloc.cc).
+  memblk_type_posix_memalign,	///< Allocated with <code>posix_memalign()</code>
+  memblk_type_memalign,		///< Allocated with <code>memalign()</code>
+  memblk_type_valloc		///< Allocated with <code>valloc()</code>
 };
 extern	// new-line needed for buggy doxygen
     ::std::ostream& operator<<(std::ostream& os, memblk_types_nt);

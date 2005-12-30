@@ -264,6 +264,14 @@ AC_SUBST(CW_CONFIG_HAVE___LIBC_MALLOC)
 CW_CONFIG_HAVE___LIBC_MALLOC=undef
 AC_SUBST(CW_CONFIG_HAVE__LIBC_MALLOC)
 CW_CONFIG_HAVE__LIBC_MALLOC=undef
+AC_SUBST(CW_CONFIG_HAVE_DLOPEN)
+CW_CONFIG_HAVE_DLOPEN=undef
+AC_SUBST(CW_CONFIG_HAVE_POSIX_MEMALIGN)
+CW_CONFIG_HAVE_POSIX_MEMALIGN=undef
+AC_SUBST(CW_CONFIG_HAVE_MEMALIGN)
+CW_CONFIG_HAVE_MEMALIGN=undef
+AC_SUBST(CW_CONFIG_HAVE_VALLOC)
+CW_CONFIG_HAVE_VALLOC=undef
 
 dnl Configuration needed by the testsuite
 AC_SUBST(enable_shared)
@@ -480,7 +488,6 @@ dnl Check for structures.
 dnl Check for compiler/system characteristics.
 CW_BUG_REDEFINES([sys/resource.h])
 CW_MALLOC_OVERHEAD
-CW_NEED_WORD_ALIGNMENT
 CW_BUG_G_CONFIG_H
 CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS
 CW_SYS_FRAME_ADDRESS_OFFSET
@@ -516,13 +523,32 @@ AC_CACHE_CHECK([for compiler with PCH support],
 AM_CONDITIONAL(BUILD_PCH, test "$cw_cv_prog_CXX_pch" = "yes")
 
 dnl Check for library functions.
-AC_CHECK_FUNCS(getgid getegid getgroups __libc_malloc _libc_malloc wmemcpy)
+AC_CHECK_FUNCS(getgid getegid getgroups __libc_malloc _libc_malloc wmemcpy sysconf valloc memalign)
+AC_CHECK_DECL([_SC_PAGESIZE],
+  AC_DEFINE_UNQUOTED([HAVE__SC_PAGESIZE], 1, [Defined if we have _SC_PAGESIZE.]),
+  [], [#include <unistd.h>])
+AC_CHECK_DECL([posix_memalign],
+  AC_DEFINE_UNQUOTED([HAVE_POSIX_MEMALIGN], 1, [Defined if we have posix_memalign.]), [],
+[#define _XOPEN_SOURCE 600
+#include <cstdlib>])
 
 if test "$ac_cv_func___libc_malloc" = "yes"; then
   CW_CONFIG_HAVE___LIBC_MALLOC=define
 else if test "$ac_cv_func__libc_malloc" = "yes"; then
   CW_CONFIG_HAVE__LIBC_MALLOC=define
 fi fi
+if test "$ac_cv_lib_c_dlopen" = "yes" -o "$ac_cv_lib_dl_dlopen" = "yes"; then
+  CW_CONFIG_HAVE_DLOPEN=define
+fi
+if test "$ac_cv_func_valloc" = "yes"; then
+  CW_CONFIG_HAVE_VALLOC=define
+fi
+if test "$ac_cv_func_memalign" = "yes"; then
+  CW_CONFIG_HAVE_MEMALIGN=define
+fi
+if test "$ac_cv_have_decl_posix_memalign" = "yes"; then
+  CW_CONFIG_HAVE_POSIX_MEMALIGN=define
+fi
 
 dnl Check for system services.
 
