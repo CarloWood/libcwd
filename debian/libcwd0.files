@@ -1,0 +1,3 @@
+usr/lib/lib*.so.*
+usr/share/libcwd/*
+usr/share/bug/libcwd0/*

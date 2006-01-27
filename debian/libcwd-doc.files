@@ -1,0 +1,12 @@
+usr/include/*
+usr/include/libcwd/*
+usr/lib/lib*.a
+usr/lib/lib*.so
+usr/lib/pkgconfig/*
+usr/share/bug/libcwd-doc/*
+usr/share/doc/libcwd-doc/tutorial/*.html
+usr/share/doc/libcwd-doc/tutorial/*.cc
+usr/share/doc/libcwd-doc/tutorial/*/*.cc
+usr/share/doc/libcwd-doc/tutorial/*/*.h
+usr/share/doc/libcwd-doc/tutorial/*/*/*/*.h
+/usr/lib/*.la
