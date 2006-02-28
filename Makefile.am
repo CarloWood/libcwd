@@ -1,6 +1,7 @@
 ## Process this file with automake to generate Makefile.in
 
 AUTOMAKE_OPTIONS = foreign
+ACLOCAL_AMFLAGS = @ACLOCAL_CWFLAGS@
 
 SUBDIRS = include utils . tests testsuite cutee
 
