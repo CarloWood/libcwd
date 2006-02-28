@@ -1,3 +1,8 @@
+27 Jan 2006
+
+According to ..., libcwd_r works on solaris 9.
+I never tested it myself.
+
 11 May 2002
 
 The thread-safe version of libcwd won't compile on solaris.

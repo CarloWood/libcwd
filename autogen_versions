@@ -1,0 +1,9 @@
+os=`uname -s`
+if test "$os" = "Linux"; then
+  required_libtool_version="1.4.2";
+else
+  required_libtool_version="1.5";       # Version 1.4.2 will not work.  1.4d should work,
+                                        # see http://www.gnu.org/software/libtool/libtool.html
+fi
+
+required_automake_version=1.7
