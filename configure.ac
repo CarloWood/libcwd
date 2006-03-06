@@ -22,6 +22,8 @@ AC_CONFIG_SRCDIR(debugmalloc.cc)
 
 dnl Automake options.
 AM_INIT_AUTOMAKE
+dnl This project uses a lot of variables that start with CW_ (FIXME).
+m4_pattern_allow(CW_)
 
 dnl Include maintainer mode targets
 AM_MAINTAINER_MODE
