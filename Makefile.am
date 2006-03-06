@@ -96,7 +96,7 @@ dist-hook: documentation
 	  cp -p $(srcdir)/example-project/m4/$$i $(distdir)/example-project/m4; \
 	done
 	rm $(distdir)/example-project/debug.h.maintainer $(distdir)/example-project/.cvsignore
-	cp -p $(top_builddir)/example-project/debug.h $(distdir)/example-project
+	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
 	chmod +x $(distdir)/install-sh
 
 distclean-local:
@@ -113,6 +113,6 @@ distclean-local:
 
 MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure $(srcdir)/Makefile.in \
 	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \
-	$(srcdir)/ltmain.sh $(srcdir)/stamp-h.in $(srcdir)/ChangeLog tags example-project/debug.h troep*
+	$(srcdir)/ltmain.sh $(srcdir)/stamp-h.in $(srcdir)/ChangeLog tags $(srcdir)/example-project/debug.h troep*
 
 @MAINTAINER_MODE_TRUE@include maintMakefile

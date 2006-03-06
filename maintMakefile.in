@@ -86,14 +86,14 @@ ChangeLog:
 	fi
 
 # Allow this file to be missing.
-example-project/debug.h.maintainer:
+$(srcdir)/example-project/debug.h.maintainer:
 
-example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer $(srcdir)/nodebug.h
+$(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer $(srcdir)/nodebug.h
 	@mkdir -p example-project
 	if test -f $(srcdir)/example-project/debug.h.maintainer; then \
-	  awk '/@NODEBUGMACROS@/ { exit } { print }' $(srcdir)/example-project/debug.h.maintainer > example-project/debug.h; \
-	  cat $(srcdir)/nodebug.h >> example-project/debug.h; \
-	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> example-project/debug.h; \
+	  awk '/@NODEBUGMACROS@/ { exit } { print }' $(srcdir)/example-project/debug.h.maintainer > $(srcdir)/example-project/debug.h; \
+	  cat $(srcdir)/nodebug.h >> $(srcdir)/example-project/debug.h; \
+	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> $(srcdir)/example-project/debug.h; \
 	fi
 
 # 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=cvs-4.1,4.0.2,4.0.1,4.0.0,3.4.4,3.3.5' \
