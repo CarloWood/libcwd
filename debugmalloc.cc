@@ -2479,7 +2479,7 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
         magic_begin = MAGIC_MEMALIGN_BEGIN;
         magic_end = MAGIC_MEMALIGN_END;
       }
-      else if (f == memblk_type_valloc)
+      else // if (f == memblk_type_valloc)
       {
         magic_begin = MAGIC_VALLOC_BEGIN;
         magic_end = MAGIC_VALLOC_END;

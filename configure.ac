@@ -147,6 +147,9 @@ dnl `config.status --recheck' was invoked.
 dnl Always let CXX and CXXCPP override cached values
 CW_ENVIRONMENT
 
+dnl Remember the original environment variable.
+CXXFLAGS_env="$CXXFLAGS"
+
 dnl Check for compiler and preprocessor
 if test -n "$CC"; then
   unset ac_cv_prog_CC
@@ -191,8 +194,9 @@ CW_SYS_PS_WIDE_PID_OPTION
 fi
 AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS", [Full path to the 'ps' executable.])
 
-dnl We need to use these options for the tests too
-CXXFLAGS="$CXXFLAGS $DEBUGOPTS $EXTRAOPTS"
+dnl We need to use DEBUGOPTS and EXTRAOPTS too, we don't want to use any -O or -g
+dnl that any of the above macros might have added however.
+CXXFLAGS="$CXXFLAGS_env $DEBUGOPTS $EXTRAOPTS"
 
 dnl This block cannot be replaced by a macro because the DISABLE_* and the
 dnl AM_PROG_LIBTOOL macro need to be in configure.ac itself for some reason.
@@ -501,7 +505,7 @@ AC_C_BIGENDIAN
 dnl Check if compiler supports PCH.
 AC_CACHE_CHECK([for compiler with PCH support],
   [cw_cv_prog_CXX_pch],
-  [ac_save_CXXFLAGS="$CXXFLAGS"
+  [cw_save_CXXFLAGS="$CXXFLAGS"
    CXXFLAGS="$CXXFLAGS -Werror -Winvalid-pch -Wno-deprecated"
    AC_LANG_SAVE
    AC_LANG_CPLUSPLUS
@@ -522,7 +526,7 @@ AC_CACHE_CHECK([for compiler with PCH support],
      cw_cv_prog_CXX_pch=no
    fi
    rm -f conftest*
-   CXXFLAGS=$ac_save_CXXFLAGS
+   CXXFLAGS=$cw_save_CXXFLAGS
    AC_LANG_RESTORE
   ])
 AM_CONDITIONAL(BUILD_PCH, test "$cw_cv_prog_CXX_pch" = "yes")
