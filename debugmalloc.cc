@@ -3260,7 +3260,7 @@ marker_ct::~marker_ct()
   Dout( dc_malloc, "Removing libcwd::marker_ct at " << this << " (" << description.get() << ')' );
   if (marker_alloc_node->next_list())
   {
-    dm_alloc_copy_ct* list;
+    dm_alloc_copy_ct* list = NULL; // Initialize to avoid 'may be used uninitialized' compiler warning.
     bool memory_leak;
 #if LIBCWD_THREAD_SAFE
     LIBCWD_DEFER_CLEANUP_PUSH(&mutex_tct<list_allocations_instance>::cleanup, NULL);

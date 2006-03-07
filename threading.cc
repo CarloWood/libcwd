@@ -106,7 +106,7 @@ static TSD_st* find_static_tsd(pthread_t tid)
 static TSD_st* allocate_static_tsd(void)
 {
   int oldest_terminating = INT_MAX;
-  size_t oldest_terminating_index;
+  size_t oldest_terminating_index = 0;	// Initialize to avoid 'may be used uninitialized' compiler warning.
   for (size_t i = 0; i < sizeof(static_tsd_array)/sizeof(static_tsd_array[0]); ++i)
     if (static_tsd_array[i].tid == 0)
       return &static_tsd_array[i];

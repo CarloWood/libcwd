@@ -1883,7 +1883,7 @@ void allocator_unlock(void)
               )
 	  {
 #if CWDEBUG_ALLOC
-	    int saved_internal;
+	    int saved_internal = 0;	// To avoid 'may be used uninitialized' compiler warning.
 	    bool is_internal = __libcwd_tsd.internal;
 	    if (is_internal)
 	      saved_internal = _private_::set_library_call_on(LIBCWD_TSD);	// flush is a library call.
