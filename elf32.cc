@@ -3198,7 +3198,7 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 #endif
   bool need_old_reinsert = false;
   bool need_restore = false;
-  range_st save_old_range;
+  range_st save_old_range = { 0, 0 };	// Avoid compiler warning.
 #if DEBUGSTABS || DEBUGDWARF
   _private_::set_alloc_checking_on(LIBCWD_TSD);
 #endif
