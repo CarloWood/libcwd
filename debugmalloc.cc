@@ -4108,7 +4108,7 @@ int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
 #endif
 #endif
-#if CWDEBUG_DEBUGOUTPUT
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
   ++__libcwd_tsd.inside_malloc_or_free;
@@ -4145,7 +4145,7 @@ void* __libcwd_memalign(size_t alignment, size_t size)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
 #endif
 #endif
-#if CWDEBUG_DEBUGOUTPUT
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
   ++__libcwd_tsd.inside_malloc_or_free;
@@ -4173,7 +4173,7 @@ void* __libcwd_valloc(size_t size)
   LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
 #endif
 #endif
-#if CWDEBUG_DEBUGOUTPUT
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
   int saved_marker = ++__libcwd_tsd.marker;
 #endif
   ++__libcwd_tsd.inside_malloc_or_free;
