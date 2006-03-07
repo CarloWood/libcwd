@@ -4515,7 +4515,7 @@ void const* cwdebug_watch(void const* ptr)
   _private_::set_invisible_on(LIBCWD_TSD);
   memblk_info_base_ct memblk_info_dummy;
   alloc_ct const* alloc = find_memblk_info(memblk_info_dummy, true, ptr LIBCWD_COMMA_TSD);
-  void const* start;
+  void const* start = NULL;
   if (!alloc)
     std::cout << ptr << " is not (part of) a dynamic allocation.\n";
   else
