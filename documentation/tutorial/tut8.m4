@@ -9,8 +9,12 @@ __PAGESTART
 For example:</P>
 
 <PRE>
-g++ -pthread -D_REENTRANT -DCWDEBUG program.cc -lpthread -lcwd_r
+g++ -pthread -DLIBCWD_THREAD_SAFE -DCWDEBUG program.cc -lpthread -lcwd_r
 </PRE>
+
+<P>Best practise is to use the tool <CODE>pkg-config</CODE> to retrieve the
+flags that one needs to pass to the compiler and linker. That is, the output
+of <CODE>pkg-config --cflags libcwd_r</CODE> and <CODE>pkg-config --libs libcwd_r</CODE>.</P>
 
 <P>Libcwd_r should be completely thread-safe, with the following restrictions:</P>
 <UL>
@@ -81,7 +85,9 @@ int main(void)
 {
   // Don't output a single character at a time (yuk)
   // (Read <A HREF ="http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8">http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8</A> for an explanation.)
-  std::ios::sync_with_stdio(false);
+  Debug(set_invisible_on());
+  std::ios::sync_with_stdio(false);	// Cause "memory leaks" ([w]cin, [w]cout, [w]cerr filebuf allocations).
+  Debug(set_invisible_off());
   // Do header files and library match?
   Debug( check_configuration() );
   // Send debug output to std::cout.

@@ -55,7 +55,11 @@ void init(void)
   // You want this, unless you mix streams output with C output.
   // Read  http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8 for an explanation.
   // We can't use it, because other code uses printf to write to the console.
-  //std::ios::sync_with_stdio(false);
+#if 0
+  Debug(set_invisible_on());
+  std::ios::sync_with_stdio(false);	// Cause "memory leaks" ([w]cin, [w]cout and [w]cerr filebuf allocations).
+  Debug(set_invisible_off());
+#endif
 
   // This will warn you when you are using header files that do not belong to the
   // shared libcwd object that you linked with.

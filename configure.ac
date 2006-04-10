@@ -6,6 +6,9 @@ dnl General intialization of `autoconf' variables.
 dnl Package name and version
 AC_INIT(libcwd, [0.99.43])
 
+dnl Put resulting configuration defines in this header file.
+AC_CONFIG_HEADERS([config.h])
+
 dnl Version info
 dnl
 dnl INTERFACE_VERSION		: Current interface version, increment whenever the interface is changed.
@@ -27,9 +30,6 @@ m4_pattern_allow(CW_)
 
 dnl Include maintainer mode targets
 AM_MAINTAINER_MODE
-
-dnl Put resulting configuration defines in this header file.
-AM_CONFIG_HEADER(config.h)
 
 dnl Demand at least version 2.57 of autoconf.
 AC_PREREQ(2.57)
