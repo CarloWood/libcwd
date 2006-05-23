@@ -46,6 +46,10 @@ libcwd-0.99.44
 	The real size will likely be larger because of the
 	alignment constrains.
 
+	Libcwd now uses cwautomacros: in order to build it
+	from CVS you need to download and install cwautomacros
+	from http://cwautomacros.berlios.de/
+
 	Bug fixes:
 
 	BlockList::uninitialize() accessed a struct that it just
@@ -53,6 +57,11 @@ libcwd-0.99.44
 	this bug wasn't too serious, because this function is
 	only called as part of the global deinitialization
 	of the application, after leaving main or calling exit.
+
+        Calling dlopen for a library that is already linked
+	the normal way would terminate the program (thinking
+	two different shared libraries overlapped). Libcwd now
+	properly 'ignores' such load attempts.
 
 libcwd-0.99.43
 

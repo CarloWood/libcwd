@@ -285,9 +285,9 @@ void bfd_close(bfd* abfd)
       }
 
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-      void bfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
+      bool bfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc), bool is_libstdcpp LIBCWD_COMMA_TSD_PARAM)
 #else
-      void bfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
+      bool bfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 #endif
       {
 #if CWDEBUG_DEBUGM
@@ -339,7 +339,7 @@ void bfd_close(bfd* abfd)
 	  bfd_close(M_abfd);
 	  M_abfd = NULL;
 	  M_number_of_symbols = 0;
-	  return;
+	  return false;
 	}
 
 	long storage_needed = bfd_get_symtab_upper_bound(M_abfd);
@@ -353,7 +353,7 @@ void bfd_close(bfd* abfd)
 	  bfd_close(M_abfd);
 	  M_abfd = NULL;
 	  M_number_of_symbols = 0;
-	  return;
+	  return false;
 	}
 #endif
 
@@ -530,7 +530,7 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = 1;
 #endif
-		return;
+		return false;
 	      }
 	      M_lbase = best_start;
 	    }
@@ -679,6 +679,7 @@ void bfd_close(bfd* abfd)
 #endif
 	}
 
+	bool already_exists = false;
 	if (M_number_of_symbols > 0)
 	{
 #if CWDEBUG_ALLOC
@@ -694,6 +695,13 @@ void bfd_close(bfd* abfd)
 	        (size_t)(*iter)->get_start() + (*iter)->size() > (size_t)get_start();
 	    if (shared_libraries_overlap)
 	    {
+              if ((*iter)->get_start() == get_start())
+              {
+                LIBCWD_ASSERT((*iter)->size() == size());
+                Dout(dc::bfd, "Already loaded as \"" << (*iter)->get_object_file()->filepath() << "\"");
+                already_exists = true;
+                break;
+              }
 	      Dout(dc::bfd, "It collides with \"" << (*iter)->get_object_file()->filepath() << "\", load address " <<
 		  (*iter)->get_lbase() << ", start " << (*iter)->get_start() << " and end " <<
 		  (void*)((size_t)(*iter)->get_start() + (*iter)->size()));
@@ -730,9 +738,23 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 	  __libcwd_tsd.internal = 1;
 #endif
-	  NEEDS_WRITE_LOCK_object_files().push_back(this);
+          if (!already_exists)
+	    NEEDS_WRITE_LOCK_object_files().push_back(this);
         }
 	BFD_RELEASE_WRITE_LOCK;
+        if (already_exists)
+	{
+	  free(M_symbol_table);
+	  M_symbol_table  = NULL;
+	  if (M_abfd)
+	  {
+	    bfd_close(M_abfd);
+	    M_abfd = NULL;
+	  }
+	  M_number_of_symbols = 0;
+	  return true;
+	}
+        return false;
       }
 
       void bfile_ct::deinitialize(LIBCWD_TSD_PARAM)
@@ -1114,19 +1136,21 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 	bool is_libc = (strncmp("libc.so", slash + 1, 7) == 0);
 #endif
+        bool already_exists;
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
 	set_alloc_checking_off(LIBCWD_TSD);
 	object_file = new bfile_ct(name, l_addr);
 	BFD_RELEASE_WRITE_LOCK;
+	already_exists =
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-	object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
+	    object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
 #else
-	object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
+	    object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
 #endif
 	set_alloc_checking_on(LIBCWD_TSD);
 	LIBCWD_RESTORE_CANCEL;
-	if (object_file->get_number_of_symbols() > 0)
+	if (!already_exists && object_file->get_number_of_symbols() > 0)
 	{
 	  Dout(dc::finish, "done (" << std::dec << object_file->get_number_of_symbols() << " symbols)");
 #ifdef LIBCWD_DEBUGBFD
@@ -1135,8 +1159,13 @@ void bfd_close(bfd* abfd)
 	}
 	else
 	{
-	  Dout(dc::finish, "No symbols found");
-	  object_file->deinitialize(LIBCWD_TSD);
+	  if (already_exists)
+	    Dout(dc::finish, "Already loaded");
+	  else
+	  {
+	    Dout(dc::finish, "No symbols found");
+	    object_file->deinitialize(LIBCWD_TSD);
+	  }
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  delete object_file;
 	  set_alloc_checking_on(LIBCWD_TSD);
