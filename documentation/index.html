@@ -86,18 +86,16 @@ information and demangled type names.
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
 <DT><B>23 May 2006</B>
 <P class="news">libcwd-0.99.44 is released.&nbsp;
-Anyway, this release implements the possibility of 'redzones': you
+This release implements the possibility of 'redzones': you
 can configure libcwd, using --with-redzone=x (in bytes), and it will
 add (at least) x bytes above and below every allocation. See the NEWS
-file for more info. This has been quite a while in CVS, but now
-also as tar ball.
-
-People who build libcwd from CVS (and therefore need to run autogen.sh)
+file in the release for more info. This has been quite a while in CVS,
+now also released as tar ball.</P>
+<P class="news">People who build libcwd from CVS (and therefore need to run autogen.sh)
 be aware: my autoconf macros are now put in a separate project called
-cwautomacros (I use them for many different projects). You will need
-to download and install cwautomacros too.
-
-Two bugs have been fixed: one that could cause a core dump during
+cwautomacros (I use them for multiple projects). You will need
+to download and install cwautomacros before you can configure libcwd.</P>
+<P class="news">Two bugs have been fixed: one that could cause a core dump during
 global deinitialization (when the application terminates) and one
 that could cause a COREDUMP for a self-"collision" of a shared
 library at start up, namely when one tried to dlopen a library is
