@@ -55,6 +55,9 @@ struct rtld_global {
 #ifdef LIBCWD_DEBUGBFD
 #include <iomanip>
 #endif
+#if CWDEBUG_ALLOC
+#include <elf.h>		// Elf32_Off
+#endif
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
 #include "exec_prog.h"
