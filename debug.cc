@@ -1205,7 +1205,17 @@ void allocator_unlock(void)
 	char const* error_text = strerror(current->err);
 #else // LIBCWD_THREAD_SAFE
 	char error_text_buf[512];
-	char const* error_text = strerror_r(current->err, error_text_buf, sizeof(error_text_buf));
+	char const* error_text;
+	if (strerror_r(current->err, error_text_buf, sizeof(error_text_buf)) == -1)
+	{
+	  if (errno == ERANGE)
+	    error_text = "<libcwd: Oops, error text longer than 512 characters>";
+	  else
+	    error_text = "Unknown Error";
+
+	}
+        else
+	  error_text = error_text_buf;
 #endif
 #if CWDEBUG_ALLOC
 	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
