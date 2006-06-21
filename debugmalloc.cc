@@ -168,7 +168,11 @@
 #include <cstdlib>
 #endif
 #if defined(HAVE_MEMALIGN) || defined(HAVE_VALLOC)
+#ifdef HAVE_MALLOC_H
 #include <malloc.h>
+#elif defined(HAVE_UNISTD_H)
+#include <unistd.h>		// This is what is needed for valloc(3) on FreeBSD.
+#endif
 #endif
 
 #if LIBCWD_THREAD_SAFE
@@ -1459,11 +1463,12 @@ unsigned long dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int dept
     {
       ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);		// localtime() can allocate memory, don't show it.
       _private_::set_invisible_on(LIBCWD_TSD);
+      time_t tv_sec = alloc->a_time.tv_sec;		// On some OS, tv_sec is long.
 #if LIBCWD_THREAD_SAFE
       struct tm tbuf;
-      tbuf_ptr = localtime_r(&alloc->a_time.tv_sec, &tbuf);
+      tbuf_ptr = localtime_r(&tv_sec, &tbuf);
 #else
-      tbuf_ptr = localtime(&alloc->a_time.tv_sec);
+      tbuf_ptr = localtime(&tv_sec);
 #endif
       _private_::set_invisible_off(LIBCWD_TSD);
       --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
@@ -4590,11 +4595,12 @@ int cwdebug_alloc(void const* ptr)
 #endif
     struct tm* tbuf_ptr;
     struct timeval const& a_time(alloc->time());
+    time_t tv_sec = a_time.tv_sec;			// On some OS, tv_sec is long.
 #if LIBCWD_THREAD_SAFE
     struct tm tbuf;
-    tbuf_ptr = localtime_r(&a_time.tv_sec, &tbuf);
+    tbuf_ptr = localtime_r(&tv_sec, &tbuf);
 #else
-    tbuf_ptr = localtime(&a_time.tv_sec);
+    tbuf_ptr = localtime(&tv_sec);
 #endif
     char prev_fill = std::cout.fill('0');
     std::cout << "       when: ";
