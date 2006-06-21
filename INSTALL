@@ -35,10 +35,10 @@ http://www.gnu.org/order/ftp.html
 Packages/versions needed
 ------------------------
 
-i) The GNU compiler, version 3.2 or higher.
+i) The GNU compiler, version 3.3 or higher.
 
     Location: gnu/gcc/
-    Current version: 4.0.2
+    Current version: 4.1.1
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -49,7 +49,7 @@ the source tree of gcc/g++.  Please try to upgrade your
 compiler the usual way if needed.
 If you are using rpm's then you will need to
 install/upgrade the following:
-    gcc (3.2 or higher),
+    gcc (3.3 or higher),
     gcc-c++ (of same version),
     libstdc++ (of same version) and
     cpp (of same version).
@@ -66,8 +66,8 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.44 was tested with gcc-3.3, gcc-3.3.5, gcc-3.4.0
-gcc-3.4.1, gcc-3.4.4, gcc-4.0.0, gcc-4.0.1, gcc-4.0.2 and
+libcwd-0.99.45 was tested with gcc-3.3, gcc-3.3.5, gcc-3.4.0
+gcc-3.4.1, gcc-3.4.4, gcc-4.0.0, gcc-4.0.3, gcc-4.1.0, gcc-4.1.1 and
 gcc version 4.1.0 20051026 (experimental)
 
 Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,

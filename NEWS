@@ -1,3 +1,9 @@
+libcwd-0.99.45
+
+	Bug fixes:
+
+	Several compile bug fixes for FreeBSD.
+
 libcwd-0.99.44
 
 	Allocated memory (operator new/new[], malloc/calloc/realloc)
