@@ -167,12 +167,11 @@
 #endif
 #include <cstdlib>
 #endif
-#if defined(HAVE_MEMALIGN) || defined(HAVE_VALLOC)
-#ifdef HAVE_MALLOC_H
+#if HAVE_MALLOC_H && (defined(HAVE_MEMALIGN) || defined(HAVE_VALLOC))
 #include <malloc.h>
-#elif defined(HAVE_UNISTD_H)
-#include <unistd.h>		// This is what is needed for valloc(3) on FreeBSD.
 #endif
+#if defined(HAVE_UNISTD_H) && defined(HAVE_VALLOC)
+#include <unistd.h>		// This is what is needed for valloc(3) on FreeBSD. Also needed for sysconf.
 #endif
 
 #if LIBCWD_THREAD_SAFE
