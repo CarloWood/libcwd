@@ -96,8 +96,8 @@ $(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer 
 	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> $(srcdir)/example-project/debug.h; \
 	fi
 
-#		'--enable-maintainer-mode --compilers=4.1.1,4.1.0,4.0.3,4.0.0,3.4.4,3.4.1,3.4.0,3.2.3,3.2.0,3.1.0,3.1.1,3.0.4' \
-#		'--enable-maintainer-mode --disable-pch --compilers=4.1.0,4.0.0,3.4.0,3.2.0' \
+#		'--enable-maintainer-mode --compilers=4.1.1,4.1.0,4.0.3,4.0.0,3.4.4,3.4.1,3.4.0,3.2.3,3.2,3.1.0,3.1.1,3.0.4' \
+#		'--enable-maintainer-mode --disable-pch --compilers=4.1.0,4.0.0,3.4.0,3.2' \
 # 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=4.1.1,4.0.3,3.4.4,3.2.3' \
 # 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=4.1.1,4.0.3,3.4.4,3.2.3' \
 # 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=4.1.1,4.0.3,3.4.4,3.2.3' \
@@ -109,8 +109,8 @@ $(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer 
 full-check: Makefile
 	@( \
 	  for c in \
-		'--enable-maintainer-mode --compilers=4.1.1,4.1.0,4.0.3,4.0.0,3.4.4,3.4.1,3.4.0,3.2.3,3.2.0,3.1.0,3.1.1,3.0.4' \
-		'--enable-maintainer-mode --disable-pch --compilers=4.1.0,4.0.0,3.4.0,3.2.0' \
+		'--enable-maintainer-mode --compilers=3.2,3.1.0,3.1.1,3.0.4' \
+		'--enable-maintainer-mode --disable-pch --compilers=4.1.0,4.0.0,3.4.0,3.2' \
  	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=4.1.1,4.0.3,3.4.4,3.2.3' \
  		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=4.1.1,4.0.3,3.4.4,3.2.3' \
  	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=4.1.1,4.0.3,3.4.4,3.2.3' \

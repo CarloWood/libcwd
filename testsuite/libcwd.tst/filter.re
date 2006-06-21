@@ -1,9 +1,13 @@
 // input lines 4
-// output till ^MALLOC
+// output till ^(MALLOC|WARNING :  )
 (WARNING : core size is limited.*
 )*((WARNING : Object file .* does not have debug info\..*
 )*(BFD     : Loading debug.*
 )*)*
+// input lines 2
+// output till ^MALLOC
+(WARNING :     Object file /lib/libc\.so\.6 does not have debug info.*
+)*
 // type regexp
 MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
           0x[a-f0-9]* tst_filter_(static|shared):/.*/testsuite/libcwd\.tst/filter\.cc:54   (std::|__gnu_norm::|)vector<int, (std::|)allocator<int> >; \(sz = 12\)  filter\.cc

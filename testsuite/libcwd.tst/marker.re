@@ -5,6 +5,10 @@
 )*)
 MALLOC  : operator new \(size = 12\) = 0x[0-9a-f]* \[marker\.cc:54\]
 MALLOC  : operator new \(size = 8\) = 0x[0-9a-f]* \[marker\.cc:59\]
+// input lines 2
+// output till ^MALLOC
+(WARNING :     Object file /lib/libc\.so\.6 does not have debug info.*
+)*
 MALLOC  : New libcwd::marker_ct at 0x[0-9a-f]*
 MALLOC  : operator new\[\] \(size = 120\) = 0x[0-9a-f]* \[marker\.cc:63\]
 MALLOC  : operator new\[\] \(size = 120\) = 0x[0-9a-f]* \[marker\.cc:65\]

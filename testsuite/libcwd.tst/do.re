@@ -1,8 +1,12 @@
 // input lines 3
-// output till ^NOTICE
+// output till ^(NOTICE|WARNING :  )
 ((WARNING : core size is limited.*
 )*(BFD     : Loading debug .*
 )*)
+// input lines 2
+// output till ^NOTICE
+(WARNING :     Object file /lib/libc\.so\.6 does not have debug info.*
+)*
 // type exact
 NOTICE  : Dout Turned on 1
 DEBUG   : Dout Turned on 2

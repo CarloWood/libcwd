@@ -2,7 +2,12 @@
 // output till Loading debug symbols from .*module\.so
 (.*
 )*
-BFD     : Loading debug symbols from .*module\.so \(0x[a-f0-9]*\) \.\.\. <unfinished>
+// input lines 4
+// output till Adding ".*module\.so"
+(BFD     : Loading debug symbols from .*module\.so \((<unfinished>
+WARNING :     Object file /lib/libc\.so\.6 does not have debug info.*
+BFD     : <continued> )*0x[a-f0-9]*\) \.\.\. <unfinished>
+)
 BFD     :     Adding ".*module\.so", load address 0x[a-f0-9]*000, start 0x[a-f0-9]* and end 0x[a-f0-9]*
 BFD     : <continued> done \([0-9]* symbols\)
 // input lines 2

@@ -5,6 +5,10 @@
 )*)
 WARNING : Ok
 // input lines 2
+// output till ^(q|BFD)
+(WARNING : Object file /lib/libc\.so\.6 does not have debug info.*
+)*
+// input lines 2
 // output till ^q
 (BFD     : Loading debug info from .*/threads_keys_s.....\.\.\. done
 )*
