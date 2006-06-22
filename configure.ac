@@ -4,7 +4,7 @@ AC_REVISION($Revision$)dnl
 dnl General intialization of `autoconf' variables.
 
 dnl Package name and version
-AC_INIT(libcwd, [0.99.44])
+AC_INIT(libcwd, [0.99.45])
 
 dnl Put resulting configuration defines in this header file.
 AC_CONFIG_HEADERS([config.h])
@@ -16,7 +16,7 @@ dnl INTERFACE_VERSION_REVISION	: Revision, increment every public release; or se
 dnl INTERFACE_AGE		: Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
 INTERFACE_VERSION=99		dnl 0.99 actually
-INTERFACE_VERSION_REVISION=44
+INTERFACE_VERSION_REVISION=45
 INTERFACE_AGE=99		dnl 0.99 actually
 
 dnl Ensure that the directory specified with --srcdir was correct
@@ -158,8 +158,8 @@ if test -n "$CC"; then
 fi
 AC_PROG_CC
 AC_PROG_CXX
-CW_PROG_CXX
-CW_PROG_CXXCPP
+AC_PROG_CXX
+AC_PROG_CXXCPP
 
 dnl Set WARNOPTS, DEBUGOPTS and EXTRAOPTS to suitable start values.
 CW_DO_OPTIONS
