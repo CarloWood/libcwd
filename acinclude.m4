@@ -63,20 +63,6 @@ ifelse([$4], , , [$4
 fi
 ])
 
-dnl CW_BUG_REDEFINES_INITIALIZATION
-dnl
-AC_DEFUN([CW_BUG_REDEFINES_INITIALIZATION],
-CW_REDEFINES_FIX=
-dnl We don't want automake to put this in Makefile.in
-[AC_SUBST](CW_REDEFINES_FIX))
-
-dnl CW_DEFINE_TYPE_INITIALIZATION
-dnl
-AC_DEFUN([CW_DEFINE_TYPE_INITIALIZATION],
-CW_TYPEDEFS=
-dnl We don't want automake to put this in Makefile.in
-[AC_SUBST](CW_TYPEDEFS))
-
 dnl CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
 dnl
 dnl Determines the size of a call, in other words: what needs to be substracted
