@@ -33,3 +33,4 @@ autom4te*.cache
 ChangeLog
 libcwd.pc
 libcwd_r.pc
+libtoolm4
