@@ -15,7 +15,7 @@
 #include <libcwd/debug.h>
 #include <iostream>
 
-#if !RECURSIVE_BUILTIN_RETURN_ADDRESS
+#if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
 static void* return_address[6];
 #define store_call_address(i) return_address[i] = __builtin_return_address(0)
 #define START _start
@@ -49,7 +49,7 @@ void libcwd_bfd_test3(void)
     
     switch (i)
     {
-#if RECURSIVE_BUILTIN_RETURN_ADDRESS
+#if CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
       case 1:
         retadr = __builtin_return_address(1);
 	break;
@@ -104,7 +104,7 @@ void libcwd_bfd_test3(void)
  
 void libcwd_bfd_test2(void)
 {
-#if !RECURSIVE_BUILTIN_RETURN_ADDRESS
+#if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(1);
 #endif
   libcwd_bfd_test3();
@@ -112,7 +112,7 @@ void libcwd_bfd_test2(void)
 
 void libcwd_bfd_test1(void)
 {
-#if !RECURSIVE_BUILTIN_RETURN_ADDRESS
+#if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(2);
 #endif
   libcwd_bfd_test2();
@@ -120,7 +120,7 @@ void libcwd_bfd_test1(void)
 
 void libcwd_bfd_test(void)
 {
-#if !RECURSIVE_BUILTIN_RETURN_ADDRESS
+#if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(3);
 #endif
   libcwd_bfd_test1();
@@ -156,7 +156,7 @@ MAIN_FUNCTION
 #endif
 
   // Run test
-#if !RECURSIVE_BUILTIN_RETURN_ADDRESS
+#if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(4);
 #endif
   libcwd_bfd_test();

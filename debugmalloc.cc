@@ -2603,7 +2603,7 @@ void init_malloc_function_pointers(void)
     libc_free_final = libc_free_tmp;
 }
 
-// Very first time that malloc(2) or calloc(2) are called; initialize the function pointers.
+// Very first time that malloc(3) or calloc(3) are called; initialize the function pointers.
 
 void* malloc_bootstrap1(size_t size)
 {

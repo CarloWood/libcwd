@@ -496,7 +496,7 @@ dnl Check for structures.
 
 dnl Check for compiler/system characteristics.
 CW_BUG_REDEFINES([sys/resource.h])
-CW_MALLOC_OVERHEAD
+CW_SYS_MALLOC_OVERHEAD
 CW_BUG_G_CONFIG_H
 CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS
 CW_SYS_FRAME_ADDRESS_OFFSET

@@ -27,9 +27,9 @@ namespace libcwd {
 
 // Maximum overhead needed for non-internal allocations.
 #if CWDEBUG_MAGIC
-static size_t const malloc_overhead_c = sizeof(prezone) + sizeof(size_t) - 1 + sizeof(postzone) + LIBCWD_MALLOC_OVERHEAD;
+static size_t const malloc_overhead_c = sizeof(prezone) + sizeof(size_t) - 1 + sizeof(postzone) + CW_MALLOC_OVERHEAD;
 #else
-static size_t const malloc_overhead_c = LIBCWD_MALLOC_OVERHEAD;
+static size_t const malloc_overhead_c = CW_MALLOC_OVERHEAD;
 #endif
 
 // The minimum size we allocate: two or three page sizes minus the (maximum) malloc

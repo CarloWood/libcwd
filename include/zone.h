@@ -17,7 +17,7 @@
 #if CWDEBUG_MAGIC
 
 // The size of the 'prezone' struct must be a multiple of 8 bytes, because it's
-// size will be added to the value returned by malloc(2) -- and programs might
+// size will be added to the value returned by malloc(3) -- and programs might
 // depend on the fact that glibc's malloc returns memory aligned to 8 bytes.
 //
 // In the case of a minor underflow (assuming that contigious memory corruption

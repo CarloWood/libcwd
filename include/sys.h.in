@@ -37,14 +37,14 @@
 // getgroups_t          : The type of the array argument to getgroups
 //
 #include <sys/types.h>		// Needed for getgroups_t.
-@CW_TYPEDEFS@
+@CW_SYS_TYPEDEFS@
 
 // Bug work arounds
  
 // Including certain header files fail with a warning.  For example:
 // /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
 // Word around (if any):
-@CW_REDEFINES_FIX@
+@CW_SYS_REDEFINES_FIX@
 
 #ifdef HAVE__G_CONFIG_H
 // This is to avoid warnings like:

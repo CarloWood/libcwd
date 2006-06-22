@@ -1488,13 +1488,13 @@ typedef location_ct bfd_location_ct;
         // We get here when we are writing debug output (and therefore set the lock)
 	// and the streambuf of the related ostream overflows, this use basic_string
 	// which uses the pool allocator which might just at that moment also run
-	// out of memory and therefore call malloc(2).  And when THAT happens for the
+	// out of memory and therefore call malloc(3).  And when THAT happens for the
 	// first time, so the location from which that is called is not yet in the
 	// location cache... then we get here.
 	// We cannot obtain the object_files_instance lock now because another thread
-	// might have obtained that already when calling malloc(2), doing a location
+	// might have obtained that already when calling malloc(3), doing a location
 	// lookup for that and then realizing that no debug info was read yet for
-	// the library that did that malloc(2) call and therefore wanting to print
+	// the library that did that malloc(3) call and therefore wanting to print
 	// debug output (Loading debug info from...) causing a dead-lock.
 	M_object_file = NULL;
 	M_func = S_pre_libcwd_initialization_c;	// Not really true, but this hardly ever happens in the first place.

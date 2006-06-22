@@ -1413,7 +1413,7 @@ libcwd-0.99.10
 	Instead of using this you should really upgrade your libc.  If you use
 	linux this most likely is not of concern to you.
 
-	[ strdup(3) and wcsdup(3) are now treated like malloc(2), which means
+	[ strdup(3) and wcsdup(3) are now treated like malloc(3), which means
 	  that they are macros.  The default AllocTag used is "strdup()" and
 	  "wcsdup()" respectively, but one can easily override that.  For
 	  example:
