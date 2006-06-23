@@ -241,12 +241,21 @@ dnl otherwise a call to dlopen() will destruct all global
 dnl objects and might cause a segfault in libcwd, for which
 dnl we don't want to get the blame.
 AC_DEFUN([CW_ATEXITTEST],
-[AC_CACHE_CHECK([if the compiler was configured for __cxa_atexit], cw_cv_cxa_atexit,
-[if $CXX -v 2>&1 >/dev/null | grep -- '--enable-__cxa_atexit' >/dev/null; then
-  cw_cv_cxa_atexit=yes
-else
-  cw_cv_cxa_atexit=no
-fi])
+[AC_CHECK_FUNCS([__cxa_atexit])
+if test $ac_cv_func___cxa_atexit = "yes"; then
+AC_CACHE_CHECK([if the compiler was configured for __cxa_atexit], cw_cv_cxa_atexit,
+[cw_cv_cxa_atexit=yes	# By default, don't fail this test.
+# We only need --enable-__cxa_atexit when the function exists on this OS.
+AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+AC_TRY_RUN([static int y;
+struct Foo { Foo() { y = 0; } ~Foo() { } } x;
+extern "C" void __cxa_atexit() { y = 1; }
+int main() { return y ? 0 : 1; }],
+  cw_cv_cxa_atexit=yes,
+  cw_cv_cxa_atexit=no,
+  cw_cv_cxa_atexit=whatever)
+AC_LANG_RESTORE])
 if test "$cw_cv_cxa_atexit" = no; then
 dnl Without --enable-__cxa_atexit a call to dlclose() for
 dnl any shared library will cause ALL shared libraries to
@@ -259,6 +268,7 @@ AC_MSG_ERROR([
 * You need to fix this; reconfigure and recompile your compiler.
 * See also http://gcc.gnu.org/gcc-3.2/c++-abi.html
 ])
+fi
 fi
 ])
 
