@@ -167,7 +167,7 @@
 #endif
 #include <cstdlib>
 #endif
-#if HAVE_MALLOC_H && (defined(HAVE_MEMALIGN) || defined(HAVE_VALLOC))
+#if defined(HAVE_MALLOC_H) && (defined(HAVE_MEMALIGN) || defined(HAVE_VALLOC))
 #include <malloc.h>
 #endif
 #if defined(HAVE_UNISTD_H) && defined(HAVE_VALLOC)
