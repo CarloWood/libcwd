@@ -187,9 +187,12 @@ inline void list_allocations_on(debug_ct&) { }
 #include <cstdlib>
 #define posix_memalign __libcwd_posix_memalign
 #endif
-#if defined(LIBCWD_HAVE_MEMALIGN) || defined(LIBCWD_HAVE_VALLOC)
 // Include this header before defining the macro 'memalign' or 'valloc'.
+#if defined(HAVE_MALLOC_H) && (defined(HAVE_MEMALIGN) || defined(HAVE_VALLOC))
 #include <malloc.h>
+#endif
+#if defined(HAVE_UNISTD_H) && defined(HAVE_VALLOC)
+#include <unistd.h>		// This is what is needed for valloc(3) on FreeBSD. Also needed for sysconf.
 #endif
 #ifdef LIBCWD_HAVE_MEMALIGN
 #define memalign __libcwd_memalign
