@@ -143,9 +143,11 @@ libtw::debug::alloc_filter_ct leak_filter(libtw::debug::show_time);
 #define MAIN_FUNCTION void* demangler_prog(void*)
 #include "../libcwd.tst/demangler.cc"
 
+#ifdef HAVE_DLOPEN
 #undef MAIN_FUNCTION
 #define MAIN_FUNCTION void* dlopen_prog(void*)
 #include "../libcwd.tst/dlopen.cc"
+#endif
 
 #undef MAIN_FUNCTION
 #define MAIN_FUNCTION void* do_prog(void*)
@@ -196,7 +198,9 @@ thread_func_t progs[] = {
     //continued_prog,
     dc_prog,
     demangler_prog,
+#ifdef HAVE_DLOPEN
     dlopen_prog,
+#endif
     do_prog,
     flush_prog,
     leak_prog,

@@ -4150,7 +4150,7 @@ int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size)
 #endif // HAVE_POSIX_MEMALIGN
 
 #ifdef HAVE_MEMALIGN
-void* __libcwd_memalign(size_t alignment, size_t size)
+void* __libcwd_memalign(size_t alignment, size_t size) throw()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
