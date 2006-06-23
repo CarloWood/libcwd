@@ -342,13 +342,13 @@ void* __libc_valloc(size_t size);
 #endif // !HAVE_DLOPEN
 
 #if !USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
-extern "C" void* __libc_malloc(size_t size);
-extern "C" void* __libc_calloc(size_t nmemb, size_t size);
-extern "C" void* __libc_realloc(void* ptr, size_t size);
-extern "C" void __libc_free(void* ptr);
+extern "C" void* __libc_malloc(size_t size) throw() __attribute__((__malloc__));
+extern "C" void* __libc_calloc(size_t nmemb, size_t size) throw() __attribute__((__malloc__));
+extern "C" void* __libc_realloc(void* ptr, size_t size) throw() __attribute__((__malloc__));
+extern "C" void __libc_free(void* ptr) throw();
 #endif
 
-#if VALGRIND
+#if defined(VALGRIND) && VALGRIND
 void* valgrind_malloc(size_t) { return 0; }
 void* valgrind_calloc(size_t, size_t) { return 0; }
 void* valgrind_realloc(void*, size_t) { return 0; }
@@ -3507,8 +3507,9 @@ alloc_ct const* find_alloc(void const* ptr)
 // again in the application will lead to a crash without that it is detected that
 // free(3) was called twice.
 // 
-void register_external_allocation(void const* ptr2, size_t size)
+void register_external_allocation(void const* void_ptr, size_t size)
 {
+  appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
@@ -3523,15 +3524,24 @@ void register_external_allocation(void const* ptr2, size_t size)
   ++__libcwd_tsd.inside_malloc_or_free;
   DoutInternal( dc_malloc, "register_external_allocation(" << PRINT_PTR(ptr2) << ", " << size << ')' );
 
-  if (WST_initialization_state == 0)		// Only true once.
+  // This block is Single Threaded.
+  if (WST_initialization_state == 0)			// Only true once.
   {
+#if CWDEBUG_MAGIC
+    INITREDZONES;
+#endif
     __libcwd_tsd.internal = 1;
+    // MT-safe: There are no threads created yet when we get here.
+#if CWDEBUG_LOCATION
     location_cache_map.MT_unsafe = new location_cache_map_ct;
+#endif
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
     LIBCWD_ASSERT( !_private_::WST_multi_threaded );
 #endif
-    // The memblk_map of the second and later threads are initialized in 'LIBCWD_TSD_DECLARATION' (by calling new_memblk_map()).
-    __libcwd_tsd.memblk_map = new memblk_map_ct;
+#if !LIBCWD_THREAD_SAFE
+    // With threads, memblk_map is initialized in 'LIBCWD_TSD_DECLARATION'.
+    ST_memblk_map = new memblk_map_ct;
+#endif
     WST_initialization_state = -1;
     __libcwd_tsd.internal = 0;
   }
@@ -3597,7 +3607,7 @@ extern "C" {
 // frees a block and updates the internal administration.
 //
 
-void __libcwd_free(void* void_ptr)
+void __libcwd_free(void* void_ptr) throw()
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -3617,7 +3627,7 @@ void __libcwd_free(void* void_ptr)
 // malloc(3) and calloc(3) replacements:
 //
 
-void* __libcwd_malloc(size_t size)
+void* __libcwd_malloc(size_t size) throw()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -3683,7 +3693,7 @@ void* __libcwd_malloc(size_t size)
   return ASSERT_APPBLOCK(ptr2);
 }
 
-void* __libcwd_calloc(size_t nmemb, size_t size)
+void* __libcwd_calloc(size_t nmemb, size_t size) throw()
 {
 #if LIBCWD_THREAD_SAFE && !VALGRIND
   static bool WST_libpthread_initialized = false;
@@ -3809,7 +3819,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size)
 // reallocates a block and updates the internal administration.
 //
 
-void* __libcwd_realloc(void* void_ptr, size_t size)
+void* __libcwd_realloc(void* void_ptr, size_t size) throw()
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
@@ -4168,7 +4178,7 @@ void* __libcwd_memalign(size_t alignment, size_t size)
 #endif // HAVE_MEMALIGN
 
 #ifdef HAVE_VALLOC
-void* __libcwd_valloc(size_t size)
+void* __libcwd_valloc(size_t size) throw()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
