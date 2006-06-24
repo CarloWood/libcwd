@@ -64,14 +64,16 @@ struct rtld_global {
 #include "match.h"
 #include <libcwd/class_object_file.h>
 #if CWDEBUG_LIBBFD
-#if defined(BFD64) && !BFD_HOST_64BIT_LONG &&
-    ((defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)) ||
+#if defined(BFD64) && !BFD_HOST_64BIT_LONG && \
+    ((defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)) || \
      (defined(__GLIBCXX__) && !defined(_GLIBCXX_USE_LONG_LONG)))
 // libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
 // for `long long'.  If you run into this error (and you insist on using libbfd) then either recompile
 // libstdc++ with support for `long long' or recompile libbfd without 64bit support.
 #error "Incompatible libbfd and libstdc++ (see comments in source code)."
 #endif
+#include <libcwd/cwprint.h>
+#include "environment.h"
 #else // !CWDEBUG_LIBBFD
 #include "elf32.h"
 #endif // !CWDEBUG_LIBBFD
@@ -305,7 +307,7 @@ void bfd_close(bfd* abfd)
 	M_abfd = bfd_openr(filename, NULL);
 	if (!M_abfd)
 	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
-	M_abfd->cacheable = bfd_tttrue;
+	M_abfd->cacheable = TRUE;
 #else
 	M_abfd = bfd::openr(filename);
 	M_abfd->M_s_end_offset = 0;
@@ -1570,7 +1572,7 @@ typedef location_ct bfd_location_ct;
 	set_alloc_checking_off(LIBCWD_TSD);
 #if CWDEBUG_LIBBFD
 	bfd_find_nearest_line(abfd, const_cast<asection*>(sect), const_cast<asymbol**>(object_file->get_symbol_table()),
-	    (char*)addr - (char*)object_file->get_lbase() - sect->offset, &file, &M_func, &M_line);
+	    (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line);
 #else
         abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line LIBCWD_COMMA_TSD);
 #endif

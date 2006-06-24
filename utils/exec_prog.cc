@@ -23,6 +23,7 @@
 #include <signal.h>		// Needed for kill(2) and SIGKILL
 #include "exec_prog.h"
 #include "cwd_debug.h"
+#include "environment.h"
 #include <libcwd/buf2str.h>
 #include <libcwd/cwprint.h>
 #include <libcwd/private_assert.h>
@@ -34,14 +35,6 @@
 namespace libcwd {
 
 namespace {
-  class environment_ct {
-  private:
-    char const* const* __envp;
-  public:
-    environment_ct(char const* const envp[]) : __envp(envp) { }
-    void print_on(std::ostream& os) const;
-  };
-
   class argv_ct {
   private:
     char const* const* __argv;
@@ -434,19 +427,6 @@ namespace {		// Implementation of local functions
     char const* const* p = __argv;
     while(*p)
       os << *p++ << ", ";
-    os << "NULL ]";
-  }
-
-  // {anonymous}::
-  void environment_ct::print_on(std::ostream& os) const
-  {
-    os << "[ ";
-    char const* const* p = __envp;
-    while(*p)
-    {
-      os << '"' << buf2str(*p, strlen(*p)) << "\", ";
-      ++p;
-    }
     os << "NULL ]";
   }
 

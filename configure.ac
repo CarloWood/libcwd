@@ -389,6 +389,8 @@ if test "$libcwd_config_bfd" = yes; then
 * ELF32 system lookup of function names and source:line information will
 * still work anyway.
 ])])
+    dnl Only check for this header when using libbfd. It will cause a bug workaround in sys.h
+    AC_CHECK_HEADERS(ansidecl.h)
   else
     AC_MSG_ERROR([
 

@@ -1604,7 +1604,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	  DoutElf32(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
         }
 	new_symbol->bfd_ptr = this;
-	new_symbol->udata.p = symbol.st_size;
+	new_symbol->udata.i = symbol.st_size;
 	new_symbol->flags = 0;
 	switch(symbol.bind())
 	{

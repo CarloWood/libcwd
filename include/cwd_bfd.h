@@ -40,6 +40,9 @@
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #include <libcwd/private_mutex_instances.h>
 #endif
+#if CWDEBUG_LIBBFD
+#include <bfd.h>
+#endif
 
 #if LIBCWD_THREAD_SAFE
 using libcwd::_private_::rwlock_tct;
@@ -180,6 +183,7 @@ NEEDS_WRITE_LOCK_object_files(void)
 inline asection const* bfd_get_section(asymbol const* s) { return s->section; }
 inline bfd*& bfd_asymbol_bfd(asymbol* s) { return s->bfd_ptr; }
 inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
+#endif
 
 #ifdef PTR
       typedef const PTR addr_const_ptr_t;       // Warning: PTR is a macro, must put `const' in front of it
@@ -197,16 +201,15 @@ symbol_start_addr(asymbol const* s)
 // cwbfd::
 inline size_t symbol_size(asymbol const* s)
 {
-  return static_cast<size_t>(s->udata.p);
+  return static_cast<size_t>(s->udata.i);
 }
 
 // cwbfd::
 inline size_t& symbol_size(asymbol* s)
 {
   // This assumes that sizeof(size_t) == sizeof(unsigned int).
-  return *reinterpret_cast<size_t*>(&s->udata.p);
+  return *reinterpret_cast<size_t*>(&s->udata.i);
 }
-#endif
 
   } // namespace cwbfd
 
