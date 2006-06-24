@@ -2570,8 +2570,6 @@ void* realloc_bootstrap2(void* ptr, size_t size)
   return res;
 }
 
-#undef dlopen
-#undef dlclose
 void init_malloc_function_pointers(void)
 {
   // Point functions to next phase.

@@ -3,6 +3,9 @@ libcwd-0.99.45
 	Bug fixes:
 
 	Several compile bug fixes for FreeBSD.
+	--disable-location was fixed.
+	--enable-libbfd was fixed. However, since libiberty cannot
+	be compiled as shared library -- this hardly helps.
 
 libcwd-0.99.44
 

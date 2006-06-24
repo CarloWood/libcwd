@@ -53,7 +53,7 @@ struct asection_st;
 struct bfd_st;
 
 struct udata_st {
-  size_t p;
+  size_t i;
 };
 
 struct asymbol_st {
