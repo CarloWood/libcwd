@@ -154,7 +154,7 @@ threads_%_shared: threads_%.o $(top_builddir)/.libs/libcwd_r.so.*
 endif
 ifeq ($(enable_nonthreading), yes)
 tst_dlopen_shared: tst_dlopen.o $(top_builddir)/.libs/libcwd.so.* module.so
-	$(CXXLINK) $< -o $@ $(SHAREDLIBS) -ldl
+	$(CXXLINK) $< -o $@ $(SHAREDLIBS) @LIBS@
 
 tst_filter_shared: tst_filter.o $(top_builddir)/.libs/libcwd.so.* module.so
 	$(CXXLINK) $< -o $@ $(SHAREDLIBS)
@@ -177,7 +177,7 @@ threads_%_static: threads_%.o $(top_builddir)/.libs/libcwd_r.a
 endif
 ifeq ($(enable_nonthreading), yes)
 tst_dlopen_static: tst_dlopen_static.o $(top_builddir)/.libs/libcwd.a
-	$(CXXLINK) $< -o $@ $(STATICLIBS) -ldl
+	$(CXXLINK) $< -o $@ $(STATICLIBS) @LIBS@
 
 tst_filter_static: tst_filter_static.o $(top_builddir)/.libs/libcwd.a
 	$(CXXLINK) $< -o $@ $(STATICLIBS)

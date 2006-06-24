@@ -300,14 +300,19 @@ dnl Set language requirements for the tests below.
 AC_LANG_CPLUSPLUS
 AC_REQUIRE_CPP
 
-if test "$libcwd_config_location" = yes; then
+AC_CHECK_FUNCS(__libc_malloc _libc_malloc)
+
+if test "$libcwd_config_location" = yes -o \
+    \("$ac_cv_func___libc_malloc" != yes -a "$ac_cv_func__libc_malloc" != yes\) ; then
 
 dnl Check if we have dlopen in libc or libdl
 AC_CHECK_LIB(c, dlopen, [AC_DEFINE_UNQUOTED(HAVE_DLOPEN, 1, [Defined if dlopen is available.])],
     [AC_CHECK_LIB(dl, dlopen, [LIBS="-ldl $LIBS"; AC_DEFINE_UNQUOTED(HAVE_DLOPEN)])])
 
-CW_CONFIG_LOCATION=1
+fi
 
+if test "$libcwd_config_location" = yes ; then
+  CW_CONFIG_LOCATION=1
 fi
 
 if test "$libcwd_config_bfd" = yes; then
@@ -532,7 +537,7 @@ AC_CACHE_CHECK([for compiler with PCH support],
 AM_CONDITIONAL(BUILD_PCH, test "$cw_cv_prog_CXX_pch" = "yes")
 
 dnl Check for library functions.
-AC_CHECK_FUNCS(getgid getegid getgroups __libc_malloc _libc_malloc wmemcpy sysconf valloc memalign)
+AC_CHECK_FUNCS(getgid getegid getgroups wmemcpy sysconf valloc memalign)
 AC_CHECK_DECL([_SC_PAGESIZE],
   AC_DEFINE_UNQUOTED([HAVE__SC_PAGESIZE], 1, [Defined if we have _SC_PAGESIZE.]),
   [], [#include <unistd.h>])
