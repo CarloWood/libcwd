@@ -91,12 +91,6 @@ AC_ARG_ENABLE(location,
                           number, you might need this on a non-ELF32 system.],
     libcwd_config_location=$enableval)
 
-libcwd_config_bfd=no
-AC_ARG_ENABLE(libbfd,
-    [  --enable-libbfd         try to find and use GNU bfd library,
-                          this is only needed on a system without ELF.],
-    libcwd_config_bfd=$enableval)
-
 libcwd_config_debug=no
 AC_ARG_ENABLE(debug,
     [  --enable-debug          enable debugging of libcwd itself.],
@@ -313,94 +307,6 @@ fi
 
 if test "$libcwd_config_location" = yes ; then
   CW_CONFIG_LOCATION=1
-fi
-
-if test "$libcwd_config_bfd" = yes; then
-
-  dnl Check if we have `xmalloc' in libiberty
-  AC_CHECK_LIB(iberty, xmalloc,,
-    [dnl If that failed, then look if perhaps it is in /usr/local/lib in case we didn't look there.
-    AC_CACHE_CHECK([if there is a working libiberty in /usr/local], cw_cv_lib_iberty_xmalloc_usrlocal,
-    [if test -f /usr/local/lib/libiberty.a -o -e /usr/local/lib/libiberty.so; then
-       save_CPPFLAGS="$CPPFLAGS"
-       save_LDFLAGS="$LDFLAGS"
-       save_LIBS="$LIBS"
-       CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-       LDFLAGS="$LDFLAGS -L/usr/local/lib"
-       LIBS="-liberty $LIBS"
-       AC_TRY_LINK([extern "C" void* xmalloc();], [(void)xmalloc()], cw_cv_lib_iberty_xmalloc_usrlocal=yes, cw_cv_lib_iberty_xmalloc_usrlocal=no)
-       LIBS="$save_LIBS"
-       LDFLAGS="$save_LDFLAGS"
-       CPPFLAGS="$save_CPPFLAGS"
-     fi
-    ])
-    if test "$cw_cv_lib_iberty_xmalloc_usrlocal" = "yes"; then
-      CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-      LDFLAGS="$LDFLAGS -L/usr/local/lib"
-      LIBS="-liberty $LIBS"
-    fi])
-
-  dnl If it failed, then abort with an error message.
-  if test "$ac_cv_lib_iberty_xmalloc" = "no" -a "set+$cw_cv_lib_iberty_xmalloc_usrlocal" = "set+no"; then
-    AC_MSG_ERROR([
-
-* Cannot find a working libiberty.  Perhaps you need to add -L/path
-* to LDFLAGS (read the INSTALL file for more info)?
-* Libiberty is part of binutils (or binutils-devel or binutils-dev).
-* You can skip this check by using configure --disable-libbfd.  On an
-* ELF32 system lookup of function names and source:line information will
-* still work anyway.
-])
-  fi
-
-  dnl Check if we have libbfd.
-  dnl We look for `bfd_set_start_address' because that function might use dcgettext__
-  dnl which is part of -lintl (it does on FreeBSD).
-  AC_CHECK_LIB(bfd, bfd_set_start_address,,
-    [dnl If that failed, try linking with -lintl:
-    AC_CACHE_CHECK([for bfd_set_start_address in -lbfd -lintl], cw_cv_lib_bfd_bfd_set_start_address_with_intl,
-    [save_LIBS="$LIBS"
-     LIBS="-lbfd -lintl $LIBS"
-     AC_TRY_LINK([extern "C" char bfd_set_start_address();], [bfd_set_start_address()], cw_cv_lib_bfd_bfd_set_start_address_with_intl=yes, cw_cv_lib_bfd_bfd_set_start_address_with_intl=no)
-     LIBS="$save_LIBS"
-    ])
-    if test "$cw_cv_lib_bfd_bfd_set_start_address_with_intl" = "yes"; then
-      LIBS="-lbfd -lintl $LIBS"
-    fi])
-
-  dnl If we succeeded so far, then enable DEBUGUSEGNULIBBFD
-  if test "$ac_cv_lib_bfd_bfd_set_start_address" != "no" -o "set+$cw_cv_lib_bfd_bfd_set_start_address_with_intl" = "set+yes"; then
-    AC_CHECK_HEADER(bfd.h,
-      [CW_CONFIG_LIBBFD=1
-       AC_MSG_WARN([
-
-* You used --enable-libbfd: The license of libbfd (GPL) forbids to link
-* with libraries that are non-GPL.  Therefore you are not allowed to
-* distribute the resulting executable!  See include/libcwd/config.h.in
-* under DEBUGUSEGNULIBBFD for more information.
-])],
-      [AC_MSG_ERROR([
-
-* You have libbfd, but I cannot find bfd.h.  Perhaps you need to add -I/path
-* to CPPFLAGS (read the INSTALL file for more info)?  If your OS uses
-* packages then you need to make sure you have installed both, binutils
-* and the development version of binutils (binutils-devel, or binutils-dev).
-* You can skip this check by using configure --disable-libbfd.  On an
-* ELF32 system lookup of function names and source:line information will
-* still work anyway.
-])])
-    dnl Only check for this header when using libbfd. It will cause a bug workaround in sys.h
-    AC_CHECK_HEADERS(ansidecl.h)
-  else
-    AC_MSG_ERROR([
-
-* Cannot find a working libbfd.  Perhaps you need to add -L/path to LDFLAGS
-* (read the INSTALL file for more info)?  Libbfd is part of binutils.
-* You can skip this check by using configure --disable-libbfd.  On an
-* ELF32 system lookup of function names and source:line information will
-* still work anyway.
-])
-  fi
 fi
 
 AC_SUBST(CW_CONFIG_HAVE_PTHREADS)

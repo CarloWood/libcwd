@@ -19,7 +19,7 @@
 #include "sys.h"
 #include <libcwd/config.h>
 
-#if CWDEBUG_LOCATION && !CWDEBUG_LIBBFD
+#if CWDEBUG_LOCATION
 
 #include <inttypes.h>	// ISO C99 header, needed for int32_t etc.
 #include <iomanip>
@@ -1509,9 +1509,26 @@ bfd_st* bfd_st::openr(char const* file_name)
 
 void objfile_ct::close(void)
 {
+  LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_DEBUGM
+  LIBCWD_ASSERT( __libcwd_tsd.internal == 1 );
+#endif
+
+  _private_::set_alloc_checking_on(LIBCWD_TSD);
+
   Debug( libcw_do.off() );
   delete M_input_stream;
   Debug( libcw_do.on() );
+
+  LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct<object_files_instance>::cleanup, NULL); // The delete calls close().
+  BFD_ACQUIRE_WRITE_LOCK;
+  _private_::set_alloc_checking_off(LIBCWD_TSD);
+  delete this;
+  _private_::set_alloc_checking_on(LIBCWD_TSD);
+  BFD_RELEASE_WRITE_LOCK;
+  LIBCWD_CLEANUP_POP_RESTORE(false);
+
+  _private_::set_alloc_checking_off(LIBCWD_TSD);
 }
 
 objfile_ct::~objfile_ct()
@@ -2578,7 +2595,7 @@ void objfile_ct::load_dwarf(void)
 	    {
 	      static unsigned int const setflags = BSF_FUNCTION;
 	      symbol_ct const& symbol(*i2);
-	      if (symbol.is_defined() && (symbol.get_symbol()->flags & setflags) == setflags)
+	      if ((symbol.get_symbol()->flags & setflags) == setflags)
 	      {
 		if (!strcmp(linkage_name, symbol.get_symbol()->name))
 		{
@@ -2586,11 +2603,11 @@ void objfile_ct::load_dwarf(void)
 		      std::hex << (address_t)symbol_start_addr(symbol.get_symbol()) <<
 		      "; symbol value = " << std::hex << symbol.get_symbol()->value <<
 		      "; symbol value + section offset = " <<
-		      std::hex << symbol.get_symbol()->value + bfd_get_section(symbol.get_symbol())->offset <<
+		      std::hex << symbol.get_symbol()->value + symbol.get_symbol()->section->offset <<
 		      "; low_pc plus symbol size = " <<
 		      std::hex << low_pc + symbol_size(symbol.get_symbol()));
 		  found = true;
-		  LIBCWD_ASSERT( low_pc == symbol.get_symbol()->value + bfd_get_section(symbol.get_symbol())->offset );
+		  LIBCWD_ASSERT( low_pc == symbol.get_symbol()->value + symbol.get_symbol()->section->offset );
 		  if (low_pc + symbol_size(symbol.get_symbol()) != high_pc )
 		  {
 		    // Alignment can cause the next function to start beyond the end of this function.
@@ -3183,8 +3200,8 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 #if DEBUGSTABS || DEBUGDWARF
   Elf32_Addr low = old.first.start;
   Elf32_Addr high = old.first.start + old.first.size - 1;
-  char const* low_mn = pc_mangled_function_name((void*)(low + (char*)this->object_file->get_lbase()));
-  char const* high_mn = pc_mangled_function_name((void*)(high + (char*)this->object_file->get_lbase()));
+  char const* low_mn = pc_mangled_function_name((char const*)this->object_file->get_lbase() + low);
+  char const* high_mn = pc_mangled_function_name((char const*)this->object_file->get_lbase() + high);
   if (doutdwarfon || doutstabson)
   {
     if (low_mn != high_mn)
@@ -3272,15 +3289,14 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 	Dout(dc::bfd, "WARNING: New range being added instead: " << nw);
       LIBCWD_ASSERT( nw.first.size > 0 );
       // Check that new range falls within one function.
-      char const* nwlow_mn = pc_mangled_function_name((void*)(nw.first.start + (char*)this->object_file->get_lbase()));
+      char const* nwlow_mn = pc_mangled_function_name((char const*)this->object_file->get_lbase() + nw.first.start);
       LIBCWD_ASSERT( nwlow_mn ==
-          pc_mangled_function_name((void*)(nw.first.start + nw.first.size - 1 + (char*)this->object_file->get_lbase())));
+          pc_mangled_function_name((char const*)this->object_file->get_lbase() + nw.first.start + nw.first.size - 1));
       // This is specific to the (only known) gas bug; check that this is at the end of function.
       // Note we only get here when the collision was with a range in the same source file, so we can
       // use the same this->object_file for the next function.
       LIBCWD_ASSERT( nwlow_mn !=
-          pc_mangled_function_name((void*)(nw.first.start + ((nw.first.start < old.first.start) ? (int)nw.first.size : -1) +
-	    (char*)this->object_file->get_lbase())));
+          pc_mangled_function_name((char const*)this->object_file->get_lbase() + nw.first.start + ((nw.first.start < old.first.start) ? (int)nw.first.size : -1)));
 #endif
       if (!M_ranges.insert(nw).second)
       {
@@ -3484,4 +3500,4 @@ void debug_load_object_file(char const* filename, bool shared)
 }
 #endif
 
-#endif // CWDEBUG_LOCATION && !CWDEBUG_LIBBFD
+#endif // CWDEBUG_LOCATION

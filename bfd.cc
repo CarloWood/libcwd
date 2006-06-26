@@ -62,23 +62,10 @@ struct rtld_global {
 #include "ios_base_Init.h"
 #include "exec_prog.h"
 #include "match.h"
-#include <libcwd/class_object_file.h>
-#if CWDEBUG_LIBBFD
-#if defined(BFD64) && !BFD_HOST_64BIT_LONG && \
-    ((defined(__GLIBCPP__) && !defined(_GLIBCPP_USE_LONG_LONG)) || \
-     (defined(__GLIBCXX__) && !defined(_GLIBCXX_USE_LONG_LONG)))
-// libbfd is compiled with 64bit support on a 32bit host, but libstdc++ is not compiled with support
-// for `long long'.  If you run into this error (and you insist on using libbfd) then either recompile
-// libstdc++ with support for `long long' or recompile libbfd without 64bit support.
-#error "Incompatible libbfd and libstdc++ (see comments in source code)."
-#endif
-#include <libcwd/cwprint.h>
-#include "environment.h"
-#else // !CWDEBUG_LIBBFD
 #include "elf32.h"
-#endif // !CWDEBUG_LIBBFD
-#include <libcwd/private_string.h>
 #include "cwd_bfd.h"
+#include <libcwd/class_object_file.h>
+#include <libcwd/private_string.h>
 #include <libcwd/core_dump.h>
 
 extern char** environ;
@@ -129,45 +116,6 @@ static bool const statically_linked = false;
 static bool const statically_linked = true;
 #endif
 
-#if !CWDEBUG_LIBBFD
-
-//----------------------------------------------------------------------------------------
-// Interface Adaptor
-
-static int const bfd_archive = 0;
-static uint32_t const HAS_SYMS = 0xffffffff;
-
-inline bool bfd_check_format(bfd const* abfd, int) { return abfd->check_format(); }
-inline uint32_t bfd_get_file_flags(bfd const* abfd) { return abfd->has_syms() ? HAS_SYMS : 0; }
-inline long bfd_get_symtab_upper_bound(bfd* abfd) { return abfd->get_symtab_upper_bound(); }
-inline long bfd_canonicalize_symtab(bfd* abfd, asymbol** symbol_table) { return abfd->canonicalize_symtab(symbol_table); }
-inline bool bfd_is_abs_section(asection const* sect) { return (sect == elf32::absolute_section_c); }
-inline bool bfd_is_com_section(asection const* sect) { return false; }
-inline bool bfd_is_ind_section(asection const* sect) { return false; }
-inline bool bfd_is_und_section(asection const* sect) { return false; }
-
-void bfd_close(bfd* abfd)
-{
-  LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( __libcwd_tsd.internal == 1 );
-#endif
-  set_alloc_checking_on(LIBCWD_TSD);
-  abfd->close();
-  LIBCWD_DEFER_CLEANUP_PUSH(&_private_::rwlock_tct<object_files_instance>::cleanup, NULL); // The delete calls close().
-  BFD_ACQUIRE_WRITE_LOCK;
-  set_alloc_checking_off(LIBCWD_TSD);
-  delete abfd;
-  set_alloc_checking_on(LIBCWD_TSD);
-  BFD_RELEASE_WRITE_LOCK;
-  LIBCWD_CLEANUP_POP_RESTORE(false);
-  set_alloc_checking_off(LIBCWD_TSD);
-}
-
-//----------------------------------------------------------------------------------------
-
-#endif // !CWDEBUG_LIBBFD
-
       // cwbfd::
       void error_handler(char const* format, ...)
       {
@@ -192,9 +140,6 @@ void bfd_close(bfd* abfd)
 	else
 	  Dout(dc::bfd, buf);
       }
-
-      // cwbfd::
-      typedef PTR addr_ptr_t;
 
       //! \cond HIDE_FROM_DOXYGEN
       // cwbfd::
@@ -236,9 +181,9 @@ void bfd_close(bfd* abfd)
       {
 	if (a == b)
 	  return false;
-	if (bfd_get_section(a)->vma + a->value < bfd_get_section(b)->vma + b->value)
+	if (a->section->vma + a->value < b->section->vma + b->value)
 	  return true;
-	else if (bfd_get_section(a)->vma + a->value > bfd_get_section(b)->vma + b->value)
+	else if (a->section->vma + a->value > b->section->vma + b->value)
 	  return false;
 	else if (!(a->flags & BSF_FUNCTION) && (b->flags & BSF_FUNCTION))
 	  return true;
@@ -303,72 +248,37 @@ void bfd_close(bfd* abfd)
 #endif
 #endif
 
-#if CWDEBUG_LIBBFD
-	M_abfd = bfd_openr(filename, NULL);
-	if (!M_abfd)
-	  DoutFatal(dc::bfd, "bfd_openr: " << bfd_errmsg(bfd_get_error()));
-	M_abfd->cacheable = TRUE;
-#else
 	M_abfd = bfd::openr(filename);
 	M_abfd->M_s_end_offset = 0;
-#endif
-	M_abfd->usrdata = (addr_ptr_t)this;
+	M_abfd->usrdata = (char*)this;
 
-	if (bfd_check_format(M_abfd, bfd_archive))
+	if (M_abfd->check_format())
 	{
-	  bfd_close(M_abfd);
+	  M_abfd->close();
 	  M_abfd = NULL;
-#if CWDEBUG_LIBBFD
-	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive: " << bfd_errmsg(bfd_get_error()));
-#else
 	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive.");
-#endif
 	}
-#if CWDEBUG_LIBBFD
-	char** matching;
-	if (!bfd_check_format_matches(M_abfd, bfd_object, &matching))
-	{
-	  if (bfd_get_error() == bfd_error_file_ambiguously_recognized)
-	  {
-	    Dout(dc::warning, "bfd_check_format_matches: ambiguously object format, recognized formats: " <<
-		cwprint(::libcwd::environment_ct(matching)));
-	    free(matching);
-	  }
-	  DoutFatal(dc::fatal, filename << ": cannot get addresses from object file: " << bfd_errmsg(bfd_get_error()));
-	}
-#endif
-
-	if (!(bfd_get_file_flags(M_abfd) & HAS_SYMS))
+	if (!M_abfd->has_syms())
 	{
 	  Dout(dc::warning, filename << " has no symbols, skipping.");
-	  bfd_close(M_abfd);
+	  M_abfd->close();
 	  M_abfd = NULL;
 	  M_number_of_symbols = 0;
 	  return false;
 	}
 
-	long storage_needed = bfd_get_symtab_upper_bound(M_abfd);
-#if CWDEBUG_LIBBFD
-	if (storage_needed < 0)
-	  DoutFatal(dc::bfd, "bfd_get_symtab_upper_bound: " << bfd_errmsg(bfd_get_error()));
-#else
+	long storage_needed = M_abfd->get_symtab_upper_bound();
 	if (storage_needed == 0)
 	{
 	  Dout(dc::warning, filename << " has no symbols, skipping.");
-	  bfd_close(M_abfd);
+	  M_abfd->close();
 	  M_abfd = NULL;
 	  M_number_of_symbols = 0;
 	  return false;
 	}
-#endif
 
 	M_symbol_table = (asymbol**) malloc(storage_needed);	// Leaks memory.
-
-	M_number_of_symbols = bfd_canonicalize_symtab(M_abfd, M_symbol_table);
-#if CWDEBUG_LIBBFD
-	if (M_number_of_symbols < 0)
-	  DoutFatal(dc::bfd, "bfd_canonicalize_symtab: " << bfd_errmsg(bfd_get_error()));
-#endif
+	M_number_of_symbols = M_abfd->canonicalize_symtab(M_symbol_table);
 
 	if (M_number_of_symbols > 0)
 	{
@@ -378,39 +288,7 @@ void bfd_close(bfd* abfd)
 #if CWDEBUG_ALLOC
 	  Elf32_Off exit_funcs = 0;
 #endif
-#if !CWDEBUG_LIBBFD
 	  size_t s_end_offset = M_abfd->M_s_end_offset;
-#else
-	  size_t s_end_offset = 0;
-	  // Throw away symbols that can endanger determining the size of functions
-	  // like: local symbols, debugging symbols, switch jump-table labels.
-	  // Also throw away all symbols in uninteresting sections to safe time with sorting.
-	  // Also try to find symbol _end to determine the size of the bfd.
-	  asymbol** se = &M_symbol_table[M_number_of_symbols - 1];
-	  for (asymbol** s = M_symbol_table; s <= se;)
-	  {
-	    if ((*s)->name == 0)
-	    {
-	      *s = *se--;
-	      --M_number_of_symbols;
-	    }
-	    // Find the start address of the last symbol: "_end".
-	    else if ((*s)->name[0] == '_' && (*s)->name[1] == 'e' && (*s)->name[2] == 'n' && (*s)->name[3] == 'd' && (*s)->name[4] == 0)
-	      s_end_offset = (*s++)->value;		// Relative to (yet unknown) M_lbase.
-	    else if (((*s)->flags & (BSF_GLOBAL|BSF_FUNCTION|BSF_OBJECT)) == 0
-		|| ((*s)->flags & (BSF_DEBUGGING|BSF_CONSTRUCTOR|BSF_WARNING|BSF_FILE)) != 0
-		|| bfd_is_abs_section(bfd_get_section(*s))
-		|| bfd_is_com_section(bfd_get_section(*s))
-		|| bfd_is_ind_section(bfd_get_section(*s)))
-	    {
-	      *s = *se--;
-	      --M_number_of_symbols;
-	    }
-	    else
-	      ++s;
-	  }
-#endif // CWDEBUG_LIBBFD
-
 	  if (!s_end_offset && M_number_of_symbols > 0)
 	  {
 #if CWDEBUG_ALLOC
@@ -473,7 +351,7 @@ void bfd_close(bfd* abfd)
 	      {
 		if ((*s)->name == 0 || ((*s)->flags & BSF_FUNCTION) == 0 || ((*s)->flags & (BSF_GLOBAL|BSF_WEAK)) == 0)
 		  continue;
-		asection const* sect = bfd_get_section(*s);
+		asection const* sect = (*s)->section;
 		if (sect->name[1] == 't' && !strcmp(sect->name, ".text"))
 		{
 #if CWDEBUG_ALLOC
@@ -522,7 +400,7 @@ void bfd_close(bfd* abfd)
 		M_symbol_table  = NULL;
 		if (M_abfd)
 		{
-		  bfd_close(M_abfd);
+		  M_abfd->close();
 		  M_abfd = NULL;
 		}
 		M_number_of_symbols = 0;
@@ -591,11 +469,11 @@ void bfd_close(bfd* abfd)
 	    "_ZN14__gnu_internal17palloc_init_mutexE"
 #endif
 	    ) == 0)
-	      S_lock_value = bfd_get_section(*s)->vma + (*s)->value;
+	      S_lock_value = (*s)->section->vma + (*s)->value;
 #endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
 #if CWDEBUG_ALLOC
 	    if (is_libc && strcmp((*s)->name, "__exit_funcs") == 0)
-	      exit_funcs = bfd_get_section(*s)->vma + (*s)->value;
+	      exit_funcs = (*s)->section->vma + (*s)->value;
 #endif
 	    if (((*s)->name[0] == '.' && (*s)->name[1] == 'L')
 	        || ((*s)->flags & (BSF_SECTION_SYM|BSF_OLD_COMMON|BSF_NOT_AT_END|BSF_INDIRECT|BSF_DYNAMIC)) != 0
@@ -607,7 +485,7 @@ void bfd_close(bfd* abfd)
 	    }
 	    else
 	    {
-	      M_function_symbols.insert(function_symbols_ct::key_type(*s, !bfd_is_und_section(bfd_get_section(*s))));
+	      M_function_symbols.insert(function_symbols_ct::key_type(*s));
 	      ++s;
 	    }
 	  }
@@ -638,14 +516,10 @@ void bfd_close(bfd* abfd)
 	      if (symbol_size(last_symbol) == 100001)			// In fact unknown?
 	      {
 		M_start_last_symbol = symbol_start_addr(last_symbol);	// Initialize M_start_last_symbol.
-#if !CWDEBUG_LIBBFD
 		M_size = (char*)last_symbol->section->vma + last_symbol->section->M_size - (char*)M_start;
 		symbol_size(const_cast<asymbol*>(last_symbol)) = M_size - ((char*)symbol_start_addr(last_symbol) - (char*)M_start);
-#endif
 	      }
-#if !CWDEBUG_LIBBFD
 	      else
-#endif
 		M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_start;
 	    }
 	  }
@@ -753,7 +627,7 @@ void bfd_close(bfd* abfd)
 	  M_symbol_table  = NULL;
 	  if (M_abfd)
 	  {
-	    bfd_close(M_abfd);
+	    M_abfd->close();
 	    M_abfd = NULL;
 	  }
 	  M_number_of_symbols = 0;
@@ -786,7 +660,7 @@ void bfd_close(bfd* abfd)
 	set_alloc_checking_off(LIBCWD_TSD);
 	if (M_abfd)
 	{
-	  bfd_close(M_abfd);
+	  M_abfd->close();
 	  M_abfd = NULL;
 	}
 	if (M_symbol_table)
@@ -1255,9 +1129,7 @@ void bfd_close(bfd* abfd)
 	LIBCWD_RESTORE_CANCEL;
 	set_alloc_checking_off(LIBCWD_TSD);
 
-#if CWDEBUG_LIBBFD
-	bfd_init();
-#endif
+	// bfd_init();
 
 	// Get the full path and name of executable
 
@@ -1271,10 +1143,8 @@ void bfd_close(bfd* abfd)
 	ST_get_full_path_to_executable(*const_cast<_private_::internal_string*>(fullpath) LIBCWD_COMMA_TSD);
 	    // Result is '\0' terminated so we can use data() as a C string.
 
-#if CWDEBUG_LIBBFD
-	bfd_set_error_program_name(fullpath->data() + fullpath->find_last_of('/') + 1);
-	bfd_set_error_handler(error_handler);
-#endif
+	// bfd_set_error_program_name(fullpath->data() + fullpath->find_last_of('/') + 1);
+	// bfd_set_error_handler(error_handler);
 
 	// Load executable
 	BFD_INITIALIZE_LOCK;
@@ -1332,7 +1202,7 @@ void bfd_close(bfd* abfd)
       }
 
       // cwbfd::
-      symbol_ct const* pc_symbol(bfd_vma addr, bfile_ct* object_file)
+      symbol_ct const* pc_symbol(void const* addr, bfile_ct* object_file)
       {
 	if (object_file)
 	{
@@ -1340,16 +1210,16 @@ void bfd_close(bfd* abfd)
 	  asection dummy_section;
 
 	  // Make symbol_start_addr(&dummy_symbol) and symbol_size(&dummy_symbol) return the correct value:
-	  bfd_asymbol_bfd(&dummy_symbol) = object_file->get_bfd();
+	  dummy_symbol.bfd_ptr = object_file->get_bfd();
 	  dummy_section.vma = 0;			// Use a vma of 0 and
 	  dummy_symbol.section = &dummy_section;	// use dummy_symbol.value to store (value + offset):
 	  dummy_symbol.value = reinterpret_cast<char const*>(addr) - reinterpret_cast<char const*>(object_file->get_lbase());
 	  symbol_size(&dummy_symbol) = 1;
-	  function_symbols_ct::iterator i(object_file->get_function_symbols().find(symbol_ct(&dummy_symbol, true)));
+	  function_symbols_ct::iterator i(object_file->get_function_symbols().find(symbol_ct(&dummy_symbol)));
 	  if (i != object_file->get_function_symbols().end())
 	  {
 	    asymbol const* p = (*i).get_symbol();
-	    if (addr < (bfd_vma)(size_t)symbol_start_addr(p) + symbol_size(p))
+	    if (addr < symbol_start_addr(p) + symbol_size(p))
 	      return &(*i);
 	  }
 	  Dout(dc::bfd, "No symbol found: " << (void*)addr);
@@ -1394,7 +1264,7 @@ void bfd_close(bfd* abfd)
 #endif
       LIBCWD_DEFER_CANCEL;
       BFD_ACQUIRE_READ_LOCK;
-      symbol = pc_symbol((bfd_vma)(size_t)addr, NEEDS_READ_LOCK_find_object_file(addr));
+      symbol = pc_symbol(addr, NEEDS_READ_LOCK_find_object_file(addr));
       BFD_RELEASE_READ_LOCK;
       LIBCWD_RESTORE_CANCEL;
 
@@ -1561,21 +1431,16 @@ typedef location_ct bfd_location_ct;
       }
       M_object_file = object_file->get_object_file();
 
-      symbol_ct const* symbol = pc_symbol((bfd_vma)(size_t)addr, object_file);
-      if (symbol && symbol->is_defined())
+      symbol_ct const* symbol = pc_symbol(addr, object_file);
+      if (symbol)
       {
 	asymbol const* p = symbol->get_symbol();
-	bfd* abfd = bfd_asymbol_bfd(p);
-	asection const* sect = bfd_get_section(p);
+	bfd* abfd = p->bfd_ptr;
+	asection const* sect = p->section;
 	char const* file;
 	LIBCWD_ASSERT( object_file->get_bfd() == abfd );
 	set_alloc_checking_off(LIBCWD_TSD);
-#if CWDEBUG_LIBBFD
-	bfd_find_nearest_line(abfd, const_cast<asection*>(sect), const_cast<asymbol**>(object_file->get_symbol_table()),
-	    (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line);
-#else
         abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line LIBCWD_COMMA_TSD);
-#endif
 	set_alloc_checking_on(LIBCWD_TSD);
 	LIBCWD_ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
 	M_func = p->name;
@@ -1583,15 +1448,6 @@ typedef location_ct bfd_location_ct;
 	if (file && M_line)			// When line is 0, it turns out that `file' is nonsense.
 	{
 	  size_t len = strlen(file);
-	  // `file' is allocated by `bfd_find_nearest_line', however - it is also libbfd
-	  // that will free `file' again a second call to `bfd_find_nearest_line' (for the
-	  // same value of `abfd': the allocated pointer is stored in a structure
-	  // that is kept for each bfd seperately).
-	  // The call to `new char [len + 1]' below could cause this function (M_pc_location)
-	  // to be called again (in order to store the file:line where the allocation
-	  // is done) and thus a new call to `bfd_find_nearest_line', which then would
-	  // free `file' before we copy it!
-	  // Therefore we need to call `set_alloc_checking_off', to prevent this.
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);
 	  set_alloc_checking_on(LIBCWD_TSD);

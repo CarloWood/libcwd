@@ -20,7 +20,7 @@
 
 namespace libcwd {
 
-extern char const* pc_mangled_function_name(void const* addr);
+extern char const* pc_mangled_function_name(char const* addr);
 
 } // namespace libcwd
 

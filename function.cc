@@ -75,9 +75,7 @@ void Function::M_init(char const* expr, unsigned int flags)
     using cwbfd::NEEDS_READ_LOCK_object_files;
     using cwbfd::function_symbols_ct;
     using cwbfd::symbol_ct;
-#if !CWDEBUG_LIBBFD
     using cwbfd::BSF_FUNCTION;
-#endif
     using cwbfd::symbol_start_addr;
     using cwbfd::symbol_size;
     using _private_::set_alloc_checking_off;
@@ -126,8 +124,7 @@ void Function::M_init(char const* expr, unsigned int flags)
       {
 	static unsigned int const setflags = BSF_FUNCTION;
 	symbol_ct const& symbol(*i2);
-	if (symbol.is_defined() &&
-	    (symbol.get_symbol()->flags & setflags) == setflags)
+	if ((symbol.get_symbol()->flags & setflags) == setflags)
 	{
 	  bool matched = false;
 	  char const* name = symbol.get_symbol()->name;

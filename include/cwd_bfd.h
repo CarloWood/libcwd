@@ -40,9 +40,6 @@
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #include <libcwd/private_mutex_instances.h>
 #endif
-#if CWDEBUG_LIBBFD
-#include <bfd.h>
-#endif
 
 #if LIBCWD_THREAD_SAFE
 using libcwd::_private_::rwlock_tct;
@@ -81,22 +78,16 @@ using libcwd::_private_::dlclose_instance;
 namespace libcwd {
   namespace cwbfd {
 
-#if !CWDEBUG_LIBBFD
-typedef char* PTR;
 typedef elf32::bfd_st bfd;
-typedef char* bfd_vma;
 typedef elf32::asection_st asection;
 typedef elf32::asymbol_st asymbol;
-#endif
 
 class symbol_ct {
 private:
   asymbol* symbol;
-  bool defined;
 public:
-  symbol_ct(asymbol* p, bool def) : symbol(p), defined(def) { }
+  symbol_ct(asymbol* p) : symbol(p) { }
   asymbol const* get_symbol(void) const { return symbol; }
-  bool is_defined(void) const { return defined; }
   bool operator==(symbol_ct const&) const { DoutFatal(dc::core, "Calling operator=="); }
   friend struct symbol_key_greater;
 };
@@ -179,23 +170,11 @@ NEEDS_WRITE_LOCK_object_files(void)
   return *reinterpret_cast<object_files_ct*>(bfile_ct::ST_list_instance);
 }
 
-#if !CWDEBUG_LIBBFD
-inline asection const* bfd_get_section(asymbol const* s) { return s->section; }
-inline bfd*& bfd_asymbol_bfd(asymbol* s) { return s->bfd_ptr; }
-inline bfd* bfd_asymbol_bfd(asymbol const* s) { return s->bfd_ptr; }
-#endif
-
-#ifdef PTR
-      typedef const PTR addr_const_ptr_t;       // Warning: PTR is a macro, must put `const' in front of it
-#else
-      typedef char const* addr_const_ptr_t;
-#endif
-
-inline addr_const_ptr_t
+inline char const*
 symbol_start_addr(asymbol const* s)
 {
-  return s->value + bfd_get_section(s)->vma
-      + reinterpret_cast<char const*>(reinterpret_cast<bfile_ct const*>(bfd_asymbol_bfd(s)->usrdata)->get_lbase());
+  return s->value + s->section->vma
+      + reinterpret_cast<char const*>(reinterpret_cast<bfile_ct const*>(s->bfd_ptr->usrdata)->get_lbase());
 }
 
 // cwbfd::

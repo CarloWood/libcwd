@@ -32,19 +32,6 @@
 #endif
 
 //
-// Fix undefined macro on FreeBSD in ansidecl.h.
-//
-#if defined(__FreeBSD__) && defined(HAVE_ANSIDECL_H) && !defined(__STDC_VERSION__)
-#define LIBCWD__STDC_VERSION__ 199902L	// C99 really is 199901, but there is another bug in libbfd's
-					// ansidecl.h using '>' instead of '>='.
-#define __STDC_VERSION__ LIBCWD__STDC_VERSION__
-#include <ansidecl.h>
-// It is not allowed to undefine __STDC_VERSION__, so - define it to 0.
-#undef LIBCWD__STDC_VERSION__
-#define LIBCWD__STDC_VERSION__ 0
-#endif
-
-//
 // typedefs
 //
 // getgroups_t          : The type of the array argument to getgroups
