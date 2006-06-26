@@ -1,11 +1,10 @@
 libcwd-0.99.45
 
 	Support for libbfd (--enable-libbfd) has been entirely
-	removed. I tried to make it work again, but apart from
-	that that library is very bad at getting line numbers,
-	there is a problem with the order of initialization:
+	removed. There is a problem with the initialization;
 	libcwd code is executed very early, before libbfd is
-	initialized. It turns out not to work.
+	initialized. The call to bfd_openr returns an
+	uninitialized bfd structure...
 
 	Bug fixes:
 
