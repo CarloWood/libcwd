@@ -163,7 +163,7 @@ static bool const statically_linked = true;
       }
 
       // cwbfd::
-      bfile_ct* NEEDS_READ_LOCK_find_object_file(bfd const* abfd)
+      bfile_ct* NEEDS_READ_LOCK_find_object_file(elf32::bfd_st const* abfd)
       {
 	object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
 	for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
@@ -174,10 +174,10 @@ static bool const statically_linked = true;
 
       // cwbfd::
       struct symbol_less {
-	bool operator()(asymbol const* a, asymbol const* b) const;
+	bool operator()(elf32::asymbol_st const* a, elf32::asymbol_st const* b) const;
       };
 
-      bool symbol_less::operator()(asymbol const* a, asymbol const* b) const
+      bool symbol_less::operator()(elf32::asymbol_st const* a, elf32::asymbol_st const* b) const
       {
 	if (a == b)
 	  return false;
@@ -248,9 +248,9 @@ static bool const statically_linked = true;
 #endif
 #endif
 
-	M_abfd = bfd::openr(filename);
+	M_abfd = elf32::bfd_st::openr(filename);
 	M_abfd->M_s_end_offset = 0;
-	M_abfd->usrdata = (char*)this;
+	M_abfd->object_file = this;
 
 	if (M_abfd->check_format())
 	{
@@ -277,7 +277,7 @@ static bool const statically_linked = true;
 	  return false;
 	}
 
-	M_symbol_table = (asymbol**) malloc(storage_needed);	// Leaks memory.
+	M_symbol_table = (elf32::asymbol_st**) malloc(storage_needed);	// Leaks memory.
 	M_number_of_symbols = M_abfd->canonicalize_symtab(M_symbol_table);
 
 	if (M_number_of_symbols > 0)
@@ -347,11 +347,11 @@ static bool const statically_linked = true;
 	      start_values_map_ct start_values;
 	      unsigned int best_count = 0;
 	      void* best_start = 0;
-	      for (asymbol** s = M_symbol_table; s <= &M_symbol_table[M_number_of_symbols - 1]; ++s)
+	      for (elf32::asymbol_st** s = M_symbol_table; s <= &M_symbol_table[M_number_of_symbols - 1]; ++s)
 	      {
 		if ((*s)->name == 0 || ((*s)->flags & BSF_FUNCTION) == 0 || ((*s)->flags & (BSF_GLOBAL|BSF_WEAK)) == 0)
 		  continue;
-		asection const* sect = (*s)->section;
+		elf32::asection_st const* sect = (*s)->section;
 		if (sect->name[1] == 't' && !strcmp(sect->name, ".text"))
 		{
 #if CWDEBUG_ALLOC
@@ -456,8 +456,8 @@ static bool const statically_linked = true;
           BFD_ACQUIRE_WRITE_LOCK;	// Needed for M_function_symbols.
 
 	  // Throw away all symbols that are not a global variable or function, store the rest in a vector.
-	  asymbol** se2 = &M_symbol_table[M_number_of_symbols - 1];
-	  for (asymbol** s = M_symbol_table; s <= se2;)
+	  elf32::asymbol_st** se2 = &M_symbol_table[M_number_of_symbols - 1];
+	  for (elf32::asymbol_st** s = M_symbol_table; s <= se2;)
 	  {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
 	    if (is_libstdcpp && strcmp((*s)->name,
@@ -494,7 +494,7 @@ static bool const statically_linked = true;
 	  {
 	    // M_function_symbols is a set<> that sorts in reverse order (using symbol_key_greater)!
 	    // So use begin() here in order to get the last symbol.
-	    asymbol const* last_symbol = (*M_function_symbols.begin()).get_symbol();
+	    elf32::asymbol_st const* last_symbol = (*M_function_symbols.begin()).get_symbol();
 	    if (symbol_size(last_symbol) == 100001)
 	    {
 	      BFD_RELEASE_WRITE_LOCK;
@@ -507,7 +507,7 @@ static bool const statically_linked = true;
 #endif
 	      BFD_ACQUIRE_WRITE_LOCK;
 	    }
-	    asymbol const* first_symbol = (*M_function_symbols.rbegin()).get_symbol();
+	    elf32::asymbol_st const* first_symbol = (*M_function_symbols.rbegin()).get_symbol();
 	    M_start = symbol_start_addr(first_symbol); // Use the lowest start address of all symbols.
 	    if (s_end_start_addr)
 	      M_size = (char*)s_end_start_addr - (char*)M_start;
@@ -517,7 +517,7 @@ static bool const statically_linked = true;
 	      {
 		M_start_last_symbol = symbol_start_addr(last_symbol);	// Initialize M_start_last_symbol.
 		M_size = (char*)last_symbol->section->vma + last_symbol->section->M_size - (char*)M_start;
-		symbol_size(const_cast<asymbol*>(last_symbol)) = M_size - ((char*)symbol_start_addr(last_symbol) - (char*)M_start);
+		symbol_size(const_cast<elf32::asymbol_st*>(last_symbol)) = M_size - ((char*)symbol_start_addr(last_symbol) - (char*)M_start);
 	      }
 	      else
 		M_size = (char*)symbol_start_addr(last_symbol) + symbol_size(last_symbol) - (char*)M_start;
@@ -539,7 +539,7 @@ static bool const statically_linked = true;
 #endif
 	    for(function_symbols_ct::iterator i(M_function_symbols.begin()); i != M_function_symbols.end(); ++i)
 	    {
-	      asymbol const* s = i->get_symbol();
+	      elf32::asymbol_st const* s = i->get_symbol();
 	      Dout(dc::always, s->name << " (" << s->section->name << ") = " << s->value);
 	    }
 #if CWDEBUG_ALLOC
@@ -975,7 +975,7 @@ static bool const statically_linked = true;
 		     std::setw(6) << "Size" << ' ' <<
 		     std::resetiosflags(std::ios::right);
 	std::cout << "Name value flags\n";
-	asymbol** symbol_table = object_file->get_symbol_table();
+	elf32::asymbol_st** symbol_table = object_file->get_symbol_table();
 	for (long n = object_file->get_number_of_symbols() - 1; n >= 0; --n)
 	{
 	  std::cout << std::setiosflags(std::ios::left) <<
@@ -1206,8 +1206,8 @@ static bool const statically_linked = true;
       {
 	if (object_file)
 	{
-	  asymbol dummy_symbol;				// A dummy symbol with size 1 and start `addr',
-	  asection dummy_section;
+	  elf32::asymbol_st dummy_symbol;		// A dummy symbol with size 1 and start `addr',
+	  elf32::asection_st dummy_section;
 
 	  // Make symbol_start_addr(&dummy_symbol) and symbol_size(&dummy_symbol) return the correct value:
 	  dummy_symbol.bfd_ptr = object_file->get_bfd();
@@ -1218,7 +1218,7 @@ static bool const statically_linked = true;
 	  function_symbols_ct::iterator i(object_file->get_function_symbols().find(symbol_ct(&dummy_symbol)));
 	  if (i != object_file->get_function_symbols().end())
 	  {
-	    asymbol const* p = (*i).get_symbol();
+	    elf32::asymbol_st const* p = (*i).get_symbol();
 	    if (addr < symbol_start_addr(p) + symbol_size(p))
 	      return &(*i);
 	  }
@@ -1434,9 +1434,9 @@ typedef location_ct bfd_location_ct;
       symbol_ct const* symbol = pc_symbol(addr, object_file);
       if (symbol)
       {
-	asymbol const* p = symbol->get_symbol();
-	bfd* abfd = p->bfd_ptr;
-	asection const* sect = p->section;
+	elf32::asymbol_st const* p = symbol->get_symbol();
+	elf32::bfd_st* abfd = p->bfd_ptr;
+	elf32::asection_st const* sect = p->section;
 	char const* file;
 	LIBCWD_ASSERT( object_file->get_bfd() == abfd );
 	set_alloc_checking_off(LIBCWD_TSD);
@@ -1466,7 +1466,7 @@ typedef location_ct bfd_location_ct;
 	    static int const BSF_WARNING_PRINTED = 0x40000000;
 	    if (!M_object_file->has_no_debug_line_sections() && !(p->flags & BSF_WARNING_PRINTED))
 	    {
-	      const_cast<asymbol*>(p)->flags |= BSF_WARNING_PRINTED;
+	      const_cast<elf32::asymbol_st*>(p)->flags |= BSF_WARNING_PRINTED;
 	      set_alloc_checking_off(LIBCWD_TSD);
 	      {
 		_private_::internal_string demangled_name;		// Alloc checking must be turned off already for this string.

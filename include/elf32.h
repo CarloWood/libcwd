@@ -52,15 +52,11 @@ typedef uint32_t	Elf32_Word;             // Unsigned large integer.
 struct asection_st;
 struct bfd_st;
 
-struct udata_st {
-  size_t i;
-};
-
 struct asymbol_st {
   bfd_st* bfd_ptr;
   asection_st const* section;
   Elf32_Off value;
-  udata_st udata;
+  size_t size;
   Elf32_Word flags;
   char const* name;
 };
@@ -73,10 +69,7 @@ struct asection_st {
 
 struct bfd_st {
   char const* filename;
-  union {
-    char* usrdata;
-    cwbfd::bfile_ct const* object_file;
-  };
+  cwbfd::bfile_ct const* object_file;
   bool cacheable;
   bool M_has_syms;
   size_t M_s_end_offset;

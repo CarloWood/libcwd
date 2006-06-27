@@ -23,8 +23,8 @@ as returned by <CODE>typeid(OBJECT).name()</CODE> (using gcc-2.95.1 or higher).
 
 demangle_symbol() writes the \em mangled symbol name \p input
 to the string \p output; \p input should be the mangled name 
-as returned by <CODE>asymbol::name</CODE> (\c asymbol is a structure defined
-by libbfd), which is what is returned by
+as returned by <CODE>elf32::asymbol_st::name</CODE>
+which is what is returned by
 \ref libcwd::location_ct::mangled_function_name "location_ct::mangled_function_name()"
 and pc_mangled_function_name().
 
