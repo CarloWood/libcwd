@@ -1078,7 +1078,14 @@ static bool const statically_linked = true;
 	{
 	  // Initialize dl_loaded_ptr.
 	  if (!real_dlopen.symptr)
+	  {
 	    real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen");
+	    if (real_dlopen.symptr == NULL)
+	    {
+	      DoutFatal(dc::core, "libcwd:cwbfd::ST_init: dlsym(RTLD_NEXT, \"dlopen\") returns NULL; "
+	          "please check that you didn't specify -ldl before (left of) -lcwd while linking.\n");
+	    }
+	  }
 	  void* handle = real_dlopen.func(NULL, RTLD_LAZY);
 #ifdef HAVE__RTLD_GLOBAL
 	  rtld_global* rtld_global_ptr = (rtld_global*)::dlsym(handle, "_rtld_global");

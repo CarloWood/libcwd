@@ -135,7 +135,6 @@ public:
   elf32::asymbol_st** get_symbol_table(void) const { return M_symbol_table; }
   long get_number_of_symbols(void) const { return M_number_of_symbols; }
   libcwd::object_file_ct const* get_object_file(void) const { return &M_object_file; }
-  libcwd::object_file_ct* get_object_file(void) { return &M_object_file; }
   function_symbols_ct& get_function_symbols(void) { return M_function_symbols; }
   function_symbols_ct const& get_function_symbols(void) const { return M_function_symbols; }
 private:

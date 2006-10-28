@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 {
   asm( ".align 256" );
   f();
-  exit(size > 4 ? 1 : 0);
+   return (size > 4) ? 1 : 0;
 }
 >>,
 changequote([, ])dnl
@@ -110,6 +110,7 @@ AC_CACHE_CHECK(frame pointer offset in frame structure, cw_sys_frame_address_off
 [save_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS=""
 AC_TRY_RUN([
+extern "C" void exit(int status);
 int func4(int offset)
 {
   void* f0 = __builtin_frame_address(0);
@@ -147,9 +148,9 @@ void calculate_offset(void)
 int main(int argc, char* argv[])
 {
   if (argc == 1)
-    exit(0);	// This wasn't the real test yet
+    return 0;	// This wasn't the real test yet
   calculate_offset();
-  exit(255);	// Failure
+  return 255;	// Failure
 }],
 ./conftest run
 cw_sys_frame_address_offset=$?

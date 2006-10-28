@@ -39,6 +39,15 @@ namespace cwbfd {
 /**
  * \class object_file_ct class_object_file.h libcwd/debug.h
  * \brief An object representing the main executable or a shared library.
+ *
+ * This class contains the full path (file name) of an object file.
+ * As a member of class bfile_ct, defined in namespace cwbfd,
+ * it is the only data exposed to the user, of that class.
+ *
+ * \internal
+ * Also exposed are two mutable booleans:
+ * hide_from_alloc_list() returns true when allocation done by this object file should be hidden, and
+ * has_no_debug_line_sections() returns true when this object file does not have debug info.
  */
 class object_file_ct {
 private:
@@ -46,8 +55,8 @@ private:
   char const* M_filename;	// Points inside M_filepath just after the last '/' or to the beginning.
 #if CWDEBUG_ALLOC
   friend class alloc_filter_ct;
+  mutable bool M_hide;
 #endif
-  bool M_hide;
   mutable bool M_no_debug_line_sections;
 
 protected:
@@ -61,7 +70,9 @@ public:
   char const* filename(void) const { return M_filename; }
 
   // For internal use.
+#if CWDEBUG_ALLOC
   bool hide_from_alloc_list() const { return M_hide; }
+#endif
   void set_has_no_debug_line_sections(void) const { M_no_debug_line_sections = true; }
   bool has_no_debug_line_sections(void) const { return M_no_debug_line_sections; }
 };

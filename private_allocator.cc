@@ -15,8 +15,9 @@
 //
 
 #include "sys.h"
+#include <libcwd/config.h>
 
-#if __GNUC__ == 4
+#if CWDEBUG_ALLOC && __GNUC__ == 4
 
 #include <libcwd/private_allocator.h>
 #include <libcwd/private_set_alloc_checking.h>
@@ -218,5 +219,5 @@ void BlockList::consistency_check(void)
   } // namespace _private_
 } // namespace libcwd
 
-#endif // __GNUC__ == 4
+#endif // CWDEBUG_ALLOC && __GNUC__ == 4
 

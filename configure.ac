@@ -193,7 +193,7 @@ dnl that any of the above macros might have added however.
 CXXFLAGS="$CXXFLAGS_env $DEBUGOPTS $EXTRAOPTS"
 
 dnl This block cannot be replaced by a macro because the DISABLE_* and the
-dnl AM_PROG_LIBTOOL macro need to be in configure.ac itself for some reason.
+dnl AC_PROG_LIBTOOL macro need to be in configure.in itself for some reason.
 dnl Generate libtool (also checks shared/static prerequisites)
 if expr "$host" : ".*openbsd.*" >/dev/null; then
   dnl openBSD has a buggy ld, no way that a shared library will work.
@@ -205,7 +205,7 @@ fi
 test -n "$enable_shared" || enable_shared=yes
 test -n "$enable_static" || enable_static=yes
 dnl Note: due to a bug in libtool-1.3c, the language must be C at this point!
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 dnl Configuration needed by the testsuite, extract this from the generated 'libtool'
 enable_shared=`./libtool --config | grep '^build_libtool_libs=' | sed -e 's/build_libtool_libs=//'`
 enable_static=`./libtool --config | grep '^build_old_libs=' | sed -e 's/build_old_libs=//'`
@@ -481,7 +481,8 @@ dnl Set up rpm directory when in maintainer mode
 CW_SETUP_RPM_DIRS
 
 dnl The install prefix is hardcoded in the library in order to find the default rc file.
-libcwd_datadir=`eval echo "$datadir/$PACKAGE" | sed -e 's|NONE|'$ac_default_prefix'|'`
+libcwd_datarootdir=`eval echo "$datadir"`
+libcwd_datadir=`eval echo "$libcwd_datarootdir/$PACKAGE" | sed -e 's|NONE|'$ac_default_prefix'|'`
 AC_DEFINE_UNQUOTED([CW_DATADIR], "$libcwd_datadir", [Data directory where the default rcfile is read from.])
 
 dnl These options are needed, but cannot be used during the configure tests.

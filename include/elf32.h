@@ -64,7 +64,7 @@ struct asymbol_st {
 struct asection_st {
   Elf32_Addr vma;
   char const* name;
-  Elf32_Word M_size;	// This breaks libbfd compatibility I guess.
+  Elf32_Word M_size;
 };
 
 struct bfd_st {
