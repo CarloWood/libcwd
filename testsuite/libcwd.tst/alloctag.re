@@ -5,7 +5,7 @@
 )*)
 // input lines 2
 // output till ^BFD     : Disabled
-(BFD     : Loading debug info from .*/libcwd\.so\.0\.\.\. done
+(BFD     : Loading debug info from .*/libcwd\.so\.0\.[.0-9]*\.\.\. done
 )*
 BFD     : Disabled
 DEBUG   : Disabled
@@ -15,7 +15,7 @@ SYSTEM  : Enabled
 WARNING : Enabled
 // input lines 2
 // output till ^MALLOC
-((BFD     : Loading debug info from .*/libstdc\+\+\.so\.6\.\.\. done|WARNING : Object file .*/libstdc\+\+\.so\.6 does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
+((BFD     : Loading debug info from .*/libstdc\+\+\.so\.6\.[.0-9]*\.\.\. done|WARNING : Object file .*/libstdc\+\+\.so\.6\.[.0-9]* does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
 )*)
 // input lines 4
 // output till ^MALLOC  : operator new \(size = 4\)

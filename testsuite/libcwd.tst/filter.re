@@ -6,7 +6,7 @@
 )*)*
 // input lines 2
 // output till ^MALLOC
-(WARNING :     Object file /lib/libc\.so\.6 does not have debug info.*
+(WARNING :     Object file (/usr/lib/debug)*/lib/libc-2.[.0-9]*.so does not have debug info.*
 )*
 // type regexp
 MALLOC  : Allocated memory: [0-9]* bytes in [0-9]* blocks\.
@@ -20,7 +20,7 @@ MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|__gnu_norm::|)vec
 // input lines 5
 // output till ^MALLOC  : calloc
 (MALLOC  : malloc\(12\) = <unfinished>
-WARNING :     Object file /lib/ld-linux\.so\.2 does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
+WARNING :     Object file (/usr/lib/debug)*/lib/ld-2\.[.0-9]*\.so does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
 MALLOC  : <continued> 0x[a-f0-9]* \[ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)\]
 )|(MALLOC  : malloc\(12\) = 0x[a-f0-9]*  \[ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)\]
 )
@@ -31,7 +31,7 @@ MALLOC  : calloc\([3-8], 16\) = 0x[a-f0-9]* \[ld-linux\.so\.2:_dl_check_map_vers
 // input lines 5
 // output till ^NOTICE  : dlopen
 (MALLOC  : malloc\([0-9]*\) = <unfinished>
-WARNING :     Object file .*/libc\.so\.6 does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
+WARNING :     Object file .*/libc-2.[.0-9]*.so does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
 MALLOC  : <continued> 0x[a-f0-9]* \[libc\.so\.6:(dl_open_worker|_dl_open|add_to_global)\]
 )|(MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[(libc\.so\.6:(dl_open_worker|_dl_open)|ld-linux.so\.2:add_to_global)\]
 )

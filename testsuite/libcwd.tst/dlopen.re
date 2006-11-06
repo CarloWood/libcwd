@@ -5,7 +5,7 @@
 // input lines 4
 // output till Adding ".*module\.so"
 (BFD     : Loading debug symbols from .*module\.so \((<unfinished>
-WARNING :     Object file /lib/libc\.so\.6 does not have debug info.*
+WARNING :     Object file (/usr/lib/debug)*/lib/libc-2.[.0-9]*.so does not have debug info.*
 BFD     : <continued> )*0x[a-f0-9]*\) \.\.\. <unfinished>
 )
 BFD     :     Adding ".*module\.so", load address 0x[a-f0-9]*000, start 0x[a-f0-9]* and end 0x[a-f0-9]*
@@ -33,7 +33,7 @@ malloc    0x[0-9a-f]*            module\.cc:24   void\*; \(sz = 310\)  Allocated
 )|(BFD     : address 0x[0-9a-f]* corresponds to (streambuf\.cc:211|ios\.cc:326|memory:183)
           0x[0-9a-f]* *(streambuf.cc:211|ios.cc:326|memory:183) *<unknown type>; \(sz = [0-9]*\) 
 ))*(((malloc |realloc)   0x[0-9a-f]* *((dl-[a-z]*\.c|stl_alloc\.h|specific\.c|dlerror\.c|eh_globals\.cc):[0-9]*|add_to_global|open_path|_dl_[a-z_]*|dl_open_worker|fillin_rpath|decompose_rpath) *<unknown type>; \(sz = [0-9]*\) 
-)|(BFD     : Warning: Address 0x[0-9a-f]* in section \.text of object file "ld-linux.so\.2"
+)|(BFD     : Warning: Address 0x[0-9a-f]* in section \.text of object file "ld-2\.[.0-9]*\.so"
           does not have a line number, perhaps the unit containing the function
           `_dl_map_object_deps' wasn't compiled with flag -(g|gdb)\?
 )*)*

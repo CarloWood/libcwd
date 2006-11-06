@@ -223,7 +223,8 @@ static bool const statically_linked = true;
 
       //! \cond HIDE_FROM_DOXYGEN
       // cwbfd::
-      bfile_ct::bfile_ct(char const* filename, void* base) : M_lbase(base), M_start_last_symbol(0), M_object_file(filename)
+      bfile_ct::bfile_ct(char const* filename, void* base) :
+          M_abfd(NULL), M_lbase(base), M_start_last_symbol(0), M_object_file(filename)
       {
 #if CWDEBUG_DEBUGM
 	LIBCWD_TSD_DECLARATION;
@@ -247,35 +248,161 @@ static bool const statically_linked = true;
 	LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] != __libcwd_tsd.tid && __libcwd_tsd.rdlocked_by2[object_files_instance] != __libcwd_tsd.tid );
 #endif
 #endif
+	LIBCWD_ASSERT(M_abfd == NULL);
 
-	M_abfd = elf32::bfd_st::openr(filename);
+	long storage_needed = 0;
+        _private_::internal_string dbgfilename_str;
+        _private_::internal_string realpath_str;
+	char const* dbgfilename;
+
+	for (int dbg = 0; dbg < 3; ++dbg)
+	{
+	  // This loop has dbgfilename_str run over the the values:
+	  // 0) /path/libfoo.so.3
+	  // 1) /path/.debug/libfoo.so.3
+	  // 2) /usr/lib/debug/path/libfoo.so.3
+	  // where /path/libfoo.so.3 is the file that filename
+	  // points to (if it's a symlink).
+
+	  if (dbg == 0)
+	  {
+	    dbgfilename_str = filename;
+	    struct stat buf;
+	    for (;;)		// Resolve symbolic links.
+	    {
+#if CWDEBUG_ALLOC
+	      __libcwd_tsd.internal = 0;
+#endif
+	      int res = lstat(dbgfilename_str.c_str(), &buf);
+#if CWDEBUG_ALLOC
+	      __libcwd_tsd.internal = 1;
+#endif
+              if (res == -1)
+	      {
+	        // Whatever, just use 'filename' and fail below.
+		dbgfilename_str = filename;
+		break;		// 'Done' resolving symlinks.
+	      }
+	      else if (!S_ISLNK(buf.st_mode))
+		break;		// Done resolving symlinks.
+	      else
+	      {
+	        ssize_t size = 0;
+		ssize_t len;
+		char* linkname = NULL;
+		do
+		{
+		  if (linkname)
+		    delete [] linkname;
+		  size += 1024;
+		  linkname = new char[size];
+#if CWDEBUG_ALLOC
+		  __libcwd_tsd.internal = 0;
+#endif
+		  len = readlink(dbgfilename_str.c_str(), linkname, size);
+#if CWDEBUG_ALLOC
+		  __libcwd_tsd.internal = 1;
+#endif
+                }
+		while (len == size);
+		if (size == 0)
+		{
+		  // A link pointing to nothing? Bail out and fail below.
+		  dbgfilename_str = filename;
+		  delete [] linkname;
+		  break;	// 'Done' resolving symlinks.
+		}
+		else if (*linkname == '/')
+		  dbgfilename_str.assign(linkname, len);
+		else
+		{
+		  // Relative linkname. Append it to the directory component of the path.
+		  _private_::internal_string::size_type slash = dbgfilename_str.find_last_of('/');
+		  _private_::internal_string dir;
+		  if (slash != _private_::internal_string::npos)
+		    dir = dbgfilename_str.substr(0, slash + 1);
+		  dbgfilename_str = dir;
+		  dbgfilename_str.append(linkname, len);
+		}
+		delete [] linkname;
+	      }
+	    }		// Next symbolic link.
+	    // Store the resolved real path, we need it for dbg == 1 and dbg == 2.
+	    realpath_str = dbgfilename_str;
+	  }
+	  else if (dbg == 1)
+	    continue;
+	  else if (dbg == 2)
+	  {
+	    if (realpath_str[0] != '/')
+	      continue;
+	    dbgfilename_str = "/usr/lib/debug" + realpath_str;
+	  }
+
+	  dbgfilename = dbgfilename_str.c_str();
+
+	  if (dbg != 0)
+	  {
+#if CWDEBUG_ALLOC
+	    __libcwd_tsd.internal = 0;
+#endif
+	    struct stat buf;
+            int res = stat(dbgfilename, &buf);
+#if CWDEBUG_ALLOC
+	    __libcwd_tsd.internal = 1;
+#endif
+	    if (res == -1)
+	      continue;		// This debug file doesn't exist, skip it.
+	  }
+
+	  // Store the previous values - if this try doesn't work out, we want to use the old values.
+	  elf32::bfd_st* old_M_abfd = M_abfd;
+	  long old_storage_needed = storage_needed;
+
+	  M_abfd = elf32::bfd_st::openr(dbgfilename);
+
+	  if (M_abfd->check_format())
+	  {
+	    M_abfd->close();
+	    M_abfd = old_M_abfd;
+	    if (!M_abfd)
+	      DoutFatal(dc::fatal, dbgfilename << ": can not get addresses from archive.");
+	    continue;		// Try next dbg value, and path.
+	  }
+	  if (!M_abfd->has_syms())
+	  {
+	    Dout(dc::warning, dbgfilename << " has no symbols, skipping.");
+	    M_abfd->close();
+	    M_abfd = old_M_abfd;
+	    continue;		// Try next dbg value, and path.
+	  }
+	  storage_needed = M_abfd->get_symtab_upper_bound();
+	  if (storage_needed == 0)
+	  {
+	    Dout(dc::warning, dbgfilename << " has no symbols, skipping.");
+	    M_abfd->close();
+	    M_abfd = old_M_abfd;
+	    storage_needed = old_storage_needed;
+	    continue;		// Try next dbg value, and path.
+	  }
+	  // If this file was stripped, keep the values - but continue looking.
+	  if (M_abfd->is_stripped())
+	  {
+	    if (old_M_abfd)
+	      old_M_abfd->close();	// Clean up old_M_abfd because we will overwrite it.
+	    continue;		// Try next dbg value, and path.
+	  }
+	  // Found a suitable M_abfd with ELF headers and debug info.
+	  break;
+	}
+	if (!M_abfd)		// Didn't find any suitable file to load?
+	{
+	  M_number_of_symbols = 0;
+	  return false;		// Fail.
+        }
+
 	M_abfd->M_s_end_offset = 0;
 	M_abfd->object_file = this;
-
-	if (M_abfd->check_format())
-	{
-	  M_abfd->close();
-	  M_abfd = NULL;
-	  DoutFatal(dc::bfd, filename << ": can not get addresses from archive.");
-	}
-	if (!M_abfd->has_syms())
-	{
-	  Dout(dc::warning, filename << " has no symbols, skipping.");
-	  M_abfd->close();
-	  M_abfd = NULL;
-	  M_number_of_symbols = 0;
-	  return false;
-	}
-
-	long storage_needed = M_abfd->get_symtab_upper_bound();
-	if (storage_needed == 0)
-	{
-	  Dout(dc::warning, filename << " has no symbols, skipping.");
-	  M_abfd->close();
-	  M_abfd = NULL;
-	  M_number_of_symbols = 0;
-	  return false;
-	}
 
 	M_symbol_table = (elf32::asymbol_st**) malloc(storage_needed);	// Leaks memory.
 	M_number_of_symbols = M_abfd->canonicalize_symtab(M_symbol_table);
@@ -305,7 +432,6 @@ static bool const statically_linked = true;
 	  {
 #ifdef HAVE_DLOPEN
 #if CWDEBUG_ALLOC
-	    LIBCWD_TSD_DECLARATION;
 	    __libcwd_tsd.internal = 0;
 #endif
 	    if (!real_dlopen.symptr)
@@ -339,7 +465,7 @@ static bool const statically_linked = true;
 #if CWDEBUG_ALLOC
 	      __libcwd_tsd.internal = 1;
 	      typedef std::map<void*, unsigned int, std::less<void*>,
-	                       _private_::internal_allocator::rebind<std::pair<void* const, unsigned int> >::other> start_values_map_ct;
+	          _private_::internal_allocator::rebind<std::pair<void* const, unsigned int> >::other> start_values_map_ct;
 #else
 	      typedef std::map<void*, unsigned int, std::less<void*> > start_values_map_ct;
 #endif
@@ -392,17 +518,14 @@ static bool const statically_linked = true;
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = 0;
 #endif
-		Dout(dc::warning, "Unable to determine start of \"" << filename << "\", skipping.");
+		Dout(dc::warning, "Unable to determine start of \"" << M_abfd->filename_str << "\", skipping.");
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = 1;
 #endif
 		free(M_symbol_table);
 		M_symbol_table  = NULL;
-		if (M_abfd)
-		{
-		  M_abfd->close();
-		  M_abfd = NULL;
-		}
+		M_abfd->close();
+		M_abfd = NULL;
 		M_number_of_symbols = 0;
 #if CWDEBUG_ALLOC
 		__libcwd_tsd.internal = 0;
@@ -1407,6 +1530,13 @@ typedef location_ct bfd_location_ct;
 	      int res2 = stat((*iter)->get_object_file()->filepath(), &statbuf2);
 	      if (res1 == 0 && res2 == 0 && statbuf1.st_ino == statbuf2.st_ino)
 	      {
+#if CWDEBUG_DEBUG
+	        Dout(dc::debug, '"' << l->l_name << "\" (" <<
+		    (*iter)->get_object_file()->filepath() << " --> " << (*iter)->get_bfd()->filename_str.c_str() <<
+		    ") is already loaded at address " << (*iter)->get_lbase() <<
+		    ", range: " << (*iter)->get_start() << " - " <<
+		    (void*)((char*)((*iter)->get_start()) + (*iter)->size()));
+#endif
 		already_loaded = true;
 		break;
 	      }
@@ -1479,9 +1609,9 @@ typedef location_ct bfd_location_ct;
 		_private_::internal_string demangled_name;		// Alloc checking must be turned off already for this string.
 		_private_::demangle_symbol(p->name, demangled_name);
 		set_alloc_checking_on(LIBCWD_TSD);
-		char const* ofn = strrchr(abfd->filename, '/');
+		_private_::internal_string::size_type ofn = abfd->filename_str.find_last_of('/');
 		LIBCWD_Dout(dc::bfd, "Warning: Address " << addr << " in section " << sect->name <<
-		    " of object file \"" << (ofn ? ofn + 1 : abfd->filename) << '"');
+		    " of object file \"" << abfd->filename_str.substr(ofn + 1) << '"');
 		LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, "does not have a line number, perhaps the unit containing the function");
 #ifdef __FreeBSD__
 		LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb?");
@@ -1495,7 +1625,7 @@ typedef location_ct bfd_location_ct;
 	  }
 	  else
 	    LIBCWD_Dout(dc::bfd, "Warning: Address in section " << sect->name <<
-	        " of object file \"" << abfd->filename << "\" does not contain a function.");
+	        " of object file \"" << abfd->filename_str << "\" does not contain a function.");
 	}
 	else
 	  LIBCWD_Dout(dc::bfd, "address " << addr << " corresponds to " << *static_cast<bfd_location_ct*>(this));

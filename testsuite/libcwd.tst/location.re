@@ -6,7 +6,7 @@
 BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:110
 // input lines 2
 // output till ^NOTICE
-(WARNING :     Object file /lib/libc\.so\.6 does not have debug info.*
+(WARNING :     Object file (/usr/lib/debug)*/lib/libc-2.[.0-9]*.so does not have debug info.*
 )*
 NOTICE  : called from tst_location_shared:_Z16libcwd_bfd_test2v:location\.cc:110
 BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:118
@@ -22,7 +22,7 @@ NOTICE  : called from .*
 )*
 // input lines 3
 // output till ^(BFD|NOTICE  : Program end)
-((WARNING : Object file .*/libc\.so\.6 does not have debug info.*
+((WARNING : Object file .*/libc-2.[.0-9]*.so does not have debug info.*
 )*NOTICE  : called from libc\.so\.6:__libc_start_main
 )*
 // input lines 5

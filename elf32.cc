@@ -1869,7 +1869,7 @@ void objfile_ct::load_dwarf(void)
   int saved_internal = __libcwd_tsd.internal;
   __libcwd_tsd.internal = false;
 #endif
-  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << this->filename << "... ");
+  Dout(dc::bfd|continued_cf|flush_cf, "Loading debug info from " << this->filename_str << "... ");
 #if CWDEBUG_ALLOC
   __libcwd_tsd.internal = saved_internal;
 #endif
@@ -3106,7 +3106,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, 
 	int saved_internal2 = __libcwd_tsd.internal;
 	__libcwd_tsd.internal = false;
 #endif
-	Dout( dc::warning, "Object file " << this->filename << " does not have debug info.  Address lookups inside "
+	Dout( dc::warning, "Object file " << this->filename_str << " does not have debug info.  Address lookups inside "
 	    "this object file will result in a function name only, not a source file location.");
 #if CWDEBUG_ALLOC
 	__libcwd_tsd.internal = saved_internal2;
@@ -3349,13 +3349,13 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 
 objfile_ct::objfile_ct(void) :
     M_section_header_string_table(NULL), M_sections(NULL), M_symbol_string_table(NULL),  M_dyn_symbol_string_table(NULL),
-    M_symbols(NULL), M_number_of_symbols(0), M_symbol_table_type(0)
+    M_symbols(NULL), M_number_of_symbols(0), M_symbol_table_type(0), M_hash_list(NULL)
 {
 }
 
 void objfile_ct::initialize(char const* file_name)
 {
-  filename = file_name;
+  filename_str = file_name;
   LIBCWD_TSD_DECLARATION;
   int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
   Debug( libcw_do.off() );
@@ -3436,6 +3436,8 @@ void objfile_ct::initialize(char const* file_name)
       M_dwarf_debug_info_section_index = i;
     else if (!strcmp(M_sections[i].name, ".debug_str"))
       M_dwarf_debug_str_section_index = i;
+    if (section_headers[i].sh_type == SHT_SYMTAB)
+      M_is_stripped = false;
     if ((section_headers[i].sh_type == SHT_SYMTAB || section_headers[i].sh_type == SHT_DYNSYM)
         && section_headers[i].sh_size > 0)
     {

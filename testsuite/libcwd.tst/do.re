@@ -5,7 +5,7 @@
 )*)
 // input lines 2
 // output till ^NOTICE
-(WARNING :     Object file /lib/libc\.so\.6 does not have debug info.*
+(WARNING :     Object file (/usr/lib/debug)*/lib/libc-2.[.0-9]*.so does not have debug info.*
 )*
 // type exact
 NOTICE  : Dout Turned on 1
@@ -55,7 +55,7 @@ XYZ2Aexample::my_own_do2WARNING |marker3|             ExampleDout text 13, "XYZ2
 // type regexp
 // input lines 2
 // output till ^\* NOTICE  : This is written to cout
-(> BFD     : Loading debug info from .*/libstdc\+\+\.so\.6\.\.\. done
+(> BFD     : Loading debug info from .*/libstdc\+\+\.so\.6\.[.0-9]*\.\.\. done
 )*
 \* NOTICE  : This is written to cout
 // type exact
@@ -64,7 +64,7 @@ XYZ2Aexample::my_own_do2WARNING |marker3|             ExampleDout text 13, "XYZ2
 // type regexp
 // input lines 2
 // output till ^> WARNING : Was written
-(> WARNING :     Object file .*/libstdc\+\+\.so\.6 does not have debug info.*
+(> WARNING :     Object file .*/libstdc\+\+\.so\.6\.[.0-9]* does not have debug info.*
 )*
 // type exact
 > WARNING : Was written to ostringstream: "* NOTICE  : This is written to an ostringstream

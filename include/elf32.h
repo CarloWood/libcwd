@@ -68,13 +68,14 @@ struct asection_st {
 };
 
 struct bfd_st {
-  char const* filename;
+  _private_::internal_string filename_str;
   cwbfd::bfile_ct const* object_file;
   bool cacheable;
   bool M_has_syms;
+  bool M_is_stripped;
   size_t M_s_end_offset;
 public:
-  bfd_st(void) : M_has_syms(false) { }
+  bfd_st(void) : M_has_syms(false), M_is_stripped(true) { }
   virtual ~bfd_st() { }
 public:
   static bfd_st* openr(char const* file_name);
@@ -84,6 +85,7 @@ public:
   virtual long canonicalize_symtab(asymbol_st**) = 0;
   virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM) = 0;
   bool has_syms(void) const { return M_has_syms; }
+  bool is_stripped(void) const { return M_is_stripped; }
 };
 
 extern asection_st const* const absolute_section_c;
