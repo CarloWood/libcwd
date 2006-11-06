@@ -331,7 +331,10 @@ static bool const statically_linked = true;
 	    realpath_str = dbgfilename_str;
 	  }
 	  else if (dbg == 1)
-	    continue;
+	  {
+	    dbgfilename_str = realpath_str;
+	    dbgfilename_str.insert(realpath_str.find_last_of('/') + 1, ".debug/");
+	  }
 	  else if (dbg == 2)
 	  {
 	    if (realpath_str[0] != '/')
