@@ -10,6 +10,15 @@
 #else
 #include <sstream>
 #endif
+#include <time.h>
+
+struct timespec const one_ms = { 0, 1000000 };
+
+static void slowdown(void)
+{
+  struct timespec rem = one_ms; 
+  while (nanosleep(&rem, &rem) == -1);
+}
 
 using namespace std;
 
@@ -68,6 +77,7 @@ void release_cerr(void)
 void flush_cout(void)
 {
   std::cout << flush;
+  slowdown();
 }
 
 void flush_cerr(void)
@@ -99,6 +109,7 @@ void flush_cerr(void)
   }
 #endif
   cout << flush;
+  slowdown();
   ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::in|std::ios_base::out);
 #endif
 }
