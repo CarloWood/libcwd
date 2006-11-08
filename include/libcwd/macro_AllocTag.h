@@ -56,6 +56,7 @@ extern void set_alloc_label(void const* ptr, type_info_ct const& ti, char const*
 extern void set_alloc_label(void const* ptr, type_info_ct const& ti, _private_::smart_ptr description LIBCWD_COMMA_TSD_PARAM);
     // For dynamic descriptions
     // allocated with new[]
+extern char* allocate_AllocTag_WS_desc(size_t size);
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
 extern void register_external_allocation(void const* ptr, size_t size);
 #endif
@@ -176,7 +177,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
 	  ::std::streampos pos = buf.rdbuf()->pubseekoff(0, ::std::ios_base::cur, ::std::ios_base::out); \
 	  size_t size = pos - ::std::streampos(0); \
 	  ::libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD); \
-	  WS_desc = new char [size]; /* This is never deleted anymore */ \
+	  WS_desc = ::libcwd::allocate_AllocTag_WS_desc(size); /* This is never deleted anymore */ \
 	  ::libcwd::_private_::set_alloc_checking_on(LIBCWD_TSD); \
 	  buf.rdbuf()->sgetn(WS_desc, size); \
 	} \

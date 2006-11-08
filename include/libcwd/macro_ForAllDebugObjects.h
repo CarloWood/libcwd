@@ -51,6 +51,13 @@ public:
   void ST_uninit(void);
   container_type& write_locked(void);
   container_type const& read_locked(void) const;
+
+  // debug_objects is a global object. If it is destructed then in principle
+  // all other global objects could already have been destructed, including
+  // debug_ct objects. Therefore, destructing the container with with pointers
+  // to the debug objects isn't wrong: accessing it (by using the macro
+  // ForAllDebugObjects) is wrong. Call ST_uninit to delete WNS_debug_objects.
+  ~debug_objects_ct() { ST_uninit(); }
 };
 
 inline

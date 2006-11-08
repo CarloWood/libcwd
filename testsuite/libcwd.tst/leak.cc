@@ -68,7 +68,7 @@ MAIN_FUNCTION
 
   Debug( check_configuration() );
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
-  new int;							// Make sure initialization of libcwd is done.
+  int* dummy = new int;					// Make sure initialization of libcwd is done.
   libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
 #endif
 #if CWDEBUG_LOCATION
@@ -161,6 +161,8 @@ MAIN_FUNCTION
   free(ptr3);
 
   Debug( libcw_do.off() );
+
+  delete dummy;
 
   EXIT(0);
 }

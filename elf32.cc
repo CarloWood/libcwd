@@ -1499,7 +1499,7 @@ bfd_st* bfd_st::openr(char const* file_name)
 #if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<object_files_instance>::wrlock();
 #endif
-  objfile_ct* objfile = new objfile_ct;
+  objfile_ct* objfile = new objfile_ct;		// LEAK9
 #if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<object_files_instance>::wrunlock();
 #endif
@@ -3360,7 +3360,7 @@ void objfile_ct::initialize(char const* file_name)
   int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
   Debug( libcw_do.off() );
   _private_::set_invisible_on(LIBCWD_TSD);
-  M_input_stream = new std::ifstream;
+  M_input_stream = new std::ifstream;		// LEAK10
   M_input_stream->open(file_name);
   _private_::set_invisible_off(LIBCWD_TSD);
   Debug( libcw_do.on() );
@@ -3388,13 +3388,13 @@ void objfile_ct::initialize(char const* file_name)
   }
   LIBCWD_ASSERT( section_headers[M_header.e_shstrndx].sh_size > 0
       && section_headers[M_header.e_shstrndx].sh_size >= section_headers[M_header.e_shstrndx].sh_name );
-  M_section_header_string_table = new char[section_headers[M_header.e_shstrndx].sh_size]; 
+  M_section_header_string_table = new char[section_headers[M_header.e_shstrndx].sh_size]; 	// LEAK11
   _private_::set_library_call_on(LIBCWD_TSD);
   M_input_stream->rdbuf()->pubseekpos(section_headers[M_header.e_shstrndx].sh_offset);
   M_input_stream->read(M_section_header_string_table, section_headers[M_header.e_shstrndx].sh_size);
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[section_headers[M_header.e_shstrndx].sh_name], ".shstrtab") );
-  M_sections = new section_ct[M_header.e_shnum];
+  M_sections = new section_ct[M_header.e_shnum];						// LEAK11
   if (DEBUGELF32)
     Debug( libcw_do.inc_indent(4) );
   M_debug_info_loaded = false;

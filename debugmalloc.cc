@@ -2677,7 +2677,7 @@ void init_debugmalloc(void)
 #endif
 #if !LIBCWD_THREAD_SAFE
       // With threads, memblk_map is initialized in 'LIBCWD_TSD_DECLARATION'.
-      ST_memblk_map = new memblk_map_ct;
+      ST_memblk_map = new memblk_map_ct;		// LEAK4
 #endif
       WST_initialization_state = -1;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
@@ -3158,6 +3158,13 @@ void set_alloc_label(void const* void_ptr, type_info_ct const& ti, _private_::sm
   LIBCWD_RESTORE_CANCEL;
 }
 
+// Used in AllocTag. This function is put here so that the leak can
+// easier be suppressed by valgrind.
+char* allocate_AllocTag_WS_desc(size_t size)
+{
+  return new char [size];	// LEAK45
+}
+
 #if CWDEBUG_LOCATION
 namespace _private_ {
 
@@ -3538,7 +3545,7 @@ void register_external_allocation(void const* void_ptr, size_t size)
 #endif
 #if !LIBCWD_THREAD_SAFE
     // With threads, memblk_map is initialized in 'LIBCWD_TSD_DECLARATION'.
-    ST_memblk_map = new memblk_map_ct;
+    ST_memblk_map = new memblk_map_ct;			// LEAK3
 #endif
     WST_initialization_state = -1;
     __libcwd_tsd.internal = 0;

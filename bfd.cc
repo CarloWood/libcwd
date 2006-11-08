@@ -407,7 +407,7 @@ static bool const statically_linked = true;
 	M_abfd->M_s_end_offset = 0;
 	M_abfd->object_file = this;
 
-	M_symbol_table = (elf32::asymbol_st**) malloc(storage_needed);	// Leaks memory.
+	M_symbol_table = (elf32::asymbol_st**) malloc(storage_needed);	// LEAK12
 	M_number_of_symbols = M_abfd->canonicalize_symtab(M_symbol_table);
 
 	if (M_number_of_symbols > 0)
@@ -1145,7 +1145,7 @@ static bool const statically_linked = true;
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
 	set_alloc_checking_off(LIBCWD_TSD);
-	object_file = new bfile_ct(name, l_addr);
+	object_file = new bfile_ct(name, l_addr);		// LEAK6
 	BFD_RELEASE_WRITE_LOCK;
 	already_exists =
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
@@ -1265,23 +1265,18 @@ static bool const statically_linked = true;
 	// bfd_init();
 
 	// Get the full path and name of executable
-
-      	// This must be allocated because bfd keeps a pointer to its data().
-	_private_::internal_string const* fullpath = new _private_::internal_string;	// Leaks memory.
+	_private_::internal_string fullpath;
 
 	set_alloc_checking_on(LIBCWD_TSD);
 	// End INTERNAL!
 	// ****************************************************************************
 
-	ST_get_full_path_to_executable(*const_cast<_private_::internal_string*>(fullpath) LIBCWD_COMMA_TSD);
+	ST_get_full_path_to_executable(fullpath LIBCWD_COMMA_TSD);
 	    // Result is '\0' terminated so we can use data() as a C string.
-
-	// bfd_set_error_program_name(fullpath->data() + fullpath->find_last_of('/') + 1);
-	// bfd_set_error_handler(error_handler);
 
 	// Load executable
 	BFD_INITIALIZE_LOCK;
-	load_object_file(fullpath->data(), executable_l_addr);
+	load_object_file(fullpath.data(), executable_l_addr);
 
 	if (!statically_linked)
 	{
@@ -1293,7 +1288,7 @@ static bool const statically_linked = true;
 
 	  char const* argv[3];
 	  argv[0] = "ldd";
-	  argv[1] = fullpath->data();
+	  argv[1] = fullpath.data();
 	  argv[2] = NULL;
 	  ST_exec_prog(ldd_prog, argv, environ, ST_decode_ldd);
 
@@ -1426,7 +1421,7 @@ static bool const statically_linked = true;
 typedef location_ct bfd_location_ct;
 #endif
 
-    libcwd::object_file_ct::object_file_ct(char const* filepath) :
+    object_file_ct::object_file_ct(char const* filepath) :
 #if CWDEBUG_ALLOC
         M_hide(false),
 #endif
@@ -1434,7 +1429,7 @@ typedef location_ct bfd_location_ct;
     {
       LIBCWD_TSD_DECLARATION;
       set_alloc_checking_off(LIBCWD_TSD);
-      M_filepath = strcpy((char*)malloc(strlen(filepath) + 1), filepath);	// Leaks memory.
+      M_filepath = strcpy((char*)malloc(strlen(filepath) + 1), filepath);	// LEAK8
       set_alloc_checking_on(LIBCWD_TSD);
       M_filename = strrchr(M_filepath, '/') + 1;
       if (M_filename == (char const*)1)
@@ -1442,7 +1437,7 @@ typedef location_ct bfd_location_ct;
     }
 
     //
-    // location_ct::M_bfd_pc_location
+    // location_ct::M_pc_location
     //
     // Find source file, (mangled) function name and line number of the address `addr'.
     //
@@ -1526,7 +1521,7 @@ typedef location_ct bfd_location_ct;
           {
 	    if (reinterpret_cast<void*>(l->l_addr) == (*iter)->get_lbase())
 	    {
-	      // This paths are very likely the same, but I don't want to take any risk.
+	      // The paths are very likely the same, but I don't want to take any risk.
 	      struct stat statbuf1;
 	      struct stat statbuf2;
 	      int res1 = stat(l->l_name, &statbuf1);
@@ -1589,7 +1584,7 @@ typedef location_ct bfd_location_ct;
 	{
 	  size_t len = strlen(file);
 	  set_alloc_checking_off(LIBCWD_TSD);
-	  M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);
+	  M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);	// LEAK5
 	  set_alloc_checking_on(LIBCWD_TSD);
 	  strcpy(M_filepath.get(), file);
 	  M_known = true;
@@ -1797,7 +1792,7 @@ extern "C" {
     if (!libcwd::_private_::dlopen_map)
     {
       set_alloc_checking_off(LIBCWD_TSD);
-      libcwd::_private_::dlopen_map = new libcwd::_private_::dlopen_map_ct;
+      libcwd::_private_::dlopen_map = new libcwd::_private_::dlopen_map_ct;	// LEAK52
       set_alloc_checking_on(LIBCWD_TSD);
     }
     libcwd::_private_::dlopen_map_ct::iterator iter(libcwd::_private_::dlopen_map->find(handle));

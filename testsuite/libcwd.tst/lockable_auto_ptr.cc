@@ -11,11 +11,9 @@
 // packaging of this file.
 //
 #include "sys.h"
-#include "alloctag_debug.h"
 #include <iostream>
-#include <libcwd/lockable_auto_ptr.h>
+#include "alloctag_debug.h"
 
-using namespace libcwd;
 using namespace libcwd;
 
 class Bl {};
@@ -38,6 +36,8 @@ MAIN_FUNCTION
 #endif
   // Turn debug object on
   Debug( libcw_do.on() );
+
+  {
 
   Al* a;
 
@@ -106,6 +106,8 @@ MAIN_FUNCTION
   LIBCWD_ASSERT(bp4.get() == a);
   LIBCWD_ASSERT(ap6.is_owner() && ap6.strict_owner());
   LIBCWD_ASSERT(!bp4.is_owner());
+
+  } // Destruct all lockable_auto_ptr<>'s (exit() doesn't do that!)
 
   Dout(dc::notice, "Test successful");
 

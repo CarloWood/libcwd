@@ -633,7 +633,7 @@ void allocator_unlock(void)
 	{
 	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
 	  set_alloc_checking_off(LIBCWD_TSD);
-	  WNS_debug_channels = new debug_channels_ct::container_type;
+	  WNS_debug_channels = new debug_channels_ct::container_type;		// LEAK2
 	  set_alloc_checking_on(LIBCWD_TSD);
 	  DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
 	}
@@ -654,7 +654,7 @@ void allocator_unlock(void)
 	  LIBCWD_TSD_DECLARATION;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
-	  WNS_debug_channels = new debug_channels_ct::container_type;
+	  WNS_debug_channels = new debug_channels_ct::container_type;		// LEAK3
 	  DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK;
 	  set_alloc_checking_on(LIBCWD_TSD);
 	}
@@ -841,7 +841,7 @@ void allocator_unlock(void)
     void debug_string_ct::NS_internal_init(char const* str, size_t len)
     {
       M_default_capacity = min_capacity_c;
-      M_str = (char*)malloc((M_default_capacity = M_capacity = calculate_capacity(len)) + 1);	// Add one for the terminating zero.
+      M_str = (char*)malloc((M_default_capacity = M_capacity = calculate_capacity(len)) + 1);	// Add one for the terminating zero. LEAK46
       strncpy(M_str, str, len);
       M_size = len;
       M_str[M_size] = 0;
@@ -1093,7 +1093,7 @@ void allocator_unlock(void)
       DEBUGDEBUG_CERR( "creating new laf_ct" );
       int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
       _private_::set_invisible_on(LIBCWD_TSD);
-      current = new laf_ct(channel_set.mask, channel_set.label, errno);
+      current = new laf_ct(channel_set.mask, channel_set.label, errno);		// LEAK5: This allocation + location_ct.
       _private_::set_invisible_off(LIBCWD_TSD);
       _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
@@ -1444,7 +1444,7 @@ void allocator_unlock(void)
       laf_stack.init();
       continued_stack.init();
       margin.NS_internal_init("", 0);
-      marker.NS_internal_init(": ", 2);
+      marker.NS_internal_init(": ", 2);		// LEAK7
 #if CWDEBUG_DEBUGOUTPUT
       first_time = true;
 #endif

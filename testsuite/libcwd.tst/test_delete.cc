@@ -25,7 +25,7 @@ MAIN_FUNCTION
 
   Debug( check_configuration() );
 #if CWDEBUG_ALLOC && !defined(THREADTEST)
-  new int;							// Make sure initialization of libcwd is done.
+  int* dummy = new int;					// Make sure initialization of libcwd is done.
   libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
 #endif
   // Select channels
@@ -87,6 +87,8 @@ MAIN_FUNCTION
 
   delete a;
   Debug( libcw_do.off() );
+
+  delete dummy;
 
   EXIT(0);
 }
