@@ -1496,6 +1496,10 @@ typedef location_ct bfd_location_ct;
 	// lookup for that and then realizing that no debug info was read yet for
 	// the library that did that malloc(3) call and therefore wanting to print
 	// debug output (Loading debug info from...) causing a dead-lock.
+	//
+	// PS We DID get here - 0.99.45, compiled with gcc 3.4.6, while running
+	// threads_threads_shared from dejagnu (2006/11/08). I also had to stand
+	// on one leg and wave high left.
 	M_object_file = NULL;
 	M_func = S_pre_libcwd_initialization_c;	// Not really true, but this hardly ever happens in the first place.
 	M_initialization_delayed = addr;

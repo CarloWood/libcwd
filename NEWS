@@ -6,6 +6,9 @@ libcwd-0.99.45
 	initialized. The call to bfd_openr returns an
 	uninitialized bfd structure...
 
+	Debug symbols are now read from .debug/ or /usr/lib/debug
+	when it is found that the real library is stripped.
+
 	Bug fixes:
 
 	Several compile bug fixes for FreeBSD.

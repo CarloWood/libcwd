@@ -212,7 +212,7 @@ extern "C" void* calloc(size_t nmemb, size_t size) throw() __attribute__((__mall
 extern "C" void* realloc(void* ptr, size_t size) throw() __attribute__((__malloc__));
 extern "C" void  free(void* ptr) throw();
 #ifdef LIBCWD_HAVE_POSIX_MEMALIGN
-extern "C" int posix_memalign(void **memptr, size_t alignment, size_t size);
+extern "C" int posix_memalign(void **memptr, size_t alignment, size_t size) throw();
 #endif
 #ifdef LIBCWD_HAVE_VALLOC
 extern "C" void *valloc(size_t size) throw() __attribute__((__malloc__));

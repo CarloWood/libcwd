@@ -222,7 +222,7 @@ extern int raise (int sig);
 
 #define WRITESTR(x) ::write(2, x, sizeof(x) - 1)
 #define WRITEINT(i) do { if (i == 0) ::write(2, "0", 1); else { \
-    int v = i; char b[32]; char* p = b + 32; \
+    unsigned long v = i; char b[32]; char* p = b + 32; \
     while(v) { *--p = '0' + v % 10; v /= 10; }; \
     ::write(2, p, b + sizeof(b) - p); \
     } } while(0)

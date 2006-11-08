@@ -4118,7 +4118,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
 //
 
 #ifdef HAVE_POSIX_MEMALIGN
-int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size)
+int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size) throw()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM

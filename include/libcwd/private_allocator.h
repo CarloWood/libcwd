@@ -38,6 +38,7 @@
 #include <libcwd/private_mutex.h>	// mutex_ct
 #endif
 #include <memory>
+#include <limits>
 
 //===================================================================================================
 // Allocators
@@ -274,6 +275,8 @@ template<bool needs_lock, int pool_instance>
       friend inline
       bool operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const&,
 		      CharPoolAlloc<needs_lock2, pool_instance2> const&);
+
+    size_type max_size(void) const { return std::numeric_limits<size_type>::max(); }
   };
 #endif // gcc 4.0 and higher.
 

@@ -79,6 +79,7 @@ $(pkgconfig_DATA): config.status
 # --------------- Maintainer's Section
 
 dist-hook: documentation
+	chmod u+w $(distdir)/Makefile.in
 	cat $(distdir)/Makefile.in | \
 	  sed -e 's/^\(CONFIG_CLEAN_FILES =.*\) libcwd\.spec libcwd\.lsm\(.*\)/\1\2/' > $(distdir)/Makefile.in.new && \
 	  mv $(distdir)/Makefile.in.new $(distdir)/Makefile.in
@@ -95,7 +96,7 @@ dist-hook: documentation
 	for i in `grep '^/' $(srcdir)/example-project/m4/CVS/Entries | cut -d/ -f2`; do \
 	  cp -p $(srcdir)/example-project/m4/$$i $(distdir)/example-project/m4; \
 	done
-	rm $(distdir)/example-project/debug.h.maintainer $(distdir)/example-project/.cvsignore
+	rm -f $(distdir)/example-project/debug.h.maintainer $(distdir)/example-project/.cvsignore
 	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
 	chmod +x $(distdir)/install-sh
 
