@@ -75,7 +75,9 @@ MAIN_FUNCTION
 
   Debug( dc::malloc.off() );
 
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
   delete dummy;
+#endif
 
   EXIT(0);
 }

@@ -89,7 +89,9 @@ MAIN_FUNCTION
 
   Debug( libcw_do.off() );
 
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
   delete dummy;
+#endif
 
   EXIT(0);
 }
