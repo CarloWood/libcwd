@@ -109,14 +109,14 @@ $(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer 
 full-check: Makefile
 	@( \
 	  for c in \
-		'--enable-maintainer-mode --compilers=3.4.6,3.4.1,3.4.0,3.3.6' \
+		'--enable-maintainer-mode --compilers=svn-4.2,4.1.1,4.1.0,4.0.3,4.0.0,3.4.6,3.4.1,3.4.0,3.3.6' \
 		'--enable-maintainer-mode --disable-pch --compilers=svn-4.2,4.1.0,4.0.0,3.4.0,3.3' \
-	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=svn-4.2,4.1.1,4.0.3,3.4.6,3.3.6' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=svn-4.2,4.1.1,4.0.3,3.4.6,3.3.6' \
+	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=svn-4.2,4.1.1,4.0.3' \
+		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=svn-4.2,4.1.1,4.0.3' \
 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=svn-4.2,4.1.1,4.0.3,3.4.6,3.3.6' \
 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=svn-4.2,4.1.1,4.0.3,3.4.6,3.3.6' \
 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=svn-4.2,4.1.1,4.0.3,3.4.6,3.3.6' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=svn-4.2,4.1.1,4.0.3,3.4.6,3.3.6' \
+		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=svn-4.2,4.1.1,4.0.3' \
 		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=svn-4.2,4.1.1,4.0.3,3.4.6,3.3.6' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
@@ -128,9 +128,13 @@ full-check: Makefile
 	    compilers=`echo $$c | sed -e 's/.* --compilers=//' -e 's/,/ /g'`; \
 	    echo "*** CONFIGURATION OPTIONS: \"$$config\" (with compilers \"$$compilers\")"; \
 	    for v in `echo $$compilers`; do \
+	      case "$$v" in \
+	      3*) cf="$$config --disable-threading" ;; \
+	      *) cf="$$config" ;; \
+	      esac; \
 	      echo "*** COMPILER VERSION: \"$$v\""; \
 	      echo -n "Configuring... "; \
-	      if eval "CC=\"gcc-$$v\" CXX=\"g++-$$v\" $(srcdir)/configure $$config >/dev/null"; then \
+	      if eval "CC=\"gcc-$$v\" CXX=\"g++-$$v\" $(srcdir)/configure $$cf >/dev/null"; then \
 		echo "done"; \
 	      else \
 	        echo "failed" && exit -1; \
@@ -147,7 +151,7 @@ full-check: Makefile
 	      if if make RUNTESTFLAGS="" $$check 2>/dev/null; then \
 	        echo "done"; \
 	      else \
-		echo "*** FAILURE FOR \"$$config\" USING g++-$$v" && exit -1; \
+		echo "*** FAILURE FOR \"$$cf\" USING g++-$$v" && exit -1; \
 	      fi | egrep '(FAIL|ERROR)'; then exit -1; else echo "ok"; fi; \
 	      cd .. >/dev/null; \
 	    done; \

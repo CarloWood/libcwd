@@ -193,7 +193,7 @@ dnl that any of the above macros might have added however.
 CXXFLAGS="$CXXFLAGS_env $DEBUGOPTS $EXTRAOPTS"
 
 dnl This block cannot be replaced by a macro because the DISABLE_* and the
-dnl AC_PROG_LIBTOOL macro need to be in configure.in itself for some reason.
+dnl AC_PROG_LIBTOOL macro need to be in configure.ac itself for some reason.
 dnl Generate libtool (also checks shared/static prerequisites)
 if expr "$host" : ".*openbsd.*" >/dev/null; then
   dnl openBSD has a buggy ld, no way that a shared library will work.

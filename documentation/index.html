@@ -84,6 +84,19 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>9 Nov 2006</B>
+<P class="news">libcwd-0.99.45 is released.&nbsp;
+This version works with gcc 4.2 (and the current 4.3 in SVN).
+The library now works completely on Debian (I started to use debian myself).
+Support for debug symbol packages (*-dbg on debian) was added: libcwd now
+reads both, .debug/ and /usr/lib/debug/ debug files (as does gdb) when
+the original library is stripped (it will not attempt to read them if
+the original library still has a symbol table).</P>
+<P class="news">Threading support with gcc versions 3.x has been dropped (use gcc 4.x).
+It might work for you, or it might deadlock. Non-threading still
+works fine with gcc 3.3 or higher.</P>
+<P class="news">Support for libbfd (--enable-libbfd) has been completely
+removed; I don't think anyone was using it anyway.</P>
 <DT><B>23 May 2006</B>
 <P class="news">libcwd-0.99.44 is released.&nbsp;
 This release implements the possibility of 'redzones': you

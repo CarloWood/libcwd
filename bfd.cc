@@ -1262,70 +1262,75 @@ static bool const statically_linked = true;
 	LIBCWD_RESTORE_CANCEL;
 	set_alloc_checking_off(LIBCWD_TSD);
 
-	// bfd_init();
-
-	// Get the full path and name of executable
-	_private_::internal_string fullpath;
-
-	set_alloc_checking_on(LIBCWD_TSD);
-	// End INTERNAL!
-	// ****************************************************************************
-
-	ST_get_full_path_to_executable(fullpath LIBCWD_COMMA_TSD);
-	    // Result is '\0' terminated so we can use data() as a C string.
-
-	// Load executable
-	BFD_INITIALIZE_LOCK;
-	load_object_file(fullpath.data(), executable_l_addr);
-
-	if (!statically_linked)
+        // Start a new scope for 'fullpath': it needs to be destructed while internal.
 	{
+	  // Get the full path and name of executable
+	  _private_::internal_string fullpath;
 
-	  // Load all shared objects
-#ifndef HAVE__DL_LOADED
-	  // Path to `ldd'
-	  char const ldd_prog[] = "/usr/bin/ldd";
-
-	  char const* argv[3];
-	  argv[0] = "ldd";
-	  argv[1] = fullpath.data();
-	  argv[2] = NULL;
-	  ST_exec_prog(ldd_prog, argv, environ, ST_decode_ldd);
-
-	  for(ST_shared_libs_vector_ct::const_iterator iter = ST_shared_libs.begin(); iter != ST_shared_libs.end(); ++iter)
-	  {
-	    my_link_map const* l = &(*iter);
-#else
-	  for(link_map const* l = *dl_loaded_ptr; l; l = l->l_next)
-	  {
-#if 0
-	  }
-#endif
-#endif
-	    if (l->l_name && ((l->l_name[0] == '/') || (l->l_name[0] == '.')))
-	      load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
-	  }
-
-	  LIBCWD_DEFER_CANCEL;
-	  BFD_ACQUIRE_WRITE_LOCK;
-	  set_alloc_checking_off(LIBCWD_TSD);
-	  NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
 	  set_alloc_checking_on(LIBCWD_TSD);
-	  BFD_RELEASE_WRITE_LOCK;
-	  LIBCWD_RESTORE_CANCEL;
-	}
+	  // End INTERNAL!
+	  // ****************************************************************************
 
-	set_alloc_checking_off(LIBCWD_TSD);
-	ST_shared_libs.~ST_shared_libs_vector_ct();
+	  ST_get_full_path_to_executable(fullpath LIBCWD_COMMA_TSD);
+	      // Result is '\0' terminated so we can use data() as a C string.
+
+	  // Load executable
+	  BFD_INITIALIZE_LOCK;
+	  load_object_file(fullpath.data(), executable_l_addr);
+
+	  if (!statically_linked)
+	  {
+
+	    // Load all shared objects
+  #ifndef HAVE__DL_LOADED
+	    // Path to `ldd'
+	    char const ldd_prog[] = "/usr/bin/ldd";
+
+	    char const* argv[3];
+	    argv[0] = "ldd";
+	    argv[1] = fullpath.data();
+	    argv[2] = NULL;
+	    ST_exec_prog(ldd_prog, argv, environ, ST_decode_ldd);
+
+	    for(ST_shared_libs_vector_ct::const_iterator iter = ST_shared_libs.begin(); iter != ST_shared_libs.end(); ++iter)
+	    {
+	      my_link_map const* l = &(*iter);
+  #else
+	    for(link_map const* l = *dl_loaded_ptr; l; l = l->l_next)
+	    {
+  #if 0
+	    }
+  #endif
+  #endif
+	      if (l->l_name && ((l->l_name[0] == '/') || (l->l_name[0] == '.')))
+		load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+	    }
+
+	    LIBCWD_DEFER_CANCEL;
+	    BFD_ACQUIRE_WRITE_LOCK;
+	    set_alloc_checking_off(LIBCWD_TSD);
+	    NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
+	    set_alloc_checking_on(LIBCWD_TSD);
+	    BFD_RELEASE_WRITE_LOCK;
+	    LIBCWD_RESTORE_CANCEL;
+	  }
+
+	  set_alloc_checking_off(LIBCWD_TSD);
+	  ST_shared_libs.~ST_shared_libs_vector_ct();
+	  set_alloc_checking_on(LIBCWD_TSD);
+
+	  if (_private_::always_print_loading)
+	  {
+	    Debug( dc::bfd.restore(state2) );
+	    Debug( libcw_do.restore(state) );
+	  }
+
+	  WST_initialized = true;			// MT: Safe, this function is Single Threaded.
+
+	  set_alloc_checking_off(LIBCWD_TSD);
+	} // Destruct fullpath
 	set_alloc_checking_on(LIBCWD_TSD);
 
-        if (_private_::always_print_loading)
-	{
-	  Debug( dc::bfd.restore(state2) );
-	  Debug( libcw_do.restore(state) );
-	}
-
-	WST_initialized = true;			// MT: Safe, this function is Single Threaded.
 	return true;
       }
 
@@ -1610,10 +1615,11 @@ typedef location_ct bfd_location_ct;
 	      {
 		_private_::internal_string demangled_name;		// Alloc checking must be turned off already for this string.
 		_private_::demangle_symbol(p->name, demangled_name);
-		set_alloc_checking_on(LIBCWD_TSD);
 		_private_::internal_string::size_type ofn = abfd->filename_str.find_last_of('/');
+		_private_::internal_string object_file_name = abfd->filename_str.substr(ofn + 1); // substr can alloc memory
+		set_alloc_checking_on(LIBCWD_TSD);
 		LIBCWD_Dout(dc::bfd, "Warning: Address " << addr << " in section " << sect->name <<
-		    " of object file \"" << abfd->filename_str.substr(ofn + 1) << '"');
+		    " of object file \"" << object_file_name << '"');
 		LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, "does not have a line number, perhaps the unit containing the function");
 #ifdef __FreeBSD__
 		LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb?");

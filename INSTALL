@@ -66,9 +66,12 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.45 was tested with gcc-3.3, gcc-3.3.5, gcc-3.4.0
-gcc-3.4.1, gcc-3.4.4, gcc-4.0.0, gcc-4.0.3, gcc-4.1.0, gcc-4.1.1 and
-gcc version 4.2.0 20060621 (experimental)
+libcwd-0.99.45 was tested with gcc-3.3, gcc-3.3.6, gcc-3.4.0
+gcc-3.4.1, gcc-3.4.6, gcc-4.0.0, gcc-4.0.3, gcc-4.1.0,
+gcc-4.1.1 and gcc version 4.2.0 20061108 (experimental)
+
+All gcc 3.x versions might lock up when used with threading,
+if that happens to you - use gcc 4.x.
 
 Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
 making the use of threading with NPTL impossible.
