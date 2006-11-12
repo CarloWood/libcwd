@@ -1,7 +1,7 @@
 Initial Initialisation
 ----------------------
  
-If you checked out this directory with cvs (see below for instructions), then
+If you checked out this directory with svn (see below for instructions), then
 you will need to execute:
 
 ./autogen.sh
@@ -12,24 +12,13 @@ After that please read INSTALL.
 
 ===============================================================================
 
-Anonymous CVS Access 
+Anonymous SVN Access 
 --------------------
 
-This project's SourceForge CVS repository can be checked out through anonymous
-(pserver) CVS with the following instruction set. The module you wish to check
-out must be specified as the modulename. When prompted for a password for
-anonymous, simply press the Enter key. 
+This project's SourceForge SVN repository can be checked out with the following
+command:
 
-cvs -d:pserver:anonymous@libcwd.cvs.sourceforge.net:/cvsroot/libcwd login
+svn co https://svn.sourceforge.net/svnroot/libcwd/trunk libcwd
 
-cvs -z3 -d:pserver:anonymous@libcwd.cvs.sourceforge.net:/cvsroot/libcwd co libcwd
-
-You don't need the -d parameter inside the module's directory.  (Note that you
-do need -d after 'update' to savely update new directories that might have been
-added.  Example: "cd libcwd; cvs update -dP".  Or add 'update -dP' to your
-~/.cvsrc file.)
-
-Current modules are: libcwd
-
-Please realize that the state of CVS is often more broken than functional.
+Please realize that the state of SVN is often more broken than functional.
 You should use the last released tar ball instead.
