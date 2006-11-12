@@ -1,7 +1,0 @@
-Makefile
-Makefile.in
-sys.h
-timestamp-sys.h
-pch.h.gch
-timestamp-pch.h
-.deps

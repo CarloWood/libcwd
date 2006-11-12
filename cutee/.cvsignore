@@ -1,8 +1,0 @@
-.libs
-.deps
-Makefile
-Makefile.in
-cutee
-runtest
-runtest.cc
-t.*.cutee.cc
