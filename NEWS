@@ -9,6 +9,9 @@ libcwd-0.99.45
 	Debug symbols are now read from .debug/ or /usr/lib/debug
 	when it is found that the real library is stripped.
 
+	The CVS repository was converted to SVN. See README.SVN
+	on how to get the latest alpha release.
+
 	Bug fixes:
 
 	Several compile bug fixes for FreeBSD.

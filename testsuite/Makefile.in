@@ -213,17 +213,15 @@ maintainer-clean realclean: distdir-clean distclean
 
 distdir-clean:
 	(\
-	  cvsdirs="`find $(srcdir) -type d -name CVS`"; \
-	  dirs="`for d in $$cvsdirs; do echo $$d | sed -e 's%/CVS$$%%'; done`"; \
+	  svndirs="`find $(srcdir) -type d -name .svn`"; \
+	  dirs="`for d in $$svndirs; do echo $$d | sed -e 's%/\.svn$$%%'; done`"; \
 	  for d in $$dirs; do \
-	    cvsfiles="`grep '^/' $$d/CVS/Entries | cut -d/ -f2`"; \
+	    rmfiles="$$(for entry in \
+	        $$(svn stat --verbose --no-ignore --non-recursive --non-interactive --ignore-externals $$d | \
+	          grep '^[?I]' | sed -re 's%.*[[:space:]]([^[:space:]]*)$$%\1%' | grep -v '^Makefile$$'); do \
+		      test -f $$entry -o -L $$entry && echo -n "$$entry "; done)"; \
 	    echo "distclean in $$d"; \
-	    (cd $$d; \
-	       files="`find . -maxdepth 1 -type f | sed -e 's%.*/%%'`"; \
-	       rmfiles="`for i in $$files $$cvsfiles Makefile Makefile; do echo $$i; done | sort | uniq -u`"; \
-	       test -z "$$rmfiles" || echo "  removing $$rmfiles"; \
-	       rm -f $$rmfiles; \
-	    ); \
+	    (test -z "$$rmfiles" || (echo "  removing $$rmfiles"; rm -f $$rmfiles)); \
 	  done; \
 	);
 

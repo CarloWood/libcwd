@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = @ACLOCAL_CWFLAGS@
 
 SUBDIRS = include utils . tests testsuite cutee
 
-EXTRA_DIST = LICENSE.QPL README.CVS README.threads README.FreeBSD README.openbsd README.solaris \
+EXTRA_DIST = LICENSE.QPL README.SVN README.threads README.FreeBSD README.openbsd README.solaris \
 	README.PCH nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in libcwd.lsm libcwd.spec valgrind.supp
 DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 
@@ -84,19 +84,15 @@ dist-hook: documentation
 	  sed -e 's/^\(CONFIG_CLEAN_FILES =.*\) libcwd\.spec libcwd\.lsm\(.*\)/\1\2/' > $(distdir)/Makefile.in.new && \
 	  mv $(distdir)/Makefile.in.new $(distdir)/Makefile.in
 	cp -pr $(top_builddir)/documentation $(distdir)
-	find $(distdir)/documentation -name CVS -print | xargs rm -rf
-	find $(distdir)/documentation -name .cvsignore -print | xargs rm -rf
+	find $(distdir)/documentation -name .svn -print | xargs rm -rf
 	find $(distdir)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
 	rm -f $(distdir)/documentation/tutorial/Makefile $(distdir)/documentation/styles/Makefile
 	mkdir $(distdir)/example-project
-	for i in `grep '^/' $(srcdir)/example-project/CVS/Entries | cut -d/ -f2`; do \
-	  cp -p $(srcdir)/example-project/$$i $(distdir)/example-project; \
-	done
 	mkdir $(distdir)/example-project/m4
-	for i in `grep '^/' $(srcdir)/example-project/m4/CVS/Entries | cut -d/ -f2`; do \
-	  cp -p $(srcdir)/example-project/m4/$$i $(distdir)/example-project/m4; \
+	for i in $$(cd $(srcdir)/example-project && svn stat --verbose --non-interactive | sed -re 's/.*[[:space:]]//'); do \
+	  test -f $(srcdir)/example-project/$$i && cp -p $(srcdir)/example-project/$$i $(distdir)/example-project/$$i; \
 	done
-	rm -f $(distdir)/example-project/debug.h.maintainer $(distdir)/example-project/.cvsignore
+	rm -f $(distdir)/example-project/debug.h.maintainer
 	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
 	chmod +x $(distdir)/install-sh
 
@@ -114,6 +110,7 @@ distclean-local:
 
 MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure $(srcdir)/Makefile.in \
 	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \
-	$(srcdir)/ltmain.sh $(srcdir)/stamp-h.in $(srcdir)/ChangeLog tags $(srcdir)/example-project/debug.h troep*
+	$(srcdir)/ltmain.sh $(srcdir)/stamp-h.in $(srcdir)/ChangeLog tags $(srcdir)/example-project/debug.h \
+	$(srcdir)/depcomp troep*
 
 @MAINTAINER_MODE_TRUE@include maintMakefile

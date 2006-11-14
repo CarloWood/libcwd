@@ -91,7 +91,8 @@ The library now works completely on Debian (I started to use debian myself).
 Support for debug symbol packages (*-dbg on debian) was added: libcwd now
 reads both, .debug/ and /usr/lib/debug/ debug files (as does gdb) when
 the original library is stripped (it will not attempt to read them if
-the original library still has a symbol table).</P>
+the original library still has a symbol table). libcwd's repository was
+converted from CVS to SVN.</P>
 <P class="news">Threading support with gcc versions 3.x has been dropped (use gcc 4.x).
 It might work for you, or it might deadlock. Non-threading still
 works fine with gcc 3.3 or higher.</P>

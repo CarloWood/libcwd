@@ -35,7 +35,7 @@
 # but are not really useful on their own otherwise.
 #
 # - ChangeLog
-#	Generates the `ChangeLog' file from the CVS repository logs.
+#	Generates the `ChangeLog' file from the SVN repository logs.
 #
 # - test-values
 #	Print debugging info about variables used in this file.
@@ -48,8 +48,8 @@ LSMFILE=@LSMFILE@
 REL=1
 TAG:=${shell echo "V@VERSION@" | sed -e 's/\./_/g'}
 PREVTAG:=${shell test -f .prevtag && cat .prevtag}
-CVSREADACCESS:=${shell if test -f $(srcdir)/CVS/Entries; then echo "yes"; else echo "no"; fi}
-CVSWRITEACCESS:=${shell if test x"$$LIBCWD_WRITE_ACCESS" = "xyes"; then echo $(CVSREADACCESS); else echo "no"; fi}
+SVNREADACCESS:=${shell if test -f $(srcdir)/.svn/entries; then echo "yes"; else echo "no"; fi}
+SVNWRITEACCESS:=${shell if test x"$$LIBCWD_WRITE_ACCESS" = "xyes"; then echo $(SVNREADACCESS); else echo "no"; fi}
 AWK=@AWK@
 
 BUILT_SOURCES = .example-project_debug.h-timestamp
@@ -62,8 +62,8 @@ test-values:
 	@echo "SPECFILE = \"$(SPECFILE)\""
 	@echo "TARGET   = \"$(TARGET)\""
 	@echo "REL      = \"$(REL)\""
-	@echo "CVSREADACCESS = \"$(CVSREADACCESS)\""
-	@echo "CVSWRITEACCESS = \"$(CVSWRITEACCESS)\""
+	@echo "SVNREADACCESS = \"$(SVNREADACCESS)\""
+	@echo "SVNWRITEACCESS = \"$(SVNWRITEACCESS)\""
 	@echo "TAG      = \"$(TAG)\""
 	@echo "PREVTAG  = \"$(PREVTAG)\""
 
@@ -75,12 +75,8 @@ rpm: dist $(SPECFILE) $(LSMFILE)
 	cd rpm; rpmbuild --rcfile=/usr/lib/rpm/rpmrc:rpmrc --sign --clean -ba ../$(SPECFILE)
 
 ChangeLog:
-	if test $(CVSREADACCESS) = yes; then \
-	  echo "`which --skip-dot cvs` \`echo \"\$$*\" | sed -e 's%1970%1990%'\`" > cvs; \
-	  chmod 755 cvs; \
-	  here=`pwd`; \
-	  (cd $(srcdir); PATH="$$here:$$PATH" rcs2log) > ChangeLog; \
-	  rm cvs; \
+	if test $(SVNREADACCESS) = yes; then \
+	  svn log | mawk '/^-*-$$/ { start=1 } // { if (!start) { if ($$0 ~ /^$$/) print; else printf("\t%s\n", $$0); } } /^r[0-9]+ \|[^|]*\| / { split($$0,A,/\|/); split(A[3],B); gsub(/ /,"",A[1]);  gsub(/ /,"",A[2]); gsub(/libcw/,"libcw  <libcw@taryn>",A[2]); printf("%s (%s)  %s\n", B[1], A[1], A[2]); start=0 }' > ChangeLog; \
 	else \
 	  touch ChangeLog; \
 	fi
@@ -172,7 +168,7 @@ syncwww: documentation
 	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/documentation/www/exclude --delete-excluded \
 		`pwd`/documentation/ xs2:"~/WWW/libcwd"
 
-cvs-clean:
+svn-clean:
 	$(MAKE) -C documentation maintainer-clean
 	(test -f example-project/Makefile && $(MAKE) -C example-project maintainer-clean) || true
 	$(MAKE) maintainer-clean

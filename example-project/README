@@ -37,7 +37,7 @@ A project source knows four states:
 "maintainer clean" means that ALL files that can be
   generated somehow are removed.  The remaining files
   are files that are actually human written and generally
-  part of the cvs repository.
+  part of the version control repository.
 
 "dist clean" means that the source tree contains all files
   that are distributed (put in the tar ball that is released).
@@ -186,11 +186,11 @@ make
 
 
 PS If you see a file 'debug.h.maintainer' then you probably checked
-   out this directory from the libcwd CVS repository.  That file
+   out this directory from the libcwd SVN repository.  That file
    is not supposed to be a part of your project, just remove it.
    Before removing it however, make sure you have a file called
    debug.h in the current directory.  If not, generate it from
    debug.h.maintainer by going one directory down - configure
    libcwd with --enable-maintainer-mode (which you should always
-   do when using CVS) and running: make example-project/debug.h
+   do when using SVN) and running: make example-project/debug.h
 

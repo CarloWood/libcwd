@@ -93,11 +93,11 @@ or your local GNU mirror.
 You will also need expect-5.32.2 (and tcl/tk 8.3.3?).  At least, expect 5.31.2
 is known to hang.  You can get it from http://expect.nist.gov/.
 
-Packages/versions needed as maintainer or when using CVS
+Packages/versions needed as maintainer or when using SVN
 --------------------------------------------------------
 
 If you want to generate maintainer files (and you need that when you
-get this package via CVS; in that case you also need to configure using
+get this package via svn; in that case you also need to configure using
 --enable-maintainer-mode) then you also need to have the following tools:
 
 iii)  GNU make
@@ -142,11 +142,11 @@ extra tools installed on your system, only for the brave thus).
 The configure script looks for a GNU C++ compiler version 3.0 or higher.
 If it can't find one (it will only find one when there is a g++ or c++ in
 your PATH), then you can specify the right path during configuration.
-For example, I configure libcwd as follows to compile with the latest CVS
-version of g++, which I installed in /usr/local/bin/g++-cvs (and
+For example, I configure libcwd as follows to compile with the latest SVN
+version of g++, which I installed in /usr/local/bin/g++-svn (and
 /usr/local/bin is in my PATH):
 
-CC="gcc-cvs" CXX="g++-cvs" ./configure
+CC="gcc-svn" CXX="g++-svn" ./configure
 
 -=iii=-
 
@@ -178,11 +178,11 @@ If you configured with --enable-maintainer-mode then the following
 targets exist as well:
 
 make dist					// Create tar ball
-make cvs-clean					// Erase everything that was generated somehow
+make svn-clean					// Erase everything that was generated somehow
 make check					// Run test suite
 make tar					// Create tar ball
 make rpm					// Create rpms
-make ChangeLog					// Generate ChangeLog from cvs database
+make ChangeLog					// Generate ChangeLog from SVN database
 make full-check					// Iterate over all configurations and all compiler versions
 
 It is not garanteed that these work on another machine than mine however.

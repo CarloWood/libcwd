@@ -1,4 +1,4 @@
-CVS
+.svn
 *~
 #*
 .#*
@@ -13,7 +13,6 @@ core
 .depend
 troep
 core
-.cvsignore
 Makefile
 *.dox
 *-bin

@@ -31,7 +31,7 @@ make
 %install
 rm -rf "$RPM_BUILD_ROOT"
 make DESTDIR="$RPM_BUILD_ROOT" install
-tar --exclude CVS -czf example-project.tar.gz example-project
+tar --exclude .svn -czf example-project.tar.gz example-project
 
 %clean
 rm -rf "$RPM_BUILD_ROOT"
