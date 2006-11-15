@@ -1,11 +1,13 @@
-This package was debianized by Federico 'Derfel' Stella <derfel@alessandria.linux.it> on
-Sun, 25 Apr 2004 14:39:30 +0200.
+This is libcwd, written and maintained by Carlo Wood <carlo@alinoe.com>
+on Tue, 14 Nov 2006 23:17:24 +0100.
 
-It was downloaded from http://sourceforge.net/project/showfiles.php?group_id=47536
+The original source can be found at:
+	http://sourceforge.net/project/showfiles.php?group_id=47536
 
-Upstream Author: Carlo Wood <libcwd@alinoe.com>
+Copyright Holder:  Carlo Wood
 
-Copyright:
+License:
+
 			     THE Q PUBLIC LICENSE
 				  version 1.0
 

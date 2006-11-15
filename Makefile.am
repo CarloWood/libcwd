@@ -94,6 +94,10 @@ dist-hook: documentation
 	done
 	rm -f $(distdir)/example-project/debug.h.maintainer
 	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
+	mkdir $(distdir)/debian
+	for i in $$(cd $(srcdir)/debian && svn stat --verbose --non-interactive | sed -re 's/.*[[:space:]]//'); do \
+	  test -f $(srcdir)/debian/$$i && cp -p $(srcdir)/debian/$$i $(distdir)/debian/$$i; \
+	done
 	chmod +x $(distdir)/install-sh
 
 distclean-local:

@@ -9,6 +9,14 @@ make install
 If that doesn't work, mail me: libcwd@alinoe.com
 (include as many details as possible).
 
+Building debian packages
+========================
+
+The released tar.gz contains a debian directory.
+Untar the tar ball, cd into the source tree and run the command
+
+fakeroot debian/rules binary
+
 Building RPMs
 =============
 

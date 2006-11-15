@@ -1,14 +1,14 @@
 Source: libcwd
-Section: devel
-Priority: optional
-Maintainer: Federico 'Derfel' Stella <derfel@alessandria.linux.it>
-Build-Depends: debhelper (>= 4.0.0), doxygen
-Standards-Version: 3.6.0
+Priority: extra
+Maintainer: Carlo Wood <carlo@alinoe.com>
+Build-Depends: debhelper (>= 5), autotools-dev
+Standards-Version: 3.7.2
+Section: libs
 
 Package: libcwd-dev
-Section: devel
+Section: libdevel
 Architecture: any
-Depends: libcwd0 (= ${Source-Version})
+Depends: libcwd (= ${Source-Version})
 Description: C++ Debugging Support Library
  Libcwd is a full-featured, professional, well-documented library
  to support C++ developers with debugging their applications.
@@ -18,6 +18,19 @@ Description: C++ Debugging Support Library
  names of variables.
  .
  This package contains development files.
+
+Package: libcwd
+Section: libs
+Architecture: any
+Depends: libcwd-dev (= ${Source-Version})
+Replaces: libcwd0
+Description: C++ Debugging Support Library
+ Libcwd is a full-featured, professional, well-documented library
+ to support C++ developers with debugging their applications.
+ It includes support for ostream-based debug output, custom debug
+ channels and devices, powerful memory allocation debugging,
+ run-time sourcefile:linenumber information, and demangled type
+ names of variables.
 
 Package: libcwd-doc
 Section: doc
@@ -31,16 +44,3 @@ Description: C++ Debugging Support Library
  names of variables.
  .
  This package contains documentation files.
-
-Package: libcwd0
-Section: libs
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: C++ Debugging Support Library
- Libcwd is a full-featured, professional, well-documented library
- to support C++ developers with debugging their applications.
- It includes support for ostream-based debug output, custom debug
- channels and devices, powerful memory allocation debugging,
- run-time sourcefile:linenumber information, and demangled type
- names of variables.
-
