@@ -13,19 +13,26 @@ Building debian packages
 ========================
 
 The released tar file contains a debian directory.
-Untar the tar ball, cd into the source tree and run the command
+Untar the tar ball, cd into the source tree and build
+the debian binary packages.
 
+tar xzf libcwd-1.0.0.tar.gz
+cd libcwd-1.0.0
 fakeroot debian/rules binary
 
+'fakeroot' is part of the fakeroot package (sduo apt-get install fakeroot).
 This results in two .deb files:
 
-libcwd_VERSION_i386.deb		: Libraries and headers.
-libcwd-doc_VERSION_all.deb	: Reference manual, tutorial and examples.
+libcwd_1.0.0_i386.deb		: Libraries and headers.
+libcwd-doc_1.0.0_all.deb	: Reference manual, tutorial and examples.
 
 The package libcwd-doc installs the documentation in
 file://usr/share/doc/libcwd-doc/index.html, which you
 probably want to bookmark in your browser. An example
-is stores in /usr/share/doc/libcwd-doc/example-project.
+is stored in /usr/share/doc/libcwd-doc/example-project.
+
+Install both packages with:
+sudo dpkg -i libcwd_1.0.0_i386.deb libcwd-doc_1.0.0_all.deb
 
 Building RPMs
 =============
