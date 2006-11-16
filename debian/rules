@@ -66,13 +66,14 @@ install: build
 	dh_clean -k 
 	dh_installdirs
 
-	# Add here commands to install the package into debian/tmp
-	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
-	mkdir -p $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/
-	cp documentation/index.html $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/
-	for d in $$(find documentation -mindepth 1 -maxdepth 1 -type d); do \
-	    cp -r $$d $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/; \
+	# Add here commands to install the package into debian/libcwd
+	$(MAKE) DESTDIR=$(CURDIR)/debian/libcwd install
+	mkdir -p $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc
+	cp $(CURDIR)/documentation/index.html $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc
+	for d in $$(find $(CURDIR)/documentation -mindepth 1 -maxdepth 1 -type d); do \
+	    cp -r $$d $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc; \
 	done
+	cp -r $(CURDIR)/example-project $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc
 
 
 # Build architecture-independent files here.
@@ -85,7 +86,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installchangelogs 
 	dh_installdocs
-	dh_installexamples
+#	dh_installexamples
 #	dh_install
 #	dh_installmenu
 #	dh_installdebconf	
@@ -98,12 +99,12 @@ binary-arch: build install
 #	dh_installinfo
 #	dh_installman
 	dh_link
-#	dh_strip
+	dh_strip
 	dh_compress
 	dh_fixperms
 #	dh_perl
 #	dh_python
-#	dh_makeshlibs
+	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
