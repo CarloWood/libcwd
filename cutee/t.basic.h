@@ -44,7 +44,6 @@ struct TEST_CLASS(Test) {
     while(0);
     // cerr no more redirected
 
-    int n = 0;
     char const* exp[] = {
       "NOTICE  : Basic Test 0.",
       "NOTICE  : Basic Test 1.", 
