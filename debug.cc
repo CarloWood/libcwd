@@ -206,7 +206,12 @@ void allocator_unlock(void)
       }
     };
 
-    void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object,
+    void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM,
+#if LIBCWD_THREAD_SAFE
+        debug_ct& debug_object,
+#else
+        debug_ct&,
+#endif
 	bool request_unfinished, bool do_flush COMMA_IFTHREADS(bool ends_on_newline)
 	COMMA_IFTHREADS(bool possible_nonewline_cf))
     {
@@ -1150,7 +1155,7 @@ void allocator_unlock(void)
       set_alloc_checking_on(LIBCWD_TSD);
     }
 
-    void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
+    void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED, */ LIBCWD_COMMA_TSD_PARAM)
     {
 #if CWDEBUG_DEBUG
       LIBCWD_ASSERT( current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf) );

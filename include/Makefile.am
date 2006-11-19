@@ -14,7 +14,6 @@ EXTRA_DIST = sys.h.in cwd_debug.h cwd_bfd.h raw_write.h raw_write.inl ios_base_I
 TAGS_FILES = $(EXTRA_DIST)
 
 CXXFLAGS = @CXXFLAGS@
-WARNOPTS = @WARNOPTS@
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 DEFAULT_INCLUDES =
 
@@ -45,22 +44,22 @@ pch.h.gch/libcwd_pch.h pch.h.gch/libcwd_r_pch.h: $(srcdir)/pch-source.h Makefile
 	test -d $(DEPDIR) || mkdir $(DEPDIR)
 if ENABLENONTHREADING
 	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	    -DCWDEBUG $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
+	    -DCWDEBUG $(CXXFLAGS) -DPIC -fPIC \
 	    -M -MT pch.h.gch/libcwd_pch.h -MF $(DEPDIR)/libcwd_pch.Tpo -DPIC -fPIC $(srcdir)/pch-source.h >/dev/null; then \
 	  cmp -s $(DEPDIR)/libcwd_pch.Tpo $(DEPDIR)/libcwd_pch.po || mv $(DEPDIR)/libcwd_pch.Tpo $(DEPDIR)/libcwd_pch.po; \
 	fi
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	    -DCWDEBUG $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
+	    -DCWDEBUG $(CXXFLAGS) -DPIC -fPIC \
 	    -c -o pch.h.gch/libcwd_pch.h $(srcdir)/pch-source.h
 endif
 if ENABLETHREADING
 	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	    -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
+	    -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(CXXFLAGS) -DPIC -fPIC \
 	    -M -MT pch.h.gch/libcwd_r_pch.h -MF $(DEPDIR)/libcwd_r_pch.Tpo -DPIC -fPIC $(srcdir)/pch-source.h >/dev/null; then \
 	  cmp -s $(DEPDIR)/libcwd_r_pch.Tpo $(DEPDIR)/libcwd_r_pch.po || mv $(DEPDIR)/libcwd_r_pch.Tpo $(DEPDIR)/libcwd_r_pch.po; \
 	fi
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	    -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS) $(CXXFLAGS) -DPIC -fPIC \
+	    -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(CXXFLAGS) -DPIC -fPIC \
 	    -c -o pch.h.gch/libcwd_r_pch.h $(srcdir)/pch-source.h
 endif
 

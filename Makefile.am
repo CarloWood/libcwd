@@ -11,8 +11,6 @@ DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 
 VERSIONINFO=@VERSIONINFO@
 CXXFLAGS = @CXXFLAGS@
-WARNOPTS = @WARNOPTS@
-EXTRAOPTS = @EXTRAOPTS@
 PCHOPTS = @PCHOPTS@
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 DEFAULT_INCLUDES =
@@ -32,7 +30,7 @@ dist_pkgdata_DATA = libcwdrc
 lib_LTLIBRARIES = $(LIBCWD) $(LIBCWD_R)
 
 if ENABLENONTHREADING
-libcwd_la_CXXFLAGS = $(PCHOPTS) -DCWDEBUG $(WARNOPTS) $(EXTRAOPTS)
+libcwd_la_CXXFLAGS = $(PCHOPTS) -DCWDEBUG
 libcwd_la_SOURCES = \
 	elf32.cc \
 	environ.cc \
@@ -51,7 +49,7 @@ libcwd_la_LIBADD = utils/libutils.la
 endif
 
 if ENABLETHREADING
-libcwd_r_la_CXXFLAGS = $(PCHOPTS) -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(WARNOPTS) $(EXTRAOPTS)
+libcwd_r_la_CXXFLAGS = $(PCHOPTS) -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread
 libcwd_r_la_SOURCES = \
 	elf32.cc \
 	environ.cc \

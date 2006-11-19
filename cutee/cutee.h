@@ -111,7 +111,7 @@ struct test_base
 	static int s_func_success, s_func_failed;
 protected:
 	int m_func_exitcode;
-	void test_success(const char* test, const char* file, int line)
+	void test_success(const char* /*test*/, const char* /*file*/, int /*line*/)
 	{
 		s_success++;
 	}

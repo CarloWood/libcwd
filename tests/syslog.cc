@@ -38,11 +38,9 @@ using namespace std;
 libcwd::debug_ct syslog_do;
 // and a new debug channel to test this program
 namespace syslog_example {
-  namespace debug {
-    namespace channels {
-      namespace dc {
-	libcwd::channel_ct debug_syslog("SYSLOG");
-      }
+  namespace channels {
+    namespace dc {
+      libcwd::channel_ct debug_syslog("SYSLOG");
     }
   }
 }
@@ -65,16 +63,16 @@ protected:
   // The ANSI/ISO C++ virtual streambuf interface:
 // Not supported by early versions of libstdc++: virtual void imbue(locale const&);
   virtual basic_streambuf* setbuf(char_type* s, streamsize n);
-  virtual pos_type seekoff(off_type off, ios_base::seekdir way, ios_base::openmode which = ios_base::in | ios_base::out);
-  virtual pos_type seekpos(pos_type sp, ios_base::openmode which = ios_base::in | ios_base::out);
+  virtual pos_type seekoff(off_type off, ios_base::seekdir way, ios_base::openmode which);
+  virtual pos_type seekpos(pos_type sp, ios_base::openmode which);
   virtual int sync(void);
   virtual int showmanyc(void);
   virtual streamsize xsgetn(char_type* s, streamsize n);
   virtual int/*_type*/ underflow(); // The old library returns an `int'
   virtual int/*_type*/ uflow(); // The old library returns an int
-  virtual int_type pbackfail(int_type c = traits::eof());
+  virtual int_type pbackfail(int_type);
   virtual streamsize xsputn(const char_type* s, streamsize n);
-  virtual int_type overflow(int_type c = traits::eof());
+  virtual int_type overflow(int_type c);
 };
 
 class syslog_stream_ct : public ostream {
@@ -136,8 +134,8 @@ int main(int, char* argv[])
 
   Dout(dc::notice, "Program start, next we will write something to the syslog");
 
-  // Write 20 times "Hello syslog!" to syslog:
-  for(int i = 0; i < 20; ++i)
+  // Write 5 times "Hello syslog!" to syslog:
+  for(int i = 0; i < 5; ++i)
     SyslogDout(dc::notice, "Hello syslog! (" << i << ")");
 
   return 0;

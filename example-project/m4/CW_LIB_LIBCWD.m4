@@ -14,7 +14,7 @@
 # THREADED can be [yes] or [no] when the application is threaded
 # or non-threaded respectively.
 #
-# This macro tests for the usability of libcwd and sets the the macro
+# This macro tests for the usability of libcwd and sets the macro
 # `cw_used_libcwd' to "yes" when it is detected, "no" otherwise.
 #
 # The default ACTION_IF_FOUND is, if WANTED is unequal "no",
@@ -36,7 +36,7 @@ else
   AC_LANG_SAVE
   AC_LANG_CPLUSPLUS
   cw_save_LIBS="$LIBS"
-  LIBS="`pkg-config --libs lib$cw_libname` $LIBS"
+  LIBS="$LIBS `pkg-config --libs lib$cw_libname`"
   AC_LINK_IFELSE([AC_LANG_CALL([], [__libcwd_version])], [cw_cv_lib_libcwd=yes], [cw_cv_lib_libcwd=no])
   LIBS="$cw_save_LIBS"
   AC_LANG_RESTORE])

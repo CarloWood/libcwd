@@ -13,7 +13,6 @@ syslog \
 initbug \
 dout_alloc \
 mangling \
-allocator \
 stabs \
 lines \
 inlined \
@@ -39,9 +38,6 @@ dout_alloc_SOURCES = dout_alloc.cc
 mangling_CXXFLAGS = -g
 mangling_SOURCES = mangling.cc
 
-allocator_CXXFLAGS = -g
-allocator_SOURCES = allocator.cc
-
 lines_CXXFLAGS = -g
 lines_SOURCES = lines.cc
 
@@ -54,19 +50,19 @@ stabs_SOURCES = stabs.cc
 inlined_CXXFLAGS = -g -finline
 inlined_SOURCES = inlined.cc inlined_main.cc
 
-threads_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads_CXXFLAGS = -D_REENTRANT -DLIBCWD_THREAD_SAFE @CXXFLAGS@
 threads_SOURCES = threads.cc
 threads_LDADD = ../libcwd_r.la
 
-threads2_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads2_CXXFLAGS = -D_REENTRANT -DLIBCWD_THREAD_SAFE @CXXFLAGS@
 threads2_SOURCES = threads2.cc
 threads2_LDADD = ../libcwd_r.la
 
-threads3_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads3_CXXFLAGS = -D_REENTRANT -DLIBCWD_THREAD_SAFE @CXXFLAGS@
 threads3_SOURCES = threads3.cc
 threads3_LDADD = ../libcwd_r.la
 
-threads4_CXXFLAGS = -D_REENTRANT $(DEBUGOPTS) $(TESTOPTS) $(EXTRAOPTS) $(WARNOPTS)
+threads4_CXXFLAGS = -D_REENTRANT -DLIBCWD_THREAD_SAFE @CXXFLAGS@
 threads4_SOURCES = threads4.cc
 threads4_LDADD = ../libcwd_r.la
 
@@ -76,11 +72,7 @@ LDADD = ../libcwd.la
 full_top_builddir := $(shell (cd $(top_builddir); pwd))
 LDFLAGS = @LIB_THREADS@ -Wl,-rpath -Wl,$(full_top_builddir)/.libs
 
-EXTRAOPTS = @EXTRAOPTS@
-DEBUGOPTS = @DEBUGOPTS@
-WARNOPTS = @WARNOPTS@
-TESTOPTS = @TESTOPTS@
-CXXFLAGS = -DCWDEBUG $(TESTOPTS)
+CXXFLAGS = -DCWDEBUG
 INCLUDES = -I. -I$(top_builddir)/include -I$(srcdir)/../include
 DEFAULT_INCLUDES =
 

@@ -13,7 +13,7 @@ namespace debug_channels {
 pthread_mutex_t cout_lock;
 int const number_of_threads = 4;
 
-void* thread_function(void* arguments)
+void* thread_function(void*)
 {
   // Set Thread Specific on/off flags of the debug channels.
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );

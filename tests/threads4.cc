@@ -16,7 +16,7 @@ int const loopsize = 1000;
 int const number_of_threads = 10;
 int const number_of_threads2 = 10;
 
-void* thread_function2(void* arguments)
+void* thread_function2(void*)
 {
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   Debug( libcw_do.on() );
@@ -26,7 +26,7 @@ void* thread_function2(void* arguments)
   return (void*)4;
 }
 
-void* thread_function(void* arguments)
+void* thread_function(void*)
 {
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   pthread_t thread_id[number_of_threads2];

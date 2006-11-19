@@ -85,7 +85,7 @@ struct continued_channel_set_st;
 struct channel_set_bootstrap_st : public channel_set_data_st {
   // Warning: This struct may not have attributes of its own!
 public:
-  channel_set_bootstrap_st(debug_tsd_st& do_tsd LIBCWD_COMMA_TSD_PARAM) { do_tsd_ptr = &do_tsd; }
+  channel_set_bootstrap_st(debug_tsd_st& do_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED) { do_tsd_ptr = &do_tsd; }
 
   //-------------------------------------------------------------------------------------------------
   // Operators that combine channels/control bits.

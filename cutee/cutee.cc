@@ -422,7 +422,6 @@ int main(int argc, char** argv)
 	clo.parse(argc,argv);
 	GenRunTest* pGrt;
 	GenMain* pGm;
-	GenAutomakefile* pGamk;
 	GenMakefile* pGmk;
 
 

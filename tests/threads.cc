@@ -92,7 +92,7 @@ static pthread_once_t key_once = PTHREAD_ONCE_INIT;
 static void destroy(void* arg) { TSD* tsd = reinterpret_cast<TSD*>(arg); delete tsd; }
 static void key_alloc() { pthread_key_create(&key, destroy); }
 
-void* thread_function(void* arguments)
+void* thread_function(void*)
 {
   static int thread_counter = -1;
 
@@ -106,7 +106,6 @@ void* thread_function(void* arguments)
 
   // Serialize incrementation.
   int my_id;
-  LIBCWD_TSD_DECLARATION;
   LIBCWD_DEFER_CANCEL;
   mutex_tct<test_instance0>::lock();
   my_id = ++thread_counter;
@@ -148,7 +147,6 @@ int main(void)
   rwlock_tct<test_instance0>::initialize();
 
   // Test if rwlocks allows multiple read locks but only one write lock.
-  LIBCWD_TSD_DECLARATION;
   LIBCWD_DEFER_CANCEL;
   rwlock_tct<test_instance0>::wrlock();
     LIBCWD_ASSERT( !rwlock_tct<test_instance0>::trywrlock() );

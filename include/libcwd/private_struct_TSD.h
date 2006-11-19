@@ -61,7 +61,11 @@ namespace libcwd {
 #define LIBCWD_COMMA_TSD , LIBCWD_TSD			// Idem, but as second or higher parameter.
 #define LIBCWD_TSD_PARAM ::libcwd::_private_::TSD_st& __libcwd_tsd
 							// Optional function parameter (foo(void) or foo(TSD_st& __libcwd_tsd)).
+#define LIBCWD_TSD_PARAM_UNUSED ::libcwd::_private_::TSD_st&
+							// Same without parameter.
 #define LIBCWD_COMMA_TSD_PARAM , LIBCWD_TSD_PARAM	// Idem, but as second or higher parameter.
+#define LIBCWD_COMMA_TSD_PARAM_UNUSED , LIBCWD_TSD_PARAM_UNUSED
+							// Idem, without parameter.
 #define LIBCWD_TSD_INSTANCE ::libcwd::_private_::TSD_st::instance()
 							// For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
 #define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE	// Idem, but as second or higher parameter.
@@ -79,7 +83,9 @@ namespace libcwd {
 #define LIBCWD_TSD
 #define LIBCWD_COMMA_TSD
 #define LIBCWD_TSD_PARAM void
+#define LIBCWD_TSD_PARAM_UNUSED void
 #define LIBCWD_COMMA_TSD_PARAM
+#define LIBCWD_COMMA_TSD_PARAM_UNUSED
 #define LIBCWD_TSD_INSTANCE
 #define LIBCWD_COMMA_TSD_INSTANCE
 #define LIBCWD_TSD_DECLARATION

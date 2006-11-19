@@ -94,7 +94,7 @@ consume (void* t)
 pthread_mutex_t cout_lock;
 
 int
-main (int argc, char** argv)
+main (int, char**)
 {
   Debug( check_configuration() );
   Debug( libcw_do.on() );

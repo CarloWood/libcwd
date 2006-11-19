@@ -130,6 +130,10 @@ AC_ARG_ENABLE(pch,
                           g++@:>@],
     libcwd_config_pch=$enableval)
 
+dnl Process default options.
+cw_used_libcwd="skip"
+CW_OPG_FLAGS
+
 AC_ARG_VAR(THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].])
 if test -z "$THREADSMAX"; then
   THREADSMAX=1024
@@ -155,9 +159,6 @@ AC_PROG_CXX
 AC_PROG_CXX
 AC_PROG_CXXCPP
 
-dnl Set WARNOPTS, DEBUGOPTS and EXTRAOPTS to suitable start values.
-CW_DO_OPTIONS
-
 # __cxa_atexit not being used is always wrong, but not really our concern if we are configured with --disable-alloc.
 if test x"$libcwd_config_alloc" = x"yes"; then
 dnl Test if g++ was configured correctly.
@@ -170,9 +171,6 @@ CW_COMPILER_VERSIONS
 dnl Clear the cache values of all remaining tests if important
 dnl environment variables have been changed since last run.
 CW_CLEAN_CACHE
-
-dnl Put CXXFLAGS into the Makefile too
-AC_SUBST(CXXFLAGS)
 
 dnl Figure out linker characteristics
 CW_RPATH_OPTION
@@ -187,10 +185,6 @@ if test x"$libcwd_config_location" = x"yes"; then
 CW_SYS_PS_WIDE_PID_OPTION
 fi
 AC_DEFINE_UNQUOTED(CW_PATH_PROG_PS, "$PS", [Full path to the 'ps' executable.])
-
-dnl We need to use DEBUGOPTS and EXTRAOPTS too, we don't want to use any -O or -g
-dnl that any of the above macros might have added however.
-CXXFLAGS="$CXXFLAGS_env $DEBUGOPTS $EXTRAOPTS"
 
 dnl This block cannot be replaced by a macro because the DISABLE_* and the
 dnl AC_PROG_LIBTOOL macro need to be in configure.ac itself for some reason.
@@ -318,7 +312,7 @@ if test "$libcwd_config_threading" = yes; then
   dnl Check if we have POSIX threads
   AC_LANG_SAVE
   AC_LANG_C
-  CFLAGS="$DEBUGOPTS $EXTRAOPTS -pthread"
+  CFLAGS="-pthread"
   AC_SEARCH_LIBS(pthread_create, pthread,
     [AC_CHECK_HEADER(pthread.h,
       [CW_CONFIG_HAVE_PTHREADS=define],

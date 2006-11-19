@@ -1263,7 +1263,7 @@ private:
   void M_store(void);
 };
 
-bool operator==(range_st const& range1, range_st const& range2)
+bool operator==(range_st const&, range_st const&)
 {
   DoutFatal(dc::core, "Calling operator==(range_st const& range1, range_st const& range2)");
 }
@@ -1448,7 +1448,7 @@ inline void location_ct::stabs_range(range_st const& range) const
 //-------------------------------------------------------------------------------------------------------------------------------------------
 // Implementation
 
-static asection_st const abs_section_c = { 0, "*ABS*" };
+static asection_st const abs_section_c = { 0, "*ABS*", 0 };
 asection_st const* const absolute_section_c = &abs_section_c;
 
 bool Elf32_Ehdr::check_format(void) const
