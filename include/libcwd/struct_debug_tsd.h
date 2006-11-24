@@ -110,7 +110,7 @@ struct debug_tsd_st {
 
   // Accessed from LibcwdDout.
   void start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM);
-  void finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM);
+  void finish(debug_ct& debug_object, channel_set_data_st& /*channel_set*/ LIBCWD_COMMA_TSD_PARAM);
   void fatal_finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM) __attribute__ ((__noreturn__));
 
   // Initialization and de-initialization.

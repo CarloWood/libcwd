@@ -66,7 +66,7 @@ external/debug.h: $(top_srcdir)/example-project/debug.h
 	cp $(top_srcdir)/example-project/debug.h external/debug.h
 
 @MAINTAINER_MODE_TRUE@$(top_srcdir)/example-project/debug.h: $(top_srcdir)/example-project/debug.h.maintainer
-@MAINTAINER_MODE_TRUE@	$(MAKE) -C $(top_builddir) $(top_srcdir)/example-project/debug.h
+@MAINTAINER_MODE_TRUE@	$(MAKE) -C $(top_builddir) example-project/debug.h
 
 external/debug.cc: $(top_srcdir)/example-project/debug.cc
 	@mkdir -p external

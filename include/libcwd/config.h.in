@@ -39,7 +39,7 @@
  *
  * This section describes the configure options specific to libcwd.&nbsp;
  * The name of the macros that are related to the respective features are given between parenthesis after the option.&nbsp;
- * You can not define these macros yourself, you may only use them in an <CODE>##if ... ##endif</CODE> test.&nbsp;
+ * You can not define these macros yourself, you may only use them in an <CODE>\#if ... \#endif</CODE> test.&nbsp;
  * The macros are always defined; when a configure option was used then the macro is defined to <code>1</code>,
  * otherwise it is defined to 0.&nbsp;
  * This makes it possible for the compiler to warn you when you made a typo in the name of a macro.
