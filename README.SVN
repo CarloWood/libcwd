@@ -20,5 +20,5 @@ command:
 
 svn co https://svn.sourceforge.net/svnroot/libcwd/trunk libcwd
 
-Please realize that the state of SVN is often more broken than functional.
+Please realize that the state of SVN is often more broken than functional:
 You should use the last released tar ball instead.
