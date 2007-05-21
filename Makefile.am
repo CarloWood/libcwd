@@ -6,7 +6,8 @@ ACLOCAL_AMFLAGS = @ACLOCAL_CWFLAGS@
 SUBDIRS = include utils . tests testsuite cutee
 
 EXTRA_DIST = LICENSE.QPL README.SVN README.threads README.FreeBSD README.openbsd README.solaris \
-	README.PCH nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in libcwd.lsm libcwd.spec valgrind.supp
+	README.cygwin README.mingw32 README.PCH nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in \
+	libcwd.lsm libcwd.spec valgrind.supp
 DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 
 VERSIONINFO=@VERSIONINFO@

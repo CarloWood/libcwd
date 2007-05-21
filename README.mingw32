@@ -11,3 +11,5 @@ for the debug output when testing the application on cygwin and mingw32, but
 you have to take care to add #if's for the macros CWDEBUG_ALLOC and
 CWDEBUG_LOCATION where appropriate.
 
+Libcwd has not been tested on mingw32/cygwin for years. So there is
+not garantee that it compiles. However, if it compiles then it should work.
