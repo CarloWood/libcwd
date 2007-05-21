@@ -1118,6 +1118,17 @@ struct location_st {
   Elf32_Half M_line;
   bool M_stabs_symbol;
 
+  location_st(void) { }
+
+  location_st(location_st const& loc) :
+      M_source_iter(loc.M_source_iter),
+      M_line(loc.M_line),
+      M_stabs_symbol(loc.M_stabs_symbol)
+      {
+        if (M_stabs_symbol)
+	  M_stabs_symbol_funcname_iter = loc.M_stabs_symbol_funcname_iter;
+      }
+
 #if DEBUGSTABS || DEBUGDWARF
   friend std::ostream& operator<<(std::ostream& os, location_st const& loc);
 #endif
@@ -1433,8 +1444,9 @@ void location_ct::M_store(void)
     DoutDwarf(dc::bfd, "M_store(): M_range.start was 0.");
 #endif
   M_range.start = M_address;
-  M_prev_location.M_stabs_symbol_funcname_iter = M_stabs_symbol_funcname_iter;
   M_prev_location.M_stabs_symbol = M_stabs_symbol;
+  if (M_stabs_symbol)
+    M_prev_location.M_stabs_symbol_funcname_iter = M_stabs_symbol_funcname_iter;
   M_prev_location.M_source_iter = M_source_iter;
   M_prev_location.M_line = M_line;
   M_used = true;

@@ -20,7 +20,7 @@
 #if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
 #include <bits/stl_alloc.h>
 #else
-extern "C" char* getenv(char const* name);	// Needed before including ext/pool_allocator.h.
+#include <cstdlib>		// Needed for getenv, needed by ext/pool_allocator.h.
 #include <ext/pool_allocator.h>
 #endif
 #undef private

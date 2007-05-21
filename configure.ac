@@ -4,7 +4,7 @@ AC_REVISION($Revision$)dnl
 dnl General intialization of `autoconf' variables.
 
 dnl Package name and version
-AC_INIT(libcwd, [0.99.45])
+AC_INIT(libcwd, [0.99.46])
 
 dnl Put resulting configuration defines in this header file.
 AC_CONFIG_HEADERS([config.h])
@@ -16,7 +16,7 @@ dnl INTERFACE_VERSION_REVISION	: Revision, increment every public release; or se
 dnl INTERFACE_AGE		: Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
 INTERFACE_VERSION=99		dnl 0.99 actually
-INTERFACE_VERSION_REVISION=45
+INTERFACE_VERSION_REVISION=46
 INTERFACE_AGE=99		dnl 0.99 actually
 
 dnl Ensure that the directory specified with --srcdir was correct
@@ -64,6 +64,12 @@ AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
 dnl Manual configuration options of libcwd.
 AC_ARG_ENABLE(libcwd, [
 Options of package libcwd:])
+
+libcwd_config_glibcxx_debug=no
+AC_ARG_ENABLE(glibcxx_debug,
+    [  --enable-glibcxx_debug  compile libcwd with -D_GLIBCXX_DEBUG.
+                          See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html.],
+    libcwd_config_glibcxx_debug=$enableval)
 
 libcwd_config_alloc=yes
 AC_ARG_ENABLE(alloc,
@@ -243,6 +249,8 @@ AC_SUBST(CW_CONFIG_ALLOC)
 CW_CONFIG_ALLOC=0
 AC_SUBST(CW_CONFIG_MAGIC)
 CW_CONFIG_MAGIC=0
+AC_SUBST(CW_CONFIG_GLIBCXX_DEBUG)
+CW_CONFIG_GLIBCXX_DEBUG=0
 AC_SUBST(CW_CONFIG_LOCATION)
 CW_CONFIG_LOCATION=0
 AC_SUBST(CW_CONFIG_LIBBFD)
@@ -282,6 +290,11 @@ fi
 
 if test "$libcwd_config_magic" = yes; then
   CW_CONFIG_MAGIC=1
+fi
+
+if test "$libcwd_config_glibcxx_debug" = yes; then
+  CW_CONFIG_GLIBCXX_DEBUG=1
+  CXXFLAGS="$CXXFLAGS -D_GLIBCXX_DEBUG"
 fi
 
 dnl Set language requirements for the tests below.

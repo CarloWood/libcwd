@@ -163,7 +163,9 @@ TSD_st& TSD_st::S_create(int from_free)
     static_tsd = allocate_static_tsd();
 
   bool old_thread_iter_valid = static_tsd->thread_iter_valid;
-  threadlist_t::iterator old_thread_iter = static_tsd->thread_iter;
+  threadlist_t::iterator old_thread_iter;
+  if (old_thread_iter_valid)
+    old_thread_iter = static_tsd->thread_iter;
 
   // Fill the temporary structure with zeroes.
   std::memset(static_tsd, 0, sizeof(struct TSD_st));

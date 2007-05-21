@@ -1,3 +1,8 @@
+libcwd-0.99.46
+
+        Libcwd now can be compiled with -D_GLIBCXX_DEBUG by passing
+	--enable-glibcxx-debug during configuration.
+
 libcwd-0.99.45
 
 	Support for libbfd (--enable-libbfd) has been entirely

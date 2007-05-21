@@ -100,6 +100,35 @@
 
 #define CWDEBUG_MAGIC (CWDEBUG_ALLOC && @CW_CONFIG_MAGIC@)
 
+/** \defgroup enable_glibcxx_debug --enable-glibcxx_debug (CWDEBUG_GLIBCXX_DEBUG)
+ * \ingroup group_configuration
+ *
+ * \par Description
+ *
+ * Compile libcwd itself with -D_GLIBCXX_DEBUG.
+ * See "The libstdc++ debug mode" on http://gcc.gnu.org/onlinedocs/libstdc++/debug.html.
+ *
+ * Note that this flag changes the sizes and behavior of standard class templates such
+ * as std::vector, and therefore you can only link code compiled with debug mode and
+ * code compiled without debug mode if no instantiation of a container is passed
+ * between the two translation units. Because this is always the case between your
+ * custom debug.cc and libcwd, and most likely in many other cases-- libcwd enforces
+ * that every compilation unit that includes libcwd/debug.h uses the same mode.
+ *
+ * \par When to use it
+ *
+ * It is a good idea to use this if you suspect problems related to iterators.
+ * The disadvantage is that you need to compile your applications also with
+ * -D_GLIBCXX_DEBUG and that this debug mode comes with a speed penality.
+ *
+ * \par Configure option
+ *
+ * This is disabled by default.
+ * Use \shellcommand configure --enable-glibcxx_debug \endshellcommand to enable it.
+ */
+
+#define CWDEBUG_GLIBCXX_DEBUG @CW_CONFIG_GLIBCXX_DEBUG@
+
 /** \defgroup enable_location --enable-location (CWDEBUG_LOCATION)
  * \ingroup group_configuration
  *
