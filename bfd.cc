@@ -887,7 +887,7 @@ static bool const statically_linked = true;
 	      }
 	      else if (pid_token == 0 && token == "PID")
 		pid_token = current_token;
-	      else if (command_token == 0 && (token == "COMMAND") || (token == "CMD"))
+	      else if ((command_token == 0 && (token == "COMMAND")) || (token == "CMD"))
 	      {
 		command_token = current_token;
 		command_column = current_column;
@@ -1047,7 +1047,7 @@ static bool const statically_linked = true;
       {
 	LIBCWD_TSD_DECLARATION;
 	for (char const* p = buf; p < &buf[len]; ++p)
-	  if (p[0] == '=' && p[1] == '>' && p[2] == ' ' || p[2] == '\t')
+	  if ((p[0] == '=' && p[1] == '>' && p[2] == ' ') || p[2] == '\t')
 	  {
 	    p += 2;
 	    while (*p == ' ' || *p == '\t')
@@ -1055,7 +1055,7 @@ static bool const statically_linked = true;
 	    if (*p != '/' && *p != '.')
 	      break;
 	    char const* q;
-	    for (q = p; q < &buf[len] && *q > ' '; ++q);
+	    for (q = p; q < &buf[len] && *q > ' '; ++q) ;
 	    if (*q == '\n')	// This ldd doesn't return an offset (ie, on solaris).
 	    {
 	      set_alloc_checking_off(LIBCWD_TSD);

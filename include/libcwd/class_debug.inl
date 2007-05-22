@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2000 - 2004, by
+// Copyright (C) 2000 - 2007, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -224,7 +224,7 @@ channel_set_bootstrap_st::operator|(channel_ct const& dc)
 
 inline
 channel_set_st&
-channel_set_bootstrap_st::operator&(fatal_channel_ct const& fdc)
+channel_set_bootstrap_fatal_st::operator|(fatal_channel_ct const& fdc)
 {
   mask = fdc.get_maskbit();
   label = fdc.get_label();

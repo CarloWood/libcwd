@@ -67,7 +67,8 @@ public:
 // existing of <channel_set_bootstrap_st>|<one or more channels>|<optional control flags>.
 // It is used in macro LibcwDoutScopeBegin.
 //
-// LibcwDoutFatal uses operator& while LibcwDout uses operator|.
+// LibcwdDoutFatalScopeBegin uses channel_set_bootstrap_fatal_st,
+// to make sure it was used with dc::fatal or dc::core.
 //
 // The return type is a cast of this object to
 // either a channel_set_st (the normal case) or a
@@ -93,10 +94,18 @@ public:
 
   channel_set_st& operator|(channel_ct const& dc);
   channel_set_st& operator|(always_channel_ct const& adc);
-  channel_set_st& operator&(fatal_channel_ct const& fdc);  // Using operator& just to detect that we indeed used LibcwDoutFatal!
   continued_channel_set_st& operator|(continued_channel_ct const& cdc);
-  channel_set_st& operator|(fatal_channel_ct const&);
-  channel_set_st& operator&(channel_ct const&);
+};
+
+struct channel_set_bootstrap_fatal_st : public channel_set_data_st {
+  // Warning: This struct may not have attributes of its own!
+public:
+  channel_set_bootstrap_fatal_st(debug_tsd_st& do_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED) { do_tsd_ptr = &do_tsd; }
+
+  //-------------------------------------------------------------------------------------------------
+  // Operators that combine channels/control bits.
+  //
+  channel_set_st& operator|(fatal_channel_ct const& fdc);
 };
 
 //===================================================================================================

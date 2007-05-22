@@ -84,7 +84,7 @@ void mutex_ct::M_initialize(void)
 void fatal_cancellation(void* arg)
 {
   char* text = static_cast<char*>(arg);
-  Dout(dc::core, "Cancelling a thread " << text << ".  This is not supported by libcwd, sorry.");
+  DoutFatal(dc::core, "Cancelling a thread " << text << ".  This is not supported by libcwd, sorry.");
 }
 
 //===================================================================================================

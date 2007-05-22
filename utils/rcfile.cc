@@ -17,6 +17,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
+#include <algorithm>
 
 #include <sys/types.h>	// Needed for 'stat', 'getuid' and 'getpwuid'.
 #include <sys/stat.h>	// Needed for 'stat'.

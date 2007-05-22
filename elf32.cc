@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2001 - 2004, by
+// Copyright (C) 2001 - 2007, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -28,6 +28,7 @@
 #include <map>
 #include <vector>
 #include <cerrno>
+#include <cstdlib>
 #include "cwd_debug.h"
 #include "elf32.h"
 #include <libcwd/private_assert.h>
@@ -2193,7 +2194,7 @@ void objfile_ct::load_dwarf(void)
 	    {
 	      DoutDwarf(dc::bfd, "Include directory: " << reinterpret_cast<char const*>(debug_line_ptr));
 	      include_directories.push_back(reinterpret_cast<char const*>(debug_line_ptr));
-	      while(*debug_line_ptr++);
+	      while(*debug_line_ptr++) ;
 	    }
 	    ++debug_line_ptr;
 	    while(true)
@@ -2204,7 +2205,7 @@ void objfile_ct::load_dwarf(void)
 	      file_name.name = reinterpret_cast<char const*>(debug_line_ptr);
 	      if (!*debug_line_ptr++)
 		break;
-	      while(*debug_line_ptr++);
+	      while(*debug_line_ptr++) ;
 	      dwarf_read(debug_line_ptr, file_name.directory_index);
 	      dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
 	      dwarf_read(debug_line_ptr, file_name.length_in_bytes_of_the_file);
@@ -2279,7 +2280,7 @@ void objfile_ct::load_dwarf(void)
 			  file_name.name = reinterpret_cast<char const*>(debug_line_ptr);
 			  if (file_name.name[0] == '.' && file_name.name[1] == '/')
 			    file_name.name += 2;
-			  while(*debug_line_ptr++);
+			  while(*debug_line_ptr++) ;
 			  dwarf_read(debug_line_ptr, file_name.directory_index);
 			  dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
 			  dwarf_read(debug_line_ptr, file_name.length_in_bytes_of_the_file);

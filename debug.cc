@@ -1290,7 +1290,7 @@ void allocator_unlock(void)
 	  if (debug_object.interactive)
 	  {
 	    *target_os << std::flush;
-	    while(std::cin.get() != '\n');
+	    while(std::cin.get() != '\n') ;
 	  }
 #if LIBCWD_THREAD_SAFE
 	  debug_object.M_mutex->unlock();
@@ -1859,28 +1859,6 @@ void allocator_unlock(void)
         }
       }
       return *reinterpret_cast<continued_channel_set_st*>(this);
-    }
-
-    channel_set_st& channel_set_bootstrap_st::operator|(fatal_channel_ct const&)
-    {
-#if CWDEBUG_LOCATION
-      DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) <<
-          " : Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
-#else
-      DoutFatal(dc::core,
-          "Don't use Dout together with dc::core or dc::fatal!  Use DoutFatal instead.");
-#endif
-    }
-
-    channel_set_st& channel_set_bootstrap_st::operator&(channel_ct const&)
-    {
-#if CWDEBUG_LOCATION
-      DoutFatal(dc::fatal, location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) <<
-	  " : Use dc::core or dc::fatal together with DoutFatal.");
-#else
-      DoutFatal(dc::core,
-	  "Use dc::core or dc::fatal together with DoutFatal.");
-#endif
     }
 
     namespace _private_ {

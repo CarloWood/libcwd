@@ -129,8 +129,8 @@ public:
   void deinitialize(LIBCWD_TSD_PARAM);
 
   elf32::bfd_st* get_bfd(void) const { return M_abfd; }
-  void* const get_lbase(void) const { return M_lbase; }
-  void const* const get_start(void) const { return M_start; }
+  void* get_lbase(void) const { return M_lbase; }
+  void const* get_start(void) const { return M_start; }
   size_t size(void) const { return M_size; }
   elf32::asymbol_st** get_symbol_table(void) const { return M_symbol_table; }
   long get_number_of_symbols(void) const { return M_number_of_symbols; }

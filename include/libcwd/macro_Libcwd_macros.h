@@ -148,10 +148,10 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
     LIBCWD_TSD_DECLARATION;													\
     LIBCWD_LibcwDoutFatalScopeBegin_MARKER;											\
     using namespace ::libcwd;												\
-    ::libcwd::channel_set_bootstrap_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
+    ::libcwd::channel_set_bootstrap_fatal_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
     {																\
       using namespace dc_namespace;												\
-      __libcwd_channel_set&cntrl;												\
+      __libcwd_channel_set|cntrl;												\
     }																\
     ::libcwd::debug_ct& __libcwd_debug_object(debug_obj);									\
     LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);

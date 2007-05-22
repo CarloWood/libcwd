@@ -20,6 +20,7 @@
 #define _GNU_SOURCE
 #endif
 #include <libcwd/sys.h>
+#include <cstdlib>
 
 #ifdef HAVE__G_CONFIG_H
 #include <_G_config.h>

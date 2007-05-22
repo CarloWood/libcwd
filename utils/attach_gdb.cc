@@ -33,6 +33,7 @@ void attach_gdb(void)
 #include <cerrno>
 #include <time.h>
 #include <fstream>
+#include <cstdlib>
 
 int libcwd_attach_gdb_hook = 0;
 

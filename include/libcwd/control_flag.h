@@ -77,13 +77,13 @@ enum continued_cf_nt {
 };
 
 //! Returns nonewline_cf when \a cond is true.
-inline control_flag_t const cond_nonewline_cf(bool cond) { return cond ? nonewline_cf : 0; } 
+inline control_flag_t cond_nonewline_cf(bool cond) { return cond ? nonewline_cf : 0; } 
 //! Returns noprefix_cf when \a cond is true.
-inline control_flag_t const cond_noprefix_cf(bool cond) { return cond ? noprefix_cf : 0; }
+inline control_flag_t cond_noprefix_cf(bool cond) { return cond ? noprefix_cf : 0; }
 //! Returns nolabel_cf when \a cond is true.
-inline control_flag_t const cond_nolabel_cf(bool cond) { return cond ? nolabel_cf : 0; }
+inline control_flag_t cond_nolabel_cf(bool cond) { return cond ? nolabel_cf : 0; }
 //! Returns error_cf when \a cond is true.
-inline control_flag_t const cond_error_cf(bool err) { return err ? error_cf : 0; }
+inline control_flag_t cond_error_cf(bool err) { return err ? error_cf : 0; }
 
 /** \} */
 

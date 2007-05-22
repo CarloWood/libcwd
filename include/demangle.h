@@ -2196,7 +2196,7 @@ namespace __gnu_cxx
 
 	// <CV-qualifiers> ::= [r] [V] [K]  # restrict (C99), volatile, const
 	char const* qualifiers_start = &M_str[M_pos + 1];
-	for (char c = next(); c == 'K' || c == 'V' || c == 'r'; c = next());
+	for (char c = next(); c == 'K' || c == 'V' || c == 'r'; c = next()) ;
 	for (char const* qualifier_ptr = &M_str[M_pos - 1];
 	     qualifier_ptr >= qualifiers_start; --qualifier_ptr)
 	  switch(*qualifier_ptr)

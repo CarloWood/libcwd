@@ -210,8 +210,8 @@ using libcwd::_private_::dlclose_instance;
 #define ACQUIRE_READ_LOCK(tt)	do { __libcwd_tsd.target_thread = tt; __libcwd_tsd.target_thread->thread_mutex.lock(__libcwd_tsd); } while(0)
 #define RELEASE_READ_LOCK	do { __libcwd_tsd.target_thread->thread_mutex.unlock(__libcwd_tsd); UNSET_TARGETHREAD; } while(0)
 #endif
-#define ACQUIRE_READ2WRITE_LOCK
-#define ACQUIRE_WRITE2READ_LOCK
+#define ACQUIRE_READ2WRITE_LOCK	do { } while(0)
+#define ACQUIRE_WRITE2READ_LOCK do { } while(0)
 // We can rwlock_tct here, because this lock is never used from free(),
 // only from new, new[], malloc and realloc.
 #define ACQUIRE_LC_WRITE_LOCK		rwlock_tct<location_cache_instance>::wrlock()
@@ -223,20 +223,20 @@ using libcwd::_private_::dlclose_instance;
 #define DLCLOSE_ACQUIRE_LOCK            mutex_tct<dlclose_instance>::lock()
 #define DLCLOSE_RELEASE_LOCK            mutex_tct<dlclose_instance>::unlock()
 #else // !LIBCWD_THREAD_SAFE
-#define ACQUIRE_WRITE_LOCK(tt)
-#define RELEASE_WRITE_LOCK
-#define ACQUIRE_READ_LOCK(tt)
-#define RELEASE_READ_LOCK
-#define ACQUIRE_READ2WRITE_LOCK
-#define ACQUIRE_WRITE2READ_LOCK
-#define ACQUIRE_LC_WRITE_LOCK
-#define RELEASE_LC_WRITE_LOCK
-#define ACQUIRE_LC_READ_LOCK
-#define RELEASE_LC_READ_LOCK
-#define ACQUIRE_LC_READ2WRITE_LOCK
-#define ACQUIRE_LC_WRITE2READ_LOCK
-#define DLCLOSE_ACQUIRE_LOCK
-#define DLCLOSE_RELEASE_LOCK
+#define ACQUIRE_WRITE_LOCK(tt)		do { } while(0)
+#define RELEASE_WRITE_LOCK	 	do { } while(0)
+#define ACQUIRE_READ_LOCK(tt)	 	do { } while(0)
+#define RELEASE_READ_LOCK		do { } while(0)
+#define ACQUIRE_READ2WRITE_LOCK		do { } while(0)
+#define ACQUIRE_WRITE2READ_LOCK		do { } while(0)
+#define ACQUIRE_LC_WRITE_LOCK		do { } while(0)
+#define RELEASE_LC_WRITE_LOCK		do { } while(0)
+#define ACQUIRE_LC_READ_LOCK		do { } while(0)
+#define RELEASE_LC_READ_LOCK		do { } while(0)
+#define ACQUIRE_LC_READ2WRITE_LOCK	do { } while(0)
+#define ACQUIRE_LC_WRITE2READ_LOCK	do { } while(0)
+#define DLCLOSE_ACQUIRE_LOCK		do { } while(0)
+#define DLCLOSE_RELEASE_LOCK		do { } while(0)
 #endif // !LIBCWD_THREAD_SAFE
 
 #if CWDEBUG_LOCATION
@@ -492,10 +492,10 @@ extern void ST_initialize_globals(LIBCWD_TSD_PARAM);
       DEBUGDEBUG_CERR( "Entering 'DoutFatalInternal(cntrl, \"" << data << "\")'.  internal == " <<				\
 			__libcwd_tsd.internal << "; setting internal to 0." ); 							\
       __libcwd_tsd.internal = 0;												\
-      channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);						\
+      channel_set_bootstrap_fatal_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);						\
       {																\
 	using namespace channels;												\
-	channel_set&cntrl;													\
+	channel_set|cntrl;													\
       }																\
       LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);							\
       ++ LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
@@ -1714,8 +1714,8 @@ static size_t postredzone[redzone_size + 1];	// One extra for the OFFSET.
 #define INITREDZONES INITOFFSETZONE
 #define CHECK_REDZONE_BEGIN(ptr1) false
 #define CHECK_REDZONE_END(ptr1) \
-  (reinterpret_cast<size_t*>(&POSTZONE(ptr1))[-1] & offsetmask[ZONE2OFFSET(ptr1)] == \
-   offsetfill & offsetmask[ZONE2OFFSET(ptr1)])
+  ((reinterpret_cast<size_t*>(&POSTZONE(ptr1))[-1] & offsetmask[ZONE2OFFSET(ptr1)]) != \
+   (offsetfill & offsetmask[ZONE2OFFSET(ptr1)]))
 #endif
 
 size_t const INTERNAL_MAGIC_NEW_BEGIN = 0x7af45b1c;
