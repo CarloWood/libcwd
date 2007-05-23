@@ -3,6 +3,15 @@ libcwd-0.99.46
         Libcwd now can be compiled with -D_GLIBCXX_DEBUG by passing
 	--enable-glibcxx-debug during configuration.
 
+	Bug fixes:
+
+        When not using redzones (though still using magic numbers around
+	allocations of course), allocation of not a multiple times
+	sizeof(size_t) lacked the overflow test for the few bytes needed
+	to align again to a mutliple of size_t. For example, if you'd
+	allocate 9 bytes, then bytes 10, 11 and 12 were not checked for
+	an overflow.
+
 libcwd-0.99.45
 
 	Support for libbfd (--enable-libbfd) has been entirely

@@ -47,7 +47,7 @@ namespace libcwd {
 	for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
 	  ::write(2, "    ", 4)
 #else
-#define LIBCWD_LIBRARY_CALL_INDENTATION
+#define LIBCWD_LIBRARY_CALL_INDENTATION do { } while(0)
 #endif
     
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
@@ -70,13 +70,13 @@ namespace libcwd {
       }												\
     } while(0)
 #else // !CWDEBUG_DEBUG
-#define FATALDEBUGDEBUG_CERR(x)
+#define FATALDEBUGDEBUG_CERR(x) do { } while(0)
 #endif // !CWDEBUG_DEBUG
 
 #if CWDEBUG_DEBUGOUTPUT
 #define DEBUGDEBUG_CERR(x) FATALDEBUGDEBUG_CERR(x)
 #else // !CWDEBUG_DEBUGOUTPUT
-#define DEBUGDEBUG_CERR(x)
+#define DEBUGDEBUG_CERR(x) do { } while(0)
 #endif // !CWDEBUG_DEBUGOUTPUT
 
 #if CWDEBUG_DEBUG

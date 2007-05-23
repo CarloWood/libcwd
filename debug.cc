@@ -825,7 +825,7 @@ void allocator_unlock(void)
       if (!_private_::WST_is_NPTL && pthread_self() == (pthread_t)2049)
       {
 	::write(1, "WARNING: Thread manager core dumped.  Going into infinite loop.  Please detach process with gdb.\n", 97);
-	while(1);
+	while(1) ;
       }
 #endif
       raise(6);
@@ -1466,7 +1466,11 @@ void allocator_unlock(void)
 
 #if LIBCWD_THREAD_SAFE
     namespace _private_ {
+#if CWDEBUG_DEBUGT
+      void debug_tsd_init(LIBCWD_TSD_PARAM_UNUSED)
+#else
       void debug_tsd_init(LIBCWD_TSD_PARAM)
+#endif
       {
 	ForAllDebugObjects(
 	  set_alloc_checking_off(LIBCWD_TSD);

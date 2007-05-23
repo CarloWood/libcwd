@@ -85,7 +85,16 @@ information and demangled type names.
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
 <DT><B>21 May 2007</B>
-<P class="news">libcwd-0.99.46 is released... because I needed it on my other PC.</P>
+<P class="news">libcwd-0.99.46 is released.&nbsp;
+A new configure option was added, <code>--enable-glibcxx-debug</code>,
+that will cause libcwd to be compiled with
+<a href="http://gcc.gnu.org/onlinedocs/libstdc++/debug.html">-D_GLIBCXX_DEBUG</a>.
+When using magic numbers, but no redzone around allocations (the default),
+the one to three bytes directly following the allocation till the next
+alignment with a multiple of sizeof(size_t) were not checked. Thus,
+a small overrun would not be detected in that case. This has been fixed.
+Finally, this version was again updated to work with the current
+SVN version of gcc (4.3).</P>
 <DT><B>9 Nov 2006</B>
 <P class="news">libcwd-0.99.45 is released.&nbsp;
 This version works with gcc 4.2 (and the current 4.3 in SVN).

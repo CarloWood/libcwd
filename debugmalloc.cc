@@ -595,7 +595,7 @@ namespace _private_ {
 // _private_::
 void set_alloc_checking_off(LIBCWD_TSD_PARAM)
 {
-  LIBCWD_DEBUGM_CERR( "set_alloc_checking_off called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << __libcwd_tsd.internal + 1 << '.' );
+  LIBCWD_DEBUGM_CERR( "set_alloc_checking_off called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << (__libcwd_tsd.internal + 1) << '.' );
   ++__libcwd_tsd.internal;
 }
 
@@ -604,7 +604,7 @@ void set_alloc_checking_on(LIBCWD_TSD_PARAM)
 {
   if (__libcwd_tsd.internal == 0)
     DoutFatal(dc::core, "Calling `set_alloc_checking_on' while ALREADY on.");
-  LIBCWD_DEBUGM_CERR( "set_alloc_checking_on called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << __libcwd_tsd.internal - 1 << '.' );
+  LIBCWD_DEBUGM_CERR( "set_alloc_checking_on called from " << __builtin_return_address(0) << ": internal == " << __libcwd_tsd.internal << "; setting it to " << (__libcwd_tsd.internal - 1) << '.' );
   --__libcwd_tsd.internal;
 }
 
@@ -770,7 +770,7 @@ void memblk_types_label_ct::print_on(std::ostream& os) const
 }
 
 #if CWDEBUG_DEBUGM
-_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, memblk_key_ct const& data)
+_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, memblk_key_ct const&)
 {
   write(2, "<memblk_key_ct>", 15);
   return raw_write;
@@ -1228,7 +1228,7 @@ void dm_alloc_ct::deinit(LIBCWD_TSD_PARAM)					// MT-safe: write lock is set.
   if (a_next_list)
     DoutFatalInternal( dc::core, "Removing an dm_alloc_ct that still has an own list" );
   dm_alloc_ct* tmp;
-  for(tmp = *my_list; tmp && tmp != this; tmp = tmp->next);
+  for(tmp = *my_list; tmp && tmp != this; tmp = tmp->next) ;
   if (!tmp)
     DoutFatalInternal( dc::core, "Removing an dm_alloc_ct that is not part of its own list" );
 #endif
@@ -2203,7 +2203,7 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -3639,7 +3639,7 @@ void* __libcwd_malloc(size_t size) throw()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    FATALDEBUGDEBUG_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    FATALDEBUGDEBUG_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -3754,7 +3754,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size) throw()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -3832,7 +3832,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -4224,7 +4224,7 @@ void* operator new(size_t size) throw (std::bad_alloc)
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -4287,7 +4287,7 @@ void* operator new(size_t size, std::nothrow_t const&) throw ()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call || __libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call && !__libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -4319,7 +4319,7 @@ void* operator new[](size_t size) throw (std::bad_alloc)
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -4382,7 +4382,7 @@ void* operator new[](size_t size, std::nothrow_t const&) throw ()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call || __libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call && !__libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -4424,7 +4424,7 @@ void operator delete(void* void_ptr) throw()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -4450,7 +4450,7 @@ void operator delete(void* void_ptr, std::nothrow_t const&) throw()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call || __libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call && !__libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -4473,7 +4473,7 @@ void operator delete[](void* void_ptr) throw()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
     core_dump();
   }
@@ -4501,7 +4501,7 @@ void operator delete[](void* void_ptr, std::nothrow_t const&) throw()
   // We can't use `assert' here, because that can call malloc.
   if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call || __libcwd_tsd.internal)
   {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << __LINE__ - 2 << ": " << __PRETTY_FUNCTION__ <<
+    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
 	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call && !__libcwd_tsd.internal' failed.");
     core_dump();
   }
