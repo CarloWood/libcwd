@@ -353,6 +353,9 @@ case "$host" in
   *) CW_DEFAULT_DEBUG_FLAGS=-g ;;
 esac
 
+# Add debug flags.
+test -n "$CW_DEBUG_FLAGS" || CW_DEBUG_FLAGS="$CW_DEFAULT_DEBUG_FLAGS"
+
 # Handle cw_config_optimize; when not explicitly set to "no", use user provided
 # optimization flags, or -O2 when nothing was provided.
 if test x"$cw_config_optimize" != x"no"; then
