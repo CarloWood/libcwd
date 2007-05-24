@@ -137,7 +137,6 @@ AC_ARG_ENABLE(pch,
     libcwd_config_pch=$enableval)
 
 dnl Process default options.
-cw_used_libcwd="skip"
 CW_OPG_FLAGS
 
 AC_ARG_VAR(THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].])
