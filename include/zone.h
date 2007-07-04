@@ -32,10 +32,12 @@
 
 namespace libcwd {
 
+#if LIBCWD_REDZONE_BLOCKS > 0
 // This will be even when sizeof(size_t) is 4 (LIBCWD_REDZONE_BLOCKS * 2), still resulting in
 // a redzone of a multiple of 8 bytes. In the case sizeof(size_t) is larger than 8,
 // the actual size in bytes will be rounded up.
 static int const redzone_size = ((int)LIBCWD_REDZONE_BLOCKS * 8 - 1) / sizeof(size_t) + 1;
+#endif
 
 struct prezone {
   size_t magic;
