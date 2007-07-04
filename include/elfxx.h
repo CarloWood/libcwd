@@ -50,7 +50,7 @@ typedef Elf64_Addr Elfxx_Addr;
 typedef Elf64_Off Elfxx_Off;
 typedef Elf64_Word Elfxx_Word;
 #else
-typedef ELf32_Addr Elfxx_Addr;
+typedef Elf32_Addr Elfxx_Addr;
 typedef Elf32_Off Elfxx_Off;
 typedef Elf32_Word Elfxx_Word;
 #endif
