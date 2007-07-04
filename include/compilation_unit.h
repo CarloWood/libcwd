@@ -43,10 +43,14 @@ public:
 #else
   typedef std::string object_files_string;
 #endif
-  typedef uint32_t Elf32_Addr;	// See elf.h.
-  void set_lowpc(Elf32_Addr lowpc)
+#ifdef __x86_64__
+  typedef uint64_t Elfxx_Addr;        // Elf64_Addr.
+#else
+  typedef uint32_t Elfxx_Addr;        // Elf32_Addr.
+#endif
+  void set_lowpc(Elfxx_Addr lowpc)
       { M_lowpc = reinterpret_cast<void const*>(lowpc); }
-  void set_highpc(Elf32_Addr highpc)
+  void set_highpc(Elfxx_Addr highpc)
       { M_highpc = reinterpret_cast<void const*>(highpc); }
   void set_compilation_directory(object_files_string const& comp_dir)
       { M_compilation_directory.assign(comp_dir.data(), comp_dir.size()); }

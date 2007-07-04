@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2001 - 2004, by
+// Copyright (C) 2001 - 2007, by
 //
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -17,6 +17,10 @@
 #ifndef LIBCW_INTTYPES_H
 #define LIBCW_INTTYPES_H
 #include <inttypes.h>
+#endif
+#ifndef LIBCW_ELF_H
+#define LIBCW_ELF_H
+#include <elf.h>
 #endif
 
 namespace libcwd {
@@ -39,15 +43,17 @@ static int const BSF_DYNAMIC           = 0x8000;
 static int const BSF_OBJECT            = 0x10000;
 } // namespace cwbfd
 
-namespace elf32 {
+namespace elfxx {
 
-// Figure 1-2: 32-Bit Data Types.
- 
-typedef uint32_t	Elf32_Addr;             // Unsigned program address.
-typedef uint16_t	Elf32_Half;             // Unsigned medium integer.
-typedef uint32_t	Elf32_Off;              // Unsigned file offset.
-typedef int32_t		Elf32_Sword;            // Signed large integer.
-typedef uint32_t	Elf32_Word;             // Unsigned large integer.
+#ifdef __x86_64__
+typedef Elf64_Addr Elfxx_Addr;
+typedef Elf64_Off Elfxx_Off;
+typedef Elf64_Word Elfxx_Word;
+#else
+typedef ELf32_Addr Elfxx_Addr;
+typedef Elf32_Off Elfxx_Off;
+typedef Elf32_Word Elfxx_Word;
+#endif
 
 struct asection_st;
 struct bfd_st;
@@ -55,16 +61,16 @@ struct bfd_st;
 struct asymbol_st {
   bfd_st* bfd_ptr;
   asection_st const* section;
-  Elf32_Off value;
+  Elfxx_Off value;
   size_t size;
-  Elf32_Word flags;
+  Elfxx_Word flags;
   char const* name;
 };
 
 struct asection_st {
-  Elf32_Addr vma;
+  Elfxx_Addr vma;
   char const* name;
-  Elf32_Word M_size;
+  Elfxx_Word M_size;
 };
 
 struct bfd_st {
@@ -83,14 +89,14 @@ public:
   virtual bool check_format(void) const = 0;
   virtual long get_symtab_upper_bound(void) = 0;
   virtual long canonicalize_symtab(asymbol_st**) = 0;
-  virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM) = 0;
+  virtual void find_nearest_line(asymbol_st const*, Elfxx_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM) = 0;
   bool has_syms(void) const { return M_has_syms; }
   bool is_stripped(void) const { return M_is_stripped; }
 };
 
 extern asection_st const* const absolute_section_c;
 
-} // namespace elf32
+} // namespace elfxx
 
 } // namespace libcwd
 

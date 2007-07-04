@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2002 - 2004, by
+// Copyright (C) 2002 - 2007, by
 //
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -80,10 +80,10 @@ namespace libcwd {
 
 class symbol_ct {
 private:
-  elf32::asymbol_st* symbol;
+  elfxx::asymbol_st* symbol;
 public:
-  symbol_ct(elf32::asymbol_st* p) : symbol(p) { }
-  elf32::asymbol_st const* get_symbol(void) const { return symbol; }
+  symbol_ct(elfxx::asymbol_st* p) : symbol(p) { }
+  elfxx::asymbol_st const* get_symbol(void) const { return symbol; }
   bool operator==(symbol_ct const&) const { DoutFatal(dc::core, "Calling operator=="); }
   friend struct symbol_key_greater;
 };
@@ -110,12 +110,12 @@ typedef std::list<bfile_ct*> object_files_ct;
 
 class bfile_ct {                                  // All allocations related to bfile_ct must be `internal'.
 private:
-  elf32::bfd_st* M_abfd;
+  elfxx::bfd_st* M_abfd;
   void* M_lbase;			// The 'load address', or 0 for the executable.
   void const* M_start;			// The start address of the first symbol.
   void const* M_start_last_symbol;	// The start address of the last symbol, or 0 if not relevant.
   size_t M_size;			// The difference between M_start and the end of the last symbol.
-  elf32::asymbol_st** M_symbol_table;
+  elfxx::asymbol_st** M_symbol_table;
   long M_number_of_symbols;
   function_symbols_ct M_function_symbols;
   libcwd::object_file_ct M_object_file;
@@ -128,11 +128,11 @@ public:
 #endif
   void deinitialize(LIBCWD_TSD_PARAM);
 
-  elf32::bfd_st* get_bfd(void) const { return M_abfd; }
+  elfxx::bfd_st* get_bfd(void) const { return M_abfd; }
   void* get_lbase(void) const { return M_lbase; }
   void const* get_start(void) const { return M_start; }
   size_t size(void) const { return M_size; }
-  elf32::asymbol_st** get_symbol_table(void) const { return M_symbol_table; }
+  elfxx::asymbol_st** get_symbol_table(void) const { return M_symbol_table; }
   long get_number_of_symbols(void) const { return M_number_of_symbols; }
   libcwd::object_file_ct const* get_object_file(void) const { return &M_object_file; }
   function_symbols_ct& get_function_symbols(void) { return M_function_symbols; }
@@ -166,20 +166,20 @@ NEEDS_WRITE_LOCK_object_files(void)
 }
 
 inline char const*
-symbol_start_addr(elf32::asymbol_st const* s)
+symbol_start_addr(elfxx::asymbol_st const* s)
 {
   return s->value + s->section->vma
       + reinterpret_cast<char const*>(s->bfd_ptr->object_file->get_lbase());
 }
 
 // cwbfd::
-inline size_t symbol_size(elf32::asymbol_st const* s)
+inline size_t symbol_size(elfxx::asymbol_st const* s)
 {
   return static_cast<size_t>(s->size);
 }
 
 // cwbfd::
-inline size_t& symbol_size(elf32::asymbol_st* s)
+inline size_t& symbol_size(elfxx::asymbol_st* s)
 {
   return s->size;
 }
