@@ -62,7 +62,7 @@ struct rtld_global {
 #include "ios_base_Init.h"
 #include "exec_prog.h"
 #include "match.h"
-#include "elf32.h"
+#include "elf.h"
 #include "cwd_bfd.h"
 #include <libcwd/class_object_file.h>
 #include <libcwd/private_string.h>

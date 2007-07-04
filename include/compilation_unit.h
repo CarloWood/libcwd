@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2003 - 2004, by
+// Copyright (C) 2003 - 2007, by
 //
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -43,7 +43,7 @@ public:
 #else
   typedef std::string object_files_string;
 #endif
-  typedef uint32_t Elf32_Addr;	// See elf32.h.
+  typedef uint32_t Elf32_Addr;	// See elf.h.
   void set_lowpc(Elf32_Addr lowpc)
       { M_lowpc = reinterpret_cast<void const*>(lowpc); }
   void set_highpc(Elf32_Addr highpc)

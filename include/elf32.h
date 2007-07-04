@@ -11,8 +11,8 @@
 // packaging of this file.
 //
 
-#ifndef ELF32_H
-#define ELF32_H
+#ifndef ELF_H
+#define ELF_H
 
 #ifndef LIBCW_INTTYPES_H
 #define LIBCW_INTTYPES_H
@@ -94,4 +94,4 @@ extern asection_st const* const absolute_section_c;
 
 } // namespace libcwd
 
-#endif // ELF32_H
+#endif // ELF_H

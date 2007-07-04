@@ -30,7 +30,7 @@
 #include <cerrno>
 #include <cstdlib>
 #include "cwd_debug.h"
-#include "elf32.h"
+#include "elf.h"
 #include <libcwd/private_assert.h>
 #include "cwd_bfd.h"
 #include "compilation_unit.h"
