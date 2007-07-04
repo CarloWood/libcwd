@@ -28,8 +28,8 @@
 #ifndef LIBCWD_PRIVATE_ALLOCATOR_H
 #include <libcwd/private_allocator.h>
 #endif
-#ifndef ELF_H
-#include "elf.h"
+#ifndef ELFXX_H
+#include "elfxx.h"
 #endif
 #ifndef LIBCWD_CLASS_OBJECT_FILE_H
 #include <libcwd/class_object_file.h>

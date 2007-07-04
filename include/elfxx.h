@@ -11,8 +11,8 @@
 // packaging of this file.
 //
 
-#ifndef ELF_H
-#define ELF_H
+#ifndef ELFXX_H
+#define ELFXX_H
 
 #ifndef LIBCW_INTTYPES_H
 #define LIBCW_INTTYPES_H
@@ -100,4 +100,4 @@ extern asection_st const* const absolute_section_c;
 
 } // namespace libcwd
 
-#endif // ELF_H
+#endif // ELFXX_H

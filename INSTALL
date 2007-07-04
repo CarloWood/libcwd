@@ -20,7 +20,8 @@ tar xzf libcwd-1.0.0.tar.gz
 cd libcwd-1.0.0
 fakeroot debian/rules binary
 
-'fakeroot' is part of the fakeroot package (sudo apt-get install fakeroot).
+'fakeroot' is part of the fakeroot package, dh_testdir is part
+of the debhelper package (sudo apt-get install fakeroot debhelper).
 This results in two .deb files:
 
 libcwd_1.0.0_i386.deb		: Libraries and headers.

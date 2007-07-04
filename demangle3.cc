@@ -1,6 +1,6 @@
 // $Header$
 //
-// Copyright (C) 2002 - 2004, by
+// Copyright (C) 2002 - 2007, by
 //
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -23,7 +23,7 @@ as returned by <CODE>typeid(OBJECT).name()</CODE> (using gcc-2.95.1 or higher).
 
 demangle_symbol() writes the \em mangled symbol name \p input
 to the string \p output; \p input should be the mangled name 
-as returned by <CODE>elf32::asymbol_st::name</CODE>
+as returned by <CODE>elfxx::asymbol_st::name</CODE>
 which is what is returned by
 \ref libcwd::location_ct::mangled_function_name "location_ct::mangled_function_name()"
 and pc_mangled_function_name().

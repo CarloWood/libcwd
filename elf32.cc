@@ -30,7 +30,7 @@
 #include <cerrno>
 #include <cstdlib>
 #include "cwd_debug.h"
-#include "elf.h"
+#include "elfxx.h"
 #include <libcwd/private_assert.h>
 #include "cwd_bfd.h"
 #include "compilation_unit.h"
@@ -1337,7 +1337,7 @@ struct hash_list_st {
 
 using _private_::compilation_units_vector_ct;
 
-class objfile_ct : public bfd_st {
+class objfile_ct : public elfxx::bfd_st {
 #if DEBUGSTABS || DEBUGDWARF
   friend void ::debug_load_object_file(char const* filename, bool shared);
 #endif
@@ -1505,19 +1505,6 @@ void section_ct::init(char const* section_header_string_table, Elf32_Shdr const&
   // Duplicated values:
   vma = M_section_header.sh_addr;
   name = &section_header_string_table[M_section_header.sh_name];
-}
-
-bfd_st* bfd_st::openr(char const* file_name)
-{
-#if LIBCWD_THREAD_SAFE
-  _private_::rwlock_tct<object_files_instance>::wrlock();
-#endif
-  objfile_ct* objfile = new objfile_ct;		// LEAK9
-#if LIBCWD_THREAD_SAFE
-  _private_::rwlock_tct<object_files_instance>::wrunlock();
-#endif
-  objfile->initialize(file_name);
-  return objfile;
 }
 
 void objfile_ct::close(void)
@@ -3475,6 +3462,23 @@ void objfile_ct::initialize(char const* file_name)
 }
 
 } // namespace elf32
+
+namespace elfxx {
+
+bfd_st* bfd_st::openr(char const* file_name)
+{
+#if LIBCWD_THREAD_SAFE
+  _private_::rwlock_tct<object_files_instance>::wrlock();
+#endif
+  objfile_ct* objfile = new objfile_ct;		// LEAK9
+#if LIBCWD_THREAD_SAFE
+  _private_::rwlock_tct<object_files_instance>::wrunlock();
+#endif
+  objfile->initialize(file_name);
+  return objfile;
+}
+
+} // namespace elfxx
 
 } // namespace libcwd
 
