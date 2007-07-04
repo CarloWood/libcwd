@@ -76,164 +76,22 @@ namespace libcwd {
 
 namespace elf32 {
 
+using namespace elfxx;
+
 //==========================================================================================================================================
 // The information about ELF (Executable Linkable Format) needed to write this file
 // has been obtained from a file called 'ELF.doc.tar.gz'.  You can get this file from
 // the net, for example: ftp://ftp.metalab.unc.edu/pub/Linux/GCC/ELF.doc.tar.gz.
 
-//------------------------------------------------------------------------------------------------------------------------------------------
-// ELF header table
-
-// Figure 1-3: ELF Header.
-static int const EI_NIDENT = 16;
-struct Elf32_Ehdr {
-  unsigned char		e_ident[EI_NIDENT];	// ELF Identification entry.
-  Elf32_Half		e_type;			// Object file type.
-  Elf32_Half		e_machine;		// Architecture type.
-  Elf32_Word		e_version;		// Object file version.
-  Elf32_Addr		e_entry;		// Virtual address of entry point.
-  Elf32_Off		e_phoff;		// Program Header offset.
-  Elf32_Off		e_shoff;		// Section Header offset.
-  Elf32_Word		e_flags;		// Processor specific flags.
-  Elf32_Half		e_ehsize;		// ELF Header size.
-  Elf32_Half		e_phentsize;		// Program Header Entry size.
-  Elf32_Half		e_phnum;		// Number of entries in the Program Header.
-  Elf32_Half		e_shentsize;		// Section Header Entry size.
-  Elf32_Half		e_shnum;		// Number of entries in the Section Header.
-  Elf32_Half		e_shstrndx;		// Section Header Index for the Section Header String Table.
-
-  friend std::istream& operator>>(std::istream& is, Elf32_Ehdr& header)
-  {
+std::istream& operator>>(std::istream& is, Elf32_Ehdr& header)
+{
 #if CWDEBUG_DEBUGM
-    LIBCWD_TSD_DECLARATION;
-    LIBCWD_ASSERT( !__libcwd_tsd.internal );
+  LIBCWD_TSD_DECLARATION;
+  LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
-    is.read(reinterpret_cast<char*>(&header), sizeof(Elf32_Ehdr));
-    return is;
-  }
-  inline bool check_format(void) const;
-};
-
-// Figure 1-4: e_ident[] identification indexes.
-static int const EI_MAG0 = 0;			// File identification.
-static int const EI_MAG1 = 1;			// File identification.
-static int const EI_MAG2 = 2;			// File identification.
-static int const EI_MAG3 = 3;			// File identification.
-static int const EI_CLASS = 4;			// File class.
-static int const EI_DATA = 5;			// Data encoding.
-static int const EI_VERSION = 6;		// File version.
-static int const EI_PAD = 7;			// Start of padding bytes.
-
-// Possible values of e_ident[EI_CLASS].
-static unsigned char const ELFCLASSNONE = 0;	// Invalid class.
-static unsigned char const ELFCLASS32 = 1;	// 32-bit objects.
-static unsigned char const ELFCLASS64 = 2;	// 64-bit objects.
-
-// Possible values of e_ident[EI_DATA].
-static unsigned char const ELFDATANONE = 0;	// Invalid data encoding.
-static unsigned char const ELFDATA2LSB = 1;	// Little endian encoding.
-static unsigned char const ELFDATAMSB = 2;	// Big endian encoding.
-
-// Object file types (e_type).
-static Elf32_Half const ET_NONE = 0;		// No file type.
-static Elf32_Half const ET_REL = 1;		// Relocatable file.
-static Elf32_Half const ET_EXEC = 2;		// Executable file.
-static Elf32_Half const ET_DYN = 3;		// Shared object file.
-static Elf32_Half const ET_CORE = 4;		// Core file.
-
-// Architecture types (e_machine).
-static Elf32_Half const EM_NONE = 0;		// No machine.
-static Elf32_Half const EM_M32 = 1;		// AT&T WE 32100
-static Elf32_Half const EM_SPARC = 2;		// SPARC
-static Elf32_Half const EM_386 = 3;		// Intel 80386
-static Elf32_Half const EM_68K = 4;		// Motorola 68000
-static Elf32_Half const EM_88K = 5;		// Motorola 80000
-static Elf32_Half const EM_860 = 7;		// Intel 80860
-static Elf32_Half const EM_MIPS = 8;		// MPIS RS3000
-
-// ELF header version (e_version).
-static Elf32_Word const EV_NONE = 0;		// Invalid version.
-static Elf32_Word const EV_CURRENT = 1;	// Current version.
-
-//-------------------------------------------------------------------------------------------------------------------------------------------
-// Section header table
-
-// Figure 1-8: Special section indexes.
-static int const SHN_UNDEF = 0;			// Undefined, missing, irrelevant or otherwise meaningless section reference.
-static int const SHN_LORESERVE = 0xff00;	// This value specifies the lower bound of the range of reserved indexes.
-static int const SHN_LOPROC = 0xff00;		// Start of range reserved for processor-specific semnatics.
-static int const SHN_HIPROC = 0xff1f;		// End of range reserved for processor-specific semantics.
-static int const SHN_ABS = 0xfff1;		// This value specifies absolute values for the corresponding reference.
-static int const SHN_COMMON = 0xfff2;		// Symbols defined relative to this section are common symbols (such as unallocated C exteral variables).
-static int const SHN_HIRESERVE = 0xffff;	// This value specifies the upper bound of the range of reserved indexes.
-
-// Figure 1-9: Section Header.
-struct Elf32_Shdr {
-  Elf32_Word sh_name;				// Index into the section header string table section.  Specifies the name of the section.
-  Elf32_Word sh_type;				// This member categorizes the sections contents and semantics.
-  Elf32_Word sh_flags;				// 1-bit flags that describe miscellaneous attributes.
-  Elf32_Addr sh_addr;				// Start address of section in memory image (or 0 otherwise).
-  Elf32_Off sh_offset;				// Offset to first byte of section in the object file.
-  Elf32_Word sh_size;				// Size of the section (unless the section is of type SHT_NOBITS).
-  Elf32_Word sh_link;				// Section header table index link.
-  Elf32_Word sh_info;				// Extra information.
-  Elf32_Word sh_addralign;			// Alignment constraint, if any.
-  Elf32_Word sh_entsize;			// Size of fixed-size entries in the section (or 0 otherwise).
-};
-
-// Figure 1-10: Section Types, sh_type.
-static Elf32_Word const SHT_NULL = 0;		// Inactive section.
-static Elf32_Word const SHT_PROBITS = 1;	// Application specific section.
-static Elf32_Word const SHT_SYMTAB = 2;		// Symbol table.
-static Elf32_Word const SHT_STRTAB = 3;		// String table.
-static Elf32_Word const SHT_RELA = 4;		// Relocation section with explicit addends.
-static Elf32_Word const SHT_HASH = 5;		// Symbol hash table.
-static Elf32_Word const SHT_DYNAMIC = 6;	// Dynamic section.
-static Elf32_Word const SHT_NOTE = 7;		// Note section.
-static Elf32_Word const SHT_NOBITS = 8;		// Empty section used as offset reference.
-static Elf32_Word const SHT_REL = 9;		// Relocation section without explicit addends.
-static Elf32_Word const SHT_SHLIB = 10;		// Reserved.
-static Elf32_Word const SHT_DYNSYM = 11;	// Symbol table with minimal ammount of data required for dynamic linking.
-static Elf32_Word const SHT_LOPROC = 0x70000000;// Start of range reserved for processor specific semantics.
-static Elf32_Word const SHT_HIPROC = 0x7fffffff;// End of range reserved for processor specific semantics.
-static Elf32_Word const SHT_LOUSER = 0x80000000;// Start of range reserved for user defined semantics.
-static Elf32_Word const SHT_HIUSER = 0xffffffff;// End of range reserved for user defined semantics.
-
-//-------------------------------------------------------------------------------------------------------------------------------------------
-// Symbol Table
-
-// Figure 1-16: Symbol Table Entry.
-struct Elf32_sym {
-  Elf32_Word st_name;				// Index into the symbol string table section.  Specifies the name of the symbol.
-  Elf32_Addr st_value;				// The value of the associated symbol (absolute value, address, etc).
-  Elf32_Word st_size;				// Size associated with this symbol, if any.
-  unsigned char st_info;			// The symbols type and binding attributes.
-  unsigned char st_other;			// Reserved.
-  Elf32_Half st_shndx;				// Section header index relative to which this symbol is "defined".
-
-  unsigned char bind(void) const { return st_info >> 4; }
-  unsigned char type(void) const { return st_info & 0xf; }
-};
-
-// Figure 1-17: Symbol binding.
-static int const STB_LOCAL = 0;			// Local symbols.
-static int const STB_GLOBAL = 1;		// Global symbols.
-static int const STB_WEAK = 2;			// Global symbols with weak linkage.
-static int const STB_LOPROC = 13;		// Start of range reserved for processor-specific semantics.
-static int const STB_HIPROC = 15;		// End of range reserved for processor-specific semantics.
-
-// Figure 1-18: Symbol Types.
-static int const STT_NOTYPE = 0;		// Unspecified type.
-static int const STT_OBJECT = 1;		// Symbol is associated with a data object, such as a variable, an array, etc.
-static int const STT_FUNC = 2;			// The symbol is associated with a function or other executable code.
-static int const STT_SECTION = 3;		// The symbol is associated with a section (primarily used for relocation entries).
-static int const STT_FILE = 4;			// The filename of the source file associated with the object file.
-static int const STT_COMMON = 5;		// An uninitialised common block.
-static int const STT_TLS = 6;			// Thread local data object.
-static int const STT_LOOS = 10;			// OS-specific semantics, low value.
-static int const STT_HIOS = 12;			// OS-specific semantics, high value.
-static int const STT_LOPROC = 13;		// Start of range reserved for processor-specific semantics.
-static int const STT_HIPROC = 15;		// End of range reserved for processor-specific semantics.
+  is.read(reinterpret_cast<char*>(&header), sizeof(Elf32_Ehdr));
+  return is;
+}
 
 //==========================================================================================================================================
 // The information about stabs (Symbol TABleS) was obtained from http://www.informatik.uni-frankfurt.de/doc/texi/stabs_toc.html.
@@ -1337,7 +1195,7 @@ struct hash_list_st {
 
 using _private_::compilation_units_vector_ct;
 
-class objfile_ct : public elfxx::bfd_st {
+class objfile_ct : public bfd_st {
 #if DEBUGSTABS || DEBUGDWARF
   friend void ::debug_load_object_file(char const* filename, bool shared);
 #endif
@@ -1392,7 +1250,7 @@ protected:
   virtual bool check_format(void) const;
   virtual long get_symtab_upper_bound(void);
   virtual long canonicalize_symtab(asymbol_st**);
-  virtual void find_nearest_line(asymbol_st const*, Elf32_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM);
+  virtual void find_nearest_line(asymbol_st const*, Elfxx_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM);
   virtual void close(void);
 private:
   void delete_hash_list(void);
@@ -1464,16 +1322,16 @@ inline void location_ct::stabs_range(range_st const& range) const
 static asection_st const abs_section_c = { 0, "*ABS*", 0 };
 asection_st const* const absolute_section_c = &abs_section_c;
 
-bool Elf32_Ehdr::check_format(void) const
+static bool check_elf_format(Elf32_Ehdr const& header)
 {
-  if (e_ident[EI_MAG0] != 0x7f ||
-      e_ident[EI_MAG1] != 'E' ||
-      e_ident[EI_MAG2] != 'L' ||
-      e_ident[EI_MAG3] != 'F')
+  if (header.e_ident[EI_MAG0] != ELFMAG0 ||
+      header.e_ident[EI_MAG1] != ELFMAG1 ||
+      header.e_ident[EI_MAG2] != ELFMAG2 ||
+      header.e_ident[EI_MAG3] != ELFMAG3)
     Dout(dc::bfd, "Object file must be ELF.");
-  else if (e_ident[EI_CLASS] != ELFCLASS32)
+  else if (header.e_ident[EI_CLASS] != ELFCLASS32)
     Dout(dc::bfd, "Sorry, object file must be ELF32.");
-  else if (e_ident[EI_DATA] !=
+  else if (header.e_ident[EI_DATA] !=
 #ifdef __BYTE_ORDER
 #if __BYTE_ORDER == __LITTLE_ENDIAN
       ELFDATA2LSB
@@ -1491,7 +1349,7 @@ bool Elf32_Ehdr::check_format(void) const
 #endif // !__BYTE_ORDER
       )
     Dout(dc::bfd, "Object file has non-native data encoding.");
-  else if (e_ident[EI_VERSION] != EV_CURRENT)
+  else if (header.e_ident[EI_VERSION] != EV_CURRENT)
     Dout(dc::warning, "Object file has different version than what libcwd understands.");
   else
     return false; 
@@ -1548,7 +1406,7 @@ long objfile_ct::get_symtab_upper_bound(void)
 
 bool objfile_ct::check_format(void) const
 {
-  return M_header.check_format();
+  return check_elf_format(M_header);
 }
 
 uint32_t objfile_ct::elf_hash(unsigned char const* name, unsigned char delim) const
@@ -1581,14 +1439,14 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
     if ((M_sections[i].section_header().sh_type == M_symbol_table_type)
         && M_sections[i].section_header().sh_size > 0)
     {
-      int number_of_symbols = M_sections[i].section_header().sh_size / sizeof(Elf32_sym);
+      int number_of_symbols = M_sections[i].section_header().sh_size / sizeof(Elf32_Sym);
       DoutElf32(dc::bfd, "Found symbol table " << M_sections[i].name << " with " << number_of_symbols << " symbols.");
-      Elf32_sym* symbols = (Elf32_sym*)allocate_and_read_section(i);
+      Elf32_Sym* symbols = (Elf32_Sym*)allocate_and_read_section(i);
       M_hash_list_pool = (hash_list_st*)malloc(sizeof(hash_list_st) * number_of_symbols);
       hash_list_st* hash_list_pool_next = M_hash_list_pool;
       for(int s = 0; s < number_of_symbols; ++s)
       {
-	Elf32_sym& symbol(symbols[s]);
+	Elf32_Sym& symbol(symbols[s]);
 	if (M_sections[i].section_header().sh_type == SHT_SYMTAB)
 	  new_symbol->name = &M_symbol_string_table[symbol.st_name];
 	else
@@ -1605,7 +1463,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	}
         else if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
 	  continue;							// Skip Special Sections and Undefined Symbols.
-	else if (symbol.type() >= STT_FILE)
+	else if (ELF32_ST_TYPE(symbol.st_info) >= STT_FILE)
 	  continue;							// Skip STT_FILE, STT_COMMON and STT_TLS symbols.
 	else
 	{
@@ -1623,7 +1481,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	new_symbol->bfd_ptr = this;
 	new_symbol->size = symbol.st_size;
 	new_symbol->flags = 0;
-	switch(symbol.bind())
+	switch(ELF32_ST_BIND(symbol.st_info))
 	{
 	  case STB_LOCAL:
 	    new_symbol->flags |= cwbfd::BSF_LOCAL;
@@ -1637,7 +1495,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	  default:	// Ignored
 	    break;
 	}
-        switch(symbol.type())
+        switch(ELF32_ST_TYPE(symbol.st_info))
 	{
 	  case STT_OBJECT:
 	    new_symbol->flags |= cwbfd::BSF_OBJECT;
@@ -3049,7 +2907,7 @@ void objfile_ct::load_stabs(void)
   M_debug_info_loaded = true;
 }
 
-void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elf32_Addr offset, char const** file, char const** func, unsigned int* line LIBCWD_COMMA_TSD_PARAM)
+void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elfxx_Addr offset, char const** file, char const** func, unsigned int* line LIBCWD_COMMA_TSD_PARAM)
 {
   while (!M_debug_info_loaded)	// So we can use 'break'.
   {
@@ -3442,7 +3300,7 @@ void objfile_ct::initialize(char const* file_name)
         && section_headers[i].sh_size > 0)
     {
       M_has_syms = true;
-      LIBCWD_ASSERT( section_headers[i].sh_entsize == sizeof(Elf32_sym) );
+      LIBCWD_ASSERT( section_headers[i].sh_entsize == sizeof(Elf32_Sym) );
       LIBCWD_ASSERT( M_symbol_table_type != SHT_SYMTAB || section_headers[i].sh_type != SHT_SYMTAB);	// There should only be one SHT_SYMTAB.
       if (M_symbol_table_type != SHT_SYMTAB)							// If there is one, use it.
       {
@@ -3470,7 +3328,12 @@ bfd_st* bfd_st::openr(char const* file_name)
 #if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<object_files_instance>::wrlock();
 #endif
-  objfile_ct* objfile = new objfile_ct;		// LEAK9
+#ifdef __x86_64__
+  // FIXME
+  elf32::objfile_ct* objfile = new elf32::objfile_ct;		// LEAK9
+#else
+  elf32::objfile_ct* objfile = new elf32::objfile_ct;		// LEAK9
+#endif
 #if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<object_files_instance>::wrunlock();
 #endif
