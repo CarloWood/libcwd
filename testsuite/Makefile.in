@@ -192,7 +192,7 @@ static: $(STATICTARGETS)
 
 run: shared static $(MODULETARGETS)
 	@for i in $(SHAREDTARGETS) $(STATICTARGETS); do \
-	  echo -n "$$i: "; if ./$$i 2>/dev/null >/dev/null; then echo "OK"; else echo "ERROR"; fi ; done
+	  echo -n "$$i: "; if (LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" ./$$i 2>/dev/null >/dev/null); then echo "OK"; else echo "ERROR"; fi ; done
 
 # Clean rules
 mostlyclean:

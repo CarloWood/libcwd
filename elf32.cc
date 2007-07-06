@@ -13,7 +13,7 @@
 
 //
 // This file contains code that reads the symbol table and debug information from
-// ELF32 object files.
+// ELF32/ELF64 object files.
 //
 
 #include "sys.h"
@@ -35,11 +35,11 @@
 #include "cwd_bfd.h"
 #include "compilation_unit.h"
 
-#define DEBUGELF32 0
+#define DEBUGELFXX 0
 #define DEBUGSTABS 0
 #define DEBUGDWARF 0
 
-#if DEBUGELF32 || DEBUGSTABS || DEBUGDWARF
+#if DEBUGELFXX || DEBUGSTABS || DEBUGDWARF
 static bool const default_dout_c = true;
 #endif
 
@@ -65,31 +65,49 @@ void debug_load_object_file(char const* filename, bool shared);
 #define DoutStabs(cntrl, x) do { } while(0)
 #endif
 
-#if DEBUGELF32
-static bool doutelf32on = default_dout_c;
-#define DoutElf32(cntrl, x) do { if (doutelf32on) { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } } while(0)
+#if DEBUGELFXX
+static bool doutelfxxon = default_dout_c;
+#define DoutElfxx(cntrl, x) do { if (doutelfxxon) { _private_::set_alloc_checking_on(LIBCWD_TSD); Dout(cntrl, x); _private_::set_alloc_checking_off(LIBCWD_TSD); } } while(0)
 #else
-#define DoutElf32(cntrl, x) do { } while(0)
+#define DoutElfxx(cntrl, x) do { } while(0)
 #endif
 
 namespace libcwd {
 
-namespace elf32 {
+namespace elfxx {
 
-using namespace elfxx;
+#ifndef __x86_64__
+typedef Elf32_Ehdr Elfxx_Ehdr;
+typedef Elf32_Word Elfxx_Word;
+typedef Elf32_Half Elfxx_Half;
+typedef Elf32_Addr Elfxx_Addr;
+typedef Elf32_Shdr Elfxx_Shdr;
+typedef Elf32_Sym Elfxx_Sym;
+#define ELFXX_ST_TYPE(var) ELF32_ST_TYPE(var)
+#define ELFXX_ST_BIND(var) ELF32_ST_BIND(var)
+#else
+typedef Elf64_Ehdr Elfxx_Ehdr;
+typedef Elf64_Word Elfxx_Word;
+typedef Elf64_Half Elfxx_Half;
+typedef Elf64_Addr Elfxx_Addr;
+typedef Elf64_Shdr Elfxx_Shdr;
+typedef Elf64_Sym Elfxx_Sym;
+#define ELFXX_ST_TYPE(var) ELF64_ST_TYPE(var)
+#define ELFXX_ST_BIND(var) ELF64_ST_BIND(var)
+#endif
 
 //==========================================================================================================================================
 // The information about ELF (Executable Linkable Format) needed to write this file
 // has been obtained from a file called 'ELF.doc.tar.gz'.  You can get this file from
 // the net, for example: ftp://ftp.metalab.unc.edu/pub/Linux/GCC/ELF.doc.tar.gz.
 
-std::istream& operator>>(std::istream& is, Elf32_Ehdr& header)
+std::istream& operator>>(std::istream& is, Elfxx_Ehdr& header)
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
-  is.read(reinterpret_cast<char*>(&header), sizeof(Elf32_Ehdr));
+  is.read(reinterpret_cast<char*>(&header), sizeof(Elfxx_Ehdr));
   return is;
 }
 
@@ -99,11 +117,11 @@ std::istream& operator>>(std::istream& is, Elf32_Ehdr& header)
 
 // http://www.informatik.uni-frankfurt.de/doc/texi/stabs_6.html#SEC46
 struct stab_st {
-  Elf32_Word n_strx;         			// Index into string table of name.
+  Elfxx_Word n_strx;         			// Index into string table of name.
   unsigned char n_type;         		// Type of symbol.
   unsigned char n_other;        		// Misc info (usually empty).
-  Elf32_Half n_desc; 		       		// Description field.
-  Elf32_Addr n_value;              		// Value of symbol.
+  Elfxx_Half n_desc; 		       		// Description field.
+  Elfxx_Addr n_value;              		// Value of symbol.
 };
 
 // Type of symbol, n_type.
@@ -155,78 +173,101 @@ static unsigned char const N_LENG = 0xfe;
 // which is one of the worsed documentations I ever saw :/.
 //
 
-typedef long LEB128_t;
+class LEB128_t {
+private:
+  long M_val;
+public:
+  LEB128_t(void) { }
+  LEB128_t(LEB128_t const& leb) : M_val(leb.M_val) { }
+  LEB128_t(long val) : M_val(val) { }
+  LEB128_t& operator=(long val) { M_val = val; return *this; }
+  operator long() const { return M_val; }
+  long value(void) const { return M_val; }
+};
+
+class uLEB128_t {
+private:
+  unsigned long M_val;
+public:
+  uLEB128_t(void) { }
+  uLEB128_t(uLEB128_t const& leb) : M_val(leb.M_val) { }
+  uLEB128_t(unsigned long val) : M_val(val) { }
+  uLEB128_t& operator=(unsigned long val) { M_val = val; return *this; }
+  operator unsigned long() const { return M_val; }
+  unsigned long value(void) const { return M_val; }
+  uLEB128_t& operator--(void) { --M_val; return *this; }
+};
+
 static int const number_of_bits_in_LEB128_t = 8 * sizeof(LEB128_t);
-typedef unsigned long uLEB128_t;
 static int const number_of_bits_in_uLEB128_t = 8 * sizeof(uLEB128_t);
 
-static uLEB128_t const DW_TAG_array_type		= 0x01;
-static uLEB128_t const DW_TAG_class_type		= 0x02;
-static uLEB128_t const DW_TAG_entry_point		= 0x03;
-static uLEB128_t const DW_TAG_enumeration_type		= 0x04;
-static uLEB128_t const DW_TAG_formal_parameter		= 0x05;
-static uLEB128_t const DW_TAG_imported_declaration	= 0x08;
-static uLEB128_t const DW_TAG_label			= 0x0a;
-static uLEB128_t const DW_TAG_lexical_block		= 0x0b;
-static uLEB128_t const DW_TAG_member			= 0x0d;
-static uLEB128_t const DW_TAG_pointer_type		= 0x0f;
-static uLEB128_t const DW_TAG_reference_type		= 0x10;
-static uLEB128_t const DW_TAG_compile_unit		= 0x11;
-static uLEB128_t const DW_TAG_string_type		= 0x12;
-static uLEB128_t const DW_TAG_structure_type		= 0x13;
-static uLEB128_t const DW_TAG_subroutine_type		= 0x15;
-static uLEB128_t const DW_TAG_typedef			= 0x16;
-static uLEB128_t const DW_TAG_union_type		= 0x17;
-static uLEB128_t const DW_TAG_unspecified_parameters	= 0x18;
-static uLEB128_t const DW_TAG_variant			= 0x19;
-static uLEB128_t const DW_TAG_common_block		= 0x1a;
-static uLEB128_t const DW_TAG_common_inclusion		= 0x1b;
-static uLEB128_t const DW_TAG_inheritance		= 0x1c;
-static uLEB128_t const DW_TAG_inlined_subroutine	= 0x1d;
-static uLEB128_t const DW_TAG_module			= 0x1e;
-static uLEB128_t const DW_TAG_ptr_to_member_type	= 0x1f;
-static uLEB128_t const DW_TAG_set_type			= 0x20;
-static uLEB128_t const DW_TAG_subrange_type		= 0x21;
-static uLEB128_t const DW_TAG_with_stmt			= 0x22;
-static uLEB128_t const DW_TAG_access_declaration	= 0x23;
-static uLEB128_t const DW_TAG_base_type			= 0x24;
-static uLEB128_t const DW_TAG_catch_block		= 0x25;
-static uLEB128_t const DW_TAG_const_type		= 0x26;
-static uLEB128_t const DW_TAG_constant			= 0x27;
-static uLEB128_t const DW_TAG_enumerator		= 0x28;
-static uLEB128_t const DW_TAG_file_type			= 0x29;
-static uLEB128_t const DW_TAG_friend			= 0x2a;
-static uLEB128_t const DW_TAG_namelist			= 0x2b;
-static uLEB128_t const DW_TAG_namelist_item		= 0x2c;
-static uLEB128_t const DW_TAG_packed_type		= 0x2d;
-static uLEB128_t const DW_TAG_subprogram		= 0x2e;
-static uLEB128_t const DW_TAG_template_type_param	= 0x2f;
-static uLEB128_t const DW_TAG_template_value_param	= 0x30;
-static uLEB128_t const DW_TAG_thrown_type		= 0x31;
-static uLEB128_t const DW_TAG_try_block			= 0x32;
-static uLEB128_t const DW_TAG_variant_part		= 0x33;
-static uLEB128_t const DW_TAG_variable			= 0x34;
-static uLEB128_t const DW_TAG_volatile_type		= 0x35;
+static unsigned int const DW_TAG_array_type		= 0x01;
+static unsigned int const DW_TAG_class_type		= 0x02;
+static unsigned int const DW_TAG_entry_point		= 0x03;
+static unsigned int const DW_TAG_enumeration_type	= 0x04;
+static unsigned int const DW_TAG_formal_parameter	= 0x05;
+static unsigned int const DW_TAG_imported_declaration	= 0x08;
+static unsigned int const DW_TAG_label			= 0x0a;
+static unsigned int const DW_TAG_lexical_block		= 0x0b;
+static unsigned int const DW_TAG_member			= 0x0d;
+static unsigned int const DW_TAG_pointer_type		= 0x0f;
+static unsigned int const DW_TAG_reference_type		= 0x10;
+static unsigned int const DW_TAG_compile_unit		= 0x11;
+static unsigned int const DW_TAG_string_type		= 0x12;
+static unsigned int const DW_TAG_structure_type		= 0x13;
+static unsigned int const DW_TAG_subroutine_type	= 0x15;
+static unsigned int const DW_TAG_typedef		= 0x16;
+static unsigned int const DW_TAG_union_type		= 0x17;
+static unsigned int const DW_TAG_unspecified_parameters	= 0x18;
+static unsigned int const DW_TAG_variant		= 0x19;
+static unsigned int const DW_TAG_common_block		= 0x1a;
+static unsigned int const DW_TAG_common_inclusion	= 0x1b;
+static unsigned int const DW_TAG_inheritance		= 0x1c;
+static unsigned int const DW_TAG_inlined_subroutine	= 0x1d;
+static unsigned int const DW_TAG_module			= 0x1e;
+static unsigned int const DW_TAG_ptr_to_member_type	= 0x1f;
+static unsigned int const DW_TAG_set_type		= 0x20;
+static unsigned int const DW_TAG_subrange_type		= 0x21;
+static unsigned int const DW_TAG_with_stmt		= 0x22;
+static unsigned int const DW_TAG_access_declaration	= 0x23;
+static unsigned int const DW_TAG_base_type		= 0x24;
+static unsigned int const DW_TAG_catch_block		= 0x25;
+static unsigned int const DW_TAG_const_type		= 0x26;
+static unsigned int const DW_TAG_constant		= 0x27;
+static unsigned int const DW_TAG_enumerator		= 0x28;
+static unsigned int const DW_TAG_file_type		= 0x29;
+static unsigned int const DW_TAG_friend			= 0x2a;
+static unsigned int const DW_TAG_namelist		= 0x2b;
+static unsigned int const DW_TAG_namelist_item		= 0x2c;
+static unsigned int const DW_TAG_packed_type		= 0x2d;
+static unsigned int const DW_TAG_subprogram		= 0x2e;
+static unsigned int const DW_TAG_template_type_param	= 0x2f;
+static unsigned int const DW_TAG_template_value_param	= 0x30;
+static unsigned int const DW_TAG_thrown_type		= 0x31;
+static unsigned int const DW_TAG_try_block		= 0x32;
+static unsigned int const DW_TAG_variant_part		= 0x33;
+static unsigned int const DW_TAG_variable		= 0x34;
+static unsigned int const DW_TAG_volatile_type		= 0x35;
 // DWARF 3.
-static uLEB128_t const DW_TAG_dwarf_procedure		= 0x36;
-static uLEB128_t const DW_TAG_restrict_type		= 0x37;
-static uLEB128_t const DW_TAG_interface_type		= 0x38;
-static uLEB128_t const DW_TAG_namespace			= 0x39;
-static uLEB128_t const DW_TAG_imported_module		= 0x3a;
-static uLEB128_t const DW_TAG_unspecified_type		= 0x3b;
-static uLEB128_t const DW_TAG_partial_unit		= 0x3c;
-static uLEB128_t const DW_TAG_imported_unit		= 0x3d;
+static unsigned int const DW_TAG_dwarf_procedure	= 0x36;
+static unsigned int const DW_TAG_restrict_type		= 0x37;
+static unsigned int const DW_TAG_interface_type		= 0x38;
+static unsigned int const DW_TAG_namespace		= 0x39;
+static unsigned int const DW_TAG_imported_module	= 0x3a;
+static unsigned int const DW_TAG_unspecified_type	= 0x3b;
+static unsigned int const DW_TAG_partial_unit		= 0x3c;
+static unsigned int const DW_TAG_imported_unit		= 0x3d;
 // User range.
-static uLEB128_t const DW_TAG_lo_user			= 0x4080;
-static uLEB128_t const DW_TAG_hi_user			= 0xffff;
+static unsigned int const DW_TAG_lo_user		= 0x4080;
+static unsigned int const DW_TAG_hi_user		= 0xffff;
 // SGI/MIPS Extensions.
-static uLEB128_t const DW_TAG_MIPS_loop			= 0x4081;
+static unsigned int const DW_TAG_MIPS_loop		= 0x4081;
 // GNU extensions.
-static uLEB128_t const DW_TAG_format_label		= 0x4101;  // For FORTRAN 77 and Fortran 90.
-static uLEB128_t const DW_TAG_function_template		= 0x4102;  // For C++.
-static uLEB128_t const DW_TAG_class_template		= 0x4103;  // For C++.
-static uLEB128_t const DW_TAG_GNU_BINCL			= 0x4104;
-static uLEB128_t const DW_TAG_GNU_EINCL			= 0x4105;
+static unsigned int const DW_TAG_format_label		= 0x4101;  // For FORTRAN 77 and Fortran 90.
+static unsigned int const DW_TAG_function_template	= 0x4102;  // For C++.
+static unsigned int const DW_TAG_class_template		= 0x4103;  // For C++.
+static unsigned int const DW_TAG_GNU_BINCL		= 0x4104;
+static unsigned int const DW_TAG_GNU_EINCL		= 0x4105;
 
 #if DEBUGDWARF
 char const* print_DW_TAG_name(uLEB128_t tag)
@@ -308,7 +349,7 @@ char const* print_DW_TAG_name(uLEB128_t tag)
     case DW_TAG_GNU_EINCL: return "DW_TAG_GNU_EINCL";
   }
   static char unknown_tag[32];
-  sprintf(unknown_tag, "UNKNOWN DW_TAG 0x%lx", tag);
+  sprintf(unknown_tag, "UNKNOWN DW_TAG 0x%lx", tag.value());
   return unknown_tag;
 }
 #endif
@@ -316,103 +357,103 @@ char const* print_DW_TAG_name(uLEB128_t tag)
 static unsigned char const DW_CHILDREN_no	= 0;
 static unsigned char const DW_CHILDREN_yes	= 1;
 
-static uLEB128_t const DW_AT_sibling 		= 0x01;	// reference
-static uLEB128_t const DW_AT_location 		= 0x02;	// block, constant
-static uLEB128_t const DW_AT_name 		= 0x03;	// string
-static uLEB128_t const DW_AT_ordering 		= 0x09;	// constant
-static uLEB128_t const DW_AT_byte_size 		= 0x0b;	// constant
-static uLEB128_t const DW_AT_bit_offset 	= 0x0c;	// constant
-static uLEB128_t const DW_AT_bit_size 		= 0x0d;	// constant
-static uLEB128_t const DW_AT_stmt_list 		= 0x10;	// constant
-static uLEB128_t const DW_AT_low_pc 		= 0x11;	// address
-static uLEB128_t const DW_AT_high_pc 		= 0x12;	// address
-static uLEB128_t const DW_AT_language 		= 0x13;	// constant
-static uLEB128_t const DW_AT_discr 		= 0x15;	// reference
-static uLEB128_t const DW_AT_discr_value 	= 0x16;	// constant
-static uLEB128_t const DW_AT_visibility 	= 0x17;	// constant
-static uLEB128_t const DW_AT_import 		= 0x18;	// reference
-static uLEB128_t const DW_AT_string_length 	= 0x19;	// block, constant
-static uLEB128_t const DW_AT_common_reference 	= 0x1a;	// reference
-static uLEB128_t const DW_AT_comp_dir 		= 0x1b;	// string
-static uLEB128_t const DW_AT_const_value 	= 0x1c;	// string, constant, block
-static uLEB128_t const DW_AT_containing_type 	= 0x1d;	// reference
-static uLEB128_t const DW_AT_default_value 	= 0x1e;	// reference
-static uLEB128_t const DW_AT_inline 		= 0x20;	// constant
-static uLEB128_t const DW_AT_is_optional 	= 0x21;	// flag
-static uLEB128_t const DW_AT_lower_bound 	= 0x22;	// constant, reference
-static uLEB128_t const DW_AT_producer 		= 0x25;	// string
-static uLEB128_t const DW_AT_prototyped 	= 0x27;	// flag
-static uLEB128_t const DW_AT_return_addr 	= 0x2a;	// block, constant
-static uLEB128_t const DW_AT_start_scope 	= 0x2c;	// constant
-static uLEB128_t const DW_AT_stride_size 	= 0x2e;	// constant
-static uLEB128_t const DW_AT_upper_bound 	= 0x2f;	// constant, reference
-static uLEB128_t const DW_AT_abstract_origin 	= 0x31;	// reference
-static uLEB128_t const DW_AT_accessibility 	= 0x32;	// constant
-static uLEB128_t const DW_AT_address_class 	= 0x33;	// constant
-static uLEB128_t const DW_AT_artificial 	= 0x34;	// flag
-static uLEB128_t const DW_AT_base_types 	= 0x35;	// reference
-static uLEB128_t const DW_AT_calling_convention	= 0x36;	// constant
-static uLEB128_t const DW_AT_count 		= 0x37;	// constant, reference
-static uLEB128_t const DW_AT_data_member_location = 0x38; // block, reference
-static uLEB128_t const DW_AT_decl_column 	= 0x39;	// constant
-static uLEB128_t const DW_AT_decl_file 		= 0x3a;	// constant
-static uLEB128_t const DW_AT_decl_line 		= 0x3b;	// constant
-static uLEB128_t const DW_AT_declaration 	= 0x3c;	// flag
-static uLEB128_t const DW_AT_discr_list 	= 0x3d;	// block
-static uLEB128_t const DW_AT_encoding 		= 0x3e;	// constant
-static uLEB128_t const DW_AT_external 		= 0x3f;	// flag
-static uLEB128_t const DW_AT_frame_base 	= 0x40;	// block, constant
-static uLEB128_t const DW_AT_friend 		= 0x41;	// reference
-static uLEB128_t const DW_AT_identifier_case 	= 0x42;	// constant
-static uLEB128_t const DW_AT_macro_info 	= 0x43;	// constant
-static uLEB128_t const DW_AT_namelist_item 	= 0x44;	// block
-static uLEB128_t const DW_AT_priority 		= 0x45;	// reference
-static uLEB128_t const DW_AT_segment 		= 0x46;	// block, constant
-static uLEB128_t const DW_AT_specification 	= 0x47;	// reference
-static uLEB128_t const DW_AT_static_link 	= 0x48;	// block, constant
-static uLEB128_t const DW_AT_type 		= 0x49;	// reference
-static uLEB128_t const DW_AT_use_location 	= 0x4a;	// block, constant
-static uLEB128_t const DW_AT_variable_parameter	= 0x4b;	// flag
-static uLEB128_t const DW_AT_virtuality 	= 0x4c;	// constant
-static uLEB128_t const DW_AT_vtable_elem_location = 0x4d; // block, reference
+static unsigned int const DW_AT_sibling 		= 0x01;	// reference
+static unsigned int const DW_AT_location 		= 0x02;	// block, constant
+static unsigned int const DW_AT_name 			= 0x03;	// string
+static unsigned int const DW_AT_ordering 		= 0x09;	// constant
+static unsigned int const DW_AT_byte_size 		= 0x0b;	// constant
+static unsigned int const DW_AT_bit_offset 		= 0x0c;	// constant
+static unsigned int const DW_AT_bit_size 		= 0x0d;	// constant
+static unsigned int const DW_AT_stmt_list 		= 0x10;	// constant
+static unsigned int const DW_AT_low_pc 			= 0x11;	// address
+static unsigned int const DW_AT_high_pc 		= 0x12;	// address
+static unsigned int const DW_AT_language 		= 0x13;	// constant
+static unsigned int const DW_AT_discr 			= 0x15;	// reference
+static unsigned int const DW_AT_discr_value 		= 0x16;	// constant
+static unsigned int const DW_AT_visibility 		= 0x17;	// constant
+static unsigned int const DW_AT_import 			= 0x18;	// reference
+static unsigned int const DW_AT_string_length 		= 0x19;	// block, constant
+static unsigned int const DW_AT_common_reference 	= 0x1a;	// reference
+static unsigned int const DW_AT_comp_dir 		= 0x1b;	// string
+static unsigned int const DW_AT_const_value 		= 0x1c;	// string, constant, block
+static unsigned int const DW_AT_containing_type		= 0x1d;	// reference
+static unsigned int const DW_AT_default_value 		= 0x1e;	// reference
+static unsigned int const DW_AT_inline 			= 0x20;	// constant
+static unsigned int const DW_AT_is_optional 		= 0x21;	// flag
+static unsigned int const DW_AT_lower_bound 		= 0x22;	// constant, reference
+static unsigned int const DW_AT_producer 		= 0x25;	// string
+static unsigned int const DW_AT_prototyped 		= 0x27;	// flag
+static unsigned int const DW_AT_return_addr 		= 0x2a;	// block, constant
+static unsigned int const DW_AT_start_scope 		= 0x2c;	// constant
+static unsigned int const DW_AT_stride_size 		= 0x2e;	// constant
+static unsigned int const DW_AT_upper_bound 		= 0x2f;	// constant, reference
+static unsigned int const DW_AT_abstract_origin		= 0x31;	// reference
+static unsigned int const DW_AT_accessibility 		= 0x32;	// constant
+static unsigned int const DW_AT_address_class 		= 0x33;	// constant
+static unsigned int const DW_AT_artificial 		= 0x34;	// flag
+static unsigned int const DW_AT_base_types 		= 0x35;	// reference
+static unsigned int const DW_AT_calling_convention	= 0x36;	// constant
+static unsigned int const DW_AT_count 			= 0x37;	// constant, reference
+static unsigned int const DW_AT_data_member_location	= 0x38; // block, reference
+static unsigned int const DW_AT_decl_column 		= 0x39;	// constant
+static unsigned int const DW_AT_decl_file 		= 0x3a;	// constant
+static unsigned int const DW_AT_decl_line 		= 0x3b;	// constant
+static unsigned int const DW_AT_declaration 		= 0x3c;	// flag
+static unsigned int const DW_AT_discr_list 		= 0x3d;	// block
+static unsigned int const DW_AT_encoding 		= 0x3e;	// constant
+static unsigned int const DW_AT_external 		= 0x3f;	// flag
+static unsigned int const DW_AT_frame_base 		= 0x40;	// block, constant
+static unsigned int const DW_AT_friend 			= 0x41;	// reference
+static unsigned int const DW_AT_identifier_case 	= 0x42;	// constant
+static unsigned int const DW_AT_macro_info 		= 0x43;	// constant
+static unsigned int const DW_AT_namelist_item 		= 0x44;	// block
+static unsigned int const DW_AT_priority 		= 0x45;	// reference
+static unsigned int const DW_AT_segment 		= 0x46;	// block, constant
+static unsigned int const DW_AT_specification 		= 0x47;	// reference
+static unsigned int const DW_AT_static_link 		= 0x48;	// block, constant
+static unsigned int const DW_AT_type 			= 0x49;	// reference
+static unsigned int const DW_AT_use_location 		= 0x4a;	// block, constant
+static unsigned int const DW_AT_variable_parameter	= 0x4b;	// flag
+static unsigned int const DW_AT_virtuality 		= 0x4c;	// constant
+static unsigned int const DW_AT_vtable_elem_location	= 0x4d; // block, reference
 // DWARF 3 values.
-static uLEB128_t const DW_AT_allocated		= 0x4e;
-static uLEB128_t const DW_AT_associated		= 0x4f;
-static uLEB128_t const DW_AT_data_location	= 0x50;
-static uLEB128_t const DW_AT_stride		= 0x51;
-static uLEB128_t const DW_AT_entry_pc		= 0x52;
-static uLEB128_t const DW_AT_use_UTF8		= 0x53;
-static uLEB128_t const DW_AT_extension		= 0x54;
-static uLEB128_t const DW_AT_ranges		= 0x55;
-static uLEB128_t const DW_AT_trampoline		= 0x56;
-static uLEB128_t const DW_AT_call_column	= 0x57;
-static uLEB128_t const DW_AT_call_file		= 0x58;
-static uLEB128_t const DW_AT_call_line		= 0x59;
+static unsigned int const DW_AT_allocated		= 0x4e;
+static unsigned int const DW_AT_associated		= 0x4f;
+static unsigned int const DW_AT_data_location		= 0x50;
+static unsigned int const DW_AT_stride			= 0x51;
+static unsigned int const DW_AT_entry_pc		= 0x52;
+static unsigned int const DW_AT_use_UTF8		= 0x53;
+static unsigned int const DW_AT_extension		= 0x54;
+static unsigned int const DW_AT_ranges			= 0x55;
+static unsigned int const DW_AT_trampoline		= 0x56;
+static unsigned int const DW_AT_call_column		= 0x57;
+static unsigned int const DW_AT_call_file		= 0x58;
+static unsigned int const DW_AT_call_line		= 0x59;
 // User range.
-static uLEB128_t const DW_AT_lo_user				= 0x2000;
-static uLEB128_t const DW_AT_hi_user				= 0x3fff;
+static unsigned int const DW_AT_lo_user				= 0x2000;
+static unsigned int const DW_AT_hi_user				= 0x3fff;
 // SGI/MIPS Extensions.
-static uLEB128_t const DW_AT_MIPS_fde				= 0x2001;
-static uLEB128_t const DW_AT_MIPS_loop_begin			= 0x2002;
-static uLEB128_t const DW_AT_MIPS_tail_loop_begin		= 0x2003;
-static uLEB128_t const DW_AT_MIPS_epilog_begin			= 0x2004;
-static uLEB128_t const DW_AT_MIPS_loop_unroll_factor		= 0x2005;
-static uLEB128_t const DW_AT_MIPS_software_pipeline_depth	= 0x2006;
-static uLEB128_t const DW_AT_MIPS_linkage_name			= 0x2007;
-static uLEB128_t const DW_AT_MIPS_stride			= 0x2008;
-static uLEB128_t const DW_AT_MIPS_abstract_name			= 0x2009;
-static uLEB128_t const DW_AT_MIPS_clone_origin			= 0x200a;
-static uLEB128_t const DW_AT_MIPS_has_inlines			= 0x200b;
+static unsigned int const DW_AT_MIPS_fde			= 0x2001;
+static unsigned int const DW_AT_MIPS_loop_begin			= 0x2002;
+static unsigned int const DW_AT_MIPS_tail_loop_begin		= 0x2003;
+static unsigned int const DW_AT_MIPS_epilog_begin		= 0x2004;
+static unsigned int const DW_AT_MIPS_loop_unroll_factor		= 0x2005;
+static unsigned int const DW_AT_MIPS_software_pipeline_depth	= 0x2006;
+static unsigned int const DW_AT_MIPS_linkage_name		= 0x2007;
+static unsigned int const DW_AT_MIPS_stride			= 0x2008;
+static unsigned int const DW_AT_MIPS_abstract_name		= 0x2009;
+static unsigned int const DW_AT_MIPS_clone_origin		= 0x200a;
+static unsigned int const DW_AT_MIPS_has_inlines		= 0x200b;
 // GNU extensions.
-static uLEB128_t const DW_AT_sf_names				= 0x2101;
-static uLEB128_t const DW_AT_src_info				= 0x2102;
-static uLEB128_t const DW_AT_mac_info				= 0x2103;
-static uLEB128_t const DW_AT_src_coords				= 0x2104;
-static uLEB128_t const DW_AT_body_begin				= 0x2105;
-static uLEB128_t const DW_AT_body_end				= 0x2106;
-static uLEB128_t const DW_AT_GNU_vector				= 0x2107;
+static unsigned int const DW_AT_sf_names			= 0x2101;
+static unsigned int const DW_AT_src_info			= 0x2102;
+static unsigned int const DW_AT_mac_info			= 0x2103;
+static unsigned int const DW_AT_src_coords			= 0x2104;
+static unsigned int const DW_AT_body_begin			= 0x2105;
+static unsigned int const DW_AT_body_end			= 0x2106;
+static unsigned int const DW_AT_GNU_vector			= 0x2107;
 // VMS Extensions.
-static uLEB128_t const DW_AT_VMS_rtnbeg_pd_address		= 0x2201;
+static unsigned int const DW_AT_VMS_rtnbeg_pd_address		= 0x2201;
 
 #if DEBUGDWARF
 char const* print_DW_AT_name(uLEB128_t attr)
@@ -524,32 +565,32 @@ char const* print_DW_AT_name(uLEB128_t attr)
     case DW_AT_VMS_rtnbeg_pd_address: return "DW_AT_VMS_rtnbeg_pd_address";
   }
   static char unknown_at[32];
-  sprintf(unknown_at, "UNKNOWN DW_AT 0x%lx", attr);
+  sprintf(unknown_at, "UNKNOWN DW_AT 0x%lx", attr.value());
   return unknown_at;
 }
 #endif
 
-static uLEB128_t const DW_FORM_addr		= 0x01; // address
-static uLEB128_t const DW_FORM_block2		= 0x03; // block
-static uLEB128_t const DW_FORM_block4		= 0x04; // block
-static uLEB128_t const DW_FORM_data2		= 0x05; // constant
-static uLEB128_t const DW_FORM_data4		= 0x06; // constant
-static uLEB128_t const DW_FORM_data8		= 0x07; // constant
-static uLEB128_t const DW_FORM_string		= 0x08; // string
-static uLEB128_t const DW_FORM_block		= 0x09; // block
-static uLEB128_t const DW_FORM_block1		= 0x0a; // block
-static uLEB128_t const DW_FORM_data1		= 0x0b; // constant
-static uLEB128_t const DW_FORM_flag		= 0x0c; // flag
-static uLEB128_t const DW_FORM_sdata		= 0x0d; // constant
-static uLEB128_t const DW_FORM_strp		= 0x0e; // string
-static uLEB128_t const DW_FORM_udata		= 0x0f; // constant
-static uLEB128_t const DW_FORM_ref_addr		= 0x10; // reference
-static uLEB128_t const DW_FORM_ref1		= 0x11; // reference
-static uLEB128_t const DW_FORM_ref2		= 0x12; // reference
-static uLEB128_t const DW_FORM_ref4		= 0x13; // reference
-static uLEB128_t const DW_FORM_ref8		= 0x14; // reference
-static uLEB128_t const DW_FORM_ref_udata	= 0x15; // reference
-static uLEB128_t const DW_FORM_indirect		= 0x16; // (see section 7.5.3)
+static unsigned int const DW_FORM_addr		= 0x01; // address
+static unsigned int const DW_FORM_block2	= 0x03; // block
+static unsigned int const DW_FORM_block4	= 0x04; // block
+static unsigned int const DW_FORM_data2		= 0x05; // constant
+static unsigned int const DW_FORM_data4		= 0x06; // constant
+static unsigned int const DW_FORM_data8		= 0x07; // constant
+static unsigned int const DW_FORM_string	= 0x08; // string
+static unsigned int const DW_FORM_block		= 0x09; // block
+static unsigned int const DW_FORM_block1	= 0x0a; // block
+static unsigned int const DW_FORM_data1		= 0x0b; // constant
+static unsigned int const DW_FORM_flag		= 0x0c; // flag
+static unsigned int const DW_FORM_sdata		= 0x0d; // constant
+static unsigned int const DW_FORM_strp		= 0x0e; // string
+static unsigned int const DW_FORM_udata		= 0x0f; // constant
+static unsigned int const DW_FORM_ref_addr	= 0x10; // reference
+static unsigned int const DW_FORM_ref1		= 0x11; // reference
+static unsigned int const DW_FORM_ref2		= 0x12; // reference
+static unsigned int const DW_FORM_ref4		= 0x13; // reference
+static unsigned int const DW_FORM_ref8		= 0x14; // reference
+static unsigned int const DW_FORM_ref_udata	= 0x15; // reference
+static unsigned int const DW_FORM_indirect	= 0x16; // (see section 7.5.3)
 
 #if DEBUGDWARF
 char const* print_DW_FORM_name(uLEB128_t form)
@@ -599,9 +640,9 @@ static unsigned char const DW_LNS_set_epilogue_begin	= 11;
 static unsigned char const DW_LNS_set_isa		= 12;
 
 // Extended opcodes.
-static uLEB128_t const DW_LNE_end_sequence	= 1;
-static uLEB128_t const DW_LNE_set_address	= 2;
-static uLEB128_t const DW_LNE_define_file	= 3;
+static unsigned int const DW_LNE_end_sequence	= 1;
+static unsigned int const DW_LNE_set_address	= 2;
+static unsigned int const DW_LNE_define_file	= 3;
 
 static unsigned char address_size;	// Should be sizeof(void*) - at least it is constant,
 					// so it's thread safe to be static.
@@ -610,7 +651,7 @@ static unsigned char address_size;	// Should be sizeof(void*) - at least it is c
 // The types (defined in "2.2 Attribute Types" of the draft).
 
 // address	: Refers to some location in the address space of the described program.
-typedef Elf32_Addr address_t;
+typedef Elfxx_Addr address_t;
 // block	: An arbitrary number of uninterpreted bytes of data.
 struct block_t { unsigned char const* begin; size_t number_of_bytes; };
 // constant	: One, two, four or eight bytes of uninterpreted data, or data encoded
@@ -660,7 +701,7 @@ template<>
       // signed integers to debug info (because of a bug in gdb version 4)
       // and the sign extension can cause more than 32 bits to be set.
       //LIBCWD_ASSERT( byte < (1UL << (number_of_bits_in_uLEB128_t - shift)));
-      x ^= byte << shift;
+      x = x.value() ^ (byte.value() << shift);
       shift += 7;
     }
     ++in;
@@ -677,11 +718,11 @@ template<>
     {
       byte = (*++in) ^ 1;
       LIBCWD_ASSERT( byte < (1L << (number_of_bits_in_LEB128_t - shift)) );
-      x ^= byte << shift;
+      x = x.value() ^ (byte.value() << shift);
       shift += 7;
     }
     if (shift < number_of_bits_in_LEB128_t && (byte & 0x40))
-      x |= - (1L << shift);
+      x = x.value() | (- (1L << shift));
     ++in;
   }
 
@@ -873,7 +914,7 @@ read_reference(unsigned char const*& debug_info_ptr, uLEB128_t const form,
     }
     case DW_FORM_ref_addr:
     {
-      uint32_t offset;
+      address_t offset;
       dwarf_read(debug_info_ptr, offset);
       DoutDwarf(dc::finish, '<' << std::hex << offset << '>');
       return debug_info_start + offset;
@@ -927,10 +968,10 @@ read_lineptr(unsigned char const*& debug_info_ptr DEBUGDWARF_OPT_COMMA(uLEB128_t
 }
 
 // Inline encodings
-static constant_t const DW_INL_not_inlined		= 0;
-static constant_t const DW_INL_inlined			= 1;
-static constant_t const DW_INL_declared_not_inlined	= 2;
-static constant_t const DW_INL_declared_inlined		= 3;
+static unsigned int const DW_INL_not_inlined		= 0;
+static unsigned int const DW_INL_inlined		= 1;
+static unsigned int const DW_INL_declared_not_inlined	= 2;
+static unsigned int const DW_INL_declared_inlined	= 3;
 
 #if DEBUGDWARF
 char const* print_DW_INL_name(constant_t inline_encoding)
@@ -967,14 +1008,14 @@ typedef std::set<object_files_string, std::less<object_files_string> > object_fi
 //
 
 struct range_st {
-  Elf32_Addr start;
+  Elfxx_Addr start;
   size_t size;
 };
 
 struct location_st {
   object_files_string_set_ct::iterator M_stabs_symbol_funcname_iter;		// Only valid when M_stabs_symbol is set.
   object_files_string_set_ct::iterator M_source_iter;
-  Elf32_Half M_line;
+  Elfxx_Half M_line;
   bool M_stabs_symbol;
 
   location_st(void) { }
@@ -998,7 +1039,7 @@ class objfile_ct;
 class location_ct : private location_st {
 private:
   location_st M_prev_location;
-  Elf32_Addr M_address;
+  Elfxx_Addr M_address;
   range_st M_range;
   int M_flags;
   bool M_used;
@@ -1006,7 +1047,7 @@ private:
 
 public:
   location_ct(objfile_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file)
-      { M_prev_location.M_line = (Elf32_Half)-1; M_line = 0; M_stabs_symbol = false; M_range.start = 0; }
+      { M_prev_location.M_line = (Elfxx_Half)-1; M_line = 0; M_stabs_symbol = false; M_range.start = 0; }
 
   void invalidate(void) {
     M_flags = 0;
@@ -1015,7 +1056,7 @@ public:
     DoutDwarf(dc::bfd, "--> location invalidated.");
 #endif
   }
-  void set_line(Elf32_Half line) {
+  void set_line(Elfxx_Half line) {
     if (!(M_flags & 1) || M_line != line)
       M_used = false;
     M_flags |= 1;
@@ -1030,7 +1071,7 @@ public:
       M_store();
     }
   }
-  void set_address(Elf32_Addr address) {
+  void set_address(Elfxx_Addr address) {
     if (M_address != address)
       M_used = false;
     M_flags |= 2;
@@ -1122,9 +1163,9 @@ public:
     M_range.start = 0;
   }
 
-  Elf32_Half get_line(void) const { LIBCWD_ASSERT( (M_flags & 1) ); return M_line; }
+  Elfxx_Half get_line(void) const { LIBCWD_ASSERT( (M_flags & 1) ); return M_line; }
   object_files_string_set_ct::iterator get_source_iter(void) const { return M_source_iter; }
-  Elf32_Addr get_address(void) const { return M_address; }
+  Elfxx_Addr get_address(void) const { return M_address; }
 
   void stabs_range(range_st const& range) const;
 
@@ -1173,16 +1214,16 @@ struct compare_range_st {
 
 class section_ct : public asection_st {
 private:
-  Elf32_Shdr M_section_header;
+  Elfxx_Shdr M_section_header;
 public:
   section_ct(void) { }
-  void init(char const* section_header_string_table, Elf32_Shdr const& section_header);
-  Elf32_Shdr const& section_header(void) const { return M_section_header; }
+  void init(char const* section_header_string_table, Elfxx_Shdr const& section_header);
+  Elfxx_Shdr const& section_header(void) const { return M_section_header; }
 };
 
 struct hash_list_st {
   char const* name;
-  Elf32_Addr addr;
+  Elfxx_Addr addr;
   hash_list_st* next;
   bool already_added;
 };
@@ -1206,14 +1247,14 @@ class objfile_ct : public bfd_st {
 #endif
 private:
   std::ifstream* M_input_stream;
-  Elf32_Ehdr M_header;
+  Elfxx_Ehdr M_header;
   char* M_section_header_string_table;
   section_ct* M_sections;
   char* M_symbol_string_table;
   char* M_dyn_symbol_string_table;
   asymbol_st* M_symbols;
   int M_number_of_symbols;
-  Elf32_Word M_symbol_table_type;
+  Elfxx_Word M_symbol_table_type;
   object_files_string_set_ct M_function_names;
   object_files_string_set_ct M_source_files;
   object_files_range_location_map_ct M_ranges;
@@ -1230,12 +1271,12 @@ private:
 #if DEBUGDWARF
   bool M_dwarf_debug_info_loaded;
 #endif
-  Elf32_Word M_stabs_section_index;
-  Elf32_Word M_stabstr_section_index;
-  Elf32_Word M_dwarf_debug_info_section_index;
-  Elf32_Word M_dwarf_debug_abbrev_section_index;
-  Elf32_Word M_dwarf_debug_line_section_index;
-  Elf32_Word M_dwarf_debug_str_section_index;
+  Elfxx_Word M_stabs_section_index;
+  Elfxx_Word M_stabstr_section_index;
+  Elfxx_Word M_dwarf_debug_info_section_index;
+  Elfxx_Word M_dwarf_debug_abbrev_section_index;
+  Elfxx_Word M_dwarf_debug_line_section_index;
+  Elfxx_Word M_dwarf_debug_str_section_index;
   static uint32_t const hash_table_size = 2049;		// Lets use a prime number.
   hash_list_st** M_hash_list;
   hash_list_st* M_hash_list_pool;
@@ -1322,15 +1363,20 @@ inline void location_ct::stabs_range(range_st const& range) const
 static asection_st const abs_section_c = { 0, "*ABS*", 0 };
 asection_st const* const absolute_section_c = &abs_section_c;
 
-static bool check_elf_format(Elf32_Ehdr const& header)
+static bool check_elf_format(Elfxx_Ehdr const& header)
 {
   if (header.e_ident[EI_MAG0] != ELFMAG0 ||
       header.e_ident[EI_MAG1] != ELFMAG1 ||
       header.e_ident[EI_MAG2] != ELFMAG2 ||
       header.e_ident[EI_MAG3] != ELFMAG3)
     Dout(dc::bfd, "Object file must be ELF.");
+#ifdef __x86_64__
+  else if (header.e_ident[EI_CLASS] != ELFCLASS64)
+    Dout(dc::bfd, "Sorry, object file must be ELF64.");
+#else
   else if (header.e_ident[EI_CLASS] != ELFCLASS32)
     Dout(dc::bfd, "Sorry, object file must be ELF32.");
+#endif
   else if (header.e_ident[EI_DATA] !=
 #ifdef __BYTE_ORDER
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -1356,7 +1402,7 @@ static bool check_elf_format(Elf32_Ehdr const& header)
   return true;
 }
 
-void section_ct::init(char const* section_header_string_table, Elf32_Shdr const& section_header)
+void section_ct::init(char const* section_header_string_table, Elfxx_Shdr const& section_header)
 {
   std::memcpy(&M_section_header, &section_header, sizeof(M_section_header));
   static_cast<asection_st*>(this)->M_size = M_section_header.sh_size;	// Used to guess the size of the last symbol in a section.
@@ -1425,7 +1471,7 @@ uint32_t objfile_ct::elf_hash(unsigned char const* name, unsigned char delim) co
 
 long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 {
-#if DEBUGELF32
+#if DEBUGELFXX
   LIBCWD_TSD_DECLARATION;
 #endif
   M_symbols = new asymbol_st[M_number_of_symbols];
@@ -1439,14 +1485,14 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
     if ((M_sections[i].section_header().sh_type == M_symbol_table_type)
         && M_sections[i].section_header().sh_size > 0)
     {
-      int number_of_symbols = M_sections[i].section_header().sh_size / sizeof(Elf32_Sym);
-      DoutElf32(dc::bfd, "Found symbol table " << M_sections[i].name << " with " << number_of_symbols << " symbols.");
-      Elf32_Sym* symbols = (Elf32_Sym*)allocate_and_read_section(i);
+      int number_of_symbols = M_sections[i].section_header().sh_size / sizeof(Elfxx_Sym);
+      DoutElfxx(dc::bfd, "Found symbol table " << M_sections[i].name << " with " << number_of_symbols << " symbols.");
+      Elfxx_Sym* symbols = (Elfxx_Sym*)allocate_and_read_section(i);
       M_hash_list_pool = (hash_list_st*)malloc(sizeof(hash_list_st) * number_of_symbols);
       hash_list_st* hash_list_pool_next = M_hash_list_pool;
       for(int s = 0; s < number_of_symbols; ++s)
       {
-	Elf32_Sym& symbol(symbols[s]);
+	Elfxx_Sym& symbol(symbols[s]);
 	if (M_sections[i].section_header().sh_type == SHT_SYMTAB)
 	  new_symbol->name = &M_symbol_string_table[symbol.st_name];
 	else
@@ -1463,7 +1509,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	}
         else if (symbol.st_shndx >= SHN_LORESERVE || symbol.st_shndx == SHN_UNDEF)
 	  continue;							// Skip Special Sections and Undefined Symbols.
-	else if (ELF32_ST_TYPE(symbol.st_info) >= STT_FILE)
+	else if (ELFXX_ST_TYPE(symbol.st_info) >= STT_FILE)
 	  continue;							// Skip STT_FILE, STT_COMMON and STT_TLS symbols.
 	else
 	{
@@ -1476,12 +1522,12 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	    M_s_end_offset = symbol.st_value;
 #endif
 	  									// to start of section.
-	  DoutElf32(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
+	  DoutElfxx(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
         }
 	new_symbol->bfd_ptr = this;
 	new_symbol->size = symbol.st_size;
 	new_symbol->flags = 0;
-	switch(ELF32_ST_BIND(symbol.st_info))
+	switch(ELFXX_ST_BIND(symbol.st_info))
 	{
 	  case STB_LOCAL:
 	    new_symbol->flags |= cwbfd::BSF_LOCAL;
@@ -1495,7 +1541,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	  default:	// Ignored
 	    break;
 	}
-        switch(ELF32_ST_TYPE(symbol.st_info))
+        switch(ELFXX_ST_TYPE(symbol.st_info))
 	{
 	  case STT_OBJECT:
 	    new_symbol->flags |= cwbfd::BSF_OBJECT;
@@ -1535,7 +1581,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 
 struct attr_st {
   union {
-    uLEB128_t attr;
+    unsigned long attr;		// Really a uLEB128_t, but we can't use that in a union.
     unsigned char count;
   };
   uLEB128_t form;
@@ -1648,8 +1694,15 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       break;
     case DW_FORM_data8:
     case DW_FORM_ref8:
-      // DoutDwarf(dc::finish, *reinterpret_cast<unsigned long long const*>(debug_info_ptr));
+#if DEBUGDWARF && defined(__x86_64__)
+      if (form == DW_FORM_data8)
+	DoutDwarf(dc::finish, *reinterpret_cast<uint64_t const*>(debug_info_ptr));
+      else
+	DoutDwarf(dc::finish, '<' << std::hex <<
+	    *reinterpret_cast<uint64_t const*>(debug_info_ptr) + debug_info_offset << '>');
+#endif
       debug_info_ptr += 8;
+      break;
     case DW_FORM_indirect:
     {
       uLEB128_t tmpform = form;
@@ -1736,7 +1789,7 @@ void objfile_ct::load_dwarf(void)
   // Not loaded already.
   LIBCWD_ASSERT( !M_dwarf_debug_info_loaded );
   M_dwarf_debug_info_loaded = true;
-  // Don't have a fixed entry sizes.
+  // Don't have fixed entry sizes.
   LIBCWD_ASSERT( M_sections[M_dwarf_debug_line_section_index].section_header().sh_entsize == 0 );
   LIBCWD_ASSERT( M_sections[M_dwarf_debug_info_section_index].section_header().sh_entsize == 0 );
   LIBCWD_ASSERT( M_sections[M_dwarf_debug_abbrev_section_index].section_header().sh_entsize == 0 );
@@ -1830,7 +1883,7 @@ void objfile_ct::load_dwarf(void)
 	    abbrev.attributes = (attr_st*)realloc(abbrev.attributes, (abbrev.attributes_capacity + 1) * sizeof(attr_st));
 	    abbrev.attributes[abbrev.attributes_capacity].count = 1;
 	  }
-	  uLEB128_t& attr(abbrev.attributes[abbrev.attributes_size].attr);
+	  uLEB128_t& attr(*reinterpret_cast<uLEB128_t*>(&abbrev.attributes[abbrev.attributes_size].attr));
 	  uLEB128_t& form(abbrev.attributes[abbrev.attributes_size].form);
 	  dwarf_read(debug_abbrev_ptr, attr);
 	  dwarf_read(debug_abbrev_ptr, form);
@@ -1951,8 +2004,6 @@ void objfile_ct::load_dwarf(void)
 	      }
 	      else
 	      {
-		if (*str == '/')
-		  default_dir.erase();
 		if (str[0] == '.' && str[1] == '/')
 		  str += 2;
 		default_source.assign(str);
@@ -2070,7 +2121,10 @@ void objfile_ct::load_dwarf(void)
 	      is_stmt = default_is_stmt;
 	      basic_block = false;
 	      end_sequence = false;
-	      cur_dir = default_dir;
+	      if (default_source[0] == '/')
+	        cur_dir.erase();
+              else
+		cur_dir = default_dir;
 	      cur_source = catenate_path(cur_dir, default_source.data());
 	      if (default_dir[0] == '.' && default_dir[1] == '.' && default_dir[2] == '/')
 	      {
@@ -2111,7 +2165,7 @@ void objfile_ct::load_dwarf(void)
 			  break;
 			case DW_LNE_set_address:
 			{
-			  Elf32_Addr address;
+			  Elfxx_Addr address;
 			  LIBCWD_ASSERT( size == sizeof(address) );
 			  dwarf_read(debug_line_ptr, address);
 			  DoutDwarf(dc::bfd, "DW_LNE_set_address: 0x" << std::hex << address);
@@ -2709,13 +2763,13 @@ void objfile_ct::load_stabs(void)
   {
     LIBCWD_ASSERT( M_stabstr_section_index == M_sections[M_stabs_section_index].section_header().sh_link );
     LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[M_sections[M_stabstr_section_index].section_header().sh_name], ".stabstr") );
-    LIBCWD_ASSERT( stabs->n_desc == (Elf32_Half)(M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize - 1) );
+    LIBCWD_ASSERT( stabs->n_desc == (Elfxx_Half)(M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize - 1) );
   }
 #endif
   char* stabs_string_table = allocate_and_read_section(M_stabstr_section_index);
   if (DEBUGSTABS)
     Debug( libcw_do.inc_indent(4) );
-  Elf32_Addr func_addr = 0;
+  Elfxx_Addr func_addr = 0;
   object_files_string cur_dir;
   object_files_string cur_source;
   object_files_string cur_func;
@@ -2724,7 +2778,7 @@ void objfile_ct::load_stabs(void)
   bool skip_function = false;
   bool source_file_changed_and_we_didnt_copy_it_yet = true;
   bool source_file_changed_but_line_number_not_yet = true;
-  Elf32_Addr last_source_change_start = 0;
+  Elfxx_Addr last_source_change_start = 0;
   object_files_string_set_ct::iterator last_source_iter;
   for (unsigned int j = 0; j < M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize; ++j)
   {
@@ -2849,7 +2903,7 @@ void objfile_ct::load_stabs(void)
 #if DEBUGSTABS
 	  else
 	  {
-	    Elf32_Addr func_addr_test = 0;
+	    Elfxx_Addr func_addr_test = 0;
 	    uint32_t hash = elf_hash(reinterpret_cast<unsigned char const*>(fn), (unsigned char)':');
 	    for(hash_list_st* p = M_hash_list[hash]; p; p = p->next)
 	      if (!strncmp(p->name, fn, fn_len))
@@ -3056,8 +3110,8 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
   std::pair<range_st, location_st> old(*p.first);		// Currently stored range.
   std::pair<range_st, location_st> nw(range, location);		// New range.
 #if DEBUGSTABS || DEBUGDWARF
-  Elf32_Addr low = old.first.start;
-  Elf32_Addr high = old.first.start + old.first.size - 1;
+  Elfxx_Addr low = old.first.start;
+  Elfxx_Addr high = old.first.start + old.first.size - 1;
   char const* low_mn = pc_mangled_function_name((char const*)this->object_file->get_lbase() + low);
   char const* high_mn = pc_mangled_function_name((char const*)this->object_file->get_lbase() + high);
   if (doutdwarfon || doutstabson)
@@ -3228,17 +3282,17 @@ void objfile_ct::initialize(char const* file_name)
   _private_::set_library_call_on(LIBCWD_TSD);
   *M_input_stream >> M_header;
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-  LIBCWD_ASSERT(M_header.e_shentsize == sizeof(Elf32_Shdr));
+  LIBCWD_ASSERT(M_header.e_shentsize == sizeof(Elfxx_Shdr));
   if (M_header.e_shoff == 0 || M_header.e_shnum == 0)
     return;
   _private_::set_library_call_on(LIBCWD_TSD);
   M_input_stream->rdbuf()->pubseekpos(M_header.e_shoff);
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-  Elf32_Shdr* section_headers = new Elf32_Shdr [M_header.e_shnum];
+  Elfxx_Shdr* section_headers = new Elfxx_Shdr [M_header.e_shnum];
   _private_::set_library_call_on(LIBCWD_TSD);
-  M_input_stream->read(reinterpret_cast<char*>(section_headers), M_header.e_shnum * sizeof(Elf32_Shdr));
+  M_input_stream->read(reinterpret_cast<char*>(section_headers), M_header.e_shnum * sizeof(Elfxx_Shdr));
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-  if (DEBUGELF32)
+  if (DEBUGELFXX)
   {
     _private_::set_alloc_checking_on(LIBCWD_TSD);
     Dout(dc::bfd, "Number of section headers: " << M_header.e_shnum);
@@ -3253,7 +3307,7 @@ void objfile_ct::initialize(char const* file_name)
   _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   LIBCWD_ASSERT( !strcmp(&M_section_header_string_table[section_headers[M_header.e_shstrndx].sh_name], ".shstrtab") );
   M_sections = new section_ct[M_header.e_shnum];						// LEAK11
-  if (DEBUGELF32)
+  if (DEBUGELFXX)
     Debug( libcw_do.inc_indent(4) );
   M_debug_info_loaded = false;
   M_brac_relative_to_fun = false;
@@ -3271,7 +3325,7 @@ void objfile_ct::initialize(char const* file_name)
   M_dwarf_debug_str_section_index = 0;
   for(int i = 0; i < M_header.e_shnum; ++i)
   {
-    if (DEBUGELF32 && section_headers[i].sh_name)
+    if (DEBUGELFXX && section_headers[i].sh_name)
     {
       _private_::set_alloc_checking_on(LIBCWD_TSD);
       Dout(dc::bfd, "Section name: \"" << &M_section_header_string_table[section_headers[i].sh_name] << '"');
@@ -3300,7 +3354,7 @@ void objfile_ct::initialize(char const* file_name)
         && section_headers[i].sh_size > 0)
     {
       M_has_syms = true;
-      LIBCWD_ASSERT( section_headers[i].sh_entsize == sizeof(Elf32_Sym) );
+      LIBCWD_ASSERT( section_headers[i].sh_entsize == sizeof(Elfxx_Sym) );
       LIBCWD_ASSERT( M_symbol_table_type != SHT_SYMTAB || section_headers[i].sh_type != SHT_SYMTAB);	// There should only be one SHT_SYMTAB.
       if (M_symbol_table_type != SHT_SYMTAB)							// If there is one, use it.
       {
@@ -3309,7 +3363,7 @@ void objfile_ct::initialize(char const* file_name)
       }
     }
   }
-  if (DEBUGELF32)
+  if (DEBUGELFXX)
   {
     _private_::set_alloc_checking_on(LIBCWD_TSD);
     Debug( libcw_do.dec_indent(4) );
@@ -3319,21 +3373,12 @@ void objfile_ct::initialize(char const* file_name)
   delete [] section_headers;
 }
 
-} // namespace elf32
-
-namespace elfxx {
-
 bfd_st* bfd_st::openr(char const* file_name)
 {
 #if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<object_files_instance>::wrlock();
 #endif
-#ifdef __x86_64__
-  // FIXME
-  elf32::objfile_ct* objfile = new elf32::objfile_ct;		// LEAK9
-#else
-  elf32::objfile_ct* objfile = new elf32::objfile_ct;		// LEAK9
-#endif
+  objfile_ct* objfile = new objfile_ct;		// LEAK9
 #if LIBCWD_THREAD_SAFE
   _private_::rwlock_tct<object_files_instance>::wrunlock();
 #endif
@@ -3353,7 +3398,7 @@ namespace libcwd {
 }
 
 // This can be used to load and print an arbitrary object file (for debugging purposes).
-void debug_load_object_file(char const* filename, bool shared)
+void debug_load_object_file(char const* filename, bool /* shared */ = true)
 {
   using namespace libcwd;
   cwbfd::bfile_ct* bfile = cwbfd::load_object_file(filename, 0);
@@ -3361,7 +3406,7 @@ void debug_load_object_file(char const* filename, bool shared)
     return;
   LIBCWD_TSD_DECLARATION;
   libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD);
-  using namespace libcwd::elf32;
+  using namespace libcwd::elfxx;
   doutdwarfon = true;
   objfile_ct* of = static_cast<objfile_ct*>(bfile->get_bfd());
   if (of->M_dwarf_debug_line_section_index)
@@ -3370,7 +3415,7 @@ void debug_load_object_file(char const* filename, bool shared)
   {
     of->object_file->get_object_file()->set_has_no_debug_line_sections();
     libcwd::_private_::set_alloc_checking_on(LIBCWD_TSD);
-    Dout( dc::warning, "Object file " << of->filename << " does not have debug info.  Address lookups inside "
+    Dout( dc::warning, "Object file " << of->filename_str << " does not have debug info.  Address lookups inside "
 	"this object file will result in a function name only, not a source file location.");
     libcwd::_private_::set_alloc_checking_off(LIBCWD_TSD);
   }

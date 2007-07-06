@@ -150,15 +150,9 @@ MAIN_FUNCTION
   }
   while (!handle);
 
-#if __GNUC__ == 2 && __GNUC_MINOR__ < 97
-  char const* sym1 = "realloc1000_no_AllocTag__FPv";
-  char const* sym2 = "realloc1000_with_AllocTag__FPv";
-  char const* sym3 = "new1000__FUi";
-#else
   char const* sym1 = "_Z23realloc1000_no_AllocTagPv";
   char const* sym2 = "_Z25realloc1000_with_AllocTagPv";
-  char const* sym3 = "_Z7new1000j";
-#endif
+  char const* sym3 = (sizeof(size_t) == 4 ? "_Z7new1000j" : "_Z7new1000m");
 
   typedef void* (*f1_type)(void*);
   typedef void* (*f2_type)(size_t);
