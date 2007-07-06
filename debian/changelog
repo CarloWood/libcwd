@@ -1,3 +1,9 @@
+libcwd (0.99.47) unstable; urgency=low
+
+  * Upgraded to version 0.99.47.
+
+ -- Carlo Wood <carlo@alinoe.com>  Fri, 06 Jul 2007 20:24:09 +0200
+
 libcwd (0.99.46) unstable; urgency=low
 
   * Initial Release as debian package.

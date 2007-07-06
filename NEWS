@@ -1,3 +1,7 @@
+libcwd-0.99.47
+
+	Added support for x86_64 / ELF64.
+
 libcwd-0.99.46
 
         Libcwd now can be compiled with -D_GLIBCXX_DEBUG by passing
