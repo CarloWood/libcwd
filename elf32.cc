@@ -1522,7 +1522,8 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	    M_s_end_offset = symbol.st_value;
 #endif
 	  									// to start of section.
-	  DoutElfxx(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\".");
+	  DoutElfxx(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\" at 0x" <<
+	      std::hex << (new_symbol->section->vma + new_symbol->value) << ".");
         }
 	new_symbol->bfd_ptr = this;
 	new_symbol->size = symbol.st_size;
@@ -3356,7 +3357,7 @@ void objfile_ct::initialize(char const* file_name)
       M_has_syms = true;
       LIBCWD_ASSERT( section_headers[i].sh_entsize == sizeof(Elfxx_Sym) );
       LIBCWD_ASSERT( M_symbol_table_type != SHT_SYMTAB || section_headers[i].sh_type != SHT_SYMTAB);	// There should only be one SHT_SYMTAB.
-      if (M_symbol_table_type != SHT_SYMTAB)							// If there is one, use it.
+      if (M_symbol_table_type != SHT_SYMTAB)								// If there is one, use it.
       {
 	M_symbol_table_type = section_headers[i].sh_type;
 	M_number_of_symbols = section_headers[i].sh_size / section_headers[i].sh_entsize;

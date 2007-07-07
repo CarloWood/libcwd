@@ -252,12 +252,13 @@ static bool const statically_linked = true;
         _private_::internal_string realpath_str;
 	char const* dbgfilename;
 
-	for (int dbg = 0; dbg < 3; ++dbg)
+	for (int dbg = 0; dbg < 4; ++dbg)
 	{
 	  // This loop has dbgfilename_str run over the the values:
 	  // 0) /path/libfoo.so.3
 	  // 1) /path/.debug/libfoo.so.3
 	  // 2) /usr/lib/debug/path/libfoo.so.3
+	  // 3) /usr/lib/debug/libfoo.so.3
 	  // where /path/libfoo.so.3 is the file that filename
 	  // points to (if it's a symlink).
 
@@ -324,7 +325,7 @@ static bool const statically_linked = true;
 		delete [] linkname;
 	      }
 	    }		// Next symbolic link.
-	    // Store the resolved real path, we need it for dbg == 1 and dbg == 2.
+	    // Store the resolved real path, we need it for dbg == 1, dbg == 2 and dbg == 3.
 	    realpath_str = dbgfilename_str;
 	  }
 	  else if (dbg == 1)
@@ -338,6 +339,8 @@ static bool const statically_linked = true;
 	      continue;
 	    dbgfilename_str = "/usr/lib/debug" + realpath_str;
 	  }
+	  else if (dbg == 3)
+	    dbgfilename_str = "/usr/lib/debug/" + realpath_str.substr(realpath_str.find_last_of('/') + 1);
 
 	  dbgfilename = dbgfilename_str.c_str();
 
@@ -1518,6 +1521,8 @@ typedef location_ct bfd_location_ct;
       if (!object_file && !statically_linked)
       {
         // Try to load everything again... previous loaded libraries are skipped based on load address.
+	int possible_object_files = 0;
+	bfile_ct* possible_object_file;
 	for(link_map* l = *dl_loaded_ptr; l; l = l->l_next)
 	{
 	  bool already_loaded = false;
@@ -1542,6 +1547,11 @@ typedef location_ct bfd_location_ct;
 		    (void*)((char*)((*iter)->get_start()) + (*iter)->size()));
 #endif
 		already_loaded = true;
+		if ((*iter)->get_lbase() <= addr && (char*)(*iter)->get_start() + (*iter)->size() > addr)
+		{
+		  ++possible_object_files;
+		  possible_object_file = *iter;
+		}
 		break;
 	      }
 	    }
@@ -1557,6 +1567,14 @@ typedef location_ct bfd_location_ct;
 	BFD_ACQUIRE_WRITE2READ_LOCK;
 	object_file = NEEDS_READ_LOCK_find_object_file(addr);
         BFD_RELEASE_READ_LOCK;
+	// This can happen when address is in a function that is not visible
+	// as function from the ELF sections, and is outside the detected
+	// range determined by functions that are. It means that there
+	// are not debug symbols for this object file, otherwise it can't
+	// happen. Anyway, it's better to make this guess than to print
+	// <unknown object file>.
+	if (!object_file && possible_object_files == 1)
+	  object_file = possible_object_file;
       }
 #endif
       LIBCWD_RESTORE_CANCEL;
