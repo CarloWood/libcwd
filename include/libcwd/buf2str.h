@@ -13,7 +13,7 @@
 
 /** \file libcwd/buf2str.h
  *
- * \brief Definition of utility class \link libcwd::buf2str buf2str \endlink.
+ * \brief Definition of utility class buf2str.
  *
  * This header file provides the declaration and definition of utility class
  * \link libcwd::buf2str buf2str \endlink.

@@ -13,8 +13,7 @@
 
 /** \file libcwd/cwprint.h
  *
- * \brief Definition of the utilities \link libcwd::cwprint cwprint \endlink and
- *        \link libcwd::cwprint_using cwprint_using \endlink.
+ * \brief Definition of the utilities cwprint and cwprint_using.
  *
  * This header file provides the declaration and definition of two debug utility functions,
  * intended to print objects to an ostream without using the \c operator<< inserter for

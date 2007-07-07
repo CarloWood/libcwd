@@ -33,7 +33,7 @@ lib_LTLIBRARIES = $(LIBCWD) $(LIBCWD_R)
 if ENABLENONTHREADING
 libcwd_la_CXXFLAGS = $(PCHOPTS) -DCWDEBUG
 libcwd_la_SOURCES = \
-	elf32.cc \
+	elfxx.cc \
 	environ.cc \
 	bfd.cc \
 	debug.cc \
@@ -52,7 +52,7 @@ endif
 if ENABLETHREADING
 libcwd_r_la_CXXFLAGS = $(PCHOPTS) -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread
 libcwd_r_la_SOURCES = \
-	elf32.cc \
+	elfxx.cc \
 	environ.cc \
 	bfd.cc \
 	debug.cc \

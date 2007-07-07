@@ -13,7 +13,7 @@
 
 /** \file libcwd/char2str.h
  *
- * \brief Definition of utility class \link libcwd::char2str char2str \endlink.
+ * \brief Definition of utility class char2str.
  *
  * This header file provides the declaration and definition of utility class
  * \link libcwd::char2str char2str \endlink.

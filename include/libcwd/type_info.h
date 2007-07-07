@@ -233,15 +233,13 @@ namespace libcwd {
 /** \addtogroup group_type_info */
 /** \{ */
 
+#ifndef LIBCWD_DOXYGEN
 // Prototype of `type_info_of'.
 template<typename T>
   inline
   type_info_ct const&
-  type_info_of(T const&
-#ifdef LIBCWD_DOXYGEN
-      instance
+  type_info_of(T const&);
 #endif
-      );
 
 /**
  * \brief Get type information of a given class or type.

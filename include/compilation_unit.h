@@ -36,8 +36,8 @@ private:
   internal_string M_source_file;		// Name of main source file producing this compilation unit.
   FunctionRootsMap M_function_roots;		// List of function roots.
 public:
-  // Dirty initialization - the idea is to decouple us here from the rest of elf32.cc and bfd.cc.
-  // These four are called once, from elf32.cc.
+  // Dirty initialization - the idea is to decouple us here from the rest of elfxx.cc and bfd.cc.
+  // These four are called once, from elfxx.cc.
 #if CWDEBUG_ALLOC
   typedef std::basic_string<char, std::char_traits<char>, _private_::object_files_allocator> object_files_string;
 #else
