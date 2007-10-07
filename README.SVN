@@ -18,7 +18,7 @@ Anonymous SVN Access
 This project's SourceForge SVN repository can be checked out with the following
 command:
 
-svn co https://svn.sourceforge.net/svnroot/libcwd/trunk libcwd
+svn co https://libcwd.svn.sourceforge.net/svnroot/libcwd/trunk libcwd
 
 Please realize that the state of SVN is often more broken than functional:
 You should use the last released tar ball instead.

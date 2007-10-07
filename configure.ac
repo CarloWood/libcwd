@@ -291,9 +291,12 @@ if test "$libcwd_config_magic" = yes; then
   CW_CONFIG_MAGIC=1
 fi
 
+PCCFLAGS="-DCWDEBUG"
+AC_SUBST(PCCFLAGS)
 if test "$libcwd_config_glibcxx_debug" = yes; then
   CW_CONFIG_GLIBCXX_DEBUG=1
   CXXFLAGS="$CXXFLAGS -D_GLIBCXX_DEBUG"
+  PCCFLAGS="$PCCFLAGS -D_GLIBCXX_DEBUG"
 fi
 
 dnl Set language requirements for the tests below.

@@ -1626,6 +1626,8 @@ void allocator_unlock(void)
       DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK;
 
       set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
+      const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = ' ';
+      const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = ' ';
       _private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
       for(_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
 	const_cast<char*>((*i)->get_label())[WST_max_len] = ' ';
@@ -1648,6 +1650,8 @@ void allocator_unlock(void)
       if (label_len > WST_max_len)
 	WST_max_len = label_len;
 
+      const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = '\0';
+      const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = '\0';
       for(_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
 	const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
       for(_private_::debug_channels_ct::container_type::iterator i(channels_not_listed.begin());

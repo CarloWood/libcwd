@@ -7,5 +7,5 @@ Name: libcwd
 Description: C++ Debugging Support Library
 Version: @VERSION@
 Libs: -L${libdir} -lcwd
-Cflags: -DCWDEBUG -I${includedir}
+Cflags: @PCCFLAGS@ -I${includedir}
 
