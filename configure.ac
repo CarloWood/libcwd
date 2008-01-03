@@ -425,33 +425,7 @@ CW_SYS_FRAME_ADDRESS_OFFSET
 AC_C_BIGENDIAN
 
 dnl Check if compiler supports PCH.
-AC_CACHE_CHECK([for compiler with PCH support],
-  [cw_cv_prog_CXX_pch],
-  [cw_save_CXXFLAGS="$CXXFLAGS"
-   CXXFLAGS="$CXXFLAGS -Werror -Winvalid-pch -Wno-deprecated"
-   AC_LANG_SAVE
-   AC_LANG_CPLUSPLUS
-   echo '#include <math.h>' > conftest.h
-   rm -f conftest.h.gch
-   if $CXX $CXXFLAGS $CPPFLAGS -x c++-header conftest.h \
-	  -c -o conftest.h.gch 1>&5 2>&1 &&
-      echo '#error "pch failed"' > conftest.h &&
-      echo '#include "conftest.h"' > conftest.cc &&
-     $CXX -c $CXXFLAGS $CPPFLAGS conftest.cc 1>&5 2>&1 ;
-   then
-     if test x"$libcwd_config_pch" != x"no"; then
-       cw_cv_prog_CXX_pch=yes
-     else
-       cw_cv_prog_CXX_pch=disabled
-     fi
-   else
-     cw_cv_prog_CXX_pch=no
-   fi
-   rm -f conftest*
-   CXXFLAGS=$cw_save_CXXFLAGS
-   AC_LANG_RESTORE
-  ])
-AM_CONDITIONAL(BUILD_PCH, test "$cw_cv_prog_CXX_pch" = "yes")
+CW_SYS_PCH
 
 dnl Check for library functions.
 AC_CHECK_FUNCS(getgid getegid getgroups wmemcpy sysconf valloc memalign)
@@ -486,9 +460,6 @@ dnl Check for system services.
 dnl Set up build directory
 test ! -d include && mkdir include
 
-dnl Set up rpm directory when in maintainer mode
-CW_SETUP_RPM_DIRS
-
 dnl The install prefix is hardcoded in the library in order to find the default rc file.
 libcwd_datarootdir=`eval echo "$datadir"`
 libcwd_datadir=`eval echo "$libcwd_datarootdir/$PACKAGE" | sed -e 's|NONE|'$ac_default_prefix'|'`
@@ -502,39 +473,10 @@ fi
 AC_SUBST(PCHOPTS)
 
 dnl Generate include/libcwd/config.h, include/libcwd/sys.h and include/sys.h, preserving timestamp when they are not changed.
-AC_CONFIG_FILES(include/libcwd/timestamp-config.h:include/libcwd/config.h.in, [
-cd include/libcwd
-if cmp -s config.h timestamp-config.h 2> /dev/null; then
-  echo "config.status: config.h is unchanged"
-else
-  echo "config.status: creating config.h"
-  cp timestamp-config.h config.h
-fi
-touch timestamp-config.h
-cd ../..
-])
-AC_CONFIG_FILES(include/libcwd/timestamp-sys.h:include/libcwd/sys.h.in, [
-cd include/libcwd
-if cmp -s sys.h timestamp-sys.h 2> /dev/null; then
-  echo "config.status: sys.h is unchanged"
-else
-  echo "config.status: creating sys.h"
-  cp timestamp-sys.h sys.h
-fi
-touch timestamp-sys.h
-cd ../..
-])
-AC_CONFIG_FILES(include/timestamp-sys.h:include/sys.h.in, [
-cd include
-if cmp -s sys.h timestamp-sys.h 2> /dev/null; then
-  echo "config.status: sys.h is unchanged"
-else
-  echo "config.status: creating sys.h"
-  cp timestamp-sys.h sys.h
-fi
-touch timestamp-sys.h
-cd ..
-])
+CW_CONFIG_FILE([include/libcwd], [config.h])
+CW_CONFIG_FILE([include/libcwd], [sys.h])
+CW_CONFIG_FILE([include], [sys.h])
+
 dnl Output the other configuration files.
 AC_CONFIG_FILES([libcwd.spec] [libcwd.lsm] [maintMakefile] [Makefile] [utils/Makefile] [include/Makefile]
 		[include/libcwd/Makefile] [testsuite/Makefile] [cutee/Makefile] [tests/Makefile]

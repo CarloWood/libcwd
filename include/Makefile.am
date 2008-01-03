@@ -1,7 +1,7 @@
 SUBDIRS = libcwd
 
 BUILT_SOURCES = sys.h
-if BUILD_PCH
+if USE_PCH
 if ENABLENONTHREADING
 BUILT_SOURCES += pch.h.gch/libcwd_pch.h
 endif
