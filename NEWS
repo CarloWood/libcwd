@@ -1,3 +1,7 @@
+libcwd-0.99.48
+
+	Fixed typo that stopped a compile on sparc64.
+
 libcwd-0.99.47
 
 	Added support for x86_64 / ELF64.

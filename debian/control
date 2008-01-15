@@ -1,6 +1,6 @@
 Source: libcwd
 Priority: extra
-Maintainer: Carlo Wood <carlo@alinoe.com>
+Maintainer: Carlo Wood <libcwd@alinoe.com>
 Build-Depends: debhelper (>= 5), autotools-dev, g++ (>= 4), libtool (>= 1.4.2), automake (>= 1.7), autoconf (>= 2.57)
 Standards-Version: 3.7.2
 Section: libs
