@@ -52,9 +52,13 @@ MAIN_FUNCTION
   Dout( dc::notice, "Finished successfully." );
   Debug( libcw_do.off() );
 
+#if CWDEBUG_ALLOC
   delete [] p2;
   delete [] p1;
+#ifndef THREADTEST
   delete dummy;
+#endif
+#endif
 
   EXIT(0);
 }
