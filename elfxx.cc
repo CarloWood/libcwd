@@ -76,7 +76,7 @@ namespace libcwd {
 
 namespace elfxx {
 
-#ifndef __x86_64__
+#if !defined(__x86_64__) && !defined(__sparc64)
 typedef Elf32_Ehdr Elfxx_Ehdr;
 typedef Elf32_Word Elfxx_Word;
 typedef Elf32_Half Elfxx_Half;
@@ -1380,7 +1380,7 @@ static bool check_elf_format(Elfxx_Ehdr const& header)
       header.e_ident[EI_MAG2] != ELFMAG2 ||
       header.e_ident[EI_MAG3] != ELFMAG3)
     Dout(dc::bfd, "Object file must be ELF.");
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__sparc64)
   else if (header.e_ident[EI_CLASS] != ELFCLASS64)
     Dout(dc::bfd, "Sorry, object file must be ELF64.");
 #else
@@ -1705,7 +1705,7 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       break;
     case DW_FORM_data8:
     case DW_FORM_ref8:
-#if DEBUGDWARF && defined(__x86_64__)
+#if DEBUGDWARF && (defined(__x86_64__) || defined(__sparc64))
       if (form == DW_FORM_data8)
 	DoutDwarf(dc::finish, reinterpret_cast_align<uint64_t>(debug_info_ptr));
       else
