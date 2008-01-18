@@ -131,13 +131,9 @@ AC_ARG_ENABLE(debugt,
                           in libcwd itself.],
     libcwd_config_debugt=$enableval)
 
-AC_ARG_ENABLE(pch,
-    [  --disable-pch           disable precompiled header support @<:@auto detect for
-                          g++@:>@],
-    libcwd_config_pch=$enableval)
-
 dnl Process default options.
 CW_OPG_FLAGS
+CW_PCHFLAGS
 
 AC_ARG_VAR(THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].])
 if test -z "$THREADSMAX"; then
@@ -424,9 +420,6 @@ CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS
 CW_SYS_FRAME_ADDRESS_OFFSET
 AC_C_BIGENDIAN
 
-dnl Check if compiler supports PCH.
-CW_SYS_PCH
-
 dnl Check for library functions.
 AC_CHECK_FUNCS(getgid getegid getgroups wmemcpy sysconf valloc memalign)
 AC_CHECK_DECL([_SC_PAGESIZE],
@@ -464,13 +457,6 @@ dnl The install prefix is hardcoded in the library in order to find the default 
 libcwd_datarootdir=`eval echo "$datadir"`
 libcwd_datadir=`eval echo "$libcwd_datarootdir/$PACKAGE" | sed -e 's|NONE|'$ac_default_prefix'|'`
 AC_DEFINE_UNQUOTED([CW_DATADIR], "$libcwd_datadir", [Data directory where the default rcfile is read from.])
-
-dnl These options are needed, but cannot be used during the configure tests.
-PCHOPTS=
-if test "$cw_cv_prog_CXX_pch" = "yes"; then
-  PCHOPTS="-include pch.h"
-fi
-AC_SUBST(PCHOPTS)
 
 dnl Generate include/libcwd/config.h, include/libcwd/sys.h and include/sys.h, preserving timestamp when they are not changed.
 CW_CONFIG_FILE([include/libcwd], [config.h])

@@ -73,7 +73,9 @@ namespace libcwd {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
     extern char* pool_allocator_lock_symbol_ptr;
 #endif
+#if CWDEBUG_ALLOC
     extern void remove_type_info_references(object_file_ct const* object_file_ptr LIBCWD_COMMA_TSD_PARAM);
+#endif
   } // namespace _private_
 
     // New debug channel
@@ -771,7 +773,9 @@ static bool const statically_linked = true;
 	LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] != __libcwd_tsd.tid && __libcwd_tsd.rdlocked_by2[object_files_instance] != __libcwd_tsd.tid );
 #endif
 #endif
+#if CWDEBUG_ALLOC
 	_private_::remove_type_info_references(&M_object_file LIBCWD_COMMA_TSD);
+#endif
 	LIBCWD_DEFER_CANCEL;
 	BFD_ACQUIRE_WRITE_LOCK;
 	set_alloc_checking_off(LIBCWD_TSD);

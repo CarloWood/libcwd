@@ -1,6 +1,7 @@
 libcwd-0.99.48
 
-	Fixed typo that stopped a compile on sparc64.
+	Fixed problems that stopped libcwd from working on sparc64.
+	Fixed --disable-pch and --disable-alloc.
 
 libcwd-0.99.47
 

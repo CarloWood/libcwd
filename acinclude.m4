@@ -110,7 +110,7 @@ AC_CACHE_CHECK(frame pointer offset in frame structure, cw_sys_frame_address_off
 [save_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS=""
 AC_TRY_RUN([
-extern "C" void exit(int status);
+extern "C" void exit(int status) throw();
 int func4(int offset)
 {
   void* f0 = __builtin_frame_address(0);

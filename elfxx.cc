@@ -679,10 +679,20 @@ typedef unsigned char const* lineptr_t;
 //------------------------------------------------
 
 template<typename T>
+  static inline T
+  reinterpret_cast_align(unsigned char const* in)
+  {
+    union { T result; unsigned char input[sizeof(T)]; } aligner;
+    for (size_t i = 0; i < sizeof(T); ++i)
+      aligner.input[i] = in[i];
+    return aligner.result;
+  }
+
+template<typename T>
   static inline void
   dwarf_read(unsigned char const*& in, T& x)
   {
-    x = *reinterpret_cast<T const*>(in);
+    x = reinterpret_cast_align<T>(in);
     in += sizeof(T);
   }
 
@@ -941,7 +951,7 @@ read_string(unsigned char const*& debug_info_ptr, uLEB128_t const form, unsigned
   if (form == DW_FORM_strp)
 #endif
   {
-    result = reinterpret_cast<string_t>(&debug_str[*reinterpret_cast<uint32_t const*>(debug_info_ptr)]);
+    result = reinterpret_cast<string_t>(&debug_str[reinterpret_cast_align<uint32_t>(debug_info_ptr)]);
     debug_info_ptr += 4;
   }
 #if DEBUGDWARF
@@ -1673,7 +1683,7 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       break;
     case DW_FORM_data2:
     case DW_FORM_ref2:
-      DoutDwarf(dc::finish, *reinterpret_cast<uint16_t const*>(debug_info_ptr));
+      DoutDwarf(dc::finish, reinterpret_cast_align<uint16_t>(debug_info_ptr));
       debug_info_ptr += 2;
       break;
     case DW_FORM_data4:
@@ -1681,15 +1691,15 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
     case DW_FORM_ref4:
 #if DEBUGDWARF
       if (form == DW_FORM_data4)
-	DoutDwarf(dc::finish, *reinterpret_cast<uint32_t const*>(debug_info_ptr));
+	DoutDwarf(dc::finish, reinterpret_cast_align<uint32_t>(debug_info_ptr));
       else if (form == DW_FORM_strp)
       {
-	unsigned int pos = *reinterpret_cast<uint32_t const*>(debug_info_ptr);
+	unsigned int pos = reinterpret_cast_align<uint32_t>(debug_info_ptr);
 	DoutDwarf(dc::finish, pos << " (\"" << &debug_str[pos] << "\")");
       }
       else
 	DoutDwarf(dc::finish, '<' << std::hex <<
-	    *reinterpret_cast<uint32_t const*>(debug_info_ptr) + debug_info_offset << '>');
+	    reinterpret_cast_align<uint32_t>(debug_info_ptr) + debug_info_offset << '>');
 #endif
       debug_info_ptr += 4;
       break;
@@ -1697,10 +1707,10 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
     case DW_FORM_ref8:
 #if DEBUGDWARF && defined(__x86_64__)
       if (form == DW_FORM_data8)
-	DoutDwarf(dc::finish, *reinterpret_cast<uint64_t const*>(debug_info_ptr));
+	DoutDwarf(dc::finish, reinterpret_cast_align<uint64_t>(debug_info_ptr));
       else
 	DoutDwarf(dc::finish, '<' << std::hex <<
-	    *reinterpret_cast<uint64_t const*>(debug_info_ptr) + debug_info_offset << '>');
+	    reinterpret_cast_align<uint64_t>(debug_info_ptr) + debug_info_offset << '>');
 #endif
       debug_info_ptr += 8;
       break;
@@ -1729,7 +1739,7 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
     }
     case DW_FORM_ref_addr:
     case DW_FORM_addr:
-      DoutDwarf(dc::finish, *reinterpret_cast<void* const*>(debug_info_ptr));
+      DoutDwarf(dc::finish, reinterpret_cast_align<void*>(debug_info_ptr));
       debug_info_ptr += address_size;
       break;
     case DW_FORM_block1:
