@@ -77,26 +77,61 @@ $(pkgconfig_DATA): config.status
 
 # --------------- Maintainer's Section
 
+# Default installation directory of documentation and example-project.
+DOCDESTDIR=$(DESTDIR)/usr/share/doc/libcwd
+
+install-doc:
+	test -e $(DOCDESTDIR) || mkdir -p $(DOCDESTDIR)
+	cp -pr $(top_builddir)/documentation $(DOCDESTDIR)
+	find $(DOCDESTDIR)/documentation -name .svn -print | xargs rm -rf
+	find $(DOCDESTDIR)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
+	rm -f $(DOCDESTDIR)/documentation/tutorial/Makefile $(DOCDESTDIR)/documentation/styles/Makefile
+	mkdir $(DOCDESTDIR)/example-project
+	mkdir $(DOCDESTDIR)/example-project/m4
+	if test -d $(srcdir)/example-project/.svn; then \
+	  echo > $(DOCDESTDIR)/example-project/.files; \
+	  for i in $$(cd $(srcdir)/example-project && svn stat --verbose --non-interactive | \
+	          sed -re 's/.*[[:space:]]//' -e 's/^\.$$//' -e 's/debug\.h\.maintainer/debug.h/'); do \
+	    if test -f $(srcdir)/example-project/$$i; then \
+	      cp -p $(srcdir)/example-project/$$i $(DOCDESTDIR)/example-project/$$i; \
+	      echo $$i >> $(DOCDESTDIR)/example-project/.files; \
+	    fi \
+	  done \
+	elif test -r $(srcdir)/example-project/.files; then \
+	  for i in $$(cat $(srcdir)/example-project/.files); do \
+	    cp -p $(srcdir)/example-project/$$i $(DOCDESTDIR)/example-project/$$i; \
+	  done; \
+	  cp -p $(srcdir)/example-project/.files $(DOCDESTDIR)/example-project; \
+	fi
+	rm -f $(DOCDESTDIR)/example-project/debug.h.maintainer
+	if test -e $(srcdir)/example-project/debug.h; then \
+	  cp -p $(srcdir)/example-project/debug.h $(DOCDESTDIR)/example-project; \
+	else \
+	  echo "You need to configure with --enable-maintainer-mode and run 'make' before doing this."; \
+	  exit 1; \
+	fi
+
 dist-hook: documentation
 	chmod u+w $(distdir)/Makefile.in
 	cat $(distdir)/Makefile.in | \
 	  sed -e 's/^\(CONFIG_CLEAN_FILES =.*\) libcwd\.spec libcwd\.lsm\(.*\)/\1\2/' > $(distdir)/Makefile.in.new && \
 	  mv $(distdir)/Makefile.in.new $(distdir)/Makefile.in
-	cp -pr $(top_builddir)/documentation $(distdir)
-	find $(distdir)/documentation -name .svn -print | xargs rm -rf
-	find $(distdir)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
-	rm -f $(distdir)/documentation/tutorial/Makefile $(distdir)/documentation/styles/Makefile
-	mkdir $(distdir)/example-project
-	mkdir $(distdir)/example-project/m4
-	for i in $$(cd $(srcdir)/example-project && svn stat --verbose --non-interactive | sed -re 's/.*[[:space:]]//'); do \
-	  test -f $(srcdir)/example-project/$$i && cp -p $(srcdir)/example-project/$$i $(distdir)/example-project/$$i; \
-	done
-	rm -f $(distdir)/example-project/debug.h.maintainer
-	cp -p $(srcdir)/example-project/debug.h $(distdir)/example-project
+	$(MAKE) DOCDESTDIR=$(distdir) install-doc
 	mkdir $(distdir)/debian
-	for i in $$(cd $(srcdir)/debian && svn stat --verbose --non-interactive | sed -re 's/.*[[:space:]]//'); do \
-	  test -f $(srcdir)/debian/$$i && cp -p $(srcdir)/debian/$$i $(distdir)/debian/$$i; \
-	done
+	if test -d $(srcdir)/debian/.svn; then \
+	  echo > $(distdir)/debian/.files; \
+	  for i in $$(cd $(srcdir)/debian && svn stat --verbose --non-interactive | sed -re 's/.*[[:space:]]//' -e 's/^\.$$//'); do \
+	    if test -f $(srcdir)/debian/$$i; then \
+	      cp -p $(srcdir)/debian/$$i $(distdir)/debian/$$i; \
+	      echo $$i >> $(distdir)/debian/.files; \
+	    fi \
+	  done \
+	elif test -r $(srcdir)/debian/.files; then \
+	  for i in $$(cat $(srcdir)/debian/.files); do \
+	    cp -p $(srcdir)/debian/$$i $(distdir)/debian/$$i; \
+	  done; \
+	  cp -p $(srcdir)/example-project/.files $(distdir)/debian; \
+	fi
 	chmod +x $(distdir)/install-sh
 
 distclean-local:
@@ -110,6 +145,8 @@ distclean-local:
 	  (cd example-project; rm -rf $(srcdir)/autom4te.cache .deps $(srcdir)/aclocal.m4 config.h $(srcdir)/config.h.in \
 	   config.log config.status $(srcdir)/configure Makefile $(srcdir)/Makefile.in stamp-h1 program *.o); \
         fi
+	cd $(srcdir) && dh_clean || true
+	rm -f $(srcdir)/build-stamp
 
 MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure $(srcdir)/Makefile.in \
 	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \

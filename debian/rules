@@ -59,9 +59,17 @@ install: build
 	dh_clean -k 
 	dh_installdirs
 
-	# Add here commands to install the package into debian/libcwd
+	# Add here commands to install the libcwd package into debian/libcwd
 	$(MAKE) DESTDIR="$(CURDIR)/debian/libcwd" install
-	$(MAKE) DESTDIR="$(CURDIR)/debian/libcwd" install-doc
+	# Add here commands to install the libcwd-doc package into debian/libcwd-doc
+	$(MAKE) DESTDIR="$(CURDIR)/debian/libcwd-doc" DOCDESTDIR="$(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc" install-doc
+	rm -f $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/example-project/.files
+	find $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/documentation -maxdepth 1 -type f ! -name index.html | xargs rm
+	find $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/documentation/styles -type f ! -name '*.css' | xargs rm
+	rm -rf $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/documentation/doxygen-examples
+	rm -rf $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/documentation/www
+	find $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/documentation/tutorial -maxdepth 1 \
+	    -type f -name '*.m4' -o -name '*.in' -o -name '*.awk' | xargs rm
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -75,7 +83,7 @@ binary-arch: build install
 	dh_installdocs
 	dh_link
 	dh_strip
-	dh_compress
+	dh_compress -X.js -X.map -X.m4 -X.in -X.config -X.dox -XINSTALL -XREADME
 	dh_fixperms
 	dh_makeshlibs
 	dh_installdeb
