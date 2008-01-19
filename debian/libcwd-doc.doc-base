@@ -5,6 +5,5 @@ Abstract: This package contains the reference manual of the libcwd library.
 Section: Apps/Programming
 
 Format: HTML
-Index: /usr/share/doc/libcwd-doc/index.html
-Files: /usr/share/doc/libcwd-doc/*/*.html
-
+Index: /usr/share/doc/libcwd-doc/documentation/index.html
+Files: /usr/share/doc/libcwd-doc/documentation/reference-manual/*.html

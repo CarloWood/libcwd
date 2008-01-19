@@ -61,6 +61,9 @@ install: build
 
 	# Add here commands to install the libcwd package into debian/libcwd
 	$(MAKE) DESTDIR="$(CURDIR)/debian/libcwd" install
+	mkdir -p $(CURDIR)/debian/libcwd/usr/share/lintian/overrides
+	echo "libcwd: package-name-doesnt-match-sonames" > $(CURDIR)/debian/libcwd/usr/share/lintian/overrides/libcwd
+	echo "libcwd: non-dev-pkg-with-shlib-symlink" >> $(CURDIR)/debian/libcwd/usr/share/lintian/overrides/libcwd
 	# Add here commands to install the libcwd-doc package into debian/libcwd-doc
 	$(MAKE) DESTDIR="$(CURDIR)/debian/libcwd-doc" DOCDESTDIR="$(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc" install-doc
 	rm -f $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/example-project/.files
@@ -70,6 +73,7 @@ install: build
 	rm -rf $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/documentation/www
 	find $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/documentation/tutorial -maxdepth 1 \
 	    -type f -name '*.m4' -o -name '*.in' -o -name '*.awk' | xargs rm
+	find $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/documentation/reference-manual -name '*.map' -o -name '*.md5' | xargs rm
 
 # Build architecture-independent files here.
 binary-indep: build install
