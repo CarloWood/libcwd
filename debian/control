@@ -6,7 +6,7 @@ Standards-Version: 3.7.3
 Section: libs
 
 Package: libcwd
-Section: libs
+Section: libdevel
 Architecture: any
 Replaces: libcwd0, libcwd-dev
 Depends: ${shlibs:Depends}
