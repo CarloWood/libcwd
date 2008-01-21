@@ -12,10 +12,13 @@ define(CW_INTERFACE_AGE, 0)
 define(CW_PACKAGE_NAME, [libcwd])
 define(CW_BUGREPORT, [libcwd@alinoe.com])
 
-dnl Calculate package version.
-define(CW_VERSION_MAJOR, m4_eval(CW_INTERFACE_VERSION - CW_INTERFACE_AGE))
-define(CW_VERSION_MINOR, CW_INTERFACE_AGE)
-define(CW_VERSION_REVISION, CW_INTERFACE_VERSION_REVISION)
+dnl CW_VERSION_MAJOR               : Increment when the whole library was rewritten; or some VERY MAJOR change was made.
+dnl CW_VERSION_MINOR               : Increment when major changes have occured, like removing interfaces.
+dnl CW_VERSION_REVISION            : Increment every public release; or set to 0 when CW_VERSION_MINOR was incremented.
+
+define(CW_VERSION_MAJOR, 1)
+define(CW_VERSION_MINOR, 0)
+define(CW_VERSION_REVISION, 0)
 
 dnl Package name and version
 AC_INIT(CW_PACKAGE_NAME, CW_VERSION_MAJOR.CW_VERSION_MINOR.CW_VERSION_REVISION, CW_BUGREPORT)
