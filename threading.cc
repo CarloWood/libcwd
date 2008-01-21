@@ -72,12 +72,14 @@ template <>
 void mutex_ct::M_initialize(void)
 {
   pthread_mutexattr_t mutex_attr;
+  pthread_mutexattr_init(&mutex_attr);
 #if CWDEBUG_DEBUGT
   pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
 #else
   pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
 #endif
   pthread_mutex_init(&M_mutex, &mutex_attr);
+  pthread_mutexattr_destroy(&mutex_attr);
   M_initialized = true;
 }
 

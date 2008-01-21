@@ -417,12 +417,14 @@ template <int instance>
     {
 #if !LIBCWD_USE_LINUXTHREADS
       pthread_mutexattr_t mutex_attr;
+      pthread_mutexattr_init(&mutex_attr);
 #if CWDEBUG_DEBUGT
       pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
 #else
       pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
 #endif
       pthread_mutex_init(&S_mutex, &mutex_attr);
+      pthread_mutexattr_destroy(&mutex_attr);
 #endif // !LIBCWD_USE_LINUXTHREADS
       S_initialized = true;
     }
@@ -434,6 +436,7 @@ template <int instance>
       {
 #if !LIBCWD_USE_LINUXTHREADS
 	pthread_mutexattr_t mutex_attr;
+	pthread_mutexattr_init(&mutex_attr);
 	if (instance < end_recursive_types)
 	  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
 	else
@@ -445,6 +448,7 @@ template <int instance>
 #endif
 	}
 	pthread_mutex_init(&S_mutex, &mutex_attr);
+	pthread_mutexattr_destroy(&mutex_attr);
 #endif // !LIBCWD_USE_LINUXTHREADS
 	S_initialized = true;
       }

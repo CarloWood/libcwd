@@ -1,7 +1,13 @@
-libcwd-0.99.48
+libcwd-1.0.0
 
-	Fixed problems that stopped libcwd from working on sparc64.
 	Fixed --disable-pch and --disable-alloc.
+	Fixed problems that stopped libcwd from working on sparc64.
+	Thanks to Dennis Gilmore for giving me an account on his sparc64.
+
+	Bug fixes:
+
+	pthread_mutexattr_t objects were not initialized, resulting
+	in undefined behaviour (libcwd_r only).
 
 libcwd-0.99.47
 

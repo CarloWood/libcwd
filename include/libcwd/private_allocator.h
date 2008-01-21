@@ -215,6 +215,7 @@ struct TSD_st;
 struct FreeList {
 #if LIBCWD_THREAD_SAFE
   pthread_mutex_t M_mutex;
+  static pthread_mutex_t S_mutex;
 #endif
   bool M_initialized;
   unsigned int M_count[bucket_sizes];		// Number of blocks (in the full+notfull list).
