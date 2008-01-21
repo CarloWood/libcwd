@@ -1,51 +1,58 @@
-dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision$)dnl
+dnl Run autogen.sh to produce a configure script.
 
-dnl General intialization of `autoconf' variables.
+dnl Version info, see http://www.gnu.org/software/libtool/manual.html#Updating-version-info
+dnl
+dnl CW_INTERFACE_VERSION           : Current interface version, increment whenever the interface is changed.
+dnl CW_INTERFACE_VERSION_REVISION  : Revision, increment every public release; or set to 0 when the interface is changed.
+dnl CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
+
+define(CW_INTERFACE_VERSION, 1)
+define(CW_INTERFACE_VERSION_REVISION, 0)
+define(CW_INTERFACE_AGE, 0)
+define(CW_PACKAGE_NAME, [libcwd])
+define(CW_BUGREPORT, [libcwd@alinoe.com])
+
+dnl Calculate package version.
+define(CW_VERSION_MAJOR, m4_eval(CW_INTERFACE_VERSION - CW_INTERFACE_AGE))
+define(CW_VERSION_MINOR, CW_INTERFACE_AGE)
+define(CW_VERSION_REVISION, CW_INTERFACE_VERSION_REVISION)
 
 dnl Package name and version
-AC_INIT(libcwd, [0.99.48])
+AC_INIT(CW_PACKAGE_NAME, CW_VERSION_MAJOR.CW_VERSION_MINOR.CW_VERSION_REVISION, CW_BUGREPORT)
 
 dnl Put resulting configuration defines in this header file.
 AC_CONFIG_HEADERS([config.h])
 
-dnl Version info
-dnl
-dnl INTERFACE_VERSION		: Current interface version, increment whenever the interface is changed.
-dnl INTERFACE_VERSION_REVISION	: Revision, increment every public release; or set to 0 when the interface is changed.
-dnl INTERFACE_AGE		: Increment if interfaces have been added; or set to 0 when interfaces have been removed.
-
-INTERFACE_VERSION=99		dnl 0.99 actually
-INTERFACE_VERSION_REVISION=48
-INTERFACE_AGE=99		dnl 0.99 actually
+dnl Put revision of configure.ac in configure script.
+AC_REVISION($Revision$)dnl
 
 dnl Ensure that the directory specified with --srcdir was correct
-dnl by demanding that it contains `debugmalloc.cc'.
-AC_CONFIG_SRCDIR(debugmalloc.cc)
+dnl by demanding that it contains `libcwtl.pc.in'.
+AC_CONFIG_SRCDIR(CW_PACKAGE_NAME[.pc.in])
 
 dnl Automake options.
 AM_INIT_AUTOMAKE
-dnl This project uses a lot of variables that start with CW_ (FIXME).
-m4_pattern_allow(CW_)
 
 dnl Include maintainer mode targets
 AM_MAINTAINER_MODE
 
-dnl Demand at least version 2.57 of autoconf.
-AC_PREREQ(2.57)
-
 dnl Because we use cwautomacros.
 CW_AUTOMACROS
 
-VERSION_MAJOR=`expr $INTERFACE_VERSION - $INTERFACE_AGE`
-VERSION_MINOR=$INTERFACE_AGE
-VERSION_REVISION=$INTERFACE_VERSION_REVISION
+dnl We use doxygen for documentation.
+CW_DOXYGEN
+
+dnl Demand at least version 2.57 of autoconf.
+AC_PREREQ(2.57)
 
 dnl Libtool version info
-VERSIONINFO="$INTERFACE_VERSION:$INTERFACE_VERSION_REVISION:$INTERFACE_AGE"
+VERSIONINFO="CW_INTERFACE_VERSION:CW_INTERFACE_VERSION_REVISION:CW_INTERFACE_AGE"
 AC_SUBST(VERSIONINFO)
 
 dnl For version code used in check_configuration().
+VERSION_MAJOR=CW_VERSION_MAJOR
+VERSION_MINOR=CW_VERSION_MINOR
+VERSION_REVISION=CW_VERSION_REVISION
 AC_SUBST(VERSION_MAJOR)
 AC_SUBST(VERSION_MINOR)
 AC_SUBST(VERSION_REVISION)
@@ -156,7 +163,6 @@ if test -n "$CC"; then
   unset am_cv_CXX_dependencies_compiler_type
 fi
 AC_PROG_CC
-AC_PROG_CXX
 AC_PROG_CXX
 AC_PROG_CXXCPP
 
