@@ -84,6 +84,22 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>23 Jan 2008</B>
+<P class="news">libcwd-1.0.0 is released.&nbsp;
+This version adds support for sparc64. All configure options now work also
+on 64bit. Support for the latest SVN version of gcc (4.3) was updated.
+</P>
+<P class="news">An important bug has been fixed for the threaded case:
+libcwd_r uses several pthread_mutexattr_t objects, but never initialized those.
+This resulted in uninitialized memory being used resulting in random
+mutex attributes. I believe this to be the reason that gcc-3.x locked
+up on me. This version of gcc is therefore now supported again.</P>
+<P class="news">Last but not least, as you see the version has been
+bumped to 1.0.0! That means that the API is now holy. The SONAME
+major version has been set 1 (it was 99 before). I do not expect
+this to change again (I will not change the existing API, or remove
+interfaces-- not that this has happened in the past years anyway).
+</P>
 <DT><B>07 Jul 2007</B>
 <P class="news">libcwd-0.99.47 is released.&nbsp;
 This version adds support for x86_64. Yes, yes, I have a 64 bit machine
