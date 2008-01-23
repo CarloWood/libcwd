@@ -90,30 +90,34 @@ $(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer 
 	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> $(srcdir)/example-project/debug.h; \
 	fi
 
-#		'--enable-maintainer-mode --with-redzone=1024 --compilers=svn-4.3' \
-#		'--enable-maintainer-mode --compilers=svn-4.3,4.2.0,4.1.2,4.1.1,4.1.0,4.0.3,4.0.0,3.4.6,3.4.1,3.4.0,3.3.6' \
-#		'--enable-maintainer-mode --disable-pch --compilers=svn-4.3,4.2.0,4.1.0,4.0.0,3.4.0,3.3' \
-#	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=svn-4.3,4.2.0,4.1.2,4.0.3' \
-#		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=svn-4.3,4.2.0,4.1.2,4.0.3' \
-#	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=svn-4.3,4.2.0,4.1.2,4.0.3,3.4.6,3.3.6' \
-#	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=svn-4.3,4.2.0,4.1.2,4.0.3,3.4.6,3.3.6' \
-#	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=svn-4.3,4.2.0,4.1.2,4.0.3,3.4.6,3.3.6' \
-#		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=svn-4.3,4.2.0,4.1.2,4.0.3' \
-#		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=svn-4.3,4.2.0,4.1.2,4.0.3,3.4.6,3.3.6' \
+CCVERSVN=svn-4.3
+CCVERALL=$(CCVERSVN),4.2.2,4.2.1,4.2.0,4.1.2,4.1.1,4.1.0,4.0.3,4.0.0,3.4.6,3.4.1,3.4.0,3.3.6
+CCVERMOST=$(CCVERSVN),4.2.0,4.1.0,4.0.0,3.4.6,3.4.0,3.3.6
+
+#		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
+#		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
+#		'--enable-maintainer-mode --disable-pch                                                                       --compilers=$(CCVERMOST)' \
+#	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+#	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+#	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+#	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
 
 full-check: Makefile
 	@( \
 	  for c in \
-		'--enable-maintainer-mode --with-redzone=1024 --compilers=svn-4.3' \
-		'--enable-maintainer-mode --compilers=svn-4.3,4.2.0,4.1.2,4.1.1,4.1.0,4.0.3,4.0.0,3.4.6,3.4.1,3.4.0,3.3.6' \
-		'--enable-maintainer-mode --disable-pch --compilers=svn-4.3,4.2.0,4.1.0,4.0.0,3.4.0,3.3' \
-	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=svn-4.3,4.2.0,4.1.2,4.0.3' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=svn-4.3,4.2.0,4.1.2,4.0.3' \
-	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=svn-4.3,4.2.0,4.1.2,4.0.3,3.4.6,3.3.6' \
-	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=svn-4.3,4.2.0,4.1.2,4.0.3,3.4.6,3.3.6' \
-	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=svn-4.3,4.2.0,4.1.2,4.0.3,3.4.6,3.3.6' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=svn-4.3,4.2.0,4.1.2,4.0.3' \
-		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=svn-4.3,4.2.0,4.1.2,4.0.3,3.4.6,3.3.6' \
+		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
+		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
+		'--enable-maintainer-mode --disable-pch --compilers=$(CCVERMOST)' \
+	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=$(CCVERMOST)' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
 	    case "$$c" in \
@@ -122,6 +126,7 @@ full-check: Makefile
 	      *) check=check ;; \
 	    esac; \
 	    compilers=`echo $$c | sed -e 's/.* --compilers=//' -e 's/,/ /g'`; \
+	    test -z "$$COMPILERS" || compilers="$$COMPILERS"; \
 	    echo "*** CONFIGURATION OPTIONS: \"$$config\" (with compilers \"$$compilers\")"; \
 	    for v in `echo $$compilers`; do \
 	      case "$$v" in \
@@ -136,7 +141,7 @@ full-check: Makefile
 	        echo "failed" && exit -1; \
 	      fi; \
 	      echo -n "Compiling... "; \
-	      if make >/dev/null; then \
+	      if make -j 4 >/dev/null; then \
 		echo "done"; \
 	      else \
 		echo "failed" && exit -1; \

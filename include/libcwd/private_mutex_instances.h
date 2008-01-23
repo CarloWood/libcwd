@@ -79,8 +79,8 @@ inline bool is_locked(int instance) { return instance_locked[instance] > 0; }
 #if CWDEBUG_DEBUGT
 extern pthread_t locked_by[instance_locked_size];	// The id of the thread that last locked it, or 0 when that thread unlocked it.
 extern void const* locked_from[instance_locked_size];	// and where is was locked.
-int const read_lock_offset = instance_locked_size;
-int const high_priority_read_lock_offset = 2 * instance_locked_size;
+size_t const read_lock_offset = instance_locked_size;
+size_t const high_priority_read_lock_offset = 2 * instance_locked_size;
 #endif
 
   } // namespace _private_

@@ -527,8 +527,8 @@ uint16_t const group6 = 0x400;	// (Instance 2 locked first and (either one read 
 				// or (both read only and high_priority when second).
 
 struct keypair_key_st {
-  int instance1;
-  int instance2;
+  size_t instance1;
+  size_t instance2;
 };
 
 struct keypair_info_st {
@@ -558,7 +558,7 @@ bool keypair_compare_st::operator()(keypair_key_st const& a, keypair_key_st cons
 }
 
 extern "C" int raise(int);
-void test_lock_pair(int instance_first, void const* from_first, int instance_second, void const* from_second)
+void test_lock_pair(size_t instance_first, void const* from_first, size_t instance_second, void const* from_second)
 {
   if (instance_first == instance_second)
     return;	// Must have been a recursive lock.
@@ -657,7 +657,7 @@ void test_lock_pair(int instance_first, void const* from_first, int instance_sec
   mutex_tct<keypair_map_instance>::unlock();
 }
 
-void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* from)
+void test_for_deadlock(size_t instance, struct TSD_st& __libcwd_tsd, void const* from)
 {
   if (!WST_multi_threaded)
     return;			// Give libcwd the time to get initialized.
@@ -681,7 +681,10 @@ void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* fr
   {
     mutex_ct const* mutex = &((*iter).thread_mutex);
     if (mutex->M_locked_by == __libcwd_tsd.tid && mutex->M_instance_locked >= 1)
-      test_lock_pair(reinterpret_cast<int>(mutex), mutex->M_locked_from, instance, from);
+    {
+      assert(reinterpret_cast<size_t>(mutex) >= 0x10000);
+      test_lock_pair(reinterpret_cast<size_t>(mutex), mutex->M_locked_from, instance, from);
+    }
   }
   for (int inst = 0; inst < instance_locked_size; ++inst)
   {

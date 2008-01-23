@@ -1,13 +1,18 @@
 libcwd-1.0.0
 
-	Fixed --disable-pch and --disable-alloc.
 	Fixed problems that stopped libcwd from working on sparc64.
 	Thanks to Dennis Gilmore for giving me an account on his sparc64.
 
 	Bug fixes:
 
 	pthread_mutexattr_t objects were not initialized, resulting
-	in undefined behaviour (libcwd_r only).
+	in undefined behaviour (libcwd_r only). I think this is what
+	caused my previous problems with gcc-3.3.x. So, that version
+	is supported again (this version of libcwd is tested to work
+	again with 3.3.6).
+	Fixed parallel build; make -j N now works.
+	Fixed --disable-pch and --disable-alloc (broken since 0.99.47).
+	Fixed --enable-debugt on amd64.
 
 libcwd-0.99.47
 

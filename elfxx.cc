@@ -697,7 +697,7 @@ template<typename T>
   }
 
 template<>
-  static void
+  void
   dwarf_read(unsigned char const*& in, uLEB128_t& x)
   {
     int shift = 7;
@@ -718,7 +718,7 @@ template<>
   }
 
 template<>
-  static void
+  void
   dwarf_read(unsigned char const*& in, LEB128_t& x)
   {
     int shift = 7;

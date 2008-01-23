@@ -1,7 +1,7 @@
 // @configure_input@
 // $Header$
 //
-// Copyright (C) 2000 - 2003, by
+// Copyright (C) 2000 - 2003, 2008 by
 //
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -45,21 +45,6 @@
 // /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
 // Word around (if any):
 @CW_SYS_REDEFINES_FIX@
-
-#ifdef HAVE__G_CONFIG_H
-// This is to avoid warnings like:
-// /usr/include/g++-3/iostream.h:253:5: "_G_CLOG_CONFLICT" is not defined
-#@CW_CONFIG_G_CONFIG_H_MACROS@ NEED_G_CONFIG_H_MACROS
-#ifdef NEED_G_CONFIG_H_MACROS
-#include <_G_config.h>
-#ifndef _G_CLOG_CONFLICT
-#define _G_CLOG_CONFLICT 0
-#endif
-#ifndef _G_HAS_LABS
-#define _G_HAS_LABS @CW_HAVE_LABS@
-#endif
-#endif // NEED_G_CONFIG_H_MACROS
-#endif // HAVE__G_CONFIG_H
 
 #include <libcwd/sys.h>
 

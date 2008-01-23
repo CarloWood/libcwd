@@ -24,16 +24,17 @@ fakeroot debian/rules binary
 of the debhelper package (sudo apt-get install fakeroot debhelper).
 This results in two .deb files:
 
-libcwd_1.0.0_i386.deb		: Libraries and headers.
+libcwd_1.0.0_ARCH.deb		: Libraries and headers.
 libcwd-doc_1.0.0_all.deb	: Reference manual, tutorial and examples.
 
 The package libcwd-doc installs the documentation in
-file://usr/share/doc/libcwd-doc/index.html, which you
-probably want to bookmark in your browser. An example
-is stored in /usr/share/doc/libcwd-doc/example-project.
+file://usr/share/doc/libcwd-doc/documentation/index.html, which you
+probably want to bookmark in your browser. And a tutorial in
+file://usr/share/doc/libcwd-doc/documentation/tutorial/index.html.
+An example is stored in /usr/share/doc/libcwd-doc/example-project.
 
 Install both packages with:
-sudo dpkg -i libcwd_1.0.0_i386.deb libcwd-doc_1.0.0_all.deb
+sudo dpkg -i libcwd_1.0.0_ARCH.deb libcwd-doc_1.0.0_all.deb
 
 Building RPMs
 =============
@@ -46,6 +47,10 @@ rpmbuild -ta libcwd-1.0.0.tar.gz
 The resulting rpm will install two libraries:
 libcwd.so and libcwd_r.so.  Be sure to link with -lcwd_r
 if you want the thread-safe version!
+
+I haven't tested this in years however, since I do
+not longer use an rpm based distribution. Patches for
+the spec file are welcome.
 
 Needed tools
 ============
@@ -61,11 +66,11 @@ http://www.gnu.org/order/ftp.html
 Packages/versions needed
 ------------------------
 
-i) The GNU compiler, version 3.3 or higher.
+i) The GNU compiler, version 3.4 or higher.
    Version 4.0 or higher is highly recommended.
 
     Location: gnu/gcc/
-    Current version: 4.1.1
+    Current version: 4.2.2
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -93,24 +98,15 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-0.99.46 was tested with gcc-3.3, gcc-3.3.6, gcc-3.4.0
-gcc-3.4.1, gcc-3.4.6, gcc-4.0.0, gcc-4.0.3, gcc-4.1.0, gcc-4.1.1,
-gcc-4.1.2, gcc-4.2.0 and gcc version 4.3.0 20070521 (experimental).
+libcwd-1.0.0 was tested with gcc-3.3.6, gcc-3.4.0, gcc-3.4.1, gcc-3.4.6,
+gcc-4.0.0, gcc-4.0.3, gcc-4.1.0, gcc-4.1.1, gcc-4.1.2,
+gcc-4.2.0, gcc-4.2.1, gcc-4.2.2 and gcc version 4.3.0 20080121 (experimental).
 
-libcwd-0.99.47 was only tested with
-gcc version 4.1.3 20070601 (prerelease) (Debian 4.1.2-12)
-
-All gcc 3.x versions might lock up when used with threading,
-if that happens to you - use gcc 4.x.
-
-Note that gcc-3.1, gcc-3.1.1 and gcc-3.2 are broken,
-making the use of threading with NPTL impossible.
-The problem of nptl is actually a bug in the version
-of nptl that is distributed with RedHat 9 (the only
-distribution with NPTL at the moment of writing.
-The current development version of NPTL has this fixed).
-It tries to free a pointer that is really a global struct -
-libcwd will CORE when it detects that.
+The versions gcc-3.1.x and gcc-3.2.x might or might not work or
+even compile. Especially gcc-3.1, gcc-3.1.1 and gcc-3.2 are
+risky when used with threading; they might result in freeing a
+pointer that is really a global struct when used with
+a buggy NPTL (and libcwd will CORE when it detects that).
 Other 3.[12].x versions should work but that is not garanteed.
 
 Packages needed to run the testsuite
@@ -132,7 +128,7 @@ get this package via svn; in that case you also need to configure using
 
 iii)  GNU make
 iv)   GNU m4
-v)    cwautomacros  version 20060623 or later (from http://cwautomacros.berlios.de/)
+v)    cwautomacros  version 20080103 or later (from http://cwautomacros.berlios.de/)
 vi)   autoconf	    version 2.57 or higher
 vii)  automake	    version 1.7 or higher
 viii) libtool	    version 1.4.2 or higher on linux, 1.5 or higher on other OS,

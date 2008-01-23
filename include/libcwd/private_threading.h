@@ -133,10 +133,16 @@ extern void initialize_global_mutexes(void);
 extern bool WST_multi_threaded;
 
 #if CWDEBUG_DEBUGT
-extern void test_for_deadlock(int, struct TSD_st&, void const*);
+extern void test_for_deadlock(size_t, struct TSD_st&, void const*);
+inline void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* from)
+{
+  assert(instance < 0x10000);
+  test_for_deadlock(static_cast<size_t>(instance), __libcwd_tsd, from);
+}
 inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void const* from)
 {
-  test_for_deadlock(reinterpret_cast<int>(ptr), __libcwd_tsd, from);
+  assert(reinterpret_cast<size_t>(ptr) >= 0x10000);
+  test_for_deadlock(reinterpret_cast<size_t>(ptr), __libcwd_tsd, from);
 }
 #endif
 

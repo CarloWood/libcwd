@@ -38,30 +38,28 @@ if ENABLETHREADING
 @true@endif
 endif
 
-pch.h.gch/libcwd_pch.h pch.h.gch/libcwd_r_pch.h: $(srcdir)/pch-source.h Makefile
-	test -d pch.h.gch || mkdir -p pch.h.gch
+pch.h.gch:
+	mkdir pch.h.gch
+
+pch.h.gch/libcwd_pch.h: pch.h.gch $(srcdir)/pch-source.h Makefile
 	rm -f $@
-	test -d $(DEPDIR) || mkdir $(DEPDIR)
-if ENABLENONTHREADING
 	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	    -DCWDEBUG $(CXXFLAGS) -DPIC -fPIC \
-	    -M -MT pch.h.gch/libcwd_pch.h -MF $(DEPDIR)/libcwd_pch.Tpo -DPIC -fPIC $(srcdir)/pch-source.h >/dev/null; then \
+	    -M -MT $@ -MF $(DEPDIR)/libcwd_pch.Tpo -DPIC -fPIC $(srcdir)/pch-source.h >/dev/null; then \
 	  cmp -s $(DEPDIR)/libcwd_pch.Tpo $(DEPDIR)/libcwd_pch.po || mv $(DEPDIR)/libcwd_pch.Tpo $(DEPDIR)/libcwd_pch.po; \
 	fi
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	    -DCWDEBUG $(CXXFLAGS) -DPIC -fPIC \
-	    -c -o pch.h.gch/libcwd_pch.h $(srcdir)/pch-source.h
-endif
-if ENABLETHREADING
+	    -DCWDEBUG $(CXXFLAGS) -DPIC -fPIC -c -o $@ $(srcdir)/pch-source.h
+
+pch.h.gch/libcwd_r_pch.h: pch.h.gch $(srcdir)/pch-source.h Makefile
+	rm -f $@
 	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	    -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(CXXFLAGS) -DPIC -fPIC \
-	    -M -MT pch.h.gch/libcwd_r_pch.h -MF $(DEPDIR)/libcwd_r_pch.Tpo -DPIC -fPIC $(srcdir)/pch-source.h >/dev/null; then \
+	    -M -MT $@ -MF $(DEPDIR)/libcwd_r_pch.Tpo -DPIC -fPIC $(srcdir)/pch-source.h >/dev/null; then \
 	  cmp -s $(DEPDIR)/libcwd_r_pch.Tpo $(DEPDIR)/libcwd_r_pch.po || mv $(DEPDIR)/libcwd_r_pch.Tpo $(DEPDIR)/libcwd_r_pch.po; \
 	fi
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	    -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(CXXFLAGS) -DPIC -fPIC \
-	    -c -o pch.h.gch/libcwd_r_pch.h $(srcdir)/pch-source.h
-endif
+	    -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread $(CXXFLAGS) -DPIC -fPIC -c -o $@ $(srcdir)/pch-source.h
 
 clean-local:
 	rm -f pch.h.gch/* $(DEPDIR)/libcwd_*.*po
