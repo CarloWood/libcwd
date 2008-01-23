@@ -1,9 +1,9 @@
-libcwd (0.99.48) unstable; urgency=low
+libcwd (1.0.0) unstable; urgency=low
 
-  * Upgraded to version 0.99.48.
+  * Upgraded to version 1.0.0.
   * Overhauled the debian directory.
 
- -- Carlo Wood <carlo@alinoe.com>  Sat, 19 Jan 2008 04:12:55 +0100
+ -- Carlo Wood <carlo@alinoe.com>  Wed, 23 Jan 2008 02:55:30 +0100
 
 libcwd (0.99.47) unstable; urgency=low
 
