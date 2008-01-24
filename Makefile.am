@@ -83,6 +83,7 @@ DOCDESTDIR=$(DESTDIR)/usr/share/doc/libcwd
 install-doc:
 	test -e $(DOCDESTDIR) || mkdir -p $(DOCDESTDIR)
 	cp -pr $(top_builddir)/documentation $(DOCDESTDIR)
+	rm -f $(DOCDESTDIR)/Makefile $(DOCDESTDIR)/doxygen.config
 	find $(DOCDESTDIR)/documentation -name .svn -print | xargs rm -rf
 	find $(DOCDESTDIR)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
 	rm -f $(DOCDESTDIR)/documentation/tutorial/Makefile $(DOCDESTDIR)/documentation/styles/Makefile
@@ -130,7 +131,7 @@ dist-hook: documentation
 	  for i in $$(cat $(srcdir)/debian/.files); do \
 	    cp -p $(srcdir)/debian/$$i $(distdir)/debian/$$i; \
 	  done; \
-	  cp -p $(srcdir)/example-project/.files $(distdir)/debian; \
+	  cp -p $(srcdir)/debian/.files $(distdir)/debian; \
 	fi
 	chmod +x $(distdir)/install-sh
 
