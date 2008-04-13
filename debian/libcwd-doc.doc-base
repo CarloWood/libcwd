@@ -2,7 +2,7 @@ Document: libcwd-doc
 Title: C++ Debugging Support Library
 Author: Carlo Wood
 Abstract: This package contains the reference manual of the libcwd library.
-Section: Apps/Programming
+Section: Programming/C++
 
 Format: HTML
 Index: /usr/share/doc/libcwd-doc/documentation/index.html

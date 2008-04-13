@@ -1,18 +1,139 @@
-libcwd (1.0.0) unstable; urgency=low
+libcwd (1.0.1-2) unstable; urgency=low
 
-  * Upgraded to version 1.0.0.
+  * Make package autobuildable.
+
+ -- Carlo Wood <carlo@alinoe.com>  Sun, 13 Apr 2008 21:22:00 +0200
+
+libcwd (1.0.1-1) unstable; urgency=low
+
   * Overhauled the debian directory.
+  * Upgrade to version 1.0.1. The versions 0.99.45, 0.99.46 and
+    0.99.47 have not been released as debian package.
 
  -- Carlo Wood <carlo@alinoe.com>  Wed, 23 Jan 2008 02:55:30 +0100
 
-libcwd (0.99.47) unstable; urgency=low
+libcwd (0.99.44-0.2) unstable; urgency=high
 
-  * Upgraded to version 0.99.47.
+  * Non-maintainer upload.
+  * High-urgency upload for RC bugfix.
+  * Drop dangling reference to /usr/share/debconf/module in
+    libcwd-dev.postinst, nothing in this package uses debconf.  Closes: #417327.
 
- -- Carlo Wood <carlo@alinoe.com>  Fri, 06 Jul 2007 20:24:09 +0200
+ -- Steve Langasek <vorlon@debian.org>  Wed, 04 Apr 2007 20:14:20 -0700
 
-libcwd (0.99.46) unstable; urgency=low
+libcwd (0.99.44-0.1) unstable; urgency=low
 
-  * Initial Release as debian package.
+  * Non-maintainer upload.
+  * New upstream release.
+    - Fixes build failure with g++ 4.0.  Closes: #340174.
 
- -- Carlo Wood <carlo@alinoe.com>  Tue, 14 Nov 2006 23:17:24 +0100
+ -- Matej Vela <vela@debian.org>  Mon,  5 Jun 2006 20:00:30 +0200
+
+libcwd (0.99.40-2) unstable; urgency=low
+
+  * Many thanks to madduck for allowing me to be the new maintainer of this
+    package. madduck will continue to act as the co-maintainer.
+  * madduck@debian.org:
+      - added amd64 to the list of architectures for arch-any packages in in
+        debian/control.
+
+ -- Matt T Galvin <matt.t.galvin@gmail.com>  Fri,  3 Jun 2005 22:04:13 -0400
+
+libcwd (0.99.40-1) unstable; urgency=low
+
+  * New upstream release.
+  * This new release adds support for gcc-4.0 (closes: Bug#308923).
+
+ -- Matt T Galvin <matt.t.galvin@gmail.com>  Thu,  2 Jun 2005 11:36:58 -0400
+
+libcwd (0.99.39-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- martin f. krafft <madduck@debian.org>  Mon, 11 Oct 2004 04:16:59 +0200
+
+libcwd (0.99.38-2) unstable; urgency=low
+
+  * Moved libcwd to non-free because of the QPL licence, which is deemed
+    non-free. The author refuses to do anything about it, unfortunately.
+    I will move it back to main when the situation improves
+    (closes: Bug#258497, Bug#251983).
+
+ -- martin f. krafft <madduck@debian.org>  Sat,  2 Oct 2004 21:41:29 +0200
+
+libcwd (0.99.38-1) unstable; urgency=low
+
+  * New upstream release.
+  * Added dependency on binutils (>= 2.12.90.0.9) for debug libraries, as
+    noted in dh_strip(1).
+  * Added notice about the special handling of non-i386 architectures to
+    README.architectures.
+  * Removed hppa from list of supported architectures due to build errors.
+  * Split libraries with debugging symbols to a separate package.
+  * Replaced /usr/share/doc tree of -dev and -dbg packages with a symlink to
+    the doc tree of libcwd0.
+
+ -- martin f. krafft <madduck@debian.org>  Wed, 29 Sep 2004 16:04:03 +0200
+
+libcwd (0.99.37-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- martin f. krafft <madduck@debian.org>  Fri, 16 Jul 2004 01:20:35 +0200
+
+libcwd (0.99.35-2) unstable; urgency=low
+
+  * Override lintian warning about .cvsignore in source.
+
+ -- martin f. krafft <madduck@debian.org>  Wed, 23 Jun 2004 14:22:09 +0200
+
+libcwd (0.99.35-1) unstable; urgency=low
+
+  * New upstream release.
+  * Removed debconf message and moved changenote to NEWS.Debian.
+    closes: Bug#254446
+  * Added example-project to libcwd-doc/examples.
+
+ -- martin f. krafft <madduck@debian.org>  Wed, 23 Jun 2004 13:02:03 +0200
+
+libcwd (0.99.34-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- martin f. krafft <madduck@debian.org>  Thu, 27 May 2004 22:24:33 +0200
+
+libcwd (0.99.33-5) unstable; urgency=low
+
+  * Documentation is now built in Build-Indep, not in Build-Arch.
+
+ -- martin f. krafft <madduck@debian.org>  Sun, 23 May 2004 16:50:20 +0200
+
+libcwd (0.99.33-4) unstable; urgency=low
+
+  * Added --keep-debug option to dh_strip to place debugging symbols for the
+    library into /usr/lib/debug. See README.debug_symbols for more
+    information.
+  * Pushed Standards-Version to 3.6.1
+
+ -- martin f. krafft <madduck@debian.org>  Mon, 17 May 2004 12:46:45 +0200
+
+libcwd (0.99.33-3) unstable; urgency=low
+
+  * Fixed up the libcwd-dev.install file to not specify an absolute location
+    for the .la file.
+  * Added procps to Build-Depends. (closes: Bug#248220)
+
+ -- martin f. krafft <madduck@debian.org>  Tue, 11 May 2004 21:33:29 +0200
+
+libcwd (0.99.33-2) unstable; urgency=low
+
+  * Changed architecture of -doc package from any to all. Sorry.
+
+ -- martin f. krafft <madduck@debian.org>  Tue, 27 Apr 2004 02:37:51 +0200
+
+libcwd (0.99.33-1) unstable; urgency=low
+
+  * Initial Release. (closes: Bug#245547)
+
+ -- martin f. krafft <madduck@debian.org>  Fri, 23 Apr 2004 19:29:27 +0200
+

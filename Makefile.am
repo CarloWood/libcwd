@@ -86,6 +86,7 @@ install-doc:
 	rm -f $(DOCDESTDIR)/Makefile $(DOCDESTDIR)/doxygen.config
 	find $(DOCDESTDIR)/documentation -name .svn -print | xargs rm -rf
 	find $(DOCDESTDIR)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
+	find $(DOCDESTDIR)/documentation -name '*.dot' -size 0 -print | xargs rm -f
 	rm -f $(DOCDESTDIR)/documentation/tutorial/Makefile $(DOCDESTDIR)/documentation/styles/Makefile
 	mkdir $(DOCDESTDIR)/example-project
 	mkdir $(DOCDESTDIR)/example-project/m4

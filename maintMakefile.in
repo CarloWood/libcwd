@@ -66,11 +66,24 @@ test-values:
 	@echo "PREVTAG  = \"$(PREVTAG)\""
 
 ## Make sure the ChangeLog is up to date in maintainer mode
-.PHONY: tar rpm ChangeLog documentation
+.PHONY: tar rpm ChangeLog documentation debian
 
 rpm: dist $(SPECFILE) $(LSMFILE)
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
 	cd rpm; rpmbuild --rcfile=/usr/lib/rpm/rpmrc:rpmrc --sign --clean -ba ../$(SPECFILE)
+
+debian: @PACKAGE@-@VERSION@.tar.gz
+	VER="$$(dpkg-parsechangelog -l$(srcdir)/debian/changelog | sed -n -e 's/-.*//;s/^Version: //p')"; \
+	if test "$$VER" != "@VERSION@"; then \
+	  echo "The version in debian/changelog ($$VER) does not match @VERSION@."; \
+	  exit 1; \
+	fi
+	rm -rf debian-build
+	mkdir debian-build
+	cd debian-build; \
+	tar xzf ../@PACKAGE@-@VERSION@.tar.gz; \
+	tar czf @PACKAGE@_@VERSION@.orig.tar.gz --exclude debian @PACKAGE@-@VERSION@; \
+	dpkg-source -b @PACKAGE@-@VERSION@
 
 ChangeLog:
 	if test $(SVNREADACCESS) = yes; then \
