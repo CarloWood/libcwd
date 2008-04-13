@@ -18,7 +18,7 @@ dnl CW_VERSION_REVISION            : Increment every public release; or set to 0
 
 define(CW_VERSION_MAJOR, 1)
 define(CW_VERSION_MINOR, 0)
-define(CW_VERSION_REVISION, 0)
+define(CW_VERSION_REVISION, 1)
 
 dnl Package name and version
 AC_INIT(CW_PACKAGE_NAME, CW_VERSION_MAJOR.CW_VERSION_MINOR.CW_VERSION_REVISION, CW_BUGREPORT)

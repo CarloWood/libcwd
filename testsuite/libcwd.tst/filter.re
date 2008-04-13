@@ -24,7 +24,7 @@ WARNING :     Object file (/usr/lib/debug)*/lib/ld-2\.[.0-9]*\.so does not have 
 MALLOC  : <continued> 0x[a-f0-9]* \[ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)\]
 )|(MALLOC  : malloc\(12\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)|dl-load\.c:170)\]
 )
-MALLOC  : calloc\((1156|612|600|572|544|548|576|588|596), 1\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:_dl_new_object|dl-object\.c:52)\]
+MALLOC  : calloc\((1156|612|600|616|572|544|548|576|588|596), 1\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:_dl_new_object|dl-object\.c:52)\]
 MALLOC  : (malloc\(140\)|realloc\(0x0, 140\)) = 0x[a-f0-9]* \[(ld-linux\.so\.2:_dl_new_object|dl-object\.c:16[01])\]
 MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:_dl_map_object_deps|dl-deps\.c:50[07])\]
 MALLOC  : calloc\([3-8], (16|24)\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:_dl_check_map_versions|dl-version\.c:299)\]
@@ -99,14 +99,14 @@ MALLOC  : free\(0x[a-f0-9]*\) *(dl-load\.c:(164|149|170)|_dl_map_object|expand_d
 // output till (dl-deps\.c:(528|489|500|507)|_dl_map_object_deps|<pre libcwd initialization>)
 (MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
-MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:(43|52)|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600|596|612|1156)\)  
+MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:(43|52)|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600|616|596|612|1156)\)  
 )*
 MALLOC  : free\(0x[a-f0-9]*\) *(dl-deps\.c:(528|489|500|507)|_dl_map_object_deps|<pre libcwd initialization>) *<unknown type>; \(sz = [0-9]*\)  
 // input lines 7
 // output till MALLOC  : Allocated memory
 (MALLOC  : Trying to free NULL - ignored\.
 MALLOC  : Trying to free NULL - ignored\.
-MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:(43|52)|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600|596|612|1156)\)  
+MALLOC  : free\(0x[a-f0-9]*\) *(dl-object\.c:(43|52)|_dl_new_object) *<unknown type>; \(sz = (572|544|548|576|588|600|616|596|612|1156)\)  
 )|((MALLOC  : .*<pre libcwd initialization> <unknown type>; \(sz = [0-9]*\)  
 MALLOC  : (Trying to free NULL - ignored\.|free\(0x[a-f0-9]*\) <pre libcwd initialization> <unknown type>.*)
 )*|(MALLOC  : delete 0x[a-f0-9]* <pre ios initialization>  <unknown type>.*
