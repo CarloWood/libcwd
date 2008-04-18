@@ -45,7 +45,7 @@ static int const BSF_OBJECT            = 0x10000;
 
 namespace elfxx {
 
-#if defined(__x86_64__) || defined(__sparc64)
+#if defined(__x86_64__) || defined(__sparc64) || defined(__ia64__)
 typedef Elf64_Addr Elfxx_Addr;
 typedef Elf64_Off Elfxx_Off;
 typedef Elf64_Word Elfxx_Word;

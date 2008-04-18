@@ -43,7 +43,7 @@ public:
 #else
   typedef std::string object_files_string;
 #endif
-#if defined(__x86_64__) || defined(__sparc64)
+#if defined(__x86_64__) || defined(__sparc64) || defined(__ia64__)
   typedef uint64_t Elfxx_Addr;        // Elf64_Addr.
 #else
   typedef uint32_t Elfxx_Addr;        // Elf32_Addr.
