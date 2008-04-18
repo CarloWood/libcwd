@@ -1,3 +1,10 @@
+libcwd (1.0.2-1) unstable; urgency=low
+
+  * Bumped version number because of a microscopic change in the .orig tar
+    ball, and a new one with the same version can't be uploaded to debian.
+
+ -- Carlo Wood <carlo@alinoe.com>  Fri, 18 Apr 2008 05:02:54 +0200
+
 libcwd (1.0.1-2) unstable; urgency=low
 
   * Make package autobuildable.
