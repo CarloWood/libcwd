@@ -47,14 +47,16 @@ void attach_gdb(void)
   f << "b *" << __builtin_return_address(0) << "\nset libcwd_attach_gdb_hook=0\nc\n";
   f.close();
   char command[256];
-  Dout(dc::always, "gdb_bin = \"" << rcfile.gdb_bin() << "\".");
+  Dout(dc::always, "gdb = \"" << rcfile.gdb_bin() << "\".");
   size_t len = snprintf(command, sizeof(command), "%s -x gdb.cmds /proc/%u/exe %u", rcfile.gdb_bin().c_str(), pid1, pid1);
   if (len >= sizeof(command))
-    DoutFatal(dc::fatal, "rcfile: value of keyword 'gdb_bin' too long (" << rcfile.gdb_bin() << ')');
+    DoutFatal(dc::fatal, "rcfile: value of keyword 'gdb' too long (" << rcfile.gdb_bin() << ')');
+  if (rcfile.gdb_bin().size() == 0)
+    DoutFatal(dc::fatal, "rcfile: value of keyword 'gdb' is empty. Did you call Debug(read_rcfile()) at all?");
   char command2[512];
-  Dout(dc::always, "konsole_command = \"" << rcfile.konsole_command() << "\".");
+  Dout(dc::always, "xterm = \"" << rcfile.konsole_command() << "\".");
   len = snprintf(command2, sizeof(command2), rcfile.konsole_command().c_str(), command);
-  Dout(dc::always, "command = \"" << command2 << "\".");
+  Dout(dc::always, "Executing \"" << command2 << "\".");
   if (len >= sizeof(command2))
     DoutFatal(dc::fatal, "rcfile: value of keyword 'xterm' too long (" << rcfile.konsole_command());
   libcwd_attach_gdb_hook = 1;
@@ -93,10 +95,10 @@ void attach_gdb(void)
 	    else if (WIFSIGNALED(status))
 	      DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated because of (uncaught) signal " << WTERMSIG(status) <<
 		  " before attaching to the process.");
-  #ifdef WCOREDUMP
+#ifdef WCOREDUMP
 	    else if (WCOREDUMP(status))
 	      DoutFatal(dc::core, "Failed to start gdb: 'xterm' dumped core before attaching to the process.");
-  #endif
+#endif
 	    DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated before attaching to the process.");
 	  }
 	}
