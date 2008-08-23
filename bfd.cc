@@ -734,7 +734,14 @@ static bool const statically_linked = true;
 	        lowbf = this;
 	        highbf = *iter;
 	      }
-	      LIBCWD_ASSERT(lowbf->M_start_last_symbol);			// Must be set to be variable.
+	      if (!lowbf->M_start_last_symbol)			// Must be non-zero to be variable.
+	      {
+	        Dout(dc::warning, "\"" << lowbf->get_object_file()->filepath() << "\" overlaps with \"" <<
+		    (*iter)->get_object_file()->filepath() << "\" but does not have a last symbol. "
+		    "This probably means that it's sections are not contiguous. "
+		    "Libcwd can't deal with that at the moment. The last sections will be disregarded which might cause "
+		    "failures to lookup symbols in this library.");
+	      }
 	      LIBCWD_ASSERT(lowbf->M_start_last_symbol < highbf->get_start());	// At most last symbol size can be wrong.
 	      lowbf->M_size = (char*)highbf->M_start - (char*)lowbf->M_start;
 	      Dout(dc::bfd, "End of \"" << lowbf->get_object_file()->filepath() << "\" corrected to be " <<
