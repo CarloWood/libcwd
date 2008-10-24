@@ -931,7 +931,17 @@ dm_alloc_copy_ct* dm_alloc_copy_ct::deep_copy(dm_alloc_ct const* alloc)
 dm_alloc_copy_ct::~dm_alloc_copy_ct()
 {
   delete M_next_list;
-  delete M_next;
+  //delete M_next;
+  // In order to avoid a stack overflow in the case that this is
+  // a very long list, delete all M_next objects in the chain
+  // here (patch by Joel Nordell).
+  dm_alloc_copy_ct* next;
+  for (dm_alloc_copy_ct* p = M_next; p != NULL; p = next)
+  {
+    next = p->M_next;
+    p->M_next = NULL;
+    delete p;
+  }
 }
 
 typedef dm_alloc_ct const const_dm_alloc_ct;
