@@ -1845,7 +1845,7 @@ extern "C" {
       }
 #endif
       // Don't call cwbfd::load_object_file when dlopen() was called with NULL as argument.
-      if (name)
+      if (name && *name)
       {
 	object_file = cwbfd::load_object_file(name, cwbfd::unknown_l_addr);
 	if (object_file)

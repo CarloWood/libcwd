@@ -142,7 +142,7 @@ AC_ARG_ENABLE(debugt,
     libcwd_config_debugt=$enableval)
 
 dnl Process default options.
-CW_OPG_FLAGS
+CW_OPG_FLAGS([-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Winline])
 CW_PCHFLAGS
 
 AC_ARG_VAR(THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].])

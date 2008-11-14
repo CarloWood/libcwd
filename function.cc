@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <regex.h>
+#include <cstdlib>
 #include <libcwd/class_function.h>
 
 #include <iomanip>
