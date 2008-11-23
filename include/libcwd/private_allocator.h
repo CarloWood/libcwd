@@ -149,7 +149,7 @@ template<> struct log2<0> { enum { result = -1 }; };
 static size_t const minimum_size_exp = log2<sizeof(Node) - 1>::result + 1;	// Calculate rounded up log2 value.
 
 static size_t const minimum_size = (1U << minimum_size_exp);	// The minimum chunk size, must be a power of 2.
-// The number of different buckets (with repsective chunk sizes: 8, 16, 32, 64, 128, 256, 512 and 1024).
+// The number of different buckets (with respective chunk sizes: 8, 16, 32, 64, 128, 256, 512 and 1024).
 static int const bucket_sizes = maximum_size_exp - minimum_size_exp + 1;
 
 struct List : public Node {
