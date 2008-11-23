@@ -84,6 +84,10 @@ enum malloc_report_nt
   malloc_report
 };
 
+// Backtrace hook:
+int const max_frames = 16;
+extern void (*backtrace_hook)(void** buffer, int frames LIBCWD_COMMA_TSD_PARAM);
+
 #ifndef LIBCWD_DOXYGEN
 extern std::ostream& operator<<(std::ostream&, malloc_report_nt);
 #endif
