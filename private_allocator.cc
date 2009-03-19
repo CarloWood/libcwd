@@ -121,6 +121,8 @@ void BlockList::initialize(unsigned int* count_ptr, unsigned short internal)
 
 void BlockList::uninitialize(void)
 {
+  if (!M_next)	// Never initialized?
+    return;
 #if CWDEBUG_DEBUG
   consistency_check();
 #endif
@@ -146,6 +148,8 @@ void BlockList::uninitialize(void)
 
 void FreeList::uninitialize(void)
 {
+  if (!M_initialized)
+    return;
 #if CWDEBUG_DEBUG
   consistency_check();
 #endif
