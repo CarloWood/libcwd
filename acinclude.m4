@@ -106,7 +106,7 @@ AC_DEFUN([CW_SYS_FRAME_ADDRESS_OFFSET],
 [AC_REQUIRE([CW_SYS_RECURSIVE_BUILTIN_RETURN_ADDRESS])
 CW_CONFIG_FRAME_ADDRESS_OFFSET=undef
 if test "$cw_cv_sys_recursive_builtin_return_address" != "no"; then
-AC_CACHE_CHECK(frame pointer offset in frame structure, cw_sys_frame_address_offset,
+AC_CACHE_CHECK(frame pointer offset in frame structure, cw_cv_sys_frame_address_offset,
 [save_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS=""
 AC_TRY_RUN([
@@ -153,16 +153,16 @@ int main(int argc, char* argv[])
   return 255;	// Failure
 }],
 ./conftest run
-cw_sys_frame_address_offset=$?
-if test "$cw_sys_frame_address_offset" != "255"; then
+cw_cv_sys_frame_address_offset=$?
+if test "$cw_cv_sys_frame_address_offset" != "255"; then
 CW_CONFIG_FRAME_ADDRESS_OFFSET=define
 fi,
 [AC_MSG_ERROR(Failed to compile a test program!?)],
-cw_sys_frame_address_offset=0 dnl Guess a default for cross compiling
+cw_cv_sys_frame_address_offset=0 dnl Guess a default for cross compiling
 )
 CXXFLAGS="$save_CXXFLAGS"])
 fi
-eval "CW_FRAME_ADDRESS_OFFSET_C=$cw_sys_frame_address_offset"
+eval "CW_FRAME_ADDRESS_OFFSET_C=$cw_cv_sys_frame_address_offset"
 AC_SUBST(CW_FRAME_ADDRESS_OFFSET_C)
 AC_SUBST(CW_CONFIG_FRAME_ADDRESS_OFFSET)
 ])
