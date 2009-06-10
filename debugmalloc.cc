@@ -4012,6 +4012,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
     //     It might print "free" instead of "realloc", but the program is ill-formed
     //     anyway in this case.
     --__libcwd_tsd.inside_malloc_or_free;
+    __libcwd_tsd.internal = 0;
     internal_free(ptr2, from_free LIBCWD_COMMA_TSD);
     ++__libcwd_tsd.inside_malloc_or_free;
     DoutInternal(dc::finish, "NULL" LIBCWD_DEBUGM_OPT(" [" << saved_marker << ']'));
