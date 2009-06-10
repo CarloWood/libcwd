@@ -210,9 +210,11 @@ test -n "$enable_shared" || enable_shared=yes
 test -n "$enable_static" || enable_static=yes
 dnl Note: due to a bug in libtool-1.3c, the language must be C at this point!
 AC_PROG_LIBTOOL
+if test -e ./libtool -a "X$enable_shared" = "X"; then
 dnl Configuration needed by the testsuite, extract this from the generated 'libtool'
 enable_shared=`./libtool --config | grep '^build_libtool_libs=' | sed -e 's/build_libtool_libs=//'`
 enable_static=`./libtool --config | grep '^build_old_libs=' | sed -e 's/build_old_libs=//'`
+fi
 if test $enable_shared = yes; then
   if expr "$host" : ".*openbsd.*" >/dev/null; then
     AC_MSG_ERROR([
@@ -223,6 +225,7 @@ Static libraries are supported however, please configure using
 ])
   fi
 fi
+if ! grep 'BEGIN LIBTOOL CONFIG' $srcdir/configure >/dev/null; then
 dnl libtool has a bug that it adds an -rpath for the $libdir, we don't want
 dnl that because the only programs we have are test executables that are
 dnl never installed anyway!  There is no option to turn this off other than
@@ -239,6 +242,7 @@ dnl " <-- quote needed for vim.
 sq="'"
 se='|'
 eval sed -e ${sq}s${se}^sys_lib_dlsearch_path_spec=.*${se}sys_lib_dlsearch_path_spec=${dq}$sys_lib_dlsearch_path_spec $tmp${dq}${se}${sq} libtool > libtool.tmp && mv libtool.tmp libtool
+fi
 
 dnl Used in sys.h to force recompilation
 CC_FINGER_PRINT="$cw_cv_sys_CC_finger_print"
