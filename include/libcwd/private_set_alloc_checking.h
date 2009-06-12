@@ -53,12 +53,12 @@ namespace libcwd {
   inline void set_invisible_on(LIBCWD_TSD_PARAM) { ++__libcwd_tsd.invisible; }
   inline void set_invisible_off(LIBCWD_TSD_PARAM) { --__libcwd_tsd.invisible; }
 #else // !CWDEBUG_ALLOC
-  inline void set_alloc_checking_off(LIBCWD_TSD_PARAM) { }
-  inline void set_alloc_checking_on(LIBCWD_TSD_PARAM) { }
-  inline int set_library_call_on(LIBCWD_TSD_PARAM) { return 0; }
-  inline void set_library_call_off(int LIBCWD_COMMA_TSD_PARAM) { }
-  inline void set_invisible_on(LIBCWD_TSD_PARAM) { }
-  inline void set_invisible_off(LIBCWD_TSD_PARAM) { }
+  inline void set_alloc_checking_off(LIBCWD_TSD_PARAM_UNUSED) { }
+  inline void set_alloc_checking_on(LIBCWD_TSD_PARAM_UNUSED) { }
+  inline int set_library_call_on(LIBCWD_TSD_PARAM_UNUSED) { return 0; }
+  inline void set_library_call_off(int LIBCWD_COMMA_TSD_PARAM_UNUSED) { }
+  inline void set_invisible_on(LIBCWD_TSD_PARAM_UNUSED) { }
+  inline void set_invisible_off(LIBCWD_TSD_PARAM_UNUSED) { }
 #endif // !CWDEBUG_ALLOC
 
   } // namespace _private_
