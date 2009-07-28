@@ -500,6 +500,7 @@ void thread_ct::terminated(threadlist_t::iterator thread_iter LIBCWD_COMMA_TSD_P
   if (delete_memblk_map(memblk_map, LIBCWD_TSD))	// Returns true if memblk_map was deleted.
   {
     DEBUGDEBUG_CERR("Erasing from threadlist memblk_map " << (void*)thread_iter->memblk_map << " (thread_ct at " << (void*)&(*thread_iter) << " which should be equal to " << (void*)this << ", [old_]thread_iter at " << (void*)&thread_iter << ')');
+    memblk_map = NULL;
     threadlist->erase(thread_iter);			// We're done with this thread object.
   }
   else

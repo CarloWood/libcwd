@@ -2231,6 +2231,31 @@ static void annotation_free(size_t size)
 }
 #endif
 
+#if LIBCWD_THREAD_SAFE
+static void delete_zombie(_private_::thread_ct* zombie_thread LIBCWD_COMMA_TSD_PARAM)
+{
+  rwlock_tct<threadlist_instance>::wrlock();
+  memblk_map_ct* memblk_map = reinterpret_cast<memblk_map_ct*>(zombie_thread->memblk_map);
+  zombie_thread->memblk_map = NULL;
+  delete memblk_map;
+  DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
+  __libcwd_tsd.internal = 0;
+  set_alloc_checking_off(__libcwd_tsd);
+  for(threadlist_t::iterator thread_iter = threadlist->begin(); thread_iter != threadlist->end(); ++thread_iter)
+  {
+    if (&(*thread_iter) == zombie_thread)
+    {
+      threadlist->erase(thread_iter);
+      break;
+    }
+  }
+  set_alloc_checking_on(__libcwd_tsd);
+  DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 1." );
+  __libcwd_tsd.internal = 1;
+  rwlock_tct<threadlist_instance>::wrunlock();
+}
+#endif
+
 static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUGM
@@ -2459,10 +2484,14 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
       alloc_node->deinit(LIBCWD_TSD);						// Perform deinitialization that needs lock.
     target_memblk_map_write->erase(memblk_iter_write);				// Update administration
 #if LIBCWD_THREAD_SAFE
-    if (!found_in_current_thread && __libcwd_tsd.target_thread->is_zombie() && target_memblk_map_write->size() == 0)
-      delete target_memblk_map_write;
+    _private_::thread_ct* zombie_thread = __libcwd_tsd.target_thread;
+    bool can_delete_zombie = !found_in_current_thread && zombie_thread->is_zombie() && target_memblk_map_write->size() == 0;
 #endif
     RELEASE_WRITE_LOCK;
+#if LIBCWD_THREAD_SAFE
+    if (can_delete_zombie)
+      delete_zombie(zombie_thread, __libcwd_tsd);
+#endif
 
     DEBUGDEBUG_CERR( "__libcwd_free: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
     __libcwd_tsd.internal = 0;
@@ -3463,11 +3492,21 @@ static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, v
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
+  memblk_map_ct const* target_memblk_map = target_memblk_map_read;
+  if (!target_memblk_map)
+  {
+    RELEASE_READ_LOCK;
+    LIBCWD_RESTORE_CANCEL_NO_BRACE;
+    return NULL;
+  }
+  memblk_map_ct::const_iterator iter = target_memblk_map->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
+  memblk_map_ct const* target_memblk_map = target_memblk_map_read;
+  if (!target_memblk_map)
+    return NULL;
+  memblk_map_ct::const_iterator const& iter(target_memblk_map->find(memblk_key_ct(ptr2, 0)));
 #endif
-  bool found = (iter != target_memblk_map_read->end());
+  bool found = (iter != target_memblk_map->end());
 #if LIBCWD_THREAD_SAFE
   if (!found)
   {
@@ -4084,12 +4123,13 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
 #if LIBCWD_THREAD_SAFE
     if (other_target_thread)
     {
-      if (__libcwd_tsd.target_thread->is_zombie() && target_memblk_map_write->size() == 0)
-	delete target_memblk_map_write;
+      _private_::thread_ct* zombie_thread = __libcwd_tsd.target_thread;
+      bool can_delete_zombie = zombie_thread->is_zombie() && target_memblk_map_write->size() == 0;
+      RELEASE_WRITE_LOCK;
       __libcwd_tsd.target_thread = other_target_thread;
       RELEASE_READ_LOCK;
-      // We still have the lock for the current thread (set 12 lines above this).
-      __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);
+      if (can_delete_zombie)
+	delete_zombie(zombie_thread, __libcwd_tsd);
     }
 #endif
     std::pair<memblk_map_ct::iterator, bool> const& iter2(memblk_map_write->insert(memblk));
@@ -4114,12 +4154,13 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
 #if LIBCWD_THREAD_SAFE
     if (other_target_thread)
     {
-      if (__libcwd_tsd.target_thread->is_zombie() && target_memblk_map_write->size() == 0)
-	delete target_memblk_map_write;
+      _private_::thread_ct* zombie_thread = __libcwd_tsd.target_thread;
+      bool can_delete_zombie = zombie_thread->is_zombie() && target_memblk_map_write->size() == 0;
+      RELEASE_WRITE_LOCK;
       __libcwd_tsd.target_thread = other_target_thread;
       RELEASE_READ_LOCK;
-      // We still have the lock for the current thread (set 12 lines above this).
-      __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);
+      if (can_delete_zombie)
+	delete_zombie(zombie_thread, __libcwd_tsd);
     }
 #endif
     std::pair<memblk_map_ct::iterator, bool> const& iter2(memblk_map_write->insert(memblk));
@@ -4133,7 +4174,8 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
   }
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
-  RELEASE_WRITE_LOCK;
+  if (!other_target_thread)
+    RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
 
   if (!insertion_succeeded)
