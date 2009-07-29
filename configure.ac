@@ -1,13 +1,13 @@
 dnl Run autogen.sh to produce a configure script.
 
-dnl Version info, see http://www.gnu.org/software/libtool/manual.html#Updating-version-info
+dnl Version info, see http://www.gnu.org/software/libtool/manual/libtool.html#Updating-version-info
 dnl
 dnl CW_INTERFACE_VERSION           : Current interface version, increment whenever the interface is changed.
 dnl CW_INTERFACE_VERSION_REVISION  : Revision, increment every public release; or set to 0 when the interface is changed.
 dnl CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
-define(CW_INTERFACE_VERSION, 1)
-define(CW_INTERFACE_VERSION_REVISION, 1)
+define(CW_INTERFACE_VERSION, 2)
+define(CW_INTERFACE_VERSION_REVISION, 0)
 define(CW_INTERFACE_AGE, 1)
 define(CW_PACKAGE_NAME, [libcwd])
 define(CW_BUGREPORT, [libcwd@alinoe.com])
