@@ -91,7 +91,7 @@ void libcwd_bfd_test3(void)
           libcwd::location_ct((char*)frame_return_address(i) + builtin_return_address_offset) << "!");
 #endif
 
-    if (!loc.is_known())
+    if (!loc.is_known() || strcmp(loc.mangled_function_name(), "__libc_start_main") == 0)
       break;
 #else // !CWDEBUG_LOCATION
 #ifdef CW_FRAME_ADDRESS_OFFSET

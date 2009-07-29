@@ -84,6 +84,19 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>28 Jul 2009</B>
+<P class="news">libcwd-1.0.3 is released.&nbsp;
+This version fixes a vew bugs, the most important one being a crash
+while accessing a deleted <code>memblk_map_ct</code> in <code>search_in_maps_of_other_threads</code>.
+The problem here was that if a thread is destroyed while the are still
+memory allocations undeleted that were made by this thread, it's
+thread_ct object was not removed from the thread list that
+<code>search_in_maps_of_other_threads</code> searches, and it's <code>memblk_map_ct</code> is
+marked as a 'zombie'. As soon as the last memory allocation is deleted
+the <code>memblk_map_ct</code> was deleted (cleanup) but the <code>thread_ct*</code> was not
+removed from the thread list, causing a crash the next call to
+<code>search_in_maps_of_other_threads</code>.
+</P>
 <DT><B>23 Jan 2008</B>
 <P class="news">libcwd-1.0.0 is released.&nbsp;
 This version adds support for sparc64. All configure options now work also

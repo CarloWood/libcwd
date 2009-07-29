@@ -4,7 +4,7 @@
 #endif
 #include <libcwd/sys.h>
 #endif
-#include <_G_config.h>
+#include <cstdio>
 #ifndef _G_CLOG_CONFLICT
 #define _G_CLOG_CONFLICT 0
 #endif

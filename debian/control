@@ -2,7 +2,7 @@ Source: libcwd
 Priority: extra
 Maintainer: Carlo Wood <carlo@alinoe.com>
 Build-Depends: debhelper (>= 6), procps
-Standards-Version: 3.7.3
+Standards-Version: 3.8.2
 XS-Autobuild: yes
 Section: non-free/libs
 

@@ -4174,8 +4174,10 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
   }
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
+#if LIBCWD_THREAD_SAFE
   if (!other_target_thread)
     RELEASE_WRITE_LOCK;
+#endif
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
 
   if (!insertion_succeeded)

@@ -12,7 +12,7 @@ Upstream Author:
 
 Copyright:
 
-    Copyright (C) 2008 Carlo Wood
+    Copyright (C) 2009 Carlo Wood
 
 License:
 
@@ -121,6 +121,6 @@ License:
     settled by Amsterdam City Court.
 
 
-The Debian packaging is (C) 2008, Carlo Wood <libcwd@alinoe.com> and
-is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
+The Debian packaging is (C) 2009, Carlo Wood <libcwd@alinoe.com> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL-3'.
 

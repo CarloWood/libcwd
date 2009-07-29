@@ -331,7 +331,7 @@ is printed first.&nbsp; After the call returns we print the results.</P>
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
-#include &lt;unistd.h&gt;
+#include &lt;cstdlib&gt;
 
 std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
 {
@@ -403,7 +403,7 @@ ourselfs that allocates memory (as certain system calls could do too!):</P>
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
-#include &lt;unistd.h&gt;
+#include &lt;cstdlib&gt;
 
 std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
 {
@@ -476,7 +476,7 @@ which are designed especially for <EM>interrupted debug output</EM>:</P>
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
-#include &lt;unistd.h&gt;
+#include &lt;cstdlib&gt;
 
 std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
 {

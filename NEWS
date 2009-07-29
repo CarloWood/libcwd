@@ -1,3 +1,16 @@
+libcwd-1.0.3
+
+	Undocumented support for a 'backtrace_hook' function. The hook is
+	called (if set) whenever memory is allocated, passing the current
+	backtrace.
+
+	Bug fixes:
+
+        Patch by Joel Nordell to avoid a stack overflow in ~dm_alloc_copy_ct()
+        in the case that all M_next objects in the chain is a very long list.
+
+	Fixed a bug that could crash while accessing a (deleted) memblk_map_ct.
+
 libcwd-1.0.0
 
 	Fixed problems that stopped libcwd from working on sparc64.

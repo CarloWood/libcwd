@@ -7,8 +7,8 @@ dnl CW_INTERFACE_VERSION_REVISION  : Revision, increment every public release; o
 dnl CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
 define(CW_INTERFACE_VERSION, 1)
-define(CW_INTERFACE_VERSION_REVISION, 0)
-define(CW_INTERFACE_AGE, 0)
+define(CW_INTERFACE_VERSION_REVISION, 1)
+define(CW_INTERFACE_AGE, 1)
 define(CW_PACKAGE_NAME, [libcwd])
 define(CW_BUGREPORT, [libcwd@alinoe.com])
 
@@ -16,9 +16,10 @@ dnl CW_VERSION_MAJOR               : Increment when the whole library was rewrit
 dnl CW_VERSION_MINOR               : Increment when major changes have occured, like removing interfaces.
 dnl CW_VERSION_REVISION            : Increment every public release; or set to 0 when CW_VERSION_MINOR was incremented.
 
+dnl Also change the version strings in INSTALL when changing this.
 define(CW_VERSION_MAJOR, 1)
 define(CW_VERSION_MINOR, 0)
-define(CW_VERSION_REVISION, 2)
+define(CW_VERSION_REVISION, 3)
 
 dnl Package name and version
 AC_INIT(CW_PACKAGE_NAME, CW_VERSION_MAJOR.CW_VERSION_MINOR.CW_VERSION_REVISION, CW_BUGREPORT)

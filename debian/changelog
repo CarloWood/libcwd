@@ -1,3 +1,9 @@
+libcwd (1.0.3-1) unstable; urgency=low
+
+  * Upgrade to version 1.0.3.
+
+ -- Carlo Wood <carlo@alinoe.com>  Tue, 28 Jul 2009 18:46:51 +0200
+
 libcwd (1.0.2-1) unstable; urgency=low
 
   * Bumped version number because of a microscopic change in the .orig tar

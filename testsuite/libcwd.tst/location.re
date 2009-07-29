@@ -15,8 +15,12 @@ BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:126
 NOTICE  : called from tst_location_shared:_Z15libcwd_bfd_testv:location\.cc:126
 BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:162
 NOTICE  : called from tst_location_shared:main:location\.cc:162
+// input lines 2
+// output till ^BFD     : address
+(BFD     : Loading debug info from /usr/lib/debug/lib/libc-2\.9\.so\.\.\. done
+)*
 // input lines 3
-// output till ^(WARNING|NOTICE  : called from libc\.so\.6:|NOTICE  : Program end)
+// output till ^(WARNING|NOTICE  : Program end)
 (BFD     : address 0x[0-9a-f]+ corresponds to .*
 NOTICE  : called from .*
 )*

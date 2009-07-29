@@ -75,6 +75,10 @@ unsigned long thread_index(pthread_t tid)
   if (is_NPTL)
   {
     unsigned long res = tid >> 23;
+    static unsigned long offset = 0;
+    if (!offset)
+      offset = res - heartbeat_size / 2;
+    res -= offset;
     if (res >= heartbeat_size)
       abort();
     return res;

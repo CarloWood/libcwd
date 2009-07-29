@@ -66,7 +66,7 @@ test-values:
 	@echo "PREVTAG  = \"$(PREVTAG)\""
 
 ## Make sure the ChangeLog is up to date in maintainer mode
-.PHONY: tar rpm ChangeLog documentation debian
+.PHONY: rpm ChangeLog documentation debian
 
 rpm: dist $(SPECFILE) $(LSMFILE)
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
@@ -83,7 +83,11 @@ debian: @PACKAGE@-@VERSION@.tar.gz
 	cd debian-build; \
 	tar xzf ../@PACKAGE@-@VERSION@.tar.gz; \
 	tar czf @PACKAGE@_@VERSION@.orig.tar.gz --exclude debian @PACKAGE@-@VERSION@; \
-	dpkg-source -b @PACKAGE@-@VERSION@
+	dpkg-source -b @PACKAGE@-@VERSION@; \
+	cd @PACKAGE@-@VERSION@; \
+	dpkg-buildpackage -us -uc; \
+	cd ..; \
+	lintian @PACKAGE@_@VERSION@-1_amd64.changes
 
 ChangeLog:
 	if test $(SVNREADACCESS) = yes; then \
@@ -103,9 +107,9 @@ $(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer 
 	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> $(srcdir)/example-project/debug.h; \
 	fi
 
-CCVERSVN=svn-4.3
-CCVERALL=$(CCVERSVN),4.2.2,4.2.1,4.2.0,4.1.2,4.1.1,4.1.0,4.0.3,4.0.0,3.4.6,3.4.1,3.4.0,3.3.6
-CCVERMOST=$(CCVERSVN),4.2.0,4.1.0,4.0.0,3.4.6,3.4.0,3.3.6
+CCVERSVN=svn-4.5
+CCVERALL=$(CCVERSVN),4.4.1,4.4.0,4.3.3,4.3.2,4.3.1,4.3.0,4.2.4,4.2.0,4.1.2,4.1.1,4.1.0,4.0.3,4.0.0,3.4.6,3.4.1,3.4.0,3.3.6
+CCVERMOST=$(CCVERSVN),4.4.0,4.3.0,4.2.0,4.1.0,4.0.0,3.4.6,3.4.0,3.3.6
 
 #		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
 #		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
@@ -123,14 +127,14 @@ full-check: Makefile
 	  for c in \
 		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
 		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
-		'--enable-maintainer-mode --disable-pch --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --disable-pch                                                                       --compilers=$(CCVERMOST)' \
 	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
 		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
 	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
 	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=$(CCVERMOST)' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --compilers=$(CCVERMOST)' \
-		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
 	    case "$$c" in \
