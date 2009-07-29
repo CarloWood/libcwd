@@ -91,7 +91,7 @@ The most important bug being fixed involved a crash
 while accessing a deleted <code>memblk_map_ct</code> in <code>search_in_maps_of_other_threads</code>.
 </P>
 <P class="news">If there are still undeleted memory allocations when a thread is destroyed, then its
-thread_ct object is not removed from the thread list that <code>search_in_maps_of_other_threads</code> searches
+<code>thread_ct</code> object is not removed from the thread list that <code>search_in_maps_of_other_threads</code> searches
 but it is flagged as a 'zombie'. As soon as the last memory allocation is deleted
 its <code>memblk_map_ct</code> is deleted (cleanup) but the <code>thread_ct</code> was not
 removed from the thread list, causing a crash the next call to <code>search_in_maps_of_other_threads</code>.
