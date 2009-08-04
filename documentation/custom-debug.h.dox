@@ -72,7 +72,6 @@ The first one (the %debug.h that will be installed) would look something like th
      }
    }
  }
- #endif // CWDEBUG
 
  // Define private debug output macros for use in header files of the library,
  // there is no reason to do this for normal applications.
@@ -89,6 +88,16 @@ The first one (the %debug.h that will be installed) would look something like th
  #if !defined(Debug) && !defined(LIBEXAMPLE_INTERNAL)
  #error The application source file (.cc or .cpp) must use '#include "debug.h"' _before_ including the header file that it includes now, that led to this error.
  #endif
+
+ #else
+
+ #define LibexampleDebug(STATEMENT...) do { } while(0)
+ #define LibexampleDout(cntrl, data) do { } while(0)
+ #define LibexampleDoutFatal(cntrl, data) do { ::std::cerr << data << ::std::endl; ::std::exit(EXIT_FAILURE); } while(1)
+ #define LibexampleForAllDebugChannels(STATEMENT...) do { } while(0)
+ #define LibexampleForAllDebugObjects(STATEMENT...) do { } while(0)
+
+ #endif // CWDEBUG
 
  #endif // LIBEXAMPLE_DEBUG_H
 \endcode
