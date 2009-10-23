@@ -1132,6 +1132,8 @@ static bool const statically_linked = true;
       bfile_ct* load_object_file(char const* name, void* l_addr)
       {
 	LIBCWD_TSD_DECLARATION;
+	if (!ST_init(LIBCWD_TSD))
+	  return NULL;
 #if CWDEBUG_DEBUGM
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
