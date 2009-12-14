@@ -2031,7 +2031,7 @@ void debug_ct::set_ostream(std::ostream* os)
 #if CWDEBUG_LOCATION
     Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << ": You should passing a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
 #else
-    DoutFatal(dc::core, "You must passing a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
+    DoutFatal(dc::core, "You must pass a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
 #endif
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
