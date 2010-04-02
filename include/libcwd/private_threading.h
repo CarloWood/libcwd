@@ -957,7 +957,10 @@ template <int instance>
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wr2rdlock()");
       if (instance < end_recursive_types)
         S_writer_id = 0;
+      S_no_holders_condition.lock();
       S_holders_count = 1;				// Turn writer into a reader (atomic operation).
+      S_no_holders_condition.signal();
+      S_no_holders_condition.unlock();
       LibcwDebugThreads(
 	  _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 	  if (instance >= instance_rdlocked_size)
