@@ -84,6 +84,13 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>01 Jun 2010</B>
+<P class="news">libcwd-1.0.4 is released.&nbsp;
+This version fixes the problem that occurred with the initialization of libcwd
+with the lastest libc (2.10) because that calls dlopen before calling malloc et al.
+It also fixes a bug in the internal read/write lock implementation that theoretically
+could lead to dead locking of libcwd.
+</P>
 <DT><B>28 Jul 2009</B>
 <P class="news">libcwd-1.0.3 is released.&nbsp;
 This version fixes a vew bugs.&nbsp;

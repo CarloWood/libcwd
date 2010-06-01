@@ -1,3 +1,11 @@
+libcwd-1.0.4
+
+	Support for libc-2.10.
+
+	Bug fixes:
+
+	Some obscure bug with the internal rwlock_tct.
+
 libcwd-1.0.3
 
 	Undocumented support for a 'backtrace_hook' function. The hook is

@@ -43,7 +43,9 @@ MAIN_FUNCTION
 
   // Test initial ostreams.
   ostream* my_own_os = my_own_do.get_ostream();
+#ifndef THREADTEST
   ostream* libcwd_os = libcwd::libcw_do.get_ostream();
+#endif
   ostream* coutp = &cout;
   ostream* cerrp = &cerr;
 
@@ -213,7 +215,9 @@ MAIN_FUNCTION
 
   my_own_do.set_ostream(&cout COMMA_THREADED(&cout_mutex));
   my_own_os = my_own_do.get_ostream();
+#ifndef THREADTEST
   libcwd_os = libcwd::libcw_do.get_ostream();
+#endif
 
   if (my_own_os != coutp
 #ifndef THREADTEST

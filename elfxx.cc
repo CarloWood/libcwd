@@ -2063,7 +2063,7 @@ void objfile_ct::load_dwarf(void)
 					// beginning at 1. The value 0 is reserved to indicate that a statement begins at the left
 					// edge of the line.
 	    bool is_stmt;		// A boolean indicating that the current instruction is the beginning of a statement.
-	    bool basic_block;		// A boolean indicating that the current instruction is the beginning of a basic block.
+	    bool basic_block __attribute__((unused));		// A boolean indicating that the current instruction is the beginning of a basic block.
 	    bool end_sequence;		// A boolean indicating that the current address is that of the first byte after the end of
 					// a sequence of target machine instructions.
 	    uint32_t total_length;	// The size in bytes of the statement information for this compilation unit (not including
@@ -2789,7 +2789,6 @@ void objfile_ct::load_stabs(void)
   bool skip_function = false;
   bool source_file_changed_and_we_didnt_copy_it_yet = true;
   bool source_file_changed_but_line_number_not_yet = true;
-  Elfxx_Addr last_source_change_start = 0;
   object_files_string_set_ct::iterator last_source_iter;
   for (unsigned int j = 0; j < M_sections[M_stabs_section_index].section_header().sh_size / M_sections[M_stabs_section_index].section_header().sh_entsize; ++j)
   {
@@ -2819,7 +2818,6 @@ void objfile_ct::load_stabs(void)
 	cur_source += '\0';
 	last_source_iter = M_source_files.insert(cur_source).first; 
 	source_file_changed_and_we_didnt_copy_it_yet = source_file_changed_but_line_number_not_yet = true;
-	last_source_change_start = range.start;
 	DoutStabs(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
 	break;
       }
