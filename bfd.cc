@@ -1129,11 +1129,19 @@ static bool const statically_linked = true;
 #endif
 
       // cwbfd::
-      bfile_ct* load_object_file(char const* name, void* l_addr)
+      bfile_ct* load_object_file(char const* name, void* l_addr, bool initialized = false)
       {
+	static bool WST_initialized = false;
 	LIBCWD_TSD_DECLARATION;
-	if (!ST_init(LIBCWD_TSD))
-	  return NULL;
+	// If dlopen is called as very first function (instead of malloc), we get here
+	// as first function inside libcwd. In that case, initialize libcwd first.
+	if (!WST_initialized)
+	{
+	  if (initialized)
+	    WST_initialized = true;
+	  else if (!ST_init(LIBCWD_TSD))
+	    return NULL;
+	}
 #if CWDEBUG_DEBUGM
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
@@ -1289,7 +1297,7 @@ static bool const statically_linked = true;
 
 	  // Load executable
 	  BFD_INITIALIZE_LOCK;
-	  load_object_file(fullpath.data(), executable_l_addr);
+	  load_object_file(fullpath.data(), executable_l_addr, true);
 
 	  if (!statically_linked)
 	  {
