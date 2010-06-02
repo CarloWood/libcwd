@@ -1253,15 +1253,15 @@ static bool const statically_linked = true;
 #if CWDEBUG_DEBUG && CWDEBUG_ALLOC
 	LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
+#if CWDEBUG_ALLOC
+	// Initialize the malloc library if not done yet.
+	init_debugmalloc();
+#endif
 
 	// ****************************************************************************
 	// Start INTERNAL!
 	set_alloc_checking_off(LIBCWD_TSD);
 
-#if CWDEBUG_ALLOC
-	// Initialize the malloc library if not done yet.
-	init_debugmalloc();
-#endif
         new (fake_ST_shared_libs) ST_shared_libs_vector_ct;
 
 	libcwd::debug_ct::OnOffState state;
