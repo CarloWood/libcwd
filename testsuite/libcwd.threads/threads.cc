@@ -106,7 +106,7 @@ void set_margin(void)
   Debug( libcw_do.margin().assign(margin, 11) );
 #if CWDEBUG_DEBUGT
   pthread_once(&test_keys_once, &test_keys_alloc);
-  for (unsigned int i = 0; i < sizeof(keys) / sizeof(pthread_key_t); ++i)
+  for (size_t i = 0; i < sizeof(keys) / sizeof(pthread_key_t); ++i)
     pthread_setspecific(keys[i], (void*)i);
 #endif
 }

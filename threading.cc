@@ -572,7 +572,9 @@ void test_lock_pair(size_t instance_first, void const* from_first, size_t instan
   // During the decoding, we assume that the first instance is the smallest (instance 1).
   keypair_info.state = group1;
   bool first_is_readonly = false;
+#if CWDEBUG_DEBUGOUTPUT
   bool second_is_high_priority = false;
+#endif
   if (instance_first < 0x10000)
   {
     if (instance_first >= read_lock_offset)
@@ -586,7 +588,9 @@ void test_lock_pair(size_t instance_first, void const* from_first, size_t instan
   {
     if (instance_second >= high_priority_read_lock_offset)
     {
+#if CWDEBUG_DEBUGOUTPUT
       second_is_high_priority = true;
+#endif
       keypair_info.state |= (group4 | group5);
       if (first_is_readonly)
 	keypair_info.state |= group6;
