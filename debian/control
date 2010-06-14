@@ -24,6 +24,7 @@ Description: C++ Debugging Support Library
 Package: libcwd-doc
 Section: non-free/doc
 Architecture: all
+Depends: ${misc:Depends}
 Description: Documentation of the libcwd C++ Debugging Support Library
  Libcwd is a full-featured, professional, well-documented library
  to support C++ developers with debugging their applications.

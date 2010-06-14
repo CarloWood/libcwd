@@ -123,6 +123,9 @@ dist-hook: documentation
 	if test -d $(srcdir)/debian/.svn; then \
 	  echo > $(distdir)/debian/.files; \
 	  for i in $$(cd $(srcdir)/debian && svn stat --verbose --non-interactive | sed -re 's/.*[[:space:]]//' -e 's/^\.$$//'); do \
+	    if test -d $(srcdir)/debian/$$i; then \
+	      mkdir $(distdir)/debian/$$i; \
+	    fi; \
 	    if test -f $(srcdir)/debian/$$i; then \
 	      cp -p $(srcdir)/debian/$$i $(distdir)/debian/$$i; \
 	      echo $$i >> $(distdir)/debian/.files; \
