@@ -66,16 +66,27 @@ test-values:
 	@echo "PREVTAG  = \"$(PREVTAG)\""
 
 ## Make sure the ChangeLog is up to date in maintainer mode
-.PHONY: rpm ChangeLog documentation debian
+.PHONY: rpm ChangeLog documentation debian @PACKAGE@-@VERSION@.tar.gz
 
 rpm: dist $(SPECFILE) $(LSMFILE)
 	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
 	cd rpm; rpmbuild --rcfile=/usr/lib/rpm/rpmrc:rpmrc --sign --clean -ba ../$(SPECFILE)
 
+@PACKAGE@-@VERSION@.tar.gz:
+	RESULT=ok; \
+	for f in $$(tar tzf @PACKAGE@-@VERSION@.tar.gz | sed -e 's%^[^/]*/%%'); do \
+	  test -e ../libcwd/$$f && test ../libcwd/$$f -nt libcwd-1.0.4.tar.gz && echo 'WARNING: '$$f' is newer than @PACKAGE@-@VERSION@.tar.gz!' && RESULT=error; \
+	done; \
+	if test "$$RESULT" != "ok"; then \
+	  echo "You must run: $(MAKE) dist"; \
+	  exit -1; \
+	fi
+
 debian: @PACKAGE@-@VERSION@.tar.gz
 	VER="$$(dpkg-parsechangelog -l$(srcdir)/debian/changelog | sed -n -e 's/-.*//;s/^Version: //p')"; \
 	if test "$$VER" != "@VERSION@"; then \
-	  echo "The version in debian/changelog ($$VER) does not match @VERSION@."; \
+	  echo "The version in debian/changelog ($$VER) does not match @VERSION@." \
+	  echo "Run (cd $(srcdir) && dch -v @VERSION@-1 && dch -r) and rebuild the tar ball!"; \
 	  exit 1; \
 	fi
 	rm -rf debian-build
@@ -83,7 +94,6 @@ debian: @PACKAGE@-@VERSION@.tar.gz
 	cd debian-build; \
 	tar xzf ../@PACKAGE@-@VERSION@.tar.gz; \
 	tar czf @PACKAGE@_@VERSION@.orig.tar.gz --exclude debian @PACKAGE@-@VERSION@; \
-	dpkg-source -b @PACKAGE@-@VERSION@; \
 	cd @PACKAGE@-@VERSION@; \
 	dpkg-buildpackage -us -uc; \
 	cd ..; \

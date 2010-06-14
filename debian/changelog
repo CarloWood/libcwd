@@ -1,3 +1,9 @@
+libcwd (1.0.4-1) unstable; urgency=low
+
+  * Upgrade to version 1.0.4.
+
+ -- Carlo Wood <carlo@alinoe.com>  Mon, 14 Jun 2010 15:10:42 +0200
+
 libcwd (1.0.3-1) unstable; urgency=low
 
   * Upgrade to version 1.0.3.

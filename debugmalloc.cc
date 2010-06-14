@@ -1903,7 +1903,7 @@ char const* diagnose_magic(prezone const* ptr1, size_t expected_magic_begin, siz
     case ~MAGIC_POSIX_MEMALIGN_END:
     case ~MAGIC_MEMALIGN_END:
     case ~MAGIC_VALLOC_END:
-      return ") with inconsistant magic numbers!";
+      return ") with inconsistent magic numbers!";
   }
   return ") with a corrupt second magic number (buffer overrun?)!";
 }
