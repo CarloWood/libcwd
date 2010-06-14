@@ -48,7 +48,7 @@ void attach_gdb(void)
   f.close();
   char command[256];
   Dout(dc::always, "gdb = \"" << rcfile.gdb_bin() << "\".");
-  size_t len = snprintf(command, sizeof(command), "%s -x gdb.cmds /proc/%u/exe %u", rcfile.gdb_bin().c_str(), pid1, pid1);
+  size_t len = snprintf(command, sizeof(command), "%s -n -x gdb.cmds /proc/%u/exe %u", rcfile.gdb_bin().c_str(), pid1, pid1);
   if (len >= sizeof(command))
     DoutFatal(dc::fatal, "rcfile: value of keyword 'gdb' too long (" << rcfile.gdb_bin() << ')');
   if (rcfile.gdb_bin().size() == 0)
