@@ -57,6 +57,7 @@ install: build
 	mkdir -p $(CURDIR)/debian/libcwd/usr/share/lintian/overrides
 	echo "libcwd: package-name-doesnt-match-sonames" > $(CURDIR)/debian/libcwd/usr/share/lintian/overrides/libcwd
 	echo "libcwd: non-dev-pkg-with-shlib-symlink" >> $(CURDIR)/debian/libcwd/usr/share/lintian/overrides/libcwd
+	echo "libcwd: no-symbols-control-file" >> $(CURDIR)/debian/libcwd/usr/share/lintian/overrides/libcwd
 	# Add here commands to install the libcwd-doc package into debian/libcwd-doc
 	$(MAKE) DESTDIR="$(CURDIR)/debian/libcwd-doc" DOCDESTDIR="$(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc" install-doc
 	rm -f $(CURDIR)/debian/libcwd-doc/usr/share/doc/libcwd-doc/example-project/.files
