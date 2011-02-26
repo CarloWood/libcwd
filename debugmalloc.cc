@@ -2744,6 +2744,18 @@ void init_debugmalloc(void)
 #endif
       WST_initialization_state = -1;
       _private_::set_alloc_checking_on(LIBCWD_TSD);
+
+#ifdef HAVE_DLOPEN
+      // Initialize the function pointers for posix_memalign et al.
+#ifdef HAVE_POSIX_MEMALIGN
+      libc_posix_memalign = (int (*)(void **, size_t, size_t))dlsym(RTLD_NEXT, "posix_memalign");
+#endif
+#ifdef HAVE_MEMALIGN
+      libc_memalign = (void* (*)(size_t, size_t))dlsym(RTLD_NEXT, "memalign");
+#endif
+#ifdef HAVE_VALLOC
+      libc_valloc = (void* (*)(size_t))dlsym(RTLD_NEXT, "valloc");
+#endif
     }
 #if LIBCWD_IOSBASE_INIT_ALLOCATES
     if (!_private_::WST_ios_base_initialized && !_private_::inside_ios_base_Init_Init())
@@ -2758,18 +2770,6 @@ void init_debugmalloc(void)
       							// happens to be a function that is called _very_ early - and hence
 							// this is a good moment to initialize ALL of libcwd.
       __libcwd_tsd.inside_malloc_or_free = recursive_store;
-
-#ifdef HAVE_DLOPEN
-      // Finally initialize the function pointers for posix_memalign et al.
-#ifdef HAVE_POSIX_MEMALIGN
-      libc_posix_memalign = (int (*)(void **, size_t, size_t))dlsym(RTLD_NEXT, "posix_memalign");
-#endif
-#ifdef HAVE_MEMALIGN
-      libc_memalign = (void* (*)(size_t, size_t))dlsym(RTLD_NEXT, "memalign");
-#endif
-#ifdef HAVE_VALLOC
-      libc_valloc = (void* (*)(size_t))dlsym(RTLD_NEXT, "valloc");
-#endif
 #endif // HAVE_DLOPEN
     }
   }
