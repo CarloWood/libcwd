@@ -17,7 +17,7 @@ BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:162
 NOTICE  : called from tst_location_shared:main:location\.cc:162
 // input lines 2
 // output till ^BFD     : address
-(BFD     : Loading debug info from /usr/lib/debug/lib/libc-2\.(9|10\.2)\.so\.\.\. done
+(BFD     : Loading debug info from /usr/lib/debug/lib/libc-2\.[.0-9]*\.so\.\.\. done
 )*
 // input lines 3
 // output till ^(WARNING|NOTICE  : Program end)
