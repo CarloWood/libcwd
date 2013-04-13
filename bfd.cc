@@ -737,7 +737,7 @@ static bool const statically_linked = true;
 	      if (!lowbf->M_start_last_symbol)			// Must be non-zero to be variable.
 	      {
 	        Dout(dc::warning, "\"" << lowbf->get_object_file()->filepath() << "\" overlaps with \"" <<
-		    (*iter)->get_object_file()->filepath() << "\" but does not have a last symbol. "
+		    highbf->get_object_file()->filepath() << "\" but does not have a last symbol. "
 		    "This probably means that it's sections are not contiguous. "
 		    "Libcwd can't deal with that at the moment. The last sections will be disregarded which might cause "
 		    "failures to lookup symbols in this library.");
