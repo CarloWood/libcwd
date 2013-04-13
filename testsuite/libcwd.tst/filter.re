@@ -22,24 +22,24 @@ MALLOC  : delete 0x[a-f0-9]*            filter\.cc:54   (std::|__gnu_norm::|__gn
 (MALLOC  : malloc\(12\) = <unfinished>
 WARNING :     Object file (/usr/lib/debug)*/lib/ld-2\.[.0-9]*\.so does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
 MALLOC  : <continued> 0x[a-f0-9]* \[ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)\]
-)|(MALLOC  : malloc\(12\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)|dl-load\.c:170|ld-linux-x86-64\.so\.2:<unknown function>)\]
+)|(MALLOC  : malloc\(12\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:(_dl_map_object|expand_dynamic_string_token)|dl-load\.c:(170|162)|ld-linux-x86-64\.so\.2:<unknown function>)\]
 )
 // input lines 5
 // output till MALLOC  : (malloc|realloc)
 (MALLOC  : calloc\(1172, 1\) = <unfinished>
 WARNING :     Object file (/usr/lib/debug)*/lib64/ld-2\.[.0-9]*\.so does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
 MALLOC  : <continued> 0x[a-f0-9]* \[ld-linux-x86-64\.so\.2:_dl_rtld_di_serinfo\]
-)|(MALLOC  : calloc\((1156|612|600|616|572|544|548|576|588|596), 1\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:_dl_new_object|dl-object\.c:52)\]
+)|(MALLOC  : calloc\((1172|1156|612|600|616|572|544|548|576|588|596), 1\) = 0x[a-f0-9]* \[(ld-linux\.so\.2:_dl_new_object|dl-object\.c:(52|77))\]
 )
-MALLOC  : (malloc\(140\)|realloc\(0x0, 140\)) = 0x[a-f0-9]* \[(ld-linux-x86-64\.so\.2:_dl_rtld_di_serinfo|ld-linux\.so\.2:_dl_new_object|dl-object\.c:16[01])\]
-MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[(ld-linux-x86-64\.so\.2:_dl_rtld_di_serinfo|ld-linux\.so\.2:_dl_map_object_deps|dl-deps\.c:50[07])\]
+MALLOC  : (malloc\(140\)|realloc\(0x0, 140\)) = 0x[a-f0-9]* \[(ld-linux-x86-64\.so\.2:_dl_rtld_di_serinfo|ld-linux\.so\.2:_dl_new_object|dl-object\.c:(160|161|180))\]
+MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[(ld-linux-x86-64\.so\.2:_dl_rtld_di_serinfo|ld-linux\.so\.2:_dl_map_object_deps|dl-deps\.c:50[067])\]
 MALLOC  : calloc\([3-8], (16|24)\) = 0x[a-f0-9]* \[(ld-linux-x86-64\.so\.2:_dl_debug_state|ld-linux\.so\.2:_dl_check_map_versions|dl-version\.c:299)\]
 // input lines 5
 // output till ^NOTICE  : dlopen
 (MALLOC  : malloc\([0-9]*\) = <unfinished>
 WARNING :     Object file .*/libc-2.[.0-9]*.so does not have debug info\.  Address lookups inside this object file will result in a function name only, not a source file location\.
 MALLOC  : <continued> 0x[a-f0-9]* \[libc\.so\.6:(dl_open_worker|_dl_open|add_to_global)\]
-)|(MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[(libc\.so\.6:(dl_open_worker|_dl_open)|ld-linux-x86-64\.so\.2:_dl_make_stack_executable|ld-linux.so\.2:add_to_global|dl-open\.c:10[47])\]
+)|(MALLOC  : malloc\([0-9]*\) = 0x[a-f0-9]* \[(libc\.so\.6:(dl_open_worker|_dl_open)|ld-linux-x86-64\.so\.2:_dl_make_stack_executable|ld-linux.so\.2:add_to_global|dl-open\.c:10[478])\]
 )
 NOTICE  : dlopen\(\./module\.so, RTLD_NOW\|RTLD_GLOBAL\) == 0x[a-f0-9]*
 MALLOC  : operator new \(size = (8|16)\) = 0x[a-f0-9]* \[filter\.cc:191\]

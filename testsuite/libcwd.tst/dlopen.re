@@ -37,23 +37,11 @@ MALLOC  : Number of visible memory blocks: 2\.
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:24 *void\*; \(sz = 310\)  Allocated inside global_test_symbol 
 MALLOC  : free\(0x[0-9a-f]*\) *module.cc:13 *void\*; \(sz = 300\)  Allocated inside static_test_symbol 
 // input lines 2
-// output till ^MALLOC
+// output till ^(MALLOC|NOTICE)
 (WARNING : This compiler version is buggy, a call to dlclose\(\) will destruct the standard streams.*
 )*
-MALLOC  : free\(0x[0-9a-f]*\) *(dl-version.c:[0-9]*|_dl_[a-z_]*) *<unknown type>; \(sz = [0-9]*\)  
-MALLOC  : free\(0x[0-9a-f]*\) *(dl-object.c:[0-9]*|_dl_[a-z_]*) *<unknown type>; \(sz = [0-9]*\)  
 // input lines 2
-// output till sz =
-(MALLOC  : Trying to free NULL - ignored\.
-)*
-MALLOC  : free\(0x[0-9a-f]*\) *(dl-load.c:[0-9]*|_dl_map_object|open_pathr|) *<unknown type>; \(sz = [0-9]*\)  
-// input lines 2
-// output till (^NOTICE|delete )
-(MALLOC  : (Trying to free NULL - ignored\.|free\(0x[0-9a-f]*\) *(dl-[a-z]*\.c:[0-9]*|_dl_[a-z_]*) *<unknown type>; \(sz = [0-9]*\)  )
-)*
-// input lines 3
 // output till ^NOTICE
-(MALLOC  : delete 0x[0-9a-f]* *(streambuf::streambuf\(int\)|streambuf\.cc:211|ios\.cc:326|memory:183) *<unknown type>; \(sz = [0-9]*\)  
-(MALLOC  : Trying to free NULL - ignored\.
-)*)*
+(MALLOC  : .*
+)*
 NOTICE  : Finished
