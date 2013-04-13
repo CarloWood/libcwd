@@ -33,5 +33,5 @@ channels_on = warning
 gdb = /usr/bin/gdb
 
 # Commandline to execute in order to open a window (for starting gdb at run time).
-xterm = konsole -geometry =1024x400+0+0 -e %s
+xterm = konsole --workdir "$PWD" --geometry 1024x400+0+0 -e %s
 
