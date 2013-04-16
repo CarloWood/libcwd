@@ -69,8 +69,17 @@ namespace libcwd {
 	LIBCWD_CANCELSTATE_RESTORE;								\
       }												\
     } while(0)
+
+#define LIBCWD_DEBUG_ASSERT(expr) do { if (!(expr)) { FATALDEBUGDEBUG_CERR("CWDEBUG_DEBUG: " __FILE__ ":" << __LINE__ << ": " << __PRETTY_FUNCTION__ << ": Assertion`" << LIBCWD_STRING(expr) << "' failed."); core_dump(); } } while(0)
+#if CWDEBUG_DEBUGT
+#define LIBCWD_DEBUGT_ASSERT(expr) do { if (!(expr)) { FATALDEBUGDEBUG_CERR("CWDEBUG_DEBUGT: " __FILE__ ":" << __LINE__ << ": " << __PRETTY_FUNCTION__ << ": Assertion`" << LIBCWD_STRING(expr) << "' failed."); core_dump(); } } while(0)
+#else
+#define LIBCWD_DEBUGT_ASSERT(expr) do { } while(0)
+#endif
 #else // !CWDEBUG_DEBUG
+#define LIBCWD_DEBUG_ASSERT(expr) do { } while(0)
 #define FATALDEBUGDEBUG_CERR(x) do { } while(0)
+#define LIBCWD_DEBUGT_ASSERT(expr) do { } while(0)
 #endif // !CWDEBUG_DEBUG
 
 #if CWDEBUG_DEBUGOUTPUT

@@ -509,12 +509,13 @@ extern void ST_initialize_globals(LIBCWD_TSD_PARAM);
       no_alloc_ostream << data;													\
       -- LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
       LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);	/* Never returns */			\
-      LIBCWD_ASSERT( !"Bug in libcwd!" );											\
+      LIBCWD_DEBUG_ASSERT( !"Bug in libcwd!" );											\
+      core_dump();														\
     }																\
     else															\
     {																\
       DEBUGDEBUG_ELSE_DoutFatalInternal(data);											\
-      LIBCWD_ASSERT( !"See msg above." );											\
+      LIBCWD_DEBUG_ASSERT( !"See msg above." );											\
       core_dump();														\
     }																\
   } while(0)
@@ -579,9 +580,7 @@ namespace _private_ {
   bool inside_ios_base_Init_Init(void)				// Single Threaded function.
   {
     LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-    LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
-#endif
+    LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.internal);
 #ifndef _GLIBCPP_USE_WCHAR_T
     if (std::cerr.flags() != std::ios_base::unitbuf)		// Still didn't reach the end of std::ios_base::Init::Init()?
 #else
@@ -857,9 +856,7 @@ public:
               LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_LOCATION(location_ct const* l)) :		// MT-safe: write lock is set.
       dm_alloc_base_ct(s, sz , f, unknown_type_info_c, t LIBCWD_COMMA_LOCATION(l)), prev(NULL), a_next_list(NULL)
       {
-#if CWDEBUG_DEBUGT
-	LIBCWD_ASSERT( __libcwd_tsd.target_thread == &(*__libcwd_tsd.thread_iter) );
-#endif
+	LIBCWD_DEBUGT_ASSERT(__libcwd_tsd.target_thread == &(*__libcwd_tsd.thread_iter));
 	next = *CURRENT_ALLOC_LIST;
 	my_list = CURRENT_ALLOC_LIST;
 	my_owner_node = CURRENT_OWNER_NODE;
@@ -879,10 +876,8 @@ public:
   ~dm_alloc_ct() { if (my_list) { LIBCWD_TSD_DECLARATION; deinit(LIBCWD_TSD); } }
   void new_list(LIBCWD_TSD_PARAM)							// MT-safe: write lock is set.
       {
-#if CWDEBUG_DEBUGT
 	// A new list is always added for the current thread.
-	LIBCWD_ASSERT( __libcwd_tsd.target_thread == &(*__libcwd_tsd.thread_iter) );
-#endif
+	LIBCWD_DEBUGT_ASSERT(__libcwd_tsd.target_thread == &(*__libcwd_tsd.thread_iter));
 	CURRENT_ALLOC_LIST = &a_next_list;
         CURRENT_OWNER_NODE = this;
       }
@@ -993,7 +988,7 @@ public:
 #if CWDEBUG_DEBUGM
     {
       LIBCWD_TSD_DECLARATION;
-      LIBCWD_ASSERT( __libcwd_tsd.internal );
+      LIBCWD_DEBUGM_ASSERT( __libcwd_tsd.internal );
       DoutInternal( dc::warning, "Calling memblk_key_ct::operator==(" << *this << ", " << b << ")" );
     }
 #endif
@@ -1136,7 +1131,7 @@ static location_cache_map_t location_cache_map;		// MT-safe: initialized before 
 
 location_ct const* location_cache(void const* addr LIBCWD_COMMA_TSD_PARAM)
 {
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );
+  LIBCWD_ASSERT(!__libcwd_tsd.internal);
   bool found;
   location_ct* location_info = NULL;	// Avoid compiler warning.
   LIBCWD_DEFER_CANCEL;
@@ -1240,7 +1235,7 @@ void dm_alloc_ct::deinit(LIBCWD_TSD_PARAM)					// MT-safe: write lock is set.
   if (!my_list)
     return;
 #if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( __libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(__libcwd_tsd.internal);
   if (a_next_list)
     DoutFatalInternal( dc::core, "Removing an dm_alloc_ct that still has an own list" );
   dm_alloc_ct* tmp;
@@ -1286,9 +1281,7 @@ static void print_integer(std::ostream& os, unsigned int val, int width)
 
 void dm_alloc_base_ct::print_description(debug_ct& debug_object, alloc_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
 {
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.internal && !__libcwd_tsd.library_call );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.internal && !__libcwd_tsd.library_call);
 #if CWDEBUG_LOCATION
   LibcwDoutScopeBegin(channels, debug_object, dc::continued);
   if ((filter.M_flags & show_objectfile))
@@ -1443,7 +1436,7 @@ unsigned long dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int dept
   unsigned long printed_memblks = 0;
   dm_alloc_copy_ct const* alloc;
   LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );		// localtime() can allocate memory and is a library call.
+  LIBCWD_ASSERT(!__libcwd_tsd.internal);		// localtime() can allocate memory and is a library call.
   for (alloc = this; alloc; alloc = alloc->M_next)
   {
     if ((filter.M_flags & hide_untagged) && !alloc->is_tagged())
@@ -1542,9 +1535,7 @@ void memblk_info_ct::printOn(std::ostream& os) const
 
 bool memblk_info_ct::erase(bool owner LIBCWD_COMMA_TSD_PARAM)
 {
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( __libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(__libcwd_tsd.internal);
   dm_alloc_ct* ap = a_alloc_node.get();
 #if CWDEBUG_DEBUGM
   if (ap)
@@ -1590,9 +1581,9 @@ bool memblk_info_ct::erase(bool owner LIBCWD_COMMA_TSD_PARAM)
 
 void memblk_info_ct::make_invisible(void)
 {
-#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
+#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUGOUTPUT
   LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT( (*__libcwd_tsd.thread_iter).thread_mutex.is_locked() ); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
+  LIBCWD_DEBUG_ASSERT((*__libcwd_tsd.thread_iter).thread_mutex.is_locked()); // MT-safe: write lock is set (needed for ~dm_alloc_ct).
 #endif
   LIBCWD_ASSERT( a_alloc_node.strict_owner() );
 
@@ -2258,17 +2249,9 @@ static void delete_zombie(_private_::thread_ct* zombie_thread LIBCWD_COMMA_TSD_P
 
 static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_TSD_PARAM)
 {
-#if CWDEBUG_DEBUGM
-  // We can't use `assert' here, because that can call malloc.
-  if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
-  {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
-	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
-    core_dump();
-  }
-#endif
+  LIBCWD_DEBUGM_ASSERT(__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal);
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized || __libcwd_tsd.internal);
 #endif
   if (__libcwd_tsd.internal)
   {
@@ -2736,7 +2719,7 @@ void init_debugmalloc(void)
       location_cache_map.MT_unsafe = new location_cache_map_ct;
 #endif
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
-      LIBCWD_ASSERT( !_private_::WST_multi_threaded );
+      LIBCWD_DEBUG_ASSERT(!_private_::WST_multi_threaded);
 #endif
 #if !LIBCWD_THREAD_SAFE
       // With threads, memblk_map is initialized in 'LIBCWD_TSD_DECLARATION'.
@@ -2984,9 +2967,7 @@ static void list_allocations_cleanup(void)
 unsigned long list_allocations_on(debug_ct& debug_object, alloc_filter_ct const& filter)
 {
   LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 
   unsigned long printed_memblks = 0;
 #if LIBCWD_THREAD_SAFE
@@ -3079,9 +3060,7 @@ void make_invisible(void const* void_ptr)
 {
   appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.internal);
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
@@ -3140,9 +3119,7 @@ void make_invisible(void const* void_ptr)
 void make_all_allocations_invisible_except(void const* ptr)
 {
   LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.internal);
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
   for (memblk_map_ct::iterator iter(memblk_map_write->begin()); iter != memblk_map_write->end(); ++iter)
@@ -3262,9 +3239,7 @@ void remove_type_info_references(object_file_ct const* object_file_ptr LIBCWD_CO
 void marker_ct::register_marker(char const* label)
 {
   LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
   Dout( dc_malloc, "New libcwd::marker_ct at " << this );
   bool error = false;
   LIBCWD_DEFER_CANCEL;
@@ -3295,9 +3270,7 @@ void marker_ct::register_marker(char const* label)
 marker_ct::~marker_ct()
 {
   LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 
   _private_::smart_ptr description;
 
@@ -3415,9 +3388,7 @@ void move_outside(marker_ct* marker, void const* void_ptr)
 {
   appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 
   LIBCWD_DEFER_CANCEL_NO_BRACE;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
@@ -3562,9 +3533,7 @@ static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, v
 alloc_ct const* find_alloc(void const* ptr)
 { 
   LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 
   memblk_info_base_ct memblk_info_dummy;
   return find_memblk_info(memblk_info_dummy, false, ptr LIBCWD_COMMA_TSD);
@@ -3589,11 +3558,9 @@ void register_external_allocation(void const* void_ptr, size_t size)
 {
   appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
-#endif
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 #if CWDEBUG_DEBUGM && LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized);
 #endif
   if (__libcwd_tsd.internal)
     DoutFatalInternal( dc::core, "Calling register_external_allocation while `internal' is non-zero!  "
@@ -3614,7 +3581,7 @@ void register_external_allocation(void const* void_ptr, size_t size)
     location_cache_map.MT_unsafe = new location_cache_map_ct;
 #endif
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
-    LIBCWD_ASSERT( !_private_::WST_multi_threaded );
+    LIBCWD_DEBUG_ASSERT(!_private_::WST_multi_threaded);
 #endif
 #if !LIBCWD_THREAD_SAFE
     // With threads, memblk_map is initialized in 'LIBCWD_TSD_DECLARATION'.
@@ -3721,7 +3688,7 @@ void* __libcwd_malloc(size_t size) throw()
 #endif
 #endif
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized || __libcwd_tsd.internal);
 #endif
   if (__libcwd_tsd.internal)
   {
@@ -3836,7 +3803,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size) throw()
 #endif
 #endif
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized || __libcwd_tsd.internal);
 #endif
   if (__libcwd_tsd.internal)
   {
@@ -3914,7 +3881,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
 #endif
 #endif
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized || __libcwd_tsd.internal);
 #endif
   if (__libcwd_tsd.internal)
   {
@@ -4216,9 +4183,9 @@ int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size) throw(
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 #if LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized);
 #endif
 #endif
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
@@ -4253,9 +4220,9 @@ void* __libcwd_memalign(size_t alignment, size_t size) throw()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 #if LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized);
 #endif
 #endif
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
@@ -4281,9 +4248,9 @@ void* __libcwd_valloc(size_t size) throw()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 #if LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized );
+  LIBCWD_DEBUGM_ASSERT( _private_::WST_ios_base_initialized );
 #endif
 #endif
 #if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
@@ -4514,17 +4481,9 @@ void operator delete(void* void_ptr) throw()
   // terminating and are never overwritten by other threads.
   libcwd::_private_::TSD_st& __libcwd_tsd(libcwd::_private_::TSD_st::instance_free());
 #endif
-#if CWDEBUG_DEBUGM
-  // We can't use `assert' here, because that can call malloc.
-  if (__libcwd_tsd.inside_malloc_or_free > __libcwd_tsd.library_call && !__libcwd_tsd.internal)
-  {
-    LIBCWD_DEBUGM_CERR("CWDEBUG_DEBUGM: debugmalloc.cc:" << (__LINE__ - 2) << ": " << __PRETTY_FUNCTION__ <<
-	": Assertion `__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal' failed.");
-    core_dump();
-  }
-#endif
+  LIBCWD_DEBUGM_ASSERT(__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal);
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
 #endif
   internal_free(ptr2, from_delete LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
@@ -4573,7 +4532,7 @@ void operator delete[](void* void_ptr) throw()
   }
 #endif
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && LIBCWD_IOSBASE_INIT_ALLOCATES
-  LIBCWD_ASSERT( _private_::WST_ios_base_initialized || __libcwd_tsd.internal );
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized || __libcwd_tsd.internal);
 #endif
   internal_free(ptr2, from_delete_array LIBCWD_COMMA_TSD);	// Note that the standard demands that we call free(), and not delete().
   								// This forces everyone to overload both, operator delete() and operator
