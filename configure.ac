@@ -144,7 +144,10 @@ AC_ARG_ENABLE(debugt,
 
 dnl Process default options.
 CW_OPG_FLAGS([-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Winline])
-CW_PCHFLAGS
+dnl Dependencies of PHC seem broken beyond repair. Turn it off.
+PCHFLAGS=
+AC_SUBST([PCHFLAGS])
+AM_CONDITIONAL(USE_PCH, [false])
 
 AC_ARG_VAR(THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].])
 if test -z "$THREADSMAX"; then
