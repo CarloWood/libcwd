@@ -2388,9 +2388,7 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
     }
     if (expected_from[f] != from)
     {
-#if LIBCWD_THREAD_SAFE
       RELEASE_READ_LOCK;
-#endif
       if (visible)
       {
 	DoutInternal( dc_malloc|continued_cf,
@@ -2792,9 +2790,12 @@ bool test_delete(void const* void_ptr)
   //     returns false (not deleted) for a deleted memory block.
   found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr2);
 #if LIBCWD_THREAD_SAFE
-  RELEASE_READ_LOCK;
   if (!found)
+  {
+    RELEASE_READ_LOCK;
     found = search_in_maps_of_other_threads(ptr2, iter, __libcwd_tsd) && (*iter).first.start() == ptr2;
+  }
+  RELEASE_READ_LOCK;
   LIBCWD_RESTORE_CANCEL;
 #endif
   return !found;
@@ -4079,12 +4080,19 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
   bool invisible = __libcwd_tsd.invisible || !(*iter).second.has_alloc_node();
   if (invisible)
   {
+#if LIBCWD_THREAD_SAFE
+    if (other_target_thread)
+      ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));	// MT: visible memblk_info_ct() needs wrlock too.
+    else
+      ACQUIRE_READ2WRITE_LOCK;
+#endif
     memblk_ct memblk(memblk_key_ct(ptr2, size), memblk_info_ct(memblk_type_realloc));
 #if LIBCWD_THREAD_SAFE
     if (other_target_thread)
-      ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
-    else
-      ACQUIRE_READ2WRITE_LOCK;
+    {
+      __libcwd_tsd.target_thread = other_target_thread;	// We still hold a read lock on this.
+      ACQUIRE_READ2WRITE_LOCK;				// iter was changed to point to other_target_thread's memblk_map.
+    }
 #endif
     target_memblk_map_write->erase(memblk_iter_write);
 #if LIBCWD_THREAD_SAFE
@@ -4093,8 +4101,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
       _private_::thread_ct* zombie_thread = __libcwd_tsd.target_thread;
       bool can_delete_zombie = zombie_thread->is_zombie() && target_memblk_map_write->size() == 0;
       RELEASE_WRITE_LOCK;
-      __libcwd_tsd.target_thread = other_target_thread;
-      RELEASE_READ_LOCK;
+      __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);	// We still hold a write lock on this.
       if (can_delete_zombie)
 	delete_zombie(zombie_thread, __libcwd_tsd);
     }
@@ -4110,13 +4117,20 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
     gettimeofday(&realloc_time, 0);
 #if LIBCWD_THREAD_SAFE
     if (other_target_thread)
-      ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));			// MT: visible memblk_info_ct() needs wrlock too.
+      ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));	// MT: visible memblk_info_ct() needs wrlock too.
     else
       ACQUIRE_READ2WRITE_LOCK;
 #endif
     memblk_ct memblk(memblk_key_ct(ptr2, size),
 		     memblk_info_ct(ptr2, size, memblk_type_realloc,
 		     realloc_time LIBCWD_COMMA_TSD LIBCWD_COMMA_LOCATION(loc)));
+#if LIBCWD_THREAD_SAFE
+    if (other_target_thread)
+    {
+      __libcwd_tsd.target_thread = other_target_thread;	// We still hold a read lock on this.
+      ACQUIRE_READ2WRITE_LOCK;				// iter was changed to point to other_target_thread's memblk_map.
+    }
+#endif
     target_memblk_map_write->erase(memblk_iter_write);
 #if LIBCWD_THREAD_SAFE
     if (other_target_thread)
@@ -4124,8 +4138,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
       _private_::thread_ct* zombie_thread = __libcwd_tsd.target_thread;
       bool can_delete_zombie = zombie_thread->is_zombie() && target_memblk_map_write->size() == 0;
       RELEASE_WRITE_LOCK;
-      __libcwd_tsd.target_thread = other_target_thread;
-      RELEASE_READ_LOCK;
+      __libcwd_tsd.target_thread = &(*__libcwd_tsd.thread_iter);	// We still hold a write lock on this.
       if (can_delete_zombie)
 	delete_zombie(zombie_thread, __libcwd_tsd);
     }
@@ -4141,10 +4154,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
   }
   DEBUGDEBUG_CERR( "__libcwd_realloc: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
-#if LIBCWD_THREAD_SAFE
-  if (!other_target_thread)
-    RELEASE_WRITE_LOCK;
-#endif
+  RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL_NO_BRACE;
 
   if (!insertion_succeeded)
