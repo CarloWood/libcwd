@@ -224,7 +224,7 @@ using libcwd::_private_::backtrace_instance;
 #define ACQUIRE_LC_WRITE2READ_LOCK	rwlock_tct<location_cache_instance>::wr2rdlock()
 #define DLCLOSE_ACQUIRE_LOCK            mutex_tct<dlclose_instance>::lock()
 #define DLCLOSE_RELEASE_LOCK            mutex_tct<dlclose_instance>::unlock()
-#define BACKTRACE_AQUIRE_LOCK		mutex_tct<backtrace_instance>::lock()
+#define BACKTRACE_ACQUIRE_LOCK		mutex_tct<backtrace_instance>::lock()
 #define BACKTRACE_RELEASE_LOCK		mutex_tct<backtrace_instance>::unlock()
 #else // !LIBCWD_THREAD_SAFE
 #define ACQUIRE_WRITE_LOCK(tt)		do { } while(0)
@@ -241,7 +241,7 @@ using libcwd::_private_::backtrace_instance;
 #define ACQUIRE_LC_WRITE2READ_LOCK	do { } while(0)
 #define DLCLOSE_ACQUIRE_LOCK		do { } while(0)
 #define DLCLOSE_RELEASE_LOCK		do { } while(0)
-#define BACKTRACE_AQUIRE_LOCK		do { } while(0)
+#define BACKTRACE_ACQUIRE_LOCK		do { } while(0)
 #define BACKTRACE_RELEASE_LOCK		do { } while(0)
 #endif // !LIBCWD_THREAD_SAFE
 
@@ -2110,7 +2110,7 @@ static appblock* internal_malloc(size_t size, memblk_types_nt flag
     ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
     int frames = backtrace(buffer, max_frames);
     --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
-    BACKTRACE_AQUIRE_LOCK;
+    BACKTRACE_ACQUIRE_LOCK;
     if (backtrace_hook)
       (*backtrace_hook)(buffer, frames LIBCWD_COMMA_TSD);
     BACKTRACE_RELEASE_LOCK;
@@ -4191,7 +4191,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
     ++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
     int frames = backtrace(buffer, max_frames);
     --LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
-    BACKTRACE_AQUIRE_LOCK;
+    BACKTRACE_ACQUIRE_LOCK;
     if (backtrace_hook)
       (*backtrace_hook)(buffer, frames LIBCWD_COMMA_TSD);
     BACKTRACE_RELEASE_LOCK;
