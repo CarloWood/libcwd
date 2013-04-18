@@ -2795,7 +2795,8 @@ bool test_delete(void const* void_ptr)
     RELEASE_READ_LOCK;
     found = search_in_maps_of_other_threads(ptr2, iter, __libcwd_tsd) && (*iter).first.start() == ptr2;
   }
-  RELEASE_READ_LOCK;
+  if (found)
+    RELEASE_READ_LOCK;
   LIBCWD_RESTORE_CANCEL;
 #endif
   return !found;
