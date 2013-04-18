@@ -94,27 +94,45 @@ void fatal_cancellation(void* arg)
 //
 
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
-// Access to these global variables is protected by the lock static_tsd_instance.
-static TSD_st static_tsd_array[CW_THREADSMAX];
+struct static_tsd_array_wat;
 
-static TSD_st* find_static_tsd(pthread_t tid)
+struct static_tsd_array_wrapper_base {
+  protected:
+    friend struct static_tsd_array_wat;
+    TSD_st array[CW_THREADSMAX];
+};
+
+struct static_tsd_array_wrapper : public static_tsd_array_wrapper_base {
+  ~static_tsd_array_wrapper() { /* Make sure no other thread touches this array while destructing it */ mutex_tct<static_tsd_instance>::lock(); memset(array, 0, sizeof(array)); }
+};
+
+// Access to these global variables is protected by the lock static_tsd_instance.
+static static_tsd_array_wrapper static_tsd_array;
+
+struct static_tsd_array_wat {
+  static_tsd_array_wat() { mutex_tct<static_tsd_instance>::lock(); }
+  ~static_tsd_array_wat() { mutex_tct<static_tsd_instance>::unlock(); }
+  TSD_st& operator[](int index) const { return static_tsd_array.array[index]; }
+};
+
+static TSD_st* find_static_tsd(pthread_t tid, static_tsd_array_wat const& static_tsd_array_w)
 {
-  for (size_t i = 0; i < sizeof(static_tsd_array)/sizeof(static_tsd_array[0]); ++i)
-    if (pthread_equal(static_tsd_array[i].tid, tid))
-      return &static_tsd_array[i];
+  for (size_t i = 0; i < CW_THREADSMAX; ++i)
+    if (pthread_equal(static_tsd_array_w[i].tid, tid))
+      return &static_tsd_array_w[i];
   return NULL;
 }
 
-static TSD_st* allocate_static_tsd(void)
+static TSD_st* allocate_static_tsd(static_tsd_array_wat const& static_tsd_array_w)
 {
   int oldest_terminating = INT_MAX;
   size_t oldest_terminating_index = 0;	// Initialize to avoid 'may be used uninitialized' compiler warning.
-  for (size_t i = 0; i < sizeof(static_tsd_array)/sizeof(static_tsd_array[0]); ++i)
-    if (static_tsd_array[i].tid == 0)
-      return &static_tsd_array[i];
-    else if (static_tsd_array[i].terminating && !static_tsd_array[i].inside_free && static_tsd_array[i].terminating < oldest_terminating)
+  for (size_t i = 0; i < CW_THREADSMAX; ++i)
+    if (static_tsd_array_w[i].tid == 0)
+      return &static_tsd_array_w[i];
+    else if (static_tsd_array_w[i].terminating && !static_tsd_array_w[i].inside_free && static_tsd_array_w[i].terminating < oldest_terminating)
     {
-      oldest_terminating = static_tsd_array[i].terminating;
+      oldest_terminating = static_tsd_array_w[i].terminating;
       oldest_terminating_index = i;
     }
   if (oldest_terminating == INT_MAX)	// This means that more than CW_THREADSMAX threads are either
@@ -122,7 +140,7 @@ static TSD_st* allocate_static_tsd(void)
     std::cerr << "\n****** More threads than THREADSMAX.  Reconfigure libcwd ******\n" << std::endl;
     core_dump();
   }
-  return &static_tsd_array[oldest_terminating_index];
+  return &static_tsd_array_w[oldest_terminating_index];
 }
 
 static void release_static_tsd(TSD_st* tsd)
@@ -150,35 +168,45 @@ TSD_st& TSD_st::S_create(int from_free)
   pthread_t _tid = pthread_self();
 
   mutex_tct<static_tsd_instance>::initialize();
-  mutex_tct<static_tsd_instance>::lock();
-
-  TSD_st* static_tsd = find_static_tsd(_tid);
-  if (static_tsd)
-  {
-    if (from_free == 1)
-      static_tsd->inside_free++;
-    if (static_tsd->inside_free || !static_tsd->terminating)
-    {
-      mutex_tct<static_tsd_instance>::unlock();
-      pthread_setcanceltype(oldtype, NULL);
-      return *static_tsd;
-    }
-  }
-  else
-    static_tsd = allocate_static_tsd();
-
-  bool old_thread_iter_valid = static_tsd->thread_iter_valid;
+  bool done = false;
+  TSD_st* static_tsd;
   threadlist_t::iterator old_thread_iter;
-  if (old_thread_iter_valid)
-    old_thread_iter = static_tsd->thread_iter;
+  bool old_thread_iter_valid = false;
+  do
+  {
+    static_tsd_array_wat static_tsd_array_w;
 
-  // Fill the temporary structure with zeroes.
-  std::memset(static_tsd, 0, sizeof(struct TSD_st));
-  static_tsd->tid = _tid;			// Make sure nobody else will allocate this entry.
+    static_tsd = find_static_tsd(_tid, static_tsd_array_w);
+    if (static_tsd)
+    {
+      if (from_free == 1)
+	static_tsd->inside_free++;
+      if (static_tsd->inside_free || !static_tsd->terminating)
+      {
+	done = true;
+	break;
+      }
+    }
+    else
+      static_tsd = allocate_static_tsd(static_tsd_array_w);
 
-  if (from_free == 1)
-    static_tsd->inside_free = 1;
-  mutex_tct<static_tsd_instance>::unlock();
+    old_thread_iter_valid = static_tsd->thread_iter_valid;
+    if (old_thread_iter_valid)
+      old_thread_iter = static_tsd->thread_iter;
+
+    // Fill the temporary structure with zeroes.
+    std::memset(static_tsd, 0, sizeof(struct TSD_st));
+    static_tsd->tid = _tid;			// Make sure nobody else will allocate this entry.
+
+    if (from_free == 1)
+      static_tsd->inside_free = 1;
+  }
+  while(0);
+  if (done)
+  {
+    pthread_setcanceltype(oldtype, NULL);
+    return *static_tsd;
+  }
 
   static_tsd->pid = getpid();
 
@@ -304,12 +332,15 @@ void TSD_st::cleanup_routine(void)
 
     int oldtype;
     pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldtype);
-    mutex_tct<static_tsd_instance>::lock();
-    TSD_st* static_tsd = allocate_static_tsd();
-    std::memcpy(static_tsd, this, sizeof(TSD_st));	// Move tsd to the static array.
-    static_tsd->terminating = ++terminating_count;
-    static_tsd->thread_iter->terminating();
-    mutex_tct<static_tsd_instance>::unlock();
+    TSD_st* static_tsd;
+    {
+      static_tsd_array_wat static_tsd_array_w;
+      static_tsd = allocate_static_tsd(static_tsd_array_w);
+      std::memcpy(static_tsd, this, sizeof(TSD_st));	// Move tsd to the static array.
+      release_static_tsd(this);
+      static_tsd->terminating = ++terminating_count;
+      static_tsd->thread_iter->terminating();
+    }
     pthread_setcanceltype(oldtype, NULL);
 
     pthread_setspecific(S_tsd_key, (void*)0);	// Make sure that instance_free() won't use the KEY anymore!
