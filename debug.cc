@@ -539,6 +539,13 @@ void allocator_unlock(void)
       } // namespace dc
     } // namespace channels
 
+    /** The special off_channel. */
+    channel_ct const channel_ct::off_channel
+#ifndef HIDE_FROM_DOXYGEN
+	("!NEVER!", false)
+#endif
+	;
+
 #if CWDEBUG_LOCATION
     namespace cwbfd {
       extern bool ST_init(LIBCWD_TSD_PARAM);

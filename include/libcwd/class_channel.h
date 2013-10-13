@@ -99,6 +99,9 @@ private:
   bool WNS_initialized;
     // Set to true when initialized.
 
+  static channel_ct const off_channel;
+    // Channel that is always off.
+
 public:
   //---------------------------------------------------------------------------
   // Constructor
@@ -128,6 +131,8 @@ public:
 
   void force_on(OnOffState& state, char const* label);
   void restore(OnOffState const& state);
+
+  channel_ct const& operator()(bool cond) const { return cond ? *this : off_channel; }
 
 public:
   //---------------------------------------------------------------------------
