@@ -242,7 +242,7 @@ namespace __gnu_cxx
 	void
 	decode_qualifiers(string_type& prefix,
 	    		  string_type& postfix,
-			  bool member_function_pointer_qualifiers) const;
+			  bool member_function_pointer_qualifiers = false) const;
 
 	bool
 	suppressed(void) const
@@ -425,7 +425,7 @@ namespace __gnu_cxx
 	void
 	add_substitution(int start_pos,
 	                 substitution_nt sub_type,
-			 int number_of_prefixes);
+			 int number_of_prefixes = 0);
 
 	bool decode_type_with_postfix(string_type& prefix,
 	    string_type& postfix, qualifier_list<Allocator>* qualifiers = NULL);
@@ -462,7 +462,7 @@ namespace __gnu_cxx
       void
       session<Allocator>::add_substitution(int start_pos,
 					   substitution_nt sub_type,
-					   int number_of_prefixes = 0)
+					   int number_of_prefixes)
       {
 	if (!M_inside_substitution)
 	{
@@ -1736,7 +1736,7 @@ namespace __gnu_cxx
       qualifier_list<Allocator>::decode_qualifiers(
 	  string_type& prefix,
 	  string_type& postfix,
-	  bool member_function_pointer_qualifiers = false) const
+	  bool member_function_pointer_qualifiers) const
       {
 	_GLIBCXX_DEMANGLER_DOUT_ENTERING3("decode_qualifiers");
 	int cvq = 0;

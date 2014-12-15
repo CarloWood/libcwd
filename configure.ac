@@ -6,9 +6,9 @@ dnl CW_INTERFACE_VERSION           : Current interface version, increment whenev
 dnl CW_INTERFACE_VERSION_REVISION  : Revision, increment every public release; or set to 0 when the interface is changed.
 dnl CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
-define(CW_INTERFACE_VERSION, 2)
-define(CW_INTERFACE_VERSION_REVISION, 2)
-define(CW_INTERFACE_AGE, 1)
+define(CW_INTERFACE_VERSION, 3)
+define(CW_INTERFACE_VERSION_REVISION, 0)
+define(CW_INTERFACE_AGE, 2)
 define(CW_PACKAGE_NAME, [libcwd])
 define(CW_BUGREPORT, [libcwd@alinoe.com])
 
@@ -19,7 +19,7 @@ dnl CW_VERSION_REVISION            : Increment every public release; or set to 0
 dnl Also change the version strings in INSTALL when changing this.
 define(CW_VERSION_MAJOR, 1)
 define(CW_VERSION_MINOR, 0)
-define(CW_VERSION_REVISION, 5)
+define(CW_VERSION_REVISION, 6)
 
 dnl Package name and version
 AC_INIT(CW_PACKAGE_NAME, CW_VERSION_MAJOR.CW_VERSION_MINOR.CW_VERSION_REVISION, CW_BUGREPORT)
@@ -143,7 +143,7 @@ AC_ARG_ENABLE(debugt,
     libcwd_config_debugt=$enableval)
 
 dnl Process default options.
-CW_OPG_FLAGS([-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Winline])
+CW_OPG_FLAGS([-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Wno-inline])
 dnl Dependencies of PHC seem broken beyond repair. Turn it off.
 PCHFLAGS=
 AC_SUBST([PCHFLAGS])

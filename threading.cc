@@ -147,7 +147,7 @@ static void release_static_tsd(TSD_st* tsd)
 {
   tsd->tid = 0;
   tsd->thread_iter_valid = false;
-#if _GLIBCXX_DEBUG
+#ifdef _GLIBCXX_DEBUG
   std::memset(&tsd->thread_iter, 0 , sizeof(tsd->thread_iter));
 #endif
 }

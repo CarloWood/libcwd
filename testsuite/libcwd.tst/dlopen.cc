@@ -63,11 +63,13 @@ MAIN_FUNCTION
   void* ptr1 = (*f)(false);
   void* ptr2 = (*f)(true);
 
+#if CWDEBUG_ALLOC
   Debug(
       alloc_filter_ct alloc_filter(show_objectfile);
       alloc_filter.hide_untagged_allocations();
       alloc_filter.hide_unknown_locations();
       list_allocations_on(libcw_do, alloc_filter) );
+#endif
 
   free(ptr1);
   free(ptr2);

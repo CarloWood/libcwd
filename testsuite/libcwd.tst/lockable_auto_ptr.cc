@@ -13,6 +13,7 @@
 #include "sys.h"
 #include <iostream>
 #include "alloctag_debug.h"
+#include "libcwd/lockable_auto_ptr.h"
 
 using namespace libcwd;
 

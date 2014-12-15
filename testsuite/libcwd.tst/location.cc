@@ -43,6 +43,7 @@ static void* frame_return_address(unsigned int frame)
 
 void libcwd_bfd_test3(void)
 {
+#if CWDEBUG_LOCATION
   for (int i = 0; i <= 5; ++i)
   {
     void* retadr;
@@ -100,6 +101,7 @@ void libcwd_bfd_test3(void)
 #endif
 #endif
   }
+#endif
 }
  
 void libcwd_bfd_test2(void)

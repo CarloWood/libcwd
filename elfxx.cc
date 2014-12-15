@@ -1819,7 +1819,7 @@ void objfile_ct::load_dwarf(void)
   // Start of .debug_line section.
   lineptr_t debug_line = reinterpret_cast<lineptr_t>(allocate_and_read_section(M_dwarf_debug_line_section_index));
   lineptr_t debug_line_end = debug_line + M_sections[M_dwarf_debug_line_section_index].section_header().sh_size;
-  lineptr_t debug_line_ptr;
+  lineptr_t debug_line_ptr = NULL;	// Initialization not used; only here to avoid compiler warning.
   // Start of .debug_str section.
   // Needed for DW_FORM_strp.
   unsigned char* debug_str = (unsigned char*)allocate_and_read_section(M_dwarf_debug_str_section_index);
@@ -1846,7 +1846,7 @@ void objfile_ct::load_dwarf(void)
 #endif
     uint16_t version;
     dwarf_read(debug_info_ptr, version);
-    if ( version == 2 )		// DWARF version 2 (and 3)
+    if ( version >= 2 && version <= 4 )	// DWARF version 2 (and 3 and 4)
     {
       uint32_t abbrev_offset;
       dwarf_read(debug_info_ptr, abbrev_offset);

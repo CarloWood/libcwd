@@ -16,16 +16,16 @@ The released tar file contains a debian directory.
 Untar the tar ball, cd into the source tree and build
 the debian binary packages.
 
-tar xzf libcwd-1.0.4.tar.gz
-cd libcwd-1.0.4
+tar xzf libcwd-1.0.6.tar.gz
+cd libcwd-1.0.6
 fakeroot debian/rules binary
 
 'fakeroot' is part of the fakeroot package, dh_testdir is part
 of the debhelper package (sudo apt-get install fakeroot debhelper).
 This results in two .deb files:
 
-libcwd_1.0.4_ARCH.deb		: Libraries and headers.
-libcwd-doc_1.0.4_all.deb	: Reference manual, tutorial and examples.
+libcwd_1.0.6_ARCH.deb		: Libraries and headers.
+libcwd-doc_1.0.6_all.deb	: Reference manual, tutorial and examples.
 
 The package libcwd-doc installs the documentation in
 file://usr/share/doc/libcwd-doc/documentation/index.html, which you
@@ -34,7 +34,7 @@ file://usr/share/doc/libcwd-doc/documentation/tutorial/index.html.
 An example is stored in /usr/share/doc/libcwd-doc/example-project.
 
 Install both packages with:
-sudo dpkg -i libcwd_1.0.4_ARCH.deb libcwd-doc_1.0.4_all.deb
+sudo dpkg -i libcwd_1.0.6_ARCH.deb libcwd-doc_1.0.6_all.deb
 
 Building RPMs
 =============
@@ -42,7 +42,7 @@ Building RPMs
 The released tar file contains a .spec file.
 Therefore you can build an rpm directly from the tar with
 
-rpmbuild -ta libcwd-1.0.4.tar.gz
+rpmbuild -ta libcwd-1.0.6.tar.gz
 
 The resulting rpm will install two libraries:
 libcwd.so and libcwd_r.so.  Be sure to link with -lcwd_r
@@ -70,7 +70,7 @@ i) The GNU compiler, version 3.4 or higher.
    Version 4.0 or higher is highly recommended.
 
     Location: gnu/gcc/
-    Current version: 4.5.0
+    Current version: 4.9.2
 
 Alternatively you can install only
 ia) gnu/gcc/gcc-core-<version>.tar.gz	and
@@ -98,18 +98,8 @@ an alpha version).  You also don't need libg++.
 Don't delete those libraries if you have them though
 since existing binaries might need to link with them.
 
-libcwd-1.0.4 was tested with gcc-3.3.6, gcc-3.4.0, gcc-3.4.1, gcc-3.4.6,
-gcc-4.0.0, gcc-4.0.3, gcc-4.1.0, gcc-4.1.2,
-gcc-4.2.0, gcc-4.2.4, gcc-4.3.0, gcc-4.3.3,
-gcc-4.4.0, gcc-4.4.4, gcc-4.5.0
-and gcc version 4.6.0 20100601 (experimental) [trunk revision 160116]
-
-The versions gcc-3.1.x and gcc-3.2.x might or might not work or
-even compile. Especially gcc-3.1, gcc-3.1.1 and gcc-3.2 are
-risky when used with threading; they might result in freeing a
-pointer that is really a global struct when used with
-a buggy NPTL (and libcwd will CORE when it detects that).
-Other 3.[12].x versions should work but that is not garanteed.
+libcwd-1.0.6 was tested with
+gcc-4.7.3, gcc-4.8.0, gcc-4.8.3 and gcc-4.9.2.
 
 Packages needed to run the testsuite
 ------------------------------------
@@ -220,10 +210,10 @@ It is not garanteed that these work on another machine than mine however.
 Finally, you can also build libcwd in a different directory than the source
 tree is in:
 
-tar xzf libcwd-1.0.4.tar.gz
+tar xzf libcwd-1.0.6.tar.gz
 mkdir libcwd-objdir
 cd libcwd-objdir
-../libcwd-1.0.4/configure --prefix=/usr
+../libcwd-1.0.6/configure --prefix=/usr
 make
 su
 make install

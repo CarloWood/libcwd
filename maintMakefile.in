@@ -75,7 +75,7 @@ rpm: dist $(SPECFILE) $(LSMFILE)
 @PACKAGE@-@VERSION@.tar.gz:
 	RESULT=ok; \
 	for f in $$(tar tzf @PACKAGE@-@VERSION@.tar.gz | sed -e 's%^[^/]*/%%'); do \
-	  test -e ../libcwd/$$f && test ../libcwd/$$f -nt libcwd-1.0.4.tar.gz && echo 'WARNING: '$$f' is newer than @PACKAGE@-@VERSION@.tar.gz!' && RESULT=error; \
+	  test -e ../libcwd/$$f && test ../libcwd/$$f -nt @PACKAGE@-@VERSION@.tar.gz && echo 'WARNING: '$$f' is newer than @PACKAGE@-@VERSION@.tar.gz!' && RESULT=error; \
 	done; \
 	if test "$$RESULT" != "ok"; then \
 	  echo "You must run: $(MAKE) dist"; \
@@ -117,9 +117,9 @@ $(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer 
 	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> $(srcdir)/example-project/debug.h; \
 	fi
 
-CCVERSVN=svn-4.6
-CCVERALL=$(CCVERSVN),4.5.0,4.4.4,4.4.0,4.3.3,4.3.0,4.2.4,4.2.0,4.1.2,4.1.0,4.0.3,4.0.0,3.4.6,3.4.1,3.4.0,3.3.6
-CCVERMOST=$(CCVERSVN),4.5.0,4.4.0,4.3.0,4.2.0,4.1.0,4.0.0,3.4.6,3.4.0,3.3.6
+CCVERSVN=4.9.2
+CCVERALL=$(CCVERSVN),4.8.3,4.8.0,4.7.3
+CCVERMOST=$(CCVERSVN),4.8.0,4.7.3
 
 #		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
 #		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
@@ -200,7 +200,7 @@ syncwww: documentation
 	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/documentation/www/exclude --delete-excluded \
 		`pwd`/documentation/ xs2:"~/WWW/libcwd"
 
-svn-clean:
+git-clean:
 	$(MAKE) -C documentation maintainer-clean
 	(test -f example-project/Makefile && $(MAKE) -C example-project maintainer-clean) || true
 	$(MAKE) maintainer-clean

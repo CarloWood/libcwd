@@ -1051,7 +1051,8 @@ static bool const statically_linked = true;
       fake_shared_libs_type fake_ST_shared_libs;		// Written to only in `ST_decode_ldd' which is called from
       								// `cwbfd::ST_init' and read from in a later part of
 								// `cwbfd::ST_init'.  Initialization is done in ST_init too.
-      ST_shared_libs_vector_ct& ST_shared_libs = *reinterpret_cast<ST_shared_libs_vector_ct*>(&fake_ST_shared_libs);
+      ST_shared_libs_vector_ct* const ST_shared_libs_ptr = reinterpret_cast<ST_shared_libs_vector_ct*>(&fake_ST_shared_libs);
+      ST_shared_libs_vector_ct& ST_shared_libs = *ST_shared_libs_ptr;
 
       // cwbfd::
       int ST_decode_ldd(char const* buf, size_t len)
