@@ -73,7 +73,7 @@ full_top_builddir := $(shell (cd $(top_builddir); pwd))
 LDFLAGS = @LIB_THREADS@ -Wl,-rpath -Wl,$(full_top_builddir)/.libs
 
 CXXFLAGS = -DCWDEBUG
-INCLUDES = -I. -I$(top_builddir)/include -I$(srcdir)/../include
+AM_CPPFLAGS = -I. -I$(top_builddir)/include -I$(srcdir)/../include
 DEFAULT_INCLUDES =
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in

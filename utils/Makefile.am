@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 CXXFLAGS = @CXXFLAGS@
-INCLUDES = -I$(srcdir)/../include -I$(top_builddir)/include
+AM_CPPFLAGS = -I$(srcdir)/../include -I$(top_builddir)/include
 DEFAULT_INCLUDES =
 LIBS=
 

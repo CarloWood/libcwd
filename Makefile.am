@@ -13,7 +13,7 @@ DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 VERSIONINFO=@VERSIONINFO@
 CXXFLAGS = @CXXFLAGS@
 PCHFLAGS = @PCHFLAGS@
-INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
 DEFAULT_INCLUDES =
 
 if ENABLETHREADING

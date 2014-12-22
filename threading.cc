@@ -514,7 +514,13 @@ void thread_ct::initialize(LIBCWD_TSD_PARAM)
 // is being reused, which is currently our only way to know
 // for sure that the corresponding thread has terminated.
 extern bool delete_memblk_map(void* memblk_map LIBCWD_COMMA_TSD_PARAM);
-void thread_ct::terminated(threadlist_t::iterator thread_iter LIBCWD_COMMA_TSD_PARAM)
+void thread_ct::terminated(threadlist_t::iterator
+#if CWDEBUG_ALLOC
+    thread_iter LIBCWD_COMMA_TSD_PARAM
+#elif LIBCWD_THREAD_SAFE
+    , ::libcwd::_private_::TSD_st&
+#endif
+    )
 {
 #if CWDEBUG_ALLOC
   set_alloc_checking_off(LIBCWD_TSD);

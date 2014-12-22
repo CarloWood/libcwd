@@ -14,7 +14,7 @@ EXTRA_DIST = sys.h.in cwd_debug.h cwd_bfd.h raw_write.h raw_write.inl ios_base_I
 TAGS_FILES = $(EXTRA_DIST)
 
 CXXFLAGS = @CXXFLAGS@
-INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
 DEFAULT_INCLUDES =
 
 DISTCLEANFILES = $(BUILT_SOURCES)
