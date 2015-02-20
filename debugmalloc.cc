@@ -821,9 +821,6 @@ static unsigned long ST_memblks = 0;					// Total number of allocated blocks (ex
 #define MEMBLKS ST_memblks
 #endif // !LIBCWD_THREAD_SAFE
 
-#define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
-#define target_memblk_iter_write memblk_iter_write
-
 //===========================================================================
 //
 // class dm_alloc_ct
@@ -1069,13 +1066,28 @@ typedef std::map<memblk_key_ct, memblk_info_ct, std::less<memblk_key_ct>,
                  _private_::memblk_map_allocator::rebind<memblk_ct>::other> memblk_map_ct;
   // The map containing all `memblk_ct' objects.
 
+#ifdef __OPTIMIZE__
+// Remove const_ from const_iterator in order to avoid breaking strict aliasing rules.
+typedef memblk_map_ct::iterator non_const_iter_type;
+#define memblk_iter_write (const_cast<non_const_iter_type&>(iter))
+#else // !__OPTIMIZE__
+typedef memblk_map_ct::const_iterator non_const_iter_type;
+#define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<non_const_iter_type&>(iter))
+#endif // !__OPTIMIZE__
+#define target_memblk_iter_write memblk_iter_write
+
 #if LIBCWD_THREAD_SAFE
 // Should only be used after an ACQUIRE_WRITE_LOCK and before the corresponding RELEASE_WRITE_LOCK.
 #define memblk_map_write (reinterpret_cast<memblk_map_ct*>((*__libcwd_tsd.thread_iter).memblk_map))
 #define target_memblk_map_write (reinterpret_cast<memblk_map_ct*>(__libcwd_tsd.target_thread->memblk_map))
 // Should only be used after an ACQUIRE_READ_LOCK and before the corresponding RELEASE_READ_LOCK.
+#ifdef __OPTIMIZE__
+#define memblk_map_read  (reinterpret_cast<memblk_map_ct*>((*__libcwd_tsd.thread_iter).memblk_map))
+#define target_memblk_map_read  (reinterpret_cast<memblk_map_ct*>(__libcwd_tsd.target_thread->memblk_map))
+#else // !__OPTIMIZE__
 #define memblk_map_read  (reinterpret_cast<memblk_map_ct const*>((*__libcwd_tsd.thread_iter).memblk_map))
 #define target_memblk_map_read  (reinterpret_cast<memblk_map_ct const*>(__libcwd_tsd.target_thread->memblk_map))
+#endif // !__OPTIMIZE__
 #else // !LIBCWD_THREAD_SAFE
 //=============================================================================
 //
@@ -1088,9 +1100,6 @@ static memblk_map_ct* ST_memblk_map;
 #define memblk_map_read  ST_memblk_map
 #define target_memblk_map_read ST_memblk_map
 #endif // !LIBCWD_THREAD_SAFE
-
-#define memblk_iter_write reinterpret_cast<memblk_map_ct::iterator&>(const_cast<memblk_map_ct::const_iterator&>(iter))
-#define target_memblk_iter_write memblk_iter_write
 
 alloc_filter_ct const default_ooam_filter(0);
 
@@ -1279,7 +1288,11 @@ static void print_integer(std::ostream& os, unsigned int val, int width)
     os << *p++;
 }
 
-void dm_alloc_base_ct::print_description(debug_ct& debug_object, alloc_filter_ct const& filter LIBCWD_COMMA_TSD_PARAM) const
+void dm_alloc_base_ct::print_description(debug_ct& debug_object, alloc_filter_ct const&
+#if CWDEBUG_LOCATION
+    filter
+#endif
+    LIBCWD_COMMA_TSD_PARAM) const
 {
   LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.internal && !__libcwd_tsd.library_call);
 #if CWDEBUG_LOCATION
@@ -2117,7 +2130,7 @@ static appblock* internal_malloc(size_t size, memblk_types_nt flag
 }
 
 #if LIBCWD_THREAD_SAFE
-static bool search_in_maps_of_other_threads(void const* void_ptr, memblk_map_ct::const_iterator& iter LIBCWD_COMMA_TSD_PARAM)
+static bool search_in_maps_of_other_threads(void const* void_ptr, non_const_iter_type& iter LIBCWD_COMMA_TSD_PARAM)
 {
   appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   bool found = false;
@@ -2317,9 +2330,9 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL_NO_BRACE;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
+  non_const_iter_type iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
+  non_const_iter_type const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
   bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr2);
 #if LIBCWD_THREAD_SAFE
@@ -2779,9 +2792,9 @@ bool test_delete(void const* void_ptr)
   LIBCWD_TSD_DECLARATION;
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
+  non_const_iter_type iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
+  non_const_iter_type const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
   // MT: Because the expression `(*iter).first.start()' is included inside the locked
   //     area too, no core dump will occur when another thread would be deleting
@@ -3066,9 +3079,9 @@ void make_invisible(void const* void_ptr)
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
+  non_const_iter_type iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
+  non_const_iter_type const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
   bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr2);
 #if LIBCWD_THREAD_SAFE
@@ -3465,19 +3478,27 @@ static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, v
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
+#ifdef __OPTIMIZE__
+  memblk_map_ct* target_memblk_map = target_memblk_map_read;
+#else // !__OPTIMIZE__
   memblk_map_ct const* target_memblk_map = target_memblk_map_read;
+#endif // !__OPTIMIZE__
   if (!target_memblk_map)
   {
     RELEASE_READ_LOCK;
     LIBCWD_RESTORE_CANCEL_NO_BRACE;
     return NULL;
   }
-  memblk_map_ct::const_iterator iter = target_memblk_map->find(memblk_key_ct(ptr2, 0));
+  non_const_iter_type iter = target_memblk_map->find(memblk_key_ct(ptr2, 0));
 #else
+#ifdef __OPTIMIZE__
+  memblk_map_ct* target_memblk_map = target_memblk_map_read;
+#else // !__OPTIMIZE__
   memblk_map_ct const* target_memblk_map = target_memblk_map_read;
+#endif // !__OPTIMIZE__
   if (!target_memblk_map)
     return NULL;
-  memblk_map_ct::const_iterator const& iter(target_memblk_map->find(memblk_key_ct(ptr2, 0)));
+  non_const_iter_type const& iter(target_memblk_map->find(memblk_key_ct(ptr2, 0)));
 #endif
   bool found = (iter != target_memblk_map->end());
 #if LIBCWD_THREAD_SAFE
@@ -3979,9 +4000,9 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL_NO_BRACE;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  memblk_map_ct::const_iterator iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
+  non_const_iter_type iter = target_memblk_map_read->find(memblk_key_ct(ptr2, 0));
 #else
-  memblk_map_ct::const_iterator const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
+  non_const_iter_type const& iter(target_memblk_map_read->find(memblk_key_ct(ptr2, 0)));
 #endif
   bool found = (iter != target_memblk_map_read->end() && (*iter).first.start() == ptr2);
 #if LIBCWD_THREAD_SAFE
