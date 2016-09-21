@@ -68,8 +68,10 @@ void attach_gdb(void)
     case 0:
     {
       Debug(libcw_do.off());
-      system(command2);
-      exit(0);
+      int ret = system(command2);
+      exit(ret == -1 ? 255 	// system failed (ie, fork failed).
+	             : WIFSIGNALED(ret) && (WTERMSIG(ret) == SIGINT || WTERMSIG(ret) == SIGQUIT) ? 126	// Terminated by signal (127 means that /bin/sh failed).
+		     : WEXITSTATUS(ret));	// Return value of command2.
     }
     default:
     {

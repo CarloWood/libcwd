@@ -1680,6 +1680,8 @@ static int const postzone_char = 0xa9;
     PREZONE(ptr1).magic = magic_begin; \
     PREZONE(ptr1).size = RS_OFFSET(rs) + offset; \
     POSTZONE(ptr1).magic = magic_end; \
+    if (WST_initialization_state == 0 && offsetmask[1] == 0) \
+      INITREDZONES; \
     FILLREDZONES(ptr1, offset); \
   } while(0)
 // Return true if the magic is corrupt.

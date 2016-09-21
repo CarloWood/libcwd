@@ -26,7 +26,7 @@
 #define PREFIX_CODE \
     pthread_mutex_lock(&start_mut); \
     set_margin(); \
-    int __res; \
+    int __res = 0; \
     heartbeat[thread_index(pthread_self())] = 1; \
     ++started; \
     pthread_cond_wait(&start_cond, &start_mut); \
@@ -224,11 +224,11 @@ pthread_mutex_t leak_mutex;
 
 extern int raise (int sig);
 
-#define WRITESTR(x) ::write(2, x, sizeof(x) - 1)
-#define WRITEINT(i) do { if (i == 0) ::write(2, "0", 1); else { \
+#define WRITESTR(x) do { ssize_t unused __attribute__((unused)) = ::write(2, x, sizeof(x) - 1); } while(0)
+#define WRITEINT(i) do { ssize_t unused __attribute__((unused)); if (i == 0) unused = ::write(2, "0", 1); else { \
     unsigned long v = i; char b[32]; char* p = b + 32; \
     while(v) { *--p = '0' + v % 10; v /= 10; }; \
-    ::write(2, p, b + sizeof(b) - p); \
+    unused = ::write(2, p, b + sizeof(b) - p); \
     } } while(0)
 
 int main(void)

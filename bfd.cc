@@ -246,6 +246,8 @@ static bool const statically_linked = true;
 	LIBCWD_ASSERT( _private_::locked_by[object_files_instance] != __libcwd_tsd.tid );
 	LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] != __libcwd_tsd.tid && __libcwd_tsd.rdlocked_by2[object_files_instance] != __libcwd_tsd.tid );
 #endif
+#elif !CWDEBUG_ALLOC
+	(void)__libcwd_tsd;	// Suppress unused warning.
 #endif
 	LIBCWD_ASSERT(M_abfd == NULL);
 
@@ -1798,6 +1800,8 @@ void dlopen_map_cleanup(void* arg)
   TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
   if (__libcwd_tsd.internal)
     set_alloc_checking_on(LIBCWD_TSD);
+#else
+  (void)arg;	// Suppress unused warning.
 #endif
   DLOPEN_MAP_RELEASE_LOCK;
 }

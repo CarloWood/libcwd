@@ -257,6 +257,12 @@ static unsigned int const DW_TAG_imported_module	= 0x3a;
 static unsigned int const DW_TAG_unspecified_type	= 0x3b;
 static unsigned int const DW_TAG_partial_unit		= 0x3c;
 static unsigned int const DW_TAG_imported_unit		= 0x3d;
+static unsigned int const DW_TAG_condition		= 0x3f;
+static unsigned int const DW_TAG_shared_type		= 0x40;
+// DWARF 4.
+static unsigned int const DW_TAG_type_unit		= 0x41;
+static unsigned int const DW_TAG_rvalue_reference_type	= 0x42;
+static unsigned int const DW_TAG_template_alias		= 0x43;
 // User range.
 static unsigned int const DW_TAG_lo_user		= 0x4080;
 static unsigned int const DW_TAG_hi_user		= 0xffff;
@@ -321,8 +327,6 @@ char const* print_DW_TAG_name(uLEB128_t tag)
     case DW_TAG_variant_part: return "DW_TAG_variant_part";
     case DW_TAG_variable: return "DW_TAG_variable";
     case DW_TAG_volatile_type: return "DW_TAG_volatile_type";
-    case DW_TAG_lo_user: return "DW_TAG_lo_user";
-    case DW_TAG_hi_user: return "DW_TAG_hi_user";
   }
   switch(tag)
   {
@@ -334,8 +338,21 @@ char const* print_DW_TAG_name(uLEB128_t tag)
     case DW_TAG_unspecified_type: return "DW_TAG_unspecified_type";
     case DW_TAG_partial_unit: return "DW_TAG_partial_unit";
     case DW_TAG_imported_unit: return "DW_TAG_imported_unit";
+    case DW_TAG_condition: return "DW_TAG_condition";
+    case DW_TAG_shared_type: return "DW_TAG_shared_type";
+  }
+  switch(tag)
+  {
+    case DW_TAG_type_unit: return "DW_TAG_type_unit";
+    case DW_TAG_rvalue_reference_type: return "DW_TAG_rvalue_reference_type";
+    case DW_TAG_template_alias: return "DW_TAG_template_alias";
   }
   LIBCWD_ASSERT(tag >= DW_TAG_lo_user && tag <= DW_TAG_hi_user);
+  switch(tag)
+  {
+    case DW_TAG_lo_user: return "DW_TAG_lo_user";
+    case DW_TAG_hi_user: return "DW_TAG_hi_user";
+  }
   switch(tag)
   {
     case DW_TAG_MIPS_loop: return "DW_TAG_MIPS_loop";
@@ -429,6 +446,28 @@ static unsigned int const DW_AT_trampoline		= 0x56;
 static unsigned int const DW_AT_call_column		= 0x57;
 static unsigned int const DW_AT_call_file		= 0x58;
 static unsigned int const DW_AT_call_line		= 0x59;
+static unsigned int const DW_AT_description		= 0x5a;
+static unsigned int const DW_AT_binary_scale		= 0x5b;
+static unsigned int const DW_AT_decimal_scale		= 0x5c;
+static unsigned int const DW_AT_small			= 0x5d;
+static unsigned int const DW_AT_decimal_sign		= 0x5e;
+static unsigned int const DW_AT_digit_count		= 0x5f;
+static unsigned int const DW_AT_picture_string		= 0x60;
+static unsigned int const DW_AT_mutable			= 0x61;
+static unsigned int const DW_AT_threads_scaled		= 0x62;
+static unsigned int const DW_AT_explicit		= 0x63;
+static unsigned int const DW_AT_object_pointer		= 0x64;
+static unsigned int const DW_AT_endianity		= 0x65;
+static unsigned int const DW_AT_elemental		= 0x66;
+static unsigned int const DW_AT_pure			= 0x67;
+static unsigned int const DW_AT_recursive		= 0x68;
+// DWARF 4 values.
+static unsigned int const DW_AT_signature		= 0x69;
+static unsigned int const DW_AT_main_subprogram		= 0x6a;
+static unsigned int const DW_AT_data_bit_offset		= 0x6b;
+static unsigned int const DW_AT_const_expr		= 0x6c;
+static unsigned int const DW_AT_enum_class		= 0x6d;
+static unsigned int const DW_AT_linkage_name		= 0x6e;
 // User range.
 static unsigned int const DW_AT_lo_user				= 0x2000;
 static unsigned int const DW_AT_hi_user				= 0x3fff;
@@ -444,6 +483,12 @@ static unsigned int const DW_AT_MIPS_stride			= 0x2008;
 static unsigned int const DW_AT_MIPS_abstract_name		= 0x2009;
 static unsigned int const DW_AT_MIPS_clone_origin		= 0x200a;
 static unsigned int const DW_AT_MIPS_has_inlines		= 0x200b;
+static unsigned int const DW_AT_MIPS_stride_byte		= 0x200c;
+static unsigned int const DW_AT_MIPS_stride_elem		= 0x200d;
+static unsigned int const DW_AT_MIPS_ptr_dopetype		= 0x200e;
+static unsigned int const DW_AT_MIPS_allocatable_dopetype	= 0x200f;
+static unsigned int const DW_AT_MIPS_assumed_shape_dopetype	= 0x2010;
+static unsigned int const DW_AT_MIPS_assumed_size		= 0x2011;
 // GNU extensions.
 static unsigned int const DW_AT_sf_names			= 0x2101;
 static unsigned int const DW_AT_src_info			= 0x2102;
@@ -452,6 +497,31 @@ static unsigned int const DW_AT_src_coords			= 0x2104;
 static unsigned int const DW_AT_body_begin			= 0x2105;
 static unsigned int const DW_AT_body_end			= 0x2106;
 static unsigned int const DW_AT_GNU_vector			= 0x2107;
+static unsigned int const DW_AT_GNU_guarded_by			= 0x2108;
+static unsigned int const DW_AT_GNU_pt_guarded_by		= 0x2109;
+static unsigned int const DW_AT_GNU_guarded			= 0x210a;
+static unsigned int const DW_AT_GNU_pt_guarded			= 0x210b;
+static unsigned int const DW_AT_GNU_locks_excluded		= 0x210c;
+static unsigned int const DW_AT_GNU_exclusive_locks_required	= 0x210d;
+static unsigned int const DW_AT_GNU_shared_locks_required	= 0x210e;
+static unsigned int const DW_AT_GNU_odr_signature		= 0x210f;
+static unsigned int const DW_AT_GNU_template_name		= 0x2110;
+static unsigned int const DW_AT_GNU_call_site_value		= 0x2111;
+static unsigned int const DW_AT_GNU_call_site_data_value	= 0x2112;
+static unsigned int const DW_AT_GNU_call_site_target		= 0x2113;
+static unsigned int const DW_AT_GNU_call_site_target_clobbered	= 0x2114;
+static unsigned int const DW_AT_GNU_tail_call			= 0x2115;
+static unsigned int const DW_AT_GNU_all_tail_call_sites		= 0x2116;
+static unsigned int const DW_AT_GNU_all_call_sites		= 0x2117;
+static unsigned int const DW_AT_GNU_all_source_call_sites	= 0x2118;
+static unsigned int const DW_AT_GNU_macros			= 0x2119;
+static unsigned int const DW_AT_GNU_deleted			= 0x211a;
+static unsigned int const DW_AT_GNU_dwo_name			= 0x2130;
+static unsigned int const DW_AT_GNU_dwo_id			= 0x2131;
+static unsigned int const DW_AT_GNU_ranges_base			= 0x2132;
+static unsigned int const DW_AT_GNU_addr_base			= 0x2133;
+static unsigned int const DW_AT_GNU_pubnames			= 0x2134;
+static unsigned int const DW_AT_GNU_pubtypes			= 0x2135;
 // VMS Extensions.
 static unsigned int const DW_AT_VMS_rtnbeg_pd_address		= 0x2201;
 
@@ -533,6 +603,28 @@ char const* print_DW_AT_name(uLEB128_t attr)
     case DW_AT_call_column: return "DW_AT_call_column";
     case DW_AT_call_file: return "DW_AT_call_file";
     case DW_AT_call_line: return "DW_AT_call_line";
+    case DW_AT_description: return "DW_AT_description";
+    case DW_AT_binary_scale: return "DW_AT_binary_scale";
+    case DW_AT_decimal_scale: return "DW_AT_decimal_scale";
+    case DW_AT_small: return "DW_AT_small";
+    case DW_AT_decimal_sign: return "DW_AT_decimal_sign";
+    case DW_AT_digit_count: return "DW_AT_digit_count";
+    case DW_AT_picture_string: return "DW_AT_picture_string";
+    case DW_AT_mutable: return "DW_AT_mutable";
+    case DW_AT_threads_scaled: return "DW_AT_threads_scaled";
+    case DW_AT_explicit: return "DW_AT_explicit";
+    case DW_AT_object_pointer: return "DW_AT_object_pointer";
+    case DW_AT_endianity: return "DW_AT_endianity";
+    case DW_AT_elemental: return "DW_AT_elemental";
+    case DW_AT_pure: return "DW_AT_pure";
+    case DW_AT_recursive: return "DW_AT_recursive";
+    // DWARF 4 attributes
+    case DW_AT_signature: return "DW_AT_signature";
+    case DW_AT_main_subprogram: return "DW_AT_main_subprogram";
+    case DW_AT_data_bit_offset: return "DW_AT_data_bit_offset";
+    case DW_AT_const_expr: return "DW_AT_const_expr";
+    case DW_AT_enum_class: return "DW_AT_enum_class";
+    case DW_AT_linkage_name: return "DW_AT_linkage_name";
   }
   LIBCWD_ASSERT(attr >= DW_AT_lo_user && attr <= DW_AT_hi_user);
   switch(attr)
@@ -559,6 +651,31 @@ char const* print_DW_AT_name(uLEB128_t attr)
     case DW_AT_body_begin: return "DW_AT_body_begin";
     case DW_AT_body_end: return "DW_AT_body_end";
     case DW_AT_GNU_vector: return "DW_AT_GNU_vector";
+    case DW_AT_GNU_guarded_by: return "DW_AT_GNU_guarded_by";
+    case DW_AT_GNU_pt_guarded_by: return "DW_AT_GNU_pt_guarded_by";
+    case DW_AT_GNU_guarded: return "DW_AT_GNU_guarded";
+    case DW_AT_GNU_pt_guarded: return "DW_AT_GNU_pt_guarded";
+    case DW_AT_GNU_locks_excluded: return "DW_AT_GNU_locks_excluded";
+    case DW_AT_GNU_exclusive_locks_required: return "DW_AT_GNU_exclusive_locks_required";
+    case DW_AT_GNU_shared_locks_required: return "DW_AT_GNU_shared_locks_required";
+    case DW_AT_GNU_odr_signature: return "DW_AT_GNU_odr_signature";
+    case DW_AT_GNU_template_name: return "DW_AT_GNU_template_name";
+    case DW_AT_GNU_call_site_value: return "DW_AT_GNU_call_site_value";
+    case DW_AT_GNU_call_site_data_value: return "DW_AT_GNU_call_site_data_value";
+    case DW_AT_GNU_call_site_target: return "DW_AT_GNU_call_site_target";
+    case DW_AT_GNU_call_site_target_clobbered: return "DW_AT_GNU_call_site_target_clobbered";
+    case DW_AT_GNU_tail_call: return "DW_AT_GNU_tail_call";
+    case DW_AT_GNU_all_tail_call_sites: return "DW_AT_GNU_all_tail_call_sites";
+    case DW_AT_GNU_all_call_sites: return "DW_AT_GNU_all_call_sites";
+    case DW_AT_GNU_all_source_call_sites: return "DW_AT_GNU_all_source_call_sites";
+    case DW_AT_GNU_macros: return "DW_AT_GNU_macros";
+    case DW_AT_GNU_deleted: return "DW_AT_GNU_deleted";
+    case DW_AT_GNU_dwo_name: return "DW_AT_GNU_dwo_name";
+    case DW_AT_GNU_dwo_id: return "DW_AT_GNU_dwo_id";
+    case DW_AT_GNU_ranges_base: return "DW_AT_GNU_ranges_base";
+    case DW_AT_GNU_addr_base: return "DW_AT_GNU_addr_base";
+    case DW_AT_GNU_pubnames: return "DW_AT_GNU_pubnames";
+    case DW_AT_GNU_pubtypes: return "DW_AT_GNU_pubtypes";
   }
   switch(attr)
   {
@@ -591,6 +708,10 @@ static unsigned int const DW_FORM_ref4		= 0x13; // reference
 static unsigned int const DW_FORM_ref8		= 0x14; // reference
 static unsigned int const DW_FORM_ref_udata	= 0x15; // reference
 static unsigned int const DW_FORM_indirect	= 0x16; // (see section 7.5.3)
+static unsigned int const DW_FORM_sec_offset	= 0x17; // lineptr, loclistptr, macptr, rangelistptr
+static unsigned int const DW_FORM_exprloc	= 0x18; // exprloc
+static unsigned int const DW_FORM_flag_present	= 0x19; // flag
+static unsigned int const DW_FORM_ref_sig8	= 0x20; // reference
 
 #if DEBUGDWARF
 char const* print_DW_FORM_name(uLEB128_t form)
@@ -618,6 +739,10 @@ char const* print_DW_FORM_name(uLEB128_t form)
     case DW_FORM_ref8: return "DW_FORM_ref8";
     case DW_FORM_ref_udata: return "DW_FORM_ref_udata";
     case DW_FORM_indirect: return "DW_FORM_indirect";
+    case DW_FORM_sec_offset: return "DW_FORM_sec_offset";
+    case DW_FORM_exprloc: return "DW_FORM_exprloc";
+    case DW_FORM_flag_present: return "DW_FORM_flag_present";
+    case DW_FORM_ref_sig8: return "DW_FORM_ref_sig8";
     case 0: return "0";
   }
   return "UNKNOWN DW_FORM";
@@ -643,6 +768,8 @@ static unsigned char const DW_LNS_set_isa		= 12;
 static unsigned int const DW_LNE_end_sequence	= 1;
 static unsigned int const DW_LNE_set_address	= 2;
 static unsigned int const DW_LNE_define_file	= 3;
+// DWARF 4
+static unsigned int const DW_LNE_set_discriminator = 4;
 
 static unsigned char address_size;	// Should be sizeof(void*) - at least it is constant,
 					// so it's thread safe to be static.
@@ -824,7 +951,7 @@ inline constant_t
 read_constant(unsigned char const*& debug_info_ptr, uLEB128_t const form)
 {
 #if DEBUGDWARF
-  LIBCWD_ASSERT(form == DW_FORM_data1 || form == DW_FORM_data2 || form == DW_FORM_data4 || form == DW_FORM_udata);
+  LIBCWD_ASSERT(form == DW_FORM_data1 || form == DW_FORM_data2 || form == DW_FORM_data4 || form == DW_FORM_data8 || form == DW_FORM_udata);
 #endif
   constant_t result;
   switch(form)
@@ -857,8 +984,16 @@ read_constant(unsigned char const*& debug_info_ptr, uLEB128_t const form)
       result = data;
       break;
     }
+    case DW_FORM_data8:
+#if defined(__x86_64__) || defined(__sparc64) || defined(__ia64__)
+    {
+      uint64_t data;
+      dwarf_read(debug_info_ptr, data);
+      result = data;
+      break;
+    }
+#endif
     // case DW_FORM_sdata:
-    // case DW_FORM_data8:
     default:	// Using default in order to avoid a warning 'result might be used uninitialized'.
       DoutFatal(dc::fatal, "read_constant() cannot handle this FORM");
   }
@@ -964,15 +1099,50 @@ read_string(unsigned char const*& debug_info_ptr, uLEB128_t const form, unsigned
   return result;
 }
 
-inline lineptr_t
-read_lineptr(unsigned char const*& debug_info_ptr DEBUGDWARF_OPT_COMMA(uLEB128_t const form), lineptr_t debug_line)
+size_t read_length(unsigned char const*& in, size_t& length)
+{
+  uint32_t len32;
+  dwarf_read(in, len32);
+  length = len32;
+#if defined(__x86_64__) || defined(__sparc64) || defined(__ia64__)
+  if (len32 == 0xffffffff)
+  {
+    uint64_t len64;
+    dwarf_read(in, len64);
+    length = len64;
+    return 12;
+  }
+#endif
+  LIBCWD_ASSERT(len32 < 0xfffffff0);
+  return 4;
+}
+
+lineptr_t
+read_lineptr(unsigned char const*& debug_info_ptr, uLEB128_t const form, lineptr_t debug_line)
 {
 #if DEBUGDWARF
   LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT(form == DW_FORM_data4);
+  LIBCWD_ASSERT(form == DW_FORM_data4 || form == DW_FORM_data8 || form == DW_FORM_sec_offset);
 #endif
-  uint32_t line_offset;
-  dwarf_read(debug_info_ptr, line_offset);
+  size_t line_offset = 0;
+  if (form == DW_FORM_data4)
+  {
+    uint32_t value;
+    dwarf_read(debug_info_ptr, value);
+    line_offset = value;
+  }
+#if defined(__x86_64__) || defined(__sparc64) || defined(__ia64__)
+  else if (form == DW_FORM_data8)
+  {
+    uint64_t value;
+    dwarf_read(debug_info_ptr, value);
+    line_offset = value;
+  }
+#endif
+  else
+  {
+    read_length(debug_info_ptr, line_offset);
+  }
   DoutDwarf(dc::finish, "0x" << std::hex << line_offset);
   return debug_line + line_offset;
 }
@@ -1526,11 +1696,14 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	  new_symbol->section = &M_sections[symbol.st_shndx];
 	  new_symbol->value = symbol.st_value - new_symbol->section->vma;	// Is not an absolute value: make value relative
 
-#ifdef __sun__
-	  // On solaris 2.8 _end is not absolute but in .bss.
-	  if (new_symbol->name[1] == 'e' && new_symbol->name[0] == '_' && new_symbol->name[2] == 'n' && new_symbol->name[3] == 'd' && new_symbol->name[4] == 0)
-	    M_s_end_offset = symbol.st_value;
-#endif
+	  if (new_symbol->section->name[1] == 'b' && new_symbol->section->name[0] == '.' && new_symbol->section->name[2] == 's' &&
+	      new_symbol->section->name[3] == 's' && new_symbol->section->name[4] == 0)
+	  {
+	    // On solaris 2.8 _end is not absolute but in .bss.
+	    // This is now also the case on linux.
+	    if (new_symbol->name[1] == 'e' && new_symbol->name[0] == '_' && new_symbol->name[2] == 'n' && new_symbol->name[3] == 'd' && new_symbol->name[4] == 0)
+	      M_s_end_offset = symbol.st_value;
+	  }
 	  									// to start of section.
 	  DoutElfxx(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\" at 0x" <<
 	      std::hex << (new_symbol->section->vma + new_symbol->value) << ".");
@@ -1687,8 +1860,9 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       debug_info_ptr += 2;
       break;
     case DW_FORM_data4:
-    case DW_FORM_strp:
     case DW_FORM_ref4:
+    case DW_FORM_strp:
+    case DW_FORM_sec_offset:
 #if DEBUGDWARF
       if (form == DW_FORM_data4)
 	DoutDwarf(dc::finish, reinterpret_cast_align<uint32_t>(debug_info_ptr));
@@ -1696,6 +1870,11 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       {
 	unsigned int pos = reinterpret_cast_align<uint32_t>(debug_info_ptr);
 	DoutDwarf(dc::finish, pos << " (\"" << &debug_str[pos] << "\")");
+      }
+      else if (form == DW_FORM_sec_offset)
+      {
+	unsigned int pos = reinterpret_cast_align<uint32_t>(debug_info_ptr);
+	DoutDwarf(dc::finish, pos);
       }
       else
 	DoutDwarf(dc::finish, '<' << std::hex <<
@@ -1705,8 +1884,9 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       break;
     case DW_FORM_data8:
     case DW_FORM_ref8:
+    case DW_FORM_ref_sig8:
 #if DEBUGDWARF && (defined(__x86_64__) || defined(__sparc64) || defined(__ia64__))
-      if (form == DW_FORM_data8)
+      if (form == DW_FORM_data8 || form == DW_FORM_ref_sig8)
 	DoutDwarf(dc::finish, reinterpret_cast_align<uint64_t>(debug_info_ptr));
       else
 	DoutDwarf(dc::finish, '<' << std::hex <<
@@ -1767,6 +1947,7 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       break;
     }
     case DW_FORM_block:
+    case DW_FORM_exprloc:
     {
       uLEB128_t length;
       dwarf_read(debug_info_ptr, length);
@@ -1774,6 +1955,9 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
       debug_info_ptr += length;
       break;
     }
+    case DW_FORM_flag_present:
+      DoutDwarf(dc::finish, "<present>");
+      break;
   }
 }
 
@@ -1781,7 +1965,7 @@ void objfile_ct::load_dwarf(void)
 {
 #if DEBUGDWARF
   LIBCWD_TSD_DECLARATION;
-  uint32_t total_length;
+  size_t total_length;
 #endif
 
 #if CWDEBUG_ALLOC
@@ -1828,16 +2012,19 @@ void objfile_ct::load_dwarf(void)
   for (unsigned char const* debug_info_ptr = debug_info; debug_info_ptr < debug_info_end;)
   {
     unsigned char const* const debug_info_root = debug_info_ptr;
-    uint32_t length;
-    dwarf_read(debug_info_ptr, length);
+    size_t length;
+#if DEBUGDWARF
+    size_t length_size =
+#endif
+        read_length(debug_info_ptr, length);
 #if DEBUGDWARF
     LIBCWD_TSD_DECLARATION;
     if (doutdwarfon)
     {
       _private_::set_alloc_checking_on(LIBCWD_TSD);	// Needed for Dout().
       Dout(dc::bfd, "debug_info_ptr = " << (void*)debug_info_ptr << "; debug_info_end = " << (void*)debug_info_end);
-      Dout(dc::bfd, "length = " << length);
-      total_length += length + 4;
+      Dout(dc::bfd, "length = " << length << " (0x" << std::hex << length << std::dec << ')');
+      total_length += length + length_size;
       Dout(dc::bfd, "total length = " << total_length << " (of " <<
 	  M_sections[M_dwarf_debug_info_section_index].section_header().sh_size << ").");
       _private_::set_alloc_checking_off(LIBCWD_TSD);
@@ -1848,10 +2035,11 @@ void objfile_ct::load_dwarf(void)
     dwarf_read(debug_info_ptr, version);
     if ( version >= 2 && version <= 4 )	// DWARF version 2 (and 3 and 4)
     {
+      DoutDwarf(dc::bfd, "version = " << version);
       uint32_t abbrev_offset;
       dwarf_read(debug_info_ptr, abbrev_offset);
       unsigned char const* debug_abbrev_ptr = debug_abbrev + abbrev_offset;
-      DoutDwarf(dc::bfd, "abbrev_offset = " << std::hex << abbrev_offset);
+      DoutDwarf(dc::bfd, "abbrev_offset = 0x" << std::hex << abbrev_offset);
       dwarf_read(debug_info_ptr, address_size);
       LIBCWD_ASSERT( address_size == sizeof(void*) );
 
@@ -2000,7 +2188,7 @@ void objfile_ct::load_dwarf(void)
 	    DoutDwarf(dc::bfd|continued_cf, "decoding " << print_DW_AT_name(attr->attr) << ' ');
 	    if (attr->attr == DW_AT_stmt_list)
 	    {
-	      debug_line_ptr = read_lineptr(debug_info_ptr DEBUGDWARF_OPT_COMMA(form), debug_line);
+	      debug_line_ptr = read_lineptr(debug_info_ptr, form, debug_line);
 	      found_stmt_list = true;
 	      continue;
 	    }
@@ -2025,7 +2213,14 @@ void objfile_ct::load_dwarf(void)
 	    }
 	    else if (attr->attr == DW_AT_high_pc || attr->attr == DW_AT_low_pc)
 	    {
-	      address_t address = read_address(debug_info_ptr, form);
+	      address_t address;
+	      if (attr->attr == DW_AT_high_pc && form != DW_FORM_addr)	// Should be class constant, ie DW_FORM_data8
+	      {
+		constant_t size = read_constant(debug_info_ptr, form);
+		address = size + reinterpret_cast<Elfxx_Addr>(current_compilation_unit->get_lowpc());
+	      }
+	      else
+		address = read_address(debug_info_ptr, form);
 	      if (attr->attr == DW_AT_high_pc)
 	      {
 	        high_pc = address;
@@ -2086,6 +2281,7 @@ void objfile_ct::load_dwarf(void)
 	    std::vector<file_name_st> file_names;
 #endif
 	    dwarf_read(debug_line_ptr, total_length);
+	    LIBCWD_ASSERT(total_length < 0xfffffff0);
 	    unsigned char const* debug_line_ptr_end = debug_line_ptr + total_length;
 	    dwarf_read(debug_line_ptr, version);
 	    dwarf_read(debug_line_ptr, prologue_length);
@@ -3143,12 +3339,14 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
   if (!location.M_stabs_symbol ||
       !(*p.first).second.M_stabs_symbol ||
       (*p.first).second.M_stabs_symbol_funcname_iter != location.M_stabs_symbol_funcname_iter)
+  {
 #if DEBUGSTABS || DEBUGDWARF
     if (doutdwarfon || doutstabson)
       Dout(dc::bfd, "WARNING: Collision between different functions (" << *p.first << ")!?");
 #else
     ;
 #endif
+  }
   else
   {
     bool different_start = (*p.first).first.start != range.start;
