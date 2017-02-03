@@ -358,11 +358,11 @@ struct GenMakefile
 
 		_( "" );
 		_( RUNTEST_NAME ".cc: cutee" );
-		_( "\t$(CUTEE) --main -o "RUNTEST_NAME".cc" );
+		_( "\t$(CUTEE) --main -o " RUNTEST_NAME ".cc" );
 		_( "" );
-		_( RUNTEST_NAME": autocutee.mk " RUNTEST_NAME ".o $(object_files)");
-		_( "\t$(CXX) $(CXXFLAGS) -o "RUNTEST_NAME" "RUNTEST_NAME".o $(object_files)");
-		_( "\t./"RUNTEST_NAME );
+		_( RUNTEST_NAME ": autocutee.mk " RUNTEST_NAME ".o $(object_files)");
+		_( "\t$(CXX) $(CXXFLAGS) -o " RUNTEST_NAME " " RUNTEST_NAME ".o $(object_files)");
+		_( "\t./" RUNTEST_NAME );
 		_( "" );
 		_( "# cutee autogen: end ");
 	}

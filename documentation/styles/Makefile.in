@@ -38,4 +38,5 @@ test.html: $(srcdir)/test.m4 $(srcdir)/../definitions.m4
 
 maintainer-clean:
 	for b in $(BROWSERS); do rm -f $$b/*.css; rmdir $$b 2>/dev/null || true; done
+	rm -f Makefile
 

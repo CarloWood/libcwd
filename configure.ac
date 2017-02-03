@@ -6,9 +6,9 @@ dnl CW_INTERFACE_VERSION           : Current interface version, increment whenev
 dnl CW_INTERFACE_VERSION_REVISION  : Revision, increment every public release; or set to 0 when the interface is changed.
 dnl CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
-define(CW_INTERFACE_VERSION, 3)
+define(CW_INTERFACE_VERSION, 4)
 define(CW_INTERFACE_VERSION_REVISION, 0)
-define(CW_INTERFACE_AGE, 2)
+define(CW_INTERFACE_AGE, 3)
 define(CW_PACKAGE_NAME, [libcwd])
 define(CW_BUGREPORT, [libcwd@alinoe.com])
 
@@ -143,7 +143,7 @@ AC_ARG_ENABLE(debugt,
     libcwd_config_debugt=$enableval)
 
 dnl Process default options.
-CW_OPG_FLAGS([-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Wno-inline])
+CW_OPG_FLAGS([-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Wno-inline -Wno-frame-address])
 dnl Dependencies of PHC seem broken beyond repair. Turn it off.
 PCHFLAGS=
 AC_SUBST([PCHFLAGS])

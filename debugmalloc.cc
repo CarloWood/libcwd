@@ -4599,6 +4599,13 @@ void operator delete[](void* void_ptr, std::nothrow_t const&) throw()
 #endif
 }
 
+#ifdef __cpp_sized_deallocation
+void operator delete(void* void_ptr, std::size_t) throw() __attribute__((alias("_ZdlPv")));
+void operator delete(void* void_ptr, std::size_t, std::nothrow_t const&) throw() __attribute__((alias("_ZdlPvRKSt9nothrow_t")));
+void operator delete[](void* void_ptr, std::size_t) throw() __attribute__((alias("_ZdaPv")));
+void operator delete[](void* void_ptr, std::size_t, std::nothrow_t const&) throw() __attribute__((alias("_ZdaPvRKSt9nothrow_t")));
+#endif
+
 extern "C" {
 
 void const* cwdebug_watch(void const* ptr) __attribute__ ((unused));

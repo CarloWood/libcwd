@@ -4,6 +4,7 @@ AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = @ACLOCAL_CWFLAGS@
 
 SUBDIRS = include utils . tests testsuite cutee
+DIST_SUBDIRS = include utils tests testsuite cutee
 
 EXTRA_DIST = LICENSE.QPL README.SVN README.threads README.FreeBSD README.openbsd README.solaris \
 	README.cygwin README.mingw32 README.PCH nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in \
@@ -154,7 +155,7 @@ distclean-local:
 	rm -f $(srcdir)/build-stamp
 
 MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure $(srcdir)/Makefile.in \
-	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \
+	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/compile $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \
 	$(srcdir)/ltmain.sh $(srcdir)/stamp-h.in $(srcdir)/ChangeLog tags $(srcdir)/example-project/debug.h \
 	$(srcdir)/depcomp troep*
 

@@ -84,6 +84,20 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>22 Sept 2016</B>
+<P class="news">libcwd-1.0.6 is released.&nbsp;
+This version adds support for gcc version 5.x and 6.x as well as DWARF 4.
+It also fixes a problem with finding symbol _end and other problems related
+to symbols due to API/ABI changes in third party libraries.
+A few other stability problems where fixed as well; most notably where
+a memory block was reallocated by a different thread than the thread that
+originally allocated it.
+</P>
+<P class="news">
+This version further adds a per-invocation debug channel control by
+allowing to pass a conditional to a debug channel: <code>Dout(dc::notice(cond), ...)</code>
+which then will only print debug output if <code>cond</code> is true (and <code>dc::notice</code> is on).
+</P>
 <DT><B>2 Jun 2010</B>
 <P class="news">libcwd-1.0.4 is released.&nbsp;
 This version fixes the problem that occurred with the initialization of libcwd

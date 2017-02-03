@@ -85,6 +85,7 @@ tutorial:
 maintainer-clean: external-clean reference-manual-clean
 	$(MAKE) -C styles maintainer-clean
 	if test "`readlink -f @srcdir@`" != "`readlink -f .`"; then \
-	  rm -rf images scripts index.html; \
+	  (tar -C $(top_srcdir) -cf - documentation | tar -tf - | grep '^documentation/.*[^/]$$' | sed -e 's!^documentation/!!' | xargs rm -f); \
 	fi
-	cd tutorial; rm -f examples5/debug.* examples5/test* tutorial/core examples7/test* tut5.m4 tut7.m4 *.html
+	(cd tutorial; rm -f examples5/debug.* examples5/test* tutorial/core examples7/test* tut5.m4 tut7.m4 *.html core Makefile)
+	rm -f doxygen.config Makefile

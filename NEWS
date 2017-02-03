@@ -1,3 +1,25 @@
+libcwd-1.0.6
+
+	Support for g++ 6.x, 5.x and DWARF version 4.
+
+	Added channel_ct::operator(bool)
+	This allows one to turn off debug output for a channel that is on
+	on a per invocation basis by doing:
+    
+	  Dout(dc::notice(cond), ...);
+    
+	which then will only print debug output if 'cond' is true (and
+	dc::notice is on).
+
+	Added libcwd/cwlist.h to libcwd - this isn't used by
+	libcwd itself, it's just an extra gadget for you.
+
+	Bug fixes:
+
+	Reallocating a memory block that was originally allocated
+	in a different thread could lead to undefined behavior (when
+	memory allocation checking is on, which is the default).
+
 libcwd-1.0.4
 
 	Support for libc-2.10.

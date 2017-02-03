@@ -1,7 +1,7 @@
 // @configure_input@
 // $Header$
 //
-// Copyright (C) 2000 - 2003, by
+// Copyright (C) 2000 - 2003, 2017, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -67,7 +67,7 @@ namespace libcwd {
 #ifndef LIBCWD_THREAD_SAFE
 // This could be a #warning -- if gcc SHOWED warnings in system headers.
 #error Please use -DLIBCWD_THREAD_SAFE on the command line if you intend to link with libcwd_r! \
-       To fix this error, remove -D_REENTRANT (and/or -D_THREAD_SAFE) from your compile flags \
+       To fix this error, remove -pthread and/or -D_REENTRANT (and/or -D_THREAD_SAFE) from your compile flags \
        when you are compiling a single threaded application (and link with libcwd), or add \
        -DLIBCWD_THREAD_SAFE to the compile flags (and link with libcwd_r). Alternatively you \
        can suppress this warning by adding -DLIBCWD_THREAD_SAFE=0 (and link with libcwd). \
@@ -83,7 +83,7 @@ namespace libcwd {
 // This could be a #warning -- if gcc SHOWED warnings in system headers.
 #error LIBCWD_THREAD_SAFE is set, which implies the use of threads. \
        You should also define _REENTRANT (or _THREAD_SAFE on some OS) for the sake of other libraries in this case! \
-       Add -D_REENTRANT -pthread to your CXXFLAGS for threaded applications.
+       Add -pthread (and -D_REENTRANT if that is not enough) to your CXXFLAGS for threaded applications.
 #endif
 
 #endif	// defined(_REENTRANT) || defined(_THREAD_SAFE)

@@ -117,34 +117,32 @@ $(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer 
 	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> $(srcdir)/example-project/debug.h; \
 	fi
 
-CCVERSVN=4.9.2
-CCVERALL=$(CCVERSVN),4.8.3,4.8.0,4.7.3
-CCVERMOST=$(CCVERSVN),4.8.0,4.7.3
+CCVERSVN=6.2.0
+CCVERALL=$(CCVERSVN),5.4.0,4.9.4,4.8.5,4.8.0,4.7.4
+CCVERMOST=$(CCVERSVN),5.4.0,4.9.4,4.8.0,4.7.4
 
 #		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
 #		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
-#		'--enable-maintainer-mode --disable-pch                                                                       --compilers=$(CCVERMOST)' \
-#	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
-#		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
-#	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
-#	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
-#	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=$(CCVERMOST)' \
-#		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
-#		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode                 --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode                                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode                 --enable-debugm                                       --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
+#		'--enable-maintainer-mode                 --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
 
 full-check: Makefile
 	@( \
 	  for c in \
 		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
 		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
-		'--enable-maintainer-mode --disable-pch                                                                       --compilers=$(CCVERMOST)' \
-	  	'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
-	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
-	  	'--enable-maintainer-mode --disable-pch                                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
-	  	'--enable-maintainer-mode --disable-pch                 --enable-debugm                                       --compilers=$(CCVERMOST)' \
-		'--enable-maintainer-mode --disable-pch --enable-debugt --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
-		'--enable-maintainer-mode --disable-pch                 --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode                 --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode                                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode                 --enable-debugm                                       --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
+		'--enable-maintainer-mode                 --enable-debugm --enable-debug                        --compilers=$(CCVERMOST)' \
 		; do \
 	    config=`echo $$c | sed -e 's/ --compilers=.*$$//'`; \
 	    case "$$c" in \
@@ -196,9 +194,6 @@ syncwww: documentation
 	@echo "Synchronizing with libcwd.sourceforge.net..."
 	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/documentation/www/exclude --delete-excluded \
 		`pwd`/documentation/ "libcwd-web:htdocs/"
-	@echo "Synchronizing with www.xs4all.nl..."
-	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/documentation/www/exclude --delete-excluded \
-		`pwd`/documentation/ xs2:"~/WWW/libcwd"
 
 git-clean:
 	$(MAKE) -C documentation maintainer-clean

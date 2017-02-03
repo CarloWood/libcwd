@@ -70,7 +70,7 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
     sanity_check();
 #endif
     T* ret = (T*) M_char_allocator.allocate(num * sizeof(T)
-#if __GNUC__ == 4
+#if __GNUC__ >= 4
         LIBCWD_COMMA_TSD
 #endif
 	);
@@ -91,7 +91,7 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
     sanity_check();
 #endif
     M_char_allocator.deallocate((typename CharAlloc::pointer)p, num * sizeof(T)
-#if __GNUC__ == 4
+#if __GNUC__ >= 4
         LIBCWD_COMMA_TSD
 #endif
         );
@@ -99,7 +99,7 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
       set_alloc_checking_on(LIBCWD_TSD);
   }
 
-#if __GNUC__ == 4
+#if __GNUC__ >= 4
 template <bool needs_lock1, int pool_instance1,
 	  bool needs_lock2, int pool_instance2>
   inline bool
@@ -150,7 +150,7 @@ template <typename T1, class CharAlloc1, pool_nt internal1 LIBCWD_DEBUGDEBUG_COM
   }
 
 
-#if __GNUC__ == 4
+#if __GNUC__ >= 4
 // Find the most significant bit in an unsigned long.
 // This function is fastest for small values of 'val',
 // but 'val' should be larger than 15 (otherwise 4

@@ -5,13 +5,13 @@ Name: libcwd
 Version: %{version}
 Release: 1
 Group: Development/Libraries
-Source: http://download.sourceforge.net/libcwd/libcwd-%{version}.tar.gz
+Source: https://github.com/CarloWood/libcwd/releases
 License: QPL
 %ifos linux
-Requires: gcc-c++ >= 3.0, binutils >= 2.9
+Requires: gcc-c++ >= 3.4, binutils >= 2.9
 %endif
 Buildroot: %{_tmppath}/%{name}-root
-BuildPrereq: make, m4, which >= 2.5, autoconf >= 2.13, automake >= 1.6, libtool >= 1.4.2
+BuildPrereq: make, m4, which >= 2.5, autoconf >= 2.13, automake >= 1.7, libtool >= 1.4.2
 URL: http://libcwd.sourceforge.net/
 
 %description
@@ -31,7 +31,7 @@ make
 %install
 rm -rf "$RPM_BUILD_ROOT"
 make DESTDIR="$RPM_BUILD_ROOT" install
-tar --exclude .svn -czf example-project.tar.gz example-project
+tar --exclude .git -czf example-project.tar.gz example-project
 
 %clean
 rm -rf "$RPM_BUILD_ROOT"
