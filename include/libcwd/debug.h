@@ -121,8 +121,8 @@
  * Debug( libcw_do.get_ostream()->flush() );		// Flush the current debug output stream.
  * \endcode
  */
-#define Debug(x) \
-    LibcwDebug(LIBCWD_DEBUGCHANNELS, x)
+#define Debug(STATEMENTS...) \
+    LibcwDebug(LIBCWD_DEBUGCHANNELS, STATEMENTS)
 
 /** \def Dout
  *

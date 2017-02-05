@@ -45,12 +45,12 @@
  *
  * \sa \ref chapter_custom_debug_h
  */
-#define LibcwDebug(dc_namespace, x)		\
+#define LibcwDebug(dc_namespace, STATEMENTS...)	\
 	do {					\
-	  using namespace ::libcwd;	\
+	  using namespace ::libcwd;	        \
 	  using namespace dc_namespace;		\
 	  {					\
-	    x;					\
+	    STATEMENTS;				\
 	  }					\
 	} while(0)
 
