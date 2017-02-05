@@ -828,7 +828,7 @@ void allocator_unlock(void)
       //pthread_kill_other_threads_np(); // Only causes a deadlock.
 #endif
 #endif
-#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
+#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG && defined(__linux)
       if (!_private_::WST_is_NPTL && pthread_self() == (pthread_t)2049)
       {
 	::write(1, "WARNING: Thread manager core dumped.  Going into infinite loop.  Please detach process with gdb.\n", 97);
@@ -1278,7 +1278,11 @@ void allocator_unlock(void)
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdlock(true);
           // Terminate all threads that I know of, so that no locks will remain.
 	  for(_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin(); thread_iter != _private_::threadlist->end(); ++thread_iter)
-	    if (!pthread_equal((*thread_iter).tid, pthread_self()) && (_private_::WST_is_NPTL || (*thread_iter).tid != 1024))
+	    if (!pthread_equal((*thread_iter).tid, pthread_self())
+#ifdef __linux
+                && (_private_::WST_is_NPTL || (*thread_iter).tid != (pthread_t)1024)
+#endif
+                )
               pthread_cancel((*thread_iter).tid);
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
