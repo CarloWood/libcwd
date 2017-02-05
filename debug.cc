@@ -1218,7 +1218,7 @@ void allocator_unlock(void)
 #else // LIBCWD_THREAD_SAFE
 	char error_text_buf[512];
 	char const* error_text;
-#ifdef __USE_GNU
+#ifdef _GNU_SOURCE
 	error_text = strerror_r(current->err, error_text_buf, sizeof(error_text_buf));
 #else	// POSIX
 	if (strerror_r(current->err, error_text_buf, sizeof(error_text_buf)) == -1)
