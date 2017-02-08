@@ -39,10 +39,10 @@ rm -rf "$RPM_BUILD_ROOT"
 %post
 PATH="$PATH:/sbin" ldconfig -n %{__prefix}/lib
 echo
-echo "Please look at %{__prefix}/doc/libcwd-%{version}/example-project.tar.gz"
+echo "Please look at %{__prefix}/documentation/libcwd-%{version}/example-project.tar.gz"
 echo "for an example of how to write an application that uses libcwd."
 echo "Detailed documentation can be found in"
-echo "file://%{__prefix}/doc/libcwd-%{version}/index.html"
+echo "file://%{__prefix}/documentation/libcwd-%{version}/index.html"
 echo
 
 %files
@@ -65,6 +65,9 @@ echo
 %{__prefix}/share/libcwd/libcwdrc
 
 %changelog
+* Fri Feb  7 2017 Carlo Wood <libcwd@alinoe.com>
+- Renamed documentation/ to doc/.
+
 * Fri Mar 12 2004 Carlo Wood <libcwd@alinoe.com>
 - Added pkgconfig support.
 

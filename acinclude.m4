@@ -167,17 +167,6 @@ AC_SUBST(CW_FRAME_ADDRESS_OFFSET_C)
 AC_SUBST(CW_CONFIG_FRAME_ADDRESS_OFFSET)
 ])
 
-dnl CW_RPM
-dnl Generate directories and files needed for an rpm target.
-dnl For this to work, the Makefile.am needs to contain the string @RPM_TARGET@
-AC_DEFUN([CW_RPM],
-[if test "$USE_MAINTAINER_MODE" = yes; then
-AC_CHECK_PROGS(rpm)
-if test "$ac_cv_prog_rpm" = yes; then
-
-fi
-fi])
-
 dnl CW_SYS_PS_WIDE_PID_OPTION
 dnl Determines the options needed for `ps' to print the full command of a specified PID
 AC_DEFUN([CW_SYS_PS_WIDE_PID_OPTION],

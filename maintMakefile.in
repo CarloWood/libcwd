@@ -29,7 +29,7 @@
 #	running the test suite for every combination.
 #
 # - documentation
-#	Does a `make' in documentation/.
+#	Does a `make' in doc/.
 #
 # The remaining targets can be used to test a part of the distribution process,
 # but are not really useful on their own otherwise.
@@ -185,22 +185,22 @@ full-check: Makefile
 	)
 
 documentation: $(srcdir)/example-project/debug.h
-	$(MAKE) -C documentation
+	$(MAKE) -C doc
 
 .example-project_debug.h-timestamp: example-project/debug.h
 	touch .example-project_debug.h-timestamp
 
 syncwww: documentation
 	@echo "Synchronizing with libcwd.sourceforge.net..."
-	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/documentation/www/exclude --delete-excluded \
-		`pwd`/documentation/ "libcwd-web:htdocs/"
+	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/doc/www/exclude --delete-excluded \
+		`pwd`/doc/ "libcwd-web:htdocs/"
 
 git-clean:
-	$(MAKE) -C documentation maintainer-clean
+	$(MAKE) -C doc maintainer-clean
 	(test -f example-project/Makefile && $(MAKE) -C example-project maintainer-clean) || true
 	$(MAKE) maintainer-clean
-	for d in documentation/tutorial/examples5 documentation/tutorial/examples7 documentation/tutorial \
-		 documentation/styles documentation/external documentation \
+	for d in doc/tutorial/examples5 doc/tutorial/examples7 doc/tutorial \
+		 doc/styles doc/external doc \
 		 example-project testsuite tests cutee utils include/libcwd include; do \
 	  test ! -d $$d || rmdir --ignore-fail-on-non-empty $$d; \
 	done

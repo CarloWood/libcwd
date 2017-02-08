@@ -12,21 +12,21 @@ INPUT_FILES=$(shell for i in `echo $(INPUT) | \
        else set -o noglob; for j in $(FILE_PATTERNS); do set +o noglob; ls $$i/$$j 2> /dev/null; done; fi done)
 EXAMPLE_FILES=$(shell find $(srcdir)/doxygen-examples -mindepth 1 -maxdepth 1 -type f -print)
 
-.PHONY: reference-manual external styles tutorial documentation_src
+.PHONY: reference-manual external styles tutorial doc_src
 
-all: reference-manual tutorial documentation_src
+all: reference-manual tutorial doc_src
 
 Makefile: doxygen.config $(top_builddir)/config.status $(srcdir)/Makefile.in
 	@rm -f Makefile.in
-	cd $(top_builddir) && CONFIG_FILES=documentation/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
+	cd $(top_builddir) && CONFIG_FILES=doc/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 
 doxygen.config: $(top_builddir)/config.status $(srcdir)/doxygen.config.in
 	@rm -f doxygen.config.in
-	cd $(top_builddir) && CONFIG_FILES=documentation/doxygen.config CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
+	cd $(top_builddir) && CONFIG_FILES=doc/doxygen.config CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 
-documentation_src:
+doc_src:
 	if test "`readlink -f @srcdir@`" != "`readlink -f .`"; then \
-	  tar -C $(top_srcdir) -cf - documentation | tar -C $(top_builddir) -xf - ; \
+	  tar -C $(top_srcdir) -cf - doc | tar -C $(top_builddir) -xf - ; \
 	fi
 
 reference-manual: styles external
@@ -85,7 +85,7 @@ tutorial:
 maintainer-clean: external-clean reference-manual-clean
 	$(MAKE) -C styles maintainer-clean
 	if test "`readlink -f @srcdir@`" != "`readlink -f .`"; then \
-	  (tar -C $(top_srcdir) -cf - documentation | tar -tf - | grep '^documentation/.*[^/]$$' | sed -e 's!^documentation/!!' | xargs rm -f); \
+	  (tar -C $(top_srcdir) -cf - doc | tar -tf - | grep '^doc/.*[^/]$$' | sed -e 's!^doc/!!' | xargs rm -f); \
 	fi
 	(cd tutorial; rm -f examples5/debug.* examples5/test* tutorial/core examples7/test* tut5.m4 tut7.m4 *.html core Makefile)
 	rm -f doxygen.config Makefile

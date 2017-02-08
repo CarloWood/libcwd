@@ -132,10 +132,13 @@ class thread_ct;
 struct TSD_st {
 public:
 #if CWDEBUG_ALLOC
-  int internal;				// libsysrecord.so relies on this being the first element.
-  int library_call;			// libsysrecord.so relies on this being the second element.
+  // The volatile members are incremented/decremented by inline functions, possibly around
+  // calls to malloc et al, which are treated special by the compiler in that it assumes
+  // that a change to a global variable can't have influence-- but these members DO have influence.
+  int volatile internal;		// libsysrecord.so relies on this being the first element.
+  int volatile library_call;		// libsysrecord.so relies on this being the second element.
   int inside_malloc_or_free;		// Set when entering a (de)allocation routine non-internal.
-  int invisible;			// When set, allocation done must be invisible.
+  int volatile invisible;		// When set, allocation done must be invisible.
 #endif // CWDEBUG_ALLOC
 #if CWDEBUG_LOCATION
   location_format_t format;		// Determines how to print location_ct to an ostream.

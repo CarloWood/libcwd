@@ -14,9 +14,9 @@ AOUT7:=$(shell grep 'START OUTPUT' $(srcdir)/tut7.in | cut -d \  -f4)
 
 all: examples html
 
-Makefile: $(top_builddir)/config.status $(top_srcdir)/documentation/tutorial/Makefile.in
+Makefile: $(top_builddir)/config.status $(top_srcdir)/doc/tutorial/Makefile.in
 	@rm -f Makefile.in
-	cd $(top_builddir) && CONFIG_FILES=documentation/tutorial/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
+	cd $(top_builddir) && CONFIG_FILES=doc/tutorial/Makefile CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 
 examples: $(SOURCES5) $(SOURCES7)
 html: index.html faq.html intro.html tut1.html tut2.html tut3.html tut4.html tut5.html tut6.html tut7.html tut8.html

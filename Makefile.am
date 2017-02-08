@@ -1,21 +1,18 @@
-## Process this file with automake to generate Makefile.in
+include $(srcdir)/cwm4/root_makefile_top.am
 
-AUTOMAKE_OPTIONS = foreign
-ACLOCAL_AMFLAGS = @ACLOCAL_CWFLAGS@
+DEFAULT_INCLUDES =
+AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
 
-SUBDIRS = include utils . tests testsuite cutee
+SUBDIRS = @CW_SUBDIRS@ include utils . tests testsuite cutee
 DIST_SUBDIRS = include utils tests testsuite cutee
 
-EXTRA_DIST = LICENSE.QPL README.SVN README.threads README.FreeBSD README.openbsd README.solaris \
-	README.cygwin README.mingw32 README.PCH nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in \
+EXTRA_DIST += LICENSE.QPL README.threads README.FreeBSD README.openbsd README.solaris \
+	README.cygwin README.mingw32 nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in \
 	libcwd.lsm libcwd.spec valgrind.supp
 DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 
 VERSIONINFO=@VERSIONINFO@
 CXXFLAGS = @CXXFLAGS@
-PCHFLAGS = @PCHFLAGS@
-AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
-DEFAULT_INCLUDES =
 
 if ENABLETHREADING
 LIBCWD_R = libcwd_r.la
@@ -51,7 +48,7 @@ libcwd_la_LIBADD = utils/libutils.la
 endif
 
 if ENABLETHREADING
-libcwd_r_la_CXXFLAGS = $(PCHFLAGS) -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread
+libcwd_r_la_CXXFLAGS = $(PCHFLAGS) -DCWDEBUG -DLIBCWD_THREAD_SAFE -pthread
 libcwd_r_la_SOURCES = \
 	elfxx.cc \
 	environ.cc \
@@ -82,15 +79,14 @@ $(pkgconfig_DATA): config.status
 DOCDESTDIR=$(DESTDIR)/usr/share/doc/libcwd
 
 install-doc:
-	test -e $(DOCDESTDIR) || mkdir -p $(DOCDESTDIR)
-	cp -pr $(top_builddir)/documentation $(DOCDESTDIR)
-	rm -f $(DOCDESTDIR)/Makefile $(DOCDESTDIR)/doxygen.config
-	find $(DOCDESTDIR)/documentation -name .svn -print | xargs rm -rf
+	test -e $(DOCDESTDIR)/documentation || mkdir -p $(DOCDESTDIR)/documentation
+	cp -pr $(top_builddir)/doc/* $(DOCDESTDIR)/documentation
+	rm -f $(DOCDESTDIR)/documentation/Makefile $(DOCDESTDIR)/documentation/doxygen.config
+	find $(DOCDESTDIR)/documentation -name .git -print | xargs rm -rf
 	find $(DOCDESTDIR)/documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf
 	find $(DOCDESTDIR)/documentation -name '*.dot' -size 0 -print | xargs rm -f
 	rm -f $(DOCDESTDIR)/documentation/tutorial/Makefile $(DOCDESTDIR)/documentation/styles/Makefile
-	mkdir $(DOCDESTDIR)/example-project
-	mkdir $(DOCDESTDIR)/example-project/m4
+	mkdir -p $(DOCDESTDIR)/example-project/m4
 	if test -d $(srcdir)/example-project/.svn; then \
 	  echo > $(DOCDESTDIR)/example-project/.files; \
 	  for i in $$(cd $(srcdir)/example-project && svn stat --verbose --non-interactive | \
@@ -143,9 +139,9 @@ dist-hook: documentation
 distclean-local:
 	rm -rf rpm $(srcdir)/autom4te.cache
 	if test ! -e $(top_builddir)/NEWS; then \
-	  rm -rf documentation; \
+	  rm -rf doc; \
 	else \
-	  find documentation/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf; \
+	  find doc/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf; \
 	fi
 	if test -d example-project; then \
 	  (cd example-project; rm -rf $(srcdir)/autom4te.cache .deps $(srcdir)/aclocal.m4 config.h $(srcdir)/config.h.in \
@@ -154,9 +150,8 @@ distclean-local:
 	cd $(srcdir) && dh_clean || true
 	rm -f $(srcdir)/build-stamp
 
-MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure $(srcdir)/Makefile.in \
-	$(srcdir)/install-sh $(srcdir)/missing $(srcdir)/compile $(srcdir)/mkinstalldirs $(srcdir)/config.guess $(srcdir)/config.sub \
-	$(srcdir)/ltmain.sh $(srcdir)/stamp-h.in $(srcdir)/ChangeLog tags $(srcdir)/example-project/debug.h \
-	$(srcdir)/depcomp troep*
-
 @MAINTAINER_MODE_TRUE@include maintMakefile
+
+include $(srcdir)/cwm4/root_makefile_bottom.am
+
+MAINTAINERCLEANFILES += $(srcdir)/example-project/debug.h

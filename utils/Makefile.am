@@ -22,24 +22,12 @@ noinst_LTLIBRARIES = $(LIBUTILS) $(LIBUTILS_R)
 
 if ENABLENONTHREADING
 libutils_la_CXXFLAGS = -DCWDEBUG
-libutils_la_SOURCES = \
-buf2str.cc \
-char2str.cc \
-exec_prog.cc \
-match.cc \
-rcfile.cc \
-attach_gdb.cc
+libutils_la_SOURCES = buf2str.cc char2str.cc exec_prog.cc match.cc rcfile.cc attach_gdb.cc
 endif
 
 if ENABLETHREADING
-libutils_r_la_CXXFLAGS = -DCWDEBUG -DLIBCWD_THREAD_SAFE -D_REENTRANT -pthread
-libutils_r_la_SOURCES = \
-buf2str.cc \
-char2str.cc \
-exec_prog.cc \
-match.cc \
-rcfile.cc \
-attach_gdb.cc
+libutils_r_la_CXXFLAGS = -DCWDEBUG -DLIBCWD_THREAD_SAFE -pthread
+libutils_r_la_SOURCES = buf2str.cc char2str.cc exec_prog.cc match.cc rcfile.cc attach_gdb.cc
 endif
 
 MAINTAINERCLEANFILES = $(srcdir)/Makefile.in

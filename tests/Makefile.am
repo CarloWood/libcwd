@@ -50,19 +50,19 @@ stabs_SOURCES = stabs.cc
 inlined_CXXFLAGS = -g -finline
 inlined_SOURCES = inlined.cc inlined_main.cc
 
-threads_CXXFLAGS = -D_REENTRANT -DLIBCWD_THREAD_SAFE @CXXFLAGS@
+threads_CXXFLAGS = -DLIBCWD_THREAD_SAFE -pthread @CXXFLAGS@
 threads_SOURCES = threads.cc
 threads_LDADD = ../libcwd_r.la
 
-threads2_CXXFLAGS = -D_REENTRANT -DLIBCWD_THREAD_SAFE @CXXFLAGS@
+threads2_CXXFLAGS = -DLIBCWD_THREAD_SAFE -pthread @CXXFLAGS@
 threads2_SOURCES = threads2.cc
 threads2_LDADD = ../libcwd_r.la
 
-threads3_CXXFLAGS = -D_REENTRANT -DLIBCWD_THREAD_SAFE @CXXFLAGS@
+threads3_CXXFLAGS = -DLIBCWD_THREAD_SAFE -pthread @CXXFLAGS@
 threads3_SOURCES = threads3.cc
 threads3_LDADD = ../libcwd_r.la
 
-threads4_CXXFLAGS = -D_REENTRANT -DLIBCWD_THREAD_SAFE @CXXFLAGS@
+threads4_CXXFLAGS = -DLIBCWD_THREAD_SAFE -pthread @CXXFLAGS@
 threads4_SOURCES = threads4.cc
 threads4_LDADD = ../libcwd_r.la
 

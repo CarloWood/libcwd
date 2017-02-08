@@ -1,9 +1,6 @@
-os=`uname -s`
-if test "$os" = "Linux"; then
-  required_libtool_version="1.4.2";
-else
-  required_libtool_version="1.5";       # Version 1.4.2 will not work.  1.4d should work,
-                                        # see http://www.gnu.org/software/libtool/libtool.html
-fi
-
-required_automake_version=1.7
+# aclocal 1.7.9 doesn't understand m4_include's. aclocal 1.8 doesn't print a version.
+required_automake_version="1.8.1"
+# autoconf 2.59 doesn't have AC_PROG_CC_C99.
+required_autoconf_version="2.60"
+# libtool 1.5.8 doesn't understand anything of the parameters being passed to it by the above versions.
+required_libtool_version="2.2"
