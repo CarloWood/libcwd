@@ -14,7 +14,7 @@ namespace libcwd {
 void generate_tables(void)
 {
 #ifndef THREADTEST
-  write(1, "<sleeping>", 10);
+  ssize_t __attribute__((unused)) res = write(1, "<sleeping>", 10);
 #else
   Dout( dc::always|noprefix_cf|nonewline_cf, "<sleeping>");
 #endif
@@ -22,7 +22,7 @@ void generate_tables(void)
   Dout( dc::generate, "Inside generate_tables()" );
   std::cout << std::flush;
 #ifndef THREADTEST
-  write(1, "<sleeping>", 10);
+  res = write(1, "<sleeping>", 10);
 #else
   Dout( dc::always|noprefix_cf|nonewline_cf, "<sleeping>");
 #endif

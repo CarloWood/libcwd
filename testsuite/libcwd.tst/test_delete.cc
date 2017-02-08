@@ -24,20 +24,21 @@ MAIN_FUNCTION
 #endif
 
   Debug( check_configuration() );
-#if CWDEBUG_ALLOC && !defined(THREADTEST)
-  int* dummy = new int;					// Make sure initialization of libcwd is done.
-  libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
-#endif
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
   Debug( dc::notice.on() );
-  Debug( dc::malloc.on() );
 #ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
 #endif
   // Turn debug object on
   Debug( libcw_do.on() ); 
+  Dout(dc::notice, "This write causes memory to be allocated.");
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
+  int* dummy = new int;					// Make sure initialization of libcwd is done.
+  libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
+#endif
+  Debug( dc::malloc.on() );
 
   // Allocate new object
   At* a = new At;

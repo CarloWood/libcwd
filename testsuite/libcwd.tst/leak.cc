@@ -67,24 +67,24 @@ MAIN_FUNCTION
 #endif
 
   Debug( check_configuration() );
-#if CWDEBUG_ALLOC && !defined(THREADTEST)
-  int* dummy = new int;					// Make sure initialization of libcwd is done.
-  libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
-#endif
 #if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.
   Debug( (void)pc_mangled_function_name((void*)exit) );
 #endif
 
-  // Select channels
-  // warning is already on.
-  Debug( dc::malloc.on() );
 #ifndef THREADTEST
   // Write debug output to cout
   Debug( libcw_do.set_ostream(&std::cout) );
 #endif
   // Turn debug object on
   Debug( libcw_do.on() );
+  Debug( dc::notice.on() );
+  Dout(dc::notice, "This output causes memory to be allocated.");
+#if CWDEBUG_ALLOC && !defined(THREADTEST)
+  int* dummy = new int;					// Make sure initialization of libcwd is done.
+  libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
+#endif
+  Debug( dc::malloc.on() );
 
   void* ptr1 = malloc(1111U); AllocTag2(ptr1, "ptr1");
 #if CWDEBUG_ALLOC

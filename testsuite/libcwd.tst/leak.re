@@ -1,8 +1,9 @@
 // input lines 3
-// output till ^MALLOC
+// output till ^NOTICE
 ((WARNING : core size is limited.*
 )*(BFD     : Loading debug .*
 )*)
+NOTICE  : This output causes memory to be allocated\.
 MALLOC  : malloc\(1111\) = 0x[0-9a-f]* \[leak\.cc:89\]
 MALLOC  : malloc\(2222\) = 0x[0-9a-f]* \[leak\.cc:94\]
 MALLOC  : malloc\(3333\) = 0x[0-9a-f]* \[leak\.cc:99\]

@@ -1,8 +1,9 @@
 // input lines 3
-// output till ^MALLOC
+// output till ^NOTICE
 ((WARNING : core size is limited.*
 )*(BFD     : Loading debug .*
 )*)
+NOTICE  : This output causes memory to be allocated\.
 MALLOC  : operator new \(size = 12\) = 0x[0-9a-f]* \[marker\.cc:54\]
 MALLOC  : operator new \(size = (8|16)\) = 0x[0-9a-f]* \[marker\.cc:59\]
 // input lines 2
