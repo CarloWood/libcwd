@@ -3,6 +3,56 @@ This is a little example project using autoconf and automake.
 IMPORTANT: This example project only works of you already
            compiled and *installed* libcwd!
 
+*****************************************************************************
+* WARNING (added 2017): This example is outdated now; you're highly
+* encouraged to use https://github.com/CarloWood/cwds instead, and then
+* have a debug.h and sys.h in the root of your project like these ones:
+*
+* debug.h
+* -------
+*
+* #pragma once
+*
+* #define NAMESPACE_DEBUG myproject::debug
+* #define NAMESPACE_DEBUG_START namespace myproject { namespace debug {
+* #define NAMESPACE_DEBUG_END } }
+* #include "cwds/debug.h"
+*
+* // The following can also go into other header files, that are
+* // most significant to the declared debug channels. For example,
+* // when the debug channel is part of another git module you'd
+* // want to put this in a common header of that git module.
+* #ifdef CWDEBUG
+* NAMESPACE_DEBUG_CHANNELS_START
+* extern channel_ct yourdebugchannel;
+* ...
+* NAMESPACE_DEBUG_CHANNELS_END
+* #endif
+*
+* debug.cc
+* --------
+*
+* #include "sys.h"
+* #include "debug.h"
+*
+* #ifdef CWDEBUG
+* NAMESPACE_DEBUG_CHANNELS_START
+* channel_ct yourdebugchannel("YOURDEBUGCHANNEL");
+* ...
+* NAMESPACE_DEBUG_CHANNELS_END
+* #endif
+*
+* sys.h
+* -----
+*
+* #pragma once
+*
+* #include "cwds/sys.h"
+*
+* Read https://github.com/CarloWood/cwds/blob/master/README.md
+* for more information.
+*****************************************************************************
+
 What and How
 ------------
 
@@ -186,11 +236,11 @@ make
 
 
 PS If you see a file 'debug.h.maintainer' then you probably checked
-   out this directory from the libcwd SVN repository.  That file
+   out this directory from the libcwd git repository.  That file
    is not supposed to be a part of your project, just remove it.
    Before removing it however, make sure you have a file called
    debug.h in the current directory.  If not, generate it from
    debug.h.maintainer by going one directory down - configure
    libcwd with --enable-maintainer-mode (which you should always
-   do when using SVN) and running: make example-project/debug.h
+   do when using git) and running: make example-project/debug.h
 

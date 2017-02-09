@@ -1,3 +1,15 @@
+libcwd (1.0.7-1) xenial; urgency=medium
+
+  * Upgrade to version 1.0.7.
+
+ -- Carlo Wood <carlo@alinoe.com>  Wed, 08 Feb 2017 23:40:38 +0100
+
+libcwd (1.0.6-1) unstable; urgency=low
+
+  * Upgrade to version 1.0.6.
+
+ -- Carlo Wood <carlo@alinoe.com>  Mon, 22 Jun 2016 12:00:00 +0200
+
 libcwd (1.0.4-1) unstable; urgency=low
 
   * Upgrade to version 1.0.4.

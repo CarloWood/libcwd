@@ -8,7 +8,6 @@
 # GNU which-2.x
 # GNU date
 # awk
-# rpm
 # rcs2log
 # cut
 # grep
@@ -21,8 +20,8 @@
 # Targets
 # -------
 #
-# - rpm
-#	Generates the $(TARGET).rpm and src.rpm files.
+# - debian
+#       Create a debian package.
 #
 # - full-check
 #	Iterate over multiple configurations and compiler versions,
@@ -34,43 +33,32 @@
 # The remaining targets can be used to test a part of the distribution process,
 # but are not really useful on their own otherwise.
 #
-# - ChangeLog
-#	Generates the `ChangeLog' file from the SVN repository logs.
-#
 # - test-values
 #	Print debugging info about variables used in this file.
 #
 
-RPMDIR=$(top_builddir)/rpm
 TARGET=@TARGET@
 SPECFILE=@SPECFILE@
 LSMFILE=@LSMFILE@
 REL=1
 TAG:=${shell echo "V@VERSION@" | sed -e 's/\./_/g'}
 PREVTAG:=${shell test -f .prevtag && cat .prevtag}
-SVNREADACCESS:=${shell if test -f $(srcdir)/.svn/entries; then echo "yes"; else echo "no"; fi}
 AWK=@AWK@
 
 BUILT_SOURCES = .example-project_debug.h-timestamp
 
 test-values:
 	@echo "srcdir	= \"$(srcdir)\""
-	@echo "RPMDIR   = \"$(RPMDIR)\""
 	@echo "PACKAGE  = \"@PACKAGE@\""
 	@echo "VERSION  = \"@VERSION@\""
 	@echo "SPECFILE = \"$(SPECFILE)\""
 	@echo "TARGET   = \"$(TARGET)\""
 	@echo "REL      = \"$(REL)\""
-	@echo "SVNREADACCESS = \"$(SVNREADACCESS)\""
 	@echo "TAG      = \"$(TAG)\""
 	@echo "PREVTAG  = \"$(PREVTAG)\""
 
 ## Make sure the ChangeLog is up to date in maintainer mode
-.PHONY: rpm ChangeLog documentation debian @PACKAGE@-@VERSION@.tar.gz
-
-rpm: dist $(SPECFILE) $(LSMFILE)
-	mv @PACKAGE@-@VERSION@.tar.gz $(RPMDIR)/SOURCES
-	cd rpm; rpmbuild --rcfile=/usr/lib/rpm/rpmrc:rpmrc --sign --clean -ba ../$(SPECFILE)
+.PHONY: ChangeLog documentation debian @PACKAGE@-@VERSION@.tar.gz
 
 @PACKAGE@-@VERSION@.tar.gz:
 	RESULT=ok; \
@@ -99,13 +87,6 @@ debian: @PACKAGE@-@VERSION@.tar.gz
 	cd ..; \
 	lintian @PACKAGE@_@VERSION@-1_amd64.changes
 
-ChangeLog:
-	if test $(SVNREADACCESS) = yes; then \
-	  svn log | mawk '/^-*-$$/ { start=1 } // { if (!start) { if ($$0 ~ /^$$/) print; else printf("\t%s\n", $$0); } } /^r[0-9]+ \|[^|]*\| / { split($$0,A,/\|/); split(A[3],B); gsub(/ /,"",A[1]);  gsub(/ /,"",A[2]); gsub(/libcw/,"libcw  <carlo@taryn>",A[2]); printf("%s (%s)  %s\n", B[1], A[1], A[2]); start=0 }' > ChangeLog; \
-	else \
-	  touch ChangeLog; \
-	fi
-
 # Allow this file to be missing.
 $(srcdir)/example-project/debug.h.maintainer:
 
@@ -117,11 +98,11 @@ $(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer 
 	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> $(srcdir)/example-project/debug.h; \
 	fi
 
-CCVERSVN=6.2.0
-CCVERALL=$(CCVERSVN),5.4.0,4.9.4,4.8.5,4.8.0,4.7.4
-CCVERMOST=$(CCVERSVN),5.4.0,4.9.4,4.8.0,4.7.4
+CCVERGIT=6.2.0
+CCVERALL=$(CCVERGIT),5.4.0,4.9.4,4.8.5,4.8.0,4.7.4
+CCVERMOST=$(CCVERGIT),5.4.0,4.9.4,4.8.0,4.7.4
 
-#		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
+#		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERGIT)' \
 #		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
 #		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
 #		'--enable-maintainer-mode --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
@@ -134,7 +115,7 @@ CCVERMOST=$(CCVERSVN),5.4.0,4.9.4,4.8.0,4.7.4
 full-check: Makefile
 	@( \
 	  for c in \
-		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERSVN)' \
+		'--enable-maintainer-mode --with-redzone=1024 --compilers=$(CCVERGIT)' \
 		'--enable-maintainer-mode --compilers=$(CCVERALL)' \
 		'--enable-maintainer-mode --enable-debugt --enable-debugm --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
 		'--enable-maintainer-mode --enable-debugt                 --enable-debug --disable-debug-output --compilers=$(CCVERMOST)' \
@@ -191,6 +172,13 @@ documentation: $(srcdir)/example-project/debug.h
 	touch .example-project_debug.h-timestamp
 
 syncwww: documentation
+	@( \
+	  if test -n "$(OUTPUT_DIRECTORY)" -a "$(OUTPUT_DIRECTORY)" != "."; then \
+	    echo "Copying documentation to $(OUTPUT_DIRECTORY)"; \
+	    rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/doc/www/exclude --delete-excluded \
+		`pwd`/doc/ "$(OUTPUT_DIRECTORY)/libcwd"; \
+	  fi \
+	)
 	@echo "Synchronizing with libcwd.sourceforge.net..."
 	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/doc/www/exclude --delete-excluded \
 		`pwd`/doc/ "libcwd-web:htdocs/"

@@ -87,12 +87,12 @@ install-doc:
 	find $(DOCDESTDIR)/documentation -name '*.dot' -size 0 -print | xargs rm -f
 	rm -f $(DOCDESTDIR)/documentation/tutorial/Makefile $(DOCDESTDIR)/documentation/styles/Makefile
 	mkdir -p $(DOCDESTDIR)/example-project/m4
-	if test -d $(srcdir)/example-project/.svn; then \
+	if test -d $(srcdir)/example-project/.git; then \
 	  echo > $(DOCDESTDIR)/example-project/.files; \
-	  for i in $$(cd $(srcdir)/example-project && svn stat --verbose --non-interactive | \
-	          sed -re 's/.*[[:space:]]//' -e 's/^\.$$//' -e 's/debug\.h\.maintainer/debug.h/'); do \
+	  for i in $$(cd $(srcdir)/example-project && git ls-files | \
+	          sed -r -e 's/debug\.h\.maintainer/debug.h/'); do \
 	    if test -f $(srcdir)/example-project/$$i; then \
-	      cp -p $(srcdir)/example-project/$$i $(DOCDESTDIR)/example-project/$$i; \
+	      $(srcdir)/install-sh -T $(srcdir)/example-project/$$i $(DOCDESTDIR)/example-project/$$i; \
 	      echo $$i >> $(DOCDESTDIR)/example-project/.files; \
 	    fi \
 	  done \
@@ -117,16 +117,11 @@ dist-hook: documentation
 	  mv $(distdir)/Makefile.in.new $(distdir)/Makefile.in
 	$(MAKE) DOCDESTDIR=$(distdir) install-doc
 	mkdir $(distdir)/debian
-	if test -d $(srcdir)/debian/.svn; then \
+	if test -d $(srcdir)/debian/.git; then \
 	  echo > $(distdir)/debian/.files; \
-	  for i in $$(cd $(srcdir)/debian && svn stat --verbose --non-interactive | sed -re 's/.*[[:space:]]//' -e 's/^\.$$//'); do \
-	    if test -d $(srcdir)/debian/$$i; then \
-	      mkdir $(distdir)/debian/$$i; \
-	    fi; \
-	    if test -f $(srcdir)/debian/$$i; then \
-	      cp -p $(srcdir)/debian/$$i $(distdir)/debian/$$i; \
-	      echo $$i >> $(distdir)/debian/.files; \
-	    fi \
+	  for i in $$(cd $(srcdir)/debian && git ls-files); do \
+	    $(srcdir)/install-sh -T $(srcdir)/debian/$$i $(distdir)/debian/$$i; \
+	    echo $$i >> $(distdir)/debian/.files; \
 	  done \
 	elif test -r $(srcdir)/debian/.files; then \
 	  for i in $$(cat $(srcdir)/debian/.files); do \

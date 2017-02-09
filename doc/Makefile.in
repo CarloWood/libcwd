@@ -8,7 +8,7 @@ INPUT_FILES=$(shell for i in `echo $(INPUT) | \
     sed -e 's%@top_srcdir\@%'$(top_srcdir)'%g' \
         -e 's%@srcdir\@%'$(srcdir)'%g' \
 	-e 's%@top_builddir\@%'$(top_builddir)'%g'`; \
-    do if test -f "$$i"; then echo "$$i"; \
+    do if test -f "${i}"; then echo "${i}"; \
        else set -o noglob; for j in $(FILE_PATTERNS); do set +o noglob; ls $$i/$$j 2> /dev/null; done; fi done)
 EXAMPLE_FILES=$(shell find $(srcdir)/doxygen-examples -mindepth 1 -maxdepth 1 -type f -print)
 
@@ -88,4 +88,4 @@ maintainer-clean: external-clean reference-manual-clean
 	  (tar -C $(top_srcdir) -cf - doc | tar -tf - | grep '^doc/.*[^/]$$' | sed -e 's!^doc/!!' | xargs rm -f); \
 	fi
 	(cd tutorial; rm -f examples5/debug.* examples5/test* tutorial/core examples7/test* tut5.m4 tut7.m4 *.html core Makefile)
-	rm -f doxygen.config Makefile
+	rm -f doxygen.config html.header html.footer Makefile

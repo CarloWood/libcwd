@@ -1,3 +1,9 @@
+libcwd-1.0.7
+
+        Started using (the new) cwm4 git module for configuration;
+        that means that cwautomacros isn't needed anymore when
+        checking libcwd out from git.
+
 libcwd-1.0.6
 
 	Support for g++ 6.x, 5.x and DWARF version 4.

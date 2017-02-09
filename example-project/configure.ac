@@ -1,6 +1,3 @@
-# Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision$)dnl
-
 # Package name and version.
 AC_INIT([project], [0.0.1], [project-bugs@yourmail.org])
 
