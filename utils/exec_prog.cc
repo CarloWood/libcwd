@@ -180,7 +180,10 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
       ret = close(stderr_filedes[1]);
       Dout(dc::system|cond_error_cf(ret == -1), "close(" << stderr_filedes[1] << ") = " << ret);
 
-      execve(prog_name, const_cast<char* const*>(argv), const_cast<char* const*>(envp));
+      ret = execve(prog_name, const_cast<char* const*>(argv), const_cast<char* const*>(envp));
+      Debug( libcw_do.on() );
+      Dout(dc::system|error_cf, "execve(\"" << prog_name << "\", ...) = " << ret);
+      DoutFatal(dc::fatal, "Try configuring libcwd with --disable-location");
     }
     case -1:
       Debug( libcw_do.on() );
