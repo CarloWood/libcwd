@@ -18,6 +18,10 @@ if test -d .git; then
   if test ! -e cwm4/scripts/bootstrap.sh; then
     git submodule update --init --recursive
   fi
+  # If new git submodules were added by someone else, get them.
+  if git submodule status | grep '^-' >/dev/null; then
+    git submodule update --init --recursive
+  fi
   # Update autogen.sh and cwm4 itself if we are the real maintainer.
   if test -f cwm4/scripts/real_maintainer.sh; then
     cwm4/scripts/real_maintainer.sh $MAINTAINER_HASH

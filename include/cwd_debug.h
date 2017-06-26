@@ -50,8 +50,6 @@ struct no_alloc_ostream_ct {
   no_alloc_ostream_ct(std::ostream& os) : M_os(os) { }
 };
 
-} // namespace _private_
-
 inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, char const* data)
 {
   os.M_os.write(data, strlen(data));
@@ -107,6 +105,8 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
   return os;
 }
 #endif
+
+} // namespace _private_
 
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
 	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)); \
