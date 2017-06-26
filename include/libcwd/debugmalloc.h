@@ -218,7 +218,9 @@ extern "C" void* calloc(size_t nmemb, size_t size) throw() __attribute__((__mall
 extern "C" void* realloc(void* ptr, size_t size) throw() __attribute__((__malloc__));
 extern "C" void  free(void* ptr) throw();
 #ifdef LIBCWD_HAVE_POSIX_MEMALIGN
+#ifdef posix_memalign // Due to declaration conflicts with cstdlib, lets not define this when this isn't our macro.
 extern "C" int posix_memalign(void **memptr, size_t alignment, size_t size) throw();
+#endif
 #endif
 #ifdef LIBCWD_HAVE_VALLOC
 extern "C" void *valloc(size_t size) throw() __attribute__((__malloc__));
