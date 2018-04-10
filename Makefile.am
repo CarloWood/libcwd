@@ -3,7 +3,7 @@ include $(srcdir)/cwm4/root_makefile_top.am
 DEFAULT_INCLUDES =
 AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
 
-SUBDIRS = @CW_SUBDIRS@ include utils . tests testsuite cutee
+SUBDIRS = @CW_SUBDIRS@ include utils . tests testsuite cutee doc
 DIST_SUBDIRS = include utils tests testsuite cutee
 
 EXTRA_DIST += LICENSE.QPL README.threads README.FreeBSD README.openbsd README.solaris \
@@ -67,6 +67,9 @@ libcwd_r_la_SOURCES = \
 libcwd_r_la_LDFLAGS = -version-info $(VERSIONINFO) -no-undefined $(LIB_THREADS_SHARED)
 libcwd_r_la_LIBADD = utils/libutils_r.la
 endif
+
+check:
+	$(MAKE) -C testsuite -j 1 check
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libcwd.pc libcwd_r.pc

@@ -10,7 +10,7 @@
 
 The format of the \link group_overview Overview Of Allocated Memory \endlink can be altered
 and/or the content can be filtered by passing an object of type libcwd::alloc_filter_ct 
-to the function \ref list_allocations_on.  This object is constructed out of
+to the function \ref libcwd::list_allocations_on.  This object is constructed out of
 \c alloc_format_t constants which act as bits in a bit-mask.
 
 It is possible to include the time at which each allocation

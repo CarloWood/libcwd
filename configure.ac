@@ -29,7 +29,7 @@ define([CW_OPG_CXXFLAGS], [
 m4_include([cwm4/configure_ac_top.m4])
 
 # We use doxygen for documentation.
-CW_DOXYGEN
+CW_DOXYGEN([])
 
 # Libtool version info
 VERSIONINFO="CW_INTERFACE_VERSION:CW_INTERFACE_VERSION_REVISION:CW_INTERFACE_AGE"

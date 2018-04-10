@@ -82,6 +82,8 @@ styles:
 tutorial:
 	$(MAKE) -s -C tutorial
 
+check:
+
 maintainer-clean: external-clean reference-manual-clean
 	$(MAKE) -C styles maintainer-clean
 	if test "`readlink -f @srcdir@`" != "`readlink -f .`"; then \

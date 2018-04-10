@@ -154,8 +154,8 @@ full-check: Makefile
 	      fi; \
 	      cd testsuite >/dev/null; \
 	      make clean >/dev/null; \
-	      echo -n "Running \`make $$check'... "; \
-	      if if make RUNTESTFLAGS="" $$check 2>/dev/null; then \
+	      echo -n "Running \`/usr/bin/make RUNTESTFLAGS=\"\" $$check' in $(shell pwd)... "; \
+	      if if /usr/bin/make -j1 RUNTESTFLAGS="" $$check 2>/dev/null; then \
 	        echo "done"; \
 	      else \
 		echo "*** FAILURE FOR \"$$cf\" USING g++-$$v" && exit -1; \
