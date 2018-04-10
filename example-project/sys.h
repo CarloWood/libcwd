@@ -5,22 +5,10 @@
 // It is intended to add defines that are needed globally and
 // to work around Operating System dependend incompatibilities.
 
-// EXAMPLE: If you use autoconf you can add the following here.
-// #ifdef HAVE_CONFIG_H
-// #include "config.h"
-// #endif
+// The following includes the libcwd related mandatory part,
+// which must be included before any system header file is included!
 
-// EXAMPLE: You could add stuff like this here too
-// (Otherwise add -DCWDEBUG to your CFLAGS).
-// #if defined(WANTSDEBUGGING) && defined(HAVE_LIBCWD_BLAHBLAH)
-// #define CWDEBUG
-// #endif
+// Piggy back on cwds.
+#include "cwds/sys.h"
 
-// The following is the libcwd related mandatory part.
-// It must be included before any system header file is included!
-#ifdef CWDEBUG
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-#include <libcwd/sys.h>
-#endif
+// Add project specific parts here.

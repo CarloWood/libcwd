@@ -1,18 +1,5 @@
-## Process this file with automake to generate Makefile.in
+include $(srcdir)/cwm4/root_makefile_top.am
 
-AUTOMAKE_OPTIONS = foreign
-ACLOCAL_AMFLAGS = -I m4
+SUBDIRS = @CW_SUBDIRS@ src
 
-bin_PROGRAMS = program
-
-include_HEADERS = debug.h sys.h
-program_SOURCES = debug.cc program.cc
-
-# --------------- Maintainer's Section
-
-distclean-local:
-	rm -f config.cache config.log config.status
-
-MAINTAINERCLEANFILES = $(srcdir)/aclocal.m4 $(srcdir)/config.h.in $(srcdir)/configure stamp-h.in $(srcdir)/Makefile.in \
-        $(srcdir)/install-sh $(srcdir)/missing $(srcdir)/mkinstalldirs
-
+include $(srcdir)/cwm4/root_makefile_bottom.am

@@ -1,45 +1,30 @@
-# Package name and version.
-AC_INIT([project], [0.0.1], [project-bugs@yourmail.org])
+# Package version 1.0.0.
+define(CW_VERSION_MAJOR, 1)
+define(CW_VERSION_MINOR, 0)
+define(CW_VERSION_REVISION, 0)
 
-# Ensure that the directory specified with --srcdir was correct
-# by demanding that it contains `program.cc'.
-AC_CONFIG_SRCDIR([program.cc])
+# Package name and bug reporting.
+define(CW_PACKAGE_NAME, [project])
+define(CW_BUGREPORT, [project-bugs@yourmail.org])
 
-# Put resulting configuration defines in this header file.
-AM_CONFIG_HEADER(config.h)
+# CW_COMPILE_FLAGS may contain warning flags, but also default debug flags (-g*)
+# and optimization flags (-O*) that which will be stripped when not required.
+define(CW_COMPILE_FLAGS, [-std=c++14 -W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Winline])
 
-# Automake options.
-AM_INIT_AUTOMAKE
+# CW_THREADS can be [no] (single-threaded), [yes] (multi-threaded) or [both] (single and multi-threaded applications).
+define(CW_THREADS, [yes])
 
-# Demand at least version 2.57 of autoconf.
-AC_PREREQ(2.57)
+# CW_MAX_ERRORS is the maximum number of errors the compiler will show.
+define(CW_MAX_ERRORS, [2])
 
-# Include --enable-maintainer-mode option.
-AM_MAINTAINER_MODE
+# Include cwm4 header.
+m4_include([cwm4/configure_ac_top.m4])
 
-# Manual configuration options of project.
-AC_ARG_ENABLE(debugging, [  --enable-debugging      enable debugging code.])
+# Comment this out if the project is using doxygen to generate documentation.
+#CW_DOXYGEN([])
 
-# Check for compiler and preprocessor
-AC_PROG_CXX
-AC_PROG_CXXCPP
+# Output files.
+AC_CONFIG_FILES([src/Makefile])
 
-# Checks for other programs.
-AC_PROG_INSTALL
-AC_PROG_MAKE_SET
-
-# Set language requirements for the tests below.
-AC_LANG_CPLUSPLUS
-AC_REQUIRE_CPP
-
-# Configuration defines
-
-# Check if we have libcwd, $enable_debugging can be "yes", "no" or empty (auto).
-test -n "$enable_debugging" || enable_debugging=no	# Set the default to an explicit "no".
-# This sets 'cw_use_libcwd' to "yes" if libcwd is actually used; CXXFLAGS and LDFLAGS are updated.
-CW_LIB_LIBCWD([debugging], [$enable_debugging], [no])
-
-# Generate output files.
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT
-
+# Include cwm4 footer.
+m4_include([cwm4/configure_ac_bottom.m4])
