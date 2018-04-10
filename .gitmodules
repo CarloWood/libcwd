@@ -2,9 +2,3 @@
 	path = cwm4
 	url = https://github.com/CarloWood/cwm4.git
 	branch = master
-[submodule "example-project/cwm4"]
-	path = example-project/cwm4
-	url = https://github.com/CarloWood/cwm4.git
-[submodule "example-project/cwds"]
-	path = example-project/cwds
-	url = https://github.com/CarloWood/cwds.git
