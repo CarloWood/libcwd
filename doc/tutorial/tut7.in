@@ -27,6 +27,7 @@ using the function <CODE>make_invisible()</CODE>:</P>
 <!-- START CODE examples7/test7.1.1.cc -->
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
+#include &lt;cstdlib&gt;
 
 int main(void)
 {
@@ -111,6 +112,7 @@ int main(void)
 <!-- START CODE examples7/test7.1.3.cc -->
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
+#include &lt;cstdlib&gt;
 
 int main(void)
 {
@@ -118,14 +120,18 @@ int main(void)
   Debug( dc::malloc.on() );
   Debug( dc::notice.on() );
 
-  void* p = malloc(3000);
+  void* p = std::malloc(3000);
   
   Debug( make_invisible(p) );
   Debug( list_allocations_on(libcw_do) );
 
+#if CWDEBUG_ALLOC
   Dout(dc::notice, &quot;test_delete(&quot; &lt;&lt; p &lt;&lt; &quot;) = &quot; &lt;&lt; <SPAN class="highlight">test_delete(</SPAN>p<SPAN class="highlight">)</SPAN>);
-  free(p);
+#endif
+  std::free(p);
+#if CWDEBUG_ALLOC
   Dout(dc::notice, &quot;test_delete(&quot; &lt;&lt; p &lt;&lt; &quot;) = &quot; &lt;&lt; <SPAN class="highlight">test_delete(</SPAN>p<SPAN class="highlight">)</SPAN>);
+#endif
 
   return 0;
 }
@@ -179,7 +185,7 @@ int main(void)
   Dout(dc::notice, &quot;f == &quot; &lt;&lt; static_cast&lt;void*&gt;(f));
   Dout(dc::notice, &quot;p == &quot; &lt;&lt; static_cast&lt;void*&gt;(p));
 
-#ifdef CWDEBUG
+#if CWDEBUG_ALLOC
   alloc_ct const* alloc = <SPAN class="highlight">find_alloc(</SPAN>p<SPAN class="highlight">)</SPAN>;
   Dout(dc::notice,
 	 &quot;p points inside \&quot;&quot;
@@ -252,7 +258,7 @@ int main(void)
 
   // Debug( make_invisible(memory_leak) );
 
-#ifdef CWDEBUG
+#if CWDEBUG_ALLOC
   if (<SPAN class="highlight">mem_blocks()</SPAN> &gt; 0)
     Dout(dc::warning, &quot;There are still &quot; &lt;&lt; <SPAN class="highlight">mem_size()</SPAN> &lt;&lt; &quot; bytes allocated!&quot;);
   else
@@ -316,7 +322,7 @@ int main(void)
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
 
-#ifdef CWDEBUG
+#if CWDEBUG_ALLOC
   if (libcwd::mem_blocks() &gt; 0)
   {
     Dout(dc::malloc|dc::warning, &quot;Memory leak&quot;);
@@ -374,7 +380,7 @@ int main(void)
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
 
-#ifdef CWDEBUG
+#if CWDEBUG_ALLOC
   if (libcwd::mem_blocks() &gt; 0)
   {
     Dout(dc::malloc|dc::warning, &quot;Memory leak&quot;);

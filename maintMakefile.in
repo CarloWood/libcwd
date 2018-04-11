@@ -45,7 +45,7 @@ TAG:=${shell echo "V@VERSION@" | sed -e 's/\./_/g'}
 PREVTAG:=${shell test -f .prevtag && cat .prevtag}
 AWK=@AWK@
 
-BUILT_SOURCES = .example-project_debug.h-timestamp
+BUILT_SOURCES =
 
 test-values:
 	@echo "srcdir	= \"$(srcdir)\""
@@ -86,17 +86,6 @@ debian: @PACKAGE@-@VERSION@.tar.gz
 	dpkg-buildpackage -us -uc; \
 	cd ..; \
 	lintian @PACKAGE@_@VERSION@-1_amd64.changes
-
-# Allow this file to be missing.
-$(srcdir)/example-project/debug.h.maintainer:
-
-$(srcdir)/example-project/debug.h: $(srcdir)/example-project/debug.h.maintainer $(srcdir)/nodebug.h
-	@mkdir -p example-project
-	if test -f $(srcdir)/example-project/debug.h.maintainer; then \
-	  awk '/@NODEBUGMACROS@/ { exit } { print }' $(srcdir)/example-project/debug.h.maintainer > $(srcdir)/example-project/debug.h; \
-	  cat $(srcdir)/nodebug.h >> $(srcdir)/example-project/debug.h; \
-	  awk 'BEGIN { after=0 } /@NODEBUGMACROS@/ { after=1; next } { if (after==1) print }' $(srcdir)/example-project/debug.h.maintainer >> $(srcdir)/example-project/debug.h; \
-	fi
 
 CCVERGIT=6.2.0
 CCVERALL=$(CCVERGIT),5.4.0,4.9.4,4.8.5,4.8.0,4.7.4
@@ -165,11 +154,8 @@ full-check: Makefile
 	  done; \
 	)
 
-documentation: $(srcdir)/example-project/debug.h
+documentation:
 	$(MAKE) -C doc
-
-.example-project_debug.h-timestamp: example-project/debug.h
-	touch .example-project_debug.h-timestamp
 
 syncwww: documentation
 	@( \

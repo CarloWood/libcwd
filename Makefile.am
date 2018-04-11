@@ -92,8 +92,7 @@ install-doc:
 	mkdir -p $(DOCDESTDIR)/example-project/m4
 	if test -d $(srcdir)/example-project/.git; then \
 	  echo > $(DOCDESTDIR)/example-project/.files; \
-	  for i in $$(cd $(srcdir)/example-project && git ls-files | \
-	          sed -r -e 's/debug\.h\.maintainer/debug.h/'); do \
+	  for i in $$(cd $(srcdir)/example-project && git ls-files); do \
 	    if test -f $(srcdir)/example-project/$$i; then \
 	      $(srcdir)/install-sh -T $(srcdir)/example-project/$$i $(DOCDESTDIR)/example-project/$$i; \
 	      echo $$i >> $(DOCDESTDIR)/example-project/.files; \
@@ -104,13 +103,6 @@ install-doc:
 	    cp -p $(srcdir)/example-project/$$i $(DOCDESTDIR)/example-project/$$i; \
 	  done; \
 	  cp -p $(srcdir)/example-project/.files $(DOCDESTDIR)/example-project; \
-	fi
-	rm -f $(DOCDESTDIR)/example-project/debug.h.maintainer
-	if test -e $(srcdir)/example-project/debug.h; then \
-	  cp -p $(srcdir)/example-project/debug.h $(DOCDESTDIR)/example-project; \
-	else \
-	  echo "You need to configure with --enable-maintainer-mode and run 'make' before doing this."; \
-	  exit 1; \
 	fi
 
 dist-hook: documentation
