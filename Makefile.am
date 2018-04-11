@@ -4,7 +4,7 @@ DEFAULT_INCLUDES =
 AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
 
 SUBDIRS = @CW_SUBDIRS@ include utils . tests testsuite cutee doc
-DIST_SUBDIRS = include utils tests testsuite cutee
+DIST_SUBDIRS = include utils tests testsuite cutee doc
 
 EXTRA_DIST += LICENSE.QPL README.threads README.FreeBSD README.openbsd README.solaris \
 	README.cygwin README.mingw32 nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in \
@@ -128,14 +128,9 @@ dist-hook: documentation
 
 distclean-local:
 	rm -rf rpm $(srcdir)/autom4te.cache
-	if test ! -e $(top_builddir)/NEWS; then \
-	  rm -rf doc; \
-	else \
-	  find doc/tutorial \( -name 'core*' -o -name '*-bin' -o -name '*.o' \) -print | xargs rm -rf; \
-	fi
 	if test -d example-project; then \
-	  (cd example-project; rm -rf $(srcdir)/autom4te.cache .deps $(srcdir)/aclocal.m4 config.h $(srcdir)/config.h.in \
-	   config.log config.status $(srcdir)/configure Makefile $(srcdir)/Makefile.in stamp-h1 program *.o); \
+	  (cd example-project; rm -rf autom4te.cache .deps aclocal.m4 config.h config.h.in \
+	   config.log config.status configure Makefile Makefile.in stamp-h1 program *.o); \
         fi
 	cd $(srcdir) && dh_clean || true
 	rm -f $(srcdir)/build-stamp
@@ -143,5 +138,3 @@ distclean-local:
 @MAINTAINER_MODE_TRUE@include maintMakefile
 
 include $(srcdir)/cwm4/root_makefile_bottom.am
-
-MAINTAINERCLEANFILES += $(srcdir)/example-project/debug.h
