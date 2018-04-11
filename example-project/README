@@ -4,4 +4,20 @@ IMPORTANT: This example project only works of you already
            compiled and *installed* libcwd!
 
 Read https://github.com/CarloWood/cwds/blob/master/README.md
-for more information on cwds.
+for more information on cwm4 and cwds.
+
+Before using this project install those submodules (not
+here in libcwd, or you can't compile libcwd anymore;
+move example-project somewhere else first and turn it
+into a git project by itself).
+
+git submodule add https://github.com/CarloWood/cwm4.git
+git submodule add https://github.com/CarloWood/cwds.git
+cp cwm4/templates/autogen.sh .
+./autogen.sh
+
+And then for example
+
+./configure --enable-maintainer-mode
+make
+src/helloworld
