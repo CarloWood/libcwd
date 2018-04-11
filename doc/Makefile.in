@@ -76,6 +76,7 @@ tutorial:
 	$(MAKE) -s -C tutorial
 
 check:
+install:
 
 maintainer-clean: external-clean reference-manual-clean
 	$(MAKE) -C styles maintainer-clean
