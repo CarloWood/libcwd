@@ -56,7 +56,7 @@ struct CWNode {
   mutable unsigned short count;		// Number of iterators pointing to this element.
   mutable unsigned short dead;		// Whether or not the element is "erased".
 
-  CWNode(void) : count(0), dead(0) { }
+  CWNode() : count(0), dead(0) { }
   explicit CWNode(T const& __val) : mElement(__val), count(0), dead(0) { }
 
   // Equivalence operators.
@@ -90,7 +90,7 @@ class CWListIterator {
 	void* buffer[128000];
 
 	// Increment reference counter for mIterator (if not singular and not end()).
-	void ref(void)
+	void ref()
 	{
 	  if (mContainer && mContainer->end() != mIterator)
 	  {
@@ -107,7 +107,7 @@ class CWListIterator {
 
 	// Decrement reference counter for mIterator (if not singular and not end()).
 	// If this was the last iterator pointing to a dead element, then really erase it.
-	void unref(void)
+	void unref()
 	{
 	  if (mContainer && mContainer->end() != mIterator)
 	  {
@@ -131,7 +131,7 @@ class CWListIterator {
 	typedef T&										reference;
 
 	// Construct a singular iterator.
-	CWListIterator(void) : mContainer(NULL), index(0) { std::memset(buffer, 0, sizeof(buffer)); }
+	CWListIterator() : mContainer(NULL), index(0) { std::memset(buffer, 0, sizeof(buffer)); }
 
 	// Construct an iterator to a given element of std::list. Only for internal use by CWList<T, _Alloc>.
 	CWListIterator(_Container* __c, _Iterator const& __i) : mContainer(__c), mIterator(__i), index(0)
@@ -245,7 +245,7 @@ class CWListIterator {
 	// Return the total number of iterators pointing to the element that this iterator is pointing to.
 	// Unless the iterator points to end, a positive number will be returned since this iterator is
 	// pointing to the element. If it points to end (or is singular) then 0 is returned.
-	int count(void) const
+	int count() const
 	{
 	  if (mContainer && mIterator != mContainer->end())
 	  {
@@ -254,7 +254,7 @@ class CWListIterator {
 	  return 0;
 	}
 
-	void release(void)
+	void release()
 	{
 	  // Silently destruct this operator (it was copied with memcpy).
 	  // Make sure that destructing this object will not do anything to any underlaying CWNode.
@@ -285,7 +285,7 @@ class CWConstListIterator {
 	_Container const* mContainer;
 	_Iterator mConstIterator;		// This has to be an _Iterator instead of _ConstIterator, because the compiler doesn't accept a const_iterator for erase yet (C++11 does).
 
-	void ref(void)
+	void ref()
 	{
 	  if (mContainer && mContainer->end() != mConstIterator)
 	  {
@@ -294,7 +294,7 @@ class CWConstListIterator {
 	  }
 	}
 
-	void unref(void)
+	void unref()
 	{
 	  if (mContainer && mContainer->end() != mConstIterator)
 	  {
@@ -314,7 +314,7 @@ class CWConstListIterator {
 	typedef T const*									pointer;
 	typedef T const&									reference;
 
-	CWConstListIterator(void) : mContainer(NULL) { }
+	CWConstListIterator() : mContainer(NULL) { }
 	CWConstListIterator(_Container const* __c, _Iterator const& __i) : mContainer(__c), mConstIterator(__i)
 	{
 	  LIBCWD_ASSERT(mContainer);
@@ -417,7 +417,7 @@ class CWConstListIterator {
 	template<typename T2, typename A> friend bool operator==(CWListIterator<T2, A> const& __x, CWConstListIterator<T2, A> const& __y);
 	template<typename T2, typename A> friend bool operator!=(CWListIterator<T2, A> const& __x, CWConstListIterator<T2, A> const& __y);
 
-	int count(void) const
+	int count() const
 	{
 	  if (mContainer && mConstIterator != mContainer->end())
 	  {
@@ -479,7 +479,7 @@ class CWList {
 	typedef ptrdiff_t								difference_type;
 
 	// Default constructor. Create an empty list.
-	CWList(void) : mSize(0) { }
+	CWList() : mSize(0) { }
 #ifdef CWDEBUG_DEBUGM
 	// Destructor calls clear() to check if there are no iterators left pointing to this list. Destructing an empty list is trivial.
 	~CWList() { clear(); }

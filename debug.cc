@@ -101,7 +101,7 @@ __gthread_mutex_t* pool_allocator_lock_symbol_ptr;
 // The following tries to take the "node allocator" lock -- the lock of the
 // default allocator for threaded applications.
 inline
-bool allocator_trylock(void)
+bool allocator_trylock()
 {
 #if (__GNUC_MINOR__ < 4)
 
@@ -138,7 +138,7 @@ bool allocator_trylock(void)
 
 // The following unlocks the node allocator.
 inline
-void allocator_unlock(void)
+void allocator_unlock()
 {
 #if (__GNUC_MINOR__ < 4)
 #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
@@ -179,15 +179,15 @@ void allocator_unlock(void)
 #endif
     public:
 #if LIBCWD_THREAD_SAFE
-      buffer_ct(void) : unfinished_already_printed(false), continued_needed(false) { }
+      buffer_ct() : unfinished_already_printed(false), continued_needed(false) { }
 #endif
       void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object,
 	  bool request_unfinished, bool do_flush COMMA_IFTHREADS(bool ends_on_newline)
 	  COMMA_IFTHREADS(bool possible_nonewline_cf));
-      void store_position(void) {
+      void store_position() {
 	position = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out);
       }
-      void restore_position(void) {
+      void restore_position() {
 	this->pubseekpos(position, std::ios_base::out);
 	this->pubseekpos(0, std::ios_base::in);
 #if LIBCWD_THREAD_SAFE
@@ -402,18 +402,18 @@ void allocator_unlock(void)
     unsigned long const config_signature_lib_c = config_signature_header_c;
 
     // Return the configuration signature of the .so file.
-    unsigned long get_config_signature_lib_c(void)
+    unsigned long get_config_signature_lib_c()
     {
       return config_signature_lib_c;
     }
 
     // Put this here to decrease the code size of `check_configuration'
-    void conf_check_failed(void)
+    void conf_check_failed()
     {
       DoutFatal(dc::fatal, "check_configuration: This version of libcwd was compiled with a different configuration than is currently used in libcwd/config.h!");
     }
 
-    void version_check_failed(void)
+    void version_check_failed()
     {
       DoutFatal(dc::fatal, "check_configuration: This version of libcwd does not match the version of libcwd/config.h! Are your paths correct? Did you recently upgrade libcwd and forgot to recompile this application?");
     }
@@ -657,7 +657,7 @@ void allocator_unlock(void)
 
 #if LIBCWD_THREAD_SAFE
       // _private_::
-      void debug_channels_ct::init_and_rdlock(void)
+      void debug_channels_ct::init_and_rdlock()
       {
 	_private_::rwlock_tct<libcwd::_private_::debug_channels_instance>::initialize();
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
@@ -701,7 +701,7 @@ void allocator_unlock(void)
 
 #if LIBCWD_THREAD_SAFE
       // _private_::
-      void debug_objects_ct::init_and_rdlock(void)
+      void debug_objects_ct::init_and_rdlock()
       {
 	_private_::rwlock_tct<libcwd::_private_::debug_objects_instance>::initialize();
 	DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
@@ -723,7 +723,7 @@ void allocator_unlock(void)
 #endif
 
       // _private_::
-      void debug_objects_ct::ST_uninit(void)
+      void debug_objects_ct::ST_uninit()
       {
 	if (WNS_debug_objects)
 	{
@@ -740,7 +740,7 @@ void allocator_unlock(void)
 #if CWDEBUG_DEBUG
     static long WST_debug_object_init_magic = 0;
 
-    static void init_debug_object_init_magic(void)
+    static void init_debug_object_init_magic()
     {
       struct timeval rn;
       gettimeofday(&rn, NULL);
@@ -783,7 +783,7 @@ void allocator_unlock(void)
     } // namespace _private_
 
     /**
-     * \fn void core_dump(void)
+     * \fn void core_dump()
      * \ingroup chapter_core_dump
      *
      * \brief Dump core of current thread.
@@ -802,7 +802,7 @@ void allocator_unlock(void)
      *   DoutFatal(dc::core, "Something went wrong");
      * \endcode
      */
-    void core_dump(void)
+    void core_dump()
     {
 #if LIBCWD_THREAD_SAFE
       // Are we the first thread that tries to generate a core?
@@ -860,14 +860,14 @@ void allocator_unlock(void)
     }
 
     // This is called with alloc checking off.
-    void debug_string_ct::deinitialize(void)
+    void debug_string_ct::deinitialize()
     {
       free(M_str);
       M_str = NULL;
     }
 
     // This is called with alloc checking on (or off).
-    debug_string_ct::~debug_string_ct(void)
+    debug_string_ct::~debug_string_ct()
     {
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
       LIBCWD_ASSERT(M_str == NULL);	// Need to call debug_string_ct::deinitialize() before destructor.
@@ -932,7 +932,7 @@ void allocator_unlock(void)
     /**
      * \brief Push the current margin on a stack.
      */
-    void debug_ct::push_margin(void)
+    void debug_ct::push_margin()
     {
       LIBCWD_TSD_DECLARATION;
       debug_string_stack_element_ct* current_margin_stack = LIBCWD_TSD_MEMBER(M_margin_stack);
@@ -946,7 +946,7 @@ void allocator_unlock(void)
     /**
      * \brief Pop margin from the stack.
      */
-    void debug_ct::pop_margin(void)
+    void debug_ct::pop_margin()
     {
       LIBCWD_TSD_DECLARATION;
       if (!LIBCWD_TSD_MEMBER(M_margin_stack))
@@ -962,7 +962,7 @@ void allocator_unlock(void)
     /**
      * \brief Push the current marker on a stack.
      */
-    void debug_ct::push_marker(void)
+    void debug_ct::push_marker()
     {
       LIBCWD_TSD_DECLARATION;
       debug_string_stack_element_ct* current_marker_stack = LIBCWD_TSD_MEMBER(M_marker_stack);
@@ -976,7 +976,7 @@ void allocator_unlock(void)
     /**
      * \brief Pop marker from the stack.
      */
-    void debug_ct::pop_marker(void)
+    void debug_ct::pop_marker()
     {
       LIBCWD_TSD_DECLARATION;
       if (!LIBCWD_TSD_MEMBER(M_marker_stack))
@@ -1442,7 +1442,7 @@ void allocator_unlock(void)
       return true;				// Success.
     }
 
-    void debug_tsd_st::init(void)
+    void debug_tsd_st::init()
     {
       DEBUGDEBUG_CERR( "Entering debug_tsd_st::init (this == " << (void*)this << ")");
 #if CWDEBUG_DEBUGM
@@ -1774,7 +1774,7 @@ void allocator_unlock(void)
      *
      * \sa on()
      */
-    void channel_ct::off(void)
+    void channel_ct::off()
     {
 #if LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION;
@@ -1789,7 +1789,7 @@ void allocator_unlock(void)
      *
      * The channel is turned on when on() is called as often as off() was called before.
      */
-    void channel_ct::on(void)
+    void channel_ct::on()
     {
 #if LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION;
@@ -1810,7 +1810,7 @@ void allocator_unlock(void)
     //
 
     namespace _private_ {
-      void print_pop_error(void) {
+      void print_pop_error() {
         DoutFatal(dc::core, "Using \"dc::finish\" without corresponding \"continued_cf\" or "
 	    "calling the Dout(dc::finish, ...) more often than its corresponding "
 	    "Dout(dc::channel|continued_cf, ...).  Note that the wrong \"dc::finish\" doesn't "

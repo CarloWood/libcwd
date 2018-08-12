@@ -21,7 +21,7 @@ namespace libcwd {
 bool always_print_loading = false;
 bool suppress_startup_msgs = false;
 
-void process_environment_variables(void)
+void process_environment_variables()
 {
   always_print_loading = (getenv("LIBCWD_PRINT_LOADING") != NULL);
   suppress_startup_msgs = (getenv("LIBCWD_NO_STARTUP_MSGS") != NULL);

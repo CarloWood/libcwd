@@ -177,25 +177,25 @@ class LEB128_t {
 private:
   long M_val;
 public:
-  LEB128_t(void) { }
+  LEB128_t() { }
   LEB128_t(LEB128_t const& leb) : M_val(leb.M_val) { }
   LEB128_t(long val) : M_val(val) { }
   LEB128_t& operator=(long val) { M_val = val; return *this; }
   operator long() const { return M_val; }
-  long value(void) const { return M_val; }
+  long value() const { return M_val; }
 };
 
 class uLEB128_t {
 private:
   unsigned long M_val;
 public:
-  uLEB128_t(void) { }
+  uLEB128_t() { }
   uLEB128_t(uLEB128_t const& leb) : M_val(leb.M_val) { }
   uLEB128_t(unsigned long val) : M_val(val) { }
   uLEB128_t& operator=(unsigned long val) { M_val = val; return *this; }
   operator unsigned long() const { return M_val; }
-  unsigned long value(void) const { return M_val; }
-  uLEB128_t& operator--(void) { --M_val; return *this; }
+  unsigned long value() const { return M_val; }
+  uLEB128_t& operator--() { --M_val; return *this; }
 };
 
 static int const number_of_bits_in_LEB128_t = 8 * sizeof(LEB128_t);
@@ -1198,7 +1198,7 @@ struct location_st {
   Elfxx_Half M_line;
   bool M_stabs_symbol;
 
-  location_st(void) { }
+  location_st() { }
 
   location_st(location_st const& loc) :
       M_source_iter(loc.M_source_iter),
@@ -1229,7 +1229,7 @@ public:
   location_ct(objfile_ct* object_file) : M_address(0), M_flags(0), M_object_file(object_file)
       { M_prev_location.M_line = (Elfxx_Half)-1; M_line = 0; M_stabs_symbol = false; M_range.start = 0; }
 
-  void invalidate(void) {
+  void invalidate() {
     M_flags = 0;
 #if DEBUGDWARF
     LIBCWD_TSD_DECLARATION;
@@ -1275,7 +1275,7 @@ public:
       M_store();
     }
   }
-  void copy(void)
+  void copy()
   {
 #if DEBUGDWARF
     LIBCWD_TSD_DECLARATION;
@@ -1297,7 +1297,7 @@ public:
   void set_func_iter(object_files_string_set_ct::iterator const& iter)
       { M_stabs_symbol_funcname_iter = iter; M_stabs_symbol = true; }
   // load_stabs doesn't use out M_address.
-  bool is_valid_stabs(void) const { return (M_flags == 1); }
+  bool is_valid_stabs() const { return (M_flags == 1); }
   void increment_line(int increment) {
     if (increment != 0)
       M_used = false;
@@ -1329,7 +1329,7 @@ public:
     if (M_address)
       M_flags |= 2;
   }
-  void sequence_end(void) {
+  void sequence_end() {
 #if DEBUGDWARF
     LIBCWD_TSD_DECLARATION;
     DoutDwarf(dc::bfd, "--> Sequence end.");
@@ -1343,15 +1343,15 @@ public:
     M_range.start = 0;
   }
 
-  Elfxx_Half get_line(void) const { LIBCWD_ASSERT( (M_flags & 1) ); return M_line; }
-  object_files_string_set_ct::iterator get_source_iter(void) const { return M_source_iter; }
-  Elfxx_Addr get_address(void) const { return M_address; }
+  Elfxx_Half get_line() const { LIBCWD_ASSERT( (M_flags & 1) ); return M_line; }
+  object_files_string_set_ct::iterator get_source_iter() const { return M_source_iter; }
+  Elfxx_Addr get_address() const { return M_address; }
 
   void stabs_range(range_st const& range) const;
 
 private:
-  bool is_valid(void) const { return (M_flags == 3); }
-  void M_store(void);
+  bool is_valid() const { return (M_flags == 3); }
+  void M_store();
 };
 
 bool operator==(range_st const&, range_st const&)
@@ -1396,9 +1396,9 @@ class section_ct : public asection_st {
 private:
   Elfxx_Shdr M_section_header;
 public:
-  section_ct(void) { }
+  section_ct() { }
   void init(char const* section_header_string_table, Elfxx_Shdr const& section_header);
-  Elfxx_Shdr const& section_header(void) const { return M_section_header; }
+  Elfxx_Shdr const& section_header() const { return M_section_header; }
 };
 
 struct hash_list_st {
@@ -1462,24 +1462,24 @@ private:
   hash_list_st* M_hash_list_pool;
   compilation_units_vector_ct M_compilation_units;	// Canonical list of compilation units of this DSO.
 public:
-  objfile_ct(void);
+  objfile_ct();
   void initialize(char const* file_name);
   ~objfile_ct();
-  char const* get_section_header_string_table(void) const { return M_section_header_string_table; }
+  char const* get_section_header_string_table() const { return M_section_header_string_table; }
   section_ct const& get_section(int index) const { LIBCWD_ASSERT( index < M_header.e_shnum ); return M_sections[index]; }
 protected:
-  virtual bool check_format(void) const;
-  virtual long get_symtab_upper_bound(void);
+  virtual bool check_format() const;
+  virtual long get_symtab_upper_bound();
   virtual long canonicalize_symtab(asymbol_st**);
   virtual void find_nearest_line(asymbol_st const*, Elfxx_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM);
-  virtual void close(void);
+  virtual void close();
 private:
-  void delete_hash_list(void);
+  void delete_hash_list();
   char* allocate_and_read_section(int i);
   friend class location_ct;	// location_ct::M_store and location_ct::stabs_range need access to `register_range'.
   void register_range(location_st const& location, range_st const& range);
-  void load_stabs(void);
-  void load_dwarf(void);
+  void load_stabs();
+  void load_dwarf();
   uint32_t elf_hash(unsigned char const* name, unsigned char delim) const;
   void eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const& form
                 DEBUGDWARF_OPT_COMMA(unsigned char const* debug_str)
@@ -1492,7 +1492,7 @@ pthread_t objfile_ct::S_thread_inside_find_nearest_line;
 
 //-------------------------------------------------------------------------------------------------------------------------------------------
 
-void location_ct::M_store(void)
+void location_ct::M_store()
 {
 #if DEBUGDWARF
   LIBCWD_TSD_DECLARATION;
@@ -1591,7 +1591,7 @@ void section_ct::init(char const* section_header_string_table, Elfxx_Shdr const&
   name = &section_header_string_table[M_section_header.sh_name];
 }
 
-void objfile_ct::close(void)
+void objfile_ct::close()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -1625,12 +1625,12 @@ objfile_ct::~objfile_ct()
   delete [] M_symbols;
 }
 
-long objfile_ct::get_symtab_upper_bound(void)
+long objfile_ct::get_symtab_upper_bound()
 {
   return M_number_of_symbols * sizeof(asymbol_st*);
 }
 
-bool objfile_ct::check_format(void) const
+bool objfile_ct::check_format() const
 {
   return check_elf_format(M_header);
 }
@@ -1781,7 +1781,7 @@ struct abbrev_st {
   bool starts_with_string;
   bool has_children;
   abbrev_st(abbrev_st const& abbrev);
-  abbrev_st(void) : attributes(NULL), attributes_size(0), attributes_capacity(0) { }
+  abbrev_st() : attributes(NULL), attributes_size(0), attributes_capacity(0) { }
   ~abbrev_st() { if (attributes && --attributes[attributes_capacity].count == 0) free(attributes); }
 };
 
@@ -1824,7 +1824,7 @@ static object_files_string catenate_path(object_files_string const& dir, char co
   return res;
 }
 
-void objfile_ct::delete_hash_list(void)
+void objfile_ct::delete_hash_list()
 {
   if (M_hash_list)
   {
@@ -1961,7 +1961,7 @@ void objfile_ct::eat_form(unsigned char const*& debug_info_ptr, uLEB128_t const&
   }
 }
 
-void objfile_ct::load_dwarf(void)
+void objfile_ct::load_dwarf()
 {
 #if DEBUGDWARF
   LIBCWD_TSD_DECLARATION;
@@ -2079,7 +2079,10 @@ void objfile_ct::load_dwarf(void)
 	  if (abbrev.attributes_size == abbrev.attributes_capacity)
 	  {
 	    abbrev.attributes_capacity += 32;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
 	    abbrev.attributes = (attr_st*)realloc(abbrev.attributes, (abbrev.attributes_capacity + 1) * sizeof(attr_st));
+#pragma GCC diagnostic pop
 	    abbrev.attributes[abbrev.attributes_capacity].count = 1;
 	  }
 	  uLEB128_t& attr(*reinterpret_cast<uLEB128_t*>(&abbrev.attributes[abbrev.attributes_size].attr));
@@ -2131,7 +2134,10 @@ void objfile_ct::load_dwarf(void)
 	}
 	abbrev.fixed_size = has_fixed_size ? fixed_size : 0;
 	abbrev.attributes_capacity = abbrev.attributes_size;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
 	abbrev.attributes = (attr_st*)realloc(abbrev.attributes, (abbrev.attributes_capacity + 1) * sizeof(attr_st));
+#pragma GCC diagnostic pop
 	abbrev.attributes[abbrev.attributes_capacity].count = 1;
       }
 
@@ -2955,7 +2961,7 @@ void objfile_ct::load_dwarf(void)
 #endif
 }
 
-void objfile_ct::load_stabs(void)
+void objfile_ct::load_stabs()
 {
 #if DEBUGSTABS
   LIBCWD_TSD_DECLARATION;
@@ -3466,7 +3472,7 @@ void objfile_ct::register_range(location_st const& location, range_st const& ran
 #endif
 }
 
-objfile_ct::objfile_ct(void) :
+objfile_ct::objfile_ct() :
     M_section_header_string_table(NULL), M_sections(NULL), M_symbol_string_table(NULL),  M_dyn_symbol_string_table(NULL),
     M_symbols(NULL), M_number_of_symbols(0), M_symbol_table_type(0), M_hash_list(NULL)
 {

@@ -40,7 +40,7 @@ pthread_t locked_by[instance_locked_size];
 void const* locked_from[instance_locked_size];
 #endif
 
-void initialize_global_mutexes(void)
+void initialize_global_mutexes()
 {
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   mutex_tct<static_tsd_instance>::initialize();
@@ -69,7 +69,7 @@ template <>
   pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
-void mutex_ct::M_initialize(void)
+void mutex_ct::M_initialize()
 {
   pthread_mutexattr_t mutex_attr;
   pthread_mutexattr_init(&mutex_attr);
@@ -160,6 +160,27 @@ void threading_tsd_init(LIBCWD_TSD_PARAM);
 static TSD_st terminating_thread_tsd;
 static int terminating_count;
 
+//static
+TSD_st& TSD_st::instance()
+{
+  TSD_st* instance;
+  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
+    return S_create(0);
+  return *instance;
+}
+
+// This function is called at the start of free().
+//static
+TSD_st& TSD_st::instance_free()
+{
+  TSD_st* instance;
+  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
+    return S_create(1);
+  else
+    instance->inside_free++;
+  return *instance;
+}
+
 TSD_st& TSD_st::S_create(int from_free)
 {
   int oldtype;
@@ -195,7 +216,10 @@ TSD_st& TSD_st::S_create(int from_free)
       old_thread_iter = static_tsd->thread_iter;
 
     // Fill the temporary structure with zeroes.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
     std::memset(static_tsd, 0, sizeof(struct TSD_st));
+#pragma GCC diagnostic pop
     static_tsd->tid = _tid;			// Make sure nobody else will allocate this entry.
 
     if (from_free == 1)
@@ -290,7 +314,7 @@ void TSD_st::free_instance(TSD_st& tsd)
 
 bool WST_tsd_key_created = false;
 
-void TSD_st::S_tsd_key_alloc(void)
+void TSD_st::S_tsd_key_alloc()
 {
   pthread_key_create(&S_tsd_key, &TSD_st::S_cleanup_routine);	// Leaks memory, we never destruct this key again.
   WST_tsd_key_created = true;
@@ -298,7 +322,7 @@ void TSD_st::S_tsd_key_alloc(void)
 
 #define VALGRIND 0
 
-void TSD_st::cleanup_routine(void)
+void TSD_st::cleanup_routine()
 {
 #if !VALGRIND
   if (++tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS)
@@ -368,7 +392,7 @@ void TSD_st::S_cleanup_routine(void* arg)
 // End of Thread Specific Data
 //===================================================================================================
 
-int pthread_lock_interface_ct::trylock(void)
+int pthread_lock_interface_ct::trylock()
 {
 #if CWDEBUG_DEBUGT
   bool success = pthread_mutex_trylock(ptr);
@@ -396,7 +420,7 @@ int pthread_lock_interface_ct::trylock(void)
 #endif
 }
 
-void pthread_lock_interface_ct::lock(void)
+void pthread_lock_interface_ct::lock()
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -422,7 +446,7 @@ void pthread_lock_interface_ct::lock(void)
 #endif
 }
 
-void pthread_lock_interface_ct::unlock(void)
+void pthread_lock_interface_ct::unlock()
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;

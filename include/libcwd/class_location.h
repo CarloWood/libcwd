@@ -126,7 +126,7 @@ public:
    * Constructs an unknown location object.
    * Use \ref pc_location to initialize the object.
    */
-  location_ct(void);
+  location_ct();
 
   /**
    * \brief Copy constructor.
@@ -157,7 +157,7 @@ public:
    * the user is responsible to making sure that the owner is
    * deleted last.
    */
-  void lock_ownership(void) { if (M_known) M_filepath.lock(); }
+  void lock_ownership() { if (M_known) M_filepath.lock(); }
 
   /**
    * \brief Initialize the current object with the location that corresponds with \a pc.
@@ -170,7 +170,7 @@ public:
   /**
    * \brief Clear the current object (set the location to 'unknown').
    */
-  void clear(void);
+  void clear();
 
 public:
   // Accessors
@@ -178,7 +178,7 @@ public:
     * \brief Returns <CODE>false</CODE> if no source-file:line-number information is known for this location
     * (or when it is uninitialized or clear()-ed).
     */
-  bool is_known(void) const;
+  bool is_known() const;
 
   /**
    * \brief The source file name (without path).
@@ -186,10 +186,10 @@ public:
    * We don't allow to retrieve a pointer to the allocated character string because
    * that is dangerous as the memory that it is pointing to could be deleted.
    */
-  std::string file(void) const;
+  std::string file() const;
 
   /** \brief Return the line number; only valid if is_known() returns true. */
-  unsigned int line(void) const;
+  unsigned int line() const;
 
   /** \brief Returns the mangled function name or \ref unknown_function_c when no function could be found.
    *
@@ -197,19 +197,19 @@ public:
    * "<cleared location_ct>", the idea is to never print that: you should know it when a
    * location object is in these states.
    */
-  char const* mangled_function_name(void) const;
+  char const* mangled_function_name() const;
 
   /** \brief The size of the file name. */
-  size_t filename_length(void) const { return M_known ? strlen(M_filename) : 0; }
+  size_t filename_length() const { return M_known ? strlen(M_filename) : 0; }
   /** \brief The size of the full path name. */
-  size_t filepath_length(void) const { return M_known ? strlen(M_filepath.get()) : 0; }
+  size_t filepath_length() const { return M_known ? strlen(M_filepath.get()) : 0; }
 
   /** \brief Corresponding object file.
    *
    * Returns a pointer to an object representing the shared library or the executable
    * that this location belongs to; only valid if is_known() returns true.
    */
-  object_file_ct const* object_file(void) const { return M_object_file; }
+  object_file_ct const* object_file() const { return M_object_file; }
 
   // Printing
   /** \brief Write the full path to an ostream. */
@@ -230,12 +230,12 @@ public:
 #endif
 
   // This is used in list_allocations_on.
-  bool initialization_delayed(void) const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
-  void const* unknown_pc(void) const { return (!M_object_file && M_func == unknown_function_c) ? M_unknown_pc : initialization_delayed() ? M_initialization_delayed : 0; }
+  bool initialization_delayed() const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
+  void const* unknown_pc() const { return (!M_object_file && M_func == unknown_function_c) ? M_unknown_pc : initialization_delayed() ? M_initialization_delayed : 0; }
 #if CWDEBUG_ALLOC
   void handle_delayed_initialization(alloc_filter_ct const& filter);
-  bool hide_from_alloc_list(void) const { return M_hide == _private_::filtered_location; }
-  bool new_location(void) const { return M_hide == _private_::new_location; }
+  bool hide_from_alloc_list() const { return M_hide == _private_::filtered_location; }
+  bool new_location() const { return M_hide == _private_::new_location; }
   void synchronize_with(alloc_filter_ct const&) const;
 #endif
 };

@@ -122,8 +122,8 @@ public:
   // Manipulators
   //
 
-  void off(void);
-  void on(void);
+  void off();
+  void on();
 
   struct OnOffState {
     int off_cnt;
@@ -139,8 +139,8 @@ public:
   // Accessors
   //
 
-  char const* get_label(void) const;
-  bool is_on(void) const;
+  char const* get_label() const;
+  bool is_on() const;
 #if LIBCWD_THREAD_SAFE
   bool is_on(LIBCWD_TSD_PARAM) const;
 #endif

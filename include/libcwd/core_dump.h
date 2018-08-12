@@ -24,7 +24,7 @@
 
 namespace libcwd {
 
-extern void core_dump(void) __attribute__ ((__noreturn__));
+extern void core_dump() __attribute__ ((__noreturn__));
 
 } // namespace libcwd
 

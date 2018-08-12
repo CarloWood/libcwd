@@ -133,10 +133,10 @@ struct Node {
   Node* M_next;
   Node* M_prev;
 
-  Node* next(void) const { return M_next; }
-  Node* prev(void) const { return M_prev; }
+  Node* next() const { return M_next; }
+  Node* prev() const { return M_prev; }
 
-  void unlink(void)
+  void unlink()
   {
     M_prev->M_next = M_next;
     M_next->M_prev = M_prev;
@@ -153,7 +153,7 @@ static size_t const minimum_size = (1U << minimum_size_exp);	// The minimum chun
 static int const bucket_sizes = maximum_size_exp - minimum_size_exp + 1;
 
 struct List : public Node {
-  bool empty(void) const { return M_next == this; }
+  bool empty() const { return M_next == this; }
   void insert(Node* node)
   {
     node->M_prev = this;
@@ -177,36 +177,36 @@ struct ChunkNode : public Node {
   // This is commented out because it's 'virtual' (it can be zero size too).
   // char M_padding[size_of(ChunkNode) - sizeof(Node)];
 
-  ChunkNode* next(void) const { return static_cast<ChunkNode*>(M_next); }
-  ChunkNode* prev(void) const { return static_cast<ChunkNode*>(M_prev); }
+  ChunkNode* next() const { return static_cast<ChunkNode*>(M_next); }
+  ChunkNode* prev() const { return static_cast<ChunkNode*>(M_prev); }
 };
 
 struct ChunkList : public List {
   unsigned int M_used_count;	// Number of _used_ chunks (thus, that are allocated and not in the list anymore).
-  ChunkNode* begin(void) const { return static_cast<ChunkNode*>(M_next); }
-  Node const* end(void) const { return this; }
+  ChunkNode* begin() const { return static_cast<ChunkNode*>(M_next); }
+  Node const* end() const { return this; }
 };
 
 struct BlockNode : public Node {
   ChunkList M_chunks;
   ChunkNode M_data[1];		// One or more Chunks.
 
-  BlockNode* next(void) const { return static_cast<BlockNode*>(M_next); }
-  BlockNode* prev(void) const { return static_cast<BlockNode*>(M_prev); }
+  BlockNode* next() const { return static_cast<BlockNode*>(M_next); }
+  BlockNode* prev() const { return static_cast<BlockNode*>(M_prev); }
 };
 
 struct BlockList : public List {
   unsigned int* M_count_ptr;	// Pointer to number of blocks (thus, that are in the (full+notfull) list).
   unsigned short M_internal;	// Whether or not this block list contains internal blocks or not.
 
-  BlockNode* begin(void) const { return static_cast<BlockNode*>(M_next); }
-  Node const* end(void) const { return this; }
+  BlockNode* begin() const { return static_cast<BlockNode*>(M_next); }
+  Node const* end() const { return this; }
 
   void initialize(unsigned int* count_ptr, unsigned short internal);
-  void uninitialize(void);
+  void uninitialize();
   ~BlockList() { uninitialize(); }
 #if CWDEBUG_DEBUG
-  void consistency_check(void);
+  void consistency_check();
 #endif
 };
 
@@ -226,14 +226,14 @@ struct FreeList {
 #if LIBCWD_THREAD_SAFE
   void initialize(TSD_st& __libcwd_tsd);
 #else
-  void initialize(void);
+  void initialize();
 #endif
-  void uninitialize(void);
+  void uninitialize();
   ~FreeList() { uninitialize(); }
   char* allocate(int power, size_t size);
   void deallocate(char* p, int power, size_t size);
 #if CWDEBUG_DEBUG
-  void consistency_check(void);
+  void consistency_check();
 #endif
 };
 
@@ -277,7 +277,7 @@ template<bool needs_lock, int pool_instance>
       bool operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const&,
 		      CharPoolAlloc<needs_lock2, pool_instance2> const&);
 
-    size_type max_size(void) const { return std::numeric_limits<size_type>::max(); }
+    size_type max_size() const { return std::numeric_limits<size_type>::max(); }
   };
 #endif // gcc 4.0 and higher.
 
@@ -329,7 +329,7 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
       const_pointer address(const_reference value) const { return &value; }
 
       // Constructors and destructor.
-      allocator_adaptor(void) throw() { }
+      allocator_adaptor() throw() { }
       allocator_adaptor(allocator_adaptor const& a) : M_char_allocator(a.M_char_allocator) { }
       template<class U>
 	allocator_adaptor(allocator_adaptor<U, CharAlloc, internal LIBCWD_COMMA_INSTANCE> const& a) :
@@ -339,7 +339,7 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
       ~allocator_adaptor() throw() { }
 
       // Return maximum number of elements that can be allocated.
-      size_type max_size(void) const { return M_char_allocator.max_size() / sizeof(T); }
+      size_type max_size() const { return M_char_allocator.max_size() / sizeof(T); }
 
       // Allocate but don't initialize num elements of type T.
       pointer allocate(size_type num);
@@ -356,7 +356,7 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
     private:
-      static void sanity_check(void);
+      static void sanity_check();
 #endif
 
       template <class T1, class CharAlloc1, pool_nt internal1 LIBCWD_DEBUGDEBUG_COMMA(int inst1),

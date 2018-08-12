@@ -51,8 +51,8 @@ namespace libcwd {
       bufferstream_ct(stringbuf_type* sb) : std::basic_ostream<char, std::char_traits<char> >(sb), M_stringbuf(sb) { }
       ~bufferstream_ct() { }
 
-      stringbuf_type* rdbuf(void) const { return M_stringbuf; }
-      string_type str(void) const { return M_stringbuf->str(); }
+      stringbuf_type* rdbuf() const { return M_stringbuf; }
+      string_type str() const { return M_stringbuf->str(); }
       void str(string_type const& s) { M_stringbuf->str(s); }
     };
 

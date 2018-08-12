@@ -31,7 +31,7 @@ continued_channel_ct::continued_channel_ct(control_flag_t maskbit)
 
 inline
 control_flag_t
-continued_channel_ct::get_maskbit(void) const
+continued_channel_ct::get_maskbit() const
 { 
   return WNS_maskbit;
 }

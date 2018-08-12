@@ -71,9 +71,9 @@ public:
 
   void initialize(LIBCWD_TSD_PARAM);	// May only be called after the object reached its final place in memory.
   void terminated(threadlist_type::iterator LIBCWD_COMMA_TSD_PARAM);
-  bool is_zombie(void) const { return M_zombie; }
-  void terminating(void) { M_terminating = true; }
-  bool is_terminating(void) const { return M_terminating; }
+  bool is_zombie() const { return M_zombie; }
+  void terminating() { M_terminating = true; }
+  bool is_terminating() const { return M_terminating; }
 };
 
 // The list of threads.

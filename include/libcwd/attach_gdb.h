@@ -16,7 +16,7 @@
 
 namespace libcwd {
 
-void attach_gdb(void);
+void attach_gdb();
 
 } // namespace libcwd
 

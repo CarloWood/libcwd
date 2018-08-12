@@ -141,26 +141,26 @@ namespace __gnu_cxx
 	{ }
 
 	int
-	get_start_pos(void) const
+	get_start_pos() const
 	{ return M_start_pos; }
 
 	char
-	first_qualifier(void) const
+	first_qualifier() const
 	{ M_cnt = 1; return M_qualifier1; }
 
 	char
-	next_qualifier(void) const
+	next_qualifier() const
 	{
 	  return (++M_cnt == 2) ? M_qualifier2
 	                        : ((M_cnt == 3) ? M_qualifier3 : 0);
 	}
 
 	string_type const&
-	get_optional_type(void) const
+	get_optional_type() const
 	{ return M_optional_type; }
 
 	bool
-	part_of_substitution(void) const
+	part_of_substitution() const
 	{ return M_part_of_substitution; }
 
 #if _GLIBCXX_DEMANGLER_CWDEBUG
@@ -245,15 +245,15 @@ namespace __gnu_cxx
 			  bool member_function_pointer_qualifiers = false) const;
 
 	bool
-	suppressed(void) const
+	suppressed() const
 	{ return M_printing_suppressed; }
 
 	void
-	printing_suppressed(void)
+	printing_suppressed()
 	{ M_printing_suppressed = true; }
 
 	size_t
-	size(void) const
+	size() const
 	{ return M_qualifier_starts.size(); }
 
 #if _GLIBCXX_DEMANGLER_CWDEBUG
@@ -313,15 +313,15 @@ namespace __gnu_cxx
 	implementation_details(unsigned int style_flags = 0) :
 	    M_style(style_flags) { }
 	virtual ~implementation_details() { }
-	bool get_style_void(void) const
+	bool get_style_void() const
 	    { return (M_style & style_void); }
-	bool get_style_literal(void) const
+	bool get_style_literal() const
 	    { return (M_style & style_literal); }
-	bool get_style_literal_int(void) const
+	bool get_style_literal_int() const
 	    { return (M_style & style_literal_int); }
-	bool get_style_compact_expr_ops(void) const
+	bool get_style_compact_expr_ops() const
 	    { return (M_style & style_compact_expr_ops); }
-	bool get_style_sizeof_typename(void) const
+	bool get_style_sizeof_typename() const
 	    { return (M_style & style_sizeof_typename); }
         // This can be overridden by user implementations.
         virtual bool decode_real(char* /* output */, unsigned long* /* input */,
@@ -394,24 +394,24 @@ namespace __gnu_cxx
 	}
 
 	bool
-	remaining_input_characters(void) const
+	remaining_input_characters() const
 	{ return current() != 0; }
 
       private:
 	char
-	current(void) const
+	current() const
 	{ return (M_pos > M_maxpos) ? 0 : M_str[M_pos]; }
 
 	char
-	next_peek(void) const
+	next_peek() const
 	{ return (M_pos >= M_maxpos) ? 0 : M_str[M_pos + 1]; }
 
 	char
-	next(void)
+	next()
 	{ return (M_pos >= M_maxpos) ? 0 : M_str[++M_pos]; }
 
 	char
-	eat_current(void)
+	eat_current()
 	{ return (M_pos > M_maxpos) ? 0 : M_str[M_pos++]; }
 
 	void
@@ -2114,7 +2114,8 @@ namespace __gnu_cxx
 		      // Substitution: all qualified types, if any.
 		break;
 	      }
-	      /* Fall-through for St */
+	      /*Fall-through for St*/
+              /*FALL-THROUGH*/
 	    case 'N':
 	    case 'Z':
 	    case '0':
@@ -2127,7 +2128,7 @@ namespace __gnu_cxx
 	    case '7':
 	    case '8':
 	    case '9':
-	      // <Q><T>      		==> T Q
+	      // <Q><T>		        ==> T Q
 	      //     substitutions: "<T>" (<T> recursive).
 	      if (!decode_class_enum_type(prefix))
 	      {

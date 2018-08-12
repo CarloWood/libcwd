@@ -53,7 +53,7 @@ channel_ct::is_on(LIBCWD_TSD_PARAM) const
  */
 inline
 bool
-channel_ct::is_on(void) const
+channel_ct::is_on() const
 {
 #if LIBCWD_THREAD_SAFE
   LIBCWD_TSD_DECLARATION;
@@ -68,7 +68,7 @@ channel_ct::is_on(void) const
  */
 inline
 char const*
-channel_ct::get_label(void) const
+channel_ct::get_label() const
 {
   return WNS_label;
 }

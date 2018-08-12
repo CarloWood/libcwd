@@ -73,17 +73,17 @@ public:
   /**
    * \brief The allocated size in bytes.
    */
-  size_t size(void) const { return a_size; }
+  size_t size() const { return a_size; }
 
   /**
    * \brief A pointer to the start of the allocated memory block.
    */
-  void const* start(void) const { return a_start; }
+  void const* start() const { return a_start; }
 
   /**
    * \brief A flag indicating the type of allocation.
    */
-  memblk_types_nt memblk_type(void) const { return a_memblk_type; }
+  memblk_types_nt memblk_type() const { return a_memblk_type; }
 
   /**
    * \brief A reference to the type info of the pointer to the allocated memory block.
@@ -92,21 +92,21 @@ public:
    * by a call to \ref libcwd::type_info_of "type_info_of"(p1).&nbsp;
    * Where \p p1 is the first parameter that was passed to \ref AllocTag().
    */
-  type_info_ct const& type_info(void) const { return *type_info_ptr; }
+  type_info_ct const& type_info() const { return *type_info_ptr; }
 
   /**
    * \brief A pointer to a description of the allocated memory block.
    *
    * This is a character string that is the result of writing the second parameter of \ref AllocTag() to an ostrstream.
    */
-  char const* description(void) const { return a_description; }
+  char const* description() const { return a_description; }
 
   /**
    * \brief The time at which this allocation was made.
    *
    * \returns the time at which the memory was allocated, as returned by a call to gettimeofday.
    */
-  struct timeval const& time(void) const { return a_time; }
+  struct timeval const& time() const { return a_time; }
 
 #if CWDEBUG_LOCATION
   /**
@@ -116,7 +116,7 @@ public:
    * Class \ref location_ct describes a source file and line number location and in which function that location resides.&nbsp;
    * \sa \ref chapter_alloc_locations
    */
-  location_ct const& location(void) const { return *M_location; }
+  location_ct const& location() const { return *M_location; }
 #endif
 
 protected:
@@ -148,9 +148,9 @@ protected:
 private:
   bool M_tagged;				// Set when AllocTag et al was called.
 public:
-  bool is_tagged(void) const { return M_tagged; }
-  void alloctag_called(void) { M_tagged = true; }
-  void reset_type_info(void) { type_info_ptr = &unknown_type_info_c; }
+  bool is_tagged() const { return M_tagged; }
+  void alloctag_called() { M_tagged = true; }
+  void reset_type_info() { type_info_ptr = &unknown_type_info_c; }
 };
 
 } // namespace libcwd

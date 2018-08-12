@@ -164,15 +164,15 @@ private:
 
 private:
   void M_do_overflow(unsigned long prev_borrow);
-  void M_do_carry(void);
+  void M_do_carry();
 
 public:
   void set_2pow2pow(int power);
   void set_2pow(int power);
   void set_expstart(int expsize);
-  void set_zero(void);
+  void set_zero();
   void divide_by_two(bool decrement_exponent);
-  bool decrement_exponent(void);
+  bool decrement_exponent();
   decimal_float& operator+=(decimal_float const& term);
   decimal_float& operator*=(decimal_float const& factor);
   void print_to_with_precision(char* buf, int precision) const;
@@ -266,7 +266,7 @@ void decimal_float::M_do_overflow(unsigned long prev_borrow)
 }
 
 // Handle excess digits in the elements of the mantissa array.
-void decimal_float::M_do_carry(void)
+void decimal_float::M_do_carry()
 {
   for (int i = 0; i < mantissa_size_c - 1; ++i)
   {
@@ -303,7 +303,7 @@ inline void decimal_float::set_expstart(int expsize)
 }
 
 // Initialize the object to zero.  Must have the same exponent as m0.
-inline void decimal_float::set_zero(void)
+inline void decimal_float::set_zero()
 {
   std::memcpy(&M_data, &constants[m0], sizeof(decimal_float_data));
   M_data.mantissa[0] = 0;
@@ -347,7 +347,7 @@ void decimal_float::divide_by_two(bool decrement_exponent)
 // decrement the exponent with one.  This is used
 // to keep the exponent of this object equal to
 // another object that is being divided by two.
-bool decimal_float::decrement_exponent(void)
+bool decimal_float::decrement_exponent()
 {
   if (M_data.max_precision_reached)
     return false;

@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2002 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -59,7 +59,7 @@ void alloc_filter_ct::set_flags(alloc_format_t flags)
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
-alloc_format_t alloc_filter_ct::get_flags(void) const
+alloc_format_t alloc_filter_ct::get_flags() const
 {
   // Makes little sense to add locking here (alloc_format_t is an atomic type).
   return (M_flags & format_mask);
@@ -78,7 +78,7 @@ void alloc_filter_ct::set_time_interval(struct timeval const& start, struct time
   LIBCWD_CLEANUP_POP_RESTORE(false);
 }
 
-struct timeval alloc_filter_ct::get_time_start(void) const
+struct timeval alloc_filter_ct::get_time_start() const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -92,7 +92,7 @@ struct timeval alloc_filter_ct::get_time_start(void) const
   return res;
 }
 
-struct timeval alloc_filter_ct::get_time_end(void) const
+struct timeval alloc_filter_ct::get_time_end() const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -107,7 +107,7 @@ struct timeval alloc_filter_ct::get_time_end(void) const
 }
 
 #if CWDEBUG_LOCATION
-std::vector<std::string> alloc_filter_ct::get_objectfile_list(void) const
+std::vector<std::string> alloc_filter_ct::get_objectfile_list() const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -122,7 +122,7 @@ std::vector<std::string> alloc_filter_ct::get_objectfile_list(void) const
   return res;
 }
 
-std::vector<std::string> alloc_filter_ct::get_sourcefile_list(void) const
+std::vector<std::string> alloc_filter_ct::get_sourcefile_list() const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -137,7 +137,7 @@ std::vector<std::string> alloc_filter_ct::get_sourcefile_list(void) const
   return res;
 }
 
-std::vector<std::pair<std::string, std::string> > alloc_filter_ct::get_function_list(void) const
+std::vector<std::pair<std::string, std::string> > alloc_filter_ct::get_function_list() const
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -230,7 +230,7 @@ _private_::hidden_st alloc_filter_ct::check_hide(object_file_ct const* object_fi
 #endif // CWDEBUG_LOCATION
 
 #if CWDEBUG_LOCATION
-void alloc_filter_ct::M_synchronize(void) const
+void alloc_filter_ct::M_synchronize() const
 {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
   LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );

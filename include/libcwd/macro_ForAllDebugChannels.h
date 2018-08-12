@@ -45,15 +45,15 @@ public:
 public:
   void init(LIBCWD_TSD_PARAM);
 #if LIBCWD_THREAD_SAFE
-  void init_and_rdlock(void);
+  void init_and_rdlock();
 #endif
-  container_type& write_locked(void);
-  container_type const& read_locked(void) const;
+  container_type& write_locked();
+  container_type const& read_locked() const;
 };
 
 inline
 debug_channels_ct::container_type&
-debug_channels_ct::write_locked(void)
+debug_channels_ct::write_locked()
 {
 #if CWDEBUG_DEBUG
   LIBCWD_ASSERT( WNS_debug_channels );
@@ -63,7 +63,7 @@ debug_channels_ct::write_locked(void)
 
 inline
 debug_channels_ct::container_type const&
-debug_channels_ct::read_locked(void) const
+debug_channels_ct::read_locked() const
 {
 #if CWDEBUG_DEBUG
   LIBCWD_ASSERT( WNS_debug_channels );

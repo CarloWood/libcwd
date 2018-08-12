@@ -114,7 +114,7 @@ CANCELLATION_POINT_SYSCALL_VA (int, open, (const char *pathname, int flags, ...)
 CANCELLATION_POINT_SYSCALL_VA (int, open64, (const char *pathname, int flags, ...), (pathname, flags, va_arg (ap, mode_t)), flags)
 //strong_alias(open64, __open64)
 
-CANCELLATION_POINT_SYSCALL_DLSYM (int, pause, (void), ())
+CANCELLATION_POINT_SYSCALL_DLSYM (int, pause, (), ())
 
 CANCELLATION_POINT_SYSCALL_DLSYM (ssize_t, pread, (int fd, void *buf, size_t count, off_t offset), (fd, buf, count, offset))
 

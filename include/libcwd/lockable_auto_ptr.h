@@ -111,7 +111,7 @@ template<class X, bool array = false>	// Use array == true when `ptr' was alloca
       // You should only call this when this object is the owner.
 
 #ifdef CWDEBUG
-    bool is_owner(void) const { return owner; }
+    bool is_owner() const { return owner; }
       // Don't use this except for debug testing.
 #endif
 

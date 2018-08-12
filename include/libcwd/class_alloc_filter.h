@@ -115,29 +115,29 @@ public:
   /** \brief Set the general formatting flags. */
   void set_flags(alloc_format_t flags);
   /** \brief Returns the flags as set with set_flags */
-  alloc_format_t get_flags(void) const;
+  alloc_format_t get_flags() const;
   /** \brief Returns the start time as passed with set_time_interval. */
-  struct timeval get_time_start(void) const;
+  struct timeval get_time_start() const;
   /** \brief Returns the end time as passed with set_time_interval. */
-  struct timeval get_time_end(void) const;
+  struct timeval get_time_end() const;
 #if CWDEBUG_LOCATION
   /** \brief Returns a copy of the list of object file masks.
    *
    * Don't use this function in a loop.
    */
-  std::vector<std::string> get_objectfile_list(void) const;
+  std::vector<std::string> get_objectfile_list() const;
 
   /** \brief Returns a copy of the list of source file masks.
    *
    * Don't use this function in a loop.
    */
-  std::vector<std::string> get_sourcefile_list(void) const;
+  std::vector<std::string> get_sourcefile_list() const;
 
   /** \brief Return a copy of the list of object-file/function pair masks.
    *
    * Don't use this function in a loop.
    */
-  std::vector<std::pair<std::string, std::string> > get_function_list(void) const;
+  std::vector<std::pair<std::string, std::string> > get_function_list() const;
 #endif
 
   /** \brief Select the time interval that should be shown.
@@ -221,9 +221,9 @@ private:
   friend class marker_ct;
 #endif
 #if CWDEBUG_LOCATION
-  void M_check_synchronization(void) const { if (M_id != S_id) M_synchronize(); }
-  void M_synchronize(void) const;
-  void M_synchronize_locations(void) const;
+  void M_check_synchronization() const { if (M_id != S_id) M_synchronize(); }
+  void M_synchronize() const;
+  void M_synchronize_locations() const;
 #endif
 };
 

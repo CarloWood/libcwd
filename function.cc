@@ -29,13 +29,13 @@
 
 #include <iomanip>
 extern "C" {
-  pid_t getpid(void);
+  pid_t getpid();
   size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 }
 
 namespace libcwd {
 
-void Function::M_init(void)
+void Function::M_init()
 {
 #if LIBCWD_THREAD_SAFE
   mutex_tct<_private_::function_instance>::lock();

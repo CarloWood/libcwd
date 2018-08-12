@@ -46,11 +46,11 @@ private:
 public:
   void init(LIBCWD_TSD_PARAM);
 #if LIBCWD_THREAD_SAFE
-  void init_and_rdlock(void);
+  void init_and_rdlock();
 #endif
-  void ST_uninit(void);
-  container_type& write_locked(void);
-  container_type const& read_locked(void) const;
+  void ST_uninit();
+  container_type& write_locked();
+  container_type const& read_locked() const;
 
   // debug_objects is a global object. If it is destructed then in principle
   // all other global objects could already have been destructed, including
@@ -62,7 +62,7 @@ public:
 
 inline
 debug_objects_ct::container_type&
-debug_objects_ct::write_locked(void)
+debug_objects_ct::write_locked()
 {
 #if CWDEBUG_DEBUG
   LIBCWD_ASSERT( WNS_debug_objects );
@@ -72,7 +72,7 @@ debug_objects_ct::write_locked(void)
 
 inline
 debug_objects_ct::container_type const&
-debug_objects_ct::read_locked(void) const
+debug_objects_ct::read_locked() const
 {
 #if CWDEBUG_DEBUG
   LIBCWD_ASSERT( WNS_debug_objects );

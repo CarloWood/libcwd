@@ -145,7 +145,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
       public:
 	explicit
 	ofdstream(int fd) : std::ostream(&M_fdbuf), M_fdbuf(fd) { }
-	fdbuf* rdbuf(void) const { return &M_fdbuf; }
+	fdbuf* rdbuf() const { return &M_fdbuf; }
       };
       
       // Write debug output to pipe.

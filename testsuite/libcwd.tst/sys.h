@@ -23,7 +23,7 @@
 #include <cstdlib>
 
 #ifdef HAVE__G_CONFIG_H
-#include <_G_config.h>
+#include <stdio.h>
 #ifndef _G_CLOG_CONFLICT
 #define _G_CLOG_CONFLICT 0
 #endif
@@ -33,7 +33,7 @@
 #endif // HAVE__G_CONFIG_H
 
 #ifndef THREADTEST
-#define MAIN_FUNCTION int main(void)
+#define MAIN_FUNCTION int main()
 #define EXIT(res) exit(res)
 #define PREFIX_CODE
 #define THREADED(x)

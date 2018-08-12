@@ -94,10 +94,10 @@
 // - bool test_delete(void const* ptr)
 //		Returns true if `ptr' points to the start of an allocated
 //		memory block.
-// - size_t mem_size(void)
+// - size_t mem_size()
 //		Returns the total ammount of allocated memory in bytes
 //		(the sum all blocks shown by `list_allocations_on').
-// - unsigned long mem_blocks(void)
+// - unsigned long mem_blocks()
 //		Returns the total number of allocated memory blocks
 //		(Those that are shown by `list_allocations_on').
 // - std::ostream& operator<<(std::ostream& o, debugmalloc_report_ct)
@@ -254,10 +254,11 @@ using libcwd::_private_::backtrace_instance;
 #ifdef LIBCWD_DOXYGEN
 // Doxygen doesn't parse the define below.  On linux this evaluates to 0.
 #define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE 0
+#elif defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && defined(HAVE_DLOPEN) \
+     && !defined(LIBCWD_HAVE__LIBC_MALLOC) && !defined(LIBCWD_HAVE___LIBC_MALLOC)
+#define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE 1
 #else
-#define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE \
-    (defined(LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC) && defined(HAVE_DLOPEN) \
-     && !defined(LIBCWD_HAVE__LIBC_MALLOC) && !defined(LIBCWD_HAVE___LIBC_MALLOC))
+#define USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE 0
 #endif
 
 #ifdef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
@@ -348,10 +349,10 @@ void* __libc_valloc(size_t size);
 #endif // !HAVE_DLOPEN
 
 #if !USE_DLOPEN_RATHER_THAN_MACROS_KLUDGE
-extern "C" void* __libc_malloc(size_t size) throw() __attribute__((__malloc__));
-extern "C" void* __libc_calloc(size_t nmemb, size_t size) throw() __attribute__((__malloc__));
-extern "C" void* __libc_realloc(void* ptr, size_t size) throw() __attribute__((__malloc__));
-extern "C" void __libc_free(void* ptr) throw();
+extern "C" void* __libc_malloc(size_t size) noexcept __attribute__((__malloc__));
+extern "C" void* __libc_calloc(size_t nmemb, size_t size) noexcept __attribute__((__malloc__));
+extern "C" void* __libc_realloc(void* ptr, size_t size) noexcept __attribute__((__malloc__));
+extern "C" void __libc_free(void* ptr) noexcept;
 #endif
 
 #if defined(VALGRIND) && VALGRIND
@@ -577,7 +578,7 @@ namespace _private_ {
   								// never changed anymore (see `inside_ios_base_Init_Init').
 
   // _private_::
-  bool inside_ios_base_Init_Init(void)				// Single Threaded function.
+  bool inside_ios_base_Init_Init()				// Single Threaded function.
   {
     LIBCWD_TSD_DECLARATION;
     LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.internal);
@@ -881,14 +882,14 @@ public:
     // Start a new list in this node.
   void change_flags(memblk_types_nt new_memblk_type) { a_memblk_type = new_memblk_type; }
   void change_label(type_info_ct const& ti, _private_::smart_ptr description) { type_info_ptr = &ti; a_description = description; }
-  type_info_ct const* typeid_ptr(void) const { return type_info_ptr; }
-  _private_::smart_ptr description(void) const { return a_description; }
-  dm_alloc_ct const* next_node(void) const { return next; }
-  dm_alloc_ct const* prev_node(void) const { return prev; }
-  dm_alloc_ct const* next_list(void) const { return a_next_list; }
-  void const* start(void) const { return a_start; }
-  bool is_deleted(void) const;
-  size_t size(void) const { return a_size; }
+  type_info_ct const* typeid_ptr() const { return type_info_ptr; }
+  _private_::smart_ptr description() const { return a_description; }
+  dm_alloc_ct const* next_node() const { return next; }
+  dm_alloc_ct const* prev_node() const { return prev; }
+  dm_alloc_ct const* next_list() const { return a_next_list; }
+  void const* start() const { return a_start; }
+  bool is_deleted() const;
+  size_t size() const { return a_size; }
   void printOn(std::ostream& os) const;
   static void descend_current_alloc_list(LIBCWD_TSD_PARAM);			// MT-safe: write lock is set.
   friend inline std::ostream& operator<<(std::ostream& os, dm_alloc_ct const& alloc) { alloc.printOn(os); return os; }
@@ -904,7 +905,7 @@ public:
   ~dm_alloc_copy_ct();
   static dm_alloc_copy_ct* deep_copy(dm_alloc_ct const* alloc);
   unsigned long show_alloc_list(debug_ct& debug_object, int depth, channel_ct const& channel, alloc_filter_ct const& filter) const;
-  dm_alloc_copy_ct const* next(void) const { return M_next; }
+  dm_alloc_copy_ct const* next() const { return M_next; }
 };
 
 dm_alloc_copy_ct* dm_alloc_copy_ct::deep_copy(dm_alloc_ct const* alloc)
@@ -973,9 +974,9 @@ private:
   void const* a_end;		// End of allocated memory block
 public:
   memblk_key_ct(appblock const* s, size_t size) : a_start(s), a_end(reinterpret_cast<char const*>(s) + size) { }
-  void const* start(void) const { return a_start; }
-  void const* end(void)   const { return a_end; }
-  size_t size(void)       const { return (char*)a_end - (char*)a_start; }
+  void const* start() const { return a_start; }
+  void const* end()   const { return a_end; }
+  size_t size()       const { return (char*)a_end - (char*)a_start; }
   bool operator<(memblk_key_ct b) const
       { return a_end < b.start() || (a_end == b.start() && size() > 0); }
   bool operator>(memblk_key_ct b) const
@@ -994,7 +995,7 @@ public:
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, memblk_key_ct const& memblk) { memblk.printOn(os); return os; }
   friend inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, memblk_key_ct const& memblk) { memblk.printOn(os.M_os); return os; }
-  memblk_key_ct(void) { }
+  memblk_key_ct() { }
     // Never use this.  It's needed for the implementation of the std::pair<>.
 };
 
@@ -1010,9 +1011,9 @@ public:
   memblk_info_base_ct(memblk_types_nt memblk_type) : M_memblk_type(memblk_type), M_flags(0) { }
   memblk_info_base_ct(memblk_info_base_ct const& memblk_info_base) :
       M_memblk_type(memblk_info_base.M_memblk_type), M_flags(memblk_info_base.M_flags) { }
-  memblk_types_nt flags(void) const { return (memblk_types_nt)M_memblk_type; }
-  void set_watch(void) const { M_flags |= memblk_info_flag_watch; }
-  bool is_watched(void) const { return (M_flags & memblk_info_flag_watch); }
+  memblk_types_nt flags() const { return (memblk_types_nt)M_memblk_type; }
+  void set_watch() const { M_flags |= memblk_info_flag_watch; }
+  bool is_watched() const { return (M_flags & memblk_info_flag_watch); }
 };
 
 class memblk_info_ct : public memblk_info_base_ct {
@@ -1031,26 +1032,26 @@ public:
       struct timeval const& t LIBCWD_COMMA_TSD_PARAM LIBCWD_COMMA_LOCATION(location_ct const* l));
   memblk_info_ct(memblk_types_nt f);
   bool erase(bool owner LIBCWD_COMMA_TSD_PARAM);
-  void lock(void) { a_alloc_node.lock(); }
-  dm_alloc_ct* release_alloc_node(void) const { return a_alloc_node.release(); }
-  void make_invisible(void);
-  bool has_alloc_node(void) const { return a_alloc_node.get(); }
-  alloc_ct* get_alloc_node(void) const
+  void lock() { a_alloc_node.lock(); }
+  dm_alloc_ct* release_alloc_node() const { return a_alloc_node.release(); }
+  void make_invisible();
+  bool has_alloc_node() const { return a_alloc_node.get(); }
+  alloc_ct* get_alloc_node() const
       { if (has_alloc_node()) return a_alloc_node.get(); return NULL; }
-  type_info_ct const* typeid_ptr(void) const { return a_alloc_node.get()->typeid_ptr(); }
-  _private_::smart_ptr description(void) const { return a_alloc_node.get()->description(); }
+  type_info_ct const* typeid_ptr() const { return a_alloc_node.get()->typeid_ptr(); }
+  _private_::smart_ptr description() const { return a_alloc_node.get()->description(); }
   void change_label(type_info_ct const& ti, _private_::smart_ptr description) const
       { if (has_alloc_node()) a_alloc_node.get()->change_label(ti, description); }
   void change_label(type_info_ct const& ti, char const* description) const
       { _private_::smart_ptr desc(description); change_label(ti, desc); }
-  void alloctag_called(void) { a_alloc_node.get()->alloctag_called(); }
+  void alloctag_called() { a_alloc_node.get()->alloctag_called(); }
   void change_flags(memblk_types_nt new_flag)
       { M_memblk_type = new_flag; if (has_alloc_node()) a_alloc_node.get()->change_flags(new_flag); }
   void new_list(LIBCWD_TSD_PARAM) const { a_alloc_node.get()->new_list(LIBCWD_TSD); }			// MT-safe: write lock is set.
   void printOn(std::ostream& os) const;
   friend inline std::ostream& operator<<(std::ostream& os, memblk_info_ct const& memblk) { memblk.printOn(os); return os; }
 private:
-  memblk_info_ct(void) { }
+  memblk_info_ct() { }
     // Never use this.  It's needed for the implementation of the std::pair<>.
 };
 
@@ -1201,7 +1202,7 @@ void location_ct::synchronize_with(alloc_filter_ct const& filter) const
   }
 }
 
-void alloc_filter_ct::M_synchronize_locations(void) const
+void alloc_filter_ct::M_synchronize_locations() const
 {
   ACQUIRE_LC_WRITE_LOCK;
   for (location_cache_map_ct::iterator iter = location_cache_map_write->begin(); iter != location_cache_map_write->end(); ++iter)
@@ -1230,7 +1231,7 @@ static int WST_initialization_state;		// MT-safe: We will reach state '1' the fi
 // dm_alloc_ct methods
 //
 
-inline bool dm_alloc_ct::is_deleted(void) const
+inline bool dm_alloc_ct::is_deleted() const
 {
   return (a_memblk_type == memblk_type_deleted ||
 #if CWDEBUG_MARKER
@@ -1592,7 +1593,7 @@ bool memblk_info_ct::erase(bool owner LIBCWD_COMMA_TSD_PARAM)
   return false;
 }
 
-void memblk_info_ct::make_invisible(void)
+void memblk_info_ct::make_invisible()
 {
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUGOUTPUT
   LIBCWD_TSD_DECLARATION;
@@ -2629,7 +2630,7 @@ void* realloc_bootstrap2(void* ptr, size_t size)
   return res;
 }
 
-void init_malloc_function_pointers(void)
+void init_malloc_function_pointers()
 {
   // Point functions to next phase.
   libc_malloc = malloc_bootstrap2;
@@ -2715,7 +2716,7 @@ bool delete_memblk_map(void* ptr LIBCWD_COMMA_TSD_PARAM)
 } // namespace _private_
 #endif // LIBCWD_THREAD_SAFE
 
-void init_debugmalloc(void)
+void init_debugmalloc()
 {
   if (WST_initialization_state <= 0)
   {
@@ -2821,7 +2822,7 @@ bool test_delete(void const* void_ptr)
  * \brief Returns the total number of allocated bytes.
  * \ingroup book_allocations
  */
-size_t mem_size(void)
+size_t mem_size()
 {
   size_t memsize = 0;
 #if LIBCWD_THREAD_SAFE
@@ -2847,7 +2848,7 @@ size_t mem_size(void)
  * \brief Returns the total number of allocated memory blocks.
  * \ingroup book_allocations
  */
-unsigned long mem_blocks(void)
+unsigned long mem_blocks()
 {
   unsigned long memblks = 0;
 #if LIBCWD_THREAD_SAFE
@@ -2940,7 +2941,7 @@ unsigned long list_allocations_on(debug_ct& debug_object)
 }
 
 #if LIBCWD_THREAD_SAFE
-static void list_allocations_cleanup(void)
+static void list_allocations_cleanup()
 {
   LIBCWD_TSD_DECLARATION;
   rwlock_tct<threadlist_instance>::rdunlock();
@@ -3176,7 +3177,7 @@ namespace _private_ {
  * Debug( make_exit_function_list_invisible() );
  * \endcode
  */
-void make_exit_function_list_invisible(void)
+void make_exit_function_list_invisible()
 {
   if (libcwd::_private_::__exit_funcs_ptr)
     for (libcwd::_private_::exit_function_list* l = *libcwd::_private_::__exit_funcs_ptr; l->next; l = l->next)
@@ -3677,7 +3678,7 @@ extern "C" {
 // frees a block and updates the internal administration.
 //
 
-void __libcwd_free(void* void_ptr) throw()
+void __libcwd_free(void* void_ptr) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -3697,7 +3698,7 @@ void __libcwd_free(void* void_ptr) throw()
 // malloc(3) and calloc(3) replacements:
 //
 
-void* __libcwd_malloc(size_t size) throw()
+void* __libcwd_malloc(size_t size) noexcept
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -3763,7 +3764,7 @@ void* __libcwd_malloc(size_t size) throw()
   return ASSERT_APPBLOCK(ptr2);
 }
 
-void* __libcwd_calloc(size_t nmemb, size_t size) throw()
+void* __libcwd_calloc(size_t nmemb, size_t size) noexcept
 {
 #if LIBCWD_THREAD_SAFE && !VALGRIND
   static bool WST_libpthread_initialized = false;
@@ -3889,7 +3890,7 @@ void* __libcwd_calloc(size_t nmemb, size_t size) throw()
 // reallocates a block and updates the internal administration.
 //
 
-void* __libcwd_realloc(void* void_ptr, size_t size) throw()
+void* __libcwd_realloc(void* void_ptr, size_t size) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
   LIBCWD_TSD_DECLARATION;
@@ -4213,7 +4214,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) throw()
 //
 
 #ifdef HAVE_POSIX_MEMALIGN
-int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size) throw()
+int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size) noexcept
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -4250,7 +4251,7 @@ int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size) throw(
 #endif // HAVE_POSIX_MEMALIGN
 
 #ifdef HAVE_MEMALIGN
-void* __libcwd_memalign(size_t alignment, size_t size) throw()
+void* __libcwd_memalign(size_t alignment, size_t size) noexcept
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -4278,7 +4279,7 @@ void* __libcwd_memalign(size_t alignment, size_t size) throw()
 #endif // HAVE_MEMALIGN
 
 #ifdef HAVE_VALLOC
-void* __libcwd_valloc(size_t size) throw()
+void* __libcwd_valloc(size_t size) noexcept
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -4312,7 +4313,7 @@ void* __libcwd_valloc(size_t size) throw()
 // operator `new' and `new []' replacements.
 //
 
-void* operator new(size_t size) throw (std::bad_alloc)
+void* operator new(size_t size)
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -4375,7 +4376,7 @@ void* operator new(size_t size) throw (std::bad_alloc)
   return ASSERT_APPBLOCK(ptr2);
 }
 
-void* operator new(size_t size, std::nothrow_t const&) throw ()
+void* operator new(size_t size, std::nothrow_t const&) noexcept
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -4407,7 +4408,7 @@ void* operator new(size_t size, std::nothrow_t const&) throw ()
   return ASSERT_APPBLOCK(ptr2);
 }
 
-void* operator new[](size_t size) throw (std::bad_alloc)
+void* operator new[](size_t size)
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -4470,7 +4471,7 @@ void* operator new[](size_t size) throw (std::bad_alloc)
   return ASSERT_APPBLOCK(ptr2);
 }
 
-void* operator new[](size_t size, std::nothrow_t const&) throw ()
+void* operator new[](size_t size, std::nothrow_t const&) noexcept
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -4507,7 +4508,7 @@ void* operator new[](size_t size, std::nothrow_t const&) throw ()
 // operator `delete' and `delete []' replacements.
 //
 
-void operator delete(void* void_ptr) throw()
+void operator delete(void* void_ptr) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -4525,7 +4526,7 @@ void operator delete(void* void_ptr) throw()
 #endif
 }
 
-void operator delete(void* void_ptr, std::nothrow_t const&) throw()
+void operator delete(void* void_ptr, std::nothrow_t const&) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -4548,7 +4549,7 @@ void operator delete(void* void_ptr, std::nothrow_t const&) throw()
 #endif
 }
 
-void operator delete[](void* void_ptr) throw()
+void operator delete[](void* void_ptr) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -4576,7 +4577,7 @@ void operator delete[](void* void_ptr) throw()
 #endif
 }
 
-void operator delete[](void* void_ptr, std::nothrow_t const&) throw()
+void operator delete[](void* void_ptr, std::nothrow_t const&) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -4600,10 +4601,13 @@ void operator delete[](void* void_ptr, std::nothrow_t const&) throw()
 }
 
 #ifdef __cpp_sized_deallocation
-void operator delete(void* void_ptr, std::size_t) throw() __attribute__((alias("_ZdlPv")));
-void operator delete(void* void_ptr, std::size_t, std::nothrow_t const&) throw() __attribute__((alias("_ZdlPvRKSt9nothrow_t")));
-void operator delete[](void* void_ptr, std::size_t) throw() __attribute__((alias("_ZdaPv")));
-void operator delete[](void* void_ptr, std::size_t, std::nothrow_t const&) throw() __attribute__((alias("_ZdaPvRKSt9nothrow_t")));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattribute-alias"
+void operator delete(void* void_ptr, std::size_t) noexcept __attribute__((alias("_ZdlPv")));
+void operator delete(void* void_ptr, std::size_t, std::nothrow_t const&) noexcept __attribute__((alias("_ZdlPvRKSt9nothrow_t")));
+void operator delete[](void* void_ptr, std::size_t) noexcept __attribute__((alias("_ZdaPv")));
+void operator delete[](void* void_ptr, std::size_t, std::nothrow_t const&) noexcept __attribute__((alias("_ZdaPvRKSt9nothrow_t")));
+#pragma GCC diagnostic pop
 #endif
 
 extern "C" {

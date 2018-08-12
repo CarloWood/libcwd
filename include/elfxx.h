@@ -81,17 +81,17 @@ struct bfd_st {
   bool M_is_stripped;
   size_t M_s_end_offset;
 public:
-  bfd_st(void) : M_has_syms(false), M_is_stripped(true) { }
+  bfd_st() : M_has_syms(false), M_is_stripped(true) { }
   virtual ~bfd_st() { }
 public:
   static bfd_st* openr(char const* file_name);
-  virtual void close(void) = 0;
-  virtual bool check_format(void) const = 0;
-  virtual long get_symtab_upper_bound(void) = 0;
+  virtual void close() = 0;
+  virtual bool check_format() const = 0;
+  virtual long get_symtab_upper_bound() = 0;
   virtual long canonicalize_symtab(asymbol_st**) = 0;
   virtual void find_nearest_line(asymbol_st const*, Elfxx_Addr, char const**, char const**, unsigned int* LIBCWD_COMMA_TSD_PARAM) = 0;
-  bool has_syms(void) const { return M_has_syms; }
-  bool is_stripped(void) const { return M_is_stripped; }
+  bool has_syms() const { return M_has_syms; }
+  bool is_stripped() const { return M_is_stripped; }
 };
 
 extern asection_st const* const absolute_section_c;

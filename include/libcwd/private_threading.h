@@ -129,7 +129,7 @@ operator<<(_private_::raw_write_nt const& raw_write, pthread_mutex_t const& mute
 
   namespace _private_ {
 
-extern void initialize_global_mutexes(void);
+extern void initialize_global_mutexes();
 extern bool WST_multi_threaded;
 
 #if CWDEBUG_DEBUGT
@@ -243,10 +243,10 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 #endif // !LIBCWD_USE_LINUXTHREADS
 
 #define LIBCWD_PUSH_DEFER_TRYLOCK_MUTEX(instance, unlock_routine) \
-      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)(void)>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
+      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)()>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
       bool __libcwd_lock_successful = ::libcwd::_private_::mutex_tct<(instance)>::trylock()
 #define LIBCWD_DEFER_PUSH_LOCKMUTEX(instance, unlock_routine) \
-      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)(void)>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
+      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)()>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
       ::libcwd::_private_::mutex_tct<(instance)>::lock(); \
       bool const __libcwd_lock_successful = true
 #define LIBCWD_UNLOCKMUTEX_POP_RESTORE(instance) \
@@ -269,10 +269,10 @@ template <int instance>
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   protected:
     static bool volatile S_initialized;
-    static void S_initialize(void);
+    static void S_initialize();
 #endif
   public:
-    static void initialize(void)
+    static void initialize()
 #if LIBCWD_USE_LINUXTHREADS && !CWDEBUG_DEBUGT
 	{ }
 #else
@@ -284,7 +284,7 @@ template <int instance>
         }
 #endif
   public:
-    static bool trylock(void)
+    static bool trylock()
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
 #if CWDEBUG_DEBUGT
@@ -312,7 +312,7 @@ template <int instance>
       LibcwDebugThreads( if (success) { ++__libcwd_tsd.inside_critical_area; } );
       return success;
     }
-    static void lock(void)
+    static void lock()
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
 #if CWDEBUG_DEBUGT
@@ -363,7 +363,7 @@ template <int instance>
 #endif
 #endif
     }
-    static void unlock(void)
+    static void unlock()
     {
 #if CWDEBUG_DEBUGT
       TSD_st* tsd_ptr = 0;
@@ -417,7 +417,7 @@ template <int instance>
   bool volatile mutex_tct<instance>::S_initialized = false;
 
 template <int instance>
-  void mutex_tct<instance>::S_initialize(void)
+  void mutex_tct<instance>::S_initialize()
   {
     if (instance == mutex_initialization_instance)	// Specialization.
     {
@@ -492,10 +492,10 @@ template <int instance>
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
     static bool volatile S_initialized;
   private:
-    static void S_initialize(void);
+    static void S_initialize();
 #endif
   public:
-    static void initialize(void)
+    static void initialize()
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
 	{
 	  if (S_initialized)
@@ -506,7 +506,7 @@ template <int instance>
 	{ }
 #endif
   public:
-    void wait(void) {
+    void wait() {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_DEBUGDEBUGLOCK_CERR("cond_tct::wait(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; decrementing it.");
       LIBCWD_ASSERT( instance_locked[instance] > 0 );
@@ -552,13 +552,13 @@ template <int instance>
 #endif
 #endif
     }
-    void signal(void) { pthread_cond_signal(&S_condition); }
-    void broadcast(void) { pthread_cond_broadcast(&S_condition); }
+    void signal() { pthread_cond_signal(&S_condition); }
+    void broadcast() { pthread_cond_broadcast(&S_condition); }
   };
 
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
 template <int instance>
-  void cond_tct<instance>::S_initialize(void)
+  void cond_tct<instance>::S_initialize()
   {
 #if !LIBCWD_USE_LINUXTHREADS
     mutex_tct<mutex_initialization_instance>::initialize();
@@ -625,7 +625,7 @@ template <int instance>
     static bool S_initialized;				// Set when initialized.
 #endif
   public:
-    static void initialize(void)
+    static void initialize()
     {
 #if CWDEBUG_DEBUGT || !LIBCWD_USE_LINUXTHREADS
       if (S_initialized)
@@ -637,7 +637,7 @@ template <int instance>
       S_initialized = true;
 #endif
     }
-    static bool tryrdlock(void)
+    static bool tryrdlock()
     {
 #if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION;
@@ -680,7 +680,7 @@ template <int instance>
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::tryrdlock()");
       return success;
     }
-    static bool trywrlock(void)
+    static bool trywrlock()
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
 #if CWDEBUG_DEBUGT
@@ -784,7 +784,7 @@ template <int instance>
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdlock()");
     }
-    static void rdunlock(void)
+    static void rdunlock()
     {
 #if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION;
@@ -810,7 +810,7 @@ template <int instance>
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rdunlock()");
     }
-    static void wrlock(void)
+    static void wrlock()
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
 #if CWDEBUG_DEBUGT
@@ -849,7 +849,7 @@ template <int instance>
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrlock()");
     }
-    static void wrunlock(void)
+    static void wrunlock()
     {
 #if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION;
@@ -883,7 +883,7 @@ template <int instance>
       S_no_holders_condition.unlock();
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::wrunlock()");
     }
-    static void rd2wrlock(void)
+    static void rd2wrlock()
     {
 #if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION;
@@ -930,7 +930,7 @@ template <int instance>
       );
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Leaving rwlock_tct<" << instance << ">::rd2wrlock()");
     }
-    static void wr2rdlock(void)
+    static void wr2rdlock()
     {
 #if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION;

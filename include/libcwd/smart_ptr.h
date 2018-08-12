@@ -31,8 +31,8 @@ private:
   char* M_ptr;			// Pointer to the actual character string, allocated with new char[...].
 public:
   refcnt_charptr_ct(char* ptr) : M_reference_count(1), M_ptr(ptr) { }
-  void increment(void) { ++M_reference_count; }
-  bool decrement(void)
+  void increment() { ++M_reference_count; }
+  bool decrement()
   {
     if (M_ptr && --M_reference_count == 0)
     {
@@ -42,8 +42,8 @@ public:
     }
     return false;
   }
-  char* get(void) const { return M_ptr; }
-  int reference_count(void) const { return M_reference_count; }
+  char* get() const { return M_ptr; }
+  int reference_count() const { return M_reference_count; }
 };
 
 class smart_ptr {
@@ -53,7 +53,7 @@ private:
 
 public:
   // Default constructor and destructor.
-  smart_ptr(void) : M_ptr(NULL), M_string_literal(true) { }
+  smart_ptr() : M_ptr(NULL), M_string_literal(true) { }
   ~smart_ptr() { if (!M_string_literal) reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->decrement(); }
 
   // Copy constructor.
@@ -71,7 +71,7 @@ public:
 
 public:
   // Casting operator.
-  operator char const* (void) const { return get(); }
+  operator char const* () const { return get(); }
 
   // Comparison Operators.
   bool operator==(smart_ptr const& ptr) const { return get() == ptr.get(); }
@@ -80,8 +80,8 @@ public:
   bool operator!=(char const* ptr) const { return get() != ptr; }
 
 public:
-  bool is_null(void) const { return M_ptr == NULL; }
-  char const* get(void) const { return M_string_literal ? reinterpret_cast<char*>(M_ptr) : reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->get(); }
+  bool is_null() const { return M_ptr == NULL; }
+  char const* get() const { return M_string_literal ? reinterpret_cast<char*>(M_ptr) : reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->get(); }
 
 protected:
   // Helper methods.
@@ -91,7 +91,7 @@ protected:
 
 private:
   // Implementation.
-  void increment(void) { if (!M_string_literal) reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->increment(); }
+  void increment() { if (!M_string_literal) reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->increment(); }
   void decrement(LIBCWD_TSD_PARAM);
 };
 		

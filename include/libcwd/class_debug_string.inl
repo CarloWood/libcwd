@@ -86,7 +86,7 @@ debug_string_ct::prepend(char const* str, size_t len)
  */
 inline
 size_t
-debug_string_ct::size(void) const
+debug_string_ct::size() const
 {
   return M_size;
 }
@@ -96,7 +96,7 @@ debug_string_ct::size(void) const
  */
 inline
 size_t
-debug_string_ct::capacity(void) const
+debug_string_ct::capacity() const
 {
   return M_capacity;
 }
@@ -106,7 +106,7 @@ debug_string_ct::capacity(void) const
  */
 inline
 char const*
-debug_string_ct::c_str(void) const
+debug_string_ct::c_str() const
 {
   return M_str;
 }

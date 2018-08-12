@@ -24,7 +24,7 @@ namespace libcwd {
 
 #if LIBCWD_IOSBASE_INIT_ALLOCATES
 extern bool WST_ios_base_initialized;
-extern bool inside_ios_base_Init_Init(void);
+extern bool inside_ios_base_Init_Init();
 #endif
 
   } // namespace _private_

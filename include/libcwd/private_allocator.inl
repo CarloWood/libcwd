@@ -32,7 +32,7 @@ namespace libcwd {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
 template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE>
   void
-  allocator_adaptor<T, CharAlloc, internal LIBCWD_COMMA_INSTANCE>::sanity_check(void)
+  allocator_adaptor<T, CharAlloc, internal LIBCWD_COMMA_INSTANCE>::sanity_check()
   {
 #if CWDEBUG_DEBUGM || (CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE)
     LIBCWD_TSD_DECLARATION;

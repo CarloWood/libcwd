@@ -21,7 +21,7 @@
 namespace libcwd {
   namespace _private_ {
 
-extern void process_environment_variables(void);
+extern void process_environment_variables();
 
 // Environment variable: LIBCWD_PRINT_LOADING
 // Print the list with "BFD     : Loading debug info from /lib/libc.so.6 (0x40271000) ... done (4189 symbols)" etc.

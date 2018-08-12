@@ -42,20 +42,20 @@ public:
 #endif
 protected:
   bool M_initialized;
-  void M_initialize(void);
+  void M_initialize();
 public:
-  void initialize(void);
+  void initialize();
 public:
-  bool trylock(void);
-  void lock(void);
-  void unlock(void);
+  bool trylock();
+  void lock();
+  void unlock();
 #if CWDEBUG_DEBUGT
   bool trylock(TSD_st&);
   void lock(TSD_st&);
   void unlock(TSD_st&);
 #endif
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
-  bool is_locked(void);
+  bool is_locked();
 #endif
 };
 

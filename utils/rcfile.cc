@@ -44,12 +44,12 @@ bool rcfile_ct::S_exists(char const* name)
   return true;
 }
 
-void rcfile_ct::M_print_delayed_msg(void) const
+void rcfile_ct::M_print_delayed_msg() const
 {
   Dout(dc::rcfile, "Using environment variable LIBCWD_RCFILE_NAME with value \"" << M_rcname << "\".");
 }
 
-std::string rcfile_ct::M_determine_rcfile_name(void)
+std::string rcfile_ct::M_determine_rcfile_name()
 {
   // Can be overridden with the environment variable LIBCWD_RCFILE_NAME
   if (!(M_rcname = getenv("LIBCWD_RCFILE_NAME")))
@@ -193,7 +193,7 @@ bool rcfile_ct::unknown_keyword(std::string const&, std::string const&)
   return true;
 }
 
-void rcfile_ct::read(void)
+void rcfile_ct::read()
 {
   Debug( while(!dc::rcfile.is_on()) dc::rcfile.on() );
   std::string name = M_determine_rcfile_name();

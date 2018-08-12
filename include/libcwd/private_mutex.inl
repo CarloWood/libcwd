@@ -19,7 +19,7 @@ namespace libcwd {
   namespace _private_ {
 
 inline
-void mutex_ct::initialize(void)
+void mutex_ct::initialize()
 {
   if (M_initialized)	// Check if `M_mutex' already has been initialized.
     return;		// No need to lock: `M_initialized' is only set after it is
@@ -31,7 +31,7 @@ inline
 #if CWDEBUG_DEBUGT
 bool mutex_ct::trylock(LIBCWD_TSD_PARAM)
 #else
-bool mutex_ct::trylock(void)
+bool mutex_ct::trylock()
 #endif
 {
   LibcwDebugThreads( LIBCWD_ASSERT( M_initialized ) );
@@ -56,7 +56,7 @@ bool mutex_ct::trylock(void)
 
 #if CWDEBUG_DEBUGT
 inline
-bool mutex_ct::trylock(void)
+bool mutex_ct::trylock()
 {
   LIBCWD_TSD_DECLARATION;
   return trylock(LIBCWD_TSD);
@@ -68,7 +68,7 @@ inline
 #if CWDEBUG_DEBUGT
 void mutex_ct::lock(LIBCWD_TSD_PARAM)
 #else
-void mutex_ct::lock(void)
+void mutex_ct::lock()
 #endif
 {
   LibcwDebugThreads( LIBCWD_ASSERT( M_initialized ) );
@@ -103,7 +103,7 @@ void mutex_ct::lock(void)
 
 #if CWDEBUG_DEBUGT
 inline
-void mutex_ct::lock(void)
+void mutex_ct::lock()
 {
   LIBCWD_TSD_DECLARATION;
   lock(LIBCWD_TSD);
@@ -114,7 +114,7 @@ inline
 #if CWDEBUG_DEBUGT
 void mutex_ct::unlock(LIBCWD_TSD_PARAM)
 #else
-void mutex_ct::unlock(void)
+void mutex_ct::unlock()
 #endif
 {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
@@ -136,7 +136,7 @@ void mutex_ct::unlock(void)
 
 #if CWDEBUG_DEBUGT
 inline
-void mutex_ct::unlock(void)
+void mutex_ct::unlock()
 {
   LIBCWD_TSD_DECLARATION;
   unlock(LIBCWD_TSD);
@@ -145,7 +145,7 @@ void mutex_ct::unlock(void)
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 inline
-bool mutex_ct::is_locked(void)
+bool mutex_ct::is_locked()
 {
   return M_instance_locked > 0;
 }

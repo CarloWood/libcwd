@@ -79,7 +79,7 @@ namespace _private_ {
 
   bool type_info<void*>::S_initialized;
   
-  type_info_ct const& type_info<void*>::value(void)
+  type_info_ct const& type_info<void*>::value()
   {
     if (!S_initialized)
     {
@@ -97,7 +97,7 @@ libcwd::type_info_ct libcwd_type_info_exact<void*>::S_value;
 
 bool libcwd_type_info_exact<void*>::S_initialized;
 
-libcwd::type_info_ct const& libcwd_type_info_exact<void*>::value(void)
+libcwd::type_info_ct const& libcwd_type_info_exact<void*>::value()
 {
   if (!S_initialized)
   {

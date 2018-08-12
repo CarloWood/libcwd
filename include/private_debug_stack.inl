@@ -34,10 +34,10 @@ namespace libcwd {
 template<typename T>
   inline
   void
-  debug_stack_tst<T>::init(void)
+  debug_stack_tst<T>::init()
   {
-    p = &st[-1];
-    end = &st[63];
+    p = st - 1;
+    end = st + 63;
   }
 
 template<typename T>
@@ -57,17 +57,17 @@ template<typename T>
     *++p = ptr;
   }
 
-extern void print_pop_error(void);
+extern void print_pop_error();
 
 template<typename T>
   inline
   void
-  debug_stack_tst<T>::pop(void)
+  debug_stack_tst<T>::pop()
   {
 #if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end != NULL );
 #endif
-    if (p == &st[-1])
+    if (p == st - 1)
       print_pop_error();
     --p;
   }
@@ -75,7 +75,7 @@ template<typename T>
 template<typename T>
   inline
   T
-  debug_stack_tst<T>::top(void) const
+  debug_stack_tst<T>::top() const
   {
 #if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end != NULL );
@@ -86,12 +86,12 @@ template<typename T>
 template<typename T>
   inline
   size_t
-  debug_stack_tst<T>::size(void) const
+  debug_stack_tst<T>::size() const
   {
 #if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end != NULL );
 #endif
-    return p - &st[-1];
+    return p - (st - 1);
   }
 
   } // namespace _private_

@@ -57,7 +57,7 @@ public:
     // wasn't called yet.  Does nothing when the object was already initialized.
 
 public:
-  control_flag_t get_maskbit(void) const;
+  control_flag_t get_maskbit() const;
 };
 
 } // namespace libcwd

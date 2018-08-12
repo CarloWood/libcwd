@@ -83,7 +83,7 @@ private:
   elfxx::asymbol_st* symbol;
 public:
   symbol_ct(elfxx::asymbol_st* p) : symbol(p) { }
-  elfxx::asymbol_st const* get_symbol(void) const { return symbol; }
+  elfxx::asymbol_st const* get_symbol() const { return symbol; }
   bool operator==(symbol_ct const&) const { DoutFatal(dc::core, "Calling operator=="); }
   friend struct symbol_key_greater;
 };
@@ -128,23 +128,23 @@ public:
 #endif
   void deinitialize(LIBCWD_TSD_PARAM);
 
-  elfxx::bfd_st* get_bfd(void) const { return M_abfd; }
-  void* get_lbase(void) const { return M_lbase; }
-  void const* get_start(void) const { return M_start; }
-  size_t size(void) const { return M_size; }
-  elfxx::asymbol_st** get_symbol_table(void) const { return M_symbol_table; }
-  long get_number_of_symbols(void) const { return M_number_of_symbols; }
-  libcwd::object_file_ct const* get_object_file(void) const { return &M_object_file; }
-  function_symbols_ct& get_function_symbols(void) { return M_function_symbols; }
-  function_symbols_ct const& get_function_symbols(void) const { return M_function_symbols; }
+  elfxx::bfd_st* get_bfd() const { return M_abfd; }
+  void* get_lbase() const { return M_lbase; }
+  void const* get_start() const { return M_start; }
+  size_t size() const { return M_size; }
+  elfxx::asymbol_st** get_symbol_table() const { return M_symbol_table; }
+  long get_number_of_symbols() const { return M_number_of_symbols; }
+  libcwd::object_file_ct const* get_object_file() const { return &M_object_file; }
+  function_symbols_ct& get_function_symbols() { return M_function_symbols; }
+  function_symbols_ct const& get_function_symbols() const { return M_function_symbols; }
 private:
-  friend object_files_ct const& NEEDS_READ_LOCK_object_files(void);       // Need access to `ST_list_instance'.
-  friend object_files_ct& NEEDS_WRITE_LOCK_object_files(void);            // Need access to `ST_list_instance'.
+  friend object_files_ct const& NEEDS_READ_LOCK_object_files();       // Need access to `ST_list_instance'.
+  friend object_files_ct& NEEDS_WRITE_LOCK_object_files();            // Need access to `ST_list_instance'.
   static char ST_list_instance[sizeof(object_files_ct)];
 };
 
 inline object_files_ct const&
-NEEDS_READ_LOCK_object_files(void)
+NEEDS_READ_LOCK_object_files()
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;
@@ -156,7 +156,7 @@ NEEDS_READ_LOCK_object_files(void)
 }
 
 inline object_files_ct&
-NEEDS_WRITE_LOCK_object_files(void)
+NEEDS_WRITE_LOCK_object_files()
 {
 #if CWDEBUG_DEBUGT
   LIBCWD_TSD_DECLARATION;

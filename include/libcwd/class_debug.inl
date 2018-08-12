@@ -40,7 +40,7 @@ namespace libcwd {
 
 inline
 debug_string_ct&
-debug_ct::margin(void)
+debug_ct::margin()
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(margin);
@@ -48,7 +48,7 @@ debug_ct::margin(void)
 
 inline
 debug_string_ct const&
-debug_ct::margin(void) const
+debug_ct::margin() const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(margin);
@@ -56,7 +56,7 @@ debug_ct::margin(void) const
 
 inline
 debug_string_ct&
-debug_ct::marker(void)
+debug_ct::marker()
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(marker);
@@ -64,7 +64,7 @@ debug_ct::marker(void)
 
 inline
 debug_string_ct const&
-debug_ct::marker(void) const
+debug_ct::marker() const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(marker);
@@ -109,7 +109,7 @@ debug_ct::dec_indent(unsigned short i)
  */
 inline
 unsigned short
-debug_ct::get_indent(void) const
+debug_ct::get_indent() const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(indent);
@@ -125,7 +125,7 @@ debug_ct::get_indent(void) const
  */
 inline
 std::ostream*
-debug_ct::get_ostream(void) const
+debug_ct::get_ostream() const
 {
   return real_os;
 }
@@ -152,7 +152,7 @@ debug_ct::private_set_ostream(std::ostream* os)
  * \sa chapter_custom_do
  */
 inline
-debug_ct::debug_ct(void)
+debug_ct::debug_ct()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUG
@@ -168,7 +168,7 @@ debug_ct::debug_ct(void)
  */
 inline
 void
-debug_ct::off(void)
+debug_ct::off()
 {
   LIBCWD_TSD_DECLARATION;
   ++LIBCWD_TSD_MEMBER_OFF;
@@ -199,7 +199,7 @@ debug_ct::off(void)
  */
 inline
 void
-debug_ct::on(void)
+debug_ct::on()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGOUTPUT

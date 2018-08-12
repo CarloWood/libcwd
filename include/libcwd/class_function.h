@@ -127,10 +127,10 @@ public:
   FunctionInstance(void const* lowpc, void const* highpc, FunctionRootInstance* root, FunctionInstance* inlined_by) :
       M_lowpc(lowpc), M_highpc(highpc), M_root(root), M_inlined_by(inlined_by) { }
 
-  void const* lowpc(void) const { return M_lowpc; }
-  void const* highpc(void) const { return M_highpc; }
-  inline FunctionRootInstance const* root(void) const;
-  inline FunctionInstance const* inlined_by(void) const;
+  void const* lowpc() const { return M_lowpc; }
+  void const* highpc() const { return M_highpc; }
+  inline FunctionRootInstance const* root() const;
+  inline FunctionInstance const* inlined_by() const;
 };
 
 // The functionChunkMap contains a mapping of every memory address to the
@@ -158,11 +158,11 @@ private:
 
 public:
   FunctionRootInstanceInfo(void const* lowpc, void const* highpc, std::string const& demangled_name);
-  void const* lowpc(void) const { return M_instance.lowpc(); }
-  void const* highpc(void) const { return M_instance.highpc(); }
-  std::string const& demangled_name(void) const { return M_demangled_name; }
-  std::vector<FunctionInstance> const& inlined_instances(void) const { return M_inlined_instances; }
-  std::vector<FunctionInstance>& inlined_instances(void) { return M_inlined_instances; }
+  void const* lowpc() const { return M_instance.lowpc(); }
+  void const* highpc() const { return M_instance.highpc(); }
+  std::string const& demangled_name() const { return M_demangled_name; }
+  std::vector<FunctionInstance> const& inlined_instances() const { return M_inlined_instances; }
+  std::vector<FunctionInstance>& inlined_instances() { return M_inlined_instances; }
 };
 
 // The functionRootsMap contains all function roots.  The key used is the mangled name
@@ -176,13 +176,13 @@ typedef std::map<FunctionRootInstanceKey, FunctionRootInstanceInfo, std::less<Fu
 #endif
 
 FunctionRootInstance const*
-FunctionInstance::root(void) const
+FunctionInstance::root() const
 {
   return M_root;
 }
 
 FunctionInstance const*
-FunctionInstance::inlined_by(void) const
+FunctionInstance::inlined_by() const
 {
   return M_inlined_by;
 }
@@ -203,11 +203,11 @@ private:
   char const* M_label;
 
 public:
-  char const* label(void) const { return M_label; }
-  bool is_initialized(void) const { return M_initialized; }
+  char const* label() const { return M_label; }
+  bool is_initialized() const { return M_initialized; }
 
 private:
-  void M_init(void);
+  void M_init();
   void M_init(Function& function);
   void M_init(char const* expr, unsigned int flags);
 
@@ -219,15 +219,15 @@ public:
   static unsigned int const regexp = 16;
   static unsigned int const exactmatch = 32;
 
-  Function(void) : M_initialized(false), M_flags(0) { }
+  Function() : M_initialized(false), M_flags(0) { }
   Function(unsigned int flags) : M_initialized(false), M_flags(flags) { }
  
-  void init(void) { if (!M_initialized) M_init(); }
+  void init() { if (!M_initialized) M_init(); }
   void init(Function& function) { if (!function.is_initialized()) M_init(function); }
   void init(char const* expr, unsigned int flags = mangled|cpp_linkage) { if (!M_initialized) M_init(expr, flags); }
 
   void label(char const* lbl) { M_label = lbl; }
-  void rmlabel(void) { M_label = NULL; }
+  void rmlabel() { M_label = NULL; }
 };
 
 } // namespace libcwd

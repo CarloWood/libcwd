@@ -39,11 +39,11 @@ template<typename T>		// T must be a builtin type.
     T* p;
     T* end;
   public:
-    void init(void);
+    void init();
     void push(T ptr);
-    void pop(void);
-    T top(void) const;
-    size_t size(void) const;
+    void pop();
+    T top() const;
+    size_t size() const;
   };
 
   } // namespace _private_

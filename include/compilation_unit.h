@@ -56,14 +56,14 @@ public:
       { M_compilation_directory.assign(comp_dir.data(), comp_dir.size()); }
   void set_source_file(object_files_string const& source_file)
       { M_source_file.assign(source_file.data(), source_file.size()); }
-  FunctionRootsMap& function_roots(void) { return M_function_roots; }
-  FunctionRootsMap const& function_roots(void) const { return M_function_roots; }
+  FunctionRootsMap& function_roots() { return M_function_roots; }
+  FunctionRootsMap const& function_roots() const { return M_function_roots; }
 
-  void const* get_lowpc(void) const { return M_lowpc; }
-  void const* get_highpc(void) const { return M_highpc; }
-  internal_string get_source_file(void) const { return M_source_file; }
-  internal_string get_compilation_directory(void) const { return M_compilation_directory; }
-  FunctionRootsMap const& get_function_roots(void) const { return M_function_roots; }
+  void const* get_lowpc() const { return M_lowpc; }
+  void const* get_highpc() const { return M_highpc; }
+  internal_string get_source_file() const { return M_source_file; }
+  internal_string get_compilation_directory() const { return M_compilation_directory; }
+  FunctionRootsMap const& get_function_roots() const { return M_function_roots; }
 };
 
 // This type is added to class bfile_ct.

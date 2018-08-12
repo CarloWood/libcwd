@@ -114,14 +114,14 @@ struct debug_tsd_st {
   void fatal_finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM) __attribute__ ((__noreturn__));
 
   // Initialization and de-initialization.
-  void init(void);
+  void init();
 #if LIBCWD_THREAD_SAFE
   // In the non-threaded case, debug_ct contains a debug_tsd_st which
   // may already be initialized before.  Therefore don't initialize
   // these in the non-threaded case, but rely on tsd_initialized,
   // current_bufferstream and _off to be zeroed as a result of being
   // part of a global object.
-  debug_tsd_st(void) : tsd_initialized(false), current_bufferstream(NULL) { }
+  debug_tsd_st() : tsd_initialized(false), current_bufferstream(NULL) { }
 #endif
   ~debug_tsd_st();
 };

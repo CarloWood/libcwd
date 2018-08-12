@@ -65,16 +65,16 @@ protected:
 
 public:
   /** \brief The full path name of the loaded executable or shared library. */
-  char const* filepath(void) const { return M_filepath; }
+  char const* filepath() const { return M_filepath; }
   /** \brief The file name of the loaded executable or shared library (with path stripped off). */
-  char const* filename(void) const { return M_filename; }
+  char const* filename() const { return M_filename; }
 
   // For internal use.
 #if CWDEBUG_ALLOC
   bool hide_from_alloc_list() const { return M_hide; }
 #endif
-  void set_has_no_debug_line_sections(void) const { M_no_debug_line_sections = true; }
-  bool has_no_debug_line_sections(void) const { return M_no_debug_line_sections; }
+  void set_has_no_debug_line_sections() const { M_no_debug_line_sections = true; }
+  bool has_no_debug_line_sections() const { return M_no_debug_line_sections; }
 };
 
 /** \} */ // End of group 'group_locations'

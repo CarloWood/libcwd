@@ -63,19 +63,19 @@ private:
 
 private:
   void NS_internal_init(char const* s, size_t l);
-  void deinitialize(void);
-  debug_string_ct(void) { }
-  ~debug_string_ct(void);
+  void deinitialize();
+  debug_string_ct() { }
+  ~debug_string_ct();
 
 private:
   friend struct debug_string_stack_element_ct;
   debug_string_ct(debug_string_ct const& ds);
 
 public:
-  size_t size(void) const;
-  size_t capacity(void) const;
+  size_t size() const;
+  size_t capacity() const;
   void reserve(size_t);
-  char const* c_str(void) const;
+  char const* c_str() const;
   void assign(char const* str, size_t len);
   void append(char const* str, size_t len);
   void prepend(char const* str, size_t len);

@@ -1698,7 +1698,7 @@ typedef location_ct bfd_location_ct;
     /**
      * \brief Reset this location object (frees memory).
      */
-    void location_ct::clear(void)
+    void location_ct::clear()
     {
       if (M_known)
       {

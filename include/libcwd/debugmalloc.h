@@ -66,8 +66,8 @@ enum malloc_report_nt
   /**
    * \brief Writing the current number of allocated bytes and blocks to an ostream.
    *
-   * \sa mem_size(void)
-   *  \n mem_blocks(void)
+   * \sa mem_size()
+   *  \n mem_blocks()
    *
    * <b>Example:</b>
    *
@@ -94,15 +94,15 @@ extern std::ostream& operator<<(std::ostream&, malloc_report_nt);
 
 // Accessors:
 
-extern size_t mem_size(void);
-extern unsigned long mem_blocks(void);
+extern size_t mem_size();
+extern unsigned long mem_blocks();
 extern alloc_ct const* find_alloc(void const* ptr);
 extern bool test_delete(void const* ptr);
 
 // Manipulators:
 extern void make_invisible(void const* ptr);
 extern void make_all_allocations_invisible_except(void const* ptr);
-extern void make_exit_function_list_invisible(void);
+extern void make_exit_function_list_invisible();
 /**
  * \brief Make all future allocations invisible.
  * \ingroup group_invisible
@@ -124,20 +124,20 @@ extern void make_exit_function_list_invisible(void);
  * Note: In the threaded case, this isn't blazing fast (it is in the non-threaded case).
  *       You shouldn't use it inside tight loops when using libcwd_r.
  */
-inline void set_invisible_on(void) { LIBCWD_TSD_DECLARATION; _private_::set_invisible_on(LIBCWD_TSD); }
+inline void set_invisible_on() { LIBCWD_TSD_DECLARATION; _private_::set_invisible_on(LIBCWD_TSD); }
 /**
  * \brief Cancel a call to set_invisible_on.
  * \ingroup group_invisible
  *
  * See \ref set_invisible_on
  */
-inline void set_invisible_off(void) { LIBCWD_TSD_DECLARATION; _private_::set_invisible_off(LIBCWD_TSD); }
+inline void set_invisible_off() { LIBCWD_TSD_DECLARATION; _private_::set_invisible_off(LIBCWD_TSD); }
 #if CWDEBUG_MARKER
 extern void move_outside(marker_ct*, void const* ptr);
 #endif
 
 // Undocumented (libcwd `internal' function)
-extern void init_debugmalloc(void);
+extern void init_debugmalloc();
 
 } // namespace libcwd
 
@@ -147,8 +147,8 @@ namespace libcwd {
 
 inline void make_invisible(void const*) { } 
 inline void make_all_allocations_invisible_except(void const*) { }
-inline void set_invisible_on(void) { }
-inline void set_invisible_off(void) { }
+inline void set_invisible_on() { }
+inline void set_invisible_off() { }
 
 } // namespace libcwd
 

@@ -18,7 +18,7 @@
 
 namespace libcwd {
 
-void attach_gdb(void)
+void attach_gdb()
 {
   DoutFatal(dc::core, "attach_gdb() is not supported on windows");
 }
@@ -39,7 +39,7 @@ int libcwd_attach_gdb_hook = 0;
 
 namespace libcwd {
 
-void attach_gdb(void)
+void attach_gdb()
 {
   pid_t pid1 = getpid();
   std::ofstream f;

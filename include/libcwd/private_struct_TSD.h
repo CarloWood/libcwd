@@ -60,7 +60,7 @@ namespace libcwd {
 #define LIBCWD_TSD __libcwd_tsd				// Optional `__libcwd_tsd' parameter (foo() or foo(__libcwd_tsd)).
 #define LIBCWD_COMMA_TSD , LIBCWD_TSD			// Idem, but as second or higher parameter.
 #define LIBCWD_TSD_PARAM ::libcwd::_private_::TSD_st& __libcwd_tsd
-							// Optional function parameter (foo(void) or foo(TSD_st& __libcwd_tsd)).
+							// Optional function parameter (foo() or foo(TSD_st& __libcwd_tsd)).
 #define LIBCWD_TSD_PARAM_UNUSED ::libcwd::_private_::TSD_st&
 							// Same without parameter.
 #define LIBCWD_COMMA_TSD_PARAM , LIBCWD_TSD_PARAM	// Idem, but as second or higher parameter.
@@ -182,14 +182,14 @@ public:
   pid_t pid;				// Process ID.
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
-  void cleanup_routine(void);
+  void cleanup_routine();
   int off_cnt_array[LIBCWD_DC_MAX];	// Thread Specific Data of Debug Channels.
 private:
   int tsd_destructor_count;
 #endif
 
 public:
-  void thread_destructed(void);
+  void thread_destructed();
 
 #if LIBCWD_THREAD_SAFE
 //-------------------------------------------------------
@@ -198,12 +198,12 @@ private:
   static TSD_st& S_create(int from_free);
   static pthread_key_t S_tsd_key;
   static pthread_once_t S_tsd_key_once;
-  static void S_tsd_key_alloc(void);
+  static void S_tsd_key_alloc();
   static void S_cleanup_routine(void* arg);
 
 public:
-  static TSD_st& instance(void);
-  static TSD_st& instance_free(void);
+  static TSD_st& instance();
+  static TSD_st& instance_free();
   static void free_instance(TSD_st&);
 #endif // LIBCWD_THREAD_SAFE
 };
@@ -218,27 +218,6 @@ public:
 extern TSD_st __libcwd_tsd;
 #else
 extern bool WST_tsd_key_created;
-
-inline
-TSD_st& TSD_st::instance(void)
-{
-  TSD_st* instance;
-  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
-    return S_create(0);
-  return *instance;
-}
-
-// This function is called at the start of free().
-inline
-TSD_st& TSD_st::instance_free(void)
-{
-  TSD_st* instance;
-  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
-    return S_create(1);
-  else
-    instance->inside_free++;
-  return *instance;
-}
 #endif
 
   } // namespace _private_

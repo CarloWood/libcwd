@@ -68,7 +68,7 @@ public:
       M_filter(filter), M_make_invisible(make_invisible) { register_marker("An allocation marker"); }
 
   /** \brief Construct a marker with label "An allocation marker". */
-  marker_ct(void) : M_filter(default_ooam_filter), M_make_invisible(false) { register_marker("An allocation marker"); }
+  marker_ct() : M_filter(default_ooam_filter), M_make_invisible(false) { register_marker("An allocation marker"); }
 
   ~marker_ct();
 };

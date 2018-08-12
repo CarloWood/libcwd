@@ -119,7 +119,7 @@ void BlockList::initialize(unsigned int* count_ptr, unsigned short internal)
   M_internal = internal;
 }
 
-void BlockList::uninitialize(void)
+void BlockList::uninitialize()
 {
   if (!M_next)	// Never initialized?
     return;
@@ -146,7 +146,7 @@ void BlockList::uninitialize(void)
   }
 }
 
-void FreeList::uninitialize(void)
+void FreeList::uninitialize()
 {
   if (!M_initialized)
     return;
@@ -196,7 +196,7 @@ void FreeList::initialize(LIBCWD_TSD_PARAM)
 }
 
 #if CWDEBUG_DEBUG
-void FreeList::consistency_check(void)
+void FreeList::consistency_check()
 {
   assert(M_initialized);
   // M_mutex is either already locked when we get here, or there is just one thread.
@@ -216,7 +216,7 @@ void FreeList::consistency_check(void)
   }
 }
 
-void BlockList::consistency_check(void)
+void BlockList::consistency_check()
 {
   assert(begin() == M_next);
   assert(end() == this);

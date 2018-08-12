@@ -77,7 +77,7 @@ location_ct::~location_ct()
 }
 
 inline
-location_ct::location_ct(void) : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
+location_ct::location_ct() : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
 #if CWDEBUG_ALLOC
     , M_hide(_private_::new_location)
 #endif
@@ -98,14 +98,14 @@ location_ct::pc_location(void const* addr)
 
 inline
 bool
-location_ct::is_known(void) const
+location_ct::is_known() const
 {
   return M_known;
 }
 
 inline
 std::string
-location_ct::file(void) const
+location_ct::file() const
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION;
@@ -117,7 +117,7 @@ location_ct::file(void) const
 
 inline
 unsigned int
-location_ct::line(void) const
+location_ct::line() const
 {
   LIBCWD_ASSERT( M_known );
   return M_line;
@@ -125,7 +125,7 @@ location_ct::line(void) const
 
 inline
 char const*
-location_ct::mangled_function_name(void) const
+location_ct::mangled_function_name() const
 {
   return M_func;
 }

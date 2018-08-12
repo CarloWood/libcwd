@@ -67,10 +67,10 @@ public:
   virtual ~rcfile_ct() { }
 
 private:
-  void M_print_delayed_msg(void) const;
+  void M_print_delayed_msg() const;
 
   static bool S_exists(char const* name);
-  std::string M_determine_rcfile_name(void);
+  std::string M_determine_rcfile_name();
 
   enum action_nt { toggle, on, off };
   void M_process_channel(channel_ct& debugChannel, std::string const& mask, action_nt const action);
@@ -80,19 +80,19 @@ public:
   /**
    * \brief Initialize this object by reading the rcfile.
    */
-  void read(void);
+  void read();
   /**
    * \brief Returns the command line string as set with the 'xterm' keyword.
    */
-  std::string const& konsole_command(void) const { return M_konsole_command; }
+  std::string const& konsole_command() const { return M_konsole_command; }
   /**
    * \brief Returns the command line string as set with the 'gdb_bin' keyword.
    */
-  std::string const& gdb_bin(void) const { return M_gdb_bin; }
+  std::string const& gdb_bin() const { return M_gdb_bin; }
   /**
    * \brief Returns true when this object is initialized.
    */
-  bool read_called(void) const { return M_read_called; }
+  bool read_called() const { return M_read_called; }
 
 protected:
   /**
@@ -114,7 +114,7 @@ extern rcfile_ct rcfile;
  *
  * \sa group_rcfile
  */
-inline void read_rcfile(void)
+inline void read_rcfile()
 {
   rcfile.read();
 }

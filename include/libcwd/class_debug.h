@@ -152,8 +152,8 @@ public:
    * \sa push_margin()
    *  \n pop_margin()
    */
-  debug_string_ct& margin(void);
-  debug_string_ct const& margin(void) const;
+  debug_string_ct& margin();
+  debug_string_ct const& margin() const;
 
   /**
    * \brief The marker
@@ -164,8 +164,8 @@ public:
    * \sa push_marker()
    *  \n pop_marker()
    */
-  debug_string_ct& marker(void);
-  debug_string_ct const& marker(void) const;
+  debug_string_ct& marker();
+  debug_string_ct const& marker() const;
 
   /** \} */
 
@@ -177,18 +177,18 @@ public:
   void set_indent(unsigned short indentation);
   void inc_indent(unsigned short indentation);
   void dec_indent(unsigned short indentation);
-  unsigned short get_indent(void) const;
+  unsigned short get_indent() const;
 
-  void push_margin(void);
-  void pop_margin(void);
-  void push_marker(void);
-  void pop_marker(void);
+  void push_margin();
+  void pop_margin();
+  void push_marker();
+  void pop_marker();
 
   //-------------------------------------------------------------------------------------------------
   // Other accessors
   //
 
-  std::ostream* get_ostream(void) const;		// The original ostream set with set_ostream.
+  std::ostream* get_ostream() const;		// The original ostream set with set_ostream.
 
 private:
   //-------------------------------------------------------------------------------------------------
@@ -215,7 +215,7 @@ public:
   // Constructors and destructors.
   //
 
-  debug_ct(void);
+  debug_ct();
 
 private:
   void private_set_ostream(std::ostream* os);
@@ -235,8 +235,8 @@ public:
     void set_ostream(std::ostream* os, pthread_mutex_t* mutex);
 #endif
 #endif
-  void off(void);
-  void on(void);
+  void off();
+  void on();
   
   struct OnOffState {
     int _off;

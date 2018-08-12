@@ -32,14 +32,14 @@ fatal_channel_ct::fatal_channel_ct(char const* label, control_flag_t maskbit)
 
 inline
 control_flag_t
-fatal_channel_ct::get_maskbit(void) const
+fatal_channel_ct::get_maskbit() const
 { 
   return WNS_maskbit;
 }
 
 inline
 char const*
-fatal_channel_ct::get_label(void) const
+fatal_channel_ct::get_label() const
 { 
   return WNS_label;
 }

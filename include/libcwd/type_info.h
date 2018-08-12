@@ -52,7 +52,7 @@ public:
    * \brief Default constructor.
    * \internal
    */
-  type_info_ct(void) { }
+  type_info_ct() { }
   /**
    * \brief Constructor used for unknown_type_info_c.
    * \internal
@@ -70,13 +70,13 @@ public:
     M_dem_name = _private_::make_label(type_encoding);
   }
   //! The demangled type name.
-  char const* demangled_name(void) const { return M_dem_name; }
+  char const* demangled_name() const { return M_dem_name; }
   //! The encoded type name (as returned by <CODE>typeid(T).%name()</CODE>).
-  char const* name(void) const { return M_name; }
+  char const* name() const { return M_name; }
   //! sizeof(T).
-  size_t size(void) const { return M_type_size; }
+  size_t size() const { return M_type_size; }
   //! sizeof(*T) or 0 when T is not a pointer.
-  size_t ref_size(void) const { return M_type_ref_size; }
+  size_t ref_size() const { return M_type_ref_size; }
 };
 
 namespace _private_ {
@@ -93,7 +93,7 @@ namespace _private_ {
       static type_info_ct S_value;
       static bool S_initialized;
     public:
-      static type_info_ct const& value(void);
+      static type_info_ct const& value();
     };
 
   // Specialization for general pointers.
@@ -104,7 +104,7 @@ namespace _private_ {
       static type_info_ct S_value;
       static bool S_initialized;
     public:
-      static type_info_ct const& value(void);
+      static type_info_ct const& value();
     };
 
   // Specialization for `void*'.
@@ -115,7 +115,7 @@ namespace _private_ {
       static type_info_ct S_value;
       static bool S_initialized;
     public:
-      static type_info_ct const& value(void);
+      static type_info_ct const& value();
     };
 
   // _private_::
@@ -128,7 +128,7 @@ namespace _private_ {
 
   // _private_::
   template<typename T>
-    type_info_ct const& type_info<T>::value(void)
+    type_info_ct const& type_info<T>::value()
     {
       if (!S_initialized)
       {
@@ -148,7 +148,7 @@ namespace _private_ {
 
   // _private_::
   template<typename T>
-    type_info_ct const& type_info<T*>::value(void)
+    type_info_ct const& type_info<T*>::value()
     {
       if (!S_initialized)
       {
@@ -171,7 +171,7 @@ template<typename T>
     static ::libcwd::type_info_ct S_value;
     static bool S_initialized;
   public:
-    static ::libcwd::type_info_ct const& value(void);
+    static ::libcwd::type_info_ct const& value();
   };
 
 // Specialization for general pointers.
@@ -181,7 +181,7 @@ template<typename T>
     static ::libcwd::type_info_ct S_value;
     static bool S_initialized;
   public:
-    static ::libcwd::type_info_ct const& value(void);
+    static ::libcwd::type_info_ct const& value();
   };
 
 // Specialization for `void*'.
@@ -191,7 +191,7 @@ template<>
     static ::libcwd::type_info_ct S_value;
     static bool S_initialized;
   public:
-    static ::libcwd::type_info_ct const& value(void);
+    static ::libcwd::type_info_ct const& value();
   };
 
 template<typename T>
@@ -201,7 +201,7 @@ template<typename T>
   bool libcwd_type_info_exact<T>::S_initialized;
   
 template<typename T>
-  ::libcwd::type_info_ct const& libcwd_type_info_exact<T>::value(void)
+  ::libcwd::type_info_ct const& libcwd_type_info_exact<T>::value()
   {
     if (!S_initialized)
     {
@@ -218,7 +218,7 @@ template<typename T>
   bool libcwd_type_info_exact<T*>::S_initialized;
 
 template<typename T>
-  ::libcwd::type_info_ct const& libcwd_type_info_exact<T*>::value(void)
+  ::libcwd::type_info_ct const& libcwd_type_info_exact<T*>::value()
   {
     if (!S_initialized)
     {
@@ -260,7 +260,7 @@ template<typename T>
 template<typename T>
   inline
   type_info_ct const&
-  type_info_of(void)
+  type_info_of()
   {
     return ::libcwd_type_info_exact<T>::value();
   }
