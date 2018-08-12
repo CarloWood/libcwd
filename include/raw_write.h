@@ -49,7 +49,7 @@ namespace libcwd {
 #else
 #define LIBCWD_LIBRARY_CALL_INDENTATION do { } while(0)
 #endif
-    
+
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
 // when --disable-debug-output is used because a fatal error occured anyway, so this can't
 // disturb the testsuite.

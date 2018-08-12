@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -59,8 +59,8 @@ class type_info_ct;
  */
 class alloc_ct {
 protected:
-  void const* a_start;        			//!< Duplicate of (original) memblk_key_ct.
-  size_t a_size;              			//!< Duplicate of (original) memblk_key_ct.
+  void const* a_start;			//!< Duplicate of (original) memblk_key_ct.
+  size_t a_size;			//!< Duplicate of (original) memblk_key_ct.
   memblk_types_nt a_memblk_type;		//!< A flag which indicates the type of allocation.
   type_info_ct const* type_info_ptr;		//!< Type info of related object.
   _private_::smart_ptr a_description;		//!< A label describing this memblk.

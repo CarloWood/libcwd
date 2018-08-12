@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2001 - 2007, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -117,11 +117,11 @@ std::istream& operator>>(std::istream& is, Elfxx_Ehdr& header)
 
 // http://www.informatik.uni-frankfurt.de/doc/texi/stabs_6.html#SEC46
 struct stab_st {
-  Elfxx_Word n_strx;         			// Index into string table of name.
-  unsigned char n_type;         		// Type of symbol.
-  unsigned char n_other;        		// Misc info (usually empty).
-  Elfxx_Half n_desc; 		       		// Description field.
-  Elfxx_Addr n_value;              		// Value of symbol.
+  Elfxx_Word n_strx;			// Index into string table of name.
+  unsigned char n_type;		// Type of symbol.
+  unsigned char n_other;		// Misc info (usually empty).
+  Elfxx_Half n_desc;				// Description field.
+  Elfxx_Addr n_value;		// Value of symbol.
 };
 
 // Type of symbol, n_type.
@@ -374,64 +374,64 @@ char const* print_DW_TAG_name(uLEB128_t tag)
 //static unsigned char const DW_CHILDREN_no	= 0;
 static unsigned char const DW_CHILDREN_yes	= 1;
 
-static unsigned int const DW_AT_sibling 		= 0x01;	// reference
-//static unsigned int const DW_AT_location 		= 0x02;	// block, constant
-static unsigned int const DW_AT_name 			= 0x03;	// string
-//static unsigned int const DW_AT_ordering 		= 0x09;	// constant
-//static unsigned int const DW_AT_byte_size 		= 0x0b;	// constant
-//static unsigned int const DW_AT_bit_offset 		= 0x0c;	// constant
-//static unsigned int const DW_AT_bit_size 		= 0x0d;	// constant
-static unsigned int const DW_AT_stmt_list 		= 0x10;	// constant
-static unsigned int const DW_AT_low_pc 			= 0x11;	// address
-static unsigned int const DW_AT_high_pc 		= 0x12;	// address
-//static unsigned int const DW_AT_language 		= 0x13;	// constant
-//static unsigned int const DW_AT_discr 			= 0x15;	// reference
-////static unsigned int const DW_AT_discr_value 		= 0x16;	// constant
-//static unsigned int const DW_AT_visibility 		= 0x17;	// constant
-//static unsigned int const DW_AT_import 			= 0x18;	// reference
-//static unsigned int const DW_AT_string_length 		= 0x19;	// block, constant
-//static unsigned int const DW_AT_common_reference 	= 0x1a;	// reference
-static unsigned int const DW_AT_comp_dir 		= 0x1b;	// string
-//static unsigned int const DW_AT_const_value 		= 0x1c;	// string, constant, block
+static unsigned int const DW_AT_sibling		= 0x01;	// reference
+//static unsigned int const DW_AT_location		= 0x02;	// block, constant
+static unsigned int const DW_AT_name			= 0x03;	// string
+//static unsigned int const DW_AT_ordering		= 0x09;	// constant
+//static unsigned int const DW_AT_byte_size		= 0x0b;	// constant
+//static unsigned int const DW_AT_bit_offset		= 0x0c;	// constant
+//static unsigned int const DW_AT_bit_size		= 0x0d;	// constant
+static unsigned int const DW_AT_stmt_list		= 0x10;	// constant
+static unsigned int const DW_AT_low_pc			= 0x11;	// address
+static unsigned int const DW_AT_high_pc		= 0x12;	// address
+//static unsigned int const DW_AT_language		= 0x13;	// constant
+//static unsigned int const DW_AT_discr			= 0x15;	// reference
+////static unsigned int const DW_AT_discr_value		= 0x16;	// constant
+//static unsigned int const DW_AT_visibility		= 0x17;	// constant
+//static unsigned int const DW_AT_import			= 0x18;	// reference
+//static unsigned int const DW_AT_string_length		= 0x19;	// block, constant
+//static unsigned int const DW_AT_common_reference	= 0x1a;	// reference
+static unsigned int const DW_AT_comp_dir		= 0x1b;	// string
+//static unsigned int const DW_AT_const_value		= 0x1c;	// string, constant, block
 //static unsigned int const DW_AT_containing_type		= 0x1d;	// reference
-//static unsigned int const DW_AT_default_value 		= 0x1e;	// reference
-//static unsigned int const DW_AT_inline 			= 0x20;	// constant
-//static unsigned int const DW_AT_is_optional 		= 0x21;	// flag
-//static unsigned int const DW_AT_lower_bound 		= 0x22;	// constant, reference
-//static unsigned int const DW_AT_producer 		= 0x25;	// string
-//static unsigned int const DW_AT_prototyped 		= 0x27;	// flag
-//static unsigned int const DW_AT_return_addr 		= 0x2a;	// block, constant
-//static unsigned int const DW_AT_start_scope 		= 0x2c;	// constant
-////static unsigned int const DW_AT_stride_size 		= 0x2e;	// constant
-//static unsigned int const DW_AT_upper_bound 		= 0x2f;	// constant, reference
+//static unsigned int const DW_AT_default_value		= 0x1e;	// reference
+//static unsigned int const DW_AT_inline			= 0x20;	// constant
+//static unsigned int const DW_AT_is_optional		= 0x21;	// flag
+//static unsigned int const DW_AT_lower_bound		= 0x22;	// constant, reference
+//static unsigned int const DW_AT_producer		= 0x25;	// string
+//static unsigned int const DW_AT_prototyped		= 0x27;	// flag
+//static unsigned int const DW_AT_return_addr		= 0x2a;	// block, constant
+//static unsigned int const DW_AT_start_scope		= 0x2c;	// constant
+////static unsigned int const DW_AT_stride_size		= 0x2e;	// constant
+//static unsigned int const DW_AT_upper_bound		= 0x2f;	// constant, reference
 //static unsigned int const DW_AT_abstract_origin		= 0x31;	// reference
-//static unsigned int const DW_AT_accessibility 		= 0x32;	// constant
-//static unsigned int const DW_AT_address_class 		= 0x33;	// constant
-//static unsigned int const DW_AT_artificial 		= 0x34;	// flag
-//static unsigned int const DW_AT_base_types 		= 0x35;	// reference
+//static unsigned int const DW_AT_accessibility		= 0x32;	// constant
+//static unsigned int const DW_AT_address_class		= 0x33;	// constant
+//static unsigned int const DW_AT_artificial		= 0x34;	// flag
+//static unsigned int const DW_AT_base_types		= 0x35;	// reference
 //static unsigned int const DW_AT_calling_convention	= 0x36;	// constant
-//static unsigned int const DW_AT_count 			= 0x37;	// constant, reference
+//static unsigned int const DW_AT_count			= 0x37;	// constant, reference
 //static unsigned int const DW_AT_data_member_location	= 0x38; // block, reference
-//static unsigned int const DW_AT_decl_column 		= 0x39;	// constant
-//static unsigned int const DW_AT_decl_file 		= 0x3a;	// constant
-//static unsigned int const DW_AT_decl_line 		= 0x3b;	// constant
-//static unsigned int const DW_AT_declaration 		= 0x3c;	// flag
-////static unsigned int const DW_AT_discr_list 		= 0x3d;	// block
-//static unsigned int const DW_AT_encoding 		= 0x3e;	// constant
-//static unsigned int const DW_AT_external 		= 0x3f;	// flag
-//static unsigned int const DW_AT_frame_base 		= 0x40;	// block, constant
-//static unsigned int const DW_AT_friend 			= 0x41;	// reference
-//static unsigned int const DW_AT_identifier_case 	= 0x42;	// constant
-//static unsigned int const DW_AT_macro_info 		= 0x43;	// constant
-//static unsigned int const DW_AT_namelist_item 		= 0x44;	// block
-//static unsigned int const DW_AT_priority 		= 0x45;	// reference
-//static unsigned int const DW_AT_segment 		= 0x46;	// block, constant
-//static unsigned int const DW_AT_specification 		= 0x47;	// reference
-//static unsigned int const DW_AT_static_link 		= 0x48;	// block, constant
-//static unsigned int const DW_AT_type 			= 0x49;	// reference
-//static unsigned int const DW_AT_use_location 		= 0x4a;	// block, constant
+//static unsigned int const DW_AT_decl_column		= 0x39;	// constant
+//static unsigned int const DW_AT_decl_file		= 0x3a;	// constant
+//static unsigned int const DW_AT_decl_line		= 0x3b;	// constant
+//static unsigned int const DW_AT_declaration		= 0x3c;	// flag
+////static unsigned int const DW_AT_discr_list		= 0x3d;	// block
+//static unsigned int const DW_AT_encoding		= 0x3e;	// constant
+//static unsigned int const DW_AT_external		= 0x3f;	// flag
+//static unsigned int const DW_AT_frame_base		= 0x40;	// block, constant
+//static unsigned int const DW_AT_friend			= 0x41;	// reference
+//static unsigned int const DW_AT_identifier_case	= 0x42;	// constant
+//static unsigned int const DW_AT_macro_info		= 0x43;	// constant
+//static unsigned int const DW_AT_namelist_item		= 0x44;	// block
+//static unsigned int const DW_AT_priority		= 0x45;	// reference
+//static unsigned int const DW_AT_segment		= 0x46;	// block, constant
+//static unsigned int const DW_AT_specification		= 0x47;	// reference
+//static unsigned int const DW_AT_static_link		= 0x48;	// block, constant
+//static unsigned int const DW_AT_type			= 0x49;	// reference
+//static unsigned int const DW_AT_use_location		= 0x4a;	// block, constant
 //static unsigned int const DW_AT_variable_parameter	= 0x4b;	// flag
-//static unsigned int const DW_AT_virtuality 		= 0x4c;	// constant
+//static unsigned int const DW_AT_virtuality		= 0x4c;	// constant
 //static unsigned int const DW_AT_vtable_elem_location	= 0x4d; // block, reference
 // DWARF 3 values.
 //static unsigned int const DW_AT_allocated		= 0x4e;
@@ -1578,7 +1578,7 @@ static bool check_elf_format(Elfxx_Ehdr const& header)
   else if (header.e_ident[EI_VERSION] != EV_CURRENT)
     Dout(dc::warning, "Object file has different version than what libcwd understands.");
   else
-    return false; 
+    return false;
   return true;
 }
 
@@ -1704,7 +1704,7 @@ long objfile_ct::canonicalize_symtab(asymbol_st** symbol_table)
 	    if (new_symbol->name[1] == 'e' && new_symbol->name[0] == '_' && new_symbol->name[2] == 'n' && new_symbol->name[3] == 'd' && new_symbol->name[4] == 0)
 	      M_s_end_offset = symbol.st_value;
 	  }
-	  									// to start of section.
+										// to start of section.
 	  DoutElfxx(dc::bfd, "Symbol \"" << new_symbol->name << "\" in section \"" << new_symbol->section->name << "\" at 0x" <<
 	      std::hex << (new_symbol->section->vma + new_symbol->value) << ".");
         }
@@ -2600,7 +2600,7 @@ void objfile_ct::load_dwarf()
 		      break;
 		    }
 		    case DW_AT_specification:
-		    {  
+		    {
 		      LIBCWD_ASSERT( attr2->form != DW_FORM_ref_addr);	// Must be same compilation unit.
 		      reference_t declaration_debug_info_ptr =
 			  read_reference(abstract_debug_info_ptr, attr->form, debug_info_root, debug_info_start);
@@ -2648,7 +2648,7 @@ void objfile_ct::load_dwarf()
 	        break;
 	      }
 	      case DW_AT_specification:
-	      {  
+	      {
 	        LIBCWD_ASSERT( attr->form != DW_FORM_ref_addr);	// Must be same compilation unit.
 		saw_specification = true;
 	        reference_t declaration_debug_info_ptr =
@@ -2824,7 +2824,7 @@ void objfile_ct::load_dwarf()
 		      break;
 		    }
 		    case DW_AT_specification:
-		    {  
+		    {
 		      LIBCWD_ASSERT( attr2->form != DW_FORM_ref_addr);	// Must be same compilation unit.
 		      reference_t declaration_debug_info_ptr =
 			  read_reference(abstract_debug_info_ptr, attr->form, debug_info_root, debug_info_start);
@@ -2894,7 +2894,7 @@ void objfile_ct::load_dwarf()
 	        abbrev.tag != DW_TAG_structure_type &&
 	        abbrev.tag != DW_TAG_class_type &&
 		abbrev.tag != DW_TAG_namespace &&
-		abbrev.tag != DW_TAG_lexical_block 	// Do DW_TAG_lexical_block ever have a DW_AT_sibling?
+		abbrev.tag != DW_TAG_lexical_block	// Do DW_TAG_lexical_block ever have a DW_AT_sibling?
 	       )
 	    {
 	      LIBCWD_ASSERT(abbrev.has_children);
@@ -3018,7 +3018,7 @@ void objfile_ct::load_stabs()
 	  cur_source = catenate_path(cur_dir, filename);
 	}
 	cur_source += '\0';
-	last_source_iter = M_source_files.insert(cur_source).first; 
+	last_source_iter = M_source_files.insert(cur_source).first;
 	source_file_changed_and_we_didnt_copy_it_yet = source_file_changed_but_line_number_not_yet = true;
 	DoutStabs(dc::bfd, ((stabs[j].n_type  == N_SO) ? "N_SO : \"" : "N_SOL: \"") << cur_source.data() << "\".");
 	break;
@@ -3031,7 +3031,7 @@ void objfile_ct::load_stabs()
 	break;
       }
       case N_RBRAC:	// We assume that the first N_RBRACE comes AFTER the last N_SLINE,
-      			// see http://www.informatik.uni-frankfurt.de/doc/texi/stabs_2.html#SEC14
+			// see http://www.informatik.uni-frankfurt.de/doc/texi/stabs_2.html#SEC14
       {
 	DoutStabs(dc::bfd, "N_RBRAC: " << std::hex << stabs[j].n_value << '.');
 	if (location.is_valid_stabs())
@@ -3179,7 +3179,7 @@ void objfile_ct::find_nearest_line(asymbol_st const* symbol, Elfxx_Addr offset, 
     // The call to load_dwarf()/load_stabs() below can call malloc, causing us to recursively enter this function
     // for this object or another objfile_ct.
 #if !LIBCWD_THREAD_SAFE
-    if (M_inside_find_nearest_line) 		// Break loop caused by re-entry through a call to malloc.
+    if (M_inside_find_nearest_line)		// Break loop caused by re-entry through a call to malloc.
     {
       *file = NULL;
       *func = symbol->name;
@@ -3289,12 +3289,12 @@ char* objfile_ct::allocate_and_read_section(int i)
 {
   char* p = new char[M_sections[i].section_header().sh_size];
   LIBCWD_TSD_DECLARATION;
-  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD); 
+  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
   LIBCWD_DISABLE_CANCEL;
   M_input_stream->rdbuf()->pubseekpos(M_sections[i].section_header().sh_offset);
   M_input_stream->read(p, M_sections[i].section_header().sh_size);
   LIBCWD_ENABLE_CANCEL;
-  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD); 
+  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
   return p;
 }
 
@@ -3513,7 +3513,7 @@ void objfile_ct::initialize(char const* file_name)
   }
   LIBCWD_ASSERT( section_headers[M_header.e_shstrndx].sh_size > 0
       && section_headers[M_header.e_shstrndx].sh_size >= section_headers[M_header.e_shstrndx].sh_name );
-  M_section_header_string_table = new char[section_headers[M_header.e_shstrndx].sh_size]; 	// LEAK11
+  M_section_header_string_table = new char[section_headers[M_header.e_shstrndx].sh_size];	// LEAK11
   _private_::set_library_call_on(LIBCWD_TSD);
   M_input_stream->rdbuf()->pubseekpos(section_headers[M_header.e_shstrndx].sh_offset);
   M_input_stream->read(M_section_header_string_table, section_headers[M_header.e_shstrndx].sh_size);

@@ -4,7 +4,7 @@
 // This file contains the implementation of our own STL allocator, used with g++-4.x.
 //
 // Copyright (C) 2005, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61

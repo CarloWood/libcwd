@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -107,7 +107,7 @@ public:
   // Constructor
   //
 
-  // MT: All channel objects must be global so that `WNS_initialized' is false 
+  // MT: All channel objects must be global so that `WNS_initialized' is false
   //     at the start of the program and initialization occurs before other threads
   //     share the object.
   explicit channel_ct(char const* label, bool add_to_channel_list = true);

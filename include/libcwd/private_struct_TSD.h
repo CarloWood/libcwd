@@ -9,7 +9,7 @@
 // This file may be distributed under the terms of the Q Public License
 // version 1.0 as appearing in the file LICENSE.QPL included in the
 // packaging of this file.
-// 
+//
 
 /** \file libcwd/private_struct_TSD.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
@@ -72,7 +72,7 @@ namespace libcwd {
 #define LIBCWD_TSD_DECLARATION ::libcwd::_private_::TSD_st& __libcwd_tsd(::libcwd::_private_::TSD_st::instance())
 							// Declaration of local `__libcwd_tsd' structure reference.
 #define LIBCWD_DO_TSD(debug_object) (*__libcwd_tsd.do_array[(debug_object).WNS_index])
-    							// For use inside class debug_ct to access member `m'.
+							// For use inside class debug_ct to access member `m'.
 #define LIBCWD_TSD_MEMBER_OFF (__libcwd_tsd.do_off_array[WNS_index])
 							// For use inside class debug_ct to access member `_off'.
 #define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) (__libcwd_tsd.do_off_array[(debug_object).WNS_index])
@@ -222,7 +222,7 @@ extern bool WST_tsd_key_created;
 
   } // namespace _private_
 } // namespace libcwd
- 
+
 #if !LIBCWD_THREAD_SAFE
 // Put __libcwd_tsd in global namespace because anywhere we always refer to it
 // as `__libcwd_tsd' because when LIBCWD_THREAD_SAFE is set it is local variable.

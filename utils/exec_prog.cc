@@ -54,7 +54,7 @@ namespace {
 
 } // namespace {anonymous}
 
-// 
+//
 // Execute a program (blocking).
 //
 // Return value is the return value of the program, or 256 if the
@@ -68,7 +68,7 @@ namespace {
 //
 // This is always called before main() and thus before any thread installs
 // a fork handler.
-// 
+//
 int ST_exec_prog(char const* prog_name, char const* const argv[], char const* const envp[], int (*decode_stdout)(char const*, size_t))
 {
   Debug(
@@ -90,7 +90,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
 #endif
 
   int ret;
-  
+
   if ((ret = pipe(stdout_filedes)) == -1)
     DoutFatal(dc::fatal|error_cf, "pipe");
   Dout(dc::system, "pipe([" << stdout_filedes[0] << ", " << stdout_filedes[1] << "]) = " << ret);
@@ -147,7 +147,7 @@ int ST_exec_prog(char const* prog_name, char const* const argv[], char const* co
 	ofdstream(int fd) : std::ostream(&M_fdbuf), M_fdbuf(fd) { }
 	fdbuf* rdbuf() const { return &M_fdbuf; }
       };
-      
+
       // Write debug output to pipe.
       ofdstream debug_stream(debug_filedes[1]);
       Debug( libcw_do.margin().assign(prog_name, strlen(prog_name)) );

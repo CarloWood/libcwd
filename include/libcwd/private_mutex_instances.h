@@ -9,7 +9,7 @@
 // This file may be distributed under the terms of the Q Public License
 // version 1.0 as appearing in the file LICENSE.QPL included in the
 // packaging of this file.
-// 
+//
 
 /** \file libcwd/private_mutex_instances.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".

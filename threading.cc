@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2001 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -371,7 +371,7 @@ void TSD_st::cleanup_routine()
     // Then we can savely delete the current TSD.
 #if CWDEBUG_ALLOC
     static_tsd->internal = 1;			// We can't call set_alloc_checking_off, because with --enable-debugm
-    						// that will do a LIBCWD_TSD_DECLARATION, causing a new key
+						// that will do a LIBCWD_TSD_DECLARATION, causing a new key
 						// to be generated.
 #endif
     delete this;
@@ -404,12 +404,12 @@ int pthread_lock_interface_ct::trylock()
     if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
     {
       __libcwd_tsd.rdlocked_by1[pthread_lock_interface_instance] = pthread_self();
-      __libcwd_tsd.rdlocked_from1[pthread_lock_interface_instance] = __builtin_return_address(0); 
+      __libcwd_tsd.rdlocked_from1[pthread_lock_interface_instance] = __builtin_return_address(0);
     }
     else if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
     {
       __libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = pthread_self();
-      __libcwd_tsd.rdlocked_from2[pthread_lock_interface_instance] = __builtin_return_address(0); 
+      __libcwd_tsd.rdlocked_from2[pthread_lock_interface_instance] = __builtin_return_address(0);
     }
     else
       core_dump();
@@ -434,12 +434,12 @@ void pthread_lock_interface_ct::lock()
   if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
   {
     __libcwd_tsd.rdlocked_by1[pthread_lock_interface_instance] = pthread_self();
-    __libcwd_tsd.rdlocked_from1[pthread_lock_interface_instance] = __builtin_return_address(0); 
+    __libcwd_tsd.rdlocked_from1[pthread_lock_interface_instance] = __builtin_return_address(0);
   }
   else if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
   {
     __libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = pthread_self();
-    __libcwd_tsd.rdlocked_from2[pthread_lock_interface_instance] = __builtin_return_address(0); 
+    __libcwd_tsd.rdlocked_from2[pthread_lock_interface_instance] = __builtin_return_address(0);
   }
   else
     core_dump();
@@ -517,13 +517,13 @@ void thread_ct::initialize(LIBCWD_TSD_PARAM)
 #endif
   std::memset(this, 0 , sizeof(thread_ct));		// This is ok: we have no virtual table or base classes.
   current_alloc_list =  &base_alloc_list;		// This is why we may only initialize thread_ct after
-  							// it reached it final place, and may not move the object
+							// it reached it final place, and may not move the object
 							// anymore after that!
 #endif
   thread_mutex.initialize();
 #if CWDEBUG_ALLOC
   thread_mutex.lock();		// Need to be locked because otherwise sanity_check() of the maps allocator will fail.
-  				// Its not really necessary to lock of course, because threadlist_instance is locked as
+				// Its not really necessary to lock of course, because threadlist_instance is locked as
 				// well and thus this is the only thread that could possibly access the map.
   // new_memblk_map allocates a new map<> for the current thread.
   // The implementation of new_memblk_map resides in debugmalloc.cc.
@@ -569,7 +569,7 @@ void thread_ct::terminated(threadlist_t::iterator
   }
   else
     M_zombie = true;				// This causes the memblk_map to be deleted as soon as the last
-  						// allocation belonging to this thread is freed.
+						// allocation belonging to this thread is freed.
   rwlock_tct<threadlist_instance>::wrunlock();
 #if CWDEBUG_DEBUGT
   __libcwd_tsd.cancel_explicitely_deferred--;
@@ -632,7 +632,7 @@ void test_lock_pair(size_t instance_first, void const* from_first, size_t instan
   keypair_info_st keypair_info;
 
   // Do some decoding and get rid of the 'read_lock_offset' and 'high_priority_read_lock_offset' flags.
- 
+
   // During the decoding, we assume that the first instance is the smallest (instance 1).
   keypair_info.state = group1;
   bool first_is_readonly = false;

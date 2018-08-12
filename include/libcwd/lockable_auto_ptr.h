@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -56,7 +56,7 @@ template<class X, bool array = false>	// Use array == true when `ptr' was alloca
     X* ptr;		// Pointer to object of type X, or NULL when not pointing to anything.
     bool locked;	// Set if this lockable_auto_ptr object is locked.
     mutable bool owner;	// Set if this lockable_auto_ptr object is the owner of the object that
-    			// `ptr' points too.
+			// `ptr' points too.
 
   public:
     //-----------------------------------------------------------------------------------------------
@@ -153,7 +153,7 @@ template<class X, bool array>
     {
       if ((void*)&r != (void*)this)
       {
-	if (owner) 
+	if (owner)
 	{
 	  if (array)
 	    delete [] ptr;
@@ -165,7 +165,7 @@ template<class X, bool array>
 	  owner = 0;
 	else
 	{
-	  owner = r.owner; 
+	  owner = r.owner;
 	  r.owner = 0;
 	}
       }

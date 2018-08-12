@@ -94,7 +94,7 @@ private:
   void increment() { if (!M_string_literal) reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->increment(); }
   void decrement(LIBCWD_TSD_PARAM);
 };
-		
+
   } // namespace _private_
 } // namespace libcwd
 

@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -75,53 +75,53 @@ extern void register_external_allocation(void const* ptr, size_t size);
  *
  * When memory is allocated, the resulting pointer should be passed to <CODE>AllocTag()</CODE>,
  * passing information that needs to be included in the \ref group_overview "overview of allocated memory".
- * 
+ *
  * <b>Example</b>
- * 
+ *
  * \code
  * char* buf = (char*)malloc(BUFSIZE);
  * AllocTag(buf, "Temporary buffer");
  * \endcode
- * 
+ *
  * would result, in the Allocated memory Overview, in a line like:
- * 
+ *
  * \exampleoutput <PRE>
  * malloc    0x804ff38 char [512], (size = 512); Temporary buffer</PRE>
  * \endexampleoutput
- * 
+ *
  * And,
- * 
+ *
  * \code
  * MyClass* p = new MyClass;
  * AllocTag(p, "This is an example");
  * \endcode
- * 
+ *
  * would result in a line like:
- * 
+ *
  * \exampleoutput <PRE>
  * 0x804f80c MyClass, (size = 30); This is an example</PRE>
  * \endexampleoutput
- * 
+ *
  * While,
- * 
+ *
  * \code
  * int* keys = new int [n];
  * AllocTag(keys, "Array with " << n << " keys of " << my_get_name());
  * \endcode
- * 
+ *
  * would result in a line like:
- * 
+ *
  * \exampleoutput <PRE>
  * new[]     0x804f6b8 int [5], (size = 20); Array with 5 keys of Mr.Frubal.</PRE>
  * \endexampleoutput
- * 
+ *
  * It is allowed to call <CODE>AllocTag()</CODE> more then once for the same pointer, in that case the last
  * call will simply override the previous calls.&nbsp;
  * It is also allowed to call <CODE>AllocTag()</CODE> for a pointer that is not allocated at all,
  * in which case it is ignored.&nbsp;
  * The main reason for this is to allow the use of <CODE>AllocTag(this, "description")</CODE> in the constructor of any object,
  * even in relation with (multiple) inheritance.
- * 
+ *
  * It is also allowed to call <CODE>AllocTag()</CODE> with a pointer which points inside an allocated
  * memory block, which has the same effect as using the pointer to the start of it.
  */
@@ -208,7 +208,7 @@ extern void register_external_allocation(void const* ptr, size_t size);
       } \
       --LIBCWD_DO_TSD_MEMBER_OFF(::libcwd::libcw_do); \
       ::libcwd::set_alloc_label(p, ::libcwd::type_info_of(p), \
-	  			      ::libcwd::_private_::smart_ptr(desc) LIBCWD_COMMA_TSD); \
+				      ::libcwd::_private_::smart_ptr(desc) LIBCWD_COMMA_TSD); \
     } while(0)
 
 template<typename TYPE>

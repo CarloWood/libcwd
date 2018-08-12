@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2007, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -565,7 +565,7 @@ static bool const statically_linked = true;
 	    M_lbase = 0;
 
 	  void const* s_end_start_addr;
-	  
+
 	  if (s_end_offset)
 	    s_end_start_addr = (char*)M_lbase + s_end_offset;
 	  else
@@ -714,7 +714,7 @@ static bool const statically_linked = true;
 	      Dout(dc::bfd, "It collides with \"" << (*iter)->get_object_file()->filepath() << "\", load address " <<
 		  (*iter)->get_lbase() << ", start " << (*iter)->get_start() << " and end " <<
 		  (void*)((size_t)(*iter)->get_start() + (*iter)->size()));
-	       
+
 	      bfile_ct* lowbf;
 	      bfile_ct* highbf;
 	      // Real size:
@@ -918,7 +918,7 @@ static bool const statically_linked = true;
 	return 0;
       }
 
-      // 
+      //
       // Find the full path to the current running process.
       // This needs to work before we reach main, therefore
       // it uses the /proc filesystem.  In order to be as
@@ -930,7 +930,7 @@ static bool const statically_linked = true;
       // If "/proc/PID/cmdline" doesn't exist, then we run
       // `ps' in order to find the name of the running
       // program.
-      // 
+      //
       // cwbfd::
       void ST_get_full_path_to_executable(_private_::internal_string& result LIBCWD_COMMA_TSD_PARAM)
       {
@@ -963,10 +963,10 @@ static bool const statically_linked = true;
 	  int pid = getpid();
 	  do { *--p = '0' + (pid % 10); } while ((pid /= 10) > 0);
 	  pidstr = p;
-	 
+
 	  // Path to `ps'
 	  char const ps_prog[] = CW_PATH_PROG_PS;
-	 
+
 	  char const* argv[4];
 	  argv[0] = "ps";
 	  argv[1] = PS_ARGUMENT;
@@ -1051,7 +1051,7 @@ static bool const statically_linked = true;
 #endif
       typedef char fake_shared_libs_type[sizeof(ST_shared_libs_vector_ct)];
       fake_shared_libs_type fake_ST_shared_libs;		// Written to only in `ST_decode_ldd' which is called from
-      								// `cwbfd::ST_init' and read from in a later part of
+								// `cwbfd::ST_init' and read from in a later part of
 								// `cwbfd::ST_init'.  Initialization is done in ST_init too.
       ST_shared_libs_vector_ct* const ST_shared_libs_ptr = reinterpret_cast<ST_shared_libs_vector_ct*>(&fake_ST_shared_libs);
       ST_shared_libs_vector_ct& ST_shared_libs = *ST_shared_libs_ptr;

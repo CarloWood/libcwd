@@ -9,7 +9,7 @@
 // This file may be distributed under the terms of the Q Public License
 // version 1.0 as appearing in the file LICENSE.QPL included in the
 // packaging of this file.
-// 
+//
 
 #ifndef LIBCWD_PRIVATE_MUTEX_INL
 #define LIBCWD_PRIVATE_MUTEX_INL

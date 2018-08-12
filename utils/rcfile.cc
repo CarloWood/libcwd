@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2003 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -211,7 +211,7 @@ void rcfile_ct::read()
   {
     lines_read++;
     line.erase(0, line.find_first_not_of(" \t\n\v"));
-    line.erase(line.find_last_not_of(" \t\n\v") + 1); 
+    line.erase(line.find_last_not_of(" \t\n\v") + 1);
     if ((line.find_first_of('#') > 0) && (line.length() != 0))
     {
       if (line.find_first_of("=") == std::string::npos || line[0] == '=')

@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2001 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -113,7 +113,7 @@ template <bool needs_lock1, int pool_instance1,
 	  bool needs_lock2, int pool_instance2>
   inline bool
   operator!=(CharPoolAlloc<needs_lock1, pool_instance1> const&,
-  	     CharPoolAlloc<needs_lock2, pool_instance2> const&)
+	     CharPoolAlloc<needs_lock2, pool_instance2> const&)
   {
     return needs_lock1 != needs_lock2 || pool_instance1 != pool_instance2;
   }
@@ -231,7 +231,7 @@ template <bool needs_lock, int pool_instance>
 
   } // namespace _private_
 } // namespace libcwd
- 
+
 #endif // CWDEBUG_ALLOC
 #endif // LIBCWD_PRIVATE_ALLOCATOR_INL
 

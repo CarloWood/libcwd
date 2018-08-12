@@ -4,7 +4,7 @@
 // This file contains the memory allocations related debugging code.
 //
 // Copyright (C) 2000 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -76,7 +76,7 @@
 // and deletion in the hierarchy automatically, including updating of total
 // allocated memory size, number of allocated blocks and the current list that
 // newly allocated blocks must be added to.
-// 
+//
 // Two corresponding memblk_info_ct and dm_alloc_ct objects can be 'decoupled'
 // in two ways:
 // - The memblk_info_ct is erased but the corresponding dm_alloc_ct still has
@@ -228,8 +228,8 @@ using libcwd::_private_::backtrace_instance;
 #define BACKTRACE_RELEASE_LOCK		mutex_tct<backtrace_instance>::unlock()
 #else // !LIBCWD_THREAD_SAFE
 #define ACQUIRE_WRITE_LOCK(tt)		do { } while(0)
-#define RELEASE_WRITE_LOCK	 	do { } while(0)
-#define ACQUIRE_READ_LOCK(tt)	 	do { } while(0)
+#define RELEASE_WRITE_LOCK		do { } while(0)
+#define ACQUIRE_READ_LOCK(tt)		do { } while(0)
 #define RELEASE_READ_LOCK		do { } while(0)
 #define ACQUIRE_READ2WRITE_LOCK		do { } while(0)
 #define ACQUIRE_WRITE2READ_LOCK		do { } while(0)
@@ -363,7 +363,7 @@ void valgrind_free(void*) { }
 #endif
 
 namespace libcwd {
-    
+
 namespace _private_ {
 
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUGM
@@ -478,12 +478,12 @@ extern void ST_initialize_globals(LIBCWD_TSD_PARAM);
       {																\
         LIBCWD_DO_TSD(debug_object).start(debug_object, channel_set LIBCWD_COMMA_TSD);						\
 	++ LIBCWD_DO_TSD_MEMBER_OFF(debug_object);										\
-	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(debug_object, current_bufferstream)); 			\
+	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(debug_object, current_bufferstream));			\
         no_alloc_ostream << data;												\
 	-- LIBCWD_DO_TSD_MEMBER_OFF(debug_object);										\
         LIBCWD_DO_TSD(debug_object).finish(debug_object, channel_set LIBCWD_COMMA_TSD);						\
       }																\
-      DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal = " << __libcwd_tsd.internal << '.' ); 	\
+      DEBUGDEBUG_CERR( "Leaving 'DoutInternal(cntrl, \"" << data << "\")'.  internal = " << __libcwd_tsd.internal << '.' );	\
     }																\
     DEBUGDEBUG_ELSE_DoutInternal(data);												\
   } while(0)
@@ -497,7 +497,7 @@ extern void ST_initialize_globals(LIBCWD_TSD_PARAM);
     if (__libcwd_tsd.library_call < 2)												\
     {																\
       DEBUGDEBUG_CERR( "Entering 'DoutFatalInternal(cntrl, \"" << data << "\")'.  internal == " <<				\
-			__libcwd_tsd.internal << "; setting internal to 0." ); 							\
+			__libcwd_tsd.internal << "; setting internal to 0." );							\
       __libcwd_tsd.internal = 0;												\
       channel_set_bootstrap_fatal_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);						\
       {																\
@@ -506,7 +506,7 @@ extern void ST_initialize_globals(LIBCWD_TSD_PARAM);
       }																\
       LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);							\
       ++ LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
-      _private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)); 				\
+      _private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream));				\
       no_alloc_ostream << data;													\
       -- LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);											\
       LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);	/* Never returns */			\
@@ -575,7 +575,7 @@ namespace _private_ {
   // The following kludge is needed because of a bug in libstdc++-v3.
   //
   bool WST_ios_base_initialized = false;			// MT-safe: this is set to true before main() is reached and
-  								// never changed anymore (see `inside_ios_base_Init_Init').
+								// never changed anymore (see `inside_ios_base_Init_Init').
 
   // _private_::
   bool inside_ios_base_Init_Init()				// Single Threaded function.
@@ -1005,7 +1005,7 @@ class memblk_info_base_ct {
 protected:
   uint16_t M_memblk_type;
   mutable uint16_t M_flags;	// Warning: the mutable needs special attention with locking,
-  				// or else this is not thread safe.
+				// or else this is not thread safe.
 public:
   memblk_info_base_ct() { }
   memblk_info_base_ct(memblk_types_nt memblk_type) : M_memblk_type(memblk_type), M_flags(0) { }
@@ -1437,7 +1437,7 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, alloc_filter_ct
 
 void dm_alloc_ct::printOn(std::ostream& os) const
 {
-  _private_::no_alloc_ostream_ct no_alloc_ostream(os); 
+  _private_::no_alloc_ostream_ct no_alloc_ostream(os);
   no_alloc_ostream << "{ start = " << a_start << ", size = " << a_size << ", a_memblk_type = " << a_memblk_type <<
       ",\n\ttype = \"" << type_info_ptr->demangled_name() <<
       "\", description = \"" << (a_description.is_null() ? "NULL" : static_cast<char const*>(a_description)) <<
@@ -1470,7 +1470,7 @@ unsigned long dm_alloc_copy_ct::show_alloc_list(debug_ct& debug_object, int dept
 #endif
     if (filter.M_start.tv_sec != 1)
     {
-      if (alloc->a_time.tv_sec < filter.M_start.tv_sec || 
+      if (alloc->a_time.tv_sec < filter.M_start.tv_sec ||
 	  (alloc->a_time.tv_sec == filter.M_start.tv_sec && alloc->a_time.tv_usec < filter.M_start.tv_usec))
 	continue;
     }
@@ -1609,7 +1609,7 @@ void memblk_info_ct::make_invisible()
     DoutFatal(dc::core, "Trying to make a memory block invisible that has allocation \"children\" (like a marker has).");
 #endif
 
-  a_alloc_node.reset(); 
+  a_alloc_node.reset();
 }
 
 // A dummy struct.  We'll only ever use 'appblock*'.
@@ -2373,7 +2373,7 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
       {
 	expected_magic_begin = MAGIC_MALLOC_BEGIN;
 	expected_magic_end = MAGIC_MALLOC_END;
-      }	
+      }
       else
       {
 	expected_magic_begin = MAGIC_NEW_ARRAY_BEGIN;
@@ -2764,7 +2764,7 @@ void init_debugmalloc()
       int recursive_store = __libcwd_tsd.inside_malloc_or_free;
       __libcwd_tsd.inside_malloc_or_free = 0;	// Allow that (this call to malloc will not have done from STL allocator).
       libcwd::ST_initialize_globals(LIBCWD_TSD);	// This doesn't belong in the malloc department at all, but malloc()
-      							// happens to be a function that is called _very_ early - and hence
+							// happens to be a function that is called _very_ early - and hence
 							// this is a good moment to initialize ALL of libcwd.
       __libcwd_tsd.inside_malloc_or_free = recursive_store;
 #endif // HAVE_DLOPEN
@@ -3231,7 +3231,7 @@ void remove_type_info_references(object_file_ct const* object_file_ptr LIBCWD_CO
 {
   LIBCWD_DEFER_CANCEL;
   ACQUIRE_READ_LOCK(&(*__libcwd_tsd.thread_iter));
-  
+
   for (memblk_map_ct::const_iterator iter = memblk_map_read->begin(); iter != memblk_map_read->end(); ++iter)
   {
     alloc_ct* alloc = iter->second.get_alloc_node();
@@ -3346,7 +3346,7 @@ marker_ct::~marker_ct()
 	  (object_file && object_file->hide_from_alloc_list()) ||
 #endif
           ((M_filter.M_start.tv_sec != 1) &&
-	   (alloc_node->time().tv_sec < M_filter.M_start.tv_sec || 
+	   (alloc_node->time().tv_sec < M_filter.M_start.tv_sec ||
 	       (alloc_node->time().tv_sec == M_filter.M_start.tv_sec && alloc_node->time().tv_usec < M_filter.M_start.tv_usec))) ||
           ((M_filter.M_end.tv_sec != 1) &&
 	    (alloc_node->time().tv_sec > M_filter.M_end.tv_sec ||
@@ -3475,7 +3475,7 @@ void move_outside(marker_ct* marker, void const* void_ptr)
 #endif // CWDEBUG_MARKER
 
 static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, void const* void_ptr LIBCWD_COMMA_TSD_PARAM)
-{ 
+{
   appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
   alloc_ct* alloc;
 #if LIBCWD_THREAD_SAFE
@@ -3557,7 +3557,7 @@ static alloc_ct* find_memblk_info(memblk_info_base_ct& result, bool set_watch, v
  * \endexampleoutput
  */
 alloc_ct const* find_alloc(void const* ptr)
-{ 
+{
   LIBCWD_TSD_DECLARATION;
   LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
 
@@ -3579,7 +3579,7 @@ alloc_ct const* find_alloc(void const* ptr)
 // library DOES free the allocation then a leak is detected and freeing this allocation
 // again in the application will lead to a crash without that it is detected that
 // free(3) was called twice.
-// 
+//
 void register_external_allocation(void const* void_ptr, size_t size)
 {
   appblock const* ptr2 = static_cast<appblock const*>(void_ptr);
@@ -3651,7 +3651,7 @@ void register_external_allocation(void const* void_ptr, size_t size)
 
   DEBUGDEBUG_CERR( "register_external_allocation: internal == " << __libcwd_tsd.internal << "; setting it to 0." );
   __libcwd_tsd.internal = 0;
-  
+
   // MT-safe: iter points to an element that is garanteed unique to this thread (we just allocated it).
   if (!iter.second)
     DoutFatalInternal( dc::core, "register_external_allocation: externally (supposedly newly) allocated block collides with *existing* memblk!  Are you sure this memory block was externally allocated, or did you call RegisterExternalAlloc twice for the same pointer?" );
@@ -4570,7 +4570,7 @@ void operator delete[](void* void_ptr) noexcept
   LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized || __libcwd_tsd.internal);
 #endif
   internal_free(ptr2, from_delete_array LIBCWD_COMMA_TSD);	// Note that the standard demands that we call free(), and not delete().
-  								// This forces everyone to overload both, operator delete() and operator
+								// This forces everyone to overload both, operator delete() and operator
 								// delete[]() and not only operator delete().
 #if LIBCWD_THREAD_SAFE
   libcwd::_private_::TSD_st::free_instance(__libcwd_tsd);

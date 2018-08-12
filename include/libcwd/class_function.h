@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2003 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -75,7 +75,7 @@ operator<(FunctionChunkKey const& chunk1, FunctionChunkKey const& chunk2)
 
 struct FunctionRootInstanceKey {
   char const* M_mangled_name;		// The mangled name is what makes a root instance unique because we
-  					// only keep functions from the a single compilation unit per map.
+					// only keep functions from the a single compilation unit per map.
 					// See class compilation_unit_ct.
 };
 
@@ -122,7 +122,7 @@ private:
   void const* M_highpc;			// The high_pc of the function instance.
   FunctionRootInstance* M_root;		// Pointer to the root definition of this function.
   FunctionInstance* M_inlined_by;	// Pointer to the function instance that contains this
-  					// inlined function, or NULL when this is a root definition.
+					// inlined function, or NULL when this is a root definition.
 public:
   FunctionInstance(void const* lowpc, void const* highpc, FunctionRootInstance* root, FunctionInstance* inlined_by) :
       M_lowpc(lowpc), M_highpc(highpc), M_root(root), M_inlined_by(inlined_by) { }
@@ -221,7 +221,7 @@ public:
 
   Function() : M_initialized(false), M_flags(0) { }
   Function(unsigned int flags) : M_initialized(false), M_flags(flags) { }
- 
+
   void init() { if (!M_initialized) M_init(); }
   void init(Function& function) { if (!function.is_initialized()) M_init(function); }
   void init(char const* expr, unsigned int flags = mangled|cpp_linkage) { if (!M_initialized) M_init(expr, flags); }

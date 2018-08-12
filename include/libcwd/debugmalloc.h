@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -145,7 +145,7 @@ extern void init_debugmalloc();
 
 namespace libcwd {
 
-inline void make_invisible(void const*) { } 
+inline void make_invisible(void const*) { }
 inline void make_all_allocations_invisible_except(void const*) { }
 inline void set_invisible_on() { }
 inline void set_invisible_off() { }

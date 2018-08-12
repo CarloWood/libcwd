@@ -10,7 +10,7 @@
 // version 1.0 as appearing in the file LICENSE.QPL included in the
 // packaging of this file.
 //
-  
+
 /*!
 \addtogroup group_demangle demangle_type() and demangle_symbol()
 \ingroup group_type_info
@@ -22,7 +22,7 @@ to the string \p output; \p input should be the mangled name
 as returned by <CODE>typeid(OBJECT).name()</CODE> (using gcc-2.95.1 or higher).
 
 demangle_symbol() writes the \em mangled symbol name \p input
-to the string \p output; \p input should be the mangled name 
+to the string \p output; \p input should be the mangled name
 as returned by <CODE>elfxx::asymbol_st::name</CODE>
 which is what is returned by
 \ref libcwd::location_ct::mangled_function_name "location_ct::mangled_function_name()"
@@ -41,7 +41,7 @@ The direct use of these functions should be avoided, instead use the function ty
 // To compile a standalone demangler:
 // g++ -g -DSTANDALONE -DCWDEBUG -Iinclude demangle3.cc -Wl,--rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
 //
- 
+
 #include "sys.h"
 #include "cwd_debug.h"
 #include <libcwd/demangle.h>
@@ -521,7 +521,7 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
         *p++ = '0' + d;
       shift /= 10;
     }
-  } 
+  }
   *p = 0;
 }
 
@@ -799,7 +799,7 @@ void demangle_type(char const* input, internal_string& output)
 
 #ifdef STANDALONE
 #include <iostream>
- 
+
 int main(int argc, char* argv[])
 {
   Debug( libcw_do.on() );
@@ -810,7 +810,7 @@ int main(int argc, char* argv[])
   std::cout << out << std::endl;
   return 0;
 }
- 
+
 #endif // STANDALONE
 
 namespace libcwd {

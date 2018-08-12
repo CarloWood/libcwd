@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2002 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -63,7 +63,7 @@ struct debug_tsd_st {
 
   bool tsd_initialized;
     // Set after initialization is completed.
-  
+
 #if CWDEBUG_DEBUGOUTPUT
   // Since we start with _off is -1 instead of 0 when CWDEBUG_DEBUG is set,
   // we need to ignore the call to on() the first time it is called.

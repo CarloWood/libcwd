@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -121,7 +121,7 @@ namespace _private_ {
   // _private_::
   template<typename T>
     type_info_ct type_info<T>::S_value;
-    
+
   // _private_::
   template<typename T>
     bool type_info<T>::S_initialized;
@@ -196,10 +196,10 @@ template<>
 
 template<typename T>
   ::libcwd::type_info_ct libcwd_type_info_exact<T>::S_value;
-  
+
 template<typename T>
   bool libcwd_type_info_exact<T>::S_initialized;
-  
+
 template<typename T>
   ::libcwd::type_info_ct const& libcwd_type_info_exact<T>::value()
   {
@@ -270,12 +270,12 @@ template<typename T>
  *
  * This template is used by passing an object to it, top level CV-qualifiers (and a possible reference)
  * are ignored in the same way as does \c typeid() (see 5.2.8 Type identification of the ISO C++ standard).
- */ 
+ */
 template<typename T>
   inline
   type_info_ct const&
   type_info_of(T const&)		// If we don't use a reference, this would _still_ cause the copy constructor to be called.
-  					// Besides, using `const&' doesn't harm the result as typeid() always ignores the top-level
+					// Besides, using `const&' doesn't harm the result as typeid() always ignores the top-level
 					// CV-qualifiers anyway (see C++ standard ISO+IEC+14882, 5.2.8 point 5).
   {
     return _private_::type_info<T>::value();

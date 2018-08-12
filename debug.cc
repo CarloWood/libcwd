@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -30,7 +30,7 @@
 #include <iostream>
 #include <algorithm>
 #ifdef HAVE_SYS_RESOURCE_H
-#include <sys/time.h>     	// Needed for setrlimit()
+#include <sys/time.h>	// Needed for setrlimit()
 #include <sys/resource.h>	// Needed for setrlimit()
 #endif
 #include <cstdlib>		// Needed for Exit() (C99)
@@ -219,7 +219,7 @@ void allocator_unlock()
       // __libcwd_tsd		: The Thread Specific context.
       // debug_object		: The debug object context.
       // request_unfinished	: When set, then this thread is writing output that is interrupting
-      // 			  unfinished debug output of its own.
+      //			  unfinished debug output of its own.
       // do_flush		: Flush the ostream after writing to it.
       // ends_on_newline	: This output ends on a newline.
       // possible_nonewline_cf	: When `ends_on_newline' is false, then that was caused by the use of nonewline_cf.
@@ -429,7 +429,7 @@ void allocator_unlock()
 
     namespace {
       unsigned short int WST_max_len = 8;	// The length of the longest label.  Is adjusted automatically
-    						// if a custom channel has a longer label.
+						// if a custom channel has a longer label.
     } // namespace
 
     namespace channels {
@@ -820,7 +820,7 @@ void allocator_unlock()
 	// Another thread is already trying to generate a core dump.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-	pthread_exit(PTHREAD_CANCELED); 
+	pthread_exit(PTHREAD_CANCELED);
       }
       // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
 #ifdef HAVE_PTHREAD_KILL_OTHER_THREADS_NP
@@ -871,7 +871,7 @@ void allocator_unlock()
     {
 #if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
       LIBCWD_ASSERT(M_str == NULL);	// Need to call debug_string_ct::deinitialize() before destructor.
-      					// But not in the non-threaded case, see debug_tsd_st::~debug_tsd_st.
+					// But not in the non-threaded case, see debug_tsd_st::~debug_tsd_st.
 #endif
     }
 
@@ -1273,7 +1273,7 @@ void allocator_unlock()
 	    // Another thread is already trying to generate a core dump.
 	    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-	    pthread_exit(PTHREAD_CANCELED); 
+	    pthread_exit(PTHREAD_CANCELED);
 	  }
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdlock(true);
           // Terminate all threads that I know of, so that no locks will remain.
@@ -1374,7 +1374,7 @@ void allocator_unlock()
         return false;
 
       ST_initialize_globals(LIBCWD_TSD);// Because all allocations for global objects are internal these days, we use
-      					// the constructor of debug_ct to initiate the global initialization of libcwd
+					// the constructor of debug_ct to initiate the global initialization of libcwd
 					// instead of relying on malloc().
 
       if (WNS_initialized)
@@ -1429,7 +1429,7 @@ void allocator_unlock()
       LIBCWD_TSD_MEMBER_OFF = -1;		// Print as much debug output as possible right away.
 #else
       LIBCWD_TSD_MEMBER_OFF = 0;		// Don't print debug output till the REAL initialization of the debug system
-      						// has been performed (ie, the _application_ start (don't confuse that with
+						// has been performed (ie, the _application_ start (don't confuse that with
 						// the constructor - which does nothing)).
 #endif
       DEBUGDEBUG_CERR( "debug_ct::NS_init(), _off set to " << LIBCWD_TSD_MEMBER_OFF );
@@ -1675,7 +1675,7 @@ void allocator_unlock()
       //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
       static int next_index;
       WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
-       
+
       __libcwd_tsd.off_cnt_array[WNS_index] = 0;
 #else
       off_cnt = 0;
@@ -1890,7 +1890,7 @@ void allocator_unlock()
 #if CWDEBUG_DEBUGM
 	    || __libcwd_tsd.inside_malloc_or_free
 #endif
-	    ) 
+	    )
 	{
 	  if (!__libcwd_tsd.recursive_assert
 #if CWDEBUG_ALLOC

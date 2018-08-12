@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2001 - 2004, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -66,7 +66,7 @@
 
 Multi-threaded case:
 
-   Allocator name		| internal | Pool instance         		| Needs lock
+   Allocator name		| internal | Pool instance		| Needs lock
    ----------------------------------------------------------------------------------------------------
    memblk_map_allocator		| yes      | memblk_map_instance		| no (memblk_map_instance critical area)
    object_files_allocator	| yes      | object_files_instance		| no (object_files_instance critical area)
@@ -76,7 +76,7 @@ Multi-threaded case:
 
 Single-threaded case:
 
-   Allocator name		| internal | Pool instance         		| Needs lock
+   Allocator name		| internal | Pool instance		| Needs lock
    ----------------------------------------------------------------------------------------------------
    memblk_map_allocator		| yes      | single_threaded_internal_instance  | no
    object_files_allocator	| yes      | single_threaded_internal_instance	| no
@@ -378,7 +378,7 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
 // threaded case.
 #define LIBCWD_CHARALLOCATOR_USERSPACE(instance) ::libcwd::_private_::				\
 	allocator_adaptor<char,									\
-	  		  CharPoolAlloc<true, userspace_instance>,				\
+			  CharPoolAlloc<true, userspace_instance>,				\
 			  userspace_pool							\
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcwd::_private_::instance)>
 #endif
@@ -464,7 +464,7 @@ typedef LIBCWD_MT_USERSPACE_ALLOCATOR userspace_allocator;
 
   } // namespace _private_
 } // namespace libcwd
- 
+
 #endif // CWDEBUG_ALLOC
 #endif // LIBCWD_PRIVATE_ALLOCATOR_H
 
