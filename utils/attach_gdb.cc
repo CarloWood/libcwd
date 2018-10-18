@@ -61,20 +61,22 @@ void attach_gdb()
     DoutFatal(dc::fatal, "rcfile: value of keyword 'xterm' too long (" << rcfile.konsole_command());
   libcwd_attach_gdb_hook = 1;
   pid_t pid2 = fork();
+  Debug(libcw_do.off());
   switch(pid2)
   {
     case -1:
+      Debug(libcw_do.on());
       DoutFatal(dc::fatal|error_cf, "fork()");
     case 0:
     {
-      Debug(libcw_do.off());
       int ret = system(command2);
-      exit(ret == -1 ? 255	// system failed (ie, fork failed).
+      _exit(ret == -1 ? 255	// system failed (ie, fork failed).
 	             : WIFSIGNALED(ret) && (WTERMSIG(ret) == SIGINT || WTERMSIG(ret) == SIGQUIT) ? 126	// Terminated by signal (127 means that /bin/sh failed).
 		     : WEXITSTATUS(ret));	// Return value of command2.
     }
     default:
     {
+      Debug(libcw_do.on());
       struct timespec t = { 0, 100000000 };
       int loop = 0;
       while (libcwd_attach_gdb_hook)
