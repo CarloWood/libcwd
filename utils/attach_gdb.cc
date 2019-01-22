@@ -44,6 +44,7 @@ void attach_gdb()
   pid_t pid1 = getpid();
   std::ofstream f;
   f.open("gdb.cmds");
+  f << "set scheduler-locking step\nhandle SIG34 nostop\n";
   f << "b *" << __builtin_return_address(0) << "\nset libcwd_attach_gdb_hook=0\nc\n";
   f.close();
   char command[256];
