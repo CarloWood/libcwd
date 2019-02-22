@@ -3,14 +3,12 @@ Quick start
 
 ./configure --prefix=/usr
 make
-su
-make install
+sudo make install
 
-If you obtained the source code from git, then first
-run './autogen.sh' (requires cwautomacros to be installed).
-In this case you might want to configure with
---enable-maintainer-mode; then ./autogen.sh needs to be
-rerun after running 'make maintainer-clean'.
+If you obtained the source code from git, then first run './autogen.sh'.
+In this case you want to configure with --enable-maintainer-mode;
+(note that then ./autogen.sh needs to be rerun after running
+'make maintainer-clean').
 
 If that doesn't work, mail me: libcwd@alinoe.com
 (include as many details as possible).
