@@ -392,7 +392,7 @@ void TSD_st::S_cleanup_routine(void* arg)
 // End of Thread Specific Data
 //===================================================================================================
 
-int pthread_lock_interface_ct::trylock()
+int pthread_lock_interface_ct::try_lock()
 {
 #if CWDEBUG_DEBUGT
   bool success = pthread_mutex_trylock(ptr);

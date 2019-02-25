@@ -244,7 +244,7 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 
 #define LIBCWD_PUSH_DEFER_TRYLOCK_MUTEX(instance, unlock_routine) \
       LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)()>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
-      bool __libcwd_lock_successful = ::libcwd::_private_::mutex_tct<(instance)>::trylock()
+      bool __libcwd_lock_successful = ::libcwd::_private_::mutex_tct<(instance)>::try_lock()
 #define LIBCWD_DEFER_PUSH_LOCKMUTEX(instance, unlock_routine) \
       LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)()>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
       ::libcwd::_private_::mutex_tct<(instance)>::lock(); \
@@ -284,7 +284,7 @@ template <int instance>
         }
 #endif
   public:
-    static bool trylock()
+    static bool try_lock()
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
 #if CWDEBUG_DEBUGT
@@ -301,7 +301,7 @@ template <int instance>
 #if CWDEBUG_DEBUGT
 	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 #endif
-	LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::trylock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; incrementing it.");
+	LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::try_lock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; incrementing it.");
 	instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
 	locked_by[instance] = pthread_self();
@@ -651,7 +651,7 @@ template <int instance>
 	return true;						// No error checking is done.
       }
       // Give a writer a higher priority (kinda fuzzy).
-      if (S_writer_is_waiting || !S_no_holders_condition.trylock())
+      if (S_writer_is_waiting || !S_no_holders_condition.try_lock())
         return false;
       bool success = (S_holders_count != -1);
       if (success)
@@ -689,10 +689,10 @@ template <int instance>
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::trywrlock()");
       bool success;
-      if ((success = mutex_tct<readers_instance>::trylock()))
+      if ((success = mutex_tct<readers_instance>::try_lock()))
       {
 	S_writer_is_waiting = true;
-	if ((success = S_no_holders_condition.trylock()))
+	if ((success = S_no_holders_condition.try_lock()))
 	{
 	  if ((success = (S_holders_count == 0)))
 	  {

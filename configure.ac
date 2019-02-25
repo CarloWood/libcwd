@@ -1,12 +1,12 @@
 # Define package version here.
 define(CW_VERSION_MAJOR, 1)
-define(CW_VERSION_MINOR, 0)
-define(CW_VERSION_REVISION, 7)
+define(CW_VERSION_MINOR, 1)
+define(CW_VERSION_REVISION, 0)
 define(CW_PACKAGE_NAME, [libcwd])
 define(CW_BUGREPORT, [libcwd@alinoe.com])
 
 # Compile configuration.
-define(CW_COMPILE_FLAGS, [-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Wno-inline])
+define(CW_COMPILE_FLAGS, [-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Wno-inline -Wno-frame-address])
 define(CW_THREADS, [no])
 
 # Version info, see http://www.gnu.org/software/libtool/manual/libtool.html#Updating-version-info
@@ -15,9 +15,9 @@ define(CW_THREADS, [no])
 # CW_INTERFACE_VERSION_REVISION  : Revision, increment every public release; or set to 0 when the interface is changed.
 # CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
-define(CW_INTERFACE_VERSION, 4)
-define(CW_INTERFACE_VERSION_REVISION, 1)
-define(CW_INTERFACE_AGE, 3)
+define(CW_INTERFACE_VERSION, 5)
+define(CW_INTERFACE_VERSION_REVISION, 0)
+define(CW_INTERFACE_AGE, 0)
 
 # cwm4/configure_ac_top.m4 calls CW_OPG_CXXFLAGS, but we want it to call our CW_OPG_FLAGS.
 define([CW_OPG_CXXFLAGS], [

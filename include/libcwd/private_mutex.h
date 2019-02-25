@@ -46,11 +46,11 @@ protected:
 public:
   void initialize();
 public:
-  bool trylock();
+  bool try_lock();
   void lock();
   void unlock();
 #if CWDEBUG_DEBUGT
-  bool trylock(TSD_st&);
+  bool try_lock(TSD_st&);
   void lock(TSD_st&);
   void unlock(TSD_st&);
 #endif

@@ -172,7 +172,7 @@ int main(void)
   // Now test that a mutex allows only one lock.
   LIBCWD_DEFER_CANCEL;
   mutex_tct<test_instance0>::lock();
-  LIBCWD_ASSERT( !mutex_tct<test_instance0>::trylock() );
+  LIBCWD_ASSERT( !mutex_tct<test_instance0>::try_lock() );
   mutex_tct<test_instance0>::unlock();
   LIBCWD_RESTORE_CANCEL;
 

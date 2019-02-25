@@ -24,7 +24,7 @@ namespace libcwd {
 
 class lock_interface_base_ct {
 public:
-  virtual int trylock() = 0;
+  virtual int try_lock() = 0;
   virtual void lock() = 0;
   virtual void unlock() = 0;
   virtual ~lock_interface_base_ct() { }
@@ -34,7 +34,7 @@ template<class T>
   class lock_interface_tct : public lock_interface_base_ct {
     private:
       T* ptr;
-      virtual int trylock() { return ptr->trylock(); }
+      virtual int try_lock() { return ptr->try_lock(); }
       virtual void lock() { ptr->lock(); }
       virtual void unlock() { ptr->unlock(); }
     public:
@@ -44,7 +44,7 @@ template<class T>
 class pthread_lock_interface_ct : public lock_interface_base_ct {
   private:
     pthread_mutex_t* ptr;
-    virtual int trylock();
+    virtual int try_lock();
     virtual void lock();
     virtual void unlock();
   public:

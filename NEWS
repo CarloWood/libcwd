@@ -1,3 +1,9 @@
+libcwd-1.1.0
+
+        All occurances of 'trylock' have been renamed to 'try_lock'.
+        This breaks interface API backwards compatibility, but it
+        allows one to use std::mutex for debug_ct::set_ostream.
+
 libcwd-1.0.7
 
         Started using (the new) cwm4 git module for configuration;
@@ -1229,7 +1235,7 @@ libcwd-0.99.17
 	was accidently left out of its header file, resulting in
 	the compile error:
 	/usr/include/libcw/private_lock_interface.h:38: no matching
-	  function for call to `pthread_mutex_t::trylock()'
+	  function for call to `pthread_mutex_t::try_lock()'
         when trying to pass a pthread_mutex_t to debug_ct::set_ostream.
 
 	Libcwd failed to find an executable in the current directory

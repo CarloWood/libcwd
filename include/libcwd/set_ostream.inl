@@ -39,7 +39,7 @@ namespace libcwd {
  * \code
  * MyLock lock;
  *
- * // Uses MyLock::lock(), MyLock::trylock() and MyLock::unlock().
+ * // Uses MyLock::lock(), MyLock::try_lock() and MyLock::unlock().
  * Debug( libcw_do.set_ostream(&std::cerr, &lock) );
  *
  * lock.lock();

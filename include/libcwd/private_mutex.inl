@@ -29,9 +29,9 @@ void mutex_ct::initialize()
 
 inline
 #if CWDEBUG_DEBUGT
-bool mutex_ct::trylock(LIBCWD_TSD_PARAM)
+bool mutex_ct::try_lock(LIBCWD_TSD_PARAM)
 #else
-bool mutex_ct::trylock()
+bool mutex_ct::try_lock()
 #endif
 {
   LibcwDebugThreads( LIBCWD_ASSERT( M_initialized ) );
@@ -56,10 +56,10 @@ bool mutex_ct::trylock()
 
 #if CWDEBUG_DEBUGT
 inline
-bool mutex_ct::trylock()
+bool mutex_ct::try_lock()
 {
   LIBCWD_TSD_DECLARATION;
-  return trylock(LIBCWD_TSD);
+  return try_lock(LIBCWD_TSD);
 }
 #endif
 

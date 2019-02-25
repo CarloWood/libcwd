@@ -810,7 +810,7 @@ void allocator_unlock()
       LIBCWD_TSD_DECLARATION;
 #endif
       LIBCWD_DISABLE_CANCEL;
-      if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
+      if (!_private_::mutex_tct<_private_::kill_threads_instance>::try_lock())
       {
 #if CWDEBUG_ALLOC
 	__libcwd_tsd.internal = 0;	// Dunno if this is needed, but it looks consistant.
@@ -1027,7 +1027,7 @@ void allocator_unlock()
 	  int count = 0;
 	  do
 	  {
-	    if (!(res = debug_object.M_mutex->trylock()))
+	    if (!(res = debug_object.M_mutex->try_lock()))
 	      break;
 	    nanosleep(&t, NULL);
 	  }
@@ -1268,7 +1268,7 @@ void allocator_unlock()
 #endif
 #if LIBCWD_THREAD_SAFE
 	  LIBCWD_DISABLE_CANCEL;
-	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::trylock())
+	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::try_lock())
 	  {
 	    // Another thread is already trying to generate a core dump.
 	    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
