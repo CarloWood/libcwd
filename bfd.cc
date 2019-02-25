@@ -1546,7 +1546,7 @@ typedef location_ct bfd_location_ct;
       {
         // Try to load everything again... previous loaded libraries are skipped based on load address.
 	int possible_object_files = 0;
-	bfile_ct* possible_object_file;
+	bfile_ct* possible_object_file = NULL;
 	for(link_map* l = *dl_loaded_ptr; l; l = l->l_next)
 	{
 	  bool already_loaded = false;

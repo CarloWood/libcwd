@@ -133,7 +133,7 @@ CANCELLATION_POINT_SYSCALL_DLSYM (int, system, (const char *line), (line))
 
 CANCELLATION_POINT_SYSCALL_DLSYM (int, tcdrain, (int fd), (fd))
 
-CANCELLATION_POINT_SYSCALL (__pid_t, wait, (__WAIT_STATUS_DEFN stat_loc), (stat_loc))
+CANCELLATION_POINT_SYSCALL (__pid_t, wait, (int* stat_loc), (stat_loc))
 //strong_alias(wait, __wait)
 
 // We can't wrap this call because that leads to a deadlock when threads are

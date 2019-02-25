@@ -44,8 +44,8 @@ namespace libcwd {
 #if CWDEBUG_ALLOC
 #define LIBCWD_LIBRARY_CALL_INDENTATION \
 	/*  __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning. */ \
-	for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
-	  ::write(2, "    ", 4)
+	do { for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
+             { size_t __attribute__((unused)) __libcwd_len = ::write(2, "    ", 4); } } while(0)
 #else
 #define LIBCWD_LIBRARY_CALL_INDENTATION do { } while(0)
 #endif
@@ -60,7 +60,7 @@ namespace libcwd {
 	LIBCWD_TSD_DECLARATION;									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
 	LibcwDebugThreads( pthread_mutex_lock(&::libcwd::_private_::raw_write_mutex) );	\
-	::write(2, "CWDEBUG_DEBUG: ", 15);							\
+	do { size_t __attribute__((unused)) __libcwd_len = ::write(2, "CWDEBUG_DEBUG: ", 15); } while(0); \
 	LIBCWD_LIBRARY_CALL_INDENTATION;							\
 	LibcwDebugThreads( ::libcwd::_private_::raw_write << pthread_self() << ": ");	\
 	::libcwd::_private_::raw_write << x << '\n';					\

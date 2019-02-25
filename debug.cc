@@ -682,7 +682,7 @@ void allocator_unlock()
         DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
-	  DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
+	  DEBUGDEBUG_CERR( (char const*)"_debug_objects == NULL; initializing it" );
 #if CWDEBUG_ALLOC
 	  // It is possible that malloc is not initialized yet.
 	  init_debugmalloc();
