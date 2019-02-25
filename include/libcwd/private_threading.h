@@ -22,7 +22,7 @@
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
 #define LIBCWD_NO_INTERNAL_STRING
-#include <raw_write.h>
+#include "raw_write.h"
 #undef LIBCWD_NO_INTERNAL_STRING
 extern pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;
 extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
@@ -117,12 +117,12 @@ _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, pthread_mutex_t const& mutex)
 {
   raw_write << "(pthread_mutex_t&)" << (void*)&mutex <<
-    " = { __m_reserved = " << mutex.__m_reserved <<
-    ", __m_count = " << mutex.__m_count <<
-    ", __m_owner = " << (void*)mutex.__m_owner <<
-    ", __m_kind = " << mutex.__m_kind <<
-    ", __m_lock = { __status = " << mutex.__m_lock.__status <<
-                 ", __spinlock = " << mutex.__m_lock.__spinlock << " } }";
+    " = { __data = "
+         "{ __lock = " << mutex.__data.__lock << ", "
+           "__count = " << mutex.__data.__count << ", "
+           "__owner = " << mutex.__data.__owner << ", "
+           "__nusers = " << mutex.__data.__nusers << ", "
+           "__kind = " << mutex.__data.__kind << "} }";
   return raw_write;
 }
 #endif
@@ -334,9 +334,12 @@ template <int instance>
 	LIBCWD_DEBUGDEBUGLOCK_CERR("pthread_mutex_lock(" << S_mutex << ").");
         int res = pthread_mutex_lock(&S_mutex);
 	LIBCWD_DEBUGDEBUGLOCK_CERR("Result = " << res << ". Mutex now " << S_mutex << ".");
-	LIBCWD_ASSERT( res == 0 );
+#if LIBCWD_DEBUGDEBUGRWLOCK
+	LIBCWD_ASSERT( res == 0 || res == EDEADLK );
+#endif
         __libcwd_tsd.waiting_for_lock = 0;
 	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
+	LIBCWD_ASSERT( res == 0 );
       }
       else
       {
@@ -513,7 +516,7 @@ template <int instance>
 #if CWDEBUG_DEBUGT
       if (locked_by[instance] != pthread_self())
       {
-        LIBCWD_DEBUGDEBUGLOCK_CERR("unlocking instance " << instance << " (" << (void*)&S_mutex << ") failed: locked_by[" << instance << "] == " << locked_by[instance] << ".");
+        LIBCWD_DEBUGDEBUGLOCK_CERR("unlocking instance " << instance << " (" << (void*)&this->S_mutex << ") failed: locked_by[" << instance << "] == " << locked_by[instance] << ".");
         core_dump();
       }
 #endif
@@ -527,24 +530,24 @@ template <int instance>
       else LIBCWD_DEBUGDEBUGLOCK_CERR("cond_tct::wait(): locked_by[" << instance << "] was not reset, it still is " << locked_by[instance] << ".");
 #endif
 #endif
-      LIBCWD_DEBUGDEBUGLOCK_CERR("unlocking mutex " << instance << " (" << (void*)&S_mutex << ").");
+      LIBCWD_DEBUGDEBUGLOCK_CERR("unlocking mutex " << instance << " (" << (void*)&this->S_mutex << ").");
       LIBCWD_DEBUGDEBUGLOCK_CERR("pthread_cond_wait(" << (void*)&S_condition << ", " << this->S_mutex << ").");
 #if CWDEBUG_DEBUGT
       int res =
 #endif
       pthread_cond_wait(&S_condition, &this->S_mutex);
 #if CWDEBUG_DEBUGT
-      LIBCWD_DEBUGDEBUGLOCK_CERR("Result = " << res << ". Mutex now " << S_mutex << ".");
+      LIBCWD_DEBUGDEBUGLOCK_CERR("Result = " << res << ". Mutex now " << this->S_mutex << ".");
       LIBCWD_ASSERT(res == 0);
 #endif
-      LIBCWD_DEBUGDEBUGLOCK_CERR("Lock " << instance << " obtained (" << (void*)&S_mutex << ").");
+      LIBCWD_DEBUGDEBUGLOCK_CERR("Lock " << instance << " obtained (" << (void*)&this->S_mutex << ").");
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_DEBUGDEBUGLOCK_CERR("cond_tct::wait(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; incrementing it.");
       instance_locked[instance] += 1;
 #if CWDEBUG_DEBUGT
       if (locked_by[instance] != 0 && locked_by[instance] != pthread_self())
       {
-        LIBCWD_DEBUGDEBUGLOCK_CERR("mutex " << instance << " (" << (void*)&S_mutex << ") is already set by another thread (" << locked_by[instance] << ")!");
+        LIBCWD_DEBUGDEBUGLOCK_CERR("mutex " << instance << " (" << (void*)&this->S_mutex << ") is already set by another thread (" << locked_by[instance] << ")!");
         core_dump();
       }
       locked_by[instance] = pthread_self();

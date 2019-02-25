@@ -68,7 +68,7 @@ libcwd_HEADERS = \
 	type_info.h
 
 BUILT_SOURCES = sys.h config.h
-EXTRA_HEADERS = sys.h config.h
+EXTRA_HEADERS = sys.h config.h $(srcdir)/../raw_write.h $(srcdir)/../raw_write.inl
 TAGS_FILES = $(EXTRA_HEADERS)
 
 DISTCLEANFILES = $(BUILT_SOURCES)

@@ -27,7 +27,7 @@ inline
 _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, char const* data)
 {
-  write(2, data, strlen(data));
+  size_t __attribute__((unused)) __libcwd_len = ::write(2, data, strlen(data));
   return raw_write;
 }
 
@@ -36,7 +36,7 @@ _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, void const* data)
 {
   size_t dat = (size_t)data;
-  write(2, "0x", 2);
+  size_t __attribute__((unused)) __libcwd_len = ::write(2, "0x", 2);
   char c[11];
   char* p = &c[11];
   do
@@ -46,17 +46,18 @@ operator<<(_private_::raw_write_nt const& raw_write, void const* data)
     dat /= 16;
   }
   while(dat > 0);
-  write(2, p, &c[11] - p);
+  __libcwd_len = ::write(2, p, &c[11] - p);
   return raw_write;
 }
 
 inline _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, bool data)
 {
+  size_t __attribute__((unused)) __libcwd_len;
   if (data)
-    write(2, "true", 4);
+    __libcwd_len = ::write(2, "true", 4);
   else
-    write(2, "false", 5);
+    __libcwd_len = ::write(2, "false", 5);
   return raw_write;
 }
 
@@ -65,7 +66,7 @@ operator<<(_private_::raw_write_nt const& raw_write, char data)
 {
   char c[1];
   c[0] = data;
-  write(2, c, 1);
+  size_t __attribute__((unused)) __libcwd_len = ::write(2, c, 1);
   return raw_write;
 }
 
@@ -80,7 +81,7 @@ operator<<(_private_::raw_write_nt const& raw_write, unsigned long data)
     data /= 10;
   }
   while(data > 0);
-  write(2, p, &c[11] - p);
+  size_t __attribute__((unused)) __libcwd_len = ::write(2, p, &c[11] - p);
   return raw_write;
 }
 
@@ -90,7 +91,7 @@ operator<<(_private_::raw_write_nt const& raw_write, long data)
 {
   if (data < 0)
   {
-    write(2, "-", 1);
+    size_t __attribute__((unused)) __libcwd_len = ::write(2, "-", 1);
     data = -data;
   }
   return operator<<(raw_write, (unsigned long)data);
@@ -113,7 +114,7 @@ inline
 _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, libcwd::_private_::internal_string const& data)
 {
-  write(2, data.data(), data.size());
+  size_t __attribute__((unused)) __libcwd_len = ::write(2, data.data(), data.size());
   return raw_write;
 }
 
