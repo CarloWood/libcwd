@@ -1671,7 +1671,7 @@ void allocator_unlock()
       set_alloc_checking_on(LIBCWD_TSD);
 
 #if LIBCWD_THREAD_SAFE
-      // MT: Take advantage of the `libcwd::_private_::debug_channels_instance' lock to prefend simultaneous access
+      // MT: Take advantage of the `libcwd::_private_::debug_channels_instance' lock to prevent simultaneous access
       //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
       static int next_index;
       WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.

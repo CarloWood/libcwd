@@ -181,6 +181,8 @@ TSD_st& TSD_st::instance_free()
   return *instance;
 }
 
+TSD_st* main_thread_tsd;
+
 TSD_st& TSD_st::S_create(int from_free)
 {
   int oldtype;
@@ -277,6 +279,9 @@ TSD_st& TSD_st::S_create(int from_free)
 
     pthread_once(&S_tsd_key_once, &S_tsd_key_alloc);
     pthread_setspecific(S_tsd_key, (void*)real_tsd);
+
+    if (!main_thread_tsd)
+      main_thread_tsd = real_tsd;
 
     // Release the static TSD - we're not using it anymore now the key is set.
     mutex_tct<static_tsd_instance>::lock();
