@@ -13,6 +13,7 @@
 
 #include "sys.h"
 #include "cwd_debug.h"
+#include "libcwd/debug.h"
 
 #ifdef _WIN32
 
@@ -44,7 +45,7 @@ void attach_gdb()
   pid_t pid1 = getpid();
   std::ofstream f;
   f.open("gdb.cmds");
-  f << "set scheduler-locking step\nhandle SIG34 nostop\n";
+  f << "set scheduler-locking step\nhandle SIG34 nostop\nset substitute-path /build/gcc-8-sYUbZB/gcc-8-8.2.0/build/x86_64-linux-gnu/libstdc++-v3/include /usr/include/c++/8\n";
   f << "b *" << __builtin_return_address(0) << "\nset libcwd_attach_gdb_hook=0\nc\n";
   f.close();
   char command[256];

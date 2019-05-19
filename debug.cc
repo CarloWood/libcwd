@@ -36,6 +36,7 @@
 #include <cstdlib>		// Needed for Exit() (C99)
 #include <new>
 #include "cwd_debug.h"
+#include "libcwd/debug.h"
 #include <libcwd/strerrno.h>
 #include <libcwd/private_internal_stringbuf.h>
 #include <libcwd/private_bufferstream.h>

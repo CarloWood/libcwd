@@ -28,6 +28,7 @@
 #include <libcwd/cwprint.h>
 #include <libcwd/private_assert.h>
 #include <libcwd/private_string.h>
+#include <libcwd/debug.h>
 #include <fstream>
 #include <streambuf>
 #include <cerrno>		// Needed for errno

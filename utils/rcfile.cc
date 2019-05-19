@@ -13,6 +13,7 @@
 
 #include "sys.h"
 #include "cwd_debug.h"
+#include "libcwd/debug.h"
 #include "match.h"
 #include <iostream>
 #include <cstdlib>

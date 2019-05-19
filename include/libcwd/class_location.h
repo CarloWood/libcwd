@@ -240,6 +240,10 @@ public:
 #endif
 };
 
+//#if (__GNUC__ > 3 || __GNUC_MINOR__ >= 4)
+//extern std::ostream& operator<<(std::ostream& os, location_ct const& location);
+//#endif
+
 /** \brief Set the output format of location_ct.
  *
  * This function can be used to specify the format of how a location_ct will be printed

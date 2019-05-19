@@ -14,7 +14,7 @@
 #ifndef CWD_DEBUG_H
 #define CWD_DEBUG_H
 
-#include <libcwd/debug.h>
+#include <libcwd/config.h>
 #ifndef RAW_WRITE_H
 #include <raw_write.h>
 #endif
@@ -101,6 +101,15 @@ inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct
 }
 
 #if CWDEBUG_LOCATION
+class location_ct;
+
+namespace _private_ {
+
+template<class OSTREAM>
+void print_location_on(OSTREAM& os, location_ct const& location);
+
+} // namespace _private_
+
 inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, location_ct const& location)
 {
   _private_::print_location_on(os, location);

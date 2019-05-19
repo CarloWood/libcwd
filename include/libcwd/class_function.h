@@ -22,6 +22,10 @@
 #define LIBCW_MAP
 #include <map>
 #endif
+#ifndef LIBCW_VECTOR
+#define LIBCW_VECTOR
+#include <vector>
+#endif
 
 namespace libcwd {
 

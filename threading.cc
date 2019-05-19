@@ -15,6 +15,7 @@
 
 #include "sys.h"
 #include "cwd_debug.h"
+#include "libcwd/debug.h"
 #include <libcwd/private_threading.h>
 #include <libcwd/private_mutex.inl>
 #include <libcwd/core_dump.h>

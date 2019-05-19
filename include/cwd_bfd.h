@@ -40,6 +40,7 @@
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #include <libcwd/private_mutex_instances.h>
 #endif
+#include "libcwd/debug.h"
 
 #if LIBCWD_THREAD_SAFE
 using libcwd::_private_::rwlock_tct;

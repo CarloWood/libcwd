@@ -247,6 +247,7 @@ public:
 
   void force_on(OnOffState& state);
   void restore(OnOffState const& state);
+  bool is_on(LIBCWD_TSD_PARAM) const;
 };
 
 #if LIBCWD_THREAD_SAFE && !defined(LIBCWD_DOXYGEN)

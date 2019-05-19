@@ -157,6 +157,7 @@
 #include <iomanip>
 #include <sys/time.h>		// Needed for gettimeofday(2)
 #include "cwd_debug.h"
+#include "libcwd/debug.h"
 #include "ios_base_Init.h"
 #include "match.h"
 #include "zone.h"
@@ -583,6 +584,8 @@ namespace _private_ {
     LIBCWD_TSD_DECLARATION;
     LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.internal);
 #ifndef _GLIBCPP_USE_WCHAR_T
+    static std::ios_base::Init __dummy;
+
     if (std::cerr.flags() != std::ios_base::unitbuf)		// Still didn't reach the end of std::ios_base::Init::Init()?
 #else
     if (std::wcerr.flags() != std::ios_base::unitbuf)
@@ -967,7 +970,7 @@ void dm_alloc_ct::descend_current_alloc_list(LIBCWD_TSD_PARAM)			// MT-safe: wri
 // Note that ALL allocated memory blocks have a related `memblk_ct'
 // unless they are allocated from within this file (with `internal' set).
 
-class appblock;
+struct appblock;
 class memblk_key_ct {
 private:
   void const* a_start;		// Start of allocated memory block
@@ -1624,7 +1627,9 @@ struct appblock {
 #define ASSERT_PREZONE(ptr1) ((void)((ptr1)->size), ptr1)
 
 // The characters used to fill the red zones.
+#if LIBCWD_REDZONE_BLOCKS > 0
 static int const prezone_char = 0x9a;
+#endif
 static int const postzone_char = 0xa9;
 
 // Memory is allocated as follows:

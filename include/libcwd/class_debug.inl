@@ -212,6 +212,15 @@ debug_ct::on()
 #endif
 }
 
+#if LIBCWD_THREAD_SAFE
+inline
+bool
+debug_ct::is_on(LIBCWD_TSD_PARAM) const
+{
+  return __libcwd_tsd.do_off_array[WNS_index] == -1;
+}
+#endif
+
 inline
 channel_set_st&
 channel_set_bootstrap_st::operator|(channel_ct const& dc)
