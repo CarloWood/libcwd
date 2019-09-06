@@ -218,6 +218,8 @@ AC_SUBST(CW_CONFIG_HAVE_DLOPEN)
 CW_CONFIG_HAVE_DLOPEN=undef
 AC_SUBST(CW_CONFIG_HAVE_POSIX_MEMALIGN)
 CW_CONFIG_HAVE_POSIX_MEMALIGN=undef
+AC_SUBST(CW_CONFIG_HAVE_ALIGNED_ALLOC)
+CW_CONFIG_HAVE_ALIGNED_ALLOC=undef
 AC_SUBST(CW_CONFIG_HAVE_MEMALIGN)
 CW_CONFIG_HAVE_MEMALIGN=undef
 AC_SUBST(CW_CONFIG_HAVE_VALLOC)
@@ -371,7 +373,7 @@ CW_SYS_FRAME_ADDRESS_OFFSET
 AC_C_BIGENDIAN
 
 # Check for library functions.
-AC_CHECK_FUNCS(getgid getegid getgroups wmemcpy sysconf valloc memalign)
+AC_CHECK_FUNCS(getgid getegid getgroups wmemcpy sysconf valloc memalign aligned_alloc)
 AC_CHECK_DECL([_SC_PAGESIZE],
   AC_DEFINE_UNQUOTED([HAVE__SC_PAGESIZE], 1, [Defined if we have _SC_PAGESIZE.]),
   [], [#include <unistd.h>])
@@ -396,6 +398,9 @@ if test "$ac_cv_func_memalign" = "yes"; then
 fi
 if test "$ac_cv_have_decl_posix_memalign" = "yes"; then
   CW_CONFIG_HAVE_POSIX_MEMALIGN=define
+fi
+if test "$ac_cv_func_aligned_alloc" = "yes"; then
+  CW_CONFIG_HAVE_ALIGNED_ALLOC=define
 fi
 
 # Check for system services.

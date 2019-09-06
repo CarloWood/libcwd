@@ -188,10 +188,15 @@ inline void list_allocations_on(debug_ct&) { }
 
 #ifndef LIBCWD_HAVE_DLOPEN
 // Use macro kludge for these (too):
-#ifdef LIBCWD_HAVE_POSIX_MEMALIGN
-// Include this header before defining the macro 'posix_memalign'.
+#if defined(LIBCWD_HAVE_POSIX_MEMALIGN) || defined(LIBCWD_HAVE_ALIGNED_ALLOC)
+// Include this header before defining the macro 'posix_memalign' and/or 'aligned_alloc'.
 #include <cstdlib>
+#endif
+#ifdef LIBCWD_HAVE_POSIX_MEMALIGN
 #define posix_memalign __libcwd_posix_memalign
+#endif
+#ifdef LIBCWD_HAVE_ALIGNED_ALLOC
+#define aligned_alloc __libcwd_aligned_alloc
 #endif
 // Include this header before defining the macro 'memalign' or 'valloc'.
 #if defined(HAVE_MALLOC_H) && (defined(HAVE_MEMALIGN) || defined(HAVE_VALLOC))
@@ -219,14 +224,17 @@ extern "C" void* realloc(void* ptr, size_t size) throw() __attribute__((__malloc
 extern "C" void  free(void* ptr) throw();
 #ifdef LIBCWD_HAVE_POSIX_MEMALIGN
 #ifdef posix_memalign // Due to declaration conflicts with cstdlib, lets not define this when this isn't our macro.
-extern "C" int posix_memalign(void **memptr, size_t alignment, size_t size) throw();
+extern "C" int posix_memalign(void** memptr, size_t alignment, size_t size) throw() __attribute__((__nonnull__(1))) __wur;
 #endif
+#endif
+#ifdef LIBCWD_HAVE_ALIGNED_ALLOC
+extern "C" void* aligned_alloc(size_t alignment, size_t size) throw() __attribute__((__malloc__)) __attribute__((__alloc_size__(2))) __wur;
 #endif
 #ifdef LIBCWD_HAVE_VALLOC
-extern "C" void *valloc(size_t size) throw() __attribute__((__malloc__));
+extern "C" void* valloc(size_t size) throw() __attribute__((__malloc__)) __wur;
 #endif
 #ifdef LIBCWD_HAVE_MEMALIGN
-extern "C" void *memalign(size_t boundary, size_t size) throw() __attribute__((__malloc__));
+extern "C" void* memalign(size_t boundary, size_t size) throw() __attribute__((__malloc__));
 #endif
 
 #ifndef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC

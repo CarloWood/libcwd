@@ -45,7 +45,7 @@
 //   arbitrary pointer (or interval if needed).
 //   This allows us for example to find back the start of an instance of an
 //   object, inside a method of a base class of this object.
-// This tree also contains type of allocation (new/new[]/malloc/realloc/valloc/memalign/posix_memalign).
+// This tree also contains type of allocation (new/new[]/malloc/realloc/valloc/memalign/posix_memalign/aligned_alloc).
 //
 // The second tree, existing of linked dm_alloc_ct objects, stores the data related
 // to the memory block itself, currently its start, size and - when provided by the
@@ -324,6 +324,11 @@ void (*libc_free_final)(void* ptr) = (void (*)(void*))0;
 #define __libc_posix_memalign (*libc_posix_memalign)
 int __libc_posix_memalign(void** memptr, size_t alignment, size_t size);
 #endif
+#ifdef HAVE_ALIGNED_ALLOC
+#define __libcwd_aligned_alloc aligned_alloc
+#define __libc_aligned_alloc (*libc_aligned_alloc)
+void* __libc_aligned_alloc(size_t alignment, size_t size);
+#endif
 #ifdef HAVE_MEMALIGN
 #define __libcwd_memalign memalign
 #define __libc_memalign (*libc_memalign)
@@ -339,6 +344,9 @@ void* __libc_valloc(size_t size);
 
 #ifdef HAVE_POSIX_MEMALIGN
 #define __libc_posix_memalign posix_memalign
+#endif
+#ifdef HAVE_ALIGNED_ALLOC
+#define __libc_aligned_alloc aligned_alloc
 #endif
 #ifdef HAVE_MEMALIGN
 #define __libc_memalign memalign
@@ -666,6 +674,7 @@ static deallocated_from_nt const expected_from[] = {
   error,			// memblk_type_deleted_marker
 #endif
   from_free,			// memblk_type_posix_memalign
+  from_free,			// memblk_type_aligned_alloc
   from_free,			// memblk_type_memalign
   from_free,			// memblk_type_valloc
   from_free			// memblk_type_external
@@ -711,6 +720,9 @@ std::ostream& operator<<(std::ostream& os, memblk_types_nt memblk_type)
 #endif
     case memblk_type_posix_memalign:
       os << "memblk_type_posix_memalign";
+      break;
+    case memblk_type_aligned_alloc:
+      os << "memblk_type_aligned_alloc";
       break;
     case memblk_type_memalign:
       os << "memblk_type_memalign";
@@ -765,6 +777,9 @@ void memblk_types_label_ct::print_on(std::ostream& os) const
       break;
     case memblk_type_posix_memalign:
       os.write("pmemalign ", 10);
+      break;
+    case memblk_type_aligned_alloc:
+      os.write("aligned_a ", 10);
       break;
     case memblk_type_memalign:
       os.write("memalign  ", 10);
@@ -1574,6 +1589,7 @@ bool memblk_info_ct::erase(bool owner LIBCWD_COMMA_TSD_PARAM)
       case memblk_type_malloc:
       case memblk_type_realloc:
       case memblk_type_posix_memalign:
+      case memblk_type_aligned_alloc:
       case memblk_type_memalign:
       case memblk_type_valloc:
       case memblk_type_external:
@@ -1760,6 +1776,8 @@ size_t const MAGIC_MALLOC_BEGIN = 0xf4c433a1;
 size_t const MAGIC_MALLOC_END = 0x335bc0fa;
 size_t const MAGIC_POSIX_MEMALIGN_BEGIN = 0xb3f80179;
 size_t const MAGIC_POSIX_MEMALIGN_END = 0xac0a6548;
+size_t const MAGIC_ALIGNED_ALLOC_BEGIN = 0x9331ff82;
+size_t const MAGIC_ALIGNED_ALLOC_END = 0x729ae067;
 size_t const MAGIC_MEMALIGN_BEGIN = 0x4ee299af;
 size_t const MAGIC_MEMALIGN_END = 0x0e60f529;
 size_t const MAGIC_VALLOC_BEGIN = 0x24756590;
@@ -1807,6 +1825,7 @@ char const* diagnose_magic(prezone const* ptr1, size_t expected_magic_begin, siz
         case MAGIC_NEW_ARRAY_BEGIN:
         case MAGIC_MALLOC_BEGIN:
 	case MAGIC_POSIX_MEMALIGN_BEGIN:
+	case MAGIC_ALIGNED_ALLOC_BEGIN:
 	case MAGIC_MEMALIGN_BEGIN:
 	case MAGIC_VALLOC_BEGIN:
 	  return ") with a corrupt redzone prefix (buffer underrun?)!";
@@ -1826,6 +1845,7 @@ char const* diagnose_magic(prezone const* ptr1, size_t expected_magic_begin, siz
 	  case MAGIC_NEW_ARRAY_END:
 	  case MAGIC_MALLOC_END:
 	  case MAGIC_POSIX_MEMALIGN_END:
+	  case MAGIC_ALIGNED_ALLOC_END:
 	  case MAGIC_MEMALIGN_END:
 	  case MAGIC_VALLOC_END:
 	    return ") with a corrupt redzone postfix (buffer overrun?)!";
@@ -1863,6 +1883,10 @@ char const* diagnose_magic(prezone const* ptr1, size_t expected_magic_begin, siz
       if (*magic_end == MAGIC_POSIX_MEMALIGN_END)
         return ") that was allocated with 'posix_memalign()'.  Use 'free' instead.";
       break;
+    case MAGIC_ALIGNED_ALLOC_BEGIN:
+      if (*magic_end == MAGIC_ALIGNED_ALLOC_END)
+        return ") that was allocated with 'aligned_alloc()'.  Use 'free' instead.";
+      break;
     case MAGIC_MEMALIGN_BEGIN:
       if (*magic_end == MAGIC_MEMALIGN_END)
         return ") that was allocated with 'memalign()'.  Use 'free' instead.";
@@ -1888,6 +1912,8 @@ char const* diagnose_magic(prezone const* ptr1, size_t expected_magic_begin, siz
 	  return ") which appears to be a deleted block that was originally allocated with 'malloc()'.";
         case ~MAGIC_POSIX_MEMALIGN_BEGIN:
 	  return ") which appears to be a deleted block that was originally allocated with 'posix_memalign()'.";
+        case ~MAGIC_ALIGNED_ALLOC_BEGIN:
+	  return ") which appears to be a deleted block that was originally allocated with 'aligned_alloc()'.";
         case ~MAGIC_MEMALIGN_BEGIN:
 	  return ") which appears to be a deleted block that was originally allocated with 'memalign()'.";
         case ~MAGIC_VALLOC_BEGIN:
@@ -1904,6 +1930,7 @@ char const* diagnose_magic(prezone const* ptr1, size_t expected_magic_begin, siz
     case MAGIC_NEW_ARRAY_END:
     case MAGIC_MALLOC_END:
     case MAGIC_POSIX_MEMALIGN_END:
+    case MAGIC_ALIGNED_ALLOC_END:
     case MAGIC_MEMALIGN_END:
     case MAGIC_VALLOC_END:
     case ~INTERNAL_MAGIC_NEW_END:
@@ -1912,7 +1939,7 @@ char const* diagnose_magic(prezone const* ptr1, size_t expected_magic_begin, siz
     case ~MAGIC_NEW_END:
     case ~MAGIC_NEW_ARRAY_END:
     case ~MAGIC_MALLOC_END:
-    case ~MAGIC_POSIX_MEMALIGN_END:
+    case ~MAGIC_ALIGNED_ALLOC_END:
     case ~MAGIC_MEMALIGN_END:
     case ~MAGIC_VALLOC_END:
       return ") with inconsistent magic numbers!";
@@ -1965,7 +1992,7 @@ void (*backtrace_hook)(void** buffer, int frames LIBCWD_COMMA_TSD_PARAM);
 // Note: This function is called by `__libcwd_malloc', `__libcwd_calloc' and
 // `operator new' which end with a call to DoutInternal( dc_malloc|continued_cf, ...)
 // and should therefore end with a call to DoutInternal( dc::finish, ptr ).
-// This function can also be called from `posix_memalign', `memalign' or `valloc',
+// This function can also be called from `posix_memalign', `aligned_alloc`, `memalign' or `valloc',
 // in which case `alignment' is set to a non-zero value.
 //
 static appblock* internal_malloc(size_t size, memblk_types_nt flag
@@ -2022,6 +2049,11 @@ static appblock* internal_malloc(size_t size, memblk_types_nt flag
       case memblk_type_posix_memalign:
 	if (__libc_posix_memalign((void**)(&ptr1), alignment, real_size) != 0)
 	  ptr1 = NULL;
+	break;
+#endif
+#ifdef HAVE_ALIGNED_ALLOC
+      case memblk_type_aligned_alloc:
+	ptr1 = static_cast<prezone*>(__libc_aligned_alloc(alignment, real_size));
 	break;
 #endif
 #ifdef HAVE_MEMALIGN
@@ -2431,6 +2463,8 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
 	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was allocated with `new[]'!  Use `delete[]' instead." );
         else if (f == memblk_type_posix_memalign)
 	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was allocated with `posix_memalign()'!  Use `free()' instead." );
+        else if (f == memblk_type_aligned_alloc)
+	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was allocated with `aligned_alloc()'!  Use `free()' instead." );
         else if (f == memblk_type_memalign)
 	  DoutFatalInternal( dc::core, "You are `delete'-ing a block that was allocated with `memalign()'!  Use `free()' instead." );
         else if (f == memblk_type_valloc)
@@ -2448,6 +2482,8 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
 	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was allocated with `new'!  Use `delete' instead." );
         else if (f == memblk_type_posix_memalign)
 	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was allocated with `posix_memalign()'!  Use `free()' instead." );
+        else if (f == memblk_type_aligned_alloc)
+	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was allocated with `aligned_alloc()'!  Use `free()' instead." );
         else if (f == memblk_type_memalign)
 	  DoutFatalInternal( dc::core, "You are `delete[]'-ing a block that was allocated with `memalign()'!  Use `free()' instead." );
         else if (f == memblk_type_valloc)
@@ -2470,7 +2506,7 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
     bool has_alloc_node = (*iter).second.has_alloc_node();	// Needed for diagnostic message below.
     // Determine the offset between the real ptr1 and ptr2.
     size_t alignment_offset;
-    if (f >= memblk_type_posix_memalign)	// posix_memalign, memalign or valloc.
+    if (f >= memblk_type_posix_memalign)	// posix_memalign, aligned_alloc, memalign or valloc.
       alignment_offset = reinterpret_cast<size_t*>(APP2ZONE(ptr2))[-1];
     else
       alignment_offset = sizeof(prezone);	// Normal.
@@ -2542,6 +2578,11 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
       {
         magic_begin = MAGIC_POSIX_MEMALIGN_BEGIN;
         magic_end = MAGIC_POSIX_MEMALIGN_END;
+      }
+      else if (f == memblk_type_aligned_alloc)
+      {
+        magic_begin = MAGIC_ALIGNED_ALLOC_BEGIN;
+        magic_end = MAGIC_ALIGNED_ALLOC_END;
       }
       else if (f == memblk_type_memalign)
       {
@@ -2751,6 +2792,9 @@ void init_debugmalloc()
       // Initialize the function pointers for posix_memalign et al.
 #ifdef HAVE_POSIX_MEMALIGN
       libc_posix_memalign = (int (*)(void **, size_t, size_t))dlsym(RTLD_NEXT, "posix_memalign");
+#endif
+#ifdef HAVE_ALIGNED_ALLOC
+      libc_aligned_alloc = (void* (*)(size_t, size_t))dlsym(RTLD_NEXT, "aligned_alloc");
 #endif
 #ifdef HAVE_MEMALIGN
       libc_memalign = (void* (*)(size_t, size_t))dlsym(RTLD_NEXT, "memalign");
@@ -4074,6 +4118,8 @@ void* __libcwd_realloc(void* void_ptr, size_t size) noexcept
       DoutFatalInternal( dc::core, "You can't realloc() a block that was allocated with `new[]'!" );
     if (PREZONE(ptr1).magic == MAGIC_POSIX_MEMALIGN_BEGIN && POSTZONE(ptr1).magic == MAGIC_POSIX_MEMALIGN_END)
       DoutFatalInternal( dc::core, "You can't realloc() a block that was allocated with `posix_memalign()'!" );
+    if (PREZONE(ptr1).magic == MAGIC_ALIGNED_ALLOC_BEGIN && POSTZONE(ptr1).magic == MAGIC_ALIGNED_ALLOC_END)
+      DoutFatalInternal( dc::core, "You can't realloc() a block that was allocated with `aligned_alloc()'!" );
     if (PREZONE(ptr1).magic == MAGIC_MEMALIGN_BEGIN && POSTZONE(ptr1).magic == MAGIC_MEMALIGN_END)
       DoutFatalInternal( dc::core, "You can't realloc() a block that was allocated with `memalign()'!" );
     if (PREZONE(ptr1).magic == MAGIC_VALLOC_BEGIN && POSTZONE(ptr1).magic == MAGIC_VALLOC_END)
@@ -4215,7 +4261,7 @@ void* __libcwd_realloc(void* void_ptr, size_t size) noexcept
 
 //=============================================================================
 //
-// posix_memalign(3), memalign(3) and valloc(3) replacements:
+// posix_memalign(3), aligned_alloc(3), memalign(3) and valloc(3) replacements:
 //
 
 #ifdef HAVE_POSIX_MEMALIGN
@@ -4254,6 +4300,34 @@ int __libcwd_posix_memalign(void **memptr, size_t alignment, size_t size) noexce
   return 0;
 }
 #endif // HAVE_POSIX_MEMALIGN
+
+#ifdef HAVE_ALIGNED_ALLOC
+void* __libcwd_aligned_alloc(size_t alignment, size_t size) noexcept
+{
+  LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_DEBUGM
+  LIBCWD_DEBUGM_ASSERT(!__libcwd_tsd.inside_malloc_or_free && !__libcwd_tsd.internal);
+#if LIBCWD_IOSBASE_INIT_ALLOCATES
+  LIBCWD_DEBUGM_ASSERT(_private_::WST_ios_base_initialized);
+#endif
+#endif
+#if CWDEBUG_DEBUGM && CWDEBUG_DEBUGOUTPUT
+  int saved_marker = ++__libcwd_tsd.marker;
+#endif
+  ++__libcwd_tsd.inside_malloc_or_free;
+  DoutInternal(dc_malloc|continued_cf, "aligned_alloc(" << alignment << ", " << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
+  appblock* ptr2 = internal_malloc(size, memblk_type_aligned_alloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker), alignment);
+#if CWDEBUG_MAGIC
+  if (ptr2)
+  {
+    prezone* ptr1 = APP2ZONE(ptr2);
+    SET_MAGIC(ptr1, size, MAGIC_ALIGNED_ALLOC_BEGIN, MAGIC_ALIGNED_ALLOC_END);
+  }
+#endif
+  --__libcwd_tsd.inside_malloc_or_free;
+  return ASSERT_APPBLOCK(ptr2);
+}
+#endif // HAVE_ALIGNED_ALLOC
 
 #ifdef HAVE_MEMALIGN
 void* __libcwd_memalign(size_t alignment, size_t size) noexcept
