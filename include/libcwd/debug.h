@@ -50,7 +50,7 @@
 // with the source code of libcwd (or is included in the documentation that comes with the rpm
 // (ie: /usr/doc/libcwd-1.0/example-project) for a description of the content of "debug.h".
 // More information for end-application users can be found on
-// http://libcwd.sourceforge.net/reference-manual/preparation.html
+// http://carlowood.github.io/libcwd/reference-manual/preparation.html
 //
 // Third-party libraries should never include <libcwd/debug.h> but also not "debug.h".  They
 // should include <libcwd/libraries_debug.h> (and not use Dout et al in their headers).  If you
@@ -58,7 +58,7 @@
 // of that library.  You can workaround it for now by including "debug.h" before including the
 // header of that library.
 // More information for library authors that use libcwd can be found on
-// http://libcwd.sourceforge.net/reference-manual/group__chapter__custom__debug__h.html
+// http://carlowood.github.io/libcwd/reference-manual/group__chapter__custom__debug__h.html
 #error "DEBUGCHANNELS is defined while previously it was not defined.  See the comments in this header file for more information."
 #endif
 

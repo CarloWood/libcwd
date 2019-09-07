@@ -10,7 +10,7 @@ Description: demangled type-names of variables.
 Keywords: ostream debug output memory allocation debugging C++ libcwd bfd
 Author: libcwd at alinoe.com (Carlo Wood)
 Maintained-by: libcwd at alinoe.com (Carlo Wood)
-Primary-site: http://libcwd.sourceforge.net/
+Primary-site: http://carlowood.github.io/libcwd/
 Original-site:
 Alternate-site:
 Platforms: linux freebsd solaris openbsd

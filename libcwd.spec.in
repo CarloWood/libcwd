@@ -12,7 +12,7 @@ Requires: gcc-c++ >= 3.4, binutils >= 2.9
 %endif
 Buildroot: %{_tmppath}/%{name}-root
 BuildPrereq: make, m4, which >= 2.5, autoconf >= 2.13, automake >= 1.7, libtool >= 1.4.2
-URL: http://libcwd.sourceforge.net/
+URL: http://carlowood.github.io/libcwd/
 
 %description
 Libcwd is a full-featured, professional, well documented library to support

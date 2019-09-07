@@ -165,9 +165,13 @@ syncwww: documentation
 		`pwd`/doc/ "$(OUTPUT_DIRECTORY)/libcwd"; \
 	  fi \
 	)
-	@echo "Synchronizing with libcwd.sourceforge.net..."
-	rsync -rlptz -e /usr/bin/ssh --delete --exclude-from=$(srcdir)/doc/www/exclude --delete-excluded \
-		`pwd`/doc/ "libcwd-web:htdocs/"
+	@echo "Synchronizing with http://carlowood.github.io..."
+	@( \
+	  cd $(OUTPUT_DIRECTORY); \
+	  git add libcwd; \
+	  git commit -m 'Update of documentation of libcwd.'; \
+	  git push \
+	)
 
 git-clean:
 	$(MAKE) -C doc maintainer-clean

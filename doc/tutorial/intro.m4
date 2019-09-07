@@ -6,7 +6,7 @@ __PAGESTART
 <H1>Tutorial</H1>
 
 <P><FONT class="hello">Hello</FONT>,
-my name is <A HREF="http://www.xs4all.nl/~carlo17/" TARGET="_blank">Carlo Wood</A>
+my name is <A HREF="http://carlowood.github.io/" TARGET="_blank">Carlo Wood</A>
 and I will guide you through a few example programs in order to help familiarize you
 with&nbsp;<code>libcwd</code>.</P>
 
@@ -14,7 +14,7 @@ with&nbsp;<code>libcwd</code>.</P>
 
 <P>Hopefully you have already installed the library and the header files.&nbsp;
 If not, then do so now - see the <A HREF="../external/INSTALL">INSTALL</A> file in the
-<A HREF="http://sourceforge.net/project/showfiles.php?group_id=47536" TARGET="_blank">distribution package</A>
+<A HREF="https://github.com/CarloWood/libcwd/releases" TARGET="_blank">distribution package</A>
 for detailed instructions.</P>
 
 <P>This tutorial is mixed with a lot of FAQ-style questions, which are linked to a more detailed explanation.&nbsp;
