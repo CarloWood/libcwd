@@ -1,12 +1,14 @@
+libcwd-1.1.1
+
+        Added support for aligned_alloc(3).
+
+        Fixed address/location lookup for PIE executables.
+
 libcwd-1.1.0
 
         All occurances of 'trylock' have been renamed to 'try_lock'.
         This breaks interface API backwards compatibility, but it
         allows one to use std::mutex for debug_ct::set_ostream.
-
-        Added support for aligned_alloc(3).
-
-        Fixed address/location lookup for PIE executables.
 
 libcwd-1.0.7
 
