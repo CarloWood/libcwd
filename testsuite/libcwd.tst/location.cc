@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2000 - 2003, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -14,6 +14,11 @@
 #include "sys.h"
 #include <libcwd/debug.h>
 #include <iostream>
+
+#ifdef __OPTIMIZE__
+#undef CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
+#define CW_RECURSIVE_BUILTIN_RETURN_ADDRESS 0
+#endif
 
 #if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
 static void* return_address[6];
@@ -41,13 +46,13 @@ static void* frame_return_address(unsigned int frame)
 }
 #endif
 
-void libcwd_bfd_test3(void)
+void __attribute__ ((noinline)) libcwd_bfd_test3()
 {
 #if CWDEBUG_LOCATION
   for (int i = 0; i <= 5; ++i)
   {
     void* retadr;
-    
+
     switch (i)
     {
 #if CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
@@ -103,29 +108,32 @@ void libcwd_bfd_test3(void)
   }
 #endif
 }
- 
-void libcwd_bfd_test2(void)
+
+void __attribute__ ((noinline)) libcwd_bfd_test2()
 {
 #if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(1);
 #endif
   libcwd_bfd_test3();
+  asm volatile ("");    // Stop tail chaining.
 }
 
-void libcwd_bfd_test1(void)
+void __attribute__ ((noinline)) libcwd_bfd_test1()
 {
 #if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(2);
 #endif
   libcwd_bfd_test2();
+  asm volatile ("");
 }
 
-void libcwd_bfd_test(void)
+void __attribute__ ((noinline)) libcwd_bfd_test()
 {
 #if !CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
   store_call_address(3);
 #endif
   libcwd_bfd_test1();
+  asm volatile ("");
 }
 
 MAIN_FUNCTION

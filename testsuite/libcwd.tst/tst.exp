@@ -2,7 +2,7 @@ global srcdir subdir
 global STATIC SHARED
 
 catch "glob -nocomplain $srcdir/$subdir/*.cc" srcfiles
-#set srcfiles $srcdir/$subdir/continued.cc
+#set srcfiles $srcdir/$subdir/location.cc
 verbose "srcfiles are $srcfiles"
 
 set prefix ""

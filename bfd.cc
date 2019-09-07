@@ -1105,7 +1105,7 @@ static bool const statically_linked = true;
 	             std::setw(8) << std::hex << (unsigned long)object_file->get_lbase() <<
 		     std::resetiosflags(std::ios::right) << "     ";
 	std::cout << std::setfill(' ') << std::setiosflags(std::ios::left) <<
-	             std::setw(50) << object_file->get_bfd()->filename <<
+	             std::setw(50) << object_file->get_bfd()->filename_str <<
 	             std::dec << object_file->get_number_of_symbols() <<
 		     std::resetiosflags(std::ios::left) << '\n';
 	std::cout << std::setiosflags(std::ios::left) <<
@@ -1298,15 +1298,21 @@ static bool const statically_linked = true;
 	  ST_get_full_path_to_executable(fullpath LIBCWD_COMMA_TSD);
 	      // Result is '\0' terminated so we can use data() as a C string.
 
-	  // Load executable
+	  // Load executable and shared objects.
 	  BFD_INITIALIZE_LOCK;
-	  load_object_file(fullpath.data(), executable_l_addr, true);
 
 	  if (!statically_linked)
 	  {
-
-	    // Load all shared objects
   #ifndef HAVE__DL_LOADED
+#error "This no longer works unless you turn off Address Space Layout Randomization. See comments in the code."
+            // You can comment out the above #error line but then you'll have to execute the following
+            // before running the program:
+            //
+            // $ sudo sysctl -w kernel.randomize_va_space=0
+            //
+            // So that the program and libraries will be loaded into the same place every time;
+            // otherwise ldd will run one address one time but the next run it will be something different.
+
 	    // Path to `ldd'
 	    char const ldd_prog[] = "/usr/bin/ldd";
 
@@ -1326,8 +1332,19 @@ static bool const statically_linked = true;
 	    }
   #endif
   #endif
-	      if (l->l_name && ((l->l_name[0] == '/') || (l->l_name[0] == '.')))
-		load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+              if (l->l_name)
+              {
+                if (l->l_name[0] == 0)  // Executable (I hope)...
+                {
+                  // It seems that the executable is loaded somewhere with offset 0x555555554000 (without ASLR).
+                  // non-PIE code seems to be loaded at very low addresses.
+                  bool is_pie = l->l_addr >= 0x500000000000;     // Dirty heuristics.
+                  // If the executable is not PIE then executable_l_addr should be passed instead here.
+                  load_object_file(fullpath.data(), is_pie ? reinterpret_cast<void*>(l->l_addr) : executable_l_addr, true);
+                }
+                else if (((l->l_name[0] == '/') || (l->l_name[0] == '.')))
+                  load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
+              }
 	    }
 
 	    LIBCWD_DEFER_CANCEL;

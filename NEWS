@@ -4,6 +4,10 @@ libcwd-1.1.0
         This breaks interface API backwards compatibility, but it
         allows one to use std::mutex for debug_ct::set_ostream.
 
+        Added support for aligned_alloc(3).
+
+        Fixed address/location lookup for PIE executables.
+
 libcwd-1.0.7
 
         Started using (the new) cwm4 git module for configuration;
