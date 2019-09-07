@@ -19,7 +19,7 @@ if test -d .git; then
     git submodule update --init --recursive
   fi
   # If new git submodules were added by someone else, get them.
-  if git submodule status | grep '^-' >/dev/null; then
+  if git submodule status --recursive | grep '^-' >/dev/null; then
     git submodule update --init --recursive
   fi
   # Update autogen.sh and cwm4 itself if we are the real maintainer.
