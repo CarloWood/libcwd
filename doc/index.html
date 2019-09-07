@@ -45,8 +45,8 @@ Home Page<BR>
 <A href="tutorial/index.html">Tutorial</A><BR>
 <A href="reference-manual/index.html">Reference Manual</A><BR>
 <A href="www/quickreference.html">Quick Reference</A><BR>
-<A href="http://sourceforge.net/project/showfiles.php?group_id=47536">Download</A><BR>
-<A href="http://sourceforge.net/mail/?group_id=47536">Mailinglists</A>
+<A href="https://github.com/CarloWood/libcwd">github</A><BR>
+<A href="https://github.com/CarloWood/libcwd/releases">Download</A><BR>
 </td></tr></table>
 
 </td></tr></table>
@@ -84,6 +84,16 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>7 Sept 2019</B>
+<P class="news">libcwd-1.1.1 is released.&nbsp;
+All occurances of <code>trylock</code> have been renamed to <code>try_lock</code>.
+This breaks interface API backwards compatibility, but it allows one to use <code>std::mutex</code>
+for <code>debug_ct::set_ostream</code>.
+Fixed address/location lookup for PIE executables (most executables are, these days &mdash; which caused
+address to location lookups to fail for addresses inside the main executable).
+Added support for <code>aligned_alloc</code>, yet another allocation library function that was added
+around 2011 &mdash; I just never tried to use it before now (and nobody else reported missing support either).
+</P>
 <DT><B>22 Sept 2016</B>
 <P class="news">libcwd-1.0.6 is released.&nbsp;
 This version adds support for gcc version 5.x and 6.x as well as DWARF 4.
