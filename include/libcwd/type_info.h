@@ -34,6 +34,29 @@ namespace libcwd {
 
 namespace _private_ {
   extern char const* make_label(char const* mangled_name);
+
+  template<typename T>
+  struct size_of_completed {
+    static constexpr size_t size = sizeof(T);
+  };
+
+  struct size_of_not_completed {
+    static constexpr size_t size = 0;
+  };
+
+  template<typename T>
+  struct sizeof_ref {
+    template<typename U>
+    static size_of_completed<T> test(int (*)[sizeof(U)]);
+
+    template<typename>
+    static size_of_not_completed test(...);
+
+    static constexpr size_t value = decltype(test<T>(nullptr))::size;
+  };
+
+  template<typename T>
+  size_t sizeof_ref_v = sizeof_ref<T>::value;
 } // namespace _private_
 
 /**
@@ -44,7 +67,7 @@ namespace _private_ {
 class type_info_ct {
 protected:
   size_t M_type_size;			//!< sizeof(T).
-  size_t M_type_ref_size;		//!< sizeof(*T) or 0 when T is not a pointer.
+  size_t M_type_ref_size;		//!< sizeof(*T) or 0 when T is not a pointer (or a pointer to an incomplete type).
   char const* M_name;			//!< Encoded type of T (as returned by typeid(T).name()).
   char const* M_dem_name;		//!< Demangled type name of T.
 public:
@@ -75,7 +98,7 @@ public:
   char const* name() const { return M_name; }
   //! sizeof(T).
   size_t size() const { return M_type_size; }
-  //! sizeof(*T) or 0 when T is not a pointer.
+  //! sizeof(*T) or 0 when T is not a pointer (or a pointer to an incomplete type).
   size_t ref_size() const { return M_type_ref_size; }
 };
 
@@ -152,7 +175,7 @@ namespace _private_ {
     {
       if (!S_initialized)
       {
-	S_value.init(typeid(T*).name(), sizeof(T*), sizeof(T));
+	S_value.init(typeid(T*).name(), sizeof(T*), sizeof_ref_v<T>);
 	S_initialized = true;
       }
       return S_value;
@@ -222,7 +245,7 @@ template<typename T>
   {
     if (!S_initialized)
     {
-      S_value.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), sizeof(T));
+      S_value.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), ::libcwd::_private_::sizeof_ref_v<T>);
       S_initialized = true;
     }
     return S_value;
