@@ -1212,7 +1212,7 @@ namespace __gnu_cxx
 	char opcode0 = current();
 	char opcode1 = tolower(next());
 
-	register char hash = offset_table_c[opcode0 - CHAR_MIN];
+	char hash = offset_table_c[opcode0 - CHAR_MIN];
 	if (hash)
 	{
 	  hash += opcode1;
@@ -1378,7 +1378,7 @@ namespace __gnu_cxx
 	  char opcode0 = current();
 	  char opcode1 = tolower(next());
 
-	  register char hash = offset_table_c[opcode0 - CHAR_MIN];
+	  char hash = offset_table_c[opcode0 - CHAR_MIN];
 	  if (hash)
 	  {
 	    hash += opcode1;
