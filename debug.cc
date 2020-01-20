@@ -33,7 +33,7 @@
 #include <sys/time.h>	// Needed for setrlimit()
 #include <sys/resource.h>	// Needed for setrlimit()
 #endif
-#include <cstdlib>		// Needed for Exit() (C99)
+#include <cstdlib>		// Needed for _Exit() (C99)
 #include <new>
 #include "cwd_debug.h"
 #include "libcwd/debug.h"
@@ -44,7 +44,6 @@
 #include <libcwd/class_location.inl>
 
 extern "C" int raise(int);
-extern "C" void _exit(int);
 
 #if LIBCWD_THREAD_SAFE
 using libcwd::_private_::rwlock_tct;
@@ -824,10 +823,6 @@ void allocator_unlock()
 	pthread_exit(PTHREAD_CANCELED);
       }
       // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
-#ifdef HAVE_PTHREAD_KILL_OTHER_THREADS_NP
-      // For the same reason, kill other threads prior to generating the core.
-      //pthread_kill_other_threads_np(); // Only causes a deadlock.
-#endif
 #endif
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG && defined(__linux)
       if (!_private_::WST_is_NPTL && pthread_self() == (pthread_t)2049)
@@ -840,7 +835,7 @@ void allocator_unlock()
 #if LIBCWD_THREAD_SAFE
       LIBCWD_ENABLE_CANCEL;
 #endif
-      _exit(6);		// Never reached.
+      _Exit(6);		// Never reached.
     }
 
     size_t debug_string_ct::calculate_capacity(size_t size)
@@ -1288,7 +1283,7 @@ void allocator_unlock()
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
 #endif
-	  _exit(254);	// Exit without calling global destructors.
+	  _Exit(254);	// Exit without calling global destructors.
 	}
 	if ((current->mask & wait_cf))
 	{
@@ -1362,7 +1357,7 @@ void allocator_unlock()
     {
       finish(debug_object, channel_set LIBCWD_COMMA_TSD);
       DoutFatal( dc::core, "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
-      _exit(1);	// This is never reached, but g++ 3.3.x -O2 thinks it is.
+      _Exit(1);	// This is never reached, but g++ 3.3.x -O2 thinks it is.
     }
 
 #if LIBCWD_THREAD_SAFE

@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <alloca.h>
 #include <map>
+#include "macros.h"
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
 pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;
@@ -219,10 +220,9 @@ TSD_st& TSD_st::S_create(int from_free)
       old_thread_iter = static_tsd->thread_iter;
 
     // Fill the temporary structure with zeroes.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess
     std::memset(static_tsd, 0, sizeof(struct TSD_st));
-#pragma GCC diagnostic pop
+PRAGMA_DIAGNOSTIC_POP
     static_tsd->tid = _tid;			// Make sure nobody else will allocate this entry.
 
     if (from_free == 1)

@@ -34,6 +34,7 @@
 #include <libcwd/private_assert.h>
 #include "cwd_bfd.h"
 #include "compilation_unit.h"
+#include "macros.h"
 
 #define DEBUGELFXX 0
 #define DEBUGSTABS 0
@@ -2079,10 +2080,9 @@ void objfile_ct::load_dwarf()
 	  if (abbrev.attributes_size == abbrev.attributes_capacity)
 	  {
 	    abbrev.attributes_capacity += 32;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess
 	    abbrev.attributes = (attr_st*)realloc(abbrev.attributes, (abbrev.attributes_capacity + 1) * sizeof(attr_st));
-#pragma GCC diagnostic pop
+PRAGMA_DIAGNOSTIC_POP
 	    abbrev.attributes[abbrev.attributes_capacity].count = 1;
 	  }
 	  uLEB128_t& attr(*reinterpret_cast<uLEB128_t*>(&abbrev.attributes[abbrev.attributes_size].attr));
@@ -2134,10 +2134,9 @@ void objfile_ct::load_dwarf()
 	}
 	abbrev.fixed_size = has_fixed_size ? fixed_size : 0;
 	abbrev.attributes_capacity = abbrev.attributes_size;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess
 	abbrev.attributes = (attr_st*)realloc(abbrev.attributes, (abbrev.attributes_capacity + 1) * sizeof(attr_st));
-#pragma GCC diagnostic pop
+PRAGMA_DIAGNOSTIC_POP
 	abbrev.attributes[abbrev.attributes_capacity].count = 1;
       }
 
