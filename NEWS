@@ -1,3 +1,7 @@
+libcwd-1.1.2
+
+        Added support for cmake.
+
 libcwd-1.1.1
 
         Added support for aligned_alloc(3).

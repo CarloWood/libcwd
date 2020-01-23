@@ -1,7 +1,7 @@
 # Define package version here.
 define(CW_VERSION_MAJOR, 1)
 define(CW_VERSION_MINOR, 1)
-define(CW_VERSION_REVISION, 1)
+define(CW_VERSION_REVISION, 2)
 define(CW_PACKAGE_NAME, [libcwd])
 define(CW_BUGREPORT, [libcwd@alinoe.com])
 
@@ -16,7 +16,7 @@ define(CW_THREADS, [no])
 # CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
 define(CW_INTERFACE_VERSION, 8)
-define(CW_INTERFACE_VERSION_REVISION, 0)
+define(CW_INTERFACE_VERSION_REVISION, 1)
 define(CW_INTERFACE_AGE, 3)
 
 # cwm4/configure_ac_top.m4 calls CW_OPG_CXXFLAGS, but we want it to call our CW_OPG_FLAGS.
@@ -246,6 +246,8 @@ if test "$libcwd_config_glibcxx_debug" = yes; then
   CXXFLAGS="$CXXFLAGS -D_GLIBCXX_DEBUG"
   PCCFLAGS="$PCCFLAGS -D_GLIBCXX_DEBUG"
 fi
+PCCFLAGSR="$PCCFLAGS -DLIBCWD_THREAD_SAFE"
+AC_SUBST(PCCFLAGSR)
 
 # Set language requirements for the tests below.
 AC_LANG_CPLUSPLUS

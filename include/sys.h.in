@@ -40,7 +40,7 @@
 @CW_SYS_TYPEDEFS@
 
 // Bug work arounds
- 
+
 // Including certain header files fail with a warning.  For example:
 // /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
 // Word around (if any):

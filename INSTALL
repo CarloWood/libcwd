@@ -1,213 +1,94 @@
 Quick start
 ===========
 
-./configure --prefix=/usr
+git
+---
+
+If you obtained the source code from git, then first run `./autogen.sh`.
+
+If you (are going to) use cmake then there is no need to run aclocal,
+autoheader, etc. You can suppress that by setting the environment variable
+`export AUTOGEN_CMAKE_ONLY=1`.
+
+If you want to use autotools you should configure with --enable-maintainer-mode
+if you obtained the sources from git. Note that then ./autogen.sh needs
+to be rerun after running `make maintainer-clean`.
+
+cmake
+-----
+
+cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -S . -B build
+cd build
 make
 sudo make install
 
-If you obtained the source code from git, then first run './autogen.sh'.
-In this case you want to configure with --enable-maintainer-mode;
-(note that then ./autogen.sh needs to be rerun after running
-'make maintainer-clean').
+This method only builds libcwd_r, the multi-threaded version of libcwd.
 
-If that doesn't work, mail me: libcwd@alinoe.com
-(include as many details as possible).
+autotools
+---------
 
-Building debian packages
-========================
-
-The released tar file contains a debian directory.
-Untar the tar ball, cd into the source tree and build
-the debian binary packages.
-
-tar xzf libcwd-1.0.6.tar.gz
-cd libcwd-1.0.6
-fakeroot debian/rules binary
-
-'fakeroot' is part of the fakeroot package, dh_testdir is part
-of the debhelper package (sudo apt-get install fakeroot debhelper).
-This results in two .deb files:
-
-libcwd_1.0.6_ARCH.deb		: Libraries and headers.
-libcwd-doc_1.0.6_all.deb	: Reference manual, tutorial and examples.
-
-The package libcwd-doc installs the documentation in
-file://usr/share/doc/libcwd-doc/documentation/index.html, which you
-probably want to bookmark in your browser. And a tutorial in
-file://usr/share/doc/libcwd-doc/documentation/tutorial/index.html.
-An example is stored in /usr/share/doc/libcwd-doc/example-project.
-
-Install both packages with:
-sudo dpkg -i libcwd_1.0.6_ARCH.deb libcwd-doc_1.0.6_all.deb
-
-Building RPMs
-=============
-
-The released tar file contains a .spec file.
-Therefore you can build an rpm directly from the tar with
-
-rpmbuild -ta libcwd-1.0.6.tar.gz
-
-The resulting rpm will install two libraries:
-libcwd.so and libcwd_r.so.  Be sure to link with -lcwd_r
-if you want the thread-safe version!
-
-I haven't tested this in years however, since I do
-not longer use an rpm based distribution. Patches for
-the spec file are welcome.
-
-Needed tools
-============
-
-Check if you have all GNU tools/libraries/packages that libcwd depends on:
-
-Primary site:
-ftp://ftp.gnu.org/gnu/
-
-List of mirrors:
-http://www.gnu.org/order/ftp.html
-
-Packages/versions needed
-------------------------
-
-i) The GNU compiler, version 3.4 or higher.
-   Version 4.0 or higher is highly recommended.
-
-    Location: gnu/gcc/
-    Current version: 6.2.0
-
-Note: It is very unlikely that you want to install
-the source tree of gcc/g++.  Please try to upgrade your
-compiler the usual way if needed.
-If you are using rpm's then you will need to
-install/upgrade the following:
-    gcc (3.4 or higher),
-    gcc-c++ (of same version),
-    libstdc++ (of same version) and
-    cpp (of same version).
-Check your installation on Fedora with:
-    rpm -qa | egrep '^(gcc|libstdc|cpp)'
-
-Note: If you don't use rpm's but are using tar balls,
-then you do NOT need to download gnu/libstdc++/* because
-gcc comes with libstdc++ included.
-The gnu/libstdc++/ directory on GNU ftp sites are
-for older compilers or to be used as source drop-in
-when you compile g++ (replacing the normal stdc++ with
-an alpha version).  You also don't need libg++.
-Don't delete those libraries if you have them though
-since existing binaries might need to link with them.
-
-libcwd-1.0.6 was tested with
-gcc-4.7.4, gcc-4.8.0, gcc-4.8.5, gcc-4.9.4, gcc-5.4.0 and gcc-6.2.0.
-
-Packages needed to run the testsuite
-------------------------------------
-
-ii) If you want to run the testsuite then you will have to install
-dejagnu-1.4.2 or higher, which can be downloaded from ftp.gnu.org/gnu/dejagnu/,
-or your local GNU mirror.
-
-You will also need expect-5.32.2 (and tcl/tk 8.3.3?).  At least, expect 5.31.2
-is known to hang.  You can get it from http://expect.nist.gov/.
-
-Packages/versions needed as maintainer or when using SVN
---------------------------------------------------------
-
-If you want to generate maintainer files (and you need that when you
-get this package via svn; in that case you also need to configure using
---enable-maintainer-mode) then you also need to have the following tools:
-
-iii)  GNU make
-iv)   GNU m4
-v)    cwautomacros  version 20160921 or later (from https://github.com/CarloWood/cwautomacros)
-vi)   autoconf	    version 2.57 or higher
-vii)  automake	    version 1.7 or higher
-viii) libtool	    version 1.4.2 or higher on linux, 1.5 or higher on other OS,
-                    because libtool 1.4.x treats everything as C, causing the
-		    constructors of global objects not to be called.
-
-Each of those can be downloaded from your local GNU site.
-
-Moreover, in order to generate the documentation, you need to
-have the following installed:
-
-ix)   doxygen	    version 1.3.6 or higher (http://www.doxygen.org/)
-x)    graphviz	    http://www.research.att.com/sw/tools/graphviz/
-
-
-Hackers info
-============
-
--=i=-
-
-'configure' has a few interesting options.  You can list them by issuing:
-
-./configure --help
-
-There is no reason to use libcwd's feature options (--disable-alloc,
---disable-magic, --disable-marker and --disable-location), except
-when things are broken but you still wish to use the debug output
-feature of libcwd.  You can read more about the configuration options
-and what they do in include/libcwd/config.h.
-
-If you want to change Makefile.am files and the like then you'll need to
-use --enable-maintainer-mode.  If you enable maintainer-mode then you
-will need GNU make, other make won't work (you also need a LOT of other
-extra tools installed on your system, only for the brave thus).
-
--=ii=-
-
-The configure script looks for a GNU C++ compiler version 3.0 or higher.
-If it can't find one (it will only find one when there is a g++ or c++ in
-your PATH), then you can specify the right path during configuration.
-For example, I configure libcwd as follows to compile with the latest SVN
-version of g++, which I installed in /usr/local/bin/g++-svn (and
-/usr/local/bin is in my PATH):
-
-CC="gcc-svn" CXX="g++-svn" ./configure
-
--=iii=-
-
-You can install libcwd in a 'staging' directory by issuing
-
-make DESTDIR=/tmp/staging install
-
-this can come in handy when you want to build an rpm for instance.
-
--=iv=-
-
-The Makefile has the following targets:
-
-make [all-recursive]
-make install
-make uninstall
-make clean
-make distclean
-
-If you configured with --enable-maintainer-mode then the following
-targets exist as well:
-
-make dist					// Create tar ball
-make git-clean					// Erase everything that was generated somehow
-make check					// Run test suite
-make tar					// Create tar ball
-make rpm					// Create rpms
-make ChangeLog					// Generate ChangeLog from SVN database
-make full-check					// Iterate over all configurations and all compiler versions
-
-It is not garanteed that these work on another machine than mine however.
-
--=v=-
-
-Finally, you can also build libcwd in a different directory than the source
-tree is in:
-
-tar xzf libcwd-1.0.6.tar.gz
-mkdir libcwd-objdir
-cd libcwd-objdir
-../libcwd-1.0.6/configure --prefix=/usr
+./configure --prefix="/usr/local" [--enable-maintainer-mode]
 make
 sudo make install
 
-that way your source tree stays completely distclean :)
+
+Options
+=======
+
+cmake
+-----
+
+The following boolean variables can be set to ON or OFF on the command line,
+
+   EnableGlibCxxDebug   : Compile libcwd with -D_GLIBCXX_DEBUG.
+                          See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html.
+   EnableLibcwdAlloc    : Enable memory allocation debugging support.
+   EnableLibcwdMagic    : Enable magic numbers in memory allocation debugging.
+   EnableLibcwdMarker   : Enable memory allocation markers.
+   EnableLibcwdLocation : Enable the ability to lookup source file and line
+                          number, you might need this on a non-ELF system.
+(you do not want to use these):
+   EnableLibcwdDebug    : Enable debugging of libcwd itself.
+   EnableLibcwdDebugOutput : Enable debug output of EnableLibcwdDebug.
+   EnableLibcwdDebugm   : Enable debugging of memory allocation debugging code in libcwd itself.
+   EnableLibcwdDebugt   : Enable debugging of threading debugging code in libcwd itself.
+
+When running `cmake` each option and its value is printed (unless forced to OFF);
+often a value is forced or has a default. Recommended is to only set an option if
+you're not happy with the default.
+
+For example,
+cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -DEnableLibcwdAlloc=OFF -S . -B build
+
+autotools
+---------
+
+The following configure options are available,
+
+  --enable-glibcxx_debug  compile libcwd with -D_GLIBCXX_DEBUG.
+                          See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html.
+  --disable-alloc         disable memory allocation debugging support.
+  --disable-magic         disable magic numbers in memory allocation debugging.
+  --disable-marker        disable memory allocation markers.
+  --disable-location      disable the ability to lookup source file and line
+                          number, you might need this on a non-ELF32 system.
+  --enable-debug          enable debugging of libcwd itself.
+  --disable-debug-output  disable debug output of --enable-debug.
+  --enable-debugm         enable debugging of memory allocation debugging code
+                          in libcwd itself.
+  --disable-threading     don't compile libcwd_r, the thread-safe version of
+                          libcwd.
+  --disable-nonthreading  don't compile libcwd, the thread-unsafe version of
+                          libcwd.
+  --enable-debugt         enable debugging of threading debugging code
+                          in libcwd itself.
+
+Additional configure options are available too. Use `./configure --help` to get
+the full list.
+
+
+Trouble
+=======
+
+If you run into problems, mail carlo@alinoe.com (include as many details as possible).
+Please use a very clear subject so that I can see it isn't spam in under 0.2 seconds.
