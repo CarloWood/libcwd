@@ -1,11 +1,12 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
+datadir=${prefix}/share
 includedir=@includedir@
 
 Name: libcwd
 Description: C++ Debugging Support Library
-Version: @VERSION@
-Libs: -L${libdir} -lcwd
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lcwd -ldl
 Cflags: @PCCFLAGS@ -I${includedir}
 

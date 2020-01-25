@@ -108,8 +108,6 @@ set(CW_CONFIG_LIBBFD 0)
 set(VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(VERSION_REVISION ${PROJECT_VERSION_PATCH})
-# Needed for libcwd_r.pc.in
-set(VERSION ${PROJECT_VERSION})
 
 include(CW_DEFINE_TYPE)
 include(CheckPrototypeDefinition)
@@ -216,6 +214,9 @@ if (OptionEnableLibcwdLocation)
   CW_SYS_PS_WIDE_PID_OPTION()
 endif ()
 
+# Needed for cmake-config.h.in, then used in subdirectory utils.
+set(libcwd_datadir "${CMAKE_INSTALL_PREFIX}/share")
+
 configure_file("cmake-config.h.in" "config.h")
 configure_file("include/libcwd/config.h.in" "include/libcwd/config.h" @ONLY)
 configure_file("include/libcwd/sys.h.in" "include/libcwd/sys.h" @ONLY)
@@ -227,7 +228,14 @@ add_custom_target(maintainer-clean-extra
     COMMAND rm -rf cw_utils_sys_malloc_overhead
 )
 
+set(cwd_r_compile_definintions "CWDEBUG;LIBCWD_THREAD_SAFE")
+if (OptionEnableGlibCxxDebug)
+  list(APPEND cwd_r_compile_definintions "_GLIBCXX_DEBUG")
+endif ()
+
 find_package(Threads REQUIRED)
+
+add_subdirectory(utils)
 
 add_library(cwd_r SHARED)
 
@@ -261,11 +269,6 @@ target_sources(cwd_r
 file(GLOB PUBLIC_HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/libcwd/*.h")
 set_target_properties(cwd_r PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
 
-set(cwd_r_compile_definintions "CWDEBUG;LIBCWD_THREAD_SAFE")
-if (OptionEnableGlibCxxDebug)
-  list(APPEND cwd_r_compile_definintions "_GLIBCXX_DEBUG")
-endif ()
-
 target_compile_definitions(cwd_r
     PUBLIC
         "${cwd_r_compile_definintions}"
@@ -281,8 +284,12 @@ target_include_directories(cwd_r
 )
 
 target_link_libraries(cwd_r
+    PRIVATE
+        Libcwd::utils
     PUBLIC
         Threads::Threads
+    INTERFACE
+        "${CMAKE_DL_LIBS}"
 )
 
 include(GNUInstallDirs)
@@ -323,6 +330,12 @@ install(
   COMPONENT
     Devel
 )
+install(
+  FILES
+    libcwdrc
+  DESTINATION
+    "${libcwd_datadir}/libcwd"
+)
 
 # PkgConfig
 set(prefix      ${CMAKE_INSTALL_PREFIX})
@@ -337,4 +350,9 @@ endif ()
 string (REPLACE ";" " -D" _TMP_STR "${cwd_r_compile_definintions}")
 set(PCCFLAGSR "-D${_TMP_STR}")
 configure_file(${CMAKE_SOURCE_DIR}/libcwd_r.pc.in ${CMAKE_BINARY_DIR}/libcwd_r.pc @ONLY)
-install(FILES ${CMAKE_BINARY_DIR}/libcwd_r.pc DESTINATION lib${LIB_SUFFIX}/pkgconfig)
+install(
+  FILES
+    ${CMAKE_BINARY_DIR}/libcwd_r.pc
+  DESTINATION
+    lib${LIB_SUFFIX}/pkgconfig
+)

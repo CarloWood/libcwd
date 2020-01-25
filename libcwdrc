@@ -30,7 +30,7 @@ channels_on = warning
 #channels_off = notice,malloc
 
 # Where to find gdb.
-gdb = /usr/bin/gdb
+gdb = /usr/bin/gdb $GDBCOMMANDFILE
 
 # Commandline to execute in order to open a window (for starting gdb at run time).
 xterm = konsole --nofork --workdir "$PWD" --geometry 1024x400+0+0 -e %s
