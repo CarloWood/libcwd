@@ -352,7 +352,7 @@ if (${WIN32})
 endif ()
 string (REPLACE ";" " -D" _TMP_STR "${cwd_r_compile_definintions}")
 set(PCCFLAGSR "-D${_TMP_STR}")
-configure_file(${CMAKE_SOURCE_DIR}/libcwd_r.pc.in ${CMAKE_BINARY_DIR}/libcwd_r.pc @ONLY)
+configure_file(${libcwd_SOURCE_DIR}/libcwd_r.pc.in ${libcwd_BINARY_DIR}/libcwd_r.pc @ONLY)
 install(
   FILES
     ${CMAKE_BINARY_DIR}/libcwd_r.pc
