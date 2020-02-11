@@ -4374,7 +4374,7 @@ void* __libcwd_valloc(size_t size) noexcept
 #endif
   ++__libcwd_tsd.inside_malloc_or_free;
   DoutInternal(dc_malloc|continued_cf, "valloc(" << size << ") = " LIBCWD_DEBUGM_OPT("[" << saved_marker << ']'));
-  appblock* ptr2 = internal_malloc(size, memblk_type_valloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker), sysconf(PAGESIZE));
+  appblock* ptr2 = internal_malloc(size, memblk_type_valloc CALL_ADDRESS LIBCWD_COMMA_TSD LIBCWD_COMMA_DEBUGM_OPT(saved_marker), sysconf(_SC_PAGESIZE));
 #if CWDEBUG_MAGIC
   if (ptr2)
   {
