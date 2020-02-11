@@ -28,3 +28,6 @@ static char const* const PS_ARGUMENT = "@PS_ARGUMENT@";
 
 // Data directory where the default rcfile is read from.
 #define CW_DATADIR "@libcwd_datadir@"
+
+// The number of bytes extra allocated by a call to malloc.
+static constexpr int malloc_overhead_c = @CW_MALLOC_OVERHEAD@;

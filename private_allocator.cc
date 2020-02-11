@@ -28,9 +28,9 @@ namespace libcwd {
 
 // Maximum overhead needed for non-internal allocations.
 #if CWDEBUG_MAGIC
-static size_t const malloc_overhead_c = sizeof(prezone) + sizeof(size_t) - 1 + sizeof(postzone) + CW_MALLOC_OVERHEAD;
+static size_t const _malloc_overhead_c = sizeof(prezone) + sizeof(size_t) - 1 + sizeof(postzone) + malloc_overhead_c;
 #else
-static size_t const malloc_overhead_c = CW_MALLOC_OVERHEAD;
+static size_t const _malloc_overhead_c = malloc_overhead_c;
 #endif
 
 // The minimum size we allocate: two or three page sizes minus the (maximum) malloc
@@ -39,9 +39,9 @@ static size_t const malloc_overhead_c = CW_MALLOC_OVERHEAD;
 // libcwd with --disable-magic).
 static size_t const page_size_c = 4096;
 #if defined(LIBCWD_REDZONE_BLOCKS) && LIBCWD_REDZONE_BLOCKS > 0
-static size_t const block_size_c = 3 * page_size_c - (malloc_overhead_c % page_size_c);
+static size_t const block_size_c = 3 * page_size_c - (_malloc_overhead_c % page_size_c);
 #else
-static size_t const block_size_c = 2 * page_size_c - malloc_overhead_c;
+static size_t const block_size_c = 2 * page_size_c - _malloc_overhead_c;
 #endif
 
 char* FreeList::allocate(int power, size_t size)

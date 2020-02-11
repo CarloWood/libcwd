@@ -4584,6 +4584,12 @@ void* operator new[](size_t size, std::nothrow_t const&) noexcept
   return ASSERT_APPBLOCK(ptr2);
 }
 
+#if __cplusplus >= 201703L
+#define HAVE_STD_ALIGN_VAL_T
+#endif
+
+#ifdef HAVE_STD_ALIGN_VAL_T
+
 void* operator new(std::size_t size, std::align_val_t al)
 {
   LIBCWD_TSD_DECLARATION;
@@ -4774,6 +4780,8 @@ void* operator new[](std::size_t size, std::align_val_t al, std::nothrow_t const
   return ASSERT_APPBLOCK(ptr2);
 }
 
+#endif // HAVE_STD_ALIGN_VAL_T
+
 //=============================================================================
 //
 // operator `delete' and `delete []' replacements.
@@ -4871,6 +4879,8 @@ void operator delete[](void* void_ptr, std::nothrow_t const&) noexcept
 #endif
 }
 
+#ifdef HAVE_STD_ALIGN_VAL_T
+
 void operator delete(void* void_ptr, std::align_val_t al) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
@@ -4963,6 +4973,7 @@ void operator delete[](void* void_ptr, std::align_val_t al, std::nothrow_t const
 #endif
 }
 
+#endif // HAVE_STD_ALIGN_VAL_T
 
 #ifdef __cpp_sized_deallocation
 #pragma GCC diagnostic push
