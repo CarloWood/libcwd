@@ -10,6 +10,14 @@
 #cmakedefine HAVE_POSIX_MEMALIGN
 #cmakedefine HAVE_VALLOC
 #cmakedefine HAVE_WMEMCPY
+#cmakedefine HAVE_BUILTIN_EXPECT
+#cmakedefine HAVE_GETGID
+#cmakedefine HAVE_GET_T
+#cmakedefine HAVE___LIBC_MALLOC
+#cmakedefine HAVE__LIBC_MALLOC
+#cmakedefine HAVE_MALLOC_H
+#cmakedefine HAVE_PTHREAD_H
+#cmakedefine HAVE_UNISTD_H
 
 // THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].
 // This can be changed on the cmake command line (-DTHREADSMAX=1024).
