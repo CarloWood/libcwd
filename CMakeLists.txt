@@ -36,7 +36,7 @@ cw_option(EnableLibcwdMarker
           "" OFF
 )
 cw_option(EnableLibcwdLocation
-          "Enable the ability to lookup source file and line number, you might need this on a non-ELF system" ON
+          "Enable the ability to lookup source file and line number. Turn OFF on for example non-ELF systems" ON
           "" OFF
 )
 cw_option(EnableLibcwdDebug
