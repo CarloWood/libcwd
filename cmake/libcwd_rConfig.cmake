@@ -2,9 +2,9 @@ include(CMakeFindDependencyMacro)
 find_dependency(Threads)
 include("${CMAKE_CURRENT_LIST_DIR}/libcwd_rTargets.cmake")
 
-get_property(GLOBAL PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED _value)
+get_property(_value GLOBAL PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED_libcwd_r)
 if(NOT _value)
-  set_property(GLOBAL PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED 1)
+  set_property(GLOBAL PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED_libcwd_r 1)
   set(FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r CACHED INTERNAL "")
 endif()
 
