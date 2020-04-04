@@ -1,4 +1,6 @@
 include(CMakeFindDependencyMacro)
 find_dependency(Threads)
 include("${CMAKE_CURRENT_LIST_DIR}/libcwd_rTargets.cmake")
+message(STATUS "FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r = \"${FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r}\".")
+unset(libcwd_r_FIND_QUIETLY)
 find_package_message(libcwd_r "Found libcwd_r: ${CMAKE_CURRENT_LIST_FILE} (found version \"@PACKAGE_VERSION@\")" "[${CMAKE_CURRENT_LIST_FILE}][@PACKAGE_VERSION@]")
