@@ -4,15 +4,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/libcwd_rTargets.cmake")
 
 # Print 'Found' message exactly once.
 get_property(_is_defined
-  CACHE FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r
-  PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED
+  GLOBAL
+  PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED_libcwd_r
   DEFINED
 )
 if(NOT _is_defined)
   set(FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r CACHED INTERNAL "")
   set_property(
-    CACHE FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r
-    PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED 1
+    GLOBAL
+    PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED_libcwd_r 1
   )
 endif()
 find_package_message(
