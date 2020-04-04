@@ -17,5 +17,5 @@ if(NOT _is_defined)
 endif()
 find_package_message(
   libcwd_r
-  "Found libcwd_r: ${libcwd_r_DIR} (found version \"${libcwd_r_VERSION}\")" "[${CMAKE_CURRENT_LIST_FILE}][${libcwd_r_DIR}][${libcwd_r_VERSION}]"
+  "Found libcwd_r: ${CMAKE_CURRENT_LIST_FILE} ${libcwd_r_DIR} (found version \"${libcwd_r_VERSION}\")" "[${CMAKE_CURRENT_LIST_FILE}][${libcwd_r_DIR}][${libcwd_r_VERSION}]"
 )
