@@ -9,11 +9,11 @@ get_property(_is_defined
   DEFINED
 )
 if(NOT _is_defined)
+  set(FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r CACHED INTERNAL "")
   set_property(
     CACHE FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r
     PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED 1
   )
-  set(FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r CACHED INTERNAL "")
 endif()
 find_package_message(
   libcwd_r
