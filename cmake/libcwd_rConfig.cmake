@@ -2,9 +2,13 @@ include(CMakeFindDependencyMacro)
 find_dependency(Threads)
 include("${CMAKE_CURRENT_LIST_DIR}/libcwd_rTargets.cmake")
 
-if(EXISTS "/home/carlo/projects/libcwd/libcwd/cwm4/cmake/dump_cmake_variables.cmake")
-include("/home/carlo/projects/libcwd/libcwd/cwm4/cmake/dump_cmake_variables.cmake")
-dump_cmake_variables(.)
+get_property(GLOBAL PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED _value)
+if(NOT _value)
+  set_property(GLOBAL PROPERTY FIND_PACKAGE_CONFIG_MESSAGE_PRINTED 1)
+  set(FIND_PACKAGE_MESSAGE_DETAILS_libcwd_r CACHED INTERNAL "")
 endif()
 
-find_package_message(libcwd_r "Found libcwd_r: ${CMAKE_CURRENT_LIST_FILE} (found version \"@PACKAGE_VERSION@\")" "[${CMAKE_CURRENT_LIST_FILE}][@PACKAGE_VERSION@]")
+find_package_message(
+  libcwd_r
+  "Found libcwd_r: ${libcwd_r_DIR} (found version \"${libcwd_r_VERSION}\")" "[${CMAKE_CURRENT_LIST_FILE}][${libcwd_r_DIR}][${libcwd_r_VERSION}]"
+)
