@@ -45,11 +45,11 @@ namespace libcwd {
       return;
     }
     os.put('x');
-    int xval = c;
+    int xval = (unsigned char)c;
     int hd = xval / 16;
     for (int i = 0; i < 2; ++i)
     {
-      os.put((hd < 10) ? '0' + hd : 'A' + hd - 10);
+      os.put((char)((hd < 10) ? '0' + hd : 'A' + hd - 10));
       hd = xval % 16;
     }
   }
