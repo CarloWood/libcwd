@@ -49,7 +49,7 @@ namespace libcwd {
     int hd = xval / 16;
     for (int i = 0; i < 2; ++i)
     {
-      char d = (hd < 10) ? '0' + hd : 'A' + hd - 10;
+      os.put((hd < 10) ? '0' + hd : 'A' + hd - 10);
       hd = xval % 16;
     }
   }
