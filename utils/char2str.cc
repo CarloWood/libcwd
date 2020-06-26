@@ -44,12 +44,14 @@ namespace libcwd {
       os.put('\\');
       return;
     }
-    short old_fill = os.fill('0');
-    std::ios_base::fmtflags old_flgs = os.flags();
-    os.width(3);
-    os << std::oct << (int)((unsigned char)c);
-    os.setf(old_flgs);
-    os.fill(old_fill);
+    os.put('x');
+    int xval = c;
+    int hd = xval / 16;
+    for (int i = 0; i < 2; ++i)
+    {
+      char d = (hd < 10) ? '0' + hd : 'A' + hd - 10;
+      hd = xval % 16;
+    }
   }
 
 } // namespace libcwd
