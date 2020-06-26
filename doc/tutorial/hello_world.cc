@@ -10,13 +10,10 @@
 #include <libcwd/debug.h>
 //-------------------------------------------------------------------------------
 
-int main(void)
+int main()
 {
   Debug( dc::notice.on() );		// Turn on the NOTICE Debug Channel
   Debug( libcw_do.on() );		// Turn the default Debug Object on
 
   Dout( dc::notice, "Hello World" );
-
-  return 0;
 }
-

@@ -15,28 +15,28 @@
 #define LIBCWD_CLASS_DEBUG_INL
 
 #ifndef LIBCWD_CLASS_DEBUG_H
-#include <libcwd/class_debug.h>
+#include "class_debug.h"
 #endif
 #ifndef LIBCWD_CLASS_CHANNEL_H
-#include <libcwd/class_channel.h>
+#include "class_channel.h"
 #endif
 #ifndef LIBCWD_CLASS_FATAL_CHANNEL_H
-#include <libcwd/class_fatal_channel.h>
+#include "class_fatal_channel.h"
 #endif
 #ifndef LIBCWD_CLASS_CHANNEL_INL
-#include <libcwd/class_channel.inl>
+#include "class_channel.inl"
 #endif
 #ifndef LIBCWD_CLASS_FATAL_CHANNEL_INL
-#include <libcwd/class_fatal_channel.inl>
+#include "class_fatal_channel.inl"
 #endif
 #ifndef LIBCWD_CLASS_DEBUG_STRING_INL
-#include <libcwd/class_debug_string.inl>
+#include "class_debug_string.inl"
 #endif
 
 namespace libcwd {
 
 /** \addtogroup group_formatting */
-/* \{ */
+/** \{ */
 
 inline
 debug_string_ct&

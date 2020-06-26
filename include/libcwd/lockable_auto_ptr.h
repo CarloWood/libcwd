@@ -26,7 +26,7 @@
 #endif
 #else // CWDEBUG
 #ifndef LIBCWD_PRIVATE_ASSERT_H
-#include <libcwd/private_assert.h>
+#include "private_assert.h"
 #endif
 #endif // CWDEBUG
 

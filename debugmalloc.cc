@@ -2302,6 +2302,34 @@ static void delete_zombie(_private_::thread_ct* zombie_thread LIBCWD_COMMA_TSD_P
 }
 #endif
 
+#if LIBCWD_THREAD_SAFE && !VALGRIND
+static bool WST_libpthread_initialized = false;
+struct delayed_calloc_st {
+  appblock* ptr;
+  size_t size;
+};
+static delayed_calloc_st WST_delayed_calloc[2];
+static int ST_libpthread_init_count = 0;
+static bool handle_delayed_calloc()
+{
+  if (ST_libpthread_init_count == 2)
+  {
+    WST_libpthread_initialized = true;
+    LIBCWD_TSD_DECLARATION;
+    LIBCWD_DEFER_CANCEL;
+    __libcwd_tsd.internal = 1;
+    ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
+    memblk_map_write->insert(memblk_ct(memblk_key_ct(WST_delayed_calloc[0].ptr, WST_delayed_calloc[0].size), memblk_info_ct(memblk_type_malloc)));
+    memblk_map_write->insert(memblk_ct(memblk_key_ct(WST_delayed_calloc[1].ptr, WST_delayed_calloc[1].size), memblk_info_ct(memblk_type_malloc)));
+    RELEASE_WRITE_LOCK;
+    __libcwd_tsd.internal = 0;
+    LIBCWD_RESTORE_CANCEL;
+    return false;
+  }
+  return true;
+}
+#endif // LIBCWD_THREAD_SAFE && !VALGRIND
+
 static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_TSD_PARAM)
 {
   LIBCWD_DEBUGM_ASSERT(__libcwd_tsd.inside_malloc_or_free <= __libcwd_tsd.library_call || __libcwd_tsd.internal);
@@ -2368,6 +2396,11 @@ static void internal_free(appblock* ptr2, deallocated_from_nt from LIBCWD_COMMA_
     --__libcwd_tsd.inside_malloc_or_free;
     return;
   }
+
+#if LIBCWD_THREAD_SAFE && !VALGRIND
+  if (!WST_libpthread_initialized)
+    handle_delayed_calloc();
+#endif // LIBCWD_THREAD_SAFE && !VALGRIND
 
 #if LIBCWD_THREAD_SAFE
   LIBCWD_DEFER_CANCEL_NO_BRACE;
@@ -3818,52 +3851,29 @@ void* __libcwd_malloc(size_t size) noexcept
 void* __libcwd_calloc(size_t nmemb, size_t size) noexcept
 {
 #if LIBCWD_THREAD_SAFE && !VALGRIND
-  static bool WST_libpthread_initialized = false;
-  struct delayed_calloc_st {
-    appblock* ptr;
-    size_t size;
-  };
-  static delayed_calloc_st WST_delayed_calloc[2];
-  if (!WST_libpthread_initialized)
+  if (!WST_libpthread_initialized && handle_delayed_calloc())
   {
-    static int ST_libpthread_init_count = 0;
-    if (ST_libpthread_init_count == 2)
-    {
-      WST_libpthread_initialized = true;
-      LIBCWD_TSD_DECLARATION;
-      LIBCWD_DEFER_CANCEL;
-      __libcwd_tsd.internal = 1;
-      ACQUIRE_WRITE_LOCK(&(*__libcwd_tsd.thread_iter));
-      memblk_map_write->insert(memblk_ct(memblk_key_ct(WST_delayed_calloc[0].ptr, WST_delayed_calloc[0].size), memblk_info_ct(memblk_type_malloc)));
-      memblk_map_write->insert(memblk_ct(memblk_key_ct(WST_delayed_calloc[1].ptr, WST_delayed_calloc[1].size), memblk_info_ct(memblk_type_malloc)));
-      RELEASE_WRITE_LOCK;
-      __libcwd_tsd.internal = 0;
-      LIBCWD_RESTORE_CANCEL;
-    }
-    else
-    {
-      // We can't call pthread_self() or any other function of libpthread yet.
-      // Doing LIBCWD_TSD_DECLARATION would core without creating a usable backtrace.
+    // We can't call pthread_self() or any other function of libpthread yet.
+    // Doing LIBCWD_TSD_DECLARATION would core without creating a usable backtrace.
 #if CWDEBUG_MAGIC
-      size_t real_size = REAL_SIZE(nmemb * size);
-      if (nmemb * size > real_size)	// Overflow?
-	return NULL;
-      prezone* ptr1 = static_cast<prezone*>(__libc_malloc(real_size));
-      if (!ptr1)
-	return NULL;
-      appblock* ptr2 = ZONE2APP(ptr1);
-      std::memset(ptr2, 0, nmemb * size);
-      SET_MAGIC(ptr1, nmemb * size, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END);
+    size_t real_size = REAL_SIZE(nmemb * size);
+    if (nmemb * size > real_size)	// Overflow?
+      return NULL;
+    prezone* ptr1 = static_cast<prezone*>(__libc_malloc(real_size));
+    if (!ptr1)
+      return NULL;
+    appblock* ptr2 = ZONE2APP(ptr1);
+    std::memset(ptr2, 0, nmemb * size);
+    SET_MAGIC(ptr1, nmemb * size, MAGIC_MALLOC_BEGIN, MAGIC_MALLOC_END);
 #else
-      prezone* ptr1 = static_cast<prezone*>(__libc_calloc(nmemb, size));
-      if (!ptr1)
-	return NULL;
-      appblock* ptr2 = ZONE2APP(ptr1);
+    prezone* ptr1 = static_cast<prezone*>(__libc_calloc(nmemb, size));
+    if (!ptr1)
+      return NULL;
+    appblock* ptr2 = ZONE2APP(ptr1);
 #endif
-      WST_delayed_calloc[ST_libpthread_init_count].ptr = ptr2;
-      WST_delayed_calloc[ST_libpthread_init_count++].size = nmemb * size;
-      return ASSERT_APPBLOCK(ptr2);
-    }
+    WST_delayed_calloc[ST_libpthread_init_count].ptr = ptr2;
+    WST_delayed_calloc[ST_libpthread_init_count++].size = nmemb * size;
+    return ASSERT_APPBLOCK(ptr2);
   }
 #endif // LIBCWD_THREAD_SAFE && !VALGRIND
   LIBCWD_TSD_DECLARATION;
@@ -4881,7 +4891,7 @@ void operator delete[](void* void_ptr, std::nothrow_t const&) noexcept
 
 #ifdef HAVE_STD_ALIGN_VAL_T
 
-void operator delete(void* void_ptr, std::align_val_t al) noexcept
+void operator delete(void* void_ptr, std::align_val_t) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -4899,7 +4909,7 @@ void operator delete(void* void_ptr, std::align_val_t al) noexcept
 #endif
 }
 
-void operator delete(void* void_ptr, std::align_val_t al, std::nothrow_t const&) noexcept
+void operator delete(void* void_ptr, std::align_val_t, std::nothrow_t const&) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -4922,7 +4932,7 @@ void operator delete(void* void_ptr, std::align_val_t al, std::nothrow_t const&)
 #endif
 }
 
-void operator delete[](void* void_ptr, std::align_val_t al) noexcept
+void operator delete[](void* void_ptr, std::align_val_t) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE
@@ -4950,7 +4960,7 @@ void operator delete[](void* void_ptr, std::align_val_t al) noexcept
 #endif
 }
 
-void operator delete[](void* void_ptr, std::align_val_t al, std::nothrow_t const&) noexcept
+void operator delete[](void* void_ptr, std::align_val_t, std::nothrow_t const&) noexcept
 {
   appblock* ptr2 = static_cast<appblock*>(void_ptr);
 #if LIBCWD_THREAD_SAFE

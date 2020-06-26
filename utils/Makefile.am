@@ -3,7 +3,9 @@
 AUTOMAKE_OPTIONS = foreign
 
 CXXFLAGS = @CXXFLAGS@
-AM_CPPFLAGS = -I$(srcdir)/../include -I$(top_builddir)/include
+# The last include is so '#include "config.h"' works for the generated config.h.
+# Once installed that will work because it is in the same directory.
+AM_CPPFLAGS = -I$(srcdir)/../include -I$(top_builddir)/include -I$(top_builddir)/include/libcwd
 DEFAULT_INCLUDES =
 LIBS=
 

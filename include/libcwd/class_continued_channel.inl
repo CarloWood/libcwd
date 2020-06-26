@@ -15,10 +15,10 @@
 #define LIBCWD_CLASS_CONTINUED_CHANNEL_INL
 
 #ifndef LIBCWD_CLASS_CONTINUED_CHANNEL_H
-#include <libcwd/class_continued_channel.h>
+#include "class_continued_channel.h"
 #endif
 #ifndef LIBCWD_CONTROL_FLAG_H
-#include <libcwd/control_flag.h>
+#include "control_flag.h"
 #endif
 
 namespace libcwd {

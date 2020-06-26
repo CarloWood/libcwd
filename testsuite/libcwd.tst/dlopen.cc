@@ -30,9 +30,9 @@ MAIN_FUNCTION
   do
   {
 #ifdef THREADTEST
-    char const* module_name = "module_r.so";
+    char const* module_name = "./module_r.so";
 #else
-    char const* module_name = "module.so";
+    char const* module_name = "./module.so";
 #endif
     handle = dlopen(module_name, RTLD_NOW|RTLD_GLOBAL);
 

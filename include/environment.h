@@ -15,7 +15,7 @@
 #define ENVIRONMENT_H
 
 #include <iostream>
-#include <libcwd/buf2str.h>
+#include "libcwd/buf2str.h"
 
 namespace libcwd {
 

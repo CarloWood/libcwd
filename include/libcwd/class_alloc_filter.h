@@ -22,16 +22,16 @@
 #error "Don't include <libcwd/class_alloc_filter.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 
-#include <libcwd/config.h>
+#include "config.h"
 
 #if CWDEBUG_LOCATION
-#include <libcwd/class_location.h>
+#include "class_location.h"
 #endif
 
 #if CWDEBUG_ALLOC
 
 #if CWDEBUG_LOCATION
-#include <libcwd/private_allocator.h>
+#include "private_allocator.h"
 #endif
 #ifndef LIBCW_VECTOR
 #define LIBCW_VECTOR

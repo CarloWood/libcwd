@@ -13,9 +13,9 @@
 
 #include "sys.h"
 #include "cwd_debug.h"
-#include <libcwd/debug.h>
-#include <libcwd/demangle.h>
-#include <libcwd/type_info.h>
+#include "libcwd/debug.h"
+#include "libcwd/demangle.h"
+#include "libcwd/type_info.h"
 #include "macros.h"
 
 namespace libcwd {
@@ -55,9 +55,9 @@ namespace _private_ {
     size_t qlen = len - strlen(stripped_mangled_name);
     if (qlen)
       strncpy(exact_name, encap_mangled_name + 25, qlen);
-    PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
     strncpy(exact_name + qlen, stripped_mangled_name, len - qlen);
-    PRAGMA_DIAGNOSTIC_POP
+PRAGMA_DIAGNOSTIC_POP
 #endif
     exact_name[len] = 0;
     return exact_name;

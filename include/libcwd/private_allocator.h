@@ -19,23 +19,23 @@
 #define LIBCWD_PRIVATE_ALLOCATOR_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 
 #if CWDEBUG_ALLOC		// This file is not used when --disable-alloc was used.
 
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
-#include <libcwd/private_mutex_instances.h>
+#include "private_mutex_instances.h"
 #endif
 #ifndef LIBCWD_CORE_DUMP_H
-#include <libcwd/core_dump.h>
+#include "core_dump.h"
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF
 #include <cstddef>			// Needed for size_t
 #endif
 #if __GNUC__ > 3 && LIBCWD_THREAD_SAFE
-#include <libcwd/private_mutex.h>	// mutex_ct
+#include "private_mutex.h"	// mutex_ct
 #endif
 #include <memory>
 #include <limits>

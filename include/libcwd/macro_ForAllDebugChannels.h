@@ -19,13 +19,13 @@
 #define LIBCWD_MACRO_FORALLDEBUGCHANNELS_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_PRIVATE_ASSERT_H
-#include <libcwd/private_assert.h>
+#include "private_assert.h"
 #endif
 #ifndef LIBCWD_PRIVATE_INTERNAL_VECTOR_H
-#include <libcwd/private_internal_vector.h>
+#include "private_internal_vector.h"
 #endif
 
 //===================================================================================================

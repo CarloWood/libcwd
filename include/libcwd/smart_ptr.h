@@ -19,7 +19,7 @@
 #define LIBCWD_SMART_PTR_H
 
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
-#include <libcwd/private_struct_TSD.h>
+#include "private_struct_TSD.h"
 #endif
 
 namespace libcwd {

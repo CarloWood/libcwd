@@ -82,7 +82,7 @@ namespace libcwd {
     namespace channels {
       namespace dc {
 	/** \addtogroup group_default_dc */
-	/* \{ */
+	/** \{ */
 
 	/** The BFD channel. */
 	channel_ct bfd

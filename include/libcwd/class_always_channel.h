@@ -19,10 +19,10 @@
 #define LIBCWD_CLASS_ALWAYS_CHANNEL_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_CONTROL_FLAG_H
-#include <libcwd/control_flag.h>
+#include "control_flag.h"
 #endif
 
 namespace libcwd {

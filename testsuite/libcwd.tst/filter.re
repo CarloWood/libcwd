@@ -10,10 +10,10 @@
 )*
 // type regexp
 MALLOC  : Allocated memory: 4152 bytes in 3 blocks\.
-          0x55[0-9a-f]* tst_filter_shared:/home/carlo/projects/libcwd/libcwd/testsuite/libcwd\.tst/filter\.cc:54   std::vector<int, std::allocator<int> >; \(sz = 24\)  filter\.cc
+          0x5[56][0-9a-f]* tst_filter_shared:/home/carlo/projects/libcwd/libcwd/testsuite/libcwd\.tst/filter\.cc:54   std::vector<int, std::allocator<int> >; \(sz = 24\)  filter\.cc
 MALLOC  : Number of visible memory blocks: 1\.
 MALLOC  : Allocated memory: 8216 bytes in 3 blocks\.
-          0x55[0-9a-f]* tst_filter_shared:/home/carlo/projects/libcwd/libcwd/testsuite/libcwd\.tst/filter\.cc:54   std::vector<int, std::allocator<int> >; \(sz = 24\)  filter\.cc
+          0x5[56][0-9a-f]* tst_filter_shared:/home/carlo/projects/libcwd/libcwd/testsuite/libcwd\.tst/filter\.cc:54   std::vector<int, std::allocator<int> >; \(sz = 24\)  filter\.cc
 MALLOC  : Number of visible memory blocks: 1\.
 MALLOC  : delete 0x55[0-9a-f]*      new_allocator\.h:111  <unknown type>; \(sz = 4096\)  
 MALLOC  : delete 0x55[0-9a-f]*            filter\.cc:54   std::vector<int, std::allocator<int> >; \(sz = 24\)  filter\.cc 

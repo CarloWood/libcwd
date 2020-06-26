@@ -23,10 +23,10 @@
 #endif
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_MACRO_ALLOCTAG_H
-#include <libcwd/macro_AllocTag.h>
+#include "macro_AllocTag.h"
 #endif
 
 #if CWDEBUG_ALLOC
@@ -36,22 +36,22 @@
 #include <cstddef>		// Needed for size_t.
 #endif
 #ifndef LIBCWD_CLASS_ALLOC_H
-#include <libcwd/class_alloc.h>
+#include "class_alloc.h"
 #endif
 #ifndef LIBCW_LOCKABLE_AUTO_PTR_H
-#include <libcwd/lockable_auto_ptr.h>
+#include "lockable_auto_ptr.h"
 #endif
 #ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
-#include <libcwd/private_set_alloc_checking.h>
+#include "private_set_alloc_checking.h"
 #endif
 #ifndef LIBCWD_ENUM_MEMBLK_TYPES_H
-#include <libcwd/enum_memblk_types.h>
+#include "enum_memblk_types.h"
 #endif
 #if CWDEBUG_MARKER && !defined(LIBCWD_CLASS_MARKER_H)
-#include <libcwd/class_marker.h>
+#include "class_marker.h"
 #endif
 #ifndef LIBCWD_CLASS_ALLOC_FILTER_H
-#include <libcwd/class_alloc_filter.h>
+#include "class_alloc_filter.h"
 #endif
 #ifndef LIBCW_SYS_TIME_H
 #define LIBCW_SYS_TIME_H

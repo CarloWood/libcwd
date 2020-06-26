@@ -7,14 +7,15 @@ void S_destroy(void* tsd_ptr) throw()
   delete (int*)tsd_ptr;
 }
 
-int main(void)
+int main()
 {
   Debug( check_configuration() );
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
+  Debug( dc::malloc.on() );
 
   // This tests if the warning channel is turned on.
-  Dout( dc::warning, "Ok");
+  Dout(dc::warning, "Ok");
 
   pthread_key_t S_key;
   pthread_key_create(&S_key, S_destroy);
@@ -24,7 +25,7 @@ int main(void)
   int* q = (int*)pthread_getspecific(S_key);
   std::cout << "q = " << q << "; *q = " << *q << '\n';
   int* q2 = (int*)pthread_getspecific(S_key);
-  assert( q == q2 );
+  assert(q == q2);
 
   exit(0);
 }

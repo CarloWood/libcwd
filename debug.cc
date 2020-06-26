@@ -36,6 +36,7 @@
 #include <cstdlib>		// Needed for _Exit() (C99)
 #include <new>
 #include "cwd_debug.h"
+#include "macros.h"
 #include "libcwd/debug.h"
 #include <libcwd/strerrno.h>
 #include <libcwd/private_internal_stringbuf.h>
@@ -923,7 +924,7 @@ void allocator_unlock()
     }
 
     /** \addtogroup group_formatting */
-    /* \{ */
+    /** \{ */
 
     /**
      * \brief Push the current margin on a stack.
@@ -1677,7 +1678,9 @@ void allocator_unlock()
       off_cnt = 0;
 #endif
 
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
       strncpy(WNS_label, label, label_len);
+PRAGMA_DIAGNOSTIC_POP
       std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
       WNS_label[WST_max_len] = '\0';
 
@@ -1747,7 +1750,9 @@ void allocator_unlock()
         const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
       set_alloc_checking_on(LIBCWD_TSD);
 
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
       strncpy(WNS_label, label, label_len);
+PRAGMA_DIAGNOSTIC_POP
       std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
       WNS_label[WST_max_len] = '\0';
 

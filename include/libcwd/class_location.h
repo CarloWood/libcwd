@@ -19,19 +19,19 @@
 #define LIBCWD_CLASS_LOCATION_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 
 #if CWDEBUG_LOCATION
 
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
-#include <libcwd/private_struct_TSD.h>
+#include "private_struct_TSD.h"
 #endif
 #ifndef LIBCWD_CLASS_OBJECT_FILE_H
-#include <libcwd/class_object_file.h>
+#include "class_object_file.h"
 #endif
 #ifndef LIBCW_LOCKABLE_AUTO_PTR_H
-#include <libcwd/lockable_auto_ptr.h>
+#include "lockable_auto_ptr.h"
 #endif
 #ifndef LIBCW_STRING
 #define LIBCW_STRING
@@ -64,7 +64,7 @@ template<class OSTREAM>
 
 // This header file uses hidden_st
 #ifndef LIBCWD_CLASS_ALLOC_FILTER_H
-#include <libcwd/class_alloc_filter.h>
+#include "class_alloc_filter.h"
 #endif
 
 namespace libcwd {

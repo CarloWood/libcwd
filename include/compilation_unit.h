@@ -14,8 +14,8 @@
 #ifndef COMPILATION_UNIT_H
 #define COMPILATION_UNIT_H
 
-#include <libcwd/private_internal_string.h>
-#include <libcwd/class_function.h>
+#include "libcwd/private_internal_string.h"
+#include "libcwd/class_function.h"
 #ifndef LIBCW_VECTOR
 #define LIBCW_VECTOR
 #include <vector>

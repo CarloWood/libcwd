@@ -46,6 +46,6 @@
 // Word around (if any):
 @CW_SYS_REDEFINES_FIX@
 
-#include <libcwd/sys.h>
+#include "libcwd/sys.h"
 
 #endif // SYS_H

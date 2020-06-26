@@ -17,13 +17,13 @@
 #if CWDEBUG_ALLOC
 
 #ifndef LIBCWD_PRIVATE_THREAD_H
-#include <libcwd/private_thread.h>
+#include "private_thread.h"
 #endif
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
-#include <libcwd/private_struct_TSD.h>
+#include "private_struct_TSD.h"
 #endif
 #ifndef LIBCWD_MACRO_ALLOCTAG_H
-#include <libcwd/macro_AllocTag.h>
+#include "macro_AllocTag.h"
 #endif
 
 namespace libcwd {

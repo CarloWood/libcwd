@@ -15,10 +15,10 @@
 #define LIBCWD_SET_OSTREAM_INL
 
 #ifndef LIBCWD_PRIVATE_LOCK_INTERFACE_H
-#include <libcwd/private_lock_interface.h>
+#include "private_lock_interface.h"
 #endif
 #ifndef LIBCWD_PRIVATE_THREADING_H
-#include <libcwd/private_threading.h>
+#include "private_threading.h"
 #endif
 
 #if LIBCWD_THREAD_SAFE || defined(LIBCWD_DOXYGEN)

@@ -18,6 +18,7 @@
 
 #include "cwd_debug.h"
 #include "cwd_bfd.h"
+#include "macros.h"
 #ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
@@ -100,9 +101,11 @@ void Function::M_init(char const* expr, unsigned int flags)
         char* errbuf = (char*)malloc(sz);			// Leaks memory.
 	set_alloc_checking_on(LIBCWD_TSD);
 	regerror(errcode, &re, errbuf, sz);
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_frame_address
 	location_ct loc0((char*)__builtin_return_address(0) + builtin_return_address_offset);
 	location_ct loc1((char*)__builtin_return_address(1) + builtin_return_address_offset);
 	location_ct loc2((char*)__builtin_return_address(2) + builtin_return_address_offset);
+PRAGMA_DIAGNOSTIC_POP
 	Dout(dc::notice, "loc0 = " << loc0);
 	Dout(dc::notice, "loc1 = " << loc1);
 	Dout(dc::notice, "loc2 = " << loc2);

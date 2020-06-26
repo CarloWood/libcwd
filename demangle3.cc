@@ -44,9 +44,9 @@ The direct use of these functions should be avoided, instead use the function ty
 
 #include "sys.h"
 #include "cwd_debug.h"
-#include <libcwd/debug.h>
-#include <libcwd/demangle.h>
-#include <libcwd/private_assert.h>
+#include "libcwd/debug.h"
+#include "libcwd/demangle.h"
+#include "libcwd/private_assert.h"
 
 #include <limits>
 
@@ -110,7 +110,7 @@ namespace libcwd {
   } while(0)
 #endif // STANDALONE
 
-#include <demangle.h>			// The actual demangler code.
+#include "cwd_demangle.h"	// The actual demangler code.
 
 namespace
 {

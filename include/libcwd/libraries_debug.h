@@ -24,7 +24,7 @@
 
 #ifdef CWDEBUG
 
-#include <libcwd/config.h>
+#include "config.h"
 
 // See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html for more information on -D_GLIBCXX_DEBUG
 #if defined(_GLIBCXX_DEBUG) && !CWDEBUG_GLIBCXX_DEBUG
@@ -38,10 +38,10 @@
 // The global debug channels used by libcwd.
 //
 
-#include <libcwd/class_channel.h>
-#include <libcwd/class_fatal_channel.h>
-#include <libcwd/class_continued_channel.h>
-#include <libcwd/class_always_channel.h>
+#include "class_channel.h"
+#include "class_fatal_channel.h"
+#include "class_continued_channel.h"
+#include "class_always_channel.h"
 
 namespace libcwd {
 
@@ -87,7 +87,7 @@ namespace channels {
 // The global debug object
 //
 
-#include <libcwd/class_debug.h>
+#include "class_debug.h"
 
 namespace libcwd {
 
@@ -99,7 +99,7 @@ extern debug_ct libcw_do;
 // Macros
 //
 
-#include <libcwd/macro_Libcwd_macros.h>
+#include "macro_Libcwd_macros.h"
 
 // For use in (libcwd) library header files: do not redefine these!
 // Developers of libraries are recommended to define their own macro names,
@@ -131,29 +131,29 @@ namespace libcwd_inserters {
 } // namespace libcwd_inserters
 using namespace libcwd_inserters;
 
-#include <libcwd/macro_ForAllDebugChannels.h>
-#include <libcwd/macro_ForAllDebugObjects.h>
-#include <libcwd/private_environ.h>
-#include <libcwd/class_rcfile.h>
-#include <libcwd/attach_gdb.h>
-#include <libcwd/demangle.h>
+#include "macro_ForAllDebugChannels.h"
+#include "macro_ForAllDebugObjects.h"
+#include "private_environ.h"
+#include "class_rcfile.h"
+#include "attach_gdb.h"
+#include "demangle.h"
 
 // Include the inline functions.
-#include <libcwd/private_allocator.inl>		// Implementation of allocator_adaptor template.
-#include <libcwd/class_channel.inl>		// Debug channels.
-#include <libcwd/class_fatal_channel.inl>
-#include <libcwd/class_continued_channel.inl>
-#include <libcwd/class_always_channel.inl>
-#include <libcwd/class_debug.inl>		// Debug objects (debug_ct).
-#include <libcwd/class_debug_string.inl>	// Public member of debug_ct.
-#include <libcwd/class_channel_set.inl>		// Used in macro Dout et al.
-#include <libcwd/class_location.inl>
+#include "private_allocator.inl"		// Implementation of allocator_adaptor template.
+#include "class_channel.inl"		// Debug channels.
+#include "class_fatal_channel.inl"
+#include "class_continued_channel.inl"
+#include "class_always_channel.inl"
+#include "class_debug.inl"		// Debug objects (debug_ct).
+#include "class_debug_string.inl"	// Public member of debug_ct.
+#include "class_channel_set.inl"		// Used in macro Dout et al.
+#include "class_location.inl"
 
 // Include optional features.
 #if CWDEBUG_LOCATION				// --enable-location
-#include <libcwd/bfd.h>
+#include "bfd.h"
 #endif
-#include <libcwd/debugmalloc.h>			// --enable-alloc
+#include "debugmalloc.h"			// --enable-alloc
 
 #endif // CWDEBUG
 #endif // LIBCWD_LIBRARIES_DEBUG_H

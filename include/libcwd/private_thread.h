@@ -19,10 +19,10 @@
 #define LIBCWD_PRIVATE_THREAD_H
 
 #ifndef LIBCWD_PRIVATE_MUTEX_H
-#include <libcwd/private_mutex.h>
+#include "private_mutex.h"
 #endif
 #ifndef LIBCWD_PRIVATE_ALLOCATOR_H
-#include <libcwd/private_allocator.h>
+#include "private_allocator.h"
 #endif
 #ifndef LIBCW_LIST
 #define LIBCW_LIST

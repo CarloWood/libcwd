@@ -19,7 +19,7 @@
 #define LIBCWD_CONTROL_FLAG_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 
 namespace libcwd {

@@ -214,7 +214,7 @@ if (OptionEnableLibcwdLocation)
   CW_SYS_PS_WIDE_PID_OPTION()
 endif ()
 
-# Needed for cmake-config.h.in, then used in subdirectory utils.
+# Needed for subst-config.h.in, then used in subdirectory utils.
 set(libcwd_datadir "${CMAKE_INSTALL_PREFIX}/share")
 
 configure_file("cmake-config.h.in" "config.h")
@@ -280,10 +280,13 @@ target_compile_definitions(cwd_r
 
 target_include_directories(cwd_r
     PRIVATE
-        ${top_objdir}/include
-        ${top_srcdir}/include
+        "${top_srcdir}/include"
+        "${top_objdir}/include"
+        # Include libcwd so that '#include "config.h"' works for the generated config.h.
+        # Once installed that will work because it is in the same directory.
+        "${top_objdir}/include/libcwd"
     INTERFACE
-        $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
+        "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
 )
 
 target_link_libraries(cwd_r

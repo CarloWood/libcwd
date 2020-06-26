@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
   Debug( libcw_do.set_ostream(&cout) );
 
   // Turn debug object on
-  Debug( libcw_do.on() ); 
+  Debug( libcw_do.on() );
 
   // Allocate new object
   A* a1 = new A;
@@ -65,7 +65,4 @@ int main(int argc, char* argv[])
 #else
   DoutFatal(dc::fatal, "Please reconfigure libcwd with --enable-alloc.");
 #endif
-  return 0;
 }
-
-

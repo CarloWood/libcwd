@@ -12,7 +12,7 @@
 
 #include <fstream>
 
-int main(void)
+int main()
 {
   Debug( dc::notice.on() );
   Debug( libcw_do.on() );
@@ -26,6 +26,4 @@ int main(void)
   Debug( libcw_do.set_ostream(&file) );
 
   Dout(dc::notice, "Hippopotamus are heavy");
-
-  return 0;
 }

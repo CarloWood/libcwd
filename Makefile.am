@@ -1,7 +1,9 @@
 include $(srcdir)/cwm4/root_makefile_top.am
 
 DEFAULT_INCLUDES =
-AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
+# The last include is so '#include "config.h"' works for the generated config.h.
+# Once installed that will work because it is in the same directory.
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/include/libcwd
 
 SUBDIRS = @CW_SUBDIRS@ include utils . tests testsuite cutee doc
 DIST_SUBDIRS = include utils tests testsuite cutee doc

@@ -15,7 +15,7 @@
 #define LIBCWD_PRIVATE_ENVIRON_H
 
 #ifndef LIBCWD_SYS_H
-#error "You need to #include "sys.h" at the top of every source file (which in turn should #include <libcwd/sys.h>)."
+#error "You need to #include "sys.h" at the top of every source file (which in turn should #include "sys.h")."
 #endif
 
 namespace libcwd {

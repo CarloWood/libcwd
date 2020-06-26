@@ -35,7 +35,7 @@
 #else // CWDEBUG (normal usage of this file):
 
 #ifndef LIBCWD_SYS_H
-#error "You need to #include "sys.h" at the top of every source file (which in turn should #include <libcwd/sys.h>)."
+#error "You need to #include "sys.h" at the top of every source file (which in turn should #include "sys.h")."
 #endif
 
 #if defined(LIBCWD_DEFAULT_DEBUGCHANNELS) && defined(DEBUGCHANNELS)
@@ -70,7 +70,7 @@
 #ifdef CWDEBUG
 
 // The following header is also needed for end-applications, despite its name.
-#include <libcwd/libraries_debug.h>
+#include "libraries_debug.h"
 
 #ifndef LIBCWD_DOXYGEN
 

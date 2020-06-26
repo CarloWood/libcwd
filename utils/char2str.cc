@@ -34,7 +34,7 @@ namespace libcwd {
       os.put(c2s_tab[c - 7]);
       return;
     }
-    else if (c == '\e')
+    else if (c == 27)
     {
       os.put('e');
       return;

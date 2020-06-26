@@ -15,22 +15,22 @@
 #define LIBCWD_CLASS_CHANNEL_SET_INL
 
 #ifndef LIBCWD_CLASS_CHANNEL_SET_H
-#include <libcwd/class_channel_set.h>
+#include "class_channel_set.h"
 #endif
 #ifndef LIBCWD_CLASS_CHANNEL_H
-#include <libcwd/class_channel.h>
+#include "class_channel.h"
 #endif
 #ifndef LIBCWD_CLASS_FATAL_CHANNEL_H
-#include <libcwd/class_fatal_channel.h>
+#include "class_fatal_channel.h"
 #endif
 #ifndef LIBCWD_CONTROL_FLAG_H
-#include <libcwd/control_flag.h>
+#include "control_flag.h"
 #endif
 #ifndef LIBCWD_CLASS_CHANNEL_INL
-#include <libcwd/class_channel.inl>
+#include "class_channel.inl"
 #endif
 #ifndef LIBCWD_CLASS_FATAL_CHANNEL_INL
-#include <libcwd/class_fatal_channel.inl>
+#include "class_fatal_channel.inl"
 #endif
 
 namespace libcwd {

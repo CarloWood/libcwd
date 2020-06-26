@@ -6,7 +6,7 @@ define(CW_PACKAGE_NAME, [libcwd])
 define(CW_BUGREPORT, [libcwd@alinoe.com])
 
 # Compile configuration.
-define(CW_COMPILE_FLAGS, [-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Wno-inline -Wno-frame-address])
+define(CW_COMPILE_FLAGS, [-W -Wall -Woverloaded-virtual -Wundef -Wpointer-arith -Wwrite-strings -Wno-inline])
 define(CW_THREADS, [no])
 
 # Version info, see http://www.gnu.org/software/libtool/manual/libtool.html#Updating-version-info

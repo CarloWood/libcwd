@@ -19,13 +19,13 @@
 #define LIBCWD_PRIVATE_STRUCT_TSD_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_PRIVATE_ASSERT_H
-#include <libcwd/private_assert.h>
+#include "private_assert.h"
 #endif
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
-#include <libcwd/private_mutex_instances.h>
+#include "private_mutex_instances.h"
 #endif
 #ifndef LIBCW_CSTRING
 #define LIBCW_CSTRING
@@ -36,7 +36,7 @@
 #include <limits.h>	// For PTHREAD_THREADS_MAX
 #endif
 #if LIBCWD_THREAD_SAFE
-#include <libcwd/private_mutex.h>
+#include "private_mutex.h"
 #ifdef LIBCWD_HAVE_PTHREAD
 #ifndef LIBCW_PTHREAD_H
 #define LIBCW_PTHREAD_H
@@ -100,11 +100,11 @@ namespace libcwd {
 
 // These includes use the above macros.
 #ifndef LIBCWD_STRUCT_DEBUG_TSD_H
-#include <libcwd/struct_debug_tsd.h>
+#include "struct_debug_tsd.h"
 #endif
 #if LIBCWD_THREAD_SAFE
 #ifndef LIBCWD_PRIVATE_THREAD_H
-#include <libcwd/private_thread.h>
+#include "private_thread.h"
 #endif
 #endif
 

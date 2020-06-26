@@ -23,7 +23,7 @@
 #endif
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 
 #if CWDEBUG_ALLOC
@@ -33,16 +33,16 @@
 #include <cstddef>		// Needed for size_t.
 #endif
 #ifndef LIBCWD_SMART_PTR_H
-#include <libcwd/smart_ptr.h>
+#include "smart_ptr.h"
 #endif
 #ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
-#include <libcwd/private_set_alloc_checking.h>
+#include "private_set_alloc_checking.h"
 #endif
 #ifndef LIBCWD_TYPE_INFO_H
-#include <libcwd/type_info.h>
+#include "type_info.h"
 #endif
 #ifndef LIBCWD_PRIVATE_INTERNAL_STRINGSTREAM_H
-#include <libcwd/private_internal_stringstream.h>
+#include "private_internal_stringstream.h"
 #endif
 
 namespace libcwd {

@@ -19,7 +19,7 @@
 #define LIBCWD_TYPE_INFO_H
 
 #ifndef LIBCWD_PRIVATE_THREADING_H
-#include <libcwd/private_threading.h>
+#include "private_threading.h"
 #endif
 #ifndef LIBCW_TYPEINFO
 #define LIBCW_TYPEINFO

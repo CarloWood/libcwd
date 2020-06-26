@@ -19,13 +19,13 @@
 #define LIBCWD_PRIVATE_INTERNAL_STRINGSTREAM_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_PRIVATE_ALLOCATOR_H
-#include <libcwd/private_allocator.h>
+#include "private_allocator.h"
 #endif
 #if CWDEBUG_DEBUGM && !defined(LIBCWD_PRIVATE_STRUCT_TSD_H)
-#include <libcwd/private_struct_TSD.h>
+#include "private_struct_TSD.h"
 #endif
 #ifndef LIBCW_SSTREAM
 #define LIBCW_SSTREAM

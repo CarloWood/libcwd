@@ -23,7 +23,7 @@
 #define LIBCWD_BUF2STR_H
 
 #ifndef LIBCWD_CHAR2STR_H
-#include <libcwd/char2str.h>
+#include "char2str.h"
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF
@@ -78,7 +78,7 @@ public:
   operator<<(std::ostream& os, buf2str const& __buf2str)
   {
     size_t size = __buf2str.M_size;
-    for (char const* p1 = __buf2str.M_buf; size > 0; --size, p1++)
+    for (char const* p1 = __buf2str.M_buf; size > 0; --size, ++p1)
       os << char2str(*p1);
     return os;
   }

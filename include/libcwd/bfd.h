@@ -19,13 +19,13 @@
 #define LIBCWD_BFD_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_CLASS_LOCATION_H
-#include <libcwd/class_location.h>
+#include "class_location.h"
 #endif
 #ifndef LIBCWD_PC_MANGLED_FUNCTION_NAME_H
-#include <libcwd/pc_mangled_function_name.h>
+#include "pc_mangled_function_name.h"
 #endif
 
 #if CWDEBUG_ALLOC

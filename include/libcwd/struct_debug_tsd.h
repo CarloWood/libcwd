@@ -15,19 +15,19 @@
 #define LIBCWD_STRUCT_DEBUG_TSD_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_CLASS_CHANNEL_SET_H
-#include <libcwd/class_channel_set.h>
+#include "class_channel_set.h"
 #endif
 #ifndef LIBCWD_PRIVATE_DEBUG_STACK_H
-#include <libcwd/private_debug_stack.h>
+#include "private_debug_stack.h"
 #endif
 #ifndef LIBCWD_CLASS_DEBUG_STRING_H
-#include <libcwd/class_debug_string.h>
+#include "class_debug_string.h"
 #endif
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
-#include <libcwd/private_struct_TSD.h>
+#include "private_struct_TSD.h"
 #endif
 #ifndef LIBCW_IOSFWD
 #define LIBCW_IOSFWD

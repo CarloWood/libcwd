@@ -19,7 +19,7 @@
 #define LIBCWD_CLASS_MARKER_H
 
 #ifndef LIBCWD_CLASS_ALLOC_FILTER_H
-#include <libcwd/class_alloc_filter.h>
+#include "class_alloc_filter.h"
 #endif
 
 namespace libcwd {

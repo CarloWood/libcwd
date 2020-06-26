@@ -14,8 +14,11 @@ target_sources(libcwd_utils_ObjLib
 
 target_include_directories(libcwd_utils_ObjLib
     PRIVATE
-        "${CMAKE_CURRENT_BINARY_DIR}/../include"
         "${CMAKE_CURRENT_SOURCE_DIR}/../include"
+        "${CMAKE_CURRENT_BINARY_DIR}/../include"
+        # Include libcwd so that '#include "config.h"' works for the generated config.h.
+        # Once installed that will work because it is in the same directory.
+        "${CMAKE_CURRENT_BINARY_DIR}/../include/libcwd"
 )
 
 target_compile_definitions(libcwd_utils_ObjLib

@@ -15,10 +15,10 @@
 #define LIBCWD_CLASS_FATAL_CHANNEL_INL
 
 #ifndef LIBCWD_CLASS_FATAL_CHANNEL_H
-#include <libcwd/class_fatal_channel.h>
+#include "class_fatal_channel.h"
 #endif
 #ifndef LIBCWD_CONTROL_FLAG_H
-#include <libcwd/control_flag.h>
+#include "control_flag.h"
 #endif
 
 namespace libcwd {

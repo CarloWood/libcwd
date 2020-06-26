@@ -15,13 +15,13 @@
 #define LIBCWD_CLASS_DEBUG_STRING_INL
 
 #ifndef LIBCWD_CLASS_DEBUG_STRING_H
-#include <libcwd/class_debug_string.h>
+#include "class_debug_string.h"
 #endif
 #ifndef LIBCWD_PRIVATE_THREADING_H
-#include <libcwd/private_threading.h>
+#include "private_threading.h"
 #endif
 #ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
-#include <libcwd/private_set_alloc_checking.h>
+#include "private_set_alloc_checking.h"
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF

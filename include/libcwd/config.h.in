@@ -310,6 +310,10 @@
 #endif
 #endif
 
+#ifndef LIBCWD_THREAD_SAFE
+#define LIBCWD_THREAD_SAFE 0
+#endif
+
 #if LIBCWD_THREAD_SAFE
 
 #define LIBCWD_DO_MAX 8                         // Maximal total number of debug objects in a single application.
@@ -340,7 +344,6 @@
 
 #define CWDEBUG_DEBUGT @CW_CONFIG_DEBUGT@
 #else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_THREAD_SAFE 0
 #define CWDEBUG_DEBUGT 0
 #endif // !LIBCWD_THREAD_SAFE
 

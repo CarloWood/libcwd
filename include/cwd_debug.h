@@ -14,19 +14,19 @@
 #ifndef CWD_DEBUG_H
 #define CWD_DEBUG_H
 
-#include <libcwd/config.h>
+#include "libcwd/config.h"
 #ifndef RAW_WRITE_H
-#include <raw_write.h>
+#include "raw_write.h"
 #endif
 #ifndef RAW_WRITE_INL
-#include <raw_write.inl>
+#include "raw_write.inl"
 #endif
 #ifndef LIBCW_IOSTREAM
 #define LIBCW_IOSTREAM
 #include <iostream>
 #endif
 #ifndef LIBCWD_PRIVATE_INTERNAL_STRING_H
-#include <libcwd/private_internal_string.h>
+#include "libcwd/private_internal_string.h"
 #endif
 
 extern "C" size_t strlen(const char *s) throw();

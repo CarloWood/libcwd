@@ -15,22 +15,22 @@
 #define LIBCWD_CLASS_LOCATION_INL
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 
 #if CWDEBUG_LOCATION
 
 #ifndef LIBCWD_LIBRARIES_DEBUG_H
-#include <libcwd/libraries_debug.h>
+#include "libraries_debug.h"
 #endif
 #ifndef LIBCWD_PRIVATE_ASSERT_H
-#include <libcwd/private_assert.h>
+#include "private_assert.h"
 #endif
 #ifndef LIBCWD_PRIVATE_THREADING_H
-#include <libcwd/private_threading.h>
+#include "private_threading.h"
 #endif
 #ifndef LIBCWD_CLASS_LOCATION_H
-#include <libcwd/class_location.h>
+#include "class_location.h"
 #endif
 #ifndef LIBCW_STRING
 #define LIBCW_STRING

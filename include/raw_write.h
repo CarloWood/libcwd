@@ -12,13 +12,13 @@
 //
 
 #ifndef LIBCWD_PRIVATE_THREADING_H
-#include <libcwd/private_threading.h>
+#include "libcwd/private_threading.h"
 #endif
 
 #ifndef RAW_WRITE_H
 #define RAW_WRITE_H
 
-#include <libcwd/config.h>
+#include "libcwd/config.h"
 
 #if CWDEBUG_DEBUG
 #if CWDEBUG_DEBUGT
@@ -113,7 +113,7 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 #if !defined(LIBCWD_NO_INTERNAL_STRING) && !defined(LIBCWD_RAW_WRITE_INTERNAL_STRING)
 #define LIBCWD_RAW_WRITE_INTERNAL_STRING
 #ifndef LIBCWD_NO_INTERNAL_STRING
-#include <libcwd/private_internal_string.h>
+#include "libcwd/private_internal_string.h"
 #endif
 #if CWDEBUG_DEBUG
 namespace libcwd {

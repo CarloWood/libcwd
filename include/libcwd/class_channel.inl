@@ -15,10 +15,10 @@
 #define LIBCWD_CLASS_CHANNEL_INL
 
 #ifndef LIBCWD_CLASS_CHANNEL_H
-#include <libcwd/class_channel.h>
+#include "class_channel.h"
 #endif
 #ifndef LIBCWD_PRIVATE_THREADING_H
-#include <libcwd/private_threading.h>
+#include "private_threading.h"
 #endif
 
 namespace libcwd {

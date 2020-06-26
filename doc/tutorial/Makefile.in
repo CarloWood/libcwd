@@ -90,13 +90,13 @@ $(SOURCES7): $(srcdir)/tut7.in
 	fi
 
 $(AOUT5): examples5/%-bin: examples5/%.cc examples5/debug.o examples5/debug.h $(srcdir)/examples5/sys.h $(srcdir)/examples5/sysinclude/libbooster/debug.h $(srcdir)/examples5/sysinclude/libturbo/debug.h ../../.libs/libcwd.so
-	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples5 -Iexamples5 -I$(srcdir)/examples5/sysinclude -I$(srcdir)/../../include -I../../include \
+	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples5 -Iexamples5 -I$(srcdir)/examples5/sysinclude -I$(srcdir)/../../include -I../../include -I ../../include/libcwd \
 		$< examples5/debug.o -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
 
 examples5/debug.o: examples5/debug.cc examples5/debug.h $(srcdir)/examples5/sys.h $(srcdir)/examples5/sysinclude/libbooster/debug.h $(srcdir)/examples5/sysinclude/libturbo/debug.h ../../include/libcwd/sys.h
-	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples5 -Iexamples5 -I$(srcdir)/examples5/sysinclude -I$(srcdir)/../../include -I../../include -c $< -o $@
+	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples5 -Iexamples5 -I$(srcdir)/examples5/sysinclude -I$(srcdir)/../../include -I../../include -I../../include/libcwd -c $< -o $@
 
 $(AOUT7): examples7/%-bin: examples7/%.cc $(srcdir)/examples7/sys.h $(srcdir)/examples7/debug.h ../../.libs/libcwd.so
-	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples7 -Iexamples7 -I$(srcdir)/../../include -I../../include \
+	$(CXX) -g -pipe -DCWDEBUG -I$(srcdir)/examples7 -Iexamples7 -I$(srcdir)/../../include -I../../include -I../../include/libcwd \
 		$< -L../../.libs -Wl,-rpath,$(shell (cd ../../.libs; pwd)) -lcwd -o $@
 

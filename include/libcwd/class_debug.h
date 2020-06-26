@@ -19,19 +19,19 @@
 #define LIBCWD_CLASS_DEBUG_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_CLASS_CHANNEL_SET_H
-#include <libcwd/class_channel_set.h>
+#include "class_channel_set.h"
 #endif
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
-#include <libcwd/private_struct_TSD.h>
+#include "private_struct_TSD.h"
 #endif
 #ifndef LIBCWD_STRUCT_DEBUG_TSD_H
-#include <libcwd/struct_debug_tsd.h>
+#include "struct_debug_tsd.h"
 #endif
 #ifndef LIBCWD_PRIVATE_LOCK_INTERFACE_H
-#include <libcwd/private_lock_interface.h>
+#include "private_lock_interface.h"
 #endif
 #ifndef LIBCW_IOSFWD
 #define LIBCW_IOSFWD
@@ -259,7 +259,7 @@ template<>
 }  // namespace libcwd
 
 #ifndef LIBCWD_SET_OSTREAM_INL
-#include <libcwd/set_ostream.inl>
+#include "set_ostream.inl"
 #endif
 
 #endif // LIBCWD_CLASS_DEBUG_H

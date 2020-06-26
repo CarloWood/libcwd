@@ -19,10 +19,10 @@
 #define LIBCWD_PRIVATE_INTERNAL_STRING_H
 
 #ifndef LIBCWD_CONFIG_H
-#include <libcwd/config.h>
+#include "config.h"
 #endif
 #ifndef LIBCWD_PRIVATE_ALLOCATOR_H
-#include <libcwd/private_allocator.h>
+#include "private_allocator.h"
 #endif
 #ifndef LIBCW_STRING
 #define LIBCW_STRING

@@ -17,11 +17,11 @@
 
 namespace example {                           // namespace dc cannot be put in ::
   namespace dc {
-    libcwd::channel_ct ghost("GHOST");  // Create our own Debug Channel
+    libcwd::channel_ct ghost("GHOST");        // Create our own Debug Channel
   }
 }
 
-int main(void)
+int main()
 {
   Debug( dc::ghost.on() );                    // Remember: don't forget to turn
   Debug( libcw_do.on() );                     // the debug Channel and Object on!  
@@ -29,5 +29,4 @@ int main(void)
   for (int i = 0; i < 4; ++i)
     Dout(dc::ghost, "i = " << i);             // We can write more than just
 					      // "Hello World" to the ostream :)
-  return 0;
 }

@@ -18,7 +18,7 @@
 #if CWDEBUG_DEBUG
 
 #ifndef LIBCWD_PRIVATE_INTERNAL_STRING_H
-#include <libcwd/private_internal_string.h>
+#include "libcwd/private_internal_string.h"
 #endif
 
 namespace libcwd {

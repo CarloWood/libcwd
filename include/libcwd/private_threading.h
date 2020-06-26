@@ -48,16 +48,16 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #endif // !LIBCWD_DEBUGDEBUGRWLOCK
 
 #ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
-#include <libcwd/private_set_alloc_checking.h>
+#include "private_set_alloc_checking.h"
 #endif
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
-#include <libcwd/private_struct_TSD.h>
+#include "private_struct_TSD.h"
 #endif
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
-#include <libcwd/private_mutex_instances.h>
+#include "private_mutex_instances.h"
 #endif
 #ifndef LIBCWD_CORE_DUMP_H
-#include <libcwd/core_dump.h>
+#include "core_dump.h"
 #endif
 #ifndef LIBCW_CSTRING
 #define LIBCW_CSTRING
@@ -103,7 +103,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 
 #if CWDEBUG_DEBUGT || CWDEBUG_DEBUG
 #ifndef LIBCWD_PRIVATE_ASSERT_H
-#include <libcwd/private_assert.h>
+#include "private_assert.h"
 #endif
 #endif
 
