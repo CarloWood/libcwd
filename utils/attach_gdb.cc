@@ -45,8 +45,8 @@ void attach_gdb()
   pid_t pid1 = getpid();
   std::ofstream f;
   f.open("gdb.cmds");
-  f << "set scheduler-locking step\nhandle SIG34 nostop\nset substitute-path /build/gcc-8-sYUbZB/gcc-8-8.2.0/build/x86_64-linux-gnu/libstdc++-v3/include /usr/include/c++/8\n";
-  f << "b *" << __builtin_return_address(0) << "\nset libcwd_attach_gdb_hook=0\nc\n";
+//  f << "set scheduler-locking step\nhandle SIG34 nostop\nset substitute-path /build/gcc-8-sYUbZB/gcc-8-8.2.0/build/x86_64-linux-gnu/libstdc++-v3/include /usr/include/c++/8\n";
+  f << "b *" << __builtin_return_address(0) << "\nset (int)libcwd_attach_gdb_hook=0\nc\n";
   f.close();
   char command[256];
   Dout(dc::always, "gdb = \"" << rcfile.gdb_bin() << "\".");
