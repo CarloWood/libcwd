@@ -1027,8 +1027,6 @@ protected:
 public:
   memblk_info_base_ct() { }
   memblk_info_base_ct(memblk_types_nt memblk_type) : M_memblk_type(memblk_type), M_flags(0) { }
-  memblk_info_base_ct(memblk_info_base_ct const& memblk_info_base) :
-      M_memblk_type(memblk_info_base.M_memblk_type), M_flags(memblk_info_base.M_flags) { }
   memblk_types_nt flags() const { return (memblk_types_nt)M_memblk_type; }
   void set_watch() const { M_flags |= memblk_info_flag_watch; }
   bool is_watched() const { return (M_flags & memblk_info_flag_watch); }
@@ -4663,7 +4661,7 @@ void* operator new(std::size_t size, std::align_val_t al)
   return ASSERT_APPBLOCK(ptr2);
 }
 
-void* operator new(std::size_t size, std::align_val_t al, std::nothrow_t const&)
+void* operator new(std::size_t size, std::align_val_t al, std::nothrow_t const&) noexcept
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM
@@ -4758,7 +4756,7 @@ void* operator new[](std::size_t size, std::align_val_t al)
   return ASSERT_APPBLOCK(ptr2);
 }
 
-void* operator new[](std::size_t size, std::align_val_t al, std::nothrow_t const&)
+void* operator new[](std::size_t size, std::align_val_t al, std::nothrow_t const&) noexcept
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGM

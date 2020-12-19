@@ -4,10 +4,3 @@
 #endif
 #include <libcwd/sys.h>
 #endif
-#include <_G_config.h>
-#ifndef _G_CLOG_CONFLICT
-#define _G_CLOG_CONFLICT 0
-#endif
-#ifndef _G_HAS_LABS
-#define _G_HAS_LABS 0
-#endif

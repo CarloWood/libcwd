@@ -35,33 +35,68 @@ namespace _private_ {
 
 #if __GXX_ABI_VERSION == 0
   char const* extract_exact_name(char const* encap_mangled_name LIBCWD_COMMA_TSD_PARAM)
-#else
-  char const* extract_exact_name(char const* encap_mangled_name, char const* stripped_mangled_name LIBCWD_COMMA_TSD_PARAM)
-#endif
   {
-#if __GXX_ABI_VERSION == 0
     size_t len = strlen(encap_mangled_name + 27);		// Strip "Q22libcwd_type_info_exact1Z" from the beginning.
-#else
-    size_t len = strlen(encap_mangled_name + 25) - 1;		// Strip "22libcwd_type_info_exactI" from the beginning and "E" from the end.
-#endif
     set_alloc_checking_off(LIBCWD_TSD);
     char* exact_name = new char[len + 1];			// LEAK58
     set_alloc_checking_on(LIBCWD_TSD);
-#if __GXX_ABI_VERSION == 0
     strncpy(exact_name, encap_mangled_name + 27, len);
-#else
-    // The substitution offset in encap_mangled_name is wrong, but in stripped_mangled_name
-    // there are leading qualifiers missing.  Construct the real mangled name:
-    size_t qlen = len - strlen(stripped_mangled_name);
-    if (qlen)
-      strncpy(exact_name, encap_mangled_name + 25, qlen);
-PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
-    strncpy(exact_name + qlen, stripped_mangled_name, len - qlen);
-PRAGMA_DIAGNOSTIC_POP
-#endif
     exact_name[len] = 0;
     return exact_name;
   }
+#else
+  char const* skip_substitution(char const* const ptr, char const* const begin)
+  {
+    char const* S_ptr = ptr;
+    while (S_ptr > begin)
+    {
+      --S_ptr;
+      if (*S_ptr == 'S')
+        return S_ptr;
+      if (*S_ptr < '0' || *S_ptr > '9')
+        break;
+    }
+    return ptr;
+  }
+
+  // As an example, the input could be:
+  //
+  // encap_mangled_name = 22libcwd_type_info_exactIRKN4evio14AcceptedSocketI23MyAcceptedSocketDecoderNS0_12OutputStreamEEEE
+  // stripped_mangled_name =                         N4evio14AcceptedSocketI23MyAcceptedSocketDecoderNS _12OutputStreamEEE
+  // where the space in the latter is not really there (just added for alignment)               -------^
+  char const* extract_exact_name(char const* encap_mangled_name, char const* stripped_mangled_name LIBCWD_COMMA_TSD_PARAM)
+  {
+    encap_mangled_name += 25;		                        // Strip "22libcwd_type_info_exactI" from the beginning.
+    // encap_mangled_name now points to the qualifiers string (if any) "RK".
+    char const* encap_ptr = encap_mangled_name + strlen(encap_mangled_name) - 1;
+    // encap_ptr now points to the last E of encap_mangled_name.
+    size_t len = strlen(stripped_mangled_name);
+    char const* ptr = stripped_mangled_name + len;
+    // ptr now points to the terminating zero of stripped_mangled_name.
+    while (ptr > stripped_mangled_name)
+    {
+      --ptr;
+      --encap_ptr;
+      LIBCWD_ASSERT(*ptr == *encap_ptr);        // This is how we assume the encapsulation works!
+      if (*ptr == '_')
+      {
+        // Now we want to put both pointers on the 'S',
+        // but only if this could be a substitution.
+        ptr = skip_substitution(ptr, stripped_mangled_name);
+        encap_ptr = skip_substitution(encap_ptr, encap_mangled_name);
+      }
+    }
+    // ptr is now equal to stripped_mangled_name, and encap_ptr points to the first character after the qualifiers.
+    size_t qlen = encap_ptr - encap_mangled_name;
+    set_alloc_checking_off(LIBCWD_TSD);
+    char* exact_name = new char[qlen + len + 1];	// LEAK58
+    set_alloc_checking_on(LIBCWD_TSD);
+    // Add the qualifiers to the mangled name:
+    strncpy(exact_name, encap_mangled_name, qlen);
+    strcpy(exact_name + qlen, stripped_mangled_name);
+    return exact_name;
+  }
+#endif
 
   // Idem
 

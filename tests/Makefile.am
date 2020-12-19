@@ -13,6 +13,7 @@ syslog \
 initbug \
 dout_alloc \
 mangling \
+mangling2 \
 stabs \
 lines \
 inlined \
@@ -37,6 +38,9 @@ dout_alloc_SOURCES = dout_alloc.cc
 
 mangling_CXXFLAGS = -g
 mangling_SOURCES = mangling.cc
+
+mangling2_CXXFLAGS = -g
+mangling2_SOURCES = mangling2.cc
 
 lines_CXXFLAGS = -g
 lines_SOURCES = lines.cc
