@@ -651,60 +651,62 @@ char const* print_DW_AT_name(uLEB128_t attr)
     case DW_AT_enum_class: return "DW_AT_enum_class";
     case DW_AT_linkage_name: return "DW_AT_linkage_name";
   }
-  LIBCWD_ASSERT(attr >= DW_AT_lo_user && attr <= DW_AT_hi_user);
-  switch(attr)
+  if (attr >= DW_AT_lo_user && attr <= DW_AT_hi_user)
   {
-    case DW_AT_lo_user: return "DW_AT_lo_user";
-    case DW_AT_MIPS_fde: return "DW_AT_MIPS_fde";
-    case DW_AT_MIPS_loop_begin: return "DW_AT_MIPS_loop_begin";
-    case DW_AT_MIPS_tail_loop_begin: return "DW_AT_MIPS_tail_loop_begin";
-    case DW_AT_MIPS_epilog_begin: return "DW_AT_MIPS_epilog_begin";
-    case DW_AT_MIPS_loop_unroll_factor: return "DW_AT_MIPS_loop_unroll_factor";
-    case DW_AT_MIPS_software_pipeline_depth: return "DW_AT_MIPS_software_pipeline_depth";
-    case DW_AT_MIPS_linkage_name: return "DW_AT_MIPS_linkage_name";
-    case DW_AT_MIPS_stride: return "DW_AT_MIPS_stride";
-    case DW_AT_MIPS_abstract_name: return "DW_AT_MIPS_abstract_name";
-    case DW_AT_MIPS_clone_origin: return "DW_AT_MIPS_clone_origin";
-    case DW_AT_MIPS_has_inlines: return "DW_AT_MIPS_has_inlines";
-  }
-  switch(attr)
-  {
-    case DW_AT_sf_names: return "DW_AT_sf_names";
-    case DW_AT_src_info: return "DW_AT_src_info";
-    case DW_AT_mac_info: return "DW_AT_mac_info";
-    case DW_AT_src_coords: return "DW_AT_src_coords";
-    case DW_AT_body_begin: return "DW_AT_body_begin";
-    case DW_AT_body_end: return "DW_AT_body_end";
-    case DW_AT_GNU_vector: return "DW_AT_GNU_vector";
-    case DW_AT_GNU_guarded_by: return "DW_AT_GNU_guarded_by";
-    case DW_AT_GNU_pt_guarded_by: return "DW_AT_GNU_pt_guarded_by";
-    case DW_AT_GNU_guarded: return "DW_AT_GNU_guarded";
-    case DW_AT_GNU_pt_guarded: return "DW_AT_GNU_pt_guarded";
-    case DW_AT_GNU_locks_excluded: return "DW_AT_GNU_locks_excluded";
-    case DW_AT_GNU_exclusive_locks_required: return "DW_AT_GNU_exclusive_locks_required";
-    case DW_AT_GNU_shared_locks_required: return "DW_AT_GNU_shared_locks_required";
-    case DW_AT_GNU_odr_signature: return "DW_AT_GNU_odr_signature";
-    case DW_AT_GNU_template_name: return "DW_AT_GNU_template_name";
-    case DW_AT_GNU_call_site_value: return "DW_AT_GNU_call_site_value";
-    case DW_AT_GNU_call_site_data_value: return "DW_AT_GNU_call_site_data_value";
-    case DW_AT_GNU_call_site_target: return "DW_AT_GNU_call_site_target";
-    case DW_AT_GNU_call_site_target_clobbered: return "DW_AT_GNU_call_site_target_clobbered";
-    case DW_AT_GNU_tail_call: return "DW_AT_GNU_tail_call";
-    case DW_AT_GNU_all_tail_call_sites: return "DW_AT_GNU_all_tail_call_sites";
-    case DW_AT_GNU_all_call_sites: return "DW_AT_GNU_all_call_sites";
-    case DW_AT_GNU_all_source_call_sites: return "DW_AT_GNU_all_source_call_sites";
-    case DW_AT_GNU_macros: return "DW_AT_GNU_macros";
-    case DW_AT_GNU_deleted: return "DW_AT_GNU_deleted";
-    case DW_AT_GNU_dwo_name: return "DW_AT_GNU_dwo_name";
-    case DW_AT_GNU_dwo_id: return "DW_AT_GNU_dwo_id";
-    case DW_AT_GNU_ranges_base: return "DW_AT_GNU_ranges_base";
-    case DW_AT_GNU_addr_base: return "DW_AT_GNU_addr_base";
-    case DW_AT_GNU_pubnames: return "DW_AT_GNU_pubnames";
-    case DW_AT_GNU_pubtypes: return "DW_AT_GNU_pubtypes";
-  }
-  switch(attr)
-  {
-    case DW_AT_VMS_rtnbeg_pd_address: return "DW_AT_VMS_rtnbeg_pd_address";
+    switch(attr)
+    {
+      case DW_AT_lo_user: return "DW_AT_lo_user";
+      case DW_AT_MIPS_fde: return "DW_AT_MIPS_fde";
+      case DW_AT_MIPS_loop_begin: return "DW_AT_MIPS_loop_begin";
+      case DW_AT_MIPS_tail_loop_begin: return "DW_AT_MIPS_tail_loop_begin";
+      case DW_AT_MIPS_epilog_begin: return "DW_AT_MIPS_epilog_begin";
+      case DW_AT_MIPS_loop_unroll_factor: return "DW_AT_MIPS_loop_unroll_factor";
+      case DW_AT_MIPS_software_pipeline_depth: return "DW_AT_MIPS_software_pipeline_depth";
+      case DW_AT_MIPS_linkage_name: return "DW_AT_MIPS_linkage_name";
+      case DW_AT_MIPS_stride: return "DW_AT_MIPS_stride";
+      case DW_AT_MIPS_abstract_name: return "DW_AT_MIPS_abstract_name";
+      case DW_AT_MIPS_clone_origin: return "DW_AT_MIPS_clone_origin";
+      case DW_AT_MIPS_has_inlines: return "DW_AT_MIPS_has_inlines";
+    }
+    switch(attr)
+    {
+      case DW_AT_sf_names: return "DW_AT_sf_names";
+      case DW_AT_src_info: return "DW_AT_src_info";
+      case DW_AT_mac_info: return "DW_AT_mac_info";
+      case DW_AT_src_coords: return "DW_AT_src_coords";
+      case DW_AT_body_begin: return "DW_AT_body_begin";
+      case DW_AT_body_end: return "DW_AT_body_end";
+      case DW_AT_GNU_vector: return "DW_AT_GNU_vector";
+      case DW_AT_GNU_guarded_by: return "DW_AT_GNU_guarded_by";
+      case DW_AT_GNU_pt_guarded_by: return "DW_AT_GNU_pt_guarded_by";
+      case DW_AT_GNU_guarded: return "DW_AT_GNU_guarded";
+      case DW_AT_GNU_pt_guarded: return "DW_AT_GNU_pt_guarded";
+      case DW_AT_GNU_locks_excluded: return "DW_AT_GNU_locks_excluded";
+      case DW_AT_GNU_exclusive_locks_required: return "DW_AT_GNU_exclusive_locks_required";
+      case DW_AT_GNU_shared_locks_required: return "DW_AT_GNU_shared_locks_required";
+      case DW_AT_GNU_odr_signature: return "DW_AT_GNU_odr_signature";
+      case DW_AT_GNU_template_name: return "DW_AT_GNU_template_name";
+      case DW_AT_GNU_call_site_value: return "DW_AT_GNU_call_site_value";
+      case DW_AT_GNU_call_site_data_value: return "DW_AT_GNU_call_site_data_value";
+      case DW_AT_GNU_call_site_target: return "DW_AT_GNU_call_site_target";
+      case DW_AT_GNU_call_site_target_clobbered: return "DW_AT_GNU_call_site_target_clobbered";
+      case DW_AT_GNU_tail_call: return "DW_AT_GNU_tail_call";
+      case DW_AT_GNU_all_tail_call_sites: return "DW_AT_GNU_all_tail_call_sites";
+      case DW_AT_GNU_all_call_sites: return "DW_AT_GNU_all_call_sites";
+      case DW_AT_GNU_all_source_call_sites: return "DW_AT_GNU_all_source_call_sites";
+      case DW_AT_GNU_macros: return "DW_AT_GNU_macros";
+      case DW_AT_GNU_deleted: return "DW_AT_GNU_deleted";
+      case DW_AT_GNU_dwo_name: return "DW_AT_GNU_dwo_name";
+      case DW_AT_GNU_dwo_id: return "DW_AT_GNU_dwo_id";
+      case DW_AT_GNU_ranges_base: return "DW_AT_GNU_ranges_base";
+      case DW_AT_GNU_addr_base: return "DW_AT_GNU_addr_base";
+      case DW_AT_GNU_pubnames: return "DW_AT_GNU_pubnames";
+      case DW_AT_GNU_pubtypes: return "DW_AT_GNU_pubtypes";
+    }
+    switch(attr)
+    {
+      case DW_AT_VMS_rtnbeg_pd_address: return "DW_AT_VMS_rtnbeg_pd_address";
+    }
   }
   static char unknown_at[32];
   sprintf(unknown_at, "UNKNOWN DW_AT 0x%lx", attr.value());
