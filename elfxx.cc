@@ -2435,6 +2435,7 @@ PRAGMA_DIAGNOSTIC_POP
 		    {
 		      dwarf_read(debug_line_ptr, file);
 		      --file;
+                      LIBCWD_ASSERT(file < file_names.size());
 		      DoutDwarf(dc::bfd, "DW_LNS_set_file: \"" << file_names[file].name << '"');
 		      location.invalidate();
 		      if (*file_names[file].name == '/')
