@@ -3632,7 +3632,7 @@ bfd_st* bfd_st::openr(char const* file_name)
 #if DEBUGSTABS || DEBUGDWARF
 namespace libcwd {
   namespace cwbfd {
-    bfile_ct* load_object_file(char const* name, void* l_addr);
+    bfile_ct* load_object_file(char const* name, void* l_addr, bool = false);
   }
 }
 
