@@ -200,81 +200,95 @@ public:
 };
 
 static int const number_of_bits_in_LEB128_t = 8 * sizeof(LEB128_t);
-//static int const number_of_bits_in_uLEB128_t = 8 * sizeof(uLEB128_t);
+#if DEBUGDWARF
+static int const number_of_bits_in_uLEB128_t = 8 * sizeof(uLEB128_t);
+#endif
 
-//static unsigned int const DW_TAG_array_type		= 0x01;
+#if DEBUGDWARF
+static unsigned int const DW_TAG_array_type		= 0x01;
+#endif
 static unsigned int const DW_TAG_class_type		= 0x02;
-//static unsigned int const DW_TAG_entry_point		= 0x03;
-//static unsigned int const DW_TAG_enumeration_type	= 0x04;
-//static unsigned int const DW_TAG_formal_parameter	= 0x05;
-//static unsigned int const DW_TAG_imported_declaration	= 0x08;
-//static unsigned int const DW_TAG_label			= 0x0a;
+#if DEBUGDWARF
+static unsigned int const DW_TAG_entry_point		= 0x03;
+static unsigned int const DW_TAG_enumeration_type	= 0x04;
+static unsigned int const DW_TAG_formal_parameter	= 0x05;
+static unsigned int const DW_TAG_imported_declaration	= 0x08;
+static unsigned int const DW_TAG_label			= 0x0a;
+#endif
 static unsigned int const DW_TAG_lexical_block		= 0x0b;
-//static unsigned int const DW_TAG_member			= 0x0d;
-//static unsigned int const DW_TAG_pointer_type		= 0x0f;
-//static unsigned int const DW_TAG_reference_type		= 0x10;
+#if DEBUGDWARF
+static unsigned int const DW_TAG_member			= 0x0d;
+static unsigned int const DW_TAG_pointer_type		= 0x0f;
+static unsigned int const DW_TAG_reference_type		= 0x10;
+#endif
 static unsigned int const DW_TAG_compile_unit		= 0x11;
-//static unsigned int const DW_TAG_string_type		= 0x12;
+#if DEBUGDWARF
+static unsigned int const DW_TAG_string_type		= 0x12;
+#endif
 static unsigned int const DW_TAG_structure_type		= 0x13;
-//static unsigned int const DW_TAG_subroutine_type	= 0x15;
-//static unsigned int const DW_TAG_typedef		= 0x16;
-//static unsigned int const DW_TAG_union_type		= 0x17;
-//static unsigned int const DW_TAG_unspecified_parameters	= 0x18;
-//static unsigned int const DW_TAG_variant		= 0x19;
-//static unsigned int const DW_TAG_common_block		= 0x1a;
-//static unsigned int const DW_TAG_common_inclusion	= 0x1b;
-//static unsigned int const DW_TAG_inheritance		= 0x1c;
-//static unsigned int const DW_TAG_inlined_subroutine	= 0x1d;
-//static unsigned int const DW_TAG_module			= 0x1e;
-//static unsigned int const DW_TAG_ptr_to_member_type	= 0x1f;
-//static unsigned int const DW_TAG_set_type		= 0x20;
-//static unsigned int const DW_TAG_subrange_type		= 0x21;
-//static unsigned int const DW_TAG_with_stmt		= 0x22;
-//static unsigned int const DW_TAG_access_declaration	= 0x23;
-//static unsigned int const DW_TAG_base_type		= 0x24;
-//static unsigned int const DW_TAG_catch_block		= 0x25;
-//static unsigned int const DW_TAG_const_type		= 0x26;
-//static unsigned int const DW_TAG_constant		= 0x27;
-//static unsigned int const DW_TAG_enumerator		= 0x28;
-//static unsigned int const DW_TAG_file_type		= 0x29;
-//static unsigned int const DW_TAG_friend			= 0x2a;
-//static unsigned int const DW_TAG_namelist		= 0x2b;
-////static unsigned int const DW_TAG_namelist_item		= 0x2c;
-//static unsigned int const DW_TAG_packed_type		= 0x2d;
-//static unsigned int const DW_TAG_subprogram		= 0x2e;
-//static unsigned int const DW_TAG_template_type_param	= 0x2f;
-//static unsigned int const DW_TAG_template_value_param	= 0x30;
-//static unsigned int const DW_TAG_thrown_type		= 0x31;
-//static unsigned int const DW_TAG_try_block		= 0x32;
-////static unsigned int const DW_TAG_variant_part		= 0x33;
-//static unsigned int const DW_TAG_variable		= 0x34;
-//static unsigned int const DW_TAG_volatile_type		= 0x35;
+#if DEBUGDWARF
+static unsigned int const DW_TAG_subroutine_type	= 0x15;
+static unsigned int const DW_TAG_typedef		= 0x16;
+static unsigned int const DW_TAG_union_type		= 0x17;
+static unsigned int const DW_TAG_unspecified_parameters	= 0x18;
+static unsigned int const DW_TAG_variant		= 0x19;
+static unsigned int const DW_TAG_common_block		= 0x1a;
+static unsigned int const DW_TAG_common_inclusion	= 0x1b;
+static unsigned int const DW_TAG_inheritance		= 0x1c;
+static unsigned int const DW_TAG_inlined_subroutine	= 0x1d;
+static unsigned int const DW_TAG_module			= 0x1e;
+static unsigned int const DW_TAG_ptr_to_member_type	= 0x1f;
+static unsigned int const DW_TAG_set_type		= 0x20;
+static unsigned int const DW_TAG_subrange_type		= 0x21;
+static unsigned int const DW_TAG_with_stmt		= 0x22;
+static unsigned int const DW_TAG_access_declaration	= 0x23;
+static unsigned int const DW_TAG_base_type		= 0x24;
+static unsigned int const DW_TAG_catch_block		= 0x25;
+static unsigned int const DW_TAG_const_type		= 0x26;
+static unsigned int const DW_TAG_constant		= 0x27;
+static unsigned int const DW_TAG_enumerator		= 0x28;
+static unsigned int const DW_TAG_file_type		= 0x29;
+static unsigned int const DW_TAG_friend			= 0x2a;
+static unsigned int const DW_TAG_namelist		= 0x2b;
+static unsigned int const DW_TAG_namelist_item		= 0x2c;
+static unsigned int const DW_TAG_packed_type		= 0x2d;
+static unsigned int const DW_TAG_subprogram		= 0x2e;
+static unsigned int const DW_TAG_template_type_param	= 0x2f;
+static unsigned int const DW_TAG_template_value_param	= 0x30;
+static unsigned int const DW_TAG_thrown_type		= 0x31;
+static unsigned int const DW_TAG_try_block		= 0x32;
+static unsigned int const DW_TAG_variant_part		= 0x33;
+static unsigned int const DW_TAG_variable		= 0x34;
+static unsigned int const DW_TAG_volatile_type		= 0x35;
 // DWARF 3.
-//static unsigned int const DW_TAG_dwarf_procedure	= 0x36;
-//static unsigned int const DW_TAG_restrict_type		= 0x37;
-//static unsigned int const DW_TAG_interface_type		= 0x38;
+static unsigned int const DW_TAG_dwarf_procedure	= 0x36;
+static unsigned int const DW_TAG_restrict_type		= 0x37;
+static unsigned int const DW_TAG_interface_type		= 0x38;
+#endif
 static unsigned int const DW_TAG_namespace		= 0x39;
-//static unsigned int const DW_TAG_imported_module	= 0x3a;
-//static unsigned int const DW_TAG_unspecified_type	= 0x3b;
-//static unsigned int const DW_TAG_partial_unit		= 0x3c;
-//static unsigned int const DW_TAG_imported_unit		= 0x3d;
-//static unsigned int const DW_TAG_condition		= 0x3f;
-//static unsigned int const DW_TAG_shared_type		= 0x40;
+#if DEBUGDWARF
+static unsigned int const DW_TAG_imported_module	= 0x3a;
+static unsigned int const DW_TAG_unspecified_type	= 0x3b;
+static unsigned int const DW_TAG_partial_unit		= 0x3c;
+static unsigned int const DW_TAG_imported_unit		= 0x3d;
+static unsigned int const DW_TAG_condition		= 0x3f;
+static unsigned int const DW_TAG_shared_type		= 0x40;
 // DWARF 4.
-//static unsigned int const DW_TAG_type_unit		= 0x41;
-//static unsigned int const DW_TAG_rvalue_reference_type	= 0x42;
-//static unsigned int const DW_TAG_template_alias		= 0x43;
+static unsigned int const DW_TAG_type_unit		= 0x41;
+static unsigned int const DW_TAG_rvalue_reference_type	= 0x42;
+static unsigned int const DW_TAG_template_alias		= 0x43;
 // User range.
-//static unsigned int const DW_TAG_lo_user		= 0x4080;
-//static unsigned int const DW_TAG_hi_user		= 0xffff;
+static unsigned int const DW_TAG_lo_user		= 0x4080;
+static unsigned int const DW_TAG_hi_user		= 0xffff;
 // SGI/MIPS Extensions.
-//static unsigned int const DW_TAG_MIPS_loop		= 0x4081;
+static unsigned int const DW_TAG_MIPS_loop		= 0x4081;
 // GNU extensions.
-//static unsigned int const DW_TAG_format_label		= 0x4101;  // For FORTRAN 77 and Fortran 90.
-//static unsigned int const DW_TAG_function_template	= 0x4102;  // For C++.
-//static unsigned int const DW_TAG_class_template		= 0x4103;  // For C++.
-//static unsigned int const DW_TAG_GNU_BINCL		= 0x4104;
-//static unsigned int const DW_TAG_GNU_EINCL		= 0x4105;
+static unsigned int const DW_TAG_format_label		= 0x4101;  // For FORTRAN 77 and Fortran 90.
+static unsigned int const DW_TAG_function_template	= 0x4102;  // For C++.
+static unsigned int const DW_TAG_class_template		= 0x4103;  // For C++.
+static unsigned int const DW_TAG_GNU_BINCL		= 0x4104;
+static unsigned int const DW_TAG_GNU_EINCL		= 0x4105;
+#endif
 
 #if DEBUGDWARF
 char const* print_DW_TAG_name(uLEB128_t tag)
@@ -372,159 +386,169 @@ char const* print_DW_TAG_name(uLEB128_t tag)
 }
 #endif
 
-//static unsigned char const DW_CHILDREN_no	= 0;
+#if DEBUGDWARF
+static unsigned char const DW_CHILDREN_no	= 0;
+#endif
 static unsigned char const DW_CHILDREN_yes	= 1;
 
 static unsigned int const DW_AT_sibling		= 0x01;	// reference
-//static unsigned int const DW_AT_location		= 0x02;	// block, constant
+#if DEBUGDWARF
+static unsigned int const DW_AT_location		= 0x02;	// block, constant
+#endif
 static unsigned int const DW_AT_name			= 0x03;	// string
-//static unsigned int const DW_AT_ordering		= 0x09;	// constant
-//static unsigned int const DW_AT_byte_size		= 0x0b;	// constant
-//static unsigned int const DW_AT_bit_offset		= 0x0c;	// constant
-//static unsigned int const DW_AT_bit_size		= 0x0d;	// constant
+#if DEBUGDWARF
+static unsigned int const DW_AT_ordering		= 0x09;	// constant
+static unsigned int const DW_AT_byte_size		= 0x0b;	// constant
+static unsigned int const DW_AT_bit_offset		= 0x0c;	// constant
+static unsigned int const DW_AT_bit_size		= 0x0d;	// constant
+#endif
 static unsigned int const DW_AT_stmt_list		= 0x10;	// constant
 static unsigned int const DW_AT_low_pc			= 0x11;	// address
 static unsigned int const DW_AT_high_pc		= 0x12;	// address
-//static unsigned int const DW_AT_language		= 0x13;	// constant
-//static unsigned int const DW_AT_discr			= 0x15;	// reference
-////static unsigned int const DW_AT_discr_value		= 0x16;	// constant
-//static unsigned int const DW_AT_visibility		= 0x17;	// constant
-//static unsigned int const DW_AT_import			= 0x18;	// reference
-//static unsigned int const DW_AT_string_length		= 0x19;	// block, constant
-//static unsigned int const DW_AT_common_reference	= 0x1a;	// reference
+#if DEBUGDWARF
+static unsigned int const DW_AT_language		= 0x13;	// constant
+static unsigned int const DW_AT_discr			= 0x15;	// reference
+static unsigned int const DW_AT_discr_value		= 0x16;	// constant
+static unsigned int const DW_AT_visibility		= 0x17;	// constant
+static unsigned int const DW_AT_import			= 0x18;	// reference
+static unsigned int const DW_AT_string_length		= 0x19;	// block, constant
+static unsigned int const DW_AT_common_reference	= 0x1a;	// reference
+#endif
 static unsigned int const DW_AT_comp_dir		= 0x1b;	// string
-//static unsigned int const DW_AT_const_value		= 0x1c;	// string, constant, block
-//static unsigned int const DW_AT_containing_type		= 0x1d;	// reference
-//static unsigned int const DW_AT_default_value		= 0x1e;	// reference
-//static unsigned int const DW_AT_inline			= 0x20;	// constant
-//static unsigned int const DW_AT_is_optional		= 0x21;	// flag
-//static unsigned int const DW_AT_lower_bound		= 0x22;	// constant, reference
-//static unsigned int const DW_AT_producer		= 0x25;	// string
-//static unsigned int const DW_AT_prototyped		= 0x27;	// flag
-//static unsigned int const DW_AT_return_addr		= 0x2a;	// block, constant
-//static unsigned int const DW_AT_start_scope		= 0x2c;	// constant
-////static unsigned int const DW_AT_stride_size		= 0x2e;	// constant
-//static unsigned int const DW_AT_upper_bound		= 0x2f;	// constant, reference
-//static unsigned int const DW_AT_abstract_origin		= 0x31;	// reference
-//static unsigned int const DW_AT_accessibility		= 0x32;	// constant
-//static unsigned int const DW_AT_address_class		= 0x33;	// constant
-//static unsigned int const DW_AT_artificial		= 0x34;	// flag
-//static unsigned int const DW_AT_base_types		= 0x35;	// reference
-//static unsigned int const DW_AT_calling_convention	= 0x36;	// constant
-//static unsigned int const DW_AT_count			= 0x37;	// constant, reference
-//static unsigned int const DW_AT_data_member_location	= 0x38; // block, reference
-//static unsigned int const DW_AT_decl_column		= 0x39;	// constant
-//static unsigned int const DW_AT_decl_file		= 0x3a;	// constant
-//static unsigned int const DW_AT_decl_line		= 0x3b;	// constant
-//static unsigned int const DW_AT_declaration		= 0x3c;	// flag
-////static unsigned int const DW_AT_discr_list		= 0x3d;	// block
-//static unsigned int const DW_AT_encoding		= 0x3e;	// constant
-//static unsigned int const DW_AT_external		= 0x3f;	// flag
-//static unsigned int const DW_AT_frame_base		= 0x40;	// block, constant
-//static unsigned int const DW_AT_friend			= 0x41;	// reference
-//static unsigned int const DW_AT_identifier_case	= 0x42;	// constant
-//static unsigned int const DW_AT_macro_info		= 0x43;	// constant
-//static unsigned int const DW_AT_namelist_item		= 0x44;	// block
-//static unsigned int const DW_AT_priority		= 0x45;	// reference
-//static unsigned int const DW_AT_segment		= 0x46;	// block, constant
-//static unsigned int const DW_AT_specification		= 0x47;	// reference
-//static unsigned int const DW_AT_static_link		= 0x48;	// block, constant
-//static unsigned int const DW_AT_type			= 0x49;	// reference
-//static unsigned int const DW_AT_use_location		= 0x4a;	// block, constant
-//static unsigned int const DW_AT_variable_parameter	= 0x4b;	// flag
-//static unsigned int const DW_AT_virtuality		= 0x4c;	// constant
-//static unsigned int const DW_AT_vtable_elem_location	= 0x4d; // block, reference
+#if DEBUGDWARF
+static unsigned int const DW_AT_const_value		= 0x1c;	// string, constant, block
+static unsigned int const DW_AT_containing_type		= 0x1d;	// reference
+static unsigned int const DW_AT_default_value		= 0x1e;	// reference
+static unsigned int const DW_AT_inline			= 0x20;	// constant
+static unsigned int const DW_AT_is_optional		= 0x21;	// flag
+static unsigned int const DW_AT_lower_bound		= 0x22;	// constant, reference
+static unsigned int const DW_AT_producer		= 0x25;	// string
+static unsigned int const DW_AT_prototyped		= 0x27;	// flag
+static unsigned int const DW_AT_return_addr		= 0x2a;	// block, constant
+static unsigned int const DW_AT_start_scope		= 0x2c;	// constant
+static unsigned int const DW_AT_stride_size		= 0x2e;	// constant
+static unsigned int const DW_AT_upper_bound		= 0x2f;	// constant, reference
+static unsigned int const DW_AT_abstract_origin		= 0x31;	// reference
+static unsigned int const DW_AT_accessibility		= 0x32;	// constant
+static unsigned int const DW_AT_address_class		= 0x33;	// constant
+static unsigned int const DW_AT_artificial		= 0x34;	// flag
+static unsigned int const DW_AT_base_types		= 0x35;	// reference
+static unsigned int const DW_AT_calling_convention	= 0x36;	// constant
+static unsigned int const DW_AT_count			= 0x37;	// constant, reference
+static unsigned int const DW_AT_data_member_location	= 0x38; // block, reference
+static unsigned int const DW_AT_decl_column		= 0x39;	// constant
+static unsigned int const DW_AT_decl_file		= 0x3a;	// constant
+static unsigned int const DW_AT_decl_line		= 0x3b;	// constant
+static unsigned int const DW_AT_declaration		= 0x3c;	// flag
+static unsigned int const DW_AT_discr_list		= 0x3d;	// block
+static unsigned int const DW_AT_encoding		= 0x3e;	// constant
+static unsigned int const DW_AT_external		= 0x3f;	// flag
+static unsigned int const DW_AT_frame_base		= 0x40;	// block, constant
+static unsigned int const DW_AT_friend			= 0x41;	// reference
+static unsigned int const DW_AT_identifier_case	= 0x42;	// constant
+static unsigned int const DW_AT_macro_info		= 0x43;	// constant
+static unsigned int const DW_AT_namelist_item		= 0x44;	// block
+static unsigned int const DW_AT_priority		= 0x45;	// reference
+static unsigned int const DW_AT_segment		= 0x46;	// block, constant
+static unsigned int const DW_AT_specification		= 0x47;	// reference
+static unsigned int const DW_AT_static_link		= 0x48;	// block, constant
+static unsigned int const DW_AT_type			= 0x49;	// reference
+static unsigned int const DW_AT_use_location		= 0x4a;	// block, constant
+static unsigned int const DW_AT_variable_parameter	= 0x4b;	// flag
+static unsigned int const DW_AT_virtuality		= 0x4c;	// constant
+static unsigned int const DW_AT_vtable_elem_location	= 0x4d; // block, reference
 // DWARF 3 values.
-//static unsigned int const DW_AT_allocated		= 0x4e;
-//static unsigned int const DW_AT_associated		= 0x4f;
-//static unsigned int const DW_AT_data_location		= 0x50;
-//static unsigned int const DW_AT_stride			= 0x51;
-//static unsigned int const DW_AT_entry_pc		= 0x52;
-//static unsigned int const DW_AT_use_UTF8		= 0x53;
-//static unsigned int const DW_AT_extension		= 0x54;
-//static unsigned int const DW_AT_ranges			= 0x55;
-//static unsigned int const DW_AT_trampoline		= 0x56;
-//static unsigned int const DW_AT_call_column		= 0x57;
-//static unsigned int const DW_AT_call_file		= 0x58;
-//static unsigned int const DW_AT_call_line		= 0x59;
-//static unsigned int const DW_AT_description		= 0x5a;
-//static unsigned int const DW_AT_binary_scale		= 0x5b;
-//static unsigned int const DW_AT_decimal_scale		= 0x5c;
-//static unsigned int const DW_AT_small			= 0x5d;
-//static unsigned int const DW_AT_decimal_sign		= 0x5e;
-//static unsigned int const DW_AT_digit_count		= 0x5f;
-//static unsigned int const DW_AT_picture_string		= 0x60;
-//static unsigned int const DW_AT_mutable			= 0x61;
-//static unsigned int const DW_AT_threads_scaled		= 0x62;
-//static unsigned int const DW_AT_explicit		= 0x63;
-//static unsigned int const DW_AT_object_pointer		= 0x64;
-//static unsigned int const DW_AT_endianity		= 0x65;
-//static unsigned int const DW_AT_elemental		= 0x66;
-//static unsigned int const DW_AT_pure			= 0x67;
-//static unsigned int const DW_AT_recursive		= 0x68;
+static unsigned int const DW_AT_allocated		= 0x4e;
+static unsigned int const DW_AT_associated		= 0x4f;
+static unsigned int const DW_AT_data_location		= 0x50;
+static unsigned int const DW_AT_stride			= 0x51;
+static unsigned int const DW_AT_entry_pc		= 0x52;
+static unsigned int const DW_AT_use_UTF8		= 0x53;
+static unsigned int const DW_AT_extension		= 0x54;
+static unsigned int const DW_AT_ranges			= 0x55;
+static unsigned int const DW_AT_trampoline		= 0x56;
+static unsigned int const DW_AT_call_column		= 0x57;
+static unsigned int const DW_AT_call_file		= 0x58;
+static unsigned int const DW_AT_call_line		= 0x59;
+static unsigned int const DW_AT_description		= 0x5a;
+static unsigned int const DW_AT_binary_scale		= 0x5b;
+static unsigned int const DW_AT_decimal_scale		= 0x5c;
+static unsigned int const DW_AT_small			= 0x5d;
+static unsigned int const DW_AT_decimal_sign		= 0x5e;
+static unsigned int const DW_AT_digit_count		= 0x5f;
+static unsigned int const DW_AT_picture_string		= 0x60;
+static unsigned int const DW_AT_mutable			= 0x61;
+static unsigned int const DW_AT_threads_scaled		= 0x62;
+static unsigned int const DW_AT_explicit		= 0x63;
+static unsigned int const DW_AT_object_pointer		= 0x64;
+static unsigned int const DW_AT_endianity		= 0x65;
+static unsigned int const DW_AT_elemental		= 0x66;
+static unsigned int const DW_AT_pure			= 0x67;
+static unsigned int const DW_AT_recursive		= 0x68;
 // DWARF 4 values.
-//static unsigned int const DW_AT_signature		= 0x69;
-//static unsigned int const DW_AT_main_subprogram		= 0x6a;
-//static unsigned int const DW_AT_data_bit_offset		= 0x6b;
-//static unsigned int const DW_AT_const_expr		= 0x6c;
-//static unsigned int const DW_AT_enum_class		= 0x6d;
-//static unsigned int const DW_AT_linkage_name		= 0x6e;
+static unsigned int const DW_AT_signature		= 0x69;
+static unsigned int const DW_AT_main_subprogram		= 0x6a;
+static unsigned int const DW_AT_data_bit_offset		= 0x6b;
+static unsigned int const DW_AT_const_expr		= 0x6c;
+static unsigned int const DW_AT_enum_class		= 0x6d;
+static unsigned int const DW_AT_linkage_name		= 0x6e;
 // User range.
-//static unsigned int const DW_AT_lo_user				= 0x2000;
-//static unsigned int const DW_AT_hi_user				= 0x3fff;
+static unsigned int const DW_AT_lo_user				= 0x2000;
+static unsigned int const DW_AT_hi_user				= 0x3fff;
 // SGI/MIPS Extensions.
-//static unsigned int const DW_AT_MIPS_fde			= 0x2001;
-//static unsigned int const DW_AT_MIPS_loop_begin			= 0x2002;
-//static unsigned int const DW_AT_MIPS_tail_loop_begin		= 0x2003;
-//static unsigned int const DW_AT_MIPS_epilog_begin		= 0x2004;
-//static unsigned int const DW_AT_MIPS_loop_unroll_factor		= 0x2005;
-//static unsigned int const DW_AT_MIPS_software_pipeline_depth	= 0x2006;
-//static unsigned int const DW_AT_MIPS_linkage_name		= 0x2007;
-//static unsigned int const DW_AT_MIPS_stride			= 0x2008;
-//static unsigned int const DW_AT_MIPS_abstract_name		= 0x2009;
-//static unsigned int const DW_AT_MIPS_clone_origin		= 0x200a;
-//static unsigned int const DW_AT_MIPS_has_inlines		= 0x200b;
-////static unsigned int const DW_AT_MIPS_stride_byte		= 0x200c;
-////static unsigned int const DW_AT_MIPS_stride_elem		= 0x200d;
-//static unsigned int const DW_AT_MIPS_ptr_dopetype		= 0x200e;
-//static unsigned int const DW_AT_MIPS_allocatable_dopetype	= 0x200f;
-//static unsigned int const DW_AT_MIPS_assumed_shape_dopetype	= 0x2010;
-//static unsigned int const DW_AT_MIPS_assumed_size		= 0x2011;
+static unsigned int const DW_AT_MIPS_fde			= 0x2001;
+static unsigned int const DW_AT_MIPS_loop_begin			= 0x2002;
+static unsigned int const DW_AT_MIPS_tail_loop_begin		= 0x2003;
+static unsigned int const DW_AT_MIPS_epilog_begin		= 0x2004;
+static unsigned int const DW_AT_MIPS_loop_unroll_factor		= 0x2005;
+static unsigned int const DW_AT_MIPS_software_pipeline_depth	= 0x2006;
+static unsigned int const DW_AT_MIPS_linkage_name		= 0x2007;
+static unsigned int const DW_AT_MIPS_stride			= 0x2008;
+static unsigned int const DW_AT_MIPS_abstract_name		= 0x2009;
+static unsigned int const DW_AT_MIPS_clone_origin		= 0x200a;
+static unsigned int const DW_AT_MIPS_has_inlines		= 0x200b;
+static unsigned int const DW_AT_MIPS_stride_byte		= 0x200c;
+static unsigned int const DW_AT_MIPS_stride_elem		= 0x200d;
+static unsigned int const DW_AT_MIPS_ptr_dopetype		= 0x200e;
+static unsigned int const DW_AT_MIPS_allocatable_dopetype	= 0x200f;
+static unsigned int const DW_AT_MIPS_assumed_shape_dopetype	= 0x2010;
+static unsigned int const DW_AT_MIPS_assumed_size		= 0x2011;
 // GNU extensions.
-//static unsigned int const DW_AT_sf_names			= 0x2101;
-//static unsigned int const DW_AT_src_info			= 0x2102;
-//static unsigned int const DW_AT_mac_info			= 0x2103;
-//static unsigned int const DW_AT_src_coords			= 0x2104;
-//static unsigned int const DW_AT_body_begin			= 0x2105;
-//static unsigned int const DW_AT_body_end			= 0x2106;
-//static unsigned int const DW_AT_GNU_vector			= 0x2107;
-////static unsigned int const DW_AT_GNU_guarded_by			= 0x2108;
-////static unsigned int const DW_AT_GNU_pt_guarded_by		= 0x2109;
-//static unsigned int const DW_AT_GNU_guarded			= 0x210a;
-//static unsigned int const DW_AT_GNU_pt_guarded			= 0x210b;
-//static unsigned int const DW_AT_GNU_locks_excluded		= 0x210c;
-//static unsigned int const DW_AT_GNU_exclusive_locks_required	= 0x210d;
-//static unsigned int const DW_AT_GNU_shared_locks_required	= 0x210e;
-//static unsigned int const DW_AT_GNU_odr_signature		= 0x210f;
-//static unsigned int const DW_AT_GNU_template_name		= 0x2110;
-//static unsigned int const DW_AT_GNU_call_site_value		= 0x2111;
-//static unsigned int const DW_AT_GNU_call_site_data_value	= 0x2112;
-//static unsigned int const DW_AT_GNU_call_site_target		= 0x2113;
-////static unsigned int const DW_AT_GNU_call_site_target_clobbered	= 0x2114;
-//static unsigned int const DW_AT_GNU_tail_call			= 0x2115;
-//static unsigned int const DW_AT_GNU_all_tail_call_sites		= 0x2116;
-//static unsigned int const DW_AT_GNU_all_call_sites		= 0x2117;
-//static unsigned int const DW_AT_GNU_all_source_call_sites	= 0x2118;
-//static unsigned int const DW_AT_GNU_macros			= 0x2119;
-//static unsigned int const DW_AT_GNU_deleted			= 0x211a;
-//static unsigned int const DW_AT_GNU_dwo_name			= 0x2130;
-//static unsigned int const DW_AT_GNU_dwo_id			= 0x2131;
-//static unsigned int const DW_AT_GNU_ranges_base			= 0x2132;
-//static unsigned int const DW_AT_GNU_addr_base			= 0x2133;
-//static unsigned int const DW_AT_GNU_pubnames			= 0x2134;
-//static unsigned int const DW_AT_GNU_pubtypes			= 0x2135;
+static unsigned int const DW_AT_sf_names			= 0x2101;
+static unsigned int const DW_AT_src_info			= 0x2102;
+static unsigned int const DW_AT_mac_info			= 0x2103;
+static unsigned int const DW_AT_src_coords			= 0x2104;
+static unsigned int const DW_AT_body_begin			= 0x2105;
+static unsigned int const DW_AT_body_end			= 0x2106;
+static unsigned int const DW_AT_GNU_vector			= 0x2107;
+static unsigned int const DW_AT_GNU_guarded_by			= 0x2108;
+static unsigned int const DW_AT_GNU_pt_guarded_by		= 0x2109;
+static unsigned int const DW_AT_GNU_guarded			= 0x210a;
+static unsigned int const DW_AT_GNU_pt_guarded			= 0x210b;
+static unsigned int const DW_AT_GNU_locks_excluded		= 0x210c;
+static unsigned int const DW_AT_GNU_exclusive_locks_required	= 0x210d;
+static unsigned int const DW_AT_GNU_shared_locks_required	= 0x210e;
+static unsigned int const DW_AT_GNU_odr_signature		= 0x210f;
+static unsigned int const DW_AT_GNU_template_name		= 0x2110;
+static unsigned int const DW_AT_GNU_call_site_value		= 0x2111;
+static unsigned int const DW_AT_GNU_call_site_data_value	= 0x2112;
+static unsigned int const DW_AT_GNU_call_site_target		= 0x2113;
+static unsigned int const DW_AT_GNU_call_site_target_clobbered	= 0x2114;
+static unsigned int const DW_AT_GNU_tail_call			= 0x2115;
+static unsigned int const DW_AT_GNU_all_tail_call_sites		= 0x2116;
+static unsigned int const DW_AT_GNU_all_call_sites		= 0x2117;
+static unsigned int const DW_AT_GNU_all_source_call_sites	= 0x2118;
+static unsigned int const DW_AT_GNU_macros			= 0x2119;
+static unsigned int const DW_AT_GNU_deleted			= 0x211a;
+static unsigned int const DW_AT_GNU_dwo_name			= 0x2130;
+static unsigned int const DW_AT_GNU_dwo_id			= 0x2131;
+static unsigned int const DW_AT_GNU_ranges_base			= 0x2132;
+static unsigned int const DW_AT_GNU_addr_base			= 0x2133;
+static unsigned int const DW_AT_GNU_pubnames			= 0x2134;
+static unsigned int const DW_AT_GNU_pubtypes			= 0x2135;
 // VMS Extensions.
-//static unsigned int const DW_AT_VMS_rtnbeg_pd_address		= 0x2201;
+static unsigned int const DW_AT_VMS_rtnbeg_pd_address		= 0x2201;
+#endif
 
 #if DEBUGDWARF
 char const* print_DW_AT_name(uLEB128_t attr)
@@ -1149,10 +1173,12 @@ read_lineptr(unsigned char const*& debug_info_ptr, uLEB128_t const form, lineptr
 }
 
 // Inline encodings
-//static unsigned int const DW_INL_not_inlined		= 0;
-//static unsigned int const DW_INL_inlined		= 1;
-//static unsigned int const DW_INL_declared_not_inlined	= 2;
-//static unsigned int const DW_INL_declared_inlined	= 3;
+#if DEBUGDWARF
+static unsigned int const DW_INL_not_inlined		= 0;
+static unsigned int const DW_INL_inlined		= 1;
+static unsigned int const DW_INL_declared_not_inlined	= 2;
+static unsigned int const DW_INL_declared_inlined	= 3;
+#endif
 
 #if DEBUGDWARF
 char const* print_DW_INL_name(constant_t inline_encoding)
