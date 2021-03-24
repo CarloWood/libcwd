@@ -38,7 +38,7 @@
 
 #define DEBUGELFXX 0
 #define DEBUGSTABS 0
-#define DEBUGDWARF 0
+#define DEBUGDWARF 1
 
 #if DEBUGELFXX || DEBUGSTABS || DEBUGDWARF
 static bool const default_dout_c = true;
