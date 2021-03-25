@@ -2299,7 +2299,7 @@ PRAGMA_DIAGNOSTIC_POP
 	    uint16_t version;		// Version identifier for the statement information format.
 	    uint32_t header_length;	// The number of bytes following the header_length field to the beginning of the first
 					// byte of the statement program itself.
-	    unsigned char minimum_instruction_length;	// The size in bytes of the smallest target machine instruction.  Statement
+	    unsigned char minimum_instruction_length;           // The size in bytes of the smallest target machine instruction.  Statement
 					// program opcodes that alter the address register first multiply their operands by this value.
             unsigned char maximum_operations_per_instruction;   // The maximum number of individual operations that may be encoded in an instruction.
                                         // Line number program opcodes that alter the address and op_index registers use this and
@@ -2316,20 +2316,22 @@ PRAGMA_DIAGNOSTIC_POP
 	    std::vector<char const*> include_directories;
 	    std::vector<file_name_st> file_names;
 #endif
-	    dwarf_read(debug_line_ptr, total_length);
-	    LIBCWD_ASSERT(total_length < 0xfffffff0);
-	    unsigned char const* debug_line_ptr_end = debug_line_ptr + total_length;
-	    dwarf_read(debug_line_ptr, version);
-	    dwarf_read(debug_line_ptr, header_length);
-	    unsigned char const* statement_program_start = debug_line_ptr + header_length;
-	    dwarf_read(debug_line_ptr, minimum_instruction_length);
-	    dwarf_read(debug_line_ptr, maximum_operations_per_instruction);
-	    dwarf_read(debug_line_ptr, default_is_stmt);
-	    dwarf_read(debug_line_ptr, line_base);
-	    dwarf_read(debug_line_ptr, line_range);
-	    dwarf_read(debug_line_ptr, opcode_base);
-	    standard_opcode_lengths = debug_line_ptr;
-	    debug_line_ptr += (opcode_base - 1);
+            dwarf_read(debug_line_ptr, total_length);
+            LIBCWD_ASSERT(total_length < 0xfffffff0);
+            unsigned char const* debug_line_ptr_end = debug_line_ptr + total_length;
+            dwarf_read(debug_line_ptr, version);
+            LIBCWD_ASSERT(version == 3 || version == 4);
+            dwarf_read(debug_line_ptr, header_length);
+            unsigned char const* statement_program_start = debug_line_ptr + header_length;
+            dwarf_read(debug_line_ptr, minimum_instruction_length);
+            if (version >= 4)
+              dwarf_read(debug_line_ptr, maximum_operations_per_instruction);
+            dwarf_read(debug_line_ptr, default_is_stmt);
+            dwarf_read(debug_line_ptr, line_base);
+            dwarf_read(debug_line_ptr, line_range);
+            dwarf_read(debug_line_ptr, opcode_base);
+            standard_opcode_lengths = debug_line_ptr;
+            debug_line_ptr += (opcode_base - 1);
             DoutDwarf(dc::bfd, "    total_length: " << total_length);
             DoutDwarf(dc::bfd, "         version: " << version);
             DoutDwarf(dc::bfd, "   header_length: " << header_length);
