@@ -38,7 +38,7 @@
 
 #define DEBUGELFXX 0
 #define DEBUGSTABS 0
-#define DEBUGDWARF 1
+#define DEBUGDWARF 0
 
 #if DEBUGELFXX || DEBUGSTABS || DEBUGDWARF
 static bool const default_dout_c = true;
@@ -787,9 +787,9 @@ static unsigned char const DW_LNS_set_basic_block	= 7;
 static unsigned char const DW_LNS_const_add_pc		= 8;
 static unsigned char const DW_LNS_fixed_advance_pc	= 9;
 // DWARF 3
-//static unsigned char const DW_LNS_set_prologue_end	= 10;
-//static unsigned char const DW_LNS_set_epilogue_begin	= 11;
-//static unsigned char const DW_LNS_set_isa		= 12;
+static unsigned char const DW_LNS_set_prologue_end	= 10;
+static unsigned char const DW_LNS_set_epilogue_begin	= 11;
+static unsigned char const DW_LNS_set_isa		= 12;
 
 // Extended opcodes.
 static unsigned int const DW_LNE_end_sequence	= 1;
@@ -2297,10 +2297,13 @@ PRAGMA_DIAGNOSTIC_POP
 	    uint32_t total_length;	// The size in bytes of the statement information for this compilation unit (not including
 					// the total_length field itself).
 	    uint16_t version;		// Version identifier for the statement information format.
-	    uint32_t prologue_length;	// The number of bytes following the prologue_length field to the beginning of the first
+	    uint32_t header_length;	// The number of bytes following the header_length field to the beginning of the first
 					// byte of the statement program itself.
 	    unsigned char minimum_instruction_length;	// The size in bytes of the smallest target machine instruction.  Statement
 					// program opcodes that alter the address register first multiply their operands by this value.
+            unsigned char maximum_operations_per_instruction;   // The maximum number of individual operations that may be encoded in an instruction.
+                                        // Line number program opcodes that alter the address and op_index registers use this and
+                                        // minimum_instruction_length in their calculations.
 	    unsigned char default_is_stmt;// The initial value of the is_stmt register.
 	    signed char line_base;	// This parameter affects the meaning of the special opcodes.
 	    unsigned char line_range;	// This parameter affects the meaning of the special opcodes.
@@ -2317,19 +2320,29 @@ PRAGMA_DIAGNOSTIC_POP
 	    LIBCWD_ASSERT(total_length < 0xfffffff0);
 	    unsigned char const* debug_line_ptr_end = debug_line_ptr + total_length;
 	    dwarf_read(debug_line_ptr, version);
-	    dwarf_read(debug_line_ptr, prologue_length);
-	    unsigned char const* statement_program_start = debug_line_ptr + prologue_length;
+	    dwarf_read(debug_line_ptr, header_length);
+	    unsigned char const* statement_program_start = debug_line_ptr + header_length;
 	    dwarf_read(debug_line_ptr, minimum_instruction_length);
+	    dwarf_read(debug_line_ptr, maximum_operations_per_instruction);
 	    dwarf_read(debug_line_ptr, default_is_stmt);
 	    dwarf_read(debug_line_ptr, line_base);
 	    dwarf_read(debug_line_ptr, line_range);
 	    dwarf_read(debug_line_ptr, opcode_base);
 	    standard_opcode_lengths = debug_line_ptr;
 	    debug_line_ptr += (opcode_base - 1);
+            DoutDwarf(dc::bfd, "    total_length: " << total_length);
+            DoutDwarf(dc::bfd, "         version: " << version);
+            DoutDwarf(dc::bfd, "   header_length: " << header_length);
+            DoutDwarf(dc::bfd, " min_inst_length: " << (int)minimum_instruction_length);
+            DoutDwarf(dc::bfd, "max_ops_per_inst: " << (int)maximum_operations_per_instruction);
+            DoutDwarf(dc::bfd, " default_is_stmt: " << (int)default_is_stmt);
+            DoutDwarf(dc::bfd, "       line_base: " << (int)line_base);
+            DoutDwarf(dc::bfd, "      line_range: " << (int)line_range);
+            DoutDwarf(dc::bfd, "     opcode_base: " << (int)opcode_base);
 	    while(*debug_line_ptr)
 	    {
-	      DoutDwarf(dc::bfd, "Include directory: " << reinterpret_cast<char const*>(debug_line_ptr));
 	      include_directories.push_back(reinterpret_cast<char const*>(debug_line_ptr));
+	      DoutDwarf(dc::bfd, "[" << include_directories.size() << "] Include directory: " << reinterpret_cast<char const*>(debug_line_ptr));
 	      while(*debug_line_ptr++) ;
 	    }
 	    ++debug_line_ptr;
@@ -2345,8 +2358,8 @@ PRAGMA_DIAGNOSTIC_POP
 	      dwarf_read(debug_line_ptr, file_name.directory_index);
 	      dwarf_read(debug_line_ptr, file_name.time_of_last_modification);
 	      dwarf_read(debug_line_ptr, file_name.length_in_bytes_of_the_file);
-	      DoutDwarf(dc::bfd, "File name: " << file_name.name);
 	      file_names.push_back(file_name);
+	      DoutDwarf(dc::bfd, "File name [" << file_names.size() << "]: " << file_name.name);
 	    }
 	    LIBCWD_ASSERT( debug_line_ptr == statement_program_start );
 
@@ -2464,7 +2477,7 @@ PRAGMA_DIAGNOSTIC_POP
 		      dwarf_read(debug_line_ptr, file);
 		      --file;
                       LIBCWD_ASSERT(file < file_names.size());
-		      DoutDwarf(dc::bfd, "DW_LNS_set_file: \"" << file_names[file].name << '"');
+		      DoutDwarf(dc::bfd, "DW_LNS_set_file: [" << (file + 1) << "] \"" << file_names[file].name << '"');
 		      location.invalidate();
 		      if (*file_names[file].name == '/')
 			cur_source.assign(file_names[file].name);
@@ -2517,9 +2530,26 @@ PRAGMA_DIAGNOSTIC_POP
 		      location.increment_address(minimum_instruction_length * address_increment);
 		      break;
 		    }
+                    case DW_LNS_set_prologue_end:
+                    {
+		      DoutDwarf(dc::bfd, "DW_LNS_set_prologue_end");
+                      break;
+                    }
+                    case DW_LNS_set_epilogue_begin:
+                    {
+		      DoutDwarf(dc::bfd, "DW_LNS_set_prologue_begin");
+                      break;
+                    }
+                    case DW_LNS_set_isa:
+                    {
+		      uLEB128_t isa;
+		      dwarf_read(debug_line_ptr, isa);
+		      DoutDwarf(dc::bfd, "DW_LNS_set_isa: " << isa);
+                      break;
+                    }
 		    default:
 		    {
-		      DoutDwarf(dc::bfd, "Unknown standard opcode: " << std::hex << (int)opcode);
+		      DoutDwarf(dc::bfd, "Unknown standard opcode: 0x" << std::hex << (int)opcode);
 		      uLEB128_t argument;
 		      for (int n = standard_opcode_lengths[opcode - 1]; n > 0; --n)
 			dwarf_read(debug_line_ptr, argument);
