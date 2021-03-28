@@ -19,7 +19,7 @@ cmake
 
 cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -S . -B build
 cd build
-make
+make -j 8
 sudo make install
 
 This method only builds libcwd_r, the multi-threaded version of libcwd.
@@ -28,7 +28,7 @@ autotools
 ---------
 
 ./configure --prefix="/usr/local" [--enable-maintainer-mode]
-make
+make -j 8
 sudo make install
 
 

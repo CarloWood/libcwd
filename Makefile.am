@@ -10,7 +10,8 @@ DIST_SUBDIRS = include utils tests testsuite cutee
 
 EXTRA_DIST += LICENSE.QPL README.threads README.FreeBSD README.openbsd README.solaris \
 	README.cygwin README.mingw32 nodebug.h macros.h depcomp libcwd.pc.in libcwd_r.pc.in \
-	libcwd.lsm libcwd.spec valgrind.supp
+	libcwd.lsm libcwd.spec valgrind.supp CMakeLists.txt cmake-config.h.in \
+	cmake/libcwd_rConfig.cmake
 DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 
 VERSIONINFO=@VERSIONINFO@
