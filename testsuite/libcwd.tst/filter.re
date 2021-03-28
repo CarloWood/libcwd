@@ -29,7 +29,7 @@ MALLOC.*
 MALLOC  : calloc\(1204, 1\) = 0x5[56][0-9a-f]* \[(dl-object\.c:73|ld-linux-x86-64\.so\.2:_dl_new_object)\]
 MALLOC  : realloc\(0x0, 140\) = 0x5[56][0-9a-f]* \[(dl-object\.c:182|ld-linux-x86-64\.so\.2:_dl_new_object)\]
 MALLOC  : malloc\(104\) = 0x5[56][0-9a-f]* \[(dl-deps\.c:474|ld-linux-x86-64\.so\.2:_dl_map_object_deps)\]
-MALLOC  : calloc\(8, 24\) = 0x5[56][0-9a-f]* \[(dl-version\.c:274|ld-linux-x86-64\.so\.2:_dl_check_map_versions)\]
+MALLOC  : calloc\([0-9]*, 24\) = 0x5[56][0-9a-f]* \[(dl-version\.c:274|ld-linux-x86-64\.so\.2:_dl_check_map_versions)\]
 MALLOC  : malloc\(136\) = 0x5[56][0-9a-f]* \[(dl-open\.c:105|ld-linux-x86-64\.so\.2:add_to_global_resize)\]
 // input lines 2
 // output till ^(NOTICE  : dlopen|WARNING)
@@ -83,7 +83,7 @@ NOTICE  : dlclose\(0x5[56][0-9a-f]*\)
 // output till ^MALLOC  : Allocated
 (MALLOC  : free\(0x5[56][0-9a-f]*\) _dl_.*
 )*
-MALLOC  : Allocated memory: 6435 bytes in 8 blocks\.
+MALLOC  : Allocated memory: (8111 bytes in 13|6435 bytes in 8) blocks\.
 [0-9:.]* \(deleted\) 0x5[56][0-9a-f]* tst_filter_shared:           filter\.cc:191  <marker>; \(sz = 16\)  marker1
     [0-9:.]* realloc   0x5[56][0-9a-f]* module\.so:           module\.cc:39   <unknown type>; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* malloc    0x5[56][0-9a-f]* tst_filter_shared:           filter\.cc:194  void\*; \(sz = 123\)  Allocated between the two markers

@@ -5,11 +5,11 @@ DEFAULT_INCLUDES =
 # Once installed that will work because it is in the same directory.
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/include/libcwd
 
-SUBDIRS = @CW_SUBDIRS@ include utils . tests testsuite cutee doc
-DIST_SUBDIRS = include utils tests testsuite cutee doc
+SUBDIRS = @CW_SUBDIRS@ include utils . tests testsuite cutee
+DIST_SUBDIRS = include utils tests testsuite cutee
 
 EXTRA_DIST += LICENSE.QPL README.threads README.FreeBSD README.openbsd README.solaris \
-	README.cygwin README.mingw32 nodebug.h depcomp libcwd.pc.in libcwd_r.pc.in \
+	README.cygwin README.mingw32 nodebug.h macros.h depcomp libcwd.pc.in libcwd_r.pc.in \
 	libcwd.lsm libcwd.spec valgrind.supp
 DISTCLEANFILES = libcwd_r-@VERSION@.tar.gz stamp-h.in
 

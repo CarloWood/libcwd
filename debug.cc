@@ -1354,14 +1354,15 @@ void allocator_unlock()
       set_alloc_checking_on(LIBCWD_TSD);
     }
 
-PRAGMA_DIAGNOSTIC_PUSH_IGNORE_infinite_recursion
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winfinite-recursion"
     void debug_tsd_st::fatal_finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
       finish(debug_object, channel_set LIBCWD_COMMA_TSD);
       DoutFatal( dc::core, "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur when using DoutFatal correctly but from the constructor of a global object)." );
       _Exit(1);	// This is never reached, but g++ 3.3.x -O2 thinks it is.
     }
-PRAGMA_DIAGNOSTIC_POP
+#pragma clang diagnostic pop
 
 #if LIBCWD_THREAD_SAFE
     int debug_ct::S_index_count = 0;
