@@ -20,33 +20,31 @@ using std::cout;
 using std::endl;
 using libcwd::type_info_of;
 
-class A {
-private:
+struct A {
   char x[64];
-public:
-  A(void) { }
+  A() { }
 };
 
-class B {
-  friend class A;
-private:
+struct B {
+  friend struct A;
   char x[64];
-  B(void) { }
+ private:
+  B() { }
 };
 
 MAIN_FUNCTION
 { PREFIX_CODE
   Debug( check_configuration() );
   {
-    int i;
+    int i = 42;
     cout << type_info_of(i).demangled_name() << " : " << type_info_of(i).ref_size() << endl;
-    int* j;
+    int* j = &i;
     cout << type_info_of(j).demangled_name() << " : " << type_info_of(j).ref_size() << endl;
     A a;
     cout << type_info_of(a).demangled_name() << " : " << type_info_of(a).ref_size() << endl;
-    A* b;
+    A* b = &a;
     cout << type_info_of(b).demangled_name() << " : " << type_info_of(b).ref_size() << endl;
-    void* p;
+    void* p = j;
     cout << type_info_of(p).demangled_name() << " : " << type_info_of(p).ref_size() << endl;
   }
   {
@@ -65,9 +63,9 @@ MAIN_FUNCTION
     cout << type_info_of<void*>().demangled_name() << " : " << type_info_of<void*>().ref_size() << endl;
   }
   {
-    A const* a1;
-    A const* const* a2;
-    A const* const* const* a3;
+    A const* a1 = nullptr;
+    A const* const* a2 = nullptr;
+    A const* const* const* a3 = nullptr;
     cout << type_info_of(a1).demangled_name() << endl;
     cout << type_info_of(a2).demangled_name() << endl;
     cout << type_info_of(a3).demangled_name() << endl;

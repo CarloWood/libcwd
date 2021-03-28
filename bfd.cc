@@ -423,12 +423,12 @@ static bool const statically_linked = true;
 	  elfxx::Elfxx_Off exit_funcs = 0;
 #endif
 	  size_t s_end_offset = M_abfd->M_s_end_offset;
-	  if (!s_end_offset && M_number_of_symbols > 0)
+	  if (!s_end_offset)
 	  {
 #if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = 0;
 #endif
-	    Dout(dc::warning, "Cannot find symbol _end");
+	    Dout(dc::warning, "Cannot find symbol _end in file " << dbgfilename);
 #if CWDEBUG_ALLOC
 	    __libcwd_tsd.internal = 1;
 #endif

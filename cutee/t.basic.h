@@ -7,7 +7,8 @@
 #include <sstream>
 #include <string>
 #include "cutee.h"
-#include <libcwd/debug.h>
+#include "libcwd/config.h"
+#include "libcwd/debug.h"
 
 // this is used to easily redirect cerr/cout to another ostream 
 struct redirect {

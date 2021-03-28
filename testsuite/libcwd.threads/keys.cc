@@ -12,7 +12,7 @@ int main()
   Debug( check_configuration() );
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
-  Debug( dc::malloc.on() );
+  //Debug( dc::malloc.on() );
 
   // This tests if the warning channel is turned on.
   Dout(dc::warning, "Ok");

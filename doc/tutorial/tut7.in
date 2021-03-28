@@ -29,10 +29,10 @@ using the function <CODE>make_invisible()</CODE>:</P>
 #include &quot;debug.h&quot;
 #include &lt;cstdlib&gt;
 
-int main(void)
+int main()
 {
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
 
   int* first = new int;
   AllocTag2(first, &quot;first&quot;);
@@ -40,16 +40,14 @@ int main(void)
   int* second = new int;
   AllocTag2(second, &quot;second&quot;);
 
-  Debug( list_allocations_on(libcw_do) );
+  Debug(list_allocations_on(libcw_do));
 
-  Debug( <SPAN class="highlight">make_invisible(</SPAN>first<SPAN class="highlight">)</SPAN> );
+  Debug(<SPAN class="highlight">make_invisible(</SPAN>first<SPAN class="highlight">)</SPAN>);
 
-  Debug( list_allocations_on(libcw_do) );
+  Debug(list_allocations_on(libcw_do));
 
   delete second;
   delete first;
-
-  return 0;
 }
 <!-- END CODE examples7/test7.1.1.cc -->
 </PRE>
@@ -73,10 +71,10 @@ For instance, when we make a mistake when freeing the first <CODE>int</CODE>:</P
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-int main(void)
+int main()
 {
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
 
   int* first = new int;
   AllocTag2(first, &quot;first&quot;);
@@ -84,16 +82,15 @@ int main(void)
   int* second = new int;
   AllocTag2(second, &quot;second&quot;);
 
-  Debug( list_allocations_on(libcw_do) );
+  Debug(list_allocations_on(libcw_do));
 
-  Debug( make_invisible(first) );
+  Debug(make_invisible(first));
 
-  Debug( list_allocations_on(libcw_do) );
+  Debug(list_allocations_on(libcw_do));
 
   delete second;
+#pragma clang diagnostic ignored "-Wmismatched-new-delete"
   delete <SPAN class="highlight">[]</SPAN> first;	// Make a deliberate error
-
-  return 0;
 }
 <!-- END CODE examples7/test7.1.2.cc -->
 </PRE>
@@ -114,16 +111,16 @@ int main(void)
 #include &quot;debug.h&quot;
 #include &lt;cstdlib&gt;
 
-int main(void)
+int main()
 {
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
-  Debug( dc::notice.on() );
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
+  Debug(dc::notice.on());
 
   void* p = std::malloc(3000);
   
-  Debug( make_invisible(p) );
-  Debug( list_allocations_on(libcw_do) );
+  Debug(make_invisible(p));
+  Debug(list_allocations_on(libcw_do));
 
 #if CWDEBUG_ALLOC
   Dout(dc::notice, &quot;test_delete(&quot; &lt;&lt; p &lt;&lt; &quot;) = &quot; &lt;&lt; <SPAN class="highlight">test_delete(</SPAN>p<SPAN class="highlight">)</SPAN>);
@@ -132,8 +129,6 @@ int main(void)
 #if CWDEBUG_ALLOC
   Dout(dc::notice, &quot;test_delete(&quot; &lt;&lt; p &lt;&lt; &quot;) = &quot; &lt;&lt; <SPAN class="highlight">test_delete(</SPAN>p<SPAN class="highlight">)</SPAN>);
 #endif
-
-  return 0;
 }
 <!-- END CODE examples7/test7.1.3.cc -->
 </PRE>
@@ -171,11 +166,11 @@ template&lt;typename T1, typename T2&gt;
     double d;
   };
 
-int main(void)
+int main()
 {
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
-  Debug( dc::notice.on() );
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
+  Debug(dc::notice.on());
 
   Foo&lt;char, int&gt;* f = new Foo&lt;char, int&gt;;
   AllocTag(f, &quot;Our test object&quot;);
@@ -205,8 +200,6 @@ int main(void)
       &lt;&lt; <SPAN class="highlight">alloc-&gt;location()</SPAN>
       &lt;&lt; '.');
 #endif
-
-  return 0;
 }
 <!-- END CODE examples7/test7.2.1.cc -->
 </PRE>
@@ -248,15 +241,15 @@ can be used to write a very simply memory leak detection system:</P>
 
 using namespace libcwd;
 
-int main(void)
+int main()
 {
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
 
   char* memory_leak = new char [300];
   AllocTag(memory_leak, "memory_leak");
 
-  // Debug( make_invisible(memory_leak) );
+  // Debug(make_invisible(memory_leak));
 
 #if CWDEBUG_ALLOC
   if (<SPAN class="highlight">mem_blocks()</SPAN> &gt; 0)
@@ -264,8 +257,6 @@ int main(void)
   else
     Dout(dc::malloc, &quot;No memory leaks.&quot;);
 #endif
-
-  return 0;
 }
 <!-- END CODE examples7/test7.3.1.cc -->
 </PRE>
@@ -277,7 +268,7 @@ int main(void)
 </PRE>
 
 <P>Invisible blocks are <B>not</B> detected!&nbsp;
-When you comment out the <CODE>Debug( make_invisible(memory_leak) );</CODE> then
+When you comment out the <CODE>Debug(make_invisible(memory_leak));</CODE> then
 the output will read</P>
 
 <PRE class="output">
@@ -302,7 +293,7 @@ class A {
 private:
   char* dynamic_memory;
 public:
-  A(void)
+  A()
   {
     dynamic_memory = new char [300];
     AllocTag(dynamic_memory, "A::dynamic_memory");
@@ -317,22 +308,20 @@ public:
 // Global object that allocates memory (bad programming!)
 A a;
 
-int main(void)
+int main()
 {
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
 
 #if CWDEBUG_ALLOC
   if (libcwd::mem_blocks() &gt; 0)
   {
     Dout(dc::malloc|dc::warning, &quot;Memory leak&quot;);
-    Debug( list_allocations_on(libcw_do) );
+    Debug(list_allocations_on(libcw_do));
   }
   else
     Dout(dc::malloc, &quot;No memory leaks.&quot;);
 #endif
-
-  return 0;
 }
 <!-- END CODE examples7/test7.3.2.cc -->
 </PRE>
@@ -358,7 +347,7 @@ class A {
 private:
   char* dynamic_memory;
 public:
-  A(void)
+  A()
   {
     dynamic_memory = new char [300];
     AllocTag(dynamic_memory, "A::dynamic_memory");
@@ -373,24 +362,22 @@ public:
 // Global object that allocates memory (bad programming!)
 A a;
 
-int main(void)
+int main()
 {
-  <SPAN class="highlight">Debug( make_all_allocations_invisible_except(NULL) );</SPAN>
+  <SPAN class="highlight">Debug(make_all_allocations_invisible_except(nullptr));</SPAN>
 
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
 
 #if CWDEBUG_ALLOC
   if (libcwd::mem_blocks() &gt; 0)
   {
     Dout(dc::malloc|dc::warning, &quot;Memory leak&quot;);
-    Debug( list_allocations_on(libcw_do) );
+    Debug(list_allocations_on(libcw_do));
   }
   else
     Dout(dc::malloc, &quot;No memory leaks.&quot;);
 #endif
-
-  return 0;
 }
 <!-- END CODE examples7/test7.3.3.cc -->
 </PRE>
@@ -414,11 +401,11 @@ blocks.&nbsp The Allocated memory Overview is then printed.</P>
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-int main(void)
+int main()
 {
-  Debug( make_all_allocations_invisible_except(NULL) );
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
+  Debug(make_all_allocations_invisible_except(NULL));
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
 
   int* p1 = new int [10];
   AllocTag(p1, &quot;p1&quot;);
@@ -433,14 +420,12 @@ int main(void)
   int* p3 = new int [30];
   AllocTag(p3, &quot;p3&quot;);
 
-  Debug( list_allocations_on(libcw_do) );
+  Debug(list_allocations_on(libcw_do));
 
 <SPAN class="highlight">#if CWDEBUG_MARKER</SPAN>
   // Delete the marker while there are still allocations inside it
   <SPAN class="highlight">delete marker;</SPAN>
 <SPAN class="highlight">#endif</SPAN>
-
-  return 0;
 }
 <!-- END CODE examples7/test7.3.4.cc -->
 </PRE>
@@ -462,11 +447,11 @@ For example, we could move the allocation of <CODE>p2</CODE> outside our marker:
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-int main(void)
+int main()
 {
-  Debug( make_all_allocations_invisible_except(NULL) );
-  Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
+  Debug(make_all_allocations_invisible_except(NULL));
+  Debug(libcw_do.on());
+  Debug(dc::malloc.on());
 
   int* p1 = new int [10];
   AllocTag(p1, &quot;p1&quot;);
@@ -482,17 +467,15 @@ int main(void)
   AllocTag(p3, &quot;p3&quot;);
 
 <SPAN class="highlight">#if CWDEBUG_MARKER</SPAN>
-  <SPAN class="highlight">Debug( move_outside(marker, p2) );</SPAN>
+  <SPAN class="highlight">Debug(move_outside(marker, p2));</SPAN>
 <SPAN class="highlight">#endif</SPAN>
 
-  Debug( list_allocations_on(libcw_do) );
+  Debug(list_allocations_on(libcw_do));
 
 #if CWDEBUG_MARKER
   // Delete the marker while there are still allocations inside it
   delete marker;
 #endif
-
-  return 0;
 }
 <!-- END CODE examples7/test7.3.5.cc -->
 </PRE>

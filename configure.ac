@@ -252,7 +252,7 @@ PCCFLAGSR="$PCCFLAGS -DLIBCWD_THREAD_SAFE"
 AC_SUBST(PCCFLAGSR)
 
 # Set language requirements for the tests below.
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 AC_REQUIRE_CPP
 
 AC_CHECK_FUNCS(__libc_malloc _libc_malloc)
@@ -278,7 +278,7 @@ if test "$libcwd_config_threading" = yes; then
 
   dnl Check if we have POSIX threads
   AC_LANG_SAVE
-  AC_LANG_C
+  AC_LANG([C])
   CFLAGS="-pthread"
   AC_SEARCH_LIBS(pthread_create, pthread,
     [AC_CHECK_HEADER(pthread.h,
@@ -326,7 +326,7 @@ if test "$libcwd_config_threading" = yes; then
 fi
 
 # This test needs the full set of libraries we just determined.
-CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
+#CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET
 
 if test "$libcwd_config_debug" = yes; then
   CW_CONFIG_DEBUG=1

@@ -179,7 +179,6 @@ private:
   long M_val;
 public:
   LEB128_t() { }
-  LEB128_t(LEB128_t const& leb) : M_val(leb.M_val) { }
   LEB128_t(long val) : M_val(val) { }
   LEB128_t& operator=(long val) { M_val = val; return *this; }
   operator long() const { return M_val; }
@@ -191,7 +190,6 @@ private:
   unsigned long M_val;
 public:
   uLEB128_t() { }
-  uLEB128_t(uLEB128_t const& leb) : M_val(leb.M_val) { }
   uLEB128_t(unsigned long val) : M_val(val) { }
   uLEB128_t& operator=(unsigned long val) { M_val = val; return *this; }
   operator unsigned long() const { return M_val; }
@@ -1818,7 +1816,7 @@ abbrev_st::abbrev_st(abbrev_st const& abbrev)
 {
   if (&abbrev != this)
   {
-    std::memcpy(this, &abbrev, sizeof(abbrev_st));
+    std::memcpy((char*)this, &abbrev, sizeof(abbrev_st));
     if (attributes)
       ++attributes[attributes_capacity].count;
   }

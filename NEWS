@@ -1,6 +1,7 @@
 libcwd-1.1.2
 
         Added support for cmake.
+        Fixed a bug in reading DWARF 4 debug information.
 
 libcwd-1.1.1
 

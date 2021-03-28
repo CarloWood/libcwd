@@ -2,13 +2,14 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+#include "libcwd/config.h"
 #ifndef STATIC
 #include <libcwd/sys.h>
 #include "alloctag_debug.h"
 #endif
 #include <cstdlib>
 
-static void* static_test_symbol(void)
+static void* static_test_symbol()
 {
   void* ptr = malloc(300);
 #ifndef STATIC

@@ -1,6 +1,6 @@
 noinst_HEADERS = sys.h
 
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/include/libcwd
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/include
 LDADD = ../libcwd.la
 
 test_files = t.basic.h

@@ -84,6 +84,15 @@ information and demangled type names.
 
 <!-- *** Table Contents top-right *** -->
 <table width=100% cellpadding=5 border=0><tr><td class="tag-cw-inner">
+<DT><B>28 March 2021</B>
+<P class="news">libcwd-1.1.2 is released.&nbsp;
+Fixed a bug in reading the DWARF4 .debug_info header, leading under certain circumstances
+to a crash in <code>objfile_ct::load_dwarf()</code> before reaching main when having configured
+libcwd with <code>--enable-location</code> (autotools) or <code>-DEnableLibcwdLocation:BOOL=ON</code> (cmake).&nbsp;
+Added support for cmake.
+The recommended way to use libcwd in a cmake project is now to use
+<a href="https://github.com/CarloWood/gitache">gitache</a> and <a href="https://github.com/CarloWood/cwds">cwds</a>.
+</P>
 <DT><B>7 Sept 2019</B>
 <P class="news">libcwd-1.1.1 is released.&nbsp;
 All occurances of <code>trylock</code> have been renamed to <code>try_lock</code>.

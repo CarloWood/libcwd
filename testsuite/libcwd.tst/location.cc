@@ -12,6 +12,7 @@
 //
 
 #include "sys.h"
+#include "../macros.h"
 #include <libcwd/debug.h>
 #include <iostream>
 
@@ -56,6 +57,7 @@ void __attribute__ ((noinline)) libcwd_bfd_test3()
     switch (i)
     {
 #if CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_frame_address
       case 1:
         retadr = __builtin_return_address(1);
 	break;
@@ -71,6 +73,7 @@ void __attribute__ ((noinline)) libcwd_bfd_test3()
       case 5:
         retadr = __builtin_return_address(5);
 	break;
+PRAGMA_DIAGNOSTIC_POP
 #else
       case 1:
       case 2:

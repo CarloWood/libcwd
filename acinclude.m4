@@ -24,21 +24,18 @@ done
 for path in $ld_so_paths; do
   ac_save_LIBS="$LIBS"
   LIBS="$path/$1 $5 $LIBS"
-  AC_TRY_LINK(dnl
-  ifelse(AC_LANG, [FORTRAN77], ,
-  ifelse([$2], [main], , dnl Avoid conflicting decl of main.
-  [/* Override any gcc2 internal prototype to avoid an error.  */
-  ]ifelse(AC_LANG, CPLUSPLUS, [#ifdef __cplusplus
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[dnl
+  ifelse(AC_LANG, FORTRAN77, ,
+  ifelse($2, main, , dnl Avoid conflicting decl of main.
+  /* Override any gcc2 internal prototype to avoid an error.  */
+  ifelse(AC_LANG, CPLUSPLUS, #ifdef __cplusplus
   extern "C"
   #endif
-  ])dnl
-  [/* We use char because int might match the return type of a gcc2
+  )dnl
+  /* We use char because int might match the return type of a gcc2
       builtin and then its argument prototype would still apply.  */
   char $2();
-  ])),
-	      [$2()],
-	      eval "ac_cv_lib_static_$ac_lib_var=\"$path/$1 $5\"",
-	      eval "ac_cv_lib_static_$ac_lib_var=no")
+  ))]], [[$2()]])],[eval "ac_cv_lib_static_$ac_lib_var=\"$path/$1 $5\""],[eval "ac_cv_lib_static_$ac_lib_var=no"])
   LIBS="$ac_save_LIBS"
   if eval "test \"`echo '$ac_cv_lib_static_'$ac_lib_var`\" != no"; then
     break
@@ -72,8 +69,7 @@ AC_DEFUN([CW_SYS_BUILTIN_RETURN_ADDRESS_OFFSET],
 [AC_CACHE_CHECK(needed offset to __builtin_return_address(), cw_cv_sys_builtin_return_address_offset,
 [save_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS=""
-AC_TRY_RUN(
-changequote(<<, >>)dnl
+AC_RUN_IFELSE([AC_LANG_SOURCE([[changequote(<<, >>)dnl
 <<int size;
 
 void f(void)
@@ -81,17 +77,14 @@ void f(void)
   size = (unsigned int)__builtin_return_address(0) & 255;
 }
 
-int main(int argc, char* argv[])
+int main()
 {
   asm( ".align 256" );
   f();
    return (size > 4) ? 1 : 0;
 }
->>,
-changequote([, ])dnl
-cw_cv_sys_builtin_return_address_offset=0,
-cw_cv_sys_builtin_return_address_offset=-1,
-cw_cv_sys_builtin_return_address_offset=-1)
+>>]])],[changequote(, )dnl
+cw_cv_sys_builtin_return_address_offset=0],[cw_cv_sys_builtin_return_address_offset=-1],[cw_cv_sys_builtin_return_address_offset=-1])
 CXXFLAGS="$save_CXXFLAGS"])
 eval "CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET=\"$cw_cv_sys_builtin_return_address_offset\""
 AC_SUBST(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET)
@@ -109,7 +102,7 @@ if test "$cw_cv_sys_recursive_builtin_return_address" != "no"; then
 AC_CACHE_CHECK(frame pointer offset in frame structure, cw_cv_sys_frame_address_offset,
 [save_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS=""
-AC_TRY_RUN([
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
 extern "C" void exit(int status) throw();
 int func4(int offset)
 {
@@ -151,15 +144,12 @@ int main(int argc, char* argv[])
     return 0;	// This wasn't the real test yet
   calculate_offset();
   return 255;	// Failure
-}],
-./conftest run
+}]])],[./conftest run
 cw_cv_sys_frame_address_offset=$?
 if test "$cw_cv_sys_frame_address_offset" != "255"; then
 CW_CONFIG_FRAME_ADDRESS_OFFSET=define
-fi,
-[AC_MSG_ERROR(Failed to compile a test program!?)],
-cw_cv_sys_frame_address_offset=0 dnl Guess a default for cross compiling
-)
+fi],[AC_MSG_ERROR(Failed to compile a test program!?)],[cw_cv_sys_frame_address_offset=0 dnl Guess a default for cross compiling
+])
 CXXFLAGS="$save_CXXFLAGS"])
 fi
 eval "CW_FRAME_ADDRESS_OFFSET_C=$cw_cv_sys_frame_address_offset"
@@ -213,12 +203,12 @@ dnl CW_COMPILER_VERSIONS
 dnl Test if the version of both, C and C++ compiler match.
 AC_DEFUN([CW_COMPILER_VERSIONS],
 [AC_MSG_CHECKING([whether the versions C and C++ compiler match])
-CC_VERSION=`$CC -v 2>&1 | grep '^gcc version'`
-CXX_VERSION=`$CXX -v 2>&1 | grep '^gcc version'`
+CC_VERSION=`$CC --version 2>&1 | head -n 1`
+CXX_VERSION=`$CXX --version 2>&1 | head -n 1 | sed -e 's/g++/gcc/'`
 if test x"$CC_VERSION" != x"$CXX_VERSION"; then
   AC_MSG_RESULT([no])
   AC_MSG_ERROR([Versions of CC and CXX do not match.
-                  $CC gives \"$CC_VERSION\" and $CXX  gives \"$CXX_VERSION\".
+                  $CC gives "$CC_VERSION" and $CXX  gives "$CXX_VERSION".
                   Please specify both, CC and CXX environment variables.])
 else
   AC_MSG_RESULT([yes])
@@ -237,14 +227,11 @@ AC_CACHE_CHECK([if the compiler was configured for __cxa_atexit], cw_cv_cxa_atex
 [cw_cv_cxa_atexit=yes	# By default, don't fail this test.
 # We only need --enable-__cxa_atexit when the function exists on this OS.
 AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
-AC_TRY_RUN([static int y;
+AC_LANG([C++])
+AC_RUN_IFELSE([AC_LANG_SOURCE([[static int y;
 struct Foo { Foo() { y = 0; } ~Foo() { } } x;
 extern "C" void __cxa_atexit() { y = 1; }
-int main() { return y ? 0 : 1; }],
-  cw_cv_cxa_atexit=yes,
-  cw_cv_cxa_atexit=no,
-  cw_cv_cxa_atexit=whatever)
+int main() { return y ? 0 : 1; }]])],[cw_cv_cxa_atexit=yes],[cw_cv_cxa_atexit=no],[cw_cv_cxa_atexit=whatever])
 AC_LANG_RESTORE])
 if test "$cw_cv_cxa_atexit" = no; then
 dnl Without --enable-__cxa_atexit a call to dlclose() for

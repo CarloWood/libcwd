@@ -105,7 +105,7 @@ struct static_tsd_array_wrapper_base {
 };
 
 struct static_tsd_array_wrapper : public static_tsd_array_wrapper_base {
-  ~static_tsd_array_wrapper() { /* Make sure no other thread touches this array while destructing it */ mutex_tct<static_tsd_instance>::lock(); memset(array, 0, sizeof(array)); }
+  ~static_tsd_array_wrapper() { /* Make sure no other thread touches this array while destructing it */ mutex_tct<static_tsd_instance>::lock(); memset((char*)array, 0, sizeof(array)); }
 };
 
 // Access to these global variables is protected by the lock static_tsd_instance.

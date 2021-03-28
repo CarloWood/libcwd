@@ -16,7 +16,7 @@
 #include <iostream>
 
 // A dummy class
-class Am {
+struct Am {
   int i;
   int j;
   char k;

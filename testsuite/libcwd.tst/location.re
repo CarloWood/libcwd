@@ -3,24 +3,24 @@
 ((WARNING : core size is limited.*
 )*(BFD     : Loading debug .*
 )*)
-BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:117
+BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:120
 // input lines 2
 // output till ^NOTICE
 (WARNING :     Object file (/usr/lib/debug)*/lib/(x86_64-linux-gnu/)*libc-2.[.0-9]*.so does not have debug info.*
 )*
-NOTICE  : called from tst_location_shared:_Z16libcwd_bfd_test2v:location\.cc:117
-BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:126
-NOTICE  : called from tst_location_shared:_Z16libcwd_bfd_test1v:location\.cc:126
-BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:135
-NOTICE  : called from tst_location_shared:_Z15libcwd_bfd_testv:location\.cc:135
-BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:172
-NOTICE  : called from tst_location_shared:main:location\.cc:172
+NOTICE  : called from tst_location_shared:_Z16libcwd_bfd_test2v:location\.cc:120
+BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:129
+NOTICE  : called from tst_location_shared:_Z16libcwd_bfd_test1v:location\.cc:129
+BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:138
+NOTICE  : called from tst_location_shared:_Z15libcwd_bfd_testv:location\.cc:138
+BFD     : address 0x[0-9a-f]+ corresponds to location\.cc:175
+NOTICE  : called from tst_location_shared:main:location\.cc:175
 // input lines 2
-// output till ^BFD     : address
+// output till ^(BFD     : address|WARNING|NOTICE  : (Program end|called from))
 (BFD     : Loading debug info from /usr/lib/debug/lib/(x86_64-linux-gnu/)*libc-2\.[.0-9]*\.so\.\.\. done
 )*
 // input lines 3
-// output till ^(WARNING|NOTICE  : Program end)
+// output till ^(WARNING|NOTICE  : (Program end|called from))
 (BFD     : address 0x[0-9a-f]+ corresponds to .*
 NOTICE  : called from .*
 )*
