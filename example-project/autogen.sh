@@ -10,16 +10,26 @@ if test "$(realpath $0)" != "$(realpath $(pwd)/autogen.sh)"; then
   exit 1
 fi
 
+# Check if we want to configure for cmake (only).
+if command -v cmake >/dev/null; then
+  if test -n "$AUTOGEN_CMAKE_ONLY" -o ! -e configure.ac; then
+    AUTOGEN_CMAKE_ONLY=1
+  elif test -e CMakeLists.txt; then
+    echo "*** Configuring for both autotools and cmake."
+    echo "*** Set AUTOGEN_CMAKE_ONLY=1 in environment to only configure for cmake."
+  fi
+fi
+
 if test -d .git; then
   # Take care of git submodule related stuff.
   # The following line is parsed by configure.ac to find the maintainer hash. Do not change its format!
   MAINTAINER_HASH=15014aea5069544f695943cfe3a5348c
   # If this was a clone without --recursive, fix that fact.
-  if test ! -e cwm4/scripts/bootstrap.sh; then
+  if test ! -e cwm4/scripts/real_maintainer.sh; then
     git submodule update --init --recursive
   fi
   # If new git submodules were added by someone else, get them.
-  if git submodule status | grep '^-' >/dev/null; then
+  if git submodule status --recursive | grep '^-' >/dev/null; then
     git submodule update --init --recursive
   fi
   # Update autogen.sh and cwm4 itself if we are the real maintainer.
@@ -32,12 +42,9 @@ if test -d .git; then
       exit $RET
     fi
   fi
-  # Update all submodules.
-  if ! cwm4/scripts/update_submodules.sh --recursive; then
-    echo "autogen.sh: Failed to update one or more submodules. Does it have uncommitted changes?"
-    exit 1
+  if test -z "$AUTOGEN_CMAKE_ONLY"; then
+    cwm4/scripts/do_submodules.sh
   fi
-  cwm4/scripts/do_submodules.sh
 else
   # Clueless user check.
   if test -f configure; then
@@ -47,13 +54,42 @@ else
       echo "If you insist on running it and know what you are doing, then first remove the 'configure' script."
     fi
     exit 0
-  elif test ! -e cwm4/scripts/bootstrap.sh; then
+  elif test ! -e cwm4/scripts/real_maintainer.sh; then
     echo "Houston, we have a problem: the cwm4 git submodule is missing from your source tree!?"
     echo "I'd suggest to clone the source code of this project from github:"
-    echo "git clone --recursive https://github.com/@PROJECT_URL@"
+    echo "git clone --recursive https://github.com/CarloWood/libcwd.git"
     exit 1
   fi
 fi
 
-# Run the autotool commands.
-exec cwm4/scripts/bootstrap.sh
+# Do some git sanity checks.
+if test -d .git; then
+  PUSH_RECURSESUBMODULES="$(git config push.recurseSubmodules)"
+  if test -z "$PUSH_RECURSESUBMODULES"; then
+    # Use this as default for now.
+    git config push.recurseSubmodules check
+    echo -e "\n*** WARNING: git config push.recurseSubmodules was not set!"
+    echo "***      To prevent pushing a project that references unpushed submodules,"
+    echo "***      this config was set to 'check'. Use instead the command"
+    echo "***      > git config push.recurseSubmodules on-demand"
+    echo "***      to automatically push submodules when pushing a reference to them."
+    echo "***      See http://stackoverflow.com/a/10878273/1487069 and"
+    echo "***      http://stackoverflow.com/a/34615803/1487069 for more info."
+    echo
+  fi
+fi
+
+if test -z "$AUTOGEN_CMAKE_ONLY"; then
+  # Run the autotool commands.
+  exec cwm4/scripts/bootstrap.sh
+elif test -n "$CMAKE_CONFIGURE_OPTIONS"; then
+  # I uses bash functions 'configure' and 'make' basically passing $CMAKE_CONFIGURE_OPTIONS
+  # to cmake and running 'make' inside build-release; see below.
+  echo "Now run: configure && make"
+else
+  echo "To make a Release build, run:"
+  echo "mkdir build-Release"
+  echo "cd build-Release"
+  echo "cmake .."
+  echo "make"
+fi

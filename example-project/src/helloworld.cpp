@@ -10,6 +10,8 @@ int main()
 #ifdef CWDEBUG
   if (!DEBUGCHANNELS::dc::custom.is_on())
     std::cout << "Turn dc::custom on in your ~/.libcwdrc file by adding \"channels_on=custom\"." << std::endl;
+#else
+  std::cerr << "This program was compiled without libcwd. Was it detected by configure? Did you forget to *install* libcwd before running configure on this project?" << std::endl;
 #endif
 
   // Write debug output to channel 'custom'.

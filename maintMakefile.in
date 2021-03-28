@@ -37,25 +37,13 @@
 #	Print debugging info about variables used in this file.
 #
 
-TARGET=@TARGET@
-SPECFILE=@SPECFILE@
-LSMFILE=@LSMFILE@
-REL=1
-TAG:=${shell echo "V@VERSION@" | sed -e 's/\./_/g'}
-PREVTAG:=${shell test -f .prevtag && cat .prevtag}
-AWK=@AWK@
-
 BUILT_SOURCES =
 
 test-values:
 	@echo "srcdir	= \"$(srcdir)\""
 	@echo "PACKAGE  = \"@PACKAGE@\""
 	@echo "VERSION  = \"@VERSION@\""
-	@echo "SPECFILE = \"$(SPECFILE)\""
-	@echo "TARGET   = \"$(TARGET)\""
-	@echo "REL      = \"$(REL)\""
-	@echo "TAG      = \"$(TAG)\""
-	@echo "PREVTAG  = \"$(PREVTAG)\""
+	@echo "tarball target = \"@PACKAGE@-@VERSION@.tar.gz\""
 
 ## Make sure the ChangeLog is up to date in maintainer mode
 .PHONY: ChangeLog documentation debian @PACKAGE@-@VERSION@.tar.gz
