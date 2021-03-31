@@ -92,6 +92,14 @@ struct debug_tsd_st {
   _private_::debug_stack_tst<int> continued_stack;
     // Stores the number of nested and switched off continued channels.
 
+#if 1
+  debug_string_ct color_on;
+    // Colorization code for debug output.
+
+  debug_string_ct color_off;
+    // Undo the effect of color_on.
+#endif
+
   debug_string_ct margin;
     // The margin string.
 

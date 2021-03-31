@@ -308,6 +308,11 @@ void allocator_unlock()
 #if LIBCWD_THREAD_SAFE
 	if (debug_object.newlineless_tsd && debug_object.newlineless_tsd != &__libcwd_tsd)
 	{
+          _private_::TSD_st const* newlineless_tsd = static_cast<_private_::TSD_st const*>(debug_object.newlineless_tsd);
+          debug_string_ct const& color_off = newlineless_tsd->do_array[debug_object.WNS_index]->color_off;
+          size_t color_off_size = color_off.size();
+          if (color_off_size > 0)
+            locked_os->write(color_off.c_str(), color_off_size);
 	  if (debug_object.unfinished_oss)
 	  {
 	    if (debug_object.unfinished_oss != this)
@@ -320,11 +325,24 @@ void allocator_unlock()
 	  else
 	    locked_os->write("<no newline>\n", 13);
 	}
+        debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
+        size_t color_off_size = color_off.size();
 	if (continued_needed && curlen > 0)
 	{
 	  continued_needed = false;
 	  write_prefix_to(locked_os);
-	  locked_os->write("<continued> ", 12);
+          if (color_off_size > 0)
+            locked_os->write(color_off.c_str(), color_off_size);
+          debug_string_ct const& color_on = LIBCWD_DO_TSD_MEMBER(debug_object, color_on);
+          size_t color_on_size = color_on.size();
+          if (color_on_size > 0)
+          {
+            locked_os->write("<continued>", 11);
+            locked_os->write(color_on.c_str(), color_on_size);
+            locked_os->put(' ');
+          }
+          else
+            locked_os->write("<continued> ", 12);
 	}
 #endif // LIBCWD_THREAD_SAFE
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
@@ -355,10 +373,16 @@ void allocator_unlock()
 #endif // !(CWDEBUG_ALLOC && LIBCWD_THREAD_SAFE)
 #if LIBCWD_THREAD_SAFE
 	if (request_unfinished && !unfinished_already_printed)
+        {
+          if (color_off_size > 0)
+            locked_os->write(color_off.c_str(), color_off_size);
 	  locked_os->write("<unfinished>\n", 13);
+        }
 #else
 	if (request_unfinished)
+        {
 	  os->write("<unfinished>\n", 13);
+        }
 #endif
 	if (do_flush)
 #if LIBCWD_THREAD_SAFE
@@ -1030,6 +1054,10 @@ void allocator_unlock()
 	  }
 	  while(++count < 40);
 #endif
+          debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
+          size_t color_off_size = color_off.size();
+          if (color_off_size > 0)
+            target_os->write(color_off.c_str(), color_off_size);
 	  target_os->put('\n');
 #if LIBCWD_THREAD_SAFE
 	  if (res == 0)
@@ -1078,7 +1106,20 @@ void allocator_unlock()
 	    COMMA_IFTHREADS(false));	// The newline is not missing as a result of nonewline_cf.
 	// Truncate the buffer to its prefix and append "<continued>" to it already.
 	current->buffer.restore_position();
-	current_bufferstream->write("<continued> ", 12);	// therefore we repeat the space here.
+        debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
+        size_t color_off_size = color_off.size();
+        if (color_off_size > 0)
+          current_bufferstream->write(color_off.c_str(), color_off_size);
+        debug_string_ct const& color_on = LIBCWD_DO_TSD_MEMBER(debug_object, color_on);
+        size_t color_on_size = color_on.size();
+        if (color_on_size > 0)
+        {
+          current_bufferstream->write("<continued>", 11);	// therefore we repeat the space here.
+          current_bufferstream->write(color_on.c_str(), color_on_size);
+          current_bufferstream->put(' ');
+        }
+        else
+          current_bufferstream->write("<continued> ", 12);	// therefore we repeat the space here.
         errno = saved_errno;
       }
 
@@ -1114,6 +1155,10 @@ void allocator_unlock()
 
       // If this is a `continued' debug output, then we want to print "<unfinished>" if next we see a start().
       unfinished_expected = true;
+
+      size_t color_on_size = color_on.size();
+      if (color_on_size > 0)
+        current_bufferstream->write(color_on.c_str(), color_on_size);
 
       // Print prefix if requested.
       // Handle most common case first: no special flags set
@@ -1236,7 +1281,13 @@ void allocator_unlock()
 	*current_bufferstream << ": " << strerrno(current->err) << " (" << error_text << ')';
       }
       if (!(current->mask & nonewline_cf))
+      {
+        debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
+        size_t color_off_size = color_off.size();
+        if (color_off_size > 0)
+          current_bufferstream->write(color_off.c_str(), color_off_size);
 	current_bufferstream->put('\n');
+      }
 
       // Handle control flags, if any:
       if (current->mask != 0)
@@ -1459,6 +1510,8 @@ void allocator_unlock()
       current_bufferstream = NULL;
       laf_stack.init();
       continued_stack.init();
+      color_on.NS_internal_init("", 0);
+      color_off.NS_internal_init("", 0);
       margin.NS_internal_init("", 0);
       marker.NS_internal_init(": ", 2);		// LEAK7
 #if CWDEBUG_DEBUGOUTPUT
@@ -1504,6 +1557,8 @@ void allocator_unlock()
       // is deleting (or allocating) memory.
 
       // In the threaded case, we are called with `internal' set.
+      color_on.deinitialize();
+      color_off.deinitialize();
       margin.deinitialize();
       marker.deinitialize();
 #endif

@@ -144,6 +144,24 @@ public:
   /** \{ */
 
   /**
+   * \brief Colorization code
+   *
+   * This is printed before the margin.&nbsp;
+   * The color_on string can be manipulated directly using the methods of class debug_string_ct.
+   */
+  debug_string_ct& color_on();
+  debug_string_ct const& color_on() const;
+
+  /**
+   * \brief Turn colorization off
+   *
+   * This is printed before the newline.&nbsp;
+   * The color_off string can be manipulated directly using the methods of class debug_string_ct.
+   */
+  debug_string_ct& color_off();
+  debug_string_ct const& color_off() const;
+
+  /**
    * \brief The margin
    *
    * This is printed before the label.&nbsp;

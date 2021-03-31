@@ -19,7 +19,7 @@ int const number_of_threads2 = 10;
 void* thread_function2(void*)
 {
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-  Debug( libcw_do.on() );
+  Debug(libcw_do.on());
   Dout(dc::hello, "THIS SHOULD NOT BE PRINTED! (tf2)");
   Debug(dc::hello.on());
   
@@ -33,10 +33,10 @@ void* thread_function(void*)
   // Set Thread Specific on/off flags of the debug channels.
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   // And for the debug object.
-  Debug( libcw_do.on() );
+  Debug(libcw_do.on());
   char margin[32];
-  sprintf(margin, "%-10lu ", pthread_self());
-  Debug( libcw_do.margin().assign(margin, 11) );
+  sprintf(margin, "%-12lx ", pthread_self());
+  Debug(libcw_do.margin().assign(margin, 13));
 
   Dout(dc::notice, "Entering thread " << pthread_self());
   int cnt = 0;
@@ -70,7 +70,7 @@ void* thread_function(void*)
 
 pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int main(void)
+int main()
 {
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   Debug( check_configuration() );

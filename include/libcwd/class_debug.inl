@@ -40,6 +40,38 @@ namespace libcwd {
 
 inline
 debug_string_ct&
+debug_ct::color_on()
+{
+  LIBCWD_TSD_DECLARATION;
+  return LIBCWD_TSD_MEMBER(color_on);
+}
+
+inline
+debug_string_ct const&
+debug_ct::color_on() const
+{
+  LIBCWD_TSD_DECLARATION;
+  return LIBCWD_TSD_MEMBER(color_on);
+}
+
+inline
+debug_string_ct&
+debug_ct::color_off()
+{
+  LIBCWD_TSD_DECLARATION;
+  return LIBCWD_TSD_MEMBER(color_off);
+}
+
+inline
+debug_string_ct const&
+debug_ct::color_off() const
+{
+  LIBCWD_TSD_DECLARATION;
+  return LIBCWD_TSD_MEMBER(color_off);
+}
+
+inline
+debug_string_ct&
 debug_ct::margin()
 {
   LIBCWD_TSD_DECLARATION;

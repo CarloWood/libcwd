@@ -3,6 +3,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 EXTRA_PROGRAMS = \
+colors \
 threads \
 threads2 \
 threads3 \
@@ -69,6 +70,10 @@ threads3_LDADD = ../libcwd_r.la
 threads4_CXXFLAGS = -DLIBCWD_THREAD_SAFE -pthread @CXXFLAGS@
 threads4_SOURCES = threads4.cc
 threads4_LDADD = ../libcwd_r.la
+
+colors_CXXFLAGS = -DLIBCWD_THREAD_SAFE -pthread @CXXFLAGS@
+colors_SOURCES = colors.cc
+colors_LDADD = ../libcwd_r.la
 
 noinst_HEADERS = sys.h debug.h sys.h syslog_debug.h threads_debug.h initbug_GlobalObject.h hello_world_debug.h
 

@@ -616,6 +616,7 @@ template <int instance>
 
 template <int instance>
   class rwlock_tct {
+    static_assert(instance < reserved_instance_low, "Instance must be less than reserved_instance_low");
   private:
     static int const readers_instance = instance + reserved_instance_low;
     static int const holders_instance = instance + 2 * reserved_instance_low;

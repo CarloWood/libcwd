@@ -42,7 +42,7 @@ MAIN_FUNCTION
   int* p = new int[4];
   AllocTag(p, "Test array");
   Debug( list_allocations_on(libcw_do) );
-  p[4] = 5;
+  p[4] = 5;     // Deliberate buffer overflow.
 
   pid_t pid = fork();
   if (pid == -1)

@@ -935,12 +935,12 @@ static bool const statically_linked = true;
       void ST_get_full_path_to_executable(_private_::internal_string& result LIBCWD_COMMA_TSD_PARAM)
       {
 	_private_::string argv0;		// Like main()s argv[0], thus must be zero terminated.
-	char buf[6];
-	char* p = &buf[5];
+	char buf[11];
+	char* p = &buf[10];
 	*p = 0;
 	int pid = getpid();
 	do { *--p = '0' + (pid % 10); } while ((pid /= 10) > 0);
-	size_t const max_proc_path = sizeof("/proc/65535/cmdline\0");
+	size_t const max_proc_path = sizeof("/proc/2147483647/cmdline\0");
 	char proc_path[max_proc_path];
 	strcpy(proc_path, "/proc/");
 	strcpy(proc_path + 6, p);
@@ -956,7 +956,7 @@ static bool const statically_linked = true;
 	{
 	  _private_::string pidstr;
 
-	  size_t const max_pidstr = sizeof("65535\0");
+	  size_t const max_pidstr = sizeof("2147483647\0");
 	  char pidstr_buf[max_pidstr];
 	  char* p = &pidstr_buf[max_pidstr - 1];
 	  *p = 0;

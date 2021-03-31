@@ -1,6 +1,15 @@
+libcwd-1.1.3
+
+        Fixed a stack overflow issue for large PID's. Now
+        a PID can be as large as max int.
+
+        Added support for color escape codes to give every
+        thread a different color.
+
 libcwd-1.1.2
 
         Added support for cmake.
+
         Fixed a bug in reading DWARF 4 debug information.
 
 libcwd-1.1.1

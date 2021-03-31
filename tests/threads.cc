@@ -10,16 +10,17 @@
 using libcwd::_private_::mutex_tct;
 using libcwd::_private_::rwlock_tct;
 using libcwd::_private_::test_instance0;
+using libcwd::_private_::rwtest_instance0;
 
 template<class TYPE>
   class foo_tct {
   public:
-    foo_tct(void)
+    foo_tct()
     {
       Dout(dc::notice, "Creating " << type_info_of<foo_tct<TYPE> >().demangled_name()
           << " with pthread_self() = " << pthread_self());
     }
-    ~foo_tct(void)
+    ~foo_tct()
     {
       Dout(dc::notice, "Destroying " << type_info_of<foo_tct<TYPE> >().demangled_name()
           << " with pthread_self() = " << pthread_self());
@@ -72,11 +73,11 @@ char const* in_the_middle(int my_id)
 
 class TSD {
 public:
-  TSD(void);
+  TSD();
   ~TSD();
 };
 
-TSD::TSD(void)
+TSD::TSD()
 {
   Dout(dc::notice, "Calling TSD(), this = " << (void*)this << '.');
 }
@@ -126,7 +127,7 @@ void* thread_function(void*)
 
 pthread_mutex_t cout_lock;
 
-int main(void)
+int main()
 {
   Debug( check_configuration() );
 #if CWDEBUG_ALLOC
@@ -144,29 +145,29 @@ int main(void)
 #endif
 
   mutex_tct<test_instance0>::initialize();
-  rwlock_tct<test_instance0>::initialize();
+  rwlock_tct<rwtest_instance0>::initialize();
 
   // Test if rwlocks allows multiple read locks but only one write lock.
   LIBCWD_DEFER_CANCEL;
-  rwlock_tct<test_instance0>::wrlock();
-    LIBCWD_ASSERT( !rwlock_tct<test_instance0>::trywrlock() );
-    LIBCWD_ASSERT( !rwlock_tct<test_instance0>::tryrdlock() );
-  rwlock_tct<test_instance0>::wrunlock();
+  rwlock_tct<rwtest_instance0>::wrlock();
+    LIBCWD_ASSERT( !rwlock_tct<rwtest_instance0>::trywrlock() );
+    LIBCWD_ASSERT( !rwlock_tct<rwtest_instance0>::tryrdlock() );
+  rwlock_tct<rwtest_instance0>::wrunlock();
   LIBCWD_RESTORE_CANCEL;
 
   LIBCWD_DEFER_CANCEL;
-  rwlock_tct<test_instance0>::rdlock();
-    LIBCWD_ASSERT( !rwlock_tct<test_instance0>::trywrlock() );
-    LIBCWD_ASSERT( rwlock_tct<test_instance0>::tryrdlock() && (rwlock_tct<test_instance0>::rdunlock(), true) );
-    rwlock_tct<test_instance0>::rdlock();
-      LIBCWD_ASSERT( !rwlock_tct<test_instance0>::trywrlock() );
-      LIBCWD_ASSERT( rwlock_tct<test_instance0>::tryrdlock() && (rwlock_tct<test_instance0>::rdunlock(), true) );
-    rwlock_tct<test_instance0>::rdunlock();
-    LIBCWD_ASSERT( !rwlock_tct<test_instance0>::trywrlock() );
-    LIBCWD_ASSERT( rwlock_tct<test_instance0>::tryrdlock() && (rwlock_tct<test_instance0>::rdunlock(), true) );
-  rwlock_tct<test_instance0>::rdunlock();
-  LIBCWD_ASSERT( rwlock_tct<test_instance0>::tryrdlock() && (rwlock_tct<test_instance0>::rdunlock(), true) );
-  LIBCWD_ASSERT( rwlock_tct<test_instance0>::trywrlock() && (rwlock_tct<test_instance0>::wrunlock(), true) );
+  rwlock_tct<rwtest_instance0>::rdlock();
+    LIBCWD_ASSERT( !rwlock_tct<rwtest_instance0>::trywrlock() );
+    LIBCWD_ASSERT( rwlock_tct<rwtest_instance0>::tryrdlock() && (rwlock_tct<rwtest_instance0>::rdunlock(), true) );
+    rwlock_tct<rwtest_instance0>::rdlock();
+      LIBCWD_ASSERT( !rwlock_tct<rwtest_instance0>::trywrlock() );
+      LIBCWD_ASSERT( rwlock_tct<rwtest_instance0>::tryrdlock() && (rwlock_tct<rwtest_instance0>::rdunlock(), true) );
+    rwlock_tct<rwtest_instance0>::rdunlock();
+    LIBCWD_ASSERT( !rwlock_tct<rwtest_instance0>::trywrlock() );
+    LIBCWD_ASSERT( rwlock_tct<rwtest_instance0>::tryrdlock() && (rwlock_tct<rwtest_instance0>::rdunlock(), true) );
+  rwlock_tct<rwtest_instance0>::rdunlock();
+  LIBCWD_ASSERT( rwlock_tct<rwtest_instance0>::tryrdlock() && (rwlock_tct<rwtest_instance0>::rdunlock(), true) );
+  LIBCWD_ASSERT( rwlock_tct<rwtest_instance0>::trywrlock() && (rwlock_tct<rwtest_instance0>::wrunlock(), true) );
   LIBCWD_RESTORE_CANCEL;
 
   // Now test that a mutex allows only one lock.
@@ -186,6 +187,4 @@ int main(void)
     pthread_join(thread_id[i], &status);
     Dout(dc::notice, "Thread " << thread_id[i] << " returned with status " << status << '.');
   }
-  
-  return 0;
 }
