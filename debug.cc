@@ -623,7 +623,8 @@ void allocator_unlock()
 	libcw_do.force_on(state);
 	// The cast is necessary on platforms where corelim.rlim_max is long long
 	// and libstdc++ was not compiled with support for long long.
-	Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
+        if (corelim.rlim_max != 0)
+          Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024) << " kb).  Core dumps might be truncated!");
 	libcw_do.restore(state);
       }
       if (setrlimit(RLIMIT_CORE, &corelim))
