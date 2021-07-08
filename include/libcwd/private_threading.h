@@ -34,7 +34,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 	} while(0)
 #define LIBCWD_DEBUGDEBUGLOCK_CERR(x) \
 	do { \
-	  if (instance != static_tsd_instance) \
+	  if constexpr (instance != static_tsd_instance) \
 	  { \
 	    pthread_mutex_lock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
 	    ++LIBCWD_DEBUGDEBUGLOCK_CERR_count; \
@@ -254,7 +254,7 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED \
     LibcwDebugThreads( \
-	if (instance != static_tsd_instance) \
+	if constexpr (instance != static_tsd_instance) \
 	{ \
 	  /* When entering a critical area, make sure that we have explictely deferred cancellation of this */ \
 	  /* thread (or disabled that) because when cancellation would happen in the middle of the critical */ \
@@ -317,7 +317,7 @@ template <int instance>
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
 #if CWDEBUG_DEBUGT
       TSD_st* tsd_ptr = 0;
-      if (instance != static_tsd_instance)
+      if constexpr (instance != static_tsd_instance)
       {
         LIBCWD_TSD_DECLARATION;
 	tsd_ptr = &__libcwd_tsd;
@@ -328,7 +328,7 @@ template <int instance>
       LibcwDebugThreads( if (instance != static_tsd_instance) { ++__libcwd_tsd.inside_critical_area; } );
       LIBCWD_DEBUGDEBUGLOCK_CERR("locking mutex " << instance << " (" << (void*)&S_mutex << ") from " << __builtin_return_address(0) << " from " << __builtin_return_address(1));
 #if CWDEBUG_DEBUGT
-      if (instance != static_tsd_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
+      if constexpr (instance != static_tsd_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
       {
 	__libcwd_tsd.waiting_for_lock = instance;
 	LIBCWD_DEBUGDEBUGLOCK_CERR("pthread_mutex_lock(" << S_mutex << ").");
@@ -370,7 +370,7 @@ template <int instance>
     {
 #if CWDEBUG_DEBUGT
       TSD_st* tsd_ptr = 0;
-      if (instance != static_tsd_instance)
+      if constexpr (instance != static_tsd_instance)
       {
         LIBCWD_TSD_DECLARATION;
 	tsd_ptr = &__libcwd_tsd;
@@ -422,7 +422,7 @@ template <int instance>
 template <int instance>
   void mutex_tct<instance>::S_initialize()
   {
-    if (instance == mutex_initialization_instance)	// Specialization.
+    if constexpr (instance == mutex_initialization_instance)	// Specialization.
     {
 #if !LIBCWD_USE_LINUXTHREADS
       pthread_mutexattr_t mutex_attr;
@@ -446,7 +446,7 @@ template <int instance>
 #if !LIBCWD_USE_LINUXTHREADS
 	pthread_mutexattr_t mutex_attr;
 	pthread_mutexattr_init(&mutex_attr);
-	if (instance < end_recursive_types)
+	if constexpr (instance < end_recursive_types)
 	  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
 	else
 	{
@@ -701,7 +701,7 @@ template <int instance>
 	  if ((success = (S_holders_count == 0)))
 	  {
 	    S_holders_count = -1;						// Mark that we have a writer.
-	    if (instance < end_recursive_types)
+	    if constexpr (instance < end_recursive_types)
 	      S_writer_id = pthread_self();
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUGT
@@ -837,7 +837,7 @@ template <int instance>
       mutex_tct<readers_instance>::unlock();		// Release blocked readers.
       S_holders_count = -1;				// Mark that we have a writer.
       S_no_holders_condition.unlock();
-      if (instance < end_recursive_types)
+      if constexpr (instance < end_recursive_types)
         S_writer_id = pthread_self();
       LibcwDebugThreads( ++__libcwd_tsd.inside_critical_area );
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
@@ -879,7 +879,7 @@ template <int instance>
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wrunlock()");
       LibcwDebugThreads( --__libcwd_tsd.inside_critical_area) ;
-      if (instance < end_recursive_types)
+      if constexpr (instance < end_recursive_types)
         S_writer_id = 0;
       S_no_holders_condition.lock();
       S_holders_count = 0;				// We have no writer anymore.
@@ -912,7 +912,7 @@ template <int instance>
 #endif
       S_holders_count = -1;			// We are a writer now.
       S_no_holders_condition.unlock();
-      if (instance < end_recursive_types)
+      if constexpr (instance < end_recursive_types)
 	S_writer_id = pthread_self();
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 #if CWDEBUG_DEBUGT
@@ -959,7 +959,7 @@ template <int instance>
 #endif
 #endif
       LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": Calling rwlock_tct<" << instance << ">::wr2rdlock()");
-      if (instance < end_recursive_types)
+      if constexpr (instance < end_recursive_types)
         S_writer_id = 0;
       S_no_holders_condition.lock();
       S_holders_count = 1;				// Turn writer into a reader (atomic operation).
@@ -967,7 +967,7 @@ template <int instance>
       S_no_holders_condition.unlock();
       LibcwDebugThreads(
 	  _private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
-	  if (instance >= instance_rdlocked_size)
+	  if constexpr (instance >= instance_rdlocked_size)
 	    core_dump();
 	  __libcwd_tsd.instance_rdlocked[instance] += 1;
 	  if (__libcwd_tsd.instance_rdlocked[instance] == 1)

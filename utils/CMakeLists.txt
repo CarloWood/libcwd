@@ -12,6 +12,11 @@ target_sources(libcwd_utils_ObjLib
         "rcfile.cc"
 )
 
+# Require support for C++17.
+target_compile_features(libcwd_utils_ObjLib
+  PUBLIC cxx_std_17
+)
+
 target_include_directories(libcwd_utils_ObjLib
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/../include"
