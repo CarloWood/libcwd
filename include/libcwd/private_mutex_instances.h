@@ -34,6 +34,7 @@ namespace libcwd {
 enum mutex_instance_nt {
   // Recursive mutexes.
   static_tsd_instance,
+  dlclose_instance,
   object_files_instance,		// rwlock
   end_recursive_types,
   // Fast mutexes.
@@ -61,7 +62,6 @@ enum mutex_instance_nt {
   list_allocations_instance,
 #endif
   dlopen_map_instance,
-  dlclose_instance,
   backtrace_instance,
   write_max_len_instance,
   set_ostream_instance,
