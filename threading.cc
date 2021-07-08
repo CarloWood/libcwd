@@ -69,6 +69,8 @@ void initialize_global_mutexes()
 // Specialization.
 template <>
   pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+template <>
+  pthread_mutex_t mutex_tct<dlclose_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
 void mutex_ct::M_initialize()
