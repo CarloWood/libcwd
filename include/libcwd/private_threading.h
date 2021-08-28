@@ -415,6 +415,14 @@ template <int instance>
     static void cleanup(void*);
   };
 
+#if LIBCWD_USE_LINUXTHREADS
+// Declare specializations.
+template <>
+  pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex;
+template <>
+  pthread_mutex_t mutex_tct<dlclose_instance>::S_mutex;
+#endif
+
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 template <int instance>
   bool volatile mutex_tct<instance>::S_initialized = false;

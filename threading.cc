@@ -66,7 +66,7 @@ void initialize_global_mutexes()
 }
 
 #if LIBCWD_USE_LINUXTHREADS
-// Specialization.
+// Define specializations.
 template <>
   pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 template <>
