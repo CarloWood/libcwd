@@ -1,7 +1,7 @@
 // @configure_input@
 // $Header$
 //
-// Copyright (C) 2000 - 2003, 2017, by
+// Copyright (C) 2000 - 2003, 2017, 2022 by
 //
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
@@ -54,39 +54,9 @@ namespace libcwd {
 #error No, no, no... "sys.h" has to be the VERY first header file you include.  Before ANY other (system) header file.
 #endif
 
-//
-// g++ 3.4 (20030816) defines _REENTRANT regardless when including
-// certain standard libstdc++ header files.  Therefore we can ONLY
-// test on _REENTRANT here, before including any other header file.
-//
-#if defined(_REENTRANT) || defined(_THREAD_SAFE)
-// Some (broken) third party libraries include -D_REENTRANT in the
-// pkg-config --cflags output (for example, several X libraries).
-// Therefore we can't even rely here on it anymore.  Instead use
-// our own define to know if this is a threaded application or not.
-#ifndef LIBCWD_THREAD_SAFE
-// This could be a #warning -- if gcc SHOWED warnings in system headers.
-#error Please use -DLIBCWD_THREAD_SAFE on the command line if you intend to link with libcwd_r! \
-       To fix this error, remove -pthread (and/or -D_REENTRANT and/or -D_THREAD_SAFE) from your compile flags \
-       when you are compiling a single threaded application (and link with libcwd), or add \
-       -DLIBCWD_THREAD_SAFE to the compile flags (and link with libcwd_r). Alternatively you \
-       can suppress this warning by adding -DLIBCWD_THREAD_SAFE=0 (and link with libcwd). \
-       You are strongly advised to use pkg-config to determine the correct flags \
-       (see example-project/m4/CW_LIB_LIBCWD.m4)!
-#endif	// LIBCWD_THREAD_SAFE
-
-#else	// !(defined(_REENTRANT) || defined(_THREAD_SAFE))
-
 #ifndef LIBCWD_THREAD_SAFE
 #define LIBCWD_THREAD_SAFE 0
-#elif LIBCWD_THREAD_SAFE
-// This could be a #warning -- if gcc SHOWED warnings in system headers.
-#error LIBCWD_THREAD_SAFE is set, which implies the use of threads. \
-       You should also define _REENTRANT (or _THREAD_SAFE on some OS) for the sake of other libraries in this case! \
-       Add -pthread to your CXXFLAGS for threaded applications (that should cause _REENTRANT to be defined).
 #endif
-
-#endif	// defined(_REENTRANT) || defined(_THREAD_SAFE)
 
 #if LIBCWD_THREAD_SAFE && !defined(_GNU_SOURCE)
 #error Sorry, libcwd_r uses GNU extensions, also in the header files.
