@@ -53,7 +53,9 @@ namespace _private_ {
       --S_ptr;
       if (*S_ptr == 'S')
         return S_ptr;
-      if (*S_ptr < '0' || *S_ptr > '9')
+      //FIXME: this only deals with a single hexdecimal digit. Is it hex? Or does this
+      // continue with substitutions like SG_, SH_ etc?
+      if (!('0' <= *S_ptr && *S_ptr <= '9') && !('A' <= *S_ptr && *S_ptr <= 'F'))
         break;
     }
     return ptr;
