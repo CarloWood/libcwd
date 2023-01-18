@@ -212,13 +212,6 @@ if (NOT THREADSMAX)
   set(THREADSMAX 1024)
 endif ()
 
-find_program(CW_PATH_PROG_PS "ps" DOC "Full path to the 'ps' executable.")
-# The PS_WIDE_PID_OPTION test is not needed when EnableLibcwdLocation is OFF.
-include(CW_SYS_PS_WIDE_PID_OPTION)
-if (OptionEnableLibcwdLocation)
-  CW_SYS_PS_WIDE_PID_OPTION()
-endif ()
-
 # Needed for subst-config.h.in, then used in subdirectory utils.
 set(libcwd_datadir "${CMAKE_INSTALL_PREFIX}/share")
 

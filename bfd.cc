@@ -952,33 +952,8 @@ static bool const statically_linked = true;
 	  proc_file >> argv0;
 	  proc_file.close();
 	}
-	else
-	{
-	  _private_::string pidstr;
-
-	  size_t const max_pidstr = sizeof("2147483647\0");
-	  char pidstr_buf[max_pidstr];
-	  char* p = &pidstr_buf[max_pidstr - 1];
-	  *p = 0;
-	  int pid = getpid();
-	  do { *--p = '0' + (pid % 10); } while ((pid /= 10) > 0);
-	  pidstr = p;
-
-	  // Path to `ps'
-	  char const ps_prog[] = CW_PATH_PROG_PS;
-
-	  char const* argv[4];
-	  argv[0] = "ps";
-	  argv[1] = PS_ARGUMENT;
-	  argv[2] = p;
-	  argv[3] = NULL;
-
-	  ST_argv0_ptr = &argv0;	// Ugly way to pass these strings to ST_decode_ps:
-	  ST_pidstr_ptr = &pidstr;	// pidstr is input, argv0 is output.
-
-	  if (ST_exec_prog(ps_prog, argv, environ, ST_decode_ps) == -1 || argv0.empty())
-	    DoutFatal(dc::fatal|error_cf, "Failed to execute \"" << ps_prog << "\"");
-	}
+        else
+          DoutFatal(dc::fatal, "Can't find \"" << proc_path << "\". Try -DEnableLibcwdLocation:BOOL=OFF.");
 
 	argv0 += '\0';
 	// argv0 now contains a zero terminated string optionally followed by the command line
