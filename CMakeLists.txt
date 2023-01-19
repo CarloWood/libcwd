@@ -213,7 +213,7 @@ if (NOT THREADSMAX)
 endif ()
 
 # Needed for subst-config.h.in, then used in subdirectory utils.
-set(libcwd_datadir "${CMAKE_INSTALL_PREFIX}/share/libcwd")
+set(libcwd_datadir "${CMAKE_INSTALL_PREFIX}/share")
 
 configure_file("cmake-config.h.in" "config.h")
 configure_file("include/libcwd/config.h.in" "include/libcwd/config.h" @ONLY)

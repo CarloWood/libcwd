@@ -90,7 +90,7 @@ std::string rcfile_ct::M_determine_rcfile_name()
       else
       {
 	// Fall back to $datadir/libcwd/libcwdrc
-	rcfile_name = CW_DATADIR "/libcwdrc";
+	rcfile_name = CW_DATADIR "/libcwd/libcwdrc";
 	if (!S_exists(rcfile_name.c_str()))
 	  DoutFatal(dc::fatal, "read_rcfile: Could not read rcfile \"" << M_rcname <<
 	      "\" from either \".\" or \"" << homedir <<
