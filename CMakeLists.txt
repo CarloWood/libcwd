@@ -162,12 +162,7 @@ check_function_exists(getgid HAVE_GETGID)
 check_function_exists(getgroups HAVE_GETGROUPS)
 
 if (HAVE_GETGROUPS)
-  check_prototype_definition(getgroups "int getgroups(int size, gid_t list[])" "NULL" "unistd.h" HAVE_GET_T)
-  if (HAVE_GET_T)
-    CW_DEFINE_TYPE(gid_t getgroups_t)
-  else()
-    CW_DEFINE_TYPE(int getgroups_t)
-  endif()
+  CW_DEFINE_TYPE(gid_t getgroups_t)
 endif()
 
 if (HAVE___LIBC_MALLOC)
