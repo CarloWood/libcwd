@@ -9,6 +9,10 @@
 #   Debug( libcw_do.on() );
 #   Debug( read_rcfile() );
 
+# Note: the recommended way to libcwd is by using gitache and cwds.
+# In that case you should put at the top of main what is described
+# here: https://github.com/CarloWood/cwds
+
 # Turn this on if you don't want detailed RCFILE messages to be printed.
 # If you also don't want to see any warnings that this file might produce,
 # then don't turn on the debug object before calling Debug(read_rcfile());
@@ -31,7 +35,10 @@ channels_on = warning
 
 # Where to find gdb.
 gdb = /usr/bin/gdb $GDBCOMMANDFILE
+# Alternatively, as example, if your project defines some $REPOBASE/.gdbinit where
+# REPOBASE is an environment variable that points to the directory where that file resides,
+# you can also do:
+#gdb = /usr/bin/gdb -x $REPOBASE/.gdbinit $GDBCOMMANDFILE
 
 # Commandline to execute in order to open a window (for starting gdb at run time).
-xterm = konsole --nofork --workdir "$PWD" --geometry 1024x400+0+0 -e %s
-
+xterm = konsole --name "attach_gdb" --hide-menubar --nofork --workdir "$PWD" --geometry 165x24-0-0 -e %s
