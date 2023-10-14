@@ -19,7 +19,7 @@
 #define LIBCWD_CLASS_DEBUG_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCWD_CLASS_CHANNEL_SET_H
 #include "class_channel_set.h"

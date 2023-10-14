@@ -19,7 +19,7 @@
 #define LIBCWD_CLASS_LOCATION_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 
 #if CWDEBUG_LOCATION

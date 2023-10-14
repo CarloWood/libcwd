@@ -19,7 +19,7 @@
 #define LIBCWD_PRIVATE_ASSERT_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCW_CASSERT
 #define LIBCW_CASSERT

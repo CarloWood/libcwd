@@ -19,7 +19,7 @@
 #define LIBCWD_MACRO_LIBCWD_MACROS_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF

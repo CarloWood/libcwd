@@ -16,7 +16,7 @@ struct timespec const one_ms = { 0, 1000000 };
 
 static void slowdown()
 {
-  struct timespec rem = one_ms; 
+  struct timespec rem = one_ms;
   while (nanosleep(&rem, &rem) == -1) ;
 }
 

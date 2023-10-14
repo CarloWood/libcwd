@@ -14,7 +14,7 @@
 #ifndef TESTSUITE_SYS_H
 #define TESTSUITE_SYS_H
 
-#include "config.h"
+//#include "config.h"
 #include "libcwd/config.h"
 
 #ifndef _GNU_SOURCE

@@ -19,7 +19,7 @@
 #define LIBCWD_CLASS_DEBUG_STRING_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF

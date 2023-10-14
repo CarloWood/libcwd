@@ -19,7 +19,7 @@
 #define LIBCWD_CLASS_FATAL_CHANNEL_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCWD_MAX_LABEL_LEN_H
 #include "max_label_len.h"

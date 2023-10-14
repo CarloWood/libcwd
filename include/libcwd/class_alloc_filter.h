@@ -22,7 +22,7 @@
 #error "Don't include <libcwd/class_alloc_filter.h> directly, include the appropriate \"debug.h\" instead."
 #endif
 
-#include "config.h"
+#include "libcwd/config.h"
 
 #if CWDEBUG_LOCATION
 #include "class_location.h"

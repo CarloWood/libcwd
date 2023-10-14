@@ -19,7 +19,7 @@
 #define LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include "private_struct_TSD.h"

@@ -24,7 +24,7 @@
 
 #ifdef CWDEBUG
 
-#include "config.h"
+#include "libcwd/config.h"
 
 // See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html for more information on -D_GLIBCXX_DEBUG
 #if defined(_GLIBCXX_DEBUG) && !CWDEBUG_GLIBCXX_DEBUG

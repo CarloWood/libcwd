@@ -9,10 +9,10 @@
 (WARNING :     Object file (/usr/lib/debug)*/lib/libc-2.[.0-9]*.so does not have debug info.*
 )*
 // type regexp
-MALLOC  : Allocated memory: 4152 bytes in 3 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: 1038 bytes in 3 blocks:
           0x5[56][0-9a-f]* tst_filter_shared:.*/testsuite/libcwd\.tst/filter\.cc:54   std::vector<int, std::allocator<int> >; \(sz = 24\)  filter\.cc
 MALLOC  : Number of visible memory blocks: 1\.
-MALLOC  : Allocated memory: 8216 bytes in 3 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: 8216 bytes in 3 blocks:
           0x5[56][0-9a-f]* tst_filter_shared:.*/testsuite/libcwd\.tst/filter\.cc:54   std::vector<int, std::allocator<int> >; \(sz = 24\)  filter\.cc
 MALLOC  : Number of visible memory blocks: 1\.
 MALLOC  : delete 0x5[56][0-9a-f]*      new_allocator\.h:115  <unknown type>; \(sz = 4096\)  
@@ -50,7 +50,7 @@ MALLOC  : realloc\(0x5[56][0-9a-f]*, 1000\) = 0x5[56][0-9a-f]* \[module\.cc:34\]
 MALLOC  : malloc\(600\) = 0x5[56][0-9a-f]* \[filter\.cc:200\]
 MALLOC  : realloc\(0x5[56][0-9a-f]*, 1000\) = 0x5[56][0-9a-f]* \[module\.cc:39\]
 MALLOC  : operator new\[\] \(size = 1000\) = 0x5[56][0-9a-f]* \[module\.cc:48\]
-MALLOC  : Allocated memory: 91[0-9][0-9] bytes in 15 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: 91[0-9][0-9] bytes in 15 blocks:
 [0-9:.]* \(MARKER\)  0x5[56][0-9a-f]* tst_filter_shared:           filter\.cc:191  <marker>; \(sz = 16\)  marker1
     [0-9:.]* \(MARKER\)  0x5[56][0-9a-f]* tst_filter_shared:           filter\.cc:197  <marker>; \(sz = 16\)  marker2
         [0-9:.]* new\[\]     0x5[56][0-9a-f]* module\.so:           module\.cc:48   char\[1000\]; \(sz = 1000\)  new1000
@@ -65,13 +65,13 @@ MALLOC  : Removing libcwd::marker_ct at 0x5[56][0-9a-f]* \(marker1\)
   \* new\[\]     0x5[56][0-9a-f]* module\.so:.*/testsuite/module\.cc:48   char\[1000\]; \(sz = 1000\)  new1000
   \* malloc    0x5[56][0-9a-f]* tst_filter_shared:.*/testsuite/libcwd\.tst/filter\.cc:194  void\*; \(sz = 123\)  Allocated between the two markers
 MALLOC  : delete 0x5[56][0-9a-f]*            filter\.cc:191  <marker>; \(sz = 16\)  marker1 
-MALLOC  : Allocated memory: 9[01][0-9][0-9] bytes in 14 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: 9[01][0-9][0-9] bytes in 14 blocks:
 \(deleted\) 0x5[56][0-9a-f]* main           filter\.cc:191  <marker>; \(sz = 16\)  marker1
     realloc   0x5[56][0-9a-f]* _Z25realloc1000_with_AllocTagPv           module\.cc:39   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     new\[\]     0x5[56][0-9a-f]* _Z7new1000m           module\.cc:48   char\[1000\]; \(sz = 1000\)  new1000
     malloc    0x5[56][0-9a-f]* main           filter\.cc:194  void\*; \(sz = 123\)  Allocated between the two markers
 MALLOC  : Number of visible memory blocks: 4\.
-MALLOC  : Allocated memory: 9[01][0-9][0-9] bytes in 14 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: 9[01][0-9][0-9] bytes in 14 blocks:
 [0-9:.]* \(deleted\) 0x5[56][0-9a-f]* tst_filter_shared:           filter\.cc:191  <marker>; \(sz = 16\)  marker1
     [0-9:.]* realloc   0x5[56][0-9a-f]* module\.so:           module\.cc:39   void\*; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* new\[\]     0x5[56][0-9a-f]* module\.so:           module\.cc:48   char\[1000\]; \(sz = 1000\)  new1000
@@ -83,7 +83,7 @@ NOTICE  : dlclose\(0x5[56][0-9a-f]*\)
 // output till ^MALLOC  : Allocated
 (MALLOC  : free\(0x5[56][0-9a-f]*\) _dl_.*
 )*
-MALLOC  : Allocated memory: (8111 bytes in 13|6435 bytes in 8) blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: (8111 bytes in 13|6435 bytes in 8) blocks:
 [0-9:.]* \(deleted\) 0x5[56][0-9a-f]* tst_filter_shared:           filter\.cc:191  <marker>; \(sz = 16\)  marker1
     [0-9:.]* realloc   0x5[56][0-9a-f]* module\.so:           module\.cc:39   <unknown type>; \(sz = 1000\)  realloc1000_with_AllocTag
     [0-9:.]* malloc    0x5[56][0-9a-f]* tst_filter_shared:           filter\.cc:194  void\*; \(sz = 123\)  Allocated between the two markers

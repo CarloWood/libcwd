@@ -19,7 +19,7 @@
 #define LIBCWD_CLASS_ALLOC_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 
 #ifndef LIBCWD_ENUM_MEMBLK_TYPES_H

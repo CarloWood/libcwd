@@ -23,7 +23,7 @@
 #endif
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCWD_MACRO_ALLOCTAG_H
 #include "macro_AllocTag.h"

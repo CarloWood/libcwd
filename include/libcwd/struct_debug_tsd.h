@@ -15,7 +15,7 @@
 #define LIBCWD_STRUCT_DEBUG_TSD_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCWD_CLASS_CHANNEL_SET_H
 #include "class_channel_set.h"

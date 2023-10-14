@@ -273,11 +273,8 @@ target_compile_definitions(cwd_r
 
 target_include_directories(cwd_r
     PRIVATE
-        "${top_srcdir}/include"
         "${top_objdir}/include"
-        # Include libcwd so that '#include "config.h"' works for the generated config.h.
-        # Once installed that will work because it is in the same directory.
-        "${top_objdir}/include/libcwd"
+        "${top_srcdir}/include"
     INTERFACE
         "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
 )

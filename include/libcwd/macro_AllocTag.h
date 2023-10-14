@@ -23,7 +23,7 @@
 #endif
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 
 #if CWDEBUG_ALLOC

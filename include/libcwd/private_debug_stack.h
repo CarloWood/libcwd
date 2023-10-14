@@ -19,7 +19,7 @@
 #define LIBCWD_PRIVATE_DEBUG_STACK_H
 
 #ifndef LIBCWD_CONFIG_H
-#include "config.h"
+#include "libcwd/config.h"
 #endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF
