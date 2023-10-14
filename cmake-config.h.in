@@ -1,3 +1,5 @@
+#pragma once
+
 #cmakedefine HAVE_PWD_H
 #cmakedefine HAVE_SYS_RESOURCE_H
 #cmakedefine HAVE_DLOPEN

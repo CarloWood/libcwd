@@ -572,9 +572,9 @@ void allocator_unlock()
 	;
 
 #if CWDEBUG_LOCATION
-    namespace cwbfd {
+    namespace dwarf {
       extern bool ST_init(LIBCWD_TSD_PARAM);
-    } // namespace cwbfd
+    } // namespace dwarf
 #endif
 
     void ST_initialize_globals(LIBCWD_TSD_PARAM)
@@ -640,7 +640,7 @@ void allocator_unlock()
 #endif
 
 #if CWDEBUG_LOCATION
-      cwbfd::ST_init(LIBCWD_TSD);		// Initialize BFD code.
+      dwarf::ST_init(LIBCWD_TSD);		// Initialize DWARF code.
 #endif
 #if CWDEBUG_DEBUG && !CWDEBUG_DEBUGOUTPUT
       // Force allocation of a __cxa_eh_globals struct in libsupc++.

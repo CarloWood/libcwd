@@ -44,7 +44,6 @@ libcwd_la_SOURCES = \
 	alloc_filter.cc \
 	strerrno.cc \
 	type_info.cc \
-	function.cc \
 	compilation_unit.cc
 libcwd_la_LDFLAGS = -version-info $(VERSIONINFO) -no-undefined
 libcwd_la_LIBADD = utils/libutils.la
@@ -63,7 +62,6 @@ libcwd_r_la_SOURCES = \
 	alloc_filter.cc \
 	strerrno.cc \
 	type_info.cc \
-	function.cc \
 	compilation_unit.cc \
 	threading.cc \
 	wrapcnclpnts.cc

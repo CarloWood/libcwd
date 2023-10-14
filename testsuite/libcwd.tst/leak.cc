@@ -25,11 +25,11 @@ private:
 public:
   void* leakAA;
 public:
-  AA(void);
+  AA();
   ~AA() { free(ptr); }
 };
 
-AA::AA(void)
+AA::AA()
 {
   ptr = malloc(1212);
   AllocTag(ptr, "AA::ptr");
@@ -44,11 +44,11 @@ public:
   void* ptr;
   void* leak;
 public:
-  test_object(void);
+  test_object();
   ~test_object() { delete b; free(ptr); delete a; }
 };
 
-test_object::test_object(void)
+test_object::test_object()
 {
   a = new AA;
   AllocTag(a, "test_object::a");
@@ -146,17 +146,29 @@ MAIN_FUNCTION
 #endif
 
   free(leak1);
+#if CWDEBUG_ALLOC
   Debug( list_allocations_on(libcw_do) );
+#endif
   free(leak1a);
+#if CWDEBUG_ALLOC
   Debug( list_allocations_on(libcw_do) );
+#endif
   free(leak1b);
+#if CWDEBUG_ALLOC
   Debug( list_allocations_on(libcw_do) );
+#endif
   free(leak2a);
+#if CWDEBUG_ALLOC
   Debug( list_allocations_on(libcw_do) );
+#endif
   free(leak2);
+#if CWDEBUG_ALLOC
   Debug( list_allocations_on(libcw_do) );
+#endif
   free(leak2b);
+#if CWDEBUG_ALLOC
   Debug( list_allocations_on(libcw_do) );
+#endif
   free(ptr2);
   free(ptr3);
 

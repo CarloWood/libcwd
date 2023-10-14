@@ -3,6 +3,10 @@
 
 #include <libcwd/debug.h>
 
+#ifndef CWDEBUG_ALLOC
+#error "config.h wasn't included!"
+#endif
+
 #if !CWDEBUG_ALLOC
 #define AllocTag1(p)
 #define AllocTag2(p, desc)

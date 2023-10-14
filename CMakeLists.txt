@@ -219,6 +219,7 @@ configure_file("include/sys.h.in" "include/sys.h" @ONLY)
 add_custom_target(maintainer-clean-extra
     COMMAND rm config.h include/sys.h include/libcwd/config.h include/libcwd/sys.h
     COMMAND rm -rf cw_utils_sys_malloc_overhead
+    COMMAND rm -f cwd_rConfig.cmake libcwd_rConfigVersion.cmake libcwd_r.pc
 )
 
 set(cwd_r_compile_definintions "CWDEBUG;LIBCWD_THREAD_SAFE")
@@ -229,6 +230,7 @@ endif ()
 find_package(Threads REQUIRED)
 
 add_subdirectory(utils)
+add_subdirectory(testsuite)
 
 add_library(cwd_r SHARED)
 
@@ -243,15 +245,13 @@ set_property(TARGET cwd_r APPEND PROPERTY COMPATIBLE_INTERFACE_STRING cwd_r_MAJO
 
 target_sources(cwd_r
     PRIVATE
+        dwarf.cc
         alloc_filter.cc
-        bfd.cc
         compilation_unit.cc
         debug.cc
         debugmalloc.cc
         demangle3.cc
-        elfxx.cc
         environ.cc
-        function.cc
         private_allocator.cc
         strerrno.cc
         threading.cc

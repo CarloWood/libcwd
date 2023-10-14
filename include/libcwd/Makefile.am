@@ -20,7 +20,6 @@ libcwd_HEADERS = \
 	class_debug_string.inl \
 	class_fatal_channel.h \
 	class_fatal_channel.inl \
-	class_function.h \
 	class_location.h \
 	class_location.inl \
 	class_marker.h \

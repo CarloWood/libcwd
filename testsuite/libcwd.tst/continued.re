@@ -4,7 +4,10 @@
 )*(BFD     : Loading debug .*
 )*)
 BAR     : Enabled
-BFD     : Disabled
+// input lines 2
+// output till ^DEBUG
+(BFD     : Disabled
+)?
 DEBUG   : Disabled
 FOO     : Enabled
 MALLOC  : Disabled

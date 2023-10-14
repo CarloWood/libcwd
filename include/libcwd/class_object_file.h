@@ -29,9 +29,9 @@ namespace libcwd {
 #if CWDEBUG_ALLOC
 class alloc_filter_ct;
 #endif
-namespace cwbfd {
-  class bfile_ct;
-} // namespace cwbfd
+namespace dwarf {
+class objfile_ct;
+} // namespace dwarf
 
 /** \addtogroup group_locations */
 /** \{ */
@@ -41,7 +41,7 @@ namespace cwbfd {
  * \brief An object representing the main executable or a shared library.
  *
  * This class contains the full path (file name) of an object file.
- * As a member of class bfile_ct, defined in namespace cwbfd,
+ * As a member of class objfile_ct, defined in namespace dwarf,
  * it is the only data exposed to the user, of that class.
  *
  * \internal
@@ -50,7 +50,7 @@ namespace cwbfd {
  * has_no_debug_line_sections() returns true when this object file does not have debug info.
  */
 class object_file_ct {
-private:
+ private:
   char const* M_filepath;	// The full path to the object file (internally allocated and leaking memory).
   char const* M_filename;	// Points inside M_filepath just after the last '/' or to the beginning.
 #if CWDEBUG_ALLOC
@@ -59,11 +59,11 @@ private:
 #endif
   mutable bool M_no_debug_line_sections;
 
-protected:
-  friend class cwbfd::bfile_ct;
+ protected:
+  friend class dwarf::objfile_ct;
   object_file_ct(char const* filepath);
 
-public:
+ public:
   /** \brief The full path name of the loaded executable or shared library. */
   char const* filepath() const { return M_filepath; }
   /** \brief The file name of the loaded executable or shared library (with path stripped off). */

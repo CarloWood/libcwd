@@ -1,7 +1,11 @@
 #include "sys.h"
 #include <libcwd/debug.h>
 
-int main(void)
+#ifndef CWDEBUG_ALLOC
+#error "config.h isn't included"
+#endif
+
+int main()
 {
 #if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
@@ -15,9 +19,11 @@ int main(void)
 
   int* p = new int [100];
 
+#if CWDEBUG_ALLOC
   Debug( make_all_allocations_invisible_except(p) );
 
   Debug( list_allocations_on(libcw_do) );
+#endif
 
   delete [] p;
 

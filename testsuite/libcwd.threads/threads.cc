@@ -51,7 +51,7 @@
 #define THREADTEST
 
 #include "sys.h"
-#include "debug.h"
+#include "../libcwd.tst/debug.h"
 #include <stdio.h>	// Needed for sprintf()
 #include <unistd.h>
 #ifdef TWDEBUG

@@ -15,7 +15,6 @@
 #define COMPILATION_UNIT_H
 
 #include "libcwd/private_internal_string.h"
-#include "libcwd/class_function.h"
 #ifndef LIBCW_VECTOR
 #define LIBCW_VECTOR
 #include <vector>
@@ -34,7 +33,6 @@ private:
   void const* M_highpc;				// One past last byte of compilation unit.
   internal_string M_compilation_directory;	// Working directory of compiler when compiling this compilation unit.
   internal_string M_source_file;		// Name of main source file producing this compilation unit.
-  FunctionRootsMap M_function_roots;		// List of function roots.
 public:
   // Dirty initialization - the idea is to decouple us here from the rest of elfxx.cc and bfd.cc.
   // These four are called once, from elfxx.cc.
@@ -56,14 +54,11 @@ public:
       { M_compilation_directory.assign(comp_dir.data(), comp_dir.size()); }
   void set_source_file(object_files_string const& source_file)
       { M_source_file.assign(source_file.data(), source_file.size()); }
-  FunctionRootsMap& function_roots() { return M_function_roots; }
-  FunctionRootsMap const& function_roots() const { return M_function_roots; }
 
   void const* get_lowpc() const { return M_lowpc; }
   void const* get_highpc() const { return M_highpc; }
   internal_string get_source_file() const { return M_source_file; }
   internal_string get_compilation_directory() const { return M_compilation_directory; }
-  FunctionRootsMap const& get_function_roots() const { return M_function_roots; }
 };
 
 // This type is added to class bfile_ct.

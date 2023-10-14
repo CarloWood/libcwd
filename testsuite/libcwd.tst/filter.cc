@@ -131,11 +131,7 @@ MAIN_FUNCTION
   void* handle;
   do
   {
-#ifdef THREADTEST
-    char const* module_name = "./module_r.so";
-#else
-    char const* module_name = "./module.so";
-#endif
+    char const* module_name = "./libmodule_r.so";
     handle = dlopen(module_name, RTLD_NOW|RTLD_GLOBAL);
     Dout(dc::notice, "dlopen(" << module_name << ", RTLD_NOW|RTLD_GLOBAL) == " << handle);
 

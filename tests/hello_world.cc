@@ -27,7 +27,6 @@
 #include "sys.h"
 #include "hello_world_debug.h"
 #include <iostream>
-#include <libcwd/class_function.h>
 
 // Define our own debug channel (see also "debug.h"):
 #ifdef CWDEBUG
@@ -80,12 +79,6 @@ int main(void)
 
   // Write "Hello World" to our own channel:
   Dout(dc::hello, "Hello World!");
-
-  //Debug( attach_gdb() );
-  using libcwd::Function;
-  Function test;
-  //debug_load_object_file("libcwd.so", true);
-  //test.init("inline_test", Function::regexp|Function::cpp_linkage|Function::c_linkage);
 
   return 0;
 }

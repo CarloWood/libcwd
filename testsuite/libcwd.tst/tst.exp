@@ -1,8 +1,32 @@
 global srcdir subdir
 global STATIC SHARED
 
-catch "glob -nocomplain $srcdir/$subdir/*.cc" srcfiles
-#set srcfiles $srcdir/$subdir/location.cc
+# One can run a single test by specifying the .exp file and a test name.
+# For example:
+#
+# (cd $REPOBASE-objdir/testsuite; runtest --all tst.exp=basic)
+#
+# Add --verbose to get more detailed output; runtest --help for an overview.
+
+# Check for an argument specifying which test to run.
+set srcfiles ""
+foreach arg $argv {
+  if {[string index $arg 0] != "-"} {
+    # Split the argument into its components
+    set components [split $arg "="]
+    if {[llength $components] > 1} {
+      set single_test [lindex $components 1]
+      set srcfiles "$srcdir/$subdir/$single_test.cc"
+      break
+    }
+  }
+}
+
+# If no test file is specified, run all tests.
+if {$srcfiles == ""} {
+  catch "glob -nocomplain $srcdir/$subdir/*.cc" srcfiles
+}
+
 verbose "srcfiles are $srcfiles"
 
 set prefix ""

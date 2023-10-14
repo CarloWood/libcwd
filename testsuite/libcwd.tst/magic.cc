@@ -22,7 +22,7 @@
 MAIN_FUNCTION
 { PREFIX_CODE
 #if !CWDEBUG_ALLOC || !CWDEBUG_MAGIC
-  DoutFatal(dc::fatal, "Failure Expected.");
+  DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
   Debug( check_configuration() );

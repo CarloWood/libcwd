@@ -15,11 +15,12 @@
 #include <libcwd/config.h>
 #if CWDEBUG_ALLOC
 #include "cwd_debug.h"
-#include "cwd_bfd.h"
+#include "cwd_dwarf.h"
 #ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif
 #ifndef LIBCWD_CLASS_ALLOC_FILTER_H
+#define LIBCWD_LIBRARIES_DEBUG_H        // Avoid #error in this header.
 #include <libcwd/class_alloc_filter.h>
 #endif
 
@@ -235,17 +236,17 @@ void alloc_filter_ct::M_synchronize() const
 #if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG
   LIBCWD_ASSERT( _private_::is_locked(list_allocations_instance) );
 #endif
-  BFD_ACQUIRE_WRITE_LOCK;
+  DWARF_ACQUIRE_WRITE_LOCK;
   // First clear the list, unhiding everything.
-  for (cwbfd::object_files_ct::iterator iter = cwbfd::NEEDS_WRITE_LOCK_object_files().begin();
-       iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
+  for (dwarf::object_files_ct::iterator iter = dwarf::NEEDS_WRITE_LOCK_object_files().begin();
+       iter != dwarf::NEEDS_WRITE_LOCK_object_files().end();
        ++iter)
     (*iter)->get_object_file()->M_hide = false;
   // Next hide what matches.
   if (!M_objectfile_masks.empty())
   {
-    for (cwbfd::object_files_ct::iterator iter = cwbfd::NEEDS_WRITE_LOCK_object_files().begin();
-	 iter != cwbfd::NEEDS_WRITE_LOCK_object_files().end();
+    for (dwarf::object_files_ct::iterator iter = dwarf::NEEDS_WRITE_LOCK_object_files().begin();
+	 iter != dwarf::NEEDS_WRITE_LOCK_object_files().end();
 	 ++iter)
     {
       for (vector_type::const_iterator iter2(M_objectfile_masks.begin()); iter2 != M_objectfile_masks.end(); ++iter2)
@@ -256,7 +257,7 @@ void alloc_filter_ct::M_synchronize() const
 	}
     }
   }
-  BFD_RELEASE_WRITE_LOCK;
+  DWARF_RELEASE_WRITE_LOCK;
   M_synchronize_locations();
   S_id = M_id;
 }

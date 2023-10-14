@@ -29,11 +29,7 @@ MAIN_FUNCTION
   void* handle;
   do
   {
-#ifdef THREADTEST
-    char const* module_name = "./module_r.so";
-#else
-    char const* module_name = "./module.so";
-#endif
+    char const* module_name = "./libmodule_r.so";
     handle = dlopen(module_name, RTLD_NOW|RTLD_GLOBAL);
 
     if (!handle)
@@ -65,7 +61,11 @@ MAIN_FUNCTION
 
 #if CWDEBUG_ALLOC
   Debug(
-      alloc_filter_ct alloc_filter(show_objectfile);
+      alloc_filter_ct alloc_filter
+#if CWDEBUG_LOCATION
+        (show_objectfile)
+#endif
+        ;
       alloc_filter.hide_untagged_allocations();
       alloc_filter.hide_unknown_locations();
       list_allocations_on(libcw_do, alloc_filter) );

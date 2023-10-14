@@ -1120,7 +1120,7 @@ static memblk_map_ct* ST_memblk_map;
 
 alloc_filter_ct const default_ooam_filter(0);
 
-#if CWDEBUG_ALLOC
+#if CWDEBUG_LOCATION
 //=============================================================================
 //
 // The location_cache map:
@@ -1232,7 +1232,7 @@ void location_ct::handle_delayed_initialization(alloc_filter_ct const& filter)
   M_pc_location(M_initialization_delayed LIBCWD_COMMA_TSD);
   synchronize_with(filter);
 }
-#endif // CWDEBUG_ALLOC
+#endif // CWDEBUG_LOCATION
 
 static int WST_initialization_state;		// MT-safe: We will reach state '1' the first call to malloc.
 						// We *assume* that the first call to malloc is before we reach

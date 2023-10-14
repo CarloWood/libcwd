@@ -14,7 +14,7 @@
 
 struct timespec const one_ms = { 0, 1000000 };
 
-static void slowdown(void)
+static void slowdown()
 {
   struct timespec rem = one_ms; 
   while (nanosleep(&rem, &rem) == -1) ;
@@ -59,7 +59,7 @@ static streambuf* old_buf;
 #define ios_base ios			// Kludge.
 #endif
 
-void grab_cerr(void)
+void grab_cerr()
 {
 #ifndef REAL_CERR
   old_buf = cerr.rdbuf();
@@ -67,20 +67,20 @@ void grab_cerr(void)
 #endif
 }
 
-void release_cerr(void)
+void release_cerr()
 {
 #ifndef REAL_CERR
   cerr.rdbuf(old_buf);
 #endif
 }
 
-void flush_cout(void)
+void flush_cout()
 {
   std::cout << flush;
   slowdown();
 }
 
-void flush_cerr(void)
+void flush_cerr()
 {
 #ifdef REAL_CERR
   cerr << flush;
@@ -280,7 +280,7 @@ MAIN_FUNCTION
     cout << "---------------------------------------------------------------------------\n";
     Dout( dc::notice, "`nested_foo(" << a << ", " << b << ")' returns the string \"" << nested_foo(a, b) << "\" when I call it." );
   }
-    
+
   // Double depth
   for(int i = 0; i < 16; ++i)
   {
@@ -361,7 +361,7 @@ MAIN_FUNCTION
       Dout( dc::notice, "`nested_foo(" << a << ", " << b << ")' returns the string \"" << nested_foo(a, b) << "\" when I call it." );
       Dout( dc::finish, "library!" );
     }
-    
+
   for(int i = 0; i < 16; ++i)
   {
     bool a = (i & 8), b = (i & 4), c = (i & 2), d = (i & 1);
