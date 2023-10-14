@@ -195,6 +195,12 @@ void allocator_unlock()
 	continued_needed = false;
 #endif
       }
+#if LIBCWD_THREAD_SAFE
+      void continued()
+      {
+        unfinished_already_printed = false;
+      }
+#endif
       void write_prefix_to(std::ostream* os)
       {
 	streampos_t old_in_pos = this->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
@@ -343,6 +349,7 @@ void allocator_unlock()
           }
           else
             locked_os->write("<continued> ", 12);
+          continued();
 	}
 #endif // LIBCWD_THREAD_SAFE
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
@@ -1121,6 +1128,9 @@ void allocator_unlock()
         }
         else
           current_bufferstream->write("<continued> ", 12);	// therefore we repeat the space here.
+#if LIBCWD_THREAD_SAFE
+        current->buffer.continued();
+#endif
         errno = saved_errno;
       }
 
