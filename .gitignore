@@ -12,3 +12,5 @@ install-sh
 ltmain.sh
 missing
 m4
+example-project/cwds
+example-project/cwm4

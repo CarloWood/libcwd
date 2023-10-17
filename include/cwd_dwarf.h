@@ -36,6 +36,8 @@
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #include "libcwd/private_mutex_instances.h"
 #endif
+#include <elfutils/libdw.h>
+#include <dwarf.h>
 #include "libcwd/debug.h"
 
 #if LIBCWD_THREAD_SAFE
@@ -73,6 +75,9 @@ using libcwd::_private_::dlclose_instance;
 #endif // !LIBCWD_THREAD_SAFE
 
 namespace libcwd {
+
+class location_ct;
+
 namespace dwarf {
 
 class objfile_ct;
@@ -87,22 +92,38 @@ using object_files_ct = std::list<objfile_ct*>;
 // All allocations related to objfile_ct must be `internal'.
 class objfile_ct
 {
-private:
-  void* M_lbase;
-  void const* M_end;
+  friend class libcwd::location_ct;
+
+ private:
+  Dwarf* dwarf_handle_;
+  int dwarf_fd_;
+  uintptr_t M_lbase;
+  uintptr_t M_start;
+  uintptr_t M_end;
   libcwd::object_file_ct M_object_file;
 
-public:
-  objfile_ct(char const* filename, void* base, void const* end);
+ public:
+  objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start, uintptr_t end);
+  ~objfile_ct();
+
   bool initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);
   void deinitialize(LIBCWD_TSD_PARAM);
-  void* get_lbase() const { return M_lbase; }
+  uintptr_t get_lbase() const { return M_lbase; }
   libcwd::object_file_ct const* get_object_file() const { return &M_object_file; }
 
-  void const* get_start() const { return M_lbase; }
-  void const* get_end() const { return M_end; }
+  uintptr_t get_start() const { return M_start; }
+  uintptr_t get_end() const { return M_end; }
 
-private:
+  bool is_initialized() const
+  {
+    return dwarf_fd_ != -1;
+  }
+
+ private:
+  void open_dwarf(LIBCWD_TSD_PARAM);
+  void close_dwarf(LIBCWD_TSD_PARAM);
+
+ private:
   friend object_files_ct const& NEEDS_READ_LOCK_object_files();       // Need access to `ST_list_instance'.
   friend object_files_ct& NEEDS_WRITE_LOCK_object_files();            // Need access to `ST_list_instance'.
   static char ST_list_instance[sizeof(object_files_ct)];

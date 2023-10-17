@@ -228,6 +228,8 @@ if (OptionEnableGlibCxxDebug)
 endif ()
 
 find_package(Threads REQUIRED)
+find_library(LIBDW dw REQUIRED)
+find_library(LIBELF elf REQUIRED)
 
 add_subdirectory(utils)
 add_subdirectory(testsuite)
@@ -286,6 +288,8 @@ target_link_libraries(cwd_r
         Threads::Threads
     INTERFACE
         "${CMAKE_DL_LIBS}"
+        "${LIBDW}"
+        "${LIBELF}"
 )
 
 include(GNUInstallDirs)

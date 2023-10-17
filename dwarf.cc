@@ -38,9 +38,7 @@
 #endif
 #include <cstdio>		// Needed for vsnprintf.
 #include <algorithm>
-#ifdef LIBCWD_DEBUGBFD
 #include <iomanip>
-#endif
 #include "cwd_debug.h"
 #include "ios_base_Init.h"
 #include "exec_prog.h"
@@ -226,10 +224,8 @@ void ST_get_full_path_to_executable(_private_::internal_string& result LIBCWD_CO
 }
 
 // Magic numbers for "unknown" load address and "executable" address.
-static char unknown_l_addr_c;
-static char executable_l_addr_c;
-constexpr void* unknown_l_addr = &unknown_l_addr_c;
-constexpr void* executable_l_addr = &executable_l_addr_c;
+constexpr uintptr_t unknown_base_addr = -1;
+constexpr uintptr_t executable_base_addr = -2;
 
 static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `cwbfd::ST_init'.
 struct objfile_ct;
@@ -238,7 +234,7 @@ struct object_file_greater {
   bool operator()(objfile_ct const* a, objfile_ct const* b) const { return a->get_lbase() > b->get_lbase(); }
 };
 
-objfile_ct* load_object_file(char const* name, void* l_addr, void const* end, bool initialized = false)
+objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t start, uintptr_t end, bool initialized = false)
 {
   static bool WST_initialized = false;
   LIBCWD_TSD_DECLARATION;
@@ -254,12 +250,12 @@ objfile_ct* load_object_file(char const* name, void* l_addr, void const* end, bo
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
-  if (l_addr == unknown_l_addr)
+  if (base_addr == unknown_base_addr)
     Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << ' ');
-  else if (l_addr == executable_l_addr)
+  else if (base_addr == executable_base_addr)
     Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << "... ");
   else
-    Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << " (" << l_addr << ") ... ");
+    Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << " (" << (void*)base_addr << ") ... ");
   objfile_ct* object_file;
   char const* slash = strrchr(name, '/');
   if (!slash)
@@ -275,7 +271,7 @@ objfile_ct* load_object_file(char const* name, void* l_addr, void const* end, bo
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_WRITE_LOCK;
   set_alloc_checking_off(LIBCWD_TSD);
-  object_file = new objfile_ct(name, l_addr, end);		// LEAK6
+  object_file = new objfile_ct(name, base_addr, start, end);		// LEAK6
   DWARF_RELEASE_WRITE_LOCK;
   already_exists =
 #if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
@@ -302,23 +298,32 @@ objfile_ct* load_object_file(char const* name, void* l_addr, void const* end, bo
 
 static int dl_iterate_phdr_callback(dl_phdr_info* info, size_t size, void* fullpath)
 {
-  uintptr_t start_addr = info->dlpi_addr + info->dlpi_phdr[0].p_vaddr;
-  uintptr_t end_addr = start_addr + info->dlpi_phdr[0].p_memsz;
-  objfile_ct* objfile;
-  if (info->dlpi_name[0] == 0)
+  uintptr_t base_address = info->dlpi_addr;
+  uintptr_t start_addr = (uintptr_t)0 - 1;
+  uintptr_t end_addr = 0;
+  for (int i = 0; i < info->dlpi_phnum; ++i)
   {
-#if 0
-    //FIXME: is this still correct when using dl_iterate_phdr?
-    // It seems that the executable is loaded somewhere with offset 0x555555554000 (without ASLR).
-    // non-PIE code seems to be loaded at very low addresses.
-    bool is_pie = info->dlpi_addr >= 0x500000000000;     // Dirty heuristics.
-    // If the executable is not PIE then executable_l_addr should be passed instead here.
-    objfile = load_object_file(fullpath.data(), is_pie ? reinterpret_cast<void*>(l->l_addr) : executable_l_addr, true);
-#endif
-    objfile = load_object_file(reinterpret_cast<char const*>(fullpath), reinterpret_cast<void*>(start_addr), reinterpret_cast<void*>(end_addr), true);
+    if (info->dlpi_phdr[i].p_type == PT_LOAD && (info->dlpi_phdr[i].p_flags & PF_X))
+    {
+      if (end_addr != 0)
+        // This isn't really a problem. All we need an address range that uniquely determines this object file.
+        Dout(dc::warning, "Object file \"" << info->dlpi_name << "\" has more than one executable PT_LOAD segments!");
+
+      uintptr_t current_start_addr = base_address + info->dlpi_phdr[i].p_vaddr;
+      uintptr_t current_end_addr = current_start_addr + info->dlpi_phdr[i].p_memsz;
+
+      start_addr = std::min(start_addr, current_start_addr);
+      end_addr = std::max(end_addr, current_end_addr);
+    }
   }
-  else if (info->dlpi_name[0] == '/' || info->dlpi_name[0] == '.')
-    objfile = load_object_file(info->dlpi_name, reinterpret_cast<void*>(start_addr), reinterpret_cast<void*>(end_addr));
+  if (end_addr != 0)
+  {
+    objfile_ct* objfile;
+    if (info->dlpi_name[0] == 0)
+      objfile = load_object_file(reinterpret_cast<char const*>(fullpath), base_address, start_addr, end_addr, true);
+    else if (info->dlpi_name[0] == '/' || info->dlpi_name[0] == '.')
+      objfile = load_object_file(info->dlpi_name, base_address, start_addr, end_addr);
+  }
   return 0;
 }
 
@@ -421,7 +426,8 @@ bool ST_init(LIBCWD_TSD_PARAM)
 
 char objfile_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
 
-objfile_ct::objfile_ct(char const* filename, void* base, void const* end) : M_lbase(base), M_end(end), M_object_file(filename)
+objfile_ct::objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start, uintptr_t end) :
+  dwarf_fd_(-1), dwarf_handle_(nullptr), M_lbase(base_addr), M_start(start), M_end(end), M_object_file(filename)
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION;
@@ -430,6 +436,12 @@ objfile_ct::objfile_ct(char const* filename, void* base, void const* end) : M_lb
   LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
 #endif
 #endif
+}
+
+objfile_ct::~objfile_ct()
+{
+  LIBCWD_TSD_DECLARATION;
+  close_dwarf(LIBCWD_TSD);
 }
 
 bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
@@ -447,7 +459,7 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
   __libcwd_tsd.internal = 0;
 #endif
   Dout(dc::bfd, "Adding \"" << get_object_file()->filepath() << "\", load address " <<
-      get_lbase() /*<< ", start " << get_start() << " and end " << (void*)((size_t)get_start() + size())*/);
+      (void*)get_lbase() << ", start " << (void*)get_start() << " and end " << (void*)get_end());
   for (object_files_ct::iterator iter = NEEDS_WRITE_LOCK_object_files().begin();
        iter != NEEDS_WRITE_LOCK_object_files().end(); ++iter)
   {
@@ -466,7 +478,169 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
     NEEDS_WRITE_LOCK_object_files().push_back(this);
 
   DWARF_RELEASE_WRITE_LOCK;
+
+//  if (!already_exists && !__libcwd_tsd.inside_malloc_or_free)
+//    std::cout << "Added \"" << get_object_file()->filepath() << "\" [" << (void*)get_start() << ", " << (void*)get_end() << "]" << std::endl;
+
   return already_exists;
+}
+
+_private_::string read_build_id(_private_::string const& object_file LIBCWD_COMMA_TSD_PARAM)
+{
+  // Determine the working version (the ELF version supported by both, the libelf library and this program).
+  if (elf_version(EV_CURRENT) == EV_NONE)
+  {
+    DoutFatal(dc::fatal, "Warning: libelf is out of date. Can't read build-id of \"" << object_file << "\" (or any object file).");
+  }
+  else
+  {
+    // Open the ELF object file.
+    int fd = open(object_file.c_str(), O_RDONLY);
+    if (fd == -1)
+    {
+      if (!__libcwd_tsd.inside_malloc_or_free)
+        std::cerr << "Warning: failed to open file \"" << object_file << "\"" << std::endl;
+    }
+    else
+    {
+      // Open an ELF descriptor for reading.
+      Elf* e = elf_begin(fd, ELF_C_READ, NULL);
+      if (!e)
+      {
+        if (!__libcwd_tsd.inside_malloc_or_free)
+          std::cerr << "Warning: elf_begin returned NULL for \"" << object_file << "\": " << elf_errmsg(-1) << std::endl;
+      }
+      else
+      {
+        if (elf_kind(e) != ELF_K_ELF)
+        {
+          //std::cout << object_file << ": skipping, not an ELF file." << std::endl;
+        }
+        else
+        {
+#if 0
+          // Get the string table section index.
+          size_t shstrndx;
+          if (elf_getshdrstrndx(e, &shstrndx) != 0)
+          {
+            std::cerr << "elf_getshdrstrndx() failed: " << elf_errmsg(-1) << std::endl;
+            return "";
+          }
+#endif
+          // Run over all sections in the ELF file.
+          Elf_Scn* scn = NULL;
+          while ((scn = elf_nextscn(e, scn)) != NULL)
+          {
+            // Get the section header.
+            GElf_Shdr shdr;
+            gelf_getshdr(scn, &shdr);
+            if (shdr.sh_type == SHT_NOTE)
+            {
+#if 0
+              // Get the name of the section
+              char const* name = elf_strptr(e, shstrndx, shdr.sh_name);
+              std::cout << "Section: " << name << std::endl;
+#endif
+              Elf_Data* data = elf_getdata(scn, NULL);
+              GElf_Nhdr nhdr;
+              size_t name_offset, desc_offset, offset = 0;
+              while ((offset = gelf_getnote(data, offset, &nhdr, &name_offset, &desc_offset)) > 0)
+              {
+                if (nhdr.n_type == NT_GNU_BUILD_ID && nhdr.n_namesz == 4 && strncmp((char*)data->d_buf + name_offset, "GNU", 4) == 0)
+                {
+                  unsigned char *desc = (unsigned char *)data->d_buf + desc_offset;
+                  _private_::string result;
+                  for (int i = 0; i < nhdr.n_descsz; ++i)
+                  {
+                    unsigned int val = (unsigned int)desc[i] & 0xffU;
+                    static char const* hexchar = "0123456789abcdef";
+                    for (int digit = 16; digit; digit /= 16)
+                    {
+                      result += hexchar[val / digit];
+                      val %= digit;
+                    }
+                  }
+                  //std::cout << "build-id of " << object_file << " is " << oss.str() << std::endl;
+                  return result;
+                }
+              }
+            }
+          }
+        }
+        elf_end(e);
+      }
+      close(fd);
+    }
+  }
+  return {};
+}
+
+_private_::string get_debug_symbols_path(_private_::string object_file LIBCWD_COMMA_TSD_PARAM)
+{
+  _private_::string debug_symbols_path;
+
+  char const* build_id_dir = "/usr/lib/debug/.build-id";
+  struct stat sb;
+  int sr = stat(build_id_dir, &sb);
+  if (sr == 0 && S_ISDIR(sb.st_mode))
+  {
+    // Get the build-id, if any.
+    _private_::string build_id = read_build_id(object_file LIBCWD_COMMA_TSD);
+    if (build_id.length() > 2)
+    {
+      debug_symbols_path = build_id_dir;
+      debug_symbols_path += '/';
+      debug_symbols_path += build_id.substr(0, 2);
+      debug_symbols_path += '/';
+      debug_symbols_path += build_id.substr(2);
+      debug_symbols_path += ".debug";
+    }
+  }
+  else
+    debug_symbols_path = "/usr/lib/debug" + object_file + ".debug";
+  sr = stat(debug_symbols_path.c_str(), &sb);
+  if (sr != 0)
+    debug_symbols_path = object_file;
+  return debug_symbols_path;
+}
+
+void objfile_ct::open_dwarf(LIBCWD_TSD_PARAM)
+{
+  LIBCWD_ASSERT(dwarf_fd_ == -1 && dwarf_handle_ == nullptr);
+
+  _private_::string debug_symbols_path = get_debug_symbols_path(M_object_file.filepath() LIBCWD_COMMA_TSD);
+  dwarf_fd_ = open(debug_symbols_path.c_str(), O_RDONLY);
+
+  if (dwarf_fd_ < 0)
+  {
+    Dout(dc::bfd, "Failed to open ELF file \"" << debug_symbols_path << "\".");
+    return;
+  }
+
+  dwarf_handle_ = dwarf_begin(dwarf_fd_, DWARF_C_READ);
+
+  if (!dwarf_handle_)
+  {
+    Dout(dc::bfd, "Failed to obtain DWARF handle for \"" << debug_symbols_path << "\". Error: " << dwarf_errmsg(-1));
+    close(dwarf_fd_);
+    dwarf_fd_ = -1;
+    return;
+  }
+}
+
+void objfile_ct::close_dwarf(LIBCWD_TSD_PARAM)
+{
+  if (dwarf_handle_)
+  {
+    dwarf_end(dwarf_handle_);
+    dwarf_handle_ = nullptr;
+  }
+
+  if (dwarf_fd_ != -1)
+  {
+    close(dwarf_fd_);
+    dwarf_fd_ = -1;
+  }
 }
 
 void objfile_ct::deinitialize(LIBCWD_TSD_PARAM)
@@ -481,19 +655,21 @@ void objfile_ct::deinitialize(LIBCWD_TSD_PARAM)
 #if CWDEBUG_ALLOC
   _private_::remove_type_info_references(&M_object_file LIBCWD_COMMA_TSD);
 #endif
-   LIBCWD_DEFER_CANCEL;
-   DWARF_ACQUIRE_WRITE_LOCK;
-   set_alloc_checking_off(LIBCWD_TSD);
-   object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(),
-                                       NEEDS_WRITE_LOCK_object_files().end(), this));
-   if (iter != NEEDS_WRITE_LOCK_object_files().end())
-     NEEDS_WRITE_LOCK_object_files().erase(iter);
-   set_alloc_checking_on(LIBCWD_TSD);
-   DWARF_RELEASE_WRITE_LOCK;
-   LIBCWD_RESTORE_CANCEL;
+  LIBCWD_DEFER_CANCEL;
+  DWARF_ACQUIRE_WRITE_LOCK;
+  set_alloc_checking_off(LIBCWD_TSD);
+  object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(),
+                                      NEEDS_WRITE_LOCK_object_files().end(), this));
+  if (iter != NEEDS_WRITE_LOCK_object_files().end())
+    NEEDS_WRITE_LOCK_object_files().erase(iter);
+  set_alloc_checking_on(LIBCWD_TSD);
+  DWARF_RELEASE_WRITE_LOCK;
+  LIBCWD_RESTORE_CANCEL;
+
+  close_dwarf(LIBCWD_TSD);
 }
 
-objfile_ct* NEEDS_READ_LOCK_find_object_file(void const* addr)
+objfile_ct* NEEDS_READ_LOCK_find_object_file(uintptr_t addr)
 {
   object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
   for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
@@ -654,7 +830,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   objfile_ct* object_file;
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_READ_LOCK;
-  object_file = NEEDS_READ_LOCK_find_object_file(addr);
+  object_file = NEEDS_READ_LOCK_find_object_file(reinterpret_cast<uintptr_t>(addr));
   DWARF_RELEASE_READ_LOCK;
 #ifdef HAVE__DL_LOADED
   if (!object_file && !statically_linked)
@@ -725,44 +901,175 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   M_initialization_delayed = NULL;
   if (!object_file)
   {
-    LIBCWD_Dout(dc::bfd, "No object file for address " << addr);
+    Dout(dc::bfd, "No object file for address " << addr);
     M_object_file = NULL;
     M_func = unknown_function_c;
     M_unknown_pc = addr;
     return;
   }
+
+  // Do initialization if needed.
+  if (!object_file->is_initialized())
+  {
+    if (__libcwd_tsd.inside_malloc_or_free)
+    {
+      M_object_file = NULL;
+      M_func = S_pre_ios_initialization_c;
+      M_initialization_delayed = addr;
+      return;
+    }
+    object_file->open_dwarf(LIBCWD_TSD);
+  }
+
   M_object_file = object_file->get_object_file();
 
-  //FIXME: implement this
-  assert(false);
-#if 0
-  symbol_ct const* symbol = pc_symbol(addr, object_file);
-  if (symbol)
+  // Get address ranges (of compilation units in this object).
+  Dwarf_Aranges* aranges;
+  size_t cnt;
+  if (dwarf_getaranges(object_file->dwarf_handle_, &aranges, &cnt) != 0)
   {
-    elfxx::asymbol_st const* p = symbol->get_symbol();
-    elfxx::bfd_st* abfd = p->bfd_ptr;
-    elfxx::asection_st const* sect = p->section;
-    char const* file;
-    LIBCWD_ASSERT( object_file->get_bfd() == abfd );
-    set_alloc_checking_off(LIBCWD_TSD);
-    abfd->find_nearest_line(p, (char*)addr - (char*)object_file->get_lbase(), &file, &M_func, &M_line LIBCWD_COMMA_TSD);
-    set_alloc_checking_on(LIBCWD_TSD);
-    LIBCWD_ASSERT( !(M_func && !p->name) );	// Please inform the author of libcwd if this assertion fails.
-    M_func = p->name;
+    Dout(dc::bfd, "dwarf_getaranges failed: " << dwarf_errmsg(-1));
+    object_file->close_dwarf(LIBCWD_TSD);
+    return;
+  }
 
-    if (file && M_line)			// When line is 0, it turns out that `file' is nonsense.
+#if 1
+  std::cout << "There are " << cnt << " address ranges:\n";
+  std::vector<std::string> names;
+  for (size_t i = 0; i < cnt; ++i)
+  {
+    Dwarf_Arange* arange = dwarf_onearange(aranges, i);
+    if (arange)
     {
-      size_t len = strlen(file);
-      set_alloc_checking_off(LIBCWD_TSD);
-      M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);	// LEAK5
-      set_alloc_checking_on(LIBCWD_TSD);
-      strcpy(M_filepath.get(), file);
-      M_known = true;
-      M_filename = strrchr(M_filepath.get(), '/') + 1;
-      if (M_filename == (char const*)1)
-        M_filename = M_filepath.get();
-    }
+      Dwarf_Addr start;
+      Dwarf_Word length;
+      Dwarf_Off offset;
+      if (dwarf_getarangeinfo(arange, &start, &length, &offset) == 0)
+        std::cout << "Range " << i << ": " << std::hex << "0x" << start << " - 0x" << (start + length) << std::dec;
 
+      // Obtain the (first) DIE of this arange.
+      Dwarf_Die die;
+      Dwarf_Die* die_ptr = dwarf_offdie(object_file->dwarf_handle_, offset, &die);
+      if (die_ptr)
+      {
+        assert(die_ptr == &die);
+        char const* name = dwarf_diename(die_ptr);
+        if (name)
+          std::cout << "; name: \"" << name << "\".\n";
+        else
+          std::cout << "; dwarf_diename returned NULL.\n";
+
+        Dwarf_Attribute attr;
+        if (dwarf_attr(cu_die_ptr, DW_AT_name, &attr) != NULL)
+        {
+          char const* cu_name = dwarf_formstring(&attr);
+          if (cu_name)
+            std::cout << "Compilation unit name: " << cu_name << std::endl;
+        }
+        else
+          std::cout << "dwarf_attr returned NULL" << std::endl;
+      }
+      else
+        std::cout << "; no DIE.\n";
+
+      Dwarf_Die child_die;
+      int res = dwarf_child(&die, &child_die);
+      int j = 0;
+      while (res == 0)
+      {
+        char const* name = dwarf_diename(&child_die);
+        // Check if this DIE falls within the address range
+        if (name)
+        {
+          if (dwarf_haspc(&child_die, start) && dwarf_haspc(&child_die, start + length - 2))
+          {
+            // This DIE falls within the address range. Now you can extract more information from it.
+            std::cout << "    Specific DIE: " << name << std::endl;
+          }
+          if (i == 0)
+            names.push_back(name);
+          else
+            assert(names[j++] == std::string(name));
+        }
+        res = dwarf_siblingof(&child_die, &child_die);
+      }
+    }
+  }
+#endif
+
+  Dwarf_Addr rel_ip = (Dwarf_Addr)addr - object_file->get_lbase();
+  std::cout << "rel_ip = 0x" << std::hex << rel_ip << std::dec << std::endl;
+
+  // Get the (address range of the) compilation unit containing rel_ip.
+  Dwarf_Arange *arange = dwarf_getarange_addr(aranges, rel_ip);
+
+  if (!arange)
+  {
+    M_func = unknown_function_c;
+
+    Dl_info info;
+    if (!dladdr(addr, &info))
+    {
+      std::cerr << "dladdr: " << dlerror() << std::endl;
+      return;
+    }
+    Dout(dc::bfd, "object_file->M_lbase = " << (void*)object_file->M_lbase << "; info.dli_fbase = " << (void*)info.dli_fbase);
+
+    Dout(dc::bfd, "No DWARF arange found for " << addr << ": " << dwarf_errmsg(-1));
+    return;
+  }
+
+  // Extract the offset into .debug_info.
+  Dwarf_Addr start;
+  Dwarf_Word length;
+  Dwarf_Off offset;
+  if (dwarf_getarangeinfo(arange, &start, &length, &offset) != 0)
+  {
+    Dout(dc::bfd, "No DWARF arange found for " << addr << ": " << dwarf_errmsg(-1));
+    M_func = unknown_function_c;
+    return;
+  }
+
+  // Obtain the DIE of the compilation unit.
+  Dwarf_Die cu_die;
+  Dwarf_Die* cu_die_ptr = dwarf_offdie(object_file->dwarf_handle_, offset, &cu_die);
+  if (!cu_die_ptr)
+  {
+    Dout(dc::bfd, M_object_file->filename() << ": dwarf_offdie: " << dwarf_errmsg(-1));
+    M_func = unknown_function_c;
+    return;
+  }
+
+  char const* name = dwarf_diename(cu_die_ptr);
+  if (!name)
+  {
+    Dout(dc::bfd, M_object_file->filename() << ": compilation unit name not found.");
+    M_func = unknown_function_c;
+    return;
+  }
+
+  Dout(dc::bfd, "Found compilation unit: " << name);
+
+  M_line = 1; // FIXME
+  //FIXME: implement this
+#if 0
+  M_func = ;
+
+  if (file && M_line)			// When line is 0, it turns out that `file' is nonsense.
+  {
+    size_t len = strlen(file);
+    set_alloc_checking_off(LIBCWD_TSD);
+    M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);	// LEAK5
+    set_alloc_checking_on(LIBCWD_TSD);
+    strcpy(M_filepath.get(), file);
+    M_known = true;
+    M_filename = strrchr(M_filepath.get(), '/') + 1;
+    if (M_filename == (char const*)1)
+      M_filename = M_filepath.get();
+  }
+#endif
+
+#if 0
     // Sanity check
     if (!p->name || M_line == 0)
     {
@@ -798,24 +1105,10 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     }
     else
       LIBCWD_Dout(dc::bfd, "address " << addr << " corresponds to " << *static_cast<bfd_location_ct*>(this));
-    return;
-  }
 
-  if (symbol)
-  {
-    Debug( dc::bfd.off() );
-    size_t len = strlen(symbol->get_symbol()->name);
-    len += sizeof("<undefined symbol: >\0");
-    char* func = new char [len];		// This leaks memory(!), but I don't think we ever come here.
-    strcpy(func, "<undefined symbol: ");
-    strcpy(func + 19, symbol->get_symbol()->name);
-    strcat(func, ">");
-    M_func = func;
-    Debug( dc::bfd.on() );
-  }
-  else
-    M_func = unknown_function_c;
 #endif
+
+  M_func = unknown_function_c;
 }
 
 /**
@@ -982,7 +1275,7 @@ extern "C" {
       // Don't call dwarf::load_object_file when dlopen() was called with NULL as argument.
       if (name && *name)
       {
-	object_file = dwarf::load_object_file(name, dwarf::unknown_l_addr, dwarf::unknown_l_addr);
+	object_file = dwarf::load_object_file(name, dwarf::unknown_base_addr, 0, 0);
 	if (object_file)
 	{
 	  LIBCWD_DEFER_CANCEL;
