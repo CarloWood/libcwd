@@ -30,7 +30,7 @@ namespace libcwd {
 class alloc_filter_ct;
 #endif
 namespace dwarf {
-class objfile_ct;
+class objfiles_ct;
 } // namespace dwarf
 
 /** \addtogroup group_locations */
@@ -60,7 +60,7 @@ class object_file_ct {
   mutable bool M_no_debug_line_sections;
 
  protected:
-  friend class dwarf::objfile_ct;
+  friend class dwarf::objfiles_ct;
   object_file_ct(char const* filepath);
 
  public:

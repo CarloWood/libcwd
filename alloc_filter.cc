@@ -16,6 +16,9 @@
 #if CWDEBUG_ALLOC
 #include "cwd_debug.h"
 #include "cwd_dwarf.h"
+#if CWDEBUG_LOCATION
+#include "libcwd/class_object_file.h"
+#endif
 #ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
 #endif

@@ -80,53 +80,29 @@ class location_ct;
 
 namespace dwarf {
 
-class objfile_ct;
+class objfiles_ct;
+
 #if CWDEBUG_ALLOC
-using object_files_ct = std::list<objfile_ct*, _private_::object_files_allocator::rebind<objfile_ct*>::other>;
+using object_files_ct = std::list<objfiles_ct*, _private_::object_files_allocator::rebind<objfiles_ct*>::other>;
 #define LIBCWD_COMMA_ALLOC_OPT(x) , x
 #else
-using object_files_ct = std::list<objfile_ct*>;
+using object_files_ct = std::list<objfiles_ct*>;
 #define LIBCWD_COMMA_ALLOC_OPT(x)
 #endif
 
-// All allocations related to objfile_ct must be `internal'.
-class objfile_ct
+class objfiles_ct
 {
-  friend class libcwd::location_ct;
-
- private:
-  Dwarf* dwarf_handle_;
-  int dwarf_fd_;
-  uintptr_t M_lbase;
-  uintptr_t M_start;
-  uintptr_t M_end;
-  libcwd::object_file_ct M_object_file;
-
- public:
-  objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start, uintptr_t end);
-  ~objfile_ct();
-
-  bool initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);
-  void deinitialize(LIBCWD_TSD_PARAM);
-  uintptr_t get_lbase() const { return M_lbase; }
-  libcwd::object_file_ct const* get_object_file() const { return &M_object_file; }
-
-  uintptr_t get_start() const { return M_start; }
-  uintptr_t get_end() const { return M_end; }
-
-  bool is_initialized() const
-  {
-    return dwarf_fd_ != -1;
-  }
-
- private:
-  void open_dwarf(LIBCWD_TSD_PARAM);
-  void close_dwarf(LIBCWD_TSD_PARAM);
-
- private:
+ protected:
   friend object_files_ct const& NEEDS_READ_LOCK_object_files();       // Need access to `ST_list_instance'.
   friend object_files_ct& NEEDS_WRITE_LOCK_object_files();            // Need access to `ST_list_instance'.
   static char ST_list_instance[sizeof(object_files_ct)];
+
+  libcwd::object_file_ct M_object_file;
+
+ public:
+  objfiles_ct(char const* filepath) : M_object_file(filepath) { }
+
+  libcwd::object_file_ct const* get_object_file() const { return &M_object_file; }
 };
 
 inline object_files_ct const&
@@ -138,7 +114,7 @@ NEEDS_READ_LOCK_object_files()
       __libcwd_tsd.rdlocked_by2[object_files_instance] == __libcwd_tsd.tid ||
       _private_::locked_by[object_files_instance] == __libcwd_tsd.tid );
 #endif
-  return *reinterpret_cast<object_files_ct const*>(objfile_ct::ST_list_instance);
+  return *reinterpret_cast<object_files_ct const*>(objfiles_ct::ST_list_instance);
 }
 
 inline object_files_ct&
@@ -148,7 +124,7 @@ NEEDS_WRITE_LOCK_object_files()
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( _private_::locked_by[object_files_instance] == __libcwd_tsd.tid );
 #endif
-  return *reinterpret_cast<object_files_ct*>(objfile_ct::ST_list_instance);
+  return *reinterpret_cast<object_files_ct*>(objfiles_ct::ST_list_instance);
 }
 
 } // namespace dwarf

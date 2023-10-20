@@ -36,7 +36,6 @@
 #include <cstdlib>
 #include <map>
 #endif
-#include <cstdio>		// Needed for vsnprintf.
 #include <algorithm>
 #include <iomanip>
 #include "cwd_debug.h"
@@ -53,6 +52,8 @@
 #include "libcwd/private_mutex_instances.h"
 #endif
 #include "libcwd/debug.h"
+#include "elfutils/known-dwarf.h"
+#include <elf.h>
 
 namespace libcwd {
 namespace _private_ {
@@ -119,7 +120,7 @@ bool is_group_member(gid_t gid)
 #ifdef HAVE_GETGROUPS
   int ngroups = 0;
   int default_group_array_size = 0;
-  getgroups_t* group_array = (getgroups_t*)NULL;
+  getgroups_t* group_array = (getgroups_t*)nullptr;
 
   while (ngroups == default_group_array_size)
   {
@@ -230,9 +231,96 @@ constexpr uintptr_t executable_base_addr = -2;
 static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `cwbfd::ST_init'.
 struct objfile_ct;
 
-struct object_file_greater {
-  bool operator()(objfile_ct const* a, objfile_ct const* b) const { return a->get_lbase() > b->get_lbase(); }
+class symbol_ct
+{
+ private:
+  Dwarf_Addr real_start_;               // Key
+  Dwarf_Addr real_end_;
+
+  mutable objfile_ct* objfile_;         // Data
+  mutable Dwarf_Die die_;
+  mutable char const* cu_name_;
+  mutable char const* func_name_;
+  mutable char const* linkage_name_;
+
+ public:
+  inline symbol_ct(Dwarf_Addr start, Dwarf_Addr end,
+      objfile_ct* objfile, Dwarf_Die const* die, char const* cu_name, char const* func_name, char const* linkage_name);
+
+  Dwarf_Addr real_start() const { return real_start_; }
+  Dwarf_Addr real_end() const { return real_end_; }
+  objfile_ct const* objfile() const { return objfile_; }
+  Dwarf_Die const* die() const { return &die_; }
+  char const* cu_name() const { return cu_name_; }
+  char const* func_name() const { return func_name_; }
+  char const* linkage_name() const { return linkage_name_; }
+
+  bool operator==(symbol_ct const&) const { DoutFatal(dc::core, "Calling operator=="); }
+  friend struct symbol_key_greater;
 };
+
+struct symbol_key_greater
+{
+  // Returns true when the start of a lays beyond the end of b (ie, no overlap).
+  bool operator()(symbol_ct const& a, symbol_ct const& b) const
+  {
+    return a.real_start() >= b.real_end();
+  }
+};
+
+#if CWDEBUG_ALLOC
+using function_symbols_ct = std::set<symbol_ct, symbol_key_greater, _private_::object_files_allocator::rebind<symbol_ct>::other>;
+#else
+using function_symbols_ct = std::set<symbol_ct, symbol_key_greater>;
+#endif
+
+// All allocations related to objfile_ct must be `internal'.
+class objfile_ct : public objfiles_ct
+{
+  friend class libcwd::location_ct;
+
+ private:
+  Dwarf* dwarf_handle_;
+  int dwarf_fd_;
+  uintptr_t M_lbase;
+  uintptr_t M_start;
+  uintptr_t M_end;
+  function_symbols_ct M_function_symbols;
+
+ public:
+  objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start, uintptr_t end);
+  ~objfile_ct();
+
+  bool initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);
+  void deinitialize(LIBCWD_TSD_PARAM);
+  uintptr_t get_lbase() const { return M_lbase; }
+
+  uintptr_t get_start() const { return M_start; }
+  uintptr_t get_end() const { return M_end; }
+
+  bool is_initialized() const
+  {
+    return dwarf_fd_ != -1;
+  }
+
+ private:
+  void open_dwarf(LIBCWD_TSD_PARAM);
+  void close_dwarf(LIBCWD_TSD_PARAM);
+};
+
+struct object_file_greater {
+  bool operator()(objfiles_ct const* a, objfiles_ct const* b) const
+  {
+    return static_cast<objfile_ct const*>(a)->get_lbase() > static_cast<objfile_ct const*>(b)->get_lbase();
+  }
+};
+
+symbol_ct::symbol_ct(Dwarf_Addr start, Dwarf_Addr end,
+    objfile_ct* objfile, Dwarf_Die const* die, char const* cu_name, char const* func_name, char const* linkage_name) :
+    real_start_(start + objfile->get_lbase()), real_end_(end + objfile->get_lbase()),
+    objfile_(objfile), die_(*die), cu_name_(cu_name), func_name_(func_name), linkage_name_(linkage_name)
+{
+}
 
 objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t start, uintptr_t end, bool initialized = false)
 {
@@ -245,17 +333,11 @@ objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t st
     if (initialized)
       WST_initialized = true;
     else if (!ST_init(LIBCWD_TSD))
-      return NULL;
+      return nullptr;
   }
 #if CWDEBUG_DEBUGM
   LIBCWD_ASSERT( !__libcwd_tsd.internal );
 #endif
-  if (base_addr == unknown_base_addr)
-    Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << ' ');
-  else if (base_addr == executable_base_addr)
-    Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << "... ");
-  else
-    Dout(dc::bfd|continued_cf|flush_cf, "Loading debug symbols from " << name << " (" << (void*)base_addr << ") ... ");
   objfile_ct* object_file;
   char const* slash = strrchr(name, '/');
   if (!slash)
@@ -267,31 +349,21 @@ objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t st
 #if CWDEBUG_ALLOC
   bool is_libc = (strncmp("libc.so", slash + 1, 7) == 0);
 #endif
-  bool already_exists;
+  bool failure;
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_WRITE_LOCK;
   set_alloc_checking_off(LIBCWD_TSD);
   object_file = new objfile_ct(name, base_addr, start, end);		// LEAK6
-  DWARF_RELEASE_WRITE_LOCK;
-  already_exists =
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-      object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc), is_libstdcpp LIBCWD_COMMA_TSD);
-#else
-      object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
-#endif
   set_alloc_checking_on(LIBCWD_TSD);
+  DWARF_RELEASE_WRITE_LOCK;
+  failure = object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
   LIBCWD_RESTORE_CANCEL;
-  if (!already_exists)
+  if (failure)
   {
-    Dout(dc::finish, "done");
-  }
-  else
-  {
-    Dout(dc::finish, "Already loaded");
     set_alloc_checking_off(LIBCWD_TSD);
     delete object_file;
     set_alloc_checking_on(LIBCWD_TSD);
-    return NULL;
+    return nullptr;
   }
   return object_file;
 }
@@ -318,7 +390,7 @@ static int dl_iterate_phdr_callback(dl_phdr_info* info, size_t size, void* fullp
   }
   if (end_addr != 0)
   {
-    objfile_ct* objfile;
+    [[maybe_unused]] objfile_ct* objfile;
     if (info->dlpi_name[0] == 0)
       objfile = load_object_file(reinterpret_cast<char const*>(fullpath), base_address, start_addr, end_addr, true);
     else if (info->dlpi_name[0] == '/' || info->dlpi_name[0] == '.')
@@ -424,10 +496,10 @@ bool ST_init(LIBCWD_TSD_PARAM)
   return true;
 }
 
-char objfile_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
+char objfiles_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
 
 objfile_ct::objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start, uintptr_t end) :
-  dwarf_fd_(-1), dwarf_handle_(nullptr), M_lbase(base_addr), M_start(start), M_end(end), M_object_file(filename)
+  objfiles_ct(filename), dwarf_fd_(-1), dwarf_handle_(nullptr), M_lbase(base_addr), M_start(start), M_end(end)
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION;
@@ -444,43 +516,370 @@ objfile_ct::~objfile_ct()
   close_dwarf(LIBCWD_TSD);
 }
 
+#define DWARF_ONE_KNOWN_DW_TAG(tag_, tag_name_) \
+  case tag_name_: \
+    tag_name = #tag_name_; \
+    break;
+
+static void print_die_info(Dwarf_Die* die)
+{
+  // 1. Print DIE Tag.
+  char const* tag_name = "<unknown>";
+  Dwarf_Half tag = dwarf_tag(die);
+  switch (tag)
+  {
+    DWARF_ALL_KNOWN_DW_TAG
+  }
+  Dout(dc::bfd, "DIE Tag: " << tag_name);
+
+  // 2. Print DIE Offset.
+  Dwarf_Off die_offset = dwarf_dieoffset(die);
+  Dout(dc::bfd, "DIE Offset: 0x" << std::hex << die_offset);
+
+  // 3. Print DIE Name (if available).
+  char const* name = dwarf_diename(die);
+  if (name) {
+    Dout(dc::bfd, "DIE Name: " << name);
+  }
+
+  // 4. Print Parent DIE Offset (if applicable).
+  Dwarf_Die parent_die;
+  if (dwarf_diecu(die, &parent_die, nullptr, nullptr))
+  {
+    die_offset = dwarf_dieoffset(&parent_die);
+    Dout(dc::bfd, "Parent DIE Offset: 0x" << std::hex << die_offset);
+  }
+}
+
 bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( __libcwd_tsd.internal == 1 );
+  LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
 #if CWDEBUG_DEBUGT
   LIBCWD_ASSERT( _private_::locked_by[object_files_instance] != __libcwd_tsd.tid );
   LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] != __libcwd_tsd.tid && __libcwd_tsd.rdlocked_by2[object_files_instance] != __libcwd_tsd.tid );
 #endif
 #endif
+
   DWARF_ACQUIRE_WRITE_LOCK;
   bool already_exists = false;
-#if CWDEBUG_ALLOC
-  __libcwd_tsd.internal = 0;
-#endif
   Dout(dc::bfd, "Adding \"" << get_object_file()->filepath() << "\", load address " <<
-      (void*)get_lbase() << ", start " << (void*)get_start() << " and end " << (void*)get_end());
+      (void*)get_lbase() << ", range " << (void*)get_start() << "-" << (void*)get_end());
   for (object_files_ct::iterator iter = NEEDS_WRITE_LOCK_object_files().begin();
        iter != NEEDS_WRITE_LOCK_object_files().end(); ++iter)
   {
-    if ((*iter)->get_lbase() == get_lbase())
+    if (static_cast<objfile_ct const*>(*iter)->get_lbase() == get_lbase())
     {
-//      LIBCWD_ASSERT((*iter)->size() == size());
       Dout(dc::bfd, "Already loaded as \"" << (*iter)->get_object_file()->filepath() << "\"");
       already_exists = true;
       break;
     }
   }
-#if CWDEBUG_ALLOC
-  __libcwd_tsd.internal = 1;
-#endif
-  if (!already_exists)
-    NEEDS_WRITE_LOCK_object_files().push_back(this);
-
   DWARF_RELEASE_WRITE_LOCK;
 
-//  if (!already_exists && !__libcwd_tsd.inside_malloc_or_free)
-//    std::cout << "Added \"" << get_object_file()->filepath() << "\" [" << (void*)get_start() << ", " << (void*)get_end() << "]" << std::endl;
+  if (!already_exists)
+  {
+    open_dwarf(LIBCWD_TSD);
+    if (!is_initialized())
+      return true; // Failure.
+
+    //===========================================================================
+    // Open the ELF file for relocation info.
+    //
+
+    int fd = open(M_object_file.filepath(), O_RDONLY);
+    if (fd == -1)
+    {
+      Dout(dc::bfd, "Warning: failed to open file \"" << M_object_file.filepath() << "\".");
+      return true;
+    }
+    else
+    {
+      // Open an ELF descriptor for reading.
+      Elf* e = elf_begin(fd, ELF_C_READ, NULL);
+      if (!e)
+      {
+        Dout(dc::bfd, "Warning: elf_begin returned NULL for \"" << M_object_file.filepath() << "\": " << elf_errmsg(-1));
+        return true;
+      }
+      else
+      {
+        bool failure = true;
+        if (elf_kind(e) != ELF_K_ELF)
+          Dout(dc::bfd, M_object_file.filepath() << ": skipping, not an ELF file.");
+        else
+        {
+          // Find the symbol section in the ELF file.
+          Elf_Scn* symbol_section = nullptr;
+          Elf_Scn* section = nullptr;
+          GElf_Shdr symbol_shdr;
+          while ((section = elf_nextscn(e, section)) != nullptr)
+          {
+            if (gelf_getshdr(section, &symbol_shdr) &&
+                symbol_shdr.sh_type == SHT_SYMTAB)
+            {
+              symbol_section = section;
+              break;
+            }
+          }
+
+          GElf_Sym* symbols = nullptr;
+          if (!symbol_section)
+            Dout(dc::bfd, M_object_file.filepath() << ": skipping, can't find SHT_SYMTAB.");
+          else
+          {
+            failure = false;
+
+            int number_of_symbols = symbol_shdr.sh_size / symbol_shdr.sh_entsize;
+            Dout(dc::bfd, "number_of_symbols = " << number_of_symbols);
+            Elf_Data* symbol_data = elf_getdata(symbol_section, NULL);
+            GElf_Sym* symbols = (GElf_Sym*)symbol_data->d_buf;
+#if 0
+            // Print the symbol names.
+            for (int i = 0; i < number_of_symbols; ++i)
+            {
+              GElf_Sym sym;
+              gelf_getsym(data, i, &sym);
+              if (GELF_ST_TYPE(sym.st_info) == STT_FUNC && sym.st_shndx != SHN_UNDEF)
+              {
+                char const* linkage_name = elf_strptr(e, shdr.sh_link, sym.st_name);
+                uintptr_t reloc_address = M_lbase + sym.st_value; // plus addend
+                Dout(dc::bfd, "i = " << i << "; reloc_address = " << (void*)reloc_address << "; name = \"" << linkage_name << "\"");
+              }
+            }
+#endif
+            // Run again over all sections in the ELF file, looking for the relocation section.
+            Elf_Scn* rela_section = nullptr;
+            section = nullptr;
+            GElf_Shdr rela_shdr;
+            while ((section = elf_nextscn(e, section)) != nullptr)
+            {
+              if (gelf_getshdr(section, &rela_shdr) &&
+                  rela_shdr.sh_type == SHT_RELA)
+              {
+                rela_section = section;
+                break;
+              }
+            }
+
+            if (!rela_section)
+              Dout(dc::bfd, M_object_file.filepath() << ": no SHT_RELA section.");
+            else
+            {
+              Elf_Data* rela_data = elf_getdata(rela_section, NULL);
+              if (rela_data)
+              {
+                size_t number_of_relocations = rela_shdr.sh_size / rela_shdr.sh_entsize;
+                for (size_t i = 0; i < number_of_relocations; ++i)
+                {
+                  GElf_Rela rela;
+                  if (gelf_getrela(rela_data, i, &rela) == &rela)
+                  {
+                    // Extract symbol index and relocation type.
+                    Elf64_Xword symbol_index = ELF64_R_SYM(rela.r_info);
+                    Elf64_Xword relocation_type = ELF64_R_TYPE(rela.r_info);
+                    Elf64_Sxword addend = rela.r_addend;
+
+                    if (relocation_type == R_X86_64_JUMP_SLOT)
+                    {
+                      LIBCWD_ASSERT(symbol_index < number_of_symbols);
+                      if (symbol_index < number_of_symbols)
+                      {
+                        char const* symbol_name = elf_strptr(e, rela_shdr.sh_link, symbols[symbol_index].st_name);
+                        Dout(dc::bfd, "symbol_index = " << symbol_index << "; relocation_type = " << relocation_type << "; addend = 0x" << std::hex << addend << "; symbol_name = \"" << symbol_name << "\".");
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          elf_end(e);
+          close(fd);
+          if (failure)
+            return true;
+        }
+      }
+    }
+    //===========================================================================
+
+    //===========================================================================
+    // Iterate over all compilation units of the given object file.
+    //
+    Dwarf_Off offset = 0;
+    Dwarf_Off next_offset;
+    size_t hsize;
+    while (dwarf_nextcu(dwarf_handle_, offset, &next_offset, &hsize, nullptr, nullptr, nullptr) == 0)
+    {
+      //=========================================================================
+      // Find the compilation unit Debug Information Entry (DIE).
+      //
+      Dwarf_Die cu_die;
+      Dwarf_Die* cu_die_ptr = dwarf_offdie(dwarf_handle_, offset + hsize, &cu_die);
+      if (cu_die_ptr)
+      {
+        //=======================================================================
+        // Compilation unit name
+        //
+        char const* cu_name = dwarf_diename(cu_die_ptr);
+#if 0
+        if (cu_name)
+          Dout(dc::bfd, "Found compilation unit: \"" << cu_name << "\" (" << (void*)cu_name << ")");
+        else
+          Dout(dc::bfd, "DIE name not found.");
+#endif
+
+
+        //=====================================================================
+        // Iterate over all children of the compilation unit.
+        //
+
+        Dwarf_Die child_die;
+        if (dwarf_child(cu_die_ptr, &child_die) == 0)   // Get the first child of this DIE, if any.
+        {
+          do
+          {
+            //===================================================================
+            // Find all function DIE's with a name.
+            //
+
+            // We are only interested in DIE that represents a function.
+            if (dwarf_tag(&child_die) == DW_TAG_subprogram)
+            {
+              Dwarf_Attribute attr;
+              bool is_true;
+
+              // Declarations are DW_TAG_subprogram too; skip all declarations; we are only interested in definitions.
+              if (dwarf_attr(&child_die, DW_AT_declaration, &attr) &&
+                  dwarf_formflag(&attr, &is_true) == 0 && is_true)
+                continue;
+
+              // If the declaration is deleted; don't bother with it.
+              if (dwarf_attr(&child_die, DW_AT_deleted, &attr) &&
+                  dwarf_formflag(&attr, &is_true) == 0 && is_true)
+                continue;
+
+              // Not sure if it can happen that such a function DIE has no name, but if that is the case then
+              // pretend that that isn't a function.
+              char const* func_name = dwarf_diename(&child_die);
+              if (!func_name || !*func_name)
+                continue;
+
+              // If the function is external, don't bother with it.
+              if (dwarf_attr(&child_die, DW_AT_external, &attr) &&
+                  dwarf_formflag(&attr, &is_true) == 0 && is_true)
+                continue;
+
+              // We STRONGLY prefer mangled names in the case of C++ functions. Try to obtain it.
+              char const* linkage_name = nullptr;
+              Dwarf_Die referenced_die;
+              for (Dwarf_Die* die_ptr = &child_die;; die_ptr = &referenced_die)
+              {
+                if (dwarf_attr(die_ptr, DW_AT_MIPS_linkage_name, &attr) ||
+                    dwarf_attr(die_ptr, DW_AT_linkage_name, &attr))
+                {
+                  linkage_name = dwarf_formstring(&attr);
+                  break;
+                }
+                else if ((
+                      !dwarf_attr(die_ptr, DW_AT_specification, &attr) &&
+                      !dwarf_attr(die_ptr, DW_AT_abstract_origin, &attr)) ||
+                    !dwarf_formref_die(&attr, &referenced_die))
+                  break;
+              }
+
+              if (!linkage_name)
+              {
+                Dout(dc::bfd, "No linkage_name for:");
+                print_die_info(&child_die);
+                // For now skip all compiler generated "artificial" DW_TAG_subprogram entries that don't have a linkage_name.
+                if (dwarf_attr(&child_die, DW_AT_artificial, &attr) &&
+                    dwarf_formflag(&attr, &is_true) == 0 && is_true)
+                {
+                  Dout(dc::bfd, "Skipping it because it is DW_AT_artificial");
+                  continue;
+                }
+              }
+
+              //=================================================================
+              // Run over all address ranges owned by the function DIE.
+              //
+
+              Dwarf_Addr lbase;
+              Dwarf_Addr start;
+              Dwarf_Addr end;
+              ptrdiff_t offset = 0;
+              while ((offset = dwarf_ranges(&child_die, offset, &lbase, &start, &end)) > 0)
+              {
+                if (end != (Dwarf_Addr)-1)
+                {
+                  DWARF_ACQUIRE_WRITE_LOCK;
+#if CWDEBUG_ALLOC
+                  __libcwd_tsd.internal = 1;
+#endif
+                  auto ibp = M_function_symbols.emplace(start, end, this, &child_die, cu_name, func_name, linkage_name);
+#if CWDEBUG_ALLOC
+                  __libcwd_tsd.internal = 0;
+#endif
+                  if (!start)
+                  {
+                    if (!linkage_name)
+                    {
+                      Dout(dc::bfd, "start = 0 for \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
+                          (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                          M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+                      print_die_info(&child_die);
+                    }
+                  }
+                  else
+                  {
+                    if (ibp.second)
+                      Dout(dc::bfd|continued_cf, "Successfully inserted");
+                    else
+                      Dout(dc::bfd|continued_cf, "Failed to insert");
+                    Dout(dc::finish, " \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
+                        (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                        M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+                    if (!ibp.second)
+                      print_die_info(&child_die);
+                    LIBCWD_ASSERT(M_lbase + start == ibp.first->real_start() && M_lbase + end == ibp.first->real_end());
+                  }
+                  DWARF_RELEASE_WRITE_LOCK;
+                }
+              }
+
+              //
+              //=================================================================
+            }
+            //===================================================================
+            // Continue with the next child DIE of the compilation unit.
+          }
+          while (dwarf_siblingof(&child_die, &child_die) == 0);
+        }
+      }
+      else
+        Dout(dc::bfd, get_object_file()->filepath() << ": dwarf_offdie failed: " << dwarf_errmsg(-1));
+
+      //=========================================================================
+      // Next compilation unit.
+      //
+      // Update the offset for the next iteration.
+      offset = next_offset;
+    }
+  }
+
+  if (!already_exists)
+  {
+    DWARF_ACQUIRE_WRITE_LOCK;
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 1;
+#endif
+    NEEDS_WRITE_LOCK_object_files().push_back(this);
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 0;
+#endif
+    DWARF_RELEASE_WRITE_LOCK;
+  }
 
   return already_exists;
 }
@@ -528,8 +927,8 @@ _private_::string read_build_id(_private_::string const& object_file LIBCWD_COMM
           }
 #endif
           // Run over all sections in the ELF file.
-          Elf_Scn* scn = NULL;
-          while ((scn = elf_nextscn(e, scn)) != NULL)
+          Elf_Scn* scn = nullptr;
+          while ((scn = elf_nextscn(e, scn)) != nullptr)
           {
             // Get the section header.
             GElf_Shdr shdr;
@@ -607,13 +1006,25 @@ _private_::string get_debug_symbols_path(_private_::string object_file LIBCWD_CO
 void objfile_ct::open_dwarf(LIBCWD_TSD_PARAM)
 {
   LIBCWD_ASSERT(dwarf_fd_ == -1 && dwarf_handle_ == nullptr);
+#if CWDEBUG_DEBUGM
+  LIBCWD_ASSERT( !__libcwd_tsd.internal );
+#endif
 
   _private_::string debug_symbols_path = get_debug_symbols_path(M_object_file.filepath() LIBCWD_COMMA_TSD);
+
+  bool different_symbols_path = debug_symbols_path != M_object_file.filepath();
+  Dout(dc::bfd|continued_cf, "Loading debug info " << (different_symbols_path ? "for " : "from ") << M_object_file.filepath());
+  if (different_symbols_path)
+    Dout(dc::continued, " (from " << debug_symbols_path << ")");
+  if (M_lbase != unknown_base_addr && M_lbase != executable_base_addr)
+    Dout(dc::continued, " (" << (void*)M_lbase << ") ");
+  Dout(dc::continued|flush_cf, "... ");
+
   dwarf_fd_ = open(debug_symbols_path.c_str(), O_RDONLY);
 
-  if (dwarf_fd_ < 0)
+  if (dwarf_fd_ == -1)
   {
-    Dout(dc::bfd, "Failed to open ELF file \"" << debug_symbols_path << "\".");
+    Dout(dc::finish|error_cf, "failed to open");
     return;
   }
 
@@ -621,11 +1032,13 @@ void objfile_ct::open_dwarf(LIBCWD_TSD_PARAM)
 
   if (!dwarf_handle_)
   {
-    Dout(dc::bfd, "Failed to obtain DWARF handle for \"" << debug_symbols_path << "\". Error: " << dwarf_errmsg(-1));
+    Dout(dc::finish, "failed to obtain DWARF handle: " << dwarf_errmsg(-1));
     close(dwarf_fd_);
     dwarf_fd_ = -1;
     return;
   }
+
+  Dout(dc::finish, "done");
 }
 
 void objfile_ct::close_dwarf(LIBCWD_TSD_PARAM)
@@ -673,9 +1086,9 @@ objfile_ct* NEEDS_READ_LOCK_find_object_file(uintptr_t addr)
 {
   object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
   for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
-    if ((*i)->get_start() < addr && addr < (*i)->get_end())
+    if (static_cast<objfile_ct const*>(*i)->get_start() < addr && addr < static_cast<objfile_ct const*>(*i)->get_end())
       break;
-  return (i != NEEDS_READ_LOCK_object_files().end()) ? (*i) : NULL;
+  return (i != NEEDS_READ_LOCK_object_files().end()) ? static_cast<objfile_ct*>(*i) : nullptr;
 }
 
 } // namespace dwarf
@@ -785,7 +1198,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 #if CWDEBUG_ALLOC && LIBCWD_IOSBASE_INIT_ALLOCATES
     if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
     {
-      M_object_file = NULL;
+      M_object_file = nullptr;
       M_func = S_pre_ios_initialization_c;
       M_initialization_delayed = addr;
       return;
@@ -793,7 +1206,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 #endif
     if (!ST_init(LIBCWD_TSD))	// Initialization of BFD code fails?
     {
-      M_object_file = NULL;
+      M_object_file = nullptr;
       M_func = S_pre_libcwd_initialization_c;
       M_initialization_delayed = addr;
       return;
@@ -820,7 +1233,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     // PS We DID get here - 0.99.45, compiled with gcc 3.4.6, while running
     // threads_threads_shared from dejagnu (2006/11/08). I also had to stand
     // on one leg and wave high left.
-    M_object_file = NULL;
+    M_object_file = nullptr;
     M_func = S_pre_libcwd_initialization_c;	// Not really true, but this hardly ever happens in the first place.
     M_initialization_delayed = addr;
     return;
@@ -832,77 +1245,22 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   DWARF_ACQUIRE_READ_LOCK;
   object_file = NEEDS_READ_LOCK_find_object_file(reinterpret_cast<uintptr_t>(addr));
   DWARF_RELEASE_READ_LOCK;
-#ifdef HAVE__DL_LOADED
+
   if (!object_file && !statically_linked)
   {
-    //FIXME: implement this:
+    //FIXME: implement this; if object_file is not known at this point it is possible
+    // that it belongs to a new shared library that was opened during run time with dlopen.
+    //object_file = ...;
     assert(false);
-#if 0
-    // Try to load everything again... previous loaded libraries are skipped based on load address.
-    int possible_object_files = 0;
-    bfile_ct* possible_object_file = NULL;
-    for(link_map* l = *dl_loaded_ptr; l; l = l->l_next)
-    {
-      bool already_loaded = false;
-      BFD_ACQUIRE_READ_LOCK;
-      for (object_files_ct::const_iterator iter = NEEDS_READ_LOCK_object_files().begin();
-           iter != NEEDS_READ_LOCK_object_files().end(); ++iter)
-      {
-        if (reinterpret_cast<void*>(l->l_addr) == (*iter)->get_lbase())
-        {
-          // The paths are very likely the same, but I don't want to take any risk.
-          struct stat statbuf1;
-          struct stat statbuf2;
-          int res1 = stat(l->l_name, &statbuf1);
-          int res2 = stat((*iter)->get_object_file()->filepath(), &statbuf2);
-          if (res1 == 0 && res2 == 0 && statbuf1.st_ino == statbuf2.st_ino)
-          {
-#if CWDEBUG_DEBUG
-            Dout(dc::debug, '"' << l->l_name << "\" (" <<
-                (*iter)->get_object_file()->filepath() << " --> " << (*iter)->get_bfd()->filename_str.c_str() <<
-                ") is already loaded at address " << (*iter)->get_lbase() <<
-                ", range: " << (*iter)->get_start() << " - " <<
-                (void*)((char*)((*iter)->get_start()) + (*iter)->size()));
-#endif
-            already_loaded = true;
-            if ((*iter)->get_lbase() <= addr && (char*)(*iter)->get_start() + (*iter)->size() > addr)
-            {
-              ++possible_object_files;
-              possible_object_file = *iter;
-            }
-            break;
-          }
-        }
-      }
-      BFD_RELEASE_READ_LOCK;
-      if (!already_loaded && l->l_name && ((l->l_name[0] == '/') || (l->l_name[0] == '.')))
-        load_object_file(l->l_name, reinterpret_cast<void*>(l->l_addr));
-    }
-    BFD_ACQUIRE_WRITE_LOCK;
-    set_alloc_checking_off(LIBCWD_TSD);
-    NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
-    set_alloc_checking_on(LIBCWD_TSD);
-    BFD_ACQUIRE_WRITE2READ_LOCK;
-    object_file = NEEDS_READ_LOCK_find_object_file(addr);
-    BFD_RELEASE_READ_LOCK;
-    // This can happen when address is in a function that is not visible
-    // as function from the ELF sections, and is outside the detected
-    // range determined by functions that are. It means that there
-    // are not debug symbols for this object file, otherwise it can't
-    // happen. Anyway, it's better to make this guess than to print
-    // <unknown object file>.
-    if (!object_file && possible_object_files == 1)
-      object_file = possible_object_file;
-#endif
   }
-#endif // HAVE__DL_LOADED
+
   LIBCWD_RESTORE_CANCEL;
 
-  M_initialization_delayed = NULL;
+  M_initialization_delayed = nullptr;
   if (!object_file)
   {
     Dout(dc::bfd, "No object file for address " << addr);
-    M_object_file = NULL;
+    M_object_file = nullptr;
     M_func = unknown_function_c;
     M_unknown_pc = addr;
     return;
@@ -913,142 +1271,17 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   {
     if (__libcwd_tsd.inside_malloc_or_free)
     {
-      M_object_file = NULL;
+      M_object_file = nullptr;
       M_func = S_pre_ios_initialization_c;
       M_initialization_delayed = addr;
       return;
     }
-    object_file->open_dwarf(LIBCWD_TSD);
+
+    //FIXME: initialization required?
+    assert(false);
   }
 
   M_object_file = object_file->get_object_file();
-
-  // Get address ranges (of compilation units in this object).
-  Dwarf_Aranges* aranges;
-  size_t cnt;
-  if (dwarf_getaranges(object_file->dwarf_handle_, &aranges, &cnt) != 0)
-  {
-    Dout(dc::bfd, "dwarf_getaranges failed: " << dwarf_errmsg(-1));
-    object_file->close_dwarf(LIBCWD_TSD);
-    return;
-  }
-
-#if 1
-  std::cout << "There are " << cnt << " address ranges:\n";
-  std::vector<std::string> names;
-  for (size_t i = 0; i < cnt; ++i)
-  {
-    Dwarf_Arange* arange = dwarf_onearange(aranges, i);
-    if (arange)
-    {
-      Dwarf_Addr start;
-      Dwarf_Word length;
-      Dwarf_Off offset;
-      if (dwarf_getarangeinfo(arange, &start, &length, &offset) == 0)
-        std::cout << "Range " << i << ": " << std::hex << "0x" << start << " - 0x" << (start + length) << std::dec;
-
-      // Obtain the (first) DIE of this arange.
-      Dwarf_Die die;
-      Dwarf_Die* die_ptr = dwarf_offdie(object_file->dwarf_handle_, offset, &die);
-      if (die_ptr)
-      {
-        assert(die_ptr == &die);
-        char const* name = dwarf_diename(die_ptr);
-        if (name)
-          std::cout << "; name: \"" << name << "\".\n";
-        else
-          std::cout << "; dwarf_diename returned NULL.\n";
-
-        Dwarf_Attribute attr;
-        if (dwarf_attr(cu_die_ptr, DW_AT_name, &attr) != NULL)
-        {
-          char const* cu_name = dwarf_formstring(&attr);
-          if (cu_name)
-            std::cout << "Compilation unit name: " << cu_name << std::endl;
-        }
-        else
-          std::cout << "dwarf_attr returned NULL" << std::endl;
-      }
-      else
-        std::cout << "; no DIE.\n";
-
-      Dwarf_Die child_die;
-      int res = dwarf_child(&die, &child_die);
-      int j = 0;
-      while (res == 0)
-      {
-        char const* name = dwarf_diename(&child_die);
-        // Check if this DIE falls within the address range
-        if (name)
-        {
-          if (dwarf_haspc(&child_die, start) && dwarf_haspc(&child_die, start + length - 2))
-          {
-            // This DIE falls within the address range. Now you can extract more information from it.
-            std::cout << "    Specific DIE: " << name << std::endl;
-          }
-          if (i == 0)
-            names.push_back(name);
-          else
-            assert(names[j++] == std::string(name));
-        }
-        res = dwarf_siblingof(&child_die, &child_die);
-      }
-    }
-  }
-#endif
-
-  Dwarf_Addr rel_ip = (Dwarf_Addr)addr - object_file->get_lbase();
-  std::cout << "rel_ip = 0x" << std::hex << rel_ip << std::dec << std::endl;
-
-  // Get the (address range of the) compilation unit containing rel_ip.
-  Dwarf_Arange *arange = dwarf_getarange_addr(aranges, rel_ip);
-
-  if (!arange)
-  {
-    M_func = unknown_function_c;
-
-    Dl_info info;
-    if (!dladdr(addr, &info))
-    {
-      std::cerr << "dladdr: " << dlerror() << std::endl;
-      return;
-    }
-    Dout(dc::bfd, "object_file->M_lbase = " << (void*)object_file->M_lbase << "; info.dli_fbase = " << (void*)info.dli_fbase);
-
-    Dout(dc::bfd, "No DWARF arange found for " << addr << ": " << dwarf_errmsg(-1));
-    return;
-  }
-
-  // Extract the offset into .debug_info.
-  Dwarf_Addr start;
-  Dwarf_Word length;
-  Dwarf_Off offset;
-  if (dwarf_getarangeinfo(arange, &start, &length, &offset) != 0)
-  {
-    Dout(dc::bfd, "No DWARF arange found for " << addr << ": " << dwarf_errmsg(-1));
-    M_func = unknown_function_c;
-    return;
-  }
-
-  // Obtain the DIE of the compilation unit.
-  Dwarf_Die cu_die;
-  Dwarf_Die* cu_die_ptr = dwarf_offdie(object_file->dwarf_handle_, offset, &cu_die);
-  if (!cu_die_ptr)
-  {
-    Dout(dc::bfd, M_object_file->filename() << ": dwarf_offdie: " << dwarf_errmsg(-1));
-    M_func = unknown_function_c;
-    return;
-  }
-
-  char const* name = dwarf_diename(cu_die_ptr);
-  if (!name)
-  {
-    Dout(dc::bfd, M_object_file->filename() << ": compilation unit name not found.");
-    M_func = unknown_function_c;
-    return;
-  }
-
-  Dout(dc::bfd, "Found compilation unit: " << name);
 
   M_line = 1; // FIXME
   //FIXME: implement this
@@ -1067,45 +1300,6 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     if (M_filename == (char const*)1)
       M_filename = M_filepath.get();
   }
-#endif
-
-#if 0
-    // Sanity check
-    if (!p->name || M_line == 0)
-    {
-      if (p->name)
-      {
-        static int const BSF_WARNING_PRINTED = 0x40000000;
-        if (!M_object_file->has_no_debug_line_sections() && !(p->flags & BSF_WARNING_PRINTED))
-        {
-          const_cast<elfxx::asymbol_st*>(p)->flags |= BSF_WARNING_PRINTED;
-          set_alloc_checking_off(LIBCWD_TSD);
-          {
-            _private_::internal_string demangled_name;		// Alloc checking must be turned off already for this string.
-            _private_::demangle_symbol(p->name, demangled_name);
-            _private_::internal_string::size_type ofn = abfd->filename_str.find_last_of('/');
-            _private_::internal_string object_file_name = abfd->filename_str.substr(ofn + 1); // substr can alloc memory
-            set_alloc_checking_on(LIBCWD_TSD);
-            LIBCWD_Dout(dc::bfd, "Warning: Address " << addr << " in section " << sect->name <<
-                " of object file \"" << object_file_name << '"');
-            LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, "does not have a line number, perhaps the unit containing the function");
-#ifdef __FreeBSD__
-            LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -ggdb?");
-#else
-            LIBCWD_Dout(dc::bfd|blank_label_cf|blank_marker_cf, '`' << demangled_name << "' wasn't compiled with flag -g?");
-#endif
-            set_alloc_checking_off(LIBCWD_TSD);
-          }
-          set_alloc_checking_on(LIBCWD_TSD);
-        }
-      }
-      else
-        LIBCWD_Dout(dc::bfd, "Warning: Address in section " << sect->name <<
-            " of object file \"" << abfd->filename_str << "\" does not contain a function.");
-    }
-    else
-      LIBCWD_Dout(dc::bfd, "address " << addr << " corresponds to " << *static_cast<bfd_location_ct*>(this));
-
 #endif
 
   M_func = unknown_function_c;
@@ -1130,7 +1324,7 @@ void location_ct::clear()
       set_alloc_checking_on(LIBCWD_TSD);
     }
   }
-  M_object_file = NULL;
+  M_object_file = nullptr;
   M_func = S_cleared_location_ct_c;
 }
 
@@ -1242,7 +1436,7 @@ extern "C" {
       Dout(dc::warning, "Calling dlopen(3) from statically linked application; this is not going to work if the loaded module uses libcwd too or when it allocates any memory!");
       return handle;
     }
-    if (handle == NULL)
+    if (handle == nullptr)
       return handle;
 #ifdef RTLD_NOLOAD
     if ((flags & RTLD_NOLOAD))
@@ -1272,7 +1466,7 @@ extern "C" {
 						// the full path to the loaded library.
       }
 #endif
-      // Don't call dwarf::load_object_file when dlopen() was called with NULL as argument.
+      // Don't call dwarf::load_object_file when dlopen() was called with nullptr as argument.
       if (name && *name)
       {
 	object_file = dwarf::load_object_file(name, dwarf::unknown_base_addr, 0, 0);
