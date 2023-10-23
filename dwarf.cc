@@ -287,20 +287,20 @@ class objfile_ct : public objfiles_ct
   Dwarf* dwarf_handle_;
   int dwarf_fd_;
   uintptr_t M_lbase;
-  uintptr_t M_start;
-  uintptr_t M_end;
+  uintptr_t M_start_addr;
+  uintptr_t M_end_addr;
   function_symbols_ct M_function_symbols;
 
  public:
-  objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start, uintptr_t end);
+  objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start_addr, uintptr_t end_addr);
   ~objfile_ct();
 
   bool initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);
   void deinitialize(LIBCWD_TSD_PARAM);
   uintptr_t get_lbase() const { return M_lbase; }
 
-  uintptr_t get_start() const { return M_start; }
-  uintptr_t get_end() const { return M_end; }
+  uintptr_t get_start_addr() const { return M_start_addr; }
+  uintptr_t get_end_addr() const { return M_end_addr; }
 
   bool is_initialized() const
   {
@@ -326,7 +326,7 @@ symbol_ct::symbol_ct(Dwarf_Addr start, Dwarf_Addr end,
 {
 }
 
-objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t start, uintptr_t end, bool initialized = false)
+objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t start_addr, uintptr_t end_addr, bool initialized = false)
 {
   static bool WST_initialized = false;
   LIBCWD_TSD_DECLARATION;
@@ -357,7 +357,7 @@ objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t st
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_WRITE_LOCK;
   set_alloc_checking_off(LIBCWD_TSD);
-  object_file = new objfile_ct(name, base_addr, start, end);		// LEAK6
+  object_file = new objfile_ct(name, base_addr, start_addr, end_addr);		// LEAK6
   set_alloc_checking_on(LIBCWD_TSD);
   DWARF_RELEASE_WRITE_LOCK;
   failure = object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
@@ -502,8 +502,8 @@ bool ST_init(LIBCWD_TSD_PARAM)
 
 char objfiles_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__aligned__));
 
-objfile_ct::objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start, uintptr_t end) :
-  objfiles_ct(filename), dwarf_fd_(-1), dwarf_handle_(nullptr), M_lbase(base_addr), M_start(start), M_end(end)
+objfile_ct::objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start_addr, uintptr_t end_addr) :
+  objfiles_ct(filename), dwarf_fd_(-1), dwarf_handle_(nullptr), M_lbase(base_addr), M_start_addr(start_addr), M_end_addr(end_addr)
 {
 #if CWDEBUG_DEBUGM
   LIBCWD_TSD_DECLARATION;
@@ -521,6 +521,8 @@ objfile_ct::~objfile_ct()
   close_dwarf(LIBCWD_TSD);
   set_alloc_checking_off(LIBCWD_TSD);
 }
+
+#if CWDEBUG_DEBUG
 
 #define DWARF_ONE_KNOWN_DW_TAG(tag_, tag_name_) \
   case tag_name_: \
@@ -557,7 +559,6 @@ static void print_die_info(Dwarf_Die* die)
   }
 }
 
-#if CWDEBUG_DEBUG
 void dump_shdr(Elf64_Shdr const* shdr)
 {
   Dout(dc::bfd,
@@ -615,19 +616,19 @@ class Elf
   {
     // Open the object file for reading.
     if ((fd_ = open(filepath, O_RDONLY)) == -1)
-      Dout(dc::bfd, "Warning: failed to open file \"" << filepath << "\".");
+      Dout(dc::warning|error_cf, "Failed to open file \"" << filepath << "\"");
     // Open an ELF descriptor for reading.
     else if (!(elf_ = elf_begin(fd_, ELF_C_READ, NULL)))
     {
       ::close(fd_);
-      Dout(dc::bfd, "Warning: elf_begin returned NULL for \"" << filepath << "\": " << elf_errmsg(-1));
+      Dout(dc::warning, filepath << ": elf_begin returned NULL: " << elf_errmsg(-1));
     }
     // Check if it is an ELF file.
     else if (elf_kind(elf_) != ELF_K_ELF)
       Dout(dc::bfd, filepath << ": skipping, not an ELF file.");
     // Get the section header string table index.
     else if (elf_getshdrstrndx(elf_, &shstrndx_) != 0)
-      Dout(dc::bfd, "Warning: elf_getshdrstrndx couldn't find the section header string index for \"" << filepath << "\": " << elf_errmsg(-1));
+      Dout(dc::warning, filepath << ": elf_getshdrstrndx couldn't find the section header string index: " << elf_errmsg(-1));
     else
       // Success.
       return;
@@ -690,7 +691,11 @@ void Elf::process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdat
   GElf_Sym* sym = gelf_getsymshndx(symdata, xndxdata, GELF_R_SYM(r_info), &symmem, &xndx);
   if (!sym)
   {
-    Dout(dc::bfd, "INVALID SYMBOL");
+#if CWDEBUG_DEBUG
+    Dout(dc::bfd, filepath_ << ": gelf_getsymshndx: INVALID SYMBOL");
+#else
+    Dout(dc::bfd, "gelf_getsymshndx: INVALID SYMBOL");
+#endif
     return;
   }
   else if (GELF_ST_TYPE(sym->st_info) == STT_SECTION)
@@ -716,7 +721,9 @@ void Elf::process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdat
 
   if (GELF_ST_TYPE(sym->st_info) == STT_FUNC && sym->st_shndx != SHN_UNDEF)
   {
+#if CWDEBUG_DEBUG
     Dout(dc::bfd, "[0x" << std::hex << (lbase_ + start) << "-0x" << (lbase_ + end) << "] " << name);
+#endif
     LIBCWD_ASSERT(sym->st_size > 0);
     LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_ALLOC
@@ -726,7 +733,6 @@ void Elf::process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdat
 #if CWDEBUG_ALLOC
     __libcwd_tsd.internal = 0;
 #endif
-    Dout(dc::bfd, "Added \"" << name << "\" to relocation_map_ [" << this << "], size is now " << relocation_map_.size());
   }
 }
 
@@ -772,9 +778,9 @@ int Elf::process_relocs()
     if (shdr == nullptr)
     {
 #if CWDEBUG_DEBUG
-      Dout(dc::bfd, filepath_ << ": gelf_getshdr returned NULL");
+      Dout(dc::warning, filepath_ << ": gelf_getshdr returned NULL");
 #else
-      Dout(dc::bfd, "Warning: gelf_getshdr returned NULL!");
+      Dout(dc::warning, "gelf_getshdr returned NULL!");
 #endif
       return -1;
     }
@@ -826,10 +832,7 @@ bool Elf::apply_relocation(char const* linkage_name, GElf_Addr& start_out, GElf_
 {
   auto it = relocation_map_.find(linkage_name);
   if (it == relocation_map_.end())
-  {
-    Dout(dc::bfd, "Warning: could not find \"" << linkage_name << "\" in relocation_map_!");
     return false;
-  }
 
   start_out = it->second.start_;
   end_out = it->second.end_;
@@ -849,14 +852,13 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
 
   DWARF_ACQUIRE_WRITE_LOCK;
   bool already_exists = false;
-  Dout(dc::bfd, "Adding \"" << get_object_file()->filepath() << "\", load address " <<
-      (void*)get_lbase() << ", range " << (void*)get_start() << "-" << (void*)get_end());
   for (object_files_ct::iterator iter = NEEDS_WRITE_LOCK_object_files().begin();
        iter != NEEDS_WRITE_LOCK_object_files().end(); ++iter)
   {
     if (static_cast<objfile_ct const*>(*iter)->get_lbase() == get_lbase())
     {
-      Dout(dc::bfd, "Already loaded as \"" << (*iter)->get_object_file()->filepath() << "\"");
+      Dout(dc::bfd, "objfile_ct::initialize(\"" << get_object_file()->filepath() << "\"): already loaded as \"" <<
+          (*iter)->get_object_file()->filepath() << "\"");
       already_exists = true;
       break;
     }
@@ -901,7 +903,7 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
           // Compilation unit name
           //
           char const* cu_name = dwarf_diename(cu_die_ptr);
-#if 0
+#if CWDEBUG_DEBUG
           if (cu_name)
             Dout(dc::bfd, "Found compilation unit: \"" << cu_name << "\" (" << (void*)cu_name << ")");
           else
@@ -967,11 +969,13 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
                     break;
                 }
 
-#if 0
+#if 0           // Nothing wrong with DW_AT_artificial functions with C linkage, is there?
                 if (!linkage_name)
                 {
+#if CWDEBUG_DEBUG
                   Dout(dc::bfd, "No linkage_name for:");
                   print_die_info(&child_die);
+#endif
                   // For now skip all compiler generated "artificial" DW_TAG_subprogram entries that don't have a linkage_name.
                   if (dwarf_attr(&child_die, DW_AT_artificial, &attr) &&
                       dwarf_formflag(&attr, &is_true) == 0 && is_true)
@@ -995,28 +999,32 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
                   if (end != (Dwarf_Addr)-1)
                   {
                     bool is_relocated = false;
+                    char const* name = linkage_name ? linkage_name : func_name;
                     if (!start)
                     {
-                      if (!linkage_name)
+                      if (!name)        // Is this even possible?
                       {
-                        Dout(dc::bfd, "start = 0 for \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
-                            (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                        Dout(dc::warning, "Zero low_pc and no name for symbol in " <<
                             M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+#if CWDEBUG_DEBUG
                         print_die_info(&child_die);
+#endif
                         continue;
                       }
-                      if (!elf.apply_relocation(linkage_name, start, end))
+                      if (!elf.apply_relocation(name, start, end))
                       {
-                        Dout(dc::bfd, "Relocation failed for \"" << (linkage_name ? linkage_name : func_name) << "\" of " <<
+                        Dout(dc::warning, "Relocation failed for \"" << name << "\" of " <<
                             M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
                         continue;       // relocation failed.
                       }
                       else
                       {
                         is_relocated = true;
-                        Dout(dc::bfd, "Relocated \"" << (linkage_name ? linkage_name : func_name) << "\" to " <<
+#if CWDEBUG_DEBUG
+                        Dout(dc::bfd, "Relocated \"" << name << "\" to " <<
                             (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
                             M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+#endif
                       }
                     }
                     LIBCWD_ASSERT(start != 0 && end > start);
@@ -1030,7 +1038,12 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
                     __libcwd_tsd.internal = 0;
 #endif
                     if (ibp.second)
-                      Dout(dc::bfd|continued_cf, "Successfully inserted");
+                    {
+#if CWDEBUG_DEBUG
+                      Dout(dc::bfd|continued_cf, "Successfully inserted")
+#endif
+                      ;
+                    }
                     else if (M_lbase + start == ibp.first->real_start())
                     {
                       // If our func_name is different from the DIE name, then we're probably an alias.
@@ -1044,11 +1057,16 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
                       }
                       if (M_lbase + end == ibp.first->real_end())
                       {
-                        Dout(dc::bfd|continued_cf, "Duplicate ");
+#if CWDEBUG_DEBUG
+                        Dout(dc::bfd|continued_cf, "Duplicate")
+#endif
+                        ;
                       }
                       else if (is_relocated)
                       {
-                        Dout(dc::bfd|continued_cf, "Duplicate with different end ");
+#if CWDEBUG_DEBUG
+                        Dout(dc::bfd|continued_cf, "Duplicate with different end");
+#endif
                         // Apparently it happens... always believe the relocation value.
                         // Although we're changing the key of the set here, it shouldn't reorder the element...
                         const_cast<symbol_ct&>(*ibp.first).set_real_end(M_lbase + end);
@@ -1056,13 +1074,22 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
                     }
                     else
                     {
+#if CWDEBUG_DEBUG
                       Dout(dc::bfd|continued_cf, "Failed to insert: overlapping range with different start address!");
+#else
+                      Dout(dc::warning, "Failed to insert: overlapping range with different start address! \"" <<
+                          (linkage_name ? linkage_name : func_name) << "\", range " <<
+                          (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                          M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+#endif
                     }
+#if CWDEBUG_DEBUG
                     Dout(dc::finish, " \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
                         (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
                         M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
                     if (!ibp.second)
                       print_die_info(&child_die);
+#endif
 
                     LIBCWD_ASSERT(M_lbase + start == ibp.first->real_start());
 
@@ -1253,7 +1280,7 @@ void objfile_ct::open_dwarf(LIBCWD_TSD_PARAM)
   if (different_symbols_path)
     Dout(dc::continued, " (from " << debug_symbols_path << ")");
   if (M_lbase != unknown_base_addr && M_lbase != executable_base_addr)
-    Dout(dc::continued, " (" << (void*)M_lbase << ") ");
+    Dout(dc::continued, " (" << (void*)M_lbase << " [" << (void*)M_start_addr << '-' << (void*)M_end_addr << "])");
   Dout(dc::continued|flush_cf, "... ");
 
   dwarf_fd_ = open(debug_symbols_path.c_str(), O_RDONLY);
@@ -1322,7 +1349,7 @@ objfile_ct* NEEDS_READ_LOCK_find_object_file(uintptr_t addr)
 {
   object_files_ct::const_iterator i(NEEDS_READ_LOCK_object_files().begin());
   for(; i != NEEDS_READ_LOCK_object_files().end(); ++i)
-    if (static_cast<objfile_ct const*>(*i)->get_start() < addr && addr < static_cast<objfile_ct const*>(*i)->get_end())
+    if (static_cast<objfile_ct const*>(*i)->get_start_addr() < addr && addr < static_cast<objfile_ct const*>(*i)->get_end_addr())
       break;
   return (i != NEEDS_READ_LOCK_object_files().end()) ? static_cast<objfile_ct*>(*i) : nullptr;
 }
