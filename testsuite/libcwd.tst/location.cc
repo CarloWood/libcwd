@@ -16,8 +16,6 @@
 #include <libcwd/debug.h>
 #include <iostream>
 
-void writeProcMapsToFile();
-
 #ifdef __OPTIMIZE__
 #undef CW_RECURSIVE_BUILTIN_RETURN_ADDRESS
 #define CW_RECURSIVE_BUILTIN_RETURN_ADDRESS 0
@@ -148,7 +146,6 @@ MAIN_FUNCTION
 #endif
 
   Debug( check_configuration() );
-  writeProcMapsToFile();
 
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );

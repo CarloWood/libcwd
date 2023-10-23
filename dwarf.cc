@@ -52,6 +52,7 @@
 #include "libcwd/private_mutex_instances.h"
 #endif
 #include "libcwd/debug.h"
+//#include "libcwd/buf2str.h"
 #include "elfutils/known-dwarf.h"
 #include <elf.h>
 
@@ -653,6 +654,7 @@ class Elf
   }
 
   int process_relocs();
+  void add_backup(char const* linkage_name, GElf_Addr start, GElf_Addr end);
   bool apply_relocation(char const* linkage_name, GElf_Addr& start_out, GElf_Addr& end_out) const;
 
 #if CWDEBUG_DEBUG
@@ -677,11 +679,35 @@ class Elf
 #endif // CWDEBUG_DEBUG
 
  private:
+  void add_symbol(GElf_Sym* sym, size_t symstrndx, GElf_Sxword r_addend = 0);
   void process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdata, size_t symstrndx,
       GElf_Addr r_offset, GElf_Xword r_info, GElf_Sxword r_addend);
   void process_relocs_rel(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx);
   void process_relocs_rela(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx);
 };
+
+void Elf::add_symbol(GElf_Sym* sym, size_t symstrndx, GElf_Sxword r_addend)
+{
+  char const* name = elf_strptr(elf_, symstrndx, sym->st_name);
+  GElf_Addr start = sym->st_value + r_addend;
+  GElf_Addr end = start + sym->st_size;
+
+  if (GELF_ST_TYPE(sym->st_info) == STT_FUNC && sym->st_shndx != SHN_UNDEF && sym->st_size > 0)
+  {
+#if CWDEBUG_DEBUG
+    Dout(dc::bfd, "[0x" << std::hex << (lbase_ + start) << "-0x" << (lbase_ + end) << "] " << name);
+#endif
+    LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 1;
+#endif
+    //Dout(dc::bfd, "Adding \"" << libcwd::buf2str(name, std::strlen(name)) << "\" range [" << start << '-' << end << "]");
+    relocation_map_.emplace(std::make_pair(name, Range{start, end}));
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 0;
+#endif
+  }
+}
 
 void Elf::process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdata, size_t symstrndx,
     GElf_Addr r_offset, GElf_Xword r_info, GElf_Sxword r_addend)
@@ -715,25 +741,7 @@ void Elf::process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdat
   }
 
   // Found a symbol.
-  char const* name = elf_strptr(elf_, symstrndx, sym->st_name);
-  GElf_Addr start = sym->st_value + r_addend;
-  GElf_Addr end = start + sym->st_size;
-
-  if (GELF_ST_TYPE(sym->st_info) == STT_FUNC && sym->st_shndx != SHN_UNDEF)
-  {
-#if CWDEBUG_DEBUG
-    Dout(dc::bfd, "[0x" << std::hex << (lbase_ + start) << "-0x" << (lbase_ + end) << "] " << name);
-#endif
-    LIBCWD_ASSERT(sym->st_size > 0);
-    LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 1;
-#endif
-    relocation_map_.emplace(std::make_pair(name, Range{start, end}));
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 0;
-#endif
-  }
+  add_symbol(sym, symstrndx, r_addend);
 }
 
 void Elf::process_relocs_rel(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx)
@@ -782,14 +790,17 @@ int Elf::process_relocs()
 #else
       Dout(dc::warning, "gelf_getshdr returned NULL!");
 #endif
-      return -1;
+      // Looks like a fatal error, but try to continue anyway.
+      continue;
     }
     if (shdr->sh_type == SHT_REL || shdr->sh_type == SHT_RELA)
     {
+#if 0
       GElf_Shdr destshdr_mem;
       GElf_Shdr* destshdr = gelf_getshdr(elf_getscn(elf_, shdr->sh_info), &destshdr_mem);
       if (destshdr == nullptr)
         continue;
+#endif
       // Get the data of the section.
       Elf_Data* data = elf_getdata(scn, nullptr);
       if (data == nullptr)
@@ -824,8 +835,62 @@ int Elf::process_relocs()
         process_relocs_rela(shdr, data, symdata, xndxdata, symshdr->sh_link);
     }
   }
+
+  //Dout(dc::bfd, "Adding .symtab:");
+  scn = nullptr;
+  while ((scn = elf_nextscn(elf_, scn)) != nullptr)
+  {
+    GElf_Shdr shdr_mem;
+    GElf_Shdr* shdr = gelf_getshdr(scn, &shdr_mem);
+    if (shdr == nullptr)
+    {
+#if CWDEBUG_DEBUG
+      Dout(dc::warning, filepath_ << ": gelf_getshdr returned NULL");
+#else
+      Dout(dc::warning, "gelf_getshdr returned NULL!");
+#endif
+      return -1;
+    }
+    if (shdr->sh_type == SHT_SYMTAB)
+    {
+      // Get the data of the section.
+      Elf_Data* data = elf_getdata(scn, nullptr);
+      if (data == nullptr)
+        continue;
+
+      // Calculate the number of symbol entries in the .symtab section.
+      size_t num_syms = shdr->sh_size / shdr->sh_entsize;
+
+      // Process each symbol entry in the .symtab section.
+      for (size_t i = 0; i < num_syms; ++i)
+      {
+        GElf_Sym sym_mem;
+        GElf_Sym* sym = gelf_getsym(data, static_cast<int>(i), &sym_mem);
+        if (sym != nullptr)
+          add_symbol(sym, shdr->sh_link);
+      }
+      break;  // We found and processed the .symtab section, so exit the loop.
+    }
+  }
+
   // Success.
   return 0;
+}
+
+void Elf::add_backup(char const* linkage_name, GElf_Addr start, GElf_Addr end)
+{
+  auto it = relocation_map_.find(linkage_name);
+  if (it == relocation_map_.end())
+  {
+    LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 1;
+#endif
+    relocation_map_.emplace(std::make_pair(linkage_name, Range{start, end}));
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 0;
+#endif
+  }
 }
 
 bool Elf::apply_relocation(char const* linkage_name, GElf_Addr& start_out, GElf_Addr& end_out) const
@@ -1011,13 +1076,7 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
 #endif
                         continue;
                       }
-                      if (!elf.apply_relocation(name, start, end))
-                      {
-                        Dout(dc::warning, "Relocation failed for \"" << name << "\" of " <<
-                            M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
-                        continue;       // relocation failed.
-                      }
-                      else
+                      if (elf.apply_relocation(name, start, end))
                       {
                         is_relocated = true;
 #if CWDEBUG_DEBUG
@@ -1025,6 +1084,15 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
                             (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
                             M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
 #endif
+                      }
+                      else
+                      {
+#if CWDEBUG_DEBUG       // I have no idea why this would be "normal"... but it seems to be the case for /usr/lib/libstdc++.so.6.
+                        // This library has symbols in its .debug_info section with a pc_low of zero, that do not appear in the .symtab.
+                        Dout(dc::warning, "Symbol not in .symtab: \"" << name << "\" of " <<
+                            M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+#endif
+                        continue;       // relocation failed (symbol not in .symtab).
                       }
                     }
                     LIBCWD_ASSERT(start != 0 && end > start);
@@ -1043,6 +1111,11 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
                       Dout(dc::bfd|continued_cf, "Successfully inserted")
 #endif
                       ;
+                      // This is probably never needed, but since we have this information anyway
+                      // add it to the "relocation" table - so that any other DIE with a low_pc of zero
+                      // will pick it up if this information is missing everywhere else.
+                      if (!is_relocated)
+                        elf.add_backup(name, start, end);
                     }
                     else if (M_lbase + start == ibp.first->real_start())
                     {

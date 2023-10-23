@@ -116,7 +116,7 @@ foreach(NODEBUG_NAME ${NODEBUGCHECK})
 endforeach()
 
 foreach(TST_NAME ${TSTCHECK})
-  add_executable(tst_${TST_NAME}_shared EXCLUDE_FROM_ALL libcwd.tst/${TST_NAME}.cc ${CMAKE_SOURCE_DIR}/writeProcMapsToFile.cpp)
+  add_executable(tst_${TST_NAME}_shared EXCLUDE_FROM_ALL libcwd.tst/${TST_NAME}.cc)
   target_include_directories(tst_${TST_NAME}_shared PRIVATE ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/include ${CMAKE_SOURCE_DIR}/include)
   target_link_libraries(tst_${TST_NAME}_shared PRIVATE cwd_r)
   target_compile_options(tst_${TST_NAME}_shared PRIVATE -g)
