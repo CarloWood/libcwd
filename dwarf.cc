@@ -255,6 +255,10 @@ class symbol_ct
   char const* func_name() const { return func_name_; }
   char const* linkage_name() const { return linkage_name_; }
 
+  void set_func_name(char const* func_name) const { func_name_ = func_name; }
+  void set_linkage_name(char const* linkage_name) const { linkage_name_ = linkage_name; }
+  void set_real_end(Dwarf_Addr real_end) { real_end_ = real_end; }
+
   bool operator==(symbol_ct const&) const { DoutFatal(dc::core, "Calling operator=="); }
   friend struct symbol_key_greater;
 };
@@ -513,7 +517,9 @@ objfile_ct::objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t star
 objfile_ct::~objfile_ct()
 {
   LIBCWD_TSD_DECLARATION;
+  set_alloc_checking_on(LIBCWD_TSD);
   close_dwarf(LIBCWD_TSD);
+  set_alloc_checking_off(LIBCWD_TSD);
 }
 
 #define DWARF_ONE_KNOWN_DW_TAG(tag_, tag_name_) \
@@ -551,6 +557,286 @@ static void print_die_info(Dwarf_Die* die)
   }
 }
 
+#if CWDEBUG_DEBUG
+void dump_shdr(Elf64_Shdr const* shdr)
+{
+  Dout(dc::bfd,
+       "{sh_name="      << shdr->sh_name << std::hex <<   // Section name (string tbl index).
+      ", sh_type=0x"    << shdr->sh_type <<               // Section type.
+      ", sh_flags=0x"   << shdr->sh_flags <<              // Section flags.
+      ", sh_addr=0x"    << shdr->sh_addr <<               // Section virtual addr at execution.
+      ", sh_offset=0x"  << shdr->sh_offset << std::dec << // Section file offset.
+      ", sh_size="      << shdr->sh_size <<               // Section size in bytes.
+      ", sh_link="      << shdr->sh_link <<               // Link to another section.
+      ", sh_info="      << shdr->sh_info <<               // Additional section information.
+      ", sh_addralign=" << shdr->sh_addralign <<          // Section alignment.
+      ", sh_entsize="   << shdr->sh_entsize << '}');      // Entry size if section holds table.
+}
+#endif // CWDEBUG_DEBUG
+
+struct SymbolNameCompare
+{
+  bool operator()(char const* name1, char const* name2) const
+  {
+    return strcmp(name1, name2) < 0;
+  }
+};
+
+class Elf
+{
+ private:
+  GElf_Addr lbase_;
+  int fd_;
+  ::Elf* elf_;
+  size_t shstrndx_;
+#if CWDEBUG_DEBUG
+  char const* filepath_;
+#endif
+
+  struct Range
+  {
+    GElf_Addr start_;
+    GElf_Addr end_;
+  };
+  using relocation_map_ct = std::map<char const*, Range, SymbolNameCompare
+#if CWDEBUG_ALLOC
+                      , _private_::internal_allocator::rebind<std::pair<char const* const, Range> >::other
+#endif
+                      >;
+
+  relocation_map_ct relocation_map_;
+
+ public:
+  Elf(char const* filepath, GElf_Addr lbase) :
+    lbase_(lbase)
+#if CWDEBUG_DEBUG
+    , filepath_(filepath)
+#endif
+  {
+    // Open the object file for reading.
+    if ((fd_ = open(filepath, O_RDONLY)) == -1)
+      Dout(dc::bfd, "Warning: failed to open file \"" << filepath << "\".");
+    // Open an ELF descriptor for reading.
+    else if (!(elf_ = elf_begin(fd_, ELF_C_READ, NULL)))
+    {
+      ::close(fd_);
+      Dout(dc::bfd, "Warning: elf_begin returned NULL for \"" << filepath << "\": " << elf_errmsg(-1));
+    }
+    // Check if it is an ELF file.
+    else if (elf_kind(elf_) != ELF_K_ELF)
+      Dout(dc::bfd, filepath << ": skipping, not an ELF file.");
+    // Get the section header string table index.
+    else if (elf_getshdrstrndx(elf_, &shstrndx_) != 0)
+      Dout(dc::bfd, "Warning: elf_getshdrstrndx couldn't find the section header string index for \"" << filepath << "\": " << elf_errmsg(-1));
+    else
+      // Success.
+      return;
+    throw std::runtime_error("error");
+  }
+
+  ~Elf()
+  {
+    elf_end(elf_);
+    ::close(fd_);
+    LIBCWD_TSD_DECLARATION;
+    {
+      relocation_map_ct empty_dummy;
+      std::swap(relocation_map_, empty_dummy);
+#if CWDEBUG_ALLOC
+      __libcwd_tsd.internal = 1;
+#endif
+    }
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 0;
+#endif
+  }
+
+  int process_relocs();
+  bool apply_relocation(char const* linkage_name, GElf_Addr& start_out, GElf_Addr& end_out) const;
+
+#if CWDEBUG_DEBUG
+  // Print all section header names (for debugging purposes).
+  void print_section_header_names() const
+  {
+    Dout(dc::bfd, "Section headers of \"" << filepath_ << "\":");
+    int count = 0;
+    Elf_Scn* section = nullptr;
+    while ((section = elf_nextscn(elf_, section)) != nullptr)
+    {
+      GElf_Shdr shdr;
+      if (gelf_getshdr(section, &shdr))
+      {
+        ++count;
+        //dump_shdr(&shdr);
+        char const* section_name = elf_strptr(elf_, shstrndx_, shdr.sh_name);
+        Dout(dc::bfd, " [" << count << "] \"" << section_name << "\"");
+      }
+    }
+  }
+#endif // CWDEBUG_DEBUG
+
+ private:
+  void process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdata, size_t symstrndx,
+      GElf_Addr r_offset, GElf_Xword r_info, GElf_Sxword r_addend);
+  void process_relocs_rel(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx);
+  void process_relocs_rela(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx);
+};
+
+void Elf::process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdata, size_t symstrndx,
+    GElf_Addr r_offset, GElf_Xword r_info, GElf_Sxword r_addend)
+{
+  Elf32_Word xndx;
+  GElf_Sym symmem;
+  GElf_Sym* sym = gelf_getsymshndx(symdata, xndxdata, GELF_R_SYM(r_info), &symmem, &xndx);
+  if (!sym)
+  {
+    Dout(dc::bfd, "INVALID SYMBOL");
+    return;
+  }
+  else if (GELF_ST_TYPE(sym->st_info) == STT_SECTION)
+  {
+    return;
+#if 0
+    // The symbol refers to a section header.
+    GElf_Shdr destshdr_mem;
+    GElf_Shdr* destshdr;
+    destshdr = gelf_getshdr(elf_getscn(elf_, sym->st_shndx == SHN_XINDEX ? xndx : sym->st_shndx), &destshdr_mem);
+
+    if (shdr == nullptr || destshdr == nullptr)
+      Dout(dc::bfd, "INVALID SECTION");
+    else
+      Dout(dc::bfd, "shstrndx: " << shstrndx_ << ": value: 0x" << std::hex << sym->st_value << ": " << elf_strptr(elf_, shstrndx_, destshdr->sh_name));
+#endif
+  }
+
+  // Found a symbol.
+  char const* name = elf_strptr(elf_, symstrndx, sym->st_name);
+  GElf_Addr start = sym->st_value + r_addend;
+  GElf_Addr end = start + sym->st_size;
+
+  if (GELF_ST_TYPE(sym->st_info) == STT_FUNC && sym->st_shndx != SHN_UNDEF)
+  {
+    Dout(dc::bfd, "[0x" << std::hex << (lbase_ + start) << "-0x" << (lbase_ + end) << "] " << name);
+    LIBCWD_ASSERT(sym->st_size > 0);
+    LIBCWD_TSD_DECLARATION;
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 1;
+#endif
+    relocation_map_.emplace(std::make_pair(name, Range{start, end}));
+#if CWDEBUG_ALLOC
+    __libcwd_tsd.internal = 0;
+#endif
+    Dout(dc::bfd, "Added \"" << name << "\" to relocation_map_ [" << this << "], size is now " << relocation_map_.size());
+  }
+}
+
+void Elf::process_relocs_rel(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx)
+{
+  size_t sh_entsize = gelf_fsize(elf_, ELF_T_REL, 1, EV_CURRENT);
+  int nentries = shdr->sh_size / sh_entsize;
+
+  for (int cnt = 0; cnt < nentries; ++cnt)
+  {
+    GElf_Rel relmem;
+    GElf_Rel* rel;
+
+    rel = gelf_getrel(data, cnt, &relmem);
+    if (rel != nullptr)
+      process_relocs_x(shdr, symdata, xndxdata, symstrndx, rel->r_offset, rel->r_info, 0);
+  }
+}
+
+void Elf::process_relocs_rela(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx)
+{
+  size_t sh_entsize = gelf_fsize(elf_, ELF_T_RELA, 1, EV_CURRENT);
+  int nentries = shdr->sh_size / sh_entsize;
+
+  for (int cnt = 0; cnt < nentries; ++cnt)
+  {
+    GElf_Rela relmem;
+    GElf_Rela* rel;
+
+    rel = gelf_getrela(data, cnt, &relmem);
+    if (rel != nullptr)
+      process_relocs_x(shdr, symdata, xndxdata, symstrndx, rel->r_offset, rel->r_info, rel->r_addend);
+  }
+}
+
+int Elf::process_relocs()
+{
+  Elf_Scn* scn = nullptr;
+  while ((scn = elf_nextscn(elf_, scn)) != nullptr)
+  {
+    GElf_Shdr shdr_mem;
+    GElf_Shdr* shdr = gelf_getshdr(scn, &shdr_mem);
+    if (shdr == nullptr)
+    {
+#if CWDEBUG_DEBUG
+      Dout(dc::bfd, filepath_ << ": gelf_getshdr returned NULL");
+#else
+      Dout(dc::bfd, "Warning: gelf_getshdr returned NULL!");
+#endif
+      return -1;
+    }
+    if (shdr->sh_type == SHT_REL || shdr->sh_type == SHT_RELA)
+    {
+      GElf_Shdr destshdr_mem;
+      GElf_Shdr* destshdr = gelf_getshdr(elf_getscn(elf_, shdr->sh_info), &destshdr_mem);
+      if (destshdr == nullptr)
+        continue;
+      // Get the data of the section.
+      Elf_Data* data = elf_getdata(scn, nullptr);
+      if (data == nullptr)
+        continue;
+      // Get the symbol table information.
+      Elf_Scn* symscn = elf_getscn(elf_, shdr->sh_link);
+      GElf_Shdr symshdr_mem;
+      GElf_Shdr* symshdr = gelf_getshdr(symscn, &symshdr_mem);
+      Elf_Data* symdata = elf_getdata(symscn, nullptr);
+      if (symshdr == nullptr || symdata == nullptr)
+        continue;
+      // Search for the optional extended section index table.
+      Elf_Data* xndxdata = nullptr;
+      Elf_Scn* xndxscn = nullptr;
+      while ((xndxscn = elf_nextscn(elf_, xndxscn)) != nullptr)
+      {
+        GElf_Shdr xndxshdr_mem;
+        GElf_Shdr* xndxshdr;
+
+        xndxshdr = gelf_getshdr(xndxscn, &xndxshdr_mem);
+        if (xndxshdr != nullptr && xndxshdr->sh_type == SHT_SYMTAB_SHNDX && xndxshdr->sh_link == elf_ndxscn(symscn))
+        {
+          // Found it.
+          xndxdata = elf_getdata(xndxscn, nullptr);
+          break;
+        }
+      }
+
+      if (shdr->sh_type == SHT_REL)
+        process_relocs_rel(shdr, data, symdata, xndxdata, symshdr->sh_link);
+      else
+        process_relocs_rela(shdr, data, symdata, xndxdata, symshdr->sh_link);
+    }
+  }
+  // Success.
+  return 0;
+}
+
+bool Elf::apply_relocation(char const* linkage_name, GElf_Addr& start_out, GElf_Addr& end_out) const
+{
+  auto it = relocation_map_.find(linkage_name);
+  if (it == relocation_map_.end())
+  {
+    Dout(dc::bfd, "Warning: could not find \"" << linkage_name << "\" in relocation_map_!");
+    return false;
+  }
+
+  start_out = it->second.start_;
+  end_out = it->second.end_;
+
+  return true;
+}
+
 bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUGM
@@ -581,291 +867,238 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
   {
     open_dwarf(LIBCWD_TSD);
     if (!is_initialized())
+    {
+#if CWDEBUG_DEBUGM
+      LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
+#endif
       return true; // Failure.
+    }
 
     //===========================================================================
     // Open the ELF file for relocation info.
     //
-
-    int fd = open(M_object_file.filepath(), O_RDONLY);
-    if (fd == -1)
+    try
     {
-      Dout(dc::bfd, "Warning: failed to open file \"" << M_object_file.filepath() << "\".");
-      return true;
-    }
-    else
-    {
-      // Open an ELF descriptor for reading.
-      Elf* e = elf_begin(fd, ELF_C_READ, NULL);
-      if (!e)
-      {
-        Dout(dc::bfd, "Warning: elf_begin returned NULL for \"" << M_object_file.filepath() << "\": " << elf_errmsg(-1));
-        return true;
-      }
-      else
-      {
-        bool failure = true;
-        if (elf_kind(e) != ELF_K_ELF)
-          Dout(dc::bfd, M_object_file.filepath() << ": skipping, not an ELF file.");
-        else
-        {
-          // Find the symbol section in the ELF file.
-          Elf_Scn* symbol_section = nullptr;
-          Elf_Scn* section = nullptr;
-          GElf_Shdr symbol_shdr;
-          while ((section = elf_nextscn(e, section)) != nullptr)
-          {
-            if (gelf_getshdr(section, &symbol_shdr) &&
-                symbol_shdr.sh_type == SHT_SYMTAB)
-            {
-              symbol_section = section;
-              break;
-            }
-          }
+      Elf elf(M_object_file.filepath(), get_lbase());
+      elf.process_relocs();
 
-          GElf_Sym* symbols = nullptr;
-          if (!symbol_section)
-            Dout(dc::bfd, M_object_file.filepath() << ": skipping, can't find SHT_SYMTAB.");
-          else
-          {
-            failure = false;
-
-            int number_of_symbols = symbol_shdr.sh_size / symbol_shdr.sh_entsize;
-            Dout(dc::bfd, "number_of_symbols = " << number_of_symbols);
-            Elf_Data* symbol_data = elf_getdata(symbol_section, NULL);
-            GElf_Sym* symbols = (GElf_Sym*)symbol_data->d_buf;
-#if 0
-            // Print the symbol names.
-            for (int i = 0; i < number_of_symbols; ++i)
-            {
-              GElf_Sym sym;
-              gelf_getsym(data, i, &sym);
-              if (GELF_ST_TYPE(sym.st_info) == STT_FUNC && sym.st_shndx != SHN_UNDEF)
-              {
-                char const* linkage_name = elf_strptr(e, shdr.sh_link, sym.st_name);
-                uintptr_t reloc_address = M_lbase + sym.st_value; // plus addend
-                Dout(dc::bfd, "i = " << i << "; reloc_address = " << (void*)reloc_address << "; name = \"" << linkage_name << "\"");
-              }
-            }
-#endif
-            // Run again over all sections in the ELF file, looking for the relocation section.
-            Elf_Scn* rela_section = nullptr;
-            section = nullptr;
-            GElf_Shdr rela_shdr;
-            while ((section = elf_nextscn(e, section)) != nullptr)
-            {
-              if (gelf_getshdr(section, &rela_shdr) &&
-                  rela_shdr.sh_type == SHT_RELA)
-              {
-                rela_section = section;
-                break;
-              }
-            }
-
-            if (!rela_section)
-              Dout(dc::bfd, M_object_file.filepath() << ": no SHT_RELA section.");
-            else
-            {
-              Elf_Data* rela_data = elf_getdata(rela_section, NULL);
-              if (rela_data)
-              {
-                size_t number_of_relocations = rela_shdr.sh_size / rela_shdr.sh_entsize;
-                for (size_t i = 0; i < number_of_relocations; ++i)
-                {
-                  GElf_Rela rela;
-                  if (gelf_getrela(rela_data, i, &rela) == &rela)
-                  {
-                    // Extract symbol index and relocation type.
-                    Elf64_Xword symbol_index = ELF64_R_SYM(rela.r_info);
-                    Elf64_Xword relocation_type = ELF64_R_TYPE(rela.r_info);
-                    Elf64_Sxword addend = rela.r_addend;
-
-                    if (relocation_type == R_X86_64_JUMP_SLOT)
-                    {
-                      LIBCWD_ASSERT(symbol_index < number_of_symbols);
-                      if (symbol_index < number_of_symbols)
-                      {
-                        char const* symbol_name = elf_strptr(e, rela_shdr.sh_link, symbols[symbol_index].st_name);
-                        Dout(dc::bfd, "symbol_index = " << symbol_index << "; relocation_type = " << relocation_type << "; addend = 0x" << std::hex << addend << "; symbol_name = \"" << symbol_name << "\".");
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-          elf_end(e);
-          close(fd);
-          if (failure)
-            return true;
-        }
-      }
-    }
-    //===========================================================================
-
-    //===========================================================================
-    // Iterate over all compilation units of the given object file.
-    //
-    Dwarf_Off offset = 0;
-    Dwarf_Off next_offset;
-    size_t hsize;
-    while (dwarf_nextcu(dwarf_handle_, offset, &next_offset, &hsize, nullptr, nullptr, nullptr) == 0)
-    {
-      //=========================================================================
-      // Find the compilation unit Debug Information Entry (DIE).
+      //===========================================================================
+      // Iterate over all compilation units of the given object file.
       //
-      Dwarf_Die cu_die;
-      Dwarf_Die* cu_die_ptr = dwarf_offdie(dwarf_handle_, offset + hsize, &cu_die);
-      if (cu_die_ptr)
+      Dwarf_Off offset = 0;
+      Dwarf_Off next_offset;
+      size_t hsize;
+      while (dwarf_nextcu(dwarf_handle_, offset, &next_offset, &hsize, nullptr, nullptr, nullptr) == 0)
       {
-        //=======================================================================
-        // Compilation unit name
+        //=========================================================================
+        // Find the compilation unit Debug Information Entry (DIE).
         //
-        char const* cu_name = dwarf_diename(cu_die_ptr);
+        Dwarf_Die cu_die;
+        Dwarf_Die* cu_die_ptr = dwarf_offdie(dwarf_handle_, offset + hsize, &cu_die);
+        if (cu_die_ptr)
+        {
+          //=======================================================================
+          // Compilation unit name
+          //
+          char const* cu_name = dwarf_diename(cu_die_ptr);
 #if 0
-        if (cu_name)
-          Dout(dc::bfd, "Found compilation unit: \"" << cu_name << "\" (" << (void*)cu_name << ")");
-        else
-          Dout(dc::bfd, "DIE name not found.");
+          if (cu_name)
+            Dout(dc::bfd, "Found compilation unit: \"" << cu_name << "\" (" << (void*)cu_name << ")");
+          else
+            Dout(dc::bfd, "DIE name not found.");
 #endif
 
 
-        //=====================================================================
-        // Iterate over all children of the compilation unit.
-        //
+          //=====================================================================
+          // Iterate over all children of the compilation unit.
+          //
 
-        Dwarf_Die child_die;
-        if (dwarf_child(cu_die_ptr, &child_die) == 0)   // Get the first child of this DIE, if any.
-        {
-          do
+          Dwarf_Die child_die;
+          if (dwarf_child(cu_die_ptr, &child_die) == 0)   // Get the first child of this DIE, if any.
           {
-            //===================================================================
-            // Find all function DIE's with a name.
-            //
-
-            // We are only interested in DIE that represents a function.
-            if (dwarf_tag(&child_die) == DW_TAG_subprogram)
+            do
             {
-              Dwarf_Attribute attr;
-              bool is_true;
-
-              // Declarations are DW_TAG_subprogram too; skip all declarations; we are only interested in definitions.
-              if (dwarf_attr(&child_die, DW_AT_declaration, &attr) &&
-                  dwarf_formflag(&attr, &is_true) == 0 && is_true)
-                continue;
-
-              // If the declaration is deleted; don't bother with it.
-              if (dwarf_attr(&child_die, DW_AT_deleted, &attr) &&
-                  dwarf_formflag(&attr, &is_true) == 0 && is_true)
-                continue;
-
-              // Not sure if it can happen that such a function DIE has no name, but if that is the case then
-              // pretend that that isn't a function.
-              char const* func_name = dwarf_diename(&child_die);
-              if (!func_name || !*func_name)
-                continue;
-
-              // If the function is external, don't bother with it.
-              if (dwarf_attr(&child_die, DW_AT_external, &attr) &&
-                  dwarf_formflag(&attr, &is_true) == 0 && is_true)
-                continue;
-
-              // We STRONGLY prefer mangled names in the case of C++ functions. Try to obtain it.
-              char const* linkage_name = nullptr;
-              Dwarf_Die referenced_die;
-              for (Dwarf_Die* die_ptr = &child_die;; die_ptr = &referenced_die)
-              {
-                if (dwarf_attr(die_ptr, DW_AT_MIPS_linkage_name, &attr) ||
-                    dwarf_attr(die_ptr, DW_AT_linkage_name, &attr))
-                {
-                  linkage_name = dwarf_formstring(&attr);
-                  break;
-                }
-                else if ((
-                      !dwarf_attr(die_ptr, DW_AT_specification, &attr) &&
-                      !dwarf_attr(die_ptr, DW_AT_abstract_origin, &attr)) ||
-                    !dwarf_formref_die(&attr, &referenced_die))
-                  break;
-              }
-
-              if (!linkage_name)
-              {
-                Dout(dc::bfd, "No linkage_name for:");
-                print_die_info(&child_die);
-                // For now skip all compiler generated "artificial" DW_TAG_subprogram entries that don't have a linkage_name.
-                if (dwarf_attr(&child_die, DW_AT_artificial, &attr) &&
-                    dwarf_formflag(&attr, &is_true) == 0 && is_true)
-                {
-                  Dout(dc::bfd, "Skipping it because it is DW_AT_artificial");
-                  continue;
-                }
-              }
-
-              //=================================================================
-              // Run over all address ranges owned by the function DIE.
+              //===================================================================
+              // Find all function DIE's with a name.
               //
 
-              Dwarf_Addr lbase;
-              Dwarf_Addr start;
-              Dwarf_Addr end;
-              ptrdiff_t offset = 0;
-              while ((offset = dwarf_ranges(&child_die, offset, &lbase, &start, &end)) > 0)
+              // We are only interested in DIE that represents a function.
+              if (dwarf_tag(&child_die) == DW_TAG_subprogram)
               {
-                if (end != (Dwarf_Addr)-1)
+                Dwarf_Attribute attr;
+                bool is_true;
+
+                // Declarations are DW_TAG_subprogram too; skip all declarations; we are only interested in definitions.
+                if (dwarf_attr(&child_die, DW_AT_declaration, &attr) &&
+                    dwarf_formflag(&attr, &is_true) == 0 && is_true)
+                  continue;
+
+                // If the declaration is deleted; don't bother with it.
+                if (dwarf_attr(&child_die, DW_AT_deleted, &attr) &&
+                    dwarf_formflag(&attr, &is_true) == 0 && is_true)
+                  continue;
+
+                // Not sure if it can happen that such a function DIE has no name, but if that is the case then
+                // pretend that that isn't a function.
+                char const* func_name = dwarf_diename(&child_die);
+                if (!func_name || !*func_name)
+                  continue;
+
+                // If the function is external, don't bother with it.
+                if (dwarf_attr(&child_die, DW_AT_external, &attr) &&
+                    dwarf_formflag(&attr, &is_true) == 0 && is_true)
+                  continue;
+
+                // We STRONGLY prefer mangled names in the case of C++ functions. Try to obtain it.
+                char const* linkage_name = nullptr;
+                Dwarf_Die referenced_die;
+                for (Dwarf_Die* die_ptr = &child_die;; die_ptr = &referenced_die)
                 {
-                  DWARF_ACQUIRE_WRITE_LOCK;
-#if CWDEBUG_ALLOC
-                  __libcwd_tsd.internal = 1;
-#endif
-                  auto ibp = M_function_symbols.emplace(start, end, this, &child_die, cu_name, func_name, linkage_name);
-#if CWDEBUG_ALLOC
-                  __libcwd_tsd.internal = 0;
-#endif
-                  if (!start)
+                  if (dwarf_attr(die_ptr, DW_AT_MIPS_linkage_name, &attr) ||
+                      dwarf_attr(die_ptr, DW_AT_linkage_name, &attr))
                   {
-                    if (!linkage_name)
-                    {
-                      Dout(dc::bfd, "start = 0 for \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
-                          (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
-                          M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
-                      print_die_info(&child_die);
-                    }
+                    linkage_name = dwarf_formstring(&attr);
+                    break;
                   }
-                  else
+                  else if ((
+                        !dwarf_attr(die_ptr, DW_AT_specification, &attr) &&
+                        !dwarf_attr(die_ptr, DW_AT_abstract_origin, &attr)) ||
+                      !dwarf_formref_die(&attr, &referenced_die))
+                    break;
+                }
+
+#if 0
+                if (!linkage_name)
+                {
+                  Dout(dc::bfd, "No linkage_name for:");
+                  print_die_info(&child_die);
+                  // For now skip all compiler generated "artificial" DW_TAG_subprogram entries that don't have a linkage_name.
+                  if (dwarf_attr(&child_die, DW_AT_artificial, &attr) &&
+                      dwarf_formflag(&attr, &is_true) == 0 && is_true)
                   {
+                    Dout(dc::bfd, "Skipping it because it is DW_AT_artificial");
+                    continue;
+                  }
+                }
+#endif
+
+                //=================================================================
+                // Run over all address ranges owned by the function DIE.
+                //
+
+                Dwarf_Addr lbase;
+                Dwarf_Addr start;
+                Dwarf_Addr end;
+                ptrdiff_t offset = 0;
+                while ((offset = dwarf_ranges(&child_die, offset, &lbase, &start, &end)) > 0)
+                {
+                  if (end != (Dwarf_Addr)-1)
+                  {
+                    bool is_relocated = false;
+                    if (!start)
+                    {
+                      if (!linkage_name)
+                      {
+                        Dout(dc::bfd, "start = 0 for \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
+                            (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                            M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+                        print_die_info(&child_die);
+                        continue;
+                      }
+                      if (!elf.apply_relocation(linkage_name, start, end))
+                      {
+                        Dout(dc::bfd, "Relocation failed for \"" << (linkage_name ? linkage_name : func_name) << "\" of " <<
+                            M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+                        continue;       // relocation failed.
+                      }
+                      else
+                      {
+                        is_relocated = true;
+                        Dout(dc::bfd, "Relocated \"" << (linkage_name ? linkage_name : func_name) << "\" to " <<
+                            (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                            M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+                      }
+                    }
+                    LIBCWD_ASSERT(start != 0 && end > start);
+
+                    DWARF_ACQUIRE_WRITE_LOCK;
+#if CWDEBUG_ALLOC
+                    __libcwd_tsd.internal = 1;
+#endif
+                    auto ibp = M_function_symbols.emplace(start, end, this, &child_die, cu_name, func_name, linkage_name);
+#if CWDEBUG_ALLOC
+                    __libcwd_tsd.internal = 0;
+#endif
                     if (ibp.second)
                       Dout(dc::bfd|continued_cf, "Successfully inserted");
+                    else if (M_lbase + start == ibp.first->real_start())
+                    {
+                      // If our func_name is different from the DIE name, then we're probably an alias.
+                      // Let store the alias name because it seems typically to be the name that users should use.
+                      if (std::strcmp(dwarf_diename(&child_die), func_name) != 0)
+                      {
+                        if (linkage_name)
+                          ibp.first->set_linkage_name(linkage_name);
+                        if (func_name)
+                          ibp.first->set_func_name(func_name);
+                      }
+                      if (M_lbase + end == ibp.first->real_end())
+                      {
+                        Dout(dc::bfd|continued_cf, "Duplicate ");
+                      }
+                      else if (is_relocated)
+                      {
+                        Dout(dc::bfd|continued_cf, "Duplicate with different end ");
+                        // Apparently it happens... always believe the relocation value.
+                        // Although we're changing the key of the set here, it shouldn't reorder the element...
+                        const_cast<symbol_ct&>(*ibp.first).set_real_end(M_lbase + end);
+                      }
+                    }
                     else
-                      Dout(dc::bfd|continued_cf, "Failed to insert");
+                    {
+                      Dout(dc::bfd|continued_cf, "Failed to insert: overlapping range with different start address!");
+                    }
                     Dout(dc::finish, " \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
                         (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
                         M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
                     if (!ibp.second)
                       print_die_info(&child_die);
-                    LIBCWD_ASSERT(M_lbase + start == ibp.first->real_start() && M_lbase + end == ibp.first->real_end());
+
+                    LIBCWD_ASSERT(M_lbase + start == ibp.first->real_start());
+
+                    DWARF_RELEASE_WRITE_LOCK;
                   }
-                  DWARF_RELEASE_WRITE_LOCK;
                 }
+
+                //
+                //=================================================================
               }
-
-              //
-              //=================================================================
+              //===================================================================
+              // Continue with the next child DIE of the compilation unit.
             }
-            //===================================================================
-            // Continue with the next child DIE of the compilation unit.
+            while (dwarf_siblingof(&child_die, &child_die) == 0);
           }
-          while (dwarf_siblingof(&child_die, &child_die) == 0);
         }
-      }
-      else
-        Dout(dc::bfd, get_object_file()->filepath() << ": dwarf_offdie failed: " << dwarf_errmsg(-1));
+        else
+          Dout(dc::bfd, get_object_file()->filepath() << ": dwarf_offdie failed: " << dwarf_errmsg(-1));
 
-      //=========================================================================
-      // Next compilation unit.
-      //
-      // Update the offset for the next iteration.
-      offset = next_offset;
+        //=========================================================================
+        // Next compilation unit.
+        //
+        // Update the offset for the next iteration.
+        offset = next_offset;
+      }
     }
+    catch (std::exception const&)
+    {
+#if CWDEBUG_DEBUGM
+      LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
+#endif
+      // A fatal error occurred.
+      return true;
+    }
+    //
+    //===========================================================================
   }
 
   if (!already_exists)
@@ -881,6 +1114,9 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
     DWARF_RELEASE_WRITE_LOCK;
   }
 
+#if CWDEBUG_DEBUGM
+  LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
+#endif
   return already_exists;
 }
 
@@ -903,7 +1139,7 @@ _private_::string read_build_id(_private_::string const& object_file LIBCWD_COMM
     else
     {
       // Open an ELF descriptor for reading.
-      Elf* e = elf_begin(fd, ELF_C_READ, NULL);
+      ::Elf* e = elf_begin(fd, ELF_C_READ, NULL);
       if (!e)
       {
         if (!__libcwd_tsd.inside_malloc_or_free)
