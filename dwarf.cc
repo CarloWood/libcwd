@@ -254,6 +254,7 @@ class symbol_ct
   Dwarf_Addr real_end() const { return real_end_; }
   objfile_ct const* objfile() const { return objfile_; }
   Dwarf_Die const* die() const { return &die_; }
+  bool diecu(Dwarf_Die* cu_die_out) const { return dwarf_diecu(&die_, cu_die_out, NULL, NULL) != nullptr; }
   char const* cu_name() const { return cu_name_; }
   char const* func_name() const { return func_name_; }
   char const* linkage_name() const { return linkage_name_; }
@@ -1638,17 +1639,29 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
   M_func = symbol->name();
 
-  //FIXME: implement this
-  M_line = 1;
-  char const* file = "/path/source.cpp";
-
-  if (file && M_line)			// When line is 0, it turns out that `file' is nonsense.
+  Dwarf_Die cu_die;
+  Dwarf_Line* line;
+  if (!symbol->diecu(&cu_die) || !(line = dwarf_getsrc_die(&cu_die, reinterpret_cast<Dwarf_Addr>(addr) - object_file->get_lbase())))
   {
-    size_t len = strlen(file);
+    M_known = false;
+    return;
+  }
+
+  int lineno = 0;
+  if (dwarf_lineno(line, &lineno) != 0)
+    Dout(dc::bfd, "dwarf_line failed for address " << addr << ": " << dwarf_errmsg(-1));
+  M_line = lineno;
+
+  char const* srcfile;
+  if ((srcfile = dwarf_linesrc(line, nullptr, nullptr)) == nullptr)
+    Dout(dc::bfd, "dwarf_linesrc failed for address " << addr << ": " << dwarf_errmsg(-1));
+  else
+  {
+    size_t len = strlen(srcfile);
     set_alloc_checking_off(LIBCWD_TSD);
     M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);	// LEAK5
     set_alloc_checking_on(LIBCWD_TSD);
-    strcpy(M_filepath.get(), file);
+    strcpy(M_filepath.get(), srcfile);
     M_known = true;
     M_filename = strrchr(M_filepath.get(), '/') + 1;
     if (M_filename == (char const*)1)
