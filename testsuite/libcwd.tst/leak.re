@@ -32,7 +32,7 @@ MALLOC  : malloc\(111\) = 0x[0-9a-f]* \[leak\.cc:57\]
 MALLOC  : operator new \(size = (8|16)\) = 0x[0-9a-f]* \[leak\.cc:59\]
 MALLOC  : malloc\(1212\) = 0x[0-9a-f]* \[leak.cc:34\]
 MALLOC  : malloc\(7334\) = 0x[0-9a-f]* \[leak\.cc:36\]
-MALLOC  : Allocated memory: (75817|75873) bytes in 23 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: (75817|75873) bytes in 23 blocks:
 \(MARKER\)  0x[0-9a-f]*              leak\.cc:113  <marker>; \(sz = (8|16)\)  test marker
     malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
     malloc    0x[0-9a-f]*              leak\.cc:34   void\*; \(sz = 1212\)  AA::ptr
@@ -70,7 +70,7 @@ MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:34   void\*; \(sz = 1212\)  
 MALLOC  : delete 0x[0-9a-f]*              leak\.cc:53   AA; \(sz = (8|16)\)  test_object::a 
 MALLOC  : delete 0x[0-9a-f]*              leak\.cc:116  test_object; \(sz = (16|32)\)  
 MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:123  void\*; \(sz = 5555\)  ptr5 
-MALLOC  : Allocated memory: (35121|35129) bytes in 9 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: (35121|35129) bytes in 9 blocks:
 \(MARKER\)  0x[0-9a-f]*              leak\.cc:113  <marker>; \(sz = (8|16)\)  test marker
     malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
     malloc    0x[0-9a-f]*              leak\.cc:57   void\*; \(sz = 111\)  test_object::leak
@@ -90,7 +90,7 @@ MALLOC  : Removing libcwd::marker_ct at 0x[0-9a-f]* \(test marker\)
   \* malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
 MALLOC  : delete 0x[0-9a-f]*              leak\.cc:113  <marker>; \(sz = (8|16)\)  test marker 
 MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:57   void\*; \(sz = 111\)  test_object::leak 
-MALLOC  : Allocated memory: (35010|35018) bytes in 8 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: (35010|35018) bytes in 8 blocks:
 \(deleted\) 0x[0-9a-f]*              leak\.cc:113  <marker>; \(sz = (8|16)\)  test marker
     malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
     malloc    0x[0-9a-f]*              leak\.cc:57   void\*; \(sz = 111\)  test_object::leak
@@ -100,7 +100,7 @@ MALLOC  : Allocated memory: (35010|35018) bytes in 8 blocks\.
 malloc    0x[0-9a-f]*              leak\.cc:99   void\*; \(sz = 3333\)  ptr3
 malloc    0x[0-9a-f]*              leak\.cc:94   void\*; \(sz = 2222\)  ptr2
 MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA 
-MALLOC  : Allocated memory: (27676|27684) bytes in 7 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: (27676|27684) bytes in 7 blocks:
 \(deleted\) 0x[0-9a-f]*              leak\.cc:113  <marker>; \(sz = (8|16)\)  test marker
     malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
     malloc    0x[0-9a-f]*              leak\.cc:57   void\*; \(sz = 111\)  test_object::leak
@@ -109,7 +109,7 @@ MALLOC  : Allocated memory: (27676|27684) bytes in 7 blocks\.
 malloc    0x[0-9a-f]*              leak\.cc:99   void\*; \(sz = 3333\)  ptr3
 malloc    0x[0-9a-f]*              leak\.cc:94   void\*; \(sz = 2222\)  ptr2
 MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA 
-MALLOC  : Allocated memory: (20342|20350) bytes in 6 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: (20342|20350) bytes in 6 blocks:
 \(deleted\) 0x[0-9a-f]*              leak\.cc:113  <marker>; \(sz = (8|16)\)  test marker
     malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
     malloc    0x[0-9a-f]*              leak\.cc:57   void\*; \(sz = 111\)  test_object::leak
@@ -117,20 +117,20 @@ MALLOC  : Allocated memory: (20342|20350) bytes in 6 blocks\.
 malloc    0x[0-9a-f]*              leak\.cc:99   void\*; \(sz = 3333\)  ptr3
 malloc    0x[0-9a-f]*              leak\.cc:94   void\*; \(sz = 2222\)  ptr2
 MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA 
-MALLOC  : Allocated memory: (13008|13016) bytes in 5 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: (13008|13016) bytes in 5 blocks:
 \(deleted\) 0x[0-9a-f]*              leak\.cc:113  <marker>; \(sz = (8|16)\)  test marker
     malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
     malloc    0x[0-9a-f]*              leak\.cc:57   void\*; \(sz = 111\)  test_object::leak
 malloc    0x[0-9a-f]*              leak\.cc:99   void\*; \(sz = 3333\)  ptr3
 malloc    0x[0-9a-f]*              leak\.cc:94   void\*; \(sz = 2222\)  ptr2
 MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:57   void\*; \(sz = 111\)  test_object::leak 
-MALLOC  : Allocated memory: (12897|12905) bytes in 4 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: (12897|12905) bytes in 4 blocks:
 \(deleted\) 0x[0-9a-f]*              leak\.cc:113  <marker>; \(sz = (8|16)\)  test marker
     malloc    0x[0-9a-f]*              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA
 malloc    0x[0-9a-f]*              leak\.cc:99   void\*; \(sz = 3333\)  ptr3
 malloc    0x[0-9a-f]*              leak\.cc:94   void\*; \(sz = 2222\)  ptr2
 MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:36   void\*; \(sz = 7334\)  AA::leakAA 
-MALLOC  : Allocated memory: 5555 bytes in 2 blocks\.
+MALLOC  : Allocated memory by thread 0x[0-9a-f]*: 5555 bytes in 2 blocks:
 malloc    0x[0-9a-f]*              leak\.cc:99   void\*; \(sz = 3333\)  ptr3
 malloc    0x[0-9a-f]*              leak\.cc:94   void\*; \(sz = 2222\)  ptr2
 MALLOC  : free\(0x[0-9a-f]*\)              leak\.cc:94   void\*; \(sz = 2222\)  ptr2 

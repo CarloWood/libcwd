@@ -3103,7 +3103,7 @@ unsigned long list_allocations_on(debug_ct& debug_object, alloc_filter_ct const&
 #if LIBCWD_THREAD_SAFE
     pthread_t tid = __libcwd_tsd.target_thread->tid;
     RELEASE_READ_LOCK;
-    LibcwDout( channels, debug_object, dc_malloc, "Allocated memory by thread 0x" << std::hex << tid << ": " << memsize << " bytes in " << memblks << " blocks:" );
+    LibcwDout( channels, debug_object, dc_malloc, "Allocated memory by thread 0x" << std::hex << tid << ": " << std::dec << memsize << " bytes in " << memblks << " blocks:" );
 #else
     LibcwDout( channels, debug_object, dc_malloc, "Allocated memory: " << memsize << " bytes in " << memblks << " blocks." );
 #endif
