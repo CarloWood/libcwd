@@ -247,6 +247,8 @@ class symbol_ct
  public:
   inline symbol_ct(Dwarf_Addr start, Dwarf_Addr end,
       objfile_ct* objfile, Dwarf_Die const* die, char const* cu_name, char const* func_name, char const* linkage_name);
+  // Create a dummy symbol to be used as search key.
+  symbol_ct(Dwarf_Addr start) : real_start_(start), real_end_(start + 1) { }
 
   Dwarf_Addr real_start() const { return real_start_; }
   Dwarf_Addr real_end() const { return real_end_; }
@@ -255,6 +257,7 @@ class symbol_ct
   char const* cu_name() const { return cu_name_; }
   char const* func_name() const { return func_name_; }
   char const* linkage_name() const { return linkage_name_; }
+  char const* name() const { return linkage_name_ ? linkage_name_ : func_name_; }
 
   void set_func_name(char const* func_name) const { func_name_ = func_name; }
   void set_linkage_name(char const* linkage_name) const { linkage_name_ = linkage_name; }
@@ -302,6 +305,8 @@ class objfile_ct : public objfiles_ct
 
   uintptr_t get_start_addr() const { return M_start_addr; }
   uintptr_t get_end_addr() const { return M_end_addr; }
+
+  symbol_ct const* find_symbol(symbol_ct const& search_key) const;
 
   bool is_initialized() const
   {
@@ -1011,11 +1016,6 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
                 if (!func_name || !*func_name)
                   continue;
 
-                // If the function is external, don't bother with it.
-                if (dwarf_attr(&child_die, DW_AT_external, &attr) &&
-                    dwarf_formflag(&attr, &is_true) == 0 && is_true)
-                  continue;
-
                 // We STRONGLY prefer mangled names in the case of C++ functions. Try to obtain it.
                 char const* linkage_name = nullptr;
                 Dwarf_Die referenced_die;
@@ -1377,6 +1377,14 @@ void objfile_ct::open_dwarf(LIBCWD_TSD_PARAM)
   Dout(dc::finish, "done");
 }
 
+symbol_ct const* objfile_ct::find_symbol(symbol_ct const& search_key) const
+{
+  auto iter = M_function_symbols.find(search_key);
+  if (iter == M_function_symbols.end())
+    return nullptr;
+  return &*iter;
+}
+
 void objfile_ct::close_dwarf(LIBCWD_TSD_PARAM)
 {
   if (dwarf_handle_)
@@ -1468,6 +1476,7 @@ char const* pc_mangled_function_name(void const* addr)
   return symbol->get_symbol()->name;
 #endif
   // FIXME: implement the above.
+  LIBCWD_DEBUG_ASSERT(false);
   return unknown_function_c;
 }
 
@@ -1587,7 +1596,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     //FIXME: implement this; if object_file is not known at this point it is possible
     // that it belongs to a new shared library that was opened during run time with dlopen.
     //object_file = ...;
-    assert(false);
+    LIBCWD_DEBUG_ASSERT(false);
   }
 
   LIBCWD_RESTORE_CANCEL;
@@ -1614,15 +1623,24 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     }
 
     //FIXME: initialization required?
-    assert(false);
+    LIBCWD_DEBUG_ASSERT(false);
   }
 
   M_object_file = object_file->get_object_file();
 
-  M_line = 1; // FIXME
+  symbol_ct search_key(reinterpret_cast<Dwarf_Addr>(addr));
+  symbol_ct const* symbol = object_file->find_symbol(search_key);
+  if (!symbol)
+  {
+    M_func = unknown_function_c;
+    return;
+  }
+
+  M_func = symbol->name();
+
   //FIXME: implement this
-#if 0
-  M_func = ;
+  M_line = 1;
+  char const* file = "/path/source.cpp";
 
   if (file && M_line)			// When line is 0, it turns out that `file' is nonsense.
   {
@@ -1636,9 +1654,6 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     if (M_filename == (char const*)1)
       M_filename = M_filepath.get();
   }
-#endif
-
-  M_func = unknown_function_c;
 }
 
 /**
