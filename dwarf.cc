@@ -1653,22 +1653,18 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     return;
   }
 
+  M_object_file = object_file->get_object_file();
+
   // Do initialization if needed.
   if (!object_file->is_initialized())
   {
-    if (__libcwd_tsd.inside_malloc_or_free)
-    {
-      M_object_file = nullptr;
-      M_func = S_pre_ios_initialization_c;
-      M_initialization_delayed = addr;
-      return;
-    }
-
-    //FIXME: initialization required?
-    LIBCWD_DEBUG_ASSERT(false);
+    // The fact that object_file is non-NULL means that it was found in NEEDS_READ_LOCK_object_files(),
+    // which means that it was push_back-ed onto NEEDS_WRITE_LOCK_object_files() at the end of
+    // objfile_ct::initialize which means that open_dwarf was already called and failed.
+    M_func = unknown_function_c;
+    M_unknown_pc = addr;
+    return;
   }
-
-  M_object_file = object_file->get_object_file();
 
   symbol_ct search_key(int_addr);
   symbol_ct const* symbol = object_file->find_symbol(search_key);
