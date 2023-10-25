@@ -1445,7 +1445,7 @@ void dm_alloc_base_ct::print_description(debug_ct& debug_object, alloc_filter_ct
     DoutInternalDo( debug_object, dc::continued, ';' );
   }
 
-  DoutInternalDo( debug_object, dc::continued, " (sz = " << a_size << ") " );
+  DoutInternalDo( debug_object, dc::continued, " (sz = " << a_size << ")" );
 
   if (!a_description.is_null())
     DoutInternalDo( debug_object, dc::continued, ' ' << a_description );

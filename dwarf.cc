@@ -52,9 +52,12 @@
 #include "libcwd/private_mutex_instances.h"
 #endif
 #include "libcwd/debug.h"
-//#include "libcwd/buf2str.h"
 #include "elfutils/known-dwarf.h"
 #include <elf.h>
+#include <functional>
+#if CWDEBUG_DEBUG
+#include "libcwd/buf2str.h"
+#endif
 
 namespace libcwd {
 namespace _private_ {
@@ -247,6 +250,8 @@ class symbol_ct
  public:
   inline symbol_ct(Dwarf_Addr start, Dwarf_Addr end,
       objfile_ct* objfile, Dwarf_Die const* die, char const* cu_name, char const* func_name, char const* linkage_name);
+  // Create a symbol from an .symtab entry.
+  symbol_ct(Dwarf_Addr start, Dwarf_Addr end, objfile_ct* objfile, char const* linkage_name);
   // Create a dummy symbol to be used as search key.
   symbol_ct(Dwarf_Addr start) : real_start_(start), real_end_(start + 1) { }
 
@@ -254,7 +259,11 @@ class symbol_ct
   Dwarf_Addr real_end() const { return real_end_; }
   objfile_ct const* objfile() const { return objfile_; }
   Dwarf_Die const* die() const { return &die_; }
-  bool diecu(Dwarf_Die* cu_die_out) const { return dwarf_diecu(&die_, cu_die_out, NULL, NULL) != nullptr; }
+  bool diecu(Dwarf_Die* cu_die_out) const
+  {
+    // die_.addr should only be NULL when the .symtab constructor was used, in which case die_ is uninitialized.
+    return die_.addr ? dwarf_diecu(&die_, cu_die_out, NULL, NULL) != nullptr : false;
+  }
   char const* cu_name() const { return cu_name_; }
   char const* func_name() const { return func_name_; }
   char const* linkage_name() const { return linkage_name_; }
@@ -282,6 +291,8 @@ using function_symbols_ct = std::set<symbol_ct, symbol_key_greater, _private_::o
 #else
 using function_symbols_ct = std::set<symbol_ct, symbol_key_greater>;
 #endif
+
+class Elf;
 
 // All allocations related to objfile_ct must be `internal'.
 class objfile_ct : public objfiles_ct
@@ -315,6 +326,7 @@ class objfile_ct : public objfiles_ct
   }
 
  private:
+  void extract_and_add_function_symbols(char const* cu_name, Elf& elf, Dwarf_Die* die_ptr LIBCWD_COMMA_TSD_PARAM);
   void open_dwarf(LIBCWD_TSD_PARAM);
   void close_dwarf(LIBCWD_TSD_PARAM);
 };
@@ -330,6 +342,12 @@ symbol_ct::symbol_ct(Dwarf_Addr start, Dwarf_Addr end,
     objfile_ct* objfile, Dwarf_Die const* die, char const* cu_name, char const* func_name, char const* linkage_name) :
     real_start_(start + objfile->get_lbase()), real_end_(end + objfile->get_lbase()),
     objfile_(objfile), die_(*die), cu_name_(cu_name), func_name_(func_name), linkage_name_(linkage_name)
+{
+}
+
+symbol_ct::symbol_ct(Dwarf_Addr start, Dwarf_Addr end, objfile_ct* objfile, char const* linkage_name) :
+    real_start_(start + objfile->get_lbase()), real_end_(end + objfile->get_lbase()),
+    objfile_(objfile), die_{}, cu_name_(nullptr), func_name_(nullptr), linkage_name_(linkage_name)
 {
 }
 
@@ -661,6 +679,7 @@ class Elf
   }
 
   int process_relocs();
+  void add_symtab(std::function<void(Dwarf_Addr start, Dwarf_Addr end, char const* linkage_name LIBCWD_COMMA_TSD_PARAM)> symbol_cb) const;
   void add_backup(char const* linkage_name, GElf_Addr start, GElf_Addr end);
   bool apply_relocation(char const* linkage_name, GElf_Addr& start_out, GElf_Addr& end_out) const;
 
@@ -702,16 +721,26 @@ void Elf::add_symbol(GElf_Sym* sym, size_t symstrndx, GElf_Sxword r_addend)
   if (GELF_ST_TYPE(sym->st_info) == STT_FUNC && sym->st_shndx != SHN_UNDEF && sym->st_size > 0)
   {
 #if CWDEBUG_DEBUG
-    Dout(dc::bfd, "[0x" << std::hex << (lbase_ + start) << "-0x" << (lbase_ + end) << "] " << name);
+    Dout(dc::bfd|continued_cf, "Adding \"" << libcwd::buf2str(name, std::strlen(name)) <<
+        "\" range [0x" << std::hex << (lbase_ + start) << "-0x" << (lbase_ + end) << "] to relocation_map_...");
 #endif
     LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_ALLOC
     __libcwd_tsd.internal = 1;
 #endif
-    //Dout(dc::bfd, "Adding \"" << libcwd::buf2str(name, std::strlen(name)) << "\" range [" << start << '-' << end << "]");
+#if CWDEBUG_DEBUG
+    auto ibp =
+#endif
     relocation_map_.emplace(std::make_pair(name, Range{start, end}));
 #if CWDEBUG_ALLOC
     __libcwd_tsd.internal = 0;
+#endif
+#if CWDEBUG_DEBUG
+    if (ibp.second)
+      Dout(dc::finish, " done");
+    else
+      Dout(dc::finish, " failed! Collision with \"" << ibp.first->first << std::hex <<
+          "\" [0x" << (lbase_ + ibp.first->second.start_) << "-0x" << (lbase_ + ibp.first->second.end_) << "]");
 #endif
   }
 }
@@ -749,6 +778,13 @@ void Elf::process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdat
 
   // Found a symbol.
   add_symbol(sym, symstrndx, r_addend);
+}
+
+void Elf::add_symtab(std::function<void(Dwarf_Addr start, Dwarf_Addr end, char const* linkage_name LIBCWD_COMMA_TSD_PARAM)> symbol_cb) const
+{
+  LIBCWD_TSD_DECLARATION;
+  for (relocation_map_ct::value_type const& value : relocation_map_)
+    symbol_cb(value.second.start_, value.second.end_, value.first LIBCWD_COMMA_TSD);
 }
 
 void Elf::process_relocs_rel(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx)
@@ -912,6 +948,194 @@ bool Elf::apply_relocation(char const* linkage_name, GElf_Addr& start_out, GElf_
   return true;
 }
 
+void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf, Dwarf_Die* die_ptr LIBCWD_COMMA_TSD_PARAM)
+{
+  //=====================================================================
+  // Iterate over all children of the compilation unit.
+  //
+
+  Dwarf_Die child_die;
+  if (dwarf_child(die_ptr, &child_die) == 0)   // Get the first child of this DIE, if any.
+  {
+    do
+    {
+      // Recursively iterate over all children of every child, if any.
+      if (dwarf_haschildren(&child_die))
+        extract_and_add_function_symbols(cu_name, elf, &child_die LIBCWD_COMMA_TSD);
+
+      //===================================================================
+      // Find all function DIE's with a name.
+      //
+
+      // We are only interested in DIE that represents a function.
+      if (dwarf_tag(&child_die) == DW_TAG_subprogram)
+      {
+        Dwarf_Attribute attr;
+        bool is_true;
+
+        // Declarations are DW_TAG_subprogram too; skip all declarations; we are only interested in definitions.
+        if (dwarf_attr(&child_die, DW_AT_declaration, &attr) &&
+            dwarf_formflag(&attr, &is_true) == 0 && is_true)
+          continue;
+
+        // If the declaration is deleted; don't bother with it.
+        if (dwarf_attr(&child_die, DW_AT_deleted, &attr) &&
+            dwarf_formflag(&attr, &is_true) == 0 && is_true)
+          continue;
+
+        // We STRONGLY prefer mangled names in the case of C++ functions. Try to obtain it.
+        char const* linkage_name = nullptr;
+        Dwarf_Die referenced_die;
+        for (Dwarf_Die* die_ptr = &child_die;; die_ptr = &referenced_die)
+        {
+          if (dwarf_attr(die_ptr, DW_AT_MIPS_linkage_name, &attr) ||
+              dwarf_attr(die_ptr, DW_AT_linkage_name, &attr))
+          {
+            linkage_name = dwarf_formstring(&attr);
+            break;
+          }
+          else if ((
+                !dwarf_attr(die_ptr, DW_AT_specification, &attr) &&
+                !dwarf_attr(die_ptr, DW_AT_abstract_origin, &attr)) ||
+              !dwarf_formref_die(&attr, &referenced_die))
+            break;
+        }
+
+        // Not sure if it can happen that such a function DIE has no name, but if that is the case then
+        // pretend that that isn't a function.
+        char const* func_name = dwarf_diename(&child_die);
+        if ((!func_name || !*func_name) && !linkage_name)
+          continue;
+
+        //=================================================================
+        // Run over all address ranges owned by the function DIE.
+        //
+
+        Dwarf_Addr lbase;
+        Dwarf_Addr start;
+        Dwarf_Addr end;
+        ptrdiff_t offset = 0;
+        while ((offset = dwarf_ranges(&child_die, offset, &lbase, &start, &end)) > 0)
+        {
+          if (end != (Dwarf_Addr)-1)
+          {
+            bool is_relocated = false;
+            char const* name = linkage_name ? linkage_name : func_name;
+            if (!start)
+            {
+              if (!name)        // Is this even possible?
+              {
+                Dout(dc::warning, "Zero low_pc and no name for symbol in " <<
+                    M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+#if CWDEBUG_DEBUG
+                print_die_info(&child_die);
+#endif
+                continue;
+              }
+              if (elf.apply_relocation(name, start, end))
+              {
+                is_relocated = true;
+#if CWDEBUG_DEBUG
+                Dout(dc::bfd, "Relocated \"" << name << "\" to " <<
+                    (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                    M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+#endif
+              }
+              else
+              {
+#if CWDEBUG_DEBUG       // I have no idea why this would be "normal"... but it seems to be the case for /usr/lib/libstdc++.so.6.
+                // This library has symbols in its .debug_info section with a pc_low of zero, that do not appear in the .symtab.
+                Dout(dc::warning, "Symbol not in .symtab: \"" << name << "\" of " <<
+                    M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+#endif
+                continue;       // relocation failed (symbol not in .symtab).
+              }
+            }
+            LIBCWD_ASSERT(start != 0 && end > start);
+
+            DWARF_ACQUIRE_WRITE_LOCK;
+#if CWDEBUG_ALLOC
+            __libcwd_tsd.internal = 1;
+#endif
+            auto ibp = M_function_symbols.emplace(start, end, this, &child_die, cu_name, func_name, linkage_name);
+#if CWDEBUG_ALLOC
+            __libcwd_tsd.internal = 0;
+#endif
+            if (ibp.second)
+            {
+#if CWDEBUG_DEBUG
+              Dout(dc::bfd|continued_cf, "Successfully inserted")
+#endif
+              ;
+              // This is probably never needed, but since we have this information anyway
+              // add it to the "relocation" table - so that any other DIE with a low_pc of zero
+              // will pick it up if this information is missing everywhere else.
+              if (!is_relocated)
+                elf.add_backup(name, start, end);
+            }
+            else if (M_lbase + start == ibp.first->real_start())
+            {
+              // If our func_name is different from the DIE name, then we're probably an alias.
+              // Let store the alias name because it seems typically to be the name that users should use.
+              if (std::strcmp(dwarf_diename(&child_die), func_name) != 0)
+              {
+                if (linkage_name)
+                  ibp.first->set_linkage_name(linkage_name);
+                if (func_name)
+                  ibp.first->set_func_name(func_name);
+              }
+              if (M_lbase + end == ibp.first->real_end())
+              {
+#if CWDEBUG_DEBUG
+                Dout(dc::bfd|continued_cf, "Duplicate")
+#endif
+                ;
+              }
+              else if (is_relocated)
+              {
+#if CWDEBUG_DEBUG
+                Dout(dc::bfd|continued_cf, "Duplicate with different end");
+#endif
+                // Apparently it happens... always believe the relocation value.
+                // Although we're changing the key of the set here, it shouldn't reorder the element...
+                const_cast<symbol_ct&>(*ibp.first).set_real_end(M_lbase + end);
+              }
+            }
+            else
+            {
+#if CWDEBUG_DEBUG
+              Dout(dc::bfd|continued_cf, "Failed to insert: overlapping range with different start address!");
+#else
+              Dout(dc::warning, "Failed to insert: overlapping range with different start address! \"" <<
+                  (linkage_name ? linkage_name : func_name) << "\", range " <<
+                  (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                  M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+#endif
+            }
+#if CWDEBUG_DEBUG
+            Dout(dc::finish, " \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
+                (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
+                M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
+            if (!ibp.second)
+              print_die_info(&child_die);
+#endif
+
+            LIBCWD_ASSERT(M_lbase + start == ibp.first->real_start());
+
+            DWARF_RELEASE_WRITE_LOCK;
+          }
+        }
+
+        //
+        //=================================================================
+      }
+      //===================================================================
+      // Continue with the next child DIE of the compilation unit.
+    }
+    while (dwarf_siblingof(&child_die, &child_die) == 0);
+  }
+}
+
 bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUGM
@@ -977,204 +1201,7 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
               Dout(dc::bfd, "DIE name not found.");
 #endif
 
-
-            //=====================================================================
-            // Iterate over all children of the compilation unit.
-            //
-
-            Dwarf_Die child_die;
-            if (dwarf_child(cu_die_ptr, &child_die) == 0)   // Get the first child of this DIE, if any.
-            {
-              do
-              {
-                //===================================================================
-                // Find all function DIE's with a name.
-                //
-
-                // We are only interested in DIE that represents a function.
-                if (dwarf_tag(&child_die) == DW_TAG_subprogram)
-                {
-                  Dwarf_Attribute attr;
-                  bool is_true;
-
-                  // Declarations are DW_TAG_subprogram too; skip all declarations; we are only interested in definitions.
-                  if (dwarf_attr(&child_die, DW_AT_declaration, &attr) &&
-                      dwarf_formflag(&attr, &is_true) == 0 && is_true)
-                    continue;
-
-                  // If the declaration is deleted; don't bother with it.
-                  if (dwarf_attr(&child_die, DW_AT_deleted, &attr) &&
-                      dwarf_formflag(&attr, &is_true) == 0 && is_true)
-                    continue;
-
-                  // Not sure if it can happen that such a function DIE has no name, but if that is the case then
-                  // pretend that that isn't a function.
-                  char const* func_name = dwarf_diename(&child_die);
-                  if (!func_name || !*func_name)
-                    continue;
-
-                  // We STRONGLY prefer mangled names in the case of C++ functions. Try to obtain it.
-                  char const* linkage_name = nullptr;
-                  Dwarf_Die referenced_die;
-                  for (Dwarf_Die* die_ptr = &child_die;; die_ptr = &referenced_die)
-                  {
-                    if (dwarf_attr(die_ptr, DW_AT_MIPS_linkage_name, &attr) ||
-                        dwarf_attr(die_ptr, DW_AT_linkage_name, &attr))
-                    {
-                      linkage_name = dwarf_formstring(&attr);
-                      break;
-                    }
-                    else if ((
-                          !dwarf_attr(die_ptr, DW_AT_specification, &attr) &&
-                          !dwarf_attr(die_ptr, DW_AT_abstract_origin, &attr)) ||
-                        !dwarf_formref_die(&attr, &referenced_die))
-                      break;
-                  }
-
-#if 0           // Nothing wrong with DW_AT_artificial functions with C linkage, is there?
-                  if (!linkage_name)
-                  {
-#if CWDEBUG_DEBUG
-                    Dout(dc::bfd, "No linkage_name for:");
-                    print_die_info(&child_die);
-#endif
-                    // For now skip all compiler generated "artificial" DW_TAG_subprogram entries that don't have a linkage_name.
-                    if (dwarf_attr(&child_die, DW_AT_artificial, &attr) &&
-                        dwarf_formflag(&attr, &is_true) == 0 && is_true)
-                    {
-                      Dout(dc::bfd, "Skipping it because it is DW_AT_artificial");
-                      continue;
-                    }
-                  }
-#endif
-
-                  //=================================================================
-                  // Run over all address ranges owned by the function DIE.
-                  //
-
-                  Dwarf_Addr lbase;
-                  Dwarf_Addr start;
-                  Dwarf_Addr end;
-                  ptrdiff_t offset = 0;
-                  while ((offset = dwarf_ranges(&child_die, offset, &lbase, &start, &end)) > 0)
-                  {
-                    if (end != (Dwarf_Addr)-1)
-                    {
-                      bool is_relocated = false;
-                      char const* name = linkage_name ? linkage_name : func_name;
-                      if (!start)
-                      {
-                        if (!name)        // Is this even possible?
-                        {
-                          Dout(dc::warning, "Zero low_pc and no name for symbol in " <<
-                              M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
-#if CWDEBUG_DEBUG
-                          print_die_info(&child_die);
-#endif
-                          continue;
-                        }
-                        if (elf.apply_relocation(name, start, end))
-                        {
-                          is_relocated = true;
-#if CWDEBUG_DEBUG
-                          Dout(dc::bfd, "Relocated \"" << name << "\" to " <<
-                              (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
-                              M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
-#endif
-                        }
-                        else
-                        {
-#if CWDEBUG_DEBUG       // I have no idea why this would be "normal"... but it seems to be the case for /usr/lib/libstdc++.so.6.
-                          // This library has symbols in its .debug_info section with a pc_low of zero, that do not appear in the .symtab.
-                          Dout(dc::warning, "Symbol not in .symtab: \"" << name << "\" of " <<
-                              M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
-#endif
-                          continue;       // relocation failed (symbol not in .symtab).
-                        }
-                      }
-                      LIBCWD_ASSERT(start != 0 && end > start);
-
-                      DWARF_ACQUIRE_WRITE_LOCK;
-#if CWDEBUG_ALLOC
-                      __libcwd_tsd.internal = 1;
-#endif
-                      auto ibp = M_function_symbols.emplace(start, end, this, &child_die, cu_name, func_name, linkage_name);
-#if CWDEBUG_ALLOC
-                      __libcwd_tsd.internal = 0;
-#endif
-                      if (ibp.second)
-                      {
-#if CWDEBUG_DEBUG
-                        Dout(dc::bfd|continued_cf, "Successfully inserted")
-#endif
-                        ;
-                        // This is probably never needed, but since we have this information anyway
-                        // add it to the "relocation" table - so that any other DIE with a low_pc of zero
-                        // will pick it up if this information is missing everywhere else.
-                        if (!is_relocated)
-                          elf.add_backup(name, start, end);
-                      }
-                      else if (M_lbase + start == ibp.first->real_start())
-                      {
-                        // If our func_name is different from the DIE name, then we're probably an alias.
-                        // Let store the alias name because it seems typically to be the name that users should use.
-                        if (std::strcmp(dwarf_diename(&child_die), func_name) != 0)
-                        {
-                          if (linkage_name)
-                            ibp.first->set_linkage_name(linkage_name);
-                          if (func_name)
-                            ibp.first->set_func_name(func_name);
-                        }
-                        if (M_lbase + end == ibp.first->real_end())
-                        {
-#if CWDEBUG_DEBUG
-                          Dout(dc::bfd|continued_cf, "Duplicate")
-#endif
-                          ;
-                        }
-                        else if (is_relocated)
-                        {
-#if CWDEBUG_DEBUG
-                          Dout(dc::bfd|continued_cf, "Duplicate with different end");
-#endif
-                          // Apparently it happens... always believe the relocation value.
-                          // Although we're changing the key of the set here, it shouldn't reorder the element...
-                          const_cast<symbol_ct&>(*ibp.first).set_real_end(M_lbase + end);
-                        }
-                      }
-                      else
-                      {
-#if CWDEBUG_DEBUG
-                        Dout(dc::bfd|continued_cf, "Failed to insert: overlapping range with different start address!");
-#else
-                        Dout(dc::warning, "Failed to insert: overlapping range with different start address! \"" <<
-                            (linkage_name ? linkage_name : func_name) << "\", range " <<
-                            (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
-                            M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
-#endif
-                      }
-#if CWDEBUG_DEBUG
-                      Dout(dc::finish, " \"" << (linkage_name ? linkage_name : func_name) << "\", range " <<
-                          (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
-                          M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
-                      if (!ibp.second)
-                        print_die_info(&child_die);
-#endif
-
-                      LIBCWD_ASSERT(M_lbase + start == ibp.first->real_start());
-
-                      DWARF_RELEASE_WRITE_LOCK;
-                    }
-                  }
-
-                  //
-                  //=================================================================
-                }
-                //===================================================================
-                // Continue with the next child DIE of the compilation unit.
-              }
-              while (dwarf_siblingof(&child_die, &child_die) == 0);
-            }
+            extract_and_add_function_symbols(cu_name, elf, cu_die_ptr LIBCWD_COMMA_TSD);
           }
           else
             Dout(dc::bfd, get_object_file()->filepath() << ": dwarf_offdie failed: " << dwarf_errmsg(-1));
@@ -1186,6 +1213,24 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
           offset = next_offset;
         }
       }
+
+      elf.add_symtab([this](Dwarf_Addr start, Dwarf_Addr end, char const* linkage_name LIBCWD_COMMA_TSD_PARAM){
+        // If the symbol table contains a function with an address range that does not overlap with
+        // an already stored address range from .debug_info - then add it. I expect this to only
+        // add functions when there wasn't a .debug_info in the first place.
+#if CWDEBUG_ALLOC
+        __libcwd_tsd.internal = 1;
+#endif
+        auto ibp = M_function_symbols.emplace(start, end, this, linkage_name);
+#if CWDEBUG_ALLOC
+        __libcwd_tsd.internal = 0;
+#endif
+#if CWDEBUG_DEBUG
+        if (dwarf_handle_ && ibp.second)
+          Dout(dc::bfd, "Added symbol from .symtab that does not exist in .debug_info: \"" <<
+              linkage_name << "\" [" << (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << "]");
+#endif
+      });
     }
     catch (std::exception const&)
     {
@@ -1655,22 +1700,12 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
   M_object_file = object_file->get_object_file();
 
-  // Do initialization if needed.
-  if (!object_file->is_initialized())
-  {
-    // The fact that object_file is non-NULL means that it was found in NEEDS_READ_LOCK_object_files(),
-    // which means that it was push_back-ed onto NEEDS_WRITE_LOCK_object_files() at the end of
-    // objfile_ct::initialize which means that open_dwarf was already called and failed.
-    M_func = unknown_function_c;
-    M_unknown_pc = addr;
-    return;
-  }
-
   symbol_ct search_key(int_addr);
   symbol_ct const* symbol = object_file->find_symbol(search_key);
   if (!symbol)
   {
     M_func = unknown_function_c;
+    M_unknown_pc = addr;
     return;
   }
 
