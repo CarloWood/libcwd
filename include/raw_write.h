@@ -55,7 +55,7 @@ namespace libcwd {
 // disturb the testsuite.
 #define FATALDEBUGDEBUG_CERR(x)									\
     do {											\
-      if (1/*::libcwd::_private_::WST_ios_base_initialized FIXME: uncomment again*/) {	\
+      if (::libcwd::_private_::WST_ios_base_initialized) {	                                \
 	LIBCWD_CANCELSTATE_DISABLE;								\
 	LIBCWD_TSD_DECLARATION;									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\

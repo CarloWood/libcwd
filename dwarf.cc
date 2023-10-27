@@ -428,6 +428,39 @@ static int dl_iterate_phdr_callback(dl_phdr_info* info, size_t size, void* fullp
   return 0;
 }
 
+static int dl_iterate_phdr_callback2(dl_phdr_info* info, size_t size, void* addr)
+{
+  uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
+  uintptr_t base_address = info->dlpi_addr;
+  uintptr_t start_addr = (uintptr_t)0 - 1;
+  uintptr_t end_addr = 0;
+  for (int i = 0; i < info->dlpi_phnum; ++i)
+  {
+    if (info->dlpi_phdr[i].p_type == PT_LOAD && (info->dlpi_phdr[i].p_flags & PF_X))
+    {
+      if (end_addr != 0)
+        // This isn't really a problem. All we need an address range that uniquely determines this object file.
+        Dout(dc::warning, "Object file \"" << info->dlpi_name << "\" has more than one executable PT_LOAD segments!");
+
+      uintptr_t current_start_addr = base_address + info->dlpi_phdr[i].p_vaddr;
+      uintptr_t current_end_addr = current_start_addr + info->dlpi_phdr[i].p_memsz;
+
+      start_addr = std::min(start_addr, current_start_addr);
+      end_addr = std::max(end_addr, current_end_addr);
+    }
+  }
+  bool found = start_addr <= int_addr && int_addr < end_addr;
+  if (found)
+  {
+    // We already have the executable; only check for shared libraries.
+    if (info->dlpi_name[0] == '/' || info->dlpi_name[0] == '.')
+      load_object_file(info->dlpi_name, base_address, start_addr, end_addr);
+    return 1;
+  }
+  // Continue with the next object file.
+  return 0;
+}
+
 bool ST_init(LIBCWD_TSD_PARAM)
 {
   static bool WST_being_initialized = false;
@@ -1680,10 +1713,17 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
   if (!object_file && !statically_linked)
   {
-    //FIXME: implement this; if object_file is not known at this point it is possible
-    // that it belongs to a new shared library that was opened during run time with dlopen.
-    //object_file = ...;
-    LIBCWD_DEBUG_ASSERT(false);
+    // The const_cast is OK because dl_iterate_phdr_callback2 does not write to addr.
+    dl_iterate_phdr(dl_iterate_phdr_callback2, const_cast<void*>(addr));
+
+    LIBCWD_DEFER_CANCEL;
+    DWARF_ACQUIRE_WRITE_LOCK;
+    set_alloc_checking_off(LIBCWD_TSD);
+    NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
+    set_alloc_checking_on(LIBCWD_TSD);
+    object_file = NEEDS_READ_LOCK_find_object_file(int_addr);
+    DWARF_RELEASE_WRITE_LOCK;
+    LIBCWD_RESTORE_CANCEL;
   }
 
   LIBCWD_RESTORE_CANCEL;

@@ -43,6 +43,7 @@
 #include <libcwd/private_bufferstream.h>
 #include "private_debug_stack.inl"
 #include <libcwd/class_location.inl>
+#include "ios_base_Init.h"
 
 extern "C" int raise(int);
 

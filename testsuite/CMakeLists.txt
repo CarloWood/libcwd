@@ -96,6 +96,9 @@ target_include_directories(module_r PRIVATE libcwd.tst ${CMAKE_BINARY_DIR} ${CMA
 # Make sure we're compiled with CWDEBUG.
 target_link_libraries(module_r PRIVATE cwd_r)
 
+# Include debug info in the shared library.
+target_compile_options(module_r PRIVATE -g)
+
 # Link the threading library.
 find_package(Threads REQUIRED)
 target_link_libraries(module_r PUBLIC Threads::Threads)

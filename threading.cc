@@ -23,6 +23,7 @@
 #include <alloca.h>
 #include <map>
 #include "macros.h"
+#include "ios_base_Init.h"
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
 pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;

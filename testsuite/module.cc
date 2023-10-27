@@ -13,7 +13,7 @@ static void* static_test_symbol()
 {
   void* ptr = malloc(300);
 #ifndef STATIC
-  AllocTag(ptr, "Allocated inside static_test_symbol");
+  AllocTag(ptr, "Allocated inside static_test_symbol ");
 #endif
   return ptr;
 }
