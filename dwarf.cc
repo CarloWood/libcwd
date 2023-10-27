@@ -738,14 +738,14 @@ class Elf
 #endif // CWDEBUG_DEBUG
 
  private:
-  void add_symbol(GElf_Sym* sym, size_t symstrndx, GElf_Sxword r_addend = 0);
+  void add_symbol(GElf_Sym* sym, size_t symstrndx, bool is_reloc, GElf_Sxword r_addend = 0);
   void process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdata, size_t symstrndx,
       GElf_Addr r_offset, GElf_Xword r_info, GElf_Sxword r_addend);
   void process_relocs_rel(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx);
   void process_relocs_rela(GElf_Shdr* shdr, Elf_Data* data, Elf_Data* symdata, Elf_Data* xndxdata, size_t symstrndx);
 };
 
-void Elf::add_symbol(GElf_Sym* sym, size_t symstrndx, GElf_Sxword r_addend)
+void Elf::add_symbol(GElf_Sym* sym, size_t symstrndx, bool is_reloc, GElf_Sxword r_addend)
 {
   char const* name = elf_strptr(elf_, symstrndx, sym->st_name);
   GElf_Addr start = sym->st_value + r_addend;
@@ -771,9 +771,11 @@ void Elf::add_symbol(GElf_Sym* sym, size_t symstrndx, GElf_Sxword r_addend)
 #if CWDEBUG_DEBUG
     if (ibp.second)
       Dout(dc::finish, " done");
-    else
+    else if (is_reloc || start != ibp.first->second.start_ || end > ibp.first->second.end_)
       Dout(dc::finish, " failed! Collision with \"" << ibp.first->first << std::hex <<
           "\" [0x" << (lbase_ + ibp.first->second.start_) << "-0x" << (lbase_ + ibp.first->second.end_) << "]");
+    else
+      Dout(dc::finish, " existed");
 #endif
   }
 }
@@ -810,7 +812,7 @@ void Elf::process_relocs_x(GElf_Shdr* shdr, Elf_Data* symdata, Elf_Data *xndxdat
   }
 
   // Found a symbol.
-  add_symbol(sym, symstrndx, r_addend);
+  add_symbol(sym, symstrndx, true, r_addend);
 }
 
 void Elf::add_symtab(std::function<void(Dwarf_Addr start, Dwarf_Addr end, char const* linkage_name LIBCWD_COMMA_TSD_PARAM)> symbol_cb) const
@@ -943,7 +945,7 @@ int Elf::process_relocs()
         GElf_Sym sym_mem;
         GElf_Sym* sym = gelf_getsym(data, static_cast<int>(i), &sym_mem);
         if (sym != nullptr)
-          add_symbol(sym, shdr->sh_link);
+          add_symbol(sym, shdr->sh_link, false);
       }
       break;  // We found and processed the .symtab section, so exit the loop.
     }
@@ -1554,6 +1556,36 @@ objfile_ct* NEEDS_READ_LOCK_find_object_file(uintptr_t addr)
   return (i != NEEDS_READ_LOCK_object_files().end()) ? static_cast<objfile_ct*>(*i) : nullptr;
 }
 
+objfile_ct* get_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM)
+{
+  objfile_ct* object_file;
+  uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
+
+  LIBCWD_DEFER_CANCEL;
+  DWARF_ACQUIRE_READ_LOCK;
+  object_file = NEEDS_READ_LOCK_find_object_file(int_addr);
+  DWARF_RELEASE_READ_LOCK;
+
+  if (!object_file && !statically_linked)
+  {
+    // The const_cast is OK because dl_iterate_phdr_callback2 does not write to addr.
+    dl_iterate_phdr(dl_iterate_phdr_callback2, const_cast<void*>(addr));
+
+    LIBCWD_DEFER_CANCEL;
+    DWARF_ACQUIRE_WRITE_LOCK;
+    set_alloc_checking_off(LIBCWD_TSD);
+    NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
+    set_alloc_checking_on(LIBCWD_TSD);
+    object_file = NEEDS_READ_LOCK_find_object_file(int_addr);
+    DWARF_RELEASE_WRITE_LOCK;
+    LIBCWD_RESTORE_CANCEL;
+  }
+
+  LIBCWD_RESTORE_CANCEL;
+
+  return object_file;
+}
+
 } // namespace dwarf
 
 /** \addtogroup group_locations */
@@ -1571,32 +1603,24 @@ char const* pc_mangled_function_name(void const* addr)
 {
   using namespace dwarf;
 
+  LIBCWD_TSD_DECLARATION;
+
   if (!WST_initialized)	// `WST_initialized' is only false when we are still Single Threaded.
   {
-    LIBCWD_TSD_DECLARATION;
     if (!ST_init(LIBCWD_TSD))
       return unknown_function_c;
   }
 
-#if 0
-  symbol_ct const* symbol;
-#if CWDEBUG_DEBUGT
-  LIBCWD_TSD_DECLARATION;
-#endif
-  LIBCWD_DEFER_CANCEL;
-  BFD_ACQUIRE_READ_LOCK;
-  symbol = pc_symbol(addr, NEEDS_READ_LOCK_find_object_file(addr));
-  BFD_RELEASE_READ_LOCK;
-  LIBCWD_RESTORE_CANCEL;
+  objfile_ct* object_file = get_object_file(addr LIBCWD_COMMA_TSD);
+  if (!object_file)
+    return unknown_function_c;
 
+  symbol_ct search_key(reinterpret_cast<uintptr_t>(addr));
+  symbol_ct const* symbol = object_file->find_symbol(search_key);
   if (!symbol)
     return unknown_function_c;
 
-  return symbol->get_symbol()->name;
-#endif
-  // FIXME: implement the above.
-  LIBCWD_DEBUG_ASSERT(false);
-  return unknown_function_c;
+  return symbol->name();
 }
 
 /** \} */	// End of group 'group_locations'.
@@ -1704,29 +1728,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   }
 #endif
 
-  uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
-  objfile_ct* object_file;
-  LIBCWD_DEFER_CANCEL;
-  DWARF_ACQUIRE_READ_LOCK;
-  object_file = NEEDS_READ_LOCK_find_object_file(int_addr);
-  DWARF_RELEASE_READ_LOCK;
-
-  if (!object_file && !statically_linked)
-  {
-    // The const_cast is OK because dl_iterate_phdr_callback2 does not write to addr.
-    dl_iterate_phdr(dl_iterate_phdr_callback2, const_cast<void*>(addr));
-
-    LIBCWD_DEFER_CANCEL;
-    DWARF_ACQUIRE_WRITE_LOCK;
-    set_alloc_checking_off(LIBCWD_TSD);
-    NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
-    set_alloc_checking_on(LIBCWD_TSD);
-    object_file = NEEDS_READ_LOCK_find_object_file(int_addr);
-    DWARF_RELEASE_WRITE_LOCK;
-    LIBCWD_RESTORE_CANCEL;
-  }
-
-  LIBCWD_RESTORE_CANCEL;
+  objfile_ct* object_file = get_object_file(addr LIBCWD_COMMA_TSD);
 
   M_initialization_delayed = nullptr;
   if (!object_file)
@@ -1740,6 +1742,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
   M_object_file = object_file->get_object_file();
 
+  uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
   symbol_ct search_key(int_addr);
   symbol_ct const* symbol = object_file->find_symbol(search_key);
   if (!symbol)
