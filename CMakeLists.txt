@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(libcwd
-        VERSION 1.1.3
+        VERSION 1.2.0
         DESCRIPTION "Libcwd is a thread-safe, full-featured debugging support library for C++ developers."
         HOMEPAGE_URL "http://carlowood.github.io/libcwd/"
         LANGUAGES CXX C
@@ -18,9 +18,9 @@ project(libcwd
 # CW_INTERFACE_VERSION_REVISION  : Revision, increment every public release; or set to 0 when the interface is changed.
 # CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
-set(CW_INTERFACE_VERSION 8)
-set(CW_INTERFACE_VERSION_REVISION 2)
-set(CW_INTERFACE_AGE 3)
+set(CW_INTERFACE_VERSION 9)
+set(CW_INTERFACE_VERSION_REVISION 0)
+set(CW_INTERFACE_AGE 0)
 
 include(cwm4/cmake/AICxxProject)
 
