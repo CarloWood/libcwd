@@ -1311,8 +1311,10 @@ _private_::string read_build_id(_private_::string const& object_file LIBCWD_COMM
     int fd = open(object_file.c_str(), O_RDONLY);
     if (fd == -1)
     {
+#if CWDEBUG_ALLOC
       if (!__libcwd_tsd.inside_malloc_or_free)
-        std::cerr << "Warning: failed to open file \"" << object_file << "\"" << std::endl;
+#endif
+        Dout(dc::warning, "failed to open file \"" << object_file << "\"");
     }
     else
     {
@@ -1320,8 +1322,10 @@ _private_::string read_build_id(_private_::string const& object_file LIBCWD_COMM
       ::Elf* e = elf_begin(fd, ELF_C_READ, NULL);
       if (!e)
       {
+#if CWDEBUG_ALLOC
         if (!__libcwd_tsd.inside_malloc_or_free)
-          std::cerr << "Warning: elf_begin returned NULL for \"" << object_file << "\": " << elf_errmsg(-1) << std::endl;
+#endif
+          Dout(dc::warning, "elf_begin returned NULL for \"" << object_file << "\": " << elf_errmsg(-1));
       }
       else
       {

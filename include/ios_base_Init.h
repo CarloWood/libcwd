@@ -14,10 +14,10 @@
 #ifndef IOS_BASE_INIT_H
 #define IOS_BASE_INIT_H
 
-#if CWDEBUG_ALLOC
-
 namespace libcwd {
   namespace _private_ {
+
+#if CWDEBUG_ALLOC
 
 // Initialization 3.3 and later is allocation free (emperically) if this condition is met:
 #define LIBCWD_IOSBASE_INIT_ALLOCATES 1
@@ -27,9 +27,14 @@ extern bool WST_ios_base_initialized;
 extern bool inside_ios_base_Init_Init();
 #endif
 
-  } // namespace _private_
-} // namespace libcwd
+#else // CWDEBUG_ALLOC
+
+// Assume that ios_base is always initialized by the time we try to initialize libcwd.
+constexpr bool WST_ios_base_initialized = true;
 
 #endif // CWDEBUG_ALLOC
+
+  } // namespace _private_
+} // namespace libcwd
 
 #endif // IOS_BASE_INIT__H
