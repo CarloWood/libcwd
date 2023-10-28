@@ -228,10 +228,6 @@ void ST_get_full_path_to_executable(_private_::internal_string& result LIBCWD_CO
   set_alloc_checking_on(LIBCWD_TSD);
 }
 
-// Magic numbers for "unknown" load address and "executable" address.
-constexpr uintptr_t unknown_base_addr = -1;
-constexpr uintptr_t executable_base_addr = -2;
-
 static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `cwbfd::ST_init'.
 struct objfile_ct;
 
@@ -428,9 +424,16 @@ static int dl_iterate_phdr_callback(dl_phdr_info* info, size_t size, void* fullp
   return 0;
 }
 
-static int dl_iterate_phdr_callback2(dl_phdr_info* info, size_t size, void* addr)
+struct Data2
 {
-  uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
+  uintptr_t addr;
+  objfile_ct* object_file;
+};
+
+static int dl_iterate_phdr_callback2(dl_phdr_info* info, size_t size, void* userdata)
+{
+  Data2* data = reinterpret_cast<Data2*>(userdata);
+  uintptr_t int_addr = data->addr;
   uintptr_t base_address = info->dlpi_addr;
   uintptr_t start_addr = (uintptr_t)0 - 1;
   uintptr_t end_addr = 0;
@@ -454,11 +457,52 @@ static int dl_iterate_phdr_callback2(dl_phdr_info* info, size_t size, void* addr
   {
     // We already have the executable; only check for shared libraries.
     if (info->dlpi_name[0] == '/' || info->dlpi_name[0] == '.')
-      load_object_file(info->dlpi_name, base_address, start_addr, end_addr);
+      data->object_file = load_object_file(info->dlpi_name, base_address, start_addr, end_addr);
     return 1;
   }
   // Continue with the next object file.
   return 0;
+}
+
+static int dl_iterate_phdr_callback3(dl_phdr_info* info, size_t size, void* userdata)
+{
+  Data2* data = reinterpret_cast<Data2*>(userdata);
+  uintptr_t base_address = info->dlpi_addr;
+  if (base_address != data->addr)
+    return 0;
+  uintptr_t start_addr = (uintptr_t)0 - 1;
+  uintptr_t end_addr = 0;
+  for (int i = 0; i < info->dlpi_phnum; ++i)
+  {
+    if (info->dlpi_phdr[i].p_type == PT_LOAD && (info->dlpi_phdr[i].p_flags & PF_X))
+    {
+      if (end_addr != 0)
+        // This isn't really a problem. All we need an address range that uniquely determines this object file.
+        Dout(dc::warning, "Object file \"" << info->dlpi_name << "\" has more than one executable PT_LOAD segments!");
+
+      uintptr_t current_start_addr = base_address + info->dlpi_phdr[i].p_vaddr;
+      uintptr_t current_end_addr = current_start_addr + info->dlpi_phdr[i].p_memsz;
+
+      start_addr = std::min(start_addr, current_start_addr);
+      end_addr = std::max(end_addr, current_end_addr);
+    }
+  }
+  // We already have the executable; only check for shared libraries.
+  if (info->dlpi_name[0] == '/' || info->dlpi_name[0] == '.')
+    data->object_file = load_object_file(info->dlpi_name, base_address, start_addr, end_addr);
+  return 1;
+}
+
+static void resort_object_files(LIBCWD_TSD_PARAM)
+{
+  objfile_ct* object_file = nullptr;
+  LIBCWD_DEFER_CANCEL;
+  DWARF_ACQUIRE_WRITE_LOCK;
+  set_alloc_checking_off(LIBCWD_TSD);
+  NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
+  set_alloc_checking_on(LIBCWD_TSD);
+  DWARF_RELEASE_WRITE_LOCK;
+  LIBCWD_RESTORE_CANCEL;
 }
 
 bool ST_init(LIBCWD_TSD_PARAM)
@@ -533,14 +577,7 @@ bool ST_init(LIBCWD_TSD_PARAM)
     {
       // Call load_object_file for everything..
       dl_iterate_phdr(dl_iterate_phdr_callback, fullpath.data());
-
-      LIBCWD_DEFER_CANCEL;
-      DWARF_ACQUIRE_WRITE_LOCK;
-      set_alloc_checking_off(LIBCWD_TSD);
-      NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
-      set_alloc_checking_on(LIBCWD_TSD);
-      DWARF_RELEASE_WRITE_LOCK;
-      LIBCWD_RESTORE_CANCEL;
+      resort_object_files(LIBCWD_TSD);
     }
 
     if (_private_::always_print_loading)
@@ -1478,9 +1515,7 @@ void objfile_ct::open_dwarf(LIBCWD_TSD_PARAM)
   Dout(dc::bfd|continued_cf, "Loading debug info " << (different_symbols_path ? "for " : "from ") << M_object_file.filepath());
   if (different_symbols_path)
     Dout(dc::continued, " (from " << debug_info_path << ")");
-  if (M_lbase != unknown_base_addr && M_lbase != executable_base_addr)
-    Dout(dc::continued, " (" << (void*)M_lbase << " [" << (void*)M_start_addr << '-' << (void*)M_end_addr << "])");
-  Dout(dc::continued|flush_cf, "... ");
+  Dout(dc::continued|flush_cf, " (" << (void*)M_lbase << " [" << (void*)M_start_addr << '-' << (void*)M_end_addr << "])... ");
 
   dwarf_fd_ = open(debug_info_path.c_str(), O_RDONLY);
 
@@ -1572,17 +1607,10 @@ objfile_ct* get_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
   if (!object_file && !statically_linked)
   {
-    // The const_cast is OK because dl_iterate_phdr_callback2 does not write to addr.
-    dl_iterate_phdr(dl_iterate_phdr_callback2, const_cast<void*>(addr));
-
-    LIBCWD_DEFER_CANCEL;
-    DWARF_ACQUIRE_WRITE_LOCK;
-    set_alloc_checking_off(LIBCWD_TSD);
-    NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
-    set_alloc_checking_on(LIBCWD_TSD);
-    object_file = NEEDS_READ_LOCK_find_object_file(int_addr);
-    DWARF_RELEASE_WRITE_LOCK;
-    LIBCWD_RESTORE_CANCEL;
+    Data2 data{int_addr, nullptr};
+    dl_iterate_phdr(dl_iterate_phdr_callback2, &data);
+    object_file = data.object_file;
+    resort_object_files(LIBCWD_TSD);
   }
 
   LIBCWD_RESTORE_CANCEL;
@@ -1941,31 +1969,22 @@ extern "C" {
       ++(*iter).second.M_refcount;
     else
     {
-      dwarf::objfile_ct* object_file;
-#ifdef HAVE__DL_LOADED
-      if (name)
-      {
-	name = ((link_map*)handle)->l_name;	// This is dirty, but its the only reasonable way to get
-						// the full path to the loaded library.
-      }
-#endif
       // Don't call dwarf::load_object_file when dlopen() was called with nullptr as argument.
       if (name && *name)
       {
-	object_file = dwarf::load_object_file(name, dwarf::unknown_base_addr, 0, 0);
-	if (object_file)
-	{
-	  LIBCWD_DEFER_CANCEL;
-	  DWARF_ACQUIRE_WRITE_LOCK;
-	  set_alloc_checking_off(LIBCWD_TSD);
-	  dwarf::NEEDS_WRITE_LOCK_object_files().sort(dwarf::object_file_greater());
-	  set_alloc_checking_on(LIBCWD_TSD);
-	  DWARF_RELEASE_WRITE_LOCK;
-	  LIBCWD_RESTORE_CANCEL;
-	  set_alloc_checking_off(LIBCWD_TSD);
-	  libcwd::_private_::dlopen_map->insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(object_file, flags)));
-	  set_alloc_checking_on(LIBCWD_TSD);
-	}
+        struct link_map* map;
+        if (dlinfo(handle, RTLD_DI_LINKMAP, &map) == 0)
+        {
+          dwarf::Data2 data{map->l_addr, nullptr};
+          dl_iterate_phdr(dwarf::dl_iterate_phdr_callback3, &data);
+          dwarf::resort_object_files(LIBCWD_TSD);
+          if (data.object_file)
+          {
+            set_alloc_checking_off(LIBCWD_TSD);
+            libcwd::_private_::dlopen_map->insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(data.object_file, flags)));
+            set_alloc_checking_on(LIBCWD_TSD);
+          }
+        }
       }
     }
     DLOPEN_MAP_RELEASE_LOCK;

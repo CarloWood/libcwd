@@ -156,7 +156,7 @@ CANCELLATION_POINT_SYSCALL_DLSYM (ssize_t, recvfrom, (int fd, __ptr_t buf, size_
 CANCELLATION_POINT_SYSCALL_DLSYM (ssize_t, recvmsg, (int fd, struct msghdr *message, int flags), (fd, message, flags))
 
 CANCELLATION_POINT_SYSCALL (ssize_t, send, (int fd, const __ptr_t buf, size_t n, int flags), (fd, buf, n, flags))
-strong_alias(send, __send)
+//strong_alias(send, __send)
 
 CANCELLATION_POINT_SYSCALL_DLSYM (ssize_t, sendmsg, (int fd, const struct msghdr *message, int flags), (fd, message, flags))
 
