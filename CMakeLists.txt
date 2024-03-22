@@ -24,6 +24,12 @@ set(CW_INTERFACE_AGE 0)
 
 include(cwm4/cmake/AICxxProject)
 
+# Exit if someone tries to contaminate the source directory with an in-source build.
+if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+  message(FATAL_ERROR "Please do out-of-source builds."
+                      "Cleanup: \"rm -rf CMake CMakeCache.txt CMakeFiles/\"")
+endif ()
+
 cw_option(EnableGlibCxxDebug
           "compile libcwd with -D_GLIBCXX_DEBUG. See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html" OFF
           "" OFF

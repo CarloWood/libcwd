@@ -48,10 +48,17 @@ namespace _private_ {
   char const* skip_substitution(char const* const ptr, char const* const begin)
   {
     char const* S_ptr = ptr;
-    while (S_ptr > begin)
+    // S_ptr now points to a trailing '_'.
+    for (int digits = 0; S_ptr > begin && digits < 3; ++digits)
     {
       --S_ptr;
-      if (*S_ptr == 'S')
+      // All legal substitution patterns have the form "S[0-9A-Z]*_" where we
+      // limit the number of base-36 digits to two (because it seems extremely
+      // unlikely that there are more than 1296 substitutions).
+      //
+      // We allow "SS_" where the second S is a digit; but not "SSS_" because
+      // it's already unlikely to have 841 substitutions, too.
+      if (*S_ptr == 'S' && (digits > 0 || S_ptr[-1] != 'S'))
         return S_ptr;
       // Substitutions use base-36 with 'digits' [0-9A-Z].
       if (!('0' <= *S_ptr && *S_ptr <= '9') && !('A' <= *S_ptr && *S_ptr <= 'Z'))
