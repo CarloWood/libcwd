@@ -10,8 +10,6 @@
 // packaging of this file.
 //
 
-#undef LIBCWD_DEBUGBFD		// Define to add debug code for this file.
-
 #include "sys.h"
 #include <libcwd/config.h>
 
@@ -1173,12 +1171,30 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
                 const_cast<symbol_ct&>(*ibp.first).set_real_end(M_lbase + end);
               }
             }
+            else if (M_lbase + end == ibp.first->real_end())
+            {
+              // The start differs but the end is the same.
+              // This happens for example with __gmpn_modexact_1_odd_x86_64 and __gmpn_modexact_1c_odd_x86_64,
+              // two internal functions of libgmp. The latter accepts the carry flag, while the former
+              // begin 5 bytes earlier, resetting the carry flag before entering the second one.
+              // In this case use the largest range. If the larger one was already inserted, do nothing.
+              if (M_lbase + start < ibp.first->real_start())
+              {
+                // Assuming symbols are processed in order, we should always first see and add the symbol
+                // that began sooner, so I don't expect that we ever get here.
+                // If this fires, then replace the old inserting with the one.
+                LIBCWD_ASSERT(M_lbase + start > ibp.first->real_start());
+              }
+#if CWDEBUG_DEBUG
+              Dout(dc::bfd|continued_cf, "Overlapping range with different start address.");
+#endif
+            }
             else
             {
 #if CWDEBUG_DEBUG
-              Dout(dc::bfd|continued_cf, "Failed to insert: overlapping range with different start address!");
+              Dout(dc::bfd|continued_cf, "Failed to insert: overlapping range with different start and end address!");
 #else
-              Dout(dc::warning, "Failed to insert: overlapping range with different start address! \"" <<
+              Dout(dc::warning, "Failed to insert: overlapping range with different start and end address! \"" <<
                   (linkage_name ? linkage_name : func_name) << "\", range " <<
                   (void*)(M_lbase + start) << "-" << (void*)(M_lbase + end) << " of " <<
                   M_object_file.filepath() << " / " << (cu_name ? cu_name : "<null>"));
@@ -1192,7 +1208,8 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
               print_die_info(&child_die);
 #endif
 
-            LIBCWD_ASSERT(M_lbase + start == ibp.first->real_start());
+            // Overlapping is allowed as long as either begin or end are equal.
+            LIBCWD_ASSERT(M_lbase + start == ibp.first->real_start() || M_lbase + end == ibp.first->real_end());
 
             DWARF_RELEASE_WRITE_LOCK;
           }
