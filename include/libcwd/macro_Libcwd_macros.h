@@ -40,7 +40,7 @@
 /**
  * \brief General debug macro.
  *
- * This macro allows one to implement a customized &quot;\ref Debug&quot;,
+ * This macro allows one to implement a customized "\ref Debug",
  * using a custom %debug channel namespace.
  *
  * \sa \ref chapter_custom_debug_h
@@ -75,7 +75,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
 /**
  * \brief General debug output macro.
  *
- * This macro allows one to implement a customized &quot;\ref Dout&quot;, using
+ * This macro allows one to implement a customized "\ref Dout", using
  * a custom \ref group_debug_object "debug object" and/or channel namespace.
  *
  * \sa \ref chapter_custom_debug_h
@@ -132,7 +132,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
 /**
  * \brief General fatal debug output macro.
  *
- * This macro allows one to implement a customized &quot;\ref DoutFatal&quot;, using
+ * This macro allows one to implement a customized "\ref DoutFatal", using
  * a custom \ref group_debug_object "debug object" and/or channel namespace.
  *
  * \sa \ref chapter_custom_debug_h

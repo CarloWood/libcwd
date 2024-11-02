@@ -34,9 +34,7 @@ lib_LTLIBRARIES = $(LIBCWD) $(LIBCWD_R)
 if ENABLENONTHREADING
 libcwd_la_CXXFLAGS = -std=c++17 $(PCHFLAGS) -DCWDEBUG
 libcwd_la_SOURCES = \
-	elfxx.cc \
 	environ.cc \
-	bfd.cc \
 	debug.cc \
 	debugmalloc.cc \
 	private_allocator.cc \
@@ -50,11 +48,9 @@ libcwd_la_LIBADD = utils/libutils.la
 endif
 
 if ENABLETHREADING
-libcwd_r_la_CXXFLAGS = -std=c++17 $(PCHFLAGS) -DCWDEBUG -DLIBCWD_THREAD_SAFE -pthread
+libcwd_r_la_CXXFLAGS = -std=c++17 $(PCHFLAGS) -DCWDEBUG -DLIBCWD_THREAD_SAFE
 libcwd_r_la_SOURCES = \
-	elfxx.cc \
 	environ.cc \
-	bfd.cc \
 	debug.cc \
 	debugmalloc.cc \
 	private_allocator.cc \

@@ -1,6 +1,5 @@
 /*!
 \defgroup chapter_gdb Helper functions for within gdb
-\ingroup book_gdb
 */
 /*!
 \page page_gdb

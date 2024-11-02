@@ -1,6 +1,5 @@
 /*!
 \defgroup chapter_attach_gdb Starting A gdb Session From A Running Program
-\ingroup book_attach_gdb
 */
 /*!
 \page page_attach_gdb

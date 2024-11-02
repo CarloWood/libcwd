@@ -11,7 +11,6 @@
 # rcs2log
 # cut
 # grep
-# egrep
 # test
 # sed
 #
@@ -136,7 +135,7 @@ full-check: Makefile
 	        echo "done"; \
 	      else \
 		echo "*** FAILURE FOR \"$$cf\" USING g++-$$v" && exit -1; \
-	      fi | egrep '(FAIL|ERROR)'; then exit -1; else echo "ok"; fi; \
+	      fi | grep -E '(FAIL|ERROR)'; then exit -1; else echo "ok"; fi; \
 	      cd .. >/dev/null; \
 	    done; \
 	  done; \

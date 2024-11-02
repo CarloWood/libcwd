@@ -80,7 +80,7 @@ struct CmdLineOpts
 				{ "output", OPT_ARG_REQUIRED, NULL, 'o'},
 				{ 0, 0, 0, 0 }
 			};
-		int ret, i;
+		int ret;
 		mode = MODE_RUNTEST; // default
 		while((ret=getopt_long(argc, argv, "mo:pk",opts,NULL)) != -1)
 		{
@@ -114,7 +114,7 @@ struct CmdLineOpts
 			break;
 		case MODE_MAKEFILE:
 			die_if( (argc - optind) < 1 || ofile.empty(), g_usage);
-			for(i = 0; optind < argc; i++, optind++)
+			for(; optind < argc; optind++)
 				ifList.push_back(argv[optind]);
 			break;
 		};
