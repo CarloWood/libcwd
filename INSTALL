@@ -1,8 +1,26 @@
 Quick start
 ===========
 
+Support for autotools has been dropped (I never use it anymore) and
+is therefore deprecated. You should use cmake.
+
+In fact, you SHOULD use gitache to get/configure/compile libcwd
+and you very likely want to use the git submodule cwds too, which
+requires utils as well these days).
+
+Note: also libcwd.so is deprecated. Just don't use it. You should
+always use libcwd_r.so (aka, use `set(GITACHE_PACKAGES libcwd_r)`).
+
+gitache
+-------
+
+See documentation of cwds here:
+https://github.com/CarloWood/cwds?tab=readme-ov-file#adding-the-cwds-submodule-to-a-project
+
 git
 ---
+
+Only if you can't or do not want to use gitache, then the following applies.
 
 If you obtained the source code from git, then first run `./autogen.sh`.
 
