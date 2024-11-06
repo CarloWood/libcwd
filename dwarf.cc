@@ -1147,7 +1147,7 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
             {
               // If our func_name is different from the DIE name, then we're probably an alias.
               // Let store the alias name because it seems typically to be the name that users should use.
-              if (std::strcmp(dwarf_diename(&child_die), func_name) != 0)
+              if (!func_name || std::strcmp(dwarf_diename(&child_die), func_name) != 0)
               {
                 if (linkage_name)
                   ibp.first->set_linkage_name(linkage_name);
