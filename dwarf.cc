@@ -1080,6 +1080,8 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
         //=================================================================
         // Run over all address ranges owned by the function DIE.
         //
+        bool found_empty_range = false;
+        bool found_non_empty_range = false;
 
         Dwarf_Addr lbase;
         Dwarf_Addr start;
@@ -1121,7 +1123,20 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
                 continue;       // relocation failed (symbol not in .symtab).
               }
             }
-            LIBCWD_ASSERT(start != 0 && end > start);
+            LIBCWD_ASSERT(start != 0 && end >= start);
+
+            // Under certain circumstances it is possible to end up with empty ranges.
+            // For example, When -ffunction-sections is turned on with -g2, gcc emits an entry into the .debug_ranges
+            // section for the DW_TAG_compile_unit for the range (.Ltext, .Letext) unconditionally.
+            // With -ffunction-sections, the .text section remains unused, and this entry in .debug_ranges refers to a zero-length range.
+            // (From https://gcc.gnu.org/pipermail/gcc-patches/2009-December/275885.html).
+            // We don't really care about the reason(s), we just have to deal with empty ranges apparently.
+            if (start == end)
+            {
+              found_empty_range = true;
+              continue;         // Skip zero-length range.
+            }
+            found_non_empty_range = true;
 
             DWARF_ACQUIRE_WRITE_LOCK;
 #if CWDEBUG_ALLOC
@@ -1215,6 +1230,7 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
           }
         }
 
+        LIBCWD_ASSERT(!found_empty_range || found_non_empty_range);     // Assert if there are only empty ranges (but at least one).
         //
         //=================================================================
       }
