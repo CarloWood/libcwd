@@ -6,7 +6,7 @@
 #define DEBUG_H
 
 #ifndef CWDEBUG               // This is needed so that others can compile
-#include "nodebug"            //   your application without having libcwd installed.
+#include "nodebug.h"          //   your application without having libcwd installed.
 			      //   nodebug.h is distributed with the libcwd package
 			      //   but must be included in your own package.
 			      // Note: you can also just copy nodebug.h here.

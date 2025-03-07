@@ -46,4 +46,9 @@ You can use the latter as a template and/or \htmlonly<A HREF="../external/libcwd
 example\htmlonly</A>\endhtmlonly\n
 file for writing your own rcfile.
 
+If the environment variable \link chapter_environment LIBCWD_RCFILE_OVERRIDE_NAME \endlink
+is set, it will be read after the above file where any setting overwrites a previous one.
+Using <code>channels_on</code> even once, in this file, will reset all previously turned on channels,
+although additional <code>channels_on</code> lines accumulate again.
+
 */

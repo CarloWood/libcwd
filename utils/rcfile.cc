@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <algorithm>
+#include <array>
 
 #include <sys/types.h>	// Needed for 'stat', 'getuid' and 'getpwuid'.
 #include <sys/stat.h>	// Needed for 'stat'.
@@ -45,9 +46,9 @@ bool rcfile_ct::S_exists(char const* name)
   return true;
 }
 
-void rcfile_ct::M_print_delayed_msg() const
+void rcfile_ct::M_print_delayed_msg(int env_var, std::string const& value) const
 {
-  Dout(dc::rcfile, "Using environment variable LIBCWD_RCFILE_NAME with value \"" << M_rcname << "\".");
+  Dout(dc::rcfile, "Using environment variable " << (env_var == 0 ? "LIBCWD_RCFILE_NAME" : "LIBCWD_RCFILE_OVERRIDE_NAME") << " with value \"" << value << "\".");
 }
 
 std::string rcfile_ct::M_determine_rcfile_name()
@@ -83,7 +84,7 @@ std::string rcfile_ct::M_determine_rcfile_name()
         homedir = "$HOME";
       if (M_env_set)
       {
-        M_print_delayed_msg();
+        M_print_delayed_msg(0, M_rcname);
 	DoutFatal(dc::fatal, "read_rcfile: Could not read $LIBCWD_RCFILE_NAME (\"" << M_rcname <<
             "\") from either \".\" or \"" << homedir << "\".");
       }
@@ -194,128 +195,182 @@ bool rcfile_ct::unknown_keyword(std::string const&, std::string const&)
   return true;
 }
 
+void rcfile_ct::set_all_channels_on()
+{
+  Dout(dc::rcfile, "Turning all channels on by default.");
+  ForAllDebugChannels(
+    std::string label = debugChannel.get_label();
+    std::string::size_type pos = label.find(' ');
+    if (pos != std::string::npos)
+      label.erase(pos);
+    while (!debugChannel.is_on() && label != "MALLOC" && label != "BFD")
+      debugChannel.on()
+  );
+  M_malloc_on = true;
+#if CWDEBUG_LOCATION
+  M_bfd_on = true;
+#endif
+}
+
+void rcfile_ct::set_all_channels_off(bool warning_on)
+{
+  Dout(dc::rcfile, "Turning all channels" << (warning_on ? ", except WARNING," : "") << " off by default.");
+  ForAllDebugChannels(
+    if (debugChannel.is_on())
+      debugChannel.off()
+  );
+  if (warning_on)
+    channels::dc::warning.on();
+  M_malloc_on = false;
+#if CWDEBUG_LOCATION
+  M_bfd_on = false;
+#endif
+}
+
 void rcfile_ct::read()
 {
-  Debug( while(!dc::rcfile.is_on()) dc::rcfile.on() );
+  channel_ct::OnOffState state;
+  channels::dc::rcfile.force_on(state, channels::dc::rcfile.get_label());
   std::string name = M_determine_rcfile_name();
   std::ifstream rc;
-  rc.open(name.c_str(), std::ios_base::in);
-  std::string line;
-  int lines_read = 0;
-  int channels_default_set = 0;
-  bool syntax_error = false;
+
   M_malloc_on = libcwd::channels::dc::malloc.is_on();
 #if CWDEBUG_LOCATION
   M_bfd_on = libcwd::channels::dc::bfd.is_on();
 #endif
-  while(getline(rc, line))
+
+  std::array<int, 2> channels_default_set = { 0, 0 };
+  bool default_is_on;
+  for (int rcfiles = 0; rcfiles < 2; ++rcfiles) // Allow to jump back for LIBCWD_RCFILE_OVERRIDE_NAME.
   {
-    lines_read++;
-    line.erase(0, line.find_first_not_of(" \t\n\v"));
-    line.erase(line.find_last_not_of(" \t\n\v") + 1);
-    if ((line.find_first_of('#') > 0) && (line.length() != 0))
+    rc.open(name.c_str(), std::ios_base::in);
+    std::string line;
+    int lines_read = 0;
+    int did_reset_channels_on_channels_on_or_off = 0;
+    bool syntax_error = false;
+    while(getline(rc, line))
     {
-      if (line.find_first_of("=") == std::string::npos || line[0] == '=')
+      ++lines_read;
+      line.erase(0, line.find_first_not_of(" \t\n\v"));
+      line.erase(line.find_last_not_of(" \t\n\v") + 1);
+      if ((line.find_first_of('#') > 0) && (line.length() != 0))
       {
-        syntax_error = true;
-	break;
-      }
-      std::string keyword = line;
-      keyword.erase(line.find_first_of(" \t\n\v="), line.length() - 1);
-      std::string value = line;
-      value.erase(0, line.find_first_of ("=") + 1);
-      value.erase(0, value.find_first_not_of(" \n\t\v"));
-      value.erase(value.find_last_not_of(" \t\n\v") + 1);
-      if (keyword == "silent")
-      {
-        if (value == "on")
-	  Debug( if (dc::rcfile.is_on()) dc::rcfile.off() );
-	else if (value == "off")
-	  Debug( while(!dc::rcfile.is_on()) dc::rcfile.on() );
-	continue;
-      }
-      if (M_env_set)
-      {
-        M_print_delayed_msg();
-	M_env_set = false;	// Don't print message again.
-      }
-      Dout(dc::rcfile, name << ':' << lines_read << ": " << keyword << " = " << value);
-      if (keyword == "gdb")
-        M_gdb_bin = value;
-      else if (keyword == "xterm")
-        M_konsole_command = value;
-      else if (keyword == "channels_default")
-      {
-        if (channels_default_set)
-	{
-	  bool warning_on = channels::dc::warning.is_on();
-	  if (!warning_on)
-	    channels::dc::warning.on();
-	  Dout(dc::warning, "rcfile: " << name << ':' << lines_read <<
-	      ": channels_default already set in line " << channels_default_set << "!  Entry ignored!");
-	  if (!warning_on)
-	    channels::dc::warning.off();
-	  continue;
-	}
-	channels_default_set = lines_read;
-        if (value == "on")
-	{
-	  ForAllDebugChannels(
-	    std::string label = debugChannel.get_label();
-	    std::string::size_type pos = label.find(' ');
-	    if (pos != std::string::npos)
-	      label.erase(pos);
-	    while (!debugChannel.is_on() && label != "MALLOC" && label != "BFD")
-	      debugChannel.on()
-	  );
-	  M_malloc_on = true;
-#if CWDEBUG_LOCATION
-	  M_bfd_on = true;
-#endif
-	}
-        else if (value == "off")
-	{
-	  ForAllDebugChannels(
-	    if (debugChannel.is_on())
-	      debugChannel.off()
-	  );
-	  M_malloc_on = false;
-#if CWDEBUG_LOCATION
-	  M_bfd_on = false;
-#endif
-	}
-	else
-	{
-	  syntax_error = true;
-	  break;
-	}
-      }
-      else if (keyword == "channels_toggle")
-      {
-        if (!channels_default_set)
-	  DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read <<
-	      ": channels_toggle used before channels_default.");
-        M_process_channels(value, toggle);
-      }
-      else if (keyword == "channels_on")
-        M_process_channels(value, on);
-      else if (keyword == "channels_off")
-        M_process_channels(value, off);
-      else if (unknown_keyword(keyword, value))
-      {
-	bool warning_on = channels::dc::warning.is_on();
-	if (!warning_on)
-	  channels::dc::warning.on();
-        Dout(dc::warning, "read_rcfile: " << name << ':' << lines_read << ": Unknown keyword '" << keyword << "'.");
-	if (!warning_on)
-	  channels::dc::warning.off();
+        if (line.find_first_of("=") == std::string::npos || line[0] == '=')
+        {
+          syntax_error = true;
+          break;
+        }
+        std::string keyword = line;
+        keyword.erase(line.find_first_of(" \t\n\v="), line.length() - 1);
+        std::string value = line;
+        value.erase(0, line.find_first_of ("=") + 1);
+        value.erase(0, value.find_first_not_of(" \n\t\v"));
+        value.erase(value.find_last_not_of(" \t\n\v") + 1);
+        if (keyword == "silent")
+        {
+          if (value == "on")
+            Debug( if (dc::rcfile.is_on()) dc::rcfile.off() );
+          else if (value == "off")
+            Debug( if (!dc::rcfile.is_on()) dc::rcfile.on() );
+          continue;
+        }
+        if (M_env_set)
+        {
+          M_print_delayed_msg(rcfiles, name);
+          M_env_set = false;	// Don't print message again.
+        }
+        Dout(dc::rcfile, name << ':' << lines_read << ": " << keyword << " = " << value);
+        if (keyword == "gdb")
+          M_gdb_bin = value;
+        else if (keyword == "xterm")
+          M_konsole_command = value;
+        else if (keyword == "channels_default")
+        {
+          if (channels_default_set[rcfiles])
+          {
+            bool warning_on = channels::dc::warning.is_on();
+            if (!warning_on)
+              channels::dc::warning.on();
+            Dout(dc::warning, "rcfile: " << name << ':' << lines_read <<
+                ": channels_default already set in line " << channels_default_set[rcfiles] << "!  Entry ignored!");
+            if (!warning_on)
+              channels::dc::warning.off();
+            continue;
+          }
+          channels_default_set[rcfiles] = lines_read;
+          if (value == "on")
+          {
+            set_all_channels_on();
+            default_is_on = true;
+          }
+          else if (value == "off")
+          {
+            set_all_channels_off(false);
+            default_is_on = false;
+          }
+          else
+          {
+            syntax_error = true;
+            break;
+          }
+        }
+        else if (keyword == "channels_toggle")
+        {
+          if (!channels_default_set[rcfiles] && !channels_default_set[0])
+            DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read <<
+                ": channels_toggle used before channels_default.");
+          M_process_channels(value, toggle);
+        }
+        else if (keyword == "channels_on")
+        {
+          if (!did_reset_channels_on_channels_on_or_off && rcfiles == 1)
+          {
+            bool saw_default = channels_default_set[0] != 0 || channels_default_set[1] != 0;
+            if (!saw_default || default_is_on)
+            {
+              set_all_channels_off(!saw_default);
+              did_reset_channels_on_channels_on_or_off = 1;
+            }
+          }
+          M_process_channels(value, on);
+        }
+        else if (keyword == "channels_off")
+        {
+          if (!did_reset_channels_on_channels_on_or_off && rcfiles == 1)
+          {
+            bool saw_default = channels_default_set[0] != 0 || channels_default_set[1] != 0;
+            if (saw_default && !default_is_on)
+            {
+              set_all_channels_on();
+              did_reset_channels_on_channels_on_or_off = 1;
+            }
+          }
+          M_process_channels(value, off);
+        }
+        else if (unknown_keyword(keyword, value))
+        {
+          channel_ct::OnOffState warning_state;
+          channels::dc::warning.force_on(warning_state, channels::dc::warning.get_label());
+          Dout(dc::warning, "read_rcfile: " << name << ':' << lines_read << ": Unknown keyword '" << keyword << "'.");
+          channels::dc::warning.restore(warning_state);
+        }
       }
     }
+    if (syntax_error)
+      DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read << ": syntax error.");
+    rc.close();
+
+    char const* override_name;
+    if (!(override_name = getenv("LIBCWD_RCFILE_OVERRIDE_NAME")))
+      break;
+    else
+      name = override_name;
+
+    // Handle environment variable LIBCWD_RCFILE_OVERRIDE_NAME.
+    M_env_set = true;
   }
-  if (syntax_error)
-    DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read << ": syntax error.");
-  rc.close();
-  Debug(dc::rcfile.off());
+
+  channels::dc::rcfile.restore(state);
   if (M_malloc_on)
     while (!channels::dc::malloc.is_on())
       channels::dc::malloc.on();

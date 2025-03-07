@@ -67,7 +67,9 @@ public:
   virtual ~rcfile_ct() { }
 
 private:
-  void M_print_delayed_msg() const;
+  void M_print_delayed_msg(int env_var, std::string const& value) const;
+  void set_all_channels_on();
+  void set_all_channels_off(bool warning_on);
 
   static bool S_exists(char const* name);
   std::string M_determine_rcfile_name();

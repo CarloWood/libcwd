@@ -40,11 +40,11 @@ namespace debug_channels {
 extern void debug_load_object_file(char const* filename, bool shared);
 
 namespace libcwd {
-  void test(void);
+  void test();
 }
 using libcwd::test;
 
-int main(void)
+int main()
 {
   //----------------------------------------------------------------------
   // The following calls will be done in almost every program using libcwd
@@ -58,7 +58,7 @@ int main(void)
 
   // Select channels (note that where 'on' is used, 'off' can be specified
   // and vica versa).
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
+//  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
 //  Debug( dc::notice.off() );	// Just an example
 
   // Write debug output to cout (the default is cerr)

@@ -17,5 +17,9 @@ is turned on (except when LIBCWD_NO_STARTUP_MSGS is defined).
 as rcfile name instead of the default <TT>.libcwdrc</TT>.
 </dl>
 
+<dt>LIBCWD_RCFILE_OVERRIDE_NAME<dd>Read the rcfile $LIBCWD_RCFILE_OVERRIDE_NAME
+to override values read from <TT>.libcwdrc</TT>. See also \ref chapter_rcfile .
+</dl>
+
 */
 
