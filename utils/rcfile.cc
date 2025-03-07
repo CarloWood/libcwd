@@ -231,6 +231,7 @@ void rcfile_ct::read()
 {
   channel_ct::OnOffState state;
   channels::dc::rcfile.force_on(state, channels::dc::rcfile.get_label());
+  bool rcfile_on = true;
   std::string name = M_determine_rcfile_name();
   std::ifstream rc;
 
@@ -269,9 +270,9 @@ void rcfile_ct::read()
         if (keyword == "silent")
         {
           if (value == "on")
-            Debug( if (dc::rcfile.is_on()) dc::rcfile.off() );
+            Debug( if (dc::rcfile.is_on()) { dc::rcfile.off(); rcfile_on = false; } );
           else if (value == "off")
-            Debug( if (!dc::rcfile.is_on()) dc::rcfile.on() );
+            Debug( if (!dc::rcfile.is_on()) { dc::rcfile.on(); rcfile_on = true; } );
           continue;
         }
         if (M_env_set)
@@ -370,6 +371,9 @@ void rcfile_ct::read()
     M_env_set = true;
   }
 
+  // Must balance calls of off with on before calling restore.
+  if (!rcfile_on)
+    channels::dc::rcfile.on();
   channels::dc::rcfile.restore(state);
   if (M_malloc_on)
     while (!channels::dc::malloc.is_on())
