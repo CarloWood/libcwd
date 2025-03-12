@@ -222,7 +222,7 @@ configure_file("include/libcwd/sys.h.in" "include/libcwd/sys.h" @ONLY)
 configure_file("include/sys.h.in" "include/sys.h" @ONLY)
 
 # Clean up rule for the above.
-add_custom_target(maintainer-clean-extra
+add_custom_target(libcwd-maintainer-clean-extra
     COMMAND rm config.h include/sys.h include/libcwd/config.h include/libcwd/sys.h
     COMMAND rm -rf cw_utils_sys_malloc_overhead
     COMMAND rm -f cwd_rConfig.cmake libcwd_rConfigVersion.cmake libcwd_r.pc
