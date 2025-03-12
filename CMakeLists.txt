@@ -35,7 +35,7 @@ cw_option(EnableGlibCxxDebug
           "" OFF
 )
 cw_option(EnableLibcwdAlloc
-          "Enable memory allocation debugging support" ON
+          "Enable memory allocation debugging support" OFF
           "" OFF
 )
 cw_option(EnableLibcwdMagic
