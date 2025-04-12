@@ -33,6 +33,9 @@
 #define LIBCW_IOSFWD
 #include <iosfwd>
 #endif
+#if __cpp_concepts >= 201907L
+#include <concepts>
+#endif
 
 namespace libcwd {
 
