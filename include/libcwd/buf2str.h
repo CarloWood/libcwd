@@ -68,6 +68,16 @@ public:
   //! Construct \c buf2str object with attributes \a buf and \a size.
   buf2str(char const* buf, size_t size) : M_buf(buf), M_size(size) { }
 
+#if __cpp_concepts >= 201907L
+  //! Construct \c buf2str object from an object that has data() and size() member functions.
+  template<typename T>
+  requires requires(T const& t) {
+    { t.data() } -> std::convertible_to<char const*>;
+    { t.size() } -> std::convertible_to<size_t>;
+  }
+  buf2str(T const& view) : M_buf(view.data()), M_size(view.size()) { }
+#endif
+
   /**
    * \brief Write the contents of the buffer represented by \a __buf2str
    * to the \c ostream \a os, escaping non-printable characters.
