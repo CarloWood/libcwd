@@ -80,9 +80,9 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
  *
  * \sa \ref chapter_custom_debug_h
  */
-#define LibcwDout( dc_namespace, debug_obj, cntrl, data )	\
+#define LibcwDout( dc_namespace, debug_obj, cntrl, ... )	\
     LibcwDoutScopeBegin(dc_namespace, debug_obj, cntrl)		\
-    LibcwDoutStream << data;					\
+    LibcwDoutStream << __VA_ARGS__;                             \
     LibcwDoutScopeEnd
 
 #define LibcwDoutScopeBegin( dc_namespace, debug_obj, cntrl )									\
@@ -137,9 +137,9 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
  *
  * \sa \ref chapter_custom_debug_h
  */
-#define LibcwDoutFatal( dc_namespace, debug_obj, cntrl, data )	\
+#define LibcwDoutFatal( dc_namespace, debug_obj, cntrl, ... )	\
     LibcwDoutFatalScopeBegin(dc_namespace, debug_obj, cntrl)	\
-    LibcwDoutFatalStream << data;				\
+    LibcwDoutFatalStream << __VA_ARGS__;                        \
     LibcwDoutFatalScopeEnd
 
 #define LibcwDoutFatalScopeBegin( dc_namespace, debug_obj, cntrl )								\
