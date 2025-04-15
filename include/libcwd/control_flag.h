@@ -96,8 +96,6 @@ inline control_flag_t conf_flush_cf(bool cond) { return cond ? flush_cf : 0; }
 inline control_flag_t conf_wait_cf(bool cond) { return cond ? wait_cf : 0; }
 //! Returns error_cf if \a cond is true.
 inline control_flag_t cond_error_cf(bool cond) { return cond ? error_cf : 0; }
-//! Returns continued_cf if \a cond is true.
-inline control_flag_t cond_continued_cf(bool cond) { return cond ? continued_cf : 0; }
 
 /** \} */
 
