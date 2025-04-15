@@ -76,14 +76,28 @@ enum continued_cf_nt {
   continued_cf	//!< Start a \ref using_continued "continued" %debug output.
 };
 
-//! Returns nonewline_cf when \a cond is true.
+//! Returns nonewline_cf if \a cond is true.
 inline control_flag_t cond_nonewline_cf(bool cond) { return cond ? nonewline_cf : 0; }
-//! Returns noprefix_cf when \a cond is true.
+//! Returns noprefix_cf if \a cond is true.
 inline control_flag_t cond_noprefix_cf(bool cond) { return cond ? noprefix_cf : 0; }
-//! Returns nolabel_cf when \a cond is true.
+//! Returns nolabel_cf if \a cond is true.
 inline control_flag_t cond_nolabel_cf(bool cond) { return cond ? nolabel_cf : 0; }
-//! Returns error_cf when \a cond is true.
-inline control_flag_t cond_error_cf(bool err) { return err ? error_cf : 0; }
+//! Returns blank_margin_cf if \a cond is true.
+inline control_flag_t conf_blank_margin_cf(bool cond) { return cond ? blank_margin_cf : 0; }
+//! Returns blank_label_cf if \a cond is true.
+inline control_flag_t conf_blank_label_cf(bool cond) { return cond ? blank_label_cf : 0; }
+//! Returns blank_marker_cf if \a cond is true.
+inline control_flag_t conf_blank_marker_cf(bool cond) { return cond ? blank_marker_cf : 0; }
+//! Returns cerr_cf if \a cond is true.
+inline control_flag_t conf_cerr_cf(bool cond) { return cond ? cerr_cf : 0; }
+//! Returns flush_cf if \a cond is true.
+inline control_flag_t conf_flush_cf(bool cond) { return cond ? flush_cf : 0; }
+//! Returns wait_cf if \a cond is true.
+inline control_flag_t conf_wait_cf(bool cond) { return cond ? wait_cf : 0; }
+//! Returns error_cf if \a cond is true.
+inline control_flag_t cond_error_cf(bool cond) { return cond ? error_cf : 0; }
+//! Returns continued_cf if \a cond is true.
+inline control_flag_t cond_continued_cf(bool cond) { return cond ? continued_cf : 0; }
 
 /** \} */
 
