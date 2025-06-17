@@ -151,8 +151,8 @@
  * Dout(dc::notice|blank_label_cf, "The content of the object is: " << std::hex << obj);
  * \endcode
  */
-#define Dout(cntrl, data) \
-    LibcwDout(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, data)
+#define Dout(cntrl, ...) \
+    LibcwDout(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 /**
  * \def DoutFatal
@@ -161,8 +161,8 @@
  * \brief Macro for writing fatal %debug output to the default %debug object
  * \link libcwd::libcw_do libcw_do \endlink.
  */
-#define DoutFatal(cntrl, data) \
-    LibcwDoutFatal(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, data)
+#define DoutFatal(cntrl, ...) \
+    LibcwDoutFatal(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 /**
  * \def ForAllDebugChannels
