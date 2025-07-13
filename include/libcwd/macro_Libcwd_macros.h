@@ -72,15 +72,6 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
 #endif // !CWDEBUG_DEBUGOUTPUT
 #endif // !LIBCWD_LibcwDoutScopeBegin_MARKER
 
-// Define LIBCWD_NAMESPACE_DEBUG_OPERATOR_LTLT to have that namespace used while writing to an ostream inside `Dout` and `DoutFatal`.
-// Note it is allowed to abuse this syntax and define LIBCWD_NAMESPACE_DEBUG_OPERATOR_LTLT as `namespace1; using namespace ::namespace2`
-// if you want more than one namespace to be included.
-#ifdef LIBCWD_NAMESPACE_DEBUG_OPERATOR_LTLT
-#define LIBCWD_USING_NAMESPACE_OPERATOR_LTLT using namespace ::LIBCWD_NAMESPACE_DEBUG_OPERATOR_LTLT;
-#else
-#define LIBCWD_USING_NAMESPACE_OPERATOR_LTLT
-#endif
-
 /**
  * \brief General debug output macro.
  *
@@ -91,7 +82,6 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
  */
 #define LibcwDout( dc_namespace, debug_obj, cntrl, ... )	\
     LibcwDoutScopeBegin(dc_namespace, debug_obj, cntrl)		\
-    LIBCWD_USING_NAMESPACE_OPERATOR_LTLT                        \
     LibcwDoutStream << __VA_ARGS__;                             \
     LibcwDoutScopeEnd
 
@@ -149,7 +139,6 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
  */
 #define LibcwDoutFatal( dc_namespace, debug_obj, cntrl, ... )	\
     LibcwDoutFatalScopeBegin(dc_namespace, debug_obj, cntrl)	\
-    LIBCWD_USING_NAMESPACE_OPERATOR_LTLT                        \
     LibcwDoutFatalStream << __VA_ARGS__;                        \
     LibcwDoutFatalScopeEnd
 
