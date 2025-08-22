@@ -72,6 +72,12 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
 #endif // !CWDEBUG_DEBUGOUTPUT
 #endif // !LIBCWD_LibcwDoutScopeBegin_MARKER
 
+namespace libcwd {
+// This namespace is included while executing the ostream inserters written to debug output.
+namespace ostream_operators {
+} // ostream_operators
+} // libcwd
+
 /**
  * \brief General debug output macro.
  *
@@ -93,7 +99,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
     LIBCWD_LibcwDoutScopeBegin_MARKER;												\
     if (LIBCWD_DO_TSD_MEMBER_OFF(debug_obj) < 0)										\
     {																\
-      using namespace ::libcwd;												\
+      using namespace ::libcwd;												        \
       ::libcwd::channel_set_bootstrap_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
       bool on;															\
       {																\
@@ -102,8 +108,9 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
       }																\
       if (on)															\
       {																\
-	::libcwd::debug_ct& __libcwd_debug_object(debug_obj);								\
-	LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);
+	::libcwd::debug_ct& __libcwd_debug_object(debug_obj);								        \
+	LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);               \
+        using namespace ::libcwd::ostream_operators;
 
 // Note: LibcwDoutStream is *not* equal to the ostream that was set with set_ostream.  It is a temporary stringstream.
 #define LibcwDoutStream														\
@@ -147,14 +154,15 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
   {																\
     LIBCWD_TSD_DECLARATION;													\
     LIBCWD_LibcwDoutFatalScopeBegin_MARKER;											\
-    using namespace ::libcwd;												\
+    using namespace ::libcwd;												        \
     ::libcwd::channel_set_bootstrap_fatal_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
     {																\
       using namespace dc_namespace;												\
       __libcwd_channel_set|cntrl;												\
     }																\
     ::libcwd::debug_ct& __libcwd_debug_object(debug_obj);									\
-    LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);
+    LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);                   \
+    using namespace ::libcwd::ostream_operators;
 
 #define LibcwDoutFatalStream LibcwDoutStream
 
