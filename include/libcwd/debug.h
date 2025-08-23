@@ -137,9 +137,6 @@
  * You will have to define your own macro when you want to use a second debug object.&nbsp;
  * Read chapter \ref page_why_macro for an explanation of why a macro was used instead of an inline function.
  *
- * This macro causes a `using namespace libcwd::ostream_operators` where you can put any debug
- * specific `operator<<(ostream&, ...` overloads.
- *
  * \sa \ref group_control_flags
  *  \n \ref group_default_dc
  *  \n \link chapter_custom_debug_h Defining your own debug channels \endlink

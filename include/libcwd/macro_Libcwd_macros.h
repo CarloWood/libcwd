@@ -72,11 +72,12 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
 #endif // !CWDEBUG_DEBUGOUTPUT
 #endif // !LIBCWD_LibcwDoutScopeBegin_MARKER
 
-namespace libcwd {
-// This namespace is included while executing the ostream inserters written to debug output.
-namespace ostream_operators {
-} // ostream_operators
-} // libcwd
+// If this macro is defined, it is prepended immediately before any `os << ...stuff...` code that writes debug output.
+// This can be used to add operator<<'s that are exclusively for debugging (most notably those that print things
+// defined in namespace std).
+#ifndef LIBCWD_USING_OSTREAM_PRELUDE
+#define LIBCWD_USING_OSTREAM_PRELUDE
+#endif
 
 /**
  * \brief General debug output macro.
@@ -110,7 +111,7 @@ namespace ostream_operators {
       {																\
 	::libcwd::debug_ct& __libcwd_debug_object(debug_obj);								        \
 	LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);               \
-        using namespace ::libcwd::ostream_operators;
+        LIBCWD_USING_OSTREAM_PRELUDE
 
 // Note: LibcwDoutStream is *not* equal to the ostream that was set with set_ostream.  It is a temporary stringstream.
 #define LibcwDoutStream														\
@@ -162,7 +163,7 @@ namespace ostream_operators {
     }																\
     ::libcwd::debug_ct& __libcwd_debug_object(debug_obj);									\
     LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);                   \
-    using namespace ::libcwd::ostream_operators;
+    LIBCWD_USING_OSTREAM_PRELUDE
 
 #define LibcwDoutFatalStream LibcwDoutStream
 
