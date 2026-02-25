@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 if test -f .git; then
   echo "Error: don't run $0 inside a submodule. Run it from the parent project's directory."
@@ -23,7 +23,7 @@ fi
 if test -d .git; then
   # Take care of git submodule related stuff.
   # The following line is parsed by configure.ac to find the maintainer hash. Do not change its format!
-  MAINTAINER_HASH=15014aea5069544f695943cfe3a5348c
+  MAINTAINER_HASH=dcc3e4640e3ff4769e3cee4a2ab8e5eb
   # If this was a clone without --recursive, fix that fact.
   if test ! -e cwm4/scripts/real_maintainer.sh; then
     git submodule update --init --recursive
@@ -81,15 +81,44 @@ fi
 
 if test -z "$AUTOGEN_CMAKE_ONLY"; then
   # Run the autotool commands.
-  exec cwm4/scripts/bootstrap.sh
-elif test -n "$CMAKE_CONFIGURE_OPTIONS"; then
-  # I uses bash functions 'configure' and 'make' basically passing $CMAKE_CONFIGURE_OPTIONS
-  # to cmake and running 'make' inside build-release; see below.
-  echo "Now run: configure && make"
-else
-  echo "To make a Release build, run:"
-  echo "mkdir build-Release"
-  echo "cd build-Release"
-  echo "cmake .."
-  echo "make"
+  cwm4/scripts/bootstrap.sh
+fi
+
+if [ -e CMakeLists.txt ]; then
+  # Set CMAKE_CONFIG to '$CMAKE_CONFIG' if not already set.
+  : "${CMAKE_CONFIG:=\$CMAKE_CONFIG}"
+  # Set BUILDDIR to '$BUILDDIR' if not already set.
+  : "${BUILDDIR:=\$BUILDDIR}"
+
+  echo -e "\nBuilding with cmake:\n"
+  echo "To make a $CMAKE_CONFIG build, run:"
+  [ -d "$BUILDDIR" ] || echo "mkdir -p \$BUILDDIR"
+  echo -n "cmake -S \"\$REPOBASE\" -B \"\$BUILDDIR\" -DCMAKE_BUILD_TYPE=\"$CMAKE_CONFIG\""
+  # Put quotes around options that contain spaces.
+  for option in "${CMAKE_CONFIGURE_OPTIONS[@]}"; do
+    if [[ $option == *" "* ]]; then
+        printf ' "%s"' "$option"
+    else
+        printf ' %s' "$option"
+    fi
+  done
+  echo
+  echo "cmake --build \"\$BUILDDIR\" --config \"$CMAKE_CONFIG\" --parallel $(nproc)"
+fi
+
+if [ -e Makefile.am ]; then
+  # Set CONFIGURE_OPTIONS to '$CONFIGURE_OPTIONS' if not already set.
+  : "${CONFIGURE_OPTIONS:=\$CONFIGURE_OPTIONS}"
+
+  echo -e "\nBuilding with autotools:\n"
+  project_name=$(basename "$PWD")
+  # Give general instructions for building using autotools.
+  [ -d ../$project_name-objdir ] || echo "mkdir ../$project_name-objdir"
+  echo "cd ../$project_name-objdir"
+  echo -n "../$project_name/configure --enable-maintainer-mode "
+  if [ -n "$CONFIGURE_OPTIONS" ]; then
+    echo "$CONFIGURE_OPTIONS"
+  else
+    echo "[--help]"
+  fi
 fi
