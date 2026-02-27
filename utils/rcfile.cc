@@ -65,18 +65,36 @@ std::string rcfile_ct::M_determine_rcfile_name()
   else
   {
     // Does it exist in $HOME/?
-    char const* homedir;
-#ifdef HAVE_PWD_H
-    struct passwd* pwent = getpwuid(getuid());
-    homedir = pwent->pw_dir;
-#else
-    homedir = getenv("HOME");
-#endif
-    if (homedir)
+    char const* homedir = nullptr;
+
+    // Prefer $HOME when it exists, is non-empty and already contains the rcfile.
+    if (char const* env_home = getenv("HOME"); env_home && env_home[0])
     {
-      rcfile_name = homedir;
-      rcfile_name += '/';
-      rcfile_name += M_rcname;
+      std::string env_candidate = env_home;
+      env_candidate += '/';
+      env_candidate += M_rcname;
+      if (S_exists(env_candidate.c_str()))
+      {
+        homedir = env_home;
+        rcfile_name = std::move(env_candidate);
+      }
+    }
+
+    // Otherwise fall back to the passwd entry for this uid.
+    if (rcfile_name.empty())
+    {
+#ifdef HAVE_PWD_H
+      if (struct passwd* pwent = getpwuid(getuid()))
+        homedir = pwent->pw_dir;
+#else
+      homedir = getenv("HOME");
+#endif
+      if (homedir)
+      {
+        rcfile_name = homedir;
+        rcfile_name += '/';
+        rcfile_name += M_rcname;
+      }
     }
     if (!homedir || !S_exists(rcfile_name.c_str()))
     {
