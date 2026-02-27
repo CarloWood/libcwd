@@ -253,6 +253,48 @@ debug_ct::is_on(LIBCWD_TSD_PARAM) const
 }
 #endif
 
+/**
+ * \brief Turn always-flush for this %debug object on.
+ */
+inline
+void
+debug_ct::always_flush_on()
+{
+  LIBCWD_TSD_DECLARATION;
+  ++__libcwd_tsd.do_flush_array[WNS_index];
+}
+
+/**
+ * \brief Cancel last call to always_flush_on().
+ *
+ * Calls to always_flush_on() and always_flush_off() has to be done in pairs (first on() then off()).
+ * These pairs can be nested.
+ *
+ * <b>Example:</b>
+ *
+ * \code
+ * Debug( libcw_do.always_flush_on() );
+ * Dout( dc::notice, "This is flushed.");
+ * Debug( libcw_do.always_flush_off() );
+ * \endcode
+ */
+inline
+void
+debug_ct::always_flush_off()
+{
+  LIBCWD_TSD_DECLARATION;
+  --__libcwd_tsd.do_flush_array[WNS_index];
+}
+
+#if LIBCWD_THREAD_SAFE
+inline
+bool
+debug_ct::always_flush_is_on(LIBCWD_TSD_PARAM) const
+{
+  return __libcwd_tsd.do_flush_array[WNS_index] > 0;   // 0 means off.
+}
+#endif
+
 inline
 channel_set_st&
 channel_set_bootstrap_st::operator|(channel_ct const& dc)

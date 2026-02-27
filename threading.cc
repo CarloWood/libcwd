@@ -350,16 +350,17 @@ void TSD_st::cleanup_routine()
     for (int i = 0; i < LIBCWD_DO_MAX; ++i)
       if (do_array[i])
       {
-	debug_tsd_st* ptr = do_array[i];
-	do_off_array[i] = 0;			// Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
-	do_array[i] = NULL;			// So we won't free it again.
-	ptr->tsd_initialized = false;
+        debug_tsd_st* ptr = do_array[i];
+        do_off_array[i] = 0;                    // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
+        do_array[i] = NULL;                     // So we won't free it again.
+        do_flush_array[i] = 0;                  // No flushing.
+        ptr->tsd_initialized = false;
 #if CWDEBUG_ALLOC
-	internal = 1;
+        internal = 1;
 #endif
-	delete ptr;				// Free debug object TSD.
+        delete ptr;                             // Free debug object TSD.
 #if CWDEBUG_ALLOC
-	internal = 0;
+        internal = 0;
 #endif
       }
 

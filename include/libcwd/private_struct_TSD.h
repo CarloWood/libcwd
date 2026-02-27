@@ -182,6 +182,7 @@ public:
   pid_t pid;				// Process ID.
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
+  int do_flush_array[LIBCWD_DO_MAX];    // Thread Specific Flush on/off counter for Debug Objects.
   void cleanup_routine();
   int off_cnt_array[LIBCWD_DC_MAX];	// Thread Specific Data of Debug Channels.
 private:

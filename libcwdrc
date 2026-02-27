@@ -35,10 +35,10 @@ channels_on = warning
 
 # Where to find gdb.
 gdb = /usr/bin/gdb $GDBCOMMANDFILE
-# Alternatively, as example, if your project defines some $REPOBASE/.gdbinit where
-# REPOBASE is an environment variable that points to the directory where that file resides,
+# Alternatively, as example, if your project defines some $REPOROOT/.gdbinit where
+# REPOROOT is an environment variable that points to the directory where that file resides,
 # you can also do:
-#gdb = /usr/bin/gdb -x $REPOBASE/.gdbinit $GDBCOMMANDFILE
+#gdb = /usr/bin/gdb -x $REPOROOT/.gdbinit $GDBCOMMANDFILE
 
 # Commandline to execute in order to open a window (for starting gdb at run time).
 xterm = konsole --name "attach_gdb" --hide-menubar --nofork --workdir "$PWD" --geometry 165x24-0-0 -e %s

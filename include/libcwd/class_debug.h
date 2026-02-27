@@ -256,6 +256,9 @@ public:
   void off();
   void on();
 
+  void always_flush_on();
+  void always_flush_off();
+
   struct OnOffState {
     int _off;
 #if CWDEBUG_DEBUGOUTPUT
@@ -266,6 +269,7 @@ public:
   void force_on(OnOffState& state);
   void restore(OnOffState const& state);
   bool is_on(LIBCWD_TSD_PARAM) const;
+  bool always_flush_is_on(LIBCWD_TSD_PARAM) const;
 };
 
 #if LIBCWD_THREAD_SAFE && !defined(LIBCWD_DOXYGEN)

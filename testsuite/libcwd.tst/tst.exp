@@ -4,7 +4,7 @@ global STATIC SHARED
 # One can run a single test by specifying the .exp file and a test name.
 # For example:
 #
-# (cd $REPOBASE-objdir/testsuite; runtest --all tst.exp=basic)
+# (cd $REPOROOT-objdir/testsuite; runtest --all tst.exp=basic)
 #
 # Add --verbose to get more detailed output; runtest --help for an overview.
 
