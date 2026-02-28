@@ -159,7 +159,26 @@ inline
 std::ostream*
 debug_ct::get_ostream() const
 {
-  return real_os;
+  std::ostream* real_os_ptr;
+  LIBCWD_DEFER_CANCEL;
+  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
+  real_os_ptr = real_os;
+  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+  LIBCWD_RESTORE_CANCEL;
+  return real_os_ptr;
+}
+
+inline
+bool
+debug_ct::has_mutex() const
+{
+  bool has_mutex;
+  LIBCWD_DEFER_CANCEL;
+  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
+  has_mutex = M_mutex;
+  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+  LIBCWD_RESTORE_CANCEL;
+  return has_mutex;
 }
 
 inline

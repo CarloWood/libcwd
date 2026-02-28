@@ -211,6 +211,7 @@ public:
   //
 
   std::ostream* get_ostream() const;		// The original ostream set with set_ostream.
+  bool has_mutex() const;                       // Returns true if a mutex was (already) set with set_ostream.
 
 private:
   //-------------------------------------------------------------------------------------------------
