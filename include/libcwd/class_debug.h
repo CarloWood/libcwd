@@ -37,6 +37,7 @@
 #define LIBCW_IOSFWD
 #include <iosfwd>
 #endif
+#include <atomic>
 
 namespace libcwd {
 
@@ -130,6 +131,9 @@ private:
 
   bool interactive;
     // Set true if the last or current debug output is to cerr
+
+  std::atomic<int> m_always_flush{0};
+    // Application-wide flush on/off counter for Debug Objects.
 
 #if CWDEBUG_ALLOC
 public:
@@ -269,7 +273,7 @@ public:
   void force_on(OnOffState& state);
   void restore(OnOffState const& state);
   bool is_on(LIBCWD_TSD_PARAM) const;
-  bool always_flush_is_on(LIBCWD_TSD_PARAM) const;
+  bool always_flush_is_on() const;
 };
 
 #if LIBCWD_THREAD_SAFE && !defined(LIBCWD_DOXYGEN)

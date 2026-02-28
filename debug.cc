@@ -1241,7 +1241,7 @@ void allocator_unlock()
         if ((current->mask & continued_maskbit))
 	  unfinished_expected = true;
         // If the `flush_cf' control flag is set, flush the ostream at every `finish()' though.
-	if (debug_object.always_flush_is_on(LIBCWD_TSD) || (current->mask & flush_cf) != 0)
+	if (debug_object.always_flush_is_on() || (current->mask & flush_cf) != 0)
 	{
 	  // Write buffer to ostream.
 	  // Flush ostream.  Note that in the case of nested debug output this `os' can be an stringstream,
@@ -1369,13 +1369,15 @@ void allocator_unlock()
 	}
 	else
 	  current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
-	      false, debug_object.always_flush_is_on(LIBCWD_TSD) || (current->mask & flush_cf != 0)
+	      false, debug_object.always_flush_is_on() || (current->mask & flush_cf != 0)
               COMMA_IFTHREADS(!(current->mask & nonewline_cf))
 	      COMMA_IFTHREADS(true));
       }
       else
 	current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
-	    false, false COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
+	    false, debug_object.always_flush_is_on()
+            COMMA_IFTHREADS(!(current->mask & nonewline_cf))
+            COMMA_IFTHREADS(true));
 
       DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
       int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
@@ -1399,7 +1401,7 @@ void allocator_unlock()
         current = laf_stack.top();
 	DEBUGDEBUG_CERR( "current = " << (void*)current );
 	current_bufferstream = &current->bufferstream;
-	if (debug_object.always_flush_is_on(LIBCWD_TSD) || (mask & flush_cf != 0))
+	if (debug_object.always_flush_is_on() || (mask & flush_cf != 0))
 	  current->mask |= flush_cf;	// Propagate flush to real ostream.
       }
       else

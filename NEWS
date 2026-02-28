@@ -1,9 +1,13 @@
+libcwd-1.1.3
+        Added debug_ct::always_flush_on() and always_flush_off().
+        Can be nested. When on() is called more often than off()
+        then all debug output of all threads will be flushed as
+        soon as written (as if every `Dout` has a flush_cf flag).
+
         Changed Dout and DoutFatal `data` argument into `...`
         so that it is possible to have comma's in it that aren't
         within parenthesis. This is mostly necessary for a brace
         initialized temporary.
-
-libcwd-1.1.3
 
         Fixed a stack overflow issue for large PID's. Now
         a PID can be as large as max int.

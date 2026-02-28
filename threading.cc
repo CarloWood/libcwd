@@ -353,7 +353,6 @@ void TSD_st::cleanup_routine()
         debug_tsd_st* ptr = do_array[i];
         do_off_array[i] = 0;                    // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
         do_array[i] = NULL;                     // So we won't free it again.
-        do_flush_array[i] = 0;                  // No flushing.
         ptr->tsd_initialized = false;
 #if CWDEBUG_ALLOC
         internal = 1;

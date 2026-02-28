@@ -260,8 +260,7 @@ inline
 void
 debug_ct::always_flush_on()
 {
-  LIBCWD_TSD_DECLARATION;
-  ++__libcwd_tsd.do_flush_array[WNS_index];
+  ++m_always_flush;
 }
 
 /**
@@ -282,18 +281,19 @@ inline
 void
 debug_ct::always_flush_off()
 {
-  LIBCWD_TSD_DECLARATION;
-  --__libcwd_tsd.do_flush_array[WNS_index];
+#if CWDEBUG_DEBUG
+  if (m_always_flush <= 0)
+    core_dump();
+#endif
+  --m_always_flush;
 }
 
-#if LIBCWD_THREAD_SAFE
 inline
 bool
-debug_ct::always_flush_is_on(LIBCWD_TSD_PARAM) const
+debug_ct::always_flush_is_on() const
 {
-  return __libcwd_tsd.do_flush_array[WNS_index] > 0;   // 0 means off.
+  return m_always_flush > 0;   // 0 means off.
 }
-#endif
 
 inline
 channel_set_st&
