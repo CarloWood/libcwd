@@ -10,19 +10,8 @@ if test "$(realpath $0)" != "$(realpath $(pwd)/autogen.sh)"; then
   exit 1
 fi
 
-# Check if we want to configure for cmake (only).
-if command -v cmake >/dev/null; then
-  if test -n "$AUTOGEN_CMAKE_ONLY" -o ! -e configure.ac; then
-    AUTOGEN_CMAKE_ONLY=1
-  elif test -e CMakeLists.txt; then
-    echo "*** Configuring for both autotools and cmake."
-    echo "*** Set AUTOGEN_CMAKE_ONLY=1 in environment to only configure for cmake."
-  fi
-fi
-
 if test -d .git; then
   # Take care of git submodule related stuff.
-  # The following line is parsed by configure.ac to find the maintainer hash. Do not change its format!
   MAINTAINER_HASH=dcc3e4640e3ff4769e3cee4a2ab8e5eb
   # If this was a clone without --recursive, fix that fact.
   if test ! -e cwm4/scripts/real_maintainer.sh; then
@@ -42,19 +31,9 @@ if test -d .git; then
       exit $RET
     fi
   fi
-  if test -z "$AUTOGEN_CMAKE_ONLY"; then
-    cwm4/scripts/do_submodules.sh
-  fi
 else
   # Clueless user check.
-  if test -f configure; then
-    echo "You only need to run './autogen.sh' when you checked out this project from the git repository."
-    echo "Just run ./configure [--help]."
-    if test -e cwm4/scripts/bootstrap.sh; then
-      echo "If you insist on running it and know what you are doing, then first remove the 'configure' script."
-    fi
-    exit 0
-  elif test ! -e cwm4/scripts/real_maintainer.sh; then
+  if test ! -e cwm4/scripts/real_maintainer.sh; then
     echo "Houston, we have a problem: the cwm4 git submodule is missing from your source tree!?"
     echo "I'd suggest to clone the source code of this project from github:"
     echo "git clone --recursive https://github.com/CarloWood/libcwd.git"
@@ -79,11 +58,6 @@ if test -d .git; then
   fi
 fi
 
-if test -z "$AUTOGEN_CMAKE_ONLY"; then
-  # Run the autotool commands.
-  cwm4/scripts/bootstrap.sh
-fi
-
 if [ -e CMakeLists.txt ]; then
   # Set CMAKE_CONFIG to '$CMAKE_CONFIG' if not already set.
   : "${CMAKE_CONFIG:=\$CMAKE_CONFIG}"
@@ -104,21 +78,4 @@ if [ -e CMakeLists.txt ]; then
   done
   echo
   echo "cmake --build \"\$BUILDDIR\" --config \"$CMAKE_CONFIG\" --parallel $(nproc)"
-fi
-
-if [ -e Makefile.am ]; then
-  # Set CONFIGURE_OPTIONS to '$CONFIGURE_OPTIONS' if not already set.
-  : "${CONFIGURE_OPTIONS:=\$CONFIGURE_OPTIONS}"
-
-  echo -e "\nBuilding with autotools:\n"
-  project_name=$(basename "$PWD")
-  # Give general instructions for building using autotools.
-  [ -d ../$project_name-objdir ] || echo "mkdir ../$project_name-objdir"
-  echo "cd ../$project_name-objdir"
-  echo -n "../$project_name/configure --enable-maintainer-mode "
-  if [ -n "$CONFIGURE_OPTIONS" ]; then
-    echo "$CONFIGURE_OPTIONS"
-  else
-    echo "[--help]"
-  fi
 fi

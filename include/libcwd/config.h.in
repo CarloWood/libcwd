@@ -23,9 +23,8 @@
 // DO NOT CHANGE THIS FILE
 //
 // The defines in this file are configuration options chosen during
-// compilation of libcwd.  To change these options, run `configure'
-// with the appropriate commandline options (Use `configure --help'
-// for more details).  In order to be sure that a program is linking
+// compilation of libcwd.  To change these options, rerun CMake with
+// the appropriate -D options. In order to be sure that a program is linking
 // with a library that was compiled with the same header file, call
 // Debug( check_configuration() ); at the top of main() in your program.
 //
@@ -34,13 +33,13 @@
  * \addtogroup group_configuration Configuration Options And Macros
  * \ingroup book_start
  *
- * Libcwd uses autoconf; configuration is done with the usual \shellcommand configure \endshellcommand script.&nbsp;
- * You can list all options of configure by issuing \shellcommand configure --help \endshellcommand.
+ * Libcwd uses CMake for configuration.&nbsp;
+ * You can list cached options with \shellcommand cmake -LAH <build-dir> \endshellcommand.
  *
- * This section describes the configure options specific to libcwd.&nbsp;
+ * This section describes the CMake options specific to libcwd.&nbsp;
  * The name of the macros that are related to the respective features are given between parenthesis after the option.&nbsp;
  * You can not define these macros yourself, you may only use them in an <CODE>\#if ... \#endif</CODE> test.&nbsp;
- * The macros are always defined; when a configure option was used then the macro is defined to <code>1</code>,
+ * The macros are always defined; when the corresponding CMake option was enabled then the macro is defined to <code>1</code>,
  * otherwise it is defined to 0.&nbsp;
  * This makes it possible for the compiler to warn you when you made a typo in the name of a macro.
  *
@@ -67,10 +66,10 @@
  *
  * In general, this should be used as long as you are developing a program, unless you want to do speed tests.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is enabled by default.&nbsp;
- * Use \shellcommand configure --disable-alloc \endshellcommand to disable it.
+ * Use \shellcommand cmake -DEnableLibcwdAlloc=OFF ... \endshellcommand to disable it.
  *
  * \sa \ref book_allocations
  */
@@ -90,10 +89,10 @@
  *
  * In general, this should be used as long as you are developing a program, unless you want to do speed tests.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is enabled by default (but \ref enable_alloc must be enabled as well).&nbsp;
- * Use \shellcommand configure --disable-magic \endshellcommand to disable it.
+ * Use \shellcommand cmake -DEnableLibcwdMagic=OFF ... \endshellcommand to disable it.
  *
  * \sa \ref chapter_magic_numbers
  */
@@ -121,10 +120,10 @@
  * The disadvantage is that you need to compile your applications also with
  * -D_GLIBCXX_DEBUG and that this debug mode comes with a speed penality.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is disabled by default.
- * Use \shellcommand configure --enable-glibcxx_debug \endshellcommand to enable it.
+ * Use \shellcommand cmake -DEnableGlibCxxDebug=ON ... \endshellcommand to enable it.
  */
 
 #define CWDEBUG_GLIBCXX_DEBUG @CW_CONFIG_GLIBCXX_DEBUG@
@@ -147,10 +146,10 @@
  *
  * As a developer, especially when you are debugging memory allocations.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is enabled by default.&nbsp;
- * Use \shellcommand configure --disable-location \endshellcommand to disable it.
+ * Use \shellcommand cmake -DEnableLibcwdLocation=OFF ... \endshellcommand to disable it.
  *
  * \sa \ref chapter_alloc_locations
  */
@@ -174,7 +173,7 @@
  * If you have an operating system that is non-ELF32, or that uses natively COFF,
  * then you might want to use this.&nbsp;  Otherwise there is no need to use libbfd.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is disabled by default.&nbsp;
  * You can enable it by specifying \shellcommand --enable-libbfd \endshellcommand during configuration.&nbsp;
@@ -224,7 +223,7 @@
  * \par Configure option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-debug \endshellcommand to enable it.
+ * Use \shellcommand cmake -DEnableLibcwdDebug=ON ... \endshellcommand to enable it.
  */
 
 #define CWDEBUG_DEBUG @CW_CONFIG_DEBUG@
@@ -244,10 +243,10 @@
  *
  * Never, unless you are a developer of libcwd.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-debug-output \endshellcommand to enable it.
+ * Use \shellcommand cmake -DEnableLibcwdDebug=ON -DEnableLibcwdDebugOutput=ON ... \endshellcommand to enable it.
  */
 
 #define CWDEBUG_DEBUGOUTPUT (CWDEBUG_DEBUG && @CW_CONFIG_DEBUGOUTPUT@)
@@ -264,10 +263,10 @@
  *
  * Never, unless you are a developer of libcwd.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-debug --enable-debugm \endshellcommand to enable it.
+ * Use \shellcommand cmake -DEnableLibcwdDebug=ON -DEnableLibcwdDebugm=ON ... \endshellcommand to enable it.
  */
 
 #define CWDEBUG_DEBUGM (CWDEBUG_ALLOC && CWDEBUG_DEBUG && @CW_CONFIG_DEBUGM@)
@@ -283,16 +282,16 @@
  *
  * Always.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is enabled by default.&nbsp;
- * Use \shellcommand configure --disable-marker \endshellcommand to disable it.
+ * Use \shellcommand cmake -DEnableLibcwdMarker=OFF ... \endshellcommand to disable it.
  */
 
 #define CWDEBUG_MARKER (CWDEBUG_ALLOC && @CW_CONFIG_MARKER@)
 
 //
-// autoconf defines that are needed.
+// Configuration defines that are needed by public headers.
 //
 
 #@CW_CONFIG_HAVE_PTHREADS@ LIBCWD_HAVE_PTHREAD
@@ -336,10 +335,10 @@
  * Never, unless you are a developer of libcwd.
  * If someone requests it then I might extend this to a user interface however.
  *
- * \par Configure option
+ * \par CMake option
  *
  * This is disabled by default.&nbsp;
- * Use \shellcommand configure --enable-debugt \endshellcommand to enable it.
+ * Use \shellcommand cmake -DEnableLibcwdDebug=ON -DEnableLibcwdDebugt=ON ... \endshellcommand to enable it.
  */
 
 #define CWDEBUG_DEBUGT @CW_CONFIG_DEBUGT@

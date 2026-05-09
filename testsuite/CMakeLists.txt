@@ -10,7 +10,7 @@ get_filename_component(SUBDIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(DISTDIR "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}/${SUBDIR}")
 
 # Define the distfiles variable.
-set(DISTFILES "Makefile.in" "module.cc" "config" "lib" "libcwd.tst" "libcwd.nodebug" "libcwd.threads")
+set(DISTFILES "module.cc" "config" "lib" "libcwd.tst" "libcwd.nodebug" "libcwd.threads")
 
 # Define shared nodebug targets.
 set(SHAREDNODEBUGTARGETS "")
@@ -30,7 +30,7 @@ foreach(test ${THREADSCHECK})
   list(APPEND SHAREDTHREADSTARGETS "threads_${test}_shared")
 endforeach()
 
-# Define variables corresponding to what was used in Makefile.in.
+# Define variables used to generate the DejaGnu site configuration.
 set(SHAREDTARGETS ${SHAREDTSTTARGETS} ${SHAREDNODEBUGTARGETS} ${SHAREDTHREADSTARGETS})
 set(EXPECT_SCRIPTS "nodebug.exp" "tst.exp" "threads.exp" CACHE STRING "Default expect scripts for runtest")
 set(MODULETARGETS "module_r.so")

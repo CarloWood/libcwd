@@ -1,8 +1,8 @@
 Quick start
 ===========
 
-Support for autotools has been dropped (I never use it anymore) and
-is therefore deprecated. You should use cmake.
+Support for Autotools has been dropped. Use CMake to configure, build,
+and install libcwd.
 
 In fact, you SHOULD use gitache to get/configure/compile libcwd
 and you very likely want to use the git submodule cwds too, which
@@ -22,15 +22,9 @@ git
 
 Only if you can't or do not want to use gitache, then the following applies.
 
-If you obtained the source code from git, then first run `./autogen.sh`.
-
-If you (are going to) use cmake then there is no need to run aclocal,
-autoheader, etc. You can suppress that by setting the environment variable
-`export AUTOGEN_CMAKE_ONLY=1`.
-
-If you want to use autotools you should configure with --enable-maintainer-mode
-if you obtained the sources from git. Note that then ./autogen.sh needs
-to be rerun after running `make maintainer-clean`.
+If you obtained the source code from git, then first run `./autogen.sh`
+to initialize/update the required git submodules and print the CMake
+commands for a local build.
 
 cmake
 -----
@@ -41,14 +35,6 @@ make -j 8
 sudo make install
 
 This method only builds libcwd_r, the multi-threaded version of libcwd.
-
-autotools
----------
-
-./configure --prefix="/usr/local" [--enable-maintainer-mode]
-make -j 8
-sudo make install
-
 
 Options
 =======
@@ -77,33 +63,6 @@ you're not happy with the default.
 
 For example,
 cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -DEnableLibcwdAlloc=OFF -S . -B build
-
-autotools
----------
-
-The following configure options are available,
-
-  --enable-glibcxx_debug  compile libcwd with -D_GLIBCXX_DEBUG.
-                          See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html.
-  --disable-alloc         disable memory allocation debugging support.
-  --disable-magic         disable magic numbers in memory allocation debugging.
-  --disable-marker        disable memory allocation markers.
-  --disable-location      disable the ability to lookup source file and line
-                          number, you might need this on a non-ELF32 system.
-  --enable-debug          enable debugging of libcwd itself.
-  --disable-debug-output  disable debug output of --enable-debug.
-  --enable-debugm         enable debugging of memory allocation debugging code
-                          in libcwd itself.
-  --disable-threading     don't compile libcwd_r, the thread-safe version of
-                          libcwd.
-  --disable-nonthreading  don't compile libcwd, the thread-unsafe version of
-                          libcwd.
-  --enable-debugt         enable debugging of threading debugging code
-                          in libcwd itself.
-
-Additional configure options are available too. Use `./configure --help` to get
-the full list.
-
 
 Trouble
 =======
