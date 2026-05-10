@@ -7,10 +7,7 @@
 #cmakedefine HAVE__RTLD_GLOBAL
 #cmakedefine HAVE_GETEGID
 #cmakedefine HAVE_GETGROUPS
-#cmakedefine HAVE_WMEMCPY
-#cmakedefine HAVE_BUILTIN_EXPECT
 #cmakedefine HAVE_GETGID
-#cmakedefine HAVE_GET_T
 #cmakedefine HAVE_PTHREAD_H
 #cmakedefine HAVE_UNISTD_H
 
