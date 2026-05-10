@@ -4,21 +4,6 @@ How to install and use libcwd
 Tutorial on How to set up a project to use cmake, libcwd and aicxx git submodules (December 2022):
 https://www.youtube.com/watch?v=uaJdQvt3oo4
 
-Note to the developers
-----------------------
-
-The stability of libcwd depends on feedback I receive.
-Because of the way libcwd works and is tested before releases,
-it is very likely that libcwd either works OR core dumps
-even before it reaches main.  If you are trying libcwd for
-the first time and it doesn't work for you (even the simplest
-application crashes) then please CONTACT ME!  It doesn't
-mean that libcwd is a collection of bugs, it just means that
-I do not have the same Operating System as you and I need
-some help to make libcwd be able to reach main on your system.
-I promise that from there on it will be as stable as a rock.
-You can contact me through <carlo@alinoe.com>.
-
 Introduction
 ------------
 
@@ -28,9 +13,8 @@ will compile with -DCWDEBUG and link with -lcwd (and add its
 install path to LD_LIBRARY_PATH).  A production version is then
 simply compiled without -DCWDEBUG and not linked with -lcwd.
 
-The directory `example-project' contains a minimal example that uses
-libcwd. For the example project to work, you *first* need to install
-libcwd.
+The directory `example-project' contains a minimal example that
+uses libcwd.
 
 Please read the INSTALL file for a list of other needed
 libraries and tools before attempting to compile libcwd.
@@ -39,8 +23,7 @@ The debug support can be divided into the following components:
 
 1) Support for Object Oriented debug output (using ostream and
    debug objects for `channels' and `devices').
-2) Support for memory allocation debugging.
-3) General runtime debugging support (demangling, stack and call
+2) General runtime debugging support (demangling, stack and call
    traces, break points (starting a gdb session from within the
    program), tracking and handling existing functions as objects,
    etc).
