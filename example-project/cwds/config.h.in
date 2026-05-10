@@ -1,0 +1,11 @@
+#pragma once
+
+namespace config {
+
+// NAMESPACE_DEBUG
+//
+// The name of the namespace that cwds uses to put debug related symbols in.
+
+#cmakedefine NAMESPACE_DEBUG @NAMESPACE_DEBUG@
+
+} // namespace config

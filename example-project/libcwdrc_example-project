@@ -1,0 +1,7 @@
+# This is an override file; just define the debug channels that we need.
+
+# libcwd default debug channels.
+channels_on = warning,debug,notice,system
+
+# example-project
+channels_on = custom
