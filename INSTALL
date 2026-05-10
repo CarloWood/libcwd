@@ -1,15 +1,14 @@
 Quick start
 ===========
 
-Support for Autotools has been dropped. Use CMake to configure, build,
-and install libcwd.
+Libcwd requires CMake, which can be used to configure, build, *and* install
+libcwd.
 
-In fact, you SHOULD use gitache to get/configure/compile libcwd
-and you very likely want to use the git submodule cwds too, which
-requires utils as well these days).
+However, you SHOULD use gitache to get/configure/compile libcwd and you very
+likely want to use the git submodule cwds too (which in turn requires cmake-aicxx).
 
-Note: also libcwd.so is deprecated. Just don't use it. You should
-always use libcwd_r.so (aka, use `set(GITACHE_PACKAGES libcwd_r)`).
+Note: libcwd_r was renamed to libcwd. A non-threading library no longer exist.
+(aka, use `set(GITACHE_PACKAGES libcwd)`, without the `_r`).
 
 gitache
 -------
@@ -30,11 +29,8 @@ cmake
 -----
 
 cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -S . -B build
-cd build
-make -j 8
-sudo make install
-
-This method only builds libcwd_r, the multi-threaded version of libcwd.
+cmake --build build
+sudo make -C build install
 
 Options
 =======
