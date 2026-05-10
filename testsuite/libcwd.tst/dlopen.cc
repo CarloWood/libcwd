@@ -12,7 +12,6 @@ MAIN_FUNCTION
 
 
   Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
 #if CWDEBUG_LOCATION
   Debug( dc::bfd.on() );
 #endif
@@ -55,9 +54,6 @@ MAIN_FUNCTION
   void* ptr1 = (*f)(false);
   void* ptr2 = (*f)(true);
 
-#if CWDEBUG_LOCATION
-#endif
-
   free(ptr1);
   free(ptr2);
   dlclose(handle);
@@ -65,9 +61,6 @@ MAIN_FUNCTION
 #endif // !STATIC
 
   Dout(dc::notice, "Finished");
-
-  Debug( dc::malloc.off() );
-
 
   EXIT(0);
 }

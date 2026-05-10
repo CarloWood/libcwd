@@ -41,8 +41,6 @@ int main()
   Debug( check_configuration() );
   Debug( libcw_do.set_ostream(&std::cout) );
   Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
   (void)malloc(100);
   f();
 }
-

@@ -131,14 +131,10 @@ int main(void)
 <PRE class="output">
 1024       BFD     : Enabled
 1024       DEBUG   : Enabled
-1024       MALLOC  : Enabled
 1024       NOTICE  : Enabled
 1024       SYSTEM  : Enabled
 1024       WARNING : Enabled
 1024       NOTICE  : main: creating thread 0, &lt;unfinished&gt;
-1024       MALLOC  :     malloc(8160) = &lt;unfinished&gt;
-1024       BFD     :         address 0x401fbbd8 corresponds to pthread.c:533
-1024       MALLOC  :     &lt;continued> 0x8386890
 1024       NOTICE  : &lt;continued&gt; id 1026.
 1026       NOTICE  : Entering thread 1026
 1026       NOTICE  : Leaving thread 1026
@@ -156,7 +152,6 @@ int main(void)
 4101       NOTICE  : Leaving thread 4101
 1024       NOTICE  : main loop: thread 3, id 4101, returned with status OK.
 1024       NOTICE  : Exiting from main()
-1024       MALLOC  : free(0x8386890)            pthread.c:533  &lt;unknown type&gt;; (sz = 8160)
 </PRE>
 
 <P>Congratulations, you are now a libcwd expert.&nbsp; If you still have any

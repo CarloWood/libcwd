@@ -17,9 +17,6 @@
 namespace libcwd {
   namespace _private_ {
 
-#if LIBCWD_IOSBASE_INIT_ALLOCATES
-#endif
-
 // Assume that ios_base is always initialized by the time we try to initialize libcwd.
 constexpr bool WST_ios_base_initialized = true;
 

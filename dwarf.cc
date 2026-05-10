@@ -339,8 +339,8 @@ objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t st
 {
   static bool WST_initialized = false;
   LIBCWD_TSD_DECLARATION;
-  // If dlopen is called as very first function (instead of malloc), we get here
-  // as first function inside libcwd. In that case, initialize libcwd first.
+  // If dlopen is called before main, we get here as first function inside libcwd.
+  // In that case, initialize libcwd first.
   if (!WST_initialized)
   {
     if (initialized)

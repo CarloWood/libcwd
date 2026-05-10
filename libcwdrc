@@ -31,7 +31,7 @@ channels_toggle = M*,BFD, n*tice
 channels_on = warning
 
 # You can also just give a list
-#channels_off = notice,malloc
+#channels_off = notice
 
 # Where to find gdb.
 gdb = /usr/bin/gdb $GDBCOMMANDFILE

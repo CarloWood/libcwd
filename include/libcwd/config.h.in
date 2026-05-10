@@ -43,6 +43,14 @@
  * otherwise it is defined to 0.&nbsp;
  * This makes it possible for the compiler to warn you when you made a typo in the name of a macro.
  *
+ * <b>Example:</b>
+ *
+ * \code
+ * // Use '#if' not '#ifdef'.
+ * #if CWDEBUG_LOCATION
+ * Dout(dc::notice, "Called from " << libcwd::location_ct(__builtin_return_address(0)));
+ * #endif
+ * \endcode
  */
 
 /** \defgroup enable_alloc allocation debugging removed (CWDEBUG_ALLOC)

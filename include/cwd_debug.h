@@ -33,9 +33,6 @@ extern "C" size_t strlen(const char *s) throw();
 
 namespace libcwd {
 
-#if CWDEBUG_LOCATION
-#endif
-
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
 	(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)) << data
 

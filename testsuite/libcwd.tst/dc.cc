@@ -33,7 +33,6 @@ MAIN_FUNCTION
   Dout(dc::notice, "bfd Testing disabled");
 #endif
   Dout(dc::debug, "debug Testing");
-  Dout(dc::malloc, "malloc Testing");
   Dout(dc::notice, "notice Testing");
   Dout(dc::system, "system Testing");
   Dout(dc::warning, "warning Testing");

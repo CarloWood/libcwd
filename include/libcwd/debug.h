@@ -147,7 +147,7 @@
  *
  * \code
  * Dout(dc::notice, "Hello World");
- * Dout(dc::malloc|dc::warning, "Out of memory in function " << func_name);
+ * Dout(dc::warning, "Out of memory in function " << func_name);
  * Dout(dc::notice|blank_label_cf, "The content of the object is: " << std::hex << obj);
  * \endcode
  */

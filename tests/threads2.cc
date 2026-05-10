@@ -98,7 +98,6 @@ main (int, char**)
 {
   Debug( check_configuration() );
   Debug( libcw_do.on() );
-  Debug( dc::malloc.on() );
   Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
 
   pthread_t prod[thread_pairs];
@@ -135,4 +134,3 @@ main (int, char**)
 
   return 0;
 }
-

@@ -59,7 +59,6 @@ namespace channels {
     extern channel_ct notice;
     extern channel_ct system;
     extern channel_ct warning;
-    extern channel_ct malloc;
 #if CWDEBUG_LOCATION
     extern channel_ct bfd;
 #endif

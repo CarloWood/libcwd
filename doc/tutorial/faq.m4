@@ -148,15 +148,14 @@ achieved by calling the methods <SPAN class="code">off()</SPAN> and <SPAN class=
 <EM>pairs</EM> and in that order.&nbsp; For example:</P>
 
 <PRE class="code">
-  // Make sure no allocation debug output is generated:
-  Debug( dc::malloc.off() );
-  char* temporal_buffer = new char [1024];
+  // Make sure no notice debug output is generated:
+  Debug( dc::notice.off() );
+  do_something_noisy();
   // ... do stuff ...
-  delete [] temporal_buffer;
-  Debug( dc::malloc.on() );
+  Debug( dc::notice.on() );
 </PRE>
 
-<P>This will work even when `do stuff' calls a function that also turns <SPAN class="code">dc::malloc</SPAN> off and on:
+<P>This will work even when `do stuff' calls a function that also turns <SPAN class="code">dc::notice</SPAN> off and on:
 after the call to <SPAN class="code">on()</SPAN> the debug channel can still be off: it is restored to the on/off state
 that it was in before the corresponding call to <SPAN class="code">off()</SPAN>.&nbsp; In fact, the calls to
 <SPAN class="code">off()</SPAN> and <SPAN class="code">on()</SPAN> only respectively increment and decrement a counter.</P>
@@ -436,4 +435,3 @@ This value can be less than the <A HREF="#label">maximum allowed label size</A> 
 __PAGEEND
 __PAGEFOOTER
 __HTMLFOOTER
-

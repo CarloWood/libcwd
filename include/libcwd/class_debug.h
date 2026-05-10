@@ -207,8 +207,7 @@ private:
 #endif
   bool NS_init(LIBCWD_TSD_PARAM);
     // Initialize this object, needed because debug output can be written
-    // from the constructors of (other) global objects, and from the malloc()
-    // family while the debug object is being updated.
+    // from the constructors of (other) global objects.
     // This will return false when it is called recursively which can happen
     // as part of initialization of libcwd via a call to malloc while creating
     // laf_ct -> buffer_ct --> basic_stringbuf.  In that case the initialization

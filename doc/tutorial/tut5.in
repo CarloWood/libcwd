@@ -429,7 +429,6 @@ int main(int argc, char* argv[])
 {
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
-  <SPAN class="highlight">Debug( dc::malloc.on() );</SPAN>
 
   if (argc != 2)
   {
@@ -449,9 +448,7 @@ int main(int argc, char* argv[])
   Dout(dc::notice|noprefix_cf|cond_error_cf(ret != 0),
        bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret);
 
-  <SPAN class="highlight">
-  Debug( dc::malloc.off() );
-  delete bufp;</SPAN>
+  <SPAN class="highlight">delete bufp;</SPAN>
   return 0;
 }
 <!-- END CODE examples5/test5.4.4.cc -->
@@ -502,7 +499,6 @@ int main(int argc, char* argv[])
 {
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
-  Debug( dc::malloc.on() );
 
   if (argc != 2)
   {
@@ -521,7 +517,6 @@ int main(int argc, char* argv[])
   Dout(<SPAN class="highlight">dc::finish</SPAN>|cond_error_cf(ret != 0),
        bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret);
 
-  Debug( dc::malloc.off() );
   delete bufp;
   return 0;
 }

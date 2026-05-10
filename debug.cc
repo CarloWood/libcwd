@@ -68,7 +68,7 @@ using libcwd::_private_::debug_channels_instance;
 #define COMMA_IFTHREADS(x)
 #endif // !LIBCWD_THREAD_SAFE
 
-#define NEED_SUPRESSION_OF_MALLOC_AND_BFD (__GNUC__ == 3 && \
+#define NEED_SUPRESSION_OF_BFD (__GNUC__ == 3 && \
     ((__GNUC_MINOR__ == 2 && __GNUC_PATCHLEVEL__ == 0) || \
      (__GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 1) || \
      (__GNUC_MINOR__ == 0)))
@@ -176,8 +176,6 @@ namespace libcwd {
 		"You can pass a pointer to a mutex with `debug_ct::set_ostream' (see documentation/reference-manual/group__group__destination.html).");
 	  }
 	}
-#endif
-#if LIBCWD_THREAD_SAFE
 	if (debug_object.newlineless_tsd && debug_object.newlineless_tsd != &__libcwd_tsd)
 	{
           _private_::TSD_st const* newlineless_tsd = static_cast<_private_::TSD_st const*>(debug_object.newlineless_tsd);
@@ -335,13 +333,6 @@ namespace libcwd {
 #endif
 	    ;
 
-	/** The MALLOC channel. */
-	channel_ct malloc
-#ifndef HIDE_FROM_DOXYGEN
-	    ("MALLOC")
-#endif
-	    ;
-
 	/** The WARNING channel.
 	 *
 	 * This is the only channel that
@@ -439,7 +430,6 @@ namespace libcwd {
       channels::dc::fatal.NS_initialize("FATAL", fatal_maskbit LIBCWD_COMMA_TSD);
       // Initialize other debug channels that might be used before we reach main().
       channels::dc::debug.NS_initialize("DEBUG" LIBCWD_COMMA_TSD, true);
-      channels::dc::malloc.NS_initialize("MALLOC" LIBCWD_COMMA_TSD, true);
       channels::dc::continued.NS_initialize(continued_maskbit);
       channels::dc::finish.NS_initialize(finish_maskbit);
 #if CWDEBUG_LOCATION
@@ -854,9 +844,8 @@ namespace libcwd {
 #endif
 #endif
 
-      if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
+      if (NEED_SUPRESSION_OF_BFD)
       {
-        channels::dc::malloc.off();
 #if CWDEBUG_LOCATION
         channels::dc::bfd.off();
 #endif
@@ -1046,9 +1035,8 @@ namespace libcwd {
 
       set_alloc_checking_off(LIBCWD_TSD);
 
-      if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
+      if (NEED_SUPRESSION_OF_BFD)
       {
-        channels::dc::malloc.on();
 #if CWDEBUG_LOCATION
         channels::dc::bfd.on();
 #endif
@@ -1374,7 +1362,7 @@ namespace libcwd {
     {
 #if LIBCWD_THREAD_SAFE
       // In the non-threaded case we do not want to deinitialize these because they
-      // might still be needed if dc::malloc (and/or dc::bfd) is turned on and
+      // might still be needed if dc::bfd is turned on and
       // the destructor of some global object that is destructed *after* libcw_do
       // is deleting (or allocating) memory.
 
@@ -1440,7 +1428,6 @@ namespace libcwd {
      * NOTICE  : Enabled
      * WARNING : Enabled
      * SYSTEM  : Enabled
-     * MALLOC  : Disabled
      * LLISTS  : Disabled
      * KERNEL  : Disabled
      * IO      : Disabled
@@ -1464,9 +1451,8 @@ namespace libcwd {
 	    i != _private_::debug_channels.read_locked().end(); ++i)
 	{
 	  LibcwDoutScopeBegin(LIBCWD_DEBUGCHANNELS, debug_object, dc::always|noprefix_cf);
-	  if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
+	  if (NEED_SUPRESSION_OF_BFD)
 	  {
-	    channels::dc::malloc.on();
 #if CWDEBUG_LOCATION
 	    channels::dc::bfd.on();
 #endif
@@ -1477,9 +1463,8 @@ namespace libcwd {
 	    LibcwDoutStream.write(": Enabled", 9);
 	  else
 	    LibcwDoutStream.write(": Disabled", 10);
-	  if (NEED_SUPRESSION_OF_MALLOC_AND_BFD)
+	  if (NEED_SUPRESSION_OF_BFD)
 	  {
-	    channels::dc::malloc.off();
 #if CWDEBUG_LOCATION
 	    channels::dc::bfd.off();
 #endif
