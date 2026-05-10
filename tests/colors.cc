@@ -44,9 +44,6 @@ void thread_main()
 int main()
 {
   Debug(check_configuration());
-#if CWDEBUG_ALLOC
-  libcwd::make_all_allocations_invisible_except(NULL);
-#endif
   Debug(libcw_do.set_ostream(&std::cout, &cout_mutex));
 
   // Set the margin equal to the thread ID.

@@ -14,18 +14,6 @@
 #include "sys.h"
 #include <libcwd/config.h>
 
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
-// This has to be very early (must not have been included elsewhere already).
-#define private public  // Ugly, I know.
-#if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
-#include <bits/stl_alloc.h>
-#else
-#include <cstdlib>		// Needed for getenv, needed by ext/pool_allocator.h.
-#include <ext/pool_allocator.h>
-#endif
-#undef private
-#endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC
-
 #include <cerrno>
 #include <iostream>
 #include <algorithm>
@@ -87,88 +75,8 @@ using libcwd::_private_::debug_channels_instance;
 
 namespace libcwd {
 
-namespace _private_ {
-
-// gcc 4.0 use mt_allocator.h as default, which doesn't use locks at all.
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
-
-#if (__GNUC_MINOR__ == 4)
-#if (__GNUC_PATCHLEVEL__ <= 1)
-__gnu_cxx::_STL_mutex_lock* pool_allocator_lock_symbol_ptr;
-#else
-__gthread_mutex_t* pool_allocator_lock_symbol_ptr;
-#endif
-#endif
-
-// The following tries to take the "node allocator" lock -- the lock of the
-// default allocator for threaded applications.
-inline
-bool allocator_trylock()
-{
-#if (__GNUC_MINOR__ < 4)
-
-#if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
-  if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
-    std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
-#endif
-
-  return (__gthread_mutex_trylock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock) == 0);
-
-#else // __GNUC_MINOR__ == 4
-
-  if (!pool_allocator_lock_symbol_ptr)
-    return false;
-
-  #if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
-  #if (__GNUC_PATCHLEVEL__ <= 1)
-    if (!pool_allocator_lock_symbol_ptr->_M_init_flag)
-      pool_allocator_lock_symbol_ptr->_M_initialize();
-  #else
-  // If the lock is not initialized, it should be initialized here.
-  #error "Sorry, not implemented yet."
-  #endif
-  #endif
-
-#if (__GNUC_PATCHLEVEL__ <= 1)
-  return (__gthread_mutex_trylock(&pool_allocator_lock_symbol_ptr->_M_lock) == 0);
-#else
-  return (__gthread_mutex_trylock(pool_allocator_lock_symbol_ptr) == 0);
-#endif
-
-#endif // __GNUC_MINOR__ == 4
-}
-
-// The following unlocks the node allocator.
-inline
-void allocator_unlock()
-{
-#if (__GNUC_MINOR__ < 4)
-#if !defined(__GTHREAD_MUTEX_INIT) && defined(__GTHREAD_MUTEX_INIT_FUNCTION)
-  if (!std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_init_flag)
-    std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_initialize();
-#endif
-  __gthread_mutex_unlock(&std::__default_alloc_template<true, 0>::_S_node_allocator_lock._M_lock);
-
-#else // __GNUC_MINOR__ == 4
-
-#if (__GNUC_PATCHLEVEL__ <= 1)
-  __gthread_mutex_unlock(&pool_allocator_lock_symbol_ptr->_M_lock);
-#else
-  __gthread_mutex_unlock(pool_allocator_lock_symbol_ptr);
-#endif
-
-#endif // __GNUC_MINOR__ == 4
-}
-
-#endif // LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
-
-} // namespace _private_
-
     using _private_::set_alloc_checking_on;
     using _private_::set_alloc_checking_off;
-#if CWDEBUG_ALLOC
-    using _private_::debug_message_st;
-#endif
 
     class buffer_ct : public _private_::auto_internal_stringbuf {
     private:
@@ -232,25 +140,10 @@ void allocator_unlock()
       // ends_on_newline	: This output ends on a newline.
       // possible_nonewline_cf	: When `ends_on_newline' is false, then that was caused by the use of nonewline_cf.
 
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
-      typedef debug_message_st* msgbuf_t;
-      msgbuf_t msgbuf;
-      // Queue the message when the default (STL) allocator is locked and it could be that we
-      // did that (because we got here via malloc or free).  At least as important: if
-      // this is the last thread, just prior to exiting the application, and we CAN
-      // get the lock - then DON'T queue the message (and thus flush all possibly queued
-      // messages); this garantees that there will never messages be left in the queue
-      // when the application exits.
-      bool const queue_msg = __libcwd_tsd.inside_malloc_or_free && !_private_::allocator_trylock();
-      if (__libcwd_tsd.inside_malloc_or_free && !queue_msg)
-	_private_::allocator_unlock();	// Always immedeately release the lock again.
-      int const extra_size = sizeof(debug_message_st) - sizeof(msgbuf->buf);
-#else
       typedef char* msgbuf_t;
       msgbuf_t msgbuf;
       bool const queue_msg = false;
       int const extra_size = 0;
-#endif
       int curlen;
       curlen = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out) - this->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
       bool free_msgbuf = false;
@@ -261,35 +154,7 @@ void allocator_unlock()
 	msgbuf = (msgbuf_t)malloc(curlen + extra_size);
 	free_msgbuf = true;
       }
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
-      this->sgetn(msgbuf->buf, curlen);
-#else
       this->sgetn(msgbuf, curlen);
-#endif
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
-      if (queue_msg)	// Inside a call to malloc and possibly owning lock of std::LIBCWD_POOL_ALLOC<true, 0>?
-      {
-	// We don't write debug output to the final ostream when inside malloc and std::LIBCWD_POOL_ALLOC<true, 0> is locked.
-	// It is namely possible that this will again try to acquire the lock in std::LIBCWD_POOL_ALLOC<true, 0>, resulting
-	// in a deadlock.  Append it to the queue instead.
-	msgbuf->curlen = curlen;
-	msgbuf->prev = NULL;
-	msgbuf->next = debug_object.queue;
-	if (debug_object.queue)
-	  debug_object.queue->prev = msgbuf;
-	else
-	  debug_object.queue_top = msgbuf;
-	debug_object.queue = msgbuf;
-      }
-      else
-      {
-#endif
-#if CWDEBUG_ALLOC
-	// Writing to the final std::ostream (ie std::cerr) must be non-internal!
-	// LIBCWD_DISABLE_CANCEL/LIBCWD_ENABLE_CANCEL must be done non-internal too.
-	int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-	++LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
-#endif
 #if LIBCWD_THREAD_SAFE
 	LIBCWD_DISABLE_CANCEL;			// We don't want Dout() to be a cancellation point.
 	_private_::mutex_tct<_private_::set_ostream_instance>::lock();
@@ -353,32 +218,11 @@ void allocator_unlock()
           continued();
 	}
 #endif // LIBCWD_THREAD_SAFE
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
-	debug_message_st* message = debug_object.queue_top;
-	if (message)
-	{
-	  // First empty the whole queue.
-	  debug_message_st* next_message;
-	  do
-	  {
-	    next_message = message->prev;
-	    locked_os->write(message->buf, message->curlen);
-	    __libcwd_tsd.internal = 1;
-	    free(message);
-	    __libcwd_tsd.internal = 0;
-	  }
-	  while ((message = next_message));
-	  debug_object.queue_top = debug_object.queue = NULL;
-	}
-	// Then write the new message.
-	locked_os->write(msgbuf->buf, curlen);
-#else // !(CWDEBUG_ALLOC && LIBCWD_THREAD_SAFE)
 #if LIBCWD_THREAD_SAFE
 	locked_os->write(msgbuf, curlen);
 #else // !LIBCWD_THREAD_SAFE
 	os->write(msgbuf, curlen);
 #endif // !LIBCWD_THREAD_SAFE
-#endif // !(CWDEBUG_ALLOC && LIBCWD_THREAD_SAFE)
 #if LIBCWD_THREAD_SAFE
 	if (request_unfinished && !unfinished_already_printed)
         {
@@ -420,13 +264,6 @@ void allocator_unlock()
 	}
 	LIBCWD_ENABLE_CANCEL;
 #endif // !LIBCWD_THREAD_SAFE
-#if CWDEBUG_ALLOC
-	--LIBCWD_DO_TSD_MEMBER_OFF(libcw_do);
-	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-#endif
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3
-      }
-#endif
       if (free_msgbuf)
 	free(msgbuf);
     }
@@ -591,9 +428,6 @@ void allocator_unlock()
       if (ST_already_called)
 	return;
       ST_already_called = true;
-#if CWDEBUG_ALLOC
-      init_debugmalloc();
-#endif
 #if LIBCWD_THREAD_SAFE
       _private_::initialize_global_mutexes();
 #endif
@@ -717,10 +551,6 @@ void allocator_unlock()
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
 	  DEBUGDEBUG_CERR( (char const*)"_debug_objects == NULL; initializing it" );
-#if CWDEBUG_ALLOC
-	  // It is possible that malloc is not initialized yet.
-	  init_debugmalloc();
-#endif
 	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  WNS_debug_objects = new debug_objects_ct::container_type;
@@ -742,10 +572,6 @@ void allocator_unlock()
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
 	  DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
-#if CWDEBUG_ALLOC
-	  // It is possible that malloc is not initialized yet.
-	  init_debugmalloc();
-#endif
 	  LIBCWD_TSD_DECLARATION;
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK;
@@ -840,17 +666,12 @@ void allocator_unlock()
     {
 #if LIBCWD_THREAD_SAFE
       // Are we the first thread that tries to generate a core?
-#if CWDEBUG_DEBUGT || CWDEBUG_ALLOC
+#if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION;
 #endif
       LIBCWD_DISABLE_CANCEL;
       if (!_private_::mutex_tct<_private_::kill_threads_instance>::try_lock())
       {
-#if CWDEBUG_ALLOC
-	__libcwd_tsd.internal = 0;	// Dunno if this is needed, but it looks consistant.
-	++__libcwd_tsd.library_call;;	// So our sanity checks allow us to call free() again in
-					// pthread_exit when we get here from malloc et al.
-#endif
 	// Another thread is already trying to generate a core dump.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
@@ -1264,9 +1085,6 @@ void allocator_unlock()
       if ((current->mask & error_cf))
       {
 	// strerror[_r] can call malloc (in gettext()).
-#if CWDEBUG_ALLOC
-	int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-#endif
 #if !LIBCWD_THREAD_SAFE
 	char const* error_text = strerror(current->err);
 #else // LIBCWD_THREAD_SAFE
@@ -1286,9 +1104,6 @@ void allocator_unlock()
         else
 	  error_text = error_text_buf;
 #endif
-#endif
-#if CWDEBUG_ALLOC
-	_private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #endif
 	*current_bufferstream << ": " << strerrno(current->err) << " (" << error_text << ')';
       }
@@ -1322,10 +1137,6 @@ void allocator_unlock()
 	  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 	  DEBUGDEBUG_CERR( "Done deleting `current'" );
 	  set_alloc_checking_on(LIBCWD_TSD);
-#if CWDEBUG_ALLOC
-	  if (__libcwd_tsd.internal)			// Still internal?  Are we ever calling DoutFatal while internal?
-	    _private_::set_library_call_on(LIBCWD_TSD);	// Indefinetely turn library call on before terminating threads.
-#endif
 #if LIBCWD_THREAD_SAFE
 	  LIBCWD_DISABLE_CANCEL;
 	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::try_lock())
@@ -1511,10 +1322,6 @@ void allocator_unlock()
     void debug_tsd_st::init()
     {
       DEBUGDEBUG_CERR( "Entering debug_tsd_st::init (this == " << (void*)this << ")");
-#if CWDEBUG_DEBUGM
-      LIBCWD_TSD_DECLARATION;
-      LIBCWD_ASSERT( __libcwd_tsd.internal );
-#endif
       start_expected = true;			// Of course, we start with expecting the beginning of a debug output.
       unfinished_expected = false;
 
@@ -1961,32 +1768,12 @@ PRAGMA_DIAGNOSTIC_POP
 #if CWDEBUG_DEBUG
 	LIBCWD_TSD_DECLARATION;
 	if (__libcwd_tsd.recursive_assert
-#if CWDEBUG_DEBUGM
-	    || __libcwd_tsd.inside_malloc_or_free
-#endif
 	    )
 	{
 	  if (!__libcwd_tsd.recursive_assert
-#if CWDEBUG_ALLOC
-	      && __libcwd_tsd.library_call < 6
-#endif
               )
 	  {
-#if CWDEBUG_ALLOC
-	    int saved_internal = 0;	// To avoid 'may be used uninitialized' compiler warning.
-	    bool is_internal = __libcwd_tsd.internal;
-	    if (is_internal)
-	      saved_internal = _private_::set_library_call_on(LIBCWD_TSD);	// flush is a library call.
-            else
-	      ++__libcwd_tsd.library_call;
-#endif
 	    Debug( libcw_do.get_ostream()->flush() );
-#if CWDEBUG_ALLOC
-	    if (is_internal)
-	      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
-            else
-	      --__libcwd_tsd.library_call;
-#endif
 	  }
 	  set_alloc_checking_off(LIBCWD_TSD);
 	  FATALDEBUGDEBUG_CERR(file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");

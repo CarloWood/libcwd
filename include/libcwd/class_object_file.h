@@ -26,9 +26,6 @@
 namespace libcwd {
 
 // Forward declarations.
-#if CWDEBUG_ALLOC
-class alloc_filter_ct;
-#endif
 namespace dwarf {
 class objfiles_ct;
 } // namespace dwarf
@@ -53,10 +50,6 @@ class object_file_ct {
  private:
   char const* M_filepath;	// The full path to the object file (internally allocated and leaking memory).
   char const* M_filename;	// Points inside M_filepath just after the last '/' or to the beginning.
-#if CWDEBUG_ALLOC
-  friend class alloc_filter_ct;
-  mutable bool M_hide;
-#endif
   mutable bool M_no_debug_line_sections;
 
  protected:
@@ -70,9 +63,6 @@ class object_file_ct {
   char const* filename() const { return M_filename; }
 
   // For internal use.
-#if CWDEBUG_ALLOC
-  bool hide_from_alloc_list() const { return M_hide; }
-#endif
   void set_has_no_debug_line_sections() const { M_no_debug_line_sections = true; }
   bool has_no_debug_line_sections() const { return M_no_debug_line_sections; }
 };

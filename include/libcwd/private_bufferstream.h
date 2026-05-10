@@ -32,11 +32,7 @@ namespace libcwd {
     public:
       typedef char char_type;
       typedef std::char_traits<char> traits_type;
-#if CWDEBUG_ALLOC
-      typedef auto_internal_allocator allocator_type;
-#else
       typedef ::std::allocator<char_type> allocator_type;
-#endif
       typedef traits_type::int_type int_type;
       typedef traits_type::pos_type pos_type;
       typedef traits_type::off_type off_type;

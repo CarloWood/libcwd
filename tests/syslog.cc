@@ -101,10 +101,6 @@ int main(int, char* argv[])
 
   Debug( check_configuration() );
 
-#if CWDEBUG_ALLOC
-  // Don't show allocations that are allocated before main()
-  libcwd::make_all_allocations_invisible_except(NULL);
-#endif
 
   // Select channels (note that where 'on' is used, 'off' can be specified
   // and vica versa).

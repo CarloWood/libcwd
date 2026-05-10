@@ -61,12 +61,6 @@ namespace libcwd {
 namespace _private_ {
 
 extern void demangle_symbol(char const* in, _private_::internal_string& out);
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-extern char* pool_allocator_lock_symbol_ptr;
-#endif
-#if CWDEBUG_ALLOC
-extern void remove_type_info_references(object_file_ct const* object_file_ptr LIBCWD_COMMA_TSD_PARAM);
-#endif
 
 } // namespace _private_
 
@@ -280,11 +274,7 @@ struct symbol_key_greater
   }
 };
 
-#if CWDEBUG_ALLOC
-using function_symbols_ct = std::set<symbol_ct, symbol_key_greater, _private_::object_files_allocator::rebind<symbol_ct>::other>;
-#else
 using function_symbols_ct = std::set<symbol_ct, symbol_key_greater>;
-#endif
 
 class Elf;
 
@@ -358,20 +348,10 @@ objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t st
     else if (!ST_init(LIBCWD_TSD))
       return nullptr;
   }
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#endif
   objfile_ct* object_file;
   char const* slash = strrchr(name, '/');
   if (!slash)
     slash = name - 1;
-#if LIBCWD_THREAD_SAFE && CWDEBUG_ALLOC && __GNUC__ == 3 && __GNUC_MINOR__ == 4
-  bool is_libstdcpp;
-  is_libstdcpp = (strncmp("libstdc++.so", slash + 1, 12) == 0);
-#endif
-#if CWDEBUG_ALLOC
-  bool is_libc = (strncmp("libc.so", slash + 1, 7) == 0);
-#endif
   bool failure;
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_WRITE_LOCK;
@@ -522,13 +502,6 @@ bool ST_init(LIBCWD_TSD_PARAM)
     core_dump();
 #endif
 
-#if CWDEBUG_DEBUG && CWDEBUG_ALLOC
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#endif
-#if CWDEBUG_ALLOC
-  // Initialize the malloc library if not done yet.
-  init_debugmalloc();
-#endif
 
   // ****************************************************************************
   // Start INTERNAL!
@@ -598,13 +571,6 @@ char objfiles_ct::ST_list_instance[sizeof(object_files_ct)] __attribute__((__ali
 objfile_ct::objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start_addr, uintptr_t end_addr) :
   objfiles_ct(filename), dwarf_fd_(-1), dwarf_handle_(nullptr), M_lbase(base_addr), M_start_addr(start_addr), M_end_addr(end_addr)
 {
-#if CWDEBUG_DEBUGM
-  LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT( __libcwd_tsd.internal );
-#if CWDEBUG_DEBUGT
-  LIBCWD_ASSERT( _private_::is_locked(object_files_instance) );
-#endif
-#endif
 }
 
 objfile_ct::~objfile_ct()
@@ -694,9 +660,6 @@ class Elf
   };
 
   using relocation_map_ct = std::map<char const*, Range, SymbolNameCompare
-#if CWDEBUG_ALLOC
-                      , _private_::internal_allocator::rebind<std::pair<char const* const, Range>>::other
-#endif
                       >;
 
   relocation_map_ct relocation_map_;
@@ -737,13 +700,7 @@ class Elf
     {
       relocation_map_ct empty_dummy;
       std::swap(relocation_map_, empty_dummy);
-#if CWDEBUG_ALLOC
-      __libcwd_tsd.internal = 1;
-#endif
     }
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 0;
-#endif
   }
 
   int process_relocs();
@@ -793,16 +750,10 @@ void Elf::add_symbol(GElf_Sym* sym, size_t symstrndx, bool is_reloc, GElf_Sxword
         "\" range [0x" << std::hex << (lbase_ + start) << "-0x" << (lbase_ + end) << "] to relocation_map_...");
 #endif
     LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 1;
-#endif
 #if CWDEBUG_DEBUG
     auto ibp =
 #endif
     relocation_map_.emplace(std::make_pair(name, Range{start, end}));
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 0;
-#endif
 #if CWDEBUG_DEBUG
     if (ibp.second)
       Dout(dc::finish, " done");
@@ -996,13 +947,7 @@ void Elf::add_backup(char const* linkage_name, GElf_Addr start, GElf_Addr end)
   if (it == relocation_map_.end())
   {
     LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 1;
-#endif
     relocation_map_.emplace(std::make_pair(linkage_name, Range{start, end}));
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 0;
-#endif
   }
 }
 
@@ -1139,13 +1084,7 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
             found_non_empty_range = true;
 
             DWARF_ACQUIRE_WRITE_LOCK;
-#if CWDEBUG_ALLOC
-            __libcwd_tsd.internal = 1;
-#endif
             auto ibp = M_function_symbols.emplace(start, end, this, &child_die, cu_name, func_name, linkage_name);
-#if CWDEBUG_ALLOC
-            __libcwd_tsd.internal = 0;
-#endif
             if (ibp.second)
             {
 #if CWDEBUG_DEBUG
@@ -1243,14 +1182,6 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
 
 bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
 {
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
-#if CWDEBUG_DEBUGT
-  LIBCWD_ASSERT( _private_::locked_by[object_files_instance] != __libcwd_tsd.tid );
-  LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] != __libcwd_tsd.tid && __libcwd_tsd.rdlocked_by2[object_files_instance] != __libcwd_tsd.tid );
-#endif
-#endif
-
   DWARF_ACQUIRE_WRITE_LOCK;
   bool already_exists = false;
   for (object_files_ct::iterator iter = NEEDS_WRITE_LOCK_object_files().begin();
@@ -1323,13 +1254,7 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
         // If the symbol table contains a function with an address range that does not overlap with
         // an already stored address range from .debug_info - then add it. I expect this to only
         // add functions when there wasn't a .debug_info in the first place.
-#if CWDEBUG_ALLOC
-        __libcwd_tsd.internal = 1;
-#endif
         auto ibp = M_function_symbols.emplace(start, end, this, linkage_name);
-#if CWDEBUG_ALLOC
-        __libcwd_tsd.internal = 0;
-#endif
 #if CWDEBUG_DEBUG
         if (dwarf_handle_ && ibp.second)
           Dout(dc::bfd, "Added symbol from .symtab that does not exist in .debug_info: \"" <<
@@ -1339,9 +1264,6 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
     }
     catch (std::exception const&)
     {
-#if CWDEBUG_DEBUGM
-      LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
-#endif
       // A fatal error occurred.
       return true;
     }
@@ -1352,19 +1274,10 @@ bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_
   if (!already_exists)
   {
     DWARF_ACQUIRE_WRITE_LOCK;
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 1;
-#endif
     NEEDS_WRITE_LOCK_object_files().push_back(this);
-#if CWDEBUG_ALLOC
-    __libcwd_tsd.internal = 0;
-#endif
     DWARF_RELEASE_WRITE_LOCK;
   }
 
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( __libcwd_tsd.internal == 0 );
-#endif
   return already_exists;
 }
 
@@ -1381,9 +1294,6 @@ _private_::string read_build_id(_private_::string const& object_file LIBCWD_COMM
     int fd = open(object_file.c_str(), O_RDONLY);
     if (fd == -1)
     {
-#if CWDEBUG_ALLOC
-      if (!__libcwd_tsd.inside_malloc_or_free)
-#endif
         Dout(dc::warning, "failed to open file \"" << object_file << "\"");
     }
     else
@@ -1392,9 +1302,6 @@ _private_::string read_build_id(_private_::string const& object_file LIBCWD_COMM
       ::Elf* e = elf_begin(fd, ELF_C_READ, NULL);
       if (!e)
       {
-#if CWDEBUG_ALLOC
-        if (!__libcwd_tsd.inside_malloc_or_free)
-#endif
           Dout(dc::warning, "elf_begin returned NULL for \"" << object_file << "\": " << elf_errmsg(-1));
       }
       else
@@ -1538,9 +1445,6 @@ _private_::string get_debug_info_path(_private_::string object_file LIBCWD_COMMA
 void objfile_ct::open_dwarf(LIBCWD_TSD_PARAM)
 {
   LIBCWD_ASSERT(dwarf_fd_ == -1 && dwarf_handle_ == nullptr);
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#endif
 
   _private_::string debug_info_path = get_debug_info_path(M_object_file.filepath() LIBCWD_COMMA_TSD);
 
@@ -1595,16 +1499,6 @@ void objfile_ct::close_dwarf(LIBCWD_TSD_PARAM)
 
 void objfile_ct::deinitialize(LIBCWD_TSD_PARAM)
 {
-#if CWDEBUG_DEBUGM
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#if CWDEBUG_DEBUGT
-  LIBCWD_ASSERT( _private_::locked_by[object_files_instance] != __libcwd_tsd.tid );
-  LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] != __libcwd_tsd.tid && __libcwd_tsd.rdlocked_by2[object_files_instance] != __libcwd_tsd.tid );
-#endif
-#endif
-#if CWDEBUG_ALLOC
-  _private_::remove_type_info_references(&M_object_file LIBCWD_COMMA_TSD);
-#endif
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_WRITE_LOCK;
   set_alloc_checking_off(LIBCWD_TSD);
@@ -1690,27 +1584,9 @@ char const* pc_mangled_function_name(void const* addr)
 
 /** \} */	// End of group 'group_locations'.
 
-#if CWDEBUG_ALLOC
-struct bfd_location_ct : public location_ct {
-  friend _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, bfd_location_ct const& data);
-};
-
-_private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, bfd_location_ct const& location)
-{
-  if (location.M_known)
-    os << location.M_filename << ':' << location.M_line;
-  else
-    os << "<unknown location>";
-  return os;
-}
-#else
 using bfd_location_ct = location_ct;
-#endif
 
 object_file_ct::object_file_ct(char const* filepath) :
-#if CWDEBUG_ALLOC
-    M_hide(false),
-#endif
     M_no_debug_line_sections(false)
 {
   LIBCWD_TSD_DECLARATION;
@@ -1748,15 +1624,6 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     // MT: `WST_initialized' is only false when we're still Single Threaded.
     //     Therefore it is safe to call ST_* functions.
 
-#if CWDEBUG_ALLOC && LIBCWD_IOSBASE_INIT_ALLOCATES
-    if (!_private_::WST_ios_base_initialized && _private_::inside_ios_base_Init_Init())
-    {
-      M_object_file = nullptr;
-      M_func = S_pre_ios_initialization_c;
-      M_initialization_delayed = addr;
-      return;
-    }
-#endif
     if (!ST_init(LIBCWD_TSD))	// Initialization of BFD code fails?
     {
       M_object_file = nullptr;
@@ -1857,9 +1724,6 @@ void location_ct::clear()
   if (M_known)
   {
     M_known = false;
-#if CWDEBUG_ALLOC
-    M_hide = _private_::filtered_location;
-#endif
     if (M_filepath.is_owner())
     {
       LIBCWD_TSD_DECLARATION;
@@ -1873,9 +1737,6 @@ void location_ct::clear()
 }
 
 location_ct::location_ct(location_ct const &prototype)
-#if CWDEBUG_ALLOC
-    : M_hide(_private_::new_location)
-#endif
 {
   if ((M_known = prototype.M_known))
   {
@@ -1887,9 +1748,6 @@ location_ct::location_ct(location_ct const &prototype)
     M_initialization_delayed = prototype.M_initialization_delayed;
   M_object_file = prototype.M_object_file;
   M_func = prototype.M_func;
-#if CWDEBUG_ALLOC
-  M_hide = prototype.M_hide;
-#endif
 }
 
 location_ct& location_ct::operator=(location_ct const &prototype)
@@ -1907,9 +1765,6 @@ location_ct& location_ct::operator=(location_ct const &prototype)
       M_initialization_delayed = prototype.M_initialization_delayed;
     M_object_file = prototype.M_object_file;
     M_func = prototype.M_func;
-#if CWDEBUG_ALLOC
-    M_hide = prototype.M_hide;
-#endif
   }
   return *this;
 }
@@ -1929,33 +1784,18 @@ struct dlloaded_st {
 namespace libcwd::_private_ {
 
 using dlopen_map_ct = std::map<void*, dlloaded_st, std::less<void*>
-#if CWDEBUG_ALLOC
-                      , internal_allocator::rebind<std::pair<void* const, dlloaded_st> >::other
-#endif
                       >;
 static dlopen_map_ct* dlopen_map;
 
 #if LIBCWD_THREAD_SAFE
 void dlopenclose_cleanup(void* arg)
 {
-#if CWDEBUG_ALLOC
-  TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
-  // We can get here from DoutFatal, in which case alloc checking is already turned on.
-  if (__libcwd_tsd.internal)
-    set_alloc_checking_on(LIBCWD_TSD);
-#endif
   rwlock_tct<object_files_instance>::cleanup(arg);
 }
 
 void dlopen_map_cleanup(void* arg)
 {
-#if CWDEBUG_ALLOC
-  TSD_st& __libcwd_tsd = (*static_cast<TSD_st*>(arg));
-  if (__libcwd_tsd.internal)
-    set_alloc_checking_on(LIBCWD_TSD);
-#else
   (void)arg;	// Suppress unused warning.
-#endif
   DLOPEN_MAP_RELEASE_LOCK;
 }
 #endif
@@ -1966,10 +1806,6 @@ extern "C" {
 
   void* dlopen(char const* name, int flags)
   {
-#if CWDEBUG_DEBUGM
-    LIBCWD_TSD_DECLARATION;
-    LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#endif
     // One time initialization.
     if (!real_dlopen.symptr)
       real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen");
@@ -1986,9 +1822,7 @@ extern "C" {
     if ((flags & RTLD_NOLOAD))
       return handle;
 #endif
-#if !CWDEBUG_DEBUGM
     LIBCWD_TSD_DECLARATION;
-#endif
     LIBCWD_DEFER_CLEANUP_PUSH(libcwd::_private_::dlopen_map_cleanup, &__libcwd_tsd);
     DLOPEN_MAP_ACQUIRE_LOCK;
     if (!libcwd::_private_::dlopen_map)
@@ -2028,9 +1862,6 @@ extern "C" {
   int dlclose(void* handle)
   {
     LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUGM
-    LIBCWD_ASSERT( !__libcwd_tsd.internal );
-#endif
     // One time initialization.
     if (!real_dlclose.symptr)
       real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose");

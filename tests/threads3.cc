@@ -38,9 +38,6 @@ void* thread_function(void*)
 int main(void)
 {
   Debug( check_configuration() );
-#if CWDEBUG_ALLOC
-  libcwd::make_all_allocations_invisible_except(NULL);
-#endif
   Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
   Debug( libcw_do.on() );
 

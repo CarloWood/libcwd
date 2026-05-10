@@ -54,12 +54,6 @@ void initialize_global_mutexes()
   mutex_tct<set_ostream_instance>::initialize();
   mutex_tct<kill_threads_instance>::initialize();
   rwlock_tct<threadlist_instance>::initialize();
-#if CWDEBUG_ALLOC
-  mutex_tct<alloc_tag_desc_instance>::initialize();
-  mutex_tct<memblk_map_instance>::initialize();
-  rwlock_tct<location_cache_instance>::initialize();
-  mutex_tct<list_allocations_instance>::initialize();
-#endif
 #if CWDEBUG_DEBUGT
   mutex_tct<keypair_map_instance>::initialize();
 #endif
@@ -255,12 +249,6 @@ PRAGMA_DIAGNOSTIC_POP
 #endif
     initialize_global_mutexes();
     threading_tsd_init(*static_tsd);		// Initialize the TSD of stuff that goes in threading.cc.
-#if CWDEBUG_ALLOC
-    // Initialize libcwd now, before calling pthread_setspecific() below.
-    // Otherwise the call to calloc() by pthread_setspecific might cause initialization of static_tsd
-    // while its contents have already been copied to real_tsd, causing this initialization to get lost.
-    init_debugmalloc();
-#endif
   }
   else
   {
@@ -354,13 +342,7 @@ void TSD_st::cleanup_routine()
         do_off_array[i] = 0;                    // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
         do_array[i] = NULL;                     // So we won't free it again.
         ptr->tsd_initialized = false;
-#if CWDEBUG_ALLOC
-        internal = 1;
-#endif
         delete ptr;                             // Free debug object TSD.
-#if CWDEBUG_ALLOC
-        internal = 0;
-#endif
       }
 
     int oldtype;
@@ -378,15 +360,7 @@ void TSD_st::cleanup_routine()
 
     pthread_setspecific(S_tsd_key, (void*)0);	// Make sure that instance_free() won't use the KEY anymore!
     // Then we can savely delete the current TSD.
-#if CWDEBUG_ALLOC
-    static_tsd->internal = 1;			// We can't call set_alloc_checking_off, because with --enable-debugm
-						// that will do a LIBCWD_TSD_DECLARATION, causing a new key
-						// to be generated.
-#endif
     delete this;
-#if CWDEBUG_ALLOC
-    static_tsd->internal = 0;
-#endif
   }
 }
 
@@ -506,86 +480,22 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
 
 // The default constructor of a thread_ct object.
 // No real initialization is done yet, for that thread_ct::initialize
-// needs to be called.  The reason for that is because 'new_memblk_map'
-// (see thread_ct::initialize) will use allocator_adaptor<> which will
-// try to dereference TSD_st::thread_iter which is not initialized yet because
-// this object isn't yet added to threadlist at the moment of its construction.
+// needs to be called after this object is added to threadlist.
 // The threadlist_instance mutex needs to be locked
 // before insertion of the thread_ct takes place and
 // not be unlocked until initialization of the object
 // has finished.
-#if CWDEBUG_ALLOC
-extern void* new_memblk_map(LIBCWD_TSD_PARAM);
-#endif
 void thread_ct::initialize(LIBCWD_TSD_PARAM)
 {
-#if CWDEBUG_ALLOC
-#if CWDEBUG_DEBUGT
-  if (!__libcwd_tsd.internal || !is_locked(threadlist_instance))
-    core_dump();
-#endif
-  std::memset(this, 0 , sizeof(thread_ct));		// This is ok: we have no virtual table or base classes.
-  current_alloc_list =  &base_alloc_list;		// This is why we may only initialize thread_ct after
-							// it reached it final place, and may not move the object
-							// anymore after that!
-#endif
   thread_mutex.initialize();
-#if CWDEBUG_ALLOC
-  thread_mutex.lock();		// Need to be locked because otherwise sanity_check() of the maps allocator will fail.
-				// Its not really necessary to lock of course, because threadlist_instance is locked as
-				// well and thus this is the only thread that could possibly access the map.
-  // new_memblk_map used to allocate a new allocation-debugging map<> for the
-  // current thread. This block is retained only while CWDEBUG_ALLOC exists as
-  // a permanently-disabled source compatibility macro.
-  memblk_map = new_memblk_map(LIBCWD_TSD);
-  DEBUGDEBUG_CERR("My memblk_map is " << (void*)memblk_map << " (thread_ct at " << (void*)this << ", thread_iter at " << (void*)&__libcwd_tsd.thread_iter << ", __libcwd_tsd at " << (void*)&__libcwd_tsd << ')');
-  thread_mutex.unlock();
-#endif
   tid = __libcwd_tsd.tid;
 }
 
 // This member function is called when the TSD_st structure
 // is being reused, which is currently our only way to know
 // for sure that the corresponding thread has terminated.
-extern bool delete_memblk_map(void* memblk_map LIBCWD_COMMA_TSD_PARAM);
-void thread_ct::terminated(threadlist_t::iterator
-#if CWDEBUG_ALLOC
-    thread_iter LIBCWD_COMMA_TSD_PARAM
-#elif LIBCWD_THREAD_SAFE
-    , ::libcwd::_private_::TSD_st&
-#endif
-    )
+void thread_ct::terminated(threadlist_t::iterator LIBCWD_COMMA_TSD_PARAM_UNUSED)
 {
-#if CWDEBUG_ALLOC
-  set_alloc_checking_off(LIBCWD_TSD);
-#if CWDEBUG_DEBUGT
-  // Cancel is already defered (we're called from TSD_st::S_create).
-  __libcwd_tsd.cancel_explicitely_deferred++;
-#endif
-  // Must lock the threadlist because we might delete the map (if it is empty)
-  // at which point another thread shouldn't be trying to search that map,
-  // looping over all elements of threadlist.
-  rwlock_tct<threadlist_instance>::wrlock();
-  // delete_memblk_map will delete memblk_map (which is actually a
-  // pointer to the type memblk_map_ct) if the map is empty and
-  // return true, or it does nothing and returns false.
-  // This allocation-debugging cleanup is retained only while CWDEBUG_ALLOC
-  // exists as a permanently-disabled source compatibility macro.
-  if (delete_memblk_map(memblk_map, LIBCWD_TSD))	// Returns true if memblk_map was deleted.
-  {
-    DEBUGDEBUG_CERR("Erasing from threadlist memblk_map " << (void*)thread_iter->memblk_map << " (thread_ct at " << (void*)&(*thread_iter) << " which should be equal to " << (void*)this << ", [old_]thread_iter at " << (void*)&thread_iter << ')');
-    memblk_map = NULL;
-    threadlist->erase(thread_iter);			// We're done with this thread object.
-  }
-  else
-    M_zombie = true;				// This causes the memblk_map to be deleted as soon as the last
-						// allocation belonging to this thread is freed.
-  rwlock_tct<threadlist_instance>::wrunlock();
-#if CWDEBUG_DEBUGT
-  __libcwd_tsd.cancel_explicitely_deferred--;
-#endif
-  set_alloc_checking_on(LIBCWD_TSD);
-#endif
 }
 
 #if CWDEBUG_DEBUGT
@@ -619,11 +529,7 @@ struct keypair_compare_st {
 
 // Definition of the map<> that holds the key instance pairs that are ever locked simultaneously by the same thread.
 typedef std::pair<keypair_key_st const, keypair_info_st> keypair_map_value_t;
-#if CWDEBUG_ALLOC
-typedef std::map<keypair_key_st, keypair_info_st, keypair_compare_st, internal_allocator::rebind<keypair_map_value_t>::other> keypair_map_t;
-#else
 typedef std::map<keypair_key_st, keypair_info_st, keypair_compare_st> keypair_map_t;
-#endif
 static keypair_map_t* keypair_map;
 
 // Bring some arbitrary ordering into the map with key pairs.

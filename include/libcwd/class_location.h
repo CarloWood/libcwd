@@ -62,11 +62,6 @@ template<class OSTREAM>
   } // namespace _private_
 } // namespace libcwd
 
-// This header file uses hidden_st
-#ifndef LIBCWD_CLASS_ALLOC_FILTER_H
-#include "class_alloc_filter.h"
-#endif
-
 namespace libcwd {
 
 /** \addtogroup group_locations */
@@ -98,10 +93,6 @@ protected:
   object_file_ct const* M_object_file;		//!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
   bool M_known;					//!< Set when M_filepath (and M_filename) point to valid data and M_line contains a valid line number.
 private:
-#if CWDEBUG_ALLOC
-  friend class alloc_filter_ct;
-  mutable _private_::hidden_st M_hide;		// Indicates if this location is filtered by the current filter.
-#endif
 
 protected:
   // M_func can point to one of these constants, or to libcwd::unknown_function_c
@@ -229,15 +220,9 @@ public:
   }
 #endif
 
-  // This is used in list_allocations_on.
+  // Return the program counter that still needs lazy symbol resolution, if any.
   bool initialization_delayed() const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
   void const* unknown_pc() const { return (!M_object_file && M_func == unknown_function_c) ? M_unknown_pc : initialization_delayed() ? M_initialization_delayed : 0; }
-#if CWDEBUG_ALLOC
-  void handle_delayed_initialization(alloc_filter_ct const& filter);
-  bool hide_from_alloc_list() const { return M_hide == _private_::filtered_location; }
-  bool new_location() const { return M_hide == _private_::new_location; }
-  void synchronize_with(alloc_filter_ct const&) const;
-#endif
 };
 
 //#if (__GNUC__ > 3 || __GNUC_MINOR__ >= 4)

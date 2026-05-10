@@ -38,9 +38,6 @@ MAIN_FUNCTION
 #ifndef THREADTEST
   Debug( libcw_do.set_ostream(&std::cout) );
 #endif
-#if CWDEBUG_ALLOC && !defined(THREADTEST)
-  libcwd::make_all_allocations_invisible_except(NULL);
-#endif
 
   // Select channels
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );

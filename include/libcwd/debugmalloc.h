@@ -56,13 +56,8 @@ inline void set_invisible_off() { }
 
 } // namespace libcwd
 
-#if CWDEBUG_DEBUGM
-#define LIBCWD_DEBUGM_CERR(x) DEBUGDEBUG_CERR(x)
-#define LIBCWD_DEBUGM_ASSERT(expr) do { if (!(expr)) { FATALDEBUGDEBUG_CERR("CWDEBUG_DEBUGM: " __FILE__ ":" << __LINE__ << ": " << __PRETTY_FUNCTION__ << ": Assertion`" << LIBCWD_STRING(expr) << "' failed."); core_dump(); } } while(0)
-#else
 #define LIBCWD_DEBUGM_CERR(x) do { } while(0)
 #define LIBCWD_DEBUGM_ASSERT(x) do { } while(0)
-#endif
 
 namespace libcwd {
 

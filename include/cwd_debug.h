@@ -33,100 +33,12 @@ extern "C" size_t strlen(const char *s) throw();
 
 namespace libcwd {
 
-#if CWDEBUG_ALLOC
-namespace _private_ {
-
-extern void no_alloc_print_int_to(std::ostream* os, unsigned long val, bool hexadecimal);
-
-//----------------------------------------------------------------------------------------------
-// struct no_alloc_ostream_ct
-//
-// A fake ostream that is used in DoutInternal and LIBCWD_Dout in order to write
-// to an ostream without allocating memory through std::__default_allocator<true, 0>
-// which could lead to a deadlock.
-
-struct no_alloc_ostream_ct {
-  std::ostream& M_os;
-  no_alloc_ostream_ct(std::ostream& os) : M_os(os) { }
-};
-
-} // namespace _private_
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, char const* data)
-{
-  os.M_os.write(data, strlen(data));
-  return os;
-}
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, libcwd::_private_::internal_string const& data)
-{
-  os.M_os.write(data.data(), data.size());
-  return os;
-}
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, char data)
-{
-  os.M_os.put(data);
-  return os;
-}
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, int data)
-{
-  _private_::no_alloc_print_int_to(&os.M_os, data, false);
-  return os;
-}
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, unsigned int data)
-{
-  _private_::no_alloc_print_int_to(&os.M_os, data, false);
-  return os;
-}
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, long data)
-{
-  _private_:: no_alloc_print_int_to(&os.M_os, data, false);
-  return os;
-}
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, unsigned long data)
-{
-  _private_::no_alloc_print_int_to(&os.M_os, data, false);
-  return os;
-}
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, void const* data)
-{
-  _private_::no_alloc_print_int_to(&os.M_os, reinterpret_cast<unsigned long>(data), true);
-  return os;
-}
-
 #if CWDEBUG_LOCATION
-class location_ct;
-
-namespace _private_ {
-
-template<class OSTREAM>
-void print_location_on(OSTREAM& os, location_ct const& location);
-
-} // namespace _private_
-
-inline _private_::no_alloc_ostream_ct& operator<<(_private_::no_alloc_ostream_ct& os, location_ct const& location)
-{
-  _private_::print_location_on(os, location);
-  return os;
-}
 #endif
-
-#define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
-	_private_::no_alloc_ostream_ct no_alloc_ostream(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)); \
-	no_alloc_ostream << data
-
-#else // !CWDEBUG_ALLOC
 
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) \
 	(*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)) << data
 
-#endif // !CWDEBUG_ALLOC
 
 #define LIBCWD_Dout( cntrl, data )									\
   do													\

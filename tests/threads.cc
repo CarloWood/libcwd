@@ -130,9 +130,6 @@ pthread_mutex_t cout_lock;
 int main()
 {
   Debug( check_configuration() );
-#if CWDEBUG_ALLOC
-  libcwd::make_all_allocations_invisible_except(NULL);
-#endif
   Debug( libcw_do.on() );
   Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
 

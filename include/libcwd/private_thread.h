@@ -47,23 +47,10 @@ struct TSD_st;
 class thread_ct {
 
 public:
-#if CWDEBUG_ALLOC
-typedef std::list<thread_ct, internal_allocator::rebind<thread_ct>::other> threadlist_type;
-#else
 typedef std::list<thread_ct> threadlist_type;
-#endif
 
 public:
   mutex_ct thread_mutex;		// Mutex for the attributes of this object.
-#if CWDEBUG_ALLOC
-  void* memblk_map;	// Pointer to memblk_map_ct of this thread.
-  dm_alloc_ct* base_alloc_list;		// The base list with `dm_alloc_ct' objects.  Each of these objects has a list of it's own.
-  dm_alloc_ct** current_alloc_list;	// The current list to which newly allocated memory blocks are added.
-  dm_alloc_ct* current_owner_node;	// If the current_alloc_list != &base_alloc_list, then this variable
-					// points to the dm_alloc_ct node who owns the current list.
-  size_t memsize;			// Total number of allocated bytes (excluding internal allocations).
-  unsigned long memblks;		// Total number of allocated blocks (excluding internal allocations).
-#endif
   pthread_t tid;			// Thread ID.  This is only used to print the ID list_allocations_on, and to
 					// terminate all threads in a DoutFatal(dc::fatal, ...).
   bool M_zombie;

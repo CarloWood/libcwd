@@ -36,11 +36,7 @@ private:
 public:
   // Dirty initialization - the idea is to decouple us here from the rest of elfxx.cc and bfd.cc.
   // These four are called once, from elfxx.cc.
-#if CWDEBUG_ALLOC
-  typedef std::basic_string<char, std::char_traits<char>, _private_::object_files_allocator> object_files_string;
-#else
   typedef std::string object_files_string;
-#endif
 #if defined(__x86_64__) || defined(__sparc64) || defined(__ia64__)
   typedef uint64_t Elfxx_Addr;        // Elf64_Addr.
 #else
@@ -62,11 +58,7 @@ public:
 };
 
 // This type is added to class bfile_ct.
-#if CWDEBUG_ALLOC
-typedef std::vector<compilation_unit_ct, object_files_allocator::rebind<compilation_unit_ct>::other> compilation_units_vector_ct;
-#else
 typedef std::vector<compilation_unit_ct> compilation_units_vector_ct;
-#endif
 
   } // namespace _private_
 } // namespace libcwd

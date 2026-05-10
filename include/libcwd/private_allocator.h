@@ -22,11 +22,6 @@
 #include "libcwd/config.h"
 #endif
 
-#if CWDEBUG_ALLOC		// This file is not used when --disable-alloc was used.
-
-#ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
-#include "private_mutex_instances.h"
-#endif
 #ifndef LIBCWD_CORE_DUMP_H
 #include "core_dump.h"
 #endif
@@ -354,7 +349,7 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
       // Destroy elements of initialized storage p.
       void destroy(pointer p) { p->~T(); }
 
-#if CWDEBUG_DEBUG || CWDEBUG_DEBUGM
+#if CWDEBUG_DEBUG
     private:
       static void sanity_check();
 #endif
@@ -383,18 +378,15 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
 			  LIBCWD_DEBUGDEBUG_COMMA(::libcwd::_private_::instance)>
 #endif
 
-// Both, multi_threaded_internal_instance and memblk_map_instance use also locks for
-// the allocator pool itself because they (the memory pools) are being shared between
-// threads from within critical areas with different mutexes.
+// The multi_threaded_internal_instance allocator pool is shared between
+// threads and therefore needs its own lock.
 // Other instances (> 0) are supposed to only use the allocator instance from within
 // the critical area of the corresponding mutex_tct<instance>, and thus only by one
 // thread at a time.
 #if LIBCWD_THREAD_SAFE
 #define LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance)						\
 			        ::libcwd::_private_::instance ==				\
-			        ::libcwd::_private_::multi_threaded_internal_instance ||	\
-			        ::libcwd::_private_::instance ==				\
-			        ::libcwd::_private_::memblk_map_instance
+			        ::libcwd::_private_::multi_threaded_internal_instance
 #else // !LIBCWD_THREAD_SAFE
 #define LIBCWD_ALLOCATOR_POOL_NEEDS_LOCK(instance) false
 #endif // !LIBCWD_THREAD_SAFE
@@ -442,9 +434,6 @@ template<typename T, class CharAlloc, pool_nt internal LIBCWD_COMMA_INT_INSTANCE
 //---------------------------------------------------------------------------------------------------
 // Internal allocator types.
 
-// This allocator is used in critical areas that are already locked by memblk_map_instance.
-typedef LIBCWD_NS_INTERNAL_ALLOCATOR(memblk_map_instance) memblk_map_allocator;
-
 // This allocator is used in critical areas that are already locked by object_files_instance.
 typedef LIBCWD_NS_INTERNAL_ALLOCATOR(object_files_instance) object_files_allocator;
 
@@ -465,6 +454,4 @@ typedef LIBCWD_MT_USERSPACE_ALLOCATOR userspace_allocator;
   } // namespace _private_
 } // namespace libcwd
 
-#endif // CWDEBUG_ALLOC
 #endif // LIBCWD_PRIVATE_ALLOCATOR_H
-

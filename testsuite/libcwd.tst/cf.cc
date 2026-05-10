@@ -18,14 +18,8 @@ MAIN_FUNCTION
 { PREFIX_CODE
 #ifdef LIBCWD_USE_STRSTREAM
   std::ostrstream buf;
-#elif !CWDEBUG_ALLOC
+#else
   std::ostringstream buf;
-#else
-#if __GNUC__ < 3
-  ::std::basic_stringstream<char, string_char_traits<char>, ::libcwd::_private_::userspace_allocator> buf;
-#else
-  ::std::basic_stringstream<char, ::std::char_traits<char>, ::libcwd::_private_::userspace_allocator> buf;
-#endif
 #endif
 
   Debug( check_configuration() );

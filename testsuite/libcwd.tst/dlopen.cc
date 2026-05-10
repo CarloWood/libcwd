@@ -10,10 +10,6 @@ MAIN_FUNCTION
 { PREFIX_CODE
   Debug( check_configuration() );
 
-#if CWDEBUG_ALLOC && !defined(THREADTEST)
-  int* dummy = new int;					// Make sure initialization of libcwd is done.
-  libcwd::make_all_allocations_invisible_except(NULL);	// Don't show allocations that are done as part of initialization.
-#endif
 
   Debug( libcw_do.on() );
   Debug( dc::malloc.on() );
@@ -59,16 +55,7 @@ MAIN_FUNCTION
   void* ptr1 = (*f)(false);
   void* ptr2 = (*f)(true);
 
-#if CWDEBUG_ALLOC
-  Debug(
-      alloc_filter_ct alloc_filter
 #if CWDEBUG_LOCATION
-        (show_objectfile)
-#endif
-        ;
-      alloc_filter.hide_untagged_allocations();
-      alloc_filter.hide_unknown_locations();
-      list_allocations_on(libcw_do, alloc_filter) );
 #endif
 
   free(ptr1);
@@ -81,9 +68,6 @@ MAIN_FUNCTION
 
   Debug( dc::malloc.off() );
 
-#if CWDEBUG_ALLOC && !defined(THREADTEST)
-  delete dummy;
-#endif
 
   EXIT(0);
 }

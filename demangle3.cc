@@ -677,11 +677,7 @@ implementation_details::decode_real(char* output, unsigned long* input, size_t s
   return true;
 }
 
-#if CWDEBUG_ALLOC
-typedef __gnu_cxx::demangler::session<internal_allocator> session_type;
-#else
 typedef __gnu_cxx::demangler::session<std::allocator<char> > session_type;
-#endif
 
 //
 // demangle_symbol
@@ -692,10 +688,6 @@ typedef __gnu_cxx::demangler::session<std::allocator<char> > session_type;
 //
 void demangle_symbol(char const* input, internal_string& output)
 {
-#if CWDEBUG_DEBUGM
-  LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT( __libcwd_tsd.internal );
-#endif
 
 #ifdef STANDALONE
   if (input != main_in)
@@ -767,10 +759,6 @@ void demangle_symbol(char const* input, internal_string& output)
 //
 void demangle_type(char const* input, internal_string& output)
 {
-#if CWDEBUG_DEBUGM
-  LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT( __libcwd_tsd.internal );
-#endif
 #ifdef STANDALONE
   if (input != main_in)
     Debug( dc::demangler.off() );

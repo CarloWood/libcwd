@@ -116,10 +116,14 @@ namespace libcwd {
 
 /** \brief The type of the argument of location_format
  *
- * This type is the same as alloc_format_t but should
- * only be used together with the bit masks \ref show_objectfile, \ref show_function and \ref show_path.
+ * This type is used together with the bit masks \ref show_objectfile,
+ * \ref show_function and \ref show_path.
  */
 typedef unsigned short int location_format_t;
+
+location_format_t const show_path = 1;        //!< Show the full source path when printing a location.
+location_format_t const show_objectfile = 2;  //!< Show the shared library or executable that owns the location.
+location_format_t const show_function = 4;    //!< Show the mangled function name for the location.
 
 /** \} */ // End of group 'group_locations'
 #endif
@@ -131,15 +135,6 @@ class thread_ct;
 
 struct TSD_st {
 public:
-#if CWDEBUG_ALLOC
-  // The volatile members are incremented/decremented by inline functions, possibly around
-  // calls to malloc et al, which are treated special by the compiler in that it assumes
-  // that a change to a global variable can't have influence-- but these members DO have influence.
-  int volatile internal;		// libsysrecord.so relies on this being the first element.
-  int volatile library_call;		// libsysrecord.so relies on this being the second element.
-  int inside_malloc_or_free;		// Set when entering a (de)allocation routine non-internal.
-  int volatile invisible;		// When set, allocation done must be invisible.
-#endif // CWDEBUG_ALLOC
 #if CWDEBUG_LOCATION
   location_format_t format;		// Determines how to print location_ct to an ostream.
 #endif
@@ -151,12 +146,6 @@ public:
   bool pthread_lock_interface_is_locked;// Set while writing debugout to the final ostream.
   bool list_allocations_on_show_allthreads;
   int inside_free;			// Set when entering free().
-#endif
-#if CWDEBUG_DEBUGM
-  int marker;
-#if CWDEBUG_MAGIC
-  int annotation;
-#endif
 #endif
   bool recursive_fatal;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG

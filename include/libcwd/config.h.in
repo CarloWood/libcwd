@@ -43,14 +43,6 @@
  * otherwise it is defined to 0.&nbsp;
  * This makes it possible for the compiler to warn you when you made a typo in the name of a macro.
  *
- * <b>Example:</b>
- *
- * \code
- * // Use '#if' not '#ifdef'.
- * #if CWDEBUG_ALLOC
- * Dout(dc::malloc, malloc_report << '.');
- * #endif
- * \endcode
  */
 
 /** \defgroup enable_alloc allocation debugging removed (CWDEBUG_ALLOC)
@@ -309,12 +301,6 @@ namespace libcwd {
 
 static unsigned long const config_signature_header_c =
 	(
-#if CWDEBUG_ALLOC
-	1|
-#endif
-#if CWDEBUG_MAGIC
-	2|
-#endif
 #if CWDEBUG_LOCATION
 	4|
 #endif
@@ -324,14 +310,8 @@ static unsigned long const config_signature_header_c =
 #if CWDEBUG_DEBUG
 	16|
 #endif
-#if CWDEBUG_DEBUGM
-	32|
-#endif
 #if CWDEBUG_DEBUGT
 	64|
-#endif
-#if CWDEBUG_MARKER
-	128|
 #endif
 #if CWDEBUG_DEBUGOUTPUT
 	256|

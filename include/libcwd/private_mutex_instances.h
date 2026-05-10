@@ -38,10 +38,6 @@ enum mutex_instance_nt {
   object_files_instance,		// rwlock
   end_recursive_types,
   // Fast mutexes.
-#if CWDEBUG_ALLOC
-  memblk_map_instance,
-  location_cache_instance,		// rwlock
-#endif
   threadlist_instance,			// rwlock
   debug_objects_instance,		// rwlock
   debug_channels_instance,		// rwlock
@@ -57,10 +53,6 @@ enum mutex_instance_nt {
 #endif
   mutex_initialization_instance,
   ids_singleton_tct_S_ids_instance,
-#if CWDEBUG_ALLOC
-  alloc_tag_desc_instance,
-  list_allocations_instance,
-#endif
   dlopen_map_instance,
   backtrace_instance,
   write_max_len_instance,

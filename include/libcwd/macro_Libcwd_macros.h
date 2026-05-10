@@ -26,12 +26,7 @@
 #include <cstddef>		// Needed for size_t
 #endif
 
-#if CWDEBUG_DEBUGM
-// Dout may not be called while 'internal' anymore.
-#define LIBCWD_ASSERT_NOT_INTERNAL LIBCWD_ASSERT(!__libcwd_tsd.internal)
-#else
 #define LIBCWD_ASSERT_NOT_INTERNAL
-#endif
 
 //===================================================================================================
 // Macro LibcwDebug

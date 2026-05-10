@@ -13,13 +13,8 @@ namespace example {
 
 MAIN_FUNCTION
 { PREFIX_CODE
-#if !CWDEBUG_ALLOC || !CWDEBUG_LOCATION
   DoutFatal(dc::fatal, "Expected Failure.");
-#endif
   Debug( check_configuration() );
-#if !defined(THREADTEST) && CWDEBUG_ALLOC
-  libcwd::make_all_allocations_invisible_except(NULL);
-#endif
   Debug( libcw_do.on() );
   Debug( dc::warp.on() );
   Debug( dc::notice.on() );

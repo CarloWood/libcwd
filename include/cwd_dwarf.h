@@ -82,13 +82,8 @@ namespace dwarf {
 
 class objfiles_ct;
 
-#if CWDEBUG_ALLOC
-using object_files_ct = std::list<objfiles_ct*, _private_::object_files_allocator::rebind<objfiles_ct*>::other>;
-#define LIBCWD_COMMA_ALLOC_OPT(x) , x
-#else
 using object_files_ct = std::list<objfiles_ct*>;
 #define LIBCWD_COMMA_ALLOC_OPT(x)
-#endif
 
 class objfiles_ct
 {

@@ -33,15 +33,9 @@ namespace libcwd {
   namespace _private_ {
 
 // This is the vector type that we use in Multi Threaded internal functions.
-#if CWDEBUG_ALLOC
-template <typename T>
-  struct internal_vector : public ::std::vector<T, typename internal_allocator::rebind<T>::other>
-  { };
-#else
 template <typename T>
   struct internal_vector : public ::std::vector<T>
   { };
-#endif
 
   } // namespace _private_
 } // namespace libcwd

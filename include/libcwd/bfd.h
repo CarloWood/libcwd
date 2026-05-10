@@ -28,17 +28,5 @@
 #include "pc_mangled_function_name.h"
 #endif
 
-#if CWDEBUG_ALLOC
-namespace libcwd {
-  namespace _private_ {
-    struct exit_function_list
-    {
-      struct exit_function_list* next;
-      // More here...
-    };
-    extern struct exit_function_list** __exit_funcs_ptr;
-  }
-}
-#endif
 
 #endif // LIBCWD_BFD_H

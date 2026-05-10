@@ -41,14 +41,7 @@ namespace libcwd {
 #define LIBCWD_CANCELSTATE_RESTORE do { } while(0)
 #endif
 
-#if CWDEBUG_ALLOC
-#define LIBCWD_LIBRARY_CALL_INDENTATION \
-	/*  __libcwd_lcwc means library_call write counter.  Used to avoid the 'scope of for changed' warning. */ \
-	do { for (int __libcwd_lcwc = 0; __libcwd_lcwc < __libcwd_tsd.library_call; ++__libcwd_lcwc)	\
-             { size_t __attribute__((unused)) __libcwd_len = ::write(2, "    ", 4); } } while(0)
-#else
 #define LIBCWD_LIBRARY_CALL_INDENTATION do { } while(0)
-#endif
 
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
 // when --disable-debug-output is used because a fatal error occured anyway, so this can't

@@ -33,11 +33,7 @@ namespace libcwd {
   namespace _private_ {
 
 // This is the string type that we use in Multi Threaded internal functions.
-#if CWDEBUG_ALLOC
-typedef ::std::basic_string<char, ::std::char_traits<char>, userspace_allocator> string;
-#else
 typedef ::std::string string;
-#endif
 
   } // namespace _private_
 } // namespace libcwd

@@ -59,15 +59,7 @@ namespace channels {
     extern channel_ct notice;
     extern channel_ct system;
     extern channel_ct warning;
-#if CWDEBUG_ALLOC
-#ifdef LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
     extern channel_ct malloc;
-#else
-    extern channel_ct __libcwd_malloc;
-#endif
-#else // !CWDEBUG_ALLOC
-    extern channel_ct malloc;
-#endif
 #if CWDEBUG_LOCATION
     extern channel_ct bfd;
 #endif
@@ -157,4 +149,3 @@ using namespace libcwd_inserters;
 
 #endif // CWDEBUG
 #endif // LIBCWD_LIBRARIES_DEBUG_H
-

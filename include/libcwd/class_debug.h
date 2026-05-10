@@ -43,18 +43,6 @@ namespace libcwd {
 
 class buffer_ct;
 
-#if CWDEBUG_ALLOC
-namespace _private_ {
-
-struct debug_message_st {
-  struct debug_message_st* next;
-  struct debug_message_st* prev;
-  int curlen;
-  char buf[sizeof(int)];
-};
-
-} // namespace _private_
-#endif
 
 //===================================================================================================
 // class debug_ct
@@ -135,13 +123,6 @@ private:
   std::atomic<int> m_always_flush{0};
     // Application-wide flush on/off counter for Debug Objects.
 
-#if CWDEBUG_ALLOC
-public:
-  _private_::debug_message_st* queue;
-  _private_::debug_message_st* queue_top;
-    // Queue of messages written inside malloc/realloc/calloc/free/new/delete.
-    // Locked by mutex provided through set_ostream.
-#endif
 
 public:
   /** \addtogroup group_formatting */
@@ -227,7 +208,7 @@ private:
   bool NS_init(LIBCWD_TSD_PARAM);
     // Initialize this object, needed because debug output can be written
     // from the constructors of (other) global objects, and from the malloc()
-    // family when CWDEBUG_ALLOC is set to 1.
+    // family while the debug object is being updated.
     // This will return false when it is called recursively which can happen
     // as part of initialization of libcwd via a call to malloc while creating
     // laf_ct -> buffer_ct --> basic_stringbuf.  In that case the initialization
@@ -290,4 +271,3 @@ template<>
 #endif
 
 #endif // LIBCWD_CLASS_DEBUG_H
-

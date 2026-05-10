@@ -24,9 +24,6 @@
 #ifndef LIBCWD_PRIVATE_ALLOCATOR_H
 #include "private_allocator.h"
 #endif
-#if CWDEBUG_DEBUGM && !defined(LIBCWD_PRIVATE_STRUCT_TSD_H)
-#include "private_struct_TSD.h"
-#endif
 #ifndef LIBCW_SSTREAM
 #define LIBCW_SSTREAM
 #include <sstream>
@@ -35,11 +32,7 @@
 namespace libcwd {
   namespace _private_ {
 
-#if CWDEBUG_ALLOC
-typedef ::std::basic_stringbuf<char, ::std::char_traits<char>, ::libcwd::_private_::auto_internal_allocator> auto_internal_stringbuf;
-#else
 typedef ::std::stringbuf auto_internal_stringbuf;
-#endif
 
   } // namespace _private_
 } // namespace libcwd

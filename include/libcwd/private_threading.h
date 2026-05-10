@@ -177,16 +177,7 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
       int __libcwd_oldstate; \
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate); \
       LibcwDebugThreads( ++__libcwd_tsd.cancel_explicitely_disabled )
-#if CWDEBUG_ALLOC
-#define LIBCWD_ASSERT_USERSPACE_OR_DEFERED_BEFORE_SETCANCELSTATE \
-      /* pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL) will call, */ \
-      /* and pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL) can call,   */ \
-      /* __pthread_do_exit() when the thread is cancelled in the meantime.   */ \
-      /* This might free allocations that are allocated in userspace.        */ \
-      LIBCWD_ASSERT( !__libcwd_tsd.internal || __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.cancel_explicitely_deferred )
-#else
 #define LIBCWD_ASSERT_USERSPACE_OR_DEFERED_BEFORE_SETCANCELSTATE
-#endif
 #define LIBCWD_ENABLE_CANCEL_NO_BRACE \
       LibcwDebugThreads(\
 	LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_disabled > 0 ); \
@@ -220,11 +211,7 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 #define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg) \
     pthread_cleanup_push_defer_np(reinterpret_cast<void(*)(void*)>(routine), reinterpret_cast<void*>(arg)); \
       LibcwDebugThreads( ++__libcwd_tsd.cancel_explicitely_deferred; ++__libcwd_tsd.cleanup_handler_installed )
-#if CWDEBUG_ALLOC
-#define LIBCWD_ASSERT_NONINTERNAL LIBCWD_ASSERT( !__libcwd_tsd.internal )
-#else
 #define LIBCWD_ASSERT_NONINTERNAL
-#endif
 #define LIBCWD_CLEANUP_POP_RESTORE(execute) \
       LibcwDebugThreads( --__libcwd_tsd.cleanup_handler_installed; \
 	    LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred > 0 ); \

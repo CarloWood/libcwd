@@ -12,7 +12,7 @@
 //
 #include "sys.h"
 #include <iostream>
-#include "alloctag_debug.h"
+#include <libcwd/debug.h>
 #include "libcwd/lockable_auto_ptr.h"
 
 using namespace libcwd;
@@ -24,10 +24,6 @@ MAIN_FUNCTION
 { PREFIX_CODE
   Debug( check_configuration() );
 
-#if CWDEBUG_ALLOC && !defined(THREADTEST)
-  // Don't show allocations that are allocated before main()
-  make_all_allocations_invisible_except(NULL);
-#endif
 
   // Select channels
   Debug( dc::notice.on() );
@@ -43,7 +39,6 @@ MAIN_FUNCTION
   Al* a;
 
   a = new Al;
-  AllocTag(a, "A1");
   lockable_auto_ptr<Al> ap1(a);
 
   LIBCWD_ASSERT(ap1.get() == a);
@@ -64,7 +59,6 @@ MAIN_FUNCTION
   LIBCWD_ASSERT(bp1.is_owner() && !bp1.strict_owner());
 
   a = new Al;
-  AllocTag(a, "A2");
   lockable_auto_ptr<Al> ap3(a);
   lockable_auto_ptr<Bl> bp2;
   bp2 = ap3;
@@ -75,7 +69,6 @@ MAIN_FUNCTION
   LIBCWD_ASSERT(bp2.is_owner() && !bp2.strict_owner());
 
   a = new Al;
-  AllocTag(a, "A3");
   lockable_auto_ptr<Al> ap4(a);
   ap4.lock();
 
@@ -97,7 +90,6 @@ MAIN_FUNCTION
   LIBCWD_ASSERT(!bp3.is_owner());
 
   a = new Al;
-  AllocTag(a, "A4");
   lockable_auto_ptr<Al> ap6(a);
   ap6.lock();
   lockable_auto_ptr<Bl> bp4;
