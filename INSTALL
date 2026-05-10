@@ -46,23 +46,21 @@ The following boolean variables can be set to ON or OFF on the command line,
 
    EnableGlibCxxDebug   : Compile libcwd with -D_GLIBCXX_DEBUG.
                           See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html.
-   EnableLibcwdAlloc    : Enable memory allocation debugging support.
-   EnableLibcwdMagic    : Enable magic numbers in memory allocation debugging.
-   EnableLibcwdMarker   : Enable memory allocation markers.
    EnableLibcwdLocation : Enable the ability to lookup source file and line
                           number, you might need this on a non-ELF system.
 (you do not want to use these):
    EnableLibcwdDebug    : Enable debugging of libcwd itself.
    EnableLibcwdDebugOutput : Enable debug output of EnableLibcwdDebug.
-   EnableLibcwdDebugm   : Enable debugging of memory allocation debugging code in libcwd itself.
    EnableLibcwdDebugt   : Enable debugging of threading debugging code in libcwd itself.
 
 When running `cmake` each option and its value is printed (unless forced to OFF);
 often a value is forced or has a default. Recommended is to only set an option if
 you're not happy with the default.
 
-For example,
-cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -DEnableLibcwdAlloc=OFF -S . -B build
+Memory allocation debugging support has been removed. The legacy
+CWDEBUG_ALLOC, CWDEBUG_MAGIC, CWDEBUG_MARKER, and CWDEBUG_DEBUGM macros are
+still defined by installed headers for source compatibility, but they are
+always 0 and there are no CMake options to enable them.
 
 Trouble
 =======

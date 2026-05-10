@@ -53,51 +53,34 @@
  * \endcode
  */
 
-/** \defgroup enable_alloc --enable-alloc (CWDEBUG_ALLOC)
+/** \defgroup enable_alloc allocation debugging removed (CWDEBUG_ALLOC)
  * \ingroup group_configuration
  *
  * \par Description
  *
- * Turns on debugging for memory (de-)allocation.&nbsp;
- * This will warn you when you free an invalid block.&nbsp;
- * It also enables memory leak detection.
- *
- * \par When to use it
- *
- * In general, this should be used as long as you are developing a program, unless you want to do speed tests.
- *
- * \par CMake option
- *
- * This is enabled by default.&nbsp;
- * Use \shellcommand cmake -DEnableLibcwdAlloc=OFF ... \endshellcommand to disable it.
+ * Memory allocation debugging support has been removed from libcwd.&nbsp;
+ * The macro remains defined for source compatibility with applications that
+ * conditionally compile allocation-debugging calls, but it is always 0 and
+ * there is no CMake option to enable allocator interception, leak detection,
+ * redzones, or allocation reports.
  *
  * \sa \ref book_allocations
  */
 
-#define CWDEBUG_ALLOC @CW_CONFIG_ALLOC@
+#define CWDEBUG_ALLOC 0
 
-/** \defgroup enable_magic --enable-magic (CWDEBUG_MAGIC)
+/** \defgroup enable_magic magic numbers removed (CWDEBUG_MAGIC)
  * \ingroup group_configuration
  *
  * \par Description
  *
- * Adds a magic number to the beginning and the end of each
- * allocated memory block, and checks this when the block is
- * deleted or reallocated.
- *
- * \par When to use it
- *
- * In general, this should be used as long as you are developing a program, unless you want to do speed tests.
- *
- * \par CMake option
- *
- * This is enabled by default (but \ref enable_alloc must be enabled as well).&nbsp;
- * Use \shellcommand cmake -DEnableLibcwdMagic=OFF ... \endshellcommand to disable it.
+ * Magic number checks were part of the removed allocation-debugging support.&nbsp;
+ * This macro remains defined for source compatibility and is always 0.
  *
  * \sa \ref chapter_magic_numbers
  */
 
-#define CWDEBUG_MAGIC (CWDEBUG_ALLOC && @CW_CONFIG_MAGIC@)
+#define CWDEBUG_MAGIC 0
 
 /** \defgroup enable_glibcxx_debug --enable-glibcxx_debug (CWDEBUG_GLIBCXX_DEBUG)
  * \ingroup group_configuration
@@ -251,63 +234,34 @@
 
 #define CWDEBUG_DEBUGOUTPUT (CWDEBUG_DEBUG && @CW_CONFIG_DEBUGOUTPUT@)
 
-/** \defgroup enable_debugm --enable-debugm (CWDEBUG_DEBUGM)
+/** \defgroup enable_debugm allocation-debugger self-debugging removed (CWDEBUG_DEBUGM)
  * \ingroup group_configuration
  *
  * \par Description
  *
- * Turns on even more debug output: Internal memory allocations are written to cerr.&nbsp;
- * This is needed for debugging the internal memory allocations of libcwd.
- *
- * \par When to use it
- *
- * Never, unless you are a developer of libcwd.
- *
- * \par CMake option
- *
- * This is disabled by default.&nbsp;
- * Use \shellcommand cmake -DEnableLibcwdDebug=ON -DEnableLibcwdDebugm=ON ... \endshellcommand to enable it.
+ * Self-debugging for the allocation-debugging implementation was removed along
+ * with allocator interception.&nbsp; This macro remains defined for source
+ * compatibility and is always 0.
  */
 
-#define CWDEBUG_DEBUGM (CWDEBUG_ALLOC && CWDEBUG_DEBUG && @CW_CONFIG_DEBUGM@)
+#define CWDEBUG_DEBUGM 0
 
-/** \defgroup enable_marker --enable-marker (CWDEBUG_MARKER)
+/** \defgroup enable_marker allocation markers removed (CWDEBUG_MARKER)
  * \ingroup group_configuration
  *
  * \par Description
  *
- * Includes support for markers.
- *
- * \par When to use it
- *
- * Always.
- *
- * \par CMake option
- *
- * This is enabled by default.&nbsp;
- * Use \shellcommand cmake -DEnableLibcwdMarker=OFF ... \endshellcommand to disable it.
+ * Allocation markers were part of the removed allocation-debugging support.&nbsp;
+ * This macro remains defined for source compatibility and is always 0.
  */
 
-#define CWDEBUG_MARKER (CWDEBUG_ALLOC && @CW_CONFIG_MARKER@)
+#define CWDEBUG_MARKER 0
 
 //
 // Configuration defines that are needed by public headers.
 //
 
 #@CW_CONFIG_HAVE_PTHREADS@ LIBCWD_HAVE_PTHREAD
-
-#if CWDEBUG_ALLOC
-#@CW_CONFIG_HAVE___LIBC_MALLOC@ LIBCWD_HAVE___LIBC_MALLOC
-#@CW_CONFIG_HAVE__LIBC_MALLOC@ LIBCWD_HAVE__LIBC_MALLOC
-#@CW_CONFIG_HAVE_DLOPEN@ LIBCWD_HAVE_DLOPEN
-#@CW_CONFIG_HAVE_POSIX_MEMALIGN@ LIBCWD_HAVE_POSIX_MEMALIGN
-#@CW_CONFIG_HAVE_ALIGNED_ALLOC@ LIBCWD_HAVE_ALIGNED_ALLOC
-#@CW_CONFIG_HAVE_MEMALIGN@ LIBCWD_HAVE_MEMALIGN
-#@CW_CONFIG_HAVE_VALLOC@ LIBCWD_HAVE_VALLOC
-#if defined(LIBCWD_HAVE___LIBC_MALLOC) || defined(LIBCWD_HAVE__LIBC_MALLOC) || defined(LIBCWD_HAVE_DLOPEN)
-#define LIBCWD_USE_EXTERNAL_C_LINKAGE_FOR_MALLOC
-#endif
-#endif
 
 #ifndef LIBCWD_THREAD_SAFE
 #define LIBCWD_THREAD_SAFE 0

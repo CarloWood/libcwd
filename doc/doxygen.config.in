@@ -960,7 +960,6 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = @top_srcdir@/debug.cc \
-                         @top_srcdir@/debugmalloc.cc \
                          @srcdir@ \
                          @top_srcdir@/include/libcwd \
                          @top_builddir@/include/libcwd \

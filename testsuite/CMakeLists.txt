@@ -1,7 +1,7 @@
 # Define the test types.
 set(NODEBUGCHECK "nodebug")
-set(TSTCHECK "alloctag" "basic" "location" "cf" "continued" "dc" "demangler" "dlopen" "do" "filter" "find_alloc" "flush" "leak" "lockable_auto_ptr" "magic" "marker" "strdup" "test_delete" "type_info")
-set(THREADSCHECK "keys" "threads")
+set(TSTCHECK "basic" "location" "cf" "continued" "dc" "demangler" "dlopen" "do" "flush" "lockable_auto_ptr" "type_info")
+set(THREADSCHECK "keys")
 
 # Get the basename of the current directory.
 get_filename_component(SUBDIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)

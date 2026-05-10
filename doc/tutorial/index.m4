@@ -74,14 +74,7 @@ __PARAGRAPH(2, 5.4, [[Formatting Debug Output]], [[tut5.html#Formatting]])
 __PARAGRAPH(3, 5.4.1, [[Control Flags]], [[tut5.html#Control]])
 __PARAGRAPH(3, 5.4.2, [[Methods Of The Debug Object]], [[tut5.html#Methods]])
 __PAGE_END
-__PAGE(7, [[Tutorial 6 : The Debugging Of Dynamic Memory Allocations]], tut6.html)
-__PAGE(8, [[Tutorial 7 : Advanced Examples]], tut7.html)
-__PAGE_START
-__PARAGRAPH(2f, 7.1, [[Removing Allocations From The Allocated Memory Overview]], [[tut7.html#Removing]])
-__PARAGRAPH(2, 7.2, [[Retrieving Information About Memory Allocations]], [[tut7.html#Retrieving]])
-__PARAGRAPH(2, 7.3, [[Memory Leak Detection]], [[tut7.html#Memory]])
-__PAGE_END
-__PAGE(9, [[Tutorial 8 : Debugging Threaded Applications]], tut8.html)
+__PAGE(7, [[Tutorial 6 : Debugging Threaded Applications]], tut8.html)
 __TOC_END
 __PAGEEND
 __PAGEFOOTER

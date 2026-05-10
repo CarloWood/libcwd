@@ -85,9 +85,7 @@ int main(void)
 {
   // Don't output a single character at a time (yuk)
   // (Read <A HREF ="http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8">http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8</A> for an explanation.)
-  Debug(set_invisible_on());
-  std::ios::sync_with_stdio(false);	// Cause "memory leaks" ([w]cin, [w]cout, [w]cerr filebuf allocations).
-  Debug(set_invisible_off());
+  std::ios::sync_with_stdio(false);
   // Do header files and library match?
   Debug( check_configuration() );
   // Send debug output to std::cout.
@@ -167,7 +165,7 @@ questions that you can't find answers to here, feel free to mail me.</P>
 __PAGEEND
 <P class="line"><IMG width=870 height=25 src="../images/lines/owl.png"></P>
 <DIV class="buttons">
-<A HREF="tut7.html"><IMG width=64 height=32 src="../images/buttons/lr_prev.png" border="0"></A>
+<A HREF="tut5.html"><IMG width=64 height=32 src="../images/buttons/lr_prev.png" border="0"></A>
 <A HREF="index.html"><IMG width=64 height=32 src="../images/buttons/lr_index.png" border="0"></A>
 </DIV>
 __PAGEFOOTER

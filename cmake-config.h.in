@@ -5,19 +5,12 @@
 #cmakedefine HAVE_DLOPEN
 #cmakedefine HAVE__DL_LOADED
 #cmakedefine HAVE__RTLD_GLOBAL
-#cmakedefine HAVE_ALIGNED_ALLOC
 #cmakedefine HAVE_GETEGID
 #cmakedefine HAVE_GETGROUPS
-#cmakedefine HAVE_MEMALIGN
-#cmakedefine HAVE_POSIX_MEMALIGN
-#cmakedefine HAVE_VALLOC
 #cmakedefine HAVE_WMEMCPY
 #cmakedefine HAVE_BUILTIN_EXPECT
 #cmakedefine HAVE_GETGID
 #cmakedefine HAVE_GET_T
-#cmakedefine HAVE___LIBC_MALLOC
-#cmakedefine HAVE__LIBC_MALLOC
-#cmakedefine HAVE_MALLOC_H
 #cmakedefine HAVE_PTHREAD_H
 #cmakedefine HAVE_UNISTD_H
 
@@ -30,6 +23,3 @@ static char const* const PS_ARGUMENT = "@PS_ARGUMENT@";
 
 // Data directory where the default rcfile is read from.
 #define CW_DATADIR "@libcwd_datadir@"
-
-// The number of bytes extra allocated by a call to malloc.
-#define CW_MALLOC_OVERHEAD @CW_MALLOC_OVERHEAD@

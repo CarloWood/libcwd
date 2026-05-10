@@ -39,18 +39,6 @@ cw_option(EnableGlibCxxDebug
           "compile libcwd with -D_GLIBCXX_DEBUG. See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html" OFF
           "" OFF
 )
-cw_option(EnableLibcwdAlloc
-          "Enable memory allocation debugging support" OFF
-          "" OFF
-)
-cw_option(EnableLibcwdMagic
-          "Enable magic numbers in memory allocation debugging" ON
-          "" OFF
-)
-cw_option(EnableLibcwdMarker
-          "Enable memory allocation markers" ON
-          "" OFF
-)
 cw_option(EnableLibcwdLocation
           "Enable the ability to lookup source file and line number. Turn OFF on for example non-ELF systems" ON
           "" OFF
@@ -63,10 +51,6 @@ cw_option(EnableLibcwdDebugOutput
           "Enable debug output of EnableLibcwdDebug" ON
           "OptionEnableLibcwdDebug" OFF
 )
-cw_option(EnableLibcwdDebugm
-          "Enable debugging of memory allocation debugging code in libcwd itself" OFF
-          "OptionEnableLibcwdDebug" OFF
-)
 cw_option(EnableLibcwdDebugt
           "Enable debugging of threading debugging code in libcwd itself" OFF
           "OptionEnableLibcwdDebug" OFF
@@ -76,21 +60,6 @@ if (OptionEnableGlibCxxDebug)
   set(CW_CONFIG_GLIBCXX_DEBUG 1)
 else ()
   set(CW_CONFIG_GLIBCXX_DEBUG 0)
-endif ()
-if (OptionEnableLibcwdAlloc)
-  set(CW_CONFIG_ALLOC 1)
-else ()
-  set(CW_CONFIG_ALLOC 0)
-endif ()
-if (OptionEnableLibcwdMagic)
-  set(CW_CONFIG_MAGIC 1)
-else ()
-  set(CW_CONFIG_MAGIC 0)
-endif ()
-if (OptionEnableLibcwdMarker)
-  set(CW_CONFIG_MARKER 1)
-else ()
-  set(CW_CONFIG_MARKER 0)
 endif ()
 if (OptionEnableLibcwdLocation)
   set(CW_CONFIG_LOCATION 1)
@@ -106,11 +75,6 @@ if (OptionEnableLibcwdDebugOutput)
   set(CW_CONFIG_DEBUGOUTPUT 1)
 else ()
   set(CW_CONFIG_DEBUGOUTPUT 0)
-endif ()
-if (OptionEnableLibcwdDebugm)
-  set(CW_CONFIG_DEBUGM 1)
-else ()
-  set(CW_CONFIG_DEBUGM 0)
 endif ()
 if (OptionEnableLibcwdDebugt)
   set(CW_CONFIG_DEBUGT 1)
@@ -131,13 +95,9 @@ include(CheckPrototypeDefinition)
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("int main(void) { return __builtin_expect(0, 1); }" HAVE_BUILTIN_EXPECT)
 
-include(CW_SYS_MALLOC_OVERHEAD)
-CW_SYS_MALLOC_OVERHEAD()                # Determine the overhead in bytes of an allocation with malloc(2).
-
 include(CheckIncludeFileCXX)
 check_include_file_cxx("sys/resource.h" HAVE_SYS_RESOURCE_H)
 check_include_file_cxx("pwd.h" HAVE_PWD_H)
-check_include_file_cxx("malloc.h" HAVE_MALLOC_H)
 check_include_file_cxx("unistd.h" HAVE_UNISTD_H)
 check_include_file_cxx("pthread.h" HAVE_PTHREAD_H)
 if (HAVE_PTHREAD_H)
@@ -161,12 +121,6 @@ else ()
   set(CW_CONFIG_HAVE_DLOPEN undef)
 endif()
 
-check_function_exists(__libc_malloc HAVE___LIBC_MALLOC)
-check_function_exists(_libc_malloc HAVE__LIBC_MALLOC)
-check_function_exists(aligned_alloc HAVE_ALIGNED_ALLOC)
-check_function_exists(memalign HAVE_MEMALIGN)
-check_function_exists(posix_memalign HAVE_POSIX_MEMALIGN)
-check_function_exists(valloc HAVE_VALLOC)
 check_function_exists(wmemcpy HAVE_WMEMCPY)
 check_function_exists(getegid HAVE_GETEGID)
 check_function_exists(getgid HAVE_GETGID)
@@ -174,37 +128,6 @@ check_function_exists(getgroups HAVE_GETGROUPS)
 
 if (HAVE_GETGROUPS)
   CW_DEFINE_TYPE(gid_t getgroups_t)
-endif()
-
-if (HAVE___LIBC_MALLOC)
-  set(CW_CONFIG_HAVE___LIBC_MALLOC define)
-else ()
-  set(CW_CONFIG_HAVE___LIBC_MALLOC undef)
-endif ()
-if (HAVE__LIBC_MALLOC)
-  set(CW_CONFIG_HAVE__LIBC_MALLOC define)
-else ()
-  set(CW_CONFIG_HAVE__LIBC_MALLOC undef)
-endif ()
-if (HAVE_ALIGNED_ALLOC)
-  set(CW_CONFIG_HAVE_ALIGNED_ALLOC define)
-else ()
-  set(CW_CONFIG_HAVE_ALIGNED_ALLOC undef)
-endif ()
-if (HAVE_MEMALIGN)
-  set(CW_CONFIG_HAVE_MEMALIGN define)
-else ()
-  set(CW_CONFIG_HAVE_MEMALIGN undef)
-endif()
-if (HAVE_POSIX_MEMALIGN)
-  set(CW_CONFIG_HAVE_POSIX_MEMALIGN define)
-else ()
-  set(CW_CONFIG_HAVE_POSIX_MEMALIGN undef)
-endif()
-if (HAVE_VALLOC)
-  set(CW_CONFIG_HAVE_VALLOC define)
-else ()
-  set(CW_CONFIG_HAVE_VALLOC undef)
 endif()
 
 # Set a decent default value in case we don't have the right libraries.
@@ -229,7 +152,6 @@ configure_file("include/sys.h.in" "include/sys.h" @ONLY)
 # Clean up rule for the above.
 add_custom_target(libcwd-maintainer-clean-extra
     COMMAND rm config.h include/sys.h include/libcwd/config.h include/libcwd/sys.h
-    COMMAND rm -rf cw_utils_sys_malloc_overhead
     COMMAND rm -f cwd_rConfig.cmake libcwd_rConfigVersion.cmake libcwd_r.pc
 )
 
@@ -259,13 +181,10 @@ set_property(TARGET cwd_r APPEND PROPERTY COMPATIBLE_INTERFACE_STRING cwd_r_MAJO
 target_sources(cwd_r
     PRIVATE
         dwarf.cc
-        alloc_filter.cc
         compilation_unit.cc
         debug.cc
-        debugmalloc.cc
         demangle3.cc
         environ.cc
-        private_allocator.cc
         strerrno.cc
         threading.cc
         type_info.cc

@@ -534,8 +534,9 @@ void thread_ct::initialize(LIBCWD_TSD_PARAM)
   thread_mutex.lock();		// Need to be locked because otherwise sanity_check() of the maps allocator will fail.
 				// Its not really necessary to lock of course, because threadlist_instance is locked as
 				// well and thus this is the only thread that could possibly access the map.
-  // new_memblk_map allocates a new map<> for the current thread.
-  // The implementation of new_memblk_map resides in debugmalloc.cc.
+  // new_memblk_map used to allocate a new allocation-debugging map<> for the
+  // current thread. This block is retained only while CWDEBUG_ALLOC exists as
+  // a permanently-disabled source compatibility macro.
   memblk_map = new_memblk_map(LIBCWD_TSD);
   DEBUGDEBUG_CERR("My memblk_map is " << (void*)memblk_map << " (thread_ct at " << (void*)this << ", thread_iter at " << (void*)&__libcwd_tsd.thread_iter << ", __libcwd_tsd at " << (void*)&__libcwd_tsd << ')');
   thread_mutex.unlock();
@@ -568,8 +569,8 @@ void thread_ct::terminated(threadlist_t::iterator
   // delete_memblk_map will delete memblk_map (which is actually a
   // pointer to the type memblk_map_ct) if the map is empty and
   // return true, or it does nothing and returns false.
-  // Also this function is implemented in debugmalloc.cc because
-  // memblk_map_ct is undefined here.
+  // This allocation-debugging cleanup is retained only while CWDEBUG_ALLOC
+  // exists as a permanently-disabled source compatibility macro.
   if (delete_memblk_map(memblk_map, LIBCWD_TSD))	// Returns true if memblk_map was deleted.
   {
     DEBUGDEBUG_CERR("Erasing from threadlist memblk_map " << (void*)thread_iter->memblk_map << " (thread_ct at " << (void*)&(*thread_iter) << " which should be equal to " << (void*)this << ", [old_]thread_iter at " << (void*)&thread_iter << ')');
