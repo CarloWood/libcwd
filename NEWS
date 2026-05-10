@@ -1,3 +1,9 @@
+libcwd-2.0
+        Uses CMake for configuration and building (support for autotools has been removed).
+        Support for memory allocation debugging has been removed.
+
+        Release under the MIT license.
+
 libcwd-1.1.3
         Added debug_ct::always_flush_on() and always_flush_off().
         Can be nested. When on() is called more often than off()
