@@ -12,6 +12,8 @@ project(libcwd
         LANGUAGES CXX C
 )
 
+include(CTest)
+
 # Version info, see http://www.gnu.org/software/libtool/manual/libtool.html#Updating-version-info
 #
 # CW_INTERFACE_VERSION           : Current interface version, increment whenever the interface is changed.

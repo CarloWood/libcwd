@@ -139,3 +139,20 @@ foreach(THREADS_NAME ${THREADSCHECK})
 endforeach()
 
 target_include_directories(tst_location_shared PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+if (BUILD_TESTING)
+  add_library(ctest_support STATIC
+    ctest/support/test_support.cc
+  )
+  target_include_directories(ctest_support PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ctest/support)
+
+  add_executable(ctest_basic_debug_output ctest/basic_debug_output.cc)
+  target_include_directories(ctest_basic_debug_output PRIVATE ${CMAKE_BINARY_DIR}/include ${CMAKE_SOURCE_DIR}/include)
+  target_link_libraries(ctest_basic_debug_output PRIVATE cwd_r ctest_support)
+  target_compile_options(ctest_basic_debug_output PRIVATE -g)
+
+  add_test(NAME basic_debug_output COMMAND ctest_basic_debug_output)
+  set_tests_properties(basic_debug_output PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  )
+endif ()
