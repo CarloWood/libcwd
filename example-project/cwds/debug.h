@@ -40,10 +40,6 @@
 #include <iostream>
 #include <cstdlib>              // std::exit, EXIT_FAILURE
 
-#define AllocTag1(p)
-#define AllocTag2(p, desc)
-#define AllocTag_dynamic_description(p, x)
-#define AllocTag(p, x)
 #define Debug(x) do { } while(0)
 #define Dout(a, ...) do { } while(0)
 #define DoutEntering(a, ...)
@@ -54,15 +50,11 @@
 #define LibcwDout(a, b, c, ...)
 #define LibcwDoutFatal(a, b, c, ...) do { ::std::cerr << __VA_ARGS__ << ::std::endl; ::std::exit(EXIT_FAILURE); } while (1)
 #define NEW(x) new x
-#define CWDEBUG_ALLOC 0
-#define CWDEBUG_MAGIC 0
 #define CWDEBUG_LOCATION 0
 #define CWDEBUG_LIBBFD 0
 #define CWDEBUG_DEBUG 0
 #define CWDEBUG_DEBUGOUTPUT 0
-#define CWDEBUG_DEBUGM 0
 #define CWDEBUG_DEBUGT 0
-#define CWDEBUG_MARKER 0
 
 /// @endcond
 
@@ -199,32 +191,6 @@ using libcwd::channel_ct;
 std::string call_location(void const* return_addr);
 #endif
 bool being_traced();
-
-/**
- * Interface for marking scopes of invisible memory allocations.
- *
- * Creation of the object does nothing, you have to explicitly call
- * InvisibleAllocations::on. Destruction of the object automatically
- * cancels any call to @c{on()} of this object. This makes it exception-
- * (stack unwinding) and recursive-safe.
- */
-struct InvisibleAllocations
-{
-  /// The number of times that InvisibleAllocations::on() was called.
-  int M_on;
-
-  /// Constructor.
-  InvisibleAllocations() : M_on(0) { }
-
-  /// Destructor.
-  ~InvisibleAllocations() { while (M_on > 0) off(); }
-
-  /// Set invisible allocations on. Can be called recursively.
-  void on() { libcwd::set_invisible_on(); ++M_on; }
-
-  /// Cancel one call to on().
-  void off() { assert(M_on > 0); --M_on; libcwd::set_invisible_off(); }
-};
 
 /**
  * Interface for marking scopes with indented debug output.

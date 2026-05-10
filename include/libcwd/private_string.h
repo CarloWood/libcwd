@@ -21,9 +21,6 @@
 #ifndef LIBCWD_CONFIG_H
 #include "libcwd/config.h"
 #endif
-#ifndef LIBCWD_PRIVATE_ALLOCATOR_H
-#include "private_allocator.h"
-#endif
 #ifndef LIBCW_STRING
 #define LIBCW_STRING
 #include <string>
@@ -32,11 +29,10 @@
 namespace libcwd {
   namespace _private_ {
 
-// This is the string type that we use in Multi Threaded internal functions.
+// String type used by private libcwd implementation code.
 typedef ::std::string string;
 
   } // namespace _private_
 } // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_INTERNAL_STRING_H
-

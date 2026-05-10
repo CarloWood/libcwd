@@ -813,15 +813,11 @@ namespace libcwd {
 void demangle_symbol(char const* input, std::string& output)
 {
   LIBCWD_TSD_DECLARATION;
-  _private_::set_alloc_checking_off(LIBCWD_TSD);
   {
     _private_::internal_string result;
     _private_::demangle_symbol(input, result);
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
     output.append(result.data(), result.size());
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
   }
-  _private_::set_alloc_checking_on(LIBCWD_TSD);
 }
 
 /**
@@ -830,15 +826,11 @@ void demangle_symbol(char const* input, std::string& output)
 void demangle_type(char const* input, std::string& output)
 {
   LIBCWD_TSD_DECLARATION;
-  _private_::set_alloc_checking_off(LIBCWD_TSD);
   {
     _private_::internal_string result;
     _private_::demangle_type(input, result);
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
     output.append(result.data(), result.size());
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
   }
-  _private_::set_alloc_checking_on(LIBCWD_TSD);
 }
 
 /** \} */

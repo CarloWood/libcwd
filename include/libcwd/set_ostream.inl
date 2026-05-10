@@ -51,9 +51,7 @@ template<class T>
   void debug_ct::set_ostream(std::ostream* os, T* mutex)
   {
     LIBCWD_TSD_DECLARATION;
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
     _private_::lock_interface_base_ct* new_mutex = new _private_::lock_interface_tct<T>(mutex);
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
     LIBCWD_DEFER_CANCEL;
     _private_::mutex_tct<_private_::set_ostream_instance>::lock();
     _private_::lock_interface_base_ct* old_mutex = M_mutex;
@@ -67,9 +65,7 @@ template<class T>
     // Delete old_mutex after unlocking in order to avoid a dead lock in case the delete causes debug output.
     if (old_mutex)
     {
-      _private_::set_alloc_checking_off(LIBCWD_TSD);
       delete old_mutex;
-      _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
     LIBCWD_RESTORE_CANCEL;
   }

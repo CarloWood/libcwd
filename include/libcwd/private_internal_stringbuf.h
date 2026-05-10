@@ -21,9 +21,6 @@
 #ifndef LIBCWD_CONFIG_H
 #include "libcwd/config.h"
 #endif
-#ifndef LIBCWD_PRIVATE_ALLOCATOR_H
-#include "private_allocator.h"
-#endif
 #ifndef LIBCW_SSTREAM
 #define LIBCW_SSTREAM
 #include <sstream>

@@ -37,9 +37,7 @@ namespace _private_ {
   char const* extract_exact_name(char const* encap_mangled_name LIBCWD_COMMA_TSD_PARAM)
   {
     size_t len = strlen(encap_mangled_name + 27);		// Strip "Q22libcwd_type_info_exact1Z" from the beginning.
-    set_alloc_checking_off(LIBCWD_TSD);
     char* exact_name = new char[len + 1];			// LEAK58
-    set_alloc_checking_on(LIBCWD_TSD);
     strncpy(exact_name, encap_mangled_name + 27, len);
     exact_name[len] = 0;
     return exact_name;
@@ -96,9 +94,7 @@ namespace _private_ {
     }
     // ptr is now equal to stripped_mangled_name, and encap_ptr points to the first character after the qualifiers.
     size_t qlen = encap_ptr - encap_mangled_name;
-    set_alloc_checking_off(LIBCWD_TSD);
     char* exact_name = new char[qlen + len + 1];	// LEAK58
-    set_alloc_checking_on(LIBCWD_TSD);
     // Add the qualifiers to the mangled name:
     strncpy(exact_name, encap_mangled_name, qlen);
     strcpy(exact_name + qlen, stripped_mangled_name);
@@ -112,13 +108,11 @@ namespace _private_ {
   {
     char const* label;
     LIBCWD_TSD_DECLARATION;
-    set_alloc_checking_off(LIBCWD_TSD);
     {
       internal_string out;
       demangle_type(mangled_name, out);
       label = strcpy(new char[out.size() + 1], out.c_str());	// LEAK44
     }
-    set_alloc_checking_on(LIBCWD_TSD);
     return label;
   }
 

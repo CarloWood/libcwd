@@ -75,8 +75,6 @@ using libcwd::_private_::debug_channels_instance;
 
 namespace libcwd {
 
-    using _private_::set_alloc_checking_on;
-    using _private_::set_alloc_checking_off;
 
     class buffer_ct : public _private_::auto_internal_stringbuf {
     private:
@@ -502,9 +500,7 @@ namespace libcwd {
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
 	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  WNS_debug_channels = new debug_channels_ct::container_type;		// LEAK2
-	  set_alloc_checking_on(LIBCWD_TSD);
 	  DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
 	}
 #if LIBCWD_THREAD_SAFE
@@ -522,11 +518,9 @@ namespace libcwd {
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
 	  LIBCWD_TSD_DECLARATION;
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
 	  WNS_debug_channels = new debug_channels_ct::container_type;		// LEAK3
 	  DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK;
-	  set_alloc_checking_on(LIBCWD_TSD);
 	}
       }
 #endif
@@ -542,9 +536,7 @@ namespace libcwd {
 	{
 	  DEBUGDEBUG_CERR( (char const*)"_debug_objects == NULL; initializing it" );
 	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK;
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  WNS_debug_objects = new debug_objects_ct::container_type;
-	  set_alloc_checking_on(LIBCWD_TSD);
 	  DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
 	}
 #if LIBCWD_THREAD_SAFE
@@ -563,11 +555,9 @@ namespace libcwd {
 	{
 	  DEBUGDEBUG_CERR( "_debug_objects == NULL; initializing it" );
 	  LIBCWD_TSD_DECLARATION;
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK;
 	  WNS_debug_objects = new debug_objects_ct::container_type;
 	  DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK;
-	  set_alloc_checking_on(LIBCWD_TSD);
 	}
       }
 #endif
@@ -578,9 +568,7 @@ namespace libcwd {
 	if (WNS_debug_objects)
 	{
 	  LIBCWD_TSD_DECLARATION;
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  delete WNS_debug_objects;
-	  set_alloc_checking_on(LIBCWD_TSD);
 	  WNS_debug_objects = NULL;
 	}
       }
@@ -751,15 +739,13 @@ namespace libcwd {
       if (size < M_size)
 	return;
       LIBCWD_TSD_DECLARATION;
-      set_alloc_checking_off(LIBCWD_TSD);
       M_default_capacity = min_capacity_c;
       M_str = (char*)realloc(M_str, (M_default_capacity = M_capacity = calculate_capacity(size)) + 1);
-      set_alloc_checking_on(LIBCWD_TSD);
     }
 
     void debug_string_ct::internal_swallow(debug_string_ct const& ds)
     {
-      // `this' and `ds' are both initialized.  `internal' is set.
+      // `this' and `ds' are both initialized.
       free(M_str);
       M_str = ds.M_str;
       M_size = ds.M_size;
@@ -777,10 +763,8 @@ namespace libcwd {
     {
       LIBCWD_TSD_DECLARATION;
       debug_string_stack_element_ct* current_margin_stack = LIBCWD_TSD_MEMBER(M_margin_stack);
-      set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
       LIBCWD_TSD_MEMBER(M_margin_stack) = new (new_debug_string) debug_string_stack_element_ct(LIBCWD_TSD_MEMBER(margin));
-      set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(M_margin_stack)->next = current_margin_stack;
     }
 
@@ -793,10 +777,8 @@ namespace libcwd {
       if (!LIBCWD_TSD_MEMBER(M_margin_stack))
 	DoutFatal(dc::core, "Calling `debug_ct::pop_margin' more often than `debug_ct::push_margin'.");
       debug_string_stack_element_ct* next = LIBCWD_TSD_MEMBER(M_margin_stack)->next;
-      set_alloc_checking_off(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(margin).internal_swallow(LIBCWD_TSD_MEMBER(M_margin_stack)->debug_string);
       free(LIBCWD_TSD_MEMBER(M_margin_stack));
-      set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(M_margin_stack) = next;
     }
 
@@ -807,10 +789,8 @@ namespace libcwd {
     {
       LIBCWD_TSD_DECLARATION;
       debug_string_stack_element_ct* current_marker_stack = LIBCWD_TSD_MEMBER(M_marker_stack);
-      set_alloc_checking_off(LIBCWD_TSD);
       void* new_debug_string = malloc(sizeof(debug_string_stack_element_ct));
       LIBCWD_TSD_MEMBER(M_marker_stack) = new (new_debug_string) debug_string_stack_element_ct(LIBCWD_TSD_MEMBER(marker));
-      set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(M_marker_stack)->next = current_marker_stack;
     }
 
@@ -823,10 +803,8 @@ namespace libcwd {
       if (!LIBCWD_TSD_MEMBER(M_marker_stack))
 	DoutFatal(dc::core, "Calling `debug_ct::pop_marker' more often than `debug_ct::push_marker'.");
       debug_string_stack_element_ct* next = LIBCWD_TSD_MEMBER(M_marker_stack)->next;
-      set_alloc_checking_off(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(marker).internal_swallow(LIBCWD_TSD_MEMBER(M_marker_stack)->debug_string);
       free(LIBCWD_TSD_MEMBER(M_marker_stack));
-      set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_TSD_MEMBER(M_marker_stack) = next;
     }
 
@@ -902,7 +880,6 @@ namespace libcwd {
         return;
       }
 
-      set_alloc_checking_off(LIBCWD_TSD);
 
       ++LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
       DEBUGDEBUG_CERR( "Entering debug_ct::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
@@ -963,11 +940,7 @@ namespace libcwd {
 
       // Create a new laf.
       DEBUGDEBUG_CERR( "creating new laf_ct" );
-      int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-      _private_::set_invisible_on(LIBCWD_TSD);
       current = new laf_ct(channel_set.mask, channel_set.label, errno);		// LEAK5: This allocation + location_ct.
-      _private_::set_invisible_off(LIBCWD_TSD);
-      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
       DEBUGDEBUG_CERR( "current = " << (void*)current );
       current_bufferstream = &current->bufferstream;
       DEBUGDEBUG_CERR( "laf_ct created" );
@@ -1023,7 +996,6 @@ namespace libcwd {
       --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
       DEBUGDEBUG_CERR( "Leaving debug_ct::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
 
-      set_alloc_checking_on(LIBCWD_TSD);
     }
 
     void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED, */ LIBCWD_COMMA_TSD_PARAM)
@@ -1033,7 +1005,6 @@ namespace libcwd {
 #endif
       std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : debug_object.real_os;
 
-      set_alloc_checking_off(LIBCWD_TSD);
 
       if (NEED_SUPRESSION_OF_BFD)
       {
@@ -1062,7 +1033,6 @@ namespace libcwd {
 	      COMMA_IFTHREADS(false)	// This output does not end on a newline.
 	      COMMA_IFTHREADS(false));	// The newline is not missing as a result of nonewline_cf.
 	}
-	set_alloc_checking_on(LIBCWD_TSD);
         return;
       }
 
@@ -1118,13 +1088,8 @@ namespace libcwd {
 	  if ((current->mask & coredump_maskbit))
 	    core_dump();
 	  DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
-	  int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-	  _private_::set_invisible_on(LIBCWD_TSD);
 	  delete current;
-	  _private_::set_invisible_off(LIBCWD_TSD);
-	  _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 	  DEBUGDEBUG_CERR( "Done deleting `current'" );
-	  set_alloc_checking_on(LIBCWD_TSD);
 #if LIBCWD_THREAD_SAFE
 	  LIBCWD_DISABLE_CANCEL;
 	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::try_lock())
@@ -1179,12 +1144,8 @@ namespace libcwd {
             COMMA_IFTHREADS(true));
 
       DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
-      int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-      _private_::set_invisible_on(LIBCWD_TSD);
       control_flag_t mask = current->mask;	// Keep this.
       delete current;
-      _private_::set_invisible_off(LIBCWD_TSD);
-      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
       DEBUGDEBUG_CERR( "Done deleting `current'" );
 
       if (start_expected)
@@ -1216,7 +1177,6 @@ namespace libcwd {
       --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
       DEBUGDEBUG_CERR( "Leaving debug_ct::finish(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object) );
 
-      set_alloc_checking_on(LIBCWD_TSD);
     }
 
 #pragma clang diagnostic push
@@ -1238,9 +1198,8 @@ namespace libcwd {
       if (NS_being_initialized)
         return false;
 
-      ST_initialize_globals(LIBCWD_TSD);// Because all allocations for global objects are internal these days, we use
-					// the constructor of debug_ct to initiate the global initialization of libcwd
-					// instead of relying on malloc().
+      ST_initialize_globals(LIBCWD_TSD); // Use the constructor of debug_ct to initiate
+                                         // the global initialization of libcwd.
 
       if (WNS_initialized)
         return true;
@@ -1262,7 +1221,6 @@ namespace libcwd {
 
       LIBCWD_DEFER_CANCEL;
       _private_::debug_objects.init(LIBCWD_TSD);
-      set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
       DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK;
       if (find(_private_::debug_objects.write_locked().begin(),
 	       _private_::debug_objects.write_locked().end(), this)
@@ -1270,15 +1228,9 @@ namespace libcwd {
 	_private_::debug_objects.write_locked().push_back(this);
       DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
 #if LIBCWD_THREAD_SAFE
-      set_alloc_checking_on(LIBCWD_TSD);
       LIBCWD_RESTORE_CANCEL;
-      set_alloc_checking_off(LIBCWD_TSD);		// debug_objects is internal.
 #endif
-      int saved_internal = _private_::set_library_call_on(LIBCWD_TSD);
-      _private_::set_invisible_on(LIBCWD_TSD);
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
-      _private_::set_invisible_off(LIBCWD_TSD);
-      _private_::set_library_call_off(saved_internal LIBCWD_COMMA_TSD);
 #if LIBCWD_THREAD_SAFE
       WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
@@ -1288,7 +1240,6 @@ namespace libcwd {
       debug_tsd_st& tsd(*(__libcwd_tsd.do_array[WNS_index] =  new debug_tsd_st));
 #endif
       tsd.init();
-      set_alloc_checking_on(LIBCWD_TSD);
 
 #if CWDEBUG_DEBUGOUTPUT
       LIBCWD_TSD_MEMBER_OFF = -1;		// Print as much debug output as possible right away.
@@ -1347,11 +1298,9 @@ namespace libcwd {
 #endif
       {
 	ForAllDebugObjects(
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  LIBCWD_ASSERT( __libcwd_tsd.do_array[(debugObject).WNS_index] == NULL );
 	  debug_tsd_st& tsd(*(__libcwd_tsd.do_array[(debugObject).WNS_index] =  new debug_tsd_st));
 	  tsd.init();
-	  set_alloc_checking_on(LIBCWD_TSD);
 	  LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;
 	);
       }
@@ -1366,7 +1315,6 @@ namespace libcwd {
       // the destructor of some global object that is destructed *after* libcw_do
       // is deleting (or allocating) memory.
 
-      // In the threaded case, we are called with `internal' set.
       color_on.deinitialize();
       color_off.deinitialize();
       margin.deinitialize();
@@ -1498,7 +1446,6 @@ namespace libcwd {
 
       DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK;
 
-      set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
       const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = ' ';
       const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = ' ';
       _private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
@@ -1530,7 +1477,6 @@ namespace libcwd {
       for(_private_::debug_channels_ct::container_type::iterator i(channels_not_listed.begin());
           i != channels_not_listed.end(); ++i)
 	const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
-      set_alloc_checking_on(LIBCWD_TSD);
 
 #if LIBCWD_THREAD_SAFE
       // MT: Take advantage of the `libcwd::_private_::debug_channels_instance' lock to prevent simultaneous access
@@ -1549,7 +1495,6 @@ PRAGMA_DIAGNOSTIC_POP
       std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
       WNS_label[WST_max_len] = '\0';
 
-      set_alloc_checking_off(LIBCWD_TSD);	// debug_channels is internal.
       if (add_to_channel_list)
       {
 	// We store debug channels in some organized order, so that the
@@ -1564,7 +1509,6 @@ PRAGMA_DIAGNOSTIC_POP
       }
       else
         channels_not_listed.push_back(this);
-      set_alloc_checking_on(LIBCWD_TSD);
 
       DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
       LIBCWD_RESTORE_CANCEL;
@@ -1602,7 +1546,6 @@ PRAGMA_DIAGNOSTIC_POP
       _private_::debug_channels.init(LIBCWD_TSD);
       DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK;
 
-      set_alloc_checking_off(LIBCWD_TSD);       // debug_channels is internal.
       _private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
       for(_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
         const_cast<char*>((*i)->get_label())[WST_max_len] = ' ';
@@ -1613,7 +1556,6 @@ PRAGMA_DIAGNOSTIC_POP
 
       for(_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
         const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
-      set_alloc_checking_on(LIBCWD_TSD);
 
 PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
       strncpy(WNS_label, label, label_len);
@@ -1760,9 +1702,7 @@ PRAGMA_DIAGNOSTIC_POP
 	  {
 	    Debug( libcw_do.get_ostream()->flush() );
 	  }
-	  set_alloc_checking_off(LIBCWD_TSD);
 	  FATALDEBUGDEBUG_CERR(file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
-	  set_alloc_checking_on(LIBCWD_TSD);
 	  core_dump();
 	}
 	__libcwd_tsd.recursive_assert = true;
@@ -1852,9 +1792,7 @@ template<>
   void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
   {
     LIBCWD_TSD_DECLARATION;
-    _private_::set_alloc_checking_off(LIBCWD_TSD);
     _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex);	// A single LEAK of 20 bytes per debug object from here is ok.
-    _private_::set_alloc_checking_on(LIBCWD_TSD);
     LIBCWD_DEFER_CANCEL;
     _private_::mutex_tct<_private_::set_ostream_instance>::lock();
     _private_::lock_interface_base_ct* old_mutex = M_mutex;
@@ -1864,9 +1802,7 @@ template<>
     if (old_mutex)
     {
       old_mutex->unlock();
-      _private_::set_alloc_checking_off(LIBCWD_TSD);
       delete old_mutex;
-      _private_::set_alloc_checking_on(LIBCWD_TSD);
     }
     private_set_ostream(os);
     _private_::mutex_tct<_private_::set_ostream_instance>::unlock();

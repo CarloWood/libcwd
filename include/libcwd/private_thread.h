@@ -21,9 +21,6 @@
 #ifndef LIBCWD_PRIVATE_MUTEX_H
 #include "private_mutex.h"
 #endif
-#ifndef LIBCWD_PRIVATE_ALLOCATOR_H
-#include "private_allocator.h"
-#endif
 #ifndef LIBCW_LIST
 #define LIBCW_LIST
 #include <list>
@@ -40,8 +37,9 @@ struct TSD_st;
 // class thread_ct
 //
 // Each created thread gets an object of type `thread_ct' assigned.
-// The objects are stored in an STL list so that we can use pointers
-// to the objects without the fear that these pointers become invalid.
+// The objects are stored in an STL list so that libcwd can keep stable
+// iterators while tracking thread lifetime and cancelling other threads from
+// DoutFatal.
 //
 
 class thread_ct {
@@ -51,8 +49,7 @@ typedef std::list<thread_ct> threadlist_type;
 
 public:
   mutex_ct thread_mutex;		// Mutex for the attributes of this object.
-  pthread_t tid;			// Thread ID.  This is only used to print the ID list_allocations_on, and to
-					// terminate all threads in a DoutFatal(dc::fatal, ...).
+  pthread_t tid;			// Thread ID, used to terminate all threads in a DoutFatal(dc::fatal, ...).
   bool M_zombie;
   bool M_terminating;
 
@@ -72,4 +69,3 @@ extern threadlist_t* threadlist;
 } // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_THREAD_H
-

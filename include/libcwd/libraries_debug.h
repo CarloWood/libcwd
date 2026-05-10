@@ -130,7 +130,6 @@ using namespace libcwd_inserters;
 #include "demangle.h"
 
 // Include the inline functions.
-#include "private_allocator.inl"		// Implementation of allocator_adaptor template.
 #include "class_channel.inl"		// Debug channels.
 #include "class_fatal_channel.inl"
 #include "class_continued_channel.inl"
@@ -144,7 +143,6 @@ using namespace libcwd_inserters;
 #if CWDEBUG_LOCATION				// --enable-location
 #include "bfd.h"
 #endif
-#include "debugmalloc.h"			// --enable-alloc
 
 #endif // CWDEBUG
 #endif // LIBCWD_LIBRARIES_DEBUG_H

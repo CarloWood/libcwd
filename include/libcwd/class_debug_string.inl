@@ -20,9 +20,6 @@
 #ifndef LIBCWD_PRIVATE_THREADING_H
 #include "private_threading.h"
 #endif
-#ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
-#include "private_set_alloc_checking.h"
-#endif
 #ifndef LIBCW_CSTDDEF
 #define LIBCW_CSTDDEF
 #include <cstddef>		// Needed for size_t
@@ -50,9 +47,7 @@ void
 debug_string_ct::assign(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
-  _private_::set_alloc_checking_off(LIBCWD_TSD);
   internal_assign(str, len);
-  _private_::set_alloc_checking_on(LIBCWD_TSD);
 }
 
 /**
@@ -63,9 +58,7 @@ void
 debug_string_ct::append(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
-  _private_::set_alloc_checking_off(LIBCWD_TSD);
   internal_append(str, len);
-  _private_::set_alloc_checking_on(LIBCWD_TSD);
 }
 
 /**
@@ -76,9 +69,7 @@ void
 debug_string_ct::prepend(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
-  _private_::set_alloc_checking_off(LIBCWD_TSD);
   internal_prepend(str, len);
-  _private_::set_alloc_checking_on(LIBCWD_TSD);
 }
 
 /**

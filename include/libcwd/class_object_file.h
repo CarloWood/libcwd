@@ -42,9 +42,8 @@ class objfiles_ct;
  * it is the only data exposed to the user, of that class.
  *
  * \internal
- * Also exposed are two mutable booleans:
- * hide_from_alloc_list() returns true when allocation done by this object file should be hidden, and
- * has_no_debug_line_sections() returns true when this object file does not have debug info.
+ * Also exposed is a mutable flag that records whether this object file lacks
+ * debug line information.
  */
 class object_file_ct {
  private:

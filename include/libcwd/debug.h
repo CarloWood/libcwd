@@ -113,8 +113,6 @@
  * Debug( dc::notice.on() );				// Switch debug channel NOTICE on.
  * Debug( libcw_do.on() );				// Turn all debugging temporally off.
  * Debug( list_channels_on(libcw_do) );			// List all debug channels.
- * Debug( make_all_allocations_invisible_except(NULL) );	// Hide all allocations so far.
- * Debug( list_allocations_on(libcw_do) );		// List all allocations.
  * Debug( libcw_do.set_ostream(&std::cout) );		// Use std::cout as debug output stream.
  * Debug( libcw_do.set_ostream(&std::cout, &mutex) );	// use `mutex' as lock for std::cout.
  * Debug( libcw_do.inc_indent(4) );			// Increment indentation by 4 spaces.

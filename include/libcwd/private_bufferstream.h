@@ -25,8 +25,8 @@
 namespace libcwd {
   namespace _private_ {
 
-    // This is a pseudo stringstream with auto_internal_allocator
-    // that allows to change the stringbuf on the fly.
+    // This is a pseudo stringstream that allows the stringbuf to be changed on
+    // the fly.
     class bufferstream_ct : public std::ostream
     {
     public:

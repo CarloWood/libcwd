@@ -130,7 +130,5 @@ main (int, char**)
         }
     }
 
-  Debug( list_allocations_on(libcw_do) );
-
   return 0;
 }

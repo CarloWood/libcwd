@@ -21,20 +21,3 @@ void* global_test_symbol(bool do_static)
   void* ptr = malloc(310);
   return ptr;
 }
-
-void* realloc1000_no_AllocTag(void* p)
-{
-  return realloc(p, 1000);
-}
-
-void* realloc1000_with_AllocTag(void* p)
-{
-  void* res = realloc(p, 1000);
-  return res;
-}
-
-void* new1000(size_t s)
-{
-  char* res = new char[s];
-  return res;
-}

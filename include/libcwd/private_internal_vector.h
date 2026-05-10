@@ -21,9 +21,6 @@
 #ifndef LIBCWD_CONFIG_H
 #include "libcwd/config.h"
 #endif
-#ifndef LIBCWD_PRIVATE_ALLOCATOR_H
-#include "private_allocator.h"
-#endif
 #ifndef LIBCW_VECTOR
 #define LIBCW_VECTOR
 #include <vector>
@@ -32,7 +29,7 @@
 namespace libcwd {
   namespace _private_ {
 
-// This is the vector type that we use in Multi Threaded internal functions.
+// Vector type used by private libcwd implementation code.
 template <typename T>
   struct internal_vector : public ::std::vector<T>
   { };
@@ -41,4 +38,3 @@ template <typename T>
 } // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_INTERNAL_VECTOR_H
-

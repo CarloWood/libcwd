@@ -81,8 +81,6 @@ channel_ct bfd
 } // namespace dc
 } // namespace channels
 
-using _private_::set_alloc_checking_on;
-using _private_::set_alloc_checking_off;
 
 #ifdef HAVE_DLOPEN
 extern "C" {
@@ -214,10 +212,8 @@ void ST_get_full_path_to_executable(_private_::internal_string& result LIBCWD_CO
     DoutFatal(dc::fatal|error_cf, "realpath(\"" << argv0.data() << "\", full_path_buf)");
 
   Dout(dc::debug, "Full path to executable is \"" << full_path << "\".");
-  set_alloc_checking_off(LIBCWD_TSD);
   result.assign(full_path);
   result += '\0';				// Make string null terminated so we can use data().
-  set_alloc_checking_on(LIBCWD_TSD);
 }
 
 static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `cwbfd::ST_init'.
@@ -278,7 +274,6 @@ using function_symbols_ct = std::set<symbol_ct, symbol_key_greater>;
 
 class Elf;
 
-// All allocations related to objfile_ct must be `internal'.
 class objfile_ct : public objfiles_ct
 {
   friend class libcwd::location_ct;
@@ -355,17 +350,13 @@ objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t st
   bool failure;
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_WRITE_LOCK;
-  set_alloc_checking_off(LIBCWD_TSD);
   object_file = new objfile_ct(name, base_addr, start_addr, end_addr);		// LEAK6
-  set_alloc_checking_on(LIBCWD_TSD);
   DWARF_RELEASE_WRITE_LOCK;
   failure = object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
   LIBCWD_RESTORE_CANCEL;
   if (failure)
   {
-    set_alloc_checking_off(LIBCWD_TSD);
     delete object_file;
-    set_alloc_checking_on(LIBCWD_TSD);
     return nullptr;
   }
   return object_file;
@@ -476,9 +467,7 @@ static void resort_object_files(LIBCWD_TSD_PARAM)
   objfile_ct* object_file = nullptr;
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_WRITE_LOCK;
-  set_alloc_checking_off(LIBCWD_TSD);
   NEEDS_WRITE_LOCK_object_files().sort(object_file_greater());
-  set_alloc_checking_on(LIBCWD_TSD);
   DWARF_RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL;
 }
@@ -486,7 +475,7 @@ static void resort_object_files(LIBCWD_TSD_PARAM)
 bool ST_init(LIBCWD_TSD_PARAM)
 {
   static bool WST_being_initialized = false;
-  // This should catch it when we call new or malloc while 'internal'.
+  // Detect recursive initialization.
   if (WST_being_initialized)
     return false;
   WST_being_initialized = true;
@@ -502,10 +491,6 @@ bool ST_init(LIBCWD_TSD_PARAM)
     core_dump();
 #endif
 
-
-  // ****************************************************************************
-  // Start INTERNAL!
-  set_alloc_checking_off(LIBCWD_TSD);
 
 //  new (fake_ST_shared_libs) ST_shared_libs_vector_ct;
 
@@ -524,19 +509,12 @@ bool ST_init(LIBCWD_TSD_PARAM)
   DWARF_ACQUIRE_WRITE_LOCK;
   new (&NEEDS_WRITE_LOCK_object_files()) object_files_ct;
   DWARF_RELEASE_WRITE_LOCK;
-  set_alloc_checking_on(LIBCWD_TSD);
   LIBCWD_RESTORE_CANCEL;
-  set_alloc_checking_off(LIBCWD_TSD);
 
-  // Start a new scope for 'fullpath': it needs to be destructed while internal.
+  // Start a new scope for 'fullpath'.
   {
     // Get the full path and name of executable
     _private_::internal_string fullpath;
-
-    set_alloc_checking_on(LIBCWD_TSD);
-
-    // End INTERNAL!
-    // ****************************************************************************
 
     ST_get_full_path_to_executable(fullpath LIBCWD_COMMA_TSD);
         // Result is '\0' terminated so we can use data() as a C string.
@@ -559,9 +537,7 @@ bool ST_init(LIBCWD_TSD_PARAM)
 
     WST_initialized = true;			// MT: Safe, this function is Single Threaded.
 
-    set_alloc_checking_off(LIBCWD_TSD);
   } // Destruct fullpath
-  set_alloc_checking_on(LIBCWD_TSD);
 
   return true;
 }
@@ -576,9 +552,7 @@ objfile_ct::objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t star
 objfile_ct::~objfile_ct()
 {
   LIBCWD_TSD_DECLARATION;
-  set_alloc_checking_on(LIBCWD_TSD);
   close_dwarf(LIBCWD_TSD);
-  set_alloc_checking_off(LIBCWD_TSD);
 }
 
 #if CWDEBUG_DEBUG
@@ -1501,12 +1475,10 @@ void objfile_ct::deinitialize(LIBCWD_TSD_PARAM)
 {
   LIBCWD_DEFER_CANCEL;
   DWARF_ACQUIRE_WRITE_LOCK;
-  set_alloc_checking_off(LIBCWD_TSD);
   object_files_ct::iterator iter(find(NEEDS_WRITE_LOCK_object_files().begin(),
                                       NEEDS_WRITE_LOCK_object_files().end(), this));
   if (iter != NEEDS_WRITE_LOCK_object_files().end())
     NEEDS_WRITE_LOCK_object_files().erase(iter);
-  set_alloc_checking_on(LIBCWD_TSD);
   DWARF_RELEASE_WRITE_LOCK;
   LIBCWD_RESTORE_CANCEL;
 
@@ -1590,9 +1562,7 @@ object_file_ct::object_file_ct(char const* filepath) :
     M_no_debug_line_sections(false)
 {
   LIBCWD_TSD_DECLARATION;
-  set_alloc_checking_off(LIBCWD_TSD);
   M_filepath = strcpy((char*)malloc(strlen(filepath) + 1), filepath);	// LEAK8
-  set_alloc_checking_on(LIBCWD_TSD);
   M_filename = strrchr(M_filepath, '/') + 1;
   if (M_filename == (char const*)1)
     M_filename = M_filepath;
@@ -1705,9 +1675,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   else
   {
     size_t len = strlen(srcfile);
-    set_alloc_checking_off(LIBCWD_TSD);
     M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);	// LEAK5
-    set_alloc_checking_on(LIBCWD_TSD);
     strcpy(M_filepath.get(), srcfile);
     M_known = true;
     M_filename = strrchr(M_filepath.get(), '/') + 1;
@@ -1727,9 +1695,7 @@ void location_ct::clear()
     if (M_filepath.is_owner())
     {
       LIBCWD_TSD_DECLARATION;
-      set_alloc_checking_off(LIBCWD_TSD);
       M_filepath.reset();
-      set_alloc_checking_on(LIBCWD_TSD);
     }
   }
   M_object_file = nullptr;
@@ -1827,9 +1793,7 @@ extern "C" {
     DLOPEN_MAP_ACQUIRE_LOCK;
     if (!libcwd::_private_::dlopen_map)
     {
-      set_alloc_checking_off(LIBCWD_TSD);
       libcwd::_private_::dlopen_map = new libcwd::_private_::dlopen_map_ct;	// LEAK52
-      set_alloc_checking_on(LIBCWD_TSD);
     }
     libcwd::_private_::dlopen_map_ct::iterator iter(libcwd::_private_::dlopen_map->find(handle));
     if (iter != libcwd::_private_::dlopen_map->end())
@@ -1847,9 +1811,7 @@ extern "C" {
           dwarf::resort_object_files(LIBCWD_TSD);
           if (data.object_file)
           {
-            set_alloc_checking_off(LIBCWD_TSD);
             libcwd::_private_::dlopen_map->insert(std::pair<void* const, dlloaded_st>(handle, dlloaded_st(data.object_file, flags)));
-            set_alloc_checking_on(LIBCWD_TSD);
           }
         }
       }
@@ -1865,10 +1827,8 @@ extern "C" {
     // One time initialization.
     if (!real_dlclose.symptr)
       real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose");
-    // Block until printing of allocations is finished because it might be that
-    // those allocations have type_info pointers to shared objectst that will be
-    // removed by dlclose, causing a core dump in list_allocations_on in the other
-    // thread.
+    // Serialize dlclose with dlopen bookkeeping so the shared-object list and
+    // location cache are not modified concurrently.
     int ret;
     LIBCWD_DEFER_CLEANUP_PUSH(&_private_::mutex_tct<dlclose_instance>::cleanup, &__libcwd_tsd);
     DLCLOSE_ACQUIRE_LOCK;
@@ -1891,9 +1851,7 @@ extern "C" {
 	  // M_object_file is not deleted because location_ct objects still point to it.
 	}
 #endif
-	set_alloc_checking_off(LIBCWD_TSD);
 	libcwd::_private_::dlopen_map->erase(iter);
-	set_alloc_checking_on(LIBCWD_TSD);
       }
     }
     DLOPEN_MAP_RELEASE_LOCK;

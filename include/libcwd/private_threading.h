@@ -47,9 +47,6 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #define LIBCWD_DEBUGDEBUGLOCK_CERR(x) do { } while(0)
 #endif // !LIBCWD_DEBUGDEBUGRWLOCK
 
-#ifndef LIBCWD_PRIVATE_SET_ALLOC_CHECKING_H
-#include "private_set_alloc_checking.h"
-#endif
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include "private_struct_TSD.h"
 #endif
@@ -1032,4 +1029,3 @@ extern void fatal_cancellation(void*);
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
 #endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_PRIVATE_THREADING_H
-

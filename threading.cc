@@ -262,11 +262,9 @@ PRAGMA_DIAGNOSTIC_POP
   if (from_free == 0)
   {
     // Time to put the real TSD into place.
-    set_alloc_checking_off(*static_tsd);
     if (old_thread_iter_valid)
       old_thread_iter->terminated(old_thread_iter, *static_tsd);
     real_tsd = new TSD_st;
-    set_alloc_checking_on(*static_tsd);
     std::memcpy(real_tsd, static_tsd, sizeof(TSD_st));
 
     pthread_once(&S_tsd_key_once, &S_tsd_key_alloc);
@@ -447,12 +445,9 @@ void pthread_lock_interface_ct::unlock()
 // that are kept even after the destruction of a thread, and even
 // after the TSD_st structure is reused for another thread.
 //
-// At this moment the only use of this object (thread_ct) is the
-// memblk_map with memory allocations per thread.  Allocations
-// done by a thread are stored in this map.  If the thread
-// exists before all the memory is freed, then the thread_ct
-// object is kept (until all memory is finally freed by other
-// threads).
+// thread_ct stores per-thread state that must remain address-stable while
+// libcwd observes thread lifetime and, in fatal debug-output paths, cancels
+// all known peer threads.
 //
 
 // A pointer to the global list with thread_ct objects.
@@ -467,13 +462,11 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
 {
   LIBCWD_DEFER_CANCEL;
   rwlock_tct<threadlist_instance>::wrlock();
-  set_alloc_checking_off(LIBCWD_TSD);
   if (!threadlist)
     threadlist = new threadlist_t;
   __libcwd_tsd.thread_iter = threadlist->insert(threadlist->end(), thread_ct());
   __libcwd_tsd.thread_iter_valid = true;
   __libcwd_tsd.thread_iter->initialize(LIBCWD_TSD);
-  set_alloc_checking_on(LIBCWD_TSD);
   rwlock_tct<threadlist_instance>::wrunlock();
   LIBCWD_RESTORE_CANCEL;
 }
@@ -650,7 +643,6 @@ void test_for_deadlock(size_t instance, struct TSD_st& __libcwd_tsd, void const*
   if (instance == keypair_map_instance)
     return;
 
-  set_alloc_checking_off(__libcwd_tsd);
 
   // Initialization.
   if (!keypair_map)
@@ -685,7 +677,6 @@ void test_for_deadlock(size_t instance, struct TSD_st& __libcwd_tsd, void const*
       test_lock_pair(inst, locked_from[inst], instance, from);
   }
 
-  set_alloc_checking_on(__libcwd_tsd);
 }
 
 pthread_mutex_t raw_write_mutex = PTHREAD_MUTEX_INITIALIZER;
