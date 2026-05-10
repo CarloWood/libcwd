@@ -3,8 +3,6 @@
 
 int main()
 {
-  DoutFatal(dc::fatal, "Expected Failure.");
-
   Debug( libcw_do.on() );
 #if CWDEBUG_LOCATION
   Debug( dc::bfd.on() );

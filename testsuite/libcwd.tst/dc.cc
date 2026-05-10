@@ -13,7 +13,6 @@ namespace example {
 
 MAIN_FUNCTION
 { PREFIX_CODE
-  DoutFatal(dc::fatal, "Expected Failure.");
   Debug( check_configuration() );
   Debug( libcw_do.on() );
   Debug( dc::warp.on() );
