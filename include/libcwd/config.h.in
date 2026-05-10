@@ -90,22 +90,20 @@
  * Adds code that supports source-file:line-number lookup.&nbsp;
  * This will load debugging symbols at the start of a program allowing
  * one to print source file / line number information.<BR><BR>
- * Turning this on causes libcwd to print source file and line
- * number information about where memory was allocated in the
- * memory allocation overview.&nbsp;
- * It also provides an interface, allowing applications that link
+ * It provides an interface, allowing applications that link
  * with libcwd to print debugging information using the symbol table.
  *
  * \par When to use it
  *
- * As a developer, especially when you are debugging memory allocations.
+ * As a developer, especially when you want debug output to include source
+ * file and line number information.
  *
  * \par CMake option
  *
  * This is enabled by default.&nbsp;
  * Use \shellcommand cmake -DEnableLibcwdLocation=OFF ... \endshellcommand to disable it.
  *
- * \sa \ref chapter_alloc_locations
+ * \sa \ref group_locations
  */
 
 #define CWDEBUG_LOCATION @CW_CONFIG_LOCATION@
@@ -133,7 +131,7 @@
  * You can enable it by specifying \shellcommand --enable-libbfd \endshellcommand during configuration.&nbsp;
  * Of course you'll need a working libbfd installed in that case.
  *
- * \sa \ref chapter_alloc_locations
+ * \sa \ref group_locations
  */
 /** \page gpl_and_qpl Using GPL-ed code together with QPL-ed code.
  *

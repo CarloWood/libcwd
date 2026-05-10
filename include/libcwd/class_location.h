@@ -49,12 +49,6 @@ class location_ct;
 
   namespace _private_ {
 
-enum hidden_st {
-  filtered_location,
-  unfiltered_location,
-  new_location
-};
-
 // Forward declaration.
 template<class OSTREAM>
   void print_location_on(OSTREAM& os, location_ct const& location);
@@ -123,30 +117,28 @@ public:
    * \brief Copy constructor.
    *
    * Constructs a location that is equivalent to the location passed as argument.
-   * The new object will be the owner of the memory allocations of this location
-   * unless the member function \ref lock_ownership was called for the prototype
-   * before copying it.  It is the responsibility of the coder to make sure that
-   * the allocation owner is the object that is last deleted (if at all).
+   * Copies share the stored source-file path. By default, ownership of that path
+   * moves to the copy; call \ref lock_ownership on the prototype first when the
+   * prototype must remain responsible for releasing the path storage.
    */
   location_ct(location_ct const& location);
 
   /**
    * \brief Assignment operator.
    *
-   * Assigns the value of the location passed to the current object.
-   * The new object will be the owner of the memory allocations of this location
-   * unless the member function \ref lock_ownership was called for the prototype
-   * before copying it.  It is the responsibility of the coder to make sure that
-   * the allocation owner is the object that is last deleted (if at all).
+   * Assigns the value of the location passed to the current object. Copies share
+   * the stored source-file path. By default, ownership of that path moves to the
+   * target object; call \ref lock_ownership on the source first when the source
+   * must remain responsible for releasing the path storage.
    */
   location_ct& operator=(location_ct const& location);		// Assignment operator
 
   /**
-   * \brief Lock ownership of internal allocations.
+   * \brief Keep ownership of the stored path in this object.
    *
-   * Makes this object responsible for deleting internal allocations,
-   * the user is responsible to making sure that the owner is
-   * deleted last.
+   * Prevents a subsequent copy or assignment from taking over responsibility for
+   * releasing the source-file path owned by this location. Use this when a
+   * location is used as a prototype for shorter-lived copies.
    */
   void lock_ownership() { if (M_known) M_filepath.lock(); }
 

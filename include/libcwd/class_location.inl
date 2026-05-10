@@ -44,9 +44,6 @@ namespace libcwd {
  */
 inline
 location_ct::location_ct(void const* addr) : M_known(false)
-#if CWDEBUG_ALLOC
-    , M_hide(_private_::new_location)
-#endif
 {
   LIBCWD_TSD_DECLARATION;
   M_pc_location(addr LIBCWD_COMMA_TSD);
@@ -59,9 +56,6 @@ location_ct::location_ct(void const* addr) : M_known(false)
  */
 inline
 location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false)
-#if CWDEBUG_ALLOC
-     , M_hide(_private_::new_location)
-#endif
 {
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
@@ -78,9 +72,6 @@ location_ct::~location_ct()
 
 inline
 location_ct::location_ct() : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
-#if CWDEBUG_ALLOC
-    , M_hide(_private_::new_location)
-#endif
 {
 }
 
@@ -107,10 +98,6 @@ inline
 std::string
 location_ct::file() const
 {
-#if CWDEBUG_DEBUGM
-  LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT( !__libcwd_tsd.internal );		// Returning a string, using a userspace allocator!
-#endif
   LIBCWD_ASSERT( M_known );
   return M_filename;
 }
