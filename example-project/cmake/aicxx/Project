@@ -1,0 +1,86 @@
+include_guard(GLOBAL)
+
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(_is_main_project TRUE)
+else ()
+  set(_is_main_project FALSE)
+endif ()
+
+# This header must be included at the top of the top level CMakeLists.txt right after the `project(...) command`.
+if (NOT CMAKE_PROJECT_NAME)
+  message(FATAL_ERROR "Use `include(cmake/aicxx/Project NO_POLICY_SCOPE)` in the top-level CMakeLists.txt AFTER the `project(...)` command (typically, immediately after the gitache block.")
+endif ()
+
+message(STATUS "----------------------------------------------------\n** Configuring project ${PROJECT_NAME}:")
+
+# Default message log level. Use cmake -DCMAKE_MESSAGE_LOG_LEVEL=DEBUG to get DEBUG output.
+set(CMAKE_MESSAGE_LOG_LEVEL "STATUS" CACHE STRING "Default debug level.")
+
+# Add extra build types.
+string(REGEX REPLACE "( -DNDEBUG$|-DNDEBUG )" "" CMAKE_CXX_FLAGS_BETATEST "${CMAKE_CXX_FLAGS_RELEASE}")
+string(REGEX REPLACE "( -DNDEBUG$|-DNDEBUG )" "" CMAKE_C_FLAGS_BETATEST "${CMAKE_C_FLAGS_RELEASE}")
+string(REGEX REPLACE "-DNDEBUG " "" CMAKE_CXX_FLAGS_RELWITHDEBUG "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DDEBUG")
+string(REGEX REPLACE "-DNDEBUG " "" CMAKE_C_FLAGS_RELWITHDEBUG "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DDEBUG")
+string(REGEX REPLACE "-g " "" CMAKE_CXX_FLAGS_PERF "${CMAKE_CXX_FLAGS_DEBUG} -Og -ggdb3 -fno-omit-frame-pointer")
+string(REGEX REPLACE "-g " "" CMAKE_C_FLAGS_PERF "${CMAKE_C_FLAGS_DEBUG} -Og -ggdb3 -fno-omit-frame-pointer")
+# Set the TRACY flags to the same thing as CMAKE_CXX_FLAGS_RELWITHDEBUG but with -march=native appended.
+# Any existing -march=* is removed.
+string(REGEX REPLACE "-march=[^ ]* " "" CMAKE_CXX_FLAGS_TRACY "${CMAKE_CXX_FLAGS_RELWITHDEBUG} -march=native")
+string(REGEX REPLACE "-march=[^ ]* " "" CMAKE_C_FLAGS_TRACY "${CMAKE_C_FLAGS_RELWITHDEBUG} -march=native")
+
+# Add CMAKE_MODULE_PATH.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/aicxx/cmake")
+
+# Set top_srcdir and top_bindir.
+set(top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
+set(top_objdir "${CMAKE_CURRENT_BINARY_DIR}")
+
+# The list of OBJECT libraries that this project uses.
+set(AICXX_OBJECTS_LIST "" CACHE INTERNAL "List of OBJECT libaries that this project uses.")
+
+# Set CMAKE_CXX_COMPILER_LAUNCHER.
+include(ccache)
+
+# Add support for CMAKE_BUILD_TYPE, EnableDebug, EnableGlobalDebug, EnableLibcwd
+include(CW_OPTIONS)
+
+if (_is_main_project)
+  if (CMAKE_GENERATOR STREQUAL "Ninja")
+    set(generator "ninja")
+  else()
+    set(generator "$(MAKE)")
+  endif()
+
+  #==============================================================================
+  # Add target real-clean.
+  #
+  add_custom_target(real-clean
+    # The current directory is CMAKE_CURRENT_BINARY_DIR, but that should be equal to CMAKE_BINARY_DIR because _is_main_project.
+    COMMAND ${CMAKE_COMMAND} --build . --target clean
+  )
+
+  #==============================================================================
+  # Add target maintainer-clean.
+  #
+  add_custom_target(maintainer-clean
+    # The current directory is CMAKE_CURRENT_BINARY_DIR.
+    # No longer passing $(MAKE) because then ninja won't work.
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmake/aicxx/scripts/cmake_maintainer_clean.sh ${generator} \"${PROJECT_NAME}\" \"${GITACHE_PACKAGES}\"
+  )
+
+  #==============================================================================
+  # Set project wide policies.
+  #
+  # In order for these to have effect, the CMakeLists.txt file in the root
+  # of the project must be using:
+  #
+  # include(cmake/aicxx/Project NO_POLICY_SCOPE)
+  #
+  if (POLICY CMP0167)
+    # Use boost provided BoostConfig.cmake (requires boost version 1.70 or higher).
+    # This policy was introduced in cmake 3.30.
+    cmake_policy(SET CMP0167 NEW)
+  endif ()
+endif ()
+
+# vi:syntax=cmake

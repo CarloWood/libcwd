@@ -1,0 +1,22 @@
+#pragma once
+
+namespace config {
+
+// Project version information.
+static constexpr char const* PROJECT_NAME = "@PROJECT_NAME@";
+static constexpr char const* PROJECT_VERSION = "@PROJECT_VERSION@";
+static constexpr char const* PROJECT_DESCRIPTION = "@PROJECT_DESCRIPTION@";
+static constexpr int PROJECT_VERSION_MAJOR = @PROJECT_VERSION_MAJOR@;
+static constexpr int PROJECT_VERSION_MINOR = @PROJECT_VERSION_MINOR@;
+
+// USE_EXAMPLE
+//
+// If defined, the user used -DExampleOption=ON.
+// USE_EXAMPLE is set as a result of that in CMakeLists.txt.
+
+#cmakedefine USE_EXAMPLE42 @USE_EXAMPLE42@
+
+// Contrary to the previous define, which can be undefined, this one is always set: to either 0 or 1.
+#cmakedefine01 USE_EXAMPLE
+
+} // namespace config

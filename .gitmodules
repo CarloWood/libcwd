@@ -1,0 +1,4 @@
+[submodule "cmake/aicxx"]
+	path = cmake/aicxx
+	url = https://github.com/CarloWood/cmake-aicxx.git
+	branch = master

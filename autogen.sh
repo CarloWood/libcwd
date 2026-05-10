@@ -14,16 +14,16 @@ if test -d .git; then
   # Take care of git submodule related stuff.
   MAINTAINER_HASH=dcc3e4640e3ff4769e3cee4a2ab8e5eb
   # If this was a clone without --recursive, fix that fact.
-  if test ! -e cwm4/scripts/real_maintainer.sh; then
+  if test ! -e cmake/aicxx/scripts/real_maintainer.sh; then
     git submodule update --init --recursive
   fi
   # If new git submodules were added by someone else, get them.
   if git submodule status --recursive | grep '^-' >/dev/null; then
     git submodule update --init --recursive
   fi
-  # Update autogen.sh and cwm4 itself if we are the real maintainer.
-  if test -f cwm4/scripts/real_maintainer.sh; then
-    cwm4/scripts/real_maintainer.sh $MAINTAINER_HASH
+  # Update autogen.sh and cmake/aicxx itself if we are the real maintainer.
+  if test -f cmake/aicxx/scripts/real_maintainer.sh; then
+    cmake/aicxx/scripts/real_maintainer.sh $MAINTAINER_HASH
     RET=$?
     # A return value of 2 means we need to continue below.
     # Otherwise, abort/stop returning that value.
@@ -32,9 +32,8 @@ if test -d .git; then
     fi
   fi
 else
-  # Clueless user check.
-  if test ! -e cwm4/scripts/real_maintainer.sh; then
-    echo "Houston, we have a problem: the cwm4 git submodule is missing from your source tree!?"
+  if test ! -e cmake/aicxx/scripts/real_maintainer.sh; then
+    echo "Houston, we have a problem: the cmake-aicxx git submodule is missing from your source tree!?"
     echo "I'd suggest to clone the source code of this project from github:"
     echo "git clone --recursive https://github.com/CarloWood/libcwd.git"
     exit 1

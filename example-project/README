@@ -1,9 +1,19 @@
 This is a minimal example project using libcwd.
 
-IMPORTANT: This example project only works of you already
-           compiled and *installed* libcwd!
+This example project only works of you already compiled and *installed* libcwd!
+If libcwd was installed with an uncommon prefix then CMake can still find it
+if you add `<install_prefix>/lib/cmake/libcwd_r` to CMAKE_PREFIX_PATH.
 
-The old Autotools build files for this example have been removed with
-the rest of the Autotools support. The source files are kept as compact
-examples for now, but they are no longer a separately maintained build
-project.
+Note: The directories cmake-aicxx/ and cwds/ in this example project
+are stripped down minimal versions of the git submodules
+https://github.com/CarloWood/cmake-aicxx and
+https://github.com/CarloWood/cwds that you'd normally use.
+
+To configure and build the example project run:
+
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DExampleOption=ON
+    cmake --build build --verbose
+
+Note that a Release build will not show the ExampleOption,
+which is due to the fact that it uses `"CW_BUILD_TYPE_IS_NOT_RELEASE" OFF`
+in the CMakeLists.txt file.

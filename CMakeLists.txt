@@ -22,7 +22,12 @@ set(CW_INTERFACE_VERSION 10)
 set(CW_INTERFACE_VERSION_REVISION 0)
 set(CW_INTERFACE_AGE 1)
 
-include(cwm4/cmake/AICxxProject)
+#==============================================================================
+# This project uses aicxx modules.
+include(cmake/aicxx/Project NO_POLICY_SCOPE)
+
+#==============================================================================
+# OPTIONS
 
 # Exit if someone tries to contaminate the source directory with an in-source build.
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
