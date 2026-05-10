@@ -151,8 +151,18 @@ if (BUILD_TESTING)
   target_link_libraries(ctest_basic_debug_output PRIVATE cwd_r ctest_support)
   target_compile_options(ctest_basic_debug_output PRIVATE -g)
 
+  add_executable(ctest_colors_debug_output ctest/colors_debug_output.cc)
+  target_include_directories(ctest_colors_debug_output PRIVATE ${CMAKE_BINARY_DIR}/include ${CMAKE_SOURCE_DIR}/include)
+  target_link_libraries(ctest_colors_debug_output PRIVATE cwd_r ctest_support)
+  target_compile_options(ctest_colors_debug_output PRIVATE -g)
+
   add_test(NAME basic_debug_output COMMAND ctest_basic_debug_output)
   set_tests_properties(basic_debug_output PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  )
+
+  add_test(NAME colors_debug_output COMMAND ctest_colors_debug_output)
+  set_tests_properties(colors_debug_output PROPERTIES
     ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
   )
 endif ()
