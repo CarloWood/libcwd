@@ -41,7 +41,7 @@ int main(void)
   Debug( libcw_do.set_ostream(&std::cout) );
   Debug( libcw_do.on() );
 
-  delete NEW(A);
+  delete new A;
 
   return 0;
 }

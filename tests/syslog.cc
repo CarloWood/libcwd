@@ -66,7 +66,7 @@ protected:
   virtual pos_type seekoff(off_type off, ios_base::seekdir way, ios_base::openmode which);
   virtual pos_type seekpos(pos_type sp, ios_base::openmode which);
   virtual int sync(void);
-  virtual int showmanyc(void);
+  virtual streamsize showmanyc(void);
   virtual streamsize xsgetn(char_type* s, streamsize n);
   virtual int/*_type*/ underflow(); // The old library returns an `int'
   virtual int/*_type*/ uflow(); // The old library returns an int
@@ -251,7 +251,7 @@ int syslog_streambuf_ct::sync(void)
 //   Returns zero.
 // Notes:
 //   Uses traits::eof().
-int syslog_streambuf_ct::showmanyc(void)
+streamsize syslog_streambuf_ct::showmanyc(void)
 {
   Dout(dc::warning|dc::debug_syslog, "Calling: showmanyc()");
   return -1;	// Write only

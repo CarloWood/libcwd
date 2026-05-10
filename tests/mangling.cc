@@ -1,5 +1,6 @@
 #include "sys.h"
 #include "debug.h"
+#include <libcwd/type_info.h>
 #include <iostream>
 
 // Used helper types.
@@ -128,4 +129,3 @@ int main(void)
 namespace {
   int anonymous;
 }
-

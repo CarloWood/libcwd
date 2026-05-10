@@ -99,6 +99,14 @@ main (int, char**)
   Debug( check_configuration() );
   Debug( libcw_do.on() );
   Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
+  Debug( dc::notice.on() );
+
+  // Print the source location for an address inside main. The old test enabled
+  // the malloc debug channel before allocating task queues merely to get a
+  // location printed; now that allocation debugging is removed, emit an explicit
+  // location on the notice channel instead.
+allocation_location:
+  Dout(dc::notice, "allocation location: " << location_ct(&&allocation_location));
 
   pthread_t prod[thread_pairs];
   pthread_t cons[thread_pairs];
@@ -109,7 +117,7 @@ main (int, char**)
     {
       for (int i = 0; i < thread_pairs; i++)
         {
-          tq[i] = NEW( task_queue );
+          tq[i] = new task_queue;
           pthread_create (&prod[i], NULL, produce, static_cast<void*> (tq[i]));
           pthread_create (&cons[i], NULL, consume, static_cast<void*> (tq[i]));
         }

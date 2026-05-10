@@ -22,7 +22,7 @@ namespace debug_channels {    // This is namespace DEBUGCHANNELS
     using namespace libcwd::channels::dc;
 
     // Add custom debug channels here.
-    extern libcwd::channel_ct hello; 
+    extern libcwd::channel_ct hello;
   }
 }
 

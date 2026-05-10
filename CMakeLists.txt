@@ -163,6 +163,7 @@ find_library(LIBELF elf REQUIRED)
 
 add_subdirectory(utils)
 add_subdirectory(testsuite)
+add_subdirectory(tests)
 
 add_library(cwd_r SHARED)
 

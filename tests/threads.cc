@@ -4,6 +4,7 @@
 //#include "sys.h"
 #include "../include/sys.h"
 #include "threads_debug.h"
+#include <libcwd/type_info.h>
 #include <vector>
 #include <iostream>
 
@@ -17,12 +18,12 @@ template<class TYPE>
   public:
     foo_tct()
     {
-      Dout(dc::notice, "Creating " << type_info_of<foo_tct<TYPE> >().demangled_name()
+      Dout(dc::notice, "Creating " << libcwd::type_info_of<foo_tct<TYPE> >().demangled_name()
           << " with pthread_self() = " << pthread_self());
     }
     ~foo_tct()
     {
-      Dout(dc::notice, "Destroying " << type_info_of<foo_tct<TYPE> >().demangled_name()
+      Dout(dc::notice, "Destroying " << libcwd::type_info_of<foo_tct<TYPE> >().demangled_name()
           << " with pthread_self() = " << pthread_self());
     }
   };

@@ -1,7 +1,7 @@
 // $Header$
 //
 // Copyright (C) 2003, by
-// 
+//
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
 // RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
 // Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
@@ -21,6 +21,7 @@ inline int
 i(int x, int y)
 {
   a += x + y;
+  return a;
 }
 
 inline void
@@ -29,12 +30,12 @@ g(int x,
   int z = i(12345, h29()))
 {
   int q[4] = { 2, 3, 5, 7 };
-  a += x + y + z + (int)&q;
+  a += x + y + z + reinterpret_cast<ptrdiff_t>(&q);
 }
 
 void f()
 {
-  (void)malloc(200);
-  g(h38()); 
+  Dout(dc::notice, "calling g(h38()) from f: " << location_ct(&&current_location));
+current_location:
+  g(h38());
 }
-
