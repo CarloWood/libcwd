@@ -15,7 +15,7 @@
 #include "debug.h"
 
 extern int a;
-extern int h28(), h29(), h38();
+extern int h29(), h30(), h40();
 
 inline int
 i(int x, int y)
@@ -26,8 +26,8 @@ i(int x, int y)
 
 inline void
 g(int x,
-  int y = h28(),
-  int z = i(12345, h29()))
+  int y = h29(),
+  int z = i(12345, h30()))
 {
   int q[4] = { 2, 3, 5, 7 };
   a += x + y + z + reinterpret_cast<ptrdiff_t>(&q);
@@ -35,7 +35,7 @@ g(int x,
 
 void f()
 {
-  Dout(dc::notice, "calling g(h38()) from f: " << location_ct(&&current_location));
+  Dout(dc::notice, "calling g(h40()) from f: " << location_ct(&&current_location));
 current_location:
-  g(h38());
+  g(h40());
 }

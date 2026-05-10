@@ -18,13 +18,6 @@ extern void f();
 
 int a;
 
-int h28()
-{
-  char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  Dout(dc::always, "h28() was called from " << location_ct(addr));
-  return 0;
-}
-
 int h29()
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
@@ -32,10 +25,17 @@ int h29()
   return 0;
 }
 
-int h38()
+int h30()
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  Dout(dc::always, "h38() was called from " << location_ct(addr));
+  Dout(dc::always, "h30() was called from " << location_ct(addr));
+  return 0;
+}
+
+int h40()
+{
+  char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
+  Dout(dc::always, "h40() was called from " << location_ct(addr));
   return 0;
 }
 
