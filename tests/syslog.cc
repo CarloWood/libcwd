@@ -53,7 +53,7 @@ class syslog_streambuf_ct : public streambuf {
   typedef streampos pos_type;
   typedef streamoff off_type;
   typedef int int_type;
-  struct traits { static int_type const eof(void) { return static_cast<int_type>(-1); } };
+  struct traits { static int_type const eof() { return static_cast<int_type>(-1); } };
 private:
   char M_buf[256];	// Tiny buffer, doesn't need to contain more than one line.
   int M_priority;
@@ -65,8 +65,8 @@ protected:
   virtual basic_streambuf* setbuf(char_type* s, streamsize n);
   virtual pos_type seekoff(off_type off, ios_base::seekdir way, ios_base::openmode which);
   virtual pos_type seekpos(pos_type sp, ios_base::openmode which);
-  virtual int sync(void);
-  virtual streamsize showmanyc(void);
+  virtual int sync();
+  virtual streamsize showmanyc();
   virtual streamsize xsgetn(char_type* s, streamsize n);
   virtual int/*_type*/ underflow(); // The old library returns an `int'
   virtual int/*_type*/ uflow(); // The old library returns an int
@@ -213,7 +213,7 @@ syslog_streambuf_ct::pos_type syslog_streambuf_ct::seekpos(syslog_streambuf_ct::
 //  derived class (_lib.filebuf.virtuals_).
 //  Default behavior:
 //  Returns zero.
-int syslog_streambuf_ct::sync(void)
+int syslog_streambuf_ct::sync()
 {
   Dout(dc::debug_syslog, "Calling: sync()");
   Dout(dc::debug_syslog, "eback() = " << (void*)eback());
@@ -251,7 +251,7 @@ int syslog_streambuf_ct::sync(void)
 //   Returns zero.
 // Notes:
 //   Uses traits::eof().
-streamsize syslog_streambuf_ct::showmanyc(void)
+streamsize syslog_streambuf_ct::showmanyc()
 {
   Dout(dc::warning|dc::debug_syslog, "Calling: showmanyc()");
   return -1;	// Write only

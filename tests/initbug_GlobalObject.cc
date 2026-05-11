@@ -4,9 +4,9 @@
 #include <errno.h>
 #include "initbug_GlobalObject.h"
 
-GlobalObject::GlobalObject(void)
+GlobalObject::GlobalObject()
 {
-  std::cout << "\nCalling GlobalObject::GlobalObject(void)\n";
+  std::cout << "\nCalling GlobalObject::GlobalObject()\n";
   Dout( dc::notice|continued_cf, "Hello World" );
   new int [20];
   Dout( dc::finish|error_cf, "Hello World" );

@@ -3,7 +3,7 @@
 #include "initbug_GlobalObject.h"
 #include <iostream>
 
-int main(void)
+int main()
 {
   Debug( check_configuration() );
   ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );

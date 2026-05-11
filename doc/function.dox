@@ -91,7 +91,7 @@ found.  By default they will fail when nothing is found.
 \code
   f1.init(Function::regexp("^int g(.*)$"));	  // f1 represents all functions 'g' returning an int.
 
-  f1.init(Function::exactmatch("int h(void)"));	  // f1 represents the function 'int h()'.
+  f1.init(Function::exactmatch("int h()"));	  // f1 represents the function 'int h()'.
 
   f1.init(Function::mangled("_ZTv0_n12_NSoD0Ev"); // Look up by mangled name (exact matches only).
 \endcode

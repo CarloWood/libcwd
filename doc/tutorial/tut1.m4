@@ -21,7 +21,7 @@ to <CODE>cerr</CODE> is:</P>
 // This line should actually be part of a custom &quot;debug.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
 #include &lt;libcwd/debug.h&gt;
 
-int main(void)
+int main()
 {
   Debug( dc::notice.on() );             // Turn on the NOTICE Debug Channel.
   Debug( libcw_do.on() );               // Turn on the default Debug Object.

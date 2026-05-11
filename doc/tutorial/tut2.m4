@@ -87,7 +87,7 @@ namespace debug_channels {	// Actually, you will need a series of
   }
 }
 
-int main(void)
+int main()
 {
   Debug( dc::ghost.on() );			// Remember: don't forget to turn
   Debug( libcw_do.on() );			//   the debug Channel and Object on!

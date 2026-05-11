@@ -210,7 +210,7 @@ debug_ct::debug_ct()
   if (!NS_init(LIBCWD_TSD))
     core_dump();
 #else
-  (void)NS_init(LIBCWD_TSD);
+  [[maybe_unused]] bool success = NS_init(LIBCWD_TSD);
 #endif
 }
 

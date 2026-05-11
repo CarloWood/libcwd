@@ -4,13 +4,13 @@
 #include <libcwd/sys.h>
 #include <libcwd/debug.h>
 
-void print_line(void)
+void print_line()
 {
   libcwd::location_ct loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   Dout(dc::notice, loc);
 }
 
-int main(void)
+int main()
 {
   Debug( libcw_do.on() );
   Debug( dc::bfd.on() );

@@ -17,7 +17,7 @@ uses it to write its debug output to.</P>
 #include &lt;fstream&gt;
 #include &quot;debug.h&quot;		// See tutorial 2.
 
-int main(void)
+int main()
 {
   Debug( dc::notice.on() );
   Debug( libcw_do.on() );

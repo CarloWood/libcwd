@@ -35,7 +35,7 @@ void* thread_function(void*)
   return (void *)(cnt == 1000);
 }
 
-int main(void)
+int main()
 {
   Debug( check_configuration() );
   Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
@@ -54,6 +54,6 @@ int main(void)
     pthread_join(thread_id[i], &status);
     Dout(dc::notice, "Thread " << thread_id[i] << " returned with status " << ((bool)status ? "OK" : "ERROR") << '.');
   }
-  
+
   return 0;
 }

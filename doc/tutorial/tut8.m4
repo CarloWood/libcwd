@@ -81,7 +81,7 @@ void* thread_function(void* arguments)
 pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-int main(void)
+int main()
 {
   // Don't output a single character at a time (yuk)
   // (Read <A HREF ="http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8">http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8</A> for an explanation.)

@@ -94,14 +94,14 @@ namespace std {
   template<typename T, class _Alloc = allocator<T> >
     class vector {
     public:
-      vector(void);
-      void size(void) const { }
+      vector();
+      void size() const { }
     };
   class ostream { };
   template<typename T, class _Queue, class _Comp>
     class priority_queue {
     public:
-      void top(void) const { }
+      void top() const { }
     };
   template<typename T, class _Alloc = allocator<T> >
     class deque {
@@ -122,7 +122,7 @@ template<typename T>
 {
 }
 
-void fn(void)
+void fn()
 {
   // Instantiation.
   libcw_app_ct::add_option(&libcw_app_ct::dummy, "", '\0', "", "");
@@ -149,7 +149,7 @@ namespace libcw {
   }
 }
 
-void g(void)
+void g()
 {
   // Instantiation.
   libcw::dummy.ids.size();
@@ -169,7 +169,7 @@ namespace libcwd {
     cwprint_using_tct<T> cwprint_using(T const&, void (T::*)(std::ostream&) const);
 }
 
-void h(void)
+void h()
 {
   // Instantiation.
   libcw::_private_::GlobalObject dummy;
@@ -181,7 +181,7 @@ void h(void)
 class timer_event_request_base_ct { };
 struct timer_greater { };
 
-void i(void)
+void i()
 {
   // Instantiation.
   std::priority_queue<timer_event_request_base_ct*, std::deque<timer_event_request_base_ct*>, timer_greater> dummy;
@@ -199,7 +199,7 @@ namespace std {
     };
 }
 
-void j(void)
+void j()
 {
   // Instantiation.
   std::_Deque_iterator<memory_block_st*> dummy;
@@ -217,7 +217,7 @@ namespace std {
     };
 }
 
-void k(void)
+void k()
 {
   // Instantiation.
   std::__normal_iterator<option const*, std::vector<option> > dummy;
@@ -240,7 +240,7 @@ namespace std {
     };
 }
 
-void l(void)
+void l()
 {
   // Instantiation.
   std::basic_string<char, std::char_traits<char>, libcwd::no_alloc_checking_allocator> dummy;
@@ -263,7 +263,7 @@ public:
 template<typename T1, typename T2, typename T3>
   void f(T1, T2, T3, ap4_t, ap4_t (C::*)) { }
 
-void m(void)
+void m()
 {
   // Instantiation.
   A a;
@@ -277,7 +277,7 @@ void foo(int, int*, int**, int***, int****, int*****, int******, int*******, int
 {
 }
 
-void n(void)
+void n()
 {
   int i0;
   int* i1;
@@ -309,7 +309,7 @@ namespace std {
     D<T3, T3&, T3*> B(T1, T1, T2, T3*) { return d; }
 }
 
-void o(void)
+void o()
 {
   std::D<A*, A* const&, A* const*> dummy1;
   std::D<A*, A*&, A**> dummy2;
@@ -329,7 +329,7 @@ template<int i>
 template<int i>
   void operator-(typename Q<i + 2>::T) { }
 
-void p(void)
+void p()
 {
   Q<42 + 2>::T z;
   operator-<42>(z);
@@ -357,7 +357,7 @@ namespace libcwd {
 }
 
 char x;
-void q(void)
+void q()
 {
   std::_Alloc_traits<
     std::basic_string<
@@ -389,13 +389,13 @@ void q(void)
 // _Z1rM1GKFivE
 
 struct G {
-  int m(void) const { return 0; }
-  int n(void) { return 0; }
+  int m() const { return 0; }
+  int n() { return 0; }
 };
 
 struct H {
-  int m(void) const { return 0; }
-  int n(void) { return 0; }
+  int m() const { return 0; }
+  int n() { return 0; }
 };
 
 template<typename T>
@@ -408,14 +408,14 @@ template<typename T>
   {
   };
 
-void r(int (G::*)(void),
-       int (G::*)(void) const,
+void r(int (G::*)(),
+       int (G::*)() const,
        G, /* S_ */
-       int (H::*)(void), /* M1HS0_ */
-       int (G::*)(void), /* S1_ */
+       int (H::*)(), /* M1HS0_ */
+       int (G::*)(), /* S1_ */
        what<G const>, /* what<S2_> */
        what2<G const>, /* what2<S8_> */
-       int (G::*)(void) const /* S3_ */)
+       int (G::*)() const /* S3_ */)
 {
   G g;
   what<G const> y;

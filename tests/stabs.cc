@@ -4,7 +4,7 @@
 #include <libcwd/sys.h>
 #include <libcwd/debug.h>
 
-int main(void)
+int main()
 {
   Debug( libcw_do.on() );
   Debug( dc::bfd.on() );

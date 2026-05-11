@@ -11,7 +11,7 @@ namespace libcwd {
   }
 }
 
-void generate_tables(void)
+void generate_tables()
 {
 #ifndef THREADTEST
   ssize_t __attribute__((unused)) res = write(1, "<sleeping>", 10);

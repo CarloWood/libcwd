@@ -474,7 +474,7 @@ namespace libcwd {
 #endif
 #if CWDEBUG_DEBUG && !CWDEBUG_DEBUGOUTPUT
       // Force allocation of a __cxa_eh_globals struct in libsupc++.
-      (void)std::uncaught_exceptions();		// Leaks memory.
+      [[maybe_unused]] int count = std::uncaught_exceptions();  // Leaks memory.
 #endif
     }
 
@@ -1722,7 +1722,7 @@ PRAGMA_DIAGNOSTIC_POP
       if (!NS_init(LIBCWD_TSD))
         DoutFatal(dc::core, "Calling debug_ct::NS_init recursively from debug_ct::force_on");
 #else
-      (void)NS_init(LIBCWD_TSD);
+      [[maybe_unused]] bool success = NS_init(LIBCWD_TSD);
 #endif
       state._off = LIBCWD_TSD_MEMBER_OFF;
 #if CWDEBUG_DEBUGOUTPUT

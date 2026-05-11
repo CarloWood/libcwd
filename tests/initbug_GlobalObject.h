@@ -3,7 +3,7 @@
 
 class GlobalObject {
 public:
-  GlobalObject(void);
+  GlobalObject();
 };
 
 #endif // INITBUG_GLOBALOBJECT_H

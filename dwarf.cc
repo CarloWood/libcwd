@@ -1759,9 +1759,8 @@ void dlopenclose_cleanup(void* arg)
   rwlock_tct<object_files_instance>::cleanup(arg);
 }
 
-void dlopen_map_cleanup(void* arg)
+void dlopen_map_cleanup(void* /*arg*/)
 {
-  (void)arg;	// Suppress unused warning.
   DLOPEN_MAP_RELEASE_LOCK;
 }
 #endif

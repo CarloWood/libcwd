@@ -33,7 +33,7 @@ the following code prints a list of all channels after they have been turned on.
 #include &quot;sys.h&quot;		// See tutorial 2
 #include &quot;debug.h&quot;
 
-int main(void)
+int main()
 {
   // Turn on debug object `libcw_do'.
   Debug( libcw_do.on() );
@@ -197,7 +197,7 @@ of the custom debug channels that we defined in the previous paragraph.</P>
 #include &quot;sys.h&quot;		// See &sect; 2
 #include &quot;debug.h&quot;		// See &sect; 5.2
 
-int main(void)
+int main()
 {
   // Start with everything turned on:
   Debug( libcw_do.on() );
@@ -226,7 +226,7 @@ int main(void)
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-int main(void)
+int main()
 {
   // Start with everything turned on:
   Debug( libcw_do.on() );
@@ -269,7 +269,7 @@ each output is suppressed in the first call:</P>
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-int main(void)
+int main()
 {
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
@@ -297,7 +297,7 @@ int main(void)
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-int main(void)
+int main()
 {
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
@@ -541,7 +541,7 @@ Consider the following example:</P>
 #include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
-int main(void)
+int main()
 {
   Debug( libcw_do.on() );
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );

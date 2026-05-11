@@ -11,16 +11,16 @@
 Consider the following code:
 
 \code
-int foobar(void) __attribute__ ((const));
+int foobar() __attribute__ ((const));
 
-int foobar(void)
+int foobar()
 {
   Dout( dc::notice, "Entering foobar()" );
   Dout( dc::notice, "Leaving foobar()" );
   return 1;
 }
 
-int main(void)
+int main()
 {
   Dout( dc::kernel, "The value of foobar() = " << foobar()
       << ", aint that nice?" );

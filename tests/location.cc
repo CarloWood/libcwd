@@ -16,7 +16,7 @@
 #include "debug.h"
 #include <libcwd/demangle.h>
 
-void test(void)
+void test()
 {
   libcwd::location_ct loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   std::string funcname;
@@ -26,16 +26,16 @@ void test(void)
 
 class A {
   public:
-    A(void);
+    A();
 };
 
-A::A(void)
+A::A()
 {
   Dout(dc::notice, "Called from " << location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) );
   test();
 }
 
-int main(void)
+int main()
 {
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   Debug( libcw_do.set_ostream(&std::cout) );
