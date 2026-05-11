@@ -6,8 +6,7 @@
 // the captured output by the hexadecimal thread-id margin.
 
 #include "sys.h"
-#include "libcwd/config.h"
-#include "libcwd/debug.h"
+#include "test_support.h"
 
 #include <atomic>
 #include <cstdlib>

@@ -1,0 +1,3 @@
+# Comment
+channels_off = notice,warning
+channels_on = hello

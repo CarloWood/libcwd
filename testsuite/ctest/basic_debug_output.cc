@@ -5,8 +5,6 @@
 // extra output, or missing output; it has no filesystem side effects.
 
 #include "sys.h"
-#include "libcwd/config.h"
-#include "libcwd/debug.h"
 #include "test_support.h"
 
 #include <cstdlib>
