@@ -12,30 +12,36 @@
 //
 
 #include "sys.h"
+#include <dlfcn.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdint>
 #include "debug.h"
 
 extern void f();
+uintptr_t executable_load_base();
 
 int a;
+uintptr_t base = executable_load_base();
 
 int h29()
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  Dout(dc::always, "h29() was called from " << location_ct(addr));
+  Dout(dc::always, "h29() was called from 0x" << std::hex << ((ptrdiff_t)addr - base)  << " --> " << location_ct(addr));
   return 0;
 }
 
 int h30()
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  Dout(dc::always, "h30() was called from " << location_ct(addr));
+  Dout(dc::always, "h30() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << location_ct(addr));
   return 0;
 }
 
 int h40()
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  Dout(dc::always, "h40() was called from " << location_ct(addr));
+  Dout(dc::always, "h40() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << location_ct(addr));
   return 0;
 }
 
@@ -46,6 +52,8 @@ int main()
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );
 
+  Dout(dc::always, "base = 0x" << std::hex << base);
+
   // Print the source location for an address inside main. This preserves the
   // original intent of this test: exercising location lookup for code in this
   // function without relying on the removed allocation-debugging malloc channel
@@ -53,4 +61,13 @@ int main()
   Dout(dc::notice, "Calling f() from main: " << location_ct(&&current_location));
 current_location:
   f();
+}
+
+uintptr_t executable_load_base()
+{
+  Dl_info info;
+  if (dladdr(reinterpret_cast<void*>(&main), &info) == 0)
+    return 0;
+
+  return reinterpret_cast<uintptr_t>(info.dli_fbase);
 }
