@@ -1,5 +1,3 @@
-// $Header$
-//
 // Copyright (C) 2002 - 2003, by
 // 
 // Carlo Wood, Run on IRC <carlo@alinoe.com>
@@ -21,27 +19,26 @@ void test()
   libcwd::location_ct loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   std::string funcname;
   libcwd::demangle_symbol(loc.mangled_function_name(), funcname);
-  Dout(dc::notice, "Called from " << funcname );
+  Dout(dc::notice, "Called from " << funcname);
 }
 
-class A {
-  public:
-    A();
+class A
+{
+ public:
+  A();
 };
 
 A::A()
 {
-  Dout(dc::notice, "Called from " << location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) );
+  Dout(dc::notice, "Called from " << location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset));
   test();
 }
 
 int main()
 {
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
-  Debug( libcw_do.set_ostream(&std::cout) );
-  Debug( libcw_do.on() );
+  ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on(););
+  Debug(libcw_do.set_ostream(&std::cout));
+  Debug(libcw_do.on());
 
   delete new A;
-
-  return 0;
 }
