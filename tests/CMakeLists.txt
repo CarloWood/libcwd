@@ -21,8 +21,6 @@ function(add_manual_test name)
   set_property(GLOBAL APPEND PROPERTY LIBCWD_MANUAL_TEST_TARGETS ${name})
 endfunction()
 
-add_manual_test(mangling mangling.cc)
-add_manual_test(mangling2 mangling2.cc)
 add_manual_test(location location.cc)
 add_manual_test(lines lines.cc)
 add_manual_test(inlined inlined.cc inlined_main.cc)

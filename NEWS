@@ -1,6 +1,8 @@
 libcwd-2.0
         Uses CMake for configuration and building (support for autotools has been removed).
         Support for memory allocation debugging has been removed.
+        No longer demangle to f(void). Instead demangle to f().
+        Now has a CTest-backed testsuite.
 
         Release under the MIT license.
 

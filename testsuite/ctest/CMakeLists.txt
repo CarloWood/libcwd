@@ -17,6 +17,9 @@ target_link_libraries(colors_debug_output PRIVATE ctest_support)
 add_executable(hello_world_debug_channel hello_world_debug_channel.cc)
 target_link_libraries(hello_world_debug_channel PRIVATE ctest_support)
 
+add_executable(mangling_symbols mangling_symbols.cc)
+target_link_libraries(mangling_symbols PRIVATE ctest_support)
+
 add_test(NAME basic_debug_output COMMAND basic_debug_output)
 set_tests_properties(basic_debug_output PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
@@ -35,4 +38,9 @@ set(hello_world_debug_channel_environment
 add_test(NAME hello_world_debug_channel COMMAND hello_world_debug_channel)
 set_tests_properties(hello_world_debug_channel PROPERTIES
   ENVIRONMENT "${hello_world_debug_channel_environment}"
+)
+
+add_test(NAME mangling_symbols COMMAND mangling_symbols)
+set_tests_properties(mangling_symbols PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
