@@ -20,6 +20,9 @@ target_link_libraries(hello_world_debug_channel PRIVATE ctest_support)
 add_executable(mangling_symbols mangling_symbols.cc)
 target_link_libraries(mangling_symbols PRIVATE ctest_support)
 
+add_executable(location_lookup location_lookup.cc)
+target_link_libraries(location_lookup PRIVATE ctest_support)
+
 add_test(NAME basic_debug_output COMMAND basic_debug_output)
 set_tests_properties(basic_debug_output PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
@@ -42,5 +45,10 @@ set_tests_properties(hello_world_debug_channel PROPERTIES
 
 add_test(NAME mangling_symbols COMMAND mangling_symbols)
 set_tests_properties(mangling_symbols PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME location_lookup COMMAND location_lookup)
+set_tests_properties(location_lookup PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
