@@ -717,7 +717,7 @@ void demangle_symbol(char const* input, internal_string& output)
     if (input[1] == 'Z')
     {
       // C++ name?
-      implementation_details id(implementation_details::style_void);
+      implementation_details id(0);
       int cnt = session_type::decode_encoding(output, input + 2, INT_MAX, id);
       if (cnt < 0 || input[cnt + 2] != 0)
 	failure = true;
@@ -773,7 +773,7 @@ void demangle_type(char const* input, internal_string& output)
 #endif
     return;
   }
-  implementation_details id(implementation_details::style_void);
+  implementation_details id(0);
   session_type demangler_session(input, INT_MAX, id);
   if (!demangler_session.decode_type(output) || demangler_session.remaining_input_characters())
     output.assign(input, strlen(input));	// Failure to demangle, return the mangled type name.
