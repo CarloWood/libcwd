@@ -2,3 +2,7 @@
 	path = cmake/aicxx
 	url = https://github.com/CarloWood/cmake-aicxx.git
 	branch = master
+[submodule "threadsafe"]
+	path = threadsafe
+	url = https://github.com/CarloWood/threadsafe.git
+	branch = master

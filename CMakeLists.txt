@@ -284,3 +284,17 @@ install(
   DESTINATION
     lib${LIB_SUFFIX}/pkgconfig
 )
+
+add_subdirectory(threadsafe)
+
+target_include_directories(threadsafe_ObjLib
+  PRIVATE
+    "${CMAKE_SOURCE_DIR}"
+    "${CMAKE_SOURCE_DIR}/include"
+    "${CMAKE_BINARY_DIR}/include"
+)
+target_compile_definitions(threadsafe_ObjLib
+  PRIVATE
+    ${cwd_r_compile_definintions}
+    "-DCW_DEBUG=1"
+)
