@@ -494,9 +494,15 @@ bool ST_init(LIBCWD_TSD_PARAM)
 
 //  new (fake_ST_shared_libs) ST_shared_libs_vector_ct;
 
+  // LIBCWD_NO_STARTUP_MSGS deliberately suppresses even the loading trace that
+  // LIBCWD_PRINT_LOADING would otherwise force on. Track whether we actually
+  // changed libcw_do / dc::bfd so the restore path only restores initialized
+  // OnOffState values; restoring after a suppressed force-on would trip the
+  // channel balance checks during early global initialization.
+  bool const forced_loading_output = _private_::always_print_loading && !_private_::suppress_startup_msgs;
   libcwd::debug_ct::OnOffState state;
   libcwd::channel_ct::OnOffState state2;
-  if (_private_::always_print_loading && !_private_::suppress_startup_msgs)
+  if (forced_loading_output)
   {
     // We want debug output to BFD
     Debug( libcw_do.force_on(state) );
@@ -529,7 +535,7 @@ bool ST_init(LIBCWD_TSD_PARAM)
       resort_object_files(LIBCWD_TSD);
     }
 
-    if (_private_::always_print_loading)
+    if (forced_loading_output)
     {
       Debug( dc::bfd.restore(state2) );
       Debug( libcw_do.restore(state) );
