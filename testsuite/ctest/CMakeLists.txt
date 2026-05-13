@@ -51,7 +51,7 @@ target_compile_definitions(location_libtest1 PRIVATE "LOCATION_PLUGIN1_PATH=\"$<
 add_dependencies(location_libtest1 location_plugin1)
 
 add_executable(location_loading_fixture location_loading_fixture.cc)
-target_link_libraries(location_loading_fixture PRIVATE ctest_support location_libtest1 ${CMAKE_DL_LIBS})
+target_link_libraries(location_loading_fixture PRIVATE ctest_support location_libtest1 ${CMAKE_DL_LIBS} AICxx::threadsafe)
 target_compile_definitions(location_loading_fixture PRIVATE "LOCATION_PLUGIN2_PATH=\"$<TARGET_FILE:location_plugin2>\"")
 add_dependencies(location_loading_fixture location_plugin2)
 

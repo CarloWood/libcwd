@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #ifndef _GLIBCXX_DEMANGLER_DEBUG
 #define _GLIBCXX_DEMANGLER_CWDEBUG 0
@@ -93,9 +94,16 @@ namespace __gnu_cxx
       class session;
 
     template<typename Allocator>
+      struct allocator_rebind
+      {
+        template<typename T>
+          using alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<T>;
+      };
+
+    template<typename Allocator>
       class qualifier
       {
-	typedef typename Allocator::template rebind<char>::other
+	typedef typename allocator_rebind<Allocator>::template alloc<char>
 	        char_Allocator;
 	typedef std::basic_string<char, std::char_traits<char>, char_Allocator>
 	    string_type;
@@ -190,7 +198,7 @@ namespace __gnu_cxx
     template<typename Allocator>
       class qualifier_list
       {
-	typedef typename Allocator::template rebind<char>::other
+	typedef typename allocator_rebind<Allocator>::template alloc<char>
 	  char_Allocator;
 	typedef std::basic_string<char, std::char_traits<char>, char_Allocator>
 	  string_type;
@@ -198,7 +206,7 @@ namespace __gnu_cxx
       private:
 	mutable bool M_printing_suppressed;
 	typedef qualifier<Allocator> qual;
-        typedef typename Allocator::template rebind<qual>::other qual_Allocator;
+        typedef typename allocator_rebind<Allocator>::template alloc<qual> qual_Allocator;
 	typedef std::vector<qual, qual_Allocator> qual_vector;
 	qual_vector M_qualifier_starts;
 	session<Allocator>& M_demangler;
@@ -333,7 +341,7 @@ namespace __gnu_cxx
       class session
       {
 	friend class qualifier_list<Allocator>;
-	typedef typename Allocator::template rebind<char>::other
+	typedef typename allocator_rebind<Allocator>::template alloc<char>
 	    char_Allocator;
 	typedef std::basic_string<char, std::char_traits<char>, char_Allocator>
 	    string_type;
@@ -352,9 +360,9 @@ namespace __gnu_cxx
 	bool M_name_is_conversion_operator;
 	bool M_template_args_need_space;
 	string_type M_function_name;
-        typedef typename Allocator::template rebind<int>::other
+        typedef typename allocator_rebind<Allocator>::template alloc<int>
                 int_Allocator;
-        typedef typename Allocator::template rebind<substitution_st>::other
+        typedef typename allocator_rebind<Allocator>::template alloc<substitution_st>
                 subst_Allocator;
 	std::vector<int, int_Allocator> M_template_arg_pos;
 	int M_template_arg_pos_offset;
@@ -2675,7 +2683,7 @@ namespace __gnu_cxx
   template<typename Allocator>
     struct demangle
     {
-      typedef typename Allocator::template rebind<char>::other char_Allocator;
+      typedef typename demangler::allocator_rebind<Allocator>::template alloc<char> char_Allocator;
       typedef std::basic_string<char, std::char_traits<char>, char_Allocator>
 	  string_type;
       static string_type symbol(char const* in,

@@ -4,7 +4,7 @@
 // expected from cutee/t.basic.h. It exits with a non-zero status on mismatches,
 // extra output, or missing output; it has no filesystem side effects.
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include "test_support.h"
 
 #include <cstdlib>

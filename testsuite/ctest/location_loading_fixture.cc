@@ -4,7 +4,7 @@
 // that the expected DSOs load, initialize libcwd, and expose their tiny probe
 // functions.
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include "location_loading_support.h"
 
 #include <cstdlib>

@@ -42,7 +42,7 @@ The direct use of these functions should be avoided, instead use the function ty
 // g++ -g -DSTANDALONE -DCWDEBUG -Iinclude demangle3.cc -Wl,--rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
 //
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include "cwd_debug.h"
 #include "libcwd/debug.h"
 #include "libcwd/demangle.h"

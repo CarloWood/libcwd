@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.9...3.30)
 
 # Compile all subdirectories with the same standard.
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(libcwd
-        VERSION 1.2.3
+        VERSION 2.0.0
         DESCRIPTION "Libcwd is a thread-safe, full-featured debugging support library for C++ developers."
         HOMEPAGE_URL "http://carlowood.github.io/libcwd/"
         LANGUAGES CXX C
@@ -20,9 +20,9 @@ include(CTest)
 # CW_INTERFACE_VERSION_REVISION  : Revision, increment every public release; or set to 0 when the interface is changed.
 # CW_INTERFACE_AGE               : Increment if interfaces have been added; or set to 0 when interfaces have been removed.
 
-set(CW_INTERFACE_VERSION 10)
+set(CW_INTERFACE_VERSION 11)
 set(CW_INTERFACE_VERSION_REVISION 0)
-set(CW_INTERFACE_AGE 1)
+set(CW_INTERFACE_AGE 0)
 
 #==============================================================================
 # This project uses aicxx modules.
@@ -144,11 +144,11 @@ set(libcwd_datadir "${CMAKE_INSTALL_PREFIX}/share")
 configure_file("cmake-config.h.in" "config.h")
 configure_file("include/libcwd/config.h.in" "include/libcwd/config.h" @ONLY)
 configure_file("include/libcwd/sys.h.in" "include/libcwd/sys.h" @ONLY)
-configure_file("include/sys.h.in" "include/sys.h" @ONLY)
+configure_file("include/cwd_sys.h.in" "include/cwd_sys.h" @ONLY)
 
 # Clean up rule for the above.
 add_custom_target(libcwd-maintainer-clean-extra
-    COMMAND rm config.h include/sys.h include/libcwd/config.h include/libcwd/sys.h
+    COMMAND rm config.h include/cwd_sys.h include/libcwd/config.h include/libcwd/sys.h
     COMMAND rm -f cwd_rConfig.cmake libcwd_rConfigVersion.cmake libcwd_r.pc
 )
 
@@ -203,8 +203,9 @@ target_compile_definitions(cwd_r
 
 target_include_directories(cwd_r
     PRIVATE
-        "${top_objdir}/include"
-        "${top_srcdir}/include"
+      "${CMAKE_BINARY_DIR}/include"
+      "${CMAKE_SOURCE_DIR}/include"
+      "${CMAKE_SOURCE_DIR}"
     INTERFACE
         "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
 )
@@ -285,10 +286,10 @@ install(
     lib${LIB_SUFFIX}/pkgconfig
 )
 
-add_subdirectory(threadsafe)
+add_subdirectory(include/threadsafe)
 
 target_include_directories(threadsafe_ObjLib
-  PRIVATE
+  PUBLIC
     "${CMAKE_SOURCE_DIR}"
     "${CMAKE_SOURCE_DIR}/include"
     "${CMAKE_BINARY_DIR}/include"

@@ -5,7 +5,7 @@
 // Thread scheduling may interleave lines arbitrarily, so validation groups
 // the captured output by the hexadecimal thread-id margin.
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include "test_support.h"
 
 #include <atomic>

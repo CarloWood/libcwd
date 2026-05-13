@@ -6,7 +6,7 @@
 // filesystem side effects; failures are reported by the shared comparison
 // helper on std::cerr.
 
-#include "sys.h"
+#include "cwd_sys.h"
 
 // Test using a two-deep namespace for our debug namespace (default is just `debug`).
 #define NAMESPACE_DEBUG hello_world_ctest::debug

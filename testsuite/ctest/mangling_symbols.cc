@@ -8,7 +8,7 @@
 // are covered by their Itanium ABI mangled names because C++ does not provide a
 // portable object-code address for those declarations.
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include "test_support.h"
 
 #include <cxxabi.h>

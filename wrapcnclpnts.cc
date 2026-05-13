@@ -15,7 +15,7 @@
 #define _LARGEFILE64_SOURCE
 #endif
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include <libcwd/config.h>		// Needed for CWDEBUG_DEBUGT
 
 #if CWDEBUG_DEBUGT && defined(__linux)

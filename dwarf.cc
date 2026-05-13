@@ -10,7 +10,7 @@
 // packaging of this file.
 //
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include <libcwd/config.h>
 
 #if CWDEBUG_LOCATION
@@ -639,8 +639,7 @@ class Elf
     GElf_Addr end_;
   };
 
-  using relocation_map_ct = std::map<char const*, Range, SymbolNameCompare
-                      >;
+  using relocation_map_ct = std::map<char const*, Range, SymbolNameCompare>;
 
   relocation_map_ct relocation_map_;
 

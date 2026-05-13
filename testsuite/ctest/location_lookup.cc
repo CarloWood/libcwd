@@ -6,7 +6,7 @@
 // line number parsed from the location output, so the assertion remains stable
 // when this file changes.
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include "test_support.h"
 
 #include <cstdlib>

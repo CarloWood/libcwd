@@ -13,7 +13,7 @@
 // packaging of this file.
 //
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include "cwd_debug.h"
 #include "libcwd/debug.h"
 #include <libcwd/private_threading.h>

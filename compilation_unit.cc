@@ -11,7 +11,7 @@
 // packaging of this file.
 //
 
-#include "sys.h"
+#include "cwd_sys.h"
 #include <libcwd/config.h>
 #include "cwd_debug.h"
 #include "compilation_unit.h"
