@@ -6,6 +6,7 @@
 
 #include "cwd_sys.h"
 #include "location_loading_support.h"
+#include "cwd_dwarf2.h"
 
 #include <cstdlib>
 #include <dlfcn.h>
