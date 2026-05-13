@@ -478,6 +478,12 @@ namespace libcwd {
 #endif
     }
 
+    void initialize()
+    {
+      LIBCWD_TSD_DECLARATION;
+      ST_initialize_globals(LIBCWD_TSD);
+    }
+
     namespace _private_ {
 
 #if !LIBCWD_THREAD_SAFE

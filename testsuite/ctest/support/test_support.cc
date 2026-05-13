@@ -1,22 +1,10 @@
 #include "sys.h"
 #include "test_support.h"
 
-#include <iostream>
 #include <istream>
-#include <ostream>
-#include <streambuf>
 #include <string>
 
 namespace libcwd_ctest {
-
-redirect_cerr_ct::redirect_cerr_ct(std::ostream& output) : M_original(std::cerr.rdbuf(output.rdbuf()))
-{
-}
-
-redirect_cerr_ct::~redirect_cerr_ct()
-{
-  std::cerr.rdbuf(M_original);
-}
 
 bool matches_expected_output(std::istream& captured, char const* const* expected)
 {

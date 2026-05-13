@@ -43,6 +43,7 @@ NAMESPACE_DEBUG_CHANNELS_END
 //=============================================================================
 
 #include <iosfwd>
+#include <iostream>
 
 namespace libcwd_ctest {
 
@@ -55,10 +56,10 @@ class redirect_cerr_ct {
   std::streambuf* M_original;
 
  public:
-  explicit redirect_cerr_ct(std::ostream& output);
+  explicit redirect_cerr_ct(std::ostream& output) : M_original(std::cerr.rdbuf(output.rdbuf())) { }
   redirect_cerr_ct(redirect_cerr_ct const&) = delete;
   redirect_cerr_ct& operator=(redirect_cerr_ct const&) = delete;
-  ~redirect_cerr_ct();
+  ~redirect_cerr_ct() { std::cerr.rdbuf(M_original); }
 };
 
 // Compare captured line-oriented output with a null-terminated array of expected

@@ -21,7 +21,12 @@ function(add_manual_test name)
   set_property(GLOBAL APPEND PROPERTY LIBCWD_MANUAL_TEST_TARGETS ${name})
 endfunction()
 
-add_manual_test(location location.cc)
+# The historical location.cc source now lives under testsuite/libcwd.tst and is
+# being ported to CTest separately; keep the manual target conditional so CMake
+# regeneration continues to work while that legacy source is absent here.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/location.cc")
+  add_manual_test(location location.cc)
+endif()
 add_manual_test(lines lines.cc)
 add_manual_test(inlined inlined.cc inlined_main.cc)
 add_manual_test(threads threads.cc)

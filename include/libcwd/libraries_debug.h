@@ -84,6 +84,20 @@ namespace libcwd {
 
 extern debug_ct libcw_do;
 
+/** \brief Initialize libcwd global state before normal dynamic initialization reaches libcw_do.
+ *
+ * This entry point is intended for constructors of user global objects that
+ * need libcwd to be usable before libcwd::libcw_do's own constructor has run.
+ * The underlying initializer is idempotent: repeated calls are allowed and only
+ * the first call constructs the global mutexes, default channels, debug object
+ * state, and optional location-support caches.
+ *
+ * The function has process-wide side effects but does not enable libcw_do or
+ * any debug channel besides dc::warning; callers that want output must still turn
+ * on the desired debug object and channels.
+ */
+void initialize();
+
 } // namespace libcwd
 
 //===================================================================================================

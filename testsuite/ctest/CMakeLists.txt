@@ -23,6 +23,38 @@ target_link_libraries(mangling_symbols PRIVATE ctest_support)
 add_executable(location_lookup location_lookup.cc)
 target_link_libraries(location_lookup PRIVATE ctest_support)
 
+function(configure_location_loading_library target_name)
+  target_include_directories(${target_name}
+    PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/support
+      ${CMAKE_BINARY_DIR}/include
+      ${CMAKE_SOURCE_DIR}/include
+  )
+  target_compile_options(${target_name} PRIVATE -g)
+  target_link_libraries(${target_name} PRIVATE cwd_r)
+  set_target_properties(${target_name} PROPERTIES PREFIX "")
+endfunction()
+
+add_library(location_libtest2 SHARED support/location_libtest2.cc)
+configure_location_loading_library(location_libtest2)
+
+add_library(location_plugin1 SHARED support/location_plugin1.cc)
+configure_location_loading_library(location_plugin1)
+
+add_library(location_plugin2 SHARED support/location_plugin2.cc)
+configure_location_loading_library(location_plugin2)
+
+add_library(location_libtest1 SHARED support/location_libtest1.cc)
+configure_location_loading_library(location_libtest1)
+target_link_libraries(location_libtest1 PRIVATE location_libtest2 ${CMAKE_DL_LIBS})
+target_compile_definitions(location_libtest1 PRIVATE "LOCATION_PLUGIN1_PATH=\"$<TARGET_FILE:location_plugin1>\"")
+add_dependencies(location_libtest1 location_plugin1)
+
+add_executable(location_loading_fixture location_loading_fixture.cc)
+target_link_libraries(location_loading_fixture PRIVATE ctest_support location_libtest1 ${CMAKE_DL_LIBS})
+target_compile_definitions(location_loading_fixture PRIVATE "LOCATION_PLUGIN2_PATH=\"$<TARGET_FILE:location_plugin2>\"")
+add_dependencies(location_loading_fixture location_plugin2)
+
 add_test(NAME basic_debug_output COMMAND basic_debug_output)
 set_tests_properties(basic_debug_output PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
@@ -51,4 +83,11 @@ set_tests_properties(mangling_symbols PROPERTIES
 add_test(NAME location_lookup COMMAND location_lookup)
 set_tests_properties(location_lookup PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME location_loading_fixture
+  COMMAND ${CMAKE_COMMAND} -E env --unset=LIBCWD_PRINT_LOADING $<TARGET_FILE:location_loading_fixture>
+)
+set_tests_properties(location_loading_fixture PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$<TARGET_FILE_DIR:location_libtest1>:$ENV{LD_LIBRARY_PATH}"
 )
