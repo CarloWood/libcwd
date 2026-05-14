@@ -290,8 +290,7 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
 {
   CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
 
-  ASSERT(libcwd::channels::dc::bfd.is_on());
-  Dout(dc::bfd, "Calling ObjectFile::cb_dl_iterate_phdr()");
+  Dout(dc::bfd, "Calling ObjectFile::cb_dl_iterate_phdr({\"" << info->dlpi_name << "\", " << std::hex << info->dlpi_addr << ", ...})");
   return 0;
 }
 
