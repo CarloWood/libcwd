@@ -40,6 +40,9 @@ namespace libcwd {
     namespace dwarf {
       bool ST_init(LIBCWD_TSD_PARAM);
     } // namespace dwarf
+    namespace dwarf2 {
+      bool ST_init(LIBCWD_TSD_PARAM);
+    } // namespace dwarf
 #endif
 
 class debug_ct;

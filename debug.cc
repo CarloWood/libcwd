@@ -409,6 +409,9 @@ namespace libcwd {
     namespace dwarf {
       extern bool ST_init(LIBCWD_TSD_PARAM);
     } // namespace dwarf
+    namespace dwarf2 {
+      extern bool ST_init(LIBCWD_TSD_PARAM);
+    } // namespace dwarf2
 #endif
 
     void ST_initialize_globals(LIBCWD_TSD_PARAM)
@@ -470,7 +473,8 @@ namespace libcwd {
 #endif
 
 #if CWDEBUG_LOCATION
-      dwarf::ST_init(LIBCWD_TSD);		// Initialize DWARF code.
+      dwarf::ST_init(LIBCWD_TSD);		// Initialize DWARF code (old version).
+      dwarf2::ST_init(LIBCWD_TSD);		// Initialize DWARF code.
 #endif
 #if CWDEBUG_DEBUG && !CWDEBUG_DEBUGOUTPUT
       // Force allocation of a __cxa_eh_globals struct in libsupc++.

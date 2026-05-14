@@ -5,14 +5,25 @@
 
 #include "cwd_dwarf2.h"
 #include <libcwd/ObjectFileName.h>
-#include "cwd_dwarf.h"
-#include <elf.h>
-#include <fcntl.h>
+#include "libcwd/debug.h"
 #include <filesystem>
 #include <cstdint>
 #include <string>
+#include <atomic>
+#include <elf.h>
+#include <fcntl.h>
+#include <link.h>
+#include <elfutils/libdw.h>
 
 namespace libcwd::dwarf2 {
+
+// Detect if this libcwd library is static or not.
+#ifdef __PIC__
+constexpr bool statically_linked = false;
+#else
+constexpr bool statically_linked = true;
+#endif
+static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `ST_init'.
 
 //static
 ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
@@ -45,20 +56,32 @@ class ObjectFile : public ObjectFileBase
   uintptr_t lbase_;
   uintptr_t start_addr_;
   uintptr_t end_addr_;
+  static std::atomic_bool s_object_files_initialized_;
 
  public:
   ObjectFile(char const* filename, uintptr_t lbase, uintptr_t start_addr, uintptr_t end_addr);
   ~ObjectFile();
 
-  uintptr_t get_lbase() const { return lbase_; }
+  uintptr_t lbase() const { return lbase_; }
 
-  uintptr_t get_start_addr() const { return start_addr_; }
-  uintptr_t get_end_addr() const { return end_addr_; }
+  uintptr_t start_addr() const { return start_addr_; }
+  uintptr_t end_addr() const { return end_addr_; }
   bool is_initialized() const { return dwarf_fd_ != -1; }
+
+  struct CallBackData {
+    object_files_t::wat object_files_w;
+    std::string fullpath_;
+
+    CallBackData(object_files_t& object_files, std::string const& fullpath) : object_files_w(object_files), fullpath_(fullpath) { }
+  };
 
  private:
   void open_dwarf(LIBCWD_TSD_PARAM);
   void close_dwarf(LIBCWD_TSD_PARAM);
+
+  friend bool dwarf2::ST_init(LIBCWD_TSD_PARAM);
+  static void load_object_files();
+  static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
 };
 
 ObjectFile::ObjectFile(char const* filename, uintptr_t lbase, uintptr_t start_addr, uintptr_t end_addr) :
@@ -71,6 +94,9 @@ ObjectFile::~ObjectFile()
   LIBCWD_TSD_DECLARATION;
   close_dwarf(LIBCWD_TSD);
 }
+
+//static
+std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
 
 namespace {
 
@@ -225,7 +251,116 @@ std::filesystem::path get_debug_info_path(std::string object_file LIBCWD_COMMA_T
   return debug_info_path;
 }
 
+// Find the full path to the current running process.
+// This needs to work before we reach main, therefore
+// it uses the /proc filesystem.
+std::string current_executable_path()
+{
+  std::string result(256, '\0');
+
+  for (;;)
+  {
+    ssize_t const n = ::readlink("/proc/self/exe", result.data(), result.size());
+
+    if (n < 0)
+      throw std::runtime_error(std::string("readlink(/proc/self/exe) failed: ") + std::strerror(errno));
+
+    if (static_cast<size_t>(n) < result.size())
+    {
+      result.resize(static_cast<size_t>(n));
+      return result;
+    }
+
+    result.resize(result.size() * 2);
+  }
+}
+
+// Load address compare functor.
+struct ObjectFileGreater {
+  bool operator()(ObjectFileBase const* a, ObjectFileBase const* b) const
+  {
+    return static_cast<ObjectFile const*>(a)->lbase() > static_cast<ObjectFile const*>(b)->lbase();
+  }
+};
+
 } // namespace
+
+//static
+int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data)
+{
+  CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
+
+  ASSERT(libcwd::channels::dc::bfd.is_on());
+  Dout(dc::bfd, "Calling ObjectFile::cb_dl_iterate_phdr()");
+  return 0;
+}
+
+//static
+void ObjectFile::load_object_files()
+{
+  // LIBCWD_NO_STARTUP_MSGS deliberately suppresses even the loading trace that
+  // LIBCWD_PRINT_LOADING would otherwise force on.
+  //
+  // Do we need debug output regarding the loading of object files and their symbols?
+  bool const forced_loading_output = _private_::always_print_loading && !_private_::suppress_startup_msgs;
+
+  // If so, store previous state of libcw_do and dc::bfd.
+  libcwd::debug_ct::OnOffState state;
+  libcwd::channel_ct::OnOffState state2;
+  if (forced_loading_output)
+  {
+    Debug(libcw_do.force_on(state));
+    Debug(dc::bfd.force_on(state2, "BFD"));
+  }
+
+  // Initialize object files list, we don't really need the
+  // write lock because this function is Single Threaded.
+  //
+  // Start a new scope for the write lock.
+  {
+    CallBackData data{s_object_files_, current_executable_path()};
+
+    // Load executable and shared objects.
+    if (!statically_linked)
+    {
+      // Iterate over all currently loaded object files.
+      dl_iterate_phdr(cb_dl_iterate_phdr, &data);
+      data.object_files_w->sort(ObjectFileGreater{});
+    }
+
+    s_object_files_initialized_ = true;
+  } // Unlock s_object_files_.
+
+  if (forced_loading_output)
+  {
+    Debug(dc::bfd.restore(state2));
+    Debug(libcw_do.restore(state));
+  }
+}
+
+bool ST_init(LIBCWD_TSD_PARAM)
+{
+  static bool WST_being_initialized = false;
+  // Detect recursive initialization.
+  if (WST_being_initialized)
+    return false;
+  WST_being_initialized = true;
+
+  // This must be called before calling ST_init().
+  if (!libcw_do.NS_init(LIBCWD_TSD))
+    return false;
+
+  // MT: We assume this is called before reaching main().
+  //     Therefore, no synchronisation is required.
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
+  if (_private_::WST_multi_threaded)
+    core_dump();
+#endif
+
+  ObjectFile::load_object_files();
+
+  return true;
+}
 
 void ObjectFile::open_dwarf(LIBCWD_TSD_PARAM)
 {
@@ -275,5 +410,18 @@ void ObjectFile::close_dwarf(LIBCWD_TSD_PARAM)
 }
 
 } // namespace libcwd::dwarf2
+
+namespace libcwd {
+
+ObjectFileName::ObjectFileName(char const* filepath) : no_debug_line_sections_(false)
+{
+  LIBCWD_TSD_DECLARATION;
+  filepath_ = strcpy((char*)malloc(strlen(filepath) + 1), filepath);	// LEAK8
+  filename_ = strrchr(filepath_, '/') + 1;
+  if (filename_ == (char const*)1)
+    filename_ = filepath_;
+}
+
+} // namespace libcwd
 
 #endif // CWDEBUG_LOCATION
