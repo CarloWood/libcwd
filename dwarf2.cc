@@ -347,6 +347,11 @@ void ObjectFile::load_object_files()
   {
     CallBackData data{s_object_files_, current_executable_path()};
 
+    // This is the initial population pass for the dwarf2 object/segment cache.
+    // Later dlopen integration may need duplicate detection, but at this point
+    // no other path should have inserted PT_LOAD segments yet.
+    LIBCWD_ASSERT(data.object_files_w->empty());
+
     // Load executable and shared objects.
     if (!statically_linked)
     {
@@ -373,9 +378,10 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
   // Use the already resolved /proc/self/exe path in that case so ObjectFileName remains
   // useful for diagnostics and later public location data.
   char const* object_filename = (info->dlpi_name && info->dlpi_name[0] != '\0') ? info->dlpi_name : data->fullpath_.c_str();
+  uintptr_t const lbase = static_cast<uintptr_t>(info->dlpi_addr);
 
   // Create new ObjectFile.
-  ObjectFile const* object_file = new ObjectFile(object_filename, static_cast<uintptr_t>(info->dlpi_addr));
+  ObjectFile const* object_file = new ObjectFile(object_filename, lbase);
 
   // Insert one immutable PTLoadSegment per loadable segment into the end-keyed map.
   // The map owns the discoverable active address ranges; the pointed-to objects are intentionally kept stable
@@ -413,6 +419,22 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
 //static
 bool ObjectFile::already_loaded(uintptr_t lbase, object_files_t::wat const& object_files_w)
 {
+  // The writable map is keyed by PT_LOAD end address and can contain multiple
+  // segments for the same object file.  Treat any segment whose owning
+  // ObjectFile has the requested load base as proof that the object was already
+  // registered; this prevents duplicate ObjectFile creation when loader
+  // enumeration reports a DSO that was discovered through an earlier path.
+  for (auto const& [segment_end, segment] : *object_files_w)
+  {
+    ObjectFile const* object_file = segment->object_file();
+    if (object_file->lbase() == lbase)
+    {
+      Dout(dc::bfd, "dwarf2: object at load base " << (void*)lbase << " already loaded as \"" <<
+          object_file->object_file_name().filepath() << "\"; skipping duplicate registration.");
+      return true;
+    }
+  }
+  return false;
 }
 
 void ObjectFile::load_symbols()
