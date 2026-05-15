@@ -6,13 +6,15 @@
 #include "cwd_dwarf2.h"
 #include <libcwd/ObjectFileName.h>
 #include "libcwd/debug.h"
-#include <filesystem>
-#include <cstdint>
-#include <string>
+#include <algorithm>
 #include <atomic>
+#include <cstdint>
 #include <elf.h>
+#include <filesystem>
 #include <fcntl.h>
 #include <link.h>
+#include <limits>
+#include <string>
 #include <elfutils/libdw.h>
 
 namespace libcwd::dwarf2 {
@@ -32,7 +34,7 @@ ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 //
 // Represents a single object file: either the executable or a shared library.
 // The base class `ObjectFileBase` has a protected static member `s_object_files_`
-// that is a read-write lock protected std::list<ObjectFile*>.
+// that is a read-write lock protected std::map<uintptr_t, PTLoadSegment*>.
 //
 // The get access to the list you need to read and/or write lock it.
 //
@@ -40,13 +42,13 @@ ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 //
 //   object_files_t::rat object_files_r(s_object_files_);       // Scoped read-lock for s_object_files_.
 //
-// Use object_files_r-> for read access (returns a std::list<ObjectFile*> const*).
+// Use object_files_r-> for read access (returns a std::map<uintptr_t, PTLoadSegment*> const*).
 //
 // To obtain a write lock, create a stack variable,
 //
 //   object_files_t::wat object_files_w(s_object_files_);       // Scoped write-lock for s_object_files_.
 //
-// Use object_files_w-> for write access (returns a std::list<ObjectFile*>*).
+// Use object_files_w-> for write access (returns a std::map<uintptr_t, PTLoadSegment*>*).
 //
 class ObjectFile : public ObjectFileBase
 {
@@ -54,18 +56,13 @@ class ObjectFile : public ObjectFileBase
   Dwarf* dwarf_handle_{nullptr};
   int dwarf_fd_{-1};
   uintptr_t lbase_;
-  uintptr_t start_addr_;
-  uintptr_t end_addr_;
   static std::atomic_bool s_object_files_initialized_;
 
  public:
-  ObjectFile(char const* filename, uintptr_t lbase, uintptr_t start_addr, uintptr_t end_addr);
+  ObjectFile(char const* filename, uintptr_t lbase);
   ~ObjectFile();
 
   uintptr_t lbase() const { return lbase_; }
-
-  uintptr_t start_addr() const { return start_addr_; }
-  uintptr_t end_addr() const { return end_addr_; }
   bool is_initialized() const { return dwarf_fd_ != -1; }
 
   struct CallBackData {
@@ -84,19 +81,46 @@ class ObjectFile : public ObjectFileBase
   static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
 };
 
-ObjectFile::ObjectFile(char const* filename, uintptr_t lbase, uintptr_t start_addr, uintptr_t end_addr) :
-  ObjectFileBase(filename), lbase_(lbase), start_addr_(start_addr), end_addr_(end_addr)
+ObjectFile::ObjectFile(char const* filename, uintptr_t lbase) : ObjectFileBase(filename), lbase_(lbase)
 {
+  Dout(dc::bfd, "dwarf2: new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
 }
 
 ObjectFile::~ObjectFile()
 {
+  Dout(dc::bfd, "dwarf2: destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
+
   LIBCWD_TSD_DECLARATION;
   close_dwarf(LIBCWD_TSD);
 }
 
 //static
 std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
+
+// class PTLoadSegment
+//
+// Represents one loadable runtime segment of an ObjectFile.  Instances are
+// created while holding ObjectFileBase::s_object_files_' write lock during
+// initialization and then treated as immutable; later address lookup can read
+// the segment start/end/flags and follow object_file() without taking a
+// per-segment or per-object lock.
+class PTLoadSegment
+{
+ private:
+  ObjectFile const* object_file_;
+  uintptr_t start_addr_;
+  uintptr_t end_addr_;
+  ElfW(Word) flags_;
+
+ public:
+  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, ElfW(Word) flags) :
+    object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
+
+  ObjectFile const* object_file() const { return object_file_; }
+  uintptr_t start_addr() const { return start_addr_; }
+  uintptr_t end_addr() const { return end_addr_; }
+  ElfW(Word) flags() const { return flags_; }
+};
 
 namespace {
 
@@ -252,8 +276,7 @@ std::filesystem::path get_debug_info_path(std::string object_file LIBCWD_COMMA_T
 }
 
 // Find the full path to the current running process.
-// This needs to work before we reach main, therefore
-// it uses the /proc filesystem.
+// This needs to work before we reach main, therefore it uses the /proc filesystem.
 std::string current_executable_path()
 {
   std::string result(256, '\0');
@@ -275,13 +298,19 @@ std::string current_executable_path()
   }
 }
 
-// Load address compare functor.
-struct ObjectFileGreater {
-  bool operator()(ObjectFileBase const* a, ObjectFileBase const* b) const
-  {
-    return static_cast<ObjectFile const*>(a)->lbase() > static_cast<ObjectFile const*>(b)->lbase();
-  }
-};
+// Return a compact textual representation of ELF program-header permission flags.
+// The result is used only for diagnostics while building the dwarf2 object/segment cache.
+// Output character positions correspond to respectively PF_R, PF_W, PF_X; a dash is
+// printed if that permission bit is absent.
+char const* flags_to_string(ElfW(Word) flags)
+{
+  static thread_local char result[4];
+  result[0] = (flags & PF_R) ? 'R' : '-';
+  result[1] = (flags & PF_W) ? 'W' : '-';
+  result[2] = (flags & PF_X) ? 'X' : '-';
+  result[3] = '\0';
+  return result;
+}
 
 } // namespace
 
@@ -290,7 +319,44 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
 {
   CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
 
-  Dout(dc::bfd, "Calling ObjectFile::cb_dl_iterate_phdr({\"" << info->dlpi_name << "\", " << std::hex << info->dlpi_addr << ", ...})");
+  // dl_iterate_phdr reports an empty name for the main executable.
+  // Use the already resolved /proc/self/exe path in that case so ObjectFileName remains
+  // useful for diagnostics and later public location data.
+  char const* object_filename = (info->dlpi_name && info->dlpi_name[0] != '\0') ? info->dlpi_name : data->fullpath_.c_str();
+
+  // Create new ObjectFile.
+  ObjectFile const* object_file = new ObjectFile(object_filename, static_cast<uintptr_t>(info->dlpi_addr));
+
+  // Insert one immutable PTLoadSegment per loadable segment into the end-keyed map.
+  // The map owns the discoverable active address ranges; the pointed-to objects are intentionally kept stable
+  // for the process lifetime until later dlclose/tombstone semantics are designed.
+  for (ElfW(Half) phdr_index = 0; phdr_index < info->dlpi_phnum; ++phdr_index)
+  {
+    ElfW(Phdr) const& phdr = info->dlpi_phdr[phdr_index];
+    if (phdr.p_type != PT_LOAD ||
+        // The Elf-64 Object File Format specifies that p_memsz may be zero (https://man7.org/linux/man-pages/man5/elf.5.html)
+        phdr.p_memsz == 0)
+      continue;
+
+    uintptr_t const segment_start = static_cast<uintptr_t>(info->dlpi_addr + phdr.p_vaddr);
+    uintptr_t const segment_end = segment_start + static_cast<uintptr_t>(phdr.p_memsz);
+    LIBCWD_ASSERT(segment_end > segment_start);
+
+    PTLoadSegment const* segment = new PTLoadSegment(object_file, segment_start, segment_end, phdr.p_flags);
+    auto const inserted = data->object_files_w->emplace(segment_end, segment);
+    if (!inserted.second)
+    {
+      Dout(dc::warning, "Ignoring duplicate PT_LOAD end address " << (void*)segment_end << " for \"" << object_filename << "\"");
+      delete segment;
+    }
+    else
+    {
+      Dout(dc::bfd, "dwarf2:     map[" << (void*)segment_end << "] = PTLoadSegment " << segment <<
+          " [" << (void*)segment_start << '-' << (void*)segment_end << ") flags=" << flags_to_string(phdr.p_flags) <<
+          " object=" << object_file);
+    }
+  }
+
   return 0;
 }
 
@@ -324,7 +390,6 @@ void ObjectFile::load_object_files()
     {
       // Iterate over all currently loaded object files.
       dl_iterate_phdr(cb_dl_iterate_phdr, &data);
-      data.object_files_w->sort(ObjectFileGreater{});
     }
 
     s_object_files_initialized_ = true;
@@ -371,7 +436,7 @@ void ObjectFile::open_dwarf(LIBCWD_TSD_PARAM)
   Dout(dc::bfd|continued_cf, "Loading debug info " << (different_symbols_path ? "for " : "from ") << object_file_name_.filepath());
   if (different_symbols_path)
     Dout(dc::continued, " (from " << debug_info_path << ")");
-  Dout(dc::continued|flush_cf, " (" << (void*)lbase_ << " [" << (void*)start_addr_ << '-' << (void*)end_addr_ << "])... ");
+  Dout(dc::continued|flush_cf, " (" << (void*)lbase_ << ")... ");
 
   dwarf_fd_ = open(debug_info_path.c_str(), O_RDONLY);
 

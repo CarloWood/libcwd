@@ -10,19 +10,22 @@
 #if CWDEBUG_LOCATION
 
 #include "libcwd/ObjectFileName.h"
-#include <list>
+#include <cstdint>
+#include <map>
 
 namespace libcwd::dwarf2 {
 
 // Forward declare private class, defined in dwarf2.cc.
-class ObjectFile;
+class PTLoadSegment;
 
 // Base class of ObjectFile.
 class ObjectFileBase
 {
  protected:
-  using object_files_t = threadsafe::Unlocked<std::list<ObjectFile*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  static object_files_t s_object_files_;        // Read-write lock protected list with all loaded object files.
+  // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end address;
+  // the pointed-to PTLoadSegment stores the matching start address, flags, and ObjectFile owner.
+  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  static object_files_t s_object_files_;        // Read-write lock protected end-address index of loaded PT_LOAD segments.
 
   libcwd::ObjectFileName object_file_name_;     // Public facing data of this object file. Just contains the filename
                                                 // and whether or not debug info was available for this object file or not.
