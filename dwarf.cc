@@ -290,7 +290,7 @@ class objfile_ct : public objfiles_ct
   objfile_ct(char const* filename, uintptr_t base_addr, uintptr_t start_addr, uintptr_t end_addr);
   ~objfile_ct();
 
-  bool initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM);
+  bool initialize(char const* filename LIBCWD_COMMA_TSD_PARAM);
   void deinitialize(LIBCWD_TSD_PARAM);
   uintptr_t get_lbase() const { return M_lbase; }
 
@@ -352,7 +352,7 @@ objfile_ct* load_object_file(char const* name, uintptr_t base_addr, uintptr_t st
   DWARF_ACQUIRE_WRITE_LOCK;
   object_file = new objfile_ct(name, base_addr, start_addr, end_addr);		// LEAK6
   DWARF_RELEASE_WRITE_LOCK;
-  failure = object_file->initialize(name LIBCWD_COMMA_ALLOC_OPT(is_libc) LIBCWD_COMMA_TSD);
+  failure = object_file->initialize(name LIBCWD_COMMA_TSD);
   LIBCWD_RESTORE_CANCEL;
   if (failure)
   {
@@ -1159,7 +1159,7 @@ void objfile_ct::extract_and_add_function_symbols(char const* cu_name, Elf& elf,
   }
 }
 
-bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_ALLOC_OPT(bool is_libc) LIBCWD_COMMA_TSD_PARAM)
+bool objfile_ct::initialize(char const* filename LIBCWD_COMMA_TSD_PARAM)
 {
   DWARF_ACQUIRE_WRITE_LOCK;
   bool already_exists = false;

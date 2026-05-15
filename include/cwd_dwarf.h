@@ -80,7 +80,6 @@ namespace dwarf {
 class objfiles_ct;
 
 using object_files_ct = std::list<objfiles_ct*>;
-#define LIBCWD_COMMA_ALLOC_OPT(x)
 
 class objfiles_ct
 {
