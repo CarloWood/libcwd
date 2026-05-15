@@ -52,38 +52,46 @@ ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 //
 class ObjectFile : public ObjectFileBase
 {
+  static std::atomic_bool s_object_files_initialized_;
+
  private:
+  uintptr_t const lbase_;
   Dwarf* dwarf_handle_{nullptr};
   int dwarf_fd_{-1};
-  uintptr_t lbase_;
-  static std::atomic_bool s_object_files_initialized_;
 
  public:
   ObjectFile(char const* filename, uintptr_t lbase);
   ~ObjectFile();
 
+  // Accessors.
   uintptr_t lbase() const { return lbase_; }
   bool is_initialized() const { return dwarf_fd_ != -1; }
 
+  // Information passed to the cb_dl_iterate_phdr call back function.
   struct CallBackData {
-    object_files_t::wat object_files_w;
-    std::string fullpath_;
+    object_files_t::wat object_files_w;         // Write Access Type to ObjectFileBase::s_object_files_.
+    std::string fullpath_;                      // The full path to the current object file being processed.
 
     CallBackData(object_files_t& object_files, std::string const& fullpath) : object_files_w(object_files), fullpath_(fullpath) { }
   };
 
  private:
+  // Called by constructor.
+  void load_symbols();
+
   void open_dwarf(LIBCWD_TSD_PARAM);
   void close_dwarf(LIBCWD_TSD_PARAM);
 
   friend bool dwarf2::ST_init(LIBCWD_TSD_PARAM);
   static void load_object_files();
   static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
+  static bool already_loaded(uintptr_t lbase, object_files_t::wat const& object_files_w);
 };
 
 ObjectFile::ObjectFile(char const* filename, uintptr_t lbase) : ObjectFileBase(filename), lbase_(lbase)
 {
   Dout(dc::bfd, "dwarf2: new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
+  load_symbols();
 }
 
 ObjectFile::~ObjectFile()
@@ -315,6 +323,48 @@ char const* flags_to_string(ElfW(Word) flags)
 } // namespace
 
 //static
+void ObjectFile::load_object_files()
+{
+  // LIBCWD_NO_STARTUP_MSGS deliberately suppresses even the loading trace that
+  // LIBCWD_PRINT_LOADING would otherwise force on.
+  //
+  // Do we need debug output regarding the loading of object files and their symbols?
+  bool const forced_loading_output = _private_::always_print_loading && !_private_::suppress_startup_msgs;
+
+  // If so, store previous state of libcw_do and dc::bfd.
+  libcwd::debug_ct::OnOffState state;
+  libcwd::channel_ct::OnOffState state2;
+  if (forced_loading_output)
+  {
+    Debug(libcw_do.force_on(state));
+    Debug(dc::bfd.force_on(state2, "BFD"));
+  }
+
+  // Initialize object files list, we don't really need the
+  // write lock because this function is Single Threaded.
+  //
+  // Start a new scope for the write lock.
+  {
+    CallBackData data{s_object_files_, current_executable_path()};
+
+    // Load executable and shared objects.
+    if (!statically_linked)
+    {
+      // Iterate over all currently loaded object files.
+      dl_iterate_phdr(cb_dl_iterate_phdr, &data);
+    }
+
+    s_object_files_initialized_ = true;
+  } // Unlock s_object_files_.
+
+  if (forced_loading_output)
+  {
+    Debug(dc::bfd.restore(state2));
+    Debug(libcw_do.restore(state));
+  }
+}
+
+//static
 int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data)
 {
   CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
@@ -361,45 +411,12 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
 }
 
 //static
-void ObjectFile::load_object_files()
+bool ObjectFile::already_loaded(uintptr_t lbase, object_files_t::wat const& object_files_w)
 {
-  // LIBCWD_NO_STARTUP_MSGS deliberately suppresses even the loading trace that
-  // LIBCWD_PRINT_LOADING would otherwise force on.
-  //
-  // Do we need debug output regarding the loading of object files and their symbols?
-  bool const forced_loading_output = _private_::always_print_loading && !_private_::suppress_startup_msgs;
+}
 
-  // If so, store previous state of libcw_do and dc::bfd.
-  libcwd::debug_ct::OnOffState state;
-  libcwd::channel_ct::OnOffState state2;
-  if (forced_loading_output)
-  {
-    Debug(libcw_do.force_on(state));
-    Debug(dc::bfd.force_on(state2, "BFD"));
-  }
-
-  // Initialize object files list, we don't really need the
-  // write lock because this function is Single Threaded.
-  //
-  // Start a new scope for the write lock.
-  {
-    CallBackData data{s_object_files_, current_executable_path()};
-
-    // Load executable and shared objects.
-    if (!statically_linked)
-    {
-      // Iterate over all currently loaded object files.
-      dl_iterate_phdr(cb_dl_iterate_phdr, &data);
-    }
-
-    s_object_files_initialized_ = true;
-  } // Unlock s_object_files_.
-
-  if (forced_loading_output)
-  {
-    Debug(dc::bfd.restore(state2));
-    Debug(libcw_do.restore(state));
-  }
+void ObjectFile::load_symbols()
+{
 }
 
 bool ST_init(LIBCWD_TSD_PARAM)
