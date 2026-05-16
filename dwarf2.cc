@@ -87,8 +87,8 @@ class ObjectFile : public ObjectFileBase
 
  private:
   uintptr_t const lbase_;
-  Dwarf* dwarf_handle_{nullptr};
-  int dwarf_fd_{-1};
+  mutable Dwarf* dwarf_handle_{nullptr};        // mutable because close_dwarf() sets these to nullptr and -1 again.
+  mutable int dwarf_fd_{-1};
 
  public:
   ObjectFile(char const* filename, uintptr_t lbase);
@@ -114,8 +114,8 @@ class ObjectFile : public ObjectFileBase
   // Called by constructor.
   void load_symbols();
 
-  void open_dwarf(LIBCWD_TSD_PARAM);
-  void close_dwarf(LIBCWD_TSD_PARAM);
+  void open_dwarf();
+  void close_dwarf() const;
 
   friend bool dwarf2::ST_init(LIBCWD_TSD_PARAM);
   static void register_initial_object_files();
@@ -127,7 +127,7 @@ class ObjectFile : public ObjectFileBase
   // Called from dlopen.
   static ObjectFile const* register_object_file_at_lbase(uintptr_t lbase);
   // Called from dlclose.
-  static void unregister_object_file_ranges(ObjectFile const* object_file);
+  void unregister_object_file_ranges() const;
 };
 
 ObjectFile::ObjectFile(char const* filename, uintptr_t lbase) : ObjectFileBase(filename), lbase_(lbase)
@@ -139,9 +139,7 @@ ObjectFile::ObjectFile(char const* filename, uintptr_t lbase) : ObjectFileBase(f
 ObjectFile::~ObjectFile()
 {
   Dout(dc::dwarf, "destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
-
-  LIBCWD_TSD_DECLARATION;
-  close_dwarf(LIBCWD_TSD);
+  close_dwarf();
 }
 
 //static
@@ -149,7 +147,7 @@ std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
 
 namespace {
 
-std::string read_build_id(std::string const& object_file LIBCWD_COMMA_TSD_PARAM)
+std::string read_build_id(std::string const& object_file)
 {
   // Determine the working version (the ELF version supported by both, the libelf library and this program).
   if (elf_version(EV_CURRENT) == EV_NONE)
@@ -233,7 +231,7 @@ std::string read_build_id(std::string const& object_file LIBCWD_COMMA_TSD_PARAM)
   return {};
 }
 
-std::filesystem::path get_debug_info_path(std::string object_file LIBCWD_COMMA_TSD_PARAM)
+std::filesystem::path get_debug_info_path(std::string object_file)
 {
   using namespace std::filesystem;
   path build_id_dir = "/usr/lib/debug/.build-id";
@@ -245,7 +243,7 @@ std::filesystem::path get_debug_info_path(std::string object_file LIBCWD_COMMA_T
   if (!ec && is_directory(sr))
   {
     // Get the build-id, if any.
-    build_id = read_build_id(object_file LIBCWD_COMMA_TSD);
+    build_id = read_build_id(object_file);
     if (build_id.length() > 2)
       debug_info_path = build_id_dir / build_id.substr(0, 2) / (build_id.substr(2) + ".debug");
   }
@@ -498,26 +496,27 @@ ObjectFile const* ObjectFile::register_object_file_at_lbase(uintptr_t lbase)
   return existing_object_file ? existing_object_file : iterate_program_headers(data);
 }
 
-//static
-void ObjectFile::unregister_object_file_ranges(ObjectFile const* object_file)
+void ObjectFile::unregister_object_file_ranges() const
 {
   object_files_t::wat object_files_w(s_object_files_);
   for (auto iter = object_files_w->begin(); iter != object_files_w->end(); )
   {
     PTLoadSegment const& segment = iter->second;
-    if (segment.object_file() == object_file)
+    if (segment.object_file() == this)
     {
       Dout(dc::dwarf, "removing map[" << (void*)iter->first << "] = PTLoadSegment " << segment <<
-          " for object " << object_file << " (\"" << object_file->object_file_name().filename() << "\")");
+          " for object " << this << " (\"" << object_file_name_.filename() << "\")");
       iter = object_files_w->erase(iter);
     }
     else
       ++iter;
   }
+  close_dwarf();
 }
 
 void ObjectFile::load_symbols()
 {
+  open_dwarf();
 }
 
 bool ST_init(LIBCWD_TSD_PARAM)
@@ -544,11 +543,12 @@ bool ST_init(LIBCWD_TSD_PARAM)
   return true;
 }
 
-void ObjectFile::open_dwarf(LIBCWD_TSD_PARAM)
+void ObjectFile::open_dwarf()
 {
+  // Should only be called once (from load_symbols() which is called from the constructor).
   LIBCWD_ASSERT(dwarf_fd_ == -1 && dwarf_handle_ == nullptr);
 
-  std::string debug_info_path = get_debug_info_path(object_file_name_.filepath() LIBCWD_COMMA_TSD);
+  std::string debug_info_path = get_debug_info_path(object_file_name_.filepath());
 
   bool different_symbols_path = debug_info_path != object_file_name_.filepath();
   Dout(dc::bfd|continued_cf, "Loading debug info " << (different_symbols_path ? "for " : "from ") << object_file_name_.filepath());
@@ -576,7 +576,7 @@ void ObjectFile::open_dwarf(LIBCWD_TSD_PARAM)
   Dout(dc::finish, "done");
 }
 
-void ObjectFile::close_dwarf(LIBCWD_TSD_PARAM)
+void ObjectFile::close_dwarf() const
 {
   if (dwarf_handle_)
   {
@@ -711,7 +711,7 @@ int dlclose(void* handle)
 #endif
     {
       ForceLoadingDebugOutput scoped_;
-      ObjectFile::unregister_object_file_ranges(iter->second.object_file_);
+      iter->second.object_file_->unregister_object_file_ranges();
     }
     dynamic_loader_records_w->erase(iter);
   }
