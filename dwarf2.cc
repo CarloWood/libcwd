@@ -9,15 +9,46 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <dlfcn.h>
 #include <elf.h>
+#include <elfutils/libdw.h>
 #include <filesystem>
 #include <fcntl.h>
 #include <link.h>
 #include <limits>
+#include <map>
 #include <string>
-#include <elfutils/libdw.h>
+#ifdef HAVE_DLOPEN
+#include <mutex>
+#endif
 
-namespace libcwd::dwarf2 {
+namespace libcwd {
+
+// New debug channels.
+namespace channels {
+namespace dc {
+/** \addtogroup group_default_dc */
+/** \{ */
+
+/** The BFD channel. */
+channel_ct bfd
+#ifndef HIDE_FROM_DOXYGEN
+  ("BFD")
+#endif
+  ;
+
+// Internal debug channel.
+channel_ct dwarf
+#ifndef HIDE_FROM_DOXYGEN
+  ("DWARF")
+#endif
+  ;
+
+/** \} */
+} // namespace dc
+} // namespace channels
+
+namespace dwarf2 {
 
 // Detect if this libcwd library is static or not.
 #ifdef __PIC__
@@ -34,7 +65,7 @@ ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 //
 // Represents a single object file: either the executable or a shared library.
 // The base class `ObjectFileBase` has a protected static member `s_object_files_`
-// that is a read-write lock protected std::map<uintptr_t, PTLoadSegment*>.
+// that is a read-write lock protected std::map<uintptr_t, PTLoadSegment>.
 //
 // The get access to the list you need to read and/or write lock it.
 //
@@ -42,13 +73,13 @@ ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 //
 //   object_files_t::rat object_files_r(s_object_files_);       // Scoped read-lock for s_object_files_.
 //
-// Use object_files_r-> for read access (returns a std::map<uintptr_t, PTLoadSegment*> const*).
+// Use object_files_r-> for read access (returns a std::map<uintptr_t, PTLoadSegment> const*).
 //
 // To obtain a write lock, create a stack variable,
 //
 //   object_files_t::wat object_files_w(s_object_files_);       // Scoped write-lock for s_object_files_.
 //
-// Use object_files_w-> for write access (returns a std::map<uintptr_t, PTLoadSegment*>*).
+// Use object_files_w-> for write access (returns a std::map<uintptr_t, PTLoadSegment>*).
 //
 class ObjectFile : public ObjectFileBase
 {
@@ -70,9 +101,13 @@ class ObjectFile : public ObjectFileBase
   // Information passed to the cb_dl_iterate_phdr call back function.
   struct CallBackData {
     object_files_t::wat object_files_w;         // Write Access Type to ObjectFileBase::s_object_files_.
-    std::string fullpath_;                      // The full path to the current object file being processed.
+    std::string executable_path_;               // The full path to the current executable.
+    // Used for targeted dlopen-driven object discovery:
+    uintptr_t target_lbase_;                    // When non-zero, create an ObjectFile only for the DSO with this load base.
+    mutable ObjectFile const* object_file_{};   // Set to the newly created ObjectFile for target_lbase_.
 
-    CallBackData(object_files_t& object_files, std::string const& fullpath) : object_files_w(object_files), fullpath_(fullpath) { }
+    CallBackData(object_files_t& object_files, std::string const& executable_path, uintptr_t target_lbase = 0) :
+      object_files_w(object_files), executable_path_(executable_path), target_lbase_(target_lbase) { }
   };
 
  private:
@@ -83,20 +118,27 @@ class ObjectFile : public ObjectFileBase
   void close_dwarf(LIBCWD_TSD_PARAM);
 
   friend bool dwarf2::ST_init(LIBCWD_TSD_PARAM);
-  static void load_object_files();
+  static void register_initial_object_files();
+  static ObjectFile const* iterate_program_headers(CallBackData const& data);
   static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
-  static bool already_loaded(uintptr_t lbase, object_files_t::wat const& object_files_w);
+  static ObjectFile const* find_registered_object_file(uintptr_t lbase, object_files_t::wat const& object_files_w);
+
+ public:
+  // Called from dlopen.
+  static ObjectFile const* register_object_file_at_lbase(uintptr_t lbase);
+  // Called from dlclose.
+  static void unregister_object_file_ranges(ObjectFile const* object_file);
 };
 
 ObjectFile::ObjectFile(char const* filename, uintptr_t lbase) : ObjectFileBase(filename), lbase_(lbase)
 {
-  Dout(dc::bfd, "dwarf2: new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
+  Dout(dc::dwarf, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
   load_symbols();
 }
 
 ObjectFile::~ObjectFile()
 {
-  Dout(dc::bfd, "dwarf2: destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
+  Dout(dc::dwarf, "destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
 
   LIBCWD_TSD_DECLARATION;
   close_dwarf(LIBCWD_TSD);
@@ -104,31 +146,6 @@ ObjectFile::~ObjectFile()
 
 //static
 std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
-
-// class PTLoadSegment
-//
-// Represents one loadable runtime segment of an ObjectFile.  Instances are
-// created while holding ObjectFileBase::s_object_files_' write lock during
-// initialization and then treated as immutable; later address lookup can read
-// the segment start/end/flags and follow object_file() without taking a
-// per-segment or per-object lock.
-class PTLoadSegment
-{
- private:
-  ObjectFile const* object_file_;
-  uintptr_t start_addr_;
-  uintptr_t end_addr_;
-  ElfW(Word) flags_;
-
- public:
-  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, ElfW(Word) flags) :
-    object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
-
-  ObjectFile const* object_file() const { return object_file_; }
-  uintptr_t start_addr() const { return start_addr_; }
-  uintptr_t end_addr() const { return end_addr_; }
-  ElfW(Word) flags() const { return flags_; }
-};
 
 namespace {
 
@@ -320,32 +337,52 @@ char const* flags_to_string(ElfW(Word) flags)
   return result;
 }
 
-} // namespace
-
-//static
-void ObjectFile::load_object_files()
+struct ForceLoadingDebugOutput
 {
   // LIBCWD_NO_STARTUP_MSGS deliberately suppresses even the loading trace that
   // LIBCWD_PRINT_LOADING would otherwise force on.
   //
   // Do we need debug output regarding the loading of object files and their symbols?
-  bool const forced_loading_output = _private_::always_print_loading && !_private_::suppress_startup_msgs;
+  bool const forced_loading_output{_private_::always_print_loading && !_private_::suppress_startup_msgs};
 
-  // If so, store previous state of libcw_do and dc::bfd.
-  libcwd::debug_ct::OnOffState state;
-  libcwd::channel_ct::OnOffState state2;
-  if (forced_loading_output)
+  libcwd::debug_ct::OnOffState do_state;
+  libcwd::channel_ct::OnOffState bfd_state;
+  libcwd::channel_ct::OnOffState dwarf_state;
+
+  ForceLoadingDebugOutput()
   {
-    Debug(libcw_do.force_on(state));
-    Debug(dc::bfd.force_on(state2, "BFD"));
+    if (forced_loading_output)
+    {
+      Debug(libcw_do.force_on(do_state));
+      Debug(dc::bfd.force_on(bfd_state, "BFD"));
+      Debug(dc::dwarf.force_on(dwarf_state, "DWARF"));
+    }
   }
+
+  ~ForceLoadingDebugOutput()
+  {
+    if (forced_loading_output)
+    {
+      Debug(dc::dwarf.restore(dwarf_state));
+      Debug(dc::bfd.restore(bfd_state));
+      Debug(libcw_do.restore(do_state));
+    }
+  }
+};
+
+} // namespace
+
+//static
+void ObjectFile::register_initial_object_files()
+{
+  ForceLoadingDebugOutput scoped_;
 
   // Initialize object files list, we don't really need the
   // write lock because this function is Single Threaded.
   //
   // Start a new scope for the write lock.
   {
-    CallBackData data{s_object_files_, current_executable_path()};
+    CallBackData const data{s_object_files_, current_executable_path()};
 
     // This is the initial population pass for the dwarf2 object/segment cache.
     // Later dlopen integration may need duplicate detection, but at this point
@@ -355,33 +392,48 @@ void ObjectFile::load_object_files()
     // Load executable and shared objects.
     if (!statically_linked)
     {
-      // Iterate over all currently loaded object files.
-      dl_iterate_phdr(cb_dl_iterate_phdr, &data);
+      // Iterate over all currently loaded object files and create new ObjectFile's for them.
+      iterate_program_headers(data);
     }
 
     s_object_files_initialized_ = true;
   } // Unlock s_object_files_.
+}
 
-  if (forced_loading_output)
-  {
-    Debug(dc::bfd.restore(state2));
-    Debug(libcw_do.restore(state));
-  }
+//static
+ObjectFile const* ObjectFile::iterate_program_headers(CallBackData const& data)
+{
+  // From https://man7.org/linux/man-pages/man3/dl_iterate_phdr.3.html:
+  //
+  // The dl_iterate_phdr() function walks through the list of an application's shared objects and
+  // calls the function cb_dl_iterate_phdr once for each object, until either all shared objects
+  // have been processed or cb_dl_iterate_phdr returns a nonzero value.
+  //
+  // A non-zero data.target_lbase_ makes the callback stop after the matching object;
+  // zero means enumerate all currently loaded objects.
+  //
+  dl_iterate_phdr(cb_dl_iterate_phdr, const_cast<CallBackData*>(&data));
+  return data.object_file_;
 }
 
 //static
 int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data)
 {
   CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
+  uintptr_t const lbase = static_cast<uintptr_t>(info->dlpi_addr);
+  bool const target_lbase_only = data->target_lbase_ != 0;
+
+  // If this is not the target object; advance to the next.
+  if (target_lbase_only && lbase != data->target_lbase_)
+    return 0;
 
   // dl_iterate_phdr reports an empty name for the main executable.
   // Use the already resolved /proc/self/exe path in that case so ObjectFileName remains
   // useful for diagnostics and later public location data.
-  char const* object_filename = (info->dlpi_name && info->dlpi_name[0] != '\0') ? info->dlpi_name : data->fullpath_.c_str();
-  uintptr_t const lbase = static_cast<uintptr_t>(info->dlpi_addr);
+  char const* object_filename = (info->dlpi_name && info->dlpi_name[0] != '\0') ? info->dlpi_name : data->executable_path_.c_str();
 
   // Create new ObjectFile.
-  ObjectFile const* object_file = new ObjectFile(object_filename, lbase);
+  data->object_file_ = new ObjectFile(object_filename, lbase);
 
   // Insert one immutable PTLoadSegment per loadable segment into the end-keyed map.
   // The map owns the discoverable active address ranges; the pointed-to objects are intentionally kept stable
@@ -398,26 +450,25 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
     uintptr_t const segment_end = segment_start + static_cast<uintptr_t>(phdr.p_memsz);
     LIBCWD_ASSERT(segment_end > segment_start);
 
-    PTLoadSegment const* segment = new PTLoadSegment(object_file, segment_start, segment_end, phdr.p_flags);
-    auto const inserted = data->object_files_w->emplace(segment_end, segment);
-    if (!inserted.second)
-    {
-      Dout(dc::warning, "Ignoring duplicate PT_LOAD end address " << (void*)segment_end << " for \"" << object_filename << "\"");
-      delete segment;
-    }
-    else
-    {
-      Dout(dc::bfd, "dwarf2:     map[" << (void*)segment_end << "] = PTLoadSegment " << segment <<
-          " [" << (void*)segment_start << '-' << (void*)segment_end << ") flags=" << flags_to_string(phdr.p_flags) <<
-          " object=" << object_file);
-    }
+    auto const ibp = data->object_files_w->try_emplace(segment_end, data->object_file_, segment_start, segment_end, phdr.p_flags);
+    // Make sure the new segment doesn't overlap with an already existing one.
+    LIBCWD_ASSERT(ibp.second &&
+        (ibp.first == data->object_files_w->begin() ||
+            std::prev(ibp.first)->first <= segment_start) &&
+        (std::next(ibp.first) == data->object_files_w->end() ||
+            std::next(ibp.first)->second.start_addr() >= segment_end));
+
+    Dout(dc::dwarf, "    map[" << (void*)segment_end << "] = PTLoadSegment " << ibp.first->second <<
+        " [" << (void*)segment_start << '-' << (void*)segment_end << ") flags=" << flags_to_string(phdr.p_flags) <<
+        " object=" << data->object_file_);
   }
 
-  return 0;
+  // Stop iterating iff there was only one target.
+  return target_lbase_only;
 }
 
 //static
-bool ObjectFile::already_loaded(uintptr_t lbase, object_files_t::wat const& object_files_w)
+ObjectFile const* ObjectFile::find_registered_object_file(uintptr_t lbase, object_files_t::wat const& object_files_w)
 {
   // The writable map is keyed by PT_LOAD end address and can contain multiple
   // segments for the same object file.  Treat any segment whose owning
@@ -426,15 +477,43 @@ bool ObjectFile::already_loaded(uintptr_t lbase, object_files_t::wat const& obje
   // enumeration reports a DSO that was discovered through an earlier path.
   for (auto const& [segment_end, segment] : *object_files_w)
   {
-    ObjectFile const* object_file = segment->object_file();
+    ObjectFile const* object_file = segment.object_file();
     if (object_file->lbase() == lbase)
-    {
-      Dout(dc::bfd, "dwarf2: object at load base " << (void*)lbase << " already loaded as \"" <<
-          object_file->object_file_name().filepath() << "\"; skipping duplicate registration.");
-      return true;
-    }
+      return object_file;
   }
-  return false;
+  return nullptr;
+}
+
+//static
+ObjectFile const* ObjectFile::register_object_file_at_lbase(uintptr_t lbase)
+{
+  // Locks s_object_files_.
+  CallBackData const data{s_object_files_, current_executable_path(), lbase};
+
+  // If this object file was already loaded before, then return that instead of creating a new ObjectFile.
+  ObjectFile const* existing_object_file = find_registered_object_file(lbase, data.object_files_w);
+
+  // Otherwise iterate over all currently loaded object files to find the just dynamically
+  // opened object file, loaded at data.target_lbase_, and create a new ObjectFile for it.
+  return existing_object_file ? existing_object_file : iterate_program_headers(data);
+}
+
+//static
+void ObjectFile::unregister_object_file_ranges(ObjectFile const* object_file)
+{
+  object_files_t::wat object_files_w(s_object_files_);
+  for (auto iter = object_files_w->begin(); iter != object_files_w->end(); )
+  {
+    PTLoadSegment const& segment = iter->second;
+    if (segment.object_file() == object_file)
+    {
+      Dout(dc::dwarf, "removing map[" << (void*)iter->first << "] = PTLoadSegment " << segment <<
+          " for object " << object_file << " (\"" << object_file->object_file_name().filename() << "\")");
+      iter = object_files_w->erase(iter);
+    }
+    else
+      ++iter;
+  }
 }
 
 void ObjectFile::load_symbols()
@@ -460,7 +539,7 @@ bool ST_init(LIBCWD_TSD_PARAM)
     core_dump();
 #endif
 
-  ObjectFile::load_object_files();
+  ObjectFile::register_initial_object_files();
 
   return true;
 }
@@ -512,7 +591,137 @@ void ObjectFile::close_dwarf(LIBCWD_TSD_PARAM)
   }
 }
 
-} // namespace libcwd::dwarf2
+#ifdef HAVE_DLOPEN
+namespace {
+
+// Real dynamic-loader entry points used by the exported wrappers below.  The
+// wrappers are responsible for keeping dwarf2's loaded-segment map synchronized
+// with libraries added by dlopen and, eventually, removed by dlclose.
+extern "C" {
+static union { void* symptr; void* (*func)(char const*, int); } real_dlopen;
+static union { void* symptr; int (*func)(void*); } real_dlclose;
+}
+std::once_flag initialize_real_dlopen;
+std::once_flag initialize_real_dlclose;
+
+struct DynamicLoaderRecord
+{
+  int refcount_;
+  int flags_;
+  ObjectFile const* object_file_;
+
+  DynamicLoaderRecord(ObjectFile const* object_file, int flags) : refcount_(1), flags_(flags), object_file_(object_file) { }
+};
+
+using dynamic_loader_records_t = threadsafe::Unlocked<std::map<void*, DynamicLoaderRecord, std::less<void*>>, threadsafe::policy::Primitive<std::mutex>>;
+
+dynamic_loader_records_t& dlopen_map()
+{
+  static dynamic_loader_records_t* map = new dynamic_loader_records_t;  // Intentionally leaked for late DSO teardown.
+  return *map;
+}
+
+} // namespace
+#endif // HAVE_DLOPEN
+
+} // namespace dwarf2
+} // namespace libcwd
+
+#ifdef HAVE_DLOPEN
+extern "C" {
+
+void* dlopen(char const* name, int flags)
+{
+  // No need to register if no name is given.
+  bool const need_register_object_file = name && *name;
+
+  // Ensure the initial dwarf2 object/segment cache exists before the new DSO is mapped.
+  // That makes the following post-dlopen pass responsible only for the just-loaded link_map entry, and avoids duplicate startup registration.
+  if (need_register_object_file)
+    libcwd::initialize();
+
+  using namespace libcwd::dwarf2;
+
+  // Initialize real_dlopen if that wasn't done yet.
+  std::call_once(initialize_real_dlopen, [](){ real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen"); });
+
+  void* handle = real_dlopen.func(name, flags);
+  if (statically_linked)
+  {
+    Dout(dc::warning, "Calling dlopen(3) from statically linked application; this is not going to work if the loaded module uses libcwd too or when it allocates any memory!");
+    return handle;
+  }
+  if (handle == nullptr)
+    return handle;
+#ifdef RTLD_NOLOAD
+  if ((flags & RTLD_NOLOAD))
+    return handle;
+#endif
+
+  // Lock dlopen_map.
+  dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
+
+  // If the record already exist, increment DynamicLoaderRecord::refcount_ and return.
+  {
+    auto iter = dynamic_loader_records_w->find(handle);
+    if (iter != dynamic_loader_records_w->end())
+    {
+      ++iter->second.refcount_;
+      return handle;
+    }
+  }
+
+  if (need_register_object_file)
+  {
+    struct link_map* link_map;
+    if (::dlinfo(handle, RTLD_DI_LINKMAP, &link_map) == 0)
+    {
+      ForceLoadingDebugOutput scoped_;
+      ObjectFile const* object_file = ObjectFile::register_object_file_at_lbase(static_cast<uintptr_t>(link_map->l_addr));
+      // NULL would mean that there is no DSO at the `l_addr` that `dlinfo` just returned.
+      // That shouldn't be possible because no thread can have dlclose-d it without already haven gotten the handle that we didn't even return yet.
+      LIBCWD_ASSERT(object_file);
+      dynamic_loader_records_w->emplace(handle, DynamicLoaderRecord{object_file, flags});
+    }
+  }
+
+  // Unlock dlopen_map and return handle.
+  return handle;
+}
+
+int dlclose(void* handle)
+{
+  using namespace libcwd::dwarf2;
+
+  // Initialize real_dlclose if that wasn't done yet.
+  std::call_once(initialize_real_dlclose, [](){ real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose"); });
+
+  int error = real_dlclose.func(handle);
+  if (error != 0 || statically_linked)
+    return error;
+
+  // Lock dlopen_map.
+  dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
+
+  auto iter = dynamic_loader_records_w->find(handle);
+  if (iter != dynamic_loader_records_w->end() && --iter->second.refcount_ == 0)
+  {
+#ifdef RTLD_NODELETE
+    if (!(iter->second.flags_ & RTLD_NODELETE))
+#endif
+    {
+      ForceLoadingDebugOutput scoped_;
+      ObjectFile::unregister_object_file_ranges(iter->second.object_file_);
+    }
+    dynamic_loader_records_w->erase(iter);
+  }
+
+  // Unlock dlopen_map and return success.
+  return 0;
+}
+
+} // extern "C"
+#endif // HAVE_DLOPEN
 
 namespace libcwd {
 

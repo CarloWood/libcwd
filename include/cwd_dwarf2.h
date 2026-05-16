@@ -16,7 +16,38 @@
 namespace libcwd::dwarf2 {
 
 // Forward declare private class, defined in dwarf2.cc.
-class PTLoadSegment;
+class ObjectFile;
+
+// class PTLoadSegment
+//
+// Represents one loadable runtime segment of an ObjectFile.  Instances are
+// created while holding ObjectFileBase::s_object_files_' write lock during
+// initialization and then treated as immutable; later address lookup can read
+// the segment start/end/flags and follow object_file() without taking a
+// per-segment or per-object lock.
+class PTLoadSegment
+{
+ private:
+  ObjectFile const* object_file_;
+  uintptr_t start_addr_;
+  uintptr_t end_addr_;
+  uint32_t flags_;
+
+ public:
+  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
+    object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
+
+  ObjectFile const* object_file() const { return object_file_; }
+  uintptr_t start_addr() const { return start_addr_; }
+  uintptr_t end_addr() const { return end_addr_; }
+  uint32_t flags() const { return flags_; }
+
+  friend std::ostream& operator<<(std::ostream& os, PTLoadSegment const& segment)
+  {
+    os << '[' << std::hex << segment.start_addr_ << ", " << segment.end_addr_ << ')';
+    return os;
+  }
+};
 
 // Base class of ObjectFile.
 class ObjectFileBase
@@ -24,7 +55,7 @@ class ObjectFileBase
  protected:
   // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end address;
   // the pointed-to PTLoadSegment stores the matching start address, flags, and ObjectFile owner.
-  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
   static object_files_t s_object_files_;        // Read-write lock protected end-address index of loaded PT_LOAD segments.
 
   libcwd::ObjectFileName object_file_name_;     // Public facing data of this object file. Just contains the filename

@@ -64,24 +64,6 @@ extern void demangle_symbol(char const* in, _private_::internal_string& out);
 
 } // namespace _private_
 
-// New debug channel.
-namespace channels {
-namespace dc {
-/** \addtogroup group_default_dc */
-/** \{ */
-
-/** The BFD channel. */
-channel_ct bfd
-#ifndef HIDE_FROM_DOXYGEN
-  ("BFD")
-#endif
-  ;
-
-/** \} */
-} // namespace dc
-} // namespace channels
-
-
 #ifdef HAVE_DLOPEN
 extern "C" {
   // dlopen and dlclose function pointers into libdl.
@@ -1772,6 +1754,10 @@ void dlopen_map_cleanup(void* /*arg*/)
 
 } // namespace libcwd::_private_
 
+// The dynamic-loader interposition entry points live in dwarf2.cc while the new
+// object/segment cache is being developed there.  Keep the old implementation
+// available for reference, but do not export a second dlopen/dlclose pair.
+#if 0
 extern "C" {
 
   void* dlopen(char const* name, int flags)
@@ -1864,6 +1850,7 @@ extern "C" {
   }
 
 } // extern "C"
+#endif
 
 #endif // HAVE_DLOPEN
 

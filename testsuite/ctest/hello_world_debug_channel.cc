@@ -38,6 +38,7 @@ int main()
   char const* expected[] = {
     "BFD     : Enabled",
     "DEBUG   : Enabled",
+    "DWARF   : Enabled",
     "HELLO   : Enabled",
     "NOTICE  : Disabled",
     "SYSTEM  : Enabled",
