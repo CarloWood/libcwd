@@ -58,7 +58,6 @@ constexpr bool statically_linked = false;
 constexpr bool statically_linked = true;
 #endif
 static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `ST_init'.
-static thread_local bool t_skip_dynamic_loader_registration = false;
 
 //static
 ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
@@ -102,14 +101,13 @@ class ObjectFile : public ObjectFileBase
 
   // Information passed to the cb_dl_iterate_phdr call back function.
   struct CallBackData {
-    object_files_t::wat object_files_w;         // Write Access Type to ObjectFileBase::s_object_files_.
     std::string executable_path_;               // The full path to the current executable.
     // Used for targeted dlopen-driven object discovery:
     uintptr_t target_lbase_;                    // When non-zero, create an ObjectFile only for the DSO with this load base.
     mutable ObjectFile const* object_file_{};   // Set to the newly created ObjectFile for target_lbase_.
 
-    CallBackData(object_files_t& object_files, std::string const& executable_path, uintptr_t target_lbase = 0) :
-      object_files_w(object_files), executable_path_(executable_path), target_lbase_(target_lbase) { }
+    CallBackData(std::string const& executable_path, uintptr_t target_lbase = 0) :
+      executable_path_(executable_path), target_lbase_(target_lbase) { }
   };
 
  private:
@@ -149,85 +147,20 @@ std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
 
 namespace {
 
-// Scoped process-environment override used only around libdwfl debuginfo
-// discovery.  elfutils' standard debuginfo finder consults DEBUGINFOD_URLS and
-// may synchronously download missing files; libcwd startup must not perform
-// network I/O unless explicitly requested with LIBCWD_USE_DEBUGINFOD.  POSIX
-// environment mutation is process-global, so serialize this override to avoid
-// overlapping libcwd lookups observing each other's temporary state.
-class ScopedDebuginfodUrlsDisabler
-{
- private:
-  static std::mutex s_env_mutex_;
-  std::lock_guard<std::mutex> lock_;
-  char const* saved_value_;
-  bool had_value_;
-
- public:
-  explicit ScopedDebuginfodUrlsDisabler(bool disable) : lock_(s_env_mutex_), saved_value_(getenv("DEBUGINFOD_URLS")), had_value_(saved_value_ != nullptr)
-  {
-    if (had_value_)
-      saved_value_ = strdup(saved_value_);      // Intentionally freed in the destructor after restoring.
-    // Use an empty value rather than unsetting the variable: elfutils treats an
-    // empty URL list as "no servers", while some builds still probe/load the
-    // debuginfod client when the variable is merely absent.
-    if (disable)
-      setenv("DEBUGINFOD_URLS", "", 1);
-  }
-
-  ~ScopedDebuginfodUrlsDisabler()
-  {
-    if (had_value_)
-    {
-      setenv("DEBUGINFOD_URLS", saved_value_, 1);
-      free(const_cast<char*>(saved_value_));
-    }
-    else
-      unsetenv("DEBUGINFOD_URLS");
-  }
-};
-
-std::mutex ScopedDebuginfodUrlsDisabler::s_env_mutex_;
-
-// libdwfl may internally use dlopen while it locates or loads helper/debug-info
-// files.  ObjectFile construction happens while the object-file registry write
-// lock is held, so recursively running libcwd's dlopen bookkeeping from inside
-// libdwfl would deadlock or register implementation-detail DSOs in the middle of
-// another registration pass.  This guard makes the interposed dlopen/dlclose
-// wrappers pass through to the real dynamic-loader calls for the current thread
-// while libdwfl debuginfo discovery is active.
-class ScopedDynamicLoaderRegistrationSkipper
-{
- private:
-  bool previous_;
-
- public:
-  ScopedDynamicLoaderRegistrationSkipper() : previous_(t_skip_dynamic_loader_registration)
-  {
-    t_skip_dynamic_loader_registration = true;
-  }
-
-  ~ScopedDynamicLoaderRegistrationSkipper()
-  {
-    t_skip_dynamic_loader_registration = previous_;
-  }
-};
+// The number of threads inside `dwfl_module_getdwarf`.
+bool thread_local inside_dwfl_module_getdwarf = false;
 
 // Return the ELF file that should be opened for DWARF data for object_file.
-// This intentionally delegates the search policy to elfutils libdwfl instead
-// of duplicating the build-id, .gnu_debuglink, /usr/lib/debug, and debuginfod
-// rules by hand.  Remote debuginfod lookups are disabled unless
-// LIBCWD_USE_DEBUGINFOD is present in the environment; without that opt-in,
-// libdwfl can still use already installed local debuginfo and ordinary debuglink
-// paths.  The returned path is either the separate debuginfo file selected by
-// libdwfl or object_file itself when no separate file was found; the caller
-// still opens the path with libdw and reports missing/no-DWARF cases.
+// Downloads of missing debug info by debuginfod can happen if DEBUGINFOD_URLS is set,
+// otherwise libdwfl can still use already installed local debuginfo and ordinary
+// debuglink paths.
+//
+// The returned path is either the separate debuginfo file selected by libdwfl or
+// object_file itself when no separate file was found; the caller should open the
+// path with libdw which reports missing/no-DWARF cases.
+//
 std::filesystem::path get_debug_info_path(std::string const& object_file)
 {
-  bool const disable_debuginfod = getenv("LIBCWD_USE_DEBUGINFOD") == nullptr;
-  ScopedDebuginfodUrlsDisabler scoped_debuginfod_urls_disabler(disable_debuginfod);
-  ScopedDynamicLoaderRegistrationSkipper scoped_dynamic_loader_registration_skipper;
-
   Dwfl_Callbacks callbacks{};
   callbacks.find_debuginfo = dwfl_standard_find_debuginfo;
   callbacks.section_address = dwfl_offline_section_address;
@@ -257,10 +190,17 @@ std::filesystem::path get_debug_info_path(std::string const& object_file)
     return object_file;
   }
 
+  // The call to dwfl_module_getdwarf can cause a call to dlopen("libdebuginfod.so.1").
+  // If that happens we shouldn't try to register the opened DSO because that means we might
+  // end up here again, and dwfl_module_getdwarf itself is not re-entrant (it will deadlock).
+  inside_dwfl_module_getdwarf = true;
+
   // Force libdwfl to locate and validate the separate debuginfo file now; only
   // after this call does dwfl_module_info reliably expose the selected debugfile.
   Dwarf_Addr bias;
   (void)dwfl_module_getdwarf(module, &bias);
+
+  inside_dwfl_module_getdwarf = false;
 
   char const* mainfile = nullptr;
   char const* debugfile = nullptr;
@@ -355,12 +295,11 @@ void ObjectFile::register_initial_object_files()
   //
   // Start a new scope for the write lock.
   {
-    CallBackData const data{s_object_files_, current_executable_path()};
+    CallBackData const data{current_executable_path()};
 
     // This is the initial population pass for the dwarf2 object/segment cache.
-    // Later dlopen integration may need duplicate detection, but at this point
-    // no other path should have inserted PT_LOAD segments yet.
-    LIBCWD_ASSERT(data.object_files_w->empty());
+    // Even if dlopen is called first, that still will first call this function.
+    LIBCWD_ASSERT(object_files_t::rat{s_object_files_}->empty());
 
     // Load executable and shared objects.
     if (!statically_linked)
@@ -423,12 +362,13 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
     uintptr_t const segment_end = segment_start + static_cast<uintptr_t>(phdr.p_memsz);
     LIBCWD_ASSERT(segment_end > segment_start);
 
-    auto const ibp = data->object_files_w->try_emplace(segment_end, data->object_file_, segment_start, segment_end, phdr.p_flags);
+    object_files_t::wat object_files_w(s_object_files_);
+    auto const ibp = object_files_w->try_emplace(segment_end, data->object_file_, segment_start, segment_end, phdr.p_flags);
     // Make sure the new segment doesn't overlap with an already existing one.
     LIBCWD_ASSERT(ibp.second &&
-        (ibp.first == data->object_files_w->begin() ||
+        (ibp.first == object_files_w->begin() ||
             std::prev(ibp.first)->first <= segment_start) &&
-        (std::next(ibp.first) == data->object_files_w->end() ||
+        (std::next(ibp.first) == object_files_w->end() ||
             std::next(ibp.first)->second.start_addr() >= segment_end));
 
     Dout(dc::dwarf, "    map[" << (void*)segment_end << "] = PTLoadSegment " << ibp.first->second <<
@@ -461,10 +401,10 @@ ObjectFile const* ObjectFile::find_registered_object_file(uintptr_t lbase, objec
 ObjectFile const* ObjectFile::register_object_file_at_lbase(uintptr_t lbase)
 {
   // Locks s_object_files_.
-  CallBackData const data{s_object_files_, current_executable_path(), lbase};
+  CallBackData const data{current_executable_path(), lbase};
 
   // If this object file was already loaded before, then return that instead of creating a new ObjectFile.
-  ObjectFile const* existing_object_file = find_registered_object_file(lbase, data.object_files_w);
+  ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_t::wat{s_object_files_});
 
   // Otherwise iterate over all currently loaded object files to find the just dynamically
   // opened object file, loaded at data.target_lbase_, and create a new ObjectFile for it.
@@ -473,19 +413,23 @@ ObjectFile const* ObjectFile::register_object_file_at_lbase(uintptr_t lbase)
 
 void ObjectFile::unregister_object_file_ranges() const
 {
-  object_files_t::wat object_files_w(s_object_files_);
-  for (auto iter = object_files_w->begin(); iter != object_files_w->end(); )
+  // Remove all PTLoadSegment's from s_object_files_ that belong to this ObjectFile.
   {
-    PTLoadSegment const& segment = iter->second;
-    if (segment.object_file() == this)
+    object_files_t::wat object_files_w(s_object_files_);
+    for (auto iter = object_files_w->begin(); iter != object_files_w->end(); )
     {
-      Dout(dc::dwarf, "removing map[" << (void*)iter->first << "] = PTLoadSegment " << segment <<
-          " for object " << this << " (\"" << object_file_name_.filename() << "\")");
-      iter = object_files_w->erase(iter);
+      PTLoadSegment const& segment = iter->second;
+      if (segment.object_file() == this)
+      {
+        Dout(dc::dwarf, "removing map[" << (void*)iter->first << "] = PTLoadSegment " << segment <<
+            " for object " << this << " (\"" << object_file_name_.filename() << "\")");
+        iter = object_files_w->erase(iter);
+      }
+      else
+        ++iter;
     }
-    else
-      ++iter;
   }
+  // Free libdw resources.
   close_dwarf();
 }
 
@@ -609,18 +553,6 @@ void* dlopen(char const* name, int flags)
 {
   using namespace libcwd::dwarf2;
 
-  // Initialize real_dlopen if that wasn't done yet.  This must happen before
-  // checking t_skip_dynamic_loader_registration because libdwfl debuginfo
-  // discovery can be the first code path that reaches this wrapper.
-  std::call_once(initialize_real_dlopen, [](){ real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen"); });
-
-  // libdwfl may dlopen debuginfod/helper libraries while get_debug_info_path()
-  // is running under ObjectFileBase::s_object_files_' write lock.  Re-entering
-  // libcwd registration here would try to take that same lock recursively and
-  // deadlock.  In this scoped mode, this wrapper is intentionally transparent.
-  if (t_skip_dynamic_loader_registration)
-    return real_dlopen.func(name, flags);
-
   // No need to register if no name is given.
   bool const need_register_object_file = name && *name;
 
@@ -628,6 +560,9 @@ void* dlopen(char const* name, int flags)
   // That makes the following post-dlopen pass responsible only for the just-loaded link_map entry, and avoids duplicate startup registration.
   if (need_register_object_file)
     libcwd::initialize();
+
+  // Initialize real_dlopen if that wasn't done yet.
+  std::call_once(initialize_real_dlopen, [](){ real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen"); });
 
   void* handle = real_dlopen.func(name, flags);
   if (statically_linked)
@@ -642,16 +577,16 @@ void* dlopen(char const* name, int flags)
     return handle;
 #endif
 
-  // Lock dlopen_map.
-  dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
-
   // If the record already exist, increment DynamicLoaderRecord::refcount_ and return.
   {
-    auto iter = dynamic_loader_records_w->find(handle);
-    if (iter != dynamic_loader_records_w->end())
+    dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
     {
-      ++iter->second.refcount_;
-      return handle;
+      auto iter = dynamic_loader_records_w->find(handle);
+      if (iter != dynamic_loader_records_w->end())
+      {
+        ++iter->second.refcount_;
+        return handle;
+      }
     }
   }
 
@@ -660,12 +595,18 @@ void* dlopen(char const* name, int flags)
     struct link_map* link_map;
     if (::dlinfo(handle, RTLD_DI_LINKMAP, &link_map) == 0)
     {
-      ForceLoadingDebugOutput scoped_;
-      ObjectFile const* object_file = ObjectFile::register_object_file_at_lbase(static_cast<uintptr_t>(link_map->l_addr));
-      // NULL would mean that there is no DSO at the `l_addr` that `dlinfo` just returned.
-      // That shouldn't be possible because no thread can have dlclose-d it without already haven gotten the handle that we didn't even return yet.
-      LIBCWD_ASSERT(object_file);
-      dynamic_loader_records_w->emplace(handle, DynamicLoaderRecord{object_file, flags});
+      uintptr_t const lbase = static_cast<uintptr_t>(link_map->l_addr);
+      ObjectFile const* object_file = nullptr;
+      // If this thread is inside dwfl_module_getdwarf then do not register the DSO.
+      if (!inside_dwfl_module_getdwarf)
+      {
+        ForceLoadingDebugOutput scoped_;
+        object_file = ObjectFile::register_object_file_at_lbase(lbase);
+        // NULL would mean that there is no DSO at the `l_addr` that `dlinfo` just returned.
+        // That shouldn't be possible because no thread can have dlclose-d it without already haven gotten the handle that we didn't even return yet.
+        LIBCWD_ASSERT(object_file);
+      }
+      dynamic_loader_records_t::wat(dlopen_map())->emplace(handle, DynamicLoaderRecord{object_file, flags});
     }
   }
 
@@ -680,27 +621,31 @@ int dlclose(void* handle)
   // Initialize real_dlclose if that wasn't done yet.
   std::call_once(initialize_real_dlclose, [](){ real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose"); });
 
-  if (t_skip_dynamic_loader_registration)
-    return real_dlclose.func(handle);
-
   int error = real_dlclose.func(handle);
   if (error != 0 || statically_linked)
     return error;
 
-  // Lock dlopen_map.
-  dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
+  ObjectFile const* object_file_to_unregister = nullptr;
 
-  auto iter = dynamic_loader_records_w->find(handle);
-  if (iter != dynamic_loader_records_w->end() && --iter->second.refcount_ == 0)
+  // Remove the corresponding DynamicLoaderRecord from the dlopen_map if this was the last reference.
   {
-#ifdef RTLD_NODELETE
-    if (!(iter->second.flags_ & RTLD_NODELETE))
-#endif
+    dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
+
+    auto iter = dynamic_loader_records_w->find(handle);
+    if (iter != dynamic_loader_records_w->end() && --iter->second.refcount_ == 0)
     {
-      ForceLoadingDebugOutput scoped_;
-      iter->second.object_file_->unregister_object_file_ranges();
+#ifdef RTLD_NODELETE
+      if (!(iter->second.flags_ & RTLD_NODELETE))
+#endif
+        object_file_to_unregister = iter->second.object_file_;
+      dynamic_loader_records_w->erase(iter);
     }
-    dynamic_loader_records_w->erase(iter);
+  }
+
+  if (object_file_to_unregister)
+  {
+    ForceLoadingDebugOutput scoped_;
+    object_file_to_unregister->unregister_object_file_ranges();
   }
 
   // Unlock dlopen_map and return success.
