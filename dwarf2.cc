@@ -147,8 +147,17 @@ std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
 
 namespace {
 
-// The number of threads inside `dwfl_module_getdwarf`.
-bool thread_local inside_dwfl_module_getdwarf = false;
+struct Chain
+{
+  uintptr_t lbase_{};
+  void* handle_;
+  Chain* next_;
+
+  void delayed_initialization();
+};
+
+// This is non-zero while inside `dwfl_module_getdwarf`.
+Chain* thread_local inside_dwfl_module_getdwarf = nullptr;
 
 // Return the ELF file that should be opened for DWARF data for object_file.
 // Downloads of missing debug info by debuginfod can happen if DEBUGINFOD_URLS is set,
@@ -193,14 +202,17 @@ std::filesystem::path get_debug_info_path(std::string const& object_file)
   // The call to dwfl_module_getdwarf can cause a call to dlopen("libdebuginfod.so.1").
   // If that happens we shouldn't try to register the opened DSO because that means we might
   // end up here again, and dwfl_module_getdwarf itself is not re-entrant (it will deadlock).
-  inside_dwfl_module_getdwarf = true;
+  Chain chain;
+  inside_dwfl_module_getdwarf = &chain;
 
   // Force libdwfl to locate and validate the separate debuginfo file now; only
   // after this call does dwfl_module_info reliably expose the selected debugfile.
   Dwarf_Addr bias;
   (void)dwfl_module_getdwarf(module, &bias);
 
-  inside_dwfl_module_getdwarf = false;
+  inside_dwfl_module_getdwarf = nullptr;
+  if (chain.lbase)
+    chain.delayed_initialization();
 
   char const* mainfile = nullptr;
   char const* debugfile = nullptr;
@@ -598,7 +610,14 @@ void* dlopen(char const* name, int flags)
       uintptr_t const lbase = static_cast<uintptr_t>(link_map->l_addr);
       ObjectFile const* object_file = nullptr;
       // If this thread is inside dwfl_module_getdwarf then do not register the DSO.
-      if (!inside_dwfl_module_getdwarf)
+      if (inside_dwfl_module_getdwarf)
+      {
+        if (inside_dwfl_module_getdwarf.lbase)          // Already used?
+          inside_dwfl_module_getdwarf = new Chain;
+        inside_dwfl_module_getdwarf.lbase_ = lbase;     // Store lbase for delayed call to ObjectFile::register_object_file_at_lbase(lbase);
+        inside_dwfl_module_getdwarf.handle_ = handle;
+      }
+      else
       {
         ForceLoadingDebugOutput scoped_;
         object_file = ObjectFile::register_object_file_at_lbase(lbase);
