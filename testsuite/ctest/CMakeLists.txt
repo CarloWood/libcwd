@@ -23,6 +23,10 @@ target_link_libraries(mangling_symbols PRIVATE ctest_support)
 add_executable(location_lookup location_lookup.cc)
 target_link_libraries(location_lookup PRIVATE ctest_support)
 
+add_executable(location_cache_scenarios location_cache_scenarios.cc)
+target_link_libraries(location_cache_scenarios PRIVATE ctest_support)
+target_compile_options(location_cache_scenarios PRIVATE -O2)
+
 function(configure_location_loading_library target_name)
   target_include_directories(${target_name}
     PRIVATE
@@ -82,6 +86,11 @@ set_tests_properties(mangling_symbols PROPERTIES
 
 add_test(NAME location_lookup COMMAND location_lookup)
 set_tests_properties(location_lookup PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME location_cache_scenarios COMMAND location_cache_scenarios)
+set_tests_properties(location_cache_scenarios PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
 
