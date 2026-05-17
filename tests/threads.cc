@@ -2,7 +2,7 @@
 #error "Recompile libcwd with --enable-threading"
 #endif
 //#include "sys.h"
-#include "../include/sys.h"
+#include "../include/cwd_sys.h"
 #include "threads_debug.h"
 #include <libcwd/type_info.h>
 #include <vector>
