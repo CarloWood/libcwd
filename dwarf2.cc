@@ -12,6 +12,7 @@
 #include <dlfcn.h>
 #include <elf.h>
 #include <elfutils/libdw.h>
+#include <elfutils/libdwfl.h>
 #include <filesystem>
 #include <fcntl.h>
 #include <link.h>
@@ -57,6 +58,7 @@ constexpr bool statically_linked = false;
 constexpr bool statically_linked = true;
 #endif
 static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `ST_init'.
+static thread_local bool t_skip_dynamic_loader_registration = false;
 
 //static
 ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
@@ -147,155 +149,128 @@ std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
 
 namespace {
 
-std::string read_build_id(std::string const& object_file)
+// Scoped process-environment override used only around libdwfl debuginfo
+// discovery.  elfutils' standard debuginfo finder consults DEBUGINFOD_URLS and
+// may synchronously download missing files; libcwd startup must not perform
+// network I/O unless explicitly requested with LIBCWD_USE_DEBUGINFOD.  POSIX
+// environment mutation is process-global, so serialize this override to avoid
+// overlapping libcwd lookups observing each other's temporary state.
+class ScopedDebuginfodUrlsDisabler
 {
-  // Determine the working version (the ELF version supported by both, the libelf library and this program).
-  if (elf_version(EV_CURRENT) == EV_NONE)
+ private:
+  static std::mutex s_env_mutex_;
+  std::lock_guard<std::mutex> lock_;
+  char const* saved_value_;
+  bool had_value_;
+
+ public:
+  explicit ScopedDebuginfodUrlsDisabler(bool disable) : lock_(s_env_mutex_), saved_value_(getenv("DEBUGINFOD_URLS")), had_value_(saved_value_ != nullptr)
   {
-    DoutFatal(dc::fatal, "Warning: libelf is out of date. Can't read build-id of \"" << object_file << "\" (or any object file).");
+    if (had_value_)
+      saved_value_ = strdup(saved_value_);      // Intentionally freed in the destructor after restoring.
+    // Use an empty value rather than unsetting the variable: elfutils treats an
+    // empty URL list as "no servers", while some builds still probe/load the
+    // debuginfod client when the variable is merely absent.
+    if (disable)
+      setenv("DEBUGINFOD_URLS", "", 1);
   }
-  else
+
+  ~ScopedDebuginfodUrlsDisabler()
   {
-    // Open the ELF object file.
-    int fd = open(object_file.c_str(), O_RDONLY);
-    if (fd == -1)
-      Dout(dc::warning, "failed to open file \"" << object_file << "\"");
+    if (had_value_)
+    {
+      setenv("DEBUGINFOD_URLS", saved_value_, 1);
+      free(const_cast<char*>(saved_value_));
+    }
     else
-    {
-      // Open an ELF descriptor for reading.
-      ::Elf* e = elf_begin(fd, ELF_C_READ, NULL);
-      if (!e)
-        Dout(dc::warning, "elf_begin returned NULL for \"" << object_file << "\": " << elf_errmsg(-1));
-      else
-      {
-        if (elf_kind(e) != ELF_K_ELF)
-        {
-          //std::cout << object_file << ": skipping, not an ELF file." << std::endl;
-        }
-        else
-        {
-#if 0
-          // Get the string table section index.
-          size_t shstrndx;
-          if (elf_getshdrstrndx(e, &shstrndx) != 0)
-          {
-            std::cerr << "elf_getshdrstrndx() failed: " << elf_errmsg(-1) << std::endl;
-            return "";
-          }
-#endif
-          // Run over all sections in the ELF file.
-          Elf_Scn* scn = nullptr;
-          while ((scn = elf_nextscn(e, scn)) != nullptr)
-          {
-            // Get the section header.
-            GElf_Shdr shdr;
-            gelf_getshdr(scn, &shdr);
-            if (shdr.sh_type == SHT_NOTE)
-            {
-#if 0
-              // Get the name of the section
-              char const* name = elf_strptr(e, shstrndx, shdr.sh_name);
-              std::cout << "Section: " << name << std::endl;
-#endif
-              Elf_Data* data = elf_getdata(scn, NULL);
-              GElf_Nhdr nhdr;
-              size_t name_offset, desc_offset, offset = 0;
-              while ((offset = gelf_getnote(data, offset, &nhdr, &name_offset, &desc_offset)) > 0)
-              {
-                if (nhdr.n_type == NT_GNU_BUILD_ID && nhdr.n_namesz == 4 && strncmp((char*)data->d_buf + name_offset, "GNU", 4) == 0)
-                {
-                  unsigned char *desc = (unsigned char *)data->d_buf + desc_offset;
-                  std::string result;
-                  for (int i = 0; i < nhdr.n_descsz; ++i)
-                  {
-                    unsigned int val = (unsigned int)desc[i] & 0xffU;
-                    static char const* hexchar = "0123456789abcdef";
-                    for (int digit = 16; digit; digit /= 16)
-                    {
-                      result += hexchar[val / digit];
-                      val %= digit;
-                    }
-                  }
-                  //std::cout << "build-id of " << object_file << " is " << oss.str() << std::endl;
-                  return result;
-                }
-              }
-            }
-          }
-        }
-        elf_end(e);
-      }
-      close(fd);
-    }
+      unsetenv("DEBUGINFOD_URLS");
   }
-  return {};
-}
+};
 
-std::filesystem::path get_debug_info_path(std::string object_file)
+std::mutex ScopedDebuginfodUrlsDisabler::s_env_mutex_;
+
+// libdwfl may internally use dlopen while it locates or loads helper/debug-info
+// files.  ObjectFile construction happens while the object-file registry write
+// lock is held, so recursively running libcwd's dlopen bookkeeping from inside
+// libdwfl would deadlock or register implementation-detail DSOs in the middle of
+// another registration pass.  This guard makes the interposed dlopen/dlclose
+// wrappers pass through to the real dynamic-loader calls for the current thread
+// while libdwfl debuginfo discovery is active.
+class ScopedDynamicLoaderRegistrationSkipper
 {
-  using namespace std::filesystem;
-  path build_id_dir = "/usr/lib/debug/.build-id";
-  std::error_code ec;
-  file_status sr = status(build_id_dir, ec);
+ private:
+  bool previous_;
 
-  path debug_info_path;
-  std::string build_id;
-  if (!ec && is_directory(sr))
+ public:
+  ScopedDynamicLoaderRegistrationSkipper() : previous_(t_skip_dynamic_loader_registration)
   {
-    // Get the build-id, if any.
-    build_id = read_build_id(object_file);
-    if (build_id.length() > 2)
-      debug_info_path = build_id_dir / build_id.substr(0, 2) / (build_id.substr(2) + ".debug");
+    t_skip_dynamic_loader_registration = true;
   }
-  else
-    debug_info_path = "/usr/lib/debug" + object_file + ".debug";
-  sr = status(debug_info_path, ec);
-  if (!ec)
+
+  ~ScopedDynamicLoaderRegistrationSkipper()
   {
-    // Try to find a debug_info file already downloaded by debuginfod.
-    char const* cache_path_envvar;
-    debug_info_path = object_file;
-    for (int path_attempt = 0; path_attempt < 4; ++path_attempt)
-    {
-      switch (path_attempt)
-      {
-        case 0:
-          cache_path_envvar = getenv("DEBUGINFOD_CACHE_PATH");
-          break;
-        case 1:
-          cache_path_envvar = getenv("XDG_CACHE_HOME");
-          break;
-        default:
-          cache_path_envvar = getenv("HOME");
-          break;
-      }
-      if (cache_path_envvar == nullptr)
-        continue;
-      path cache_path = cache_path_envvar;
-      switch (path_attempt)
-      {
-        case 0:
-          break;
-        case 1:
-          cache_path = cache_path / "debuginfod_client/";
-          break;
-        case 2:
-          cache_path = cache_path / ".cache/debuginfod_client/";
-          break;
-        case 3:
-          cache_path = cache_path / ".debuginfod_client_cache/";
-          break;
-      }
-      cache_path = cache_path / build_id / "debuginfo";
-      sr = status(cache_path, ec);
-      if (!ec && exists(sr))
-      {
-        debug_info_path = cache_path;
-        break;
-      }
-    }
+    t_skip_dynamic_loader_registration = previous_;
   }
-  return debug_info_path;
+};
+
+// Return the ELF file that should be opened for DWARF data for object_file.
+// This intentionally delegates the search policy to elfutils libdwfl instead
+// of duplicating the build-id, .gnu_debuglink, /usr/lib/debug, and debuginfod
+// rules by hand.  Remote debuginfod lookups are disabled unless
+// LIBCWD_USE_DEBUGINFOD is present in the environment; without that opt-in,
+// libdwfl can still use already installed local debuginfo and ordinary debuglink
+// paths.  The returned path is either the separate debuginfo file selected by
+// libdwfl or object_file itself when no separate file was found; the caller
+// still opens the path with libdw and reports missing/no-DWARF cases.
+std::filesystem::path get_debug_info_path(std::string const& object_file)
+{
+  bool const disable_debuginfod = getenv("LIBCWD_USE_DEBUGINFOD") == nullptr;
+  ScopedDebuginfodUrlsDisabler scoped_debuginfod_urls_disabler(disable_debuginfod);
+  ScopedDynamicLoaderRegistrationSkipper scoped_dynamic_loader_registration_skipper;
+
+  Dwfl_Callbacks callbacks{};
+  callbacks.find_debuginfo = dwfl_standard_find_debuginfo;
+  callbacks.section_address = dwfl_offline_section_address;
+
+  Dwfl* dwfl = dwfl_begin(&callbacks);
+  if (!dwfl)
+  {
+    Dout(dc::warning, "dwfl_begin failed while looking for debuginfo of \"" << object_file << "\": " << dwfl_errmsg(-1));
+    return object_file;
+  }
+
+  struct DwflCloser {
+    Dwfl* dwfl_;
+    ~DwflCloser() { dwfl_end(dwfl_); }
+  } close_dwfl{dwfl};
+
+  Dwfl_Module* module = dwfl_report_offline(dwfl, object_file.c_str(), object_file.c_str(), -1);
+  if (!module)
+  {
+    Dout(dc::warning, "dwfl_report_offline failed for \"" << object_file << "\": " << dwfl_errmsg(-1));
+    return object_file;
+  }
+
+  if (dwfl_report_end(dwfl, nullptr, nullptr) != 0)
+  {
+    Dout(dc::warning, "dwfl_report_end failed for \"" << object_file << "\": " << dwfl_errmsg(-1));
+    return object_file;
+  }
+
+  // Force libdwfl to locate and validate the separate debuginfo file now; only
+  // after this call does dwfl_module_info reliably expose the selected debugfile.
+  Dwarf_Addr bias;
+  (void)dwfl_module_getdwarf(module, &bias);
+
+  char const* mainfile = nullptr;
+  char const* debugfile = nullptr;
+  dwfl_module_info(module, nullptr, nullptr, nullptr, nullptr, nullptr, &mainfile, &debugfile);
+
+  if (debugfile && debugfile[0] != '\0')
+    return debugfile;
+  if (mainfile && mainfile[0] != '\0')
+    return mainfile;
+  return object_file;
 }
 
 // Find the full path to the current running process.
@@ -632,6 +607,20 @@ extern "C" {
 
 void* dlopen(char const* name, int flags)
 {
+  using namespace libcwd::dwarf2;
+
+  // Initialize real_dlopen if that wasn't done yet.  This must happen before
+  // checking t_skip_dynamic_loader_registration because libdwfl debuginfo
+  // discovery can be the first code path that reaches this wrapper.
+  std::call_once(initialize_real_dlopen, [](){ real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen"); });
+
+  // libdwfl may dlopen debuginfod/helper libraries while get_debug_info_path()
+  // is running under ObjectFileBase::s_object_files_' write lock.  Re-entering
+  // libcwd registration here would try to take that same lock recursively and
+  // deadlock.  In this scoped mode, this wrapper is intentionally transparent.
+  if (t_skip_dynamic_loader_registration)
+    return real_dlopen.func(name, flags);
+
   // No need to register if no name is given.
   bool const need_register_object_file = name && *name;
 
@@ -639,11 +628,6 @@ void* dlopen(char const* name, int flags)
   // That makes the following post-dlopen pass responsible only for the just-loaded link_map entry, and avoids duplicate startup registration.
   if (need_register_object_file)
     libcwd::initialize();
-
-  using namespace libcwd::dwarf2;
-
-  // Initialize real_dlopen if that wasn't done yet.
-  std::call_once(initialize_real_dlopen, [](){ real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen"); });
 
   void* handle = real_dlopen.func(name, flags);
   if (statically_linked)
@@ -695,6 +679,9 @@ int dlclose(void* handle)
 
   // Initialize real_dlclose if that wasn't done yet.
   std::call_once(initialize_real_dlclose, [](){ real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose"); });
+
+  if (t_skip_dynamic_loader_registration)
+    return real_dlclose.func(handle);
 
   int error = real_dlclose.func(handle);
   if (error != 0 || statically_linked)
