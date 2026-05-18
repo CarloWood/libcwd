@@ -99,7 +99,7 @@ int main(int, char* argv[])
   //----------------------------------------------------------------------
   // The following calls will be done in almost every program using libcwd
 
-  Debug( check_configuration() );
+  Debug( main_reached() );
 
 
   // Select channels (note that where 'on' is used, 'off' can be specified

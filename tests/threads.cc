@@ -130,7 +130,7 @@ pthread_mutex_t cout_lock;
 
 int main()
 {
-  Debug( check_configuration() );
+  Debug( main_reached() );
   Debug( libcw_do.on() );
   Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
 

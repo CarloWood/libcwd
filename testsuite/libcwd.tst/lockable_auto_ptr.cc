@@ -22,7 +22,7 @@ class Al : public Bl {};
 
 MAIN_FUNCTION
 { PREFIX_CODE
-  Debug( check_configuration() );
+  Debug( main_reached() );
 
 
   // Select channels

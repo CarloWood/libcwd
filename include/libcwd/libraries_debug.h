@@ -98,6 +98,9 @@ extern debug_ct libcw_do;
  */
 void initialize();
 
+// Called from main_reached defined in include/libcwd/config.h.in. This does further initialization.
+extern void internal_main_reached();
+
 } // namespace libcwd
 
 //===================================================================================================

@@ -54,9 +54,9 @@ std::vector<std::string> split_lines(std::string const& text)
 
 int main()
 {
-  std::ostringstream captured;
+  Debug(main_reached());
 
-  Debug(check_configuration());
+  std::ostringstream captured;
   Debug(libcw_do.set_ostream(&captured));
   Debug(libcw_do.on());
   Debug(dc::notice.on());

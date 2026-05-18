@@ -250,6 +250,11 @@ void init()
   if (!Singleton<GlobalObjectManager>::instantiate().is_after_global_constructors())
     GlobalObjectManager::main_entered();
 #endif
+
+  // This will warn you when you are using header files that do not belong to the
+  // shared libcwd object that you linked with.
+  libcwd::main_reached();
+
 #if CWDEBUG_ALLOC && defined(USE_LIBCW)
   // Tell the memory leak detector which parts of the code are
   // expected to leak so that we won't get an alarm for those.
@@ -275,20 +280,9 @@ void init()
 #warning "NO_SYNC_WITH_STDIO_FALSE is now the default."
 #endif
 #ifdef SYNC_WITH_STDIO_FALSE        // By defining this you will no longer synchronize with the standard C streams.
-  // The following call allocates the filebuf's of cin, cout, cerr, wcin, wcout and wcerr.
-  // Because this causes a memory leak being reported, make them invisible.
-  Debug(set_invisible_on());
-
   // Read http://en.cppreference.com/w/cpp/io/ios_base/sync_with_stdio for more information.
   std::ios::sync_with_stdio(false);
-
-  // Cancel previous call to set_invisible_on.
-  Debug(set_invisible_off());
 #endif
-
-  // This will warn you when you are using header files that do not belong to the
-  // shared libcwd object that you linked with.
-  Debug( check_configuration() );
 
   Debug(
     libcw_do.on();		// Show which rcfile we are reading!

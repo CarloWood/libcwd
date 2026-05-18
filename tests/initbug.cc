@@ -5,7 +5,7 @@
 
 int main()
 {
-  Debug( check_configuration() );
+  Debug( main_reached() );
   ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );
   Debug( libcw_do.on() );
 

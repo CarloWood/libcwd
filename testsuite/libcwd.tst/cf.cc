@@ -22,7 +22,7 @@ MAIN_FUNCTION
   std::ostringstream buf;
 #endif
 
-  Debug( check_configuration() );
+  Debug( main_reached() );
   Debug( local_debug_object.on() );
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );

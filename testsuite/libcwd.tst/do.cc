@@ -28,7 +28,7 @@ pthread_mutex_t dummy_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 MAIN_FUNCTION
 { PREFIX_CODE
-  Debug( check_configuration() );
+  Debug( main_reached() );
 
 #if CWDEBUG_LOCATION
   // Make sure we initialized the bfd stuff before we turn on WARNING.

@@ -25,7 +25,7 @@ NAMESPACE_DEBUG_CHANNELS_END
 
 int main()
 {
-  Debug(check_configuration());
+  Debug(main_reached());
   Debug(read_rcfile());
 
   std::stringstream captured;

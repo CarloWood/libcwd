@@ -201,7 +201,7 @@ bool compare_type_info(char const* case_name, ObjectType const& object, char con
 
 int main()
 {
-  Debug(check_configuration());
+  Debug(main_reached());
 
   bool success = true;
 

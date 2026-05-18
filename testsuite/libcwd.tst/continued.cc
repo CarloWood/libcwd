@@ -219,7 +219,7 @@ MAIN_FUNCTION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
-  Debug( check_configuration() );
+  Debug( main_reached() );
 
   grab_cerr();
 

@@ -37,7 +37,7 @@ void* thread_function(void*)
 
 int main()
 {
-  Debug( check_configuration() );
+  Debug( main_reached() );
   Debug( libcw_do.set_ostream(&std::cout, &cout_lock) );
   Debug( libcw_do.on() );
 

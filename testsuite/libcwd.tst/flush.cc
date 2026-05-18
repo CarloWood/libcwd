@@ -34,7 +34,7 @@ void generate_tables()
 
 MAIN_FUNCTION
 { PREFIX_CODE
-  Debug( check_configuration() );
+  Debug( main_reached() );
 #ifndef THREADTEST
   Debug( libcw_do.set_ostream(&std::cout) );
 #endif

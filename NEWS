@@ -1,10 +1,11 @@
 libcwd-2.0
-        Uses CMake for configuration and building (support for autotools has been removed).
-        Support for memory allocation debugging has been removed.
-        No longer demangle to f(void). Instead demangle to f().
-        Now has a CTest-backed testsuite.
-
-        Release under the MIT license.
+        - Uses CMake for configuration and building (support for autotools has been removed).
+        - Support for memory allocation debugging has been removed.
+        - No longer demangle to f(void). Instead demangle to f().
+        - Now has a CTest-backed testsuite.
+        - Debug(main_reached()) must now be called at the top of main. It also does
+          what check_configuration() did, which therefore no longer exists.
+        - Released under the MIT license.
 
 libcwd-1.1.3
         Added debug_ct::always_flush_on() and always_flush_off().

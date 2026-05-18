@@ -273,15 +273,15 @@ namespace libcwd {
       return config_signature_lib_c;
     }
 
-    // Put this here to decrease the code size of `check_configuration'
+    // Put this here to decrease the code size of `main_reached'
     void conf_check_failed()
     {
-      DoutFatal(dc::fatal, "check_configuration: This version of libcwd was compiled with a different configuration than is currently used in libcwd/config.h!");
+      DoutFatal(dc::fatal, "configuration check: This version of libcwd was compiled with a different configuration than is currently used in libcwd/config.h!");
     }
 
     void version_check_failed()
     {
-      DoutFatal(dc::fatal, "check_configuration: This version of libcwd does not match the version of libcwd/config.h! Are your paths correct? Did you recently upgrade libcwd and forgot to recompile this application?");
+      DoutFatal(dc::fatal, "configuration check: This version of libcwd does not match the version of libcwd/config.h! Are your paths correct? Did you recently upgrade libcwd and forgot to recompile this application?");
     }
 
     /**
@@ -1847,6 +1847,14 @@ void debug_ct::set_ostream(std::ostream* os)
   _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
   LIBCWD_RESTORE_CANCEL;
 #endif
+}
+
+// This flag should be set to true at the very top of main (before any threads are created, or any location look ups are needed).
+constinit std::atomic<bool> s_main_reached{false};
+
+void internal_main_reached()
+{
+  s_main_reached.store(true, std::memory_order_relaxed);
 }
 
 } // namespace libcwd

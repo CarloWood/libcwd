@@ -47,7 +47,7 @@ int h40()
 
 int main()
 {
-  Debug( check_configuration() );
+  Debug( main_reached() );
   Debug( libcw_do.set_ostream(&std::cout) );
   Debug( libcw_do.on() );
   Debug( dc::notice.on() );

@@ -109,7 +109,7 @@
  * <b>Examples:</b>
  *
  * \code
- * Debug( check_configuration() );			// Configuration consistency check.
+ * Debug( main_reached() );			        // Must be called at the top of main. Does configuration consistency check.
  * Debug( dc::notice.on() );				// Switch debug channel NOTICE on.
  * Debug( libcw_do.on() );				// Turn all debugging temporally off.
  * Debug( list_channels_on(libcw_do) );			// List all debug channels.

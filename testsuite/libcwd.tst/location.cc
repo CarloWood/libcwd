@@ -145,7 +145,7 @@ MAIN_FUNCTION
   DoutFatal(dc::fatal, "Expected Failure.");
 #endif
 
-  Debug( check_configuration() );
+  Debug( main_reached() );
 
   // Select channels
   ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off(); );

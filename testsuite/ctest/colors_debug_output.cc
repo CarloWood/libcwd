@@ -144,9 +144,9 @@ void thread_main()
 
 int main()
 {
-  std::ostringstream captured;
+  Debug(main_reached());
 
-  Debug(check_configuration());
+  std::ostringstream captured;
   Debug(libcw_do.set_ostream(&captured, &output_mutex));
 
   std::vector<std::thread> thread_pool;

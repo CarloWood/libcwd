@@ -34,7 +34,7 @@ struct B {
 
 MAIN_FUNCTION
 { PREFIX_CODE
-  Debug( check_configuration() );
+  Debug( main_reached() );
   {
     int i = 42;
     cout << type_info_of(i).demangled_name() << " : " << type_info_of(i).ref_size() << endl;

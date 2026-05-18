@@ -72,8 +72,8 @@ pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main()
 {
+  Debug( main_reached() );
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-  Debug( check_configuration() );
   Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
   Debug( libcw_do.on() );
   char margin[32];

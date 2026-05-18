@@ -87,7 +87,7 @@ int main()
   // (Read <A HREF ="http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8">http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8</A> for an explanation.)
   std::ios::sync_with_stdio(false);
   // Do header files and library match?
-  Debug( check_configuration() );
+  Debug( main_reached() );
   // Send debug output to std::cout.
   Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
   // Turn debug object on.

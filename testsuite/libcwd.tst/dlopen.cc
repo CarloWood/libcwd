@@ -8,7 +8,7 @@ f_type f;
 
 MAIN_FUNCTION
 { PREFIX_CODE
-  Debug( check_configuration() );
+  Debug( main_reached() );
 
 
   Debug( libcw_do.on() );

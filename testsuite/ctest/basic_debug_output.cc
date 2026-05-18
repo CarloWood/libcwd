@@ -12,11 +12,12 @@
 
 int main()
 {
+  Debug(main_reached());
+
   std::stringstream captured;
 
   {
     libcwd_ctest::redirect_cerr_ct redirect(captured);
-    Debug(check_configuration());
     Debug(libcw_do.on());
     Debug(dc::notice.on());
 
