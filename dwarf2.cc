@@ -147,17 +147,111 @@ std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
 
 namespace {
 
+#ifdef HAVE_DLOPEN
+
+struct Chain;
+
+// This is non-zero while inside `dwfl_module_getdwarf`.
+thread_local Chain* inside_dwfl_module_getdwarf = nullptr;
+
+// struct Chain
+//
+// A chain of not-yet-registered DSO handle plus load address.
+//
+//                                 .-------Chain-------.
+// inside_dwfl_module_getdwarf --> | On the stack      |
+//         ^                       | {handle_, lbase_} |   .-------Chain-------.
+//         |                       |    ^        next_ +-->| Heap allocated    |
+//         |                       '----|--------------'   | {handle_, lbase_} |             .-------Chain-------.
+//      or nullptr if not               |                  |             next_ +--> [...] -->| Heap allocated    |
+//  inside dwfl_module_getdwarf      or nullptr if         '-------------------'             | {handle_, lbase_} |
+//                                 the list is empty.                                        |             next_ +--> nullptr
+//                                                                                           '-------------------'
+//
+// The whole chain is single threaded: each thread has it's own list.
+//
 struct Chain
 {
-  uintptr_t lbase_{};
-  void* handle_;
-  Chain* next_;
+  void* handle_ = nullptr;              // Set if this Chain instance represents a yet-to-be registered DSO.
+  Chain* next_ = nullptr;               // Set if there is more than one such DSO.
+  uintptr_t lbase_;                     // The load address of the DSO corresponding to handle_. Only valid if handle_ is non-zero.
 
+  // Append one DSO to the end of the list.
+  static void append(void* handle, uintptr_t lbase);
+
+  // Remove one DSO from the list.
+  static bool remove(void* handle);
+
+  // Perform the delayed initialization and free any allocated nodes.
   void delayed_initialization();
 };
 
-// This is non-zero while inside `dwfl_module_getdwarf`.
-Chain* thread_local inside_dwfl_module_getdwarf = nullptr;
+// Append one DSO that was opened while this thread was inside dwfl_module_getdwarf().
+// Actual ObjectFile construction is deferred until the outermost dwfl_module_getdwarf()
+// call returns because elfutils can dlopen libdebuginfod from inside a pthread_once initializer;
+// recursively entering dwfl_module_getdwarf from our dlopen wrapper would self-deadlock there.
+//
+//<static>
+void Chain::append(void* handle, uintptr_t lbase)
+{
+  Chain* node = inside_dwfl_module_getdwarf;
+
+  // In the fast path we only get here once, and then handle_ is still null;
+  // so normally we can avoid allocation and only allocate when that is necessary (the second call, that frankly should never happen).
+  if (node->handle_)  // List not empty?
+  {
+    // Append a new Chain to the end of the list and have `node` point to that.
+    while (node->next_)
+      node = node->next_;
+    node->next_ = new Chain;
+    node = node->next_;
+  }
+  node->handle_ = handle;
+  node->lbase_ = lbase;
+}
+
+//static
+bool Chain::remove(void* handle)
+{
+  Chain* prev = nullptr;
+  Chain* node = inside_dwfl_module_getdwarf;
+
+  if (node->handle_)  // List not empty?
+  {
+    do
+    {
+      if (node->handle_ == handle)
+      {
+        if (!prev)      // Is this the first node?
+        {
+          // We can't remove the first node: that is the one on the stack.
+          // Instead we replace its contents.
+          if (!node->next_)             // Is this the only element?
+            node->handle_ = nullptr;
+          else
+          {
+            Chain* second_node = node->next_;
+            *node = *second_node;
+            delete second_node;
+          }
+        }
+        else
+        {
+          // Remove `node` from the list.
+          prev->next_ = node->next_;
+          delete node;
+        }
+        return true;
+      }
+      prev = node;
+      node = node->next_;
+    }
+    while (node);
+  }
+  return false;
+}
+
+#endif // HAVE_DLOPEN
 
 // Return the ELF file that should be opened for DWARF data for object_file.
 // Downloads of missing debug info by debuginfod can happen if DEBUGINFOD_URLS is set,
@@ -199,20 +293,25 @@ std::filesystem::path get_debug_info_path(std::string const& object_file)
     return object_file;
   }
 
+#ifdef HAVE_DLOPEN
   // The call to dwfl_module_getdwarf can cause a call to dlopen("libdebuginfod.so.1").
   // If that happens we shouldn't try to register the opened DSO because that means we might
   // end up here again, and dwfl_module_getdwarf itself is not re-entrant (it will deadlock).
   Chain chain;
-  inside_dwfl_module_getdwarf = &chain;
+  inside_dwfl_module_getdwarf = &chain;         // Mark that we are inside dwfl_module_getdwarf.
+#endif // HAVE_DLOPEN
 
   // Force libdwfl to locate and validate the separate debuginfo file now; only
   // after this call does dwfl_module_info reliably expose the selected debugfile.
   Dwarf_Addr bias;
   (void)dwfl_module_getdwarf(module, &bias);
 
-  inside_dwfl_module_getdwarf = nullptr;
-  if (chain.lbase)
+#ifdef HAVE_DLOPEN
+  inside_dwfl_module_getdwarf = nullptr;        // We returned from dwfl_module_getdwarf.
+
+  if (chain.handle_)                            // Was dlopen called, at least once, from within dwfl_module_getdwarf?
     chain.delayed_initialization();
+#endif // HAVE_DLOPEN
 
   char const* mainfile = nullptr;
   char const* debugfile = nullptr;
@@ -355,6 +454,19 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
   // Use the already resolved /proc/self/exe path in that case so ObjectFileName remains
   // useful for diagnostics and later public location data.
   char const* object_filename = (info->dlpi_name && info->dlpi_name[0] != '\0') ? info->dlpi_name : data->executable_path_.c_str();
+
+  // A DSO can be discovered through a delayed dlopen registration while an
+  // outer dl_iterate_phdr pass is still running.  Avoid constructing and
+  // inserting a duplicate ObjectFile when the iterator later reaches the same
+  // link-map entry.
+  {
+    object_files_t::wat object_files_w(s_object_files_);
+    if (ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_w))
+    {
+      data->object_file_ = existing_object_file;
+      return target_lbase_only;
+    }
+  }
 
   // Create new ObjectFile.
   data->object_file_ = new ObjectFile(object_filename, lbase);
@@ -552,6 +664,16 @@ dynamic_loader_records_t& dlopen_map()
   return *map;
 }
 
+void Chain::delayed_initialization()
+{
+  for (Chain* node = this; node; node = node->next_)
+  {
+    ForceLoadingDebugOutput scoped_;
+    ObjectFile const* object_file = ObjectFile::register_object_file_at_lbase(node->lbase_);
+    LIBCWD_ASSERT(object_file);
+  }
+}
+
 } // namespace
 #endif // HAVE_DLOPEN
 
@@ -597,6 +719,7 @@ void* dlopen(char const* name, int flags)
       if (iter != dynamic_loader_records_w->end())
       {
         ++iter->second.refcount_;
+        iter->second.flags_ |= flags;
         return handle;
       }
     }
@@ -611,12 +734,7 @@ void* dlopen(char const* name, int flags)
       ObjectFile const* object_file = nullptr;
       // If this thread is inside dwfl_module_getdwarf then do not register the DSO.
       if (inside_dwfl_module_getdwarf)
-      {
-        if (inside_dwfl_module_getdwarf.lbase)          // Already used?
-          inside_dwfl_module_getdwarf = new Chain;
-        inside_dwfl_module_getdwarf.lbase_ = lbase;     // Store lbase for delayed call to ObjectFile::register_object_file_at_lbase(lbase);
-        inside_dwfl_module_getdwarf.handle_ = handle;
-      }
+        Chain::append(handle, lbase);
       else
       {
         ForceLoadingDebugOutput scoped_;
@@ -661,7 +779,8 @@ int dlclose(void* handle)
     }
   }
 
-  if (object_file_to_unregister)
+  if (object_file_to_unregister &&
+      !(inside_dwfl_module_getdwarf && Chain::remove(handle)))
   {
     ForceLoadingDebugOutput scoped_;
     object_file_to_unregister->unregister_object_file_ranges();
