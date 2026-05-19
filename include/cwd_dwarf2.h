@@ -18,13 +18,8 @@ namespace libcwd::dwarf2 {
 // Forward declare private class, defined in dwarf2.cc.
 class ObjectFile;
 
-// Thread-safe storage wrapper for ObjectFile instances.  ObjectFile state is no
-// longer assumed to be frozen after construction: future delayed symbol loading
-// mutates per-object DWARF state while other threads can concurrently perform
-// address lookups.  Callers therefore keep stable pointers to this wrapper and
-// obtain ObjectFile access with object_file_t::crat/rat/wat before reading or
-// mutating the underlying ObjectFile.  The wrapper itself is intentionally never
-// moved after PTLoadSegment entries have been published.
+// Thread-safe storage wrapper for ObjectFile instances.
+// Delayed symbol loading mutates per-object DWARF state while other threads can concurrently perform address lookups.
 using object_file_t = threadsafe::Unlocked<ObjectFile, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
 
 // class PTLoadSegment
@@ -32,9 +27,7 @@ using object_file_t = threadsafe::Unlocked<ObjectFile, threadsafe::policy::ReadW
 // Represents one loadable runtime segment of an ObjectFile.  Instances are
 // created while holding ObjectFileBase::s_object_files_' write lock during
 // initialization and then treated as immutable; later address lookup can read
-// the segment start/end/load-base/flags without a per-segment lock.  Following
-// object_file() returns the stable threadsafe wrapper; callers must then create
-// an access object before inspecting or changing the ObjectFile itself.
+// the segment start/end/flags and object_file_->lbase_ without a per-segment lock.
 class PTLoadSegment
 {
  private:
@@ -66,7 +59,7 @@ class ObjectFileBase
 {
  protected:
   // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end address;
-  // the pointed-to PTLoadSegment stores the matching start address, flags, and ObjectFile owner.
+  // the pointed-to PTLoadSegment stores the matching start address, flags, and a pointer to the ObjectFile.
   using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
   static object_files_t s_object_files_;        // Read-write lock protected end-address index of loaded PT_LOAD segments.
 
