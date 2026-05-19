@@ -124,13 +124,11 @@ class ObjectFileRegistry : public ObjectFileBase
 class ObjectFileData : public ObjectFileRegistry
 {
  private:
-  uintptr_t const lbase_;
   mutable Dwarf* dwarf_handle_{nullptr};        // mutable because close_dwarf() sets these to nullptr and -1 again.
   mutable int dwarf_fd_{-1};
 
  public:
   // Accessors.
-  uintptr_t lbase() const { return lbase_; }
   bool is_initialized() const { return dwarf_fd_ != -1; }
 
   // Construct and destroy the protected ObjectFile payload inside object_file_data_t.
@@ -142,9 +140,9 @@ class ObjectFileData : public ObjectFileRegistry
 
  private:
   // Called by constructor.
-  void load_symbols();
+  void load_symbols(uintptr_t lbase);
 
-  void open_dwarf();
+  void open_dwarf(uintptr_t lbase);
   void close_dwarf() const;
 
  public:
@@ -152,10 +150,10 @@ class ObjectFileData : public ObjectFileRegistry
   ObjectFile const* unregister_object_file_ranges(ObjectFile const* self) const;
 };
 
-ObjectFileData::ObjectFileData(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename), lbase_(lbase)
+ObjectFileData::ObjectFileData(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename)
 {
   Dout(dc::dwarf, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
-  load_symbols();
+  load_symbols(lbase);
 }
 
 ObjectFileData::~ObjectFileData()
@@ -608,9 +606,9 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
   return obsolete_object_file;
 }
 
-void ObjectFileData::load_symbols()
+void ObjectFileData::load_symbols(uintptr_t lbase)
 {
-  open_dwarf();
+  open_dwarf(lbase);
 }
 
 bool ST_init(LIBCWD_TSD_PARAM)
@@ -637,7 +635,7 @@ bool ST_init(LIBCWD_TSD_PARAM)
   return true;
 }
 
-void ObjectFileData::open_dwarf()
+void ObjectFileData::open_dwarf(uintptr_t lbase)
 {
   // Should only be called once (from load_symbols() which is called from the constructor).
   LIBCWD_ASSERT(dwarf_fd_ == -1 && dwarf_handle_ == nullptr);
@@ -648,7 +646,7 @@ void ObjectFileData::open_dwarf()
   Dout(dc::bfd|continued_cf, "Loading debug info " << (different_symbols_path ? "for " : "from ") << object_file_name_.filepath());
   if (different_symbols_path)
     Dout(dc::continued, " (from " << debug_info_path << ")");
-  Dout(dc::continued|flush_cf, " (" << (void*)lbase_ << ")... ");
+  Dout(dc::continued|flush_cf, " (" << (void*)lbase << ")... ");
 
   dwarf_fd_ = open(debug_info_path.c_str(), O_RDONLY);
 
