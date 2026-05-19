@@ -49,8 +49,8 @@ class PTLoadSegment
   PTLoadSegment(uintptr_t lbase, object_file_data_t* object_file_data, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
     object_file_(lbase, object_file_data), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
 
+  ObjectFile* object_file() const { return const_cast<ObjectFile*>(&object_file_); }
   uintptr_t object_lbase() const { return object_file_.lbase_; }
-  object_file_data_t* object_file_data() const { return object_file_.data_; }
   uintptr_t start_addr() const { return start_addr_; }
   uintptr_t end_addr() const { return end_addr_; }
   uint32_t flags() const { return flags_; }
