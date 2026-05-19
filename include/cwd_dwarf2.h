@@ -16,11 +16,11 @@
 namespace libcwd::dwarf2 {
 
 // Forward declare private class, defined in dwarf2.cc.
-class ObjectFile;
+class ObjectFileData;
 
 // Thread-safe storage wrapper for ObjectFile instances.
 // Delayed symbol loading mutates per-object DWARF state while other threads can concurrently perform address lookups.
-using object_file_t = threadsafe::Unlocked<ObjectFile, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+using object_file_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
 
 // class PTLoadSegment
 //

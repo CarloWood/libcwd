@@ -116,12 +116,12 @@ class ObjectFileRegistry : public ObjectFileBase
   static object_file_t* register_object_file_at_lbase(uintptr_t lbase);
 };
 
-// class ObjectFile
+// class ObjectFileData
 //
 // Represents a single object file: either the executable or a shared library.
 // Registry-wide operations live in ObjectFileRegistry; instances only own the
 // per-object load base and libdw state.
-class ObjectFile : public ObjectFileRegistry
+class ObjectFileData : public ObjectFileRegistry
 {
  private:
   uintptr_t const lbase_;
@@ -137,8 +137,8 @@ class ObjectFile : public ObjectFileRegistry
   // Construction records the path/load base and currently still performs eager
   // symbol loading; later objectives will move that mutable work behind the
   // wrapper lock.  Destruction releases any libdw resources owned by the payload.
-  ObjectFile(char const* filename, uintptr_t lbase);
-  ~ObjectFile();
+  ObjectFileData(char const* filename, uintptr_t lbase);
+  ~ObjectFileData();
 
  private:
   // Called by constructor.
@@ -152,13 +152,13 @@ class ObjectFile : public ObjectFileRegistry
   void unregister_object_file_ranges(object_file_t const* self) const;
 };
 
-ObjectFile::ObjectFile(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename), lbase_(lbase)
+ObjectFileData::ObjectFileData(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename), lbase_(lbase)
 {
   Dout(dc::dwarf, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
   load_symbols();
 }
 
-ObjectFile::~ObjectFile()
+ObjectFileData::~ObjectFileData()
 {
   Dout(dc::dwarf, "destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
   close_dwarf();
@@ -559,7 +559,7 @@ object_file_t* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lbase
   return existing_object_file ? existing_object_file : iterate_program_headers(data);
 }
 
-void ObjectFile::unregister_object_file_ranges(object_file_t const* self) const
+void ObjectFileData::unregister_object_file_ranges(object_file_t const* self) const
 {
   // Remove all PTLoadSegment's from s_object_files_ that belong to this ObjectFile.
   // `self` is the stable wrapper pointer stored in each PTLoadSegment; compare
@@ -584,7 +584,7 @@ void ObjectFile::unregister_object_file_ranges(object_file_t const* self) const
   close_dwarf();
 }
 
-void ObjectFile::load_symbols()
+void ObjectFileData::load_symbols()
 {
   open_dwarf();
 }
@@ -613,7 +613,7 @@ bool ST_init(LIBCWD_TSD_PARAM)
   return true;
 }
 
-void ObjectFile::open_dwarf()
+void ObjectFileData::open_dwarf()
 {
   // Should only be called once (from load_symbols() which is called from the constructor).
   LIBCWD_ASSERT(dwarf_fd_ == -1 && dwarf_handle_ == nullptr);
@@ -646,7 +646,7 @@ void ObjectFile::open_dwarf()
   Dout(dc::finish, "done");
 }
 
-void ObjectFile::close_dwarf() const
+void ObjectFileData::close_dwarf() const
 {
   if (dwarf_handle_)
   {
