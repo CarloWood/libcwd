@@ -62,13 +62,14 @@ static bool WST_initialized = false;                      // MT: Set here to fal
 //static
 ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 
-// class ObjectFile
+// class ObjectFileRegistry
 //
-// Represents a single object file: either the executable or a shared library.
-// The base class `ObjectFileBase` has a protected static member `s_object_files_`
-// that is a read-write lock protected std::map<uintptr_t, PTLoadSegment>.
+// Owns the static object-file registry operations and initialization state for
+// ObjectFile.  The underlying segment map itself lives in ObjectFileBase;
+// ObjectFileRegistry adds the dl_iterate_phdr based population helpers that
+// create ObjectFile instances and publish their PT_LOAD ranges in that map.
 //
-// The get access to the list you need to read and/or write lock it.
+// To get access to the list you need to read and/or write lock it.
 //
 // To obtain a read lock, create a stack variable,
 //
@@ -82,20 +83,18 @@ ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 //
 // Use object_files_w-> for write access (returns a std::map<uintptr_t, PTLoadSegment>*).
 //
-class ObjectFile : public ObjectFileBase
+class ObjectFileRegistry : public ObjectFileBase
 {
   static std::atomic_bool s_object_files_initialized_;
 
- private:
-  uintptr_t const lbase_;
-  mutable Dwarf* dwarf_handle_{nullptr};        // mutable because close_dwarf() sets these to nullptr and -1 again.
-  mutable int dwarf_fd_{-1};
+ protected:
+  // Construct the ObjectFileBase subobject for the derived ObjectFile payload.
+  // ObjectFileRegistry is not instantiated by itself; it only groups the
+  // registry-wide static functions and state while preserving the original base
+  // class storage for object_file_name_.
+  ObjectFileRegistry(char const* filename) : ObjectFileBase(filename) { }
 
  public:
-  // Accessors.
-  uintptr_t lbase() const { return lbase_; }
-  bool is_initialized() const { return dwarf_fd_ != -1; }
-
   // Information passed to the cb_dl_iterate_phdr call back function.
   struct CallBackData {
     std::string executable_path_;               // The full path to the current executable.
@@ -107,7 +106,33 @@ class ObjectFile : public ObjectFileBase
       executable_path_(executable_path), target_lbase_(target_lbase) { }
   };
 
+  friend bool dwarf2::ST_init(LIBCWD_TSD_PARAM);
+  static void register_initial_object_files();
+  static object_file_t* iterate_program_headers(CallBackData const& data);
+  static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
+  static object_file_t* find_registered_object_file(uintptr_t lbase, object_files_t::wat const& object_files_w);
+
+  // Called from dlopen.
+  static object_file_t* register_object_file_at_lbase(uintptr_t lbase);
+};
+
+// class ObjectFile
+//
+// Represents a single object file: either the executable or a shared library.
+// Registry-wide operations live in ObjectFileRegistry; instances only own the
+// per-object load base and libdw state.
+class ObjectFile : public ObjectFileRegistry
+{
+ private:
+  uintptr_t const lbase_;
+  mutable Dwarf* dwarf_handle_{nullptr};        // mutable because close_dwarf() sets these to nullptr and -1 again.
+  mutable int dwarf_fd_{-1};
+
  public:
+  // Accessors.
+  uintptr_t lbase() const { return lbase_; }
+  bool is_initialized() const { return dwarf_fd_ != -1; }
+
   // Construct and destroy the protected ObjectFile payload inside object_file_t.
   // Construction records the path/load base and currently still performs eager
   // symbol loading; later objectives will move that mutable work behind the
@@ -122,20 +147,12 @@ class ObjectFile : public ObjectFileBase
   void open_dwarf();
   void close_dwarf() const;
 
-  friend bool dwarf2::ST_init(LIBCWD_TSD_PARAM);
-  static void register_initial_object_files();
-  static object_file_t* iterate_program_headers(CallBackData const& data);
-  static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
-  static object_file_t* find_registered_object_file(uintptr_t lbase, object_files_t::wat const& object_files_w);
-
  public:
-  // Called from dlopen.
-  static object_file_t* register_object_file_at_lbase(uintptr_t lbase);
   // Called from dlclose.
   void unregister_object_file_ranges(object_file_t const* self) const;
 };
 
-ObjectFile::ObjectFile(char const* filename, uintptr_t lbase) : ObjectFileBase(filename), lbase_(lbase)
+ObjectFile::ObjectFile(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename), lbase_(lbase)
 {
   Dout(dc::dwarf, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
   load_symbols();
@@ -148,7 +165,7 @@ ObjectFile::~ObjectFile()
 }
 
 //static
-std::atomic_bool ObjectFile::s_object_files_initialized_ = false;
+std::atomic_bool ObjectFileRegistry::s_object_files_initialized_ = false;
 
 namespace {
 
@@ -402,7 +419,7 @@ struct ForceLoadingDebugOutput
 } // namespace
 
 //static
-void ObjectFile::register_initial_object_files()
+void ObjectFileRegistry::register_initial_object_files()
 {
   ForceLoadingDebugOutput scoped_;
 
@@ -429,7 +446,7 @@ void ObjectFile::register_initial_object_files()
 }
 
 //static
-object_file_t* ObjectFile::iterate_program_headers(CallBackData const& data)
+object_file_t* ObjectFileRegistry::iterate_program_headers(CallBackData const& data)
 {
   // From https://man7.org/linux/man-pages/man3/dl_iterate_phdr.3.html:
   //
@@ -445,7 +462,7 @@ object_file_t* ObjectFile::iterate_program_headers(CallBackData const& data)
 }
 
 //static
-int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data)
+int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data)
 {
   CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
   uintptr_t const lbase = static_cast<uintptr_t>(info->dlpi_addr);
@@ -513,7 +530,7 @@ int ObjectFile::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_b
 }
 
 //static
-object_file_t* ObjectFile::find_registered_object_file(uintptr_t lbase, object_files_t::wat const& object_files_w)
+object_file_t* ObjectFileRegistry::find_registered_object_file(uintptr_t lbase, object_files_t::wat const& object_files_w)
 {
   // The writable map is keyed by PT_LOAD end address and can contain multiple
   // segments for the same object file.  Treat any segment whose owning
@@ -529,7 +546,7 @@ object_file_t* ObjectFile::find_registered_object_file(uintptr_t lbase, object_f
 }
 
 //static
-object_file_t* ObjectFile::register_object_file_at_lbase(uintptr_t lbase)
+object_file_t* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lbase)
 {
   // Locks s_object_files_.
   CallBackData const data{current_executable_path(), lbase};
@@ -591,7 +608,7 @@ bool ST_init(LIBCWD_TSD_PARAM)
     core_dump();
 #endif
 
-  ObjectFile::register_initial_object_files();
+  ObjectFileRegistry::register_initial_object_files();
 
   return true;
 }
@@ -679,7 +696,7 @@ void Chain::delayed_initialization()
   for (Chain* node = this; node; node = node->next_)
   {
     ForceLoadingDebugOutput scoped_;
-    object_file_t* object_file = ObjectFile::register_object_file_at_lbase(node->lbase_);
+    object_file_t* object_file = ObjectFileRegistry::register_object_file_at_lbase(node->lbase_);
     LIBCWD_ASSERT(object_file);
   }
 }
@@ -748,7 +765,7 @@ void* dlopen(char const* name, int flags)
       else
       {
         ForceLoadingDebugOutput scoped_;
-        object_file = ObjectFile::register_object_file_at_lbase(lbase);
+        object_file = ObjectFileRegistry::register_object_file_at_lbase(lbase);
         // NULL would mean that there is no DSO at the `l_addr` that `dlinfo` just returned.
         // That shouldn't be possible because no thread can have dlclose-d it without already haven gotten the handle that we didn't even return yet.
         LIBCWD_ASSERT(object_file);
