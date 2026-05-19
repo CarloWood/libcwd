@@ -20,7 +20,7 @@ class ObjectFileData;
 
 // Thread-safe storage wrapper for ObjectFile instances.
 // Delayed symbol loading mutates per-object DWARF state while other threads can concurrently perform address lookups.
-using object_file_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
 
 // class PTLoadSegment
 //
@@ -31,17 +31,17 @@ using object_file_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::R
 class PTLoadSegment
 {
  private:
-  object_file_t* object_file_;
+  object_file_data_t* object_file_;
   uintptr_t object_lbase_;
   uintptr_t start_addr_;
   uintptr_t end_addr_;
   uint32_t flags_;
 
  public:
-  PTLoadSegment(object_file_t* object_file, uintptr_t object_lbase, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
+  PTLoadSegment(object_file_data_t* object_file, uintptr_t object_lbase, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
     object_file_(object_file), object_lbase_(object_lbase), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
 
-  object_file_t* object_file() const { return object_file_; }
+  object_file_data_t* object_file() const { return object_file_; }
   uintptr_t object_lbase() const { return object_lbase_; }
   uintptr_t start_addr() const { return start_addr_; }
   uintptr_t end_addr() const { return end_addr_; }
