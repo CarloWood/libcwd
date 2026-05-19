@@ -529,6 +529,10 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
       data->object_file_ = ibp.first->second.object_file();
   }
 
+  // If no PTLoadSegment was inserted, then we want to ignore this object file.
+  if (!data->object_file_)
+    delete object_file_data;
+
   // Stop iterating iff there was only one target.
   return target_lbase_only;
 }
@@ -701,11 +705,14 @@ void Chain::delayed_initialization()
   {
     ForceLoadingDebugOutput scoped_;
     ObjectFile* object_file = ObjectFileRegistry::register_object_file_at_lbase(node->lbase_);
-    LIBCWD_ASSERT(object_file);
     dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
     auto iter = dynamic_loader_records_w->find(node->handle_);
     LIBCWD_ASSERT(iter != dynamic_loader_records_w->end());
-    iter->second.object_file_ = object_file;
+    if (object_file)
+      iter->second.object_file_ = object_file;
+    else
+      // Ignore DSO with no non-empty PT_LOAD segments.
+      dynamic_loader_records_w->erase(iter);
   }
 }
 
@@ -767,6 +774,7 @@ void* dlopen(char const* name, int flags)
     {
       uintptr_t const lbase = static_cast<uintptr_t>(link_map->l_addr);
       ObjectFile* object_file = nullptr;
+      bool skip_dlopen_map = false;
       // If this thread is inside dwfl_module_getdwarf then do not register the DSO.
       if (inside_dwfl_module_getdwarf)
         Chain::append(handle, lbase);
@@ -776,9 +784,12 @@ void* dlopen(char const* name, int flags)
         object_file = ObjectFileRegistry::register_object_file_at_lbase(lbase);
         // NULL would mean that there is no DSO at the `l_addr` that `dlinfo` just returned.
         // That shouldn't be possible because no thread can have dlclose-d it without already haven gotten the handle that we didn't even return yet.
-        LIBCWD_ASSERT(object_file);
+        // However, in theory it can also mean that this DSO didn't have any non-empty PT_LOAD segments, in which case we just want to ignore the DSO.
+        if (!object_file)
+          skip_dlopen_map = true;
       }
-      dynamic_loader_records_t::wat(dlopen_map())->emplace(handle, DynamicLoaderRecord{object_file, flags});
+      if (!skip_dlopen_map)
+        dynamic_loader_records_t::wat(dlopen_map())->emplace(handle, DynamicLoaderRecord{object_file, flags});
     }
   }
 
