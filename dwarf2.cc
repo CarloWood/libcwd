@@ -13,6 +13,7 @@
 #include <elf.h>
 #include <elfutils/libdw.h>
 #include <elfutils/libdwfl.h>
+#include <exception>
 #include <filesystem>
 #include <fcntl.h>
 #include <link.h>
@@ -62,6 +63,18 @@ static bool WST_initialized = false;                      // MT: Set here to fal
 //static
 ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 
+class ScopedTracker final
+{
+ private:
+  bool& flag_;
+
+ public:
+  ScopedTracker(bool& flag) : flag_(flag) { flag = true; }
+  ~ScopedTracker() { flag_ = false; }
+};
+
+static thread_local bool s_object_files_is_locked_ = false;
+
 // class ObjectFileRegistry
 //
 // Owns the static object-file registry operations and initialization state for
@@ -74,12 +87,14 @@ ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
 // To obtain a read lock, create a stack variable,
 //
 //   object_files_t::rat object_files_r(s_object_files_);       // Scoped read-lock for s_object_files_.
+//   ScopedTracker scoped_{s_object_files_is_locked_};
 //
 // Use object_files_r-> for read access (returns a std::map<uintptr_t, PTLoadSegment> const*).
 //
 // To obtain a write lock, create a stack variable,
 //
 //   object_files_t::wat object_files_w(s_object_files_);       // Scoped write-lock for s_object_files_.
+//   ScopedTracker scoped_{s_object_files_is_locked_};
 //
 // Use object_files_w-> for write access (returns a std::map<uintptr_t, PTLoadSegment>*).
 //
@@ -123,26 +138,37 @@ class ObjectFileRegistry : public ObjectFileBase
 // per-object load base and libdw state.
 class ObjectFileData : public ObjectFileRegistry
 {
+ public:
+  static constexpr int symbols_loaded_not_called = -2;
+
  private:
-  mutable Dwarf* dwarf_handle_{nullptr};        // mutable because close_dwarf() sets these to nullptr and -1 again.
-  mutable int dwarf_fd_{-1};
+  mutable int dwarf_fd_{symbols_loaded_not_called};     // Once load_symbols was called this becomes -1 (permanent failure) or
+                                                        // equal to the open fd for the file containing the debug info.
+  mutable Dwarf* dwarf_handle_{nullptr};                // mutable because close_dwarf() sets these to nullptr and -1 again.
 
  public:
   // Accessors.
-  bool is_initialized() const { return dwarf_fd_ != -1; }
+  bool symbols_loaded() const { return dwarf_fd_ != symbols_loaded_not_called; }
+  bool is_initialized() const { return dwarf_fd_ >= 0; }
 
   // Construct and destroy the protected ObjectFile payload inside object_file_data_t.
-  // Construction records the path/load base and currently still performs eager
-  // symbol loading; later objectives will move that mutable work behind the
-  // wrapper lock.  Destruction releases any libdw resources owned by the payload.
+  // Construction records the path/load base only; symbol loading is explicitly
+  // triggered later through ObjectFile::load_symbols(), which serializes the
+  // mutable DWARF initialization behind this wrapper's read/write lock.
+  // Destruction releases any libdw resources owned by the payload.
   ObjectFileData(char const* filename, uintptr_t lbase);
   ~ObjectFileData();
 
- private:
-  // Called by constructor.
-  void load_symbols(uintptr_t lbase);
+  // Load libdw state for this object file from debug_info_path which must be computed
+  // without holding a lock because libdwfl may call dlopen while resolving separate debug
+  // info.
+  //
+  // Note that symbols_loaded() becomes true even when opening fails so concurrent callers
+  // know that initialization has already been attempted and can continue without retrying.
+  void load_symbols(uintptr_t lbase, std::string const& debug_info_path);
 
-  void open_dwarf(uintptr_t lbase);
+ private:
+  void open_dwarf(uintptr_t lbase, std::string const& debug_info_path);
   void close_dwarf() const;
 
  public:
@@ -153,7 +179,6 @@ class ObjectFileData : public ObjectFileRegistry
 ObjectFileData::ObjectFileData(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename)
 {
   Dout(dc::dwarf, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
-  load_symbols(lbase);
 }
 
 ObjectFileData::~ObjectFileData()
@@ -169,6 +194,17 @@ struct ObjectFile
 
   ObjectFile(uintptr_t lbase, char const* filename) :
     lbase_(lbase), data_(std::make_unique<object_file_data_t>(filename, lbase)) { }
+
+  // Ensure that load_symbols() has been attempted for this object file exactly once.
+  // The fast path takes only a read lock and returns when another thread already
+  // performed the work.
+  //
+  // If initialization is needed, the debug-info path is resolved with no ObjectFileData
+  // lock held because libdwfl can call dlopen internally; afterwards the read lock is
+  // reacquired and upgraded to a write lock before mutating the per-object DWARF fields.
+  // If a concurrent reader-to-writer upgrade collides and throws, rd2wryield() is called
+  // as required by threadsafe before retrying the whole check.
+  void realize_symbols() const;
 };
 
 //static
@@ -291,7 +327,9 @@ bool Chain::remove(void* handle)
 // object_file itself when no separate file was found; the caller should open the
 // path with libdw which reports missing/no-DWARF cases.
 //
-std::filesystem::path get_debug_info_path(std::string const& object_file)
+// Note that we must return an owning std::string because the `char const*`s returned
+// by dwfl_module_info are no longer valid after `close_dwfl` is destroyed.
+std::string get_debug_info_path(char const* object_file_path)
 {
   Dwfl_Callbacks callbacks{};
   callbacks.find_debuginfo = dwfl_standard_find_debuginfo;
@@ -300,8 +338,8 @@ std::filesystem::path get_debug_info_path(std::string const& object_file)
   Dwfl* dwfl = dwfl_begin(&callbacks);
   if (!dwfl)
   {
-    Dout(dc::warning, "dwfl_begin failed while looking for debuginfo of \"" << object_file << "\": " << dwfl_errmsg(-1));
-    return object_file;
+    Dout(dc::warning, "dwfl_begin failed while looking for debuginfo of \"" << object_file_path << "\": " << dwfl_errmsg(-1));
+    return object_file_path;
   }
 
   struct DwflCloser {
@@ -309,17 +347,17 @@ std::filesystem::path get_debug_info_path(std::string const& object_file)
     ~DwflCloser() { dwfl_end(dwfl_); }
   } close_dwfl{dwfl};
 
-  Dwfl_Module* module = dwfl_report_offline(dwfl, object_file.c_str(), object_file.c_str(), -1);
+  Dwfl_Module* module = dwfl_report_offline(dwfl, object_file_path, object_file_path, -1);
   if (!module)
   {
-    Dout(dc::warning, "dwfl_report_offline failed for \"" << object_file << "\": " << dwfl_errmsg(-1));
-    return object_file;
+    Dout(dc::warning, "dwfl_report_offline failed for \"" << object_file_path << "\": " << dwfl_errmsg(-1));
+    return object_file_path;
   }
 
   if (dwfl_report_end(dwfl, nullptr, nullptr) != 0)
   {
-    Dout(dc::warning, "dwfl_report_end failed for \"" << object_file << "\": " << dwfl_errmsg(-1));
-    return object_file;
+    Dout(dc::warning, "dwfl_report_end failed for \"" << object_file_path << "\": " << dwfl_errmsg(-1));
+    return object_file_path;
   }
 
 #ifdef HAVE_DLOPEN
@@ -350,7 +388,7 @@ std::filesystem::path get_debug_info_path(std::string const& object_file)
     return debugfile;
   if (mainfile && mainfile[0] != '\0')
     return mainfile;
-  return object_file;
+  return object_file_path;
 }
 
 // Find the full path to the current running process.
@@ -425,6 +463,48 @@ struct ForceLoadingDebugOutput
 
 } // namespace
 
+void ObjectFile::realize_symbols() const
+{
+  char const* object_file_path;
+  {
+    // Read-lock the object_file_data_t.
+    object_file_data_t::rat data_r(*data_);
+
+    // Return if already loaded.
+    if (data_r->symbols_loaded())
+      return;
+
+    object_file_path = data_r->object_file_name().filepath();
+  }
+
+  // Also this lock may not be held (by this thread).
+  LIBCWD_ASSERT(!s_object_files_is_locked_);
+
+  // Obtain the debug info path without holding the lock on *data_ because
+  // this call can cause a recursive call to dlopen.
+  std::string debug_info_path = get_debug_info_path(object_file_path);
+
+  for (;;)
+  {
+    try
+    {
+      object_file_data_t::rat data_r(*data_);
+
+      if (data_r->symbols_loaded())
+        return;         // Someone else beat us to it.
+
+      object_file_data_t::wat data_w(data_r);
+      data_w->load_symbols(lbase_, debug_info_path);
+    }
+    catch (std::exception const&)
+    {
+      data_->rd2wryield();
+      continue;
+    }
+    break;
+  }
+}
+
 //static
 void ObjectFileRegistry::register_initial_object_files()
 {
@@ -490,6 +570,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
   // link-map entry.
   {
     object_files_t::wat object_files_w(s_object_files_);
+    ScopedTracker scoped_{s_object_files_is_locked_};
     if (ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_w))
     {
       data->object_file_ = existing_object_file;
@@ -522,6 +603,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
     LIBCWD_ASSERT(segment_end > segment_start);
 
     object_files_t::wat object_files_w(s_object_files_);
+    ScopedTracker scoped_{s_object_files_is_locked_};
     auto const ibp = object_files_w->try_emplace(segment_end, object_file, segment_start, segment_end, phdr.p_flags);
     // Make sure the new segment doesn't overlap with an already existing one.
     LIBCWD_ASSERT(ibp.second &&
@@ -539,7 +621,10 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
 
   // If no PTLoadSegment was inserted, then we want to ignore this object file.
   if (have_pt_load_segment)
+  {
     data->object_file_ = object_file;
+    object_file->realize_symbols();
+  }
   else
     delete object_file;
 
@@ -586,6 +671,7 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
   // a nested read lock on itself while erasing its ranges.
   {
     object_files_t::wat object_files_w(s_object_files_);
+    ScopedTracker scoped_{s_object_files_is_locked_};
     for (auto iter = object_files_w->begin(); iter != object_files_w->end(); )
     {
       PTLoadSegment const& segment = iter->second;
@@ -606,9 +692,9 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
   return obsolete_object_file;
 }
 
-void ObjectFileData::load_symbols(uintptr_t lbase)
+void ObjectFileData::load_symbols(uintptr_t lbase, std::string const& debug_info_path)
 {
-  open_dwarf(lbase);
+  open_dwarf(lbase, debug_info_path);
 }
 
 bool ST_init(LIBCWD_TSD_PARAM)
@@ -635,12 +721,10 @@ bool ST_init(LIBCWD_TSD_PARAM)
   return true;
 }
 
-void ObjectFileData::open_dwarf(uintptr_t lbase)
+void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_path)
 {
-  // Should only be called once (from load_symbols() which is called from the constructor).
-  LIBCWD_ASSERT(dwarf_fd_ == -1 && dwarf_handle_ == nullptr);
-
-  std::string debug_info_path = get_debug_info_path(object_file_name_.filepath());
+  // Should only be called once, through load_symbols() while holding the write lock.
+  LIBCWD_ASSERT(!symbols_loaded());
 
   bool different_symbols_path = debug_info_path != object_file_name_.filepath();
   Dout(dc::bfd|continued_cf, "Loading debug info " << (different_symbols_path ? "for " : "from ") << object_file_name_.filepath());
@@ -676,7 +760,7 @@ void ObjectFileData::close_dwarf() const
     dwarf_handle_ = nullptr;
   }
 
-  if (dwarf_fd_ != -1)
+  if (dwarf_fd_ >= 0)
   {
     close(dwarf_fd_);
     dwarf_fd_ = -1;
