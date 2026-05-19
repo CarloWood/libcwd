@@ -15,21 +15,13 @@
 
 namespace libcwd::dwarf2 {
 
-// Forward declare private class, defined in dwarf2.cc.
+// Forward declare private classes, defined in dwarf2.cc.
 class ObjectFileData;
+class ObjectFile;
 
 // Thread-safe storage wrapper for ObjectFile instances.
 // Delayed symbol loading mutates per-object DWARF state while other threads can concurrently perform address lookups.
 using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-
-struct ObjectFile
-{
-  uintptr_t const lbase_;       // The load address of this object file.
-  object_file_data_t* data_;    // This must be a pointer because ObjectFileData is incomplete at this point.
-
-  ObjectFile(uintptr_t lbase, object_file_data_t* object_file_data) :
-    lbase_(lbase), data_(object_file_data) { }
-};
 
 // class PTLoadSegment
 //
@@ -40,17 +32,16 @@ struct ObjectFile
 class PTLoadSegment
 {
  private:
-  ObjectFile object_file_;
+  ObjectFile const* object_file_;
   uintptr_t start_addr_;
   uintptr_t end_addr_;
   uint32_t flags_;
 
  public:
-  PTLoadSegment(uintptr_t lbase, object_file_data_t* object_file_data, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
-    object_file_(lbase, object_file_data), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
+  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
+    object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
 
-  ObjectFile* object_file() const { return const_cast<ObjectFile*>(&object_file_); }
-  uintptr_t object_lbase() const { return object_file_.lbase_; }
+  ObjectFile const* object_file() const { return object_file_; }
   uintptr_t start_addr() const { return start_addr_; }
   uintptr_t end_addr() const { return end_addr_; }
   uint32_t flags() const { return flags_; }
