@@ -22,27 +22,35 @@ class ObjectFileData;
 // Delayed symbol loading mutates per-object DWARF state while other threads can concurrently perform address lookups.
 using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
 
+struct ObjectFile
+{
+  uintptr_t const lbase_;       // The load address of this object file.
+  object_file_data_t* data_;    // This must be a pointer because ObjectFileData is incomplete at this point.
+
+  ObjectFile(uintptr_t lbase, object_file_data_t* object_file_data) :
+    lbase_(lbase), data_(object_file_data) { }
+};
+
 // class PTLoadSegment
 //
 // Represents one loadable runtime segment of an ObjectFile.  Instances are
 // created while holding ObjectFileBase::s_object_files_' write lock during
 // initialization and then treated as immutable; later address lookup can read
-// the segment start/end/flags and object_file_->lbase_ without a per-segment lock.
+// the segment start/end/flags and object_file_.lbase_ without a per-segment lock.
 class PTLoadSegment
 {
  private:
-  object_file_data_t* object_file_;
-  uintptr_t object_lbase_;
+  ObjectFile object_file_;
   uintptr_t start_addr_;
   uintptr_t end_addr_;
   uint32_t flags_;
 
  public:
-  PTLoadSegment(object_file_data_t* object_file, uintptr_t object_lbase, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
-    object_file_(object_file), object_lbase_(object_lbase), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
+  PTLoadSegment(uintptr_t lbase, object_file_data_t* object_file_data, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
+    object_file_(lbase, object_file_data), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
 
-  object_file_data_t* object_file() const { return object_file_; }
-  uintptr_t object_lbase() const { return object_lbase_; }
+  uintptr_t object_lbase() const { return object_file_.lbase_; }
+  object_file_data_t* object_file_data() const { return object_file_.data_; }
   uintptr_t start_addr() const { return start_addr_; }
   uintptr_t end_addr() const { return end_addr_; }
   uint32_t flags() const { return flags_; }
