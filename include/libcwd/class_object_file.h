@@ -25,11 +25,6 @@
 
 namespace libcwd {
 
-// Forward declarations.
-namespace dwarf {
-class objfiles_ct;
-} // namespace dwarf
-
 /** \addtogroup group_locations */
 /** \{ */
 
@@ -51,8 +46,7 @@ class object_file_ct {
   char const* M_filename;	// Points inside M_filepath just after the last '/' or to the beginning.
   mutable bool M_no_debug_line_sections;
 
- protected:
-  friend class dwarf::objfiles_ct;
+ public:
   object_file_ct(char const* filepath);
 
  public:

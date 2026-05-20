@@ -40,7 +40,6 @@
 #include "ios_base_Init.h"
 #include "exec_prog.h"
 #include "match.h"
-#include "cwd_dwarf.h"
 #include <libcwd/class_object_file.h>
 #include <libcwd/class_channel.h>
 #include <libcwd/private_string.h>
@@ -52,10 +51,47 @@
 #include "libcwd/debug.h"
 #include "elfutils/known-dwarf.h"
 #include <elf.h>
+#include <elfutils/libdw.h>
+#include <dwarf.h>
 #include <functional>
+#include <set>
 #if CWDEBUG_DEBUG
 #include "libcwd/buf2str.h"
 #endif
+
+#if LIBCWD_THREAD_SAFE
+using libcwd::_private_::rwlock_tct;
+using libcwd::_private_::mutex_tct;
+using libcwd::_private_::object_files_instance;
+using libcwd::_private_::dlopen_map_instance;
+using libcwd::_private_::dlclose_instance;
+
+#define DWARF_INITIALIZE_LOCK             rwlock_tct<object_files_instance>::initialize()
+#define DWARF_ACQUIRE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrlock()
+#define DWARF_RELEASE_WRITE_LOCK          rwlock_tct<object_files_instance>::wrunlock()
+#define DWARF_ACQUIRE_READ_LOCK           rwlock_tct<object_files_instance>::rdlock()
+#define DWARF_ACQUIRE_HP_READ_LOCK        rwlock_tct<object_files_instance>::rdlock(true)
+#define DWARF_RELEASE_READ_LOCK           rwlock_tct<object_files_instance>::rdunlock()
+#define DWARF_ACQUIRE_READ2WRITE_LOCK     rwlock_tct<object_files_instance>::rd2wrlock()
+#define DWARF_ACQUIRE_WRITE2READ_LOCK     rwlock_tct<object_files_instance>::wr2rdlock()
+#define DLOPEN_MAP_ACQUIRE_LOCK         mutex_tct<dlopen_map_instance>::lock()
+#define DLOPEN_MAP_RELEASE_LOCK         mutex_tct<dlopen_map_instance>::unlock()
+#define DLCLOSE_ACQUIRE_LOCK            mutex_tct<dlclose_instance>::lock()
+#define DLCLOSE_RELEASE_LOCK            mutex_tct<dlclose_instance>::unlock()
+#else // !LIBCWD_THREAD_SAFE
+#define DWARF_INITIALIZE_LOCK
+#define DWARF_ACQUIRE_WRITE_LOCK
+#define DWARF_RELEASE_WRITE_LOCK
+#define DWARF_ACQUIRE_READ_LOCK
+#define DWARF_ACQUIRE_HP_READ_LOCK
+#define DWARF_RELEASE_READ_LOCK
+#define DWARF_ACQUIRE_READ2WRITE_LOCK
+#define DWARF_ACQUIRE_WRITE2READ_LOCK
+#define DLOPEN_MAP_ACQUIRE_LOCK
+#define DLOPEN_MAP_RELEASE_LOCK
+#define DLCLOSE_ACQUIRE_LOCK
+#define DLCLOSE_RELEASE_LOCK
+#endif // !LIBCWD_THREAD_SAFE
 
 namespace libcwd {
 namespace _private_ {
@@ -78,6 +114,47 @@ char const* const location_ct::S_pre_libcwd_initialization_c = "<pre libcwd init
 char const* const location_ct::S_cleared_location_ct_c = "<cleared location ct>";
 
 namespace dwarf {
+
+class objfiles_ct;
+
+using object_files_ct = std::list<objfiles_ct*>;
+
+class objfiles_ct
+{
+ protected:
+  friend object_files_ct const& NEEDS_READ_LOCK_object_files();       // Need access to `ST_list_instance'.
+  friend object_files_ct& NEEDS_WRITE_LOCK_object_files();            // Need access to `ST_list_instance'.
+  static char ST_list_instance[sizeof(object_files_ct)];
+
+  libcwd::object_file_ct M_object_file;
+
+ public:
+  objfiles_ct(char const* filepath) : M_object_file(filepath) { }
+
+  libcwd::object_file_ct const* get_object_file() const { return &M_object_file; }
+};
+
+inline object_files_ct const&
+NEEDS_READ_LOCK_object_files()
+{
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+  LIBCWD_ASSERT( __libcwd_tsd.rdlocked_by1[object_files_instance] == __libcwd_tsd.tid ||
+      __libcwd_tsd.rdlocked_by2[object_files_instance] == __libcwd_tsd.tid ||
+      _private_::locked_by[object_files_instance] == __libcwd_tsd.tid );
+#endif
+  return *reinterpret_cast<object_files_ct const*>(objfiles_ct::ST_list_instance);
+}
+
+inline object_files_ct&
+NEEDS_WRITE_LOCK_object_files()
+{
+#if CWDEBUG_DEBUGT
+  LIBCWD_TSD_DECLARATION;
+  LIBCWD_ASSERT( _private_::locked_by[object_files_instance] == __libcwd_tsd.tid );
+#endif
+  return *reinterpret_cast<object_files_ct*>(objfiles_ct::ST_list_instance);
+}
 
 // Detect if this libcwd library is static or not.
 #ifdef __PIC__
