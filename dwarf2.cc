@@ -4,6 +4,7 @@
 #if CWDEBUG_LOCATION
 
 #include <libcwd/ObjectFileName.h>
+#include "cwd_dwarf2.h"
 #include "libcwd/debug.h"
 #include "threadsafe/threadsafe.h"
 #include "threadsafe/AIReadWriteMutex.h"
@@ -63,7 +64,6 @@ constexpr bool statically_linked = false;
 #else
 constexpr bool statically_linked = true;
 #endif
-static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `ST_init'.
 
 // class PTLoadSegment
 //
@@ -180,7 +180,7 @@ class ObjectFileRegistry : public ObjectFileBase
       executable_path_(executable_path), target_lbase_(target_lbase) { }
   };
 
-  friend bool dwarf2::ST_init(LIBCWD_TSD_PARAM);
+  friend bool dwarf2::ensure_initialization(LIBCWD_TSD_PARAM);
   static void register_initial_object_files();
   static ObjectFile const* iterate_program_headers(CallBackData const& data);
   static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
@@ -587,7 +587,9 @@ void ObjectFileRegistry::register_initial_object_files()
       iterate_program_headers(data);
     }
 
-    s_object_files_initialized_ = true;
+    // Relaxed is OK: we get here from the main thread before any other thread (that
+    // might come here without other synchronization mechanism) has been created yet.
+    s_object_files_initialized_.store(true, std::memory_order_relaxed);
   } // Unlock s_object_files_.
 }
 
@@ -756,8 +758,11 @@ void ObjectFileData::load_symbols(uintptr_t lbase, std::string const& debug_info
   open_dwarf(lbase, debug_info_path);
 }
 
-bool ST_init(LIBCWD_TSD_PARAM)
+bool ensure_initialization(LIBCWD_TSD_PARAM)
 {
+  if (ObjectFileRegistry::s_object_files_initialized_.load(std::memory_order_relaxed))
+    return true;
+
   static bool WST_being_initialized = false;
   // Detect recursive initialization.
   if (WST_being_initialized)

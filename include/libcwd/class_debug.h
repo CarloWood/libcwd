@@ -203,7 +203,7 @@ private:
   friend void ST_initialize_globals(LIBCWD_TSD_PARAM);
 #if CWDEBUG_LOCATION
   friend bool dwarf::ST_init(LIBCWD_TSD_PARAM);
-  friend bool dwarf2::ST_init(LIBCWD_TSD_PARAM);
+  friend bool dwarf2::ensure_initialization(LIBCWD_TSD_PARAM);
 #endif
   bool NS_init(LIBCWD_TSD_PARAM);
     // Initialize this object, needed because debug output can be written

@@ -41,7 +41,7 @@ namespace libcwd {
       bool ST_init(LIBCWD_TSD_PARAM);
     } // namespace dwarf
     namespace dwarf2 {
-      bool ST_init(LIBCWD_TSD_PARAM);
+      bool ensure_initialization(LIBCWD_TSD_PARAM);
     } // namespace dwarf
 #endif
 
@@ -140,4 +140,3 @@ struct debug_tsd_st {
 }  // namespace libcwd
 
 #endif // LIBCWD_STRUCT_DEBUG_TSD_H
-
