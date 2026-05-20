@@ -14,7 +14,6 @@
 #ifndef COMPILATION_UNIT_H
 #define COMPILATION_UNIT_H
 
-#include "libcwd/private_internal_string.h"
 #ifndef LIBCW_VECTOR
 #define LIBCW_VECTOR
 #include <vector>
@@ -31,8 +30,8 @@ class compilation_unit_ct {
 private:
   void const* M_lowpc;				// First byte of compilation unit.
   void const* M_highpc;				// One past last byte of compilation unit.
-  internal_string M_compilation_directory;	// Working directory of compiler when compiling this compilation unit.
-  internal_string M_source_file;		// Name of main source file producing this compilation unit.
+  std::string M_compilation_directory;	        // Working directory of compiler when compiling this compilation unit.
+  std::string M_source_file;		        // Name of main source file producing this compilation unit.
 public:
   // Dirty initialization - the idea is to decouple us here from the rest of elfxx.cc and bfd.cc.
   // These four are called once, from elfxx.cc.
@@ -53,8 +52,8 @@ public:
 
   void const* get_lowpc() const { return M_lowpc; }
   void const* get_highpc() const { return M_highpc; }
-  internal_string get_source_file() const { return M_source_file; }
-  internal_string get_compilation_directory() const { return M_compilation_directory; }
+  std::string get_source_file() const { return M_source_file; }
+  std::string get_compilation_directory() const { return M_compilation_directory; }
 };
 
 // This type is added to class bfile_ct.

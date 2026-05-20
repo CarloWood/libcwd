@@ -96,7 +96,7 @@ using libcwd::_private_::dlclose_instance;
 namespace libcwd {
 namespace _private_ {
 
-extern void demangle_symbol(char const* in, _private_::internal_string& out);
+extern void demangle_symbol(char const* in, std::string& out);
 
 } // namespace _private_
 
@@ -209,7 +209,7 @@ bool is_group_member(gid_t gid)
 // `ps' in order to find the name of the running
 // program.
 //
-void ST_get_full_path_to_executable(_private_::internal_string& result LIBCWD_COMMA_TSD_PARAM)
+void ST_get_full_path_to_executable(std::string& result LIBCWD_COMMA_TSD_PARAM)
 {
   _private_::string argv0;		// Like main()s argv[0], thus must be zero terminated.
   char buf[11];
@@ -579,7 +579,7 @@ bool ST_init(LIBCWD_TSD_PARAM)
   // Start a new scope for 'fullpath'.
   {
     // Get the full path and name of executable
-    _private_::internal_string fullpath;
+    std::string fullpath;
 
     ST_get_full_path_to_executable(fullpath LIBCWD_COMMA_TSD);
         // Result is '\0' terminated so we can use data() as a C string.

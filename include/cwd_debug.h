@@ -25,9 +25,6 @@
 #define LIBCW_IOSTREAM
 #include <iostream>
 #endif
-#ifndef LIBCWD_PRIVATE_INTERNAL_STRING_H
-#include "libcwd/private_internal_string.h"
-#endif
 
 extern "C" size_t strlen(const char *s) throw();
 

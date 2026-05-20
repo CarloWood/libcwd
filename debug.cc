@@ -1865,6 +1865,6 @@ extern "C" char const* const __libcwd_version = VERSION;
 
 namespace libcwd {
   namespace _private_ {
-    extern void demangle_symbol(char const* in, _private_::internal_string& out);
+    extern void demangle_symbol(char const* in, std::string& out);
   } // namespace _private_
 } // namespace libcwd

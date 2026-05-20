@@ -686,7 +686,7 @@ typedef __gnu_cxx::demangler::session<std::allocator<char> > session_type;
 // `input' should be a mangled_function_name as for instance returned
 // by `libcwd::pc_mangled_function_name'.
 //
-void demangle_symbol(char const* input, internal_string& output)
+void demangle_symbol(char const* input, std::string& output)
 {
 
 #ifdef STANDALONE
@@ -757,7 +757,7 @@ void demangle_symbol(char const* input, internal_string& output)
 // `input' should be a mangled type as for returned
 // by the stdc++ `typeinfo::name()'.
 //
-void demangle_type(char const* input, internal_string& output)
+void demangle_type(char const* input, std::string& output)
 {
 #ifdef STANDALONE
   if (input != main_in)
@@ -814,7 +814,7 @@ void demangle_symbol(char const* input, std::string& output)
 {
   LIBCWD_TSD_DECLARATION;
   {
-    _private_::internal_string result;
+    std::string result;
     _private_::demangle_symbol(input, result);
     output.append(result.data(), result.size());
   }
@@ -827,7 +827,7 @@ void demangle_type(char const* input, std::string& output)
 {
   LIBCWD_TSD_DECLARATION;
   {
-    _private_::internal_string result;
+    std::string result;
     _private_::demangle_type(input, result);
     output.append(result.data(), result.size());
   }

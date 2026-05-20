@@ -105,13 +105,10 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 
 #if !defined(LIBCWD_NO_INTERNAL_STRING) && !defined(LIBCWD_RAW_WRITE_INTERNAL_STRING)
 #define LIBCWD_RAW_WRITE_INTERNAL_STRING
-#ifndef LIBCWD_NO_INTERNAL_STRING
-#include "libcwd/private_internal_string.h"
-#endif
 #if CWDEBUG_DEBUG
 namespace libcwd {
 
-_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, libcwd::_private_::internal_string const& data);
+_private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, std::string const& data);
 
 } // namespace libcwd
 #endif // CWDEBUG_DEBUG

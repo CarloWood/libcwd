@@ -28,7 +28,7 @@ type_info_ct const unknown_type_info_c(0);
 
 namespace _private_ {
 
-  extern void demangle_type(char const* in, _private_::internal_string& out);
+  extern void demangle_type(char const* in, std::string& out);
 
   // Warning: This LEAKS memory!
   // For internal use only
@@ -109,7 +109,7 @@ namespace _private_ {
     char const* label;
     LIBCWD_TSD_DECLARATION;
     {
-      internal_string out;
+      std::string out;
       demangle_type(mangled_name, out);
       label = strcpy(new char[out.size() + 1], out.c_str());	// LEAK44
     }
