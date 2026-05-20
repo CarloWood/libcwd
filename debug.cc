@@ -23,11 +23,11 @@
 #endif
 #include <cstdlib>		// Needed for _Exit() (C99)
 #include <new>
+#include <sstream>
 #include "cwd_debug.h"
 #include "macros.h"
 #include "libcwd/debug.h"
 #include <libcwd/strerrno.h>
-#include <libcwd/private_internal_stringbuf.h>
 #include <libcwd/private_bufferstream.h>
 #include "private_debug_stack.inl"
 #include <libcwd/class_location.inl>
@@ -75,8 +75,7 @@ using libcwd::_private_::debug_channels_instance;
 
 namespace libcwd {
 
-
-    class buffer_ct : public _private_::auto_internal_stringbuf {
+    class buffer_ct : public std::stringbuf {
     private:
       typedef pos_type streampos_t;
       streampos_t position;
