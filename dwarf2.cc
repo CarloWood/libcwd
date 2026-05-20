@@ -3,9 +3,10 @@
 
 #if CWDEBUG_LOCATION
 
-#include "cwd_dwarf2.h"
 #include <libcwd/ObjectFileName.h>
 #include "libcwd/debug.h"
+#include "threadsafe/threadsafe.h"
+#include "threadsafe/AIReadWriteMutex.h"
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
@@ -52,6 +53,10 @@ channel_ct dwarf
 
 namespace dwarf2 {
 
+// Forward declarations.
+class ObjectFileData;
+class ObjectFile;
+
 // Detect if this libcwd library is static or not.
 #ifdef __PIC__
 constexpr bool statically_linked = false;
@@ -59,6 +64,56 @@ constexpr bool statically_linked = false;
 constexpr bool statically_linked = true;
 #endif
 static bool WST_initialized = false;                      // MT: Set here to false, set to `true' once in `ST_init'.
+
+// class PTLoadSegment
+//
+// Represents one loadable runtime segment of an ObjectFile.  Instances are
+// created while holding ObjectFileBase::s_object_files_' write lock during
+// initialization and then treated as immutable; later address lookup can read
+// the segment start/end/flags and object_file_.lbase_ without a per-segment lock.
+class PTLoadSegment
+{
+ private:
+  ObjectFile const* object_file_;
+  uintptr_t start_addr_;
+  uintptr_t end_addr_;
+  uint32_t flags_;
+
+ public:
+  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
+    object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
+
+  ObjectFile const* object_file() const { return object_file_; }
+  uintptr_t start_addr() const { return start_addr_; }
+  uintptr_t end_addr() const { return end_addr_; }
+  uint32_t flags() const { return flags_; }
+
+  friend std::ostream& operator<<(std::ostream& os, PTLoadSegment const& segment)
+  {
+    os << '[' << std::hex << segment.start_addr_ << ", " << segment.end_addr_ << ')';
+    return os;
+  }
+};
+
+// Base class of ObjectFile.
+class ObjectFileBase
+{
+ protected:
+  // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end address;
+  // the pointed-to PTLoadSegment stores the matching start address, flags, and a pointer to the ObjectFile.
+  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  static object_files_t s_object_files_;        // Read-write lock protected end-address index of loaded PT_LOAD segments.
+
+  libcwd::ObjectFileName object_file_name_;     // Public facing data of this object file. Just contains the filename
+                                                // and whether or not debug info was available for this object file or not.
+
+ public:
+  // Construct an ObjectFileBase for the given filepath.
+  ObjectFileBase(char const* filepath) : object_file_name_(filepath) { }
+
+  // Accessor.
+  libcwd::ObjectFileName const& object_file_name() const { return object_file_name_; }
+};
 
 //static
 ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
@@ -74,6 +129,10 @@ class ScopedTracker final
 };
 
 static thread_local bool s_object_files_is_locked_ = false;
+
+// Thread-safe storage wrapper for ObjectFile instances.
+// Delayed symbol loading mutates per-object DWARF state while other threads can concurrently perform address lookups.
+using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
 
 // class ObjectFileRegistry
 //
