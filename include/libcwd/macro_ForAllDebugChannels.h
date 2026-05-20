@@ -24,9 +24,7 @@
 #ifndef LIBCWD_PRIVATE_ASSERT_H
 #include "private_assert.h"
 #endif
-#ifndef LIBCWD_PRIVATE_INTERNAL_VECTOR_H
-#include "private_internal_vector.h"
-#endif
+#include <vector>
 
 //===================================================================================================
 // Macro ForAllDebugChannels
@@ -40,7 +38,7 @@ namespace libcwd {
 
 class debug_channels_ct {
 public:
-  typedef internal_vector<channel_ct*> container_type;
+  typedef std::vector<channel_ct*> container_type;
   container_type* WNS_debug_channels;
 public:
   void init(LIBCWD_TSD_PARAM);

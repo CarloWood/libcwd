@@ -24,9 +24,7 @@
 #ifndef LIBCWD_PRIVATE_ASSERT_H
 #include "private_assert.h"
 #endif
-#ifndef LIBCWD_PRIVATE_INTERNAL_VECTOR_H
-#include "private_internal_vector.h"
-#endif
+#include <vector>
 
 //===================================================================================================
 // Macro ForAllDebugObjects
@@ -40,7 +38,7 @@ namespace libcwd {
 
 class debug_objects_ct {
 public:
-  typedef internal_vector<debug_ct*> container_type;
+  typedef std::vector<debug_ct*> container_type;
 private:
   container_type* WNS_debug_objects;
 public:
