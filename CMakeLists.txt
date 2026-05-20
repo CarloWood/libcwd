@@ -184,6 +184,7 @@ target_sources(cwd_r
         debug.cc
         demangle3.cc
         environ.cc
+        location.cc
         strerrno.cc
         threading.cc
         type_info.cc
