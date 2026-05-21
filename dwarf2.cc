@@ -3,7 +3,6 @@
 
 #if CWDEBUG_LOCATION
 
-#include <libcwd/ObjectFileName.h>
 #include "cwd_dwarf2.h"
 #include "libcwd/debug.h"
 #include "threadsafe/threadsafe.h"
@@ -246,13 +245,14 @@ ObjectFileData::~ObjectFileData()
   close_dwarf();
 }
 
-struct ObjectFile
+class ObjectFile : public ObjectFileInterface
 {
-  uintptr_t const lbase_;                       // The load address of this object file.
-  std::unique_ptr<object_file_data_t> data_;    // This must be a pointer because ObjectFileData is incomplete at this point.
+ private:
+  std::unique_ptr<object_file_data_t> object_file_data_;        // This must be a pointer because ObjectFileData is incomplete at this point.
 
+ public:
   ObjectFile(uintptr_t lbase, char const* filename) :
-    lbase_(lbase), data_(std::make_unique<object_file_data_t>(filename, lbase)) { }
+    ObjectFileInterface(lbase), object_file_data_(std::make_unique<object_file_data_t>(filename, lbase)) { }
 
   // Ensure that load_symbols() has been attempted for this object file exactly once.
   // The fast path takes only a read lock and returns when another thread already
@@ -264,6 +264,9 @@ struct ObjectFile
   // If a concurrent reader-to-writer upgrade collides and throws, rd2wryield() is called
   // as required by threadsafe before retrying the whole check.
   void realize_symbols() const;
+
+  // Accessor.
+  object_file_data_t& data() const { return *object_file_data_; }
 };
 
 //static
@@ -527,7 +530,7 @@ void ObjectFile::realize_symbols() const
   char const* object_file_path;
   {
     // Read-lock the object_file_data_t.
-    object_file_data_t::rat data_r(*data_);
+    object_file_data_t::rat data_r(*object_file_data_);
 
     // Return if already loaded.
     if (data_r->symbols_loaded())
@@ -547,7 +550,7 @@ void ObjectFile::realize_symbols() const
   {
     try
     {
-      object_file_data_t::rat data_r(*data_);
+      object_file_data_t::rat data_r(*object_file_data_);
 
       if (data_r->symbols_loaded())
         return;         // Someone else beat us to it.
@@ -557,7 +560,7 @@ void ObjectFile::realize_symbols() const
     }
     catch (std::exception const&)
     {
-      data_->rd2wryield();
+      object_file_data_->rd2wryield();
       continue;
     }
     break;
@@ -703,7 +706,7 @@ ObjectFile const* ObjectFileRegistry::find_registered_object_file(uintptr_t lbas
   // enumeration reports a DSO that was discovered through an earlier path.
   for (auto const& [segment_end, segment] : *object_files_w)
   {
-    if (segment.object_file()->lbase_ == lbase)
+    if (segment.object_file()->get_lbase() == lbase)
       return segment.object_file();
   }
   return nullptr;
@@ -991,7 +994,7 @@ int dlclose(void* handle)
       !(inside_dwfl_module_getdwarf && Chain::remove(handle)))
   {
     ForceLoadingDebugOutput scoped_;
-    ObjectFile const* obsolete_object_file = object_file_data_t::wat{*object_file_to_unregister->data_}->unregister_object_file_ranges(object_file_to_unregister);
+    ObjectFile const* obsolete_object_file = object_file_data_t::wat{object_file_to_unregister->data()}->unregister_object_file_ranges(object_file_to_unregister);
     // Now that the object_file_data_t Access object has been destroyed, we can delete the ObjectFile that is no longer in use.
     delete obsolete_object_file;
   }
