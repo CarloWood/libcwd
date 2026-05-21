@@ -23,6 +23,7 @@ class ObjectFileInterface
 
  public:
   uintptr_t get_lbase() const { return lbase_; }
+  virtual ObjectFileName const& get_object_file() const = 0;
 };
 
 } // namespace libcwd::dwarf2

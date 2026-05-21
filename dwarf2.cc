@@ -245,7 +245,7 @@ ObjectFileData::~ObjectFileData()
   close_dwarf();
 }
 
-class ObjectFile : public ObjectFileInterface
+class ObjectFile final : public ObjectFileInterface
 {
  private:
   std::unique_ptr<object_file_data_t> object_file_data_;        // This must be a pointer because ObjectFileData is incomplete at this point.
@@ -267,6 +267,12 @@ class ObjectFile : public ObjectFileInterface
 
   // Accessor.
   object_file_data_t& data() const { return *object_file_data_; }
+
+  ObjectFileName const& get_object_file() const override
+  {
+    object_file_data_t::rat data_r(*object_file_data_);
+    return data_r->object_file_name();
+  }
 };
 
 //static
