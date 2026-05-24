@@ -1,14 +1,9 @@
 #include "cwd_sys.h"
-#include "cwd_dwarf.h"
+#include "cwd_dwarf2.h"
 #include "libcwd/class_location.h"
 #include "libcwd/debug.h"
 
 namespace libcwd {
-
-namespace dwarf {
-extern bool WST_initialized;
-extern objfiles_ct_interface* get_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM);
-} // namespace dwarf
 
 char const* const location_ct::S_uninitialized_location_ct_c = "<uninitialized location_ct>";
 char const* const location_ct::S_pre_ios_initialization_c = "<pre ios initialization>";
@@ -34,20 +29,14 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 {
   LIBCWD_ASSERT( !M_known );
 
-  using namespace dwarf;
+  using namespace dwarf2;
 
-  if (!WST_initialized)
+  if (!ensure_initialization(LIBCWD_TSD))
   {
-    // MT: `WST_initialized' is only false when we're still Single Threaded.
-    //     Therefore it is safe to call ST_* functions.
-
-    if (!ST_init(LIBCWD_TSD))	// Initialization of BFD code fails?
-    {
-      M_object_file = nullptr;
-      M_func = S_pre_libcwd_initialization_c;
-      M_initialization_delayed = addr;
-      return;
-    }
+    M_object_file = nullptr;
+    M_func = S_pre_libcwd_initialization_c;
+    M_initialization_delayed = addr;
+    return;
   }
 
 #if LIBCWD_THREAD_SAFE
@@ -77,7 +66,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   }
 #endif
 
-  objfiles_ct_interface* object_file = get_object_file(addr LIBCWD_COMMA_TSD);
+  ObjectFileInterface const* object_file = get_object_file(addr LIBCWD_COMMA_TSD);
 
   M_initialization_delayed = nullptr;
   if (!object_file)
@@ -89,7 +78,13 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     return;
   }
 
-  M_object_file = object_file->get_object_file();
+  M_object_file = &object_file->get_object_file();
+
+#if 0
+  // dwarf2 does not have symbol_ct or source-line lookup APIs yet.  Keep the
+  // previous dwarf backend code here as the intended follow-up shape: once a
+  // dwarf2 symbol interface exists, this block can be ported instead of making
+  // location_ct stop at unknown_function_c below.
 
   // symbol_ct
   uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
@@ -130,6 +125,10 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     if (M_filename == (char const*)1)
       M_filename = M_filepath.get();
   }
+#endif
+
+  M_func = unknown_function_c;
+  M_unknown_pc = addr;
 }
 
 /**

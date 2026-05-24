@@ -27,8 +27,8 @@
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include "private_struct_TSD.h"
 #endif
-#ifndef LIBCWD_CLASS_OBJECT_FILE_H
-#include "class_object_file.h"
+#ifndef LIBCWD_CLASS_OBJECT_FILE2_H
+#include "ObjectFileName.h"
 #endif
 #ifndef LIBCW_LOCKABLE_AUTO_PTR_H
 #include "lockable_auto_ptr.h"
@@ -84,7 +84,7 @@ protected:
   };
   unsigned int M_line;				//!< The line number of this location.
   char const* M_func;				//!< Pointer to static string containing the mangled function name of this location.
-  object_file_ct const* M_object_file;		//!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
+  ObjectFileName const* M_object_file;		//!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
   bool M_known;					//!< Set when M_filepath (and M_filename) point to valid data and M_line contains a valid line number.
 private:
 
@@ -192,7 +192,7 @@ public:
    * Returns a pointer to an object representing the shared library or the executable
    * that this location belongs to; only valid if is_known() returns true.
    */
-  object_file_ct const* object_file() const { return M_object_file; }
+  ObjectFileName const* object_file() const { return M_object_file; }
 
   // Printing
   /** \brief Write the full path to an ostream. */
