@@ -261,13 +261,6 @@ std::atomic_bool ObjectFileRegistry::s_object_files_initialized_ = false;
 
 namespace {
 
-#ifdef HAVE_DLOPEN
-
-// This flag is true (for the current thread) while libdwfl is resolving the debug-info path with dwfl_module_getdwarf.
-thread_local bool inside_dwfl_module_getdwarf = false;
-
-#endif // HAVE_DLOPEN
-
 // Return the ELF file that should be opened for DWARF data for object_file.
 // Downloads of missing debug info by debuginfod can happen if DEBUGINFOD_URLS is set,
 // otherwise libdwfl can still use already installed local debuginfo and ordinary
@@ -310,17 +303,10 @@ std::string get_debug_info_path(char const* object_file_path)
     return object_file_path;
   }
 
-  {
-#ifdef HAVE_DLOPEN
-    // Keep track of when we're inside dwfl_module_getdwarf.
-    ScopedTracker inside_dwfl_module_getdwarf_scope(inside_dwfl_module_getdwarf);
-#endif // HAVE_DLOPEN
-
-    // Force libdwfl to locate and validate the separate debuginfo file now; only
-    // after this call does dwfl_module_info reliably expose the selected debugfile.
-    Dwarf_Addr bias;
-    (void)dwfl_module_getdwarf(module, &bias);
-  }
+  // Force libdwfl to locate and validate the separate debuginfo file now; only
+  // after this call does dwfl_module_info reliably expose the selected debugfile.
+  Dwarf_Addr bias;
+  (void)dwfl_module_getdwarf(module, &bias);
 
   char const* mainfile = nullptr;
   char const* debugfile = nullptr;
@@ -571,20 +557,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
 
   // If no PTLoadSegment was inserted, then we want to ignore this object file.
   if (have_pt_load_segment)
-  {
     data->object_file_ = object_file;
-#ifdef HAVE_DLOPEN
-    // When a DSO is discovered from a dlopen that happened inside dwfl_module_getdwarf,
-    // the ObjectFile and its PT_LOAD ranges can be registered, but symbol loading has
-    // to be delayed because elfutils can dlopen helper DSOs from inside that call,
-    // and dwfl_module_getdwarf is not re-entrant.
-    //
-    // A later address lookup will call realize_symbols() when the symbols are actually
-    // needed and dwfl_module_getdwarf is no longer on this stack.
-    if (!inside_dwfl_module_getdwarf)
-#endif // HAVE_DLOPEN
-      object_file->realize_symbols();
-  }
   else
     delete object_file;
 
@@ -625,14 +598,27 @@ ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lb
 //static
 ObjectFile const* ObjectFileRegistry::find_object_file(uintptr_t addr)
 {
-  object_files_t::rat object_files_r(s_object_files_);
-  ScopedTracker scoped_{s_object_files_is_locked_};
+  // We must have finished initializing all global constructors before we can all realize_symbols.
+  // If you get here after already having reached main then be sure to add `Debug(main_reached());`
+  // to the top of main.
+  LIBCWD_ASSERT(test_main_reached());
 
-  auto const iter = object_files_r->upper_bound(addr);
-  if (iter != object_files_r->end() && iter->second.start_addr() <= addr)
-    return iter->second.object_file();
+  // The object file found.
+  ObjectFile const* object_file = nullptr;
 
-  return nullptr;
+  {
+    object_files_t::rat object_files_r(s_object_files_);
+    ScopedTracker scoped_{s_object_files_is_locked_};
+    auto const iter = object_files_r->upper_bound(addr);
+    if (iter != object_files_r->end() && iter->second.start_addr() <= addr)
+      object_file = iter->second.object_file();
+  }
+
+  // realize_symbols must be called without holding the lock on s_object_files_.
+  if (object_file)
+    object_file->realize_symbols();
+
+  return object_file;
 }
 
 ObjectFileInterface const* find_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM)

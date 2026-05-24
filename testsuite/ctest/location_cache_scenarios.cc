@@ -91,5 +91,6 @@ bool probe_inline_body_source()
 
 int main()
 {
+  Debug(main_reached());
   return probe_plain_line() && probe_line_directive() && probe_inline_body_source() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
