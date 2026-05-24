@@ -247,6 +247,9 @@ class ObjectFile final : public ObjectFileInterface
   using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
   mutable object_file_data_t object_file_data_;         // Thread-safe storage wrapper for ObjectFile instances.
 
+  using symbols_type = std::map<uintptr_t, Symbol>;
+  symbols_type symbols_;                                // End-address index of Symbol's.
+
  public:
   ObjectFile(uintptr_t lbase, char const* filename) :
     ObjectFileInterface(lbase), object_file_data_(filename, lbase) { }
@@ -454,8 +457,11 @@ void ObjectFile::realize_symbols() const
 
 Symbol const* ObjectFile::find_symbol(uintptr_t addr) const
 {
-  //FIXME
-  return nullptr;
+  Symbol const* symbol = nullptr;
+  auto const iter = symbols_.upper_bound(addr);
+  if (iter != symbols_.end() && iter->second.start_addr() <= addr)
+    symbol = &iter->second;
+  return symbol;
 }
 
 //static
