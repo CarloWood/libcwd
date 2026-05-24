@@ -202,7 +202,6 @@ private:
   friend class fatal_channel_ct;
   friend void ST_initialize_globals(LIBCWD_TSD_PARAM);
 #if CWDEBUG_LOCATION
-  friend bool dwarf::ST_init(LIBCWD_TSD_PARAM);
   friend bool dwarf2::ensure_initialization(LIBCWD_TSD_PARAM);
 #endif
   bool NS_init(LIBCWD_TSD_PARAM);

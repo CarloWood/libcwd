@@ -174,7 +174,7 @@ class ObjectFileRegistry
       executable_path_(executable_path), target_lbase_(target_lbase) { }
   };
 
-  friend bool dwarf2::ensure_initialization(LIBCWD_TSD_PARAM);
+  friend bool ensure_initialization(LIBCWD_TSD_PARAM);
   static void register_initial_object_files();
   static ObjectFile const* iterate_program_headers(CallBackData const& data);
   static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
@@ -234,6 +234,17 @@ class ObjectFileData : public ObjectFileRegistry
   ObjectFile const* unregister_object_file_ranges(ObjectFile const* self) const;
 };
 
+class Symbol : public SymbolInterface
+{
+ private:
+  char const* name_;
+
+ public:
+  Symbol(uintptr_t start_addr, uintptr_t end_addr, char const* name) : SymbolInterface(start_addr, end_addr), name_(name) { }
+
+  char const* name() const override { return name_; }
+};
+
 class ObjectFile final : public ObjectFileInterface
 {
  private:
@@ -254,6 +265,8 @@ class ObjectFile final : public ObjectFileInterface
     object_file_data_t::rat data_r(*object_file_data_);
     return data_r->object_file_name();
   }
+
+  Symbol const* find_symbol(uintptr_t addr) const;
 };
 
 //static
@@ -437,6 +450,12 @@ void ObjectFile::realize_symbols() const
     }
     break;
   }
+}
+
+Symbol const* ObjectFile::find_symbol(uintptr_t addr) const
+{
+  //FIXME
+  return nullptr;
 }
 
 //static
@@ -629,6 +648,7 @@ ObjectFileInterface const* find_object_file(void const* addr LIBCWD_COMMA_TSD_PA
   return ObjectFileRegistry::find_object_file(reinterpret_cast<uintptr_t>(addr));
 }
 
+// Free function.
 bool ensure_initialization(LIBCWD_TSD_PARAM)
 {
   if (ObjectFileRegistry::s_object_files_initialized_.load(std::memory_order_relaxed))
@@ -640,7 +660,7 @@ bool ensure_initialization(LIBCWD_TSD_PARAM)
     return false;
   WST_being_initialized = true;
 
-  // This must be called before calling ST_init().
+  // This must be called before calling register_initial_object_files.
   if (!libcw_do.NS_init(LIBCWD_TSD))
     return false;
 
@@ -906,6 +926,37 @@ ObjectFileName::ObjectFileName(char const* filepath) : no_debug_line_sections_(f
   if (filename_ == (char const*)1)
     filename_ = filepath_;
 }
+
+/** \addtogroup group_locations */
+/** \{ */
+
+char const* const unknown_function_c = "<unknown function>";
+
+/**
+ * \brief Find the mangled function name of the address \a addr.
+ *
+ * \returns the same pointer that is returned by location_ct::mangled_function_name() on success,
+ * otherwise \ref unknown_function_c is returned.
+ */
+char const* pc_mangled_function_name(void const* pc)
+{
+  using namespace dwarf2;
+
+  LIBCWD_TSD_DECLARATION;
+
+  ObjectFile const* object_file = static_cast<ObjectFile const*>(find_object_file(pc LIBCWD_COMMA_TSD));
+  if (!object_file)
+    return unknown_function_c;
+
+  uintptr_t const addr = reinterpret_cast<uintptr_t>(pc);
+  SymbolInterface const* symbol = object_file->find_symbol(addr);
+  if (!symbol)
+    return unknown_function_c;
+
+  return symbol->name();
+}
+
+/** \} */	// End of group 'group_locations'.
 
 } // namespace libcwd
 

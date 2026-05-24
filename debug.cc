@@ -407,12 +407,6 @@ namespace libcwd {
 #endif
 	;
 
-#if CWDEBUG_LOCATION
-    namespace dwarf {
-      extern bool ST_init(LIBCWD_TSD_PARAM);
-    } // namespace dwarf
-#endif
-
     void ST_initialize_globals(LIBCWD_TSD_PARAM)
     {
       static bool ST_already_called;
@@ -472,7 +466,6 @@ namespace libcwd {
 #endif
 
 #if CWDEBUG_LOCATION
-      dwarf::ST_init(LIBCWD_TSD);                       // Initialize DWARF code (old version).
       dwarf2::ensure_initialization(LIBCWD_TSD);        // Initialize DWARF code.
 #endif
 #if CWDEBUG_DEBUG && !CWDEBUG_DEBUGOUTPUT
