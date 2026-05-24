@@ -114,10 +114,6 @@ class ScopedTracker final
 
 static thread_local bool s_object_files_is_locked_ = false;
 
-// Thread-safe storage wrapper for ObjectFile instances.
-// Delayed symbol loading mutates per-object DWARF state while other threads can concurrently perform address lookups.
-using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-
 // class ObjectFileRegistry
 //
 // Owns the object-file registry operations, initialization state and public
@@ -248,23 +244,27 @@ class Symbol : public SymbolInterface
 class ObjectFile final : public ObjectFileInterface
 {
  private:
-  std::unique_ptr<object_file_data_t> object_file_data_;        // This must be a pointer because ObjectFileData is incomplete at this point.
+  using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  mutable object_file_data_t object_file_data_;         // Thread-safe storage wrapper for ObjectFile instances.
 
  public:
   ObjectFile(uintptr_t lbase, char const* filename) :
-    ObjectFileInterface(lbase), object_file_data_(std::make_unique<object_file_data_t>(filename, lbase)) { }
+    ObjectFileInterface(lbase), object_file_data_(filename, lbase) { }
 
   // Ensure that the symbols of this ObjectFile have been loaded.
   void realize_symbols() const;
 
-  // Accessor.
-  object_file_data_t& data() const { return *object_file_data_; }
+  // Only use this to construct a wat or rat object (used in dlclose)!
+  object_file_data_t& unlocked_data() const { return object_file_data_; }
 
   ObjectFileName const& get_object_file() const override
   {
-    object_file_data_t::rat data_r(*object_file_data_);
+    object_file_data_t::rat data_r(object_file_data_);
     return data_r->object_file_name();
   }
+
+  // Called from dlopen.
+  object_file_data_t::wat write_locked_data() const { return object_file_data_t::wat{object_file_data_}; }
 
   Symbol const* find_symbol(uintptr_t addr) const;
 };
@@ -409,7 +409,7 @@ void ObjectFile::realize_symbols() const
   char const* object_file_path;
   {
     // Read-lock the object_file_data_t.
-    object_file_data_t::rat data_r(*object_file_data_);
+    object_file_data_t::rat data_r(object_file_data_);
 
     // Return if already loaded.
     if (data_r->symbols_loaded())
@@ -435,7 +435,7 @@ void ObjectFile::realize_symbols() const
   {
     try
     {
-      object_file_data_t::rat data_r(*object_file_data_);
+      object_file_data_t::rat data_r(object_file_data_);
 
       if (data_r->symbols_loaded())
         return;         // Someone else beat us to it.
@@ -445,7 +445,7 @@ void ObjectFile::realize_symbols() const
     }
     catch (std::exception const&)
     {
-      object_file_data_->rd2wryield();
+      object_file_data_.rd2wryield();
       continue;
     }
     break;
@@ -904,7 +904,7 @@ int dlclose(void* handle)
   if (object_file_to_unregister)
   {
     ForceLoadingDebugOutput scoped_;
-    ObjectFile const* obsolete_object_file = object_file_data_t::wat{object_file_to_unregister->data()}->unregister_object_file_ranges(object_file_to_unregister);
+    ObjectFile const* obsolete_object_file = object_file_to_unregister->write_locked_data()->unregister_object_file_ranges(object_file_to_unregister);
     // Now that the object_file_data_t Access object has been destroyed, we can delete the ObjectFile that is no longer in use.
     delete obsolete_object_file;
   }
