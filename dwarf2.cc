@@ -243,15 +243,7 @@ class ObjectFile final : public ObjectFileInterface
   ObjectFile(uintptr_t lbase, char const* filename) :
     ObjectFileInterface(lbase), object_file_data_(std::make_unique<object_file_data_t>(filename, lbase)) { }
 
-  // Ensure that load_symbols() has been attempted for this object file exactly once.
-  // The fast path takes only a read lock and returns when another thread already
-  // performed the work.
-  //
-  // If initialization is needed, the debug-info path is resolved with no ObjectFileData
-  // lock held because libdwfl can call dlopen internally; afterwards the read lock is
-  // reacquired and upgraded to a write lock before mutating the per-object DWARF fields.
-  // If a concurrent reader-to-writer upgrade collides and throws, rd2wryield() is called
-  // as required by threadsafe before retrying the whole check.
+  // Ensure that the symbols of this ObjectFile have been loaded.
   void realize_symbols() const;
 
   // Accessor.
