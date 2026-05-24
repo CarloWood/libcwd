@@ -185,6 +185,17 @@ class ObjectFileRegistry
 //static
 ObjectFileRegistry::object_files_t ObjectFileRegistry::s_object_files_;
 
+class Symbol : public SymbolInterface
+{
+ private:
+  char const* name_;
+
+ public:
+  Symbol(uintptr_t start_addr, uintptr_t end_addr, char const* name) : SymbolInterface(start_addr, end_addr), name_(name) { }
+
+  char const* name() const override { return name_; }
+};
+
 // class ObjectFileData
 //
 // Represents a single object file: either the executable or a shared library.
@@ -199,6 +210,9 @@ class ObjectFileData : public ObjectFileRegistry
   mutable int dwarf_fd_{symbols_loaded_not_called};     // Once load_symbols was called this becomes -1 (permanent failure) or
                                                         // equal to the open fd for the file containing the debug info.
   mutable Dwarf* dwarf_handle_{nullptr};                // mutable because close_dwarf() sets these to nullptr and -1 again.
+
+  using function_symbols_type = std::map<uintptr_t, Symbol>;
+  function_symbols_type function_symbols_;              // End-address index of Symbol's.
 
  public:
   // Accessors.
@@ -221,6 +235,9 @@ class ObjectFileData : public ObjectFileRegistry
   // know that initialization has already been attempted and can continue without retrying.
   void load_symbols(uintptr_t lbase, std::string const& debug_info_path);
 
+  // Look up a Symbol in function_symbols_ by address.
+  Symbol const* find_symbol(uintptr_t addr) const;
+
  private:
   void open_dwarf(uintptr_t lbase, std::string const& debug_info_path);
   void close_dwarf() const;
@@ -230,25 +247,11 @@ class ObjectFileData : public ObjectFileRegistry
   ObjectFile const* unregister_object_file_ranges(ObjectFile const* self) const;
 };
 
-class Symbol : public SymbolInterface
-{
- private:
-  char const* name_;
-
- public:
-  Symbol(uintptr_t start_addr, uintptr_t end_addr, char const* name) : SymbolInterface(start_addr, end_addr), name_(name) { }
-
-  char const* name() const override { return name_; }
-};
-
 class ObjectFile final : public ObjectFileInterface
 {
  private:
   using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
   mutable object_file_data_t object_file_data_;         // Thread-safe storage wrapper for ObjectFile instances.
-
-  using symbols_type = std::map<uintptr_t, Symbol>;
-  symbols_type symbols_;                                // End-address index of Symbol's.
 
  public:
   ObjectFile(uintptr_t lbase, char const* filename) :
@@ -266,10 +269,11 @@ class ObjectFile final : public ObjectFileInterface
     return data_r->object_file_name();
   }
 
+  // Called from pc_mangled_function_name.
+  object_file_data_t::rat read_locked_data() const { return object_file_data_t::rat{object_file_data_}; }
+
   // Called from dlopen.
   object_file_data_t::wat write_locked_data() const { return object_file_data_t::wat{object_file_data_}; }
-
-  Symbol const* find_symbol(uintptr_t addr) const;
 };
 
 //static
@@ -455,11 +459,11 @@ void ObjectFile::realize_symbols() const
   }
 }
 
-Symbol const* ObjectFile::find_symbol(uintptr_t addr) const
+Symbol const* ObjectFileData::find_symbol(uintptr_t addr) const
 {
   Symbol const* symbol = nullptr;
-  auto const iter = symbols_.upper_bound(addr);
-  if (iter != symbols_.end() && iter->second.start_addr() <= addr)
+  auto const iter = function_symbols_.upper_bound(addr);
+  if (iter != function_symbols_.end() && iter->second.start_addr() <= addr)
     symbol = &iter->second;
   return symbol;
 }
@@ -950,12 +954,13 @@ char const* pc_mangled_function_name(void const* pc)
 
   LIBCWD_TSD_DECLARATION;
 
+  // The call to find_object_file also load the symbols for the object file (if not already done before).
   ObjectFile const* object_file = static_cast<ObjectFile const*>(find_object_file(pc LIBCWD_COMMA_TSD));
   if (!object_file)
     return unknown_function_c;
 
   uintptr_t const addr = reinterpret_cast<uintptr_t>(pc);
-  SymbolInterface const* symbol = object_file->find_symbol(addr);
+  SymbolInterface const* symbol = object_file->read_locked_data()->find_symbol(addr);
   if (!symbol)
     return unknown_function_c;
 
