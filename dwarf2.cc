@@ -67,7 +67,7 @@ constexpr bool statically_linked = true;
 // class PTLoadSegment
 //
 // Represents one loadable runtime segment of an ObjectFile.  Instances are
-// created while holding ObjectFileBase::s_object_files_' write lock during
+// created while holding ObjectFileRegistry::s_object_files_' write lock during
 // initialization and then treated as immutable; later address lookup can read
 // the segment start/end/flags and object_file_.lbase_ without a per-segment lock.
 class PTLoadSegment
@@ -94,37 +94,22 @@ class PTLoadSegment
   }
 };
 
-// Base class of ObjectFile.
-class ObjectFileBase
-{
- protected:
-  // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end address;
-  // the pointed-to PTLoadSegment stores the matching start address, flags, and a pointer to the ObjectFile.
-  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  static object_files_t s_object_files_;        // Read-write lock protected end-address index of loaded PT_LOAD segments.
-
-  libcwd::ObjectFileName object_file_name_;     // Public facing data of this object file. Just contains the filename
-                                                // and whether or not debug info was available for this object file or not.
-
- public:
-  // Construct an ObjectFileBase for the given filepath.
-  ObjectFileBase(char const* filepath) : object_file_name_(filepath) { }
-
-  // Accessor.
-  libcwd::ObjectFileName const& object_file_name() const { return object_file_name_; }
-};
-
-//static
-ObjectFileBase::object_files_t ObjectFileBase::s_object_files_;
-
 class ScopedTracker final
 {
  private:
   bool& flag_;
 
  public:
-  ScopedTracker(bool& flag) : flag_(flag) { flag = true; }
-  ~ScopedTracker() { flag_ = false; }
+  ScopedTracker(bool& flag) : flag_(flag)
+  {
+    // This object is not recursive.
+    LIBCWD_ASSERT(!flag);
+    flag = true;
+  }
+  ~ScopedTracker()
+  {
+    flag_ = false;
+  }
 };
 
 static thread_local bool s_object_files_is_locked_ = false;
@@ -135,10 +120,10 @@ using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::poli
 
 // class ObjectFileRegistry
 //
-// Owns the static object-file registry operations and initialization state for
-// ObjectFile.  The underlying segment map itself lives in ObjectFileBase;
-// ObjectFileRegistry adds the dl_iterate_phdr based population helpers that
-// create ObjectFile instances and publish their PT_LOAD ranges in that map.
+// Owns the object-file registry operations, initialization state and public
+// ObjectFileName payload for ObjectFileData.  The registry is populated from
+// dl_iterate_phdr and stores each ObjectFile's PT_LOAD ranges in an end-address
+// keyed map for later address lookup.
 //
 // To get access to the list you need to read and/or write lock it.
 //
@@ -156,18 +141,28 @@ using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::poli
 //
 // Use object_files_w-> for write access (returns a std::map<uintptr_t, PTLoadSegment>*).
 //
-class ObjectFileRegistry : public ObjectFileBase
+class ObjectFileRegistry
 {
+ protected:
+  // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end address;
+  // the pointed-to PTLoadSegment stores the matching start address, flags, and a pointer to the ObjectFile.
+  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  static object_files_t s_object_files_;        // Read-write lock protected end-address index of loaded PT_LOAD segments.
+
+  libcwd::ObjectFileName object_file_name_;     // Public facing data of this object file. Just contains the filename
+                                                // and whether or not debug info was available for this object file or not.
+
   static std::atomic_bool s_object_files_initialized_;
 
- protected:
-  // Construct the ObjectFileBase subobject for the derived ObjectFile payload.
-  // ObjectFileRegistry is not instantiated by itself; it only groups the
-  // registry-wide static functions and state while preserving the original base
-  // class storage for object_file_name_.
-  ObjectFileRegistry(char const* filename) : ObjectFileBase(filename) { }
+  // Construct the ObjectFileRegistry subobject for the derived ObjectFileData payload.
+  // ObjectFileRegistry is not instantiated by itself; it groups registry-wide
+  // static functions and state with the public object_file_name_ storage.
+  ObjectFileRegistry(char const* filename) : object_file_name_(filename) { }
 
  public:
+  // Accessor.
+  libcwd::ObjectFileName const& object_file_name() const { return object_file_name_; }
+
   // Information passed to the cb_dl_iterate_phdr call back function.
   struct CallBackData {
     std::string executable_path_;                       // The full path to the current executable.
@@ -187,7 +182,12 @@ class ObjectFileRegistry : public ObjectFileBase
 
   // Called from dlopen.
   static ObjectFile const* register_object_file_at_lbase(uintptr_t lbase);
+  // Needed for location_ct.
+  static ObjectFile const* find_object_file(uintptr_t addr);
 };
+
+//static
+ObjectFileRegistry::object_files_t ObjectFileRegistry::s_object_files_;
 
 // class ObjectFileData
 //
@@ -233,17 +233,6 @@ class ObjectFileData : public ObjectFileRegistry
   // Called from dlclose.
   ObjectFile const* unregister_object_file_ranges(ObjectFile const* self) const;
 };
-
-ObjectFileData::ObjectFileData(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename)
-{
-  Dout(dc::dwarf, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
-}
-
-ObjectFileData::~ObjectFileData()
-{
-  Dout(dc::dwarf, "destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
-  close_dwarf();
-}
 
 class ObjectFile final : public ObjectFileInterface
 {
@@ -545,7 +534,7 @@ void ObjectFile::realize_symbols() const
     object_file_path = data_r->object_file_name().filepath();
   }
 
-  // Also this lock may not be held (by this thread).
+  // This lock may not be held (by this thread).
   LIBCWD_ASSERT(!s_object_files_is_locked_);
 
   // Obtain the debug info path without holding the lock on *data_ because
@@ -732,6 +721,65 @@ ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lb
   return existing_object_file ? existing_object_file : iterate_program_headers(data);
 }
 
+//static
+ObjectFile const* ObjectFileRegistry::find_object_file(uintptr_t addr)
+{
+  object_files_t::rat object_files_r(s_object_files_);
+  ScopedTracker scoped_{s_object_files_is_locked_};
+
+  auto const iter = object_files_r->upper_bound(addr);
+  if (iter != object_files_r->end() && iter->second.start_addr() <= addr)
+    return iter->second.object_file();
+
+  return nullptr;
+}
+
+ObjectFileInterface const* find_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM)
+{
+  if (!ensure_initialization(LIBCWD_TSD))
+    return nullptr;
+
+  return ObjectFileRegistry::find_object_file(reinterpret_cast<uintptr_t>(addr));
+}
+
+bool ensure_initialization(LIBCWD_TSD_PARAM)
+{
+  if (ObjectFileRegistry::s_object_files_initialized_.load(std::memory_order_relaxed))
+    return true;
+
+  static bool WST_being_initialized = false;
+  // Detect recursive initialization.
+  if (WST_being_initialized)
+    return false;
+  WST_being_initialized = true;
+
+  // This must be called before calling ST_init().
+  if (!libcw_do.NS_init(LIBCWD_TSD))
+    return false;
+
+  // MT: We assume this is called before reaching main().
+  //     Therefore, no synchronisation is required.
+#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
+  if (_private_::WST_multi_threaded)
+    core_dump();
+#endif
+
+  ObjectFileRegistry::register_initial_object_files();
+
+  return true;
+}
+
+ObjectFileData::ObjectFileData(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename)
+{
+  Dout(dc::dwarf, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
+}
+
+ObjectFileData::~ObjectFileData()
+{
+  Dout(dc::dwarf, "destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
+  close_dwarf();
+}
+
 ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const* self) const
 {
   ObjectFile const* obsolete_object_file = nullptr;
@@ -765,33 +813,6 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
 void ObjectFileData::load_symbols(uintptr_t lbase, std::string const& debug_info_path)
 {
   open_dwarf(lbase, debug_info_path);
-}
-
-bool ensure_initialization(LIBCWD_TSD_PARAM)
-{
-  if (ObjectFileRegistry::s_object_files_initialized_.load(std::memory_order_relaxed))
-    return true;
-
-  static bool WST_being_initialized = false;
-  // Detect recursive initialization.
-  if (WST_being_initialized)
-    return false;
-  WST_being_initialized = true;
-
-  // This must be called before calling ST_init().
-  if (!libcw_do.NS_init(LIBCWD_TSD))
-    return false;
-
-  // MT: We assume this is called before reaching main().
-  //     Therefore, no synchronisation is required.
-#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
-  if (_private_::WST_multi_threaded)
-    core_dump();
-#endif
-
-  ObjectFileRegistry::register_initial_object_files();
-
-  return true;
 }
 
 void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_path)

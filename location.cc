@@ -66,7 +66,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   }
 #endif
 
-  ObjectFileInterface const* object_file = get_object_file(addr LIBCWD_COMMA_TSD);
+  ObjectFileInterface const* object_file = find_object_file(addr LIBCWD_COMMA_TSD);
 
   M_initialization_delayed = nullptr;
   if (!object_file)
@@ -81,11 +81,6 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   M_object_file = &object_file->get_object_file();
 
 #if 0
-  // dwarf2 does not have symbol_ct or source-line lookup APIs yet.  Keep the
-  // previous dwarf backend code here as the intended follow-up shape: once a
-  // dwarf2 symbol interface exists, this block can be ported instead of making
-  // location_ct stop at unknown_function_c below.
-
   // symbol_ct
   uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
   symbol_ct_key search_key(int_addr);

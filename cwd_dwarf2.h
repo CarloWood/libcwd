@@ -26,4 +26,11 @@ class ObjectFileInterface
   virtual ObjectFileName const& get_object_file() const = 0;
 };
 
+// Return the registered ObjectFile that contains `addr` in one of its mapped
+// PT_LOAD address ranges, or nullptr if no known object covers addr.
+//
+// The returned interface remains owned by dwarf2's object-file registry and
+// is valid until the object is unregistered due to a call to dlclose.
+extern ObjectFileInterface const* find_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM);
+
 } // namespace libcwd::dwarf2

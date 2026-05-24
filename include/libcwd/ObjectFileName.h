@@ -16,7 +16,7 @@ namespace libcwd {
 
 // Forward declarations.
 namespace dwarf2 {
-class ObjectFileBase;
+class ObjectFileRegistry;
 } // namespace dwarf2
 
 /** \addtogroup group_locations */
@@ -27,7 +27,7 @@ class ObjectFileBase;
  * \brief An object representing the main executable or a shared library.
  *
  * This class contains the full path (file name) of an object file.
- * As a member of class ObjectFileBase, defined in namespace dwarf2,
+ * As a member of class ObjectFileRegistry, defined in namespace dwarf2,
  * it is the only data exposed to the user, of that class.
  *
  * \internal
@@ -42,7 +42,7 @@ class ObjectFileName
   mutable bool no_debug_line_sections_;
 
  protected:
-  friend class dwarf2::ObjectFileBase;
+  friend class dwarf2::ObjectFileRegistry;
   ObjectFileName(char const* filepath);
 
  public:
