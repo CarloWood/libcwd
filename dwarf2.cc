@@ -529,6 +529,12 @@ void ObjectFile::realize_symbols() const
   // This lock may not be held (by this thread).
   LIBCWD_ASSERT(!s_object_files_is_locked_);
 
+  // Do not call get_debug_info_path before main has been reached.
+  // Through libdebuginfod/libcurl it may re-enter loader/runtime initialization
+  // while global constructors are still running, which can deadlock.
+  if (!test_main_reached())
+    return;
+
   // Obtain the debug info path without holding the lock on *data_ because
   // this call can cause a recursive call to dlopen.
   std::string debug_info_path = get_debug_info_path(object_file_path);

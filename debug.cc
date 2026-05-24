@@ -1856,6 +1856,11 @@ void internal_main_reached()
   s_main_reached.store(true, std::memory_order_relaxed);
 }
 
+bool test_main_reached()
+{
+  return s_main_reached.load(std::memory_order_relaxed);
+}
+
 } // namespace libcwd
 
 // This can be used in configure to see if libcwd exists.

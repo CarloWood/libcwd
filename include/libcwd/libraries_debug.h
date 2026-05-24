@@ -100,6 +100,8 @@ void initialize();
 
 // Called from main_reached defined in include/libcwd/config.h.in. This does further initialization.
 extern void internal_main_reached();
+// Returns true once main_reached() was called.
+extern bool test_main_reached();
 
 } // namespace libcwd
 
