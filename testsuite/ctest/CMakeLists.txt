@@ -6,39 +6,50 @@ target_include_directories(ctest_support
     ${CMAKE_SOURCE_DIR}/include
 )
 target_link_libraries(ctest_support PUBLIC cwd_r)
-target_compile_options(ctest_support PUBLIC -g)
+target_compile_options(ctest_support PRIVATE -g)
 
 add_executable(basic_debug_output basic_debug_output.cc)
 target_link_libraries(basic_debug_output PRIVATE ctest_support)
+target_compile_options(basic_debug_output PRIVATE -g)
 
 add_executable(colors_debug_output colors_debug_output.cc)
 target_link_libraries(colors_debug_output PRIVATE ctest_support)
+target_compile_options(colors_debug_output PRIVATE -g)
 
 add_executable(hello_world_debug_channel hello_world_debug_channel.cc)
 target_link_libraries(hello_world_debug_channel PRIVATE ctest_support)
+target_compile_options(hello_world_debug_channel PRIVATE -g)
 
 add_executable(mangling_symbols mangling_symbols.cc)
 target_link_libraries(mangling_symbols PRIVATE ctest_support)
+target_compile_options(mangling_symbols PRIVATE -g)
 
 add_executable(location_lookup location_lookup.cc)
 target_link_libraries(location_lookup PRIVATE ctest_support)
+target_compile_options(location_lookup PRIVATE -g)
 
 add_executable(location_cache_scenarios location_cache_scenarios.cc)
 target_link_libraries(location_cache_scenarios PRIVATE ctest_support)
-target_compile_options(location_cache_scenarios PRIVATE -O2)
+target_compile_options(location_cache_scenarios PRIVATE -g -O2)
 
 add_executable(location_line_directives location_line_directives.cc)
 target_link_libraries(location_line_directives PRIVATE ctest_support)
+target_compile_options(location_line_directives PRIVATE -g)
 
 add_executable(location_return_addresses location_return_addresses.cc)
 target_link_libraries(location_return_addresses PRIVATE ctest_support)
+target_compile_options(location_return_addresses PRIVATE -g)
 
 add_executable(location_inlined_calls location_inlined_calls.cc support/location_inlined_calls_cu.cc)
 target_link_libraries(location_inlined_calls PRIVATE ctest_support)
-target_compile_options(location_inlined_calls PRIVATE -O0 -finline)
+target_compile_options(location_inlined_calls PRIVATE -g -finline)
 
 add_executable(location_from_global_object location_from_global_object.cc)
 target_link_libraries(location_from_global_object PRIVATE ctest_support)
+target_compile_options(location_from_global_object PRIVATE -g)
+
+add_executable(nodebug_output nodebug_output.cc)
+target_link_libraries(nodebug_output PRIVATE ctest_support)
 
 function(configure_location_loading_library target_name)
   target_include_directories(${target_name}
@@ -124,6 +135,11 @@ set_tests_properties(location_inlined_calls PROPERTIES
 
 add_test(NAME location_from_global_object COMMAND location_from_global_object)
 set_tests_properties(location_from_global_object PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME nodebug_output COMMAND nodebug_output)
+set_tests_properties(nodebug_output PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
 

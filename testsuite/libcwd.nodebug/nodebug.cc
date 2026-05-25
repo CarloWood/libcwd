@@ -3,14 +3,13 @@
 
 int main()
 {
-  Debug( libcw_do.on() );
+  Debug(main_reached());
+  Debug(libcw_do.on());
 #if CWDEBUG_LOCATION
   Debug( dc::bfd.on() );
+
+  libcwd::location_ct loc(&&current_location);
+current_location:
+  Dout(dc::bfd, "This is printed from " << loc);
 #endif
-
-  int* p = new int [100];
-
-  delete [] p;
-
-  return 0;
 }
