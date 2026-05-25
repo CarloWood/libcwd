@@ -25,7 +25,7 @@ add_manual_test(threads threads.cc)
 add_manual_test(threads2 threads2.cc)
 add_manual_test(threads3 threads3.cc)
 add_manual_test(threads4 threads4.cc)
-add_manual_test(initbug initbug.cc initbug_GlobalObject.cc)
+add_manual_test(location_from_GlobalObject location_from_GlobalObject.cc)
 add_manual_test(syslog syslog.cc)
 
 get_property(MANUAL_TEST_TARGETS GLOBAL PROPERTY LIBCWD_MANUAL_TEST_TARGETS)

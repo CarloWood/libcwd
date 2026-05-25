@@ -676,11 +676,6 @@ ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lb
 //static
 ObjectFile const* ObjectFileRegistry::find_object_file(uintptr_t addr)
 {
-  // We must have finished initializing all global constructors before we can all realize_symbols.
-  // If you get here after already having reached main then be sure to add `Debug(main_reached());`
-  // to the top of main.
-  LIBCWD_ASSERT(test_main_reached());
-
   // The object file found.
   ObjectFile const* object_file = nullptr;
 
