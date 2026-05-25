@@ -27,6 +27,16 @@ add_executable(location_cache_scenarios location_cache_scenarios.cc)
 target_link_libraries(location_cache_scenarios PRIVATE ctest_support)
 target_compile_options(location_cache_scenarios PRIVATE -O2)
 
+add_executable(location_line_directives location_line_directives.cc)
+target_link_libraries(location_line_directives PRIVATE ctest_support)
+
+add_executable(location_return_addresses location_return_addresses.cc)
+target_link_libraries(location_return_addresses PRIVATE ctest_support)
+
+add_executable(location_inlined_calls location_inlined_calls.cc support/location_inlined_calls_cu.cc)
+target_link_libraries(location_inlined_calls PRIVATE ctest_support)
+target_compile_options(location_inlined_calls PRIVATE -O0 -finline)
+
 function(configure_location_loading_library target_name)
   target_include_directories(${target_name}
     PRIVATE
@@ -91,6 +101,21 @@ set_tests_properties(location_lookup PROPERTIES
 
 add_test(NAME location_cache_scenarios COMMAND location_cache_scenarios)
 set_tests_properties(location_cache_scenarios PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME location_line_directives COMMAND location_line_directives)
+set_tests_properties(location_line_directives PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME location_return_addresses COMMAND location_return_addresses)
+set_tests_properties(location_return_addresses PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME location_inlined_calls COMMAND location_inlined_calls)
+set_tests_properties(location_inlined_calls PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
 
