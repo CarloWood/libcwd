@@ -208,9 +208,9 @@ class ObjectFileData : public ObjectFileRegistry
   static constexpr int symbols_loaded_not_called = -2;
 
  private:
-  mutable int dwarf_fd_{symbols_loaded_not_called};     // Once load_symbols was called this becomes -1 (permanent failure) or
+  int dwarf_fd_{symbols_loaded_not_called};             // Once load_symbols was called this becomes -1 (permanent failure) or
                                                         // equal to the open fd for the file containing the debug info.
-  mutable Dwarf* dwarf_handle_{nullptr};                // mutable because close_dwarf() sets these to nullptr and -1 again.
+  Dwarf* dwarf_handle_{nullptr};                        // mutable because close_dwarf() sets these to nullptr and -1 again.
 
   using function_symbols_type = std::map<uintptr_t, Symbol>;
   function_symbols_type function_symbols_;              // End-address index of Symbol's.
@@ -248,11 +248,11 @@ class ObjectFileData : public ObjectFileRegistry
   void add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase);
   void add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, uintptr_t lbase);
   static char const* function_symbol_name(Dwarf_Die* func_die);
-  void close_dwarf() const;
+  void close_dwarf();
 
  public:
   // Called from dlclose.
-  ObjectFile const* unregister_object_file_ranges(ObjectFile const* self) const;
+  ObjectFile const* unregister_object_file_ranges(ObjectFile const* self);
 };
 
 class ObjectFile final : public ObjectFileInterface
@@ -714,7 +714,7 @@ ObjectFileData::~ObjectFileData()
   close_dwarf();
 }
 
-ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const* self) const
+ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const* self)
 {
   ObjectFile const* obsolete_object_file = nullptr;
   // Remove all PTLoadSegment's from s_object_files_ that belong to this ObjectFile.
@@ -920,7 +920,7 @@ void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_p
   Dout(dc::finish, "done");
 }
 
-void ObjectFileData::close_dwarf() const
+void ObjectFileData::close_dwarf()
 {
   if (dwarf_handle_)
   {
