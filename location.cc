@@ -119,9 +119,6 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
       M_filename = M_filepath.get();
   }
 #endif
-
-  M_func = unknown_function_c;
-  M_unknown_pc = addr;
 }
 
 /**

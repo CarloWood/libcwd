@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cstdint>
 #include <dlfcn.h>
+#include <dwarf.h>
 #include <elf.h>
 #include <elfutils/libdw.h>
 #include <elfutils/libdwfl.h>
@@ -239,7 +240,14 @@ class ObjectFileData : public ObjectFileRegistry
   Symbol const* find_symbol(uintptr_t addr) const;
 
  private:
+  struct LoadFunctionSymbolsContext;
+
   void open_dwarf(uintptr_t lbase, std::string const& debug_info_path);
+  void load_function_symbols(uintptr_t lbase);
+  static int cb_load_function_symbol(Dwarf_Die* func_die, void* arg);
+  void add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase);
+  void add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, uintptr_t lbase);
+  static char const* function_symbol_name(Dwarf_Die* func_die);
   void close_dwarf() const;
 
  public:
@@ -256,6 +264,9 @@ class ObjectFile final : public ObjectFileInterface
  public:
   ObjectFile(uintptr_t lbase, char const* filename) :
     ObjectFileInterface(lbase), object_file_data_(filename, lbase) { }
+
+  ObjectFile(ObjectFile const&) = delete;
+  ObjectFile& operator=(ObjectFile const&) = delete;
 
   // Ensure that the symbols of this ObjectFile have been loaded.
   void realize_symbols() const;
@@ -736,6 +747,146 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
 void ObjectFileData::load_symbols(uintptr_t lbase, std::string const& debug_info_path)
 {
   open_dwarf(lbase, debug_info_path);
+  if (is_initialized())
+    load_function_symbols(lbase);
+}
+
+// struct ObjectFileData::LoadFunctionSymbolsContext
+//
+// Carries the object-file cache being populated and its runtime load base through
+// libdw's C callback API.  The callback stores discovered function DIE ranges in
+// function_symbols_; symbol addresses are converted from DWARF/link-time PC
+// values to runtime addresses by adding lbase_ before insertion.
+struct ObjectFileData::LoadFunctionSymbolsContext
+{
+  ObjectFileData* object_file_data_;
+  uintptr_t lbase_;
+  std::size_t symbol_count_{};
+
+  LoadFunctionSymbolsContext(ObjectFileData* object_file_data, uintptr_t lbase) :
+    object_file_data_(object_file_data), lbase_(lbase) { }
+};
+
+// ObjectFileData::load_function_symbols
+//
+// Walk every compilation unit in the opened DWARF handle and ask libdw to visit
+// each defining DW_TAG_subprogram.  For every function DIE the callback records
+// one Symbol per contiguous PC range.  The strings returned by libdw are not
+// copied; they remain valid while dwarf_handle_ is open and are discarded with
+// this ObjectFileData instance.
+void ObjectFileData::load_function_symbols(uintptr_t lbase)
+{
+  LIBCWD_ASSERT(is_initialized() && dwarf_handle_);
+
+  LoadFunctionSymbolsContext context{this, lbase};
+  Dwarf_Off offset = 0;
+  Dwarf_Off next_offset = 0;
+  size_t header_size = 0;
+  int nextcu_status;
+
+  while ((nextcu_status = dwarf_nextcu(dwarf_handle_, offset, &next_offset, &header_size, nullptr, nullptr, nullptr)) == 0)
+  {
+    Dwarf_Die cu_die_mem;
+    Dwarf_Die* cu_die = dwarf_offdie(dwarf_handle_, offset + header_size, &cu_die_mem);
+    if (!cu_die)
+      Dout(dc::dwarf, "dwarf_offdie failed for CU at offset " << offset << " in " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
+    else if (dwarf_getfuncs(cu_die, &ObjectFileData::cb_load_function_symbol, &context, 0) < 0)
+      Dout(dc::dwarf, "dwarf_getfuncs failed for CU at offset " << offset << " in " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
+
+    offset = next_offset;
+  }
+
+  if (nextcu_status < 0)
+    Dout(dc::dwarf, "dwarf_nextcu failed while loading symbols from " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
+
+  Dout(dc::dwarf, "Loaded " << context.symbol_count_ << " function symbol range(s) from " << object_file_name_.filepath());
+}
+
+// ObjectFileData::cb_load_function_symbol
+//
+// libdw callback for dwarf_getfuncs.  It delegates the DIE interpretation to the
+// owning ObjectFileData and keeps traversal going so all defining subprograms in
+// the compilation unit are cached.
+//
+//static
+int ObjectFileData::cb_load_function_symbol(Dwarf_Die* func_die, void* arg)
+{
+  LoadFunctionSymbolsContext* context = static_cast<LoadFunctionSymbolsContext*>(arg);
+  std::size_t const before = context->object_file_data_->function_symbols_.size();
+  context->object_file_data_->add_function_symbol(func_die, context->lbase_);
+  context->symbol_count_ += context->object_file_data_->function_symbols_.size() - before;
+  return DWARF_CB_OK;
+}
+
+// ObjectFileData::add_function_symbol
+//
+// Extract the best available function name and all address ranges from a
+// DW_TAG_subprogram DIE.  The standard DW_AT_linkage_name attribute is
+// preferred because it contains the mangled linker symbol used by existing
+// location_ct callers; the GNU/MIPS spelling and DW_AT_name are fallbacks for
+// older or non-C++ producer output.
+void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
+{
+  char const* name = function_symbol_name(func_die);
+  if (!name)
+    return;
+
+  Dwarf_Addr base = 0;
+  Dwarf_Addr start_pc = 0;
+  Dwarf_Addr end_pc = 0;
+  for (ptrdiff_t range_offset = 0;
+      (range_offset = dwarf_ranges(func_die, range_offset, &base, &start_pc, &end_pc)) != 0; )
+  {
+    if (range_offset == -1)
+    {
+      Dout(dc::dwarf, "dwarf_ranges failed for function " << name << " in " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
+      break;
+    }
+
+    add_function_symbol_range(start_pc, end_pc, name, lbase);
+  }
+}
+
+// ObjectFileData::add_function_symbol_range
+//
+// Insert one contiguous function range into function_symbols_.  DWARF reports
+// one-past-the-end high_pc values; the map key is kept equal to Symbol::end_addr()
+// so find_symbol can use upper_bound(addr).  Empty, inverted, or overflowing
+// ranges are ignored because they cannot safely identify a runtime PC.
+void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, uintptr_t lbase)
+{
+  if (end_pc <= start_pc || start_pc > std::numeric_limits<uintptr_t>::max() - lbase || end_pc > std::numeric_limits<uintptr_t>::max() - lbase)
+    return;
+
+  uintptr_t const start_addr = lbase + static_cast<uintptr_t>(start_pc);
+  uintptr_t const end_addr = lbase + static_cast<uintptr_t>(end_pc);
+  if (end_addr <= start_addr)
+    return;
+
+  auto const ibp = function_symbols_.try_emplace(end_addr, start_addr, end_addr, name);
+  if (!ibp.second && start_addr > ibp.first->second.start_addr())
+    ibp.first->second = Symbol(start_addr, end_addr, name);
+}
+
+// ObjectFileData::function_symbol_name
+//
+// Return a stable libdw-owned string for the given function DIE.  Linkage-name
+// attributes are checked with dwarf_attr_integrate so declarations referenced via
+// DW_AT_abstract_origin or DW_AT_specification still provide the mangled name;
+// the returned pointer is valid until the owning Dwarf handle is closed.
+//
+//static
+char const* ObjectFileData::function_symbol_name(Dwarf_Die* func_die)
+{
+  Dwarf_Attribute attr;
+  Dwarf_Attribute* name_attr = dwarf_attr_integrate(func_die, DW_AT_linkage_name, &attr);
+  if (!name_attr)
+    name_attr = dwarf_attr_integrate(func_die, DW_AT_MIPS_linkage_name, &attr);
+
+  char const* name = dwarf_formstring(name_attr);
+  if (!name)
+    name = dwarf_diename(func_die);
+  return name;
 }
 
 void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_path)
