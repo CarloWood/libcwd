@@ -189,13 +189,45 @@ ObjectFileRegistry::object_files_t ObjectFileRegistry::s_object_files_;
 class Symbol : public SymbolInterface
 {
  private:
-  char const* name_;
+  char const* name_;            // The linkage name of this function symbol.
+  Dwarf_Die die_;               // The function DIE of this function symbol.
 
  public:
-  Symbol(uintptr_t start_addr, uintptr_t end_addr, char const* name) : SymbolInterface(start_addr, end_addr), name_(name) { }
+  Symbol(uintptr_t start_addr, uintptr_t end_addr, char const* name, Dwarf_Die* die) : SymbolInterface(start_addr, end_addr), name_(name), die_(*die) { }
 
   char const* name() const override { return name_; }
+  bool lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const override;
 };
+
+
+bool Symbol::lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const
+{
+  Dwarf_Die cu_die;
+  if (!die_.addr || dwarf_diecu(const_cast<Dwarf_Die*>(&die_), &cu_die, NULL, NULL) == nullptr)
+    return false;
+
+  Dwarf_Line* line = dwarf_getsrc_die(&cu_die, addr - lbase);
+  if (!line)
+    return false;
+
+  bool have_lineno = false;
+  int lineno;
+  if (dwarf_lineno(line, &lineno) != 0)
+    Dout(dc::bfd, "dwarf_lineno failed for address " << addr << ": " << dwarf_errmsg(-1));
+  else
+  {
+    have_lineno = true;
+    *line_out = lineno;
+  }
+
+  if ((*filepath_out = dwarf_linesrc(line, nullptr, nullptr)) == nullptr)
+  {
+    Dout(dc::bfd, "dwarf_linesrc failed for address 0x" << std::hex << addr << ": " << dwarf_errmsg(-1));
+    return false;
+  }
+
+  return have_lineno;
+}
 
 // class ObjectFileData
 //
@@ -246,7 +278,7 @@ class ObjectFileData : public ObjectFileRegistry
   void load_function_symbols(uintptr_t lbase);
   static int cb_load_function_symbol(Dwarf_Die* func_die, void* arg);
   void add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase);
-  void add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, uintptr_t lbase);
+  void add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die* func_die, uintptr_t lbase);
   static char const* function_symbol_name(Dwarf_Die* func_die);
   void close_dwarf();
 
@@ -843,7 +875,7 @@ void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
       break;
     }
 
-    add_function_symbol_range(start_pc, end_pc, name, lbase);
+    add_function_symbol_range(start_pc, end_pc, name, func_die, lbase);
   }
 }
 
@@ -853,7 +885,7 @@ void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
 // one-past-the-end high_pc values; the map key is kept equal to Symbol::end_addr()
 // so find_symbol can use upper_bound(addr).  Empty, inverted, or overflowing
 // ranges are ignored because they cannot safely identify a runtime PC.
-void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, uintptr_t lbase)
+void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die* func_die, uintptr_t lbase)
 {
   if (end_pc <= start_pc || start_pc > std::numeric_limits<uintptr_t>::max() - lbase || end_pc > std::numeric_limits<uintptr_t>::max() - lbase)
     return;
@@ -863,9 +895,9 @@ void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr e
   if (end_addr <= start_addr)
     return;
 
-  auto const ibp = function_symbols_.try_emplace(end_addr, start_addr, end_addr, name);
+  auto const ibp = function_symbols_.try_emplace(end_addr, start_addr, end_addr, name, func_die);
   if (!ibp.second && start_addr > ibp.first->second.start_addr())
-    ibp.first->second = Symbol(start_addr, end_addr, name);
+    ibp.first->second = Symbol(start_addr, end_addr, name, func_die);
 }
 
 // ObjectFileData::function_symbol_name

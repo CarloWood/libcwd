@@ -76,16 +76,16 @@ extern char const* const unknown_function_c;
  */
 class location_ct {
 protected:
-  ObjectFileName const* M_object_file;		//!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
-  char const* M_func;				//!< Pointer to static string containing the mangled function name of this location.
-  lockable_auto_ptr<char, true> M_filepath;	//!< The full source file name of this location.&nbsp; Allocated in `M_pc_location' using new [].
+  ObjectFileName const* M_object_file;          //!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
+  char const* M_func;                           //!< Pointer to static string containing the mangled function name of this location.
+  lockable_auto_ptr<char, true> M_filepath;     //!< The full source file name of this location.&nbsp; Allocated in `M_pc_location' using new [].
   union {
-    char* M_filename;				//!< Points inside M_filepath just after the last '/' or to the beginning.
-    void const* M_initialization_delayed;	//!< If M_object_file == NULL and M_func points to S_pre_ios_initialization_c or S_pre_libcwd_initialization_c, then this is the address that M_pc_location was called with.
-    void const* M_unknown_pc;			//!< If M_object_file == NULL and M_func points to unknown_function_c, then this is the address that M_pc_location was called with.
+    char const* M_filename;                     //!< Points inside M_filepath just after the last '/' or to the beginning.
+    void const* M_initialization_delayed;       //!< If M_object_file == NULL and M_func points to S_pre_ios_initialization_c or S_pre_libcwd_initialization_c, then this is the address that M_pc_location was called with.
+    void const* M_unknown_pc;                   //!< If M_object_file == NULL and M_func points to unknown_function_c, then this is the address that M_pc_location was called with.
   };
-  unsigned int M_line;				//!< The line number of this location.
-  bool M_known;					//!< Set when M_filepath (and M_filename) point to valid data and M_line contains a valid line number.
+  unsigned int M_line;                          //!< The line number of this location.
+  bool M_known;                                 //!< Set when M_filepath (and M_filename) point to valid data and M_line contains a valid line number.
 private:
 
 protected:

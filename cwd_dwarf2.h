@@ -30,7 +30,7 @@ class SymbolInterface
   uintptr_t end_addr() const { return end_addr_; }
 
   virtual char const* name() const = 0;
-//  virtual bool diecu(Dwarf_Die* cu_die_out) const = 0;
+  virtual bool lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const = 0;
 };
 
 class ObjectFileInterface

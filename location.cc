@@ -90,35 +90,17 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   }
 
   M_func = symbol->name();
+  char const* filepath = nullptr;
+  M_known = symbol->lookup_file_line(int_addr, &M_line, &filepath, object_file->get_lbase());
 
-#if 0
-  Dwarf_Die cu_die;
-  Dwarf_Line* line;
-  if (!symbol->diecu(&cu_die) || !(line = dwarf_getsrc_die(&cu_die, int_addr - object_file->get_lbase())))
+  if (filepath)         // Might still be true even if M_known is false (if we couldn't find a line number).
   {
-    M_known = false;
-    return;
-  }
-
-  int lineno = 0;
-  if (dwarf_lineno(line, &lineno) != 0)
-    Dout(dc::bfd, "dwarf_line failed for address " << addr << ": " << dwarf_errmsg(-1));
-  M_line = lineno;
-
-  char const* srcfile;
-  if ((srcfile = dwarf_linesrc(line, nullptr, nullptr)) == nullptr)
-    Dout(dc::bfd, "dwarf_linesrc failed for address " << addr << ": " << dwarf_errmsg(-1));
-  else
-  {
-    size_t len = strlen(srcfile);
+    size_t len = strlen(filepath);
     M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);	// LEAK5
-    strcpy(M_filepath.get(), srcfile);
-    M_known = true;
-    M_filename = strrchr(M_filepath.get(), '/') + 1;
-    if (M_filename == (char const*)1)
-      M_filename = M_filepath.get();
+    strcpy(M_filepath.get(), filepath);
+    char const* last_slash = strrchr(M_filepath.get(), '/');
+    M_filename = last_slash ? last_slash + 1 : M_filepath.get();
   }
-#endif
 }
 
 /**
