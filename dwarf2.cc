@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <dlfcn.h>
 #include <dwarf.h>
 #include <elf.h>
@@ -190,10 +192,15 @@ class Symbol : public SymbolInterface
 {
  private:
   char const* name_;            // The linkage name of this function symbol.
-  Dwarf_Die die_;               // The function DIE of this function symbol.
+  Dwarf_Die die_{};             // The function DIE of this function symbol, or empty when the symbol came only from ELF.
 
  public:
-  Symbol(uintptr_t start_addr, uintptr_t end_addr, char const* name, Dwarf_Die* die) : SymbolInterface(start_addr, end_addr), name_(name), die_(*die) { }
+  Symbol(uintptr_t start_addr, uintptr_t end_addr, char const* name, Dwarf_Die const* die = nullptr) :
+    SymbolInterface(start_addr, end_addr), name_(name)
+  {
+    if (die)
+      die_ = *die;
+  }
 
   char const* name() const override { return name_; }
   bool lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const override;
@@ -276,9 +283,11 @@ class ObjectFileData : public ObjectFileRegistry
 
   void open_dwarf(uintptr_t lbase, std::string const& debug_info_path);
   void load_function_symbols(uintptr_t lbase);
+  void load_elf_function_symbols(uintptr_t lbase, std::string const& object_file_path);
+  void add_elf_function_symbol(GElf_Sym const& sym, char const* name, uintptr_t lbase);
   static int cb_load_function_symbol(Dwarf_Die* func_die, void* arg);
   void add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase);
-  void add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die* func_die, uintptr_t lbase);
+  void add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die const* func_die, uintptr_t lbase);
   static char const* function_symbol_name(Dwarf_Die* func_die);
   void close_dwarf();
 
@@ -776,6 +785,7 @@ void ObjectFileData::load_symbols(uintptr_t lbase, std::string const& debug_info
   open_dwarf(lbase, debug_info_path);
   if (is_initialized())
     load_function_symbols(lbase);
+  load_elf_function_symbols(lbase, object_file_name_.filepath());
 }
 
 // struct ObjectFileData::LoadFunctionSymbolsContext
@@ -880,7 +890,7 @@ void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
 // one-past-the-end high_pc values; the map key is kept equal to Symbol::end_addr()
 // so find_symbol can use upper_bound(addr).  Empty, inverted, or overflowing
 // ranges are ignored because they cannot safely identify a runtime PC.
-void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die* func_die, uintptr_t lbase)
+void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die const* func_die, uintptr_t lbase)
 {
   if (end_pc <= start_pc || start_pc > std::numeric_limits<uintptr_t>::max() - lbase || end_pc > std::numeric_limits<uintptr_t>::max() - lbase)
     return;
@@ -893,6 +903,112 @@ void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr e
   auto const ibp = function_symbols_.try_emplace(end_addr, start_addr, end_addr, name, func_die);
   if (!ibp.second && start_addr > ibp.first->second.start_addr())
     ibp.first->second = Symbol(start_addr, end_addr, name, func_die);
+}
+
+// ObjectFileData::load_elf_function_symbols
+//
+// Populate function_symbols_ from the ELF symbol tables of object_file_path.
+// This is the fallback used when an object has no DWARF debug information: the
+// regular .symtab/.dynsym function entries still provide address ranges and
+// names such as `main', but no source line DIE is available.  Names copied from
+// libelf string tables are intentionally leaked because Symbol stores raw stable
+// pointers and the Elf handle is closed before location lookups use the cache.
+void ObjectFileData::load_elf_function_symbols(uintptr_t lbase, std::string const& object_file_path)
+{
+  if (elf_version(EV_CURRENT) == EV_NONE)
+  {
+    Dout(dc::dwarf, "elf_version failed while loading symbols from " << object_file_path << ": " << elf_errmsg(-1));
+    return;
+  }
+
+  int fd = open(object_file_path.c_str(), O_RDONLY);
+  if (fd == -1)
+  {
+    Dout(dc::dwarf, "failed to open ELF file " << object_file_path << " while loading fallback symbols");
+    return;
+  }
+
+  Elf* elf = elf_begin(fd, ELF_C_READ, nullptr);
+  if (!elf)
+  {
+    Dout(dc::dwarf, "elf_begin failed for " << object_file_path << ": " << elf_errmsg(-1));
+    close(fd);
+    return;
+  }
+
+  std::size_t symbol_count = 0;
+  Elf_Scn* section = nullptr;
+  while ((section = elf_nextscn(elf, section)) != nullptr)
+  {
+    GElf_Shdr section_header;
+    if (!gelf_getshdr(section, &section_header))
+      continue;
+
+    if (section_header.sh_type != SHT_SYMTAB && section_header.sh_type != SHT_DYNSYM)
+      continue;
+
+    Elf_Data* data = nullptr;
+    while ((data = elf_getdata(section, data)) != nullptr)
+    {
+      if (section_header.sh_entsize == 0)
+        continue;
+      std::size_t const entries = data->d_size / section_header.sh_entsize;
+      for (std::size_t index = 0; index < entries; ++index)
+      {
+        GElf_Sym sym;
+        if (!gelf_getsym(data, static_cast<int>(index), &sym))
+          continue;
+
+        char const* name = elf_strptr(elf, section_header.sh_link, sym.st_name);
+        std::size_t const before = function_symbols_.size();
+        add_elf_function_symbol(sym, name, lbase);
+        symbol_count += function_symbols_.size() - before;
+      }
+    }
+  }
+
+  elf_end(elf);
+  close(fd);
+
+  Dout(dc::dwarf, "Loaded " << symbol_count << " ELF function symbol range(s) from " << object_file_path);
+}
+
+// ObjectFileData::add_elf_function_symbol
+//
+// Add one STT_FUNC (or GNU ifunc) ELF symbol as a function range.  ELF symbol
+// table addresses are link-time virtual addresses, so lbase converts them to the
+// same runtime address space that find_symbol receives.  Zero-sized or undefined
+// symbols cannot safely answer containment queries and are skipped.
+void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* name, uintptr_t lbase)
+{
+  if (!name || name[0] == '\0' || sym.st_shndx == SHN_UNDEF || sym.st_size == 0)
+    return;
+
+  unsigned char const type = GELF_ST_TYPE(sym.st_info);
+  if (type != STT_FUNC
+#ifdef STT_GNU_IFUNC
+      && type != STT_GNU_IFUNC
+#endif
+     )
+    return;
+
+  if (sym.st_value > std::numeric_limits<Dwarf_Addr>::max() - sym.st_size ||
+      sym.st_value > std::numeric_limits<uintptr_t>::max() - lbase ||
+      sym.st_value + sym.st_size > std::numeric_limits<uintptr_t>::max() - lbase)
+    return;
+
+  uintptr_t const start_addr = lbase + static_cast<uintptr_t>(sym.st_value);
+  uintptr_t const end_addr = lbase + static_cast<uintptr_t>(sym.st_value + sym.st_size);
+  if (Symbol const* existing_symbol = find_symbol(start_addr);
+      existing_symbol && existing_symbol->start_addr() <= start_addr && end_addr <= existing_symbol->end_addr())
+    return;
+
+  char* stable_name = static_cast<char*>(std::malloc(std::strlen(name) + 1));
+  if (!stable_name)
+    return;
+  std::strcpy(stable_name, name);
+
+  add_function_symbol_range(static_cast<Dwarf_Addr>(sym.st_value), static_cast<Dwarf_Addr>(sym.st_value + sym.st_size), stable_name, nullptr, lbase);
 }
 
 // ObjectFileData::function_symbol_name

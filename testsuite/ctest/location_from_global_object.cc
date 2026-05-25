@@ -48,8 +48,6 @@ GlobalObject::GlobalObject()
   LIBCWD_TSD_DECLARATION;
   Debug(
     libcw_do.set_ostream(&captured_debug);
-    if (!dc::notice.is_on())
-      dc::notice.on();
     if (!libcw_do.is_on(LIBCWD_TSD))
       libcw_do.on()
   );
@@ -68,20 +66,30 @@ GlobalObject global_object;
 int main()
 {
   Debug(main_reached());
-  ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );
-  Debug(libcw_do.on());
+  Debug(dc::notice.on());
+  LIBCWD_TSD_DECLARATION;
+  Debug(
+    if (!libcw_do.is_on(LIBCWD_TSD))
+      libcw_do.on();
+  );
+
+  // Construct `GlobalObject` again, but now after main was reached.
+  // This time the location_ct *should* print file:line.
+  GlobalObject not_really_global;
 
   std::cout << "Successful\n";
 
   char const* expected_cout[] = {
+    "Calling GlobalObject::GlobalObject()",
     "Calling GlobalObject::GlobalObject()",
     "Successful",
     nullptr
   };
 
   char const* expected_debug[] = {
+    ">>>>>>>>: We are now at location_from_global_object:<unknown function>",
     "NOTICE  : Hello World<unfinished>",
-    ">>>>>>>>:     We are now at location_from_global_object:<unknown function>",
+    ">>>>>>>>:     We are now at location_from_global_object.cc:58",
     "NOTICE  : <continued> Hello World: 0 (Success)",
     nullptr
   };
