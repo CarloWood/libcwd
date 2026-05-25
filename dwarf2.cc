@@ -269,6 +269,12 @@ class ObjectFile final : public ObjectFileInterface
     return data_r->object_file_name();
   }
 
+  SymbolInterface const* find_symbol(uintptr_t addr) const override
+  {
+    object_file_data_t::rat data_r(object_file_data_);
+    return data_r->find_symbol(addr);
+  }
+
   // Called from pc_mangled_function_name.
   object_file_data_t::rat read_locked_data() const { return object_file_data_t::rat{object_file_data_}; }
 

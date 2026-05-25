@@ -80,11 +80,8 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
   M_object_file = &object_file->get_object_file();
 
-#if 0
-  // symbol_ct
   uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
-  symbol_ct_key search_key(int_addr);
-  symbol_ct_interface const* symbol = object_file->find_symbol(search_key);
+  SymbolInterface const* symbol = object_file->find_symbol(int_addr);
   if (!symbol)
   {
     M_func = unknown_function_c;
@@ -94,6 +91,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
   M_func = symbol->name();
 
+#if 0
   Dwarf_Die cu_die;
   Dwarf_Line* line;
   if (!symbol->diecu(&cu_die) || !(line = dwarf_getsrc_die(&cu_die, int_addr - object_file->get_lbase())))
