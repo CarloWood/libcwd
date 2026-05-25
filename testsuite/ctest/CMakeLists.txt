@@ -37,6 +37,9 @@ add_executable(location_inlined_calls location_inlined_calls.cc support/location
 target_link_libraries(location_inlined_calls PRIVATE ctest_support)
 target_compile_options(location_inlined_calls PRIVATE -O0 -finline)
 
+add_executable(location_from_global_object location_from_global_object.cc)
+target_link_libraries(location_from_global_object PRIVATE ctest_support)
+
 function(configure_location_loading_library target_name)
   target_include_directories(${target_name}
     PRIVATE
@@ -116,6 +119,11 @@ set_tests_properties(location_return_addresses PROPERTIES
 
 add_test(NAME location_inlined_calls COMMAND location_inlined_calls)
 set_tests_properties(location_inlined_calls PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME location_from_global_object COMMAND location_from_global_object)
+set_tests_properties(location_from_global_object PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
 
