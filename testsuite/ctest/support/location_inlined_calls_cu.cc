@@ -4,7 +4,9 @@
 // shape: g has default arguments that call y_default and arg2_i, arg2_i is nested inside
 // another inline helper, and f calls g with an explicit arg_g argument.  Each helper
 // receives the logical line that a fully inline-aware location lookup should
-// report for the helper's return address.
+// report for the helper's "return address plus libcwd::builtin_return_address_offset",
+// where libcwd::builtin_return_address_offset is typically -1, that is assumed to be
+// a byte that is part of the inlined code.
 
 #include "cwd_sys.h"
 #include "test_support.h"
