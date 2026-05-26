@@ -212,7 +212,12 @@ class Symbol : public SymbolInterface
       die_ = *die;
   }
 
+  // Accessor.
   char const* name() const override { return name_; }
+
+  // A Symbol construted with a null die will have originated from ELF symbol lookup.
+  bool is_elf_symbol() const { return !has_dwarf_die(); }
+
   bool lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const override;
 };
 
@@ -869,11 +874,7 @@ int ObjectFileData::cb_load_function_symbol(Dwarf_Die* func_die, void* arg)
 
 // ObjectFileData::add_function_symbol
 //
-// Extract the best available function name and all address ranges from a
-// DW_TAG_subprogram DIE.  The standard DW_AT_linkage_name attribute is
-// preferred because it contains the mangled linker symbol used by existing
-// location_ct callers; the GNU/MIPS spelling and DW_AT_name are fallbacks for
-// older or non-C++ producer output.
+// Extract the best available function name and all address ranges from a DW_TAG_subprogram DIE.
 void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
 {
   char const* name = function_symbol_name(func_die);
@@ -898,19 +899,17 @@ void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
 
 // ObjectFileData::add_function_symbol_range
 //
-// Insert one contiguous function range into function_symbols_.  DWARF reports
-// one-past-the-end high_pc values; the map key is kept equal to Symbol::end_addr()
-// so find_symbol can use upper_bound(addr).  Empty, inverted, or overflowing
-// ranges are ignored because they cannot safely identify a runtime PC.
+// Insert one contiguous function range into function_symbols_.
+//
+// DWARF reports one-past-the-end high_pc values; the map key is kept equal to Symbol::end_addr() so find_symbol can use upper_bound(addr).
+// Empty, inverted, or overflowing ranges are ignored because they cannot safely identify a runtime PC.
 void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die const* func_die, uintptr_t lbase)
 {
-  if (end_pc <= start_pc || start_pc > std::numeric_limits<uintptr_t>::max() - lbase || end_pc > std::numeric_limits<uintptr_t>::max() - lbase)
+  if (!(start_pc < end_pc && end_pc <= std::numeric_limits<uintptr_t>::max() - lbase))
     return;
 
   uintptr_t const start_addr = lbase + static_cast<uintptr_t>(start_pc);
   uintptr_t const end_addr = lbase + static_cast<uintptr_t>(end_pc);
-  if (end_addr <= start_addr)
-    return;
 
   auto const ibp = function_symbols_.try_emplace(end_addr, start_addr, end_addr, name, func_die);
   if (!ibp.second && start_addr > ibp.first->second.start_addr())
@@ -1025,10 +1024,14 @@ void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* na
 
 // ObjectFileData::function_symbol_name
 //
-// Return a stable libdw-owned string for the given function DIE.  Linkage-name
-// attributes are checked with dwarf_attr_integrate so declarations referenced via
-// DW_AT_abstract_origin or DW_AT_specification still provide the mangled name;
+// Return a stable libdw-owned string for the given function DIE.
+// Linkage-name attributes are checked with dwarf_attr_integrate so declarations referenced
+// via DW_AT_abstract_origin or DW_AT_specification still provide the mangled name;
 // the returned pointer is valid until the owning Dwarf handle is closed.
+//
+// The standard DW_AT_linkage_name attribute is preferred because it contains the mangled
+// linker symbol used by existing location_ct callers; the GNU/MIPS spelling and DW_AT_name
+// are fallbacks for older or non-C++ producer output.
 //
 //static
 char const* ObjectFileData::function_symbol_name(Dwarf_Die* func_die)
