@@ -81,7 +81,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   M_object_file = &object_file->get_object_file();
 
   uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
-  SymbolInterface const* symbol = object_file->find_symbol(int_addr);
+  SymbolRangeInterface const* symbol = object_file->find_symbol(int_addr);
   if (!symbol)
   {
     M_func = unknown_function_c;

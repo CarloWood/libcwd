@@ -198,31 +198,46 @@ class ObjectFileRegistry
 //static
 ObjectFileRegistry::object_files_t ObjectFileRegistry::s_object_files_;
 
-class Symbol : public SymbolInterface
+class SymbolRange : public SymbolRangeInterface
 {
  private:
-  char const* name_;            // The linkage name of this function symbol.
-  Dwarf_Die die_{};             // The function DIE of this function symbol, or empty when the symbol came only from ELF.
+  uintptr_t start_addr_;                // Current fragment start.
+  uintptr_t end_addr_;                  // Current fragment end.
+
+  uintptr_t symbol_start_addr_;         // Original unsnipped symbol start.
+  uintptr_t symbol_end_addr_;           // Original unsnipped symbol end.
+
+  char const* name_;                    // The linkage name of this function symbol.
+  Dwarf_Die die_{};                     // The function DIE of this function symbol, or empty when the symbol came only from ELF.
 
  public:
-  Symbol(uintptr_t start_addr, uintptr_t end_addr, char const* name, Dwarf_Die const* die = nullptr) :
-    SymbolInterface(start_addr, end_addr), name_(name)
+  SymbolRange(uintptr_t start_addr, uintptr_t end_addr,
+      uintptr_t symbol_start_addr, uintptr_t symbol_end_addr,
+      char const* name, Dwarf_Die const* die = nullptr) :
+    start_addr_(start_addr), end_addr_(end_addr), symbol_start_addr_(symbol_start_addr), symbol_end_addr_(symbol_end_addr), name_(name)
   {
+    LIBCWD_ASSERT(symbol_start_addr < symbol_end_addr);
+    LIBCWD_ASSERT(start_addr < end_addr);
+    // Must be a fragment of the original.
+    LIBCWD_ASSERT(symbol_start_addr <= start_addr && end_addr <= symbol_end_addr);
     if (die)
       die_ = *die;
   }
 
-  // Accessor.
+  // Accessors.
+  uintptr_t start_addr() const { return start_addr_; }
+  uintptr_t end_addr() const { return end_addr_; }
+  uintptr_t size() const { return symbol_end_addr_ - symbol_start_addr_ - 1; }
   char const* name() const override { return name_; }
 
-  // A Symbol construted with a null die will have originated from ELF symbol lookup.
-  bool is_elf_symbol() const { return !has_dwarf_die(); }
+  // A SymbolRange construted with a null die will have originated from ELF symbol lookup.
+  bool is_elf_symbol() const { return die_.addr == nullptr; }
 
   bool lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const override;
 };
 
 
-bool Symbol::lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const
+bool SymbolRange::lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const
 {
   Dwarf_Die cu_die;
   if (!die_.addr || dwarf_diecu(const_cast<Dwarf_Die*>(&die_), &cu_die, NULL, NULL) == nullptr)
@@ -266,8 +281,8 @@ class ObjectFileData : public ObjectFileRegistry
                                                         // equal to the open fd for the file containing the debug info.
   Dwarf* dwarf_handle_{nullptr};                        // mutable because close_dwarf() sets these to nullptr and -1 again.
 
-  using function_symbols_type = std::map<uintptr_t, Symbol>;
-  function_symbols_type function_symbols_;              // End-address index of Symbol's.
+  using function_symbols_type = std::map<uintptr_t, SymbolRange>;
+  function_symbols_type function_symbols_;              // End-address index of SymbolRange's.
 
  public:
   // Accessors.
@@ -290,11 +305,11 @@ class ObjectFileData : public ObjectFileRegistry
   // know that initialization has already been attempted and can continue without retrying.
   void load_symbols(uintptr_t lbase, std::string const& debug_info_path);
 
-  // Look up a Symbol in function_symbols_ by address.
-  Symbol const* find_symbol(uintptr_t addr) const;
+  // Look up a SymbolRange in function_symbols_ by address.
+  SymbolRange const* find_symbol(uintptr_t addr) const;
 
  private:
-  struct LoadFunctionSymbolsContext;
+  struct LoadFunctionSymbolRangesContext;
 
   void open_dwarf(uintptr_t lbase, std::string const& debug_info_path);
   void load_function_symbols(uintptr_t lbase);
@@ -336,7 +351,7 @@ class ObjectFile final : public ObjectFileInterface
     return data_r->object_file_name();
   }
 
-  SymbolInterface const* find_symbol(uintptr_t addr) const override
+  SymbolRangeInterface const* find_symbol(uintptr_t addr) const override
   {
     object_file_data_t::rat data_r(object_file_data_);
     return data_r->find_symbol(addr);
@@ -534,9 +549,9 @@ void ObjectFile::realize_symbols() const
   }
 }
 
-Symbol const* ObjectFileData::find_symbol(uintptr_t addr) const
+SymbolRange const* ObjectFileData::find_symbol(uintptr_t addr) const
 {
-  Symbol const* symbol = nullptr;
+  SymbolRange const* symbol = nullptr;
   auto const iter = function_symbols_.upper_bound(addr);
   if (iter != function_symbols_.end() && iter->second.start_addr() <= addr)
     symbol = &iter->second;
@@ -805,19 +820,19 @@ void ObjectFileData::load_symbols(uintptr_t lbase, std::string const& debug_info
   load_elf_function_symbols(lbase, object_file_name_.filepath());
 }
 
-// struct ObjectFileData::LoadFunctionSymbolsContext
+// struct ObjectFileData::LoadFunctionSymbolRangesContext
 //
 // Carries the object-file cache being populated and its runtime load base through
 // libdw's C callback API.  The callback stores discovered function DIE ranges in
 // function_symbols_; symbol addresses are converted from DWARF/link-time PC
 // values to runtime addresses by adding lbase_ before insertion.
-struct ObjectFileData::LoadFunctionSymbolsContext
+struct ObjectFileData::LoadFunctionSymbolRangesContext
 {
   ObjectFileData* object_file_data_;
   uintptr_t lbase_;
   std::size_t symbol_count_{};
 
-  LoadFunctionSymbolsContext(ObjectFileData* object_file_data, uintptr_t lbase) :
+  LoadFunctionSymbolRangesContext(ObjectFileData* object_file_data, uintptr_t lbase) :
     object_file_data_(object_file_data), lbase_(lbase) { }
 };
 
@@ -825,14 +840,14 @@ struct ObjectFileData::LoadFunctionSymbolsContext
 //
 // Walk every compilation unit in the opened DWARF handle and ask libdw to visit
 // each defining DW_TAG_subprogram.  For every function DIE the callback records
-// one Symbol per contiguous PC range.  The strings returned by libdw are not
+// one SymbolRange per contiguous PC range.  The strings returned by libdw are not
 // copied; they remain valid while dwarf_handle_ is open and are discarded with
 // this ObjectFileData instance.
 void ObjectFileData::load_function_symbols(uintptr_t lbase)
 {
   LIBCWD_ASSERT(is_initialized() && dwarf_handle_);
 
-  LoadFunctionSymbolsContext context{this, lbase};
+  LoadFunctionSymbolRangesContext context{this, lbase};
   Dwarf_Off offset = 0;
   Dwarf_Off next_offset = 0;
   size_t header_size = 0;
@@ -865,7 +880,7 @@ void ObjectFileData::load_function_symbols(uintptr_t lbase)
 //static
 int ObjectFileData::cb_load_function_symbol(Dwarf_Die* func_die, void* arg)
 {
-  LoadFunctionSymbolsContext* context = static_cast<LoadFunctionSymbolsContext*>(arg);
+  LoadFunctionSymbolRangesContext* context = static_cast<LoadFunctionSymbolRangesContext*>(arg);
   std::size_t const before = context->object_file_data_->function_symbols_.size();
   context->object_file_data_->add_function_symbol(func_die, context->lbase_);
   context->symbol_count_ += context->object_file_data_->function_symbols_.size() - before;
@@ -901,7 +916,7 @@ void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
 //
 // Insert one contiguous function range into function_symbols_.
 //
-// DWARF reports one-past-the-end high_pc values; the map key is kept equal to Symbol::end_addr() so find_symbol can use upper_bound(addr).
+// DWARF reports one-past-the-end high_pc values; the map key is kept equal to SymbolRange::end_addr() so find_symbol can use upper_bound(addr).
 // Empty, inverted, or overflowing ranges are ignored because they cannot safely identify a runtime PC.
 void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die const* func_die, uintptr_t lbase)
 {
@@ -911,9 +926,10 @@ void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr e
   uintptr_t const start_addr = lbase + static_cast<uintptr_t>(start_pc);
   uintptr_t const end_addr = lbase + static_cast<uintptr_t>(end_pc);
 
-  auto const ibp = function_symbols_.try_emplace(end_addr, start_addr, end_addr, name, func_die);
+  //FIXME: this needs a rewrite.
+  auto const ibp = function_symbols_.try_emplace(end_addr, start_addr, end_addr, start_addr, end_addr, name, func_die);
   if (!ibp.second && start_addr > ibp.first->second.start_addr())
-    ibp.first->second = Symbol(start_addr, end_addr, name, func_die);
+    ibp.first->second = SymbolRange(start_addr, end_addr, start_addr, end_addr, name, func_die);
 }
 
 // ObjectFileData::load_elf_function_symbols
@@ -922,7 +938,7 @@ void ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr e
 // This is the fallback used when an object has no DWARF debug information: the
 // regular .symtab/.dynsym function entries still provide address ranges and
 // names such as `main', but no source line DIE is available.  Names copied from
-// libelf string tables are intentionally leaked because Symbol stores raw stable
+// libelf string tables are intentionally leaked because SymbolRange stores raw stable
 // pointers and the Elf handle is closed before location lookups use the cache.
 void ObjectFileData::load_elf_function_symbols(uintptr_t lbase, std::string const& object_file_path)
 {
@@ -1010,7 +1026,7 @@ void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* na
 
   uintptr_t const start_addr = lbase + static_cast<uintptr_t>(sym.st_value);
   uintptr_t const end_addr = lbase + static_cast<uintptr_t>(sym.st_value + sym.st_size);
-  if (Symbol const* existing_symbol = find_symbol(start_addr);
+  if (SymbolRange const* existing_symbol = find_symbol(start_addr);
       existing_symbol && existing_symbol->start_addr() <= start_addr && end_addr <= existing_symbol->end_addr())
     return;
 
@@ -1277,7 +1293,7 @@ char const* pc_mangled_function_name(void const* pc)
     return unknown_function_c;
 
   uintptr_t const addr = reinterpret_cast<uintptr_t>(pc);
-  SymbolInterface const* symbol = object_file->read_locked_data()->find_symbol(addr);
+  SymbolRangeInterface const* symbol = object_file->read_locked_data()->find_symbol(addr);
   if (!symbol)
     return unknown_function_c;
 

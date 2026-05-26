@@ -14,20 +14,10 @@ namespace libcwd::dwarf2 {
 // registry untouched.
 extern bool ensure_initialization(LIBCWD_TSD_PARAM);
 
-class SymbolInterface
+class SymbolRangeInterface
 {
- protected:
-  uintptr_t start_addr_;
-  uintptr_t end_addr_;
-
  public:
-  //symbol_ct const* objfile_ct::find_symbol(symbol_ct const& search_key) const
-  SymbolInterface(uintptr_t start_addr, uintptr_t end_addr) : start_addr_(start_addr), end_addr_(end_addr) { }
-  virtual ~SymbolInterface() = default;
-
-  // Accessors.
-  uintptr_t start_addr() const { return start_addr_; }
-  uintptr_t end_addr() const { return end_addr_; }
+  virtual ~SymbolRangeInterface() = default;
 
   virtual char const* name() const = 0;
   virtual bool lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const = 0;
@@ -43,7 +33,7 @@ class ObjectFileInterface
  public:
   uintptr_t get_lbase() const { return lbase_; }
   virtual ObjectFileName const& get_object_file() const = 0;
-  virtual SymbolInterface const* find_symbol(uintptr_t addr) const = 0;
+  virtual SymbolRangeInterface const* find_symbol(uintptr_t addr) const = 0;
 };
 
 // Return the registered ObjectFile that contains `addr` in one of its mapped
