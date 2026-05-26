@@ -90,7 +90,7 @@ int main()
   };
 
   char const* expected_debug[] = {
-    ">>>>>>>>: We are now at location_from_global_object:_ZN12_GLOBAL__N_112GlobalObjectC1Ev",
+    R"(^>>>>>>>>: We are now at location_from_global_object:_ZN12_GLOBAL__N_112GlobalObjectC[12]Ev$)",
     "NOTICE  : Hello World<unfinished>",
     ">>>>>>>>:     We are now at location_from_global_object:GlobalObject:location_from_global_object.cc:61",
     "NOTICE  : <continued> Hello World: 0 (Success)",

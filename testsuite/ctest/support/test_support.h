@@ -62,12 +62,12 @@ class redirect_cerr_ct {
   ~redirect_cerr_ct() { std::cerr.rdbuf(M_original); }
 };
 
-// Compare captured line-oriented output with a null-terminated array of expected
-// lines. The function consumes all complete lines from captured, reports the
-// first missing, extra, or mismatching line to std::cerr, and returns false on
-// failure. It returns true only when the captured output exactly matches the
-// expected lines; a final trailing newline is accepted because std::getline
-// discards line terminators.
+// Compare captured line-oriented output with a null-terminated array of expected lines.
+// The function consumes all complete lines from captured, reports the first missing, extra,
+// or mismatching line to std::cerr, and returns false on failure.
+//
+// The function returns true only when all captured output matches the expected lines;
+// a final trailing newline is accepted because std::getline discards line terminators.
 bool matches_expected_output(std::istream& captured, char const* const* expected);
 
 } // namespace libcwd_ctest
