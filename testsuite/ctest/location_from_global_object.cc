@@ -49,7 +49,10 @@ GlobalObject::GlobalObject()
   Debug(
     libcw_do.set_ostream(&captured_debug);
     if (!libcw_do.is_on(LIBCWD_TSD))
-      libcw_do.on()
+    {
+      libcw_do.on();
+      location_format(show_objectfile|show_function);
+    }
   );
 
   std::cout << "Calling GlobalObject::GlobalObject()\n";
@@ -87,9 +90,9 @@ int main()
   };
 
   char const* expected_debug[] = {
-    ">>>>>>>>: We are now at location_from_global_object:<unknown function>",
+    ">>>>>>>>: We are now at location_from_global_object:_ZN12_GLOBAL__N_112GlobalObjectC1Ev",
     "NOTICE  : Hello World<unfinished>",
-    ">>>>>>>>:     We are now at location_from_global_object.cc:58",
+    ">>>>>>>>:     We are now at location_from_global_object:GlobalObject:location_from_global_object.cc:61",
     "NOTICE  : <continued> Hello World: 0 (Success)",
     nullptr
   };
