@@ -115,6 +115,16 @@ class ScopedTracker final
   }
 };
 
+class ScopedPreserveErrno final
+{
+ private:
+  int saved_;
+
+ public:
+  ScopedPreserveErrno(int old_value) : saved_(old_value) { }
+  ~ScopedPreserveErrno() { errno = saved_; }
+};
+
 static thread_local bool s_object_files_is_locked_ = false;
 
 // class ObjectFileRegistry
@@ -352,6 +362,8 @@ namespace {
 // by dwfl_module_info are no longer valid after `close_dwfl` is destroyed.
 std::string get_debug_info_path(char const* object_file_path)
 {
+  ScopedPreserveErrno scoped_(errno);
+
   Dwfl_Callbacks callbacks{};
   callbacks.find_debuginfo = dwfl_standard_find_debuginfo;
   callbacks.section_address = dwfl_offline_section_address;
@@ -1034,6 +1046,8 @@ char const* ObjectFileData::function_symbol_name(Dwarf_Die* func_die)
 
 void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_path)
 {
+  ScopedPreserveErrno scoped_(errno);
+
   // Should only be called once, through load_symbols() while holding the write lock.
   LIBCWD_ASSERT(!symbols_loaded());
 
