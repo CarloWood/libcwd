@@ -236,24 +236,26 @@ bool SymbolRange::lookup_file_line(uintptr_t addr, unsigned int* line_out, char 
 class ObjectFileData : public ObjectFileRegistry
 {
  public:
-  static constexpr int symbols_loaded_not_called = -2;
+  static constexpr int dwarf_symbols_loaded_not_called = -2;
 
  private:
-  int dwarf_fd_{symbols_loaded_not_called};             // Once load_symbols was called this becomes -1 (permanent failure) or
+  int dwarf_fd_{dwarf_symbols_loaded_not_called};       // Once load_dwarf_symbols was called this becomes -1 (permanent failure) or
                                                         // equal to the open fd for the file containing the debug info.
   Dwarf* dwarf_handle_{nullptr};                        // mutable because close_dwarf() sets these to nullptr and -1 again.
+  bool elf_symbols_loaded_{false};                      // True iff load_elf_function_symbols was already called.
 
   using function_symbols_type = FunctionSymbolRanges;
   function_symbols_type function_symbols_;              // End-address index of SymbolRange's.
 
  public:
   // Accessors.
-  bool symbols_loaded() const { return dwarf_fd_ != symbols_loaded_not_called; }
   bool is_initialized() const { return dwarf_fd_ >= 0; }
+  bool dwarf_symbols_loaded() const { return dwarf_fd_ != dwarf_symbols_loaded_not_called; }
+  bool elf_symbols_loaded() const { return elf_symbols_loaded_; }
 
   // Construct and destroy the protected ObjectFile payload inside object_file_data_t.
   // Construction records the path/load base only; symbol loading is explicitly
-  // triggered later through ObjectFile::load_symbols(), which serializes the
+  // triggered later through ObjectFile::load_dwarf_symbols(), which serializes the
   // mutable DWARF initialization behind this wrapper's read/write lock.
   // Destruction releases any libdw resources owned by the payload.
   ObjectFileData(char const* filename, uintptr_t lbase);
@@ -263,19 +265,22 @@ class ObjectFileData : public ObjectFileRegistry
   // without holding a lock because libdwfl may call dlopen while resolving separate debug
   // info.
   //
-  // Note that symbols_loaded() becomes true even when opening fails so concurrent callers
+  // Note that dwarf_symbols_loaded() becomes true even when opening fails so concurrent callers
   // know that initialization has already been attempted and can continue without retrying.
-  void load_symbols(uintptr_t lbase, std::string const& debug_info_path);
+  void load_dwarf_symbols(uintptr_t lbase, std::string const& debug_info_path);
+
+  // Load ELF symbols for fallback.
+  void load_elf_function_symbols(uintptr_t lbase, std::string const& object_file_path);
 
   // Look up a SymbolRange in function_symbols_ by address.
-  SymbolRange const* find_symbol(uintptr_t addr) const;
+  // Never call this member function directly. Use ObjectFile::find_symbol instead.
+  SymbolRange const* get_symbol_range_from_function_symbols_map(uintptr_t addr) const;
 
  private:
   struct LoadFunctionSymbolRangesContext;
 
   void open_dwarf(uintptr_t lbase, std::string const& debug_info_path);
   void load_function_symbols(uintptr_t lbase);
-  void load_elf_function_symbols(uintptr_t lbase, std::string const& object_file_path);
   void add_elf_function_symbol(GElf_Sym const& sym, char const* name, uintptr_t lbase);
   static int cb_load_function_symbol(Dwarf_Die* func_die, void* arg);
   void add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase);
@@ -313,14 +318,7 @@ class ObjectFile final : public ObjectFileInterface
     return data_r->object_file_name();
   }
 
-  SymbolRangeInterface const* find_symbol(uintptr_t addr) const override
-  {
-    object_file_data_t::rat data_r(object_file_data_);
-    return data_r->find_symbol(addr);
-  }
-
-  // Called from pc_mangled_function_name.
-  object_file_data_t::rat read_locked_data() const { return object_file_data_t::rat{object_file_data_}; }
+  SymbolRangeInterface const* find_symbol(uintptr_t addr) const override;
 
   // Called from dlopen.
   object_file_data_t::wat write_locked_data() const { return object_file_data_t::wat{object_file_data_}; }
@@ -471,7 +469,7 @@ void ObjectFile::realize_symbols() const
     object_file_data_t::rat data_r(object_file_data_);
 
     // Return if already loaded.
-    if (data_r->symbols_loaded())
+    if (data_r->dwarf_symbols_loaded())
       return;
 
     object_file_path = data_r->object_file_name().filepath();
@@ -496,11 +494,11 @@ void ObjectFile::realize_symbols() const
     {
       object_file_data_t::rat data_r(object_file_data_);
 
-      if (data_r->symbols_loaded())
+      if (data_r->dwarf_symbols_loaded())
         return;         // Someone else beat us to it.
 
       object_file_data_t::wat data_w(data_r);
-      data_w->load_symbols(lbase_, debug_info_path);
+      data_w->load_dwarf_symbols(lbase_, debug_info_path);
     }
     catch (std::exception const&)
     {
@@ -511,7 +509,57 @@ void ObjectFile::realize_symbols() const
   }
 }
 
-SymbolRange const* ObjectFileData::find_symbol(uintptr_t addr) const
+// On the lifetime of the returned object.
+//
+// There are only two callers of this function, `libcwd::location_ct::M_pc_location` and `libcwd::pc_mangled_function_name`.
+// Both first call
+//     object_file = find_object_file(addr)
+//     symbol = object_file->find_symbol(addr)
+//     name = symbol->name()
+// and `libcwd::location_ct::M_pc_location` follows up with a call to
+//     M_known = symbol->lookup_file_line(int_addr, &M_line, &filepath, object_file->get_lbase());
+//
+// If main_reached() wasn't called yet then we should be single-threaded and the access to `name()` is safe.
+// The call to `lookup_file_line` is a no-op in this case.
+//
+// If main_reached() *was* called then the call to `find_object_file` that called `object_file->realize_symbols()`
+// will have assured a call to `load_dwarf_symbols` and `load_function_symbols` or at the very least, in the
+// case of an error, that that will never be called again for that object file.
+//
+// Therefore any SymbolRange added to function_symbols_ should be stable (unless the corresponding DSO is dlclose-d)
+// because the only call to erase for elements of function_symbols_ happens in `insert_function_symbol_range`,
+// which can only be called indirectly from `load_function_symbols` (or `load_elf_function_symbols` but then
+// such a DWARF SymbolRange can't be invalidated because "DWARF wins from ELF ranges") and that was already called.
+//
+SymbolRangeInterface const* ObjectFile::find_symbol(uintptr_t addr) const
+{
+  SymbolRangeInterface const* symbol;
+  for (;;)
+  {
+    try
+    {
+      object_file_data_t::rat data_r(object_file_data_);
+      symbol = data_r->get_symbol_range_from_function_symbols_map(addr);
+      if (!symbol && !data_r->elf_symbols_loaded())
+      {
+        {
+          object_file_data_t::wat data_w(data_r);
+          data_w->load_elf_function_symbols(lbase_, data_r->object_file_name().filepath());
+        }
+        symbol = data_r->get_symbol_range_from_function_symbols_map(addr);
+      }
+    }
+    catch (std::exception const&)
+    {
+      object_file_data_.rd2wryield();
+      continue;
+    }
+    break;
+  }
+  return symbol;
+}
+
+SymbolRange const* ObjectFileData::get_symbol_range_from_function_symbols_map(uintptr_t addr) const
 {
   SymbolRange const* symbol = nullptr;
   auto const iter = function_symbols_.upper_bound(addr);
@@ -774,12 +822,11 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
   return obsolete_object_file;
 }
 
-void ObjectFileData::load_symbols(uintptr_t lbase, std::string const& debug_info_path)
+void ObjectFileData::load_dwarf_symbols(uintptr_t lbase, std::string const& debug_info_path)
 {
   open_dwarf(lbase, debug_info_path);
   if (is_initialized())
     load_function_symbols(lbase);
-  load_elf_function_symbols(lbase, object_file_name_.filepath());
 }
 
 // struct ObjectFileData::LoadFunctionSymbolRangesContext
@@ -903,6 +950,9 @@ bool ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr e
 // pointers and the Elf handle is closed before location lookups use the cache.
 void ObjectFileData::load_elf_function_symbols(uintptr_t lbase, std::string const& object_file_path)
 {
+  // Only attempt this once.
+  elf_symbols_loaded_ = true;
+
   if (elf_version(EV_CURRENT) == EV_NONE)
   {
     Dout(dc::dwarf, "elf_version failed while loading symbols from " << object_file_path << ": " << elf_errmsg(-1));
@@ -1023,8 +1073,8 @@ void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_p
 {
   ScopedPreserveErrno scoped_(errno);
 
-  // Should only be called once, through load_symbols() while holding the write lock.
-  LIBCWD_ASSERT(!symbols_loaded());
+  // Should only be called once, through load_dwarf_symbols() while holding the write lock.
+  LIBCWD_ASSERT(!dwarf_symbols_loaded());
 
   bool different_symbols_path = debug_info_path != object_file_name_.filepath();
   Dout(dc::bfd|continued_cf, "Loading debug info " << (different_symbols_path ? "for " : "from ") << object_file_name_.filepath());
@@ -1236,6 +1286,8 @@ char const* const unknown_function_c = "<unknown function>";
  *
  * \returns the same pointer that is returned by location_ct::mangled_function_name() on success,
  * otherwise \ref unknown_function_c is returned.
+ *
+ * Note: the returned pointer is invalidated by calling dlclose(3) on the DSO that contains the returned function!
  */
 char const* pc_mangled_function_name(void const* pc)
 {
@@ -1248,8 +1300,7 @@ char const* pc_mangled_function_name(void const* pc)
   if (!object_file)
     return unknown_function_c;
 
-  uintptr_t const addr = reinterpret_cast<uintptr_t>(pc);
-  SymbolRangeInterface const* symbol = object_file->read_locked_data()->find_symbol(addr);
+  SymbolRangeInterface const* symbol = object_file->find_symbol(reinterpret_cast<uintptr_t>(pc));
   if (!symbol)
     return unknown_function_c;
 
