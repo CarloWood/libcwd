@@ -48,6 +48,16 @@ add_executable(location_from_global_object location_from_global_object.cc)
 target_link_libraries(location_from_global_object PRIVATE ctest_support)
 target_compile_options(location_from_global_object PRIVATE -g)
 
+add_executable(symbol_range_overlaps symbol_range_overlaps.cc)
+target_include_directories(symbol_range_overlaps
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_BINARY_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(symbol_range_overlaps PRIVATE cwd_r)
+target_compile_options(symbol_range_overlaps PRIVATE -g)
+
 add_executable(nodebug_output nodebug_output.cc)
 target_link_libraries(nodebug_output PRIVATE ctest_support)
 
@@ -135,6 +145,11 @@ set_tests_properties(location_inlined_calls PROPERTIES
 
 add_test(NAME location_from_global_object COMMAND location_from_global_object)
 set_tests_properties(location_from_global_object PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME symbol_range_overlaps COMMAND symbol_range_overlaps)
+set_tests_properties(symbol_range_overlaps PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
 
