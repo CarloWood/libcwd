@@ -43,7 +43,9 @@ int arg_g1(int expected_line)
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::location_ct const arg_g1_loc(addr);
   Dout(dc::always, "arg_g1() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g1_loc << " (expected: " << std::dec << expected_line << ")");
-  return arg_g1_loc.line() == expected_line;
+  // Unfortunately, a DWARF producer is not required to have more fine grained line tables than one line per statement.
+  // Using g++ -g produces the same line as that of the call to g() in this case.
+  return arg_g1_loc.line() == expected_line || arg_g1_loc.line() == expected_line - 1;
 }
 
 int arg_g2(int expected_line)
@@ -51,7 +53,9 @@ int arg_g2(int expected_line)
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::location_ct const arg_g2_loc(addr);
   Dout(dc::always, "arg_g2() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g2_loc << " (expected: " << std::dec << expected_line << ")");
-  return arg_g2_loc.line() == expected_line;
+  // Unfortunately, a DWARF producer is not required to have more fine grained line tables than one line per statement.
+  // Using g++ -g produces the same line as that of the call to g() in this case.
+  return arg_g2_loc.line() == expected_line || arg_g2_loc.line() == expected_line - 2;
 }
 
 int main()
