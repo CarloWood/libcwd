@@ -40,9 +40,9 @@ add_executable(location_return_addresses location_return_addresses.cc)
 target_link_libraries(location_return_addresses PRIVATE ctest_support)
 target_compile_options(location_return_addresses PRIVATE -g)
 
-add_executable(location_inlined_calls location_inlined_calls.cc support/location_inlined_calls_cu.cc)
-target_link_libraries(location_inlined_calls PRIVATE ctest_support)
-target_compile_options(location_inlined_calls PRIVATE -g -finline)
+add_executable(location_default_argument_functions location_default_argument_functions.cc support/location_default_argument_functions_cu.cc)
+target_link_libraries(location_default_argument_functions PRIVATE ctest_support)
+target_compile_options(location_default_argument_functions PRIVATE -g -finline)
 
 add_executable(location_from_global_object location_from_global_object.cc)
 target_link_libraries(location_from_global_object PRIVATE ctest_support)
@@ -138,8 +138,8 @@ set_tests_properties(location_return_addresses PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
 
-add_test(NAME location_inlined_calls COMMAND location_inlined_calls)
-set_tests_properties(location_inlined_calls PROPERTIES
+add_test(NAME location_default_argument_functions COMMAND location_default_argument_functions)
+set_tests_properties(location_default_argument_functions PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
 
