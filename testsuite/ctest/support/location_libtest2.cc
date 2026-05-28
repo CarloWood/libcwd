@@ -4,11 +4,9 @@
 namespace {
 
 // Logs construction and destruction of location_libtest2.so.  The constructor
-// has no inputs or outputs; its side effect is to initialize libcwd early and
-// write a dc::elfutils message proving that a DT_NEEDED dependency was loaded before
-// the executable reaches main().  The destructor emits the matching unload
-// message and assumes libcwd's global debug state is still usable during DSO
-// teardown.
+// has no inputs or outputs; its side effect is to record that a DT_NEEDED
+// dependency was loaded before the executable reaches main(). The destructor
+// emits the matching unload message after main has initialized dc::notice output.
 class location_libtest2_lifecycle_ct
 {
  public:

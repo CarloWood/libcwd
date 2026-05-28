@@ -14,16 +14,16 @@ namespace {
 void* plugin1_handle;
 
 // Open location_plugin1.so from inside location_libtest1.so.  This function is
-// called by the global constructor after libcwd logging has been enabled; it
-// has no inputs, stores the dlopen handle for the destructor, and logs dlopen
-// errors through dc::elfutils without failing the dynamic loader.  RTLD_GLOBAL makes
-// the plugin's probe symbol visible to the executable so the CTest program can
-// verify that this runtime load happened.
+// called by the global constructor; it has no inputs, stores the dlopen handle
+// for the destructor, and records dlopen errors through the fixture's dc::notice
+// output without failing the dynamic loader. RTLD_GLOBAL makes the plugin's
+// probe symbol visible to the executable so the CTest program can verify that
+// this runtime load happened.
 void open_plugin1()
 {
   plugin1_handle = dlopen(LOCATION_PLUGIN1_PATH, RTLD_NOW | RTLD_GLOBAL);
   if (!plugin1_handle)
-    libcwd_ctest::location_loading::log_elfutils_message(
+    libcwd_ctest::location_loading::log_notice_message(
         "location_libtest1.so", "dlopen(location_plugin1.so) failed: " + std::string(dlerror()));
 }
 

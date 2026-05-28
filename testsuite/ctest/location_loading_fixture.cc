@@ -1,8 +1,7 @@
-// Exercise libcwd initialization and dc::notice logging from constructors and
-// destructors in dependent and dlopen-loaded shared objects. This CTest fixture
-// intentionally avoids DWARF, symbol, and file:line assertions; it only verifies
-// that the expected DSOs load, initialize libcwd, and expose their tiny probe
-// functions.
+// Exercise ordinary dc::notice logging for constructors and destructors in
+// dependent and dlopen-loaded shared objects. This CTest fixture intentionally
+// avoids ELF/DWARF diagnostics, symbol lookup, and file:line assertions; it only
+// verifies that the expected DSOs load and expose their tiny probe functions.
 
 #include "cwd_sys.h"
 #include "location_loading_support.h"
@@ -24,35 +23,25 @@ namespace {
 using plugin_touch_fn = int (*)();
 
 // Compare the fixture's captured constructor/destructor output after the final
-// shared-object destructor runs.  The input stream is owned by
-// location_loading_support.h; this function consumes it, filters libcwd's own
-// address-dependent "Loading debug info" diagnostics, and exact-matches the
-// deterministic lifecycle lines.  A false return lets the support code abort so
+// shared-object destructor runs. The input stream is owned by
+// location_loading_support.h; this function consumes it and exact-matches the
+// deterministic lifecycle lines. A false return lets the support code abort so
 // CTest sees failures that happen after main() has returned.
 bool compare_location_loading_output(std::istream& captured)
 {
-  std::stringstream deterministic_lines;
-  std::string line;
-  while (std::getline(captured, line))
-  {
-    if (line.rfind("ELFUTILS: Loading debug info ", 0) == 0)
-      continue;
-    deterministic_lines << line << '\n';
-  }
-
   char const* expected[] = {
-    "ELFUTILS: location_libtest2.so: loaded",
-    "ELFUTILS: location_libtest1.so: loaded",
-    "ELFUTILS: location_plugin1.so: loaded",
-    "ELFUTILS: location_plugin2.so: loaded",
-    "ELFUTILS: location_plugin2.so: unloaded",
-    "ELFUTILS: location_libtest1.so: unloaded",
-    "ELFUTILS: location_libtest2.so: unloaded",
-    "ELFUTILS: location_plugin1.so: unloaded",
+    "NOTICE  : location_libtest2.so: loaded",
+    "NOTICE  : location_libtest1.so: loaded",
+    "NOTICE  : location_plugin1.so: loaded",
+    "NOTICE  : location_plugin2.so: loaded",
+    "NOTICE  : location_plugin2.so: unloaded",
+    "NOTICE  : location_libtest1.so: unloaded",
+    "NOTICE  : location_libtest2.so: unloaded",
+    "NOTICE  : location_plugin1.so: unloaded",
     nullptr
   };
 
-  return libcwd_ctest::matches_expected_output(deterministic_lines, expected);
+  return libcwd_ctest::matches_expected_output(captured, expected);
 }
 
 // Resolve and call an integer probe symbol from an already-open object.  The
@@ -85,7 +74,8 @@ bool check_probe(void* handle, char const* symbol_name, int expected)
 
 int main()
 {
-  libcwd_ctest::location_loading::initialize_elfutils_logging();
+  Debug(main_reached());
+  libcwd_ctest::location_loading::initialize_notice_logging();
   libcwd_ctest::location_loading::register_final_output_check(compare_location_loading_output);
 
   int const lib_value = location_libtest1_touch();
