@@ -199,15 +199,84 @@ class ObjectFileRegistry
 //static
 ObjectFileRegistry::object_files_t ObjectFileRegistry::s_object_files_;
 
-bool SymbolRange::lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const
+namespace {
+
+// Return the best available mangled function name for func_die.
+//
+// func_die can be a DW_TAG_subprogram or DW_TAG_inlined_subroutine. Integrated
+// attributes are used so declarations referenced through DW_AT_abstract_origin
+// or DW_AT_specification still provide the original function name. The returned
+// pointer is borrowed from libdw and remains valid until the owning Dwarf handle
+// is closed.
+char const* function_die_name(Dwarf_Die* func_die)
 {
+  Dwarf_Attribute attr;
+  Dwarf_Attribute* name_attr = dwarf_attr_integrate(func_die, DW_AT_linkage_name, &attr);
+  if (!name_attr)
+    name_attr = dwarf_attr_integrate(func_die, DW_AT_MIPS_linkage_name, &attr);
+
+  char const* name = dwarf_formstring(name_attr);
+  if (!name)
+    name = dwarf_diename(func_die);
+  return name;
+}
+
+struct InlineScopeLookupResult
+{
+  char const* function_name{};                  // Mangled inline function name.
+  bool found{false};                            // True when addr is covered by an inline scope.
+};
+
+// Inspect the DWARF scope chain for runtime address addr in cu_die using lbase as the load base.
+//
+// dwarf_getscopes returns scopes from innermost to outermost, so the first
+// DW_TAG_inlined_subroutine is the inline body that should override the physical
+// machine-code symbol for source-level reporting. The returned function_name is
+// borrowed from libdw and may be null when the inline scope exists but carries no
+// resolvable name. The only side effects are libdw's temporary scope allocation,
+// which is released before returning, and optional debug-channel diagnostics.
+InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, uintptr_t addr, uintptr_t lbase)
+{
+  InlineScopeLookupResult result;
+  Dwarf_Die* scopes = nullptr;
+  int const nscopes = dwarf_getscopes(cu_die, static_cast<Dwarf_Addr>(addr - lbase), &scopes);
+  if (nscopes < 0)
+    Dout(dc::dwarf, "dwarf_getscopes failed for address 0x" << std::hex << addr << ": " << dwarf_errmsg(-1));
+  else
+    for (int scope_index = 0; scope_index < nscopes; ++scope_index)
+    {
+      if (dwarf_tag(&scopes[scope_index]) != DW_TAG_inlined_subroutine)
+        continue;
+
+      result.found = true;
+      result.function_name = function_die_name(&scopes[scope_index]);
+      Dout(dc::dwarf, "inline scope for address 0x" << std::hex << addr << " resolves to " <<
+          (result.function_name ? result.function_name : "<unnamed inline function>"));
+      break;
+    }
+
+  std::free(scopes);
+  return result;
+}
+
+} // namespace
+
+LocationLookupResult SymbolRange::lookup_location(uintptr_t addr, uintptr_t lbase) const
+{
+  LocationLookupResult result;
+  result.physical_function_name = name_;
+
   Dwarf_Die cu_die;
   if (!die_.addr || dwarf_diecu(const_cast<Dwarf_Die*>(&die_), &cu_die, NULL, NULL) == nullptr)
-    return false;
+    return result;
+
+  InlineScopeLookupResult const inline_scope = lookup_innermost_inline_scope(&cu_die, addr, lbase);
+  if (inline_scope.function_name)
+    result.effective_function_name = inline_scope.function_name;
 
   Dwarf_Line* line = dwarf_getsrc_die(&cu_die, addr - lbase);
   if (!line)
-    return false;
+    return result;
 
   bool have_lineno = false;
   int lineno;
@@ -216,16 +285,17 @@ bool SymbolRange::lookup_file_line(uintptr_t addr, unsigned int* line_out, char 
   else
   {
     have_lineno = true;
-    *line_out = lineno;
+    result.line = lineno;
   }
 
-  if ((*filepath_out = dwarf_linesrc(line, nullptr, nullptr)) == nullptr)
+  if ((result.filepath = dwarf_linesrc(line, nullptr, nullptr)) == nullptr)
   {
     Dout(dc::bfd, "dwarf_linesrc failed for address 0x" << std::hex << addr << ": " << dwarf_errmsg(-1));
-    return false;
+    return result;
   }
 
-  return have_lineno;
+  result.known = have_lineno;
+  return result;
 }
 
 // class ObjectFileData
@@ -1058,15 +1128,7 @@ void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* na
 //static
 char const* ObjectFileData::function_symbol_name(Dwarf_Die* func_die)
 {
-  Dwarf_Attribute attr;
-  Dwarf_Attribute* name_attr = dwarf_attr_integrate(func_die, DW_AT_linkage_name, &attr);
-  if (!name_attr)
-    name_attr = dwarf_attr_integrate(func_die, DW_AT_MIPS_linkage_name, &attr);
-
-  char const* name = dwarf_formstring(name_attr);
-  if (!name)
-    name = dwarf_diename(func_die);
-  return name;
+  return function_die_name(func_die);
 }
 
 void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_path)

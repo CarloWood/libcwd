@@ -62,7 +62,7 @@ class SymbolRange : public SymbolRangeInterface
     return SymbolRange(start_addr, end_addr, symbol_start_addr_, symbol_end_addr_, name_, is_elf_symbol() ? nullptr : &die_);
   }
 
-  bool lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const override;
+  LocationLookupResult lookup_location(uintptr_t addr, uintptr_t lbase) const override;
 };
 
 using FunctionSymbolRanges = std::map<uintptr_t, SymbolRange>;
