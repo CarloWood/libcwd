@@ -38,12 +38,20 @@ int arg2_i(int expected_line)
   return arg2_i_loc.line() == expected_line;
 }
 
-int arg_g(int expected_line)
+int arg_g1(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  libcwd::location_ct const arg_g_loc(addr);
-  Dout(dc::always, "arg_g() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g_loc << " (expected: " << std::dec << expected_line << ")");
-  return arg_g_loc.line() == expected_line;
+  libcwd::location_ct const arg_g1_loc(addr);
+  Dout(dc::always, "arg_g1() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g1_loc << " (expected: " << std::dec << expected_line << ")");
+  return arg_g1_loc.line() == expected_line;
+}
+
+int arg_g2(int expected_line)
+{
+  char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
+  libcwd::location_ct const arg_g2_loc(addr);
+  Dout(dc::always, "arg_g2() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g2_loc << " (expected: " << std::dec << expected_line << ")");
+  return arg_g2_loc.line() == expected_line;
 }
 
 int main()
@@ -59,10 +67,10 @@ int main()
   // original intent of this test: exercising location lookup for code in this
   // function without relying on the removed allocation-debugging malloc channel
   // to report the allocation call site as a side effect.
-  libcwd::location_ct const f_loc(&&current_location);
+  libcwd::location_ct const f_loc(&&f_call_location);
   int const expected_line = __LINE__ + 3;
   Dout(dc::notice, "Calling f() from main: " << f_loc << " (expected: " << expected_line << ")");
-current_location:
+f_call_location:
   return f_loc.line() == expected_line && f() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
