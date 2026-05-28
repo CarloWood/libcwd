@@ -36,6 +36,7 @@
 #define LIBCW_STRING
 #include <string>
 #endif
+#include <iomanip>
 
 namespace libcwd {
 
@@ -140,9 +141,9 @@ template<class OSTREAM>
       if ((__libcwd_tsd.format & show_function))
 	os << location.M_func << ':';
       if ((__libcwd_tsd.format & show_path))
-	os << location.M_filepath.get() << ':' << location.M_line;
+	os << location.M_filepath.get() << ':' << std::dec << location.M_line;
       else
-	os << location.M_filename << ':' << location.M_line;
+	os << location.M_filename << ':' << std::dec << location.M_line;
     }
     else if (location.M_object_file)
       os << location.M_object_file->filename() << ':' << location.M_func;
