@@ -60,7 +60,7 @@ namespace channels {
     extern channel_ct system;
     extern channel_ct warning;
 #if CWDEBUG_LOCATION
-    extern channel_ct bfd;
+    extern channel_ct elfutils;
 #endif
     extern fatal_channel_ct fatal;
     extern fatal_channel_ct core;
@@ -154,13 +154,13 @@ using namespace libcwd_inserters;
 #include "class_continued_channel.inl"
 #include "class_always_channel.inl"
 #include "class_debug.inl"		// Debug objects (debug_ct).
-#include "class_debug_string.inl"	// Public member of debug_ct.
-#include "class_channel_set.inl"		// Used in macro Dout et al.
+#include "class_debug_string.inl"       // Public member of debug_ct.
+#include "class_channel_set.inl"	// Used in macro Dout et al.
 #include "class_location.inl"
 
 // Include optional features.
-#if CWDEBUG_LOCATION				// --enable-location
-#include "bfd.h"
+#if CWDEBUG_LOCATION			// --enable-location
+#include "elfutils.h"
 #endif
 
 #endif // CWDEBUG

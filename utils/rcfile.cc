@@ -140,18 +140,18 @@ void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& m
   if (_private_::match(mask.data(), mask.length(), label.c_str()))
   {
 #if CWDEBUG_LOCATION
-    if (label == "BFD")
+    if (label == "ELFUTILS")
     {
-      if (!M_bfd_on && (action == on || action == toggle))
+      if (!M_elfutils_on && (action == on || action == toggle))
       {
-	M_bfd_on = true;
-	Dout(dc::rcfile, "Turned on BFD");
+	M_elfutils_on = true;
+	Dout(dc::rcfile, "Turned on ELFUTILS");
       }
-      else if (M_bfd_on && (action == off || action == toggle))
+      else if (M_elfutils_on && (action == off || action == toggle))
       {
-        M_bfd_on = false;
+        M_elfutils_on = false;
 	debugChannel.off();
-	Dout(dc::rcfile, "Turned off BFD");
+	Dout(dc::rcfile, "Turned off ELFUTILS");
       }
     }
 #endif
@@ -207,11 +207,11 @@ void rcfile_ct::set_all_channels_on()
     std::string::size_type pos = label.find(' ');
     if (pos != std::string::npos)
       label.erase(pos);
-    while (!debugChannel.is_on() && label != "BFD")
+    while (!debugChannel.is_on() && label != "ELFUTILS")
       debugChannel.on()
   );
 #if CWDEBUG_LOCATION
-  M_bfd_on = true;
+  M_elfutils_on = true;
 #endif
 }
 
@@ -225,7 +225,7 @@ void rcfile_ct::set_all_channels_off(bool warning_on)
   if (warning_on)
     channels::dc::warning.on();
 #if CWDEBUG_LOCATION
-  M_bfd_on = false;
+  M_elfutils_on = false;
 #endif
 }
 
@@ -238,7 +238,7 @@ void rcfile_ct::read()
   std::ifstream rc;
 
 #if CWDEBUG_LOCATION
-  M_bfd_on = libcwd::channels::dc::bfd.is_on();
+  M_elfutils_on = libcwd::channels::dc::elfutils.is_on();
 #endif
 
   std::array<int, 2> channels_default_set = { 0, 0 };
@@ -377,9 +377,9 @@ void rcfile_ct::read()
     channels::dc::rcfile.on();
   channels::dc::rcfile.restore(state);
 #if CWDEBUG_LOCATION
-  if (M_bfd_on)
-    while (!channels::dc::bfd.is_on())
-      channels::dc::bfd.on();
+  if (M_elfutils_on)
+    while (!channels::dc::elfutils.is_on())
+      channels::dc::elfutils.on();
 #endif
   M_read_called = true;
 }

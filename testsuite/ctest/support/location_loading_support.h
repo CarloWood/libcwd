@@ -51,15 +51,15 @@ inline capture_state_ct& capture_state()
 // Initialize libcwd and enable the output path used by the shared-object
 // loading fixture.  The function is safe to call from global constructors and
 // destructors in multiple shared objects: libcwd::initialize() is idempotent,
-// and libcw_do / dc::bfd are only turned on when they are not already active.
+// and libcw_do / dc::elfutils are only turned on when they are not already active.
 // It also starts a std::cerr redirect into an internal stringstream before the
 // first log line, so constructors that run before main() are captured.  When
-// LIBCWD_PRINT_LOADING is set, capture is disabled instead so libcwd's own BFD
+// LIBCWD_PRINT_LOADING is set, capture is disabled instead so libcwd's own ELFUTILS
 // loading diagnostics remain visible on stderr for manual debugging.  It has
 // process-wide side effects on libcwd's debug state and does not report failure;
 // fixture code verifies failures through dlopen/dlsym return values and, when
 // capturing is enabled, through the final output comparison.
-inline void initialize_bfd_logging()
+inline void initialize_elfutils_logging()
 {
   capture_state().start_capture();
   libcwd::initialize();
@@ -69,8 +69,8 @@ inline void initialize_bfd_logging()
     libcwd::libcw_do.on();
 
 #if CWDEBUG_LOCATION
-  if (!libcwd::channels::dc::bfd.is_on())
-    libcwd::channels::dc::bfd.on();
+  if (!libcwd::channels::dc::elfutils.is_on())
+    libcwd::channels::dc::elfutils.on();
 #endif
 }
 
@@ -80,37 +80,37 @@ inline void initialize_bfd_logging()
 // invoked once, when the last tracked fixture library destructor reports unload.
 inline void register_final_output_check(final_output_check_fn check)
 {
-  initialize_bfd_logging();
+  initialize_elfutils_logging();
   if (!capture_state().passthrough_to_stderr)
     capture_state().final_output_check = check;
 }
 
-// Emit one deterministic dc::bfd message.  This helper is used for both normal
+// Emit one deterministic dc::elfutils message.  This helper is used for both normal
 // lifecycle lines and dlopen diagnostics; it captures std::cerr first, has no
 // return value, and performs no file:line or symbol lookup.
-inline void log_bfd_message([[maybe_unused]] char const* image_name, [[maybe_unused]] std::string const& event)
+inline void log_elfutils_message([[maybe_unused]] char const* image_name, [[maybe_unused]] std::string const& event)
 {
-  initialize_bfd_logging();
+  initialize_elfutils_logging();
 #if CWDEBUG_LOCATION
-  Dout(dc::bfd, image_name << ": " << event);
+  Dout(dc::elfutils, image_name << ": " << event);
 #endif
 }
 
-inline void log_bfd_message(char const* image_name, char const* event)
+inline void log_elfutils_message(char const* image_name, char const* event)
 {
-  log_bfd_message(image_name, std::string(event));
+  log_elfutils_message(image_name, std::string(event));
 }
 
 // Record that a fixture shared object was constructed.  The active-library
 // count is incremented before the log line so that a matching destructor can
 // detect the final unload.  Inputs are the logical shared-object name used in
-// expected output; there is no direct output other than the captured dc::bfd
+// expected output; there is no direct output other than the captured dc::elfutils
 // line and the process-wide active count side effect.
 inline void library_loaded(char const* image_name)
 {
-  initialize_bfd_logging();
+  initialize_elfutils_logging();
   ++capture_state().active_libraries;
-  log_bfd_message(image_name, "loaded");
+  log_elfutils_message(image_name, "loaded");
 }
 
 // Record that a fixture shared object is being destroyed.  The unload message
@@ -121,8 +121,8 @@ inline void library_loaded(char const* image_name)
 // the late destructor-time failure.
 inline void library_unloaded(char const* image_name)
 {
-  initialize_bfd_logging();
-  log_bfd_message(image_name, "unloaded");
+  initialize_elfutils_logging();
+  log_elfutils_message(image_name, "unloaded");
 
   capture_state_ct& state = capture_state();
   --state.active_libraries;

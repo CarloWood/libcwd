@@ -39,7 +39,7 @@ namespace libcwd {
 #if CWDEBUG_LOCATION
     namespace dwarf2 {
       bool ensure_initialization(LIBCWD_TSD_PARAM);
-    } // namespace dwarf
+    } // namespace dwarf2
 #endif
 
 class debug_ct;

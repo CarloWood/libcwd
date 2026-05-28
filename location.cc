@@ -71,7 +71,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   M_initialization_delayed = nullptr;
   if (!object_file)
   {
-    Dout(dc::bfd, "No object file for address " << addr);
+    Dout(dc::elfutils, "No object file for address " << addr);
     M_object_file = nullptr;
     M_func = unknown_function_c;
     M_unknown_pc = addr;

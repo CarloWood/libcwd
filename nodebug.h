@@ -10,7 +10,6 @@
 #define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...)
 #define NEW(x) new x
 #define CWDEBUG_LOCATION 0
-#define CWDEBUG_LIBBFD 0
 #define CWDEBUG_DEBUG 0
 #define CWDEBUG_DEBUGOUTPUT 0
 #define CWDEBUG_DEBUGT 0

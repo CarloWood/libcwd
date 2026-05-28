@@ -11,12 +11,12 @@
 // packaging of this file.
 //
 
-/** \file bfd.h
+/** \file elfutils.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
-#ifndef LIBCWD_BFD_H
-#define LIBCWD_BFD_H
+#ifndef LIBCWD_ELFUTILS_H
+#define LIBCWD_ELFUTILS_H
 
 #ifndef LIBCWD_CONFIG_H
 #include "libcwd/config.h"
@@ -29,4 +29,4 @@
 #endif
 
 
-#endif // LIBCWD_BFD_H
+#endif // LIBCWD_ELFUTILS_H

@@ -36,9 +36,8 @@ int main()
   Dout(dc::hello, "Hello World!");
 
   char const* expected[] = {
-    "BFD     : Enabled",
     "DEBUG   : Enabled",
-    "DWARF   : Enabled",
+    "ELFUTILS: Enabled",
     "HELLO   : Enabled",
     "NOTICE  : Disabled",
     "SYSTEM  : Enabled",

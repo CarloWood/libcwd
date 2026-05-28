@@ -55,7 +55,7 @@ private:
   bool M_read_called;
 
 #if CWDEBUG_LOCATION
-  bool M_bfd_on;
+  bool M_elfutils_on;
 #endif
 
 public:

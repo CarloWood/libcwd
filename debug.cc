@@ -71,11 +71,6 @@ using libcwd::_private_::debug_channels_instance;
 #define COMMA_IFTHREADS(x)
 #endif // !LIBCWD_THREAD_SAFE
 
-#define NEED_SUPRESSION_OF_BFD (__GNUC__ == 3 && \
-    ((__GNUC_MINOR__ == 2 && __GNUC_PATCHLEVEL__ == 0) || \
-     (__GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ == 1) || \
-     (__GNUC_MINOR__ == 0)))
-
 namespace libcwd {
 
     class buffer_ct : public std::stringbuf {
@@ -427,7 +422,7 @@ namespace libcwd {
       channels::dc::continued.NS_initialize(continued_maskbit);
       channels::dc::finish.NS_initialize(finish_maskbit);
 #if CWDEBUG_LOCATION
-      channels::dc::bfd.NS_initialize("BFD" LIBCWD_COMMA_TSD, true);
+      channels::dc::elfutils.NS_initialize("ELFUTILS" LIBCWD_COMMA_TSD, true);
 #endif
       // What the heck, initialize all other debug channels too
       channels::dc::warning.NS_initialize("WARNING" LIBCWD_COMMA_TSD, true);
@@ -824,13 +819,6 @@ namespace libcwd {
 #endif
 #endif
 
-      if (NEED_SUPRESSION_OF_BFD)
-      {
-#if CWDEBUG_LOCATION
-        channels::dc::bfd.off();
-#endif
-      }
-
       // Skip `start()' for a `continued' debug output.
       // Generating the "prefix: <continued>" is already taken care
       // of while generating the "<unfinished>" (see next `if' block).
@@ -1007,13 +995,6 @@ namespace libcwd {
 #endif
       std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : debug_object.real_os;
 
-
-      if (NEED_SUPRESSION_OF_BFD)
-      {
-#if CWDEBUG_LOCATION
-        channels::dc::bfd.on();
-#endif
-      }
 
       // Skip `finish()' for a `continued' debug output.
       if ((current->mask & continued_cf_maskbit) && !(current->mask & finish_maskbit))
@@ -1313,7 +1294,7 @@ namespace libcwd {
     {
 #if LIBCWD_THREAD_SAFE
       // In the non-threaded case we do not want to deinitialize these because they
-      // might still be needed if dc::bfd is turned on and
+      // might still be needed if dc::elfutils is turned on and
       // the destructor of some global object that is destructed *after* libcw_do
       // is deleting (or allocating) memory.
 
@@ -1401,24 +1382,12 @@ namespace libcwd {
 	    i != _private_::debug_channels.read_locked().end(); ++i)
 	{
 	  LibcwDoutScopeBegin(LIBCWD_DEBUGCHANNELS, debug_object, dc::always|noprefix_cf);
-	  if (NEED_SUPRESSION_OF_BFD)
-	  {
-#if CWDEBUG_LOCATION
-	    channels::dc::bfd.on();
-#endif
-	  }
 	  LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(), LIBCWD_DO_TSD_MEMBER(debug_object, margin).size());
 	  LibcwDoutStream.write((*i)->get_label(), WST_max_len);
 	  if ((*i)->is_on(LIBCWD_TSD))
 	    LibcwDoutStream.write(": Enabled", 9);
 	  else
 	    LibcwDoutStream.write(": Disabled", 10);
-	  if (NEED_SUPRESSION_OF_BFD)
-	  {
-#if CWDEBUG_LOCATION
-	    channels::dc::bfd.off();
-#endif
-	  }
 	  LibcwDoutScopeEnd;
 	}
         DEBUG_CHANNELS_RELEASE_READ_LOCK;

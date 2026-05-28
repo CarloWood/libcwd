@@ -1,5 +1,5 @@
-// Exercise libcwd initialization and dc::bfd logging from constructors and
-// destructors in dependent and dlopen-loaded shared objects.  This CTest fixture
+// Exercise libcwd initialization and dc::notice logging from constructors and
+// destructors in dependent and dlopen-loaded shared objects. This CTest fixture
 // intentionally avoids DWARF, symbol, and file:line assertions; it only verifies
 // that the expected DSOs load, initialize libcwd, and expose their tiny probe
 // functions.
@@ -35,20 +35,20 @@ bool compare_location_loading_output(std::istream& captured)
   std::string line;
   while (std::getline(captured, line))
   {
-    if (line.rfind("BFD     : Loading debug info ", 0) == 0)
+    if (line.rfind("ELFUTILS: Loading debug info ", 0) == 0)
       continue;
     deterministic_lines << line << '\n';
   }
 
   char const* expected[] = {
-    "BFD     : location_libtest2.so: loaded",
-    "BFD     : location_libtest1.so: loaded",
-    "BFD     : location_plugin1.so: loaded",
-    "BFD     : location_plugin2.so: loaded",
-    "BFD     : location_plugin2.so: unloaded",
-    "BFD     : location_libtest1.so: unloaded",
-    "BFD     : location_libtest2.so: unloaded",
-    "BFD     : location_plugin1.so: unloaded",
+    "ELFUTILS: location_libtest2.so: loaded",
+    "ELFUTILS: location_libtest1.so: loaded",
+    "ELFUTILS: location_plugin1.so: loaded",
+    "ELFUTILS: location_plugin2.so: loaded",
+    "ELFUTILS: location_plugin2.so: unloaded",
+    "ELFUTILS: location_libtest1.so: unloaded",
+    "ELFUTILS: location_libtest2.so: unloaded",
+    "ELFUTILS: location_plugin1.so: unloaded",
     nullptr
   };
 
@@ -85,7 +85,7 @@ bool check_probe(void* handle, char const* symbol_name, int expected)
 
 int main()
 {
-  libcwd_ctest::location_loading::initialize_bfd_logging();
+  libcwd_ctest::location_loading::initialize_elfutils_logging();
   libcwd_ctest::location_loading::register_final_output_check(compare_location_loading_output);
 
   int const lib_value = location_libtest1_touch();

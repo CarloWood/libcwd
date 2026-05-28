@@ -7,7 +7,7 @@ namespace {
 // dlopen-ed by location_libtest1.so at runtime, so these messages exercise
 // libcwd initialization from a DSO that is not a static link dependency of the
 // test executable.  The destructor mirrors the constructor and performs only a
-// dc::bfd logging side effect.
+// dc::elfutils logging side effect.
 class location_plugin1_lifecycle_ct
 {
  public:

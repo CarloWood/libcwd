@@ -24,9 +24,9 @@ namespace libcwd {
 extern void process_environment_variables();
 
 // Environment variable: LIBCWD_PRINT_LOADING
-// Print the list with "BFD     : Loading debug info from /lib/libc.so.6 (0x40271000) ... done (4189 symbols)" etc.
-// at the start of the program *even* when this happens before main() is reached and libcw_do and dc::bfd are
-// still turned off.
+// Print the list with "ELFUTILS: new ObjectFile "/usr/lib/libc.so.6" with load base 0x7f490c400000" etc.
+// at the start of the program *even* when this happens before main() is reached and libcw_do and dc::elfutils
+// are still turned off.
 extern bool always_print_loading;
 
 // Environment variable: LIBCWD_NO_STARTUP_MSGS

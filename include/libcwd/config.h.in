@@ -105,58 +105,6 @@
 
 #define CWDEBUG_LOCATION @CW_CONFIG_LOCATION@
 
-/** \defgroup enable_libbfd --enable-libbfd (CWDEBUG_LIBBFD)
- * \ingroup group_configuration
- *
- * \par Description
- *
- * This will cause libcwd to use GNU libbfd to load debug symbols and line number information.&nbsp;
- * If you don't have an ELF32 system then you might need this.&nbsp;
- * You will need libbfd.a and libiberty.a, which are part of GNU binutils.
- *
- * \sa \ref gpl_and_qpl
- *
- * \par When to use it
- *
- * Libcwd supports natively ELF32, stabs and DWARF-2 at the moment.&nbsp;
- * If you have an operating system that is non-ELF32, or that uses natively COFF,
- * then you might want to use this.&nbsp;  Otherwise there is no need to use libbfd.
- *
- * \par CMake option
- *
- * This is disabled by default.&nbsp;
- * You can enable it by specifying \shellcommand --enable-libbfd \endshellcommand during configuration.&nbsp;
- * Of course you'll need a working libbfd installed in that case.
- *
- * \sa \ref group_locations
- */
-/** \page gpl_and_qpl Using GPL-ed code together with QPL-ed code.
- *
- * If you use GNU's libbfd then you are not allowed to distribute the resulting
- * executables because the GPL of libbfd prohibbits distribution of code that is not GPL-ed
- * and the resulting executable will be partly QPL-ed (this is a restriction of
- * the GPL not the QPL).&nbsp;
- * Note that if you have an ELF system (like linux) then you <EM>don't</EM> need libbfd.
- *
- * Note that if you want to release \em your program under the GNU GPL, and still link
- * with libcwd (and distribute the resulting binaries) then you can easily do that.&nbsp;
- * You can resolve the legal conflict for your program by adding a notice like this
- * to it: 
- *
- * <PRE>
- *     As a special exception, you have permission to link this program
- *     with the libcwd library and distribute executables, as long as you
- *     follow the requirements of the GNU GPL in regard to all of the
- *     software in the executable aside from libcwd.</PRE>
- *
- * You can do this, legally, if you are the copyright holder for the program.&nbsp;
- * Add it in the source files, after the notice that says the program is covered
- * by the GNU GPL.  [ Source: http://www.gnu.org/philosophy/license-list.html
- * section "The Qt Public License (QPL)." ].
- */
-
-#define CWDEBUG_LIBBFD (CWDEBUG_LOCATION && @CW_CONFIG_LIBBFD@)
-
 /** \defgroup enable_debug --enable-debug (CWDEBUG_DEBUG)
  * \ingroup group_configuration
  *
