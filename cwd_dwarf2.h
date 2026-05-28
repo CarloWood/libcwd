@@ -51,21 +51,6 @@ class SymbolRangeInterface
   // from storage owned by the DWARF reader or symbol cache and remain valid
   // under the same lifetime rules as name().
   virtual LocationLookupResult lookup_location(uintptr_t addr, uintptr_t lbase) const = 0;
-
-  // Resolve addr to the historical file and line pair using lbase as the
-  // owning object's load base.
-  //
-  // This compatibility helper deliberately exposes only filepath and known
-  // so existing callers keep their behavior while newer code can migrate to
-  // lookup_location when it needs effective function information.
-  bool lookup_file_line(uintptr_t addr, unsigned int* line_out, char const** filepath_out, uintptr_t lbase) const
-  {
-    LocationLookupResult const result = lookup_location(addr, lbase);
-    *filepath_out = result.filepath;
-    if (result.known)
-      *line_out = result.line;
-    return result.known;
-  }
 };
 
 class ObjectFileInterface

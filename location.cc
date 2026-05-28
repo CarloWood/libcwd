@@ -89,15 +89,17 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     return;
   }
 
-  M_func = symbol->name();
-  char const* filepath = nullptr;
-  M_known = symbol->lookup_file_line(int_addr, &M_line, &filepath, object_file->get_lbase());
+  LocationLookupResult const location = symbol->lookup_location(int_addr, object_file->get_lbase());
+  M_func = location.function_name();
+  M_known = location.known;
+  if (M_known)
+    M_line = location.line;
 
-  if (filepath)         // Might still be true even if M_known is false (if we couldn't find a line number).
+  if (location.filepath)         // Might still be true even if M_known is false (if we couldn't find a line number).
   {
-    size_t len = strlen(filepath);
+    size_t len = strlen(location.filepath);
     M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);	// LEAK5
-    strcpy(M_filepath.get(), filepath);
+    strcpy(M_filepath.get(), location.filepath);
     char const* last_slash = strrchr(M_filepath.get(), '/');
     M_filename = last_slash ? last_slash + 1 : M_filepath.get();
   }

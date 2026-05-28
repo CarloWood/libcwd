@@ -575,12 +575,11 @@ void ObjectFile::realize_symbols() const
 // Both first call
 //     object_file = find_object_file(addr)
 //     symbol = object_file->find_symbol(addr)
-//     name = symbol->name()
-// and `libcwd::location_ct::M_pc_location` follows up with a call to
-//     M_known = symbol->lookup_file_line(int_addr, &M_line, &filepath, object_file->get_lbase());
+// and then either read `symbol->name()` or let `symbol->lookup_location(...)`
+// select an inline-effective source name and file-line location.
 //
 // If main_reached() wasn't called yet then we should be single-threaded and the access to `name()` is safe.
-// The call to `lookup_file_line` is a no-op in this case.
+// The call to `lookup_location` is a no-op in this case.
 //
 // If main_reached() *was* called then the call to `find_object_file` that called `object_file->realize_symbols()`
 // will have assured a call to `load_dwarf_symbols` and `load_function_symbols` or at the very least, in the
