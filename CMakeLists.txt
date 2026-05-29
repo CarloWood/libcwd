@@ -177,9 +177,9 @@ set_property(TARGET cwd_r APPEND PROPERTY COMPATIBLE_INTERFACE_STRING cwd_r_MAJO
 
 target_sources(cwd_r
     PRIVATE
-        dwarf.cc
         debug.cc
         demangle3.cc
+        dwarf.cc
         environ.cc
         location.cc
         strerrno.cc

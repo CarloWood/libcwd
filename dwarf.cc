@@ -64,7 +64,7 @@ constexpr bool statically_linked = true;
 // class PTLoadSegment
 //
 // Represents one loadable runtime segment of an ObjectFile.  Instances are
-// created while holding ObjectFileRegistry::s_object_files_' write lock during
+// created while holding ObjectFileRegistry::object_files_map()' write lock during
 // initialization and then treated as immutable; later address lookup can read
 // the segment start/end/flags and object_file_.lbase_ without a per-segment lock.
 class PTLoadSegment
@@ -132,14 +132,14 @@ static thread_local bool s_object_files_is_locked_ = false;
 //
 // To obtain a read lock, create a stack variable,
 //
-//   object_files_t::rat object_files_r(s_object_files_);       // Scoped read-lock for s_object_files_.
+//   object_files_t::rat object_files_r(object_files_map());    // Scoped read-lock for object_files_map().
 //   ScopedTracker scoped_{s_object_files_is_locked_};
 //
 // Use object_files_r-> for read access (returns a std::map<uintptr_t, PTLoadSegment> const*).
 //
 // To obtain a write lock, create a stack variable,
 //
-//   object_files_t::wat object_files_w(s_object_files_);       // Scoped write-lock for s_object_files_.
+//   object_files_t::wat object_files_w(object_files_map());    // Scoped write-lock for object_files_map().
 //   ScopedTracker scoped_{s_object_files_is_locked_};
 //
 // Use object_files_w-> for write access (returns a std::map<uintptr_t, PTLoadSegment>*).
@@ -150,12 +150,13 @@ class ObjectFileRegistry
   // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end address;
   // the pointed-to PTLoadSegment stores the matching start address, flags, and a pointer to the ObjectFile.
   using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  static object_files_t s_object_files_;        // Read-write lock protected end-address index of loaded PT_LOAD segments.
 
-  libcwd::ObjectFileName object_file_name_;     // Public facing data of this object file. Just contains the filename
-                                                // and whether or not debug info was available for this object file or not.
+  static object_files_t& object_files_map();            // Read-write lock protected end-address index of loaded PT_LOAD segments.
 
-  static std::atomic_bool s_object_files_initialized_;
+  libcwd::ObjectFileName object_file_name_;             // Public facing data of this object file. Just contains the filename
+                                                        // and whether or not debug info was available for this object file or not.
+
+  static std::atomic_bool s_object_files_initialized_;  // Set when ObjectFileRegistry::register_initial_object_files was called, turning ensure_initialization into a no-op.
 
   // Construct the ObjectFileRegistry subobject for the derived ObjectFileData payload.
   // ObjectFileRegistry is not instantiated by itself; it groups registry-wide
@@ -190,7 +191,11 @@ class ObjectFileRegistry
 };
 
 //static
-ObjectFileRegistry::object_files_t ObjectFileRegistry::s_object_files_;
+ObjectFileRegistry::object_files_t& ObjectFileRegistry::object_files_map()
+{
+  static object_files_t* map = new object_files_t;      // Intentionally leaked to avoid deinitialization order fiasco.
+  return *map;
+}
 
 namespace {
 
@@ -641,7 +646,7 @@ void ObjectFileRegistry::register_initial_object_files()
 
     // This is the initial population pass for the dwarf object/segment cache.
     // Even if dlopen is called first, that still will first call this function.
-    LIBCWD_ASSERT(object_files_t::rat{s_object_files_}->empty());
+    LIBCWD_ASSERT(object_files_t::rat{object_files_map()}->empty());
 
     // Load executable and shared objects.
     if (!statically_linked)
@@ -653,7 +658,7 @@ void ObjectFileRegistry::register_initial_object_files()
     // Relaxed is OK: we get here from the main thread before any other thread (that
     // might come here without other synchronization mechanism) has been created yet.
     s_object_files_initialized_.store(true, std::memory_order_relaxed);
-  } // Unlock s_object_files_.
+  } // Unlock object_files_map().
 }
 
 //static
@@ -693,7 +698,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
   // inserting a duplicate ObjectFile when the iterator later reaches the same
   // link-map entry.
   {
-    object_files_t::wat object_files_w(s_object_files_);
+    object_files_t::wat object_files_w(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
     if (ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_w))
     {
@@ -726,7 +731,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
     uintptr_t const segment_end = segment_start + static_cast<uintptr_t>(phdr.p_memsz);
     LIBCWD_ASSERT(segment_end > segment_start);
 
-    object_files_t::wat object_files_w(s_object_files_);
+    object_files_t::wat object_files_w(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
     auto const ibp = object_files_w->try_emplace(segment_end, object_file, segment_start, segment_end, phdr.p_flags);
     // Make sure the new segment doesn't overlap with an already existing one.
@@ -739,7 +744,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
     Dout(dc::elfutils, "    map[" << (void*)segment_end << "] = PTLoadSegment " << ibp.first->second <<
         " [" << (void*)segment_start << '-' << (void*)segment_end << ") flags=" << flags_to_string(phdr.p_flags));
 
-    // Set data->object_file_ to point to the ObjectFile member of the first PTLoadSegment element of s_object_files_.
+    // Set data->object_file_ to point to the ObjectFile member of the first PTLoadSegment element of object_files_map().
     have_pt_load_segment = true;
   }
 
@@ -772,11 +777,11 @@ ObjectFile const* ObjectFileRegistry::find_registered_object_file(uintptr_t lbas
 //static
 ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lbase)
 {
-  // Locks s_object_files_.
+  // Locks object_files_map().
   CallBackData const data{current_executable_path(), lbase};
 
   // If this object file was already loaded before, then return that instead of creating a new ObjectFile.
-  ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_t::wat{s_object_files_});
+  ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_t::wat{object_files_map()});
 
   // Otherwise iterate over all currently loaded object files to find the just dynamically
   // opened object file, loaded at data.target_lbase_, and create a new ObjectFile for it.
@@ -790,14 +795,14 @@ ObjectFile const* ObjectFileRegistry::find_object_file(uintptr_t addr)
   ObjectFile const* object_file = nullptr;
 
   {
-    object_files_t::rat object_files_r(s_object_files_);
+    object_files_t::rat object_files_r(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
     auto const iter = object_files_r->upper_bound(addr);
     if (iter != object_files_r->end() && iter->second.start_addr() <= addr)
       object_file = iter->second.object_file();
   }
 
-  // realize_symbols must be called without holding the lock on s_object_files_.
+  // realize_symbols must be called without holding the lock on object_files_map().
   if (object_file)
     object_file->realize_symbols();
 
@@ -854,12 +859,12 @@ ObjectFileData::~ObjectFileData()
 ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const* self)
 {
   ObjectFile const* obsolete_object_file = nullptr;
-  // Remove all PTLoadSegment's from s_object_files_ that belong to this ObjectFile.
+  // Remove all PTLoadSegment's from object_files_map() that belong to this ObjectFile.
   // `self` is the stable wrapper pointer stored in each PTLoadSegment; compare
   // that pointer directly so this write-locked ObjectFile does not need to take
   // a nested read lock on itself while erasing its ranges.
   {
-    object_files_t::wat object_files_w(s_object_files_);
+    object_files_t::wat object_files_w(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
     for (auto iter = object_files_w->begin(); iter != object_files_w->end(); )
     {
