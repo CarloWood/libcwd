@@ -16,6 +16,10 @@ add_executable(colors_debug_output colors_debug_output.cc)
 target_link_libraries(colors_debug_output PRIVATE ctest_support)
 target_compile_options(colors_debug_output PRIVATE -g)
 
+add_executable(dc dc.cc)
+target_link_libraries(dc PRIVATE ctest_support)
+target_compile_options(dc PRIVATE -g)
+
 add_executable(hello_world_debug_channel hello_world_debug_channel.cc)
 target_link_libraries(hello_world_debug_channel PRIVATE ctest_support)
 target_compile_options(hello_world_debug_channel PRIVATE -g)
@@ -129,6 +133,11 @@ set_tests_properties(basic_debug_output PROPERTIES
 
 add_test(NAME colors_debug_output COMMAND colors_debug_output)
 set_tests_properties(colors_debug_output PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME dc COMMAND dc)
+set_tests_properties(dc PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
