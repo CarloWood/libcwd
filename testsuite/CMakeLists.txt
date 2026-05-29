@@ -1,5 +1,5 @@
 # Define the test types.
-set(TSTCHECK "cf" "continued" "dc" "demangler" "dlopen" "do" "flush" "lockable_auto_ptr" "type_info")
+set(TSTCHECK "cf" "continued" "dc" "demangler" "dlopen" "do" "flush" "type_info")
 set(THREADSCHECK "keys")
 
 # Get the basename of the current directory.

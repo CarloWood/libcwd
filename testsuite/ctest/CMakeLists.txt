@@ -97,6 +97,10 @@ target_link_libraries(location_loading_fixture PRIVATE ctest_support location_li
 target_compile_definitions(location_loading_fixture PRIVATE "LOCATION_PLUGIN2_PATH=\"$<TARGET_FILE:location_plugin2>\"")
 add_dependencies(location_loading_fixture location_plugin2)
 
+add_executable(lockable_auto_ptr lockable_auto_ptr.cc)
+target_link_libraries(lockable_auto_ptr PRIVATE ctest_support)
+target_compile_options(lockable_auto_ptr PRIVATE -g)
+
 add_test(NAME basic_debug_output COMMAND basic_debug_output)
 set_tests_properties(basic_debug_output PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
@@ -172,4 +176,9 @@ add_test(NAME location_loading_fixture
 )
 set_tests_properties(location_loading_fixture PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$<TARGET_FILE_DIR:location_libtest1>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME lockable_auto_ptr COMMAND lockable_auto_ptr)
+set_tests_properties(lockable_auto_ptr PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
