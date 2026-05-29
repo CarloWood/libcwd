@@ -54,13 +54,10 @@ namespace libcwd {
 #error No, no, no... "sys.h" has to be the VERY first header file you include.  Before ANY other (system) header file.
 #endif
 
-#ifndef LIBCWD_THREAD_SAFE
-#define LIBCWD_THREAD_SAFE 0
-#endif
 
-#if LIBCWD_THREAD_SAFE && !defined(_GNU_SOURCE)
-#error Sorry, libcwd_r uses GNU extensions, also in the header files.
-#error Therefore you must also define _GNU_SOURCE when you are linking with -lcwd_r.
+#if !defined(_GNU_SOURCE)
+#error Sorry, libcwd uses GNU extensions, also in the header files.
+#error Therefore you must also define _GNU_SOURCE when you are linking with -lcwd.
 #error Please add #define _GNU_SOURCE to your "sys.h", see reference-manual/preparation.html#preparation_step2.
 #endif
 

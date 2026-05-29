@@ -43,9 +43,7 @@ private:
   container_type* WNS_debug_objects;
 public:
   void init(LIBCWD_TSD_PARAM);
-#if LIBCWD_THREAD_SAFE
   void init_and_rdlock();
-#endif
   void ST_uninit();
   container_type& write_locked();
   container_type const& read_locked() const;
@@ -83,7 +81,6 @@ extern debug_objects_ct debug_objects;
   } // namespace _private_
 } // namespace libcwd
 
-#if LIBCWD_THREAD_SAFE
 #if CWDEBUG_DEBUGT
 #define LIBCWD_ForAllDebugObjects_LOCK_TSD_DECLARATION LIBCWD_TSD_DECLARATION
 #else
@@ -96,10 +93,6 @@ extern debug_objects_ct debug_objects;
 #define LIBCWD_ForAllDebugObjects_UNLOCK \
     ::libcwd::_private_::rwlock_tct< ::libcwd::_private_::debug_objects_instance>::rdunlock(); \
     LIBCWD_CLEANUP_POP_RESTORE(false);
-#else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_ForAllDebugObjects_LOCK ::libcwd::_private_::debug_objects.init(LIBCWD_TSD)
-#define LIBCWD_ForAllDebugObjects_UNLOCK
-#endif // !LIBCWD_THREAD_SAFE
 
 #define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...) \
        do { \

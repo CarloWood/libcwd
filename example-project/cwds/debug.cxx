@@ -52,7 +52,6 @@
 #endif
 #include <debug.h>
 
-#if LIBCWD_THREAD_SAFE
 namespace libcwd {
 pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 namespace _private_ {
@@ -61,7 +60,6 @@ namespace _private_ {
 extern ::libcwd::_private_::TSD_st* main_thread_tsd;
 } // namespace _private_
 } // namespace libcwd
-#endif
 
 NAMESPACE_DEBUG_START
 
@@ -181,7 +179,6 @@ void init_thread(std::string thread_name, libcwd::thread_init_t thread_init)
           debugChannel.on();
     );
   }
-#if LIBCWD_THREAD_SAFE
   else if (thread_init == libcwd::copy_from_main)
   {
     // Turn on all debug channels that are turned on in the main thread.
@@ -192,7 +189,6 @@ void init_thread(std::string thread_name, libcwd::thread_init_t thread_init)
     if (!libcwd::libcw_do.is_on(*libcwd::_private_::main_thread_tsd))
       thread_init = libcwd::debug_off;
   }
-#endif
 
   if (thread_init != libcwd::debug_off)
   {
@@ -200,10 +196,8 @@ void init_thread(std::string thread_name, libcwd::thread_init_t thread_init)
     Debug( libcw_do.on() );
   }
 
-#if LIBCWD_THREAD_SAFE
   if (!libcwd::libcw_do.has_mutex())
     libcwd::libcw_do.set_ostream(libcwd::libcw_do.get_ostream(), &libcwd::cout_mutex);
-#endif
 
   static bool first_thread = true;
   if (!thread_name.empty())
@@ -213,7 +207,7 @@ void init_thread(std::string thread_name, libcwd::thread_init_t thread_init)
     Dout(dc::notice, "Thread started. Set debug margin to \"" << margin << "\".");
 #ifdef TRACY_ENABLE
     tracy::SetThreadName(thread_name.c_str());
-#elif LIBCWD_THREAD_SAFE
+#else
     pthread_setname_np(pthread_self(), thread_name.c_str());
 #endif
   }

@@ -42,9 +42,7 @@ public:
   container_type* WNS_debug_channels;
 public:
   void init(LIBCWD_TSD_PARAM);
-#if LIBCWD_THREAD_SAFE
   void init_and_rdlock();
-#endif
   container_type& write_locked();
   container_type const& read_locked() const;
 };
@@ -74,7 +72,6 @@ extern debug_channels_ct debug_channels;
   } // namespace _private_
 } // namespace libcwd
 
-#if LIBCWD_THREAD_SAFE
 #if CWDEBUG_DEBUGT
 #define LIBCWD_ForAllDebugChannels_LOCK_TSD_DECLARATION LIBCWD_TSD_DECLARATION
 #else
@@ -87,10 +84,6 @@ extern debug_channels_ct debug_channels;
 #define LIBCWD_ForAllDebugChannels_UNLOCK \
     ::libcwd::_private_::rwlock_tct< ::libcwd::_private_::debug_channels_instance>::rdunlock(); \
     LIBCWD_CLEANUP_POP_RESTORE(false);
-#else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_ForAllDebugChannels_LOCK ::libcwd::_private_::debug_channels.init(LIBCWD_TSD)
-#define LIBCWD_ForAllDebugChannels_UNLOCK
-#endif // !LIBCWD_THREAD_SAFE
 
 #define LibcwdForAllDebugChannels(dc_namespace, STATEMENT...) \
        do { \

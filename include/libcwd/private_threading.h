@@ -21,9 +21,7 @@
 #define LIBCWD_DEBUGDEBUGRWLOCK 0
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
-#define LIBCWD_NO_INTERNAL_STRING
 #include "raw_write.h"
-#undef LIBCWD_NO_INTERNAL_STRING
 extern pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;
 extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #define LIBCWD_DEBUGDEBUGRWLOCK_CERR(x) \
@@ -77,12 +75,7 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #define LIBCWD_USE_POSIX_THREADS 1
 #endif
 #else
-#if LIBCWD_THREAD_SAFE
-#error Fatal error: thread support was not detected during configuration of libcwd (did you use --disable-threading?)! \
-       How come you are trying to compile a threaded program now? \
-       To fix this problem, either link with libcwd_r (install it), or when you are indeed compiling a \
-       single threaded application, then get rid of the -pthread (and/or -D_REENTRANT and/or -D_THREAD_SAFE) in your compile flags.
-#endif
+#error Fatal error: thread support was not detected during configuration of libcwd.
 #endif // LIBCWD_HAVE_PTHREAD
 
 #ifndef LIBCWD_USE_LINUXTHREADS
@@ -104,7 +97,6 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #endif
 #endif
 
-#if LIBCWD_THREAD_SAFE
 
 namespace libcwd {
 
@@ -1012,20 +1004,4 @@ extern void fatal_cancellation(void*);
   } // namespace _private_
 } // namespace libcwd
 
-#else // !LIBCWD_THREAD_SAFE
-#define LIBCWD_DISABLE_CANCEL
-#define LIBCWD_DISABLE_CANCEL_NO_BRACE
-#define LIBCWD_ENABLE_CANCEL_NO_BRACE
-#define LIBCWD_ENABLE_CANCEL
-#define LIBCWD_DEFER_CANCEL
-#define LIBCWD_DEFER_CANCEL_NO_BRACE
-#define LIBCWD_RESTORE_CANCEL_NO_BRACE
-#define LIBCWD_RESTORE_CANCEL
-#define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg)
-#define LIBCWD_CLEANUP_POP_RESTORE(execute)
-#define LIBCWD_PUSH_DEFER_TRYLOCK_MUTEX(instance, unlock_routine)
-#define LIBCWD_DEFER_PUSH_LOCKMUTEX(instance, unlock_routine)
-#define LIBCWD_UNLOCKMUTEX_POP_RESTORE(instance)
-#define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED
-#endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_PRIVATE_THREADING_H

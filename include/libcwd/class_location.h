@@ -99,10 +99,8 @@ protected:
 public:
   explicit location_ct(void const* addr);
       // Construct a location object for address `addr'.
-#if LIBCWD_THREAD_SAFE
   explicit location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM);
       // Idem, but with passing the TSD.
-#endif
   ~location_ct();
 
   /**

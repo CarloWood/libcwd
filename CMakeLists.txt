@@ -149,12 +149,12 @@ configure_file("include/cwd_sys.h.in" "include/cwd_sys.h" @ONLY)
 # Clean up rule for the above.
 add_custom_target(libcwd-maintainer-clean-extra
     COMMAND rm config.h include/cwd_sys.h include/libcwd/config.h include/libcwd/sys.h
-    COMMAND rm -f cwd_rConfig.cmake libcwd_rConfigVersion.cmake libcwd_r.pc
+    COMMAND rm -f libcwdConfig.cmake libcwdConfigVersion.cmake libcwd.pc
 )
 
-set(cwd_r_compile_definintions "CWDEBUG;LIBCWD_THREAD_SAFE")
+set(cwd_compile_definitions "CWDEBUG")
 if (OptionEnableGlibCxxDebug)
-  list(APPEND cwd_r_compile_definintions "_GLIBCXX_DEBUG")
+  list(APPEND cwd_compile_definitions "_GLIBCXX_DEBUG")
 endif ()
 
 find_package(Threads REQUIRED)
@@ -164,18 +164,18 @@ find_library(LIBELF elf REQUIRED)
 add_subdirectory(utils)
 add_subdirectory(testsuite)
 
-add_library(cwd_r SHARED)
+add_library(cwd SHARED)
 
-math(EXPR INTERFACE_cwd_r_MAJOR_VERSION "${CW_INTERFACE_VERSION} - ${CW_INTERFACE_AGE}" OUTPUT_FORMAT DECIMAL)
-set(INTERFACE_cwd_r_MINOR_VERSION ${CW_INTERFACE_AGE})
-set(INTERFACE_cwd_r_PATCH_VERSION ${CW_INTERFACE_VERSION_REVISION})
-set_target_properties(cwd_r PROPERTIES VERSION ${INTERFACE_cwd_r_MAJOR_VERSION}.${INTERFACE_cwd_r_MINOR_VERSION}.${INTERFACE_cwd_r_PATCH_VERSION})
-set_target_properties(cwd_r PROPERTIES SOVERSION ${INTERFACE_cwd_r_MAJOR_VERSION})
+math(EXPR INTERFACE_cwd_MAJOR_VERSION "${CW_INTERFACE_VERSION} - ${CW_INTERFACE_AGE}" OUTPUT_FORMAT DECIMAL)
+set(INTERFACE_cwd_MINOR_VERSION ${CW_INTERFACE_AGE})
+set(INTERFACE_cwd_PATCH_VERSION ${CW_INTERFACE_VERSION_REVISION})
+set_target_properties(cwd PROPERTIES VERSION ${INTERFACE_cwd_MAJOR_VERSION}.${INTERFACE_cwd_MINOR_VERSION}.${INTERFACE_cwd_PATCH_VERSION})
+set_target_properties(cwd PROPERTIES SOVERSION ${INTERFACE_cwd_MAJOR_VERSION})
 # Note really sure what I'm doing here:
-set_property(TARGET cwd_r PROPERTY INTERFACE_cwd_r_MAJOR_VERSION ${INTERFACE_cwd_r_MAJOR_VERSION})
-set_property(TARGET cwd_r APPEND PROPERTY COMPATIBLE_INTERFACE_STRING cwd_r_MAJOR_VERSION)
+set_property(TARGET cwd PROPERTY INTERFACE_cwd_MAJOR_VERSION ${INTERFACE_cwd_MAJOR_VERSION})
+set_property(TARGET cwd APPEND PROPERTY COMPATIBLE_INTERFACE_STRING cwd_MAJOR_VERSION)
 
-target_sources(cwd_r
+target_sources(cwd
     PRIVATE
         debug.cc
         demangle3.cc
@@ -192,15 +192,15 @@ file(GLOB PUBLIC_HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/libcwd/
 file(GLOB PUBLIC_HEADERS_INL RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/libcwd/*.inl")
 list(APPEND PUBLIC_HEADERS "${PUBLIC_HEADERS_INL}")
 list(APPEND PUBLIC_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/include/libcwd/sys.h" "${CMAKE_CURRENT_BINARY_DIR}/include/libcwd/config.h")
-set_target_properties(cwd_r PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
+set_target_properties(cwd PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
 
-target_compile_definitions(cwd_r
+target_compile_definitions(cwd
     PUBLIC
-        "${cwd_r_compile_definintions}"
+        "${cwd_compile_definitions}"
         VERSION="${PROJECT_VERSION}"
 )
 
-target_include_directories(cwd_r
+target_include_directories(cwd
     PRIVATE
       "${CMAKE_BINARY_DIR}/include"
       "${CMAKE_SOURCE_DIR}/include"
@@ -209,7 +209,7 @@ target_include_directories(cwd_r
         "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
 )
 
-target_link_libraries(cwd_r
+target_link_libraries(cwd
     PRIVATE
         Libcwd::utils
     PUBLIC
@@ -222,28 +222,28 @@ target_link_libraries(cwd_r
 
 include(GNUInstallDirs)
 
-install(TARGETS cwd_r
-  EXPORT libcwd_rTargets
+install(TARGETS cwd
+  EXPORT libcwdTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libcwd
 )
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/libcwd_rConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/libcwdConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion
 )
 
-configure_file(cmake/libcwd_rConfig.cmake
-  "${CMAKE_CURRENT_BINARY_DIR}/cwd_rConfig.cmake"
+configure_file(cmake/libcwdConfig.cmake
+  "${CMAKE_CURRENT_BINARY_DIR}/libcwdConfig.cmake"
   COPYONLY
 )
 
-set(ConfigPackageLocation lib/cmake/libcwd_r)
-install(EXPORT libcwd_rTargets
+set(ConfigPackageLocation lib/cmake/libcwd)
+install(EXPORT libcwdTargets
   FILE
-    libcwd_rTargets.cmake
+    libcwdTargets.cmake
   NAMESPACE
     Libcwd::
   DESTINATION
@@ -251,8 +251,8 @@ install(EXPORT libcwd_rTargets
 )
 install(
   FILES
-    cmake/libcwd_rConfig.cmake
-    "${CMAKE_CURRENT_BINARY_DIR}/libcwd_rConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/libcwdConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/libcwdConfigVersion.cmake"
   DESTINATION
     ${ConfigPackageLocation}
   COMPONENT
@@ -275,12 +275,12 @@ endif ()
 if (${WIN32})
   set(libdir    \${exec_prefix}/bin)
 endif ()
-string (REPLACE ";" " -D" _TMP_STR "${cwd_r_compile_definintions}")
-set(PCCFLAGSR "-D${_TMP_STR}")
-configure_file(${libcwd_SOURCE_DIR}/libcwd_r.pc.in ${libcwd_BINARY_DIR}/libcwd_r.pc @ONLY)
+string (REPLACE ";" " -D" _TMP_STR "${cwd_compile_definitions}")
+set(PCCFLAGS "-D${_TMP_STR}")
+configure_file(${libcwd_SOURCE_DIR}/libcwd.pc.in ${libcwd_BINARY_DIR}/libcwd.pc @ONLY)
 install(
   FILES
-    ${CMAKE_BINARY_DIR}/libcwd_r.pc
+    ${CMAKE_BINARY_DIR}/libcwd.pc
   DESTINATION
     lib${LIB_SUFFIX}/pkgconfig
 )
@@ -295,6 +295,6 @@ target_include_directories(threadsafe_ObjLib
 )
 target_compile_definitions(threadsafe_ObjLib
   PRIVATE
-    ${cwd_r_compile_definintions}
+    ${cwd_compile_definitions}
     "-DCW_DEBUG=1"
 )

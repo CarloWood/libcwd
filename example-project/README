@@ -2,7 +2,7 @@ This is a minimal example project using libcwd.
 
 This example project only works of you already compiled and *installed* libcwd!
 If libcwd was installed with an uncommon prefix then CMake can still find it
-if you add `<install_prefix>/lib/cmake/libcwd_r` to CMAKE_PREFIX_PATH.
+if you add `<install_prefix>/lib/cmake/libcwd` to CMAKE_PREFIX_PATH.
 
 Note: The directories cmake-aicxx/ and cwds/ in this example project
 are stripped down minimal versions of the git submodules

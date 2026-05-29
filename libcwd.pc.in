@@ -9,4 +9,3 @@ Description: C++ Debugging Support Library
 Version: @PROJECT_VERSION@
 Libs: -L${libdir} -lcwd -ldl
 Cflags: @PCCFLAGS@ -I${includedir}
-

@@ -38,14 +38,12 @@ channel_ct::channel_ct(char const* label, bool add_to_channel_list)
   NS_initialize(label LIBCWD_COMMA_TSD, add_to_channel_list);
 }
 
-#if LIBCWD_THREAD_SAFE
 inline
 bool
 channel_ct::is_on(LIBCWD_TSD_PARAM) const
 {
   return (__libcwd_tsd.off_cnt_array[WNS_index] < 0);
 }
-#endif
 
 
 /**
@@ -55,12 +53,8 @@ inline
 bool
 channel_ct::is_on() const
 {
-#if LIBCWD_THREAD_SAFE
   LIBCWD_TSD_DECLARATION;
   return is_on(LIBCWD_TSD);
-#else
-  return (off_cnt < 0);
-#endif
 }
 
 /**

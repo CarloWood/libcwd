@@ -38,7 +38,6 @@
 
 extern "C" int raise(int);
 
-#if LIBCWD_THREAD_SAFE
 using libcwd::_private_::rwlock_tct;
 using libcwd::_private_::debug_objects_instance;
 using libcwd::_private_::debug_channels_instance;
@@ -55,21 +54,6 @@ using libcwd::_private_::debug_channels_instance;
 #define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK	rwlock_tct<libcwd::_private_::debug_channels_instance>::rd2wrlock()
 #define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK	rwlock_tct<libcwd::_private_::debug_channels_instance>::wr2rdlock()
 #define COMMA_IFTHREADS(x) ,x
-#else // !LIBCWD_THREAD_SAFE
-#define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK
-#define DEBUG_OBJECTS_RELEASE_WRITE_LOCK
-#define DEBUG_OBJECTS_ACQUIRE_READ_LOCK
-#define DEBUG_OBJECTS_RELEASE_READ_LOCK
-#define DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK
-#define DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK
-#define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK
-#define DEBUG_CHANNELS_RELEASE_WRITE_LOCK
-#define DEBUG_CHANNELS_ACQUIRE_READ_LOCK
-#define DEBUG_CHANNELS_RELEASE_READ_LOCK
-#define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK
-#define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK
-#define COMMA_IFTHREADS(x)
-#endif // !LIBCWD_THREAD_SAFE
 
 namespace libcwd {
 
@@ -77,15 +61,11 @@ namespace libcwd {
     private:
       typedef pos_type streampos_t;
       streampos_t position;
-#if LIBCWD_THREAD_SAFE
       // These two are protected by the ostream lock of a debug object.
       bool unfinished_already_printed;
       bool continued_needed;
-#endif
     public:
-#if LIBCWD_THREAD_SAFE
       buffer_ct() : unfinished_already_printed(false), continued_needed(false) { }
-#endif
       void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object,
 	  bool request_unfinished, bool do_flush COMMA_IFTHREADS(bool ends_on_newline)
 	  COMMA_IFTHREADS(bool possible_nonewline_cf));
@@ -95,16 +75,12 @@ namespace libcwd {
       void restore_position() {
 	this->pubseekpos(position, std::ios_base::out);
 	this->pubseekpos(0, std::ios_base::in);
-#if LIBCWD_THREAD_SAFE
 	continued_needed = false;
-#endif
       }
-#if LIBCWD_THREAD_SAFE
       void continued()
       {
         unfinished_already_printed = false;
       }
-#endif
       void write_prefix_to(std::ostream* os)
       {
 	streampos_t old_in_pos = this->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
@@ -118,11 +94,7 @@ namespace libcwd {
     };
 
     void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM,
-#if LIBCWD_THREAD_SAFE
         debug_ct& debug_object,
-#else
-        debug_ct&,
-#endif
 	bool request_unfinished, bool do_flush COMMA_IFTHREADS(bool ends_on_newline)
 	COMMA_IFTHREADS(bool possible_nonewline_cf))
     {
@@ -150,7 +122,6 @@ namespace libcwd {
 	free_msgbuf = true;
       }
       this->sgetn(msgbuf, curlen);
-#if LIBCWD_THREAD_SAFE
 	LIBCWD_DISABLE_CANCEL;			// We don't want Dout() to be a cancellation point.
 	_private_::mutex_tct<_private_::set_ostream_instance>::lock();
 	bool got_lock = debug_object.M_mutex;
@@ -210,32 +181,15 @@ namespace libcwd {
             locked_os->write("<continued> ", 12);
           continued();
 	}
-#endif // LIBCWD_THREAD_SAFE
-#if LIBCWD_THREAD_SAFE
 	locked_os->write(msgbuf, curlen);
-#else // !LIBCWD_THREAD_SAFE
-	os->write(msgbuf, curlen);
-#endif // !LIBCWD_THREAD_SAFE
-#if LIBCWD_THREAD_SAFE
 	if (request_unfinished && !unfinished_already_printed)
         {
           if (color_off_size > 0)
             locked_os->write(color_off.c_str(), color_off_size);
 	  locked_os->write("<unfinished>\n", 13);
         }
-#else
-	if (request_unfinished)
-        {
-	  os->write("<unfinished>\n", 13);
-        }
-#endif
 	if (do_flush)
-#if LIBCWD_THREAD_SAFE
 	  locked_os->flush();
-#else
-	  os->flush();
-#endif
-#if LIBCWD_THREAD_SAFE
 	unfinished_already_printed = ends_on_newline;
 	if (ends_on_newline)
 	{
@@ -256,7 +210,6 @@ namespace libcwd {
 	  debug_object.M_mutex->unlock();
 	}
 	LIBCWD_ENABLE_CANCEL;
-#endif // !LIBCWD_THREAD_SAFE
       if (free_msgbuf)
 	free(msgbuf);
     }
@@ -408,9 +361,7 @@ namespace libcwd {
       if (ST_already_called)
 	return;
       ST_already_called = true;
-#if LIBCWD_THREAD_SAFE
       _private_::initialize_global_mutexes();
-#endif
       _private_::process_environment_variables();
 
       // Fatal channels need to be marked fatal, otherwise we get into an endless loop
@@ -477,12 +428,7 @@ namespace libcwd {
 
     namespace _private_ {
 
-#if !LIBCWD_THREAD_SAFE
-      TSD_st __libcwd_tsd;
-#endif
-#if LIBCWD_THREAD_SAFE
       extern bool WST_is_NPTL;
-#endif
 
       debug_channels_ct debug_channels;		// List with all channel_ct objects.
       debug_objects_ct debug_objects;		// List with all debug devices.
@@ -490,9 +436,7 @@ namespace libcwd {
       // _private_::
       void debug_channels_ct::init(LIBCWD_TSD_PARAM)
       {
-#if LIBCWD_THREAD_SAFE
 	_private_::rwlock_tct<libcwd::_private_::debug_channels_instance>::initialize();
-#endif
 	DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_channels)			// MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
 	{
@@ -500,13 +444,10 @@ namespace libcwd {
 	  WNS_debug_channels = new debug_channels_ct::container_type;		// LEAK2
 	  DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
 	}
-#if LIBCWD_THREAD_SAFE
 	else
 	  DEBUG_CHANNELS_RELEASE_READ_LOCK;
-#endif
       }
 
-#if LIBCWD_THREAD_SAFE
       // _private_::
       void debug_channels_ct::init_and_rdlock()
       {
@@ -520,14 +461,11 @@ namespace libcwd {
 	  DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK;
 	}
       }
-#endif
 
       // _private_::
       void debug_objects_ct::init(LIBCWD_TSD_PARAM)
       {
-#if LIBCWD_THREAD_SAFE
 	_private_::rwlock_tct<libcwd::_private_::debug_objects_instance>::initialize();
-#endif
         DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
 	if (!WNS_debug_objects)				// MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
 	{
@@ -536,13 +474,10 @@ namespace libcwd {
 	  WNS_debug_objects = new debug_objects_ct::container_type;
 	  DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
 	}
-#if LIBCWD_THREAD_SAFE
 	else
 	  DEBUG_OBJECTS_RELEASE_READ_LOCK;
-#endif
       }
 
-#if LIBCWD_THREAD_SAFE
       // _private_::
       void debug_objects_ct::init_and_rdlock()
       {
@@ -557,7 +492,6 @@ namespace libcwd {
 	  DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK;
 	}
       }
-#endif
 
       // _private_::
       void debug_objects_ct::ST_uninit()
@@ -639,7 +573,6 @@ namespace libcwd {
      */
     void core_dump()
     {
-#if LIBCWD_THREAD_SAFE
       // Are we the first thread that tries to generate a core?
 #if CWDEBUG_DEBUGT
       LIBCWD_TSD_DECLARATION;
@@ -653,8 +586,7 @@ namespace libcwd {
 	pthread_exit(PTHREAD_CANCELED);
       }
       // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
-#endif
-#if LIBCWD_THREAD_SAFE && CWDEBUG_DEBUG && defined(__linux)
+#if CWDEBUG_DEBUG && defined(__linux)
       if (!_private_::WST_is_NPTL && pthread_self() == (pthread_t)2049)
       {
 	::write(1, "WARNING: Thread manager core dumped.  Going into infinite loop.  Please detach process with gdb.\n", 97);
@@ -662,9 +594,7 @@ namespace libcwd {
       }
 #endif
       raise(6);
-#if LIBCWD_THREAD_SAFE
       LIBCWD_ENABLE_CANCEL;
-#endif
       _Exit(6);		// Never reached.
     }
 
@@ -695,7 +625,7 @@ namespace libcwd {
     // This is called with alloc checking on (or off).
     debug_string_ct::~debug_string_ct()
     {
-#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
+#if CWDEBUG_DEBUG
       LIBCWD_ASSERT(M_str == NULL);	// Need to call debug_string_ct::deinitialize() before destructor.
 					// But not in the non-threaded case, see debug_tsd_st::~debug_tsd_st.
 #endif
@@ -810,13 +740,8 @@ namespace libcwd {
     void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM)
     {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
-#if LIBCWD_THREAD_SAFE
       // Initialisation of the TSD part should be done from LIBCWD_TSD_DECLARATION inside Dout et al.
       LIBCWD_ASSERT( tsd_initialized );
-#else
-      if (!tsd_initialized)
-	init();
-#endif
 #endif
 
       // Skip `start()' for a `continued' debug output.
@@ -828,7 +753,6 @@ namespace libcwd {
 	if (!(current->mask & continued_expected_maskbit))
 	{
 	  std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
-#if LIBCWD_THREAD_SAFE
 	  // Try to get the lock, but don't try too long...
 	  int res;
 	  struct timespec const t = { 0, 5000000 };
@@ -840,16 +764,13 @@ namespace libcwd {
 	    nanosleep(&t, NULL);
 	  }
 	  while(++count < 40);
-#endif
           debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
           size_t color_off_size = color_off.size();
           if (color_off_size > 0)
             target_os->write(color_off.c_str(), color_off_size);
 	  target_os->put('\n');
-#if LIBCWD_THREAD_SAFE
 	  if (res == 0)
 	    debug_object.M_mutex->unlock();
-#endif
 	  char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #if CWDEBUG_LOCATION
 	  DoutFatal(dc::core, "Using `dc::" << channame << "' in " <<
@@ -906,9 +827,7 @@ namespace libcwd {
         }
         else
           current_bufferstream->write("<continued> ", 12);	// therefore we repeat the space here.
-#if LIBCWD_THREAD_SAFE
         current->buffer.continued();
-#endif
         errno = saved_errno;
       }
 
@@ -1026,9 +945,6 @@ namespace libcwd {
       if ((current->mask & error_cf))
       {
 	// strerror[_r] can call malloc (in gettext()).
-#if !LIBCWD_THREAD_SAFE
-	char const* error_text = strerror(current->err);
-#else // LIBCWD_THREAD_SAFE
 	char error_text_buf[512];
 	char const* error_text;
 #ifdef _GNU_SOURCE
@@ -1044,7 +960,6 @@ namespace libcwd {
 	}
         else
 	  error_text = error_text_buf;
-#endif
 #endif
 	*current_bufferstream << ": " << strerrno(current->err) << " (" << error_text << ')';
       }
@@ -1073,7 +988,6 @@ namespace libcwd {
 	  DEBUGDEBUG_CERR( "Deleting `current' " << (void*)current );
 	  delete current;
 	  DEBUGDEBUG_CERR( "Done deleting `current'" );
-#if LIBCWD_THREAD_SAFE
 	  LIBCWD_DISABLE_CANCEL;
 	  if (!_private_::mutex_tct<_private_::kill_threads_instance>::try_lock())
 	  {
@@ -1093,7 +1007,6 @@ namespace libcwd {
               pthread_cancel((*thread_iter).tid);
 	  _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
 	  LIBCWD_ENABLE_CANCEL;
-#endif
 	  _Exit(254);	// Exit without calling global destructors.
 	}
 	if ((current->mask & wait_cf))
@@ -1101,18 +1014,14 @@ namespace libcwd {
 	  current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
 	      false, debug_object.interactive COMMA_IFTHREADS(!(current->mask & nonewline_cf))
 	      COMMA_IFTHREADS(true));
-#if LIBCWD_THREAD_SAFE
 	  debug_object.M_mutex->lock();
-#endif
 	  *target_os << "(type return)";
 	  if (debug_object.interactive)
 	  {
 	    *target_os << std::flush;
 	    while(std::cin.get() != '\n') ;
 	  }
-#if LIBCWD_THREAD_SAFE
 	  debug_object.M_mutex->unlock();
-#endif
 	}
 	else
 	  current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object,
@@ -1172,9 +1081,7 @@ namespace libcwd {
     }
 #pragma clang diagnostic pop
 
-#if LIBCWD_THREAD_SAFE
     int debug_ct::S_index_count = 0;
-#endif
 
     bool debug_ct::NS_init(LIBCWD_TSD_PARAM)
     {
@@ -1189,10 +1096,8 @@ namespace libcwd {
 
       NS_being_initialized = true;
 
-#if LIBCWD_THREAD_SAFE
       M_mutex = NULL;
       unfinished_oss = NULL;
-#endif
 
 #if CWDEBUG_DEBUG
       if (!WST_debug_object_init_magic)
@@ -1210,18 +1115,14 @@ namespace libcwd {
 	  == _private_::debug_objects.write_locked().end()) // Not added before?
 	_private_::debug_objects.write_locked().push_back(this);
       DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
-#if LIBCWD_THREAD_SAFE
       LIBCWD_RESTORE_CANCEL;
-#endif
       new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0);	// Leaks 24 bytes of memory
-#if LIBCWD_THREAD_SAFE
       WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
       LIBCWD_ASSERT( !_private_::WST_multi_threaded ); // Only the first thread should be initializing debug_ct objects.
 #endif
       LIBCWD_ASSERT( __libcwd_tsd.do_array[WNS_index] == NULL );
       debug_tsd_st& tsd(*(__libcwd_tsd.do_array[WNS_index] =  new debug_tsd_st));
-#endif
       tsd.init();
 
 #if CWDEBUG_DEBUGOUTPUT
@@ -1272,7 +1173,6 @@ namespace libcwd {
           "); &tsd_initialized == " << (void*)&tsd_initialized );
     }
 
-#if LIBCWD_THREAD_SAFE
     namespace _private_ {
 #if CWDEBUG_DEBUGT
       void debug_tsd_init(LIBCWD_TSD_PARAM_UNUSED)
@@ -1288,11 +1188,9 @@ namespace libcwd {
 	);
       }
     } // namespace _private_
-#endif
 
     debug_tsd_st::~debug_tsd_st()
     {
-#if LIBCWD_THREAD_SAFE
       // In the non-threaded case we do not want to deinitialize these because they
       // might still be needed if dc::elfutils is turned on and
       // the destructor of some global object that is destructed *after* libcw_do
@@ -1302,7 +1200,6 @@ namespace libcwd {
       color_off.deinitialize();
       margin.deinitialize();
       marker.deinitialize();
-#endif
       if (!tsd_initialized)	// Skip the rest when it wasn't initialized.
 	return;
       // Sanity checks:
@@ -1449,16 +1346,12 @@ namespace libcwd {
           i != channels_not_listed.end(); ++i)
 	const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
 
-#if LIBCWD_THREAD_SAFE
       // MT: Take advantage of the `libcwd::_private_::debug_channels_instance' lock to prevent simultaneous access
       //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
       static int next_index;
       WNS_index = ++next_index;		// Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
 
       __libcwd_tsd.off_cnt_array[WNS_index] = 0;
-#else
-      off_cnt = 0;
-#endif
 
 PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
       strncpy(WNS_label, label, label_len);
@@ -1486,11 +1379,7 @@ PRAGMA_DIAGNOSTIC_POP
 
       // Turn debug channel "WARNING" on by default.
       if (strncmp(WNS_label, "WARNING", label_len) == 0)
-#if LIBCWD_THREAD_SAFE
 	__libcwd_tsd.off_cnt_array[WNS_index] = -1;
-#else
-        off_cnt = -1;
-#endif
 
       DEBUGDEBUG_CERR( "Leaving `channel_ct::NS_initialize(\"" << label << "\")" );
 
@@ -1555,12 +1444,8 @@ PRAGMA_DIAGNOSTIC_POP
      */
     void channel_ct::off()
     {
-#if LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION;
       __libcwd_tsd.off_cnt_array[WNS_index] += 1;
-#else
-      ++off_cnt;
-#endif
     }
 
     /**
@@ -1570,18 +1455,10 @@ PRAGMA_DIAGNOSTIC_POP
      */
     void channel_ct::on()
     {
-#if LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION;
       if (__libcwd_tsd.off_cnt_array[WNS_index] == -1)
-#else
-      if (off_cnt == -1)
-#endif
 	DoutFatal( dc::core, "Calling channel_ct::on() more often than channel_ct::off()" );
-#if LIBCWD_THREAD_SAFE
       __libcwd_tsd.off_cnt_array[WNS_index] -= 1;
-#else
-      --off_cnt;
-#endif
     }
 
     //----------------------------------------------------------------------------------------
@@ -1718,25 +1595,20 @@ PRAGMA_DIAGNOSTIC_POP
     {
       LIBCWD_TSD_DECLARATION;
       NS_initialize(label LIBCWD_COMMA_TSD, true);
-#if LIBCWD_THREAD_SAFE
       int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
-#endif
       state.off_cnt = off_cnt;
       off_cnt = -1;					// Turn channel on.
     }
 
     void channel_ct::restore(channel_ct::OnOffState const& state)
     {
-#if LIBCWD_THREAD_SAFE
       LIBCWD_TSD_DECLARATION;
       int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
-#endif
       if (off_cnt != -1)
 	core_dump();					// off() and on() where called and not in equal pairs.
       off_cnt = state.off_cnt;				// Restore.
     }
 
-#if LIBCWD_THREAD_SAFE
 /**
  * \brief Set output device and provide external pthread mutex.
  * \ingroup group_destination
@@ -1779,7 +1651,6 @@ template<>
     _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
     LIBCWD_RESTORE_CANCEL;
   }
-#endif // LIBCWD_THREAD_SAFE
 
 /**
  * \brief Set output device (single threaded applications).
@@ -1790,7 +1661,6 @@ template<>
  */
 void debug_ct::set_ostream(std::ostream* os)
 {
-#if LIBCWD_THREAD_SAFE
   if (_private_::WST_multi_threaded)
 #if CWDEBUG_LOCATION
     Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << ": You should passing a locking mechanism to `set_ostream' for the ostream (see documentation/reference-manual/group__group__destination.html)");
@@ -1802,12 +1672,9 @@ void debug_ct::set_ostream(std::ostream* os)
 #endif
   LIBCWD_DEFER_CANCEL;
   _private_::mutex_tct<_private_::set_ostream_instance>::lock();
-#endif
   private_set_ostream(os);
-#if LIBCWD_THREAD_SAFE
   _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
   LIBCWD_RESTORE_CANCEL;
-#endif
 }
 
 // This flag should be set to true at the very top of main (before any threads are created, or any location look ups are needed).

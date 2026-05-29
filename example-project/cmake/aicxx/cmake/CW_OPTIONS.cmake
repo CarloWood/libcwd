@@ -29,7 +29,7 @@
 # OptionEnableDebug                     - set when CMAKE_BUILD_TYPE is not Release and -DEnableDebug:BOOL=ON
 #                                         (defaults to CW_BUILD_TYPE_IS_DEBUG || CW_BUILD_TYPE_IS_RELWITHDEBUG)
 # OptionEnableLibcwd                    - set when CMAKE_BUILD_TYPE is not Release and OptionEnableDebug is true,
-#                                         and -DEnableLibcwd:BOOL=ON (defaults to libcwd_r_FOUND)
+#                                         and -DEnableLibcwd:BOOL=ON (defaults to libcwd_FOUND).
 #
 # The following variables are intended to be used with the macro 'cw_option'
 # defined below.
@@ -217,12 +217,18 @@ if (NOT "${PROJECT_NAME}" STREQUAL "libcwd")
   message(DEBUG "OptionEnableDebug is ${OptionEnableDebug}")
 
   if (CW_BUILD_TYPE_IS_NOT_RELEASE AND OptionEnableDebug)
-    find_package(libcwd_r CONFIG)
-    if (libcwd_r_FOUND)
+    find_package(libcwd 2 CONFIG)
+    if (libcwd_FOUND)
       set(default_enable_libcwd ON)
-      set(libcwd_r_TARGET "Libcwd::cwd_r")
+      set(libcwd_TARGET "Libcwd::cwd")
     else ()
-      set(default_enable_libcwd OFF)
+      find_package(libcwd_r CONFIG)
+      if (libcwd_r_FOUND)
+        set(default_enable_libcwd ON)
+        set(libcwd_r_TARGET "Libcwd::cwd_r")
+      else ()
+        set(default_enable_libcwd OFF)
+      endif ()
     endif ()
   endif ()
 
@@ -231,7 +237,7 @@ if (NOT "${PROJECT_NAME}" STREQUAL "libcwd")
       "link with libcwd" "${default_enable_libcwd}"
       "CW_BUILD_TYPE_IS_NOT_RELEASE;OptionEnableDebug" OFF)
 
-  if (OptionEnableLibcwd AND NOT libcwd_r_FOUND)
-    message(FATAL_ERROR "EnableLibcwd specified but libcwd_r not found!")
+  if (OptionEnableLibcwd AND NOT libcwd_FOUND AND NOT libcwd_r_FOUND)
+    message(FATAL_ERROR "EnableLibcwd specified but neither libcwd version 2 or newer nor legacy libcwd_r was found!")
   endif ()
 endif ()

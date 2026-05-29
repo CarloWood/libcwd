@@ -35,13 +35,11 @@
 #define LIBCW_LIMITS_H
 #include <limits.h>	// For PTHREAD_THREADS_MAX
 #endif
-#if LIBCWD_THREAD_SAFE
 #include "private_mutex.h"
 #ifdef LIBCWD_HAVE_PTHREAD
 #ifndef LIBCW_PTHREAD_H
 #define LIBCW_PTHREAD_H
 #include <pthread.h>
-#endif
 #endif
 #endif
 
@@ -51,11 +49,9 @@ namespace libcwd {
   } // namespace _private_
 } // namespace libcwd
 
-// When LIBCWD_THREAD_SAFE is set then `__libcwd_tsd' is a local variable
-// (see LIBCWD_TSD_DECLARATION) or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
-// This approach means that many function signatures are different because with thread support a
-// `__libcwd_tsd' reference needs to be passed.  We use several helper macros for this:
-#if LIBCWD_THREAD_SAFE
+// The active thread's TSD is passed as a local variable (see LIBCWD_TSD_DECLARATION)
+// or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
+// Several helper macros keep those signatures compact:
 
 #define LIBCWD_TSD __libcwd_tsd				// Optional `__libcwd_tsd' parameter (foo() or foo(__libcwd_tsd)).
 #define LIBCWD_COMMA_TSD , LIBCWD_TSD			// Idem, but as second or higher parameter.
@@ -78,22 +74,6 @@ namespace libcwd {
 #define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) (__libcwd_tsd.do_off_array[(debug_object).WNS_index])
 							// To access member _off of debug object.
 
-#else // !LIBCWD_THREAD_SAFE
-
-#define LIBCWD_TSD
-#define LIBCWD_COMMA_TSD
-#define LIBCWD_TSD_PARAM void
-#define LIBCWD_TSD_PARAM_UNUSED void
-#define LIBCWD_COMMA_TSD_PARAM
-#define LIBCWD_COMMA_TSD_PARAM_UNUSED
-#define LIBCWD_TSD_INSTANCE
-#define LIBCWD_COMMA_TSD_INSTANCE
-#define LIBCWD_TSD_DECLARATION
-#define LIBCWD_DO_TSD(debug_object) ((debug_object).tsd)
-#define LIBCWD_TSD_MEMBER_OFF (tsd._off)
-#define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) ((debug_object).tsd._off)
-
-#endif // !LIBCWD_THREAD_SAFE
 
 #define LIBCWD_DO_TSD_MEMBER(debug_object, m) (LIBCWD_DO_TSD(debug_object).m)
 #define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
@@ -102,10 +82,8 @@ namespace libcwd {
 #ifndef LIBCWD_STRUCT_DEBUG_TSD_H
 #include "struct_debug_tsd.h"
 #endif
-#if LIBCWD_THREAD_SAFE
 #ifndef LIBCWD_PRIVATE_THREAD_H
 #include "private_thread.h"
-#endif
 #endif
 
 namespace libcwd {
@@ -138,14 +116,12 @@ public:
 #if CWDEBUG_LOCATION
   location_format_t format;		// Determines how to print location_ct to an ostream.
 #endif
-#if LIBCWD_THREAD_SAFE
   threadlist_t::iterator thread_iter;	// Persistant thread specific data (might even stay after this object is destructed).
   bool thread_iter_valid;
   thread_ct* target_thread;
   int terminating;
   bool pthread_lock_interface_is_locked;// Set while writing debugout to the final ostream.
   int inside_free;			// Set when entering free().
-#endif
   bool recursive_fatal;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
   bool recursive_assert;		// Detect loop involving LIBCWD_ASSERT.
@@ -165,7 +141,6 @@ public:
   void const* rdlocked_from1[instance_rdlocked_size];
   void const* rdlocked_from2[instance_rdlocked_size];
 #endif
-#if LIBCWD_THREAD_SAFE
   pthread_t tid;			// Thread ID.
   pid_t pid;				// Process ID.
   int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
@@ -174,12 +149,10 @@ public:
   int off_cnt_array[LIBCWD_DC_MAX];	// Thread Specific Data of Debug Channels.
 private:
   int tsd_destructor_count;
-#endif
 
 public:
   void thread_destructed();
 
-#if LIBCWD_THREAD_SAFE
 //-------------------------------------------------------
 // Static data and methods.
 private:
@@ -193,28 +166,15 @@ public:
   static TSD_st& instance();
   static TSD_st& instance_free();
   static void free_instance(TSD_st&);
-#endif // LIBCWD_THREAD_SAFE
 };
 
 // Thread Specific Data (TSD) is stored in a structure TSD_st
 // and is accessed through a reference to `__libcwd_tsd'.
 
-#if !LIBCWD_THREAD_SAFE
-// When LIBCWD_THREAD_SAFE is set then `__libcwd_tsd' is a local variable that references
-// the Thread Specific Data as returned by TSD_st::instance(), otherwise it is simply a
-// global object in namespace _private_:
-extern TSD_st __libcwd_tsd;
-#else
 extern bool WST_tsd_key_created;
-#endif
 
   } // namespace _private_
 } // namespace libcwd
 
-#if !LIBCWD_THREAD_SAFE
-// Put __libcwd_tsd in global namespace because anywhere we always refer to it
-// as `__libcwd_tsd' because when LIBCWD_THREAD_SAFE is set it is local variable.
-using ::libcwd::_private_::__libcwd_tsd;
-#endif
 
 #endif // LIBCWD_PRIVATE_STRUCT_TSD_H

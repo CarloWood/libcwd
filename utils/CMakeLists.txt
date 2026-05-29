@@ -28,7 +28,7 @@ target_include_directories(libcwd_utils_ObjLib
 
 target_compile_definitions(libcwd_utils_ObjLib
     PRIVATE
-        "${cwd_r_compile_definintions}"
+        "${cwd_compile_definitions}"
 )
 
 target_link_libraries(libcwd_utils_ObjLib

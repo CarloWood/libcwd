@@ -18,7 +18,6 @@
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #define LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 
-#if LIBCWD_THREAD_SAFE
 
 #if CWDEBUG_DEBUGT
 #ifndef LIBCW_PTHREAD_H
@@ -84,6 +83,5 @@ size_t const high_priority_read_lock_offset = 2 * instance_locked_size;
   } // namespace _private_
 } // namespace libcwd
 
-#endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 

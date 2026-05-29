@@ -5,7 +5,7 @@ target_include_directories(ctest_support
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/include
 )
-target_link_libraries(ctest_support PUBLIC cwd_r)
+target_link_libraries(ctest_support PUBLIC cwd)
 target_compile_options(ctest_support PRIVATE -g)
 
 add_executable(basic_debug_output basic_debug_output.cc)
@@ -59,7 +59,7 @@ target_include_directories(symbol_range_overlaps
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/include
 )
-target_link_libraries(symbol_range_overlaps PRIVATE cwd_r)
+target_link_libraries(symbol_range_overlaps PRIVATE cwd)
 target_compile_options(symbol_range_overlaps PRIVATE -g)
 
 add_executable(nodebug_output nodebug_output.cc)
@@ -73,7 +73,7 @@ function(configure_location_loading_library target_name)
       ${CMAKE_SOURCE_DIR}/include
   )
   target_compile_options(${target_name} PRIVATE -g)
-  target_link_libraries(${target_name} PRIVATE cwd_r)
+  target_link_libraries(${target_name} PRIVATE cwd)
   set_target_properties(${target_name} PROPERTIES PREFIX "")
 endfunction()
 
@@ -99,16 +99,16 @@ add_dependencies(location_loading_fixture location_plugin2)
 
 add_test(NAME basic_debug_output COMMAND basic_debug_output)
 set_tests_properties(basic_debug_output PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME colors_debug_output COMMAND colors_debug_output)
 set_tests_properties(colors_debug_output PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 set(hello_world_debug_channel_environment
-  "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
   "LIBCWD_RCFILE_NAME=${CMAKE_SOURCE_DIR}/libcwdrc"
   "LIBCWD_RCFILE_OVERRIDE_NAME=${CMAKE_CURRENT_SOURCE_DIR}/support/libcwdrc_hello-override"
 )
@@ -119,57 +119,57 @@ set_tests_properties(hello_world_debug_channel PROPERTIES
 
 add_test(NAME mangling_symbols COMMAND mangling_symbols)
 set_tests_properties(mangling_symbols PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_lookup COMMAND location_lookup)
 set_tests_properties(location_lookup PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_cache_scenarios COMMAND location_cache_scenarios)
 set_tests_properties(location_cache_scenarios PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_line_directives COMMAND location_line_directives)
 set_tests_properties(location_line_directives PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_return_addresses COMMAND location_return_addresses)
 set_tests_properties(location_return_addresses PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_default_argument_functions COMMAND location_default_argument_functions)
 set_tests_properties(location_default_argument_functions PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_inlined_function_body COMMAND location_inlined_function_body)
 set_tests_properties(location_inlined_function_body PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_from_global_object COMMAND location_from_global_object)
 set_tests_properties(location_from_global_object PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME symbol_range_overlaps COMMAND symbol_range_overlaps)
 set_tests_properties(symbol_range_overlaps PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME nodebug_output COMMAND nodebug_output)
 set_tests_properties(nodebug_output PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_loading_fixture
   COMMAND ${CMAKE_COMMAND} -E env --unset=LIBCWD_PRINT_LOADING $<TARGET_FILE:location_loading_fixture>
 )
 set_tests_properties(location_loading_fixture PROPERTIES
-  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$<TARGET_FILE_DIR:location_libtest1>:$ENV{LD_LIBRARY_PATH}"
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$<TARGET_FILE_DIR:location_libtest1>:$ENV{LD_LIBRARY_PATH}"
 )

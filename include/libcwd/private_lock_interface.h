@@ -18,7 +18,6 @@
 #ifndef LIBCWD_PRIVATE_LOCK_INTERFACE_H
 #define LIBCWD_PRIVATE_LOCK_INTERFACE_H
 
-#if LIBCWD_THREAD_SAFE
 namespace libcwd {
   namespace _private_ {
 
@@ -54,6 +53,5 @@ class pthread_lock_interface_ct : public lock_interface_base_ct {
   } // namespace _private_
 }  // namespace libcwd
 
-#endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_PRIVATE_LOCK_INTERFACE_H
 

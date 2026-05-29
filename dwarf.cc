@@ -835,7 +835,7 @@ bool ensure_initialization(LIBCWD_TSD_PARAM)
 
   // MT: We assume this is called before reaching main().
   //     Therefore, no synchronisation is required.
-#if CWDEBUG_DEBUG && LIBCWD_THREAD_SAFE
+#if CWDEBUG_DEBUG
   if (_private_::WST_multi_threaded)
     core_dump();
 #endif

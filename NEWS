@@ -5,6 +5,9 @@ libcwd-2.0
         - Now has a CTest-backed testsuite.
         - Debug(main_reached()) must now be called at the top of main. It also does
           what check_configuration() did, which therefore no longer exists.
+        - libcwd_r.so was renamed to libcwd.so
+        - Complete rewrite of ELF/DWARF debug information loading code;
+          dc::bfd was renamed to dc::elfutils.
         - Released under the MIT license.
 
 libcwd-1.1.3

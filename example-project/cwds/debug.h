@@ -393,11 +393,9 @@ class DebugPipedOStringStream : public HelperPipeBufs, public std::ostream
   std::string str();
 };
 
-#if LIBCWD_THREAD_SAFE
 namespace libcwd {
 extern pthread_mutex_t cout_mutex;
 } // namespace libcwd
-#endif
 
 /**
  * Debugging macro.

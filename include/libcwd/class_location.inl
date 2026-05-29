@@ -50,7 +50,6 @@ location_ct::location_ct(void const* addr) : M_known(false)
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
 
-#if LIBCWD_THREAD_SAFE
 /*
  * Construct a location for address addr,
  * taking a thread-specific-data argument.
@@ -60,7 +59,6 @@ location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(fals
 {
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
-#endif
 
 /**
  * \brief Destructor.

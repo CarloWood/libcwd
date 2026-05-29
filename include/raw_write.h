@@ -28,20 +28,11 @@
 #endif
 extern "C" ssize_t write(int fd, const void *buf, size_t count);
 
-#if LIBCWD_THREAD_SAFE
 namespace libcwd {
   namespace _private_ {
     extern pthread_mutex_t raw_write_mutex;
   }
 }
-#define LIBCWD_CANCELSTATE_DISABLE int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate)
-#define LIBCWD_CANCELSTATE_RESTORE pthread_setcancelstate(__libcwd_oldstate, NULL)
-#else
-#define LIBCWD_CANCELSTATE_DISABLE do { } while(0)
-#define LIBCWD_CANCELSTATE_RESTORE do { } while(0)
-#endif
-
-#define LIBCWD_LIBRARY_CALL_INDENTATION do { } while(0)
 
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
 // when --disable-debug-output is used because a fatal error occured anyway, so this can't
@@ -49,17 +40,16 @@ namespace libcwd {
 #define FATALDEBUGDEBUG_CERR(x)									\
     do {											\
       if (::libcwd::_private_::WST_ios_base_initialized) {	                                \
-	LIBCWD_CANCELSTATE_DISABLE;								\
+        int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate); \
 	LIBCWD_TSD_DECLARATION;									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
 	LibcwDebugThreads( pthread_mutex_lock(&::libcwd::_private_::raw_write_mutex) );	\
 	do { size_t __attribute__((unused)) __libcwd_len = ::write(2, "CWDEBUG_DEBUG: ", 15); } while(0); \
-	LIBCWD_LIBRARY_CALL_INDENTATION;							\
 	LibcwDebugThreads( ::libcwd::_private_::raw_write << pthread_self() << ": ");	\
 	::libcwd::_private_::raw_write << x << '\n';					\
 	LibcwDebugThreads( pthread_mutex_unlock(&::libcwd::_private_::raw_write_mutex) );	\
 	LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );				\
-	LIBCWD_CANCELSTATE_RESTORE;								\
+	pthread_setcancelstate(__libcwd_oldstate, NULL);                                        \
       }												\
     } while(0)
 
@@ -103,8 +93,6 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 
 #endif // RAW_WRITE_H
 
-#if !defined(LIBCWD_NO_INTERNAL_STRING) && !defined(LIBCWD_RAW_WRITE_INTERNAL_STRING)
-#define LIBCWD_RAW_WRITE_INTERNAL_STRING
 #if CWDEBUG_DEBUG
 namespace libcwd {
 
@@ -112,5 +100,3 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 
 } // namespace libcwd
 #endif // CWDEBUG_DEBUG
-#endif // !LIBCWD_NO_INTERNAL_STRING
-

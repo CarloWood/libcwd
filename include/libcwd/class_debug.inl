@@ -263,14 +263,12 @@ debug_ct::on()
 #endif
 }
 
-#if LIBCWD_THREAD_SAFE
 inline
 bool
 debug_ct::is_on(LIBCWD_TSD_PARAM) const
 {
   return __libcwd_tsd.do_off_array[WNS_index] == -1;
 }
-#endif
 
 /**
  * \brief Turn always-flush for this %debug object on.

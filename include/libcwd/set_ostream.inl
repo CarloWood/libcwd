@@ -21,7 +21,6 @@
 #include "private_threading.h"
 #endif
 
-#if LIBCWD_THREAD_SAFE || defined(LIBCWD_DOXYGEN)
 namespace libcwd {
 
 /**
@@ -72,6 +71,5 @@ template<class T>
 
 }  // namespace libcwd
 
-#endif // LIBCWD_THREAD_SAFE
 #endif // LIBCWD_SET_OSTREAM_INL
 

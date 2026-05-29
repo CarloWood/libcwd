@@ -157,7 +157,7 @@ target_link_libraries(cwds_ObjLib
 if (OptionEnableLibcwd)
   target_link_libraries(cwds_ObjLib
     PUBLIC
-      ${libcwd_r_TARGET}
+      ${libcwd_TARGET}
   )
 endif ()
 

@@ -5,18 +5,17 @@ __PAGESTART
 
 <H2>Tutorial 8: Debugging Threaded Applications</H2>
 
-<P>When debugging a threaded application, you must link with -lcwd_r instead of -lcwd.&nbsp;
-For example:</P>
+<P>Libcwd is always built with thread support.&nbsp; For example:</P>
 
 <PRE>
-g++ -pthread -DLIBCWD_THREAD_SAFE -DCWDEBUG program.cc -lpthread -lcwd_r
+g++ -pthread -DCWDEBUG program.cc -lpthread -lcwd
 </PRE>
 
 <P>Best practise is to use the tool <CODE>pkg-config</CODE> to retrieve the
 flags that one needs to pass to the compiler and linker. That is, the output
-of <CODE>pkg-config --cflags libcwd_r</CODE> and <CODE>pkg-config --libs libcwd_r</CODE>.</P>
+of <CODE>pkg-config --cflags libcwd</CODE> and <CODE>pkg-config --libs libcwd</CODE>.</P>
 
-<P>Libcwd_r should be completely thread-safe, with the following restrictions:</P>
+<P>Libcwd should be completely thread-safe, with the following restrictions:</P>
 <UL>
 <LI>All debug objects and debug channels <EM>must</EM> be global (as they should
 be in non-threaded applications for that matter).</LI>

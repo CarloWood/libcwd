@@ -70,17 +70,8 @@ protected:
 #else
 public: // Only public because macro LibcwDout needs acces, don't access this directly.
 #endif
-#if LIBCWD_THREAD_SAFE
   int WNS_index;
   static int S_index_count;
-#else
-  //-------------------------------------------------------------------------------------------------
-  // Put the otherwise Thread Specific Data of this debug object
-  // directly into the object when we don't use threads.
-  //
-
-  debug_tsd_st tsd;
-#endif
 
 protected:
   //-------------------------------------------------------------------------------------------------
@@ -90,7 +81,6 @@ protected:
   std::ostream* real_os;
     // The original output ostream (as set with set_ostream()).
     //
-#if LIBCWD_THREAD_SAFE
   friend class libcwd::buffer_ct;		// buffer_ct::writeto() needs access.
   _private_::lock_interface_base_ct* M_mutex;
     // Pointer to the mutex that should be used for `real_os' or NULL when no lock is used.
@@ -98,7 +88,6 @@ protected:
 
   buffer_ct* unfinished_oss;
   void const* newlineless_tsd;
-#endif
 
 private:
   //-------------------------------------------------------------------------------------------------
@@ -228,14 +217,12 @@ public:
   //
 
   void set_ostream(std::ostream* os);
-#if LIBCWD_THREAD_SAFE || defined(LIBCWD_DOXYGEN)
   template<class T>
     void set_ostream(std::ostream* os, T* mutex);
 #ifdef LIBCWD_DOXYGEN
   // Specialization.
   template<>
     void set_ostream(std::ostream* os, pthread_mutex_t* mutex);
-#endif
 #endif
   void off();
   void on();
@@ -256,7 +243,7 @@ public:
   bool always_flush_is_on() const;
 };
 
-#if LIBCWD_THREAD_SAFE && !defined(LIBCWD_DOXYGEN)
+#if !defined(LIBCWD_DOXYGEN)
 // Specialization.
 template<>
   void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex);

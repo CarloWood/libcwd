@@ -56,10 +56,6 @@ class laf_ct;
 struct debug_tsd_st {
   friend class debug_ct;
 
-#if !LIBCWD_THREAD_SAFE
-  int _off;
-    // Debug output is turned on when this variable is -1, otherwise it is off.
-#endif
 
   bool tsd_initialized;
     // Set after initialization is completed.
@@ -123,14 +119,12 @@ struct debug_tsd_st {
 
   // Initialization and de-initialization.
   void init();
-#if LIBCWD_THREAD_SAFE
   // In the non-threaded case, debug_ct contains a debug_tsd_st which
   // may already be initialized before.  Therefore don't initialize
   // these in the non-threaded case, but rely on tsd_initialized,
   // current_bufferstream and _off to be zeroed as a result of being
   // part of a global object.
   debug_tsd_st() : tsd_initialized(false), current_bufferstream(NULL) { }
-#endif
   ~debug_tsd_st();
 };
 

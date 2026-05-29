@@ -2444,8 +2444,7 @@ INCLUDE_FILE_PATTERNS  = *.h
 PREDEFINED             = CWDEBUG \
                          _REENTRANT \
                          LIBCWD_DOXYGEN \
-                         HIDE_FROM_DOXYGEN \
-                         LIBCWD_THREAD_SAFE=0
+                         HIDE_FROM_DOXYGEN
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
@@ -2454,7 +2453,7 @@ PREDEFINED             = CWDEBUG \
 # definition found in the source code.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-EXPAND_AS_DEFINED      = LIBCWD_THREAD_SAFE
+EXPAND_AS_DEFINED      =
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES then Doxygen's preprocessor will
 # remove all references to function-like macros that are alone on a line, have

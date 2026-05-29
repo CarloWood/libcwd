@@ -39,7 +39,6 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     return;
   }
 
-#if LIBCWD_THREAD_SAFE
   if (__libcwd_tsd.pthread_lock_interface_is_locked)
   {
     // Some time, in another universe, this might really happen:
@@ -64,7 +63,6 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     M_initialization_delayed = addr;
     return;
   }
-#endif
 
   ObjectFileInterface const* object_file = find_object_file(addr LIBCWD_COMMA_TSD);
 

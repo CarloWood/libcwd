@@ -87,14 +87,11 @@ add_custom_target(run
 # Create a shared library from module.cc.
 add_library(module_r SHARED EXCLUDE_FROM_ALL module.cc)
 
-# Define the macro LIBCWD_THREAD_SAFE.
-target_compile_definitions(module_r PRIVATE LIBCWD_THREAD_SAFE)
-
 # Add an include directory for module_r.
 target_include_directories(module_r PRIVATE libcwd.tst ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/include ${CMAKE_SOURCE_DIR}/include)
 
 # Make sure we're compiled with CWDEBUG.
-target_link_libraries(module_r PRIVATE cwd_r)
+target_link_libraries(module_r PRIVATE cwd)
 
 # Include debug info in the shared library.
 target_compile_options(module_r PRIVATE -g)
@@ -115,13 +112,13 @@ foreach(NODEBUG_NAME ${NODEBUGCHECK})
       ${CMAKE_BINARY_DIR}/include
       ${CMAKE_SOURCE_DIR}/include
   )
-  target_link_libraries(nodebug_${NODEBUG_NAME}_shared PRIVATE cwd_r)
+  target_link_libraries(nodebug_${NODEBUG_NAME}_shared PRIVATE cwd)
 endforeach()
 
 foreach(TST_NAME ${TSTCHECK})
   add_executable(tst_${TST_NAME}_shared EXCLUDE_FROM_ALL libcwd.tst/${TST_NAME}.cc)
   target_include_directories(tst_${TST_NAME}_shared PRIVATE ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/include ${CMAKE_SOURCE_DIR}/include)
-  target_link_libraries(tst_${TST_NAME}_shared PRIVATE cwd_r)
+  target_link_libraries(tst_${TST_NAME}_shared PRIVATE cwd)
   target_compile_options(tst_${TST_NAME}_shared PRIVATE -g)
 endforeach()
 
@@ -134,7 +131,7 @@ foreach(THREADS_NAME ${THREADSCHECK})
       ${CMAKE_BINARY_DIR}/include
       ${CMAKE_SOURCE_DIR}/include
   )
-  target_link_libraries(threads_${THREADS_NAME}_shared PRIVATE cwd_r)
+  target_link_libraries(threads_${THREADS_NAME}_shared PRIVATE cwd)
   target_compile_options(threads_${THREADS_NAME}_shared PRIVATE -g)
 endforeach()
 
