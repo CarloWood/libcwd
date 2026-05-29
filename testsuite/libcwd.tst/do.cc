@@ -3,8 +3,6 @@
 #include <sstream>
 #include <iostream>
 
-using namespace std;
-
 // CWDEBUG must be define in this test
 
 #ifndef CWDEBUG
@@ -31,15 +29,15 @@ MAIN_FUNCTION
   Debug( (void)pc_mangled_function_name((void*)exit) );
 #endif
 
-  ostringstream dummy;	// Do this before turning on debug output
+  std::ostringstream dummy;	// Do this before turning on debug output
 
   // Test initial ostreams.
-  ostream* my_own_os = my_own_do.get_ostream();
+  std::ostream* my_own_os = my_own_do.get_ostream();
 #ifndef THREADTEST
-  ostream* libcwd_os = libcwd::libcw_do.get_ostream();
+  std::ostream* libcwd_os = libcwd::libcw_do.get_ostream();
 #endif
-  ostream* coutp = &cout;
-  ostream* cerrp = &cerr;
+  std::ostream* coutp = &std::cout;
+  std::ostream* cerrp = &std::cerr;
 
   if (my_own_os != cerrp
 #ifndef THREADTEST
@@ -205,7 +203,7 @@ MAIN_FUNCTION
   Debug( my_own_do.set_indent(0) );
   Debug( example::my_own_do.set_indent(0) );
 
-  my_own_do.set_ostream(&cout COMMA_THREADED(&cout_mutex));
+  my_own_do.set_ostream(&std::cout COMMA_THREADED(&cout_mutex));
   my_own_os = my_own_do.get_ostream();
 #ifndef THREADTEST
   libcwd_os = libcwd::libcw_do.get_ostream();
@@ -221,7 +219,7 @@ MAIN_FUNCTION
   MyOwnDout(dc::notice, "This is written to cout");
   my_own_do.set_ostream(&dummy COMMA_THREADED(&dummy_mutex));
   MyOwnDout(dc::notice, "This is written to an ostringstream");
-  cout << flush;
+  std::cout << std::flush;
   Dout(dc::notice, "This is written to cerr");
   my_own_do.set_ostream(cerrp COMMA_THREADED(&cerr_mutex));
   MyOwnDout(dc::notice, "This is written to cerr");

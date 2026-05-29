@@ -16,8 +16,6 @@ static void slowdown()
   while (nanosleep(&rem, &rem) == -1) ;
 }
 
-using namespace std;
-
 #ifdef REAL_CERR
 #define DEBUG_CERR
 #define USE_REAL_CERR
@@ -41,8 +39,8 @@ namespace libcwd {
 }
 
 #ifndef REAL_CERR
-static stringstream ss;
-static streambuf* old_buf;
+static std::stringstream ss;
+static std::streambuf* old_buf;
 #endif
 
 #if __GNUC__ == 2 && __GNUC_MINOR__ < 97
@@ -52,34 +50,34 @@ static streambuf* old_buf;
 void grab_cerr()
 {
 #ifndef REAL_CERR
-  old_buf = cerr.rdbuf();
-  cerr.rdbuf(ss.rdbuf());
+  old_buf = std::cerr.rdbuf();
+  std::cerr.rdbuf(ss.rdbuf());
 #endif
 }
 
 void release_cerr()
 {
 #ifndef REAL_CERR
-  cerr.rdbuf(old_buf);
+  std::cerr.rdbuf(old_buf);
 #endif
 }
 
 void flush_cout()
 {
-  std::cout << flush;
+  std::cout << std::flush;
   slowdown();
 }
 
 void flush_cerr()
 {
 #ifdef REAL_CERR
-  cerr << flush;
+  std::cerr << std::flush;
 #else
   size_t curlen = ss.rdbuf()->pubseekoff(0, std::ios_base::cur, std::ios_base::out) - ss.rdbuf()->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
   std::string buf;
   buf.append(ss.str(), 0, curlen);
 #ifdef DEBUG_CERR
-  cout << buf;
+  std::cout << buf;
 #else
   bool color = false;
   char const* p = buf.data();
@@ -87,18 +85,18 @@ void flush_cerr()
   {
     if (!color)
     {
-      cout << "\e[31m";
+      std::cout << "\e[31m";
       color = true;
     }
-    cout.put(*p);
+    std::cout.put(*p);
     if (*p++ == '\n')
     {
-      cout << "\e[0m";
+      std::cout << "\e[0m";
       color = false;
     }
   }
 #endif
-  cout << flush;
+  std::cout << std::flush;
   slowdown();
   ss.rdbuf()->pubseekoff(0, std::ios_base::beg, std::ios_base::in|std::ios_base::out);
 #endif
@@ -222,7 +220,7 @@ MAIN_FUNCTION
   Debug( dc::run.on() );
 #ifndef THREADTEST
   // Write debug output to cout
-  Debug( libcw_do.set_ostream(&cout) );
+  Debug( libcw_do.set_ostream(&std::cout) );
 #endif
   // Turn debug object on
   Debug( libcw_do.on() );
@@ -233,25 +231,25 @@ MAIN_FUNCTION
   //===================================================================================
   // Unnested tests
 
-  cout << "===========================================================================\n";
-  cout << " Unnested tests\n\n";
+  std::cout << "===========================================================================\n";
+  std::cout << " Unnested tests\n\n";
 
   // Simple, one line debug output
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::notice, "This is a single line" );
 
   // The same, but splitting it by using `nonewline_cf' and `noprefix_cf'
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::notice|nonewline_cf, "This is " );
   Dout( dc::notice|noprefix_cf, "a single line" );
 
   // The same, but writing an error message behind it
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   errno = 0;
   Dout( dc::notice|error_cf, "This is a single line with an error message behind it" );
 
   // Test writing forced to cerr
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   flush_cout();
   errno = 0;
   Dout( dc::notice|error_cf|cerr_cf, "CERR: This is a single line with an error message behind it written to cerr" );
@@ -260,14 +258,14 @@ MAIN_FUNCTION
   //===================================================================================
   // Simple nests
 
-  cout << "===========================================================================\n";
-  cout << " Simple nests\n\n";
+  std::cout << "===========================================================================\n";
+  std::cout << " Simple nests\n\n";
 
   // Single depth
   for(int i = 0; i < 4; ++i)
   {
     bool a = (i & 2), b = (i & 1);
-    cout << "---------------------------------------------------------------------------\n";
+    std::cout << "---------------------------------------------------------------------------\n";
     Dout( dc::notice, "`nested_foo(" << a << ", " << b << ")' returns the string \"" << nested_foo(a, b) << "\" when I call it." );
   }
 
@@ -275,59 +273,59 @@ MAIN_FUNCTION
   for(int i = 0; i < 16; ++i)
   {
     bool a = (i & 8), b = (i & 4), c = (i & 2), d = (i & 1);
-    cout << "---------------------------------------------------------------------------\n";
+    std::cout << "---------------------------------------------------------------------------\n";
     Dout( dc::notice, "`nested_bar(" << a << ", " << b << ", " << c << ", " << d << ")' returns the string \"" << nested_bar(a, b, c, d) << "\" when I call it." );
   }
 
   //===================================================================================
   // Continued tests, single depth
 
-  cout << "===========================================================================\n";
-  cout << " Continued tests, single depth\n\n";
+  std::cout << "===========================================================================\n";
+  std::cout << " Continued tests, single depth\n\n";
 
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::run|continued_cf, "Hello " );
   Dout( dc::finish, "World" );
 
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::finish, "library!" );
 
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::foo, "Single interruption before." );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::finish, "library!" );
 
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::foo, "Single interruption after." );
   Dout( dc::finish, "library!" );
 
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::foo, "Single interruption before and" );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::foo, "a single interruption after." );
   Dout( dc::finish, "library!" );
 
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::foo, "Double interruption before," );
   Dout( dc::foo, "double means two lines." );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::finish, "library!" );
 
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::continued, "is an awesome " );
   Dout( dc::foo, "Double interruption after," );
   Dout( dc::foo, "double means two lines." );
   Dout( dc::finish, "library!" );
 
-  cout << "---------------------------------------------------------------------------\n";
+  std::cout << "---------------------------------------------------------------------------\n";
   Dout( dc::run|continued_cf, "Libcwd " );
   Dout( dc::foo, "Double interruption before and" );
   Dout( dc::foo, "(double means two lines)" );
@@ -340,7 +338,7 @@ MAIN_FUNCTION
     for(int j = 0; j < 4; ++j)
     {
       bool a, b;
-      cout << "---------------------------------------------------------------------------\n";
+      std::cout << "---------------------------------------------------------------------------\n";
       Dout( dc::run|continued_cf, "Libcwd " );
       a = (i & 2);
       b = (i & 1);
@@ -355,7 +353,7 @@ MAIN_FUNCTION
   for(int i = 0; i < 16; ++i)
   {
     bool a = (i & 8), b = (i & 4), c = (i & 2), d = (i & 1);
-    cout << "---------------------------------------------------------------------------\n";
+    std::cout << "---------------------------------------------------------------------------\n";
     Dout( dc::run|continued_cf, "Libcwd " );
     Dout( dc::notice, "`nested_bar(" << a << ", " << b << ", " << c << ", " << d << ")' returns the string \"" << nested_bar(a, b, c, d) << "\" when I call it." );
     Dout( dc::continued, "is an awesome " );
@@ -365,7 +363,7 @@ MAIN_FUNCTION
   for(int i = 0; i < 16; ++i)
   {
     bool a = (i & 8), b = (i & 4), c = (i & 2), d = (i & 1);
-    cout << "---------------------------------------------------------------------------\n";
+    std::cout << "---------------------------------------------------------------------------\n";
     Dout( dc::run|continued_cf, "Libcwd " );
     Dout( dc::continued, "is an awesome " );
     Dout( dc::notice, "`nested_bar(" << a << ", " << b << ", " << c << ", " << d << ")' returns the string \"" << nested_bar(a, b, c, d) << "\" when I call it." );
@@ -375,8 +373,8 @@ MAIN_FUNCTION
   //===================================================================================
   // Continued tests, depth 2.
 
-  cout << "===========================================================================\n";
-  cout << " Continued tests, deep\n\n";
+  std::cout << "===========================================================================\n";
+  std::cout << " Continued tests, deep\n\n";
 
   Dout( dc::notice, continued_func(5) );
 
