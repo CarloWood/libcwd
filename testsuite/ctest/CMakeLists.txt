@@ -65,6 +65,10 @@ target_compile_options(symbol_range_overlaps PRIVATE -g)
 add_executable(nodebug_output nodebug_output.cc)
 target_link_libraries(nodebug_output PRIVATE ctest_support)
 
+add_executable(type_info type_info.cc)
+target_link_libraries(type_info PRIVATE ctest_support)
+target_compile_options(type_info PRIVATE -g)
+
 function(configure_location_loading_library target_name)
   target_include_directories(${target_name}
     PRIVATE
@@ -168,6 +172,11 @@ set_tests_properties(symbol_range_overlaps PROPERTIES
 
 add_test(NAME nodebug_output COMMAND nodebug_output)
 set_tests_properties(nodebug_output PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME type_info COMMAND type_info)
+set_tests_properties(type_info PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
