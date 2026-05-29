@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cwd_sys.h"
-#include "cwd_dwarf2.h"
+#include "cwd_dwarf.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-namespace libcwd::dwarf2 {
+namespace libcwd::dwarf {
 
 // Represents one contiguous fragment of a function symbol range.
 //
@@ -176,4 +176,4 @@ inline bool insert_function_symbol_range(FunctionSymbolRanges& function_symbols,
   return inserted_new_fragment;
 }
 
-} // namespace libcwd::dwarf2
+} // namespace libcwd::dwarf

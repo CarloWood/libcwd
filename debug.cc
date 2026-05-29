@@ -33,7 +33,7 @@
 #include <libcwd/class_location.inl>
 #include "ios_base_Init.h"
 #if CWDEBUG_LOCATION
-#include "cwd_dwarf2.h"
+#include "cwd_dwarf.h"
 #endif
 
 extern "C" int raise(int);
@@ -461,7 +461,7 @@ namespace libcwd {
 #endif
 
 #if CWDEBUG_LOCATION
-      dwarf2::ensure_initialization(LIBCWD_TSD);        // Initialize DWARF code.
+      dwarf::ensure_initialization(LIBCWD_TSD);        // Initialize DWARF code.
 #endif
 #if CWDEBUG_DEBUG && !CWDEBUG_DEBUGOUTPUT
       // Force allocation of a __cxa_eh_globals struct in libsupc++.

@@ -1,5 +1,5 @@
 #include "cwd_sys.h"
-#include "cwd_dwarf2.h"
+#include "cwd_dwarf.h"
 #include "libcwd/class_location.h"
 #include "libcwd/debug.h"
 
@@ -29,7 +29,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 {
   LIBCWD_ASSERT( !M_known );
 
-  using namespace dwarf2;
+  using namespace dwarf;
 
   if (!ensure_initialization(LIBCWD_TSD))
   {

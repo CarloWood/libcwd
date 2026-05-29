@@ -1,7 +1,6 @@
-// Deterministic coverage for cache-backed location_ct lookups that do not rely
-// on stderr formatting.  Each probe captures a concrete code address, resolves it
-// through location_ct, and checks the source file/line and mangled caller name
-// that the dwarf2 initialization cache should have precomputed.
+// Deterministic coverage for cache-backed location_ct lookups that do not rely on stderr formatting.
+// Each probe captures a concrete code address, resolves it through location_ct, and checks the source
+// file/line and mangled caller name that the `dwarf` initialization cache should have precomputed.
 
 #include "cwd_sys.h"
 #include "test_support.h"

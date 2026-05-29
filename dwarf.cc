@@ -3,8 +3,8 @@
 
 #if CWDEBUG_LOCATION
 
-#include "cwd_dwarf2.h"
-#include "dwarf2_symbol_ranges.h"
+#include "cwd_dwarf.h"
+#include "dwarf_symbol_ranges.h"
 #include "libcwd/debug.h"
 #include "threadsafe/threadsafe.h"
 #include "threadsafe/AIReadWriteMutex.h"
@@ -48,7 +48,7 @@ channel_ct elfutils
 } // namespace dc
 } // namespace channels
 
-namespace dwarf2 {
+namespace dwarf {
 
 // Forward declarations.
 class ObjectFileData;
@@ -476,7 +476,7 @@ std::string current_executable_path()
 }
 
 // Return a compact textual representation of ELF program-header permission flags.
-// The result is used only for diagnostics while building the dwarf2 object/segment cache.
+// The result is used only for diagnostics while building the dwarf object/segment cache.
 // Output character positions correspond to respectively PF_R, PF_W, PF_X; a dash is
 // printed if that permission bit is absent.
 char const* flags_to_string(ElfW(Word) flags)
@@ -639,7 +639,7 @@ void ObjectFileRegistry::register_initial_object_files()
   {
     CallBackData const data{current_executable_path()};
 
-    // This is the initial population pass for the dwarf2 object/segment cache.
+    // This is the initial population pass for the dwarf object/segment cache.
     // Even if dlopen is called first, that still will first call this function.
     LIBCWD_ASSERT(object_files_t::rat{s_object_files_}->empty());
 
@@ -1172,7 +1172,7 @@ void ObjectFileData::close_dwarf()
 namespace {
 
 // Real dynamic-loader entry points used by the exported wrappers below.  The
-// wrappers are responsible for keeping dwarf2's loaded-segment map synchronized
+// wrappers are responsible for keeping dwarf's loaded-segment map synchronized
 // with libraries added by dlopen and, eventually, removed by dlclose.
 extern "C" {
 static union { void* symptr; void* (*func)(char const*, int); } real_dlopen;
@@ -1201,7 +1201,7 @@ dynamic_loader_records_t& dlopen_map()
 } // namespace
 #endif // HAVE_DLOPEN
 
-} // namespace dwarf2
+} // namespace dwarf
 } // namespace libcwd
 
 #ifdef HAVE_DLOPEN
@@ -1209,12 +1209,12 @@ extern "C" {
 
 void* dlopen(char const* name, int flags)
 {
-  using namespace libcwd::dwarf2;
+  using namespace libcwd::dwarf;
 
   // No need to register if no name is given.
   bool const need_register_object_file = name && *name;
 
-  // Ensure the initial dwarf2 object/segment cache exists before the new DSO is mapped.
+  // Ensure the initial dwarf object/segment cache exists before the new DSO is mapped.
   // That makes the following post-dlopen pass responsible only for the just-loaded link_map entry, and avoids duplicate startup registration.
   if (need_register_object_file)
     libcwd::initialize();
@@ -1275,7 +1275,7 @@ void* dlopen(char const* name, int flags)
 
 int dlclose(void* handle)
 {
-  using namespace libcwd::dwarf2;
+  using namespace libcwd::dwarf;
 
   // Initialize real_dlclose if that wasn't done yet.
   std::call_once(initialize_real_dlclose, [](){ real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose"); });
@@ -1342,7 +1342,7 @@ char const* const unknown_function_c = "<unknown function>";
  */
 char const* pc_mangled_function_name(void const* pc)
 {
-  using namespace dwarf2;
+  using namespace dwarf;
 
   LIBCWD_TSD_DECLARATION;
 

@@ -4,9 +4,9 @@
 #include "libcwd/private_struct_TSD.h"
 #include <cstdint>
 
-namespace libcwd::dwarf2 {
+namespace libcwd::dwarf {
 
-// Ensure that dwarf2's object-file registry has been populated before an
+// Ensure that dwarf's object-file registry has been populated before an
 // address lookup tries to consult it.
 //
 // Returns false only when libcwd initialization recurses before the registry
@@ -69,8 +69,8 @@ class ObjectFileInterface
 // Return the registered ObjectFile that contains `addr` in one of its mapped
 // PT_LOAD address ranges, or nullptr if no known object covers addr.
 //
-// The returned interface remains owned by dwarf2's object-file registry and
+// The returned interface remains owned by dwarf's object-file registry and
 // is valid until the object is unregistered due to a call to dlclose.
 extern ObjectFileInterface const* find_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM);
 
-} // namespace libcwd::dwarf2
+} // namespace libcwd::dwarf
