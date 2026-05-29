@@ -69,6 +69,11 @@ add_executable(type_info type_info.cc)
 target_link_libraries(type_info PRIVATE ctest_support)
 target_compile_options(type_info PRIVATE -g)
 
+add_executable(dlopen dlopen.cc)
+target_link_libraries(dlopen PRIVATE ctest_support ${CMAKE_DL_LIBS})
+target_compile_options(dlopen PRIVATE -g)
+target_compile_definitions(dlopen PRIVATE "DLOPEN_MODULE_PATH=\"$<TARGET_FILE:dlopen_module>\"")
+
 function(configure_location_loading_library target_name)
   target_include_directories(${target_name}
     PRIVATE
@@ -83,6 +88,18 @@ endfunction()
 
 add_library(location_libtest2 SHARED support/location_libtest2.cc)
 configure_location_loading_library(location_libtest2)
+
+add_library(dlopen_module SHARED support/dlopen_module.cc)
+target_include_directories(dlopen_module
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_BINARY_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(dlopen_module PRIVATE cwd Threads::Threads)
+target_compile_options(dlopen_module PRIVATE -g)
+set_target_properties(dlopen_module PROPERTIES PREFIX "")
+add_dependencies(dlopen dlopen_module)
 
 add_library(location_plugin1 SHARED support/location_plugin1.cc)
 configure_location_loading_library(location_plugin1)
@@ -178,6 +195,13 @@ set_tests_properties(nodebug_output PROPERTIES
 add_test(NAME type_info COMMAND type_info)
 set_tests_properties(type_info PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME dlopen
+  COMMAND ${CMAKE_COMMAND} -E env --unset=LIBCWD_PRINT_LOADING $<TARGET_FILE:dlopen>
+)
+set_tests_properties(dlopen PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$<TARGET_FILE_DIR:dlopen_module>:$ENV{LD_LIBRARY_PATH}"
 )
 
 add_test(NAME location_loading_fixture
