@@ -27,9 +27,9 @@ MAIN_FUNCTION
   Debug( list_channels_on(libcw_do) );
 
 #if CWDEBUG_LOCATION
-  Dout(dc::bfd, "bfd Testing");
+  Dout(dc::elfutils, "elfutils Testing");
 #else
-  Dout(dc::notice, "bfd Testing disabled");
+  Dout(dc::notice, "elfutils Testing disabled");
 #endif
   Dout(dc::debug, "debug Testing");
   Dout(dc::notice, "notice Testing");

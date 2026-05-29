@@ -1,6 +1,5 @@
 # Define the test types.
-set(NODEBUGCHECK "nodebug")
-set(TSTCHECK "basic" "location" "cf" "continued" "dc" "demangler" "dlopen" "do" "flush" "lockable_auto_ptr" "type_info")
+set(TSTCHECK "cf" "continued" "dc" "demangler" "dlopen" "do" "flush" "lockable_auto_ptr" "type_info")
 set(THREADSCHECK "keys")
 
 # Get the basename of the current directory.
@@ -10,13 +9,7 @@ get_filename_component(SUBDIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(DISTDIR "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}/${SUBDIR}")
 
 # Define the distfiles variable.
-set(DISTFILES "module.cc" "config" "lib" "libcwd.tst" "libcwd.nodebug" "libcwd.threads")
-
-# Define shared nodebug targets.
-set(SHAREDNODEBUGTARGETS "")
-foreach(test ${NODEBUGCHECK})
-  list(APPEND SHAREDNODEBUGTARGETS "nodebug_${test}_shared")
-endforeach()
+set(DISTFILES "module.cc" "config" "lib" "libcwd.tst" "libcwd.threads")
 
 # Define shared test targets.
 set(SHAREDTSTTARGETS "")
@@ -31,8 +24,8 @@ foreach(test ${THREADSCHECK})
 endforeach()
 
 # Define variables used to generate the DejaGnu site configuration.
-set(SHAREDTARGETS ${SHAREDTSTTARGETS} ${SHAREDNODEBUGTARGETS} ${SHAREDTHREADSTARGETS})
-set(EXPECT_SCRIPTS "nodebug.exp" "tst.exp" "threads.exp" CACHE STRING "Default expect scripts for runtest")
+set(SHAREDTARGETS ${SHAREDTSTTARGETS} ${SHAREDTHREADSTARGETS})
+set(EXPECT_SCRIPTS "tst.exp" "threads.exp" CACHE STRING "Default expect scripts for runtest")
 set(MODULETARGETS "module_r.so")
 
 # Define variables for running tests.
@@ -103,18 +96,6 @@ target_link_libraries(module_r PUBLIC Threads::Threads)
 set(CMAKE_BUILD_TYPE None)
 set(CMAKE_CXX_FLAGS "")
 
-foreach(NODEBUG_NAME ${NODEBUGCHECK})
-  add_executable(nodebug_${NODEBUG_NAME}_shared EXCLUDE_FROM_ALL libcwd.nodebug/${NODEBUG_NAME}.cc)
-  target_include_directories(nodebug_${NODEBUG_NAME}_shared
-    PRIVATE
-      ${CMAKE_CURRENT_SOURCE_DIR}/libcwd.tst
-      ${CMAKE_BINARY_DIR}
-      ${CMAKE_BINARY_DIR}/include
-      ${CMAKE_SOURCE_DIR}/include
-  )
-  target_link_libraries(nodebug_${NODEBUG_NAME}_shared PRIVATE cwd)
-endforeach()
-
 foreach(TST_NAME ${TSTCHECK})
   add_executable(tst_${TST_NAME}_shared EXCLUDE_FROM_ALL libcwd.tst/${TST_NAME}.cc)
   target_include_directories(tst_${TST_NAME}_shared PRIVATE ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/include ${CMAKE_SOURCE_DIR}/include)
@@ -134,8 +115,6 @@ foreach(THREADS_NAME ${THREADSCHECK})
   target_link_libraries(threads_${THREADS_NAME}_shared PRIVATE cwd)
   target_compile_options(threads_${THREADS_NAME}_shared PRIVATE -g)
 endforeach()
-
-target_include_directories(tst_location_shared PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (BUILD_TESTING)
   add_subdirectory(ctest)

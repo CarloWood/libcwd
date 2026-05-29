@@ -13,7 +13,7 @@ MAIN_FUNCTION
 
   Debug( libcw_do.on() );
 #if CWDEBUG_LOCATION
-  Debug( dc::bfd.on() );
+  Debug( dc::elfutils.on() );
 #endif
   Debug( dc::notice.on() );
 
