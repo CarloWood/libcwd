@@ -1,10 +1,6 @@
 #include "sys.h"
 #include <libcwd/debug.h>
-#ifndef LIBCWD_USE_STRSTREAM
 #include <sstream>
-#else
-#include <strstream>
-#endif
 #include <iostream>
 
 using namespace std;
@@ -35,11 +31,7 @@ MAIN_FUNCTION
   Debug( (void)pc_mangled_function_name((void*)exit) );
 #endif
 
-#ifndef LIBCWD_USE_STRSTREAM
   ostringstream dummy;	// Do this before turning on debug output
-#else
-  ostrstream dummy;
-#endif
 
   // Test initial ostreams.
   ostream* my_own_os = my_own_do.get_ostream();
@@ -233,9 +225,6 @@ MAIN_FUNCTION
   Dout(dc::notice, "This is written to cerr");
   my_own_do.set_ostream(cerrp COMMA_THREADED(&cerr_mutex));
   MyOwnDout(dc::notice, "This is written to cerr");
-#ifdef LIBCWD_USE_STRSTREAM
-  dummy << ends;
-#endif
   Dout(dc::warning, "Was written to ostringstream: \"" << dummy.str() << '"');
 
   EXIT(0);

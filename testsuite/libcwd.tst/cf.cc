@@ -1,11 +1,7 @@
 #include "sys.h"
 #include <errno.h>
 #include <libcwd/debug.h>
-#ifdef LIBCWD_USE_STRSTREAM
-#include <strstream>
-#else
 #include <sstream>
-#endif
 
 libcwd::debug_ct local_debug_object;
 #define MyDout(cntrl, data) LibcwDout(LIBCWD_DEBUGCHANNELS, local_debug_object, cntrl, data)
@@ -16,11 +12,7 @@ pthread_mutex_t buf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 MAIN_FUNCTION
 { PREFIX_CODE
-#ifdef LIBCWD_USE_STRSTREAM
-  std::ostrstream buf;
-#else
   std::ostringstream buf;
-#endif
 
   Debug( main_reached() );
   Debug( local_debug_object.on() );

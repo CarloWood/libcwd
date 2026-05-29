@@ -5,11 +5,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <iostream>
-#ifdef LIBCWD_USE_STRSTREAM
-#include <strstream>
-#else
 #include <sstream>
-#endif
 #include <time.h>
 
 struct timespec const one_ms = { 0, 1000000 };
@@ -45,13 +41,7 @@ namespace libcwd {
 }
 
 #ifndef REAL_CERR
-#ifdef LIBCWD_USE_STRSTREAM
-// No idea why, but it doesn't work when strstream is dynamic.
-static char ssbuf[1024];
-static strstream ss(ssbuf, sizeof(ssbuf));
-#else
 static stringstream ss;
-#endif
 static streambuf* old_buf;
 #endif
 
