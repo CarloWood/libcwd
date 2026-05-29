@@ -44,6 +44,10 @@ add_executable(location_default_argument_functions location_default_argument_fun
 target_link_libraries(location_default_argument_functions PRIVATE ctest_support)
 target_compile_options(location_default_argument_functions PRIVATE -g -finline)
 
+add_executable(location_inlined_function_body location_inlined_function_body.cc)
+target_link_libraries(location_inlined_function_body PRIVATE ctest_support)
+target_compile_options(location_inlined_function_body PRIVATE -g -O2)
+
 add_executable(location_from_global_object location_from_global_object.cc)
 target_link_libraries(location_from_global_object PRIVATE ctest_support)
 target_compile_options(location_from_global_object PRIVATE -g)
@@ -140,6 +144,11 @@ set_tests_properties(location_return_addresses PROPERTIES
 
 add_test(NAME location_default_argument_functions COMMAND location_default_argument_functions)
 set_tests_properties(location_default_argument_functions PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME location_inlined_function_body COMMAND location_inlined_function_body)
+set_tests_properties(location_inlined_function_body PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd_r>:$ENV{LD_LIBRARY_PATH}"
 )
 
