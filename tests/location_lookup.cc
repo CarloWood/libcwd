@@ -19,9 +19,9 @@
 
 #include <libcwd/demangle.h>
 
-void test()
+void test(void* call_site)
 {
-  libcwd::location_ct loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
+  libcwd::location_ct loc(call_site);
   std::string funcname;
   libcwd::demangle_symbol(loc.mangled_function_name(), funcname);
   Dout(dc::notice, "test(): called from " << funcname);
@@ -36,7 +36,8 @@ class A
 A::A()
 {
   Dout(dc::notice, "A::A(): called from " << location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset));
-  test();
+call_site_test:
+  test(&&call_site_test);
 }
 
 namespace {
