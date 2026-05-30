@@ -16,6 +16,10 @@ add_executable(flush flush.cc)
 target_link_libraries(flush PRIVATE ctest_support)
 target_compile_options(flush PRIVATE -g)
 
+add_executable(continued continued.cc)
+target_link_libraries(continued PRIVATE ctest_support)
+target_compile_options(continued PRIVATE -g)
+
 add_executable(do do.cc)
 target_link_libraries(do PRIVATE ctest_support)
 target_compile_options(do PRIVATE -g)
@@ -141,6 +145,11 @@ set_tests_properties(basic_debug_output PROPERTIES
 
 add_test(NAME flush COMMAND flush)
 set_tests_properties(flush PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME continued COMMAND continued)
+set_tests_properties(continued PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 

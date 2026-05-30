@@ -1,5 +1,5 @@
 # Define the test types.
-set(TSTCHECK "cf" "continued" "demangler" "do" "flush")
+set(TSTCHECK "cf" "demangler")
 set(THREADSCHECK "keys")
 
 # Get the basename of the current directory.
