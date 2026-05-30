@@ -15,6 +15,7 @@
 #define ENVIRONMENT_H
 
 #include <iostream>
+#include <cstring>
 #include "libcwd/buf2str.h"
 
 namespace libcwd {
@@ -30,7 +31,7 @@ public:
     char const* const* p = __envp;
     while(*p)
     {
-      os << '"' << buf2str(*p, strlen(*p)) << "\", ";
+      os << '"' << buf2str(*p, std::strlen(*p)) << "\", ";
       ++p;
     }
     os << "NULL ]";

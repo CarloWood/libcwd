@@ -63,7 +63,7 @@ int main()
   Debug(dc::notice.on());
 
   delete new A;
-  int const expected_line = __LINE__;
+  int const expected_line = __LINE__ - 1;       // Previous line calls A::A().
 
   Dout(dc::notice, "expected_line = " << expected_line);
 

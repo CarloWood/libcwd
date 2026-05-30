@@ -34,16 +34,17 @@ inline bool g(int x, int y = y_default(expected_line), int z = i(12345, arg2_i(e
   return x == 1 && y == 1 && z == 1;
 }
 
+// clang-format off
 bool f()
 {
   libcwd::location_ct const g_loc(&&g_call_location);
   expected_line = __LINE__ + 3; // Same as line below g_call_location.
   Dout(dc::notice, "calling g(arg_g1(), arg_g2()) from f: " << g_loc << " (expected: " << expected_line << ")");
 g_call_location:
-  auto result_g =
-      g( // Line 45 : this is the location from which the default argument initializing functions are called from.
-          arg_g1(__LINE__), // Line 46 : this is where arg_g1 is called from.
-          arg_g2(__LINE__) // Line 47 : this is where arg_g2 is called from.
+  auto result_g = g(            // Line 44 : this is the location from which the default argument initializing functions are called from.
+          arg_g1(__LINE__),     // Line 45 : this is where arg_g1 is called from.
+          arg_g2(__LINE__)      // Line 46 : this is where arg_g2 is called from.
       );
   return g_loc.line() == expected_line && result_g;
 }
+// clang-format on
