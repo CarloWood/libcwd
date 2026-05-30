@@ -9,15 +9,9 @@ namespace {
 class location_plugin2_lifecycle_ct
 {
  public:
-  location_plugin2_lifecycle_ct()
-  {
-    libcwd_ctest::location_loading::library_loaded("location_plugin2.so");
-  }
+  location_plugin2_lifecycle_ct() { libcwd_ctest::location_loading::library_loaded("location_plugin2.so"); }
 
-  ~location_plugin2_lifecycle_ct()
-  {
-    libcwd_ctest::location_loading::library_unloaded("location_plugin2.so");
-  }
+  ~location_plugin2_lifecycle_ct() { libcwd_ctest::location_loading::library_unloaded("location_plugin2.so"); }
 };
 
 location_plugin2_lifecycle_ct location_plugin2_lifecycle;

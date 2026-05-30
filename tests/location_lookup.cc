@@ -7,8 +7,9 @@
 // when this file changes.
 
 #include "cwd_sys.h"
-#include "test_support.h"
 #include "pending_stream.h"
+#include "test_support.h"
+#include <libcwd/demangle.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -16,8 +17,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include <libcwd/demangle.h>
 
 void test(void* call_site)
 {
@@ -35,7 +34,8 @@ class A
 
 A::A()
 {
-  Dout(dc::notice, "A::A(): called from " << location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset));
+  Dout(dc::notice, "A::A(): called from "
+                       << location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset));
 call_site_test:
   test(&&call_site_test);
 }
@@ -47,8 +47,7 @@ std::vector<std::string> split_lines(std::string const& text)
   std::vector<std::string> lines;
   std::istringstream input(text);
   std::string line;
-  while (std::getline(input, line))
-    lines.push_back(line);
+  while (std::getline(input, line)) lines.push_back(line);
   return lines;
 }
 
@@ -63,7 +62,8 @@ int main()
   Debug(libcw_do.on());
   Debug(dc::notice.on());
 
-  delete new A; int const expected_line = __LINE__;
+  delete new A;
+  int const expected_line = __LINE__;
 
   Dout(dc::notice, "expected_line = " << expected_line);
 
@@ -106,9 +106,7 @@ int main()
   if (!saw_location || !saw_caller || !saw_expected)
   {
     std::cerr << "Missing expected output line(s):"
-              << " location=" << saw_location
-              << " caller=" << saw_caller
-              << " expected=" << saw_expected << '\n';
+              << " location=" << saw_location << " caller=" << saw_caller << " expected=" << saw_expected << '\n';
     return EXIT_FAILURE;
   }
 

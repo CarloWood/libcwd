@@ -17,7 +17,8 @@ using namespace libcwd;
 
 // Return a non-null Dwarf_Die marker for constructing DWARF-backed ranges.
 //
-// The tests never query line information through this DIE, so only the addr field needs to distinguish it from an ELF-only range.
+// The tests never query line information through this DIE, so only the addr field needs to distinguish it from an
+// ELF-only range.
 Dwarf_Die fake_dwarf_die()
 {
   Dwarf_Die die{};
@@ -28,8 +29,8 @@ Dwarf_Die fake_dwarf_die()
 // Check that ranges contains [start_addr, end_addr) with name, provenance and original symbol size.
 //
 // Returns false after printing a diagnostic that identifies the first mismatching field.
-bool expect_range(dwarf::FunctionSymbolRanges const& ranges,
-    uintptr_t start_addr, uintptr_t end_addr, char const* name, bool is_elf_symbol, uintptr_t symbol_size)
+bool expect_range(dwarf::FunctionSymbolRanges const& ranges, uintptr_t start_addr, uintptr_t end_addr, char const* name,
+                  bool is_elf_symbol, uintptr_t symbol_size)
 {
   auto const range = ranges.find(end_addr);
   if (range == ranges.end())
@@ -43,8 +44,9 @@ bool expect_range(dwarf::FunctionSymbolRanges const& ranges,
       symbol.is_elf_symbol() != is_elf_symbol || symbol.size() != symbol_size)
   {
     std::cerr << "range ending at " << end_addr << " was [" << symbol.start_addr() << ", " << symbol.end_addr() << ") "
-        << symbol.name() << " elf=" << symbol.is_elf_symbol() << " size=" << symbol.size() << "; expected ["
-        << start_addr << ", " << end_addr << ") " << name << " elf=" << is_elf_symbol << " size=" << symbol_size << '\n';
+              << symbol.name() << " elf=" << symbol.is_elf_symbol() << " size=" << symbol.size() << "; expected ["
+              << start_addr << ", " << end_addr << ") " << name << " elf=" << is_elf_symbol << " size=" << symbol_size
+              << '\n';
     return false;
   }
   return true;
@@ -61,8 +63,10 @@ struct ExpectedRange
 
 // Check that ranges contains exactly the expected set of ranges for scenario.
 //
-// Each range is checked by its end-address map key and the total size check rejects unexpected leftovers or missing fragments.
-bool expect_exact_ranges(char const* scenario, dwarf::FunctionSymbolRanges const& ranges, std::vector<ExpectedRange> const& expected)
+// Each range is checked by its end-address map key and the total size check rejects unexpected leftovers or missing
+// fragments.
+bool expect_exact_ranges(char const* scenario, dwarf::FunctionSymbolRanges const& ranges,
+                         std::vector<ExpectedRange> const& expected)
 {
   if (ranges.size() != expected.size())
   {
@@ -83,16 +87,18 @@ bool expect_exact_ranges(char const* scenario, dwarf::FunctionSymbolRanges const
 
 // Insert one of the oversized baseline ranges used by the complete-removal matrix.
 //
-// The original symbol size is deliberately much larger than the fragment so a same-kind new range from the scenario table wins every overlap by being smaller.
-void insert_oversized_base_range(dwarf::FunctionSymbolRanges& ranges,
-    uintptr_t start_addr, uintptr_t end_addr, char const* name, Dwarf_Die const* die)
+// The original symbol size is deliberately much larger than the fragment so a same-kind new range from the scenario
+// table wins every overlap by being smaller.
+void insert_oversized_base_range(dwarf::FunctionSymbolRanges& ranges, uintptr_t start_addr, uintptr_t end_addr,
+                                 char const* name, Dwarf_Die const* die)
 {
   ranges.try_emplace(end_addr, start_addr, end_addr, 0, 100, name, die);
 }
 
 // Seed three same-kind ranges shaped like "****  ******      ****".
 //
-// The returned map uses an oversized original symbol extent for each fragment so complete removal can be tested for both ELF and DWARF additions.
+// The returned map uses an oversized original symbol extent for each fragment so complete removal can be tested for
+// both ELF and DWARF additions.
 void seed_three_base_ranges(dwarf::FunctionSymbolRanges& ranges, bool base_is_elf_symbol, Dwarf_Die const& dwarf_die)
 {
   Dwarf_Die const* base_die = base_is_elf_symbol ? nullptr : &dwarf_die;
@@ -103,8 +109,10 @@ void seed_three_base_ranges(dwarf::FunctionSymbolRanges& ranges, bool base_is_el
 
 // Build the expected result for adding a winning [new_start, new_end) range to the three baseline ranges.
 //
-// Existing ranges outside the new range survive unchanged, partially overlapped ranges are snipped, and fully covered ranges disappear.
-std::vector<ExpectedRange> expected_after_winning_addition(uintptr_t new_start, uintptr_t new_end, bool base_is_elf_symbol, bool new_is_elf_symbol)
+// Existing ranges outside the new range survive unchanged, partially overlapped ranges are snipped, and fully covered
+// ranges disappear.
+std::vector<ExpectedRange> expected_after_winning_addition(uintptr_t new_start, uintptr_t new_end,
+                                                           bool base_is_elf_symbol, bool new_is_elf_symbol)
 {
   struct BaseRange
   {
@@ -113,11 +121,7 @@ std::vector<ExpectedRange> expected_after_winning_addition(uintptr_t new_start, 
     char const* name;
   };
 
-  BaseRange const base_ranges[] = {
-    {0, 4, "base_left"},
-    {6, 12, "base_middle"},
-    {18, 22, "base_right"}
-  };
+  BaseRange const base_ranges[] = {{0, 4, "base_left"}, {6, 12, "base_middle"}, {18, 22, "base_right"}};
 
   std::vector<ExpectedRange> expected;
   for (BaseRange const& base : base_ranges)
@@ -149,22 +153,21 @@ struct CompleteRemovalScenario
 
 // Verify complete and partial removals for the diagrammed overlap shapes.
 //
-// The same geometric cases are run with the requested base and new symbol kinds; callers only use combinations where the new symbol should win each overlap.
+// The same geometric cases are run with the requested base and new symbol kinds; callers only use combinations where
+// the new symbol should win each overlap.
 bool verify_complete_removal_shapes(bool base_is_elf_symbol, bool new_is_elf_symbol)
 {
-  CompleteRemovalScenario const scenarios[] = {
-    {"**", 0, 2},
-    {"****", 0, 4},
-    {"*****", 0, 5},
-    {" *****", 1, 6},
-    {"   *****", 3, 8},
-    {"      *****", 6, 11},
-    {"       *****", 7, 12},
-    {"      ******", 6, 12},
-    {"   ****************", 3, 19},
-    {"      ****************", 6, 22},
-    {"         *************", 9, 22}
-  };
+  CompleteRemovalScenario const scenarios[] = {{"**", 0, 2},
+                                               {"****", 0, 4},
+                                               {"*****", 0, 5},
+                                               {" *****", 1, 6},
+                                               {"   *****", 3, 8},
+                                               {"      *****", 6, 11},
+                                               {"       *****", 7, 12},
+                                               {"      ******", 6, 12},
+                                               {"   ****************", 3, 19},
+                                               {"      ****************", 6, 22},
+                                               {"         *************", 9, 22}};
 
   Dwarf_Die const dwarf_die = fake_dwarf_die();
   for (CompleteRemovalScenario const& scenario : scenarios)
@@ -176,9 +179,11 @@ bool verify_complete_removal_shapes(bool base_is_elf_symbol, bool new_is_elf_sym
     dwarf::insert_function_symbol_range(ranges, scenario.start_addr, scenario.end_addr, "new_range", new_die);
 
     std::string const scenario_name = std::string("complete removal ") + scenario.name +
-        " base=" + (base_is_elf_symbol ? "ELF" : "DWARF") + " new=" + (new_is_elf_symbol ? "ELF" : "DWARF");
+                                      " base=" + (base_is_elf_symbol ? "ELF" : "DWARF") +
+                                      " new=" + (new_is_elf_symbol ? "ELF" : "DWARF");
     if (!expect_exact_ranges(scenario_name.c_str(), ranges,
-        expected_after_winning_addition(scenario.start_addr, scenario.end_addr, base_is_elf_symbol, new_is_elf_symbol)))
+                             expected_after_winning_addition(scenario.start_addr, scenario.end_addr, base_is_elf_symbol,
+                                                             new_is_elf_symbol)))
       return false;
   }
   return true;
@@ -200,9 +205,8 @@ bool verify_dwarf_beats_elf()
     std::cerr << "DWARF over ELF produced " << ranges.size() << " ranges instead of 3\n";
     return false;
   }
-  return expect_range(ranges, 10, 20, "elf_big", true, 40) &&
-      expect_range(ranges, 20, 40, "dwarf_inner", false, 20) &&
-      expect_range(ranges, 40, 50, "elf_big", true, 40);
+  return expect_range(ranges, 10, 20, "elf_big", true, 40) && expect_range(ranges, 20, 40, "dwarf_inner", false, 20) &&
+         expect_range(ranges, 40, 50, "elf_big", true, 40);
 }
 
 // Verify that, for two DWARF ranges, the smaller original symbol owns the overlap.
@@ -222,8 +226,8 @@ bool verify_smaller_same_kind_wins()
     return false;
   }
   return expect_range(ranges, 100, 120, "dwarf_big", false, 100) &&
-      expect_range(ranges, 120, 160, "dwarf_small", false, 40) &&
-      expect_range(ranges, 160, 200, "dwarf_big", false, 100);
+         expect_range(ranges, 120, 160, "dwarf_small", false, 40) &&
+         expect_range(ranges, 160, 200, "dwarf_big", false, 100);
 }
 
 // Verify that a smaller existing DWARF range removes its overlap from a larger new DWARF range.
@@ -243,8 +247,8 @@ bool verify_existing_smaller_removes_pending_piece()
     return false;
   }
   return expect_range(ranges, 290, 300, "dwarf_big", false, 60) &&
-      expect_range(ranges, 300, 330, "dwarf_small", false, 30) &&
-      expect_range(ranges, 330, 350, "dwarf_big", false, 60);
+         expect_range(ranges, 300, 330, "dwarf_small", false, 30) &&
+         expect_range(ranges, 330, 350, "dwarf_big", false, 60);
 }
 
 // Verify that an existing DWARF range blocks the overlapping part of a new ELF range.
@@ -264,15 +268,18 @@ bool verify_existing_dwarf_blocks_elf_piece()
     return false;
   }
   return expect_range(ranges, 480, 500, "elf_outer", true, 80) &&
-      expect_range(ranges, 500, 550, "dwarf_middle", false, 50) &&
-      expect_range(ranges, 550, 560, "elf_outer", true, 80);
+         expect_range(ranges, 500, 550, "dwarf_middle", false, 50) &&
+         expect_range(ranges, 550, 560, "elf_outer", true, 80);
 }
 
 } // namespace
 
 int main()
 {
-  return verify_dwarf_beats_elf() && verify_smaller_same_kind_wins() && verify_existing_smaller_removes_pending_piece() &&
-      verify_existing_dwarf_blocks_elf_piece() && verify_complete_removal_shapes(true, true) &&
-      verify_complete_removal_shapes(true, false) && verify_complete_removal_shapes(false, false) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return verify_dwarf_beats_elf() && verify_smaller_same_kind_wins() &&
+                 verify_existing_smaller_removes_pending_piece() && verify_existing_dwarf_blocks_elf_piece() &&
+                 verify_complete_removal_shapes(true, true) && verify_complete_removal_shapes(true, false) &&
+                 verify_complete_removal_shapes(false, false)
+             ? EXIT_SUCCESS
+             : EXIT_FAILURE;
 }

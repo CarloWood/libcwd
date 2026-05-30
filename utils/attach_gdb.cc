@@ -12,8 +12,9 @@
 //
 
 #include "cwd_sys.h"
-#include "cwd_debug.h"
 #include "libcwd/debug.h"
+
+#include "cwd_debug.h"
 
 #ifdef _WIN32
 
@@ -24,17 +25,17 @@ void attach_gdb()
   DoutFatal(dc::core, "attach_gdb() is not supported on windows");
 }
 
-}
+} // namespace libcwd
 
 #else
 
-#include <unistd.h>
+#include <cerrno>
+#include <cstdlib>
+#include <fstream>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <cerrno>
 #include <time.h>
-#include <fstream>
-#include <cstdlib>
+#include <unistd.h>
 
 int libcwd_attach_gdb_hook = 0;
 
@@ -45,12 +46,14 @@ void attach_gdb()
   pid_t pid1 = getpid();
   std::ofstream f;
   f.open("gdb.cmds");
-//  f << "set scheduler-locking step\nhandle SIG34 nostop\nset substitute-path /build/gcc-8-sYUbZB/gcc-8-8.2.0/build/x86_64-linux-gnu/libstdc++-v3/include /usr/include/c++/8\n";
+  //  f << "set scheduler-locking step\nhandle SIG34 nostop\nset substitute-path
+  //  /build/gcc-8-sYUbZB/gcc-8-8.2.0/build/x86_64-linux-gnu/libstdc++-v3/include /usr/include/c++/8\n";
   f << "b *" << __builtin_return_address(0) << "\nset *(int*)&libcwd_attach_gdb_hook=0\nc\n";
   f.close();
   char command[256];
   Dout(dc::always, "gdb = \"" << rcfile.gdb_bin() << "\".");
-  size_t len = snprintf(command, sizeof(command), "%s -n -x gdb.cmds /proc/%u/exe %u", rcfile.gdb_bin().c_str(), pid1, pid1);
+  size_t len =
+      snprintf(command, sizeof(command), "%s -n -x gdb.cmds /proc/%u/exe %u", rcfile.gdb_bin().c_str(), pid1, pid1);
   if (len >= sizeof(command))
     DoutFatal(dc::fatal, "rcfile: value of keyword 'gdb' too long (" << rcfile.gdb_bin() << ')');
   if (rcfile.gdb_bin().size() == 0)
@@ -64,51 +67,52 @@ void attach_gdb()
   libcwd_attach_gdb_hook = 1;
   pid_t pid2 = fork();
   Debug(libcw_do.off());
-  switch(pid2)
+  switch (pid2)
   {
     case -1:
       Debug(libcw_do.on());
-      DoutFatal(dc::fatal|error_cf, "fork()");
-    case 0:
-    {
+      DoutFatal(dc::fatal | error_cf, "fork()");
+    case 0: {
       int ret = system(command2);
-      _exit(ret == -1 ? 255	// system failed (ie, fork failed).
-	             : WIFSIGNALED(ret) && (WTERMSIG(ret) == SIGINT || WTERMSIG(ret) == SIGQUIT) ? 126	// Terminated by signal (127 means that /bin/sh failed).
-		     : WEXITSTATUS(ret));	// Return value of command2.
+      _exit(ret == -1 ? 255 // system failed (ie, fork failed).
+            : WIFSIGNALED(ret) && (WTERMSIG(ret) == SIGINT || WTERMSIG(ret) == SIGQUIT)
+                ? 126 // Terminated by signal (127 means that /bin/sh failed).
+                : WEXITSTATUS(ret)); // Return value of command2.
     }
-    default:
-    {
+    default: {
       Debug(libcw_do.on());
-      struct timespec t = { 0, 100000000 };
+      struct timespec t = {0, 100000000};
       int loop = 0;
       while (libcwd_attach_gdb_hook)
       {
-        if (++loop > 50)	// Calling waitpid turns out to stop gdb from being able to attach.
-				// If after 5 seconds gdb still didn't do it's thing, check if it's
-				// still running - if not, print an error.
-	{
-	  //Dout(dc::notice, "Entering waitpid");
-	  int status;
-	  pid_t pid3 = waitpid(pid2, &status, WNOHANG);
-	  if (pid3 == pid2 || ((int)pid3 == -1 && errno == ECHILD))
-	  {
-	    libcwd_attach_gdb_hook = 0;
-	    if (WIFEXITED(status))
-	      DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated with exit code " << WEXITSTATUS(status) <<
-		  " before attaching to the process. This can happen when you call attach_gdb from "
-		  "the destructor of a global object. It also happens when gdb fails to attach, "
-		  "for example because you already run the application inside gdb.");
-	    else if (WIFSIGNALED(status))
-	      DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated because of (uncaught) signal " << WTERMSIG(status) <<
-		  " before attaching to the process.");
+        if (++loop > 50) // Calling waitpid turns out to stop gdb from being able to attach.
+                         // If after 5 seconds gdb still didn't do it's thing, check if it's
+                         // still running - if not, print an error.
+        {
+          // Dout(dc::notice, "Entering waitpid");
+          int status;
+          pid_t pid3 = waitpid(pid2, &status, WNOHANG);
+          if (pid3 == pid2 || ((int)pid3 == -1 && errno == ECHILD))
+          {
+            libcwd_attach_gdb_hook = 0;
+            if (WIFEXITED(status))
+              DoutFatal(dc::core,
+                        "Failed to start gdb: 'xterm' terminated with exit code "
+                            << WEXITSTATUS(status)
+                            << " before attaching to the process. This can happen when you call attach_gdb from "
+                               "the destructor of a global object. It also happens when gdb fails to attach, "
+                               "for example because you already run the application inside gdb.");
+            else if (WIFSIGNALED(status))
+              DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated because of (uncaught) signal "
+                                      << WTERMSIG(status) << " before attaching to the process.");
 #ifdef WCOREDUMP
-	    else if (WCOREDUMP(status))
-	      DoutFatal(dc::core, "Failed to start gdb: 'xterm' dumped core before attaching to the process.");
+            else if (WCOREDUMP(status))
+              DoutFatal(dc::core, "Failed to start gdb: 'xterm' dumped core before attaching to the process.");
 #endif
-	    DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated before attaching to the process.");
-	  }
-	}
-	nanosleep(&t, NULL);
+            DoutFatal(dc::core, "Failed to start gdb: 'xterm' terminated before attaching to the process.");
+          }
+        }
+        nanosleep(&t, NULL);
       }
       Dout(dc::always, "ATTACHED!");
     }

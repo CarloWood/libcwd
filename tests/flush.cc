@@ -7,14 +7,14 @@
 // compared deterministically in memory.
 
 #include "cwd_sys.h"
-#include "test_support.h"
 #include "pending_stream.h"
+#include "test_support.h"
 
+#include <chrono>
 #include <cstdlib>
 #include <ostream>
 #include <sstream>
 #include <thread>
-#include <chrono>
 
 namespace libcwd {
 namespace channels {
@@ -53,45 +53,44 @@ int main()
   ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on(););
   Debug(libcw_do.on());
 
-  //Debug( dc::generate.off() );
-  Dout( dc::notice|flush_cf|continued_cf, "Generating tables part1... " );
+  // Debug( dc::generate.off() );
+  Dout(dc::notice | flush_cf | continued_cf, "Generating tables part1... ");
   generate_tables(captured);
-  Dout(dc::continued, "part2... ");     // Should still be flushed (before <sleeping1> is printed).
+  Dout(dc::continued, "part2... "); // Should still be flushed (before <sleeping1> is printed).
   Dout(dc::notice, "Not flushed");
   generate_tables(captured);
-  Dout( dc::finish, "done" );
+  Dout(dc::finish, "done");
 
   captured << std::endl;
 
-  Dout( dc::notice|continued_cf, "Generating tables part3... " );
+  Dout(dc::notice | continued_cf, "Generating tables part3... ");
   generate_tables(captured);
-  Dout( dc::continued, "part4... " );
+  Dout(dc::continued, "part4... ");
   Dout(dc::notice, "Not flushed");
   generate_tables(captured);
-  Dout( dc::finish, "done" );
+  Dout(dc::finish, "done");
 
   Debug(libcw_do.off());
 
   char const* expected[] = {
-    "NOTICE  : Generating tables part1... <sleeping1><sleeping2><unfinished>",
-    "GENERATE:     Inside generate_tables()",
-    "GENERATE:     Leaving generate_tables()",
-    "NOTICE  : <continued> part2... <sleeping1><sleeping2><unfinished>",
-    "NOTICE  :     Not flushed",
-    "GENERATE:     Inside generate_tables()",
-    "GENERATE:     Leaving generate_tables()",
-    "NOTICE  : <continued> done",
-    "",
-    "<sleeping1><sleeping2><sleeping1><sleeping2>NOTICE  : Generating tables part3... <unfinished>",
-    "GENERATE:     Inside generate_tables()",
-    "GENERATE:     Leaving generate_tables()",
-    "NOTICE  : <continued> part4... <unfinished>",
-    "NOTICE  :     Not flushed",
-    "GENERATE:     Inside generate_tables()",
-    "GENERATE:     Leaving generate_tables()",
-    "NOTICE  : <continued> done",
-    nullptr
-  };
+      "NOTICE  : Generating tables part1... <sleeping1><sleeping2><unfinished>",
+      "GENERATE:     Inside generate_tables()",
+      "GENERATE:     Leaving generate_tables()",
+      "NOTICE  : <continued> part2... <sleeping1><sleeping2><unfinished>",
+      "NOTICE  :     Not flushed",
+      "GENERATE:     Inside generate_tables()",
+      "GENERATE:     Leaving generate_tables()",
+      "NOTICE  : <continued> done",
+      "",
+      "<sleeping1><sleeping2><sleeping1><sleeping2>NOTICE  : Generating tables part3... <unfinished>",
+      "GENERATE:     Inside generate_tables()",
+      "GENERATE:     Leaving generate_tables()",
+      "NOTICE  : <continued> part4... <unfinished>",
+      "NOTICE  :     Not flushed",
+      "GENERATE:     Inside generate_tables()",
+      "GENERATE:     Leaving generate_tables()",
+      "NOTICE  : <continued> done",
+      nullptr};
 
   captured.rdbuf()->pubsync();
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;

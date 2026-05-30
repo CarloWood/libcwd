@@ -14,16 +14,17 @@
 //
 
 #include "cwd_sys.h"
-#include "cwd_debug.h"
-#include "libcwd/debug.h"
-#include <libcwd/private_threading.h>
-#include <libcwd/private_mutex.inl>
-#include <libcwd/core_dump.h>
-#include <unistd.h>
-#include <alloca.h>
-#include <map>
-#include "macros.h"
 #include "ios_base_Init.h"
+#include "macros.h"
+#include "libcwd/debug.h"
+#include <libcwd/core_dump.h>
+#include <libcwd/private_mutex.inl>
+#include <libcwd/private_threading.h>
+
+#include <map>
+#include <alloca.h>
+#include <unistd.h>
+#include "cwd_debug.h"
 
 #if LIBCWD_DEBUGDEBUGRWLOCK
 pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;
@@ -31,7 +32,7 @@ unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #endif
 
 namespace libcwd {
-  namespace _private_ {
+namespace _private_ {
 
 bool WST_multi_threaded = false;
 bool WST_first_thread_initialized = false;
@@ -63,9 +64,9 @@ void initialize_global_mutexes()
 #if LIBCWD_USE_LINUXTHREADS
 // Define specializations.
 template <>
-  pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 template <>
-  pthread_mutex_t mutex_tct<dlclose_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+pthread_mutex_t mutex_tct<dlclose_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
 void mutex_ct::M_initialize()
@@ -95,20 +96,27 @@ void fatal_cancellation(void* arg)
 #if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 struct static_tsd_array_wat;
 
-struct static_tsd_array_wrapper_base {
-  protected:
-    friend struct static_tsd_array_wat;
-    TSD_st array[CW_THREADSMAX];
+struct static_tsd_array_wrapper_base
+{
+ protected:
+  friend struct static_tsd_array_wat;
+  TSD_st array[CW_THREADSMAX];
 };
 
-struct static_tsd_array_wrapper : public static_tsd_array_wrapper_base {
-  ~static_tsd_array_wrapper() { /* Make sure no other thread touches this array while destructing it */ mutex_tct<static_tsd_instance>::lock(); memset((char*)array, 0, sizeof(array)); }
+struct static_tsd_array_wrapper : public static_tsd_array_wrapper_base
+{
+  ~static_tsd_array_wrapper()
+  { /* Make sure no other thread touches this array while destructing it */
+    mutex_tct<static_tsd_instance>::lock();
+    memset((char*)array, 0, sizeof(array));
+  }
 };
 
 // Access to these global variables is protected by the lock static_tsd_instance.
 static static_tsd_array_wrapper static_tsd_array;
 
-struct static_tsd_array_wat {
+struct static_tsd_array_wat
+{
   static_tsd_array_wat() { mutex_tct<static_tsd_instance>::lock(); }
   ~static_tsd_array_wat() { mutex_tct<static_tsd_instance>::unlock(); }
   TSD_st& operator[](int index) const { return static_tsd_array.array[index]; }
@@ -125,17 +133,18 @@ static TSD_st* find_static_tsd(pthread_t tid, static_tsd_array_wat const& static
 static TSD_st* allocate_static_tsd(static_tsd_array_wat const& static_tsd_array_w)
 {
   int oldest_terminating = INT_MAX;
-  size_t oldest_terminating_index = 0;	// Initialize to avoid 'may be used uninitialized' compiler warning.
+  size_t oldest_terminating_index = 0; // Initialize to avoid 'may be used uninitialized' compiler warning.
   for (size_t i = 0; i < CW_THREADSMAX; ++i)
     if (static_tsd_array_w[i].tid == 0)
       return &static_tsd_array_w[i];
-    else if (static_tsd_array_w[i].terminating && !static_tsd_array_w[i].inside_free && static_tsd_array_w[i].terminating < oldest_terminating)
+    else if (static_tsd_array_w[i].terminating && !static_tsd_array_w[i].inside_free &&
+             static_tsd_array_w[i].terminating < oldest_terminating)
     {
       oldest_terminating = static_tsd_array_w[i].terminating;
       oldest_terminating_index = i;
     }
-  if (oldest_terminating == INT_MAX)	// This means that more than CW_THREADSMAX threads are either
-  {					// inside free() or initializing after just being created.
+  if (oldest_terminating == INT_MAX) // This means that more than CW_THREADSMAX threads are either
+  { // inside free() or initializing after just being created.
     std::cerr << "\n****** More threads than THREADSMAX.  Reconfigure libcwd ******\n" << std::endl;
     core_dump();
   }
@@ -147,7 +156,7 @@ static void release_static_tsd(TSD_st* tsd)
   tsd->tid = 0;
   tsd->thread_iter_valid = false;
 #ifdef _GLIBCXX_DEBUG
-  std::memset(&tsd->thread_iter, 0 , sizeof(tsd->thread_iter));
+  std::memset(&tsd->thread_iter, 0, sizeof(tsd->thread_iter));
 #endif
 }
 
@@ -159,7 +168,7 @@ void threading_tsd_init(LIBCWD_TSD_PARAM);
 static TSD_st terminating_thread_tsd;
 static int terminating_count;
 
-//static
+// static
 TSD_st& TSD_st::instance()
 {
   TSD_st* instance;
@@ -169,7 +178,7 @@ TSD_st& TSD_st::instance()
 }
 
 // This function is called at the start of free().
-//static
+// static
 TSD_st& TSD_st::instance_free()
 {
   TSD_st* instance;
@@ -202,11 +211,11 @@ TSD_st& TSD_st::S_create(int from_free)
     if (static_tsd)
     {
       if (from_free == 1)
-	static_tsd->inside_free++;
+        static_tsd->inside_free++;
       if (static_tsd->inside_free || !static_tsd->terminating)
       {
-	done = true;
-	break;
+        done = true;
+        break;
       }
     }
     else
@@ -217,15 +226,13 @@ TSD_st& TSD_st::S_create(int from_free)
       old_thread_iter = static_tsd->thread_iter;
 
     // Fill the temporary structure with zeroes.
-PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess
-    std::memset(static_tsd, 0, sizeof(struct TSD_st));
-PRAGMA_DIAGNOSTIC_POP
-    static_tsd->tid = _tid;			// Make sure nobody else will allocate this entry.
+    PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess std::memset(static_tsd, 0, sizeof(struct TSD_st));
+    PRAGMA_DIAGNOSTIC_POP
+    static_tsd->tid = _tid; // Make sure nobody else will allocate this entry.
 
     if (from_free == 1)
       static_tsd->inside_free = 1;
-  }
-  while(0);
+  } while (0);
   if (done)
   {
     pthread_setcanceltype(oldtype, NULL);
@@ -234,27 +241,27 @@ PRAGMA_DIAGNOSTIC_POP
 
   static_tsd->pid = getpid();
 
-  if (!WST_first_thread_initialized)		// Is this the first thread?
+  if (!WST_first_thread_initialized) // Is this the first thread?
   {
     WST_first_thread_initialized = true;
 #ifdef _CS_GNU_LIBPTHREAD_VERSION
-    size_t n = confstr (_CS_GNU_LIBPTHREAD_VERSION, NULL, 0);
+    size_t n = confstr(_CS_GNU_LIBPTHREAD_VERSION, NULL, 0);
     if (n > 0)
     {
       char* buf = (char*)alloca(n);
       confstr(_CS_GNU_LIBPTHREAD_VERSION, buf, n);
-      if (strstr (buf, "NPTL"))
-	WST_is_NPTL = true;
+      if (strstr(buf, "NPTL"))
+        WST_is_NPTL = true;
     }
 #endif
     initialize_global_mutexes();
-    threading_tsd_init(*static_tsd);		// Initialize the TSD of stuff that goes in threading.cc.
+    threading_tsd_init(*static_tsd); // Initialize the TSD of stuff that goes in threading.cc.
   }
   else
   {
     WST_multi_threaded = true;
-    debug_tsd_init(*static_tsd);		// Initialize the TSD of existing debug objects.
-    threading_tsd_init(*static_tsd);		// Initialize the TSD of stuff that goes in threading.cc.
+    debug_tsd_init(*static_tsd); // Initialize the TSD of existing debug objects.
+    threading_tsd_init(*static_tsd); // Initialize the TSD of stuff that goes in threading.cc.
   }
 
   TSD_st* real_tsd;
@@ -290,7 +297,7 @@ PRAGMA_DIAGNOSTIC_POP
     static_tsd->terminating = ++terminating_count;
     mutex_tct<static_tsd_instance>::unlock();
     real_tsd = static_tsd;
-    real_tsd->thread_iter->terminating();		// FIXME - what about the old thread_ct?
+    real_tsd->thread_iter->terminating(); // FIXME - what about the old thread_ct?
   }
 
   pthread_setcanceltype(oldtype, NULL);
@@ -311,7 +318,7 @@ bool WST_tsd_key_created = false;
 
 void TSD_st::S_tsd_key_alloc()
 {
-  pthread_key_create(&S_tsd_key, &TSD_st::S_cleanup_routine);	// Leaks memory, we never destruct this key again.
+  pthread_key_create(&S_tsd_key, &TSD_st::S_cleanup_routine); // Leaks memory, we never destruct this key again.
   WST_tsd_key_created = true;
 }
 
@@ -322,7 +329,7 @@ void TSD_st::cleanup_routine()
 #if !VALGRIND
   if (++tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS)
 #else
-  if (1)	// Valgrind doesn't iterate the key destruction routines.
+  if (1) // Valgrind doesn't iterate the key destruction routines.
 #endif
   {
     // Add the key back a number of times in order to schedule our
@@ -337,10 +344,10 @@ void TSD_st::cleanup_routine()
       if (do_array[i])
       {
         debug_tsd_st* ptr = do_array[i];
-        do_off_array[i] = 0;                    // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
-        do_array[i] = NULL;                     // So we won't free it again.
+        do_off_array[i] = 0; // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
+        do_array[i] = NULL; // So we won't free it again.
         ptr->tsd_initialized = false;
-        delete ptr;                             // Free debug object TSD.
+        delete ptr; // Free debug object TSD.
       }
 
     int oldtype;
@@ -349,14 +356,14 @@ void TSD_st::cleanup_routine()
     {
       static_tsd_array_wat static_tsd_array_w;
       static_tsd = allocate_static_tsd(static_tsd_array_w);
-      std::memcpy(static_tsd, this, sizeof(TSD_st));	// Move tsd to the static array.
+      std::memcpy(static_tsd, this, sizeof(TSD_st)); // Move tsd to the static array.
       release_static_tsd(this);
       static_tsd->terminating = ++terminating_count;
       static_tsd->thread_iter->terminating();
     }
     pthread_setcanceltype(oldtype, NULL);
 
-    pthread_setspecific(S_tsd_key, (void*)0);	// Make sure that instance_free() won't use the KEY anymore!
+    pthread_setspecific(S_tsd_key, (void*)0); // Make sure that instance_free() won't use the KEY anymore!
     // Then we can savely delete the current TSD.
     delete this;
   }
@@ -495,28 +502,31 @@ void thread_ct::terminated(threadlist_t::iterator LIBCWD_COMMA_TSD_PARAM_UNUSED)
 #include <inttypes.h>
 
 // These are the different groups that are allowed together.
-uint16_t const group1 = 0x002;	// Instance 1 locked first.
-uint16_t const group2 = 0x004;	// Instance 2 locked first.
-uint16_t const group3 = 0x020;	// Instance 1 read only and high_priority when second.
-uint16_t const group4 = 0x040;	// Instance 2 read only and high_priority when second.
-uint16_t const group5 = 0x200;	// (Instance 1 locked first and (either one read only and high_priority when second))
-				// or (both read only and high_priority when second).
-uint16_t const group6 = 0x400;	// (Instance 2 locked first and (either one read only and high_priority when second))
-				// or (both read only and high_priority when second).
+uint16_t const group1 = 0x002; // Instance 1 locked first.
+uint16_t const group2 = 0x004; // Instance 2 locked first.
+uint16_t const group3 = 0x020; // Instance 1 read only and high_priority when second.
+uint16_t const group4 = 0x040; // Instance 2 read only and high_priority when second.
+uint16_t const group5 = 0x200; // (Instance 1 locked first and (either one read only and high_priority when second))
+                               // or (both read only and high_priority when second).
+uint16_t const group6 = 0x400; // (Instance 2 locked first and (either one read only and high_priority when second))
+                               // or (both read only and high_priority when second).
 
-struct keypair_key_st {
+struct keypair_key_st
+{
   size_t instance1;
   size_t instance2;
 };
 
-struct keypair_info_st {
+struct keypair_info_st
+{
   uint16_t state;
   int limited;
   void const* from_first[5];
   void const* from_second[5];
 };
 
-struct keypair_compare_st {
+struct keypair_compare_st
+{
   bool operator()(keypair_key_st const& a, keypair_key_st const& b) const;
 };
 
@@ -535,7 +545,7 @@ extern "C" int raise(int);
 void test_lock_pair(size_t instance_first, void const* from_first, size_t instance_second, void const* from_second)
 {
   if (instance_first == instance_second)
-    return;	// Must have been a recursive lock.
+    return; // Must have been a recursive lock.
 
   keypair_key_st keypair_key;
   keypair_info_st keypair_info;
@@ -566,7 +576,7 @@ void test_lock_pair(size_t instance_first, void const* from_first, size_t instan
 #endif
       keypair_info.state |= (group4 | group5);
       if (first_is_readonly)
-	keypair_info.state |= group6;
+        keypair_info.state |= group6;
     }
     instance_second %= read_lock_offset;
   }
@@ -582,7 +592,8 @@ void test_lock_pair(size_t instance_first, void const* from_first, size_t instan
     keypair_key.instance1 = instance_second;
     keypair_key.instance2 = instance_first;
     // Correct the state by swapping groups 1 <-> 2, 3 <-> 4, and 5 <-> 6.
-    keypair_info.state = ((keypair_info.state << 1) | (keypair_info.state >> 1)) & (group1|group2|group3|group4|group5|group6);
+    keypair_info.state =
+        ((keypair_info.state << 1) | (keypair_info.state >> 1)) & (group1 | group2 | group3 | group4 | group5 | group6);
   }
 
   // Store the locations where the locks were set.
@@ -596,22 +607,25 @@ void test_lock_pair(size_t instance_first, void const* from_first, size_t instan
   {
     keypair_info_st& stored_info((*result.first).second);
     uint16_t prev_state = stored_info.state;
-    stored_info.state &= keypair_info.state;			// Limit possible groups.
+    stored_info.state &= keypair_info.state; // Limit possible groups.
     if (prev_state != stored_info.state)
     {
       stored_info.limited++;
       stored_info.from_first[stored_info.limited] = from_first;
       stored_info.from_second[stored_info.limited] = from_second;
       DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << (first_is_readonly ? " (read-only lock)" : "")
-          << "; second: " << instance_second << (second_is_high_priority ? " (high priority lock)" : "")
-          << "; groups: " << (void*)(unsigned long)stored_info.state << '\n');
+                                           << "; second: " << instance_second
+                                           << (second_is_high_priority ? " (high priority lock)" : "")
+                                           << "; groups: " << (void*)(unsigned long)stored_info.state << '\n');
     }
-    if (stored_info.state == 0)					// No group left?
+    if (stored_info.state == 0) // No group left?
     {
-      FATALDEBUGDEBUG_CERR("\nKEYPAIR: There is a potential deadlock between lock " << keypair_key.instance1 << " and " << keypair_key.instance2 << '.');
+      FATALDEBUGDEBUG_CERR("\nKEYPAIR: There is a potential deadlock between lock " << keypair_key.instance1 << " and "
+                                                                                    << keypair_key.instance2 << '.');
       FATALDEBUGDEBUG_CERR("\nKEYPAIR: Previously, these locks were locked in the following locations:");
       for (int cnt = 0; cnt <= stored_info.limited; ++cnt)
-	FATALDEBUGDEBUG_CERR("\nKEYPAIR: First at " << stored_info.from_first[cnt] << " and then at " << stored_info.from_second[cnt]);
+        FATALDEBUGDEBUG_CERR("\nKEYPAIR: First at " << stored_info.from_first[cnt] << " and then at "
+                                                    << stored_info.from_second[cnt]);
       mutex_tct<keypair_map_instance>::unlock();
       core_dump();
     }
@@ -619,8 +633,9 @@ void test_lock_pair(size_t instance_first, void const* from_first, size_t instan
   else
   {
     DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << (first_is_readonly ? " (read-only lock)" : "")
-	<< "; second: " << instance_second << (second_is_high_priority ? " (high priority lock)" : "")
-	<< "; groups: " << (void*)(unsigned long)keypair_info.state << '\n');
+                                         << "; second: " << instance_second
+                                         << (second_is_high_priority ? " (high priority lock)" : "")
+                                         << "; groups: " << (void*)(unsigned long)keypair_info.state << '\n');
 #if 0
     // X1,W/R2 + Y2,Z3 imply X1,Z3.
     // First assume the new pair is a possible X1,W/R2:
@@ -638,15 +653,14 @@ void test_lock_pair(size_t instance_first, void const* from_first, size_t instan
 void test_for_deadlock(size_t instance, struct TSD_st& __libcwd_tsd, void const* from)
 {
   if (!WST_multi_threaded)
-    return;			// Give libcwd the time to get initialized.
+    return; // Give libcwd the time to get initialized.
 
   if (instance == keypair_map_instance)
     return;
 
-
   // Initialization.
   if (!keypair_map)
-    keypair_map = new keypair_map_t;	// LEAK 28 bytes.  This is never freed anymore.
+    keypair_map = new keypair_map_t; // LEAK 28 bytes.  This is never freed anymore.
 
   // We don't use a lock here because we can't.  I hope that in fact this is
   // not a problem because threadlist is a list<> and new elements will be added
@@ -668,20 +682,21 @@ void test_for_deadlock(size_t instance, struct TSD_st& __libcwd_tsd, void const*
     // Check for read locks that are already set.  Because it was never stored wether or not
     // it was a high priority lock, this information is lost.  This is not a problem though
     // because we treat high priority and normal read locks the same when they are set first.
-    if (inst < instance_rdlocked_size && __libcwd_tsd.rdlocked_by1[inst] == __libcwd_tsd.tid && __libcwd_tsd.instance_rdlocked[inst] >= 1)
+    if (inst < instance_rdlocked_size && __libcwd_tsd.rdlocked_by1[inst] == __libcwd_tsd.tid &&
+        __libcwd_tsd.instance_rdlocked[inst] >= 1)
       test_lock_pair(inst + read_lock_offset, __libcwd_tsd.rdlocked_from1[inst], instance, from);
-    if (inst < instance_rdlocked_size && __libcwd_tsd.rdlocked_by2[inst] == __libcwd_tsd.tid && __libcwd_tsd.instance_rdlocked[inst] >= 2)
+    if (inst < instance_rdlocked_size && __libcwd_tsd.rdlocked_by2[inst] == __libcwd_tsd.tid &&
+        __libcwd_tsd.instance_rdlocked[inst] >= 2)
       test_lock_pair(inst + read_lock_offset, __libcwd_tsd.rdlocked_from2[inst], instance, from);
     // Check for write locks and normal mutexes.
     if (locked_by[inst] == __libcwd_tsd.tid && instance_locked[inst] >= 1 && inst != keypair_map_instance)
       test_lock_pair(inst, locked_from[inst], instance, from);
   }
-
 }
 
 pthread_mutex_t raw_write_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #endif // CWDEBUG_DEBUGT
 
-  } // namespace _private_
+} // namespace _private_
 } // namespace libcwd

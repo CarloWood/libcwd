@@ -9,8 +9,8 @@
 #include "cwd_sys.h"
 
 #define NAMESPACE_DEBUG dc_ctest::debug
-#include "test_support.h"
 #include "pending_stream.h"
+#include "test_support.h"
 
 #include <cstdlib>
 #include <sstream>
@@ -46,42 +46,40 @@ int main()
   Dout(dc::system, "system Testing");
   Dout(dc::warning, "warning Testing");
 
-  Dout(dc::notice|dc::system|dc::warning, "Hello World");
+  Dout(dc::notice | dc::system | dc::warning, "Hello World");
   Debug(dc::notice.off());
-  Dout(dc::notice|dc::system|dc::warning, "Hello World");
+  Dout(dc::notice | dc::system | dc::warning, "Hello World");
   Debug(dc::system.off());
-  Dout(dc::notice|dc::system|dc::warning, "Hello World");
+  Dout(dc::notice | dc::system | dc::warning, "Hello World");
   Debug(dc::warning.off());
-  Dout(dc::notice|dc::system|dc::warning, "Hello World (not)");
+  Dout(dc::notice | dc::system | dc::warning, "Hello World (not)");
 
   captured.rdbuf()->pubsync();
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;
 
-  char const* expected[] = {
-    "NOTICE  : Debug channel Test.",
-    "WARP    : Custom channel Test.",
-    "DEBUG   : Disabled",
-    "ELFUTILS: Disabled",
-    "NOTICE  : Disabled",
-    "SYSTEM  : Disabled",
-    "WARNING : Disabled",
-    "WARP    : Disabled",
-    "DEBUG   : Enabled",
-    "ELFUTILS: Enabled",
-    "NOTICE  : Enabled",
-    "SYSTEM  : Enabled",
-    "WARNING : Enabled",
-    "WARP    : Enabled",
-    "ELFUTILS: elfutils Testing",
-    "DEBUG   : debug Testing",
-    "NOTICE  : notice Testing",
-    "SYSTEM  : system Testing",
-    "WARNING : warning Testing",
-    "NOTICE  : Hello World",
-    "SYSTEM  : Hello World",
-    "WARNING : Hello World",
-    nullptr
-  };
+  char const* expected[] = {"NOTICE  : Debug channel Test.",
+                            "WARP    : Custom channel Test.",
+                            "DEBUG   : Disabled",
+                            "ELFUTILS: Disabled",
+                            "NOTICE  : Disabled",
+                            "SYSTEM  : Disabled",
+                            "WARNING : Disabled",
+                            "WARP    : Disabled",
+                            "DEBUG   : Enabled",
+                            "ELFUTILS: Enabled",
+                            "NOTICE  : Enabled",
+                            "SYSTEM  : Enabled",
+                            "WARNING : Enabled",
+                            "WARP    : Enabled",
+                            "ELFUTILS: elfutils Testing",
+                            "DEBUG   : debug Testing",
+                            "NOTICE  : notice Testing",
+                            "SYSTEM  : system Testing",
+                            "WARNING : warning Testing",
+                            "NOTICE  : Hello World",
+                            "SYSTEM  : Hello World",
+                            "WARNING : Hello World",
+                            nullptr};
 
   return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

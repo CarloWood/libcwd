@@ -10,15 +10,9 @@ namespace {
 class location_libtest2_lifecycle_ct
 {
  public:
-  location_libtest2_lifecycle_ct()
-  {
-    libcwd_ctest::location_loading::library_loaded("location_libtest2.so");
-  }
+  location_libtest2_lifecycle_ct() { libcwd_ctest::location_loading::library_loaded("location_libtest2.so"); }
 
-  ~location_libtest2_lifecycle_ct()
-  {
-    libcwd_ctest::location_loading::library_unloaded("location_libtest2.so");
-  }
+  ~location_libtest2_lifecycle_ct() { libcwd_ctest::location_loading::library_unloaded("location_libtest2.so"); }
 };
 
 location_libtest2_lifecycle_ct location_libtest2_lifecycle;

@@ -10,8 +10,8 @@
 
 // Test using a two-deep namespace for our debug namespace (default is just `debug`).
 #define NAMESPACE_DEBUG hello_world_ctest::debug
-#include "test_support.h"
 #include "pending_stream.h"
+#include "test_support.h"
 
 #include <cstdlib>
 #include <sstream>
@@ -39,16 +39,8 @@ int main()
   captured.rdbuf()->pubsync();
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;
 
-  char const* expected[] = {
-    "DEBUG   : Enabled",
-    "ELFUTILS: Enabled",
-    "HELLO   : Enabled",
-    "NOTICE  : Disabled",
-    "SYSTEM  : Enabled",
-    "WARNING : Disabled",
-    "HELLO   : Hello World!",
-    nullptr
-  };
+  char const* expected[] = {"DEBUG   : Enabled", "ELFUTILS: Enabled",  "HELLO   : Enabled",      "NOTICE  : Disabled",
+                            "SYSTEM  : Enabled", "WARNING : Disabled", "HELLO   : Hello World!", nullptr};
 
   return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

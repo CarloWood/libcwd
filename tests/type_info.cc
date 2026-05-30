@@ -6,12 +6,11 @@
 
 #include "cwd_sys.h"
 #include "test_support.h"
+#include <libcwd/type_info.h>
 
 #include <cstdlib>
 #include <ostream>
 #include <sstream>
-
-#include <libcwd/type_info.h>
 
 using libcwd::type_info_of;
 
@@ -97,27 +96,13 @@ int main()
   std::stringstream captured;
   write_type_info_output(captured);
 
-  char const* expected[] = {
-    "int : 0",
-    "int* : 4",
-    "A : 0",
-    "A* : 64",
-    "void* : 0",
-    "int : 0",
-    "int const* : 4",
-    "A : 0",
-    "A const* : 64",
-    "B const& : 0",
-    "B const* : 64",
-    "void* : 0",
-    "A const*",
-    "A const* const*",
-    "A const* const* const*",
-    "B const*",
-    "B const* const*",
-    "B const* const* const*",
-    nullptr
-  };
+  char const* expected[] = {"int : 0",        "int* : 4",        "A : 0",
+                            "A* : 64",        "void* : 0",       "int : 0",
+                            "int const* : 4", "A : 0",           "A const* : 64",
+                            "B const& : 0",   "B const* : 64",   "void* : 0",
+                            "A const*",       "A const* const*", "A const* const* const*",
+                            "B const*",       "B const* const*", "B const* const* const*",
+                            nullptr};
 
   return libcwd_ctest::matches_expected_output(captured, expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

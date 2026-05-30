@@ -14,7 +14,8 @@
 
 namespace {
 
-bool expect_location(char const* scenario, libcwd::location_ct const& location, char const* expected_file, unsigned int expected_line)
+bool expect_location(char const* scenario, libcwd::location_ct const& location, char const* expected_file,
+                     unsigned int expected_line)
 {
   if (!location.is_known())
   {
@@ -24,8 +25,8 @@ bool expect_location(char const* scenario, libcwd::location_ct const& location, 
 
   if (location.file() != expected_file || location.line() != expected_line)
   {
-    std::cerr << scenario << ": got " << location.file() << ':' << location.line()
-              << ", expected " << expected_file << ':' << expected_line << '\n';
+    std::cerr << scenario << ": got " << location.file() << ':' << location.line() << ", expected " << expected_file
+              << ':' << expected_line << '\n';
     return false;
   }
 

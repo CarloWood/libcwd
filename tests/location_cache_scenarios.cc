@@ -18,7 +18,8 @@ bool ends_with(std::string const& value, char const* suffix)
   return value.size() >= suffix_length && value.compare(value.size() - suffix_length, suffix_length, suffix) == 0;
 }
 
-bool expect_location(char const* scenario, libcwd::location_ct const& location, char const* expected_file_suffix, unsigned int expected_line)
+bool expect_location(char const* scenario, libcwd::location_ct const& location, char const* expected_file_suffix,
+                     unsigned int expected_line)
 {
   if (!location.is_known())
   {
@@ -28,14 +29,15 @@ bool expect_location(char const* scenario, libcwd::location_ct const& location, 
 
   if (!ends_with(location.file(), expected_file_suffix) || location.line() != expected_line)
   {
-    std::cerr << scenario << ": got " << location.file() << ':' << location.line() <<
-        ", expected *" << expected_file_suffix << ':' << expected_line << '\n';
+    std::cerr << scenario << ": got " << location.file() << ':' << location.line() << ", expected *"
+              << expected_file_suffix << ':' << expected_line << '\n';
     return false;
   }
   return true;
 }
 
-[[gnu::noinline]] bool expect_call_site(char const* scenario, char const* expected_file_suffix, unsigned int expected_line)
+[[gnu::noinline]] bool expect_call_site(char const* scenario, char const* expected_file_suffix,
+                                        unsigned int expected_line)
 {
   libcwd::location_ct location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   return expect_location(scenario, location, expected_file_suffix, expected_line);
@@ -69,7 +71,8 @@ unsigned int const inline_function_definition_line = __LINE__ + 1;
 
 bool probe_inline_body_source()
 {
-  libcwd::location_ct location = capture_inline_location(); unsigned int const expansion_line = __LINE__;
+  libcwd::location_ct location = capture_inline_location();
+  unsigned int const expansion_line = __LINE__;
 
   if (!location.is_known())
   {
@@ -78,9 +81,9 @@ bool probe_inline_body_source()
   }
   if (!ends_with(location.file(), "location_cache_scenarios.cc") || location.line() == expansion_line)
   {
-    std::cerr << "inline body: got " << location.file() << ':' << location.line() <<
-        ", expected inline function source near line " << inline_function_definition_line <<
-        " rather than expansion line " << expansion_line << '\n';
+    std::cerr << "inline body: got " << location.file() << ':' << location.line()
+              << ", expected inline function source near line " << inline_function_definition_line
+              << " rather than expansion line " << expansion_line << '\n';
     return false;
   }
   return true;

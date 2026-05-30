@@ -9,11 +9,10 @@
 
 #include "cwd_sys.h"
 #include "test_support.h"
+#include <libcwd/lockable_auto_ptr.h>
 
 #include <cstdlib>
 #include <iostream>
-
-#include <libcwd/lockable_auto_ptr.h>
 
 namespace {
 
@@ -31,7 +30,11 @@ class tracked_base
   tracked_base() { ++live_count; }
   tracked_base(tracked_base const&) = delete;
   tracked_base& operator=(tracked_base const&) = delete;
-  virtual ~tracked_base() { --live_count; ++destroyed_count; }
+  virtual ~tracked_base()
+  {
+    --live_count;
+    ++destroyed_count;
+  }
 };
 
 int tracked_base::live_count;
@@ -57,9 +60,9 @@ void reset_tracking()
 // Returns false after printing a diagnostic when ptr does not point at expected,
 // when ownership differs from expect_owner, or when a current owner has a
 // different strict-owner state from expect_strict_owner.
-template<class PointerType, class RawType>
-bool expect_state(char const* name, libcwd::lockable_auto_ptr<PointerType> const& ptr,
-    RawType const* expected, bool expect_owner, bool expect_strict_owner)
+template <class PointerType, class RawType>
+bool expect_state(char const* name, libcwd::lockable_auto_ptr<PointerType> const& ptr, RawType const* expected,
+                  bool expect_owner, bool expect_strict_owner)
 {
   bool success = true;
   if (ptr.get() != expected)
@@ -74,8 +77,7 @@ bool expect_state(char const* name, libcwd::lockable_auto_ptr<PointerType> const
   }
   if (expect_owner && ptr.strict_owner() != expect_strict_owner)
   {
-    std::cerr << name << ".strict_owner() was " << ptr.strict_owner()
-              << ", expected " << expect_strict_owner << '\n';
+    std::cerr << name << ".strict_owner() was " << ptr.strict_owner() << ", expected " << expect_strict_owner << '\n';
     success = false;
   }
   return success;

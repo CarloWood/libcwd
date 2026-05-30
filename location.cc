@@ -27,7 +27,7 @@ char const* const location_ct::S_cleared_location_ct_c = "<cleared location ct>"
 //
 void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 {
-  LIBCWD_ASSERT( !M_known );
+  LIBCWD_ASSERT(!M_known);
 
   using namespace dwarf;
 
@@ -59,7 +59,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     // threads_threads_shared from dejagnu (2006/11/08). I also had to stand
     // on one leg and wave high left.
     M_object_file = nullptr;
-    M_func = S_pre_libcwd_initialization_c;	// Not really true, but this hardly ever happens in the first place.
+    M_func = S_pre_libcwd_initialization_c; // Not really true, but this hardly ever happens in the first place.
     M_initialization_delayed = addr;
     return;
   }
@@ -93,10 +93,10 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   if (M_known)
     M_line = location.line;
 
-  if (location.filepath)         // Might still be true even if M_known is false (if we couldn't find a line number).
+  if (location.filepath) // Might still be true even if M_known is false (if we couldn't find a line number).
   {
     size_t len = strlen(location.filepath);
-    M_filepath = lockable_auto_ptr<char, true>(new char [len + 1]);	// LEAK5
+    M_filepath = lockable_auto_ptr<char, true>(new char[len + 1]); // LEAK5
     strcpy(M_filepath.get(), location.filepath);
     char const* last_slash = strrchr(M_filepath.get(), '/');
     M_filename = last_slash ? last_slash + 1 : M_filepath.get();
@@ -121,7 +121,7 @@ void location_ct::clear()
   M_func = S_cleared_location_ct_c;
 }
 
-location_ct::location_ct(location_ct const &prototype)
+location_ct::location_ct(location_ct const& prototype)
 {
   if ((M_known = prototype.M_known))
   {
@@ -135,7 +135,7 @@ location_ct::location_ct(location_ct const &prototype)
   M_func = prototype.M_func;
 }
 
-location_ct& location_ct::operator=(location_ct const &prototype)
+location_ct& location_ct::operator=(location_ct const& prototype)
 {
   if (this != &prototype)
   {
@@ -156,13 +156,13 @@ location_ct& location_ct::operator=(location_ct const &prototype)
 
 void location_ct::print_filepath_on(std::ostream& os) const
 {
-  LIBCWD_ASSERT( M_known );
+  LIBCWD_ASSERT(M_known);
   os << M_filepath.get();
 }
 
 void location_ct::print_filename_on(std::ostream& os) const
 {
-  LIBCWD_ASSERT( M_known );
+  LIBCWD_ASSERT(M_known);
   os << M_filename;
 }
 

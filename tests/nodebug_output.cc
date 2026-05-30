@@ -5,8 +5,8 @@
 // location_ct, and compares the resulting printed output line-by-line.
 
 #include "cwd_sys.h"
-#include "test_support.h"
 #include "pending_stream.h"
+#include "test_support.h"
 
 #include <cstdlib>
 #include <sstream>
@@ -28,7 +28,7 @@ warmup_location:
   Debug(libcw_do.on());
 #if CWDEBUG_LOCATION
   Debug(dc::elfutils.on());
-  Debug(location_format(show_objectfile|show_function));
+  Debug(location_format(show_objectfile | show_function));
 
   libcwd::location_ct const loc(&&current_location);
 current_location:
@@ -43,10 +43,9 @@ current_location:
 #endif
   char const* expected[] = {
 #if CWDEBUG_LOCATION
-    expected_location.c_str(),
+      expected_location.c_str(),
 #endif
-    nullptr
-  };
+      nullptr};
 
   return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

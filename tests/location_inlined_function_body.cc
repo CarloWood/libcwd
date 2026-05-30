@@ -7,16 +7,15 @@
 
 #include "cwd_sys.h"
 #include "test_support.h"
+#include <libcwd/demangle.h>
 
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
-#include <libcwd/demangle.h>
-
 namespace foo {
 
-volatile int inlined_side_effect_sink;
+int volatile inlined_side_effect_sink;
 
 // Check the return address of the call from inlined_body_probe against the expected source line.
 //
@@ -47,8 +46,8 @@ volatile int inlined_side_effect_sink;
   if (demangled_name.find("inlined_body_probe") == std::string::npos &&
       std::string(location.mangled_function_name()).find("inlined_body_probe") == std::string::npos)
   {
-    std::cerr << "inlined body function mismatch: got mangled `" << location.mangled_function_name()
-              << "', demangled `" << demangled_name << "', expected `*inlined_body_probe*'.\n";
+    std::cerr << "inlined body function mismatch: got mangled `" << location.mangled_function_name() << "', demangled `"
+              << demangled_name << "', expected `*inlined_body_probe*'.\n";
     ok = false;
   }
 

@@ -23,8 +23,8 @@ void open_plugin1()
 {
   plugin1_handle = dlopen(LOCATION_PLUGIN1_PATH, RTLD_NOW | RTLD_GLOBAL);
   if (!plugin1_handle)
-    libcwd_ctest::location_loading::log_notice_message(
-        "location_libtest1.so", "dlopen(location_plugin1.so) failed: " + std::string(dlerror()));
+    libcwd_ctest::location_loading::log_notice_message("location_libtest1.so",
+                                                       "dlopen(location_plugin1.so) failed: " + std::string(dlerror()));
 }
 
 // Logs construction and destruction of location_libtest1.so and performs the

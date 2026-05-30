@@ -7,10 +7,10 @@
 #include "location_loading_support.h"
 
 #include <cstdlib>
-#include <dlfcn.h>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <dlfcn.h>
 
 extern "C" int location_libtest1_touch();
 
@@ -29,17 +29,15 @@ using plugin_touch_fn = int (*)();
 // CTest sees failures that happen after main() has returned.
 bool compare_location_loading_output(std::istream& captured)
 {
-  char const* expected[] = {
-    "NOTICE  : location_libtest2.so: loaded",
-    "NOTICE  : location_libtest1.so: loaded",
-    "NOTICE  : location_plugin1.so: loaded",
-    "NOTICE  : location_plugin2.so: loaded",
-    "NOTICE  : location_plugin2.so: unloaded",
-    "NOTICE  : location_libtest1.so: unloaded",
-    "NOTICE  : location_libtest2.so: unloaded",
-    "NOTICE  : location_plugin1.so: unloaded",
-    nullptr
-  };
+  char const* expected[] = {"NOTICE  : location_libtest2.so: loaded",
+                            "NOTICE  : location_libtest1.so: loaded",
+                            "NOTICE  : location_plugin1.so: loaded",
+                            "NOTICE  : location_plugin2.so: loaded",
+                            "NOTICE  : location_plugin2.so: unloaded",
+                            "NOTICE  : location_libtest1.so: unloaded",
+                            "NOTICE  : location_libtest2.so: unloaded",
+                            "NOTICE  : location_plugin1.so: unloaded",
+                            nullptr};
 
   return libcwd_ctest::matches_expected_output(captured, expected);
 }

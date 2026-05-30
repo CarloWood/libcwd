@@ -25,11 +25,7 @@ int main()
     Dout(dc::notice, "Basic Test 1.");
   }
 
-  char const* expected[] = {
-    "NOTICE  : Basic Test 0.",
-    "NOTICE  : Basic Test 1.",
-    nullptr
-  };
+  char const* expected[] = {"NOTICE  : Basic Test 0.", "NOTICE  : Basic Test 1.", nullptr};
 
   return libcwd_ctest::matches_expected_output(captured, expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

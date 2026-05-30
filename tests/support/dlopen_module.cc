@@ -46,8 +46,8 @@ namespace {
   }
   if (std::strcmp(location.mangled_function_name(), expected_function) != 0)
   {
-    Dout(dc::notice, scenario << ": function was " << location.mangled_function_name()
-        << ", expected " << expected_function);
+    Dout(dc::notice,
+         scenario << ": function was " << location.mangled_function_name() << ", expected " << expected_function);
     success = false;
   }
   return success;

@@ -5,26 +5,27 @@
 
 #include "cwd_dwarf.h"
 #include "dwarf_symbol_ranges.h"
-#include "libcwd/debug.h"
-#include "threadsafe/threadsafe.h"
 #include "threadsafe/AIReadWriteMutex.h"
+#include "threadsafe/threadsafe.h"
+#include "libcwd/debug.h"
+
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
+#include <filesystem>
+#include <limits>
+#include <map>
+#include <string>
 #include <dlfcn.h>
 #include <dwarf.h>
 #include <elf.h>
 #include <elfutils/libdw.h>
 #include <elfutils/libdwfl.h>
-#include <exception>
-#include <filesystem>
 #include <fcntl.h>
 #include <link.h>
-#include <limits>
-#include <map>
-#include <string>
 #ifdef HAVE_DLOPEN
 #include <mutex>
 #endif
@@ -40,9 +41,9 @@ namespace dc {
 /** The ELFUTILS channel. */
 channel_ct elfutils
 #ifndef HIDE_FROM_DOXYGEN
-  ("ELFUTILS")
+    ("ELFUTILS")
 #endif
-  ;
+        ;
 
 /** \} */
 } // namespace dc
@@ -76,8 +77,10 @@ class PTLoadSegment
   uint32_t flags_;
 
  public:
-  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
-    object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags) { }
+  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags)
+      : object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags)
+  {
+  }
 
   ObjectFile const* object_file() const { return object_file_; }
   uintptr_t start_addr() const { return start_addr_; }
@@ -103,10 +106,7 @@ class ScopedTracker final
     LIBCWD_ASSERT(!flag);
     flag = true;
   }
-  ~ScopedTracker()
-  {
-    flag_ = false;
-  }
+  ~ScopedTracker() { flag_ = false; }
 };
 
 class ScopedPreserveErrno final
@@ -147,16 +147,18 @@ static thread_local bool s_object_files_is_locked_ = false;
 class ObjectFileRegistry
 {
  protected:
-  // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end address;
-  // the pointed-to PTLoadSegment stores the matching start address, flags, and a pointer to the ObjectFile.
-  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end
+  // address; the pointed-to PTLoadSegment stores the matching start address, flags, and a pointer to the ObjectFile.
+  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>,
+                                              threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
 
-  static object_files_t& object_files_map();            // Read-write lock protected end-address index of loaded PT_LOAD segments.
+  static object_files_t& object_files_map(); // Read-write lock protected end-address index of loaded PT_LOAD segments.
 
-  libcwd::ObjectFileName object_file_name_;             // Public facing data of this object file. Just contains the filename
-                                                        // and whether or not debug info was available for this object file or not.
+  libcwd::ObjectFileName object_file_name_; // Public facing data of this object file. Just contains the filename
+                                            // and whether or not debug info was available for this object file or not.
 
-  static std::atomic_bool s_object_files_initialized_;  // Set when ObjectFileRegistry::register_initial_object_files was called, turning ensure_initialization into a no-op.
+  static std::atomic_bool s_object_files_initialized_; // Set when ObjectFileRegistry::register_initial_object_files was
+                                                       // called, turning ensure_initialization into a no-op.
 
   // Construct the ObjectFileRegistry subobject for the derived ObjectFileData payload.
   // ObjectFileRegistry is not instantiated by itself; it groups registry-wide
@@ -168,14 +170,17 @@ class ObjectFileRegistry
   libcwd::ObjectFileName const& object_file_name() const { return object_file_name_; }
 
   // Information passed to the cb_dl_iterate_phdr call back function.
-  struct CallBackData {
-    std::string executable_path_;                       // The full path to the current executable.
+  struct CallBackData
+  {
+    std::string executable_path_; // The full path to the current executable.
     // Used for targeted dlopen-driven object discovery:
-    uintptr_t target_lbase_;                            // When non-zero, create an ObjectFile only for the DSO with this load base.
-    mutable ObjectFile const* object_file_{};           // Set to the ObjectFile aggregate for target_lbase_.
+    uintptr_t target_lbase_; // When non-zero, create an ObjectFile only for the DSO with this load base.
+    mutable ObjectFile const* object_file_{}; // Set to the ObjectFile aggregate for target_lbase_.
 
-    CallBackData(std::string const& executable_path, uintptr_t target_lbase = 0) :
-      executable_path_(executable_path), target_lbase_(target_lbase) { }
+    CallBackData(std::string const& executable_path, uintptr_t target_lbase = 0)
+        : executable_path_(executable_path), target_lbase_(target_lbase)
+    {
+    }
   };
 
   friend bool ensure_initialization(LIBCWD_TSD_PARAM);
@@ -190,10 +195,10 @@ class ObjectFileRegistry
   static ObjectFile const* find_object_file(uintptr_t addr);
 };
 
-//static
+// static
 ObjectFileRegistry::object_files_t& ObjectFileRegistry::object_files_map()
 {
-  static object_files_t* map = new object_files_t;      // Intentionally leaked to avoid deinitialization order fiasco.
+  static object_files_t* map = new object_files_t; // Intentionally leaked to avoid deinitialization order fiasco.
   return *map;
 }
 
@@ -221,8 +226,8 @@ char const* function_die_name(Dwarf_Die* func_die)
 
 struct InlineScopeLookupResult
 {
-  char const* function_name{};                  // Mangled inline function name.
-  bool found{false};                            // True when addr is covered by an inline scope.
+  char const* function_name{}; // Mangled inline function name.
+  bool found{false}; // True when addr is covered by an inline scope.
 };
 
 // Inspect the DWARF scope chain for runtime address addr in cu_die using lbase as the load base.
@@ -248,8 +253,9 @@ InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, uintptr
 
       result.found = true;
       result.function_name = function_die_name(&scopes[scope_index]);
-      Dout(dc::elfutils, "inline scope for address 0x" << std::hex << addr << " resolves to " <<
-          (result.function_name ? result.function_name : "<unnamed inline function>"));
+      Dout(dc::elfutils, "inline scope for address 0x"
+                             << std::hex << addr << " resolves to "
+                             << (result.function_name ? result.function_name : "<unnamed inline function>"));
       break;
     }
 
@@ -307,13 +313,14 @@ class ObjectFileData : public ObjectFileRegistry
   static constexpr int dwarf_symbols_loaded_not_called = -2;
 
  private:
-  int dwarf_fd_{dwarf_symbols_loaded_not_called};       // Once load_dwarf_symbols was called this becomes -1 (permanent failure) or
-                                                        // equal to the open fd for the file containing the debug info.
-  Dwarf* dwarf_handle_{nullptr};                        // mutable because close_dwarf() sets these to nullptr and -1 again.
-  bool elf_symbols_loaded_{false};                      // True iff load_elf_function_symbols was already called.
+  int dwarf_fd_{
+      dwarf_symbols_loaded_not_called}; // Once load_dwarf_symbols was called this becomes -1 (permanent failure) or
+                                        // equal to the open fd for the file containing the debug info.
+  Dwarf* dwarf_handle_{nullptr}; // mutable because close_dwarf() sets these to nullptr and -1 again.
+  bool elf_symbols_loaded_{false}; // True iff load_elf_function_symbols was already called.
 
   using function_symbols_type = FunctionSymbolRanges;
-  function_symbols_type function_symbols_;              // End-address index of SymbolRange's.
+  function_symbols_type function_symbols_; // End-address index of SymbolRange's.
 
  public:
   // Accessors.
@@ -352,7 +359,8 @@ class ObjectFileData : public ObjectFileRegistry
   void add_elf_function_symbol(GElf_Sym const& sym, char const* name, uintptr_t lbase);
   static int cb_load_function_symbol(Dwarf_Die* func_die, void* arg);
   void add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase);
-  bool add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die const* func_die, uintptr_t lbase);
+  bool add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die const* func_die,
+                                 uintptr_t lbase);
   static char const* function_symbol_name(Dwarf_Die* func_die);
   void close_dwarf();
 
@@ -365,11 +373,10 @@ class ObjectFile final : public ObjectFileInterface
 {
  private:
   using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  mutable object_file_data_t object_file_data_;         // Thread-safe storage wrapper for ObjectFile instances.
+  mutable object_file_data_t object_file_data_; // Thread-safe storage wrapper for ObjectFile instances.
 
  public:
-  ObjectFile(uintptr_t lbase, char const* filename) :
-    ObjectFileInterface(lbase), object_file_data_(filename, lbase) { }
+  ObjectFile(uintptr_t lbase, char const* filename) : ObjectFileInterface(lbase), object_file_data_(filename, lbase) { }
 
   ObjectFile(ObjectFile const&) = delete;
   ObjectFile& operator=(ObjectFile const&) = delete;
@@ -392,7 +399,7 @@ class ObjectFile final : public ObjectFileInterface
   object_file_data_t::wat write_locked_data() const { return object_file_data_t::wat{object_file_data_}; }
 };
 
-//static
+// static
 std::atomic_bool ObjectFileRegistry::s_object_files_initialized_ = false;
 
 namespace {
@@ -419,11 +426,13 @@ std::string get_debug_info_path(char const* object_file_path)
   Dwfl* dwfl = dwfl_begin(&callbacks);
   if (!dwfl)
   {
-    Dout(dc::warning, "dwfl_begin failed while looking for debuginfo of \"" << object_file_path << "\": " << dwfl_errmsg(-1));
+    Dout(dc::warning,
+         "dwfl_begin failed while looking for debuginfo of \"" << object_file_path << "\": " << dwfl_errmsg(-1));
     return object_file_path;
   }
 
-  struct DwflCloser {
+  struct DwflCloser
+  {
     Dwfl* dwfl_;
     ~DwflCloser() { dwfl_end(dwfl_); }
   } close_dwfl{dwfl};
@@ -560,7 +569,7 @@ void ObjectFile::realize_symbols() const
       object_file_data_t::rat data_r(object_file_data_);
 
       if (data_r->dwarf_symbols_loaded())
-        return;         // Someone else beat us to it.
+        return; // Someone else beat us to it.
 
       object_file_data_t::wat data_w(data_r);
       data_w->load_dwarf_symbols(lbase_, debug_info_path);
@@ -576,8 +585,8 @@ void ObjectFile::realize_symbols() const
 
 // On the lifetime of the returned object.
 //
-// There are only two callers of this function, `libcwd::location_ct::M_pc_location` and `libcwd::pc_mangled_function_name`.
-// Both first call
+// There are only two callers of this function, `libcwd::location_ct::M_pc_location` and
+// `libcwd::pc_mangled_function_name`. Both first call
 //     object_file = find_object_file(addr)
 //     symbol = object_file->find_symbol(addr)
 // and then either read `symbol->name()` or let `symbol->lookup_location(...)`
@@ -632,7 +641,7 @@ SymbolRange const* ObjectFileData::get_symbol_range_from_function_symbols_map(ui
   return symbol;
 }
 
-//static
+// static
 void ObjectFileRegistry::register_initial_object_files()
 {
   ForceLoadingDebugOutput scoped_;
@@ -661,7 +670,7 @@ void ObjectFileRegistry::register_initial_object_files()
   } // Unlock object_files_map().
 }
 
-//static
+// static
 ObjectFile const* ObjectFileRegistry::iterate_program_headers(CallBackData const& data)
 {
   // From https://man7.org/linux/man-pages/man3/dl_iterate_phdr.3.html:
@@ -677,7 +686,7 @@ ObjectFile const* ObjectFileRegistry::iterate_program_headers(CallBackData const
   return data.object_file_;
 }
 
-//static
+// static
 int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data)
 {
   CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
@@ -691,7 +700,8 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
   // dl_iterate_phdr reports an empty name for the main executable.
   // Use the already resolved /proc/self/exe path in that case so ObjectFileName remains
   // useful for diagnostics and later public location data.
-  char const* object_filename = (info->dlpi_name && info->dlpi_name[0] != '\0') ? info->dlpi_name : data->executable_path_.c_str();
+  char const* object_filename =
+      (info->dlpi_name && info->dlpi_name[0] != '\0') ? info->dlpi_name : data->executable_path_.c_str();
 
   // A DSO can be discovered through a delayed dlopen registration while an
   // outer dl_iterate_phdr pass is still running.  Avoid constructing and
@@ -713,7 +723,8 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
   // per-object DWARF state.
   ObjectFile const* object_file = new ObjectFile(lbase, object_filename);
 
-  Dout(dc::elfutils, "Adding PT_LOAD segments for \"" << object_filename << "\" at 0x" << std::hex << lbase << " pointing to ObjectFile at " << object_file);
+  Dout(dc::elfutils, "Adding PT_LOAD segments for \"" << object_filename << "\" at 0x" << std::hex << lbase
+                                                      << " pointing to ObjectFile at " << object_file);
 
   // Insert one immutable PTLoadSegment per loadable segment into the end-keyed map.
   // The map owns the discoverable active address ranges; the pointed-to objects are intentionally kept stable
@@ -723,7 +734,8 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
   {
     ElfW(Phdr) const& phdr = info->dlpi_phdr[phdr_index];
     if (phdr.p_type != PT_LOAD ||
-        // The Elf-64 Object File Format specifies that p_memsz may be zero (https://man7.org/linux/man-pages/man5/elf.5.html)
+        // The Elf-64 Object File Format specifies that p_memsz may be zero
+        // (https://man7.org/linux/man-pages/man5/elf.5.html)
         phdr.p_memsz == 0)
       continue;
 
@@ -735,16 +747,16 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
     ScopedTracker scoped_{s_object_files_is_locked_};
     auto const ibp = object_files_w->try_emplace(segment_end, object_file, segment_start, segment_end, phdr.p_flags);
     // Make sure the new segment doesn't overlap with an already existing one.
-    LIBCWD_ASSERT(ibp.second &&
-        (ibp.first == object_files_w->begin() ||
-            std::prev(ibp.first)->first <= segment_start) &&
-        (std::next(ibp.first) == object_files_w->end() ||
-            std::next(ibp.first)->second.start_addr() >= segment_end));
+    LIBCWD_ASSERT(
+        ibp.second && (ibp.first == object_files_w->begin() || std::prev(ibp.first)->first <= segment_start) &&
+        (std::next(ibp.first) == object_files_w->end() || std::next(ibp.first)->second.start_addr() >= segment_end));
 
-    Dout(dc::elfutils, "    map[" << (void*)segment_end << "] = PTLoadSegment " << ibp.first->second <<
-        " [" << (void*)segment_start << '-' << (void*)segment_end << ") flags=" << flags_to_string(phdr.p_flags));
+    Dout(dc::elfutils, "    map[" << (void*)segment_end << "] = PTLoadSegment " << ibp.first->second << " ["
+                                  << (void*)segment_start << '-' << (void*)segment_end
+                                  << ") flags=" << flags_to_string(phdr.p_flags));
 
-    // Set data->object_file_ to point to the ObjectFile member of the first PTLoadSegment element of object_files_map().
+    // Set data->object_file_ to point to the ObjectFile member of the first PTLoadSegment element of
+    // object_files_map().
     have_pt_load_segment = true;
   }
 
@@ -758,8 +770,9 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
   return target_lbase_only;
 }
 
-//static
-ObjectFile const* ObjectFileRegistry::find_registered_object_file(uintptr_t lbase, object_files_t::wat const& object_files_w)
+// static
+ObjectFile const* ObjectFileRegistry::find_registered_object_file(uintptr_t lbase,
+                                                                  object_files_t::wat const& object_files_w)
 {
   // The writable map is keyed by PT_LOAD end address and can contain multiple
   // segments for the same object file.  Treat any segment whose owning
@@ -774,7 +787,7 @@ ObjectFile const* ObjectFileRegistry::find_registered_object_file(uintptr_t lbas
   return nullptr;
 }
 
-//static
+// static
 ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lbase)
 {
   // Locks object_files_map().
@@ -788,7 +801,7 @@ ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lb
   return existing_object_file ? existing_object_file : iterate_program_headers(data);
 }
 
-//static
+// static
 ObjectFile const* ObjectFileRegistry::find_object_file(uintptr_t addr)
 {
   // The object file found.
@@ -866,14 +879,14 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
   {
     object_files_t::wat object_files_w(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
-    for (auto iter = object_files_w->begin(); iter != object_files_w->end(); )
+    for (auto iter = object_files_w->begin(); iter != object_files_w->end();)
     {
       PTLoadSegment const& segment = iter->second;
       if (segment.object_file() == self)
       {
-        Dout(dc::elfutils, "removing map[" << (void*)iter->first << "] = PTLoadSegment " << segment <<
-            " for object " << this << " (\"" << object_file_name_.filename() << "\")");
-        obsolete_object_file = segment.object_file();  // Every segment points to the same ObjectFile.
+        Dout(dc::elfutils, "removing map[" << (void*)iter->first << "] = PTLoadSegment " << segment << " for object "
+                                           << this << " (\"" << object_file_name_.filename() << "\")");
+        obsolete_object_file = segment.object_file(); // Every segment points to the same ObjectFile.
         iter = object_files_w->erase(iter);
       }
       else
@@ -905,8 +918,10 @@ struct ObjectFileData::LoadFunctionSymbolRangesContext
   uintptr_t lbase_;
   std::size_t symbol_count_{};
 
-  LoadFunctionSymbolRangesContext(ObjectFileData* object_file_data, uintptr_t lbase) :
-    object_file_data_(object_file_data), lbase_(lbase) { }
+  LoadFunctionSymbolRangesContext(ObjectFileData* object_file_data, uintptr_t lbase)
+      : object_file_data_(object_file_data), lbase_(lbase)
+  {
+  }
 };
 
 // ObjectFileData::load_function_symbols
@@ -926,22 +941,27 @@ void ObjectFileData::load_function_symbols(uintptr_t lbase)
   size_t header_size = 0;
   int nextcu_status;
 
-  while ((nextcu_status = dwarf_nextcu(dwarf_handle_, offset, &next_offset, &header_size, nullptr, nullptr, nullptr)) == 0)
+  while ((nextcu_status = dwarf_nextcu(dwarf_handle_, offset, &next_offset, &header_size, nullptr, nullptr, nullptr)) ==
+         0)
   {
     Dwarf_Die cu_die_mem;
     Dwarf_Die* cu_die = dwarf_offdie(dwarf_handle_, offset + header_size, &cu_die_mem);
     if (!cu_die)
-      Dout(dc::elfutils, "dwarf_offdie failed for CU at offset " << offset << " in " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
+      Dout(dc::elfutils, "dwarf_offdie failed for CU at offset " << offset << " in " << object_file_name_.filepath()
+                                                                 << ": " << dwarf_errmsg(-1));
     else if (dwarf_getfuncs(cu_die, &ObjectFileData::cb_load_function_symbol, &context, 0) < 0)
-      Dout(dc::elfutils, "dwarf_getfuncs failed for CU at offset " << offset << " in " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
+      Dout(dc::elfutils, "dwarf_getfuncs failed for CU at offset " << offset << " in " << object_file_name_.filepath()
+                                                                   << ": " << dwarf_errmsg(-1));
 
     offset = next_offset;
   }
 
   if (nextcu_status < 0)
-    Dout(dc::elfutils, "dwarf_nextcu failed while loading symbols from " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
+    Dout(dc::elfutils,
+         "dwarf_nextcu failed while loading symbols from " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
 
-  Dout(dc::elfutils, "Loaded " << context.symbol_count_ << " function symbol range(s) from " << object_file_name_.filepath());
+  Dout(dc::elfutils,
+       "Loaded " << context.symbol_count_ << " function symbol range(s) from " << object_file_name_.filepath());
 }
 
 // ObjectFileData::cb_load_function_symbol
@@ -950,7 +970,7 @@ void ObjectFileData::load_function_symbols(uintptr_t lbase)
 // owning ObjectFileData and keeps traversal going so all defining subprograms in
 // the compilation unit are cached.
 //
-//static
+// static
 int ObjectFileData::cb_load_function_symbol(Dwarf_Die* func_die, void* arg)
 {
   LoadFunctionSymbolRangesContext* context = static_cast<LoadFunctionSymbolRangesContext*>(arg);
@@ -973,11 +993,12 @@ void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
   Dwarf_Addr start_pc = 0;
   Dwarf_Addr end_pc = 0;
   for (ptrdiff_t range_offset = 0;
-      (range_offset = dwarf_ranges(func_die, range_offset, &base, &start_pc, &end_pc)) != 0; )
+       (range_offset = dwarf_ranges(func_die, range_offset, &base, &start_pc, &end_pc)) != 0;)
   {
     if (range_offset == -1)
     {
-      Dout(dc::elfutils, "dwarf_ranges failed for function " << name << " in " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
+      Dout(dc::elfutils, "dwarf_ranges failed for function " << name << " in " << object_file_name_.filepath() << ": "
+                                                             << dwarf_errmsg(-1));
       break;
     }
 
@@ -989,11 +1010,12 @@ void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
 //
 // Insert one contiguous function range into function_symbols_.
 //
-// DWARF reports one-past-the-end high_pc values; the map key is kept equal to SymbolRange::end_addr() so find_symbol can use upper_bound(addr).
-// Empty, inverted, or overflowing ranges are ignored because they cannot safely identify a runtime PC.
-// Overlaps are resolved by insert_function_symbol_range.
-// Returns true when at least one new fragment was inserted.
-bool ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name, Dwarf_Die const* func_die, uintptr_t lbase)
+// DWARF reports one-past-the-end high_pc values; the map key is kept equal to SymbolRange::end_addr() so find_symbol
+// can use upper_bound(addr). Empty, inverted, or overflowing ranges are ignored because they cannot safely identify a
+// runtime PC. Overlaps are resolved by insert_function_symbol_range. Returns true when at least one new fragment was
+// inserted.
+bool ObjectFileData::add_function_symbol_range(Dwarf_Addr start_pc, Dwarf_Addr end_pc, char const* name,
+                                               Dwarf_Die const* func_die, uintptr_t lbase)
 {
   if (!(start_pc < end_pc && end_pc <= std::numeric_limits<uintptr_t>::max() - lbase))
     return false;
@@ -1091,7 +1113,7 @@ void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* na
 #ifdef STT_GNU_IFUNC
       && type != STT_GNU_IFUNC
 #endif
-     )
+  )
     return;
 
   if (sym.st_value > std::numeric_limits<Dwarf_Addr>::max() - sym.st_size ||
@@ -1104,7 +1126,8 @@ void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* na
     return;
   std::strcpy(stable_name, name);
 
-  if (!add_function_symbol_range(static_cast<Dwarf_Addr>(sym.st_value), static_cast<Dwarf_Addr>(sym.st_value + sym.st_size), stable_name, nullptr, lbase))
+  if (!add_function_symbol_range(static_cast<Dwarf_Addr>(sym.st_value),
+                                 static_cast<Dwarf_Addr>(sym.st_value + sym.st_size), stable_name, nullptr, lbase))
     std::free(stable_name);
 }
 
@@ -1119,7 +1142,7 @@ void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* na
 // linker symbol used by existing location_ct callers; the GNU/MIPS spelling and DW_AT_name
 // are fallbacks for older or non-C++ producer output.
 //
-//static
+// static
 char const* ObjectFileData::function_symbol_name(Dwarf_Die* func_die)
 {
   return function_die_name(func_die);
@@ -1133,16 +1156,17 @@ void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_p
   LIBCWD_ASSERT(!dwarf_symbols_loaded());
 
   bool different_symbols_path = debug_info_path != object_file_name_.filepath();
-  Dout(dc::elfutils|continued_cf, "Loading debug info " << (different_symbols_path ? "for " : "from ") << object_file_name_.filepath());
+  Dout(dc::elfutils | continued_cf,
+       "Loading debug info " << (different_symbols_path ? "for " : "from ") << object_file_name_.filepath());
   if (different_symbols_path)
     Dout(dc::continued, " (from " << debug_info_path << ")");
-  Dout(dc::continued|flush_cf, " (" << (void*)lbase << ")... ");
+  Dout(dc::continued | flush_cf, " (" << (void*)lbase << ")... ");
 
   dwarf_fd_ = open(debug_info_path.c_str(), O_RDONLY);
 
   if (dwarf_fd_ == -1)
   {
-    Dout(dc::finish|error_cf, "failed to open");
+    Dout(dc::finish | error_cf, "failed to open");
     return;
   }
 
@@ -1180,8 +1204,16 @@ namespace {
 // wrappers are responsible for keeping dwarf's loaded-segment map synchronized
 // with libraries added by dlopen and, eventually, removed by dlclose.
 extern "C" {
-static union { void* symptr; void* (*func)(char const*, int); } real_dlopen;
-static union { void* symptr; int (*func)(void*); } real_dlclose;
+static union
+{
+  void* symptr;
+  void* (*func)(char const*, int);
+} real_dlopen;
+static union
+{
+  void* symptr;
+  int (*func)(void*);
+} real_dlclose;
 }
 std::once_flag initialize_real_dlopen;
 std::once_flag initialize_real_dlclose;
@@ -1192,14 +1224,17 @@ struct DynamicLoaderRecord
   int flags_;
   ObjectFile const* object_file_;
 
-  DynamicLoaderRecord(ObjectFile const* object_file, int flags) : refcount_(1), flags_(flags), object_file_(object_file) { }
+  DynamicLoaderRecord(ObjectFile const* object_file, int flags) : refcount_(1), flags_(flags), object_file_(object_file)
+  {
+  }
 };
 
-using dynamic_loader_records_t = threadsafe::Unlocked<std::map<void*, DynamicLoaderRecord, std::less<void*>>, threadsafe::policy::Primitive<std::mutex>>;
+using dynamic_loader_records_t = threadsafe::Unlocked<std::map<void*, DynamicLoaderRecord, std::less<void*>>,
+                                                      threadsafe::policy::Primitive<std::mutex>>;
 
 dynamic_loader_records_t& dlopen_map()
 {
-  static dynamic_loader_records_t* map = new dynamic_loader_records_t;  // Intentionally leaked for late DSO teardown.
+  static dynamic_loader_records_t* map = new dynamic_loader_records_t; // Intentionally leaked for late DSO teardown.
   return *map;
 }
 
@@ -1220,17 +1255,20 @@ void* dlopen(char const* name, int flags)
   bool const need_register_object_file = name && *name;
 
   // Ensure the initial dwarf object/segment cache exists before the new DSO is mapped.
-  // That makes the following post-dlopen pass responsible only for the just-loaded link_map entry, and avoids duplicate startup registration.
+  // That makes the following post-dlopen pass responsible only for the just-loaded link_map entry, and avoids duplicate
+  // startup registration.
   if (need_register_object_file)
     libcwd::initialize();
 
   // Initialize real_dlopen if that wasn't done yet.
-  std::call_once(initialize_real_dlopen, [](){ real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen"); });
+  std::call_once(initialize_real_dlopen, []() { real_dlopen.symptr = dlsym(RTLD_NEXT, "dlopen"); });
 
   void* handle = real_dlopen.func(name, flags);
   if (statically_linked)
   {
-    Dout(dc::warning, "Calling dlopen(3) from statically linked application; this is not going to work if the loaded module uses libcwd too or when it allocates any memory!");
+    Dout(dc::warning,
+         "Calling dlopen(3) from statically linked application; this is not going to work if the loaded module uses "
+         "libcwd too or when it allocates any memory!");
     return handle;
   }
   if (handle == nullptr)
@@ -1265,8 +1303,9 @@ void* dlopen(char const* name, int flags)
       ForceLoadingDebugOutput scoped_;
       object_file = ObjectFileRegistry::register_object_file_at_lbase(lbase);
       // NULL would mean that there is no DSO at the `l_addr` that `dlinfo` just returned.
-      // That shouldn't be possible because no thread can have dlclose-d it without already haven gotten the handle that we didn't even return yet.
-      // However, in theory it can also mean that this DSO didn't have any non-empty PT_LOAD segments, in which case we just want to ignore the DSO.
+      // That shouldn't be possible because no thread can have dlclose-d it without already haven gotten the handle that
+      // we didn't even return yet. However, in theory it can also mean that this DSO didn't have any non-empty PT_LOAD
+      // segments, in which case we just want to ignore the DSO.
       if (!object_file)
         skip_dlopen_map = true;
       if (!skip_dlopen_map)
@@ -1283,7 +1322,7 @@ int dlclose(void* handle)
   using namespace libcwd::dwarf;
 
   // Initialize real_dlclose if that wasn't done yet.
-  std::call_once(initialize_real_dlclose, [](){ real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose"); });
+  std::call_once(initialize_real_dlclose, []() { real_dlclose.symptr = dlsym(RTLD_NEXT, "dlclose"); });
 
   int error = real_dlclose.func(handle);
   if (error != 0 || statically_linked)
@@ -1309,8 +1348,10 @@ int dlclose(void* handle)
   if (object_file_to_unregister)
   {
     ForceLoadingDebugOutput scoped_;
-    ObjectFile const* obsolete_object_file = object_file_to_unregister->write_locked_data()->unregister_object_file_ranges(object_file_to_unregister);
-    // Now that the object_file_data_t Access object has been destroyed, we can delete the ObjectFile that is no longer in use.
+    ObjectFile const* obsolete_object_file =
+        object_file_to_unregister->write_locked_data()->unregister_object_file_ranges(object_file_to_unregister);
+    // Now that the object_file_data_t Access object has been destroyed, we can delete the ObjectFile that is no longer
+    // in use.
     delete obsolete_object_file;
   }
 
@@ -1326,7 +1367,7 @@ namespace libcwd {
 ObjectFileName::ObjectFileName(char const* filepath) : no_debug_line_sections_(false)
 {
   LIBCWD_TSD_DECLARATION;
-  filepath_ = strcpy((char*)malloc(strlen(filepath) + 1), filepath);	// LEAK8
+  filepath_ = strcpy((char*)malloc(strlen(filepath) + 1), filepath); // LEAK8
   filename_ = strrchr(filepath_, '/') + 1;
   if (filename_ == (char const*)1)
     filename_ = filepath_;
@@ -1363,7 +1404,7 @@ char const* pc_mangled_function_name(void const* pc)
   return symbol->name();
 }
 
-/** \} */	// End of group 'group_locations'.
+/** \} */ // End of group 'group_locations'.
 
 } // namespace libcwd
 

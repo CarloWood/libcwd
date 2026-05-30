@@ -8,13 +8,13 @@
 // removed malloc-debugging output or unstable hexadecimal addresses.
 
 #include "cwd_sys.h"
-#include "test_support.h"
 #include "pending_stream.h"
+#include "test_support.h"
 
 #include <cstdlib>
-#include <dlfcn.h>
 #include <iostream>
 #include <sstream>
+#include <dlfcn.h>
 
 #ifndef DLOPEN_MODULE_PATH
 #define DLOPEN_MODULE_PATH "dlopen_module.so"
@@ -54,10 +54,11 @@ bool resolve_global_test_symbol(void* handle, module_function_type& function)
 bool compare_dlopen_output(std::istream& captured)
 {
   char const* expected[] = {
-    "^NOTICE  : global_test_symbol\\(false\\): .*dlopen_module\\.so:_Z18global_test_symbolb:dlopen_module\\.cc:([0-9]+) \\(expected line: \\1\\)$",
-    "^NOTICE  : static_test_symbol: .*dlopen_module\\.so:static_test_symbol:dlopen_module\\.cc:([0-9]+) \\(expected line: \\1\\)$",
-    nullptr
-  };
+      "^NOTICE  : global_test_symbol\\(false\\): "
+      ".*dlopen_module\\.so:_Z18global_test_symbolb:dlopen_module\\.cc:([0-9]+) \\(expected line: \\1\\)$",
+      "^NOTICE  : static_test_symbol: .*dlopen_module\\.so:static_test_symbol:dlopen_module\\.cc:([0-9]+) \\(expected "
+      "line: \\1\\)$",
+      nullptr};
 
   return libcwd_ctest::matches_expected_output(captured, expected);
 }
@@ -72,7 +73,7 @@ int main()
   Debug(libcw_do.set_ostream(&captured));
   Debug(libcw_do.on());
   Debug(dc::notice.on());
-  Debug(location_format(show_objectfile|show_function));
+  Debug(location_format(show_objectfile | show_function));
 
   void* handle = dlopen(DLOPEN_MODULE_PATH, RTLD_NOW | RTLD_GLOBAL);
   if (!handle)

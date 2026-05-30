@@ -28,20 +28,20 @@ bool line_matches_expected(std::string const& line, char const* expected, int li
     }
     catch (std::regex_error const& error)
     {
-      std::cerr << "Invalid expected-output regex on line " << line_number << ": `"
-                << expected_line << "': " << error.what() << '\n';
+      std::cerr << "Invalid expected-output regex on line " << line_number << ": `" << expected_line
+                << "': " << error.what() << '\n';
       return false;
     }
 
-    std::cerr << "Output regex mismatch on line " << line_number << ": expected `"
-              << expected_line << "', got `" << line << "'\n";
+    std::cerr << "Output regex mismatch on line " << line_number << ": expected `" << expected_line << "', got `"
+              << line << "'\n";
     return false;
   }
 
   if (line != expected_line)
   {
-    std::cerr << "Output mismatch on line " << line_number << ": expected `"
-              << expected_line << "', got `" << line << "'\n";
+    std::cerr << "Output mismatch on line " << line_number << ": expected `" << expected_line << "', got `" << line
+              << "'\n";
     return false;
   }
 

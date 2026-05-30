@@ -26,7 +26,8 @@ constexpr int number_of_threads = 4;
 std::mutex output_mutex;
 std::atomic_int color_code{30};
 
-struct parsed_line_ct {
+struct parsed_line_ct
+{
   std::string color;
   std::string text;
 };
@@ -96,8 +97,8 @@ bool validate_thread_messages(std::string const& prefix, std::vector<std::string
 
   if (messages.size() != expected.size())
   {
-    std::cerr << "Thread " << prefix << " produced " << messages.size()
-              << " lines; expected " << expected.size() << "\n";
+    std::cerr << "Thread " << prefix << " produced " << messages.size() << " lines; expected " << expected.size()
+              << "\n";
     return false;
   }
 
@@ -105,8 +106,8 @@ bool validate_thread_messages(std::string const& prefix, std::vector<std::string
   {
     if (messages[i] != expected[i])
     {
-      std::cerr << "Thread " << prefix << " line " << i << " mismatch: expected `"
-                << expected[i] << "', got `" << messages[i] << "'\n";
+      std::cerr << "Thread " << prefix << " line " << i << " mismatch: expected `" << expected[i] << "', got `"
+                << messages[i] << "'\n";
       return false;
     }
   }
@@ -133,7 +134,7 @@ void thread_main()
   for (int n = 0; n < 10; ++n)
   {
     Dout(dc::notice, n << ". this is a single line.");
-    Dout(dc::notice|continued_cf, "This is a line ");
+    Dout(dc::notice | continued_cf, "This is a line ");
     if (n % 2 == 0)
       Dout(dc::notice, "n is even!");
     Dout(dc::finish, "in two parts.");
@@ -151,11 +152,9 @@ int main()
 
   std::vector<std::thread> thread_pool;
   thread_pool.reserve(number_of_threads);
-  for (int i = 0; i < number_of_threads; ++i)
-    thread_pool.emplace_back(thread_main);
+  for (int i = 0; i < number_of_threads; ++i) thread_pool.emplace_back(thread_main);
 
-  for (std::thread& thread : thread_pool)
-    thread.join();
+  for (std::thread& thread : thread_pool) thread.join();
 
   std::map<std::string, std::string> color_by_prefix;
   std::map<std::string, std::vector<std::string>> messages_by_prefix;
@@ -188,8 +187,8 @@ int main()
     auto color_result = color_by_prefix.emplace(prefix, parsed.color);
     if (!color_result.second && color_result.first->second != parsed.color)
     {
-      std::cerr << "Thread " << prefix << " changed color from `" << color_result.first->second
-                << "' to `" << parsed.color << "'\n";
+      std::cerr << "Thread " << prefix << " changed color from `" << color_result.first->second << "' to `"
+                << parsed.color << "'\n";
       return EXIT_FAILURE;
     }
 
@@ -205,8 +204,8 @@ int main()
 
   if (messages_by_prefix.size() != number_of_threads)
   {
-    std::cerr << "Captured output for " << messages_by_prefix.size() << " threads; expected "
-              << number_of_threads << "\n";
+    std::cerr << "Captured output for " << messages_by_prefix.size() << " threads; expected " << number_of_threads
+              << "\n";
     return EXIT_FAILURE;
   }
 

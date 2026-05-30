@@ -46,20 +46,16 @@ class GlobalObject
 GlobalObject::GlobalObject()
 {
   LIBCWD_TSD_DECLARATION;
-  Debug(
-    libcw_do.set_ostream(&captured_debug);
-    if (!libcw_do.is_on(LIBCWD_TSD))
-    {
-      libcw_do.on();
-      location_format(show_objectfile|show_function);
-    }
-  );
+  Debug(libcw_do.set_ostream(&captured_debug); if (!libcw_do.is_on(LIBCWD_TSD)) {
+    libcw_do.on();
+    location_format(show_objectfile | show_function);
+  });
 
   std::cout << "Calling GlobalObject::GlobalObject()\n";
-  Dout(dc::notice|continued_cf, "Hello World");
+  Dout(dc::notice | continued_cf, "Hello World");
 current_location:
   Dout(dc::always, "We are now at " << location_ct(&&current_location));
-  Dout(dc::finish|error_cf, "Hello World");
+  Dout(dc::finish | error_cf, "Hello World");
 }
 
 GlobalObject global_object;
@@ -71,10 +67,7 @@ int main()
   Debug(main_reached());
   Debug(dc::notice.on());
   LIBCWD_TSD_DECLARATION;
-  Debug(
-    if (!libcw_do.is_on(LIBCWD_TSD))
-      libcw_do.on();
-  );
+  Debug(if (!libcw_do.is_on(LIBCWD_TSD)) libcw_do.on(););
 
   // Construct `GlobalObject` again, but now after main was reached.
   // This time the location_ct *should* print file:line.
@@ -84,20 +77,14 @@ int main()
   std::cerr << "Captured cout:\n" << captured_cout.str() << std::endl;
   std::cerr << "Captured debug:\n" << captured_debug.str() << std::endl;
 
-  char const* expected_cout[] = {
-    "Calling GlobalObject::GlobalObject()",
-    "Calling GlobalObject::GlobalObject()",
-    "Successful",
-    nullptr
-  };
+  char const* expected_cout[] = {"Calling GlobalObject::GlobalObject()", "Calling GlobalObject::GlobalObject()",
+                                 "Successful", nullptr};
 
   char const* expected_debug[] = {
-    R"(^>>>>>>>>: We are now at location_from_global_object:_ZN12_GLOBAL__N_112GlobalObjectC[12]Ev.*$)",
-    "NOTICE  : Hello World<unfinished>",
-    ">>>>>>>>:     We are now at location_from_global_object:GlobalObject:location_from_global_object.cc:61",
-    "NOTICE  : <continued> Hello World: 0 (Success)",
-    nullptr
-  };
+      R"(^>>>>>>>>: We are now at location_from_global_object:_ZN12_GLOBAL__N_112GlobalObjectC[12]Ev.*$)",
+      "NOTICE  : Hello World<unfinished>",
+      ">>>>>>>>:     We are now at location_from_global_object:GlobalObject:location_from_global_object.cc:61",
+      "NOTICE  : <continued> Hello World: 0 (Success)", nullptr};
 
   bool const cout_ok = libcwd_ctest::matches_expected_output(captured_cout, expected_cout);
   bool const debug_ok = libcwd_ctest::matches_expected_output(captured_debug, expected_debug);

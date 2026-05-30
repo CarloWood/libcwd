@@ -10,10 +10,10 @@
 #include "cwd_sys.h"
 #include "test_support.h"
 
-#include <dlfcn.h>
-#include <iostream>
-#include <iomanip>
 #include <cstdint>
+#include <iomanip>
+#include <iostream>
+#include <dlfcn.h>
 #include "cwd_debug.h"
 
 extern bool f();
@@ -26,7 +26,8 @@ int y_default(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::location_ct const y_default_loc(addr);
-  Dout(dc::always, "y_default() was called from 0x" << std::hex << ((ptrdiff_t)addr - base)  << " --> " << y_default_loc << " (expected: " << std::dec << expected_line << ")");
+  Dout(dc::always, "y_default() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << y_default_loc
+                                                    << " (expected: " << std::dec << expected_line << ")");
   return y_default_loc.line() == expected_line;
 }
 
@@ -34,7 +35,8 @@ int arg2_i(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::location_ct const arg2_i_loc(addr);
-  Dout(dc::always, "arg2_i() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg2_i_loc << " (expected: " << std::dec << expected_line << ")");
+  Dout(dc::always, "arg2_i() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg2_i_loc
+                                                 << " (expected: " << std::dec << expected_line << ")");
   return arg2_i_loc.line() == expected_line;
 }
 
@@ -42,7 +44,8 @@ int arg_g1(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::location_ct const arg_g1_loc(addr);
-  Dout(dc::always, "arg_g1() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g1_loc << " (expected: " << std::dec << expected_line << ")");
+  Dout(dc::always, "arg_g1() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g1_loc
+                                                 << " (expected: " << std::dec << expected_line << ")");
   // Unfortunately, a DWARF producer is not required to have more fine grained line tables than one line per statement.
   // Using g++ -g produces the same line as that of the call to g() in this case.
   return arg_g1_loc.line() == expected_line || arg_g1_loc.line() == expected_line - 1;
@@ -52,7 +55,8 @@ int arg_g2(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::location_ct const arg_g2_loc(addr);
-  Dout(dc::always, "arg_g2() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g2_loc << " (expected: " << std::dec << expected_line << ")");
+  Dout(dc::always, "arg_g2() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g2_loc
+                                                 << " (expected: " << std::dec << expected_line << ")");
   // Unfortunately, a DWARF producer is not required to have more fine grained line tables than one line per statement.
   // Using g++ -g produces the same line as that of the call to g() in this case.
   return arg_g2_loc.line() == expected_line || arg_g2_loc.line() == expected_line - 2;
@@ -60,10 +64,10 @@ int arg_g2(int expected_line)
 
 int main()
 {
-  Debug( main_reached() );
-  Debug( libcw_do.set_ostream(&std::cout) );
-  Debug( libcw_do.on() );
-  Debug( dc::notice.on() );
+  Debug(main_reached());
+  Debug(libcw_do.set_ostream(&std::cout));
+  Debug(libcw_do.on());
+  Debug(dc::notice.on());
 
   Dout(dc::always, "base = 0x" << std::hex << base);
 
