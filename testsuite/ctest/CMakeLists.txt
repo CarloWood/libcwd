@@ -20,6 +20,14 @@ add_executable(continued continued.cc)
 target_link_libraries(continued PRIVATE ctest_support)
 target_compile_options(continued PRIVATE -g)
 
+add_executable(cf cf.cc)
+target_link_libraries(cf PRIVATE ctest_support)
+target_compile_options(cf PRIVATE -g)
+
+add_executable(demangler demangler.cc)
+target_link_libraries(demangler PRIVATE ctest_support)
+target_compile_options(demangler PRIVATE -g)
+
 add_executable(do do.cc)
 target_link_libraries(do PRIVATE ctest_support)
 target_compile_options(do PRIVATE -g)
@@ -150,6 +158,16 @@ set_tests_properties(flush PROPERTIES
 
 add_test(NAME continued COMMAND continued)
 set_tests_properties(continued PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME cf COMMAND cf)
+set_tests_properties(cf PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME demangler COMMAND demangler)
+set_tests_properties(demangler PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
