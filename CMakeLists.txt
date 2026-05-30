@@ -162,7 +162,6 @@ find_library(LIBDW dw REQUIRED)
 find_library(LIBELF elf REQUIRED)
 
 add_subdirectory(utils)
-add_subdirectory(testsuite)
 
 add_library(cwd SHARED)
 
@@ -298,3 +297,7 @@ target_compile_definitions(threadsafe_ObjLib
     ${cwd_compile_definitions}
     "-DCW_DEBUG=1"
 )
+
+if (BUILD_TESTING)
+  add_subdirectory(tests)
+endif ()

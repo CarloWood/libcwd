@@ -62,11 +62,11 @@ target_compile_options(location_line_directives PRIVATE -g)
 
 add_executable(location_return_addresses location_return_addresses.cc)
 target_link_libraries(location_return_addresses PRIVATE ctest_support)
-target_compile_options(location_return_addresses PRIVATE -g)
+target_compile_options(location_return_addresses PRIVATE -g -O0)
 
 add_executable(location_default_argument_functions location_default_argument_functions.cc support/location_default_argument_functions_cu.cc)
 target_link_libraries(location_default_argument_functions PRIVATE ctest_support)
-target_compile_options(location_default_argument_functions PRIVATE -g -finline)
+target_compile_options(location_default_argument_functions PRIVATE -g -O0)
 
 add_executable(location_inlined_function_body location_inlined_function_body.cc)
 target_link_libraries(location_inlined_function_body PRIVATE ctest_support)
@@ -88,6 +88,7 @@ target_compile_options(symbol_range_overlaps PRIVATE -g)
 
 add_executable(nodebug_output nodebug_output.cc)
 target_link_libraries(nodebug_output PRIVATE ctest_support)
+target_compile_options(nodebug_output PRIVATE -g0)
 
 add_executable(type_info type_info.cc)
 target_link_libraries(type_info PRIVATE ctest_support)
@@ -95,7 +96,7 @@ target_compile_options(type_info PRIVATE -g)
 
 add_executable(dlopen dlopen.cc)
 target_link_libraries(dlopen PRIVATE ctest_support ${CMAKE_DL_LIBS})
-target_compile_options(dlopen PRIVATE -g)
+target_compile_options(dlopen PRIVATE -g -O0)
 target_compile_definitions(dlopen PRIVATE "DLOPEN_MODULE_PATH=\"$<TARGET_FILE:dlopen_module>\"")
 
 function(configure_location_loading_library target_name)
@@ -121,7 +122,7 @@ target_include_directories(dlopen_module
     ${CMAKE_SOURCE_DIR}/include
 )
 target_link_libraries(dlopen_module PRIVATE cwd Threads::Threads)
-target_compile_options(dlopen_module PRIVATE -g)
+target_compile_options(dlopen_module PRIVATE -g -O0)
 set_target_properties(dlopen_module PROPERTIES PREFIX "")
 add_dependencies(dlopen dlopen_module)
 
