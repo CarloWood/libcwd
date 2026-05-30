@@ -1,0 +1,70 @@
+BasedOnStyle: Google
+Standard: Latest
+ColumnLimit: 120
+IndentWidth: 2
+DerivePointerAlignment: false
+PointerAlignment: Left
+QualifierAlignment: Right
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterControlStatement: Always
+  BeforeElse: true
+  BeforeCatch: true
+  AfterNamespace: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: Never
+AlignTrailingComments:
+  Kind: Never
+SortIncludes: CaseSensitive
+SpacesBeforeTrailingComments: 1
+SpaceInEmptyBraces: Block
+IncludeIsMainRegex: '$^'
+IncludeBlocks: Regroup
+IncludeCategories:
+  # sys.h must be the first header at all times.
+  - Regex: '^"sys.h"'
+    Priority: 1
+    SortPriority: -1
+  - Regex: '^"cwd_sys.h"'
+    Priority: 1
+    SortPriority: -1
+  - Regex: '^<libcwd/config.h>'
+    Priority: 1
+    SortPriority: 1
+
+  # This is the catch-all for any additional (future) libcwd/ subdirectories.
+  # It get a sort priority smaller than the rest because it will be more dependent (none of the above should depend on it, as these are newer).
+  - Regex: '^"libcwd/.*"'
+    Priority: 1
+    SortPriority: 3
+  - Regex: '^<libcwd/.*>'
+    Priority: 1
+    SortPriority: 4
+
+  # Separated with an empty line comes the group that includes <> headers, with "debug.h" as last below that.
+  # This is because "debug.h" defines quite some macros that *might* give problems with arbitrary other headers.
+  - Regex: '^<[^.]*>'
+    Priority: 2
+    SortPriority: 21
+  - Regex: '^<.*\..*>'
+    Priority: 2
+    SortPriority: 22
+  - Regex: '^"debug.h"'
+    Priority: 2
+    SortPriority: 23
+  - Regex: '^"cwd_debug.h"'
+    Priority: 2
+    SortPriority: 24
+
+  # This is the catch-all for any remaining includes that use double quotes.
+  # They go above the libcwd/ includes, but still in the same group (no empty line between them),
+  # because in theory these are headers of the current subdirectory that should be considered
+  # more dependent then any external headers being included.
+  - Regex: '^"'
+    Priority: 1
+    SortPriority: 2
