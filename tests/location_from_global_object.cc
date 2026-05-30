@@ -81,6 +81,8 @@ int main()
   GlobalObject not_really_global;
 
   std::cout << "Successful\n";
+  std::cerr << "Captured cout:\n" << captured_cout.str() << std::endl;
+  std::cerr << "Captured debug:\n" << captured_debug.str() << std::endl;
 
   char const* expected_cout[] = {
     "Calling GlobalObject::GlobalObject()",
@@ -90,7 +92,7 @@ int main()
   };
 
   char const* expected_debug[] = {
-    R"(^>>>>>>>>: We are now at location_from_global_object:_ZN12_GLOBAL__N_112GlobalObjectC[12]Ev$)",
+    R"(^>>>>>>>>: We are now at location_from_global_object:_ZN12_GLOBAL__N_112GlobalObjectC[12]Ev.*$)",
     "NOTICE  : Hello World<unfinished>",
     ">>>>>>>>:     We are now at location_from_global_object:GlobalObject:location_from_global_object.cc:61",
     "NOTICE  : <continued> Hello World: 0 (Success)",

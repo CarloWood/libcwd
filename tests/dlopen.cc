@@ -9,6 +9,7 @@
 
 #include "cwd_sys.h"
 #include "test_support.h"
+#include "pending_stream.h"
 
 #include <cstdlib>
 #include <dlfcn.h>
@@ -67,7 +68,7 @@ int main()
 {
   Debug(main_reached());
 
-  std::stringstream captured;
+  libcwd_ctest::PendingStream captured;
   Debug(libcw_do.set_ostream(&captured));
   Debug(libcw_do.on());
   Debug(dc::notice.on());
@@ -94,6 +95,9 @@ int main()
     success = false;
   }
 
-  success = compare_dlopen_output(captured) && success;
+  captured.rdbuf()->pubsync();
+  std::cout << "Captured output:\n" << captured.output_str() << std::endl;
+
+  success = compare_dlopen_output(captured.input()) && success;
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

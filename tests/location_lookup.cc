@@ -8,6 +8,7 @@
 
 #include "cwd_sys.h"
 #include "test_support.h"
+#include "pending_stream.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -56,7 +57,7 @@ int main()
 {
   Debug(main_reached());
 
-  std::ostringstream captured;
+  libcwd_ctest::PendingStream captured;
   Debug(libcw_do.set_ostream(&captured));
   Debug(libcw_do.on());
   Debug(dc::notice.on());
@@ -65,7 +66,10 @@ int main()
 
   Dout(dc::notice, "expected_line = " << expected_line);
 
-  std::vector<std::string> lines = split_lines(captured.str());
+  captured.rdbuf()->pubsync();
+  std::cout << "Captured output:\n" << captured.output_str() << std::endl;
+
+  std::vector<std::string> lines = split_lines(captured.output_str());
   std::regex location_re(R"(^NOTICE  : A::A\(\): called from .*location_lookup\.cc:([0-9]+)$)");
   std::regex caller_re(R"(^NOTICE  : test\(\): called from A::A\(\)$)");
   std::regex expected_re(R"(^NOTICE  : expected_line = ([0-9]+)$)");

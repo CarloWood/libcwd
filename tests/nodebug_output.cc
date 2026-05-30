@@ -6,6 +6,7 @@
 
 #include "cwd_sys.h"
 #include "test_support.h"
+#include "pending_stream.h"
 
 #include <cstdlib>
 #include <sstream>
@@ -22,7 +23,7 @@ int main()
 warmup_location:
 #endif
 
-  std::stringstream captured;
+  libcwd_ctest::PendingStream captured;
   Debug(libcw_do.set_ostream(&captured));
   Debug(libcw_do.on());
 #if CWDEBUG_LOCATION
@@ -34,6 +35,9 @@ current_location:
   Dout(dc::elfutils, "This is printed from " << loc);
 #endif
 
+  captured.rdbuf()->pubsync();
+  std::cout << "Captured output:\n" << captured.output_str() << std::endl;
+
 #if CWDEBUG_LOCATION
   std::string const expected_location = "ELFUTILS: This is printed from nodebug_output:main";
 #endif
@@ -44,5 +48,5 @@ current_location:
     nullptr
   };
 
-  return libcwd_ctest::matches_expected_output(captured, expected) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

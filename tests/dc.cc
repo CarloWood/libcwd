@@ -10,6 +10,7 @@
 
 #define NAMESPACE_DEBUG dc_ctest::debug
 #include "test_support.h"
+#include "pending_stream.h"
 
 #include <cstdlib>
 #include <sstream>
@@ -25,7 +26,7 @@ int main()
 {
   Debug(main_reached());
 
-  std::stringstream captured;
+  libcwd_ctest::PendingStream captured;
   Debug(libcw_do.set_ostream(&captured));
   Debug(libcw_do.on());
   Debug(dc::warp.on());
@@ -53,6 +54,9 @@ int main()
   Debug(dc::warning.off());
   Dout(dc::notice|dc::system|dc::warning, "Hello World (not)");
 
+  captured.rdbuf()->pubsync();
+  std::cout << "Captured output:\n" << captured.output_str() << std::endl;
+
   char const* expected[] = {
     "NOTICE  : Debug channel Test.",
     "WARP    : Custom channel Test.",
@@ -79,5 +83,5 @@ int main()
     nullptr
   };
 
-  return libcwd_ctest::matches_expected_output(captured, expected) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

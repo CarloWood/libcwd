@@ -11,6 +11,7 @@
 // Test using a two-deep namespace for our debug namespace (default is just `debug`).
 #define NAMESPACE_DEBUG hello_world_ctest::debug
 #include "test_support.h"
+#include "pending_stream.h"
 
 #include <cstdlib>
 #include <sstream>
@@ -28,12 +29,15 @@ int main()
   Debug(main_reached());
   Debug(read_rcfile());
 
-  std::stringstream captured;
+  libcwd_ctest::PendingStream captured;
   Debug(libcw_do.set_ostream(&captured));
   Debug(libcw_do.on());
 
   Debug(list_channels_on(libcw_do));
   Dout(dc::hello, "Hello World!");
+
+  captured.rdbuf()->pubsync();
+  std::cout << "Captured output:\n" << captured.output_str() << std::endl;
 
   char const* expected[] = {
     "DEBUG   : Enabled",
@@ -46,5 +50,5 @@ int main()
     nullptr
   };
 
-  return libcwd_ctest::matches_expected_output(captured, expected) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
