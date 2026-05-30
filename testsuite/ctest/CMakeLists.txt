@@ -12,6 +12,14 @@ add_executable(basic_debug_output basic_debug_output.cc)
 target_link_libraries(basic_debug_output PRIVATE ctest_support)
 target_compile_options(basic_debug_output PRIVATE -g)
 
+add_executable(flush flush.cc)
+target_link_libraries(flush PRIVATE ctest_support)
+target_compile_options(flush PRIVATE -g)
+
+add_executable(do do.cc)
+target_link_libraries(do PRIVATE ctest_support)
+target_compile_options(do PRIVATE -g)
+
 add_executable(colors_debug_output colors_debug_output.cc)
 target_link_libraries(colors_debug_output PRIVATE ctest_support)
 target_compile_options(colors_debug_output PRIVATE -g)
@@ -128,6 +136,16 @@ target_compile_options(lockable_auto_ptr PRIVATE -g)
 
 add_test(NAME basic_debug_output COMMAND basic_debug_output)
 set_tests_properties(basic_debug_output PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME flush COMMAND flush)
+set_tests_properties(flush PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME do COMMAND do)
+set_tests_properties(do PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
