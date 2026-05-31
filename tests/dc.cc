@@ -26,8 +26,7 @@ int main()
 {
   Debug(main_reached());
 
-  libcwd_ctest::PendingStream captured;
-  Debug(libcw_do.set_ostream(&captured));
+  libcwd_ctest::PendingStream captured(libcwd::libcw_do);
   Debug(libcw_do.on());
   Debug(dc::warp.on());
   Debug(dc::notice.on());
@@ -54,7 +53,7 @@ int main()
   Debug(dc::warning.off());
   Dout(dc::notice | dc::system | dc::warning, "Hello World (not)");
 
-  captured.rdbuf()->pubsync();
+  captured.sync();
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;
 
   char const* expected[] = {"NOTICE  : Debug channel Test.",
@@ -81,5 +80,5 @@ int main()
                             "WARNING : Hello World",
                             nullptr};
 
-  return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return libcwd_ctest::matches_expected_output(captured.direct_istream(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

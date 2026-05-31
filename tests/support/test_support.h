@@ -72,4 +72,6 @@ bool matches_expected_output(std::istream& captured, char const* const* expected
 
 } // namespace libcwd_ctest
 
+#include "PendingStream.h"
+
 #endif // LIBCWD_TESTSUITE_CTEST_SUPPORT_TEST_SUPPORT_H

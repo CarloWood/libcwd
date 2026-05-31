@@ -5,7 +5,6 @@
 // location_ct, and compares the resulting printed output line-by-line.
 
 #include "cwd_sys.h"
-#include "PendingStream.h"
 #include "test_support.h"
 
 #include <cstdlib>
@@ -23,8 +22,7 @@ int main()
 warmup_location:
 #endif
 
-  libcwd_ctest::PendingStream captured;
-  Debug(libcw_do.set_ostream(&captured));
+  libcwd_ctest::PendingStream captured(libcwd::libcw_do);
   Debug(libcw_do.on());
 #if CWDEBUG_LOCATION
   Debug(dc::elfutils.on());
@@ -35,7 +33,7 @@ current_location:
   Dout(dc::elfutils, "This is printed from " << loc);
 #endif
 
-  captured.rdbuf()->pubsync();
+  captured.sync();
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;
 
 #if CWDEBUG_LOCATION
@@ -47,5 +45,5 @@ current_location:
 #endif
       nullptr};
 
-  return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return libcwd_ctest::matches_expected_output(captured.direct_istream(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -9,7 +9,6 @@
 // that was merely written from output that was flushed or explicitly drained.
 
 #include "cwd_sys.h"
-#include "PendingStream.h"
 #include "test_support.h"
 
 #include <cerrno>
@@ -66,7 +65,7 @@ void flush_cout()
 // append only the newly forced-to-cerr debug lines.
 void flush_cerr()
 {
-  captured_output->direct_out() << captured_cerr.str();
+  captured_output->direct_ostream() << captured_cerr.str();
   captured_cerr.str({});
   captured_cerr.clear();
 }
@@ -198,7 +197,6 @@ void run_continued_scenario(libcwd_ctest::PendingStream& captured)
   Debug(dc::foo.on());
   Debug(dc::bar.on());
   Debug(dc::run.on());
-  Debug(libcw_do.set_ostream(&captured));
   Debug(libcw_do.on());
 
   Dout(dc::notice, "This is a single line");
@@ -326,14 +324,14 @@ bool output_matches_expected(libcwd_ctest::PendingStream& captured)
       "RUN     : <continued> end 2",
       nullptr};
 
-  return libcwd_ctest::matches_expected_output(captured.input(), expected);
+  return libcwd_ctest::matches_expected_output(captured.direct_istream(), expected);
 }
 
 } // namespace
 
 int main()
 {
-  libcwd_ctest::PendingStream captured;
+  libcwd_ctest::PendingStream captured(libcwd::libcw_do);
   run_continued_scenario(captured);
   return output_matches_expected(captured) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

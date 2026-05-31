@@ -7,7 +7,6 @@
 // when this file changes.
 
 #include "cwd_sys.h"
-#include "PendingStream.h"
 #include "test_support.h"
 #include <libcwd/demangle.h>
 
@@ -57,8 +56,7 @@ int main()
 {
   Debug(main_reached());
 
-  libcwd_ctest::PendingStream captured;
-  Debug(libcw_do.set_ostream(&captured));
+  libcwd_ctest::PendingStream captured(libcwd::libcw_do);
   Debug(libcw_do.on());
   Debug(dc::notice.on());
 
@@ -67,7 +65,7 @@ int main()
 
   Dout(dc::notice, "expected_line = " << expected_line);
 
-  captured.rdbuf()->pubsync();
+  captured.sync();
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;
 
   std::vector<std::string> lines = split_lines(captured.output_str());

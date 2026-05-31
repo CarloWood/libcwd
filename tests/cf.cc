@@ -6,7 +6,6 @@
 // nonewline_cf writes and the cerr_cf line emitted by a separate debug object.
 
 #include "cwd_sys.h"
-#include "PendingStream.h"
 #include "test_support.h"
 
 #include <cerrno>
@@ -18,11 +17,10 @@ libcwd::debug_ct local_debug_object;
 
 int main()
 {
-  libcwd_ctest::PendingStream captured;
+  libcwd_ctest::PendingStream captured(libcwd::libcw_do);
   std::ostringstream hidden_local_output;
 
   Debug(main_reached());
-  Debug(libcw_do.set_ostream(&captured));
   Debug(local_debug_object.set_ostream(&hidden_local_output));
   Debug(local_debug_object.on());
   Debug(libcw_do.on());
@@ -76,7 +74,7 @@ int main()
     MyDout(dc::notice | cerr_cf, "cerr_cf");
   }
 
-  captured.rdbuf()->pubsync();
+  captured.sync();
 
   char const* expected[] = {
       "MARGINNOTICE  MARKER   xMARGINNOTICE  MARKER   yMARGINNOTICE  MARKER   z<newline>",
@@ -101,5 +99,5 @@ int main()
       "MARGINNOTICE  MARKER   cerr_cf",
       nullptr};
 
-  return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return libcwd_ctest::matches_expected_output(captured.direct_istream(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

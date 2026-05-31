@@ -7,7 +7,6 @@
 // compared deterministically in memory.
 
 #include "cwd_sys.h"
-#include "PendingStream.h"
 #include "test_support.h"
 
 #include <chrono>
@@ -34,10 +33,10 @@ namespace {
 // The function writes two lines to dc::generate after each.
 void generate_tables(libcwd_ctest::PendingStream& output)
 {
-  output.direct_out() << "<sleeping1>";
+  output.direct_ostream() << "<sleeping1>";
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
   Dout(dc::generate, "Inside generate_tables()");
-  output.direct_out() << "<sleeping2>";
+  output.direct_ostream() << "<sleeping2>";
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
   Dout(dc::generate, "Leaving generate_tables()");
 }
@@ -48,8 +47,7 @@ int main()
 {
   Debug(main_reached());
 
-  libcwd_ctest::PendingStream captured;
-  Debug(libcw_do.set_ostream(&captured));
+  libcwd_ctest::PendingStream captured(libcwd::libcw_do);
   ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on(););
   Debug(libcw_do.on());
 
@@ -92,7 +90,7 @@ int main()
       "NOTICE  : <continued> done",
       nullptr};
 
-  captured.rdbuf()->pubsync();
+  captured.sync();
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;
-  return libcwd_ctest::matches_expected_output(captured.input(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
+  return libcwd_ctest::matches_expected_output(captured.direct_istream(), expected) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "threadsafe/AIMutex.h"
+#include "libcwd/class_debug.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -28,16 +31,8 @@ class PendingStreamBuf : public std::streambuf
   // ostream that writes directly into the output buffer.
   std::ostream& direct_ostream() { return output_; }
 
-  // istream over the committed output buffer.
-  // Note: seekg(0) is called each time so the caller always reads
-  // from the beginning of whatever has been committed so far.
-  std::istream& input_istream()
-  {
-    // Rebuild the read-side from the current output content.
-    input_.str(output_.str());
-    input_.clear();          // clear any prior eof/fail bits
-    return input_;
-  }
+  // istream that reads directly from the output buffer.
+  std::istream& direct_istream() { return output_; }
 
   // Current contents of the pending (unflushed) buffer.
   std::string pending() const { return pending_.str(); }
@@ -71,8 +66,7 @@ class PendingStreamBuf : public std::streambuf
 
  private:
   std::ostringstream pending_;
-  std::ostringstream output_;
-  std::istringstream input_;
+  std::stringstream output_;
 };
 
 
@@ -83,15 +77,17 @@ class PendingStreamBuf : public std::streambuf
 // Flushing (sync / std::flush / std::endl) commits pending → output.
 //
 // Extra API:
-//   direct_out()  → std::ostream& that writes straight into output
-//   input()       → std::istream& over the committed output buffer
+//   direct_ostream()  → std::ostream& that writes straight into the "output" buffer.
+//   direct_istream()  → std::istream& that reads straight from the "output" buffer.
 // ---------------------------------------------------------------------------
 class PendingStream : public std::ostream
 {
  public:
-  PendingStream()
+  PendingStream(libcwd::debug_ct& debug_object)
       : std::ostream(&buf_)   // wire our streambuf into the base ostream
-  {}
+  {
+    debug_object.set_ostream(this, &output_mutex_);
+  }
 
   // Not copyable (streams never are), but moveable if needed.
   PendingStream(const PendingStream&)            = delete;
@@ -103,18 +99,25 @@ class PendingStream : public std::ostream
 
   // Returns an ostream that bypasses the pending buffer and writes
   // directly into the committed output buffer.
-  std::ostream& direct_out() { return buf_.direct_ostream(); }
+  std::ostream& direct_ostream() { return buf_.direct_ostream(); }
 
   // Returns an istream over the committed output buffer.
   // The stream is rewound each call so reads always start from position 0.
-  std::istream& input() { return buf_.input_istream(); }
+  std::istream& direct_istream() { return buf_.direct_istream(); }
 
   // Convenience: peek at raw buffer strings without going through streams.
   std::string pending_str() const { return buf_.pending(); }
   std::string output_str()  const { return buf_.output(); }
 
+  void sync()
+  {
+    std::lock_guard<AIMutex> lock(output_mutex_);
+    buf_.pubsync();
+  }
+
  private:
   PendingStreamBuf buf_;
+  AIMutex output_mutex_;
 };
 
 } // namespace libcwd_ctest

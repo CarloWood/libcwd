@@ -103,6 +103,7 @@ target_compile_definitions(dlopen PRIVATE "DLOPEN_MODULE_PATH=\"$<TARGET_FILE:dl
 function(configure_location_loading_library target_name)
   target_include_directories(${target_name}
     PRIVATE
+      ${CMAKE_SOURCE_DIR}
       ${CMAKE_CURRENT_SOURCE_DIR}/support
       ${CMAKE_BINARY_DIR}/include
       ${CMAKE_SOURCE_DIR}/include
@@ -118,6 +119,7 @@ configure_location_loading_library(location_libtest2)
 add_library(dlopen_module SHARED support/dlopen_module.cc)
 target_include_directories(dlopen_module
   PRIVATE
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/support
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/include

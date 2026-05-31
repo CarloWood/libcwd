@@ -13,7 +13,6 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
-#include <mutex>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -23,7 +22,6 @@ namespace {
 
 constexpr int number_of_threads = 4;
 
-std::mutex output_mutex;
 std::atomic_int color_code{30};
 
 struct parsed_line_ct
@@ -147,8 +145,7 @@ int main()
 {
   Debug(main_reached());
 
-  std::ostringstream captured;
-  Debug(libcw_do.set_ostream(&captured, &output_mutex));
+  libcwd_ctest::PendingStream captured(libcwd::libcw_do);
 
   std::vector<std::thread> thread_pool;
   thread_pool.reserve(number_of_threads);
@@ -156,14 +153,16 @@ int main()
 
   for (std::thread& thread : thread_pool) thread.join();
 
+  captured.sync();
+
   std::map<std::string, std::string> color_by_prefix;
   std::map<std::string, std::vector<std::string>> messages_by_prefix;
 
-  std::istringstream lines(captured.str());
   std::string raw_line;
-  while (std::getline(lines, raw_line))
+  while (std::getline(captured.direct_istream(), raw_line))
   {
     parsed_line_ct parsed = parse_line(raw_line);
+
     std::string::size_type first_space = parsed.text.find(' ');
     if (first_space == std::string::npos)
     {
