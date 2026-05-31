@@ -37,6 +37,10 @@ add_executable(colors_debug_output colors_debug_output.cc)
 target_link_libraries(colors_debug_output PRIVATE ctest_support)
 target_compile_options(colors_debug_output PRIVATE -g)
 
+add_executable(threaded_debug_output threaded_debug_output.cc)
+target_link_libraries(threaded_debug_output PRIVATE ctest_support)
+target_compile_options(threaded_debug_output PRIVATE -g)
+
 add_executable(dc dc.cc)
 target_link_libraries(dc PRIVATE ctest_support)
 target_compile_options(dc PRIVATE -g)
@@ -182,6 +186,11 @@ set_tests_properties(do PROPERTIES
 
 add_test(NAME colors_debug_output COMMAND colors_debug_output)
 set_tests_properties(colors_debug_output PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+add_test(NAME threaded_debug_output COMMAND threaded_debug_output)
+set_tests_properties(threaded_debug_output PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
 
