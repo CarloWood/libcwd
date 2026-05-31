@@ -1,6 +1,7 @@
 add_library(ctest_support STATIC support/test_support.cc)
 target_include_directories(ctest_support
   PUBLIC
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/support
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/include
