@@ -155,6 +155,12 @@ int main()
 
   captured.sync();
 
+  if (captured.lock_violation_detected())
+  {
+    std::cerr << "PendingStream observed debug output without the configured ostream mutex being locked\n";
+    return EXIT_FAILURE;
+  }
+
   std::map<std::string, std::string> color_by_prefix;
   std::map<std::string, std::vector<std::string>> messages_by_prefix;
 
