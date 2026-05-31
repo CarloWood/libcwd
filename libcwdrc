@@ -25,7 +25,7 @@ channels_default = off
 # This must be a comma seperated list of channel label masks
 # that will be matched case insensitive against the labels
 # of the channels.
-channels_toggle = M*,BFD, n*tice
+channels_toggle = M*,ELFUTILS, n*tice
 
 # Always turn on the WARNING channel!
 channels_on = warning

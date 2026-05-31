@@ -195,9 +195,6 @@ static unsigned long const config_signature_header_c =
 #if CWDEBUG_LOCATION
 	4|
 #endif
-#if CWDEBUG_LIBBFD
-	8|
-#endif
 #if CWDEBUG_DEBUG
 	16|
 #endif

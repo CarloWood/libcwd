@@ -128,8 +128,8 @@ int main()
 <P>Which outputs something like:</P>
 
 <PRE class="output">
-1024       BFD     : Enabled
 1024       DEBUG   : Enabled
+1024       ELFUTILS: Enabled
 1024       NOTICE  : Enabled
 1024       SYSTEM  : Enabled
 1024       WARNING : Enabled

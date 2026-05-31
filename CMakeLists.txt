@@ -83,8 +83,6 @@ if (OptionEnableLibcwdDebugt)
 else ()
   set(CW_CONFIG_DEBUGT 0)
 endif ()
-# On non-ELF systems this should be a real option, I guess.
-set(CW_CONFIG_LIBBFD 0)
 
 # Needed for include/libcwd/config.h.in
 set(VERSION_MAJOR ${PROJECT_VERSION_MAJOR})

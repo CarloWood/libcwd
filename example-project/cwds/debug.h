@@ -51,7 +51,6 @@
 #define LibcwDoutFatal(a, b, c, ...) do { ::std::cerr << __VA_ARGS__ << ::std::endl; ::std::exit(EXIT_FAILURE); } while (1)
 #define NEW(x) new x
 #define CWDEBUG_LOCATION 0
-#define CWDEBUG_LIBBFD 0
 #define CWDEBUG_DEBUG 0
 #define CWDEBUG_DEBUGOUTPUT 0
 #define CWDEBUG_DEBUGT 0
