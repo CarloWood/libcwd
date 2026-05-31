@@ -9,7 +9,7 @@
 // that was merely written from output that was flushed or explicitly drained.
 
 #include "cwd_sys.h"
-#include "pending_stream.h"
+#include "PendingStream.h"
 #include "test_support.h"
 
 #include <cerrno>

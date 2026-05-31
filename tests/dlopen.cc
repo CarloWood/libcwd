@@ -8,7 +8,7 @@
 // removed malloc-debugging output or unstable hexadecimal addresses.
 
 #include "cwd_sys.h"
-#include "pending_stream.h"
+#include "PendingStream.h"
 #include "test_support.h"
 
 #include <cstdlib>

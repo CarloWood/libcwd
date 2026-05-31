@@ -10,7 +10,7 @@
 
 // Test using a two-deep namespace for our debug namespace (default is just `debug`).
 #define NAMESPACE_DEBUG hello_world_ctest::debug
-#include "pending_stream.h"
+#include "PendingStream.h"
 #include "test_support.h"
 
 #include <cstdlib>

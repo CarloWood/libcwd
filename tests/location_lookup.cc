@@ -7,7 +7,7 @@
 // when this file changes.
 
 #include "cwd_sys.h"
-#include "pending_stream.h"
+#include "PendingStream.h"
 #include "test_support.h"
 #include <libcwd/demangle.h>
 

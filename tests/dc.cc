@@ -9,7 +9,7 @@
 #include "cwd_sys.h"
 
 #define NAMESPACE_DEBUG dc_ctest::debug
-#include "pending_stream.h"
+#include "PendingStream.h"
 #include "test_support.h"
 
 #include <cstdlib>

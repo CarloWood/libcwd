@@ -5,7 +5,7 @@
 // location_ct, and compares the resulting printed output line-by-line.
 
 #include "cwd_sys.h"
-#include "pending_stream.h"
+#include "PendingStream.h"
 #include "test_support.h"
 
 #include <cstdlib>

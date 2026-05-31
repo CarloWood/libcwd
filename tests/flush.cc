@@ -7,7 +7,7 @@
 // compared deterministically in memory.
 
 #include "cwd_sys.h"
-#include "pending_stream.h"
+#include "PendingStream.h"
 #include "test_support.h"
 
 #include <chrono>
