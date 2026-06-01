@@ -8,6 +8,7 @@ libcwd-2.0
         - libcwd_r.so was renamed to libcwd.so
         - Complete rewrite of ELF/DWARF debug information loading code;
           dc::bfd was renamed to dc::elfutils.
+        - No longer using cwm4 as build dependency. Now using cmake-aicxx.
         - Released under the MIT license.
 
 libcwd-1.1.3
