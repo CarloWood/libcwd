@@ -1,30 +1,15 @@
-// $Header$
-//
-// Copyright (C) 2001 - 2004, by
-//
-// Carlo Wood, Run on IRC <carlo@alinoe.com>
-// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
-// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
-//
-// This file may be distributed under the terms of the Q Public License
-// version 1.0 as appearing in the file LICENSE.QPL included in the
-// packaging of this file.
-//
+// SPDX-FileCopyrightText: 2001-2004, 2017, 2019-2020, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
+#pragma once
 
 #ifndef CWD_DEBUG_H
 #define CWD_DEBUG_H
 
 #include "libcwd/config.h"
-#ifndef RAW_WRITE_H
 #include "raw_write.h"
-#endif
-#ifndef RAW_WRITE_INL
 #include "raw_write.inl"
-#endif
-#ifndef LIBCW_IOSTREAM
-#define LIBCW_IOSTREAM
 #include <iostream>
-#endif
 
 extern "C" size_t strlen(const char *s) throw();
 

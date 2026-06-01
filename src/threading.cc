@@ -1,17 +1,5 @@
-// $Header$
-//
-// Copyright (C) 2001 - 2004, by
-//
-// Carlo Wood, Run on IRC <carlo@alinoe.com>
-// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
-// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
-//
-// Copyright (C) 2001, by Eric Lesage.
-//
-// This file may be distributed under the terms of the Q Public License
-// version 1.0 as appearing in the file LICENSE.QPL included in the
-// packaging of this file.
-//
+// SPDX-FileCopyrightText: 2001-2004, 2006-2010, 2013-2014, 2018-2021, 2023, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
 
 #include "cwd_sys.h"
 #include "ios_base_Init.h"

@@ -1,4 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
 #pragma once
+
+#ifndef UTILS_IS_SPECIALIZATION_OF_H
+#define UTILS_IS_SPECIALIZATION_OF_H
 
 #include <type_traits>
 
@@ -36,3 +42,5 @@ template<typename Derived, template<typename...> typename Base>
 inline constexpr bool is_derived_from_specialization_of_v = is_derived_from_specialization_of<Derived, Base>::value;
 
 } // namespace utils
+
+#endif // UTILS_IS_SPECIALIZATION_OF_H

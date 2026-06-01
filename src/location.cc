@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
 #include "cwd_sys.h"
 #include "cwd_dwarf.h"
 #include "libcwd/class_location.h"

@@ -1,15 +1,7 @@
-// $Header$
-//
-// Copyright (C) 2001 - 2004, by
-//
-// Carlo Wood, Run on IRC <carlo@alinoe.com>
-// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
-// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
-//
-// This file may be distributed under the terms of the Q Public License
-// version 1.0 as appearing in the file LICENSE.QPL included in the
-// packaging of this file.
-//
+// SPDX-FileCopyrightText: 2001-2005, 2008, 2018, 2021, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
+#pragma once
 
 /** \file libcwd/private_mutex_instances.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
@@ -18,16 +10,11 @@
 #ifndef LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 #define LIBCWD_PRIVATE_MUTEX_INSTANCES_H
 
-
 #if CWDEBUG_DEBUGT
-#ifndef LIBCW_PTHREAD_H
-#define LIBCW_PTHREAD_H
 #include <pthread.h>
 #endif
-#endif
 
-namespace libcwd {
-  namespace _private_ {
+namespace libcwd::_private_ {
 
 // The different instance-ids used in libcwd.
 enum mutex_instance_nt {
@@ -80,8 +67,6 @@ size_t const read_lock_offset = instance_locked_size;
 size_t const high_priority_read_lock_offset = 2 * instance_locked_size;
 #endif
 
-  } // namespace _private_
-} // namespace libcwd
+} // namespace libcwd::_private_
 
 #endif // LIBCWD_PRIVATE_MUTEX_INSTANCES_H
-

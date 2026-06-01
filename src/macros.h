@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2020-2021, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__) // clang doesn't have a -Wclass-memaccess warning.

@@ -1,15 +1,7 @@
-// $Header$
-//
-// Copyright (C) 2000 - 2004, by
-//
-// Carlo Wood, Run on IRC <carlo@alinoe.com>
-// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
-// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
-//
-// This file may be distributed under the terms of the Q Public License
-// version 1.0 as appearing in the file LICENSE.QPL included in the
-// packaging of this file.
-//
+// SPDX-FileCopyrightText: 2000-2005, 2007, 2018-2020, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
+#pragma once
 
 /** \file libcwd/type_info.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
@@ -18,45 +10,38 @@
 #ifndef LIBCWD_TYPE_INFO_H
 #define LIBCWD_TYPE_INFO_H
 
-#ifndef LIBCWD_PRIVATE_THREADING_H
 #include "private_threading.h"
-#endif
-#ifndef LIBCW_TYPEINFO
-#define LIBCW_TYPEINFO
 #include <typeinfo>		// Needed for typeid()
-#endif
-#ifndef LIBCW_CSTDDEF
-#define LIBCW_CSTDDEF
 #include <cstddef>		// Needed for size_t
-#endif
 
 namespace libcwd {
-
 namespace _private_ {
-  extern char const* make_label(char const* mangled_name);
 
-  template<typename T>
-  struct size_of_completed {
-    static constexpr size_t size = sizeof(T);
-  };
+extern char const* make_label(char const* mangled_name);
 
-  struct size_of_not_completed {
-    static constexpr size_t size = 0;
-  };
+template<typename T>
+struct size_of_completed {
+  static constexpr size_t size = sizeof(T);
+};
 
-  template<typename T>
-  struct sizeof_ref {
-    template<typename U>
-    static size_of_completed<T> test(int (*)[sizeof(U)]);
+struct size_of_not_completed {
+  static constexpr size_t size = 0;
+};
 
-    template<typename>
-    static size_of_not_completed test(...);
+template<typename T>
+struct sizeof_ref {
+  template<typename U>
+  static size_of_completed<T> test(int (*)[sizeof(U)]);
 
-    static constexpr size_t value = decltype(test<T>(nullptr))::size;
-  };
+  template<typename>
+  static size_of_not_completed test(...);
 
-  template<typename T>
-  size_t sizeof_ref_v = sizeof_ref<T>::value;
+  static constexpr size_t value = decltype(test<T>(nullptr))::size;
+};
+
+template<typename T>
+size_t sizeof_ref_v = sizeof_ref<T>::value;
+
 } // namespace _private_
 
 /**
@@ -104,85 +89,84 @@ public:
 
 namespace _private_ {
 
-  extern char const* extract_exact_name(char const*, char const* LIBCWD_COMMA_TSD_PARAM);
+extern char const* extract_exact_name(char const*, char const* LIBCWD_COMMA_TSD_PARAM);
 
-  //-------------------------------------------------------------------------------------------------
-  // type_info_of
+//-------------------------------------------------------------------------------------------------
+// type_info_of
 
-  // _private_::
-  template<typename T>
-    struct type_info {
-    private:
-      static type_info_ct S_value;
-      static bool S_initialized;
-    public:
-      static type_info_ct const& value();
-    };
+// _private_::
+template<typename T>
+  struct type_info {
+  private:
+    static type_info_ct S_value;
+    static bool S_initialized;
+  public:
+    static type_info_ct const& value();
+  };
 
-  // Specialization for general pointers.
-  // _private_::
-  template<typename T>
-    struct type_info<T*> {
-    private:
-      static type_info_ct S_value;
-      static bool S_initialized;
-    public:
-      static type_info_ct const& value();
-    };
+// Specialization for general pointers.
+// _private_::
+template<typename T>
+  struct type_info<T*> {
+  private:
+    static type_info_ct S_value;
+    static bool S_initialized;
+  public:
+    static type_info_ct const& value();
+  };
 
-  // Specialization for `void*'.
-  // _private_::
-  template<>
-    struct type_info<void*> {
-    private:
-      static type_info_ct S_value;
-      static bool S_initialized;
-    public:
-      static type_info_ct const& value();
-    };
+// Specialization for `void*'.
+// _private_::
+template<>
+  struct type_info<void*> {
+  private:
+    static type_info_ct S_value;
+    static bool S_initialized;
+  public:
+    static type_info_ct const& value();
+  };
 
-  // _private_::
-  template<typename T>
-    type_info_ct type_info<T>::S_value;
+// _private_::
+template<typename T>
+  type_info_ct type_info<T>::S_value;
 
-  // _private_::
-  template<typename T>
-    bool type_info<T>::S_initialized;
+// _private_::
+template<typename T>
+  bool type_info<T>::S_initialized;
 
-  // _private_::
-  template<typename T>
-    type_info_ct const& type_info<T>::value()
+// _private_::
+template<typename T>
+  type_info_ct const& type_info<T>::value()
+  {
+    if (!S_initialized)
     {
-      if (!S_initialized)
-      {
-	S_value.init(typeid(T).name(), sizeof(T), 0);
-	S_initialized = true;
-      }
-      return S_value;
+      S_value.init(typeid(T).name(), sizeof(T), 0);
+      S_initialized = true;
     }
+    return S_value;
+  }
 
-  // _private_::
-  template<typename T>
-    type_info_ct type_info<T*>::S_value;
+// _private_::
+template<typename T>
+  type_info_ct type_info<T*>::S_value;
 
-  // _private_::
-  template<typename T>
-    bool type_info<T*>::S_initialized;
+// _private_::
+template<typename T>
+  bool type_info<T*>::S_initialized;
 
-  // _private_::
-  template<typename T>
-    type_info_ct const& type_info<T*>::value()
+// _private_::
+template<typename T>
+  type_info_ct const& type_info<T*>::value()
+  {
+    if (!S_initialized)
     {
-      if (!S_initialized)
-      {
-	S_value.init(typeid(T*).name(), sizeof(T*), sizeof_ref_v<T>);
-	S_initialized = true;
-      }
-      return S_value;
+      S_value.init(typeid(T*).name(), sizeof(T*), sizeof_ref_v<T>);
+      S_initialized = true;
     }
+    return S_value;
+  }
 
 } // namespace _private_
-
 } // namespace libcwd
 
 //---------------------------------------------------------------------------------------------------

@@ -1,4 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
 #pragma once
+
+#ifndef DWARF_SYMBOL_RANGES_H
+#define DWARF_SYMBOL_RANGES_H
 
 #include "cwd_sys.h"
 #include "cwd_dwarf.h"
@@ -177,3 +183,5 @@ inline bool insert_function_symbol_range(FunctionSymbolRanges& function_symbols,
 }
 
 } // namespace libcwd::dwarf
+
+#endif // DWARF_SYMBOL_RANGES_H

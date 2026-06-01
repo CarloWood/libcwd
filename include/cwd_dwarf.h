@@ -1,4 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
 #pragma once
+
+#ifndef CWD_DWARF_H
+#define CWD_DWARF_H
 
 #include "libcwd/ObjectFileName.h"
 #include "libcwd/private_struct_TSD.h"
@@ -74,3 +80,5 @@ class ObjectFileInterface
 extern ObjectFileInterface const* find_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM);
 
 } // namespace libcwd::dwarf
+
+#endif // CWD_DWARF_H

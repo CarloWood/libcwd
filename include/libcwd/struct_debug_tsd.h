@@ -1,46 +1,25 @@
-// $Header$
-//
-// Copyright (C) 2002 - 2004, by
-//
-// Carlo Wood, Run on IRC <carlo@alinoe.com>
-// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
-// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
-//
-// This file may be distributed under the terms of the Q Public License
-// version 1.0 as appearing in the file LICENSE.QPL included in the
-// packaging of this file.
-//
+// SPDX-FileCopyrightText: 2002-2004, 2006, 2018, 2020-2021, 2023, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
+#pragma once
 
 #ifndef LIBCWD_STRUCT_DEBUG_TSD_H
 #define LIBCWD_STRUCT_DEBUG_TSD_H
 
-#ifndef LIBCWD_CONFIG_H
 #include "libcwd/config.h"
-#endif
-#ifndef LIBCWD_CLASS_CHANNEL_SET_H
 #include "class_channel_set.h"
-#endif
-#ifndef LIBCWD_PRIVATE_DEBUG_STACK_H
 #include "private_debug_stack.h"
-#endif
-#ifndef LIBCWD_CLASS_DEBUG_STRING_H
 #include "class_debug_string.h"
-#endif
-#ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #include "private_struct_TSD.h"
-#endif
-#ifndef LIBCW_IOSFWD
-#define LIBCW_IOSFWD
 #include <iosfwd>
-#endif
 
 namespace libcwd {
 
 #if CWDEBUG_LOCATION
-    namespace dwarf {
-      bool ensure_initialization(LIBCWD_TSD_PARAM);
-    } // namespace dwarf
-#endif
+namespace dwarf {
+bool ensure_initialization(LIBCWD_TSD_PARAM);
+} // namespace dwarf
+#endif // CWDEBUG_LOCATION
 
 class debug_ct;
 class channel_ct;
@@ -53,7 +32,8 @@ class laf_ct;
 // Structure with Thread Specific Data of a debug object.
 //
 
-struct debug_tsd_st {
+struct debug_tsd_st
+{
   friend class debug_ct;
 
 
@@ -128,6 +108,6 @@ struct debug_tsd_st {
   ~debug_tsd_st();
 };
 
-}  // namespace libcwd
+} // namespace libcwd
 
 #endif // LIBCWD_STRUCT_DEBUG_TSD_H

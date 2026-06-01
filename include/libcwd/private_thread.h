@@ -1,15 +1,7 @@
-// $Header$
-//
-// Copyright (C) 2002 - 2004, by
-//
-// Carlo Wood, Run on IRC <carlo@alinoe.com>
-// RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
-// Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
-//
-// This file may be distributed under the terms of the Q Public License
-// version 1.0 as appearing in the file LICENSE.QPL included in the
-// packaging of this file.
-//
+// SPDX-FileCopyrightText: 2002-2005, 2018, 2020, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
+#pragma once
 
 /** \file libcwd/private_thread.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
@@ -18,19 +10,14 @@
 #ifndef LIBCWD_PRIVATE_THREAD_H
 #define LIBCWD_PRIVATE_THREAD_H
 
-#ifndef LIBCWD_PRIVATE_MUTEX_H
 #include "private_mutex.h"
-#endif
-#ifndef LIBCW_LIST
-#define LIBCW_LIST
 #include <list>
-#endif
 
 namespace libcwd {
 
 class dm_alloc_ct;
 
-  namespace _private_ {
+namespace _private_ {
 
 struct TSD_st;
 
@@ -41,13 +28,12 @@ struct TSD_st;
 // iterators while tracking thread lifetime and cancelling other threads from
 // DoutFatal.
 //
+class thread_ct
+{
+ public:
+  typedef std::list<thread_ct> threadlist_type;
 
-class thread_ct {
-
-public:
-typedef std::list<thread_ct> threadlist_type;
-
-public:
+ public:
   mutex_ct thread_mutex;		// Mutex for the attributes of this object.
   pthread_t tid;			// Thread ID, used to terminate all threads in a DoutFatal(dc::fatal, ...).
   bool M_zombie;
@@ -65,7 +51,7 @@ public:
 typedef thread_ct::threadlist_type threadlist_t;
 extern threadlist_t* threadlist;
 
-  } // namespace _private_
+} // namespace _private_
 } // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_THREAD_H

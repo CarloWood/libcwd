@@ -1,40 +1,10 @@
-/**
- * threadsafe -- Threading utilities: object oriented (read/write) locking and more.
- *
- * @file
- * @brief Declarations related to std::thread::id.
- *
- * @Copyright (C) 2015 - 2017  Carlo Wood.
- *
- * RSA-1024 0x624ACAD5 1997-01-26                    Sign & Encrypt
- * Fingerprint16 = 32 EC A7 B6 AC DB 65 A6  F6 F6 55 DD 1C DC FF 61
- *
- * This file is part of threadsafe.
- *
- * Threadsafe is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Threadsafe is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with threadsafe.  If not, see <http://www.gnu.org/licenses/>.
- *
- * CHANGELOG
- *   and additional copyright holders.
- *
- *   2015/02/27
- *   - Initial version, written by Aleric Inglewood @ SL
- *
- *   2016/12/17
- *   - Transfered copyright to Carlo Wood.
- */
+// SPDX-FileCopyrightText: 2015, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
 
 #pragma once
+
+#ifndef UTILS_THREADING_AITHREADID_H
+#define UTILS_THREADING_AITHREADID_H
 
 #include "utils/macros.h"
 #include <thread>
@@ -70,3 +40,5 @@ inline bool in_main_thread()
 }
 
 } // namespace aithreadid
+
+#endif // UTILS_THREADING_AITHREADID_H
