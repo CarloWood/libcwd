@@ -218,6 +218,38 @@ bool return_value_suffix_is_valid(std::string const& suffix, bool end_on_unfinis
          suffix == "flushed";
 }
 
+// Check second/third continued-output suffix.
+//
+// For example,
+// T13 NOTICE  M13A             Calling fA(): [<unfinished>
+// T13 NOTICE  ****M13A                 Entering fA()
+// T13 NOTICE  M13A             <continued> fA return value] flushed <unfinished>
+// T13 NOTICE  M13A             <continued> cont flushed<unfinished>                 <== second time the line is `<continued>`.
+// T13 NOTICE  M13A             <continued>  finish flushed                          <== third time the line is `<continued>`.
+//
+// A complete line must start with `cont` followed by `finish', with each of the
+// two flush points optionally contributing the literal word `flushed'. An
+// unfinished line may not contain `finish'.
+//
+bool continued_text_is_valid(std::string const& text, bool end_on_unfinished)
+{
+  if (!end_on_unfinished)
+  {
+    // Second <continued> (starts with `cont`) that is finished.
+    return text == "cont finish" ||
+           text == "cont finish flushed" ||
+           text == "cont flushed finish" ||
+           text == "cont flushed finish flushed" ||
+    // Third <continued>.
+           text == " finish" || text == " finish flushed";
+  }
+
+  // Second <continued> that itself is unfinished: a `cont` that is optionally flushed.
+  //     <continued> cont flushed<unfinished>
+  //     <continued> cont<unfinished>
+  return text == "cont flushed" || text == "cont";
+}
+
 // Validate that one parsed debug-output line carries the per-thread state that
 // threaded_debug_output assigned before the worker passed the starting gate.
 // expected_marker_suffix is 'A' for libcw_do output and 'B' for extra_do output.
@@ -271,6 +303,42 @@ bool validate_thread_fields(parsed_line_ct const& parsed, char expected_marker_s
                 << (parsed.end_on_unfinished ? " before <unfinished>" : "") << ": `" << raw_line << "'\n";
       return false;
     }
+  }
+  else if (parsed.text.find("Calling") != std::string::npos)
+  {
+    std::string const expected_text = std::string("Calling f") + expected_marker_suffix + "(): [";
+    if (parsed.text != expected_text)
+    {
+      std::cerr << stream_name << " line has `Calling' text for the wrong debug object or in the wrong form; "
+                << "expected text `" << expected_text << "' got `" << parsed.text << "' in line: `" << raw_line << "'\n";
+      return false;
+    }
+    else if (!parsed.end_on_unfinished)
+    {
+      std::cerr << stream_name << " line has `Calling' text but isn't ending on <unfinished>: `" << raw_line << "'\n";
+      return false;
+    }
+  }
+  else if (parsed.text.find("Entering") != std::string::npos)
+  {
+    std::string const expected_text = std::string("Entering f") + expected_marker_suffix + "()";
+    if (parsed.text != expected_text)
+    {
+      std::cerr << stream_name << " line has `Entering' text for the wrong debug object or in the wrong form; "
+                << "expected text `" << expected_text << "' got `" << parsed.text << "' in line: `" << raw_line << "'\n";
+      return false;
+    }
+  }
+  else if (!parsed.starts_with_continued)
+  {
+    std::cerr << stream_name << " line expected to start with <continued>, but isn't: `" << raw_line << "'\n";
+    return false;
+  }
+  else if (!continued_text_is_valid(parsed.text, parsed.end_on_unfinished))
+  {
+    std::cerr << stream_name << " line has invalid continued-output format `" << parsed.text << "'"
+              << (parsed.end_on_unfinished ? " before <unfinished>" : "") << ": `" << raw_line << "'\n";
+    return false;
   }
 
   return true;
