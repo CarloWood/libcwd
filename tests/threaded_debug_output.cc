@@ -27,7 +27,7 @@ std::mutex output_mutex;
 
 libcwd::debug_ct extra_do;
 std::mutex extra_output_mutex;
-#define Dout2(cntrl, data) LibcwDout(::libcwd::channels, extra_do, cntrl, data)
+#define DoutB(cntrl, data) LibcwDout(::libcwd::channels, extra_do, cntrl, data)
 
 char start_nestingA()
 {
@@ -63,7 +63,7 @@ std::string fA()
 
 std::string fB()
 {
-  Dout2(dc::notice, "Entering fB()");
+  DoutB(dc::notice, "Entering fB()");
   return "fB return value";
 }
 
@@ -101,8 +101,17 @@ void thread_main(int thread_index, utils::threading::StartingGate& starting_gate
 
   starting_gate.wait();
 
-  Dout(dc::notice, "Calling fA(): " << start_nestingA() << fA() << stop_nestingA());
-  Dout2(dc::notice, "Calling fB(): " << start_nestingB() << fB() << stop_nestingB());
+  auto&& what = [](int w, int b) -> char const* { return (w & b) ? " flushed" : ""; };
+  for (int wA = 0; wA < 8; ++wA)
+    for (int wB = 0; wB < 8; ++wB)
+    {
+      Dout(dc::notice|conf_flush_cf(wA & 1)|continued_cf, "Calling fA(): " << start_nestingA() << fA() << stop_nestingA() << what(wA, 1) << ' ');
+      DoutB(dc::notice|conf_flush_cf(wB & 1)|continued_cf, "Calling fB(): " << start_nestingB() << fB() << stop_nestingB() << what(wB, 1) << ' ');
+      Dout(dc::continued|conf_flush_cf(wA & 2), "cont" << what(wA, 2));
+      DoutB(dc::continued|conf_flush_cf(wB & 2), "cont" << what(wB, 2));
+      Dout(dc::finish|conf_flush_cf(wA & 4), " finish" << what(wA, 4));
+      DoutB(dc::finish|conf_flush_cf(wB & 4), " finish" << what(wB, 4));
+    }
 }
 
 } // namespace
@@ -125,23 +134,6 @@ std::ostream& operator<<(std::ostream& os, parsed_line_ct const& parsed_line)
      << std::string(parsed_line.stars, '<') << parsed_line.text;
   return os;
 }
-
-struct ParseCompare
-{
-  bool operator()(parsed_line_ct const& l1, parsed_line_ct const& l2)
-  {
-    if (l1.margin != l2.margin)
-      return l1.margin < l2.margin;
-
-    if (l1.marker != l2.marker)
-      return l1.marker < l2.marker;
-
-    if (l1.label != l2.label)
-      return l1.label < l2.label;
-
-    return l1.text < l2.text;
-  }
-};
 
 parsed_line_ct parse_line(std::string const& line)
 {
@@ -206,6 +198,26 @@ int parse_two_digits(std::string const& text, std::size_t offset, char const* fi
   return (text[offset] - '0') * 10 + text[offset + 1] - '0';
 }
 
+// Check the continued-output suffix after the nested fA/fB return value.
+//
+// A complete line must contain `cont' followed by `finish', with each of the
+// three flush points optionally contributing the literal word `flushed'. An
+// unfinished line may not contain `finish'; it is valid only when an earlier
+// flush point made the unfinished fragment visible before the final finish.
+bool return_value_suffix_is_valid(std::string const& suffix, bool end_on_unfinished)
+{
+  if (!end_on_unfinished)
+  {
+    return suffix == "cont finish" || suffix == "flushed cont finish" || suffix == "cont flushed finish" ||
+           suffix == "flushed cont flushed finish" || suffix == "cont finish flushed" ||
+           suffix == "flushed cont finish flushed" || suffix == "cont flushed finish flushed" ||
+           suffix == "flushed cont flushed finish flushed";
+  }
+
+  return suffix == "cont flushed" || suffix == "flushed cont flushed" || suffix == "flushed cont" ||
+         suffix == "flushed";
+}
+
 // Validate that one parsed debug-output line carries the per-thread state that
 // threaded_debug_output assigned before the worker passed the starting gate.
 // expected_marker_suffix is 'A' for libcw_do output and 'B' for extra_do output.
@@ -240,6 +252,25 @@ bool validate_thread_fields(parsed_line_ct const& parsed, char expected_marker_s
     std::cerr << stream_name << " line marker value " << marker_value << " does not match indent minus stars "
               << parsed.indent << " - " << parsed.stars << ": `" << raw_line << "'\n";
     return false;
+  }
+
+  if (parsed.text.find("return value") != std::string::npos)
+  {
+    std::string const expected_prefix = std::string("f") + expected_marker_suffix + " return value] ";
+    if (parsed.text.compare(0, expected_prefix.size(), expected_prefix) != 0)
+    {
+      std::cerr << stream_name << " line has return-value text for the wrong debug object or in the wrong form; "
+                << "expected prefix `" << expected_prefix << "': `" << raw_line << "'\n";
+      return false;
+    }
+
+    std::string const suffix = parsed.text.substr(expected_prefix.size());
+    if (!return_value_suffix_is_valid(suffix, parsed.end_on_unfinished))
+    {
+      std::cerr << stream_name << " line has invalid continued-output suffix `" << suffix << "'"
+                << (parsed.end_on_unfinished ? " before <unfinished>" : "") << ": `" << raw_line << "'\n";
+      return false;
+    }
   }
 
   return true;
@@ -286,16 +317,6 @@ int main()
       return EXIT_FAILURE;
     extra_output.push_back(parsed);
   }
-
-  std::sort(output.begin(), output.end(), ParseCompare{});
-  std::sort(extra_output.begin(), extra_output.end(), ParseCompare{});
-
-  std::cout << "Sorted output:\n";
-  for (parsed_line_ct const& parsed_line : output)
-    std::cout << parsed_line << '\n';
-  std::cout << "Extra sorted output:\n";
-  for (parsed_line_ct const& parsed_line : extra_output)
-    std::cout << parsed_line << '\n';
 
   return EXIT_SUCCESS;
 }
