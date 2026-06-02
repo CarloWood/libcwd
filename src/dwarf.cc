@@ -331,7 +331,7 @@ class ObjectFileData : public ObjectFileRegistry
   bool dwarf_symbols_loaded() const { return dwarf_fd_ != dwarf_symbols_loaded_not_called; }
   bool elf_symbols_loaded() const { return elf_symbols_loaded_; }
 
-  // Construct and destroy the protected ObjectFile payload inside object_file_data_t.
+  // Construct and destroy the protected ObjectFile payload inside object_file_data_ts.
   // Construction records the path/load base only; symbol loading is explicitly
   // triggered later through ObjectFile::load_dwarf_symbols(), which serializes the
   // mutable DWARF initialization behind this wrapper's read/write lock.
@@ -375,8 +375,8 @@ class ObjectFileData : public ObjectFileRegistry
 class ObjectFile final : public ObjectFileInterface
 {
  private:
-  using object_file_data_t = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  mutable object_file_data_t object_file_data_; // Thread-safe storage wrapper for ObjectFile instances.
+  using object_file_data_ts = threadsafe::Unlocked<ObjectFileData, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  mutable object_file_data_ts object_file_data_; // Thread-safe storage wrapper for ObjectFile instances.
 
  public:
   ObjectFile(uintptr_t lbase, char const* filename) : ObjectFileInterface(lbase), object_file_data_(filename, lbase) { }
@@ -388,18 +388,18 @@ class ObjectFile final : public ObjectFileInterface
   void realize_symbols() const;
 
   // Only use this to construct a wat or rat object (used in dlclose)!
-  object_file_data_t& unlocked_data() const { return object_file_data_; }
+  object_file_data_ts& unlocked_data() const { return object_file_data_; }
 
   ObjectFileName const& get_object_file() const override
   {
-    object_file_data_t::rat data_r(object_file_data_);
+    object_file_data_ts::rat data_r(object_file_data_);
     return data_r->object_file_name();
   }
 
   SymbolRangeInterface const* find_symbol(uintptr_t addr) const override;
 
   // Called from dlopen.
-  object_file_data_t::wat write_locked_data() const { return object_file_data_t::wat{object_file_data_}; }
+  object_file_data_ts::wat write_locked_data() const { return object_file_data_ts::wat{object_file_data_}; }
 };
 
 // static
@@ -542,8 +542,8 @@ void ObjectFile::realize_symbols() const
 {
   char const* object_file_path;
   {
-    // Read-lock the object_file_data_t.
-    object_file_data_t::rat data_r(object_file_data_);
+    // Read-lock the object_file_data_ts.
+    object_file_data_ts::rat data_r(object_file_data_);
 
     // Return if already loaded.
     if (data_r->dwarf_symbols_loaded())
@@ -569,12 +569,12 @@ void ObjectFile::realize_symbols() const
   {
     try
     {
-      object_file_data_t::rat data_r(object_file_data_);
+      object_file_data_ts::rat data_r(object_file_data_);
 
       if (data_r->dwarf_symbols_loaded())
         return; // Someone else beat us to it.
 
-      object_file_data_t::wat data_w(data_r);
+      object_file_data_ts::wat data_w(data_r);
       data_w->load_dwarf_symbols(lbase_, debug_info_path);
     }
     catch (std::exception const&)
@@ -614,12 +614,12 @@ SymbolRangeInterface const* ObjectFile::find_symbol(uintptr_t addr) const
   {
     try
     {
-      object_file_data_t::rat data_r(object_file_data_);
+      object_file_data_ts::rat data_r(object_file_data_);
       symbol = data_r->get_symbol_range_from_function_symbols_map(addr);
       if (!symbol && !data_r->elf_symbols_loaded())
       {
         {
-          object_file_data_t::wat data_w(data_r);
+          object_file_data_ts::wat data_w(data_r);
           data_w->load_elf_function_symbols(lbase_, data_r->object_file_name().filepath());
         }
         symbol = data_r->get_symbol_range_from_function_symbols_map(addr);
@@ -1353,7 +1353,7 @@ int dlclose(void* handle)
     ForceLoadingDebugOutput scoped_;
     ObjectFile const* obsolete_object_file =
         object_file_to_unregister->write_locked_data()->unregister_object_file_ranges(object_file_to_unregister);
-    // Now that the object_file_data_t Access object has been destroyed, we can delete the ObjectFile that is no longer
+    // Now that the object_file_data_ts Access object has been destroyed, we can delete the ObjectFile that is no longer
     // in use.
     delete obsolete_object_file;
   }

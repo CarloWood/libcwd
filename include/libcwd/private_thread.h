@@ -20,6 +20,7 @@ class dm_alloc_ct;
 namespace _private_ {
 
 struct TSD_st;
+struct ThreadsWat;
 
 // class thread_ct
 //
@@ -31,24 +32,17 @@ struct TSD_st;
 class thread_ct
 {
  public:
-  typedef std::list<thread_ct> threadlist_type;
-
- public:
   mutex_ct thread_mutex;		// Mutex for the attributes of this object.
   pthread_t tid;			// Thread ID, used to terminate all threads in a DoutFatal(dc::fatal, ...).
   bool M_zombie;
   bool M_terminating;
 
   void initialize(LIBCWD_TSD_PARAM);	// May only be called after the object reached its final place in memory.
-  void terminated(threadlist_type::iterator LIBCWD_COMMA_TSD_PARAM);
+  void terminated(ThreadsWat wat LIBCWD_COMMA_TSD_PARAM);
   bool is_zombie() const { return M_zombie; }
   void terminating() { M_terminating = true; }
   bool is_terminating() const { return M_terminating; }
 };
-
-// The list of threads.
-// New thread objects are added while initializing the TSD for a newly observed thread.
-typedef thread_ct::threadlist_type threadlist_t;
 
 // Own the process-wide thread list behind a private threadsafe implementation.
 //
@@ -56,15 +50,20 @@ typedef thread_ct::threadlist_type threadlist_t;
 // thread object in its final list location. mark_thread_terminated and cancel_all_other_threads serialize their
 // list traversal with insertions; callers are still responsible for disabling or deferring pthread cancellation
 // when they need cancellation-safe critical sections around these operations.
-struct threadlist_ct
+struct ThreadList
 {
   class impl_ct;
   impl_ct* impl_;       // Deliberately leaked.
 
-  static threadlist_ct const& instance();
+  // The list of threads.
+  // New thread objects are added while initializing the TSD for a newly observed thread.
+  static ThreadList const& instance();
+
+  // The type of the underlying container storing thread_ct objects.
+  using list_type = std::list<thread_ct>;
 
   void add_current_thread(LIBCWD_TSD_PARAM) const;
-  void mark_thread_terminated(threadlist_t::iterator thread_iter LIBCWD_COMMA_TSD_PARAM) const;
+  void mark_thread_terminated(list_type::iterator thread_iter LIBCWD_COMMA_TSD_PARAM) const;
   void cancel_all_other_threads(pthread_t current_tid) const;
 };
 

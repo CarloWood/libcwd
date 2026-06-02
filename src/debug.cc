@@ -426,16 +426,16 @@ struct ChannelSets
 // cannot keep raw access to the registry without holding the corresponding threadsafe access object.
 struct debug_channels_ct::impl_ct
 {
-  using channel_sets_t = threadsafe::Unlocked<ChannelSets, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  channel_sets_t channel_sets_;
+  using channel_sets_ts = threadsafe::Unlocked<ChannelSets, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  channel_sets_ts channel_sets_;
 };
 
 // A helper class to allow passing a wat to channel_ct::increment_and_assign_index without
 // including threadsafe in a public header.
 struct ChannelSetsWat
 {
-  debug_channels_ct::impl_ct::channel_sets_t::wat& ref_;
-  ChannelSetsWat(debug_channels_ct::impl_ct::channel_sets_t::wat& wat) : ref_(wat) { }
+  debug_channels_ct::impl_ct::channel_sets_ts::wat& ref_;
+  ChannelSetsWat(debug_channels_ct::impl_ct::channel_sets_ts::wat& wat) : ref_(wat) { }
 };
 
 // Return the channel registry used by ForAllDebugChannels and label lookup.
@@ -453,7 +453,7 @@ debug_channels_ct const& debug_channels_ct::instance()
 channel_ct* debug_channels_ct::find(char const* label) const
 {
   channel_ct* result = nullptr;
-  impl_ct::channel_sets_t::crat debug_channels_r(impl_->channel_sets_);
+  impl_ct::channel_sets_ts::crat debug_channels_r(impl_->channel_sets_);
   for (channel_ct* debug_channel : debug_channels_r->visible_)
     if (!strncasecmp(label, debug_channel->get_label(), strlen(label)))
       result = debug_channel;
@@ -471,7 +471,7 @@ void debug_channels_ct::initialize_channel(channel_ct& channel, char const* labe
   if (label_len > max_label_len_c) // Only happens for customized channels
     DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
 
-  impl_ct::channel_sets_t::wat channels_w(impl_->channel_sets_);
+  impl_ct::channel_sets_ts::wat channels_w(impl_->channel_sets_);
 
   const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = ' ';
   const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = ' ';
@@ -536,7 +536,7 @@ void debug_channels_ct::initialize_fatal_channel(fatal_channel_ct& channel, char
   if (label_len > max_label_len_c) // Only happens for customized channels
     DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
 
-  impl_ct::channel_sets_t::wat channels_w(impl_->channel_sets_);
+  impl_ct::channel_sets_ts::wat channels_w(impl_->channel_sets_);
 
   for (channel_ct* debug_channel : channels_w->visible_)
     const_cast<char*>(debug_channel->get_label())[WST_max_len] = ' ';
@@ -567,7 +567,7 @@ void debug_channels_ct::initialize_fatal_channel(fatal_channel_ct& channel, char
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void debug_channels_ct::for_each_impl(callback_type callback, void* data) const
 {
-  impl_ct::channel_sets_t::crat debug_channels_r(impl_->channel_sets_);
+  impl_ct::channel_sets_ts::crat debug_channels_r(impl_->channel_sets_);
   for (channel_ct* debug_channel : debug_channels_r->visible_)
     callback(*debug_channel, data);
 }
@@ -1106,7 +1106,7 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
         pthread_exit(PTHREAD_CANCELED);
       }
       // Terminate all threads that I know of, so that no locks will remain.
-      _private_::threadlist_ct::instance().cancel_all_other_threads(pthread_self());
+      _private_::ThreadList::instance().cancel_all_other_threads(pthread_self());
       LIBCWD_ENABLE_CANCEL;
       _Exit(254); // Exit without calling global destructors.
     }

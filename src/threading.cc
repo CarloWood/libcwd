@@ -190,7 +190,7 @@ TSD_st& TSD_st::S_create(int from_free)
   mutex_tct<static_tsd_instance>::initialize();
   bool done = false;
   TSD_st* static_tsd;
-  threadlist_t::iterator old_thread_iter;
+  ThreadList::list_type::iterator old_thread_iter;
   bool old_thread_iter_valid = false;
   do
   {
@@ -262,7 +262,7 @@ TSD_st& TSD_st::S_create(int from_free)
   {
     // Time to put the real TSD into place.
     if (old_thread_iter_valid)
-      threadlist_ct::instance().mark_thread_terminated(old_thread_iter, *static_tsd);
+      ThreadList::instance().mark_thread_terminated(old_thread_iter, *static_tsd);
     real_tsd = new TSD_st;
     std::memcpy(real_tsd, static_tsd, sizeof(TSD_st));
 
@@ -451,20 +451,20 @@ void pthread_lock_interface_ct::unlock()
 
 // Store the global list of thread_ct objects behind a typed read/write lock.
 //
-// The list is reached through threadlist_ct::instance() instead of a global object so that it can be
+// The list is reached through ThreadList::instance() instead of a global object so that it can be
 // constructed on first use, including during early TSD initialization before normal global construction
 // has completed. The contained std::list keeps thread_iter values address-stable across later insertions.
-struct threadlist_ct::impl_ct
+struct ThreadList::impl_ct
 {
-  using threads_t = threadsafe::Unlocked<threadlist_t, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  threads_t threads_;
+  using threads_ts = threadsafe::Unlocked<ThreadList::list_type, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  threads_ts threads_;
 };
 
 // Return the process-wide list that tracks all threads known to libcwd.
 //static
-threadlist_ct const& threadlist_ct::instance()
+ThreadList const& ThreadList::instance()
 {
-  static threadlist_ct const threadlist_registry{new threadlist_ct::impl_ct};
+  static ThreadList const threadlist_registry{new ThreadList::impl_ct};
   return threadlist_registry;
 }
 
@@ -473,31 +473,37 @@ threadlist_ct const& threadlist_ct::instance()
 // The resulting iterator is stored in __libcwd_tsd before initialization finishes so later TSD cleanup can
 // mark this exact list entry as terminating. Holding the write access until after thread_ct::initialize
 // preserves the old rule that no other traversal can observe a partially initialized thread object.
-void threadlist_ct::add_current_thread(LIBCWD_TSD_PARAM) const
+void ThreadList::add_current_thread(LIBCWD_TSD_PARAM) const
 {
-  impl_ct::threads_t::wat threads_w(impl_->threads_);
+  impl_ct::threads_ts::wat threads_w(impl_->threads_);
   __libcwd_tsd.thread_iter = threads_w->insert(threads_w->end(), thread_ct());
   __libcwd_tsd.thread_iter_valid = true;
   __libcwd_tsd.thread_iter->initialize(LIBCWD_TSD);
 }
 
+struct ThreadsWat
+{
+  ThreadList::impl_ct::threads_ts::wat& ref_;
+  ThreadsWat(ThreadList::impl_ct::threads_ts::wat& wat) : ref_(wat) { }
+};
+
 // Mark a known thread-list entry as terminated while serializing with list traversals and insertions.
 //
 // The current thread_iter implementation does not erase the entry, but this wrapper keeps the iterator
 // operation under the same write access that would be required if terminated ever starts recycling nodes.
-void threadlist_ct::mark_thread_terminated(threadlist_t::iterator thread_iter LIBCWD_COMMA_TSD_PARAM) const
+void ThreadList::mark_thread_terminated(ThreadList::list_type::iterator thread_iter LIBCWD_COMMA_TSD_PARAM) const
 {
-  impl_ct::threads_t::wat threads_w(impl_->threads_);
-  thread_iter->terminated(thread_iter LIBCWD_COMMA_TSD);
+  impl_ct::threads_ts::wat threads_w(impl_->threads_);
+  thread_iter->terminated(threads_w LIBCWD_COMMA_TSD);
 }
 
 // Cancel every known peer thread while a read access prevents concurrent modification of the list.
 //
 // current_tid is never cancelled. On old LinuxThreads builds the thread-manager pseudo-thread is skipped
 // for the same reason as the previous raw traversal: cancelling it would interfere with process teardown.
-void threadlist_ct::cancel_all_other_threads(pthread_t current_tid) const
+void ThreadList::cancel_all_other_threads(pthread_t current_tid) const
 {
-  impl_ct::threads_t::crat threads_r(impl_->threads_);
+  impl_ct::threads_ts::crat threads_r(impl_->threads_);
   for (thread_ct const& thread : *threads_r)
     if (!pthread_equal(thread.tid, current_tid)
 #ifdef __linux
@@ -512,7 +518,7 @@ void threadlist_ct::cancel_all_other_threads(pthread_t current_tid) const
 void threading_tsd_init(LIBCWD_TSD_PARAM)
 {
   LIBCWD_DEFER_CANCEL;
-  threadlist_ct::instance().add_current_thread(LIBCWD_TSD);
+  ThreadList::instance().add_current_thread(LIBCWD_TSD);
   LIBCWD_RESTORE_CANCEL;
 }
 
@@ -530,7 +536,7 @@ void thread_ct::initialize(LIBCWD_TSD_PARAM)
 // This member function is called when the TSD_st structure
 // is being reused, which is currently our only way to know
 // for sure that the corresponding thread has terminated.
-void thread_ct::terminated(threadlist_t::iterator LIBCWD_COMMA_TSD_PARAM_UNUSED)
+void thread_ct::terminated(ThreadsWat wat LIBCWD_COMMA_TSD_PARAM_UNUSED)
 {
 }
 
@@ -702,7 +708,7 @@ void test_for_deadlock(size_t instance, struct TSD_st& __libcwd_tsd, void const*
   // registry is not part of the libcwd mutex bookkeeping that is being inspected here, so the diagnostic
   // remains focused on application-visible libcwd locks while avoiding an unlocked traversal of a list that
   // another thread may extend during TSD initialization.
-  threadlist_ct::impl_ct::threads_t::crat threads_r(threadlist_ct::instance().impl_->threads_);
+  ThreadList::impl_ct::threads_ts::crat threads_r(ThreadList::instance().impl_->threads_);
   for (threadlist_t::const_iterator iter = threads_r->begin(); iter != threads_r->end(); ++iter)
   {
     mutex_ct const* mutex = &((*iter).thread_mutex);
