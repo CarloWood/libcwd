@@ -502,10 +502,7 @@ void debug_channels_ct::initialize_channel(channel_ct& channel, char const* labe
   for (channel_ct* debug_channel : channels_w->hidden_)
     const_cast<char*>(debug_channel->get_label())[WST_max_len] = '\0';
 
-  // MT: Take advantage of the public debug-channel registry write lock to prevent simultaneous access
-  //     to next_index in the case of simultaneously dlopen-loaded libraries.
-  static int next_index;
-  channel.WNS_index = ++next_index; // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
+  channel.increment_and_assign_index(channels_w);
 
   __libcwd_tsd.off_cnt_array[channel.WNS_index] = 0;
 
@@ -1431,6 +1428,11 @@ void continued_channel_ct::NS_initialize(control_flag_t maskbit)
 {
   if (!WNS_maskbit)
     WNS_maskbit = maskbit;
+}
+
+void channel_ct::increment_and_assign_index(libcwd::_private_::ChannelSetsWat wat)
+{
+  WNS_index = ++wat.ref_->next_index_;  // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
 }
 
 char const always_channel_ct::label[max_label_len_c + 1] = {'>', '>', '>', '>', '>', '>', '>', '>', '>',

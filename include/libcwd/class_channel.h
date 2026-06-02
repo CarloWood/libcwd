@@ -103,6 +103,11 @@ private:
     // Force initialization in case the constructor of this global object
     // wasn't called yet. Does nothing when the object was already initialized.
 
+ private:
+  // MT: Take advantage of the public debug-channel registry write lock to prevent
+  // simultaneous access to next_index_ in the case of simultaneously dlopen-loaded libraries.
+  void increment_and_assign_index(_private_::ChannelSetsWat);
+
  public:
   //---------------------------------------------------------------------------
   // Manipulators
