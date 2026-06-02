@@ -434,28 +434,18 @@ class debug_objects_ct::impl_ct {
 };
 
 // Return the registry used by every debug_ct object in the process.
-//
-// The heap allocation deliberately leaks the registry. This makes the registry safe to use from global
-// debug_ct constructors that run before this translation unit's namespace-scope objects, and avoids
-// destructing the registry while other global destructors could still consult libcwd state.
-debug_objects_ct& debug_objects()
+//static
+debug_objects_ct const& debug_objects_ct::instance()
 {
-  static debug_objects_ct* debug_objects_instance = new debug_objects_ct;
-  return *debug_objects_instance;
-}
-
-debug_objects_ct::debug_objects_ct() : M_impl(new impl_ct) { }
-
-debug_objects_ct::~debug_objects_ct()
-{
-  delete M_impl;
+  static debug_objects_ct const debug_objects_instance{new debug_objects_ct::impl_ct};
+  return debug_objects_instance;
 }
 
 // Register debug_object if it has not already been registered.
 //
 // A single write access covers both the duplicate check and the insertion. This keeps the old registry
 // behavior while replacing the manual DEBUG_OBJECTS_* lock/unlock sequence with an RAII write lock.
-void debug_objects_ct::add_if_missing(debug_ct* debug_object)
+void debug_objects_ct::add_if_missing(debug_ct* debug_object) const
 {
   impl_ct::container_t::wat debug_objects_w(M_impl->WNS_debug_objects);
   if (std::find(debug_objects_w->begin(), debug_objects_w->end(), debug_object) == debug_objects_w->end())
@@ -1106,7 +1096,7 @@ bool debug_ct::NS_init(LIBCWD_TSD_PARAM)
 #endif
 
   LIBCWD_DEFER_CANCEL;
-  _private_::debug_objects().add_if_missing(this);
+  _private_::debug_objects_ct::instance().add_if_missing(this);
   LIBCWD_RESTORE_CANCEL;
   new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
   WNS_index = S_index_count++;
