@@ -214,8 +214,11 @@ TSD_st& TSD_st::S_create(int from_free)
       old_thread_iter = static_tsd->thread_iter;
 
     // Fill the temporary structure with zeroes.
-    PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess std::memset(static_tsd, 0, sizeof(struct TSD_st));
+    // clang-format off
+    PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess
+    std::memset(static_tsd, 0, sizeof(struct TSD_st));
     PRAGMA_DIAGNOSTIC_POP
+    // clang-format on
     static_tsd->tid = _tid; // Make sure nobody else will allocate this entry.
 
     if (from_free == 1)
