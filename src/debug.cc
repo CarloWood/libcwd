@@ -1105,17 +1105,8 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
         pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
         pthread_exit(PTHREAD_CANCELED);
       }
-      _private_::rwlock_tct<_private_::threadlist_instance>::rdlock(true);
       // Terminate all threads that I know of, so that no locks will remain.
-      for (_private_::threadlist_t::iterator thread_iter = _private_::threadlist->begin();
-           thread_iter != _private_::threadlist->end(); ++thread_iter)
-        if (!pthread_equal((*thread_iter).tid, pthread_self())
-#ifdef __linux
-            && (_private_::WST_is_NPTL || (*thread_iter).tid != (pthread_t)1024)
-#endif
-        )
-          pthread_cancel((*thread_iter).tid);
-      _private_::rwlock_tct<_private_::threadlist_instance>::rdunlock();
+      _private_::threadlist_ct::instance().cancel_all_other_threads(pthread_self());
       LIBCWD_ENABLE_CANCEL;
       _Exit(254); // Exit without calling global destructors.
     }

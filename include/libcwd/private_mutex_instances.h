@@ -23,8 +23,6 @@ enum mutex_instance_nt {
   dlclose_instance,
   object_files_instance,		// rwlock
   end_recursive_types,
-  // Fast mutexes.
-  threadlist_instance,			// rwlock
   // Values reserved for test executables.
   rwtest_instance0,                     // rwlock
   rwtest_instance1,                     // rwlock

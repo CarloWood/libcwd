@@ -47,9 +47,26 @@ class thread_ct
 };
 
 // The list of threads.
-// New thread objects are added in TSD_st::S_initialize.
+// New thread objects are added while initializing the TSD for a newly observed thread.
 typedef thread_ct::threadlist_type threadlist_t;
-extern threadlist_t* threadlist;
+
+// Own the process-wide thread list behind a private threadsafe implementation.
+//
+// add_current_thread stores the iterator for the newly inserted thread in __libcwd_tsd and initializes the
+// thread object in its final list location. mark_thread_terminated and cancel_all_other_threads serialize their
+// list traversal with insertions; callers are still responsible for disabling or deferring pthread cancellation
+// when they need cancellation-safe critical sections around these operations.
+struct threadlist_ct
+{
+  class impl_ct;
+  impl_ct* impl_;       // Deliberately leaked.
+
+  static threadlist_ct const& instance();
+
+  void add_current_thread(LIBCWD_TSD_PARAM) const;
+  void mark_thread_terminated(threadlist_t::iterator thread_iter LIBCWD_COMMA_TSD_PARAM) const;
+  void cancel_all_other_threads(pthread_t current_tid) const;
+};
 
 } // namespace _private_
 } // namespace libcwd
