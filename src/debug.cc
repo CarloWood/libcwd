@@ -502,17 +502,10 @@ void debug_channels_ct::initialize_channel(channel_ct& channel, char const* labe
   for (channel_ct* debug_channel : channels_w->hidden_)
     const_cast<char*>(debug_channel->get_label())[WST_max_len] = '\0';
 
-  channel.increment_and_assign_index(channels_w);
+  channel.initialize(channels_w, label, label_len);
 
-  __libcwd_tsd.off_cnt_array[channel.WNS_index] = 0;
-
-  // clang-format off
-  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
-  strncpy(channel.WNS_label, label, label_len);
-  PRAGMA_DIAGNOSTIC_POP
-  // clang-format on
-  std::memset(channel.WNS_label + label_len, ' ', max_label_len_c - label_len);
-  channel.WNS_label[WST_max_len] = '\0';
+  // Turn debug channel "WARNING" on by default.
+  __libcwd_tsd.off_cnt_array[channel.index()] = strncmp(channel.get_label(), "WARNING", label_len) == 0 ? -1 : 0;
 
   if (add_to_channel_list)
   {
@@ -522,18 +515,12 @@ void debug_channels_ct::initialize_channel(channel_ct& channel, char const* labe
     // initialized.
     auto i = channels_w->visible_.begin();
     for (; i != channels_w->visible_.end(); ++i)
-      if (strncmp((*i)->get_label(), channel.WNS_label, WST_max_len) > 0)
+      if (strncmp((*i)->get_label(), channel.get_label(), WST_max_len) > 0)
         break;
     channels_w->visible_.insert(i, &channel);
   }
   else
     channels_w->hidden_.push_back(&channel);
-
-  // Turn debug channel "WARNING" on by default.
-  if (strncmp(channel.WNS_label, "WARNING", label_len) == 0)
-    __libcwd_tsd.off_cnt_array[channel.WNS_index] = -1;
-
-  channel.WNS_initialized = true;
 }
 
 // Initialize the built-in fatal channel state while holding the public channel registry write lock.
@@ -1430,9 +1417,17 @@ void continued_channel_ct::NS_initialize(control_flag_t maskbit)
     WNS_maskbit = maskbit;
 }
 
-void channel_ct::increment_and_assign_index(libcwd::_private_::ChannelSetsWat wat)
+void channel_ct::initialize(_private_::ChannelSetsWat wat, char const* label, size_t label_len)
 {
   WNS_index = ++wat.ref_->next_index_;  // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
+  // clang-format off
+  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
+  strncpy(WNS_label, label, label_len);
+  PRAGMA_DIAGNOSTIC_POP
+  // clang-format on
+  std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
+  WNS_label[WST_max_len] = '\0';
+  WNS_initialized = true;
 }
 
 char const always_channel_ct::label[max_label_len_c + 1] = {'>', '>', '>', '>', '>', '>', '>', '>', '>',

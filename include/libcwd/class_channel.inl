@@ -28,7 +28,6 @@ channel_ct::is_on(LIBCWD_TSD_PARAM) const
   return (__libcwd_tsd.off_cnt_array[WNS_index] < 0);
 }
 
-
 /**
  * \brief Returns `true' if the channel is active.
  */

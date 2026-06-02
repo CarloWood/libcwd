@@ -71,9 +71,7 @@ struct ChannelSetsWat;
 
 class channel_ct
 {
-  friend struct _private_::debug_channels_ct;
-
-private:
+ private:
   int WNS_index;
     // A unique id that is used as index into the TSD array `off_cnt_array'.
 
@@ -105,8 +103,11 @@ private:
 
  private:
   // MT: Take advantage of the public debug-channel registry write lock to prevent
-  // simultaneous access to next_index_ in the case of simultaneously dlopen-loaded libraries.
-  void increment_and_assign_index(_private_::ChannelSetsWat);
+  // simultaneous access to ChannelSets::next_index_ in the case of simultaneously
+  // dlopen-loaded libraries and to create a happens-before edge between the write-once
+  // and potential reads of this class members by other threads.
+  friend struct _private_::debug_channels_ct;
+  void initialize(_private_::ChannelSetsWat wat, char const* label, size_t label_len);
 
  public:
   //---------------------------------------------------------------------------
@@ -130,6 +131,7 @@ private:
   // Accessors
   //
 
+  int index() const { return WNS_index; }
   char const* get_label() const;
   bool is_on() const;
   bool is_on(LIBCWD_TSD_PARAM) const;
