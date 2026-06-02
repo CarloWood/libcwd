@@ -69,7 +69,8 @@ struct ChannelSetsWat;
  * \endexampleoutput
  */
 
-class channel_ct {
+class channel_ct
+{
   friend struct _private_::debug_channels_ct;
 
 private:
@@ -87,7 +88,7 @@ private:
   static channel_ct const off_channel;
     // Channel that is always off.
 
-public:
+ public:
   //---------------------------------------------------------------------------
   // Constructor
   //
@@ -102,7 +103,7 @@ public:
     // Force initialization in case the constructor of this global object
     // wasn't called yet. Does nothing when the object was already initialized.
 
-public:
+ public:
   //---------------------------------------------------------------------------
   // Manipulators
   //
@@ -119,7 +120,7 @@ public:
 
   channel_ct const& operator()(bool cond) const { return cond ? *this : off_channel; }
 
-public:
+ public:
   //---------------------------------------------------------------------------
   // Accessors
   //
