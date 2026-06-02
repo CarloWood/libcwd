@@ -12,7 +12,7 @@
 
 #include "libcwd/config.h"
 #include "private_assert.h"
-#include <vector>
+#include <type_traits>
 
 //===================================================================================================
 // Macro ForAllDebugObjects
@@ -20,81 +20,68 @@
 
 namespace libcwd {
 
-  class debug_ct;
+class debug_ct;
 
-  namespace _private_ {
+namespace _private_ {
 
-class debug_objects_ct {
-public:
-  typedef std::vector<debug_ct*> container_type;
-private:
-  container_type* WNS_debug_objects;
-public:
-  void init(LIBCWD_TSD_PARAM);
-  void init_and_rdlock();
-  void ST_uninit();
-  container_type& write_locked();
-  container_type const& read_locked() const;
+class debug_objects_ct
+{
+ public:
+  using callback_type = void (*)(debug_ct&, void*);
 
-  // debug_objects is a global object. If it is destructed then in principle
-  // all other global objects could already have been destructed, including
-  // debug_ct objects. Therefore, destructing the container with with pointers
-  // to the debug objects isn't wrong: accessing it (by using the macro
-  // ForAllDebugObjects) is wrong. Call ST_uninit to delete WNS_debug_objects.
-  ~debug_objects_ct() { ST_uninit(); }
+ private:
+  class impl_ct;
+  impl_ct* M_impl;
+
+ public:
+  debug_objects_ct();
+  ~debug_objects_ct();
+
+  // Register debug_object in the debug-object registry unless it is already present.
+  //
+  // The registry is write-locked for the whole lookup-and-insert operation, so callers do not need to
+  // acquire a separate lock or retry when another thread registers a debug object concurrently.
+  void add_if_missing(debug_ct* debug_object);
+
+  // Invoke func for each debug object currently registered in the registry.
+  //
+  // A read lock is held until all callbacks have returned. The callback receives debugObject as a
+  // debug_ct reference; it must not try to register another debug object because that would require
+  // upgrading the registry lock while this read access is still alive.
+  template<typename Func>
+  void for_each(Func&& func) const
+  {
+    using func_type = std::remove_reference_t<Func>;
+    for_each_impl([](debug_ct& debugObject, void* data) { (*static_cast<func_type*>(data))(debugObject); }, &func);
+  }
+
+  void for_each_impl(callback_type callback, void* data) const;
+
+  // The process-wide debug_objects() singleton is intentionally leaked because global destructors can
+  // still touch libcwd after ordinary namespace-scope objects would have been destructed. The vector
+  // contains non-owning pointers to debug_ct objects; debug_ct lifetime is managed by its callers.
+
+  debug_objects_ct(debug_objects_ct const&) = delete;
+  debug_objects_ct& operator=(debug_objects_ct const&) = delete;
 };
 
-inline
-debug_objects_ct::container_type&
-debug_objects_ct::write_locked()
-{
-#if CWDEBUG_DEBUG
-  LIBCWD_ASSERT( WNS_debug_objects );
-#endif
-  return *WNS_debug_objects;
-}
+// Return the process-wide debug-object registry.
+//
+// The registry is constructed on first use and intentionally never destroyed, which allows debug_ct
+// constructors to use it even before namespace-scope objects in this translation unit have been
+// initialized and avoids shutdown-order problems during global destruction.
+debug_objects_ct& debug_objects();
 
-inline
-debug_objects_ct::container_type const&
-debug_objects_ct::read_locked() const
-{
-#if CWDEBUG_DEBUG
-  LIBCWD_ASSERT( WNS_debug_objects );
-#endif
-  return *WNS_debug_objects;
-}
-
-extern debug_objects_ct debug_objects;
-
-  } // namespace _private_
+} // namespace _private_
 } // namespace libcwd
-
-#if CWDEBUG_DEBUGT
-#define LIBCWD_ForAllDebugObjects_LOCK_TSD_DECLARATION LIBCWD_TSD_DECLARATION
-#else
-#define LIBCWD_ForAllDebugObjects_LOCK_TSD_DECLARATION
-#endif
-#define LIBCWD_ForAllDebugObjects_LOCK \
-    LIBCWD_ForAllDebugObjects_LOCK_TSD_DECLARATION; \
-    LIBCWD_DEFER_CLEANUP_PUSH(&::libcwd::_private_::rwlock_tct< ::libcwd::_private_::debug_objects_instance>::cleanup, NULL); \
-    ::libcwd::_private_::debug_objects.init_and_rdlock()
-#define LIBCWD_ForAllDebugObjects_UNLOCK \
-    ::libcwd::_private_::rwlock_tct< ::libcwd::_private_::debug_objects_instance>::rdunlock(); \
-    LIBCWD_CLEANUP_POP_RESTORE(false);
 
 #define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...) \
        do { \
-         LIBCWD_ForAllDebugObjects_LOCK; \
-	 for( ::libcwd::_private_::debug_objects_ct::container_type::\
-	     const_iterator __libcwd_i(::libcwd::_private_::debug_objects.read_locked().begin());\
-	     __libcwd_i != ::libcwd::_private_::debug_objects.read_locked().end(); ++__libcwd_i) \
-	 { \
+	 ::libcwd::_private_::debug_objects().for_each([&](::libcwd::debug_ct& debugObject) { \
 	   using namespace ::libcwd; \
 	   using namespace dc_namespace; \
-	   ::libcwd::debug_ct& debugObject(*(*__libcwd_i)); \
 	   { STATEMENT; } \
-	 } \
-	 LIBCWD_ForAllDebugObjects_UNLOCK \
+	 }); \
        } \
        while(0)
 

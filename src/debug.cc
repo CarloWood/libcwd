@@ -6,6 +6,8 @@
 #include "ios_base_Init.h"
 #include "macros.h"
 #include "private_debug_stack.inl"
+#include "threadsafe/AIReadWriteMutex.h"
+#include "threadsafe/threadsafe.h"
 #if CWDEBUG_LOCATION
 #include "cwd_dwarf.h"
 #endif
@@ -29,14 +31,7 @@
 extern "C" int raise(int);
 
 using libcwd::_private_::debug_channels_instance;
-using libcwd::_private_::debug_objects_instance;
 using libcwd::_private_::rwlock_tct;
-#define DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK rwlock_tct<libcwd::_private_::debug_objects_instance>::wrlock()
-#define DEBUG_OBJECTS_RELEASE_WRITE_LOCK rwlock_tct<libcwd::_private_::debug_objects_instance>::wrunlock()
-#define DEBUG_OBJECTS_ACQUIRE_READ_LOCK rwlock_tct<libcwd::_private_::debug_objects_instance>::rdlock()
-#define DEBUG_OBJECTS_RELEASE_READ_LOCK rwlock_tct<libcwd::_private_::debug_objects_instance>::rdunlock()
-#define DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK rwlock_tct<libcwd::_private_::debug_objects_instance>::rd2wrlock()
-#define DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK rwlock_tct<libcwd::_private_::debug_objects_instance>::wr2rdlock()
 #define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::wrlock()
 #define DEBUG_CHANNELS_RELEASE_WRITE_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::wrunlock()
 #define DEBUG_CHANNELS_ACQUIRE_READ_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::rdlock()
@@ -424,7 +419,59 @@ namespace _private_ {
 extern bool WST_is_NPTL;
 
 debug_channels_ct debug_channels; // List with all channel_ct objects.
-debug_objects_ct debug_objects; // List with all debug devices.
+
+// Store registered debug objects behind a typed read/write lock.
+//
+// debug_objects_ct is declared in macro_ForAllDebugObjects.h because public code can iterate over all
+// debug objects. The actual container type stays private to this translation unit so that the public
+// libcwd header does not have to include the threadsafe implementation headers and callers cannot keep
+// raw access to the registry without holding the corresponding threadsafe access object.
+class debug_objects_ct::impl_ct {
+ public:
+  using container_t = threadsafe::Unlocked<std::vector<debug_ct*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+
+  container_t WNS_debug_objects;
+};
+
+// Return the registry used by every debug_ct object in the process.
+//
+// The heap allocation deliberately leaks the registry. This makes the registry safe to use from global
+// debug_ct constructors that run before this translation unit's namespace-scope objects, and avoids
+// destructing the registry while other global destructors could still consult libcwd state.
+debug_objects_ct& debug_objects()
+{
+  static debug_objects_ct* debug_objects_instance = new debug_objects_ct;
+  return *debug_objects_instance;
+}
+
+debug_objects_ct::debug_objects_ct() : M_impl(new impl_ct) { }
+
+debug_objects_ct::~debug_objects_ct()
+{
+  delete M_impl;
+}
+
+// Register debug_object if it has not already been registered.
+//
+// A single write access covers both the duplicate check and the insertion. This keeps the old registry
+// behavior while replacing the manual DEBUG_OBJECTS_* lock/unlock sequence with an RAII write lock.
+void debug_objects_ct::add_if_missing(debug_ct* debug_object)
+{
+  impl_ct::container_t::wat debug_objects_w(M_impl->WNS_debug_objects);
+  if (std::find(debug_objects_w->begin(), debug_objects_w->end(), debug_object) == debug_objects_w->end())
+    debug_objects_w->push_back(debug_object);
+}
+
+// Invoke callback for each registered debug object while holding a registry read lock.
+//
+// The callback receives the caller supplied data pointer unchanged. All iteration is performed while the
+// read access object is alive, preventing concurrent modifications of the vector during traversal.
+void debug_objects_ct::for_each_impl(callback_type callback, void* data) const
+{
+  impl_ct::container_t::crat debug_objects_r(M_impl->WNS_debug_objects);
+  for (debug_ct* debug_object : *debug_objects_r)
+    callback(*debug_object, data);
+}
 
 // _private_::
 void debug_channels_ct::init(LIBCWD_TSD_PARAM)
@@ -452,48 +499,6 @@ void debug_channels_ct::init_and_rdlock()
     DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
     WNS_debug_channels = new debug_channels_ct::container_type; // LEAK3
     DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK;
-  }
-}
-
-// _private_::
-void debug_objects_ct::init(LIBCWD_TSD_PARAM)
-{
-  _private_::rwlock_tct<libcwd::_private_::debug_objects_instance>::initialize();
-  DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
-  if (!WNS_debug_objects) // MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
-  {
-    DEBUGDEBUG_CERR((char const*)"_debug_objects == NULL; initializing it");
-    DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK;
-    WNS_debug_objects = new debug_objects_ct::container_type;
-    DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
-  }
-  else
-    DEBUG_OBJECTS_RELEASE_READ_LOCK;
-}
-
-// _private_::
-void debug_objects_ct::init_and_rdlock()
-{
-  _private_::rwlock_tct<libcwd::_private_::debug_objects_instance>::initialize();
-  DEBUG_OBJECTS_ACQUIRE_READ_LOCK;
-  if (!WNS_debug_objects) // MT: `WNS_debug_objects' is only false when this object is still Non_Shared.
-  {
-    DEBUGDEBUG_CERR("_debug_objects == NULL; initializing it");
-    LIBCWD_TSD_DECLARATION;
-    DEBUG_OBJECTS_ACQUIRE_READ2WRITE_LOCK;
-    WNS_debug_objects = new debug_objects_ct::container_type;
-    DEBUG_OBJECTS_ACQUIRE_WRITE2READ_LOCK;
-  }
-}
-
-// _private_::
-void debug_objects_ct::ST_uninit()
-{
-  if (WNS_debug_objects)
-  {
-    LIBCWD_TSD_DECLARATION;
-    delete WNS_debug_objects;
-    WNS_debug_objects = NULL;
   }
 }
 
@@ -1101,12 +1106,7 @@ bool debug_ct::NS_init(LIBCWD_TSD_PARAM)
 #endif
 
   LIBCWD_DEFER_CANCEL;
-  _private_::debug_objects.init(LIBCWD_TSD);
-  DEBUG_OBJECTS_ACQUIRE_WRITE_LOCK;
-  if (find(_private_::debug_objects.write_locked().begin(), _private_::debug_objects.write_locked().end(), this) ==
-      _private_::debug_objects.write_locked().end()) // Not added before?
-    _private_::debug_objects.write_locked().push_back(this);
-  DEBUG_OBJECTS_RELEASE_WRITE_LOCK;
+  _private_::debug_objects().add_if_missing(this);
   LIBCWD_RESTORE_CANCEL;
   new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
   WNS_index = S_index_count++;
