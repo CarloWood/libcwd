@@ -25,8 +25,6 @@ enum mutex_instance_nt {
   end_recursive_types,
   // Fast mutexes.
   threadlist_instance,			// rwlock
-  debug_objects_instance,		// rwlock
-  debug_channels_instance,		// rwlock
   // Values reserved for test executables.
   rwtest_instance0,                     // rwlock
   rwtest_instance1,                     // rwlock

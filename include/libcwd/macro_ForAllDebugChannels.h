@@ -31,7 +31,7 @@ struct debug_channels_ct
   using callback_type = void (*)(channel_ct&, void*);
 
   class impl_ct;
-  impl_ct* M_impl;      // Deliberately leaked.
+  impl_ct* impl_;       // Deliberately leaked.
 
   static debug_channels_ct const& instance();
 

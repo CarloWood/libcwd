@@ -424,19 +424,18 @@ struct ChannelSets
 // all debug channels. The actual container type stays private to this translation unit so that the
 // public libcwd header does not have to include the threadsafe implementation headers and callers
 // cannot keep raw access to the registry without holding the corresponding threadsafe access object.
-class debug_channels_ct::impl_ct {
- public:
-  using container_t = threadsafe::Unlocked<ChannelSets, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-
-  container_t WNS_debug_channels;
+struct debug_channels_ct::impl_ct
+{
+  using channel_sets_t = threadsafe::Unlocked<ChannelSets, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  channel_sets_t channel_sets_;
 };
 
 // A helper class to allow passing a wat to channel_ct::increment_and_assign_index without
 // including threadsafe in a public header.
 struct ChannelSetsWat
 {
-  debug_channels_ct::impl_ct::container_t::wat& ref_;
-  ChannelSetsWat(debug_channels_ct::impl_ct::container_t::wat& wat) : ref_(wat) { }
+  debug_channels_ct::impl_ct::channel_sets_t::wat& ref_;
+  ChannelSetsWat(debug_channels_ct::impl_ct::channel_sets_t::wat& wat) : ref_(wat) { }
 };
 
 // Return the channel registry used by ForAllDebugChannels and label lookup.
@@ -454,7 +453,7 @@ debug_channels_ct const& debug_channels_ct::instance()
 channel_ct* debug_channels_ct::find(char const* label) const
 {
   channel_ct* result = nullptr;
-  impl_ct::container_t::crat debug_channels_r(M_impl->WNS_debug_channels);
+  impl_ct::channel_sets_t::crat debug_channels_r(impl_->channel_sets_);
   for (channel_ct* debug_channel : debug_channels_r->visible_)
     if (!strncasecmp(label, debug_channel->get_label(), strlen(label)))
       result = debug_channel;
@@ -472,7 +471,7 @@ void debug_channels_ct::initialize_channel(channel_ct& channel, char const* labe
   if (label_len > max_label_len_c) // Only happens for customized channels
     DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
 
-  impl_ct::container_t::wat channels_w(M_impl->WNS_debug_channels);
+  impl_ct::channel_sets_t::wat channels_w(impl_->channel_sets_);
 
   const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = ' ';
   const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = ' ';
@@ -537,7 +536,7 @@ void debug_channels_ct::initialize_fatal_channel(fatal_channel_ct& channel, char
   if (label_len > max_label_len_c) // Only happens for customized channels
     DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
 
-  impl_ct::container_t::wat channels_w(M_impl->WNS_debug_channels);
+  impl_ct::channel_sets_t::wat channels_w(impl_->channel_sets_);
 
   for (channel_ct* debug_channel : channels_w->visible_)
     const_cast<char*>(debug_channel->get_label())[WST_max_len] = ' ';
@@ -568,7 +567,7 @@ void debug_channels_ct::initialize_fatal_channel(fatal_channel_ct& channel, char
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void debug_channels_ct::for_each_impl(callback_type callback, void* data) const
 {
-  impl_ct::container_t::crat debug_channels_r(M_impl->WNS_debug_channels);
+  impl_ct::channel_sets_t::crat debug_channels_r(impl_->channel_sets_);
   for (channel_ct* debug_channel : debug_channels_r->visible_)
     callback(*debug_channel, data);
 }
@@ -579,11 +578,10 @@ void debug_channels_ct::for_each_impl(callback_type callback, void* data) const
 // debug objects. The actual container type stays private to this translation unit so that the public
 // libcwd header does not have to include the threadsafe implementation headers and callers cannot keep
 // raw access to the registry without holding the corresponding threadsafe access object.
-class debug_objects_ct::impl_ct {
- public:
-  using container_t = threadsafe::Unlocked<std::vector<debug_ct*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-
-  container_t WNS_debug_objects;
+struct debug_objects_ct::impl_ct
+{
+  using debug_objects_t = threadsafe::Unlocked<std::vector<debug_ct*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  debug_objects_t debug_objects_;
 };
 
 // Return the registry used by every debug_ct object in the process.
@@ -600,7 +598,7 @@ debug_objects_ct const& debug_objects_ct::instance()
 // behavior while replacing the manual DEBUG_OBJECTS_* lock/unlock sequence with an RAII write lock.
 void debug_objects_ct::add_if_missing(debug_ct* debug_object) const
 {
-  impl_ct::container_t::wat debug_objects_w(M_impl->WNS_debug_objects);
+  impl_ct::debug_objects_t::wat debug_objects_w(impl_->debug_objects_);
   if (std::find(debug_objects_w->begin(), debug_objects_w->end(), debug_object) == debug_objects_w->end())
     debug_objects_w->push_back(debug_object);
 }
@@ -611,7 +609,7 @@ void debug_objects_ct::add_if_missing(debug_ct* debug_object) const
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void debug_objects_ct::for_each_impl(callback_type callback, void* data) const
 {
-  impl_ct::container_t::crat debug_objects_r(M_impl->WNS_debug_objects);
+  impl_ct::debug_objects_t::crat debug_objects_r(impl_->debug_objects_);
   for (debug_ct* debug_object : *debug_objects_r)
     callback(*debug_object, data);
 }

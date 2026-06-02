@@ -29,7 +29,7 @@ struct debug_objects_ct
   using callback_type = void (*)(debug_ct&, void*);
 
   class impl_ct;
-  impl_ct* M_impl;      // Deliberately leaked.
+  impl_ct* impl_;       // Deliberately leaked.
 
   static debug_objects_ct const& instance();
 
