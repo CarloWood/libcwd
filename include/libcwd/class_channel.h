@@ -14,11 +14,13 @@
 #include "max_label_len.h"
 #include "control_flag.h"
 #include "private_struct_TSD.h"
+#include <atomic>
 
 namespace libcwd {
 
 namespace _private_ {
 struct debug_channels_ct;
+struct ChannelSetsWat;
 } // namespace _private_
 
 /**
