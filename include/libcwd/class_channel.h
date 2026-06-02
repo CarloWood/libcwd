@@ -17,6 +17,10 @@
 
 namespace libcwd {
 
+namespace _private_ {
+struct debug_channels_ct;
+} // namespace _private_
+
 /**
  * \class channel_ct class_channel.h libcwd/debug.h
  * \ingroup group_debug_channels
@@ -64,6 +68,8 @@ namespace libcwd {
  */
 
 class channel_ct {
+  friend struct _private_::debug_channels_ct;
+
 private:
   int WNS_index;
     // A unique id that is used as index into the TSD array `off_cnt_array'.

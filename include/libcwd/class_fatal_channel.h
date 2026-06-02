@@ -16,6 +16,10 @@
 
 namespace libcwd {
 
+namespace _private_ {
+struct debug_channels_ct;
+} // namespace _private_
+
 //===================================================================================================
 // class fatal_channel_ct
 //
@@ -23,6 +27,8 @@ namespace libcwd {
 //
 
 class fatal_channel_ct {
+  friend struct _private_::debug_channels_ct;
+
 private:
   char WNS_label[max_label_len_c + 1];				// +1 for zero termination.
     // A reference name for the represented debug channel

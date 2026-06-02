@@ -26,18 +26,11 @@
 #include <sys/time.h> // Needed for setrlimit()
 #endif
 #include <sstream>
+#include <vector>
 #include "cwd_debug.h"
 
 extern "C" int raise(int);
 
-using libcwd::_private_::debug_channels_instance;
-using libcwd::_private_::rwlock_tct;
-#define DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::wrlock()
-#define DEBUG_CHANNELS_RELEASE_WRITE_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::wrunlock()
-#define DEBUG_CHANNELS_ACQUIRE_READ_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::rdlock()
-#define DEBUG_CHANNELS_RELEASE_READ_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::rdunlock()
-#define DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::rd2wrlock()
-#define DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK rwlock_tct<libcwd::_private_::debug_channels_instance>::wr2rdlock()
 #define COMMA_IFTHREADS(x) , x
 
 namespace libcwd {
@@ -231,8 +224,8 @@ void version_check_failed()
 debug_ct libcw_do;
 
 namespace {
-unsigned short int WST_max_len = 8; // The length of the longest label.  Is adjusted automatically
-                                    // if a custom channel has a longer label.
+std::atomic<unsigned short int> WST_max_len = 8;        // The length of the longest label.  Is adjusted automatically
+                                                        // if a custom channel has a longer label.
 } // namespace
 
 namespace channels {
@@ -418,7 +411,184 @@ namespace _private_ {
 
 extern bool WST_is_NPTL;
 
-debug_channels_ct debug_channels; // List with all channel_ct objects.
+// Store registered debug channels behind a typed read/write lock.
+//
+// debug_channels_ct is declared in macro_ForAllDebugChannels.h because public code can iterate over
+// all debug channels. The actual container type stays private to this translation unit so that the
+// public libcwd header does not have to include the threadsafe implementation headers and callers
+// cannot keep raw access to the registry without holding the corresponding threadsafe access object.
+class debug_channels_ct::impl_ct {
+ public:
+  using container_t = threadsafe::Unlocked<std::vector<channel_ct*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+
+  container_t WNS_debug_channels;
+};
+
+// Return the public channel registry used by ForAllDebugChannels and label lookup.
+// static
+debug_channels_ct const& debug_channels_ct::instance()
+{
+  static debug_channels_ct const debug_channels_instance{new debug_channels_ct::impl_ct};
+  return debug_channels_instance;
+}
+
+// Return the private channel registry for channels that participate in label-width updates but are not listed.
+//
+// This registry is intentionally leaked for the same static-lifetime reason as the public registry:
+// channel constructors and destructors can run outside normal libcwd namespace-scope initialization order.
+static debug_channels_ct const& hidden_debug_channels()
+{
+  static debug_channels_ct const hidden_channels_instance{new debug_channels_ct::impl_ct};
+  return hidden_channels_instance;
+}
+
+// Return the registered channel whose label matches label as a case-insensitive prefix.
+//
+// When several channels match, the last one in sorted registry order is returned, preserving the old
+// find_channel behavior of selecting the lexicographically largest matching label.
+channel_ct* debug_channels_ct::find(char const* label) const
+{
+  channel_ct* result = nullptr;
+  impl_ct::container_t::crat debug_channels_r(M_impl->WNS_debug_channels);
+  for (channel_ct* debug_channel : *debug_channels_r)
+    if (!strncasecmp(label, debug_channel->get_label(), strlen(label)))
+      result = debug_channel;
+  return result;
+}
+
+// Initialize channel and register it in either the public or hidden registry.
+//
+// A write access to the public registry serializes WST_max_len and channel index updates. The hidden
+// registry is also write-locked while its labels are adjusted so the label terminator remains consistent
+// with the shared maximum label width.
+void debug_channels_ct::initialize_channel(channel_ct& channel, char const* label LIBCWD_COMMA_TSD_PARAM,
+                                           bool add_to_channel_list) const
+{
+  size_t label_len = strlen(label);
+
+  if (label_len > max_label_len_c) // Only happens for customized channels
+    DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
+
+  debug_channels_ct const& hidden_channels = hidden_debug_channels();
+  impl_ct::container_t::wat channels_w(M_impl->WNS_debug_channels);
+  impl_ct::container_t::wat hidden_channels_w(hidden_channels.M_impl->WNS_debug_channels);
+
+  const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = ' ';
+  const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = ' ';
+  for (channel_ct* debug_channel : *channels_w)
+    const_cast<char*>(debug_channel->get_label())[WST_max_len] = ' ';
+  for (channel_ct* debug_channel : *hidden_channels_w)
+    const_cast<char*>(debug_channel->get_label())[WST_max_len] = ' ';
+
+  // MT: This is not strict thread safe because it is possible that after threads are already
+  //     running, a new shared library is dlopen-ed with a new global channel_ct with a larger
+  //     label.  However, it makes no sense to lock the *reading* of WST_max_len for the other
+  //     threads because this assignment is an atomic operation.  The lock above is only needed
+  //     to prefend two such simultaneously loaded libraries from causing WST_max_len to end up
+  //     not maximal.
+  //     When this thread is cancelled later, there is no need to take action: the debug channel
+  //     is global and can be used by any thread.  We want to keep the maximum label length as
+  //     set by this channel.  Even when this debug channel is part of shared library that is
+  //     being loaded by dlopen() then it won't get removed when this thread is cancelled.
+  //     (Actually, a downwards update of WST_max_len should be done by dlclose if at all).
+  if (label_len > WST_max_len)
+    WST_max_len = label_len;
+
+  const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = '\0';
+  const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = '\0';
+  for (channel_ct* debug_channel : *channels_w)
+    const_cast<char*>(debug_channel->get_label())[WST_max_len] = '\0';
+  for (channel_ct* debug_channel : *hidden_channels_w)
+    const_cast<char*>(debug_channel->get_label())[WST_max_len] = '\0';
+
+  // MT: Take advantage of the public debug-channel registry write lock to prevent simultaneous access
+  //     to next_index in the case of simultaneously dlopen-loaded libraries.
+  static int next_index;
+  channel.WNS_index = ++next_index; // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
+
+  __libcwd_tsd.off_cnt_array[channel.WNS_index] = 0;
+
+  // clang-format off
+  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
+  strncpy(channel.WNS_label, label, label_len);
+  PRAGMA_DIAGNOSTIC_POP
+  // clang-format on
+  std::memset(channel.WNS_label + label_len, ' ', max_label_len_c - label_len);
+  channel.WNS_label[WST_max_len] = '\0';
+
+  if (add_to_channel_list)
+  {
+    // We store debug channels in some organized order, so that the
+    // order in which they appear in the ForAllDebugChannels is not
+    // dependent on the order in which these global objects are
+    // initialized.
+    auto i = channels_w->begin();
+    for (; i != channels_w->end(); ++i)
+      if (strncmp((*i)->get_label(), channel.WNS_label, WST_max_len) > 0)
+        break;
+    channels_w->insert(i, &channel);
+  }
+  else
+    hidden_channels_w->push_back(&channel);
+
+  // Turn debug channel "WARNING" on by default.
+  if (strncmp(channel.WNS_label, "WARNING", label_len) == 0)
+    __libcwd_tsd.off_cnt_array[channel.WNS_index] = -1;
+
+  channel.WNS_initialized = true;
+}
+
+// Initialize the built-in fatal channel state while holding the public channel registry write lock.
+//
+// Fatal channels are not inserted into the registry, but their label width still contributes to the
+// shared WST_max_len value used when formatting all registered channel labels.
+void debug_channels_ct::initialize_fatal_channel(fatal_channel_ct& channel, char const* label,
+                                                 control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM) const
+{
+  channel.WNS_maskbit = maskbit;
+
+  size_t label_len = strlen(label);
+
+  if (label_len > max_label_len_c) // Only happens for customized channels
+    DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
+
+  debug_channels_ct const& hidden_channels = hidden_debug_channels();
+  impl_ct::container_t::wat channels_w(M_impl->WNS_debug_channels);
+  impl_ct::container_t::wat hidden_channels_w(hidden_channels.M_impl->WNS_debug_channels);
+
+  for (channel_ct* debug_channel : *channels_w)
+    const_cast<char*>(debug_channel->get_label())[WST_max_len] = ' ';
+  for (channel_ct* debug_channel : *hidden_channels_w)
+    const_cast<char*>(debug_channel->get_label())[WST_max_len] = ' ';
+
+  // MT: See comments in debug_channels_ct::initialize_channel above.
+  if (label_len > WST_max_len)
+    WST_max_len = label_len;
+
+  for (channel_ct* debug_channel : *channels_w)
+    const_cast<char*>(debug_channel->get_label())[WST_max_len] = '\0';
+  for (channel_ct* debug_channel : *hidden_channels_w)
+    const_cast<char*>(debug_channel->get_label())[WST_max_len] = '\0';
+
+  // clang-format off
+  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
+  strncpy(channel.WNS_label, label, label_len);
+  PRAGMA_DIAGNOSTIC_POP
+  // clang-format on
+  std::memset(channel.WNS_label + label_len, ' ', max_label_len_c - label_len);
+  channel.WNS_label[WST_max_len] = '\0';
+}
+
+// Invoke callback for each registered public debug channel while holding a registry read lock.
+//
+// The callback receives the caller supplied data pointer unchanged. All iteration is performed while the
+// read access object is alive, preventing concurrent modifications of the vector during traversal.
+void debug_channels_ct::for_each_impl(callback_type callback, void* data) const
+{
+  impl_ct::container_t::crat debug_channels_r(M_impl->WNS_debug_channels);
+  for (channel_ct* debug_channel : *debug_channels_r)
+    callback(*debug_channel, data);
+}
 
 // Store registered debug objects behind a typed read/write lock.
 //
@@ -461,35 +631,6 @@ void debug_objects_ct::for_each_impl(callback_type callback, void* data) const
   impl_ct::container_t::crat debug_objects_r(M_impl->WNS_debug_objects);
   for (debug_ct* debug_object : *debug_objects_r)
     callback(*debug_object, data);
-}
-
-// _private_::
-void debug_channels_ct::init(LIBCWD_TSD_PARAM)
-{
-  _private_::rwlock_tct<libcwd::_private_::debug_channels_instance>::initialize();
-  DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
-  if (!WNS_debug_channels) // MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
-  {
-    DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
-    WNS_debug_channels = new debug_channels_ct::container_type; // LEAK2
-    DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
-  }
-  else
-    DEBUG_CHANNELS_RELEASE_READ_LOCK;
-}
-
-// _private_::
-void debug_channels_ct::init_and_rdlock()
-{
-  _private_::rwlock_tct<libcwd::_private_::debug_channels_instance>::initialize();
-  DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
-  if (!WNS_debug_channels) // MT: `WNS_debug_channels' is only false when this object is still Non_Shared.
-  {
-    LIBCWD_TSD_DECLARATION;
-    DEBUG_CHANNELS_ACQUIRE_READ2WRITE_LOCK;
-    WNS_debug_channels = new debug_channels_ct::container_type; // LEAK3
-    DEBUG_CHANNELS_ACQUIRE_WRITE2READ_LOCK;
-  }
 }
 
 } // namespace _private_
@@ -1199,18 +1340,9 @@ debug_tsd_st::~debug_tsd_st()
  */
 channel_ct* find_channel(char const* label)
 {
-  channel_ct* tmp = NULL;
-  LIBCWD_TSD_DECLARATION;
+  channel_ct* tmp = nullptr;
   LIBCWD_DEFER_CANCEL;
-  _private_::debug_channels.init(LIBCWD_TSD);
-  DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
-  for (_private_::debug_channels_ct::container_type::const_iterator i(_private_::debug_channels.read_locked().begin());
-       i != _private_::debug_channels.read_locked().end(); ++i)
-  {
-    if (!strncasecmp(label, (*i)->get_label(), strlen(label)))
-      tmp = (*i);
-  }
-  DEBUG_CHANNELS_RELEASE_READ_LOCK;
+  tmp = _private_::debug_channels_ct::instance().find(label);
   LIBCWD_RESTORE_CANCEL;
   return tmp;
 }
@@ -1249,26 +1381,18 @@ void list_channels_on(debug_ct& debug_object)
   if (LIBCWD_DO_TSD_MEMBER_OFF(debug_object) < 0)
   {
     LIBCWD_DEFER_CANCEL;
-    _private_::debug_channels.init(LIBCWD_TSD);
-    LIBCWD_RESTORE_CANCEL;
-    LIBCWD_DEFER_CLEANUP_PUSH(&rwlock_tct<libcwd::_private_::debug_channels_instance>::cleanup, NULL);
-    DEBUG_CHANNELS_ACQUIRE_READ_LOCK;
-    for (_private_::debug_channels_ct::container_type::const_iterator i(
-             _private_::debug_channels.read_locked().begin());
-         i != _private_::debug_channels.read_locked().end(); ++i)
-    {
+    _private_::debug_channels_ct::instance().for_each([&](channel_ct& debugChannel) {
       LibcwDoutScopeBegin(LIBCWD_DEBUGCHANNELS, debug_object, dc::always | noprefix_cf);
       LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(),
                             LIBCWD_DO_TSD_MEMBER(debug_object, margin).size());
-      LibcwDoutStream.write((*i)->get_label(), WST_max_len);
-      if ((*i)->is_on(LIBCWD_TSD))
+      LibcwDoutStream.write(debugChannel.get_label(), WST_max_len);
+      if (debugChannel.is_on(LIBCWD_TSD))
         LibcwDoutStream.write(": Enabled", 9);
       else
         LibcwDoutStream.write(": Disabled", 10);
       LibcwDoutScopeEnd;
-    }
-    DEBUG_CHANNELS_RELEASE_READ_LOCK;
-    LIBCWD_CLEANUP_POP_RESTORE(false);
+    });
+    LIBCWD_RESTORE_CANCEL;
   }
 }
 
@@ -1281,88 +1405,11 @@ void channel_ct::NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool ad
 
   DEBUGDEBUG_CERR("Entering `channel_ct::NS_initialize(\"" << label << "\")'");
 
-  size_t label_len = strlen(label);
-
-  if (label_len > max_label_len_c) // Only happens for customized channels
-    DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
-
   LIBCWD_DEFER_CANCEL;
-  _private_::debug_channels.init(LIBCWD_TSD);
-
-  static _private_::debug_channels_ct hidden_channels;
-  hidden_channels.init(LIBCWD_TSD);
-
-  DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK;
-
-  const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = ' ';
-  const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = ' ';
-  _private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
-  for (_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
-    const_cast<char*>((*i)->get_label())[WST_max_len] = ' ';
-  _private_::debug_channels_ct::container_type& channels_not_listed(hidden_channels.write_locked());
-  for (_private_::debug_channels_ct::container_type::iterator i(channels_not_listed.begin());
-       i != channels_not_listed.end(); ++i)
-    const_cast<char*>((*i)->get_label())[WST_max_len] = ' ';
-
-  // MT: This is not strict thread safe because it is possible that after threads are already
-  //     running, a new shared library is dlopen-ed with a new global channel_ct with a larger
-  //     label.  However, it makes no sense to lock the *reading* of WST_max_len for the other
-  //     threads because this assignment is an atomic operation.  The lock above is only needed
-  //     to prefend two such simultaneously loaded libraries from causing WST_max_len to end up
-  //     not maximal.
-  //     When this thread is cancelled later, there is no need to take action: the debug channel
-  //     is global and can be used by any thread.  We want to keep the maximum label length as
-  //     set by this channel.  Even when this debug channel is part of shared library that is
-  //     being loaded by dlopen() then it won't get removed when this thread is cancelled.
-  //     (Actually, a downwards update of WST_max_len should be done by dlclose if at all).
-  if (label_len > WST_max_len)
-    WST_max_len = label_len;
-
-  const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = '\0';
-  const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = '\0';
-  for (_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
-    const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
-  for (_private_::debug_channels_ct::container_type::iterator i(channels_not_listed.begin());
-       i != channels_not_listed.end(); ++i)
-    const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
-
-  // MT: Take advantage of the `libcwd::_private_::debug_channels_instance' lock to prevent simultaneous access
-  //     to `next_index' in the case of simultaneously dlopen-loaded libraries.
-  static int next_index;
-  WNS_index = ++next_index; // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
-
-  __libcwd_tsd.off_cnt_array[WNS_index] = 0;
-
-  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow strncpy(WNS_label, label, label_len);
-  PRAGMA_DIAGNOSTIC_POP
-  std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
-  WNS_label[WST_max_len] = '\0';
-
-  if (add_to_channel_list)
-  {
-    // We store debug channels in some organized order, so that the
-    // order in which they appear in the ForAllDebugChannels is not
-    // dependent on the order in which these global objects are
-    // initialized.
-    _private_::debug_channels_ct::container_type::iterator i(channels.begin());
-    for (; i != channels.end(); ++i)
-      if (strncmp((*i)->get_label(), WNS_label, WST_max_len) > 0)
-        break;
-    channels.insert(i, this);
-  }
-  else
-    channels_not_listed.push_back(this);
-
-  DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
+  _private_::debug_channels_ct::instance().initialize_channel(*this, label LIBCWD_COMMA_TSD, add_to_channel_list);
   LIBCWD_RESTORE_CANCEL;
 
-  // Turn debug channel "WARNING" on by default.
-  if (strncmp(WNS_label, "WARNING", label_len) == 0)
-    __libcwd_tsd.off_cnt_array[WNS_index] = -1;
-
   DEBUGDEBUG_CERR("Leaving `channel_ct::NS_initialize(\"" << label << "\")");
-
-  WNS_initialized = true;
 }
 
 void fatal_channel_ct::NS_initialize(char const* label, control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM)
@@ -1372,36 +1419,10 @@ void fatal_channel_ct::NS_initialize(char const* label, control_flag_t maskbit L
   if (WNS_maskbit)
     return; // Already initialized.
 
-  WNS_maskbit = maskbit;
-
   DEBUGDEBUG_CERR("Entering `fatal_channel_ct::NS_initialize(\"" << label << "\")'");
 
-  size_t label_len = strlen(label);
-
-  if (label_len > max_label_len_c) // Only happens for customized channels
-    DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
-
   LIBCWD_DEFER_CANCEL;
-  _private_::debug_channels.init(LIBCWD_TSD);
-  DEBUG_CHANNELS_ACQUIRE_WRITE_LOCK;
-
-  _private_::debug_channels_ct::container_type& channels(_private_::debug_channels.write_locked());
-  for (_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
-    const_cast<char*>((*i)->get_label())[WST_max_len] = ' ';
-
-  // MT: See comments in channel_ct::NS_initialize above.
-  if (label_len > WST_max_len)
-    WST_max_len = label_len;
-
-  for (_private_::debug_channels_ct::container_type::iterator i(channels.begin()); i != channels.end(); ++i)
-    const_cast<char*>((*i)->get_label())[WST_max_len] = '\0';
-
-  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow strncpy(WNS_label, label, label_len);
-  PRAGMA_DIAGNOSTIC_POP
-  std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
-  WNS_label[WST_max_len] = '\0';
-
-  DEBUG_CHANNELS_RELEASE_WRITE_LOCK;
+  _private_::debug_channels_ct::instance().initialize_fatal_channel(*this, label, maskbit LIBCWD_COMMA_TSD);
   LIBCWD_RESTORE_CANCEL;
 
   DEBUGDEBUG_CERR("Leaving `fatal_channel_ct::NS_initialize(\"" << label << "\")");
