@@ -39,7 +39,6 @@ void initialize_global_mutexes()
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   mutex_tct<static_tsd_instance>::initialize();
   mutex_tct<mutex_initialization_instance>::initialize();
-  rwlock_tct<object_files_instance>::initialize();
   mutex_tct<dlopen_map_instance>::initialize();
   mutex_tct<dlclose_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();

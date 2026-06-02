@@ -42,6 +42,12 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     return;
   }
 
+  // This should never happen because it is not possible that a thread ends up calling
+  // location_ct::M_pc_location while writing writing to the final ostream now that the
+  // memory allocation support was removed from libcwd.
+  LIBCWD_ASSERT(!__libcwd_tsd.pthread_lock_interface_is_locked);
+
+#if 0
   if (__libcwd_tsd.pthread_lock_interface_is_locked)
   {
     // Some time, in another universe, this might really happen:
@@ -66,6 +72,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
     M_initialization_delayed = addr;
     return;
   }
+#endif
 
   ObjectFileInterface const* object_file = find_object_file(addr LIBCWD_COMMA_TSD);
 

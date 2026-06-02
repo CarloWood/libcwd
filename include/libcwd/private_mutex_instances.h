@@ -21,13 +21,7 @@ enum mutex_instance_nt {
   // Recursive mutexes.
   static_tsd_instance,
   dlclose_instance,
-  object_files_instance,		// rwlock
   end_recursive_types,
-  // Values reserved for test executables.
-  rwtest_instance0,                     // rwlock
-  rwtest_instance1,                     // rwlock
-  rwtest_instance2,                     // rwlock
-  rwtest_instance3,                     // rwlock
 #if CWDEBUG_DEBUGT
   keypair_map_instance,
   pthread_lock_interface_instance,	// Dummy instance that is used to store who locked the ostream.
