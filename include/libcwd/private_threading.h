@@ -24,13 +24,10 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 	} while(0)
 #define LIBCWD_DEBUGDEBUGLOCK_CERR(x) \
 	do { \
-	  if constexpr (instance != static_tsd_instance) \
-	  { \
-	    pthread_mutex_lock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
-	    ++LIBCWD_DEBUGDEBUGLOCK_CERR_count; \
-            FATALDEBUGDEBUG_CERR("[" << LIBCWD_DEBUGDEBUGLOCK_CERR_count << "] " << pthread_self() << ": " << x); \
-	    pthread_mutex_unlock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
-	  } \
+	  pthread_mutex_lock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
+	  ++LIBCWD_DEBUGDEBUGLOCK_CERR_count; \
+          FATALDEBUGDEBUG_CERR("[" << LIBCWD_DEBUGDEBUGLOCK_CERR_count << "] " << pthread_self() << ": " << x); \
+	  pthread_mutex_unlock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
 	} while(0)
 #else // !LIBCWD_DEBUGDEBUGRWLOCK
 #define LIBCWD_DEBUGDEBUGRWLOCK_CERR(x) do { } while(0)
@@ -175,13 +172,11 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED \
     LibcwDebugThreads( \
-	if constexpr (instance != static_tsd_instance) \
-	{ \
-	  /* When entering a critical area, make sure that we have explictely deferred cancellation of this */ \
-	  /* thread (or disabled that) because when cancellation would happen in the middle of the critical */ \
-	  /* area then the lock would stay locked.                                                          */ \
-	  LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ); \
-	} )
+	/* When entering a critical area, make sure that we have explictely deferred cancellation of this */ \
+	/* thread (or disabled that) because when cancellation would happen in the middle of the critical */ \
+	/* area then the lock would stay locked.                                                          */ \
+	LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred || __libcwd_tsd.cancel_explicitely_disabled ); \
+    )
 
 template <int instance>
 class mutex_tct {
@@ -237,19 +232,13 @@ class mutex_tct {
     {
       LibcwDebugThreads( LIBCWD_ASSERT( S_initialized ) );
 #if CWDEBUG_DEBUGT
-      TSD_st* tsd_ptr = 0;
-      if constexpr (instance != static_tsd_instance)
-      {
-        LIBCWD_TSD_DECLARATION;
-	tsd_ptr = &__libcwd_tsd;
-      }
-      TSD_st& __libcwd_tsd(*tsd_ptr);
+      LIBCWD_TSD_DECLARATION;
 #endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
-      LibcwDebugThreads( if (instance != static_tsd_instance) { ++__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( ++__libcwd_tsd.inside_critical_area );
       LIBCWD_DEBUGDEBUGLOCK_CERR("locking mutex " << instance << " (" << (void*)&S_mutex << ") from " << __builtin_return_address(0) << " from " << __builtin_return_address(1));
 #if CWDEBUG_DEBUGT
-      if constexpr (instance != static_tsd_instance && !(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
+      if constexpr (!(instance >= 2 * reserved_instance_low && instance < 3 * reserved_instance_low))
       {
 	__libcwd_tsd.waiting_for_lock = instance;
 	LIBCWD_DEBUGDEBUGLOCK_CERR("pthread_mutex_lock(" << S_mutex << ").");
@@ -290,13 +279,7 @@ class mutex_tct {
     static void unlock()
     {
 #if CWDEBUG_DEBUGT
-      TSD_st* tsd_ptr = 0;
-      if constexpr (instance != static_tsd_instance)
-      {
-        LIBCWD_TSD_DECLARATION;
-	tsd_ptr = &__libcwd_tsd;
-      }
-      TSD_st& __libcwd_tsd(*tsd_ptr);
+      LIBCWD_TSD_DECLARATION;
 #endif
       LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED;
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
@@ -330,15 +313,9 @@ class mutex_tct {
       LIBCWD_ASSERT(res == 0);
 #endif
       LIBCWD_DEBUGDEBUGLOCK_CERR("Lock " << instance << " released (" << (void*)&S_mutex << ").");
-      LibcwDebugThreads( if (instance != static_tsd_instance) { --__libcwd_tsd.inside_critical_area; } );
+      LibcwDebugThreads( --__libcwd_tsd.inside_critical_area );
     }
 };
-
-#if LIBCWD_USE_LINUXTHREADS
-// Declare specializations.
-template <>
-  pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex;
-#endif
 
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 template <int instance>
@@ -370,16 +347,11 @@ template <int instance>
 #if !LIBCWD_USE_LINUXTHREADS
 	pthread_mutexattr_t mutex_attr;
 	pthread_mutexattr_init(&mutex_attr);
-	if constexpr (instance < end_recursive_types)
-	  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
-	else
-	{
 #if CWDEBUG_DEBUGT
-	  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
+        pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
 #else
-	  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
+        pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
 #endif
-	}
 	pthread_mutex_init(&S_mutex, &mutex_attr);
 	pthread_mutexattr_destroy(&mutex_attr);
 #endif // !LIBCWD_USE_LINUXTHREADS

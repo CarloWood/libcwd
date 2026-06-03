@@ -18,9 +18,6 @@ namespace libcwd::_private_ {
 
 // The different instance-ids used in libcwd.
 enum mutex_instance_nt {
-  // Recursive mutexes.
-  static_tsd_instance,
-  end_recursive_types,
 #if CWDEBUG_DEBUGT
   keypair_map_instance,
   pthread_lock_interface_instance,	// Dummy instance that is used to store who locked the ostream.

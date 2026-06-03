@@ -92,7 +92,6 @@ public:
   thread_ct* target_thread;
   int terminating;
   bool pthread_lock_interface_is_locked;// Set while writing debugout to the final ostream.
-  int inside_free;			// Set when entering free().
   bool recursive_fatal;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
   bool recursive_assert;		// Detect loop involving LIBCWD_ASSERT.
@@ -127,7 +126,7 @@ public:
 //-------------------------------------------------------
 // Static data and methods.
 private:
-  static TSD_st& S_create(int from_free);
+  static TSD_st& S_create();
   static pthread_key_t S_tsd_key;
   static pthread_once_t S_tsd_key_once;
   static void S_tsd_key_alloc();
@@ -135,8 +134,6 @@ private:
 
 public:
   static TSD_st& instance();
-  static TSD_st& instance_free();
-  static void free_instance(TSD_st&);
 };
 
 // Thread Specific Data (TSD) is stored in a structure TSD_st
