@@ -448,8 +448,8 @@ debug_channels_ct const& debug_channels_ct::instance()
 
 // Return the registered channel whose label matches label as a case-insensitive prefix.
 //
-// When several channels match, the last one in sorted registry order is returned, preserving the old
-// find_channel behavior of selecting the lexicographically largest matching label.
+// When several channels match, the lexicographically largest matching label is returned so abbreviated
+// lookups resolve deterministically regardless of registration order.
 channel_ct* debug_channels_ct::find(char const* label) const
 {
   channel_ct* result = nullptr;
@@ -594,8 +594,8 @@ debug_objects_ct const& debug_objects_ct::instance()
 
 // Register debug_object if it has not already been registered.
 //
-// A single write access covers both the duplicate check and the insertion. This keeps the old registry
-// behavior while replacing the manual DEBUG_OBJECTS_* lock/unlock sequence with an RAII write lock.
+// A single write access covers both the duplicate check and the insertion so concurrent initialization
+// cannot register the same debug object twice.
 void debug_objects_ct::add_if_missing(debug_ct* debug_object) const
 {
   impl_ct::debug_objects_t::wat debug_objects_w(impl_->debug_objects_);

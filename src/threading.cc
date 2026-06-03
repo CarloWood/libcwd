@@ -467,7 +467,7 @@ ThreadList const& ThreadList::instance()
 //
 // The resulting iterator is stored in __libcwd_tsd before initialization finishes so later TSD cleanup can
 // mark this exact list entry as terminating. Holding the write access until after thread_ct::initialize
-// preserves the old rule that no other traversal can observe a partially initialized thread object.
+// ensures that concurrent traversals only observe fully initialized thread objects.
 void ThreadList::add_current_thread(LIBCWD_TSD_PARAM) const
 {
   impl_ct::threads_ts::wat threads_w(impl_->threads_);
