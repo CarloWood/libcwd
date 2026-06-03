@@ -195,16 +195,6 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
       LIBCWD_RESTORE_CANCEL
 #endif // !LIBCWD_USE_LINUXTHREADS
 
-#define LIBCWD_PUSH_DEFER_TRYLOCK_MUTEX(instance, unlock_routine) \
-      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)()>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
-      bool __libcwd_lock_successful = ::libcwd::_private_::mutex_tct<(instance)>::try_lock()
-#define LIBCWD_DEFER_PUSH_LOCKMUTEX(instance, unlock_routine) \
-      LIBCWD_DEFER_CLEANUP_PUSH(static_cast<void (*)()>(unlock_routine), &::libcwd::_private_::mutex_tct<(instance)>::S_mutex); \
-      ::libcwd::_private_::mutex_tct<(instance)>::lock(); \
-      bool const __libcwd_lock_successful = true
-#define LIBCWD_UNLOCKMUTEX_POP_RESTORE(instance) \
-      LIBCWD_CLEANUP_POP_RESTORE(__libcwd_lock_successful)
-
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED \
     LibcwDebugThreads( \
 	if constexpr (instance != static_tsd_instance) \
@@ -401,7 +391,6 @@ template <int instance>
     else						// General case.
     {
       mutex_tct<mutex_initialization_instance>::initialize();
-      /* LIBCWD_DEFER_PUSH_LOCKMUTEX(mutex_initialization_instance, mutex_tct<mutex_initialization_instance>::unlock); */
       if (!S_initialized)					// Check again now that we are locked.
       {
 #if !LIBCWD_USE_LINUXTHREADS
@@ -422,7 +411,6 @@ template <int instance>
 #endif // !LIBCWD_USE_LINUXTHREADS
 	S_initialized = true;
       }
-      /* LIBCWD_UNLOCKMUTEX_POP_RESTORE(mutex_initialization_instance); */
     }
   }
 #endif // !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
