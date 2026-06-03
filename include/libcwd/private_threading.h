@@ -173,28 +173,6 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
       LIBCWD_RESTORE_CANCEL_NO_BRACE; \
     }
 
-#if LIBCWD_USE_LINUXTHREADS
-#define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg) \
-    pthread_cleanup_push_defer_np(reinterpret_cast<void(*)(void*)>(routine), reinterpret_cast<void*>(arg)); \
-      LibcwDebugThreads( ++__libcwd_tsd.cancel_explicitely_deferred; ++__libcwd_tsd.cleanup_handler_installed )
-#define LIBCWD_ASSERT_NONINTERNAL
-#define LIBCWD_CLEANUP_POP_RESTORE(execute) \
-      LibcwDebugThreads( --__libcwd_tsd.cleanup_handler_installed; \
-	    LIBCWD_ASSERT( __libcwd_tsd.cancel_explicitely_deferred > 0 ); \
-	    LIBCWD_ASSERT_NONINTERNAL; ); \
-      pthread_cleanup_pop_restore_np(static_cast<int>(execute)); \
-      LibcwDebugThreads( --__libcwd_tsd.cancel_explicitely_deferred; )
-#else // !LIBCWD_USE_LINUXTHREADS
-#define LIBCWD_DEFER_CLEANUP_PUSH(routine, arg) \
-      LIBCWD_DEFER_CANCEL; \
-      LibcwDebugThreads( ++__libcwd_tsd.cleanup_handler_installed ); \
-      pthread_cleanup_push(reinterpret_cast<void(*)(void*)>(routine), reinterpret_cast<void*>(arg))
-#define LIBCWD_CLEANUP_POP_RESTORE(execute) \
-      LibcwDebugThreads( --__libcwd_tsd.cleanup_handler_installed ); \
-      pthread_cleanup_pop(static_cast<int>(execute)); \
-      LIBCWD_RESTORE_CANCEL
-#endif // !LIBCWD_USE_LINUXTHREADS
-
 #define LIBCWD_DEBUGDEBUG_ASSERT_CANCEL_DEFERRED \
     LibcwDebugThreads( \
 	if constexpr (instance != static_tsd_instance) \
@@ -354,8 +332,6 @@ class mutex_tct {
       LIBCWD_DEBUGDEBUGLOCK_CERR("Lock " << instance << " released (" << (void*)&S_mutex << ").");
       LibcwDebugThreads( if (instance != static_tsd_instance) { --__libcwd_tsd.inside_critical_area; } );
     }
-    // This is used as cleanup handler with LIBCWD_DEFER_CLEANUP_PUSH.
-    static void cleanup(void*);
 };
 
 #if LIBCWD_USE_LINUXTHREADS
@@ -427,12 +403,6 @@ template <int instance>
 #else // !LIBCWD_USE_LINUXTHREADS
       ;
 #endif // !LIBCWD_USE_LINUXTHREADS
-
-template <int instance>
-  void mutex_tct<instance>::cleanup(void*)
-  {
-    unlock();
-  }
 
 #endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 
