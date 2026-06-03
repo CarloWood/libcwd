@@ -39,8 +39,6 @@ void initialize_global_mutexes()
 #if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   mutex_tct<static_tsd_instance>::initialize();
   mutex_tct<mutex_initialization_instance>::initialize();
-  mutex_tct<dlopen_map_instance>::initialize();
-  mutex_tct<dlclose_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
   mutex_tct<kill_threads_instance>::initialize();
 #if CWDEBUG_DEBUGT
@@ -53,8 +51,6 @@ void initialize_global_mutexes()
 // Define specializations.
 template <>
 pthread_mutex_t mutex_tct<static_tsd_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-template <>
-pthread_mutex_t mutex_tct<dlclose_instance>::S_mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 #endif
 
 void mutex_ct::M_initialize()

@@ -20,7 +20,6 @@ namespace libcwd::_private_ {
 enum mutex_instance_nt {
   // Recursive mutexes.
   static_tsd_instance,
-  dlclose_instance,
   end_recursive_types,
 #if CWDEBUG_DEBUGT
   keypair_map_instance,
@@ -29,7 +28,6 @@ enum mutex_instance_nt {
 #endif
   mutex_initialization_instance,
   ids_singleton_tct_S_ids_instance,
-  dlopen_map_instance,
   backtrace_instance,
   write_max_len_instance,
   set_ostream_instance,
