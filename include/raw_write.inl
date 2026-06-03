@@ -3,8 +3,6 @@
 
 #if CWDEBUG_DEBUG
 
-#include "libcwd/private_internal_string.h"
-
 namespace libcwd {
 
 inline
@@ -92,14 +90,6 @@ _private_::raw_write_nt const&
 operator<<(_private_::raw_write_nt const& raw_write, unsigned int data)
 {
   return operator<<(raw_write, static_cast<unsigned long>(data));
-}
-
-inline
-_private_::raw_write_nt const&
-operator<<(_private_::raw_write_nt const& raw_write, libcwd::_private_::internal_string const& data)
-{
-  size_t __attribute__((unused)) __libcwd_len = ::write(2, data.data(), data.size());
-  return raw_write;
 }
 
 } // namespace libcwd

@@ -25,9 +25,6 @@ bool mutex_ct::try_lock()
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
   if (success)
   {
-#if CWDEBUG_DEBUGT
-    _private_::test_for_deadlock(this, __libcwd_tsd, __builtin_return_address(0));
-#endif
     M_instance_locked += 1;
 #if CWDEBUG_DEBUGT
     M_locked_by = pthread_self();
@@ -75,9 +72,6 @@ void mutex_ct::lock()
   LIBCWD_DEBUGDEBUGRWLOCK_CERR(pthread_self() << ": mutex " << (void*)this << " locked");
 #endif
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
-#if CWDEBUG_DEBUGT
-  _private_::test_for_deadlock(this, __libcwd_tsd, __builtin_return_address(0));
-#endif
   M_instance_locked += 1;
 #if CWDEBUG_DEBUGT
   M_locked_by = pthread_self();

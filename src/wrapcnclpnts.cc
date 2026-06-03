@@ -155,14 +155,14 @@ CANCELLATION_POINT_SYSCALL_DLSYM(ssize_t, recvfrom,
 
 CANCELLATION_POINT_SYSCALL_DLSYM(ssize_t, recvmsg, (int fd, struct msghdr* message, int flags), (fd, message, flags))
 
-CANCELLATION_POINT_SYSCALL(ssize_t, send, (int fd, __ptr_t const buf, size_t n, int flags), (fd, buf, n, flags))
+CANCELLATION_POINT_SYSCALL(ssize_t, send, (int fd, void const* buf, size_t n, int flags), (fd, buf, n, flags))
 // strong_alias(send, __send)
 
 CANCELLATION_POINT_SYSCALL_DLSYM(ssize_t, sendmsg, (int fd, const struct msghdr* message, int flags),
                                  (fd, message, flags))
 
 CANCELLATION_POINT_SYSCALL_DLSYM(ssize_t, sendto,
-                                 (int fd, __ptr_t const buf, size_t n, int flags, __CONST_SOCKADDR_ARG addr,
+                                 (int fd, void const* buf, size_t n, int flags, __CONST_SOCKADDR_ARG addr,
                                   socklen_t addr_len),
                                  (fd, buf, n, flags, addr, addr_len))
 

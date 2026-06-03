@@ -30,8 +30,9 @@ bool WST_is_NPTL = false;
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 int instance_locked[instance_locked_size];
-pthread_t locked_by[instance_locked_size];
-void const* locked_from[instance_locked_size];
+#endif
+#if CWDEBUG_DEBUGT
+std::mutex raw_write_mutex;
 #endif
 
 void initialize_global_mutexes()
@@ -40,9 +41,6 @@ void initialize_global_mutexes()
   mutex_tct<mutex_initialization_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
   mutex_tct<kill_threads_instance>::initialize();
-#if CWDEBUG_DEBUGT
-  mutex_tct<keypair_map_instance>::initialize();
-#endif
 #endif // !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 }
 
@@ -205,7 +203,6 @@ int pthread_lock_interface_ct::try_lock()
   if (success)
   {
     LIBCWD_TSD_DECLARATION;
-    _private_::test_for_deadlock(pthread_lock_interface_instance, __libcwd_tsd, __builtin_return_address(0));
     __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
     if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
     {
@@ -235,7 +232,6 @@ void pthread_lock_interface_ct::lock()
   pthread_mutex_lock(ptr);
 #if CWDEBUG_DEBUGT
   __libcwd_tsd.waiting_for_rdlock = 0;
-  _private_::test_for_deadlock(pthread_lock_interface_instance, __libcwd_tsd, __builtin_return_address(0));
   __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
   if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
   {
@@ -365,205 +361,6 @@ void thread_ct::initialize(LIBCWD_TSD_PARAM)
 void thread_ct::terminated(ThreadsWat wat LIBCWD_COMMA_TSD_PARAM_UNUSED)
 {
 }
-
-#if CWDEBUG_DEBUGT
-#include <inttypes.h>
-
-// These are the different groups that are allowed together.
-uint16_t const group1 = 0x002; // Instance 1 locked first.
-uint16_t const group2 = 0x004; // Instance 2 locked first.
-uint16_t const group3 = 0x020; // Instance 1 read only and high_priority when second.
-uint16_t const group4 = 0x040; // Instance 2 read only and high_priority when second.
-uint16_t const group5 = 0x200; // (Instance 1 locked first and (either one read only and high_priority when second))
-                               // or (both read only and high_priority when second).
-uint16_t const group6 = 0x400; // (Instance 2 locked first and (either one read only and high_priority when second))
-                               // or (both read only and high_priority when second).
-
-struct keypair_key_st
-{
-  size_t instance1;
-  size_t instance2;
-};
-
-struct keypair_info_st
-{
-  uint16_t state;
-  int limited;
-  void const* from_first[5];
-  void const* from_second[5];
-};
-
-struct keypair_compare_st
-{
-  bool operator()(keypair_key_st const& a, keypair_key_st const& b) const;
-};
-
-// Definition of the map<> that holds the key instance pairs that are ever locked simultaneously by the same thread.
-typedef std::pair<keypair_key_st const, keypair_info_st> keypair_map_value_t;
-typedef std::map<keypair_key_st, keypair_info_st, keypair_compare_st> keypair_map_t;
-static keypair_map_t* keypair_map;
-
-// Bring some arbitrary ordering into the map with key pairs.
-bool keypair_compare_st::operator()(keypair_key_st const& a, keypair_key_st const& b) const
-{
-  return (a.instance1 == b.instance1) ? (a.instance2 < b.instance2) : (a.instance1 < b.instance1);
-}
-
-extern "C" int raise(int);
-void test_lock_pair(size_t instance_first, void const* from_first, size_t instance_second, void const* from_second)
-{
-  if (instance_first == instance_second)
-    return; // Must have been a recursive lock.
-
-  keypair_key_st keypair_key;
-  keypair_info_st keypair_info;
-
-  // Do some decoding and get rid of the 'read_lock_offset' and 'high_priority_read_lock_offset' flags.
-
-  // During the decoding, we assume that the first instance is the smallest (instance 1).
-  keypair_info.state = group1;
-  bool first_is_readonly = false;
-#if CWDEBUG_DEBUGOUTPUT
-  bool second_is_high_priority = false;
-#endif
-  if (instance_first < 0x10000)
-  {
-    if (instance_first >= read_lock_offset)
-    {
-      first_is_readonly = true;
-      keypair_info.state |= (group3 | group5);
-    }
-    instance_first %= read_lock_offset;
-  }
-  if (instance_second < 0x10000)
-  {
-    if (instance_second >= high_priority_read_lock_offset)
-    {
-#if CWDEBUG_DEBUGOUTPUT
-      second_is_high_priority = true;
-#endif
-      keypair_info.state |= (group4 | group5);
-      if (first_is_readonly)
-        keypair_info.state |= group6;
-    }
-    instance_second %= read_lock_offset;
-  }
-
-  // Put the smallest instance in instance1.
-  if (instance_first < instance_second)
-  {
-    keypair_key.instance1 = instance_first;
-    keypair_key.instance2 = instance_second;
-  }
-  else
-  {
-    keypair_key.instance1 = instance_second;
-    keypair_key.instance2 = instance_first;
-    // Correct the state by swapping groups 1 <-> 2, 3 <-> 4, and 5 <-> 6.
-    keypair_info.state =
-        ((keypair_info.state << 1) | (keypair_info.state >> 1)) & (group1 | group2 | group3 | group4 | group5 | group6);
-  }
-
-  // Store the locations where the locks were set.
-  keypair_info.limited = 0;
-  keypair_info.from_first[0] = from_first;
-  keypair_info.from_second[0] = from_second;
-
-  mutex_tct<keypair_map_instance>::lock();
-  std::pair<keypair_map_t::iterator, bool> result = keypair_map->insert(keypair_map_value_t(keypair_key, keypair_info));
-  if (!result.second)
-  {
-    keypair_info_st& stored_info((*result.first).second);
-    uint16_t prev_state = stored_info.state;
-    stored_info.state &= keypair_info.state; // Limit possible groups.
-    if (prev_state != stored_info.state)
-    {
-      stored_info.limited++;
-      stored_info.from_first[stored_info.limited] = from_first;
-      stored_info.from_second[stored_info.limited] = from_second;
-      DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << (first_is_readonly ? " (read-only lock)" : "")
-                                           << "; second: " << instance_second
-                                           << (second_is_high_priority ? " (high priority lock)" : "")
-                                           << "; groups: " << (void*)(unsigned long)stored_info.state << '\n');
-    }
-    if (stored_info.state == 0) // No group left?
-    {
-      FATALDEBUGDEBUG_CERR("\nKEYPAIR: There is a potential deadlock between lock " << keypair_key.instance1 << " and "
-                                                                                    << keypair_key.instance2 << '.');
-      FATALDEBUGDEBUG_CERR("\nKEYPAIR: Previously, these locks were locked in the following locations:");
-      for (int cnt = 0; cnt <= stored_info.limited; ++cnt)
-        FATALDEBUGDEBUG_CERR("\nKEYPAIR: First at " << stored_info.from_first[cnt] << " and then at "
-                                                    << stored_info.from_second[cnt]);
-      mutex_tct<keypair_map_instance>::unlock();
-      core_dump();
-    }
-  }
-  else
-  {
-    DEBUGDEBUG_CERR("\nKEYPAIR: first: " << instance_first << (first_is_readonly ? " (read-only lock)" : "")
-                                         << "; second: " << instance_second
-                                         << (second_is_high_priority ? " (high priority lock)" : "")
-                                         << "; groups: " << (void*)(unsigned long)keypair_info.state << '\n');
-#if 0
-    // X1,W/R2 + Y2,Z3 imply X1,Z3.
-    // First assume the new pair is a possible X1,W/R2:
-    if (!second_is_high_priority)
-    {
-      for (keypair_map_t::iterator iter = keypair_map->begin(); iter != keypair_map->end(); ++iter)
-      {
-      }
-    }
-#endif
-  }
-  mutex_tct<keypair_map_instance>::unlock();
-}
-
-void test_for_deadlock(size_t instance, struct TSD_st& __libcwd_tsd, void const* from)
-{
-  if (!WST_multi_threaded)
-    return; // Give libcwd the time to get initialized.
-
-  if (instance == keypair_map_instance)
-    return;
-
-  // Initialization.
-  if (!keypair_map)
-    keypair_map = new keypair_map_t; // LEAK 28 bytes.  This is never freed anymore.
-
-  // Hold typed read access while scanning the per-thread mutexes. The AIReadWriteMutex used for this
-  // registry is not part of the libcwd mutex bookkeeping that is being inspected here, so the diagnostic
-  // remains focused on application-visible libcwd locks while avoiding an unlocked traversal of a list that
-  // another thread may extend during TSD initialization.
-  ThreadList::impl_ct::threads_ts::crat threads_r(ThreadList::instance().impl_->threads_);
-  for (threadlist_t::const_iterator iter = threads_r->begin(); iter != threads_r->end(); ++iter)
-  {
-    mutex_ct const* mutex = &((*iter).thread_mutex);
-    if (mutex->M_locked_by == __libcwd_tsd.tid && mutex->M_instance_locked >= 1)
-    {
-      assert(reinterpret_cast<size_t>(mutex) >= 0x10000);
-      test_lock_pair(reinterpret_cast<size_t>(mutex), mutex->M_locked_from, instance, from);
-    }
-  }
-  for (int inst = 0; inst < instance_locked_size; ++inst)
-  {
-    // Check for read locks that are already set.  Because it was never stored wether or not
-    // it was a high priority lock, this information is lost.  This is not a problem though
-    // because we treat high priority and normal read locks the same when they are set first.
-    if (inst < instance_rdlocked_size && __libcwd_tsd.rdlocked_by1[inst] == __libcwd_tsd.tid &&
-        __libcwd_tsd.instance_rdlocked[inst] >= 1)
-      test_lock_pair(inst + read_lock_offset, __libcwd_tsd.rdlocked_from1[inst], instance, from);
-    if (inst < instance_rdlocked_size && __libcwd_tsd.rdlocked_by2[inst] == __libcwd_tsd.tid &&
-        __libcwd_tsd.instance_rdlocked[inst] >= 2)
-      test_lock_pair(inst + read_lock_offset, __libcwd_tsd.rdlocked_from2[inst], instance, from);
-    // Check for write locks and normal mutexes.
-    if (locked_by[inst] == __libcwd_tsd.tid && instance_locked[inst] >= 1 && inst != keypair_map_instance)
-      test_lock_pair(inst, locked_from[inst], instance, from);
-  }
-}
-
-pthread_mutex_t raw_write_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-#endif // CWDEBUG_DEBUGT
 
 } // namespace _private_
 } // namespace libcwd

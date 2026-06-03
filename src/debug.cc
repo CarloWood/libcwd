@@ -1268,11 +1268,7 @@ void debug_tsd_st::init()
 }
 
 namespace _private_ {
-#if CWDEBUG_DEBUGT
-void debug_tsd_init(LIBCWD_TSD_PARAM_UNUSED)
-#else
 void debug_tsd_init(LIBCWD_TSD_PARAM)
-#endif
 {
   ForAllDebugObjects(LIBCWD_ASSERT(__libcwd_tsd.do_array[(debugObject).WNS_index] == NULL);
                      debug_tsd_st & tsd(*(__libcwd_tsd.do_array[(debugObject).WNS_index] = new debug_tsd_st));

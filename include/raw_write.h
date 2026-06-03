@@ -16,11 +16,12 @@
 #endif
 extern "C" ssize_t write(int fd, const void *buf, size_t count);
 
-namespace libcwd {
-  namespace _private_ {
-    extern pthread_mutex_t raw_write_mutex;
-  }
-}
+#if CWDEBUG_DEBUGT
+#include <mutex>
+namespace libcwd::_private_ {
+extern std::mutex raw_write_mutex;
+} // namespace libcwd::_private_
+#endif
 
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
 // when --disable-debug-output is used because a fatal error occured anyway, so this can't
@@ -31,11 +32,11 @@ namespace libcwd {
         int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate); \
 	LIBCWD_TSD_DECLARATION;									\
 	LibcwDebugThreads( ++__libcwd_tsd.internal_debugging_code );				\
-	LibcwDebugThreads( pthread_mutex_lock(&::libcwd::_private_::raw_write_mutex) );	\
+	LibcwDebugThreads( ::libcwd::_private_::raw_write_mutex.lock() );	                \
 	do { size_t __attribute__((unused)) __libcwd_len = ::write(2, "CWDEBUG_DEBUG: ", 15); } while(0); \
-	LibcwDebugThreads( ::libcwd::_private_::raw_write << pthread_self() << ": ");	\
-	::libcwd::_private_::raw_write << x << '\n';					\
-	LibcwDebugThreads( pthread_mutex_unlock(&::libcwd::_private_::raw_write_mutex) );	\
+	LibcwDebugThreads( ::libcwd::_private_::raw_write << pthread_self() << ": ");	        \
+	::libcwd::_private_::raw_write << x << '\n';					        \
+	LibcwDebugThreads( ::libcwd::_private_::raw_write_mutex.unlock() );	                \
 	LibcwDebugThreads( --__libcwd_tsd.internal_debugging_code );				\
 	pthread_setcancelstate(__libcwd_oldstate, NULL);                                        \
       }												\

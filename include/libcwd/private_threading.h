@@ -95,20 +95,6 @@ namespace _private_ {
 extern void initialize_global_mutexes();
 extern bool WST_multi_threaded;
 
-#if CWDEBUG_DEBUGT
-extern void test_for_deadlock(size_t, struct TSD_st&, void const*);
-inline void test_for_deadlock(int instance, struct TSD_st& __libcwd_tsd, void const* from)
-{
-  assert(instance < 0x10000);
-  test_for_deadlock(static_cast<size_t>(instance), __libcwd_tsd, from);
-}
-inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void const* from)
-{
-  assert(reinterpret_cast<size_t>(ptr) >= 0x10000);
-  test_for_deadlock(reinterpret_cast<size_t>(ptr), __libcwd_tsd, from);
-}
-#endif
-
 //===================================================================================================
 //
 // Mutex locking.
@@ -158,6 +144,7 @@ inline void test_for_deadlock(void const* ptr, struct TSD_st& __libcwd_tsd, void
 #define LIBCWD_DEFER_CANCEL_NO_BRACE \
       int __libcwd_oldtype; \
       pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &__libcwd_oldtype); \
+      LIBCWD_TSD_DECLARATION; \
       LibcwDebugThreads( ++__libcwd_tsd.cancel_explicitely_deferred )
 #define LIBCWD_RESTORE_CANCEL_NO_BRACE \
       LibcwDebugThreads(\
@@ -214,15 +201,8 @@ class mutex_tct {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       if (success)
       {
-#if CWDEBUG_DEBUGT
-	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
-#endif
 	LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::try_lock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; incrementing it.");
 	instance_locked[instance] += 1;
-#if CWDEBUG_DEBUGT
-	locked_by[instance] = pthread_self();
-	locked_from[instance] = __builtin_return_address(0);
-#endif
       }
 #endif
       LibcwDebugThreads( if (success) { ++__libcwd_tsd.inside_critical_area; } );
@@ -248,7 +228,6 @@ class mutex_tct {
 	LIBCWD_ASSERT( res == 0 || res == EDEADLK );
 #endif
         __libcwd_tsd.waiting_for_lock = 0;
-	_private_::test_for_deadlock(instance, __libcwd_tsd, __builtin_return_address(0));
 	LIBCWD_ASSERT( res == 0 );
       }
       else
@@ -265,15 +244,6 @@ class mutex_tct {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::lock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; incrementing it.");
       instance_locked[instance] += 1;
-#if CWDEBUG_DEBUGT
-      if (locked_by[instance] != 0 && locked_by[instance] != pthread_self())
-      {
-        LIBCWD_DEBUGDEBUGLOCK_CERR("mutex " << instance << " (" << (void*)&S_mutex << ") is already set by another thread (" << locked_by[instance] << ")!");
-        core_dump();
-      }
-      locked_by[instance] = pthread_self();
-      locked_from[instance] = __builtin_return_address(0);
-#endif
 #endif
     }
     static void unlock()
@@ -285,22 +255,7 @@ class mutex_tct {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
       LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::unlock(): instance_locked[" << instance << "] == " << instance_locked[instance] << "; decrementing it.");
       LIBCWD_ASSERT( instance_locked[instance] > 0 );
-#if CWDEBUG_DEBUGT
-      if (locked_by[instance] != pthread_self())
-      {
-        LIBCWD_DEBUGDEBUGLOCK_CERR("unlocking instance " << instance << " (" << (void*)&S_mutex << ") failed: locked_by[" << instance << "] == " << locked_by[instance] << ".");
-        core_dump();
-      }
-#endif
       instance_locked[instance] -= 1;
-#if CWDEBUG_DEBUGT
-      if (instance_locked[instance] == 0)
-      {
-	locked_by[instance] = 0;
-        LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::unlock(): locked_by[" << instance << "] was reset.");
-      }
-      else LIBCWD_DEBUGDEBUGLOCK_CERR("mutex_tct::unlock(): locked_by[" << instance << "] was not reset, it still is " << locked_by[instance] << ".");
-#endif
 #endif
       LIBCWD_DEBUGDEBUGLOCK_CERR("unlocking mutex " << instance << " (" << (void*)&S_mutex << ").");
       LIBCWD_DEBUGDEBUGLOCK_CERR("pthread_mutex_unlock(" << S_mutex << ").");
