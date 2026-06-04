@@ -32,11 +32,6 @@ int instance_locked[instance_locked_size];
 std::mutex raw_write_mutex;
 #endif
 
-void initialize_global_mutexes()
-{
-  mutex_tct<set_ostream_instance>::initialize();
-}
-
 void mutex_ct::M_initialize()
 {
   pthread_mutexattr_t mutex_attr;
@@ -105,7 +100,6 @@ TSD_st& TSD_st::S_create()
   if (!WST_first_thread_initialized) // Is this the first thread?
   {
     WST_first_thread_initialized = true;
-    initialize_global_mutexes();
     threading_tsd_init(*real_tsd); // Initialize the TSD of stuff that goes in threading.cc.
   }
   else
@@ -304,7 +298,7 @@ void ThreadList::mark_thread_terminated(ThreadList::list_type::iterator thread_i
 // current_tid is never cancelled.
 void ThreadList::cancel_all_other_threads(pthread_t current_tid) const
 {
-  impl_ct::threads_ts::crat threads_r(impl_->threads_);
+  impl_ct::threads_ts::rat threads_r(impl_->threads_);
   for (thread_ct const& thread : *threads_r)
     if (!pthread_equal(thread.tid, current_tid))
       pthread_cancel(thread.tid);

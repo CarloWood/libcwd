@@ -97,16 +97,19 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
   }
   this->sgetn(msgbuf, curlen);
   LIBCWD_DISABLE_CANCEL; // We don't want Dout() to be a cancellation point.
-  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
-  bool got_lock = debug_object.M_mutex;
-  if (got_lock)
+  std::ostream* locked_os;
+  _private_::lock_interface_base_ct* locked_mutex;
   {
-    debug_object.M_mutex->lock();
-    __libcwd_tsd.pthread_lock_interface_is_locked = true;
+    _private_::ostream_state_ts::rat ostream_state_r(debug_object.ostream_state_);
+    locked_os = os ? os : ostream_state_r->real_os;
+    locked_mutex = ostream_state_r->mutex;
+    if (locked_mutex)
+    {
+      locked_mutex->lock();
+      __libcwd_tsd.pthread_lock_interface_is_locked = true;
+    }
   }
-  std::ostream* locked_os = os;
-  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
-  if (!got_lock && _private_::WST_multi_threaded)
+  if (!locked_mutex && _private_::WST_multi_threaded)
   {
     static bool WST_second_time = false; // Break infinite loop.
     if (!WST_second_time)
@@ -180,10 +183,10 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
     else
       debug_object.unfinished_oss = this;
   }
-  if (got_lock)
+  if (locked_mutex)
   {
     __libcwd_tsd.pthread_lock_interface_is_locked = false;
-    debug_object.M_mutex->unlock();
+    locked_mutex->unlock();
   }
   LIBCWD_ENABLE_CANCEL;
   if (free_msgbuf)
@@ -342,7 +345,6 @@ void ST_initialize_globals(LIBCWD_TSD_PARAM)
   if (ST_already_called)
     return;
   ST_already_called = true;
-  _private_::initialize_global_mutexes();
   _private_::process_environment_variables();
 
   // Fatal channels need to be marked fatal, otherwise we get into an endless loop
@@ -466,7 +468,7 @@ debug_channels_ct const& debug_channels_ct::instance()
 channel_ct* debug_channels_ct::find(char const* label) const
 {
   channel_ct* result = nullptr;
-  impl_ct::channel_sets_ts::crat debug_channels_r(impl_->channel_sets_);
+  impl_ct::channel_sets_ts::rat debug_channels_r(impl_->channel_sets_);
   for (channel_ct* debug_channel : debug_channels_r->visible_)
     if (!strncasecmp(label, debug_channel->get_label(), strlen(label)))
       result = debug_channel;
@@ -580,7 +582,7 @@ void debug_channels_ct::initialize_fatal_channel(fatal_channel_ct& channel, char
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void debug_channels_ct::for_each_impl(callback_type callback, void* data) const
 {
-  impl_ct::channel_sets_ts::crat debug_channels_r(impl_->channel_sets_);
+  impl_ct::channel_sets_ts::rat debug_channels_r(impl_->channel_sets_);
   for (channel_ct* debug_channel : debug_channels_r->visible_)
     callback(*debug_channel, data);
 }
@@ -622,7 +624,7 @@ void debug_objects_ct::add_if_missing(debug_ct* debug_object) const
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void debug_objects_ct::for_each_impl(callback_type callback, void* data) const
 {
-  impl_ct::debug_objects_t::crat debug_objects_r(impl_->debug_objects_);
+  impl_ct::debug_objects_t::rat debug_objects_r(impl_->debug_objects_);
   for (debug_ct* debug_object : *debug_objects_r)
     callback(*debug_object, data);
 }
@@ -868,24 +870,30 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
     current->err = errno; // Always keep the last errno as set at the start of LibcwDout()
     if (!(current->mask & continued_expected_maskbit))
     {
-      std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
-      // Try to get the lock, but don't try too long...
-      int res;
-      struct timespec const t = {0, 5000000};
-      int count = 0;
-      do
+      bool have_lock = false;
       {
-        if (!(res = debug_object.M_mutex->try_lock()))
-          break;
-        nanosleep(&t, NULL);
-      } while (++count < 40);
-      debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
-      size_t color_off_size = color_off.size();
-      if (color_off_size > 0)
-        target_os->write(color_off.c_str(), color_off_size);
-      target_os->put('\n');
-      if (res == 0)
-        debug_object.M_mutex->unlock();
+        _private_::ostream_state_ts::rat ostream_state_r(debug_object.ostream_state_);
+        std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : ostream_state_r->real_os;
+        _private_::lock_interface_base_ct* target_mutex = ostream_state_r->mutex;
+        // Try to get the lock, but don't try too long...
+        struct timespec const t = {0, 5000000};
+        int count = 0;
+        if (target_mutex)
+          do
+          {
+            if ((have_lock = !target_mutex->try_lock()))
+              break;
+            nanosleep(&t, NULL);
+          }
+          while (++count < 40);
+        debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
+        size_t color_off_size = color_off.size();
+        if (color_off_size > 0)
+          target_os->write(color_off.c_str(), color_off_size);
+        target_os->put('\n');
+        if (have_lock)
+          target_mutex->unlock();
+      }
       char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #if CWDEBUG_LOCATION
       DoutFatal(dc::core,
@@ -919,7 +927,7 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
 #endif
     int saved_errno = errno; // The writeto below changes errno.
     // And write out what is in the buffer till now.
-    std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : debug_object.real_os;
+    std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
     current->buffer.writeto(
         target_os LIBCWD_COMMA_TSD, debug_object,
         true, // This thread requests an <unfinished> because of previous, unfinished 'continued' output.
@@ -1026,7 +1034,7 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
 #if CWDEBUG_DEBUG
   LIBCWD_ASSERT(current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf));
 #endif
-  std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : debug_object.real_os;
+  std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : nullptr;
 
   // Skip `finish()' for a `continued' debug output.
   if ((current->mask & continued_cf_maskbit) && !(current->mask & finish_maskbit))
@@ -1120,14 +1128,23 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
       current->buffer.writeto(
           target_os LIBCWD_COMMA_TSD, debug_object, false,
           debug_object.interactive COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
-      debug_object.M_mutex->lock();
-      *target_os << "(type return)";
+      _private_::lock_interface_base_ct* locked_mutex;
+      std::ostream* locked_os;
+      {
+        _private_::ostream_state_ts::rat ostream_state_r(debug_object.ostream_state_);
+        locked_mutex = ostream_state_r->mutex;
+        locked_os = target_os ? target_os : ostream_state_r->real_os;
+        if (locked_mutex)
+          locked_mutex->lock();
+      }
+      *locked_os << "(type return)";
       if (debug_object.interactive)
       {
-        *target_os << std::flush;
+        *locked_os << std::flush;
         while (std::cin.get() != '\n');
       }
-      debug_object.M_mutex->unlock();
+      if (locked_mutex)
+        locked_mutex->unlock();
     }
     else
       current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object, false,
@@ -1202,7 +1219,6 @@ bool debug_ct::NS_init(LIBCWD_TSD_PARAM)
 
   NS_being_initialized = true;
 
-  M_mutex = NULL;
   unfinished_oss = NULL;
 
 #if CWDEBUG_DEBUG
@@ -1625,19 +1641,20 @@ void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
   LIBCWD_TSD_DECLARATION;
   _private_::lock_interface_base_ct* new_mutex =
       new _private_::pthread_lock_interface_ct(mutex); // A single LEAK of 20 bytes per debug object from here is ok.
+  _private_::lock_interface_base_ct* old_mutex;
   LIBCWD_DEFER_CANCEL;
-  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
-  _private_::lock_interface_base_ct* old_mutex = M_mutex;
-  if (old_mutex)
-    old_mutex->lock(); // Make sure all other threads left this critical area.
-  M_mutex = new_mutex;
-  if (old_mutex)
   {
-    old_mutex->unlock();
-    delete old_mutex;
+    _private_::ostream_state_ts::wat ostream_state_w(ostream_state_);
+    old_mutex = ostream_state_w->mutex;
+    if (old_mutex)
+      old_mutex->lock(); // Make sure all other threads left this critical area.
+    ostream_state_w->mutex = new_mutex;
+    if (old_mutex)
+      old_mutex->unlock();
+    private_set_ostream(*ostream_state_w, os);
   }
-  private_set_ostream(os);
-  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+  if (old_mutex)
+    delete old_mutex;
   LIBCWD_RESTORE_CANCEL;
 }
 
@@ -1664,9 +1681,10 @@ void debug_ct::set_ostream(std::ostream* os)
   LIBCWD_TSD_DECLARATION;
 #endif
   LIBCWD_DEFER_CANCEL;
-  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
-  private_set_ostream(os);
-  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+  {
+    _private_::ostream_state_ts::wat ostream_state_w(ostream_state_);
+    private_set_ostream(*ostream_state_w, os);
+  }
   LIBCWD_RESTORE_CANCEL;
 }
 

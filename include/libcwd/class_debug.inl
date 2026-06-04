@@ -136,9 +136,7 @@ debug_ct::get_ostream() const
 {
   std::ostream* real_os_ptr;
   LIBCWD_DEFER_CANCEL;
-  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
-  real_os_ptr = real_os;
-  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+  real_os_ptr = _private_::ostream_state_ts::crat(ostream_state_)->real_os;
   LIBCWD_RESTORE_CANCEL;
   return real_os_ptr;
 }
@@ -149,18 +147,16 @@ debug_ct::has_mutex() const
 {
   bool has_mutex;
   LIBCWD_DEFER_CANCEL;
-  _private_::mutex_tct<_private_::set_ostream_instance>::lock();
-  has_mutex = M_mutex;
-  _private_::mutex_tct<_private_::set_ostream_instance>::unlock();
+  has_mutex = _private_::ostream_state_ts::crat(ostream_state_)->mutex;
   LIBCWD_RESTORE_CANCEL;
   return has_mutex;
 }
 
 inline
 void
-debug_ct::private_set_ostream(std::ostream* os)
+debug_ct::private_set_ostream(_private_::ostream_state_ct& ostream_state, std::ostream* os)
 {
-  real_os = os;
+  ostream_state.real_os = os;
 #if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );

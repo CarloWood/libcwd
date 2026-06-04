@@ -15,12 +15,31 @@
 #include "private_struct_TSD.h"
 #include "struct_debug_tsd.h"
 #include "private_lock_interface.h"
+#include "threadsafe/threadsafe.h"
 #include <iosfwd>
 #include <atomic>
+#include <mutex>
 
 namespace libcwd {
 
 class buffer_ct;
+
+namespace _private_ {
+
+// Store the ostream destination together with the lock that protects writes to it.
+//
+// real_os is the destination selected with debug_ct::set_ostream. mutex points at the user-provided lock
+// adapter for that stream, or is null while the debug object is still limited to single-threaded output.
+struct ostream_state_ct
+{
+  std::ostream* real_os{};
+  lock_interface_base_ct* mutex{};
+};
+
+using ostream_state_ts =
+    threadsafe::Unlocked<ostream_state_ct, threadsafe::policy::Primitive<std::mutex>>;
+
+} // namespace _private_
 
 //===================================================================================================
 // class debug_ct
@@ -57,13 +76,10 @@ protected:
   // Protected attributes.
   //
 
-  std::ostream* real_os;
-    // The original output ostream (as set with set_ostream()).
-    //
   friend class libcwd::buffer_ct;		// buffer_ct::writeto() needs access.
-  _private_::lock_interface_base_ct* M_mutex;
-    // Pointer to the mutex that should be used for `real_os' or NULL when no lock is used.
-    // A value of NULL is only allowed prior to creating a second thread.
+  _private_::ostream_state_ts ostream_state_;
+    // Lazily allocated ostream destination state and matching external lock, protected as one unit.
+    // This remains a pointer because debug_ct storage may be used by initialize() before the constructor runs.
 
   buffer_ct* unfinished_oss;
   void const* newlineless_tsd;
@@ -188,7 +204,11 @@ public:
   debug_ct();
 
 private:
-  void private_set_ostream(std::ostream* os);
+  // Store os in the already locked ostream_state for this debug object.
+  //
+  // The caller keeps the write access object alive while calling this helper so the ostream pointer remains
+  // synchronized with the stream lock pointer that readers use for the lifetime handoff.
+  void private_set_ostream(_private_::ostream_state_ct& ostream_state, std::ostream* os);
 
 public:
   //-------------------------------------------------------------------------------------------------

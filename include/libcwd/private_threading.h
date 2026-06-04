@@ -74,7 +74,6 @@ operator<<(_private_::raw_write_nt const& raw_write, pthread_mutex_t const& mute
 
 namespace _private_ {
 
-extern void initialize_global_mutexes();
 extern bool WST_multi_threaded;
 
 //===================================================================================================
