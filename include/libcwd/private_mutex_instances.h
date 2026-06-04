@@ -22,7 +22,6 @@ enum mutex_instance_nt {
   pthread_lock_interface_instance,	// Dummy instance that is used to store who locked the ostream.
   instance_rdlocked_size,		// Must come after last rwlock and pthread_lock_interface_instance.
 #endif
-  mutex_initialization_instance,
   ids_singleton_tct_S_ids_instance,
   backtrace_instance,
   write_max_len_instance,

@@ -251,7 +251,7 @@ template <int instance>
 template <int instance>
   void mutex_tct<instance>::S_initialize()
   {
-    if constexpr (instance == mutex_initialization_instance)	// Specialization.
+    if (!S_initialized)
     {
       pthread_mutexattr_t mutex_attr;
       pthread_mutexattr_init(&mutex_attr);
@@ -263,23 +263,6 @@ template <int instance>
       pthread_mutex_init(&S_mutex, &mutex_attr);
       pthread_mutexattr_destroy(&mutex_attr);
       S_initialized = true;
-    }
-    else						// General case.
-    {
-      mutex_tct<mutex_initialization_instance>::initialize();
-      if (!S_initialized)					// Check again now that we are locked.
-      {
-	pthread_mutexattr_t mutex_attr;
-	pthread_mutexattr_init(&mutex_attr);
-#if CWDEBUG_DEBUGT
-        pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
-#else
-	pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
-#endif
-	pthread_mutex_init(&S_mutex, &mutex_attr);
-	pthread_mutexattr_destroy(&mutex_attr);
-	S_initialized = true;
-      }
     }
   }
 

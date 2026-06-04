@@ -34,7 +34,6 @@ std::mutex raw_write_mutex;
 
 void initialize_global_mutexes()
 {
-  mutex_tct<mutex_initialization_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
 }
 
