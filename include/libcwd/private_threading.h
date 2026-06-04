@@ -37,30 +37,12 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #include "private_struct_TSD.h"
 #include "private_mutex_instances.h"
 #include "core_dump.h"
-#include <cstring>			// Needed for std::memset and std::memcpy.
 
 #ifdef LIBCWD_HAVE_PTHREAD
-#ifdef __linux
-#ifndef _GNU_SOURCE
-#error "You need to use define _GNU_SOURCE in order to make use of the extensions of Linux Threads."
-#endif
-#endif
 #include <pthread.h>
-#if defined(PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP) && defined(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP)
-#define LIBCWD_USE_LINUXTHREADS 1
-#else
-#define LIBCWD_USE_POSIX_THREADS 1
-#endif
 #else
 #error Fatal error: thread support was not detected during configuration of libcwd.
 #endif // LIBCWD_HAVE_PTHREAD
-
-#ifndef LIBCWD_USE_LINUXTHREADS
-#define LIBCWD_USE_LINUXTHREADS 0
-#endif
-#ifndef LIBCWD_USE_POSIX_THREADS
-#define LIBCWD_USE_POSIX_THREADS 0
-#endif
 
 #if CWDEBUG_DEBUGT
 #define LibcwDebugThreads(x) do { x; } while(0)
@@ -107,16 +89,13 @@ extern bool WST_multi_threaded;
 // Global mutexes can be initialized once, before using the mutex.
 // mutex_tct<instance_id_const>::initialize();
 //
-// Static mutexes in functions (or templates) that can not globally
-// be initialized need to call `initialize()' prior to *each* use
-// (using -O2 this is at most a single test and nothing at all when
-// Linuxthreads are being used.
+// Static mutexes in functions (or templates) that can not globally be initialized need to call
+// `initialize()' prior to each use. With optimization this is at most a single initialized flag test.
 //
 
 //========================================================================================================================================17"
 // class mutex_tct
 
-#if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 // We have to use macros because pthread_cleanup_push and pthread_cleanup_pop
 // are macros with an unmatched '{' and '}' respectively.
 #define LIBCWD_DISABLE_CANCEL \
@@ -169,23 +148,17 @@ template <int instance>
 class mutex_tct {
   public:
     static pthread_mutex_t S_mutex;
-#if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   protected:
     static bool volatile S_initialized;
     static void S_initialize();
-#endif
   public:
     static void initialize()
-#if LIBCWD_USE_LINUXTHREADS && !CWDEBUG_DEBUGT
-	{ }
-#else
 	{
 	  if (S_initialized)	// Check if the static `S_mutex' already has been initialized.
 	    return;		//   No need to lock: `S_initialized' is only set after it is
 				//   really initialized.
 	  S_initialize();
         }
-#endif
   public:
     static bool try_lock()
     {
@@ -272,7 +245,6 @@ class mutex_tct {
     }
 };
 
-#if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 template <int instance>
   bool volatile mutex_tct<instance>::S_initialized = false;
 
@@ -281,7 +253,6 @@ template <int instance>
   {
     if constexpr (instance == mutex_initialization_instance)	// Specialization.
     {
-#if !LIBCWD_USE_LINUXTHREADS
       pthread_mutexattr_t mutex_attr;
       pthread_mutexattr_init(&mutex_attr);
 #if CWDEBUG_DEBUGT
@@ -291,7 +262,6 @@ template <int instance>
 #endif
       pthread_mutex_init(&S_mutex, &mutex_attr);
       pthread_mutexattr_destroy(&mutex_attr);
-#endif // !LIBCWD_USE_LINUXTHREADS
       S_initialized = true;
     }
     else						// General case.
@@ -299,37 +269,22 @@ template <int instance>
       mutex_tct<mutex_initialization_instance>::initialize();
       if (!S_initialized)					// Check again now that we are locked.
       {
-#if !LIBCWD_USE_LINUXTHREADS
 	pthread_mutexattr_t mutex_attr;
 	pthread_mutexattr_init(&mutex_attr);
 #if CWDEBUG_DEBUGT
         pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
 #else
-        pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
+	pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
 #endif
 	pthread_mutex_init(&S_mutex, &mutex_attr);
 	pthread_mutexattr_destroy(&mutex_attr);
-#endif // !LIBCWD_USE_LINUXTHREADS
 	S_initialized = true;
       }
     }
   }
-#endif // !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 
 template <int instance>
-  pthread_mutex_t mutex_tct<instance>::S_mutex
-#if LIBCWD_USE_LINUXTHREADS
-      =
-#if CWDEBUG_DEBUGT
-	PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
-#else
-	PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP;
-#endif
-#else // !LIBCWD_USE_LINUXTHREADS
-      ;
-#endif // !LIBCWD_USE_LINUXTHREADS
-
-#endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
+  pthread_mutex_t mutex_tct<instance>::S_mutex;
 
 extern void fatal_cancellation(void*);
 

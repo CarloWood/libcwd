@@ -17,6 +17,7 @@
 #include <libcwd/strerrno.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cerrno>
 #include <cstdlib> // Needed for _Exit() (C99)
 #include <iostream>
@@ -409,7 +410,19 @@ void initialize()
 
 namespace _private_ {
 
-extern bool WST_is_NPTL;
+static std::atomic<bool> fatal_termination_started{false};
+
+// Claim ownership of process termination that is triggered by dc::fatal or dc::core output.
+//
+// Returns true only for the first fatal path. The flag is intentionally never cleared because successful
+// callers abort, _Exit, or spin for debugger attachment; later contenders must leave through the existing
+// cancellation-exit path instead of generating a competing core dump or cancelling peers twice.
+bool claim_fatal_termination_ownership()
+{
+  bool expected = false;
+  return fatal_termination_started.compare_exchange_strong(expected, true, std::memory_order_acq_rel,
+                                                          std::memory_order_acquire);
+}
 
 struct ChannelSets
 {
@@ -688,7 +701,7 @@ void core_dump()
   LIBCWD_TSD_DECLARATION;
 #endif
   LIBCWD_DISABLE_CANCEL;
-  if (!_private_::mutex_tct<_private_::kill_threads_instance>::try_lock())
+  if (!_private_::claim_fatal_termination_ownership())
   {
     // Another thread is already trying to generate a core dump.
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -696,14 +709,6 @@ void core_dump()
     pthread_exit(PTHREAD_CANCELED);
   }
   // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
-#if CWDEBUG_DEBUG && defined(__linux)
-  if (!_private_::WST_is_NPTL && pthread_self() == (pthread_t)2049)
-  {
-    ::write(1, "WARNING: Thread manager core dumped.  Going into infinite loop.  Please detach process with gdb.\n",
-            97);
-    while (1);
-  }
-#endif
   raise(6);
   LIBCWD_ENABLE_CANCEL;
   _Exit(6); // Never reached.
@@ -1098,7 +1103,7 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
       delete current;
       DEBUGDEBUG_CERR("Done deleting `current'");
       LIBCWD_DISABLE_CANCEL;
-      if (!_private_::mutex_tct<_private_::kill_threads_instance>::try_lock())
+      if (!_private_::claim_fatal_termination_ownership())
       {
         // Another thread is already trying to generate a core dump.
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);

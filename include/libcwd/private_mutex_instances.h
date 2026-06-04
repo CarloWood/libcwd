@@ -27,7 +27,6 @@ enum mutex_instance_nt {
   backtrace_instance,
   write_max_len_instance,
   set_ostream_instance,
-  kill_threads_instance,
   function_instance,
   // Values reserved for read/write locks.
   reserved_instance_low,

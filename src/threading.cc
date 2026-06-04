@@ -11,8 +11,6 @@
 #include "threadsafe/AIReadWriteMutex.h"
 #include "threadsafe/threadsafe.h"
 
-#include <map>
-#include <alloca.h>
 #include <unistd.h>
 #include "cwd_debug.h"
 
@@ -26,7 +24,6 @@ namespace _private_ {
 
 bool WST_multi_threaded = false;
 bool WST_first_thread_initialized = false;
-bool WST_is_NPTL = false;
 
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
 int instance_locked[instance_locked_size];
@@ -37,11 +34,8 @@ std::mutex raw_write_mutex;
 
 void initialize_global_mutexes()
 {
-#if !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
   mutex_tct<mutex_initialization_instance>::initialize();
   mutex_tct<set_ostream_instance>::initialize();
-  mutex_tct<kill_threads_instance>::initialize();
-#endif // !LIBCWD_USE_LINUXTHREADS || CWDEBUG_DEBUGT
 }
 
 void mutex_ct::M_initialize()
@@ -68,7 +62,6 @@ void fatal_cancellation(void* arg)
 // Thread Specific Data
 //
 
-#if LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 pthread_key_t TSD_st::S_tsd_key;
 pthread_once_t TSD_st::S_tsd_key_once = PTHREAD_ONCE_INIT;
 
@@ -113,16 +106,6 @@ TSD_st& TSD_st::S_create()
   if (!WST_first_thread_initialized) // Is this the first thread?
   {
     WST_first_thread_initialized = true;
-#ifdef _CS_GNU_LIBPTHREAD_VERSION
-    size_t n = confstr(_CS_GNU_LIBPTHREAD_VERSION, NULL, 0);
-    if (n > 0)
-    {
-      char* buf = (char*)alloca(n);
-      confstr(_CS_GNU_LIBPTHREAD_VERSION, buf, n);
-      if (strstr(buf, "NPTL"))
-        WST_is_NPTL = true;
-    }
-#endif
     initialize_global_mutexes();
     threading_tsd_init(*real_tsd); // Initialize the TSD of stuff that goes in threading.cc.
   }
@@ -190,8 +173,6 @@ void TSD_st::S_cleanup_routine(void* arg)
   TSD_st* obj = reinterpret_cast<TSD_st*>(arg);
   obj->cleanup_routine();
 }
-
-#endif // LIBCWD_USE_POSIX_THREADS || LIBCWD_USE_LINUXTHREADS
 
 // End of Thread Specific Data
 //===================================================================================================
@@ -321,17 +302,12 @@ void ThreadList::mark_thread_terminated(ThreadList::list_type::iterator thread_i
 
 // Cancel every known peer thread while a read access prevents concurrent modification of the list.
 //
-// current_tid is never cancelled. On old LinuxThreads builds the thread-manager pseudo-thread is skipped
-// for the same reason as the previous raw traversal: cancelling it would interfere with process teardown.
+// current_tid is never cancelled.
 void ThreadList::cancel_all_other_threads(pthread_t current_tid) const
 {
   impl_ct::threads_ts::crat threads_r(impl_->threads_);
   for (thread_ct const& thread : *threads_r)
-    if (!pthread_equal(thread.tid, current_tid)
-#ifdef __linux
-        && (WST_is_NPTL || thread.tid != (pthread_t)1024)
-#endif
-    )
+    if (!pthread_equal(thread.tid, current_tid))
       pthread_cancel(thread.tid);
 }
 
