@@ -97,11 +97,6 @@ public:
 #if CWDEBUG_DEBUGT
   int cancel_explicitely_deferred;
   int cancel_explicitely_disabled;
-  int inside_critical_area;
-  int cleanup_handler_installed;
-  int internal_debugging_code;
-  int waiting_for_lock;			// The instance of the lock that this thread is waiting for.
-  int waiting_for_rdlock;		// The instance of the rdlock that this thread is waiting for.
 #endif
   pthread_t tid;			// Thread ID.
   pid_t pid;				// Process ID.

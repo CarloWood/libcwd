@@ -1552,9 +1552,6 @@ void assert_fail(char const* expr, char const* file, int line, char const* funct
     core_dump();
   }
   __libcwd_tsd.recursive_assert = true;
-#if CWDEBUG_DEBUGT
-  __libcwd_tsd.internal_debugging_code = true;
-#endif
 #endif
   DoutFatal(dc::core, file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
 }

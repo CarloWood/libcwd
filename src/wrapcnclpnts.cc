@@ -35,8 +35,6 @@
   return_t __attribute__((weak)) name arg_list                                                       \
   {                                                                                                  \
     LIBCWD_TSD_DECLARATION;                                                                          \
-    LIBCWD_ASSERT(__libcwd_tsd.inside_critical_area == __libcwd_tsd.cleanup_handler_installed ||     \
-                  __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.internal_debugging_code); \
     int oldtype;                                                                                     \
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);                                    \
     return_t res = __##name args;                                                                    \
@@ -53,8 +51,6 @@
     if (!real_##name)                                                                                \
       real_##name = (name##_type)dlsym(RTLD_NEXT, #name);                                            \
     LIBCWD_TSD_DECLARATION;                                                                          \
-    LIBCWD_ASSERT(__libcwd_tsd.inside_critical_area == __libcwd_tsd.cleanup_handler_installed ||     \
-                  __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.internal_debugging_code); \
     int oldtype;                                                                                     \
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);                                    \
     return_t res = real_##name args;                                                                 \
@@ -67,8 +63,6 @@
   return_t __attribute__((weak)) name arg_list                                                       \
   {                                                                                                  \
     LIBCWD_TSD_DECLARATION;                                                                          \
-    LIBCWD_ASSERT(__libcwd_tsd.inside_critical_area == __libcwd_tsd.cleanup_handler_installed ||     \
-                  __libcwd_tsd.cancel_explicitely_disabled || __libcwd_tsd.internal_debugging_code); \
     int oldtype;                                                                                     \
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);                                    \
     va_list ap;                                                                                      \
