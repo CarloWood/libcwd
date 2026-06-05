@@ -29,13 +29,11 @@ namespace _private_ {
 
 // Store the ostream destination together with the lock that protects writes to it.
 //
-// real_os is the destination selected with debug_ct::set_ostream. mutex points at the user-provided lock
-// adapter for that stream, or is null while the debug object is still limited to single-threaded output.
 struct ostream_state_ct
 {
  private:
-  std::ostream* real_os{};
-  lock_interface_base_ct* mutex{};
+  std::ostream* real_os_{};             // The destination selected with debug_ct::set_ostream. mutex points at the user-provided lock
+  lock_interface_base_ct* mutex_{};     // User-provided lock adapter for that stream, or null while the debug object is still limited to single-threaded output.
 
  public:
   // Replace both the ostream and its lock adapter with os and new_mutex.
