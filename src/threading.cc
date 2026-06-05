@@ -19,9 +19,6 @@ namespace _private_ {
 bool WST_multi_threaded = false;
 bool WST_first_thread_initialized = false;
 
-#if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
-int instance_locked[instance_locked_size];
-#endif
 #if CWDEBUG_DEBUGT
 std::mutex raw_write_mutex;
 #endif
@@ -146,66 +143,16 @@ void TSD_st::S_cleanup_routine(void* arg)
 
 int pthread_lock_interface_ct::try_lock()
 {
-#if CWDEBUG_DEBUGT
-  bool success = pthread_mutex_trylock(ptr);
-  if (success)
-  {
-    LIBCWD_TSD_DECLARATION;
-    __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
-    if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
-    {
-      __libcwd_tsd.rdlocked_by1[pthread_lock_interface_instance] = pthread_self();
-      __libcwd_tsd.rdlocked_from1[pthread_lock_interface_instance] = __builtin_return_address(0);
-    }
-    else if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
-    {
-      __libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = pthread_self();
-      __libcwd_tsd.rdlocked_from2[pthread_lock_interface_instance] = __builtin_return_address(0);
-    }
-    else
-      core_dump();
-  }
-  return success;
-#else
   return pthread_mutex_trylock(ptr);
-#endif
 }
 
 void pthread_lock_interface_ct::lock()
 {
-#if CWDEBUG_DEBUGT
-  LIBCWD_TSD_DECLARATION;
-  __libcwd_tsd.waiting_for_rdlock = pthread_lock_interface_instance;
-#endif
   pthread_mutex_lock(ptr);
-#if CWDEBUG_DEBUGT
-  __libcwd_tsd.waiting_for_rdlock = 0;
-  __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] += 1;
-  if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 1)
-  {
-    __libcwd_tsd.rdlocked_by1[pthread_lock_interface_instance] = pthread_self();
-    __libcwd_tsd.rdlocked_from1[pthread_lock_interface_instance] = __builtin_return_address(0);
-  }
-  else if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
-  {
-    __libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = pthread_self();
-    __libcwd_tsd.rdlocked_from2[pthread_lock_interface_instance] = __builtin_return_address(0);
-  }
-  else
-    core_dump();
-#endif
 }
 
 void pthread_lock_interface_ct::unlock()
 {
-#if CWDEBUG_DEBUGT
-  LIBCWD_TSD_DECLARATION;
-  if (__libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] == 2)
-    __libcwd_tsd.rdlocked_by2[pthread_lock_interface_instance] = 0;
-  else
-    __libcwd_tsd.rdlocked_by1[pthread_lock_interface_instance] = 0;
-  __libcwd_tsd.instance_rdlocked[pthread_lock_interface_instance] -= 1;
-#endif
   pthread_mutex_unlock(ptr);
 }
 

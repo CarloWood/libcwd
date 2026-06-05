@@ -11,7 +11,6 @@
 #define LIBCWD_PRIVATE_THREADING_H
 
 #include "private_struct_TSD.h"
-#include "private_mutex_instances.h"
 #include "core_dump.h"
 
 #ifdef LIBCWD_HAVE_PTHREAD

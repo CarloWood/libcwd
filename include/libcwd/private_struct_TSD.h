@@ -12,7 +12,6 @@
 
 #include "libcwd/config.h"
 #include "private_assert.h"
-#include "private_mutex_instances.h"
 #include <cstring>	// Needed for std::memset.
 #include <climits>	// For PTHREAD_THREADS_MAX
 #ifdef LIBCWD_HAVE_PTHREAD
@@ -103,11 +102,6 @@ public:
   int internal_debugging_code;
   int waiting_for_lock;			// The instance of the lock that this thread is waiting for.
   int waiting_for_rdlock;		// The instance of the rdlock that this thread is waiting for.
-  int instance_rdlocked[instance_rdlocked_size];
-  pthread_t rdlocked_by1[instance_rdlocked_size];
-  pthread_t rdlocked_by2[instance_rdlocked_size];
-  void const* rdlocked_from1[instance_rdlocked_size];
-  void const* rdlocked_from2[instance_rdlocked_size];
 #endif
   pthread_t tid;			// Thread ID.
   pid_t pid;				// Process ID.
