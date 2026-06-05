@@ -18,6 +18,7 @@
 #include "threadsafe/threadsafe.h"
 #include <iosfwd>
 #include <atomic>
+#include <cstddef>
 #include <mutex>
 
 namespace libcwd {
@@ -32,12 +33,52 @@ namespace _private_ {
 // adapter for that stream, or is null while the debug object is still limited to single-threaded output.
 struct ostream_state_ct
 {
+ private:
   std::ostream* real_os{};
   lock_interface_base_ct* mutex{};
+
+ public:
+  // Replace both the ostream and its lock adapter with os and new_mutex.
+  //
+  // Returns the old lock adapter after waiting until all writers that already selected the old pair have left
+  // the old stream critical area. The returned adapter is no longer reachable through this state object.
+  lock_interface_base_ct* replace_with(std::ostream* os, lock_interface_base_ct* new_mutex);
+
+  // Replace only the ostream with os while keeping the current lock adapter.
+  //
+  // If a lock adapter is present, this waits for old writers before returning so the previous ostream can be
+  // destroyed safely after debug_ct::set_ostream(std::ostream*) returns.
+  void set_ostream(std::ostream* os);
+
+  // Return the currently selected ostream without locking its stream mutex.
+  //
+  // This is a snapshot accessor for the legacy public API; callers must not use the returned pointer as a
+  // lifetime guarantee against concurrent set_ostream calls.
+  std::ostream* read_real_os() const;
+
+  // Return true when this state currently has a stream lock adapter.
+  bool has_mutex() const;
+
+  // Return os, or the stored ostream when os is null, after locking the current stream lock adapter.
+  //
+  // locked_mutex_out receives the adapter that was locked, or null when no adapter is installed.
+  // If a non-null adapter is returned then the caller must unlock it after finishing the write.
+  std::ostream* get_locked_os(std::ostream* os, lock_interface_base_ct** locked_mutex_out) const;
+
+  // Try to return os, or the stored ostream when os is null, after locking the current stream lock adapter.
+  //
+  // Returns true when no adapter is installed or when the adapter was locked. Returns false without exposing
+  // either protected pointer when the adapter exists but could not be locked immediately.
+  bool try_lock_os(std::ostream* os, std::ostream** locked_os_out, lock_interface_base_ct** locked_mutex_out) const;
+
+  // Write color_off followed by a newline to os, or to the stored ostream when os is null.
+  //
+  // This helper is used only for the legacy bounded-try-lock fallback path where output proceeds without
+  // holding the stream lock adapter; keeping the state access inside this call still protects pointer lifetime.
+  void write_color_off_newline(std::ostream* os, char const* color_off, std::size_t color_off_size) const;
 };
 
-using ostream_state_ts =
-    threadsafe::Unlocked<ostream_state_ct, threadsafe::policy::Primitive<std::mutex>>;
+using ostream_state_ts = threadsafe::Unlocked<ostream_state_ct, threadsafe::policy::Primitive<std::mutex>>;
 
 } // namespace _private_
 
@@ -78,8 +119,7 @@ protected:
 
   friend class libcwd::buffer_ct;		// buffer_ct::writeto() needs access.
   _private_::ostream_state_ts ostream_state_;
-    // Lazily allocated ostream destination state and matching external lock, protected as one unit.
-    // This remains a pointer because debug_ct storage may be used by initialize() before the constructor runs.
+    // Ostream destination and matching external lock, protected as one unit.
 
   buffer_ct* unfinished_oss;
   void const* newlineless_tsd;
@@ -202,13 +242,6 @@ public:
   //
 
   debug_ct();
-
-private:
-  // Store os in the already locked ostream_state for this debug object.
-  //
-  // The caller keeps the write access object alive while calling this helper so the ostream pointer remains
-  // synchronized with the stream lock pointer that readers use for the lifetime handoff.
-  void private_set_ostream(_private_::ostream_state_ct& ostream_state, std::ostream* os);
 
 public:
   //-------------------------------------------------------------------------------------------------

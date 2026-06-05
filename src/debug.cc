@@ -99,16 +99,9 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
   LIBCWD_DISABLE_CANCEL; // We don't want Dout() to be a cancellation point.
   std::ostream* locked_os;
   _private_::lock_interface_base_ct* locked_mutex;
-  {
-    _private_::ostream_state_ts::rat ostream_state_r(debug_object.ostream_state_);
-    locked_os = os ? os : ostream_state_r->real_os;
-    locked_mutex = ostream_state_r->mutex;
-    if (locked_mutex)
-    {
-      locked_mutex->lock();
-      __libcwd_tsd.pthread_lock_interface_is_locked = true;
-    }
-  }
+  locked_os = _private_::ostream_state_ts::rat(debug_object.ostream_state_)->get_locked_os(os, &locked_mutex);
+  if (locked_mutex)
+    __libcwd_tsd.pthread_lock_interface_is_locked = true;
   if (!locked_mutex && _private_::WST_multi_threaded)
   {
     static bool WST_second_time = false; // Break infinite loop.
@@ -870,30 +863,33 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
     current->err = errno; // Always keep the last errno as set at the start of LibcwDout()
     if (!(current->mask & continued_expected_maskbit))
     {
-      bool have_lock = false;
+      std::ostream* target_os = nullptr;
+      _private_::lock_interface_base_ct* target_mutex = nullptr;
+      bool have_target = false;
+      std::ostream* preferred_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
+      // Try to get the stream lock, but don't try too long.
+      // Each attempt keeps access to the ostream-state pair inside one ostream_state_ct member call.
+      struct timespec const t = {0, 5000000};
+      int count = 0;
+      do
       {
-        _private_::ostream_state_ts::rat ostream_state_r(debug_object.ostream_state_);
-        std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : ostream_state_r->real_os;
-        _private_::lock_interface_base_ct* target_mutex = ostream_state_r->mutex;
-        // Try to get the lock, but don't try too long...
-        struct timespec const t = {0, 5000000};
-        int count = 0;
-        if (target_mutex)
-          do
-          {
-            if ((have_lock = !target_mutex->try_lock()))
-              break;
-            nanosleep(&t, NULL);
-          }
-          while (++count < 40);
-        debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
-        size_t color_off_size = color_off.size();
+        have_target = _private_::ostream_state_ts::rat(debug_object.ostream_state_)->try_lock_os(preferred_os, &target_os, &target_mutex);
+        if (!have_target)
+          nanosleep(&t, NULL);
+      }
+      while (!have_target && ++count < 40);
+      debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
+      size_t color_off_size = color_off.size();
+      if (have_target)
+      {
         if (color_off_size > 0)
           target_os->write(color_off.c_str(), color_off_size);
         target_os->put('\n');
-        if (have_lock)
+        if (target_mutex)
           target_mutex->unlock();
       }
+      else
+        _private_::ostream_state_ts::rat(debug_object.ostream_state_)->write_color_off_newline(preferred_os, color_off.c_str(), color_off_size);
       char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #if CWDEBUG_LOCATION
       DoutFatal(dc::core,
@@ -1130,13 +1126,7 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
           debug_object.interactive COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
       _private_::lock_interface_base_ct* locked_mutex;
       std::ostream* locked_os;
-      {
-        _private_::ostream_state_ts::rat ostream_state_r(debug_object.ostream_state_);
-        locked_mutex = ostream_state_r->mutex;
-        locked_os = target_os ? target_os : ostream_state_r->real_os;
-        if (locked_mutex)
-          locked_mutex->lock();
-      }
+      locked_os = _private_::ostream_state_ts::rat(debug_object.ostream_state_)->get_locked_os(target_os, &locked_mutex);
       *locked_os << "(type return)";
       if (debug_object.interactive)
       {
@@ -1639,23 +1629,16 @@ template <>
 void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
 {
   LIBCWD_TSD_DECLARATION;
-  _private_::lock_interface_base_ct* new_mutex =
-      new _private_::pthread_lock_interface_ct(mutex); // A single LEAK of 20 bytes per debug object from here is ok.
+#if CWDEBUG_DEBUG
+  LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
+#endif
+  _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex); // A single LEAK of 20 bytes per debug object from here is ok.
   _private_::lock_interface_base_ct* old_mutex;
   LIBCWD_DEFER_CANCEL;
-  {
-    _private_::ostream_state_ts::wat ostream_state_w(ostream_state_);
-    old_mutex = ostream_state_w->mutex;
-    if (old_mutex)
-      old_mutex->lock(); // Make sure all other threads left this critical area.
-    ostream_state_w->mutex = new_mutex;
-    if (old_mutex)
-      old_mutex->unlock();
-    private_set_ostream(*ostream_state_w, os);
-  }
+  old_mutex = _private_::ostream_state_ts::wat(ostream_state_)->replace_with(os, new_mutex);
+  LIBCWD_RESTORE_CANCEL;
   if (old_mutex)
     delete old_mutex;
-  LIBCWD_RESTORE_CANCEL;
 }
 
 /**
@@ -1677,14 +1660,12 @@ void debug_ct::set_ostream(std::ostream* os)
               "You must pass a locking mechanism to `set_ostream' for the ostream (see "
               "documentation/reference-manual/group__group__destination.html)");
 #endif
-#if CWDEBUG_DEBUGT
+#if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION;
+  LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
 #endif
   LIBCWD_DEFER_CANCEL;
-  {
-    _private_::ostream_state_ts::wat ostream_state_w(ostream_state_);
-    private_set_ostream(*ostream_state_w, os);
-  }
+  _private_::ostream_state_ts::wat(ostream_state_)->set_ostream(os);
   LIBCWD_RESTORE_CANCEL;
 }
 

@@ -136,7 +136,7 @@ debug_ct::get_ostream() const
 {
   std::ostream* real_os_ptr;
   LIBCWD_DEFER_CANCEL;
-  real_os_ptr = _private_::ostream_state_ts::crat(ostream_state_)->real_os;
+  real_os_ptr = _private_::ostream_state_ts::crat(ostream_state_)->read_real_os();
   LIBCWD_RESTORE_CANCEL;
   return real_os_ptr;
 }
@@ -147,20 +147,85 @@ debug_ct::has_mutex() const
 {
   bool has_mutex;
   LIBCWD_DEFER_CANCEL;
-  has_mutex = _private_::ostream_state_ts::crat(ostream_state_)->mutex;
+  has_mutex = _private_::ostream_state_ts::crat(ostream_state_)->has_mutex();
   LIBCWD_RESTORE_CANCEL;
   return has_mutex;
 }
 
 inline
-void
-debug_ct::private_set_ostream(_private_::ostream_state_ct& ostream_state, std::ostream* os)
+_private_::lock_interface_base_ct*
+_private_::ostream_state_ct::replace_with(std::ostream* os, lock_interface_base_ct* new_mutex)
 {
-  ostream_state.real_os = os;
-#if CWDEBUG_DEBUG
-  LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
-#endif
+  lock_interface_base_ct* old_mutex = mutex;
+  mutex = new_mutex;
+  real_os = os;
+  if (old_mutex)
+  {
+    old_mutex->lock();		// Make sure all other threads left this critical area.
+    old_mutex->unlock();
+  }
+  return old_mutex;
+}
+
+inline
+void
+_private_::ostream_state_ct::set_ostream(std::ostream* os)
+{
+  lock_interface_base_ct* old_mutex = mutex;
+  real_os = os;
+  if (old_mutex)
+  {
+    old_mutex->lock();		// Make sure all other threads left this critical area.
+    old_mutex->unlock();
+  }
+}
+
+inline
+std::ostream*
+_private_::ostream_state_ct::read_real_os() const
+{
+  return real_os;
+}
+
+inline
+bool
+_private_::ostream_state_ct::has_mutex() const
+{
+  return mutex != nullptr;
+}
+
+inline
+std::ostream*
+_private_::ostream_state_ct::get_locked_os(std::ostream* os, lock_interface_base_ct** locked_mutex_out) const
+{
+  std::ostream* locked_os = os ? os : real_os;
+  *locked_mutex_out = mutex;
+  if (mutex)
+    mutex->lock();
+  return locked_os;
+}
+
+inline
+bool
+_private_::ostream_state_ct::try_lock_os(std::ostream* os, std::ostream** locked_os_out,
+                                         lock_interface_base_ct** locked_mutex_out) const
+{
+  if (mutex && mutex->try_lock())
+    return false;
+  *locked_os_out = os ? os : real_os;
+  *locked_mutex_out = mutex;
+  return true;
+}
+
+inline
+void
+_private_::ostream_state_ct::write_color_off_newline(std::ostream* os, char const* color_off,
+                                                     std::size_t color_off_size) const
+{
+  std::ostream* target_os = os ? os : real_os;
+  if (color_off_size > 0)
+    target_os->write(color_off, color_off_size);
+  target_os->put('\n');
 }
 
 /** \} */
