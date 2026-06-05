@@ -36,7 +36,7 @@ template<class T>
     _private_::lock_interface_base_ct* new_mutex = new _private_::lock_interface_tct<T>(mutex);
     _private_::lock_interface_base_ct* old_mutex;
     LIBCWD_DEFER_CANCEL;
-    old_mutex = _private_::ostream_state_ts::wat(ostream_state_)->replace_with(os, new_mutex);
+    old_mutex = ostream_state_.replace_with(os, new_mutex);
     LIBCWD_RESTORE_CANCEL;
     // Delete old_mutex after unlocking in order to avoid a dead lock in case the delete causes debug output.
     if (old_mutex)

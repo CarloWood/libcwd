@@ -15,7 +15,6 @@
 #include "private_struct_TSD.h"
 #include "struct_debug_tsd.h"
 #include "private_lock_interface.h"
-#include "threadsafe/threadsafe.h"
 #include <iosfwd>
 #include <atomic>
 #include <cstddef>
@@ -32,6 +31,7 @@ namespace _private_ {
 struct ostream_state_ct
 {
  private:
+  mutable std::mutex state_mutex_;      // Protects real_os_ and mutex_ as one pair.
   std::ostream* real_os_{};             // The destination selected with debug_ct::set_ostream. mutex points at the user-provided lock
   lock_interface_base_ct* mutex_{};     // User-provided lock adapter for that stream, or null while the debug object is still limited to single-threaded output.
 
@@ -76,8 +76,6 @@ struct ostream_state_ct
   void write_color_off_newline(std::ostream* os, char const* color_off, std::size_t color_off_size) const;
 };
 
-using ostream_state_ts = threadsafe::Unlocked<ostream_state_ct, threadsafe::policy::Primitive<std::mutex>>;
-
 } // namespace _private_
 
 //===================================================================================================
@@ -116,7 +114,7 @@ protected:
   //
 
   friend class libcwd::buffer_ct;		// buffer_ct::writeto() needs access.
-  _private_::ostream_state_ts ostream_state_;
+  _private_::ostream_state_ct ostream_state_;
     // Ostream destination and matching external lock, protected as one unit.
 
   buffer_ct* unfinished_oss;

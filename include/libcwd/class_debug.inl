@@ -8,6 +8,8 @@
 #include "class_fatal_channel.inl"
 #include "class_debug_string.inl"
 
+#include <ostream>
+
 namespace libcwd {
 
 /** \addtogroup group_formatting */
@@ -136,7 +138,7 @@ debug_ct::get_ostream() const
 {
   std::ostream* real_os_ptr;
   LIBCWD_DEFER_CANCEL;
-  real_os_ptr = _private_::ostream_state_ts::crat(ostream_state_)->read_real_os();
+  real_os_ptr = ostream_state_.read_real_os();
   LIBCWD_RESTORE_CANCEL;
   return real_os_ptr;
 }
@@ -147,7 +149,7 @@ debug_ct::has_mutex() const
 {
   bool has_mutex;
   LIBCWD_DEFER_CANCEL;
-  has_mutex = _private_::ostream_state_ts::crat(ostream_state_)->has_mutex();
+  has_mutex = ostream_state_.has_mutex();
   LIBCWD_RESTORE_CANCEL;
   return has_mutex;
 }
@@ -156,6 +158,7 @@ inline
 _private_::lock_interface_base_ct*
 _private_::ostream_state_ct::replace_with(std::ostream* os, lock_interface_base_ct* new_mutex)
 {
+  std::lock_guard<std::mutex> lock(state_mutex_);
   lock_interface_base_ct* old_mutex = mutex_;
   mutex_ = new_mutex;
   real_os_ = os;
@@ -171,6 +174,7 @@ inline
 void
 _private_::ostream_state_ct::set_ostream(std::ostream* os)
 {
+  std::lock_guard<std::mutex> lock(state_mutex_);
   lock_interface_base_ct* old_mutex = mutex_;
   real_os_ = os;
   if (old_mutex)
@@ -184,6 +188,7 @@ inline
 std::ostream*
 _private_::ostream_state_ct::read_real_os() const
 {
+  std::lock_guard<std::mutex> lock(state_mutex_);
   return real_os_;
 }
 
@@ -191,6 +196,7 @@ inline
 bool
 _private_::ostream_state_ct::has_mutex() const
 {
+  std::lock_guard<std::mutex> lock(state_mutex_);
   return mutex_ != nullptr;
 }
 
@@ -198,6 +204,7 @@ inline
 std::ostream*
 _private_::ostream_state_ct::get_locked_os(std::ostream* os, lock_interface_base_ct** locked_mutex_out) const
 {
+  std::lock_guard<std::mutex> lock(state_mutex_);
   std::ostream* locked_os = os ? os : real_os_;
   *locked_mutex_out = mutex_;
   if (mutex_)
@@ -210,6 +217,7 @@ bool
 _private_::ostream_state_ct::try_lock_os(std::ostream* os, std::ostream** locked_os_out,
                                          lock_interface_base_ct** locked_mutex_out) const
 {
+  std::lock_guard<std::mutex> lock(state_mutex_);
   if (mutex_ && mutex_->try_lock())
     return false;
   *locked_os_out = os ? os : real_os_;
@@ -222,6 +230,7 @@ void
 _private_::ostream_state_ct::write_color_off_newline(std::ostream* os, char const* color_off,
                                                      std::size_t color_off_size) const
 {
+  std::lock_guard<std::mutex> lock(state_mutex_);
   std::ostream* target_os = os ? os : real_os_;
   if (color_off_size > 0)
     target_os->write(color_off, color_off_size);

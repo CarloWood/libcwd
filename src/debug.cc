@@ -99,7 +99,7 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
   LIBCWD_DISABLE_CANCEL; // We don't want Dout() to be a cancellation point.
   std::ostream* locked_os;
   _private_::lock_interface_base_ct* locked_mutex;
-  locked_os = _private_::ostream_state_ts::rat(debug_object.ostream_state_)->get_locked_os(os, &locked_mutex);
+  locked_os = debug_object.ostream_state_.get_locked_os(os, &locked_mutex);
   if (locked_mutex)
     __libcwd_tsd.pthread_lock_interface_is_locked = true;
   if (!locked_mutex && _private_::WST_multi_threaded)
@@ -873,7 +873,7 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
       int count = 0;
       do
       {
-        have_target = _private_::ostream_state_ts::rat(debug_object.ostream_state_)->try_lock_os(preferred_os, &target_os, &target_mutex);
+        have_target = debug_object.ostream_state_.try_lock_os(preferred_os, &target_os, &target_mutex);
         if (!have_target)
           nanosleep(&t, NULL);
       }
@@ -889,7 +889,7 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
           target_mutex->unlock();
       }
       else
-        _private_::ostream_state_ts::rat(debug_object.ostream_state_)->write_color_off_newline(preferred_os, color_off.c_str(), color_off_size);
+        debug_object.ostream_state_.write_color_off_newline(preferred_os, color_off.c_str(), color_off_size);
       char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #if CWDEBUG_LOCATION
       DoutFatal(dc::core,
@@ -1126,7 +1126,7 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
           debug_object.interactive COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
       _private_::lock_interface_base_ct* locked_mutex;
       std::ostream* locked_os;
-      locked_os = _private_::ostream_state_ts::rat(debug_object.ostream_state_)->get_locked_os(target_os, &locked_mutex);
+      locked_os = debug_object.ostream_state_.get_locked_os(target_os, &locked_mutex);
       *locked_os << "(type return)";
       if (debug_object.interactive)
       {
@@ -1635,7 +1635,7 @@ void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
   _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex); // A single LEAK of 20 bytes per debug object from here is ok.
   _private_::lock_interface_base_ct* old_mutex;
   LIBCWD_DEFER_CANCEL;
-  old_mutex = _private_::ostream_state_ts::wat(ostream_state_)->replace_with(os, new_mutex);
+  old_mutex = ostream_state_.replace_with(os, new_mutex);
   LIBCWD_RESTORE_CANCEL;
   if (old_mutex)
     delete old_mutex;
@@ -1665,7 +1665,7 @@ void debug_ct::set_ostream(std::ostream* os)
   LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
 #endif
   LIBCWD_DEFER_CANCEL;
-  _private_::ostream_state_ts::wat(ostream_state_)->set_ostream(os);
+  ostream_state_.set_ostream(os);
   LIBCWD_RESTORE_CANCEL;
 }
 
