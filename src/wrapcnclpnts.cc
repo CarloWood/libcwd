@@ -10,12 +10,8 @@
 
 #if CWDEBUG_DEBUGT && defined(__linux)
 
-#ifndef LIBCWD_PRIVATE_THREADING_H
 #include <libcwd/private_threading.h>
-#endif
-#ifndef LIBCWD_PRIVATE_ASSERT_H
 #include <libcwd/private_assert.h>
-#endif
 
 #include <dlfcn.h>
 #include <fcntl.h>
