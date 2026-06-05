@@ -46,12 +46,6 @@ void mutex_ct::M_initialize()
   M_initialized = true;
 }
 
-void fatal_cancellation(void* arg)
-{
-  char* text = static_cast<char*>(arg);
-  DoutFatal(dc::core, "Cancelling a thread " << text << ".  This is not supported by libcwd, sorry.");
-}
-
 //===================================================================================================
 // Thread Specific Data
 //

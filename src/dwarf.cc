@@ -34,6 +34,9 @@
 #endif
 
 namespace libcwd {
+namespace _private_ {
+extern bool WST_multi_threaded;
+} // namespace _private_
 
 // New debug channels.
 namespace channels {

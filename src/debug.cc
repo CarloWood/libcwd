@@ -68,6 +68,10 @@ class buffer_ct : public std::stringbuf
   }
 };
 
+namespace _private_ {
+extern bool WST_multi_threaded;
+} // namespace _private_
+
 void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object, bool request_unfinished,
                         bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf))
 {
