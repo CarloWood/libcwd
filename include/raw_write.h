@@ -83,6 +83,7 @@ _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_wri
 #endif // RAW_WRITE_H
 
 #if CWDEBUG_DEBUG
+#include <string>
 namespace libcwd {
 
 _private_::raw_write_nt const& operator<<(_private_::raw_write_nt const& raw_write, std::string const& data);

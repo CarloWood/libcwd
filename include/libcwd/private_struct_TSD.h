@@ -15,7 +15,6 @@
 #include "private_mutex_instances.h"
 #include <cstring>	// Needed for std::memset.
 #include <climits>	// For PTHREAD_THREADS_MAX
-#include "private_mutex.h"
 #ifdef LIBCWD_HAVE_PTHREAD
 #include <pthread.h>
 #endif
@@ -102,7 +101,6 @@ public:
   int inside_critical_area;
   int cleanup_handler_installed;
   int internal_debugging_code;
-  mutex_ct* waiting_for_mutex;		// mutex_ct that this thread is waiting for.
   int waiting_for_lock;			// The instance of the lock that this thread is waiting for.
   int waiting_for_rdlock;		// The instance of the rdlock that this thread is waiting for.
   int instance_rdlocked[instance_rdlocked_size];

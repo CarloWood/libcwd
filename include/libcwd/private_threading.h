@@ -10,30 +10,6 @@
 #ifndef LIBCWD_PRIVATE_THREADING_H
 #define LIBCWD_PRIVATE_THREADING_H
 
-#define LIBCWD_DEBUGDEBUGRWLOCK 0
-
-#if LIBCWD_DEBUGDEBUGRWLOCK
-#include "raw_write.h"
-extern pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;
-extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
-#define LIBCWD_DEBUGDEBUGRWLOCK_CERR(x) \
-        do { \
-	  pthread_mutex_lock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
-	  FATALDEBUGDEBUG_CERR(x); \
-	  pthread_mutex_unlock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
-	} while(0)
-#define LIBCWD_DEBUGDEBUGLOCK_CERR(x) \
-	do { \
-	  pthread_mutex_lock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
-	  ++LIBCWD_DEBUGDEBUGLOCK_CERR_count; \
-          FATALDEBUGDEBUG_CERR("[" << LIBCWD_DEBUGDEBUGLOCK_CERR_count << "] " << pthread_self() << ": " << x); \
-	  pthread_mutex_unlock(&LIBCWD_DEBUGDEBUGLOCK_CERR_mutex); \
-	} while(0)
-#else // !LIBCWD_DEBUGDEBUGRWLOCK
-#define LIBCWD_DEBUGDEBUGRWLOCK_CERR(x) do { } while(0)
-#define LIBCWD_DEBUGDEBUGLOCK_CERR(x) do { } while(0)
-#endif // !LIBCWD_DEBUGDEBUGRWLOCK
-
 #include "private_struct_TSD.h"
 #include "private_mutex_instances.h"
 #include "core_dump.h"
@@ -55,22 +31,6 @@ extern unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
 #endif
 
 namespace libcwd {
-
-#if LIBCWD_DEBUGDEBUGRWLOCK
-inline
-_private_::raw_write_nt const&
-operator<<(_private_::raw_write_nt const& raw_write, pthread_mutex_t const& mutex)
-{
-  raw_write << "(pthread_mutex_t&)" << (void*)&mutex <<
-    " = { __data = "
-         "{ __lock = " << mutex.__data.__lock << ", "
-           "__count = " << mutex.__data.__count << ", "
-           "__owner = " << mutex.__data.__owner << ", "
-           "__nusers = " << mutex.__data.__nusers << ", "
-           "__kind = " << mutex.__data.__kind << "} }";
-  return raw_write;
-}
-#endif
 
 namespace _private_ {
 

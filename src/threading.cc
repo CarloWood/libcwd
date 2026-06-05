@@ -6,18 +6,12 @@
 #include "macros.h"
 #include "libcwd/debug.h"
 #include <libcwd/core_dump.h>
-#include <libcwd/private_mutex.inl>
 #include <libcwd/private_threading.h>
 #include "threadsafe/AIReadWriteMutex.h"
 #include "threadsafe/threadsafe.h"
 
 #include <unistd.h>
 #include "cwd_debug.h"
-
-#if LIBCWD_DEBUGDEBUGRWLOCK
-pthread_mutex_t LIBCWD_DEBUGDEBUGLOCK_CERR_mutex;
-unsigned int LIBCWD_DEBUGDEBUGLOCK_CERR_count;
-#endif
 
 namespace libcwd {
 namespace _private_ {
@@ -31,20 +25,6 @@ int instance_locked[instance_locked_size];
 #if CWDEBUG_DEBUGT
 std::mutex raw_write_mutex;
 #endif
-
-void mutex_ct::M_initialize()
-{
-  pthread_mutexattr_t mutex_attr;
-  pthread_mutexattr_init(&mutex_attr);
-#if CWDEBUG_DEBUGT
-  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
-#else
-  pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
-#endif
-  pthread_mutex_init(&M_mutex, &mutex_attr);
-  pthread_mutexattr_destroy(&mutex_attr);
-  M_initialized = true;
-}
 
 //===================================================================================================
 // Thread Specific Data
@@ -314,7 +294,6 @@ void threading_tsd_init(LIBCWD_TSD_PARAM)
 // released until initialization of the object has finished.
 void thread_ct::initialize(LIBCWD_TSD_PARAM)
 {
-  thread_mutex.initialize();
   tid = __libcwd_tsd.tid;
 }
 

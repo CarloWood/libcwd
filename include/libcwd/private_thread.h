@@ -10,7 +10,6 @@
 #ifndef LIBCWD_PRIVATE_THREAD_H
 #define LIBCWD_PRIVATE_THREAD_H
 
-#include "private_mutex.h"
 #include <list>
 
 namespace libcwd {
@@ -32,7 +31,6 @@ struct ThreadsWat;
 class thread_ct
 {
  public:
-  mutex_ct thread_mutex;		// Mutex for the attributes of this object.
   pthread_t tid;			// Thread ID, used to terminate all threads in a DoutFatal(dc::fatal, ...).
   bool M_zombie;
   bool M_terminating;
