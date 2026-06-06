@@ -63,10 +63,14 @@ struct ostream_state_ct
   // If a non-null adapter is returned then the caller must unlock it after finishing the write.
   std::ostream* get_locked_os(std::ostream* os, lock_interface_base_ct** locked_mutex_out) const;
 
-  // Try to return os, or the stored ostream when os is null, after locking the current stream lock adapter.
+  // Try to select os, or the stored ostream when os is null, and lock the current stream lock adapter.
   //
-  // Returns true when no adapter is installed or when the adapter was locked. Returns false without exposing
-  // either protected pointer when the adapter exists but could not be locked immediately.
+  // Returns true after publishing locked_os_out and locked_mutex_out. If a lock adapter exists,
+  // it has been successfully locked before the pair is published. If no adapter exists,
+  // *locked_mutex_out is null and the ostream is returned unlocked.
+  //
+  // Returns false when a lock adapter exists but could not be locked immediately; in that case
+  // neither protected pointer is published.
   bool try_lock_os(std::ostream* os, std::ostream** locked_os_out, lock_interface_base_ct** locked_mutex_out) const;
 
   // Write color_off followed by a newline to os, or to the stored ostream when os is null.

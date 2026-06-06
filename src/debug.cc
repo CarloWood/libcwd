@@ -867,18 +867,17 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
     current->err = errno; // Always keep the last errno as set at the start of LibcwDout()
     if (!(current->mask & continued_expected_maskbit))
     {
-      std::ostream* target_os = nullptr;
-      _private_::lock_interface_base_ct* target_mutex = nullptr;
-      bool have_target = false;
-      std::ostream* preferred_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
+      std::ostream* const preferred_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
+      std::ostream* target_os;
+      _private_::lock_interface_base_ct* target_mutex;
+      bool have_target;
       // Try to get the stream lock, but don't try too long.
-      // Each attempt keeps access to the ostream-state pair inside one ostream_state_ct member call.
       struct timespec const t = {0, 5000000};
       int count = 0;
       do
       {
         have_target = debug_object.ostream_state_.try_lock_os(preferred_os, &target_os, &target_mutex);
-        if (!have_target)
+        if (!have_target)       // mutex exists, but could not immediately be locked.
           nanosleep(&t, NULL);
       }
       while (!have_target && ++count < 40);
