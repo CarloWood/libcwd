@@ -164,6 +164,7 @@ _private_::ostream_state_ct::replace_with(std::ostream* os, lock_interface_base_
   real_os_ = os;
   if (old_mutex)
   {
+    // LOCK ORDER: state_mutex_ -> lock_interface_base_ct
     old_mutex->lock();		// Make sure all other threads left this critical area.
     old_mutex->unlock();
   }
@@ -179,6 +180,7 @@ _private_::ostream_state_ct::set_ostream(std::ostream* os)
   real_os_ = os;
   if (old_mutex)
   {
+    // LOCK ORDER: state_mutex_ -> lock_interface_base_ct
     old_mutex->lock();		// Make sure all other threads left this critical area.
     old_mutex->unlock();
   }
@@ -208,7 +210,10 @@ _private_::ostream_state_ct::get_locked_os(std::ostream* os, lock_interface_base
   std::ostream* locked_os = os ? os : real_os_;
   *locked_mutex_out = mutex_;
   if (mutex_)
+  {
+    // LOCK ORDER: state_mutex_ -> lock_interface_base_ct
     mutex_->lock();
+  }
   return locked_os;
 }
 
@@ -218,6 +223,7 @@ _private_::ostream_state_ct::try_lock_os(std::ostream* os, std::ostream** locked
                                          lock_interface_base_ct** locked_mutex_out) const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
+  // LOCK ORDER: state_mutex_ -> lock_interface_base_ct
   if (mutex_ && mutex_->try_lock())
     return false;
   *locked_os_out = os ? os : real_os_;

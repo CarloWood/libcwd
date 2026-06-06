@@ -138,14 +138,14 @@ static thread_local bool s_object_files_is_locked_ = false;
 //
 // To obtain a read lock, create a stack variable,
 //
-//   object_files_t::rat object_files_r(object_files_map());    // Scoped read-lock for object_files_map().
+//   object_files_ts::rat object_files_r(object_files_map());    // Scoped read-lock for object_files_map().
 //   ScopedTracker scoped_{s_object_files_is_locked_};
 //
 // Use object_files_r-> for read access (returns a std::map<uintptr_t, PTLoadSegment> const*).
 //
 // To obtain a write lock, create a stack variable,
 //
-//   object_files_t::wat object_files_w(object_files_map());    // Scoped write-lock for object_files_map().
+//   object_files_ts::wat object_files_w(object_files_map());    // Scoped write-lock for object_files_map().
 //   ScopedTracker scoped_{s_object_files_is_locked_};
 //
 // Use object_files_w-> for write access (returns a std::map<uintptr_t, PTLoadSegment>*).
@@ -155,10 +155,10 @@ class ObjectFileRegistry
  protected:
   // Address index for all currently discovered loadable ELF segments. The map key is the segment's one-past-the-end
   // address; the pointed-to PTLoadSegment stores the matching start address, flags, and a pointer to the ObjectFile.
-  using object_files_t = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>,
-                                              threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  using object_files_ts = threadsafe::Unlocked<std::map<std::uintptr_t, PTLoadSegment const>,
+                                               threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
 
-  static object_files_t& object_files_map(); // Read-write lock protected end-address index of loaded PT_LOAD segments.
+  static object_files_ts& object_files_map(); // Read-write lock protected end-address index of loaded PT_LOAD segments.
 
   libcwd::ObjectFileName object_file_name_; // Public facing data of this object file. Just contains the filename
                                             // and whether or not debug info was available for this object file or not.
@@ -193,7 +193,7 @@ class ObjectFileRegistry
   static void register_initial_object_files();
   static ObjectFile const* iterate_program_headers(CallBackData const& data);
   static int cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data);
-  static ObjectFile const* find_registered_object_file(uintptr_t lbase, object_files_t::wat const& object_files_w);
+  static ObjectFile const* find_registered_object_file(uintptr_t lbase, object_files_ts::wat const& object_files_w);
 
   // Called from dlopen.
   static ObjectFile const* register_object_file_at_lbase(uintptr_t lbase);
@@ -202,9 +202,9 @@ class ObjectFileRegistry
 };
 
 // static
-ObjectFileRegistry::object_files_t& ObjectFileRegistry::object_files_map()
+ObjectFileRegistry::object_files_ts& ObjectFileRegistry::object_files_map()
 {
-  static object_files_t* map = new object_files_t; // Intentionally leaked to avoid deinitialization order fiasco.
+  static object_files_ts* map = new object_files_ts; // Intentionally leaked to avoid deinitialization order fiasco.
   return *map;
 }
 
@@ -661,7 +661,7 @@ void ObjectFileRegistry::register_initial_object_files()
 
     // This is the initial population pass for the dwarf object/segment cache.
     // Even if dlopen is called first, that still will first call this function.
-    LIBCWD_ASSERT(object_files_t::rat{object_files_map()}->empty());
+    LIBCWD_ASSERT(object_files_ts::rat{object_files_map()}->empty());
 
     // Load executable and shared objects.
     if (!statically_linked)
@@ -714,7 +714,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
   // inserting a duplicate ObjectFile when the iterator later reaches the same
   // link-map entry.
   {
-    object_files_t::wat object_files_w(object_files_map());
+    object_files_ts::wat object_files_w(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
     if (ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_w))
     {
@@ -749,7 +749,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
     uintptr_t const segment_end = segment_start + static_cast<uintptr_t>(phdr.p_memsz);
     LIBCWD_ASSERT(segment_end > segment_start);
 
-    object_files_t::wat object_files_w(object_files_map());
+    object_files_ts::wat object_files_w(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
     auto const ibp = object_files_w->try_emplace(segment_end, object_file, segment_start, segment_end, phdr.p_flags);
     // Make sure the new segment doesn't overlap with an already existing one.
@@ -778,7 +778,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
 
 // static
 ObjectFile const* ObjectFileRegistry::find_registered_object_file(uintptr_t lbase,
-                                                                  object_files_t::wat const& object_files_w)
+                                                                  object_files_ts::wat const& object_files_w)
 {
   // The writable map is keyed by PT_LOAD end address and can contain multiple
   // segments for the same object file.  Treat any segment whose owning
@@ -800,7 +800,7 @@ ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lb
   CallBackData const data{current_executable_path(), lbase};
 
   // If this object file was already loaded before, then return that instead of creating a new ObjectFile.
-  ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_t::wat{object_files_map()});
+  ObjectFile const* existing_object_file = find_registered_object_file(lbase, object_files_ts::wat{object_files_map()});
 
   // Otherwise iterate over all currently loaded object files to find the just dynamically
   // opened object file, loaded at data.target_lbase_, and create a new ObjectFile for it.
@@ -814,7 +814,7 @@ ObjectFile const* ObjectFileRegistry::find_object_file(uintptr_t addr)
   ObjectFile const* object_file = nullptr;
 
   {
-    object_files_t::rat object_files_r(object_files_map());
+    object_files_ts::rat object_files_r(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
     auto const iter = object_files_r->upper_bound(addr);
     if (iter != object_files_r->end() && iter->second.start_addr() <= addr)
@@ -883,7 +883,7 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
   // that pointer directly so this write-locked ObjectFile does not need to take
   // a nested read lock on itself while erasing its ranges.
   {
-    object_files_t::wat object_files_w(object_files_map());
+    object_files_ts::wat object_files_w(object_files_map());
     ScopedTracker scoped_{s_object_files_is_locked_};
     for (auto iter = object_files_w->begin(); iter != object_files_w->end();)
     {
@@ -1235,12 +1235,12 @@ struct DynamicLoaderRecord
   }
 };
 
-using dynamic_loader_records_t = threadsafe::Unlocked<std::map<void*, DynamicLoaderRecord, std::less<void*>>,
-                                                      threadsafe::policy::Primitive<std::mutex>>;
+using dynamic_loader_records_ts = threadsafe::Unlocked<std::map<void*, DynamicLoaderRecord, std::less<void*>>,
+                                                       threadsafe::policy::Primitive<std::mutex>>;
 
-dynamic_loader_records_t& dlopen_map()
+dynamic_loader_records_ts& dlopen_map()
 {
-  static dynamic_loader_records_t* map = new dynamic_loader_records_t; // Intentionally leaked for late DSO teardown.
+  static dynamic_loader_records_ts* map = new dynamic_loader_records_ts; // Intentionally leaked for late DSO teardown.
   return *map;
 }
 
@@ -1286,7 +1286,7 @@ void* dlopen(char const* name, int flags)
 
   // If the record already exist, increment DynamicLoaderRecord::refcount_ and return.
   {
-    dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
+    dynamic_loader_records_ts::wat dynamic_loader_records_w(dlopen_map());
     {
       auto iter = dynamic_loader_records_w->find(handle);
       if (iter != dynamic_loader_records_w->end())
@@ -1315,7 +1315,7 @@ void* dlopen(char const* name, int flags)
       if (!object_file)
         skip_dlopen_map = true;
       if (!skip_dlopen_map)
-        dynamic_loader_records_t::wat(dlopen_map())->emplace(handle, DynamicLoaderRecord{object_file, flags});
+        dynamic_loader_records_ts::wat(dlopen_map())->emplace(handle, DynamicLoaderRecord{object_file, flags});
     }
   }
 
@@ -1338,7 +1338,7 @@ int dlclose(void* handle)
 
   // Remove the corresponding DynamicLoaderRecord from the dlopen_map if this was the last reference.
   {
-    dynamic_loader_records_t::wat dynamic_loader_records_w(dlopen_map());
+    dynamic_loader_records_ts::wat dynamic_loader_records_w(dlopen_map());
 
     auto iter = dynamic_loader_records_w->find(handle);
     if (iter != dynamic_loader_records_w->end() && --iter->second.refcount_ == 0)

@@ -592,8 +592,8 @@ void debug_channels_ct::for_each_impl(callback_type callback, void* data) const
 // raw access to the registry without holding the corresponding threadsafe access object.
 struct debug_objects_ct::impl_ct
 {
-  using debug_objects_t = threadsafe::Unlocked<std::vector<debug_ct*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  debug_objects_t debug_objects_;
+  using debug_objects_ts = threadsafe::Unlocked<std::vector<debug_ct*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  debug_objects_ts debug_objects_;
 };
 
 // Return the registry used by every debug_ct object in the process.
@@ -610,7 +610,7 @@ debug_objects_ct const& debug_objects_ct::instance()
 // cannot register the same debug object twice.
 void debug_objects_ct::add_if_missing(debug_ct* debug_object) const
 {
-  impl_ct::debug_objects_t::wat debug_objects_w(impl_->debug_objects_);
+  impl_ct::debug_objects_ts::wat debug_objects_w(impl_->debug_objects_);
   if (std::find(debug_objects_w->begin(), debug_objects_w->end(), debug_object) == debug_objects_w->end())
     debug_objects_w->push_back(debug_object);
 }
@@ -621,7 +621,7 @@ void debug_objects_ct::add_if_missing(debug_ct* debug_object) const
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void debug_objects_ct::for_each_impl(callback_type callback, void* data) const
 {
-  impl_ct::debug_objects_t::rat debug_objects_r(impl_->debug_objects_);
+  impl_ct::debug_objects_ts::rat debug_objects_r(impl_->debug_objects_);
   for (debug_ct* debug_object : *debug_objects_r)
     callback(*debug_object, data);
 }
