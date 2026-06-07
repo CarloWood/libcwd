@@ -95,12 +95,6 @@ include(CheckPrototypeDefinition)
 include(CheckIncludeFileCXX)
 check_include_file_cxx("sys/resource.h" HAVE_SYS_RESOURCE_H)
 check_include_file_cxx("pwd.h" HAVE_PWD_H)
-check_include_file_cxx("pthread.h" HAVE_PTHREAD_H)
-if (HAVE_PTHREAD_H)
-  set(CW_CONFIG_HAVE_PTHREADS define)
-else ()
-  set(CW_CONFIG_HAVE_PTHREADS undef)
-endif ()
 
 include(CheckFunctionExists)
 if (CMAKE_DL_LIBS)
@@ -130,10 +124,6 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "sparc")
   set(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET 0)
 else ()
   set(CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET -1)
-endif ()
-
-if (NOT THREADSMAX)
-  set(THREADSMAX 1024)
 endif ()
 
 # Needed for subst-config.h.in, then used in subdirectory utils.

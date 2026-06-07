@@ -8,12 +8,7 @@
 #cmakedefine HAVE_GETEGID
 #cmakedefine HAVE_GETGROUPS
 #cmakedefine HAVE_GETGID
-#cmakedefine HAVE_PTHREAD_H
 #cmakedefine HAVE_UNISTD_H
-
-// THREADSMAX, [The maximum number of simultaneously running threads that are supported [1024].
-// This can be changed on the cmake command line (-DTHREADSMAX=1024).
-static constexpr int CW_THREADSMAX = @THREADSMAX@;
 
 #define CW_PATH_PROG_PS "@CW_PATH_PROG_PS@";
 static char const* const PS_ARGUMENT = "@PS_ARGUMENT@";

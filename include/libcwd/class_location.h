@@ -17,6 +17,7 @@
 #include "private_struct_TSD.h"
 #include "ObjectFileName.h"
 #include "lockable_auto_ptr.h"
+#include <cstring>
 #include <string>
 #include <iosfwd>
 
@@ -159,9 +160,9 @@ public:
   char const* mangled_function_name() const;
 
   /** \brief The size of the file name. */
-  size_t filename_length() const { return M_known ? strlen(M_filename) : 0; }
+  size_t filename_length() const { return M_known ? std::strlen(M_filename) : 0; }
   /** \brief The size of the full path name. */
-  size_t filepath_length() const { return M_known ? strlen(M_filepath.get()) : 0; }
+  size_t filepath_length() const { return M_known ? std::strlen(M_filepath.get()) : 0; }
 
   /** \brief Corresponding object file.
    *

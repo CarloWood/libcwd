@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: MIT
 
 #include "cwd_sys.h"
-#include "macros.h"
 #include "libcwd/debug.h"
 #include <libcwd/core_dump.h>
 #include <libcwd/private_threading.h>
 #include "threadsafe/AIReadWriteMutex.h"
 #include "threadsafe/threadsafe.h"
 
+#include <thread>
 #include <unistd.h>
 #include "cwd_debug.h"
 
@@ -16,7 +16,6 @@ namespace libcwd {
 namespace _private_ {
 
 bool WST_multi_threaded = false;
-bool WST_first_thread_initialized = false;
 
 #if CWDEBUG_DEBUG
 std::mutex raw_write_mutex;
@@ -26,107 +25,122 @@ std::mutex raw_write_mutex;
 // Thread Specific Data
 //
 
-pthread_key_t TSD_st::S_tsd_key;
-pthread_once_t TSD_st::S_tsd_key_once = PTHREAD_ONCE_INIT;
-
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
 void threading_tsd_init(LIBCWD_TSD_PARAM);
 
-// static
-TSD_st& TSD_st::instance()
-{
-  TSD_st* instance;
-  if (!WST_tsd_key_created || !(instance = (TSD_st*)pthread_getspecific(S_tsd_key)))
-    return S_create();
-  return *instance;
-}
-
 TSD_st* main_thread_tsd;
 
-// Create, install, and initialize the TSD for the current thread.
-//static
-TSD_st& TSD_st::S_create()
-{
-  TSD_st* real_tsd = new TSD_st;
-  // clang-format off
-  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess
-  std::memset(real_tsd, 0, sizeof(struct TSD_st));
-  PRAGMA_DIAGNOSTIC_POP
-  // clang-format on
-  real_tsd->tid = pthread_self();
-  real_tsd->pid = getpid();
+namespace {
 
-  // Install the pthread key before initializing libcwd subsystems. If initialization re-enters
-  // TSD_st::instance(), it must see and reuse this partially initialized TSD instead of recursing.
-  pthread_once(&S_tsd_key_once, &S_tsd_key_alloc);
-  pthread_setspecific(S_tsd_key, (void*)real_tsd);
+thread_local TSD_st* current_tsd;
+
+// Clean up the heap-allocated TSD that belongs to the current non-main thread.
+//
+// The guard has no inputs and no direct output. Its destructor runs during C++ thread_local teardown, releases
+// per-thread libcwd state for ordinary worker threads, and deliberately leaves the main-thread TSD alive so
+// global and shared-object destructors can continue to emit diagnostics after main() returns.
+struct TSD_cleanup_guard
+{
+  ~TSD_cleanup_guard()
+  {
+    TSD_st* tsd = current_tsd;
+    if (!tsd || tsd == main_thread_tsd)
+      return;
+
+    delete tsd;
+    current_tsd = nullptr;
+  }
+};
+
+thread_local TSD_cleanup_guard current_tsd_cleanup_guard;
+
+} // namespace
+
+// Return the TSD for the current thread, allocating and initializing it on first use.
+//
+// A C++ thread_local pointer gives each thread a fast lookup slot, while a thread_local cleanup guard releases
+// worker-thread storage at thread exit. The main-thread object is heap allocated and intentionally retained so
+// global destructors can continue to use libcwd after C++ has started tearing down thread-local objects. This
+// relies on the first TSD allocation happening on the main thread; later first-use calls construct the cleanup
+// guard before allocating worker-thread TSD.
+//static
+TSD_st& TSD_st::instance()
+{
+  if (current_tsd)
+    return *current_tsd;
+
+  // We don't necessarily need ~TSD_cleanup_guard() to be called for the main thread.
+  if (main_thread_tsd)                  // This is true if this is NOT the main thread; otherwise it is false.
+    (void)current_tsd_cleanup_guard;
+
+  current_tsd = new TSD_st;
+  return S_create(*current_tsd);
+}
+
+// Initialize the TSD object for the current thread.
+//
+// The object is marked initialized before libcwd subsystems are initialized because those paths can call
+// TSD_st::instance() again. Returning the same object during that recursion keeps partially initialized
+// state visible and avoids creating a second TSD for the same thread.
+//static
+TSD_st& TSD_st::S_create(TSD_st& real_tsd)
+{
+  real_tsd.initialized = true;
+  real_tsd.tid = std::this_thread::get_id();
 
   if (!main_thread_tsd)
-    main_thread_tsd = real_tsd;
-
-  if (!WST_first_thread_initialized) // Is this the first thread?
   {
-    WST_first_thread_initialized = true;
-    threading_tsd_init(*real_tsd); // Initialize the TSD of stuff that goes in threading.cc.
+    main_thread_tsd = &real_tsd;
+    threading_tsd_init(real_tsd); // Initialize the TSD of stuff that goes in threading.cc.
   }
   else
   {
     WST_multi_threaded = true;
-    debug_tsd_init(*real_tsd); // Initialize the TSD of existing debug objects.
-    threading_tsd_init(*real_tsd); // Initialize the TSD of stuff that goes in threading.cc.
+    debug_tsd_init(real_tsd); // Initialize the TSD of existing debug objects.
+    threading_tsd_init(real_tsd); // Initialize the TSD of stuff that goes in threading.cc.
   }
 
-  return *real_tsd;
+  return real_tsd;
 }
 
-bool WST_tsd_key_created = false;
-
-void TSD_st::S_tsd_key_alloc()
+// Destroy this TSD and release any initialized per-thread libcwd state.
+//
+// Worker-thread objects reach this destructor from TSD_cleanup_guard at thread exit. The cleanup routine is
+// idempotent, so explicit or recursive cleanup attempts are harmless.
+TSD_st::~TSD_st()
 {
-  pthread_key_create(&S_tsd_key, &TSD_st::S_cleanup_routine); // Leaks memory, we never destruct this key again.
-  WST_tsd_key_created = true;
+  if (initialized)
+    cleanup_routine();
 }
 
-#define VALGRIND 0
-
+// Release the debug-object TSD owned by this thread and mark the thread as terminating.
+//
+// Unlike the old pthread-key implementation, portable C++ does not allow delaying this destructor through
+// repeated native key-destructor iterations. Therefore this cleanup runs when the C++ thread_local cleanup
+// guard is destroyed; while it runs, recursive instance() calls still return this same TSD object.
 void TSD_st::cleanup_routine()
 {
-#if !VALGRIND
-  if (++tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS)
-#else
-  if (1) // Valgrind doesn't iterate the key destruction routines.
-#endif
+  if (cleaning_up)
+    return;
+  cleaning_up = true;
+
+  for (int i = 0; i < LIBCWD_DO_MAX; ++i)
+    if (do_array[i])
+    {
+      debug_tsd_st* ptr = do_array[i];
+      do_off_array[i] = 0; // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
+      do_array[i] = NULL; // So we won't free it again.
+      ptr->tsd_initialized = false;
+      delete ptr; // Free debug object TSD.
+    }
+
+  if (thread_iter_valid)
   {
-    // Add the key back a number of times in order to schedule our
-    // deinitialization as far as possible after other key destruction
-    // routines.
-    pthread_setspecific(S_tsd_key, (void*)this);
-#if !VALGRIND
-    if (tsd_destructor_count < PTHREAD_DESTRUCTOR_ITERATIONS - 1)
-      return;
-#endif
-    for (int i = 0; i < LIBCWD_DO_MAX; ++i)
-      if (do_array[i])
-      {
-        debug_tsd_st* ptr = do_array[i];
-        do_off_array[i] = 0; // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
-        do_array[i] = NULL; // So we won't free it again.
-        ptr->tsd_initialized = false;
-        delete ptr; // Free debug object TSD.
-      }
-
     thread_iter->terminating();
-
-    pthread_setspecific(S_tsd_key, (void*)0);
-    // Then we can safely delete the current TSD.
-    delete this;
+    thread_iter_valid = false;
   }
-}
 
-void TSD_st::S_cleanup_routine(void* arg)
-{
-  TSD_st* obj = reinterpret_cast<TSD_st*>(arg);
-  obj->cleanup_routine();
+  initialized = false;
 }
 
 // End of Thread Specific Data
@@ -135,11 +149,10 @@ void TSD_st::S_cleanup_routine(void* arg)
 //---------------------------------------------------------------------------------------------------
 // Below is the implementation of a list with thread specific objects
 // that are kept even after the destruction of a thread, and even
-// after the TSD_st structure is reused for another thread.
+// after that thread's TSD_st has been cleaned up.
 //
 // thread_ct stores per-thread state that must remain address-stable while
-// libcwd observes thread lifetime and, in fatal debug-output paths, cancels
-// all known peer threads.
+// libcwd observes thread lifetime and handles fatal debug-output paths.
 //
 
 // Store the global list of thread_ct objects behind a typed read/write lock.

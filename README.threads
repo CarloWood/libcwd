@@ -1,55 +1,35 @@
-The Thread Specific Data of libcwd currently (May 2026) works
+The Thread Specific Data of libcwd currently (June 2026) works
 as follows:
-1) While configuring libcwd, the environment variable
-   THREADSMAX is used as the maximum number of simultaneous
-   running threads.  At the moment this means that
-   this is the size of a static array with basic
-   Thread Specific Data (TSD) for libcwd (basic because
-   it doesn't contain the TSD that is needed to actually
-   write debug output: debug output is turned off).
-   When a new thread calls any libcwd function, most likely
-   turning on libcw_do or a debug channel, it is
-   detected that this is a new thread and the new thread
-   gets assigned one of the entries of this static array
-   to be used as TSD.  As soon as possible the TSD is
-   initialized fully (so writing debug output becomes
-   possible) and a pthread key is added to be used as TSD.
-   After initialization (a few miliseconds(?) after thread
-   creation) the static array TSD is released again
-   and the new thread now uses the pthread key.
-2) When a thread terminates, libpthread will call a
-   destructor call back function of the above key - along
-   with any other user provided call backs for other keys.
-   The destructor routine of the libcwd key will re-add
-   itself three times without taking action, allowing
-   user destructor routines to finish first,
-   still able to use libcwd at that moment.  Finally
-   it will release the key and move the TSD back to
-   a free entry in the static array.  From that moment
-   on debug output is inhibited, but no user code will
-   be called anymore usually.
-   Basically, all that happens after that is that libpthread
-   possibly calls free() to release the second level key
-   hash table(s) it has (once per 32 keys).
-   It is not possible to exactly determine when a thread
-   finishes - therefore the following trick is being used:
-   When a TSD struct is requested from within a call to free()
-   (or delete) to accommodate possible user key destruction
-   routines that also re-add themselfs, or other keys,
-   recursively more often than PTHREAD_DESTRUCTOR_ITERATIONS
-   and which are called later then libcwd's destructor routine,
-   and which use delete), then the existing static TSD is returned
-   and when there is no static TSD that matches the thread -
-   it is assumed that the array was full, and a new static
-   TSD is returned without initializing it or creating a new
-   pthread key for it (it is marked again as a 'terminating'
-   thread).  However, when a TSD is requested from anywhere
-   else - then libcwd assumes this is a NEW thread, and the
-   TSD will be initialized when it doesn't already exist.
- IMPORTANT: This means that you are not allowed to write
-   debug output (or use any other libcwd function), from a
-   key destructor routine of a key that is added recursively
-   from another, or the same, key destructor routine.
-   The best thing to do is to avoid using pthread_setspecific()
-   inside a key destructor routine - or at least not do that
-   more often than PTHREAD_DESTRUCTOR_ITERATIONS - 2 times.
+
+1) A thread receives its `TSD_st` object lazily, when it first calls a
+   libcwd function that needs thread specific state. The storage for that
+   object is heap storage reached through a C++ `thread_local` pointer owned by
+   `TSD_st::instance()`; no pthread key is created and no pthread specific
+   lookup is needed.
+
+2) The first call marks the object initialized before it initializes the
+   libcwd subsystems. If that initialization path calls back into
+   `TSD_st::instance()`, the recursive call therefore reuses the same
+   partially initialized object instead of starting a second initialization
+   for the same thread.
+
+3) The first observed thread initializes only the threading part of its TSD.
+   Later threads additionally allocate and initialize the per-debug-object
+   TSD for the debug objects that already exist.
+
+4) When a worker thread exits, the C++ runtime destroys a thread-local cleanup
+   guard. That guard deletes the worker thread's `TSD_st`; its destructor
+   releases per-debug-object TSD, disables the corresponding debug-object slots
+   first so recursive diagnostics do not reuse freed objects, and marks the
+   persistent thread-list entry as terminating.
+
+5) The main thread's `TSD_st` is intentionally retained until process
+   termination. This preserves libcwd diagnostics from global and shared-object
+   destructors that can run after the C++ runtime has started tearing down
+   thread-local objects.
+
+Version 2's portable C++ code does not provide an equivalent for the version 1
+pthread trick that reinstalled a key several times to run libcwd cleanup after
+other pthread key destructors. Code that emits libcwd diagnostics from other
+thread-local or native key destructors must therefore not rely on libcwd cleanup
+being delayed to the last possible native destructor iteration.

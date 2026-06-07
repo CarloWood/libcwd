@@ -411,8 +411,8 @@ static std::atomic<bool> fatal_termination_started{false};
 // Claim ownership of process termination that is triggered by dc::fatal or dc::core output.
 //
 // Returns true only for the first fatal path. The flag is intentionally never cleared because successful
-// callers abort, _Exit, or spin for debugger attachment; later contenders must leave through the existing
-// cancellation-exit path instead of generating a competing core dump or cancelling peers twice.
+// callers abort, _Exit, or spin for debugger attachment; later contenders must wait for process termination
+// instead of generating a competing core dump.
 bool claim_fatal_termination_ownership()
 {
   bool expected = false;
@@ -495,10 +495,10 @@ void debug_channels_ct::initialize_channel(channel_ct& channel, char const* labe
   //     threads because this assignment is an atomic operation.  The lock above is only needed
   //     to prefend two such simultaneously loaded libraries from causing WST_max_len to end up
   //     not maximal.
-  //     When this thread is cancelled later, there is no need to take action: the debug channel
+  //     When this thread exits later, there is no need to take action: the debug channel
   //     is global and can be used by any thread.  We want to keep the maximum label length as
   //     set by this channel.  Even when this debug channel is part of shared library that is
-  //     being loaded by dlopen() then it won't get removed when this thread is cancelled.
+  //     being loaded by dlopen() then it won't get removed when this thread exits.
   //     (Actually, a downwards update of WST_max_len should be done by dlclose if at all).
   if (label_len > WST_max_len)
     WST_max_len = label_len;
@@ -700,7 +700,7 @@ void core_dump()
     for (;;)
       std::this_thread::sleep_for(std::chrono::hours(24));
   }
-  // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
+  // Another thread that races with this path will wait above while this thread generates the core.
   std::abort();
 }
 
@@ -1269,9 +1269,14 @@ void debug_tsd_st::init()
 namespace _private_ {
 void debug_tsd_init(LIBCWD_TSD_PARAM)
 {
-  ForAllDebugObjects(LIBCWD_ASSERT(__libcwd_tsd.do_array[(debugObject).WNS_index] == NULL);
-                     debug_tsd_st & tsd(*(__libcwd_tsd.do_array[(debugObject).WNS_index] = new debug_tsd_st));
-                     tsd.init(); LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;);
+  // clang-format off
+  ForAllDebugObjects(
+    LIBCWD_ASSERT(__libcwd_tsd.do_array[(debugObject).WNS_index] == NULL);
+    debug_tsd_st& tsd(*(__libcwd_tsd.do_array[(debugObject).WNS_index] = new debug_tsd_st));
+    tsd.init();
+    LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;
+  );
+  // clang-format on
 }
 } // namespace _private_
 

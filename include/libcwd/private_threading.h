@@ -13,12 +13,6 @@
 #include "private_struct_TSD.h"
 #include "core_dump.h"
 
-#ifdef LIBCWD_HAVE_PTHREAD
-#include <pthread.h>
-#else
-#error Fatal error: thread support was not detected during configuration of libcwd.
-#endif // LIBCWD_HAVE_PTHREAD
-
 #if CWDEBUG_DEBUGT
 #define LibcwDebugThreads(x) do { x; } while(0)
 #else

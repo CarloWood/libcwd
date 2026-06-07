@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <climits>
 
 #ifndef _GLIBCXX_DEMANGLER_DEBUG
 #define _GLIBCXX_DEMANGLER_CWDEBUG 0

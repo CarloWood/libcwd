@@ -12,11 +12,7 @@
 
 #include "libcwd/config.h"
 #include "private_assert.h"
-#include <cstring>	// Needed for std::memset.
-#include <climits>	// For PTHREAD_THREADS_MAX
-#ifdef LIBCWD_HAVE_PTHREAD
-#include <pthread.h>
-#endif
+#include <thread>
 
 namespace libcwd::_private_ {
 struct TSD_st;
@@ -83,29 +79,36 @@ class thread_ct;
 struct TSD_st {
 public:
 #if CWDEBUG_LOCATION
-  location_format_t format;		// Determines how to print location_ct to an ostream.
+  location_format_t format{};		// Determines how to print location_ct to an ostream.
 #endif
   ThreadList::list_type::iterator thread_iter;  // Persistant thread specific data (might even stay after this object is destructed),
-  bool thread_iter_valid;                       // only valid when thread_iter_valid is true.
-  thread_ct* target_thread;
-  int terminating;
-  bool lock_interface_is_locked;        // Set while writing debugout to the final ostream if ostream_state_ct::mutex_ was locked.
-  bool recursive_fatal;			// Detect loop involving dc::fatal or dc::core.
+  bool thread_iter_valid = false;               // only valid when thread_iter_valid is true.
+  thread_ct* target_thread = nullptr;
+  int terminating = 0;
+  bool lock_interface_is_locked = false; // Set while writing debugout to the final ostream if ostream_state_ct::mutex_ was locked.
+  bool recursive_fatal = false;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
-  bool recursive_assert;		// Detect loop involving LIBCWD_ASSERT.
+  bool recursive_assert = false;	// Detect loop involving LIBCWD_ASSERT.
 #endif
-#if CWDEBUG_DEBUGT
-  int cancel_explicitely_deferred;
-  int cancel_explicitely_disabled;
-#endif
-  pthread_t tid;			// Thread ID.
-  pid_t pid;				// Process ID.
-  int do_off_array[LIBCWD_DO_MAX];	// Thread Specific on/off counter for Debug Objects.
-  debug_tsd_st* do_array[LIBCWD_DO_MAX];// Thread Specific Data of Debug Objects or NULL when no debug object.
+  std::thread::id tid;			// Thread ID.
+  int do_off_array[LIBCWD_DO_MAX]{};	// Thread Specific on/off counter for Debug Objects.
+  debug_tsd_st* do_array[LIBCWD_DO_MAX]{};// Thread Specific Data of Debug Objects or NULL when no debug object.
+
+  // Release per-thread debug-object data owned by this TSD and mark the thread-list entry as terminating.
+  //
+  // TSD_st::instance() continues to return this object while cleanup runs so diagnostics emitted during
+  // cleanup see the same per-thread state. A second cleanup attempt is ignored.
   void cleanup_routine();
-  int off_cnt_array[LIBCWD_DC_MAX];	// Thread Specific Data of Debug Channels.
+  int off_cnt_array[LIBCWD_DC_MAX]{};	// Thread Specific Data of Debug Channels.
+
+  // Destroy this TSD object.
+  //
+  // Worker-thread TSD objects are deleted by a thread_local cleanup guard at thread exit. The main-thread
+  // object is retained until process termination so global destructors can still use libcwd.
+  ~TSD_st();
 private:
-  int tsd_destructor_count;
+  bool initialized = false;
+  bool cleaning_up = false;
 
 public:
   void thread_destructed();
@@ -113,20 +116,19 @@ public:
 //-------------------------------------------------------
 // Static data and methods.
 private:
-  static TSD_st& S_create();
-  static pthread_key_t S_tsd_key;
-  static pthread_once_t S_tsd_key_once;
-  static void S_tsd_key_alloc();
-  static void S_cleanup_routine(void* arg);
+  // Initialize tsd as the active TSD for the current thread.
+  //
+  // The initialized flag is set before subsystem initialization so recursive instance() calls reuse the
+  // partially initialized object instead of starting a second initialization path.
+  static TSD_st& S_create(TSD_st& tsd);
 
 public:
+  // Return the TSD object for the calling thread, creating it on first use.
   static TSD_st& instance();
 };
 
 // Thread Specific Data (TSD) is stored in a structure TSD_st
 // and is accessed through a reference to `__libcwd_tsd'.
-
-extern bool WST_tsd_key_created;
 
 } // namespace _private_
 } // namespace libcwd

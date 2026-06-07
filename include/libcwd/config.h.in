@@ -142,24 +142,17 @@
 // Configuration defines that are needed by public headers.
 //
 
-#@CW_CONFIG_HAVE_PTHREADS@ LIBCWD_HAVE_PTHREAD
-
-
-
 #define LIBCWD_DO_MAX 8                         // Maximal total number of debug objects in a single application.
-                                                // This costs about 640 kb of memory per object! (640 bytes * PTHREAD_THREADS_MAX).
 #define LIBCWD_DC_MAX 256                       // Maximal total number of debug channels in a single application.
-						// Costs 4 kb of memory per channel (exclusive the actual channels).
+                                                // Costs 4 kb of memory per channel (exclusive the actual channels).
 
 /** \defgroup enable_debugt --enable-debugt (CWDEBUG_DEBUGT)
  * \ingroup group_configuration
  *
  * \par Description
  *
- * Turns on sanity checks related to libcwds critical areas and cancellation points.&nbsp;
- * The checks test if cancellation has been explicitely deferred or disabled at the entrance
- * of a critical area and that no cancellation point is called from within critical areas
- * without cleanup handler.
+ * Turns on extra diagnostics related to libcwds threading critical areas.&nbsp;
+ * The checks are intended for developers who are changing internal locking or thread-lifetime code.
  *
  * \par When to use it
  *
