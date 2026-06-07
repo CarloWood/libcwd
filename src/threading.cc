@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 #include "cwd_sys.h"
-#include "ios_base_Init.h"
 #include "macros.h"
 #include "libcwd/debug.h"
 #include <libcwd/core_dump.h>
@@ -19,7 +18,7 @@ namespace _private_ {
 bool WST_multi_threaded = false;
 bool WST_first_thread_initialized = false;
 
-#if CWDEBUG_DEBUGT
+#if CWDEBUG_DEBUG
 std::mutex raw_write_mutex;
 #endif
 
