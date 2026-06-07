@@ -100,7 +100,6 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
     free_msgbuf = true;
   }
   this->sgetn(msgbuf, curlen);
-  LIBCWD_DISABLE_CANCEL; // We don't want Dout() to be a cancellation point.
   std::ostream* locked_os;
   _private_::lock_interface_base_ct* locked_mutex;
   locked_os = debug_object.ostream_state_.get_locked_os(os, &locked_mutex);
@@ -185,7 +184,6 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
     __libcwd_tsd.lock_interface_is_locked = false;
     locked_mutex->unlock();
   }
-  LIBCWD_ENABLE_CANCEL;
   if (free_msgbuf)
     free(msgbuf);
 }
@@ -696,10 +694,6 @@ static char WST_dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
 void core_dump()
 {
   // Are we the first thread that tries to generate a core?
-#if CWDEBUG_DEBUGT
-  LIBCWD_TSD_DECLARATION;
-#endif
-  LIBCWD_DISABLE_CANCEL;
   if (!_private_::claim_fatal_termination_ownership())
   {
     // Another thread is already trying to generate a core dump.
@@ -709,9 +703,6 @@ void core_dump()
   }
   // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
   std::abort();
-  // Never reached.
-  LIBCWD_ENABLE_CANCEL;
-  _Exit(6);
 }
 
 size_t debug_string_ct::calculate_capacity(size_t size)
@@ -1110,7 +1101,6 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
       DEBUGDEBUG_CERR("Deleting `current' " << (void*)current);
       delete current;
       DEBUGDEBUG_CERR("Done deleting `current'");
-      LIBCWD_DISABLE_CANCEL;
       if (!_private_::claim_fatal_termination_ownership())
       {
         // Another thread is already trying to generate a core dump.
@@ -1118,7 +1108,6 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
         for (;;)
           std::this_thread::sleep_for(std::chrono::hours(24));
       }
-      LIBCWD_ENABLE_CANCEL;
       _Exit(254); // Exit without calling global destructors.
     }
     if ((current->mask & wait_cf))
@@ -1221,9 +1210,7 @@ bool debug_ct::NS_init(LIBCWD_TSD_PARAM)
   DEBUGDEBUG_CERR("Setting WNS_initialized to true");
 #endif
 
-  LIBCWD_DEFER_CANCEL;
   _private_::debug_objects_ct::instance().add_if_missing(this);
-  LIBCWD_RESTORE_CANCEL;
   new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
   WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
@@ -1322,9 +1309,7 @@ debug_tsd_st::~debug_tsd_st()
 channel_ct* find_channel(char const* label)
 {
   channel_ct* tmp = nullptr;
-  LIBCWD_DEFER_CANCEL;
   tmp = _private_::debug_channels_ct::instance().find(label);
-  LIBCWD_RESTORE_CANCEL;
   return tmp;
 }
 
@@ -1361,7 +1346,6 @@ void list_channels_on(debug_ct& debug_object)
   LIBCWD_TSD_DECLARATION;
   if (LIBCWD_DO_TSD_MEMBER_OFF(debug_object) < 0)
   {
-    LIBCWD_DEFER_CANCEL;
     _private_::debug_channels_ct::instance().for_each([&](channel_ct& debugChannel) {
       LibcwDoutScopeBegin(LIBCWD_DEBUGCHANNELS, debug_object, dc::always | noprefix_cf);
       LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(),
@@ -1373,7 +1357,6 @@ void list_channels_on(debug_ct& debug_object)
         LibcwDoutStream.write(": Disabled", 10);
       LibcwDoutScopeEnd;
     });
-    LIBCWD_RESTORE_CANCEL;
   }
 }
 
@@ -1386,9 +1369,7 @@ void channel_ct::NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool ad
 
   DEBUGDEBUG_CERR("Entering `channel_ct::NS_initialize(\"" << label << "\")'");
 
-  LIBCWD_DEFER_CANCEL;
   _private_::debug_channels_ct::instance().initialize_channel(*this, label LIBCWD_COMMA_TSD, add_to_channel_list);
-  LIBCWD_RESTORE_CANCEL;
 
   DEBUGDEBUG_CERR("Leaving `channel_ct::NS_initialize(\"" << label << "\")");
 }
@@ -1402,9 +1383,7 @@ void fatal_channel_ct::NS_initialize(char const* label, control_flag_t maskbit L
 
   DEBUGDEBUG_CERR("Entering `fatal_channel_ct::NS_initialize(\"" << label << "\")'");
 
-  LIBCWD_DEFER_CANCEL;
   _private_::debug_channels_ct::instance().initialize_fatal_channel(*this, label, maskbit LIBCWD_COMMA_TSD);
-  LIBCWD_RESTORE_CANCEL;
 
   DEBUGDEBUG_CERR("Leaving `fatal_channel_ct::NS_initialize(\"" << label << "\")");
 }
@@ -1625,9 +1604,7 @@ void debug_ct::set_ostream(std::ostream* os)
   LIBCWD_TSD_DECLARATION;
   LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
 #endif
-  LIBCWD_DEFER_CANCEL;
   ostream_state_.set_ostream(os);
-  LIBCWD_RESTORE_CANCEL;
 }
 
 // This flag should be set to true at the very top of main (before any threads are created, or any location look ups are

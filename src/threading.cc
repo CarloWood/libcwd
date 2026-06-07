@@ -48,9 +48,6 @@ TSD_st* main_thread_tsd;
 //static
 TSD_st& TSD_st::S_create()
 {
-  int oldtype;
-  pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &oldtype);
-
   TSD_st* real_tsd = new TSD_st;
   // clang-format off
   PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess
@@ -79,8 +76,6 @@ TSD_st& TSD_st::S_create()
     debug_tsd_init(*real_tsd); // Initialize the TSD of existing debug objects.
     threading_tsd_init(*real_tsd); // Initialize the TSD of stuff that goes in threading.cc.
   }
-
-  pthread_setcanceltype(oldtype, NULL);
 
   return *real_tsd;
 }
@@ -121,10 +116,7 @@ void TSD_st::cleanup_routine()
         delete ptr; // Free debug object TSD.
       }
 
-    int oldtype;
-    pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldtype);
     thread_iter->terminating();
-    pthread_setcanceltype(oldtype, NULL);
 
     pthread_setspecific(S_tsd_key, (void*)0);
     // Then we can safely delete the current TSD.
@@ -203,9 +195,7 @@ void ThreadList::mark_thread_terminated(ThreadList::list_type::iterator thread_i
 // Adds a new thread_ct to threadlist and initializes it.
 void threading_tsd_init(LIBCWD_TSD_PARAM)
 {
-  LIBCWD_DEFER_CANCEL;
   ThreadList::instance().add_current_thread(LIBCWD_TSD);
-  LIBCWD_RESTORE_CANCEL;
 }
 
 // The default constructor of a thread_ct object.

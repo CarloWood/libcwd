@@ -137,9 +137,7 @@ std::ostream*
 debug_ct::get_ostream() const
 {
   std::ostream* real_os_ptr;
-  LIBCWD_DEFER_CANCEL;
   real_os_ptr = ostream_state_.read_real_os();
-  LIBCWD_RESTORE_CANCEL;
   return real_os_ptr;
 }
 
@@ -148,9 +146,7 @@ bool
 debug_ct::has_mutex() const
 {
   bool has_mutex;
-  LIBCWD_DEFER_CANCEL;
   has_mutex = ostream_state_.has_mutex();
-  LIBCWD_RESTORE_CANCEL;
   return has_mutex;
 }
 

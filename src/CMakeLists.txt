@@ -19,7 +19,6 @@ target_sources(cwd
         strerrno.cc
         threading.cc
         type_info.cc
-        wrapcnclpnts.cc
 )
 
 file(GLOB PUBLIC_HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/libcwd/*.h")

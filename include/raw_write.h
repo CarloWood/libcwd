@@ -29,14 +29,12 @@ extern std::mutex raw_write_mutex;
 #define FATALDEBUGDEBUG_CERR(x)									\
     do {											\
       if (::libcwd::_private_::WST_ios_base_initialized) {	                                \
-        int __libcwd_oldstate; pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &__libcwd_oldstate); \
 	LIBCWD_TSD_DECLARATION;									\
 	LibcwDebugThreads( ::libcwd::_private_::raw_write_mutex.lock() );	                \
 	do { size_t __attribute__((unused)) __libcwd_len = ::write(2, "CWDEBUG_DEBUG: ", 15); } while(0); \
 	LibcwDebugThreads( ::libcwd::_private_::raw_write << pthread_self() << ": ");	        \
 	::libcwd::_private_::raw_write << x << '\n';					        \
 	LibcwDebugThreads( ::libcwd::_private_::raw_write_mutex.unlock() );	                \
-	pthread_setcancelstate(__libcwd_oldstate, NULL);                                        \
       }												\
     } while(0)
 
