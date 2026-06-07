@@ -141,21 +141,6 @@ void TSD_st::S_cleanup_routine(void* arg)
 // End of Thread Specific Data
 //===================================================================================================
 
-int pthread_lock_interface_ct::try_lock()
-{
-  return pthread_mutex_trylock(ptr);
-}
-
-void pthread_lock_interface_ct::lock()
-{
-  pthread_mutex_lock(ptr);
-}
-
-void pthread_lock_interface_ct::unlock()
-{
-  pthread_mutex_unlock(ptr);
-}
-
 //---------------------------------------------------------------------------------------------------
 // Below is the implementation of a list with thread specific objects
 // that are kept even after the destruction of a thread, and even

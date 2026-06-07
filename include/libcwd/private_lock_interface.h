@@ -31,16 +31,6 @@ template<class T>
       lock_interface_tct(T* mutex) : ptr(mutex) { }
   };
 
-class pthread_lock_interface_ct : public lock_interface_base_ct {
-  private:
-    pthread_mutex_t* ptr;
-    virtual int try_lock();
-    virtual void lock();
-    virtual void unlock();
-  public:
-    pthread_lock_interface_ct(pthread_mutex_t* mutex) : ptr(mutex) { }
-};
-
 }  // namespace libcwd::_private_
 
 #endif // LIBCWD_PRIVATE_LOCK_INTERFACE_H

@@ -250,12 +250,7 @@ public:
 
   void set_ostream(std::ostream* os);
   template<class T>
-    void set_ostream(std::ostream* os, T* mutex);
-#ifdef LIBCWD_DOXYGEN
-  // Specialization.
-  template<>
-    void set_ostream(std::ostream* os, pthread_mutex_t* mutex);
-#endif
+  void set_ostream(std::ostream* os, T* mutex);
   void off();
   void on();
 
@@ -274,12 +269,6 @@ public:
   bool is_on(LIBCWD_TSD_PARAM) const;
   bool always_flush_is_on() const;
 };
-
-#if !defined(LIBCWD_DOXYGEN)
-// Specialization.
-template<>
-  void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex);
-#endif
 
 }  // namespace libcwd
 

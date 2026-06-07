@@ -1603,44 +1603,6 @@ void channel_ct::restore(channel_ct::OnOffState const& state)
 }
 
 /**
- * \brief Set output device and provide external pthread mutex.
- * \ingroup group_destination
- *
- * Assign a new \c ostream to this %debug object.
- * The \c ostream will only be written to after acquiring the
- * pthread mutex passed in the second argument.
- *
- * <b>Example:</b>
- *
- * \code
- * pthread_mutex_t lock;
- *
- * // Use the same lock as you use in your application for std::cerr.
- * Debug( libcw_do.set_ostream(&std::cerr, &lock) );
- *
- * pthread_mutex_lock(&lock);
- * std::cerr << "The application uses cerr too\n";
- * pthread_mutex_unlock(&lock);
- * \endcode
- */
-// Specialization
-template <>
-void debug_ct::set_ostream(std::ostream* os, pthread_mutex_t* mutex)
-{
-  LIBCWD_TSD_DECLARATION;
-#if CWDEBUG_DEBUG
-  LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
-#endif
-  _private_::lock_interface_base_ct* new_mutex = new _private_::pthread_lock_interface_ct(mutex); // A single LEAK of 20 bytes per debug object from here is ok.
-  _private_::lock_interface_base_ct* old_mutex;
-  LIBCWD_DEFER_CANCEL;
-  old_mutex = ostream_state_.replace_with(os, new_mutex);
-  LIBCWD_RESTORE_CANCEL;
-  if (old_mutex)
-    delete old_mutex;
-}
-
-/**
  * \brief Set output device (single threaded applications).
  * \ingroup group_destination
  *

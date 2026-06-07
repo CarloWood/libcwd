@@ -29,20 +29,20 @@ namespace libcwd {
  * lock.unlock();
  * \endcode
  */
-template<class T>
-  void debug_ct::set_ostream(std::ostream* os, T* mutex)
-  {
-    LIBCWD_TSD_DECLARATION;
-    _private_::lock_interface_base_ct* new_mutex = new _private_::lock_interface_tct<T>(mutex);
-    _private_::lock_interface_base_ct* old_mutex;
-    LIBCWD_DEFER_CANCEL;
-    old_mutex = ostream_state_.replace_with(os, new_mutex);
-    LIBCWD_RESTORE_CANCEL;
-    // Delete old_mutex after unlocking in order to avoid a dead lock in case the delete causes debug output.
-    if (old_mutex)
-      delete old_mutex;
-  }
+template <class T>
+void debug_ct::set_ostream(std::ostream* os, T* mutex)
+{
+  LIBCWD_TSD_DECLARATION;
+  _private_::lock_interface_base_ct* new_mutex = new _private_::lock_interface_tct<T>(mutex);
+  _private_::lock_interface_base_ct* old_mutex;
+  LIBCWD_DEFER_CANCEL;
+  old_mutex = ostream_state_.replace_with(os, new_mutex);
+  LIBCWD_RESTORE_CANCEL;
+  // Delete old_mutex after unlocking in order to avoid a dead lock in case the delete causes debug output.
+  if (old_mutex)
+    delete old_mutex;
+}
 
-}  // namespace libcwd
+} // namespace libcwd
 
 #endif // LIBCWD_SET_OSTREAM_INL
