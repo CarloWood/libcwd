@@ -45,34 +45,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   // This should never happen because it is not possible that a thread ends up calling
   // location_ct::M_pc_location while writing writing to the final ostream now that the
   // memory allocation support was removed from libcwd.
-  LIBCWD_ASSERT(!__libcwd_tsd.pthread_lock_interface_is_locked);
-
-#if 0
-  if (__libcwd_tsd.pthread_lock_interface_is_locked)
-  {
-    // Some time, in another universe, this might really happen:
-    //
-    // We get here when we are writing debug output (and therefore set the lock)
-    // and the streambuf of the related ostream overflows, this use basic_string
-    // which uses the pool allocator which might just at that moment also run
-    // out of memory and therefore call malloc(3).  And when THAT happens for the
-    // first time, so the location from which that is called is not yet in the
-    // location cache... then we get here.
-    // We cannot obtain the object_files_instance lock now because another thread
-    // might have obtained that already when calling malloc(3), doing a location
-    // lookup for that and then realizing that no debug info was read yet for
-    // the library that did that malloc(3) call and therefore wanting to print
-    // debug output (Loading debug info from...) causing a dead-lock.
-    //
-    // PS We DID get here - 0.99.45, compiled with gcc 3.4.6, while running
-    // threads_threads_shared from dejagnu (2006/11/08). I also had to stand
-    // on one leg and wave high left.
-    M_object_file = nullptr;
-    M_func = S_pre_libcwd_initialization_c; // Not really true, but this hardly ever happens in the first place.
-    M_initialization_delayed = addr;
-    return;
-  }
-#endif
+  LIBCWD_ASSERT(!__libcwd_tsd.lock_interface_is_locked);
 
   ObjectFileInterface const* object_file = find_object_file(addr LIBCWD_COMMA_TSD);
 

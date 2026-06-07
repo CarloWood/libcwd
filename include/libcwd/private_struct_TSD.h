@@ -89,7 +89,7 @@ public:
   bool thread_iter_valid;                       // only valid when thread_iter_valid is true.
   thread_ct* target_thread;
   int terminating;
-  bool pthread_lock_interface_is_locked;// Set while writing debugout to the final ostream.
+  bool lock_interface_is_locked;        // Set while writing debugout to the final ostream if ostream_state_ct::mutex_ was locked.
   bool recursive_fatal;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
   bool recursive_assert;		// Detect loop involving LIBCWD_ASSERT.

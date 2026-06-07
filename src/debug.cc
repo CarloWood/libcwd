@@ -105,7 +105,7 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
   _private_::lock_interface_base_ct* locked_mutex;
   locked_os = debug_object.ostream_state_.get_locked_os(os, &locked_mutex);
   if (locked_mutex)
-    __libcwd_tsd.pthread_lock_interface_is_locked = true;
+    __libcwd_tsd.lock_interface_is_locked = true;
   if (!locked_mutex && _private_::WST_multi_threaded)
   {
     static bool WST_second_time = false; // Break infinite loop.
@@ -182,7 +182,7 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
   }
   if (locked_mutex)
   {
-    __libcwd_tsd.pthread_lock_interface_is_locked = false;
+    __libcwd_tsd.lock_interface_is_locked = false;
     locked_mutex->unlock();
   }
   LIBCWD_ENABLE_CANCEL;
