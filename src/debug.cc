@@ -703,9 +703,9 @@ void core_dump()
   if (!_private_::claim_fatal_termination_ownership())
   {
     // Another thread is already trying to generate a core dump.
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-    pthread_exit(PTHREAD_CANCELED);
+    // Wait until the program terminates.
+    for (;;)
+      std::this_thread::sleep_for(std::chrono::hours(24));
   }
   // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
   std::abort();
