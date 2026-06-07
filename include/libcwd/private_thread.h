@@ -62,7 +62,6 @@ struct ThreadList
 
   void add_current_thread(LIBCWD_TSD_PARAM) const;
   void mark_thread_terminated(list_type::iterator thread_iter LIBCWD_COMMA_TSD_PARAM) const;
-  void cancel_all_other_threads(pthread_t current_tid) const;
 };
 
 } // namespace _private_

@@ -708,9 +708,10 @@ void core_dump()
     pthread_exit(PTHREAD_CANCELED);
   }
   // Leave cancelation disabled because otherwise it might be that another thread is generating the core.
-  raise(6);
+  std::abort();
+  // Never reached.
   LIBCWD_ENABLE_CANCEL;
-  _Exit(6); // Never reached.
+  _Exit(6);
 }
 
 size_t debug_string_ct::calculate_capacity(size_t size)
@@ -1113,12 +1114,10 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
       if (!_private_::claim_fatal_termination_ownership())
       {
         // Another thread is already trying to generate a core dump.
-        pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-        pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-        pthread_exit(PTHREAD_CANCELED);
+        // Wait until the program terminates.
+        for (;;)
+          std::this_thread::sleep_for(std::chrono::hours(24));
       }
-      // Terminate all threads that I know of, so that no locks will remain.
-      _private_::ThreadList::instance().cancel_all_other_threads(pthread_self());
       LIBCWD_ENABLE_CANCEL;
       _Exit(254); // Exit without calling global destructors.
     }

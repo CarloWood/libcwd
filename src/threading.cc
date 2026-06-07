@@ -214,17 +214,6 @@ void ThreadList::mark_thread_terminated(ThreadList::list_type::iterator thread_i
   thread_iter->terminated(threads_w LIBCWD_COMMA_TSD);
 }
 
-// Cancel every known peer thread while a read access prevents concurrent modification of the list.
-//
-// current_tid is never cancelled.
-void ThreadList::cancel_all_other_threads(pthread_t current_tid) const
-{
-  impl_ct::threads_ts::rat threads_r(impl_->threads_);
-  for (thread_ct const& thread : *threads_r)
-    if (!pthread_equal(thread.tid, current_tid))
-      pthread_cancel(thread.tid);
-}
-
 // Called when a new thread is detected.
 // Adds a new thread_ct to threadlist and initializes it.
 void threading_tsd_init(LIBCWD_TSD_PARAM)
