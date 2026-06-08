@@ -48,7 +48,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
 #define LIBCWD_STR1(x) #x
 #define LIBCWD_STR2(x) LIBCWD_STR1(x)
 #define LIBCWD_STR3 "LibcwDout at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
-#define LIBCWD_LibcwDoutScopeBegin_MARKER do { size_t __attribute__((unused)) __libcwd_len = ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3) - 1); } while(0)
+#define LIBCWD_LibcwDoutScopeBegin_MARKER do { [[maybe_unused]] size_t __libcwd_len = ::write(2, LIBCWD_STR3, sizeof(LIBCWD_STR3) - 1); } while(0)
 #else // !CWDEBUG_DEBUGOUTPUT
 #define LIBCWD_LibcwDoutScopeBegin_MARKER
 #endif // !CWDEBUG_DEBUGOUTPUT
@@ -113,7 +113,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
 #ifndef LIBCWD_LibcwDoutFatalScopeBegin_MARKER
 #if CWDEBUG_DEBUGOUTPUT
 #define LIBCWD_STR4 "LibcwDoutFatal at " __FILE__ ":" LIBCWD_STR2(__LINE__) "\n"
-#define LIBCWD_LibcwDoutFatalScopeBegin_MARKER do { size_t __attribute__((unused)) __libcwd_len = ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4) - 1); } while(0)
+#define LIBCWD_LibcwDoutFatalScopeBegin_MARKER do { [[maybe_unused]] size_t __libcwd_len = ::write(2, LIBCWD_STR4, sizeof(LIBCWD_STR4) - 1); } while(0)
 #else
 #define LIBCWD_LibcwDoutFatalScopeBegin_MARKER
 #endif

@@ -45,12 +45,12 @@ struct debug_tsd_st
   bool first_time;
 #endif
 
-  laf_ct* current;
+  laf_ct* current_;
     // Current laf.
 
   std::ostream* current_bufferstream;
-    // The stringstream of the current laf.
-    // This should be set to current->bufferstream at all times.
+    // The stringstream of the current_ laf.
+    // This should be set to current_->bufferstream at all times.
 
   _private_::debug_stack_tst<laf_ct*> laf_stack;
     // Store for nested debug calls.
@@ -92,7 +92,7 @@ struct debug_tsd_st
   // Accessed from LibcwdDout.
   void start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM);
   void finish(debug_ct& debug_object, channel_set_data_st& /*channel_set*/ LIBCWD_COMMA_TSD_PARAM);
-  void fatal_finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM) __attribute__ ((__noreturn__));
+  [[noreturn]] void fatal_finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM);
 
   // Initialization and de-initialization.
   void init();

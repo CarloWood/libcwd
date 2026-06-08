@@ -667,7 +667,7 @@ static inline void write_whitespace_to(std::ostream& os, unsigned int size)
 }
 
 namespace _private_ {
-static char WST_dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
+alignas(laf_ct) static unsigned char WST_dummy_laf[sizeof(laf_ct)];
 } // namespace _private_
 
 /**
@@ -690,7 +690,7 @@ static char WST_dummy_laf[sizeof(laf_ct)] __attribute__((__aligned__));
  *   DoutFatal(dc::core, "Something went wrong");
  * \endcode
  */
-void core_dump()
+[[noreturn]] void core_dump()
 {
   // Are we the first thread that tries to generate a core?
   if (!_private_::claim_fatal_termination_ownership())
@@ -855,8 +855,8 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
   // of while generating the "<unfinished>" (see next `if' block).
   if ((channel_set.mask & (continued_maskbit | finish_maskbit)))
   {
-    current->err = errno; // Always keep the last errno as set at the start of LibcwDout()
-    if (!(current->mask & continued_expected_maskbit))
+    current_->err = errno; // Always keep the last errno as set at the start of LibcwDout()
+    if (!(current_->mask & continued_expected_maskbit))
     {
       std::ostream* const preferred_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
       std::ostream* target_os;
@@ -895,12 +895,12 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
 #endif
     }
 #if CWDEBUG_DEBUG
-    // MT: current != _private_::WST_dummy_laf, otherwise we didn't pass the previous if.
-    LIBCWD_ASSERT(current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf));
+    // MT: current_ != _private_::WST_dummy_laf, otherwise we didn't pass the previous if.
+    LIBCWD_ASSERT(current_ != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf));
 #endif
-    current->mask = channel_set.mask; // New bits might have been added
-    if ((current->mask & finish_maskbit))
-      current->mask &= ~continued_expected_maskbit;
+    current_->mask = channel_set.mask; // New bits might have been added
+    if ((current_->mask & finish_maskbit))
+      current_->mask &= ~continued_expected_maskbit;
     return;
   }
 
@@ -908,24 +908,24 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
   DEBUGDEBUG_CERR("Entering debug_ct::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object));
 
   // Is this an interrupting debug output (in the middle of a continued debug output)?
-  if ((current->mask & continued_cf_maskbit) && unfinished_expected)
+  if ((current_->mask & continued_cf_maskbit) && unfinished_expected)
   {
 #if CWDEBUG_DEBUG
-    // MT: if current == _private_::WST_dummy_laf then
-    //     (current->mask & continued_cf_maskbit) is false and this if is skipped.
-    LIBCWD_ASSERT(current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf));
+    // MT: if current_ == _private_::WST_dummy_laf then
+    //     (current_->mask & continued_cf_maskbit) is false and this if is skipped.
+    LIBCWD_ASSERT(current_ != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf));
 #endif
     int saved_errno = errno; // The writeto below changes errno.
     // And write out what is in the buffer till now.
     std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
-    current->buffer.writeto(
+    current_->buffer.writeto(
         target_os LIBCWD_COMMA_TSD, debug_object,
         true, // This thread requests an <unfinished> because of previous, unfinished 'continued' output.
         false // Don't flush.
         COMMA_IFTHREADS(true) // This output ends on a newline by itself.
         COMMA_IFTHREADS(false)); // The newline is not missing as a result of nonewline_cf.
     // Truncate the buffer to its prefix and append "<continued>" to it already.
-    current->buffer.restore_position();
+    current_->buffer.restore_position();
     debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
     size_t color_off_size = color_off.size();
     if (color_off_size > 0)
@@ -940,31 +940,31 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
     }
     else
       current_bufferstream->write("<continued> ", 12); // therefore we repeat the space here.
-    current->buffer.continued();
+    current_->buffer.continued();
     errno = saved_errno;
   }
 
   // Is this a nested debug output (the first of a series in the middle of another debug output)?
-  // MT: if current == _private_::WST_dummy_laf then
+  // MT: if current_ == _private_::WST_dummy_laf then
   //     start_expected is true and this if is skipped.
   if (!start_expected)
   {
-    // Put current stringstream on the stack.
-    laf_stack.push(current);
+    // Put current_ stringstream on the stack.
+    laf_stack.push(current_);
 
     // Indent nested debug output with 4 extra spaces.
     indent += 4;
 
     // If the previous target was written to cerr, then
     // write this interrupting output to cerr too.
-    channel_set.mask |= (current->mask & cerr_cf);
+    channel_set.mask |= (current_->mask & cerr_cf);
   }
 
   // Create a new laf.
   DEBUGDEBUG_CERR("creating new laf_ct");
-  current = new laf_ct(channel_set.mask, channel_set.label, errno); // LEAK5: This allocation + location_ct.
-  DEBUGDEBUG_CERR("current = " << (void*)current);
-  current_bufferstream = &current->bufferstream;
+  current_ = new laf_ct(channel_set.mask, channel_set.label, errno); // LEAK5: This allocation + location_ct.
+  DEBUGDEBUG_CERR("current_ = " << (void*)current_);
+  current_bufferstream = &current_->bufferstream;
   DEBUGDEBUG_CERR("laf_ct created");
 
   // Without a new nested Dout() call, we expect to see a finish() call: The finish belonging to *this* Dout() call.
@@ -1012,7 +1012,7 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
   {
     // If this is continued debug output, then it makes sense to remember the prefix length,
     // just in case we need indeed to output <continued> data.
-    current->buffer.store_position();
+    current_->buffer.store_position();
   }
 
   --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
@@ -1022,25 +1022,25 @@ void debug_tsd_st::start(debug_ct& debug_object, channel_set_data_st& channel_se
 void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED, */ LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUG
-  LIBCWD_ASSERT(current != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf));
+  LIBCWD_ASSERT(current_ != reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf));
 #endif
-  std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : nullptr;
+  std::ostream* target_os = (current_->mask & cerr_cf) ? &std::cerr : nullptr;
 
   // Skip `finish()' for a `continued' debug output.
-  if ((current->mask & continued_cf_maskbit) && !(current->mask & finish_maskbit))
+  if ((current_->mask & continued_cf_maskbit) && !(current_->mask & finish_maskbit))
   {
     // Allow a subsequent Dout(dc::continued (or dc::finish), ...).
-    current->mask |= continued_expected_maskbit;
-    if ((current->mask & continued_maskbit))
+    current_->mask |= continued_expected_maskbit;
+    if ((current_->mask & continued_maskbit))
       unfinished_expected = true;
     // If the `flush_cf' control flag is set, flush the ostream at every `finish()' though.
-    if (debug_object.always_flush_is_on() || (current->mask & flush_cf) != 0)
+    if (debug_object.always_flush_is_on() || (current_->mask & flush_cf) != 0)
     {
       // Write buffer to ostream.
       // Flush ostream.  Note that in the case of nested debug output this `os' can be an stringstream,
       // in that case, no actual flushing is done until the debug output to the real ostream has
       // finished.
-      current->buffer.writeto(
+      current_->buffer.writeto(
           target_os LIBCWD_COMMA_TSD, debug_object,
           false, // This thread requests <unfinished> because of previous, unfinished 'continued' output.
           true // Flush ostream after printing this.
@@ -1054,15 +1054,15 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
   DEBUGDEBUG_CERR("Entering debug_ct::finish(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object));
 
   // Handle control flags, if any:
-  if ((current->mask & error_cf))
+  if ((current_->mask & error_cf))
   {
     // strerror[_r] can call malloc (in gettext()).
     char error_text_buf[512];
     char const* error_text;
 #ifdef _GNU_SOURCE
-    error_text = strerror_r(current->err, error_text_buf, sizeof(error_text_buf));
+    error_text = strerror_r(current_->err, error_text_buf, sizeof(error_text_buf));
 #else // POSIX
-    if (strerror_r(current->err, error_text_buf, sizeof(error_text_buf)) == -1)
+    if (strerror_r(current_->err, error_text_buf, sizeof(error_text_buf)) == -1)
     {
       if (errno == ERANGE)
         error_text = "<libcwd: Oops, error text longer than 512 characters>";
@@ -1072,9 +1072,9 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
     else
       error_text = error_text_buf;
 #endif
-    *current_bufferstream << ": " << strerrno(current->err) << " (" << error_text << ')';
+    *current_bufferstream << ": " << strerrno(current_->err) << " (" << error_text << ')';
   }
-  if (!(current->mask & nonewline_cf))
+  if (!(current_->mask & nonewline_cf))
   {
     debug_string_ct const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
     size_t color_off_size = color_off.size();
@@ -1084,22 +1084,17 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
   }
 
   // Handle control flags, if any:
-  if (current->mask != 0)
+  if (current_->mask != 0)
   {
-    if ((current->mask & (coredump_maskbit | fatal_maskbit)))
+    if ((current_->mask & (coredump_maskbit | fatal_maskbit)))
     {
-      current->buffer.writeto(
+      current_->buffer.writeto(
           target_os LIBCWD_COMMA_TSD, debug_object,
           false, // This thread requests <unfinished> because of previous, unfinished 'continued' output.
           !__libcwd_tsd.recursive_fatal // Flush ostream after printing this when there is no recursive loop yet.
-               COMMA_IFTHREADS(!(current->mask & nonewline_cf)) // Whether or not this output ends on a newline.
+               COMMA_IFTHREADS(!(current_->mask & nonewline_cf)) // Whether or not this output ends on a newline.
            COMMA_IFTHREADS(true)); // If the newline is missing, then it is missing because of the use of nonewline_cf.
       __libcwd_tsd.recursive_fatal = true;
-      if ((current->mask & coredump_maskbit))
-        core_dump();
-      DEBUGDEBUG_CERR("Deleting `current' " << (void*)current);
-      delete current;
-      DEBUGDEBUG_CERR("Done deleting `current'");
       if (!_private_::claim_fatal_termination_ownership())
       {
         // Another thread is already trying to generate a core dump.
@@ -1107,13 +1102,15 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
         for (;;)
           std::this_thread::sleep_for(std::chrono::hours(24));
       }
+      if ((current_->mask & coredump_maskbit))
+        std::abort();   // core dump.
       _Exit(254); // Exit without calling global destructors.
     }
-    if ((current->mask & wait_cf))
+    if ((current_->mask & wait_cf))
     {
-      current->buffer.writeto(
+      current_->buffer.writeto(
           target_os LIBCWD_COMMA_TSD, debug_object, false,
-          debug_object.interactive COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
+          debug_object.interactive COMMA_IFTHREADS(!(current_->mask & nonewline_cf)) COMMA_IFTHREADS(true));
       _private_::lock_interface_base_ct* locked_mutex;
       std::ostream* locked_os;
       locked_os = debug_object.ostream_state_.get_locked_os(target_os, &locked_mutex);
@@ -1127,20 +1124,20 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
         locked_mutex->unlock();
     }
     else
-      current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object, false,
-                              debug_object.always_flush_is_on() || (current->mask & flush_cf != 0)
-                                                                       COMMA_IFTHREADS(!(current->mask & nonewline_cf))
+      current_->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object, false,
+                              debug_object.always_flush_is_on() || (current_->mask & flush_cf != 0)
+                                                                       COMMA_IFTHREADS(!(current_->mask & nonewline_cf))
                                                                            COMMA_IFTHREADS(true));
   }
   else
-    current->buffer.writeto(
+    current_->buffer.writeto(
         target_os LIBCWD_COMMA_TSD, debug_object, false,
-        debug_object.always_flush_is_on() COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
+        debug_object.always_flush_is_on() COMMA_IFTHREADS(!(current_->mask & nonewline_cf)) COMMA_IFTHREADS(true));
 
-  DEBUGDEBUG_CERR("Deleting `current' " << (void*)current);
-  control_flag_t mask = current->mask; // Keep this.
-  delete current;
-  DEBUGDEBUG_CERR("Done deleting `current'");
+  DEBUGDEBUG_CERR("Deleting `current_' " << (void*)current_);
+  control_flag_t mask = current_->mask; // Keep this.
+  delete current_;
+  DEBUGDEBUG_CERR("Done deleting `current_'");
 
   if (start_expected)
   {
@@ -1152,16 +1149,16 @@ void debug_tsd_st::finish(debug_ct& debug_object, channel_set_data_st& /*UNUSED,
   // Restore previous buffer as being the current one, if any.
   if (laf_stack.size())
   {
-    current = laf_stack.top();
-    DEBUGDEBUG_CERR("current = " << (void*)current);
-    current_bufferstream = &current->bufferstream;
+    current_ = laf_stack.top();
+    DEBUGDEBUG_CERR("current_ = " << (void*)current_);
+    current_bufferstream = &current_->bufferstream;
     if (debug_object.always_flush_is_on() || (mask & flush_cf != 0))
-      current->mask |= flush_cf; // Propagate flush to real ostream.
+      current_->mask |= flush_cf; // Propagate flush to real ostream.
   }
   else
   {
-    current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf); // Used (MT: read-only!) in next debug_ct::start().
-    DEBUGDEBUG_CERR("current = " << (void*)current);
+    current_ = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf); // Used (MT: read-only!) in next debug_ct::start().
+    DEBUGDEBUG_CERR("current_ = " << (void*)current_);
     current_bufferstream = NULL;
   }
 
@@ -1242,10 +1239,10 @@ void debug_tsd_st::init()
   start_expected = true; // Of course, we start with expecting the beginning of a debug output.
   unfinished_expected = false;
 
-  // `current' needs to be non-zero (saving us a check in start()) and
-  // current.mask needs to be 0 to avoid a crash in start():
-  current = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
-  DEBUGDEBUG_CERR("current = " << (void*)current);
+  // `current_' needs to be non-zero (saving us a check in start()) and
+  // current_.mask needs to be 0 to avoid a crash in start():
+  current_ = reinterpret_cast<laf_ct*>(_private_::WST_dummy_laf);
+  DEBUGDEBUG_CERR("current_ = " << (void*)current_);
   current_bufferstream = NULL;
   laf_stack.init();
   continued_stack.init();
@@ -1494,9 +1491,9 @@ continued_channel_set_st& channel_set_bootstrap_st::operator|(continued_channel_
   if ((on = !do_tsd_ptr->off_count))
   {
     DEBUGDEBUG_CERR("Channel is switched on (off_count is 0)");
-    do_tsd_ptr->current->mask |= cdc.get_maskbit(); // We continue with the current channel
-    mask = do_tsd_ptr->current->mask;
-    label = do_tsd_ptr->current->label;
+    do_tsd_ptr->current_->mask |= cdc.get_maskbit(); // We continue with the current_ channel
+    mask = do_tsd_ptr->current_->mask;
+    label = do_tsd_ptr->current_->label;
     if (cdc.get_maskbit() == finish_maskbit)
     {
       do_tsd_ptr->off_count = do_tsd_ptr->continued_stack.top();
