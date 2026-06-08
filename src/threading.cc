@@ -15,7 +15,7 @@
 namespace libcwd {
 namespace _private_ {
 
-bool WST_multi_threaded = false;
+std::atomic_bool WST_multi_threaded = false;
 
 #if CWDEBUG_DEBUG
 std::mutex raw_write_mutex;

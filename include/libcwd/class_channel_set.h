@@ -42,7 +42,7 @@ public:
     // Thread specific data of current debug object.
 
 #if CWDEBUG_DEBUG
-  channel_set_data_st() : do_tsd_ptr(NULL) { }
+  channel_set_data_st() : do_tsd_ptr(nullptr) { }
 #endif
 };
 

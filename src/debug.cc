@@ -68,7 +68,7 @@ class buffer_ct : public std::stringbuf
 };
 
 namespace _private_ {
-extern bool WST_multi_threaded;
+extern std::atomic_bool WST_multi_threaded;
 } // namespace _private_
 
 void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug_object, bool request_unfinished,
@@ -104,7 +104,7 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
   locked_os = debug_object.ostream_state_.get_locked_os(os, &locked_mutex);
   if (locked_mutex)
     __libcwd_tsd.lock_interface_is_locked = true;
-  if (!locked_mutex && _private_::WST_multi_threaded)
+  if (!locked_mutex && _private_::WST_multi_threaded.load(std::memory_order_relaxed))
   {
     static bool WST_second_time = false; // Break infinite loop.
     if (!WST_second_time)
@@ -1594,7 +1594,7 @@ void channel_ct::restore(channel_ct::OnOffState const& state)
  */
 void debug_ct::set_ostream(std::ostream* os)
 {
-  if (_private_::WST_multi_threaded)
+  if (_private_::WST_multi_threaded.load(std::memory_order_relaxed))
 #if CWDEBUG_LOCATION
     Dout(dc::warning, location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset)
                           << ": You should passing a locking mechanism to `set_ostream' for the ostream (see "

@@ -12,7 +12,6 @@
 
 #include "libcwd/config.h"
 #include "private_assert.h"
-#include <thread>
 
 namespace libcwd::_private_ {
 struct TSD_st;

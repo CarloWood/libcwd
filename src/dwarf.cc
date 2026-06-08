@@ -35,7 +35,7 @@
 
 namespace libcwd {
 namespace _private_ {
-extern bool WST_multi_threaded;
+extern std::atomic_bool WST_multi_threaded;
 } // namespace _private_
 
 // New debug channels.
@@ -855,7 +855,7 @@ bool ensure_initialization(LIBCWD_TSD_PARAM)
   // MT: We assume this is called before reaching main().
   //     Therefore, no synchronisation is required.
 #if CWDEBUG_DEBUG
-  if (_private_::WST_multi_threaded)
+  if (_private_::WST_multi_threaded.load(std::memory_order_relaxed))
     core_dump();
 #endif
 
