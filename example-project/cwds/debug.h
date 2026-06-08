@@ -146,7 +146,7 @@ namespace NAMESPACE_CHANNELS {
 /// The namespace containing the actual debug channels.
 namespace dc {
 using namespace libcwd::channels::dc;
-using libcwd::channel_ct;
+using libcwd::Channel;
 
 // Add the declaration of new debug channels here
 // and add their definition in a custom debug.cpp file.
@@ -250,7 +250,7 @@ bool static_print(T&& = {})
 NAMESPACE_DEBUG_END
 
 NAMESPACE_DEBUG_CHANNELS_START
-extern channel_ct system;
+extern Channel system;
 NAMESPACE_DEBUG_CHANNELS_END
 
 /// A debug streambuf that prints characters written to it with a green background.
@@ -283,10 +283,10 @@ class DebugBuf : public std::streambuf
 class DebugStreamBuf : public std::streambuf
 {
   private:
-    libcwd::channel_ct const& m_debug_channel;
+    libcwd::Channel const& m_debug_channel;
 
   public:
-    DebugStreamBuf(libcwd::channel_ct const& debug_channel) : m_debug_channel(debug_channel)
+    DebugStreamBuf(libcwd::Channel const& debug_channel) : m_debug_channel(debug_channel)
     {
       Dout(debug_channel|continued_cf, "");
       setp(0, 0);

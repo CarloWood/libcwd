@@ -48,7 +48,7 @@ size_t sizeof_ref_v = sizeof_ref<T>::value;
  * Returned by type_info_of().
  * \ingroup group_type_info
  */
-class type_info_ct {
+class TypeInfo {
 protected:
   size_t M_type_size;			//!< sizeof(T).
   size_t M_type_ref_size;		//!< sizeof(*T) or 0 when T is not a pointer (or a pointer to an incomplete type).
@@ -59,14 +59,14 @@ public:
    * \brief Default constructor.
    * \internal
    */
-  type_info_ct() { }
+  TypeInfo() { }
   /**
    * \brief Constructor used for unknown_type_info_c.
    * \internal
    */
-  type_info_ct(int) : M_type_size(0), M_type_ref_size(0), M_name(NULL), M_dem_name("<unknown type>") { }
+  TypeInfo(int) : M_type_size(0), M_type_ref_size(0), M_name(NULL), M_dem_name("<unknown type>") { }
   /**
-   * \brief Construct a type_info_ct object for a type (T) with encoding \a type_encoding, size \a s and size of reference \a rs.
+   * \brief Construct a TypeInfo object for a type (T) with encoding \a type_encoding, size \a s and size of reference \a rs.
    * \internal
    */
   void init(char const* type_encoding, size_t s, size_t rs)
@@ -97,10 +97,10 @@ extern char const* extract_exact_name(char const*, char const* LIBCWD_COMMA_TSD_
 template<typename T>
   struct type_info {
   private:
-    static type_info_ct S_value;
+    static TypeInfo S_value;
     static bool S_initialized;
   public:
-    static type_info_ct const& value();
+    static TypeInfo const& value();
   };
 
 // Specialization for general pointers.
@@ -108,10 +108,10 @@ template<typename T>
 template<typename T>
   struct type_info<T*> {
   private:
-    static type_info_ct S_value;
+    static TypeInfo S_value;
     static bool S_initialized;
   public:
-    static type_info_ct const& value();
+    static TypeInfo const& value();
   };
 
 // Specialization for `void*'.
@@ -119,15 +119,15 @@ template<typename T>
 template<>
   struct type_info<void*> {
   private:
-    static type_info_ct S_value;
+    static TypeInfo S_value;
     static bool S_initialized;
   public:
-    static type_info_ct const& value();
+    static TypeInfo const& value();
   };
 
 // _private_::
 template<typename T>
-  type_info_ct type_info<T>::S_value;
+  TypeInfo type_info<T>::S_value;
 
 // _private_::
 template<typename T>
@@ -135,7 +135,7 @@ template<typename T>
 
 // _private_::
 template<typename T>
-  type_info_ct const& type_info<T>::value()
+  TypeInfo const& type_info<T>::value()
   {
     if (!S_initialized)
     {
@@ -147,7 +147,7 @@ template<typename T>
 
 // _private_::
 template<typename T>
-  type_info_ct type_info<T*>::S_value;
+  TypeInfo type_info<T*>::S_value;
 
 // _private_::
 template<typename T>
@@ -155,7 +155,7 @@ template<typename T>
 
 // _private_::
 template<typename T>
-  type_info_ct const& type_info<T*>::value()
+  TypeInfo const& type_info<T*>::value()
   {
     if (!S_initialized)
     {
@@ -174,40 +174,40 @@ template<typename T>
 template<typename T>
   struct libcwd_type_info_exact {
   private:
-    static ::libcwd::type_info_ct S_value;
+    static ::libcwd::TypeInfo S_value;
     static bool S_initialized;
   public:
-    static ::libcwd::type_info_ct const& value();
+    static ::libcwd::TypeInfo const& value();
   };
 
 // Specialization for general pointers.
 template<typename T>
   struct libcwd_type_info_exact<T*> {
   private:
-    static ::libcwd::type_info_ct S_value;
+    static ::libcwd::TypeInfo S_value;
     static bool S_initialized;
   public:
-    static ::libcwd::type_info_ct const& value();
+    static ::libcwd::TypeInfo const& value();
   };
 
 // Specialization for `void*'.
 template<>
   struct libcwd_type_info_exact<void*> {
   private:
-    static ::libcwd::type_info_ct S_value;
+    static ::libcwd::TypeInfo S_value;
     static bool S_initialized;
   public:
-    static ::libcwd::type_info_ct const& value();
+    static ::libcwd::TypeInfo const& value();
   };
 
 template<typename T>
-  ::libcwd::type_info_ct libcwd_type_info_exact<T>::S_value;
+  ::libcwd::TypeInfo libcwd_type_info_exact<T>::S_value;
 
 template<typename T>
   bool libcwd_type_info_exact<T>::S_initialized;
 
 template<typename T>
-  ::libcwd::type_info_ct const& libcwd_type_info_exact<T>::value()
+  ::libcwd::TypeInfo const& libcwd_type_info_exact<T>::value()
   {
     if (!S_initialized)
     {
@@ -218,13 +218,13 @@ template<typename T>
   }
 
 template<typename T>
-  ::libcwd::type_info_ct libcwd_type_info_exact<T*>::S_value;
+  ::libcwd::TypeInfo libcwd_type_info_exact<T*>::S_value;
 
 template<typename T>
   bool libcwd_type_info_exact<T*>::S_initialized;
 
 template<typename T>
-  ::libcwd::type_info_ct const& libcwd_type_info_exact<T*>::value()
+  ::libcwd::TypeInfo const& libcwd_type_info_exact<T*>::value()
   {
     if (!S_initialized)
     {
@@ -243,7 +243,7 @@ namespace libcwd {
 // Prototype of `type_info_of'.
 template<typename T>
   inline
-  type_info_ct const&
+  TypeInfo const&
   type_info_of(T const&);
 #endif
 
@@ -265,7 +265,7 @@ template<typename T>
  */
 template<typename T>
   inline
-  type_info_ct const&
+  TypeInfo const&
   type_info_of()
   {
     return ::libcwd_type_info_exact<T>::value();
@@ -279,7 +279,7 @@ template<typename T>
  */
 template<typename T>
   inline
-  type_info_ct const&
+  TypeInfo const&
   type_info_of(T const&)		// If we don't use a reference, this would _still_ cause the copy constructor to be called.
 					// Besides, using `const&' doesn't harm the result as typeid() always ignores the top-level
 					// CV-qualifiers anyway (see C++ standard ISO+IEC+14882, 5.2.8 point 5).
@@ -287,7 +287,7 @@ template<typename T>
     return _private_::type_info<T>::value();
   }
 
-extern type_info_ct const unknown_type_info_c;
+extern TypeInfo const unknown_type_info_c;
 
 /** \} */
 

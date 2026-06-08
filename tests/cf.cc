@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <sstream>
 
-libcwd::debug_ct local_debug_object;
+libcwd::DebugObject local_debug_object;
 #define MyDout(cntrl, data) LibcwDout(LIBCWD_DEBUGCHANNELS, local_debug_object, cntrl, data)
 
 int main()
@@ -34,7 +34,7 @@ int main()
   Debug(local_debug_object.set_indent(3));
 
   {
-    libcwd_ctest::redirect_cerr_ct redirect(captured);
+    libcwd_ctest::RedirectCerr redirect(captured);
 
     Dout(dc::notice | nonewline_cf, "x");
     Dout(dc::notice | nonewline_cf, "y");

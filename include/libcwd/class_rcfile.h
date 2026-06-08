@@ -16,10 +16,10 @@
 
 namespace libcwd {
 
-class channel_ct;
+class Channel;
 
 /**
- * \class rcfile_ct class_rcfile.h libcwd/debug.h
+ * \class RcFile class_rcfile.h libcwd/debug.h
  * \ingroup chapter_rcfile
  *
  * \brief This object represents a runtime configuration file.
@@ -28,7 +28,7 @@ class channel_ct;
  * This is the object that is used by
  * <code>\link libcwd::read_rcfile read_rcfile() \endlink</code>.
  */
-class rcfile_ct {
+class RcFile {
 private:
   std::string M_konsole_command;			// How to execute a command in a window.
   std::string M_gdb_bin;				// Path to 'gdb'.
@@ -45,8 +45,8 @@ public:
   /**
    * \brief Construct a rcfile object.
    */
-  rcfile_ct() : M_env_set(false), M_read_called(false) { }
-  virtual ~rcfile_ct() { }
+  RcFile() : M_env_set(false), M_read_called(false) { }
+  virtual ~RcFile() { }
 
 private:
   void M_print_delayed_msg(int env_var, std::string const& value) const;
@@ -57,7 +57,7 @@ private:
   std::string M_determine_rcfile_name();
 
   enum action_nt { toggle, on, off };
-  void M_process_channel(channel_ct& debugChannel, std::string const& mask, action_nt const action);
+  void M_process_channel(Channel& debugChannel, std::string const& mask, action_nt const action);
   void M_process_channels(std::string list, action_nt const action);
 
 public:
@@ -91,7 +91,7 @@ protected:
   virtual bool unknown_keyword(std::string const& keyword, std::string const& value);
 };
 
-extern rcfile_ct rcfile;
+extern RcFile rcfile;
 
 /**
  * \brief Calls libcwd::rcfile.read().

@@ -17,7 +17,7 @@
 
 namespace example {                           // namespace dc cannot be put in ::
   namespace dc {
-    libcwd::channel_ct ghost("GHOST");        // Create our own Debug Channel
+    libcwd::Channel ghost("GHOST");        // Create our own Debug Channel
   }
 }
 

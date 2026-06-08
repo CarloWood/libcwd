@@ -6,8 +6,8 @@ namespace booster {
       namespace dc {
 	using namespace libcwd;
 	using namespace libcwd::channels::dc;
-	extern channel_ct booster;
-	extern channel_ct foobar;
+	extern Channel booster;
+	extern Channel foobar;
       }
     }
   }

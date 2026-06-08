@@ -24,7 +24,7 @@ constexpr int number_of_threads = 4;
 
 std::atomic_int color_code{30};
 
-struct parsed_line_ct
+struct ParsedLine
 {
   std::string color;
   std::string text;
@@ -34,9 +34,9 @@ struct parsed_line_ct
 // and the first non-reset SGR sequence. Lines without an SGR color are accepted
 // by the parser but rejected later for thread output. Unsupported escape forms
 // are copied literally so that subsequent textual checks fail with useful input.
-parsed_line_ct parse_line(std::string const& line)
+ParsedLine parse_line(std::string const& line)
 {
-  parsed_line_ct parsed;
+  ParsedLine parsed;
 
   for (std::string::size_type pos = 0; pos < line.size();)
   {
@@ -167,7 +167,7 @@ int main()
   std::string raw_line;
   while (std::getline(captured.direct_istream(), raw_line))
   {
-    parsed_line_ct parsed = parse_line(raw_line);
+    ParsedLine parsed = parse_line(raw_line);
 
     std::string::size_type first_space = parsed.text.find(' ');
     if (first_space == std::string::npos)

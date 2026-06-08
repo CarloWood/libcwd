@@ -1,4 +1,4 @@
-// Verify that location_ct reports source-level locations for PCs that belong to an inlined function body.
+// Verify that Location reports source-level locations for PCs that belong to an inlined function body.
 //
 // The noinline verifier below captures its caller's return address while it is called from an always-inline
 // function. With -O2 this creates a concrete DW_TAG_inlined_subroutine range inside outer_call_site(), and the
@@ -24,7 +24,7 @@ int volatile inlined_side_effect_sink;
 // describe the original inline body.
 [[gnu::noinline]] bool verify_inlined_body_location(unsigned int expected_line)
 {
-  libcwd::location_ct location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
+  libcwd::Location location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   Dout(dc::notice, "verify_inlined_body_location(" << expected_line << "): called from " << location);
 
   std::string demangled_name;

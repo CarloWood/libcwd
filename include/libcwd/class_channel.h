@@ -19,12 +19,12 @@
 namespace libcwd {
 
 namespace _private_ {
-struct debug_channels_ct;
+struct DebugChannels;
 struct ChannelSetsWat;
 } // namespace _private_
 
 /**
- * \class channel_ct class_channel.h libcwd/debug.h
+ * \class Channel class_channel.h libcwd/debug.h
  * \ingroup group_debug_channels
  *
  * \brief This object represents a debug channel, it has a fixed label.
@@ -33,7 +33,7 @@ struct ChannelSetsWat;
  * Whenever %debug output is written, one or more %debug %channels must be specified (as first
  * parameter of the \ref Dout macro).&nbsp;
  * The %debug output is then written to the \link group_destination ostream \endlink of the
- * \link debug_ct debug object \endlink unless the %debug object
+ * \link DebugObject debug object \endlink unless the %debug object
  * is turned off or when all specified %debug %channels are off.&nbsp;
  * Each %debug channel can be turned on and off independently.&nbsp;
  *
@@ -69,7 +69,7 @@ struct ChannelSetsWat;
  * \endexampleoutput
  */
 
-class channel_ct
+class Channel
 {
  private:
   int WNS_index;
@@ -83,7 +83,7 @@ class channel_ct
   bool WNS_initialized;
     // Set to true when initialized.
 
-  static channel_ct const off_channel;
+  static Channel const off_channel;
     // Channel that is always off.
 
  public:
@@ -94,7 +94,7 @@ class channel_ct
   // MT: All channel objects must be global so that `WNS_initialized' is false
   //     at the start of the program and initialization occurs before other threads
   //     share the object.
-  explicit channel_ct(char const* label, bool add_to_channel_list = true);
+  explicit Channel(char const* label, bool add_to_channel_list = true);
 
   // MT: May only be called from the constructors of global objects (or single threaded functions).
   void NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool add_to_channel_list);
@@ -106,7 +106,7 @@ class channel_ct
   // simultaneous access to ChannelSets::next_index_ in the case of simultaneously
   // dlopen-loaded libraries and to create a happens-before edge between the write-once
   // and potential reads of this class members by other threads.
-  friend struct _private_::debug_channels_ct;
+  friend struct _private_::DebugChannels;
   void initialize(_private_::ChannelSetsWat wat, char const* label, size_t label_len);
 
  public:
@@ -124,7 +124,7 @@ class channel_ct
   void force_on(OnOffState& state, char const* label);
   void restore(OnOffState const& state);
 
-  channel_ct const& operator()(bool cond) const { return cond ? *this : off_channel; }
+  Channel const& operator()(bool cond) const { return cond ? *this : off_channel; }
 
  public:
   //---------------------------------------------------------------------------

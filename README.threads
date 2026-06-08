@@ -1,15 +1,15 @@
 The Thread Specific Data of libcwd currently (June 2026) works
 as follows:
 
-1) A thread receives its `TSD_st` object lazily, when it first calls a
+1) A thread receives its `ThreadSpecificData` object lazily, when it first calls a
    libcwd function that needs thread specific state. The storage for that
    object is heap storage reached through a C++ `thread_local` pointer owned by
-   `TSD_st::instance()`; no pthread key is created and no pthread specific
+   `ThreadSpecificData::instance()`; no pthread key is created and no pthread specific
    lookup is needed.
 
 2) The first call marks the object initialized before it initializes the
    libcwd subsystems. If that initialization path calls back into
-   `TSD_st::instance()`, the recursive call therefore reuses the same
+   `ThreadSpecificData::instance()`, the recursive call therefore reuses the same
    partially initialized object instead of starting a second initialization
    for the same thread.
 
@@ -18,12 +18,12 @@ as follows:
    TSD for the debug objects that already exist.
 
 4) When a worker thread exits, the C++ runtime destroys a thread-local cleanup
-   guard. That guard deletes the worker thread's `TSD_st`; its destructor
+   guard. That guard deletes the worker thread's `ThreadSpecificData`; its destructor
    releases per-debug-object TSD, disables the corresponding debug-object slots
    first so recursive diagnostics do not reuse freed objects, and marks the
    persistent thread-list entry as terminating.
 
-5) The main thread's `TSD_st` is intentionally retained until process
+5) The main thread's `ThreadSpecificData` is intentionally retained until process
    termination. This preserves libcwd diagnostics from global and shared-object
    destructors that can run after the C++ runtime has started tearing down
    thread-local objects.

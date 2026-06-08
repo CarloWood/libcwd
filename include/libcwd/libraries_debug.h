@@ -47,18 +47,18 @@ namespace channels {
    * \sa \ref chapter_custom_debug_h
    */
   namespace dc {
-    extern channel_ct debug;
-    extern channel_ct notice;
-    extern channel_ct system;
-    extern channel_ct warning;
+    extern Channel debug;
+    extern Channel notice;
+    extern Channel system;
+    extern Channel warning;
 #if CWDEBUG_LOCATION
-    extern channel_ct elfutils;
+    extern Channel elfutils;
 #endif
-    extern fatal_channel_ct fatal;
-    extern fatal_channel_ct core;
-    extern continued_channel_ct continued;
-    extern continued_channel_ct finish;
-    extern always_channel_ct always;
+    extern FatalChannel fatal;
+    extern FatalChannel core;
+    extern ContinuedChannel continued;
+    extern ContinuedChannel finish;
+    extern AlwaysChannel always;
 
   } // namespace dc
 } // namespace channels
@@ -74,7 +74,7 @@ namespace channels {
 
 namespace libcwd {
 
-extern debug_ct libcw_do;
+extern DebugObject libcw_do;
 
 /** \brief Initialize libcwd global state before normal dynamic initialization reaches libcw_do.
  *
@@ -119,8 +119,8 @@ extern bool test_main_reached();
 
 namespace libcwd {
 
-extern channel_ct* find_channel(char const* label);
-extern void list_channels_on(debug_ct& debug_object);
+extern Channel* find_channel(char const* label);
+extern void list_channels_on(DebugObject& debug_object);
 
 // Make the inserter functions of std accessible in libcwd.
 using std::operator<<;
@@ -145,8 +145,8 @@ using namespace libcwd_inserters;
 #include "class_fatal_channel.inl"
 #include "class_continued_channel.inl"
 #include "class_always_channel.inl"
-#include "class_debug.inl"		// Debug objects (debug_ct).
-#include "class_debug_string.inl"       // Public member of debug_ct.
+#include "class_debug.inl"		// Debug objects (DebugObject).
+#include "class_debug_string.inl"       // Public member of DebugObject.
 #include "class_channel_set.inl"	// Used in macro Dout et al.
 #include "class_location.inl"
 

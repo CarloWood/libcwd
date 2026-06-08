@@ -83,7 +83,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
     if (LIBCWD_DO_TSD_MEMBER_OFF(debug_obj) < 0)										\
     {																\
       using namespace ::libcwd;												        \
-      ::libcwd::channel_set_bootstrap_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
+      ::libcwd::ChannelSetBootstrap __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
       bool on;															\
       {																\
         using namespace dc_namespace;												\
@@ -91,7 +91,7 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
       }																\
       if (on)															\
       {																\
-	::libcwd::debug_ct& __libcwd_debug_object(debug_obj);								        \
+	::libcwd::DebugObject& __libcwd_debug_object(debug_obj);								        \
 	LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);               \
         LIBCWD_USING_OSTREAM_PRELUDE
 
@@ -138,12 +138,12 @@ extern "C" ssize_t write(int fd, const void *buf, size_t count);
     LIBCWD_TSD_DECLARATION;													\
     LIBCWD_LibcwDoutFatalScopeBegin_MARKER;											\
     using namespace ::libcwd;												        \
-    ::libcwd::channel_set_bootstrap_fatal_st __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
+    ::libcwd::FatalChannelSetBootstrap __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj) LIBCWD_COMMA_TSD);			\
     {																\
       using namespace dc_namespace;												\
       __libcwd_channel_set|cntrl;												\
     }																\
-    ::libcwd::debug_ct& __libcwd_debug_object(debug_obj);									\
+    ::libcwd::DebugObject& __libcwd_debug_object(debug_obj);									\
     LIBCWD_DO_TSD(__libcwd_debug_object).start(__libcwd_debug_object, __libcwd_channel_set LIBCWD_COMMA_TSD);                   \
     LIBCWD_USING_OSTREAM_PRELUDE
 

@@ -36,7 +36,7 @@
 
 NAMESPACE_DEBUG_CHANNELS_START
 using namespace libcwd::channels::dc;
-using libcwd::channel_ct;
+using libcwd::Channel;
 NAMESPACE_DEBUG_CHANNELS_END
 
 // End of cwds macros.
@@ -51,15 +51,15 @@ namespace libcwd_ctest {
 // original stream buffer in the destructor. The object has no ownership of the
 // destination stream; callers must keep that stream alive until destruction.
 // Copying is disabled to ensure each redirect restores std::cerr exactly once.
-class redirect_cerr_ct {
+class RedirectCerr {
  private:
   std::streambuf* M_original;
 
  public:
-  explicit redirect_cerr_ct(std::ostream& output) : M_original(std::cerr.rdbuf(output.rdbuf())) { }
-  redirect_cerr_ct(redirect_cerr_ct const&) = delete;
-  redirect_cerr_ct& operator=(redirect_cerr_ct const&) = delete;
-  ~redirect_cerr_ct() { std::cerr.rdbuf(M_original); }
+  explicit RedirectCerr(std::ostream& output) : M_original(std::cerr.rdbuf(output.rdbuf())) { }
+  RedirectCerr(RedirectCerr const&) = delete;
+  RedirectCerr& operator=(RedirectCerr const&) = delete;
+  ~RedirectCerr() { std::cerr.rdbuf(M_original); }
 };
 
 // Compare captured line-oriented output with a null-terminated array of expected lines.

@@ -1,7 +1,7 @@
-// Verify location_ct lookup from code that runs before main().
+// Verify Location lookup from code that runs before main().
 //
 // A global object's constructor enables libcwd output, emits a continued notice
-// line, resolves the address of a local label with location_ct, and then finishes
+// line, resolves the address of a local label with Location, and then finishes
 // the notice line.  main() marks libcwd initialization complete and compares the
 // captured output line-by-line so regressions in pre-main location lookup are
 // reported by CTest.
@@ -18,19 +18,19 @@ namespace {
 std::stringstream captured_cout;
 std::stringstream captured_debug;
 
-class redirect_cout_ct
+class RedirectCout
 {
  private:
   std::streambuf* original_;
 
  public:
-  explicit redirect_cout_ct(std::ostream& output) : original_(std::cout.rdbuf(output.rdbuf())) { }
-  redirect_cout_ct(redirect_cout_ct const&) = delete;
-  redirect_cout_ct& operator=(redirect_cout_ct const&) = delete;
-  ~redirect_cout_ct() { std::cout.rdbuf(original_); }
+  explicit RedirectCout(std::ostream& output) : original_(std::cout.rdbuf(output.rdbuf())) { }
+  RedirectCout(RedirectCout const&) = delete;
+  RedirectCout& operator=(RedirectCout const&) = delete;
+  ~RedirectCout() { std::cout.rdbuf(original_); }
 };
 
-redirect_cout_ct redirect_cout(captured_cout);
+RedirectCout redirect_cout(captured_cout);
 
 class GlobalObject
 {
@@ -54,7 +54,7 @@ GlobalObject::GlobalObject()
   std::cout << "Calling GlobalObject::GlobalObject()\n";
   Dout(dc::notice | continued_cf, "Hello World");
 current_location:
-  Dout(dc::always, "We are now at " << location_ct(&&current_location));
+  Dout(dc::always, "We are now at " << Location(&&current_location));
   Dout(dc::finish | error_cf, "Hello World");
 }
 
@@ -70,7 +70,7 @@ int main()
   Debug(if (!libcw_do.is_on(LIBCWD_TSD)) libcw_do.on(););
 
   // Construct `GlobalObject` again, but now after main was reached.
-  // This time the location_ct *should* print file:line.
+  // This time the Location *should* print file:line.
   GlobalObject not_really_global;
 
   std::cout << "Successful\n";

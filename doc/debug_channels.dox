@@ -11,19 +11,19 @@
 Whenever debug output is written, one or more <i>debug channels</i> must be specified.&nbsp;
 The debug output is then written to the ostream of the debug object
 unless the debug object is turned off or when all specified <i>debug channels</i> are off.&nbsp;
-Each <i>debug channel</i> can be turned \link libcwd::channel_ct::on on \endlink
-and \link libcwd::channel_ct::off off \endlink independently.&nbsp;
+Each <i>debug channel</i> can be turned \link libcwd::Channel::on on \endlink
+and \link libcwd::Channel::off off \endlink independently.&nbsp;
 
 Libcwd has defined six <i>debug channels</i> in namespace \link libcwd::channels::dc channels::dc \endlink
 (See \ref group_default_dc).&nbsp;
 New <i>debug channels</i> can be defined by the user, which is as simple as creating
-a new \link libcwd::channel_ct channel_ct \endlink object.
+a new \link libcwd::Channel Channel \endlink object.
 
 Example,
 
 \code
 namespace dc {
-  channel_ct mychan("MYLABEL");
+  Channel mychan("MYLABEL");
 }
 \endcode
 
@@ -58,7 +58,7 @@ namespace myapplication {
     namespace channels {	// Assuming DEBUGCHANNELS is ::myapplication::debug::channels
 
       namespace dc {
-	libcwd::channel_ct hello("HELLO");
+	libcwd::Channel hello("HELLO");
       }
 
     } // namespace DEBUGCHANNELS

@@ -16,13 +16,13 @@
 namespace libcwd {
 
 //===================================================================================================
-// class always_channel_ct
+// class AlwaysChannel
 //
 // A debug channel with a special characteristic: It is always turned
 // and cannot be turned off.
 //
 
-class always_channel_ct {
+class AlwaysChannel {
 public:
   static char const label[];
 };

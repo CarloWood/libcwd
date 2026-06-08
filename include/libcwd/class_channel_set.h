@@ -16,18 +16,18 @@
 
 namespace libcwd {
 
-class debug_ct;
-struct debug_tsd_st;
-class channel_ct;
-class fatal_channel_ct;
+class DebugObject;
+struct DebugObject_ThreadSpecificData;
+class Channel;
+class FatalChannel;
 
 //===================================================================================================
-// struct channel_set_data_st
+// struct ChannelSetData
 //
-// The attributes of channel_set_bootstrap_st, channel_set_st and continued_channel_set_st
+// The attributes of ChannelSetBootstrap, ChannelSet and ContinuedChannelSet
 //
 
-struct channel_set_data_st {
+struct ChannelSetData {
 public:
   char const* label;
     // The label of the most left channel that is turned on.
@@ -38,89 +38,89 @@ public:
   bool on;
     // Set if at least one of the provided channels is turned on.
 
-  debug_tsd_st* do_tsd_ptr;
+  DebugObject_ThreadSpecificData* do_tsd_ptr;
     // Thread specific data of current debug object.
 
 #if CWDEBUG_DEBUG
-  channel_set_data_st() : do_tsd_ptr(nullptr) { }
+  ChannelSetData() : do_tsd_ptr(nullptr) { }
 #endif
 };
 
 //===================================================================================================
-// struct channel_set_bootstrap_st
+// struct ChannelSetBootstrap
 //
 // This is the left-most type of channel 'control' series
-// existing of <channel_set_bootstrap_st>|<one or more channels>|<optional control flags>.
+// existing of <ChannelSetBootstrap>|<one or more channels>|<optional control flags>.
 // It is used in macro LibcwDoutScopeBegin.
 //
-// LibcwdDoutFatalScopeBegin uses channel_set_bootstrap_fatal_st,
+// LibcwdDoutFatalScopeBegin uses FatalChannelSetBootstrap,
 // to make sure it was used with dc::fatal or dc::core.
 //
 // The return type is a cast of this object to
-// either a channel_set_st (the normal case) or a
-// continued_channel_set_st in the case that the
+// either a ChannelSet (the normal case) or a
+// ContinuedChannelSet in the case that the
 // special debug channel dc::continued was used.
 //
 
-class channel_ct;
-class fatal_channel_ct;
-class continued_channel_ct;
-class always_channel_ct;
-struct channel_set_st;
-struct continued_channel_set_st;
+class Channel;
+class FatalChannel;
+class ContinuedChannel;
+class AlwaysChannel;
+struct ChannelSet;
+struct ContinuedChannelSet;
 
-struct channel_set_bootstrap_st : public channel_set_data_st {
+struct ChannelSetBootstrap : public ChannelSetData {
   // Warning: This struct may not have attributes of its own!
 public:
-  channel_set_bootstrap_st(debug_tsd_st& do_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED) { do_tsd_ptr = &do_tsd; }
+  ChannelSetBootstrap(DebugObject_ThreadSpecificData& do_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED) { do_tsd_ptr = &do_tsd; }
 
   //-------------------------------------------------------------------------------------------------
   // Operators that combine channels/control bits.
   //
 
-  channel_set_st& operator|(channel_ct const& dc);
-  channel_set_st& operator|(always_channel_ct const& adc);
-  continued_channel_set_st& operator|(continued_channel_ct const& cdc);
+  ChannelSet& operator|(Channel const& dc);
+  ChannelSet& operator|(AlwaysChannel const& adc);
+  ContinuedChannelSet& operator|(ContinuedChannel const& cdc);
 };
 
-struct channel_set_bootstrap_fatal_st : public channel_set_data_st {
+struct FatalChannelSetBootstrap : public ChannelSetData {
   // Warning: This struct may not have attributes of its own!
 public:
-  channel_set_bootstrap_fatal_st(debug_tsd_st& do_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED) { do_tsd_ptr = &do_tsd; }
+  FatalChannelSetBootstrap(DebugObject_ThreadSpecificData& do_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED) { do_tsd_ptr = &do_tsd; }
 
   //-------------------------------------------------------------------------------------------------
   // Operators that combine channels/control bits.
   //
-  channel_set_st& operator|(fatal_channel_ct const& fdc);
+  ChannelSet& operator|(FatalChannel const& fdc);
 };
 
 //===================================================================================================
-// struct channel_set_st
+// struct ChannelSet
 //
 // The debug output target; a combination of channels and control bits.
 // The final result of a series of <channel>|<control flag>|...
 // is passed to struct_debug_tsd_st::start().
 //
 
-struct channel_set_st : public channel_set_data_st {
+struct ChannelSet : public ChannelSetData {
   // Warning: This struct may not have attributes of its own!
 public:
-  channel_set_st& operator|(control_flag_t cf);
-  channel_set_st& operator|(channel_ct const& dc);
-  channel_set_st& operator|(fatal_channel_ct const& fdc);
-  continued_channel_set_st& operator|(continued_cf_nt);
+  ChannelSet& operator|(control_flag_t cf);
+  ChannelSet& operator|(Channel const& dc);
+  ChannelSet& operator|(FatalChannel const& fdc);
+  ContinuedChannelSet& operator|(continued_cf_nt);
 };
 
 //===================================================================================================
-// struct continued_channel_set_st
+// struct ContinuedChannelSet
 //
 // The channel set type used for a series that starts with dc::continued.
 //
 
-struct continued_channel_set_st : public channel_set_data_st {
+struct ContinuedChannelSet : public ChannelSetData {
   // Warning: This struct may not have attributes of its own!
 public:
-  continued_channel_set_st& operator|(control_flag_t cf);
+  ContinuedChannelSet& operator|(control_flag_t cf);
 };
 
 } // namespace libcwd

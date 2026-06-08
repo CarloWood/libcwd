@@ -19,7 +19,7 @@
 // registered globally so ForAllDebugChannels and list_channels_on() include it
 // together with libcwd's built-in channels.
 NAMESPACE_DEBUG_CHANNELS_START
-channel_ct warp("WARP");
+Channel warp("WARP");
 NAMESPACE_DEBUG_CHANNELS_END
 
 int main()

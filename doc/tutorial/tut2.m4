@@ -62,7 +62,7 @@ namespace myproject {
 
 	// Add the declaration of new debug channels here
 	// and their definition in a custom debug.cc file.
-	extern ::libcwd::channel_ct custom;
+	extern ::libcwd::Channel custom;
 
       } // namespace dc
     } // namespace DEBUGCHANNELS
@@ -83,7 +83,7 @@ namespace debug_channels {	// Actually, you will need a series of
 				// "namespace xyz {" here, to match whatever
 				// DEBUGCHANNELS is.
   namespace dc {
-    libcwd::channel_ct <SPAN class="highlight">ghost</SPAN>("GHOST");
+    libcwd::Channel <SPAN class="highlight">ghost</SPAN>("GHOST");
   }
 }
 

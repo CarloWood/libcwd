@@ -14,12 +14,12 @@
 
 namespace libcwd::_private_ {
 
-class refcnt_charptr_ct {
+class RefCountedCharPtr {
 private:
   int M_reference_count;	// Number of smart_ptr objects pointing to this stub.
   char* M_ptr;			// Pointer to the actual character string, allocated with new char[...].
 public:
-  refcnt_charptr_ct(char* ptr) : M_reference_count(1), M_ptr(ptr) { }
+  RefCountedCharPtr(char* ptr) : M_reference_count(1), M_ptr(ptr) { }
   void increment() { ++M_reference_count; }
   bool decrement()
   {
@@ -43,7 +43,7 @@ private:
 public:
   // Default constructor and destructor.
   smart_ptr() : M_ptr(NULL), M_string_literal(true) { }
-  ~smart_ptr() { if (!M_string_literal) reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->decrement(); }
+  ~smart_ptr() { if (!M_string_literal) reinterpret_cast<RefCountedCharPtr*>(M_ptr)->decrement(); }
 
   // Copy constructor.
   smart_ptr(smart_ptr const& ptr) : M_ptr(NULL), M_string_literal(true) { copy_from(ptr); }
@@ -70,7 +70,7 @@ public:
 
 public:
   bool is_null() const { return M_ptr == NULL; }
-  char const* get() const { return M_string_literal ? reinterpret_cast<char*>(M_ptr) : reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->get(); }
+  char const* get() const { return M_string_literal ? reinterpret_cast<char*>(M_ptr) : reinterpret_cast<RefCountedCharPtr*>(M_ptr)->get(); }
 
 protected:
   // Helper methods.
@@ -80,7 +80,7 @@ protected:
 
 private:
   // Implementation.
-  void increment() { if (!M_string_literal) reinterpret_cast<refcnt_charptr_ct*>(M_ptr)->increment(); }
+  void increment() { if (!M_string_literal) reinterpret_cast<RefCountedCharPtr*>(M_ptr)->increment(); }
   void decrement(LIBCWD_TSD_PARAM);
 };
 

@@ -106,7 +106,7 @@ namespace example {
   namespace debug {
     namespace channels {
       namespace dc {
-	using namespace libcwd;		// For class channel_ct
+	using namespace libcwd;		// For class Channel
 
 	// The list of debug channel namespaces of the libraries that we use:
 	// (These two already include libcwd::channels::dc)
@@ -114,10 +114,10 @@ namespace example {
 	using namespace ::turbo::debug::channels::dc;
 
 	// Our own debug channels:
-	extern channel_ct elephant;
-	extern channel_ct cat;
-	extern channel_ct mouse;
-	extern channel_ct owl;
+	extern Channel elephant;
+	extern Channel cat;
+	extern Channel mouse;
+	extern Channel owl;
 
 	// When the libraries use the same name for any debug channels,
 	// then here is the place to `hide' these channels by redefining them.
@@ -167,10 +167,10 @@ namespace example {
   namespace debug {
     namespace channels {
       namespace dc {
-	channel_ct elephant("DUMBO");
-	channel_ct cat("FELIX");
-	channel_ct mouse("HILDAGO");
-	channel_ct owl("EINSTEIN");
+	Channel elephant("DUMBO");
+	Channel cat("FELIX");
+	Channel mouse("HILDAGO");
+	Channel owl("EINSTEIN");
       }
     }
   }

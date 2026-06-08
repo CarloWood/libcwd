@@ -19,7 +19,7 @@ namespace libcwd {
 namespace channels {
 namespace dc {
 
-channel_ct generate("GENERATE");
+Channel generate("GENERATE");
 
 } // namespace dc
 } // namespace channels

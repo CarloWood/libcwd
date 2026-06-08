@@ -1,4 +1,4 @@
-// This test verifies that location_ct can resolve a return address in A::A() to
+// This test verifies that Location can resolve a return address in A::A() to
 // this source file and the actual call-site line, and that mangled_function_name()
 // for the caller of test() demangles to A::A().
 //
@@ -19,7 +19,7 @@
 
 void test(void* call_site)
 {
-  libcwd::location_ct loc(call_site);
+  libcwd::Location loc(call_site);
   std::string funcname;
   libcwd::demangle_symbol(loc.mangled_function_name(), funcname);
   Dout(dc::notice, "test(): called from " << funcname);
@@ -34,7 +34,7 @@ class A
 A::A()
 {
   Dout(dc::notice, "A::A(): called from "
-                       << location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset));
+                       << Location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset));
 call_site_test:
   test(&&call_site_test);
 }
@@ -110,7 +110,7 @@ int main()
 
   if (location_line_number != expected_line_number)
   {
-    std::cerr << "Location line mismatch: location_ct reported " << location_line_number
+    std::cerr << "Location line mismatch: Location reported " << location_line_number
               << ", expected line output reported " << expected_line_number << '\n';
     return EXIT_FAILURE;
   }

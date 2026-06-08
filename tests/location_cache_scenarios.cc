@@ -1,5 +1,5 @@
-// Deterministic coverage for cache-backed location_ct lookups that do not rely on stderr formatting.
-// Each probe captures a concrete code address, resolves it through location_ct, and checks the source
+// Deterministic coverage for cache-backed Location lookups that do not rely on stderr formatting.
+// Each probe captures a concrete code address, resolves it through Location, and checks the source
 // file/line and mangled caller name that the `dwarf` initialization cache should have precomputed.
 
 #include "cwd_sys.h"
@@ -18,7 +18,7 @@ bool ends_with(std::string const& value, char const* suffix)
   return value.size() >= suffix_length && value.compare(value.size() - suffix_length, suffix_length, suffix) == 0;
 }
 
-bool expect_location(char const* scenario, libcwd::location_ct const& location, char const* expected_file_suffix,
+bool expect_location(char const* scenario, libcwd::Location const& location, char const* expected_file_suffix,
                      unsigned int expected_line)
 {
   if (!location.is_known())
@@ -39,7 +39,7 @@ bool expect_location(char const* scenario, libcwd::location_ct const& location, 
 [[gnu::noinline]] bool expect_call_site(char const* scenario, char const* expected_file_suffix,
                                         unsigned int expected_line)
 {
-  libcwd::location_ct location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
+  libcwd::Location location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   return expect_location(scenario, location, expected_file_suffix, expected_line);
 }
 
@@ -59,19 +59,19 @@ bool probe_line_directive()
 }
 
 unsigned int const inline_function_definition_line = __LINE__ + 1;
-[[gnu::noinline]] libcwd::location_ct capture_caller_location()
+[[gnu::noinline]] libcwd::Location capture_caller_location()
 {
-  return libcwd::location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
+  return libcwd::Location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
 }
 
-[[gnu::always_inline]] inline libcwd::location_ct capture_inline_location()
+[[gnu::always_inline]] inline libcwd::Location capture_inline_location()
 {
   return capture_caller_location();
 }
 
 bool probe_inline_body_source()
 {
-  libcwd::location_ct location = capture_inline_location();
+  libcwd::Location location = capture_inline_location();
   unsigned int const expansion_line = __LINE__;
 
   if (!location.is_known())

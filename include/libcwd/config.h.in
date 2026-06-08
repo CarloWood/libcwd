@@ -36,7 +36,7 @@
  * \code
  * // Use '#if' not '#ifdef'.
  * #if CWDEBUG_LOCATION
- * Dout(dc::notice, "Called from " << libcwd::location_ct(__builtin_return_address(0)));
+ * Dout(dc::notice, "Called from " << libcwd::Location(__builtin_return_address(0)));
  * #endif
  * \endcode
  */

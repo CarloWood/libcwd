@@ -23,24 +23,24 @@
 namespace libcwd {
 
 namespace {
-class argv_ct
+class Argv
 {
  private:
   char const* const* __argv;
 
  public:
-  argv_ct(char const* const argv[]) : __argv(argv) { }
+  Argv(char const* const argv[]) : __argv(argv) { }
   void print_on(std::ostream& os) const;
 };
 
-class printable_poll_dummy_ct
+class PrintablePollDummy
 {
  private:
   struct pollfd const* M_pollfds;
   size_t M_number_of_fds;
 
  public:
-  printable_poll_dummy_ct(struct pollfd const* pollfds, size_t number_of_fds)
+  PrintablePollDummy(struct pollfd const* pollfds, size_t number_of_fds)
       : M_pollfds(pollfds), M_number_of_fds(number_of_fds)
   {
   }
@@ -116,7 +116,7 @@ static void print_poll_struct_on(std::ostream& os, struct pollfd const& pfd)
 }
 
 // {anonymous}::
-void printable_poll_dummy_ct::print_on(std::ostream& os) const
+void PrintablePollDummy::print_on(std::ostream& os) const
 {
   os << " [ ";
   if (M_number_of_fds > 0)
@@ -130,7 +130,7 @@ void printable_poll_dummy_ct::print_on(std::ostream& os) const
 }
 
 // {anonymous}::
-void argv_ct::print_on(std::ostream& os) const
+void Argv::print_on(std::ostream& os) const
 {
   os << "[ ";
   char const* const* p = __argv;

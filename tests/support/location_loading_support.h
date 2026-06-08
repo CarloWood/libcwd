@@ -14,7 +14,7 @@ namespace libcwd_ctest::location_loading {
 
 using final_output_check_fn = bool (*)(std::istream& captured);
 
-struct capture_state_ct
+struct CaptureState
 {
   std::stringstream captured;
   int active_libraries = 0;
@@ -34,9 +34,9 @@ struct capture_state_ct
 // intentionally heap-allocated and leaked so that late shared-object
 // destructors can still write and run the final comparison without depending on
 // static destruction order across DSOs.
-inline capture_state_ct& capture_state()
+inline CaptureState& capture_state()
 {
-  static capture_state_ct* state = new capture_state_ct;
+  static CaptureState* state = new CaptureState;
   return *state;
 }
 
@@ -49,7 +49,7 @@ inline capture_state_ct& capture_state()
 // that run after main() can keep using the leaked capture state.
 inline void initialize_notice_logging()
 {
-  capture_state_ct& state = capture_state();
+  CaptureState& state = capture_state();
   if (state.logging_initialized)
     return;
 
@@ -78,7 +78,7 @@ inline void register_final_output_check(final_output_check_fn check)
 // file:line or symbol lookup.
 inline void log_notice_message(char const* image_name, std::string const& event)
 {
-  capture_state_ct& state = capture_state();
+  CaptureState& state = capture_state();
   std::string const message = std::string(image_name) + ": " + event;
   if (state.logging_initialized)
     Dout(dc::notice, message);
@@ -98,7 +98,7 @@ inline void log_notice_message(char const* image_name, char const* event)
 // the pending dc::notice line and the process-wide active count side effect.
 inline void library_loaded(char const* image_name)
 {
-  capture_state_ct& state = capture_state();
+  CaptureState& state = capture_state();
   ++state.active_libraries;
   log_notice_message(image_name, "loaded");
 }
@@ -114,7 +114,7 @@ inline void library_unloaded(char const* image_name)
   initialize_notice_logging();
   log_notice_message(image_name, "unloaded");
 
-  capture_state_ct& state = capture_state();
+  CaptureState& state = capture_state();
   --state.active_libraries;
   if (state.active_libraries == 0 && state.final_output_check && !state.finalized)
   {

@@ -136,7 +136,7 @@ class PendingStreamBuf : public std::streambuf
 class PendingStream : public std::ostream
 {
  public:
-  PendingStream(libcwd::debug_ct& debug_object)
+  PendingStream(libcwd::DebugObject& debug_object)
       : std::ostream(&buf_)   // wire our streambuf into the base ostream
   {
     buf_.require_locked_by(&output_mutex_);

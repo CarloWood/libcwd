@@ -12,11 +12,11 @@
 
 namespace libcwd {
 
-class environment_ct {
+class Environment {
 private:
   char const* const* __envp;
 public:
-  environment_ct(char const* const envp[]) : __envp(envp) { }
+  Environment(char const* const envp[]) : __envp(envp) { }
   void print_on(std::ostream& os) const
   {
     os << "[ ";

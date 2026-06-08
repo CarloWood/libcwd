@@ -15,7 +15,7 @@ namespace libcwd {
  * \brief Returned by type_info_of() for unknown types.
  * \ingroup group_type_info
  */
-type_info_ct const unknown_type_info_c(0);
+TypeInfo const unknown_type_info_c(0);
 
 namespace _private_ {
 
@@ -108,11 +108,11 @@ char const* make_label(char const* mangled_name)
   return label;
 }
 
-type_info_ct type_info<void*>::S_value;
+TypeInfo type_info<void*>::S_value;
 
 bool type_info<void*>::S_initialized;
 
-type_info_ct const& type_info<void*>::value()
+TypeInfo const& type_info<void*>::value()
 {
   if (!S_initialized)
   {
@@ -126,11 +126,11 @@ type_info_ct const& type_info<void*>::value()
 
 } // namespace libcwd
 
-libcwd::type_info_ct libcwd_type_info_exact<void*>::S_value;
+libcwd::TypeInfo libcwd_type_info_exact<void*>::S_value;
 
 bool libcwd_type_info_exact<void*>::S_initialized;
 
-libcwd::type_info_ct const& libcwd_type_info_exact<void*>::value()
+libcwd::TypeInfo const& libcwd_type_info_exact<void*>::value()
 {
   if (!S_initialized)
   {

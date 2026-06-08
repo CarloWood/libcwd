@@ -25,7 +25,7 @@ constexpr int number_of_threads = 16;
 
 std::mutex output_mutex;
 
-libcwd::debug_ct extra_do;
+libcwd::DebugObject extra_do;
 std::mutex extra_output_mutex;
 #define DoutB(cntrl, data) LibcwDout(::libcwd::channels, extra_do, cntrl, data)
 
@@ -116,7 +116,7 @@ void thread_main(int thread_index, utils::threading::StartingGate& starting_gate
 
 } // namespace
 
-struct parsed_line_ct
+struct ParsedLine
 {
   std::string margin;
   std::string label;
@@ -128,16 +128,16 @@ struct parsed_line_ct
   bool starts_with_continued;
 };
 
-std::ostream& operator<<(std::ostream& os, parsed_line_ct const& parsed_line)
+std::ostream& operator<<(std::ostream& os, ParsedLine const& parsed_line)
 {
   os << parsed_line.margin << parsed_line.label << parsed_line.marker << std::string(parsed_line.indent - parsed_line.stars, ' ')
      << std::string(parsed_line.stars, '<') << parsed_line.text;
   return os;
 }
 
-parsed_line_ct parse_line(std::string const& line)
+ParsedLine parse_line(std::string const& line)
 {
-  parsed_line_ct parsed;
+  ParsedLine parsed;
 
   // Parse the fixed prefix layout used by this test: a four-character margin,
   // libcwd's eight-character channel label, a four-character marker, then the
@@ -256,7 +256,7 @@ bool continued_text_is_valid(std::string const& text, bool end_on_unfinished)
 //
 // Returns false after printing a diagnostic when the margin or marker shape is
 // wrong, or when their encoded thread number does not match parsed.indent.
-bool validate_thread_fields(parsed_line_ct const& parsed, char expected_marker_suffix, char const* stream_name,
+bool validate_thread_fields(ParsedLine const& parsed, char expected_marker_suffix, char const* stream_name,
                             std::string const& raw_line)
 {
   if (parsed.margin.size() != 4 || parsed.margin[0] != 'T' || parsed.margin[3] != ' ')
@@ -367,20 +367,20 @@ int main()
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;
   std::cout << "Extra captured output:\n" << extra_captured.output_str() << std::endl;
 
-  std::vector<parsed_line_ct> output;
-  std::vector<parsed_line_ct> extra_output;
+  std::vector<ParsedLine> output;
+  std::vector<ParsedLine> extra_output;
 
   std::string raw_line;
   while (std::getline(captured.direct_istream(), raw_line))
   {
-    parsed_line_ct parsed = parse_line(raw_line);
+    ParsedLine parsed = parse_line(raw_line);
     if (!validate_thread_fields(parsed, 'A', "captured", raw_line))
       return EXIT_FAILURE;
     output.push_back(parsed);
   }
   while (std::getline(extra_captured.direct_istream(), raw_line))
   {
-    parsed_line_ct parsed = parse_line(raw_line);
+    ParsedLine parsed = parse_line(raw_line);
     if (!validate_thread_fields(parsed, 'B', "extra_captured", raw_line))
       return EXIT_FAILURE;
     extra_output.push_back(parsed);

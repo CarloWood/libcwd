@@ -1,6 +1,6 @@
 // Port of the historical testsuite/libcwd.tst/location.cc regression test.
 //
-// This test verifies location_ct lookup for return addresses captured from a
+// This test verifies Location lookup for return addresses captured from a
 // small noinline call chain without relying on platform-specific recursive
 // __builtin_return_address depths.  Several noinline functions capture their
 // immediate caller address and verify that libcwd resolves it to the expected
@@ -16,7 +16,7 @@ namespace {
 
 bool expect_call_site(char const* scenario, void const* return_address, unsigned int expected_line)
 {
-  libcwd::location_ct location((char*)return_address + libcwd::builtin_return_address_offset);
+  libcwd::Location location((char*)return_address + libcwd::builtin_return_address_offset);
   if (!location.is_known())
   {
     std::cerr << scenario << ": location is unknown\n";

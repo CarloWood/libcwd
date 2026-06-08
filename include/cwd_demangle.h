@@ -43,13 +43,13 @@ enum substitution_nt
   unscoped_template_name
 };
 
-struct substitution_st
+struct Substitution
 {
   int M_start_pos;
   substitution_nt M_type;
   int M_number_of_prefixes;
 
-  substitution_st(int start_pos, substitution_nt type, int number_of_prefixes) :
+  Substitution(int start_pos, substitution_nt type, int number_of_prefixes) :
       M_start_pos(start_pos), M_type(type), M_number_of_prefixes(number_of_prefixes)
   {
   }
@@ -296,10 +296,10 @@ class session
   bool M_template_args_need_space;
   string_type M_function_name;
   using int_Allocator = typename allocator_rebind<Allocator>::template alloc<int>;
-  using subst_Allocator = typename allocator_rebind<Allocator>::template alloc<substitution_st>;
+  using subst_Allocator = typename allocator_rebind<Allocator>::template alloc<Substitution>;
   std::vector<int, int_Allocator> M_template_arg_pos;
   int M_template_arg_pos_offset;
-  std::vector<substitution_st, subst_Allocator> M_substitutions_pos;
+  std::vector<Substitution, subst_Allocator> M_substitutions_pos;
   implementation_details const& M_implementation_details;
 #if _GLIBCXX_DEMANGLER_CWDEBUG
   bool M_inside_add_substitution;
@@ -396,7 +396,7 @@ inline
     if (M_inside_add_substitution)
       return;
 #endif
-    M_substitutions_pos.push_back(substitution_st(start_pos, sub_type, number_of_prefixes));
+    M_substitutions_pos.push_back(Substitution(start_pos, sub_type, number_of_prefixes));
 #if _GLIBCXX_DEMANGLER_CWDEBUG
     if (!libcwd::channels::dc::demangler.is_on())
       return;
@@ -449,9 +449,9 @@ inline
     _GLIBCXX_DEMANGLER_DOUT(
         dc::demangler, "Adding substitution "
                            << substitution_name << " : " << subst << " (from "
-                           << location_ct((char*)__builtin_return_address(0) + builtin_return_address_offset) << " <- "
-                           << location_ct((char*)__builtin_return_address(1) + builtin_return_address_offset) << " <- "
-                           << location_ct((char*)__builtin_return_address(2) + builtin_return_address_offset) << ").");
+                           << Location((char*)__builtin_return_address(0) + builtin_return_address_offset) << " <- "
+                           << Location((char*)__builtin_return_address(1) + builtin_return_address_offset) << " <- "
+                           << Location((char*)__builtin_return_address(2) + builtin_return_address_offset) << ").");
     M_inside_add_substitution = false;
 #endif
   }
@@ -733,7 +733,7 @@ bool session<Allocator>::decode_substitution(string_type& output, qualifier_list
     _GLIBCXX_DEMANGLER_FAILURE;
   ++M_inside_substitution;
   int saved_pos = M_pos;
-  substitution_st& substitution(M_substitutions_pos[value]);
+  Substitution& substitution(M_substitutions_pos[value]);
   M_pos = substitution.M_start_pos;
   switch (substitution.M_type)
   {
@@ -1070,14 +1070,14 @@ enum xary_nt
   trinary
 };
 
-struct entry_st
+struct Entry
 {
   char const* opcode;
   char const* symbol_name;
   xary_nt type;
 };
 
-entry_st const symbol_name_table_c[39] = {{"aa", "operator&&", binary},       {"na", "operator new[]", unary},
+Entry const symbol_name_table_c[39] = {{"aa", "operator&&", binary},       {"na", "operator new[]", unary},
                                           {"le", "operator<=", binary},       {"ad", "operator&", unary},
                                           {"da", "operator delete[]", unary}, {"ne", "operator!=", binary},
                                           {"mi=", "operator-", binary},       {"ng", "operator-", unary},
@@ -1117,7 +1117,7 @@ bool session<Allocator>::decode_operator_name(string_type& output)
         hash < 39)
     {
       int index = static_cast<int>(static_cast<unsigned char>(hash));
-      entry_st entry = symbol_name_table_c[index];
+      Entry entry = symbol_name_table_c[index];
       if (entry.opcode[0] == opcode0 && entry.opcode[1] == opcode1 && (opcode1 == current() || entry.opcode[2] == '='))
       {
         output += entry.symbol_name;
@@ -1278,7 +1278,7 @@ bool session<Allocator>::decode_expression(string_type& output)
           hash < 39)
       {
         int index = static_cast<int>(static_cast<unsigned char>(hash));
-        entry_st entry = symbol_name_table_c[index];
+        Entry entry = symbol_name_table_c[index];
         if (entry.opcode[0] == opcode0 && entry.opcode[1] == opcode1 &&
             (opcode1 == current() || entry.opcode[2] == '='))
         {

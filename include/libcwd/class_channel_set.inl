@@ -23,24 +23,24 @@
 namespace libcwd {
 
 inline
-continued_channel_set_st&
-continued_channel_set_st::operator|(control_flag_t cf)
+ContinuedChannelSet&
+ContinuedChannelSet::operator|(control_flag_t cf)
 {
   mask |= cf;
   return *this;
 }
 
 inline
-channel_set_st&
-channel_set_st::operator|(control_flag_t cf)
+ChannelSet&
+ChannelSet::operator|(control_flag_t cf)
 {
   mask |= cf;
   return *this;
 }
 
 inline
-channel_set_st&
-channel_set_st::operator|(channel_ct const& dc)
+ChannelSet&
+ChannelSet::operator|(Channel const& dc)
 {
   if (!on)
   {
@@ -51,8 +51,8 @@ channel_set_st::operator|(channel_ct const& dc)
 }
 
 inline
-channel_set_st&
-channel_set_st::operator|(fatal_channel_ct const& fdc)
+ChannelSet&
+ChannelSet::operator|(FatalChannel const& fdc)
 {
   mask |= fdc.get_maskbit();
   if (!on)

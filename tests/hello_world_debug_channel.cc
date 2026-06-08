@@ -20,7 +20,7 @@
 // and is used for the final Dout call. The object is global because libcwd
 // channels are initialized and registered before main() reads channel settings.
 NAMESPACE_DEBUG_CHANNELS_START
-channel_ct hello("HELLO");
+Channel hello("HELLO");
 NAMESPACE_DEBUG_CHANNELS_END
 
 int main()

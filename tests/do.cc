@@ -16,9 +16,9 @@
 #error "CWDEBUG not defined"
 #endif
 
-libcwd::debug_ct my_own_do;
+libcwd::DebugObject my_own_do;
 namespace example {
-libcwd::debug_ct my_own_do;
+libcwd::DebugObject my_own_do;
 }
 
 #define MyOwnDout(cntrl, data) LibcwDout(::libcwd::channels, my_own_do, cntrl, data)
@@ -31,20 +31,20 @@ namespace {
 // The caller owns both streams and must keep the destination alive until this
 // object is destroyed. Copying is disabled so each saved stream buffer is
 // restored exactly once.
-class redirect_stream_ct
+class RedirectStream
 {
  private:
   std::ostream& M_stream;
   std::streambuf* M_original;
 
  public:
-  redirect_stream_ct(std::ostream& stream, std::ostream& destination)
+  RedirectStream(std::ostream& stream, std::ostream& destination)
       : M_stream(stream), M_original(stream.rdbuf(destination.rdbuf()))
   {
   }
-  redirect_stream_ct(redirect_stream_ct const&) = delete;
-  redirect_stream_ct& operator=(redirect_stream_ct const&) = delete;
-  ~redirect_stream_ct() { M_stream.rdbuf(M_original); }
+  RedirectStream(RedirectStream const&) = delete;
+  RedirectStream& operator=(RedirectStream const&) = delete;
+  ~RedirectStream() { M_stream.rdbuf(M_original); }
 };
 
 // Execute the legacy do.cc debug-output scenario.
@@ -354,8 +354,8 @@ int main()
   std::stringstream captured;
   bool scenario_ok;
   {
-    redirect_stream_ct redirect_cout(std::cout, captured);
-    redirect_stream_ct redirect_cerr(std::cerr, captured);
+    RedirectStream redirect_cout(std::cout, captured);
+    RedirectStream redirect_cerr(std::cerr, captured);
     scenario_ok = run_do_scenario();
   }
 

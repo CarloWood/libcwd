@@ -15,7 +15,7 @@ demangle_symbol() writes the \em mangled symbol name \p input
 to the string \p output; \p input should be the mangled name
 as returned by <CODE>elfxx::asymbol_st::name</CODE>
 which is what is returned by
-\ref libcwd::location_ct::mangled_function_name "location_ct::mangled_function_name()"
+\ref libcwd::Location::mangled_function_name "Location::mangled_function_name()"
 and pc_mangled_function_name().
 
 The direct use of these functions should be avoided, instead use the function type_info_of().
@@ -45,7 +45,7 @@ The direct use of these functions should be avoided, instead use the function ty
 namespace libcwd {
 namespace channels {
 namespace dc {
-channel_ct demangler("DEMANGLER");
+Channel demangler("DEMANGLER");
 } // namespace dc
 } // namespace channels
 } // namespace libcwd

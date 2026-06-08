@@ -17,7 +17,7 @@ int main()
   std::stringstream captured;
 
   {
-    libcwd_ctest::redirect_cerr_ct redirect(captured);
+    libcwd_ctest::RedirectCerr redirect(captured);
     Debug(libcw_do.on());
     Debug(dc::notice.on());
 

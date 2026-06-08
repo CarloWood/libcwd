@@ -121,7 +121,7 @@ namespace myapplication {
     namespace channels {
       namespace dc {
         using namespace ::libcwd::channels::dc;
-        extern ::libcwd::channel_ct mychannel;
+        extern ::libcwd::Channel mychannel;
 	// ... more channels here
       }
     }
@@ -181,7 +181,7 @@ It isn't hard at all to define your own macros though; for example add something
 
 <PRE class="code">
 #ifdef CWDEBUG
-extern libcwd::debug_ct <SPAN class="highlight">my_debug_object</SPAN>;
+extern libcwd::DebugObject <SPAN class="highlight">my_debug_object</SPAN>;
 #define <SPAN class="highlight">MyDout</SPAN>(cntrl, data) LibcwDout(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, data)
 #define <SPAN class="highlight">MyDoutFatal</SPAN>(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, data)
 #else // !CWDEBUG

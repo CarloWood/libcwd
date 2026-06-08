@@ -2,7 +2,7 @@
 //
 // This is a direct CTest form of testsuite/libcwd.nodebug/nodebug.cc: it turns
 // on the default debug object and ELFUTILS channel, resolves a local label with
-// location_ct, and compares the resulting printed output line-by-line.
+// Location, and compares the resulting printed output line-by-line.
 
 #include "cwd_sys.h"
 #include "test_support.h"
@@ -18,7 +18,7 @@ int main()
 #if CWDEBUG_LOCATION
   // Prime the object/symbol cache before enabling the ELFUTILS channel; otherwise the
   // cache loading trace would become part of the output that this test compares.
-  libcwd::location_ct warmup(&&warmup_location);
+  libcwd::Location warmup(&&warmup_location);
 warmup_location:
 #endif
 
@@ -28,7 +28,7 @@ warmup_location:
   Debug(dc::elfutils.on());
   Debug(location_format(show_objectfile | show_function));
 
-  libcwd::location_ct const loc(&&current_location);
+  libcwd::Location const loc(&&current_location);
 current_location:
   Dout(dc::elfutils, "This is printed from " << loc);
 #endif

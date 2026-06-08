@@ -17,64 +17,64 @@ namespace libcwd {
 /** \{ */
 
 inline
-debug_string_ct&
-debug_ct::color_on()
+DebugString&
+DebugObject::color_on()
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(color_on);
 }
 
 inline
-debug_string_ct const&
-debug_ct::color_on() const
+DebugString const&
+DebugObject::color_on() const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(color_on);
 }
 
 inline
-debug_string_ct&
-debug_ct::color_off()
+DebugString&
+DebugObject::color_off()
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(color_off);
 }
 
 inline
-debug_string_ct const&
-debug_ct::color_off() const
+DebugString const&
+DebugObject::color_off() const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(color_off);
 }
 
 inline
-debug_string_ct&
-debug_ct::margin()
+DebugString&
+DebugObject::margin()
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(margin);
 }
 
 inline
-debug_string_ct const&
-debug_ct::margin() const
+DebugString const&
+DebugObject::margin() const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(margin);
 }
 
 inline
-debug_string_ct&
-debug_ct::marker()
+DebugString&
+DebugObject::marker()
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(marker);
 }
 
 inline
-debug_string_ct const&
-debug_ct::marker() const
+DebugString const&
+DebugObject::marker() const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(marker);
@@ -85,7 +85,7 @@ debug_ct::marker() const
  */
 inline
 void
-debug_ct::set_indent(unsigned short i)
+DebugObject::set_indent(unsigned short i)
 {
   LIBCWD_TSD_DECLARATION;
   LIBCWD_TSD_MEMBER(indent) = i;
@@ -96,7 +96,7 @@ debug_ct::set_indent(unsigned short i)
  */
 inline
 void
-debug_ct::inc_indent(unsigned short i)
+DebugObject::inc_indent(unsigned short i)
 {
   LIBCWD_TSD_DECLARATION;
   LIBCWD_TSD_MEMBER(indent) += i;
@@ -107,7 +107,7 @@ debug_ct::inc_indent(unsigned short i)
  */
 inline
 void
-debug_ct::dec_indent(unsigned short i)
+DebugObject::dec_indent(unsigned short i)
 {
   LIBCWD_TSD_DECLARATION;
   int prev_indent = LIBCWD_TSD_MEMBER(indent);
@@ -119,7 +119,7 @@ debug_ct::dec_indent(unsigned short i)
  */
 inline
 unsigned short
-debug_ct::get_indent() const
+DebugObject::get_indent() const
 {
   LIBCWD_TSD_DECLARATION;
   return LIBCWD_TSD_MEMBER(indent);
@@ -135,7 +135,7 @@ debug_ct::get_indent() const
  */
 inline
 std::ostream*
-debug_ct::get_ostream() const
+DebugObject::get_ostream() const
 {
   std::ostream* real_os_ptr;
   real_os_ptr = ostream_state_.read_real_os();
@@ -144,7 +144,7 @@ debug_ct::get_ostream() const
 
 inline
 bool
-debug_ct::has_mutex() const
+DebugObject::has_mutex() const
 {
   bool has_mutex;
   has_mutex = ostream_state_.has_mutex();
@@ -152,16 +152,16 @@ debug_ct::has_mutex() const
 }
 
 inline
-_private_::lock_interface_base_ct*
-_private_::ostream_state_ct::replace_with(std::ostream* os, lock_interface_base_ct* new_mutex)
+_private_::LockInterfaceBase*
+_private_::OstreamState::replace_with(std::ostream* os, LockInterfaceBase* new_mutex)
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
-  lock_interface_base_ct* old_mutex = mutex_;
+  LockInterfaceBase* old_mutex = mutex_;
   mutex_ = new_mutex;
   real_os_ = os;
   if (old_mutex)
   {
-    // LOCK ORDER: state_mutex_ -> lock_interface_base_ct
+    // LOCK ORDER: state_mutex_ -> LockInterfaceBase
     old_mutex->lock();		// Make sure all other threads left this critical area.
     old_mutex->unlock();
   }
@@ -170,14 +170,14 @@ _private_::ostream_state_ct::replace_with(std::ostream* os, lock_interface_base_
 
 inline
 void
-_private_::ostream_state_ct::set_ostream(std::ostream* os)
+_private_::OstreamState::set_ostream(std::ostream* os)
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
-  lock_interface_base_ct* old_mutex = mutex_;
+  LockInterfaceBase* old_mutex = mutex_;
   real_os_ = os;
   if (old_mutex)
   {
-    // LOCK ORDER: state_mutex_ -> lock_interface_base_ct
+    // LOCK ORDER: state_mutex_ -> LockInterfaceBase
     old_mutex->lock();		// Make sure all other threads left this critical area.
     old_mutex->unlock();
   }
@@ -185,7 +185,7 @@ _private_::ostream_state_ct::set_ostream(std::ostream* os)
 
 inline
 std::ostream*
-_private_::ostream_state_ct::read_real_os() const
+_private_::OstreamState::read_real_os() const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
   return real_os_;
@@ -193,7 +193,7 @@ _private_::ostream_state_ct::read_real_os() const
 
 inline
 bool
-_private_::ostream_state_ct::has_mutex() const
+_private_::OstreamState::has_mutex() const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
   return mutex_ != nullptr;
@@ -201,14 +201,14 @@ _private_::ostream_state_ct::has_mutex() const
 
 inline
 std::ostream*
-_private_::ostream_state_ct::get_locked_os(std::ostream* os, lock_interface_base_ct** locked_mutex_out) const
+_private_::OstreamState::get_locked_os(std::ostream* os, LockInterfaceBase** locked_mutex_out) const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
   std::ostream* locked_os = os ? os : real_os_;
   *locked_mutex_out = mutex_;
   if (mutex_)
   {
-    // LOCK ORDER: state_mutex_ -> lock_interface_base_ct
+    // LOCK ORDER: state_mutex_ -> LockInterfaceBase
     mutex_->lock();
   }
   return locked_os;
@@ -216,11 +216,11 @@ _private_::ostream_state_ct::get_locked_os(std::ostream* os, lock_interface_base
 
 inline
 bool
-_private_::ostream_state_ct::try_lock_os(std::ostream* os, std::ostream** locked_os_out,
-                                         lock_interface_base_ct** locked_mutex_out) const
+_private_::OstreamState::try_lock_os(std::ostream* os, std::ostream** locked_os_out,
+                                         LockInterfaceBase** locked_mutex_out) const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
-  // LOCK ORDER: state_mutex_ -> lock_interface_base_ct
+  // LOCK ORDER: state_mutex_ -> LockInterfaceBase
   if (mutex_ && mutex_->try_lock())
     return false;
   *locked_os_out = os ? os : real_os_;
@@ -230,7 +230,7 @@ _private_::ostream_state_ct::try_lock_os(std::ostream* os, std::ostream** locked
 
 inline
 void
-_private_::ostream_state_ct::write_color_off_newline(std::ostream* os, char const* color_off,
+_private_::OstreamState::write_color_off_newline(std::ostream* os, char const* color_off,
                                                      std::size_t color_off_size) const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
@@ -251,7 +251,7 @@ _private_::ostream_state_ct::write_color_off_newline(std::ostream* os, char cons
  * \sa chapter_custom_do
  */
 inline
-debug_ct::debug_ct()
+DebugObject::DebugObject()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUG
@@ -267,7 +267,7 @@ debug_ct::debug_ct()
  */
 inline
 void
-debug_ct::off()
+DebugObject::off()
 {
   LIBCWD_TSD_DECLARATION;
   ++LIBCWD_TSD_MEMBER_OFF;
@@ -298,7 +298,7 @@ debug_ct::off()
  */
 inline
 void
-debug_ct::on()
+DebugObject::on()
 {
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUGOUTPUT
@@ -313,7 +313,7 @@ debug_ct::on()
 
 inline
 bool
-debug_ct::is_on(LIBCWD_TSD_PARAM) const
+DebugObject::is_on(LIBCWD_TSD_PARAM) const
 {
   return __libcwd_tsd.do_off_array[WNS_index] == -1;
 }
@@ -323,7 +323,7 @@ debug_ct::is_on(LIBCWD_TSD_PARAM) const
  */
 inline
 void
-debug_ct::always_flush_on()
+DebugObject::always_flush_on()
 {
   ++m_always_flush;
 }
@@ -344,7 +344,7 @@ debug_ct::always_flush_on()
  */
 inline
 void
-debug_ct::always_flush_off()
+DebugObject::always_flush_off()
 {
 #if CWDEBUG_DEBUG
   if (m_always_flush <= 0)
@@ -355,29 +355,29 @@ debug_ct::always_flush_off()
 
 inline
 bool
-debug_ct::always_flush_is_on() const
+DebugObject::always_flush_is_on() const
 {
   return m_always_flush > 0;   // 0 means off.
 }
 
 inline
-channel_set_st&
-channel_set_bootstrap_st::operator|(channel_ct const& dc)
+ChannelSet&
+ChannelSetBootstrap::operator|(Channel const& dc)
 {
   mask = 0;
   label = dc.get_label();
   on = dc.is_on();
-  return *reinterpret_cast<channel_set_st*>(this);
+  return *reinterpret_cast<ChannelSet*>(this);
 }
 
 inline
-channel_set_st&
-channel_set_bootstrap_fatal_st::operator|(fatal_channel_ct const& fdc)
+ChannelSet&
+FatalChannelSetBootstrap::operator|(FatalChannel const& fdc)
 {
   mask = fdc.get_maskbit();
   label = fdc.get_label();
   on = true;
-  return *reinterpret_cast<channel_set_st*>(this);
+  return *reinterpret_cast<ChannelSet*>(this);
 }
 
 } // namespace libcwd

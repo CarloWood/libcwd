@@ -25,7 +25,7 @@ pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 namespace _private_ {
 // Non-const pointer - but do NOT write to it.
 // main_thread_tsd is defined in libcwd v1.1.1 and higher (libcwd.so.5.1), or see libcwd github (added 23 apr 2019).
-extern ::libcwd::_private_::TSD_st* main_thread_tsd;
+extern ::libcwd::_private_::ThreadSpecificData* main_thread_tsd;
 } // namespace _private_
 } // namespace libcwd
 
@@ -100,7 +100,7 @@ void save_dc_states()
  *
  * @internal
  *
- * For a given @a dc_label, which must be the exact name (<tt>channel_ct::get_label</tt>) of an
+ * For a given @a dc_label, which must be the exact name (<tt>Channel::get_label</tt>) of an
  * existing debug channel, this function returns @c true when the corresponding debug channel was
  * <em>on</em> at the startup of the application, directly after reading the libcwd runtime
  * configuration file (.libcwdrc).
@@ -268,7 +268,7 @@ void init()
  */
 std::string call_location(void const* return_addr)
 {
-  libcwd::location_ct loc((char*)return_addr + libcwd::builtin_return_address_offset);
+  libcwd::Location loc((char*)return_addr + libcwd::builtin_return_address_offset);
   std::ostringstream convert;
   convert << loc;
   return convert.str();
@@ -334,9 +334,9 @@ std::string DebugPipedOStringStream::str()
 }
 
 NAMESPACE_DEBUG_CHANNELS_START
-channel_ct tracked("TRACKED");
-channel_ct system("SYSTEM");    // Intended to be used for system calls.
-channel_ct restart("RESTART");   // Used by debug::Restart.
+Channel tracked("TRACKED");
+Channel system("SYSTEM");    // Intended to be used for system calls.
+Channel restart("RESTART");   // Used by debug::Restart.
 NAMESPACE_DEBUG_CHANNELS_END
 
 #endif // CWDEBUG

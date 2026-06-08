@@ -8,13 +8,13 @@
 
 namespace libcwd {
 
-char const* const location_ct::S_uninitialized_location_ct_c = "<uninitialized location_ct>";
-char const* const location_ct::S_pre_ios_initialization_c = "<pre ios initialization>";
-char const* const location_ct::S_pre_libcwd_initialization_c = "<pre libcwd initialization>";
-char const* const location_ct::S_cleared_location_ct_c = "<cleared location ct>";
+char const* const Location::S_uninitialized_location_ct_c = "<uninitialized Location>";
+char const* const Location::S_pre_ios_initialization_c = "<pre ios initialization>";
+char const* const Location::S_pre_libcwd_initialization_c = "<pre libcwd initialization>";
+char const* const Location::S_cleared_location_ct_c = "<cleared location ct>";
 
 //
-// location_ct::M_pc_location
+// Location::M_pc_location
 //
 // Find source file, (mangled) function name and line number of the address `addr'.
 //
@@ -28,7 +28,7 @@ char const* const location_ct::S_cleared_location_ct_c = "<cleared location ct>"
 // file) and `M_line' (line number), and `M_filename' is set to point to the filename
 // part of `M_filepath'.
 //
-void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
+void Location::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 {
   LIBCWD_ASSERT(!M_known);
 
@@ -43,7 +43,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
   }
 
   // This should never happen because it is not possible that a thread ends up calling
-  // location_ct::M_pc_location while writing writing to the final ostream now that the
+  // Location::M_pc_location while writing writing to the final ostream now that the
   // memory allocation support was removed from libcwd.
   LIBCWD_ASSERT(!__libcwd_tsd.lock_interface_is_locked);
 
@@ -89,7 +89,7 @@ void location_ct::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 /**
  * \brief Reset this location object (frees memory).
  */
-void location_ct::clear()
+void Location::clear()
 {
   if (M_known)
   {
@@ -104,7 +104,7 @@ void location_ct::clear()
   M_func = S_cleared_location_ct_c;
 }
 
-location_ct::location_ct(location_ct const& prototype)
+Location::Location(Location const& prototype)
 {
   if ((M_known = prototype.M_known))
   {
@@ -118,7 +118,7 @@ location_ct::location_ct(location_ct const& prototype)
   M_func = prototype.M_func;
 }
 
-location_ct& location_ct::operator=(location_ct const& prototype)
+Location& Location::operator=(Location const& prototype)
 {
   if (this != &prototype)
   {
@@ -137,13 +137,13 @@ location_ct& location_ct::operator=(location_ct const& prototype)
   return *this;
 }
 
-void location_ct::print_filepath_on(std::ostream& os) const
+void Location::print_filepath_on(std::ostream& os) const
 {
   LIBCWD_ASSERT(M_known);
   os << M_filepath.get();
 }
 
-void location_ct::print_filename_on(std::ostream& os) const
+void Location::print_filename_on(std::ostream& os) const
 {
   LIBCWD_ASSERT(M_known);
   os << M_filename;

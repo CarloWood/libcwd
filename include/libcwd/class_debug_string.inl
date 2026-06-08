@@ -10,7 +10,7 @@ namespace libcwd {
  * \brief Copy constructor.
  */
 inline
-debug_string_ct::debug_string_ct(debug_string_ct const& ds)
+DebugString::DebugString(DebugString const& ds)
 {
   NS_internal_init(ds.M_str, ds.M_size);
   if (M_capacity < ds.M_capacity)
@@ -23,7 +23,7 @@ debug_string_ct::debug_string_ct(debug_string_ct const& ds)
  */
 inline
 void
-debug_string_ct::assign(char const* str, size_t len)
+DebugString::assign(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
   internal_assign(str, len);
@@ -34,7 +34,7 @@ debug_string_ct::assign(char const* str, size_t len)
  */
 inline
 void
-debug_string_ct::append(char const* str, size_t len)
+DebugString::append(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
   internal_append(str, len);
@@ -45,7 +45,7 @@ debug_string_ct::append(char const* str, size_t len)
  */
 inline
 void
-debug_string_ct::prepend(char const* str, size_t len)
+DebugString::prepend(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
   internal_prepend(str, len);
@@ -56,7 +56,7 @@ debug_string_ct::prepend(char const* str, size_t len)
  */
 inline
 size_t
-debug_string_ct::size() const
+DebugString::size() const
 {
   return M_size;
 }
@@ -66,7 +66,7 @@ debug_string_ct::size() const
  */
 inline
 size_t
-debug_string_ct::capacity() const
+DebugString::capacity() const
 {
   return M_capacity;
 }
@@ -76,7 +76,7 @@ debug_string_ct::capacity() const
  */
 inline
 char const*
-debug_string_ct::c_str() const
+DebugString::c_str() const
 {
   return M_str;
 }
@@ -86,7 +86,7 @@ debug_string_ct::c_str() const
  */
 inline
 void
-debug_string_ct::assign(std::string const& str)
+DebugString::assign(std::string const& str)
 {
   assign(str.data(), str.size());
 }
@@ -96,7 +96,7 @@ debug_string_ct::assign(std::string const& str)
  */
 inline
 void
-debug_string_ct::append(std::string const& str)
+DebugString::append(std::string const& str)
 {
   append(str.data(), str.size());
 }
@@ -106,13 +106,13 @@ debug_string_ct::append(std::string const& str)
  */
 inline
 void
-debug_string_ct::prepend(std::string const& str)
+DebugString::prepend(std::string const& str)
 {
   prepend(str.data(), str.size());
 }
 
 inline
-debug_string_stack_element_ct::debug_string_stack_element_ct(debug_string_ct const& ds) : debug_string(ds)
+DebugStringStackElement::DebugStringStackElement(DebugString const& ds) : debug_string(ds)
 {
 }
 

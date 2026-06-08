@@ -16,14 +16,14 @@
 namespace libcwd {
 
 //===================================================================================================
-// class continued_channel_ct
+// class ContinuedChannel
 //
 // A debug channel with a special characteristic: It uses the same label and
 // flags as the previous Dout() call (no prefix is printed unless other
 // debug output interrupted the start, indicated with `continued_cf').
 //
 
-class continued_channel_ct {
+class ContinuedChannel {
 private:
   control_flag_t WNS_maskbit;
     // The mask that contains the control bit.
@@ -36,7 +36,7 @@ public:
   // MT: All channel objects must be global so that `WNS_maskbit' is zero
   //     at the start of the program and initialization occurs before other
   //     threads share the object.
-  explicit continued_channel_ct(control_flag_t maskbit);
+  explicit ContinuedChannel(control_flag_t maskbit);
     // Construct a continued debug channel with extra control bit `cb'.
 
   // MT: May only be called from the constructors of global objects (or single threaded functions).

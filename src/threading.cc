@@ -22,11 +22,11 @@ std::mutex raw_write_mutex;
 
 extern void debug_tsd_init(LIBCWD_TSD_PARAM);
 
-TSD_st* main_thread_tsd;
+ThreadSpecificData* main_thread_tsd;
 
 namespace {
 
-thread_local TSD_st* current_tsd;
+thread_local ThreadSpecificData* current_tsd;
 
 // Clean up the heap-allocated TSD that belongs to the current non-main thread.
 //
@@ -37,7 +37,7 @@ struct TSD_cleanup_guard
 {
   ~TSD_cleanup_guard()
   {
-    TSD_st* tsd = current_tsd;
+    ThreadSpecificData* tsd = current_tsd;
     if (!tsd || tsd == main_thread_tsd)
       return;
 
@@ -58,7 +58,7 @@ thread_local TSD_cleanup_guard current_tsd_cleanup_guard;
 // relies on the first TSD allocation happening on the main thread; later first-use calls construct the cleanup
 // guard before allocating worker-thread TSD.
 //static
-TSD_st& TSD_st::instance()
+ThreadSpecificData& ThreadSpecificData::instance()
 {
   if (current_tsd)
     return *current_tsd;
@@ -68,17 +68,17 @@ TSD_st& TSD_st::instance()
   if (main_thread_tsd)
     (void)current_tsd_cleanup_guard;
 
-  current_tsd = new TSD_st;
+  current_tsd = new ThreadSpecificData;
   return S_create(*current_tsd);
 }
 
 // Initialize the TSD object for the current thread.
 //
 // The object is marked initialized before libcwd subsystems are initialized because those paths can call
-// TSD_st::instance() again. Returning the same object during that recursion keeps partially initialized
+// ThreadSpecificData::instance() again. Returning the same object during that recursion keeps partially initialized
 // state visible and avoids creating a second TSD for the same thread.
 //static
-TSD_st& TSD_st::S_create(TSD_st& real_tsd)
+ThreadSpecificData& ThreadSpecificData::S_create(ThreadSpecificData& real_tsd)
 {
   real_tsd.initialized = true;
 
@@ -97,7 +97,7 @@ TSD_st& TSD_st::S_create(TSD_st& real_tsd)
 //
 // Worker-thread objects reach this destructor from TSD_cleanup_guard at thread exit. The cleanup routine is
 // idempotent, so explicit or recursive cleanup attempts are harmless.
-TSD_st::~TSD_st()
+ThreadSpecificData::~ThreadSpecificData()
 {
   if (initialized)
     cleanup_routine();
@@ -108,7 +108,7 @@ TSD_st::~TSD_st()
 // Unlike the old pthread-key implementation, portable C++ does not allow delaying this destructor through
 // repeated native key-destructor iterations. Therefore this cleanup runs when the C++ thread_local cleanup
 // guard is destroyed; while it runs, recursive instance() calls still return this same TSD object.
-void TSD_st::cleanup_routine()
+void ThreadSpecificData::cleanup_routine()
 {
   if (cleaning_up)
     return;
@@ -117,7 +117,7 @@ void TSD_st::cleanup_routine()
   for (int i = 0; i < LIBCWD_DO_MAX; ++i)
     if (do_array[i])
     {
-      debug_tsd_st* ptr = do_array[i];
+      DebugObject_ThreadSpecificData* ptr = do_array[i];
       do_off_array[i] = 0; // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
       do_array[i] = NULL; // So we won't free it again.
       ptr->tsd_initialized = false;

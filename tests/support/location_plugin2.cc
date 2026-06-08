@@ -6,15 +6,15 @@ namespace {
 // Logs construction and destruction of location_plugin2.so.  The test
 // executable dlopen-s this plugin directly to cover the application-controlled
 // dynamic-loading path separately from plugin1's library-controlled path.
-class location_plugin2_lifecycle_ct
+class location_plugin2_LifeCycle
 {
  public:
-  location_plugin2_lifecycle_ct() { libcwd_ctest::location_loading::library_loaded("location_plugin2.so"); }
+  location_plugin2_LifeCycle() { libcwd_ctest::location_loading::library_loaded("location_plugin2.so"); }
 
-  ~location_plugin2_lifecycle_ct() { libcwd_ctest::location_loading::library_unloaded("location_plugin2.so"); }
+  ~location_plugin2_LifeCycle() { libcwd_ctest::location_loading::library_unloaded("location_plugin2.so"); }
 };
 
-location_plugin2_lifecycle_ct location_plugin2_lifecycle;
+location_plugin2_LifeCycle location_plugin2_lifecycle;
 
 } // namespace
 

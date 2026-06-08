@@ -37,7 +37,7 @@ The following code would define a debug channel \c warp in the namespace \c libe
  namespace libexample {
    namespace channels {
      namespace dc {
-       libcwd::channel_ct warp("WARP");
+       libcwd::Channel warp("WARP");
        // Add new channels here...
      }
    }
@@ -67,7 +67,7 @@ The first one (the %debug.h that will be installed) would look something like th
    namespace channels {
      namespace dc {
        using namespace libcwd::channels::dc;
-       extern libcwd::channel_ct warp;
+       extern libcwd::Channel warp;
        // Add new channels here...
      }
    }
@@ -159,8 +159,8 @@ Make a debug header file that contains:
      namespace dc {
        using namespace lib1::channels::dc;
        using namespace lib2::channels::dc;
-       static libcwd::channel_ct& foobar1(lib1::channels::dc::foobar);
-       static libcwd::channel_ct& foobar2(lib2::channels::dc::foobar);
+       static libcwd::Channel& foobar1(lib1::channels::dc::foobar);
+       static libcwd::Channel& foobar2(lib2::channels::dc::foobar);
      }
    }
  }

@@ -21,20 +21,20 @@ bool ensure_initialization(LIBCWD_TSD_PARAM);
 } // namespace dwarf
 #endif // CWDEBUG_LOCATION
 
-class debug_ct;
-class channel_ct;
-class fatal_channel_ct;
-class laf_ct;
+class DebugObject;
+class Channel;
+class FatalChannel;
+class OutputState;
 
 //===================================================================================================
-// struct debug_tsd_st
+// struct DebugObject_ThreadSpecificData
 //
 // Structure with Thread Specific Data of a debug object.
 //
 
-struct debug_tsd_st
+struct DebugObject_ThreadSpecificData
 {
-  friend class debug_ct;
+  friend class DebugObject;
 
   bool tsd_initialized;
     // Set after initialization is completed.
@@ -45,14 +45,14 @@ struct debug_tsd_st
   bool first_time;
 #endif
 
-  laf_ct* current_;
-    // Current laf.
+  OutputState* current_;
+    // Current output state.
 
   std::ostream* current_bufferstream;
-    // The stringstream of the current_ laf.
+    // The stringstream of the current_ output state.
     // This should be set to current_->bufferstream at all times.
 
-  _private_::debug_stack_tst<laf_ct*> laf_stack;
+  _private_::debug_stack_tst<OutputState*> output_state_stack;
     // Store for nested debug calls.
 
   bool start_expected;
@@ -67,22 +67,22 @@ struct debug_tsd_st
   _private_::debug_stack_tst<int> continued_stack;
     // Stores the number of nested and switched off continued channels.
 
-  debug_string_ct color_on;
+  DebugString color_on;
     // Colorization code for debug output.
 
-  debug_string_ct color_off;
+  DebugString color_off;
     // Undo the effect of color_on.
 
-  debug_string_ct margin;
+  DebugString margin;
     // The margin string.
 
-  debug_string_ct marker;
+  DebugString marker;
     // The marker string.
 
-  debug_string_stack_element_ct* M_margin_stack;
+  DebugStringStackElement* M_margin_stack;
     // Pointer to list of pushed margins.
 
-  debug_string_stack_element_ct* M_marker_stack;
+  DebugStringStackElement* M_marker_stack;
     // Pointer to list of pushed markers.
 
   unsigned short indent;
@@ -90,19 +90,19 @@ struct debug_tsd_st
     // A value of 0 means directly behind the marker.
 
   // Accessed from LibcwdDout.
-  void start(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM);
-  void finish(debug_ct& debug_object, channel_set_data_st& /*channel_set*/ LIBCWD_COMMA_TSD_PARAM);
-  [[noreturn]] void fatal_finish(debug_ct& debug_object, channel_set_data_st& channel_set LIBCWD_COMMA_TSD_PARAM);
+  void start(DebugObject& debug_object, ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM);
+  void finish(DebugObject& debug_object, ChannelSetData& /*channel_set*/ LIBCWD_COMMA_TSD_PARAM);
+  [[noreturn]] void fatal_finish(DebugObject& debug_object, ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM);
 
   // Initialization and de-initialization.
   void init();
-  // In the non-threaded case, debug_ct contains a debug_tsd_st which
+  // In the non-threaded case, DebugObject contains a DebugObject_ThreadSpecificData which
   // may already be initialized before.  Therefore don't initialize
   // these in the non-threaded case, but rely on tsd_initialized,
   // current_bufferstream and _off to be zeroed as a result of being
   // part of a global object.
-  debug_tsd_st() : tsd_initialized(false), current_bufferstream(NULL) { }
-  ~debug_tsd_st();
+  DebugObject_ThreadSpecificData() : tsd_initialized(false), current_bufferstream(NULL) { }
+  ~DebugObject_ThreadSpecificData();
 };
 
 } // namespace libcwd

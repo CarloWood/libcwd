@@ -12,16 +12,16 @@
 
 namespace libcwd::_private_ {
 
-class lock_interface_base_ct {
+class LockInterfaceBase {
 public:
   virtual int try_lock() = 0;
   virtual void lock() = 0;
   virtual void unlock() = 0;
-  virtual ~lock_interface_base_ct() { }
+  virtual ~LockInterfaceBase() { }
 };
 
 template<class T>
-  class lock_interface_tct : public lock_interface_base_ct {
+  class lock_interface_tct : public LockInterfaceBase {
     private:
       T* ptr;
       virtual int try_lock() { return ptr->try_lock(); }

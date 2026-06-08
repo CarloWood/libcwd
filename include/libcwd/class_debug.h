@@ -22,30 +22,30 @@
 
 namespace libcwd {
 
-class buffer_ct;
+class Buffer;
 
 namespace _private_ {
 
 // Store the ostream destination together with the lock that protects writes to it.
 //
-struct ostream_state_ct
+struct OstreamState
 {
  private:
   mutable std::mutex state_mutex_;      // Protects real_os_ and mutex_ as one pair.
-  std::ostream* real_os_{};             // The destination selected with debug_ct::set_ostream. mutex points at the user-provided lock
-  lock_interface_base_ct* mutex_{};     // User-provided lock adapter for that stream, or null while the debug object is still limited to single-threaded output.
+  std::ostream* real_os_{};             // The destination selected with DebugObject::set_ostream. mutex points at the user-provided lock
+  LockInterfaceBase* mutex_{};     // User-provided lock adapter for that stream, or null while the debug object is still limited to single-threaded output.
 
  public:
   // Replace both the ostream and its lock adapter with os and new_mutex.
   //
   // Returns the old lock adapter after waiting until all writers that already selected the old pair have left
   // the old stream critical area. The returned adapter is no longer reachable through this state object.
-  lock_interface_base_ct* replace_with(std::ostream* os, lock_interface_base_ct* new_mutex);
+  LockInterfaceBase* replace_with(std::ostream* os, LockInterfaceBase* new_mutex);
 
   // Replace only the ostream with os while keeping the current lock adapter.
   //
   // If a lock adapter is present, this waits for old writers before returning so the previous ostream can be
-  // destroyed safely after debug_ct::set_ostream(std::ostream*) returns.
+  // destroyed safely after DebugObject::set_ostream(std::ostream*) returns.
   void set_ostream(std::ostream* os);
 
   // Return the currently selected ostream without locking its stream mutex.
@@ -61,7 +61,7 @@ struct ostream_state_ct
   //
   // locked_mutex_out receives the adapter that was locked, or null when no adapter is installed.
   // If a non-null adapter is returned then the caller must unlock it after finishing the write.
-  std::ostream* get_locked_os(std::ostream* os, lock_interface_base_ct** locked_mutex_out) const;
+  std::ostream* get_locked_os(std::ostream* os, LockInterfaceBase** locked_mutex_out) const;
 
   // Try to select os, or the stored ostream when os is null, and lock the current stream lock adapter.
   //
@@ -71,7 +71,7 @@ struct ostream_state_ct
   //
   // Returns false when a lock adapter exists but could not be locked immediately; in that case
   // neither protected pointer is published.
-  bool try_lock_os(std::ostream* os, std::ostream** locked_os_out, lock_interface_base_ct** locked_mutex_out) const;
+  bool try_lock_os(std::ostream* os, std::ostream** locked_os_out, LockInterfaceBase** locked_mutex_out) const;
 
   // Write color_off followed by a newline to os, or to the stored ostream when os is null.
   //
@@ -83,7 +83,7 @@ struct ostream_state_ct
 } // namespace _private_
 
 //===================================================================================================
-// class debug_ct
+// class DebugObject
 //
 // Note: Debug output is printed already *before* this object is constructed,
 // and is still printed when this object is already destructed.
@@ -94,16 +94,16 @@ struct ostream_state_ct
 // a constructor of their own!
 
 /**
- * \class debug_ct debug.h libcwd/debug.h
+ * \class DebugObject debug.h libcwd/debug.h
  * \ingroup group_debug_object
  *
  * \brief The %Debug Object class, this object represents one output device (<code>ostream</code>).
  *
  * See \ref group_debug_object.
  */
-class debug_ct {
-  friend void debug_tsd_st::start(debug_ct&, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM);
-  friend void debug_tsd_st::finish(debug_ct &, channel_set_data_st& LIBCWD_COMMA_TSD_PARAM);
+class DebugObject {
+  friend void DebugObject_ThreadSpecificData::start(DebugObject&, ChannelSetData& LIBCWD_COMMA_TSD_PARAM);
+  friend void DebugObject_ThreadSpecificData::finish(DebugObject &, ChannelSetData& LIBCWD_COMMA_TSD_PARAM);
 #ifdef LIBCWD_DOXYGEN
 protected:
 #else
@@ -117,11 +117,11 @@ protected:
   // Protected attributes.
   //
 
-  friend class libcwd::buffer_ct;		// buffer_ct::writeto() needs access.
-  _private_::ostream_state_ct ostream_state_;
+  friend class libcwd::Buffer;		// Buffer::writeto() needs access.
+  _private_::OstreamState ostream_state_;
     // Ostream destination and matching external lock, protected as one unit.
 
-  buffer_ct* unfinished_oss;
+  Buffer* unfinished_oss;
   void const* newlineless_tsd;
 
 private:
@@ -155,43 +155,43 @@ public:
    * \brief Colorization code
    *
    * This is printed before the margin.&nbsp;
-   * The color_on string can be manipulated directly using the methods of class debug_string_ct.
+   * The color_on string can be manipulated directly using the methods of class DebugString.
    */
-  debug_string_ct& color_on();
-  debug_string_ct const& color_on() const;
+  DebugString& color_on();
+  DebugString const& color_on() const;
 
   /**
    * \brief Turn colorization off
    *
    * This is printed before the newline.&nbsp;
-   * The color_off string can be manipulated directly using the methods of class debug_string_ct.
+   * The color_off string can be manipulated directly using the methods of class DebugString.
    */
-  debug_string_ct& color_off();
-  debug_string_ct const& color_off() const;
+  DebugString& color_off();
+  DebugString const& color_off() const;
 
   /**
    * \brief The margin
    *
    * This is printed before the label.&nbsp;
-   * The margin can be manipulated directly using the methods of class debug_string_ct.
+   * The margin can be manipulated directly using the methods of class DebugString.
    *
    * \sa push_margin()
    *  \n pop_margin()
    */
-  debug_string_ct& margin();
-  debug_string_ct const& margin() const;
+  DebugString& margin();
+  DebugString const& margin() const;
 
   /**
    * \brief The marker
    *
    * This is printed after the label.&nbsp;
-   * The marker can be manipulated directly using the methods of class debug_string_ct.
+   * The marker can be manipulated directly using the methods of class DebugString.
    *
    * \sa push_marker()
    *  \n pop_marker()
    */
-  debug_string_ct& marker();
-  debug_string_ct const& marker() const;
+  DebugString& marker();
+  DebugString const& marker() const;
 
   /** \} */
 
@@ -222,8 +222,8 @@ private:
   // Initialization function.
   //
 
-  friend class channel_ct;
-  friend class fatal_channel_ct;
+  friend class Channel;
+  friend class FatalChannel;
   friend void ST_initialize_globals(LIBCWD_TSD_PARAM);
 #if CWDEBUG_LOCATION
   friend bool dwarf::ensure_initialization(LIBCWD_TSD_PARAM);
@@ -233,7 +233,7 @@ private:
     // from the constructors of (other) global objects.
     // This will return false when it is called recursively which can happen
     // as part of initialization of libcwd via a call to malloc while creating
-    // laf_ct -> buffer_ct --> basic_stringbuf.  In that case the initialization
+    // OutputState -> Buffer --> basic_stringbuf.  In that case the initialization
     // failed thus.  On success, it returns true.
 
 public:
@@ -241,7 +241,7 @@ public:
   // Constructors and destructors.
   //
 
-  debug_ct();
+  DebugObject();
 
 public:
   //-------------------------------------------------------------------------------------------------

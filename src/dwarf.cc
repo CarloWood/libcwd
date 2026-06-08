@@ -45,7 +45,7 @@ namespace dc {
 /** \{ */
 
 /** The ELFUTILS channel. */
-channel_ct elfutils
+Channel elfutils
 #ifndef HIDE_FROM_DOXYGEN
     ("ELFUTILS")
 #endif
@@ -197,7 +197,7 @@ class ObjectFileRegistry
 
   // Called from dlopen.
   static ObjectFile const* register_object_file_at_lbase(uintptr_t lbase);
-  // Needed for location_ct.
+  // Needed for Location.
   static ObjectFile const* find_object_file(uintptr_t addr);
 };
 
@@ -517,8 +517,8 @@ struct ForceLoadingDebugOutput
   // Do we need debug output regarding the loading of object files and their symbols?
   bool const forced_loading_output{_private_::always_print_loading && !_private_::suppress_startup_msgs};
 
-  libcwd::debug_ct::OnOffState do_state;
-  libcwd::channel_ct::OnOffState elfutils_state;
+  libcwd::DebugObject::OnOffState do_state;
+  libcwd::Channel::OnOffState elfutils_state;
 
   ForceLoadingDebugOutput()
   {
@@ -591,7 +591,7 @@ void ObjectFile::realize_symbols() const
 
 // On the lifetime of the returned object.
 //
-// There are only two callers of this function, `libcwd::location_ct::M_pc_location` and
+// There are only two callers of this function, `libcwd::Location::M_pc_location` and
 // `libcwd::pc_mangled_function_name`. Both first call
 //     object_file = find_object_file(addr)
 //     symbol = object_file->find_symbol(addr)
@@ -1145,7 +1145,7 @@ void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* na
 // the returned pointer is valid until the owning Dwarf handle is closed.
 //
 // The standard DW_AT_linkage_name attribute is preferred because it contains the mangled
-// linker symbol used by existing location_ct callers; the GNU/MIPS spelling and DW_AT_name
+// linker symbol used by existing Location callers; the GNU/MIPS spelling and DW_AT_name
 // are fallbacks for older or non-C++ producer output.
 //
 // static
@@ -1387,7 +1387,7 @@ char const* const unknown_function_c = "<unknown function>";
 /**
  * \brief Find the mangled function name of the address \a addr.
  *
- * \returns the same pointer that is returned by location_ct::mangled_function_name() on success,
+ * \returns the same pointer that is returned by Location::mangled_function_name() on success,
  * otherwise \ref unknown_function_c is returned.
  *
  * Note: the returned pointer is invalidated by calling dlclose(3) on the DSO that contains the returned function!

@@ -1,6 +1,6 @@
 // Port of the historical tests/lines.cc regression test.
 //
-// This test verifies that location_ct resolves a return address to the physical
+// This test verifies that Location resolves a return address to the physical
 // call-site line and honors #line directives by reporting the logical source file
 // and line emitted into the DWARF line table.  It performs direct assertions
 // instead of matching debug output, which makes it suitable for CTest.
@@ -14,7 +14,7 @@
 
 namespace {
 
-bool expect_location(char const* scenario, libcwd::location_ct const& location, char const* expected_file,
+bool expect_location(char const* scenario, libcwd::Location const& location, char const* expected_file,
                      unsigned int expected_line)
 {
   if (!location.is_known())
@@ -33,9 +33,9 @@ bool expect_location(char const* scenario, libcwd::location_ct const& location, 
   return true;
 }
 
-[[gnu::noinline]] libcwd::location_ct caller_location()
+[[gnu::noinline]] libcwd::Location caller_location()
 {
-  return libcwd::location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
+  return libcwd::Location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
 }
 
 bool probe_physical_line()

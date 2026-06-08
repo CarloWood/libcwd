@@ -23,7 +23,7 @@ namespace libcwd {
     if (LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0)                                       \
     {                                                                                 \
       bool on;                                                                        \
-      channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD); \
+      ChannelSetBootstrap channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD); \
       {                                                                               \
         using namespace channels;                                                     \
         on = (channel_set | cntrl).on;                                                \
@@ -40,7 +40,7 @@ namespace libcwd {
 #define LIBCWD_DoutFatal(cntrl, data)                                               \
   do                                                                                \
   {                                                                                 \
-    channel_set_bootstrap_st channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD); \
+    ChannelSetBootstrap channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD); \
     {                                                                               \
       using namespace dc_namespace;                                                 \
       channel_set & cntrl;                                                          \

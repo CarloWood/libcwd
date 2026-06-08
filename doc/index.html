@@ -98,7 +98,7 @@ The recommended way to use libcwd in a cmake project is now to use
 <P class="news">libcwd-1.1.1 is released.&nbsp;
 All occurances of <code>trylock</code> have been renamed to <code>try_lock</code>.
 This breaks interface API backwards compatibility, but it allows one to use <code>std::mutex</code>
-for <code>debug_ct::set_ostream</code>.
+for <code>DebugObject::set_ostream</code>.
 Fixed address/location lookup for PIE executables (most executables are, these days &mdash; which caused
 address to location lookups to fail for addresses inside the main executable).
 Added support for <code>aligned_alloc</code>, yet another allocation library function that was added
@@ -392,7 +392,7 @@ other debug objects; only <CODE>list_allocations_on(libcw_do)</CODE> would work.
 Under certain circumstances (linking with a third party C++ library
 that got initialized first and whose first allocation is via
 std::allocator) would lead to a dead lock during initialization.&nbsp;
-Finally, <CODE>channel_ct::get_label()</CODE> has been changed to be zero
+Finally, <CODE>Channel::get_label()</CODE> has been changed to be zero
 terminated.&nbsp; The fact that it was not (deliberately), wasn't very
 clearly documented.</P>
 <DT><B>19 August 2002</B>
@@ -634,7 +634,7 @@ line in the source files using more than just <SPAN class="code">Dout</SPAN> and
 <SPAN class="code">Debug</SPAN>.&nbsp;
 Four functions have not only been moved to the new namespace but were also renamed.&nbsp;
 Apart from this all, also the interface to BFD has been redesigned; among others the
-structure <SPAN class="code">location_st</SPAN> has been replaced by a class <SPAN class="code">location_ct</SPAN>.&nbsp; Also here
+structure <SPAN class="code">location_st</SPAN> has been replaced by a class <SPAN class="code">Location</SPAN>.&nbsp; Also here
 functions have been renamed or even removed.&nbsp;
 <EM>Please read the <B>NEWS</B> file contained in the source distribution for details.</EM>&nbsp;
 A new template function has been added: <SPAN class="code">cwprint_using</SPAN>.&nbsp;

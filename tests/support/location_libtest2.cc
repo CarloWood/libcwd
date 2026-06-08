@@ -7,15 +7,15 @@ namespace {
 // has no inputs or outputs; its side effect is to record that a DT_NEEDED
 // dependency was loaded before the executable reaches main(). The destructor
 // emits the matching unload message after main has initialized dc::notice output.
-class location_libtest2_lifecycle_ct
+class location_libtest2_LifeCycle
 {
  public:
-  location_libtest2_lifecycle_ct() { libcwd_ctest::location_loading::library_loaded("location_libtest2.so"); }
+  location_libtest2_LifeCycle() { libcwd_ctest::location_loading::library_loaded("location_libtest2.so"); }
 
-  ~location_libtest2_lifecycle_ct() { libcwd_ctest::location_loading::library_unloaded("location_libtest2.so"); }
+  ~location_libtest2_LifeCycle() { libcwd_ctest::location_loading::library_unloaded("location_libtest2.so"); }
 };
 
-location_libtest2_lifecycle_ct location_libtest2_lifecycle;
+location_libtest2_LifeCycle location_libtest2_lifecycle;
 
 } // namespace
 

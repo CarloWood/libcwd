@@ -16,22 +16,22 @@
 
 namespace libcwd {
 
-// String class for debug_ct::margin and debug_ct::marker.
+// String class for DebugObject::margin and DebugObject::marker.
 // This class can not have a constructor.
 
-struct debug_string_stack_element_ct;
-struct debug_tsd_st;
-class debug_ct;
+struct DebugStringStackElement;
+struct DebugObject_ThreadSpecificData;
+class DebugObject;
 
 /**
  * \brief A string class used for the %debug output margin and marker.
  * \ingroup group_formatting
  *
- * This type is used for the public attributes debug_ct::margin and debug_ct::marker of the %debug object class.
+ * This type is used for the public attributes DebugObject::margin and DebugObject::marker of the %debug object class.
  */
-class debug_string_ct {
-  friend class debug_ct;			// Needs access to the private functions.
-  friend struct debug_tsd_st;
+class DebugString {
+  friend class DebugObject;			// Needs access to the private functions.
+  friend struct DebugObject_ThreadSpecificData;
 private:
   char* M_str;					// Pointer to malloc-ed (zero terminated) string.
   size_t M_size;				// Size of string (exclusive terminating zero).
@@ -43,17 +43,17 @@ private:
   void internal_assign(char const* s, size_t l);
   void internal_append(char const* s, size_t l);
   void internal_prepend(char const* s, size_t l);
-  void internal_swallow(debug_string_ct const&);
+  void internal_swallow(DebugString const&);
 
 private:
   void NS_internal_init(char const* s, size_t l);
   void deinitialize();
-  debug_string_ct() { }
-  ~debug_string_ct();
+  DebugString() { }
+  ~DebugString();
 
 private:
-  friend struct debug_string_stack_element_ct;
-  debug_string_ct(debug_string_ct const& ds);
+  friend struct DebugStringStackElement;
+  DebugString(DebugString const& ds);
 
 public:
   size_t size() const;
@@ -69,11 +69,11 @@ public:
 };
 
 // Used for the margin and marker stacks.
-struct debug_string_stack_element_ct {
+struct DebugStringStackElement {
 public:
-  debug_string_stack_element_ct* next;
-  debug_string_ct debug_string;
-  debug_string_stack_element_ct(debug_string_ct const& ds);
+  DebugStringStackElement* next;
+  DebugString debug_string;
+  DebugStringStackElement(DebugString const& ds);
 };
 
 }  // namespace libcwd

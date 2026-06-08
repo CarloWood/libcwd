@@ -12,12 +12,12 @@
 
 // Declare project-wide debug channels here, or in some other (more) appropriate header file.
 NAMESPACE_DEBUG_CHANNELS_START
-extern channel_ct custom;
+extern Channel custom;
 NAMESPACE_DEBUG_CHANNELS_END
 
 // And define them in a .cpp file like:
 //NAMESPACE_DEBUG_CHANNELS_START
-//channel_ct custom("CUSTOM");
+//Channel custom("CUSTOM");
 //NAMESPACE_DEBUG_CHANNELS_END
 
 #endif // CWDEBUG

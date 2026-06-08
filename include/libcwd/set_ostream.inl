@@ -29,10 +29,10 @@ namespace libcwd {
  * \endcode
  */
 template <class T>
-void debug_ct::set_ostream(std::ostream* os, T* mutex)
+void DebugObject::set_ostream(std::ostream* os, T* mutex)
 {
-  _private_::lock_interface_base_ct* new_mutex = new _private_::lock_interface_tct<T>(mutex);
-  _private_::lock_interface_base_ct* old_mutex;
+  _private_::LockInterfaceBase* new_mutex = new _private_::lock_interface_tct<T>(mutex);
+  _private_::LockInterfaceBase* old_mutex;
   old_mutex = ostream_state_.replace_with(os, new_mutex);
   // Delete old_mutex after unlocking in order to avoid a dead lock in case the delete causes debug output.
   if (old_mutex)

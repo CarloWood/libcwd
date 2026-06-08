@@ -25,7 +25,7 @@ uintptr_t base = executable_load_base();
 int y_default(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  libcwd::location_ct const y_default_loc(addr);
+  libcwd::Location const y_default_loc(addr);
   Dout(dc::always, "y_default() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << y_default_loc
                                                     << " (expected: " << std::dec << expected_line << ")");
   return y_default_loc.line() == expected_line;
@@ -34,7 +34,7 @@ int y_default(int expected_line)
 int arg2_i(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  libcwd::location_ct const arg2_i_loc(addr);
+  libcwd::Location const arg2_i_loc(addr);
   Dout(dc::always, "arg2_i() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg2_i_loc
                                                  << " (expected: " << std::dec << expected_line << ")");
   return arg2_i_loc.line() == expected_line;
@@ -43,7 +43,7 @@ int arg2_i(int expected_line)
 int arg_g1(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  libcwd::location_ct const arg_g1_loc(addr);
+  libcwd::Location const arg_g1_loc(addr);
   Dout(dc::always, "arg_g1() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g1_loc
                                                  << " (expected: " << std::dec << expected_line << ")");
   // Unfortunately, a DWARF producer is not required to have more fine grained line tables than one line per statement.
@@ -54,7 +54,7 @@ int arg_g1(int expected_line)
 int arg_g2(int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
-  libcwd::location_ct const arg_g2_loc(addr);
+  libcwd::Location const arg_g2_loc(addr);
   Dout(dc::always, "arg_g2() was called from 0x" << std::hex << ((ptrdiff_t)addr - base) << " --> " << arg_g2_loc
                                                  << " (expected: " << std::dec << expected_line << ")");
   // Unfortunately, a DWARF producer is not required to have more fine grained line tables than one line per statement.
@@ -75,7 +75,7 @@ int main()
   // original intent of this test: exercising location lookup for code in this
   // function without relying on the removed allocation-debugging malloc channel
   // to report the allocation call site as a side effect.
-  libcwd::location_ct const f_loc(&&f_call_location);
+  libcwd::Location const f_loc(&&f_call_location);
   int const expected_line = __LINE__ + 3;
   Dout(dc::notice, "Calling f() from main: " << f_loc << " (expected: " << expected_line << ")");
 f_call_location:

@@ -24,13 +24,13 @@
 namespace libcwd {
 
 // Forward declaration.
-class location_ct;
+class Location;
 
   namespace _private_ {
 
 // Forward declaration.
 template<class OSTREAM>
-  void print_location_on(OSTREAM& os, location_ct const& location);
+  void print_location_on(OSTREAM& os, Location const& location);
 
   } // namespace _private_
 } // namespace libcwd
@@ -40,20 +40,20 @@ namespace libcwd {
 /** \addtogroup group_locations */
 /** \{ */
 
-/** \brief This constant (pointer) is returned by location_ct::mangled_function_name() when no function is known. */
+/** \brief This constant (pointer) is returned by Location::mangled_function_name() when no function is known. */
 extern char const* const unknown_function_c;
 
 /**
- * \class location_ct class_location.h libcwd/debug.h
+ * \class Location class_location.h libcwd/debug.h
  * \brief A source file location.
  *
  * The normal usage of this class is to print file-name:line-number information as follows:
  * \code
  * Dout(dc::notice, "Called from " <<
- *     location_ct((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) );
+ *     Location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) );
  * \endcode
  */
-class location_ct {
+class Location {
 protected:
   ObjectFileName const* M_object_file;          //!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
   char const* M_func;                           //!< Pointer to static string containing the mangled function name of this location.
@@ -76,11 +76,11 @@ protected:
   static char const* const S_cleared_location_ct_c;
 
 public:
-  explicit location_ct(void const* addr);
+  explicit Location(void const* addr);
       // Construct a location object for address `addr'.
-  explicit location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM);
+  explicit Location(void const* addr LIBCWD_COMMA_TSD_PARAM);
       // Idem, but with passing the TSD.
-  ~location_ct();
+  ~Location();
 
   /**
    * \brief The default constructor.
@@ -88,7 +88,7 @@ public:
    * Constructs an unknown location object.
    * Use \ref pc_location to initialize the object.
    */
-  location_ct();
+  Location();
 
   /**
    * \brief Copy constructor.
@@ -98,7 +98,7 @@ public:
    * moves to the copy; call \ref lock_ownership on the prototype first when the
    * prototype must remain responsible for releasing the path storage.
    */
-  location_ct(location_ct const& location);
+  Location(Location const& location);
 
   /**
    * \brief Assignment operator.
@@ -108,7 +108,7 @@ public:
    * target object; call \ref lock_ownership on the source first when the source
    * must remain responsible for releasing the path storage.
    */
-  location_ct& operator=(location_ct const& location);		// Assignment operator
+  Location& operator=(Location const& location);		// Assignment operator
 
   /**
    * \brief Keep ownership of the stored path in this object.
@@ -153,8 +153,8 @@ public:
 
   /** \brief Returns the mangled function name or \ref unknown_function_c when no function could be found.
    *
-   * Two other strings that can be returned are "<uninitialized location_ct>" and
-   * "<cleared location_ct>", the idea is to never print that: you should know it when a
+   * Two other strings that can be returned are "<uninitialized Location>" and
+   * "<cleared Location>", the idea is to never print that: you should know it when a
    * location object is in these states.
    */
   char const* mangled_function_name() const;
@@ -177,12 +177,12 @@ public:
   /** \brief Write the file name to an ostream. */
   void print_filename_on(std::ostream& os) const;
   template<class OSTREAM>
-    friend void _private_::print_location_on(OSTREAM& os, location_ct const& location);
+    friend void _private_::print_location_on(OSTREAM& os, Location const& location);
 #if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
   // This doesn't need to be a friend, but g++ 3.3.x and lower are broken.
   // We need to declare an operator<< this way as a workaround.
   friend std::ostream&
-  operator<<(std::ostream& os, location_ct const& location)
+  operator<<(std::ostream& os, Location const& location)
   {
     _private_::print_location_on(os, location);
     return os;
@@ -195,12 +195,12 @@ public:
 };
 
 //#if (__GNUC__ > 3 || __GNUC_MINOR__ >= 4)
-//extern std::ostream& operator<<(std::ostream& os, location_ct const& location);
+//extern std::ostream& operator<<(std::ostream& os, Location const& location);
 //#endif
 
-/** \brief Set the output format of location_ct.
+/** \brief Set the output format of Location.
  *
- * This function can be used to specify the format of how a location_ct will be printed
+ * This function can be used to specify the format of how a Location will be printed
  * when it is written to an ostream.  The format is thread-specific: only the calling
  * thread will be influenced.
  *

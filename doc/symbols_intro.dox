@@ -18,7 +18,7 @@ the debug output better human readable.&nbsp;
 \code
 #ifdef CWDEBUG
 // Get the location that we were called from.
-libcwd::location_ct location((char*)__builtin_return_address(0)
+libcwd::Location location((char*)__builtin_return_address(0)
     + libcwd::builtin_return_address_offset);
 // Demangle the function name of the location that we were called from.
 std::string demangled_function_name;

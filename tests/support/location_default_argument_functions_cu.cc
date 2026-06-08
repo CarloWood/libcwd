@@ -26,7 +26,7 @@ inline int i(int x, int y)
 
 inline bool g(int x, int y = y_default(expected_line), int z = i(12345, arg2_i(expected_line)))
 {
-  libcwd::location_ct g_loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
+  libcwd::Location g_loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
   Dout(dc::notice, "g(" << x << ", " << y << ", " << z << ") was called from " << g_loc);
 
   int q[4] = {2, 3, 5, 7};
@@ -37,7 +37,7 @@ inline bool g(int x, int y = y_default(expected_line), int z = i(12345, arg2_i(e
 // clang-format off
 bool f()
 {
-  libcwd::location_ct const g_loc(&&g_call_location);
+  libcwd::Location const g_loc(&&g_call_location);
   expected_line = __LINE__ + 3; // Same as line below g_call_location.
   Dout(dc::notice, "calling g(arg_g1(), arg_g2()) from f: " << g_loc << " (expected: " << expected_line << ")");
 g_call_location:

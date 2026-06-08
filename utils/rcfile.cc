@@ -19,11 +19,11 @@ namespace libcwd {
 
 namespace channels {
 namespace dc {
-channel_ct rcfile("RCFILE", false);
+Channel rcfile("RCFILE", false);
 }
 } // namespace channels
 
-bool rcfile_ct::S_exists(char const* name)
+bool RcFile::S_exists(char const* name)
 {
   struct stat buf;
   if (stat(name, &buf) == -1 || !S_ISREG(buf.st_mode))
@@ -33,14 +33,14 @@ bool rcfile_ct::S_exists(char const* name)
   return true;
 }
 
-void rcfile_ct::M_print_delayed_msg(int env_var, std::string const& value) const
+void RcFile::M_print_delayed_msg(int env_var, std::string const& value) const
 {
   Dout(dc::rcfile, "Using environment variable "
                        << (env_var == 0 ? "LIBCWD_RCFILE_NAME" : "LIBCWD_RCFILE_OVERRIDE_NAME") << " with value \""
                        << value << "\".");
 }
 
-std::string rcfile_ct::M_determine_rcfile_name()
+std::string RcFile::M_determine_rcfile_name()
 {
   // Can be overridden with the environment variable LIBCWD_RCFILE_NAME
   if (!(M_rcname = getenv("LIBCWD_RCFILE_NAME")))
@@ -119,7 +119,7 @@ std::string rcfile_ct::M_determine_rcfile_name()
   return rcfile_name;
 }
 
-void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& mask, action_nt const action)
+void RcFile::M_process_channel(Channel& debugChannel, std::string const& mask, action_nt const action)
 {
   std::string label = debugChannel.get_label();
   std::string::size_type pos = label.find(' ');
@@ -160,7 +160,7 @@ void rcfile_ct::M_process_channel(channel_ct& debugChannel, std::string const& m
   }
 }
 
-void rcfile_ct::M_process_channels(std::string list, action_nt const action)
+void RcFile::M_process_channels(std::string list, action_nt const action)
 {
   Debug(libcw_do.inc_indent(4));
   while (list.length())
@@ -182,12 +182,12 @@ void rcfile_ct::M_process_channels(std::string list, action_nt const action)
   Debug(libcw_do.dec_indent(4));
 }
 
-bool rcfile_ct::unknown_keyword(std::string const&, std::string const&)
+bool RcFile::unknown_keyword(std::string const&, std::string const&)
 {
   return true;
 }
 
-void rcfile_ct::set_all_channels_on()
+void RcFile::set_all_channels_on()
 {
   Dout(dc::rcfile, "Turning all channels on by default.");
   ForAllDebugChannels(std::string label = debugChannel.get_label(); std::string::size_type pos = label.find(' ');
@@ -198,7 +198,7 @@ void rcfile_ct::set_all_channels_on()
 #endif
 }
 
-void rcfile_ct::set_all_channels_off(bool warning_on)
+void RcFile::set_all_channels_off(bool warning_on)
 {
   Dout(dc::rcfile, "Turning all channels" << (warning_on ? ", except WARNING," : "") << " off by default.");
   ForAllDebugChannels(if (debugChannel.is_on()) debugChannel.off());
@@ -209,9 +209,9 @@ void rcfile_ct::set_all_channels_off(bool warning_on)
 #endif
 }
 
-void rcfile_ct::read()
+void RcFile::read()
 {
-  channel_ct::OnOffState state;
+  Channel::OnOffState state;
   channels::dc::rcfile.force_on(state, channels::dc::rcfile.get_label());
   bool rcfile_on = true;
   std::string name = M_determine_rcfile_name();
@@ -337,7 +337,7 @@ void rcfile_ct::read()
         }
         else if (unknown_keyword(keyword, value))
         {
-          channel_ct::OnOffState warning_state;
+          Channel::OnOffState warning_state;
           channels::dc::warning.force_on(warning_state, channels::dc::warning.get_label());
           Dout(dc::warning, "read_rcfile: " << name << ':' << lines_read << ": Unknown keyword '" << keyword << "'.");
           channels::dc::warning.restore(warning_state);
@@ -369,6 +369,6 @@ void rcfile_ct::read()
   M_read_called = true;
 }
 
-rcfile_ct rcfile;
+RcFile rcfile;
 
 } // namespace libcwd

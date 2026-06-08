@@ -48,7 +48,7 @@ bool resolve_global_test_symbol(void* handle, module_function_type& function)
 //
 // Each regex verifies the logical branch name, the module object filename, the
 // expected function name, and the source filename. The back-reference
-// checks that the line printed by location_ct is the same line number that the
+// checks that the line printed by Location is the same line number that the
 // module passed as its expectation.
 bool compare_dlopen_output(std::istream& captured)
 {

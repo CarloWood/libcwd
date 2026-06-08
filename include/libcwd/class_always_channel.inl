@@ -7,13 +7,13 @@
 namespace libcwd {
 
 inline
-channel_set_st&
-channel_set_bootstrap_st::operator|(always_channel_ct const& adc)
+ChannelSet&
+ChannelSetBootstrap::operator|(AlwaysChannel const& adc)
 {
   mask = 0;
   label = adc.label;
   on = true;
-  return *reinterpret_cast<channel_set_st*>(this);
+  return *reinterpret_cast<ChannelSet*>(this);
 }
 
 } // namespace libcwd

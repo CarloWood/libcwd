@@ -17,7 +17,7 @@ namespace libcwd {
  * \brief Construct a location for address \p addr.
  */
 inline
-location_ct::location_ct(void const* addr) : M_known(false)
+Location::Location(void const* addr) : M_known(false)
 {
   LIBCWD_TSD_DECLARATION;
   M_pc_location(addr LIBCWD_COMMA_TSD);
@@ -28,7 +28,7 @@ location_ct::location_ct(void const* addr) : M_known(false)
  * taking a thread-specific-data argument.
  */
 inline
-location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false)
+Location::Location(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false)
 {
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
@@ -37,13 +37,13 @@ location_ct::location_ct(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(fals
  * \brief Destructor.
  */
 inline
-location_ct::~location_ct()
+Location::~Location()
 {
   clear();
 }
 
 inline
-location_ct::location_ct() : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
+Location::Location() : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
 {
 }
 
@@ -52,7 +52,7 @@ location_ct::location_ct() : M_func(S_uninitialized_location_ct_c), M_object_fil
  */
 inline
 void
-location_ct::pc_location(void const* addr)
+Location::pc_location(void const* addr)
 {
   clear();
   LIBCWD_TSD_DECLARATION;
@@ -61,14 +61,14 @@ location_ct::pc_location(void const* addr)
 
 inline
 bool
-location_ct::is_known() const
+Location::is_known() const
 {
   return M_known;
 }
 
 inline
 std::string
-location_ct::file() const
+Location::file() const
 {
   LIBCWD_ASSERT( M_known );
   return M_filename;
@@ -76,7 +76,7 @@ location_ct::file() const
 
 inline
 unsigned int
-location_ct::line() const
+Location::line() const
 {
   LIBCWD_ASSERT( M_known );
   return M_line;
@@ -84,7 +84,7 @@ location_ct::line() const
 
 inline
 char const*
-location_ct::mangled_function_name() const
+Location::mangled_function_name() const
 {
   return M_func;
 }
@@ -102,7 +102,7 @@ location_format(location_format_t format)
 namespace _private_ {
 
 template<class OSTREAM>
-  void print_location_on(OSTREAM& os, location_ct const& location)
+  void print_location_on(OSTREAM& os, Location const& location)
   {
     if (location.M_known)
     {
@@ -129,7 +129,7 @@ template<class OSTREAM>
  * \brief Write \a location to ostream \a os.
  * \ingroup group_locations
  *
- * Write the contents of a location_ct object to an ostream in the form <i>source-file</i>:<i>line-number</i>,
+ * Write the contents of a Location object to an ostream in the form <i>source-file</i>:<i>line-number</i>,
  * or writes <i>objectfile</i>:<i>mangledfuncname</i> when the location is unknown.
  * If the <i>source-file</i>:<i>line-number</i> is known, then it may be prepended by the object file
  * and/or the mangled function name anyway if this was requested through \ref location_format.
@@ -137,7 +137,7 @@ template<class OSTREAM>
  */
 inline
 std::ostream&
-operator<<(std::ostream& os, location_ct const& location)
+operator<<(std::ostream& os, Location const& location)
 {
   _private_::print_location_on(os, location);
   return os;

@@ -20,9 +20,9 @@ namespace libcwd {
 namespace channels {
 namespace dc {
 
-channel_ct foo("FOO");
-channel_ct bar("BAR");
-channel_ct run("RUN");
+Channel foo("FOO");
+Channel bar("BAR");
+Channel run("RUN");
 
 } // namespace dc
 } // namespace channels
@@ -38,16 +38,16 @@ std::stringstream captured_cerr;
 // This lets cerr_cf output be drained deliberately into PendingStream's committed
 // buffer, matching the legacy test's explicit flush_cerr() checkpoints without
 // depending on the process' real stderr.
-class redirect_cerr_to_stringstream_ct
+class RedirectCerrToStringStream
 {
  private:
   std::streambuf* M_original;
 
  public:
-  redirect_cerr_to_stringstream_ct() : M_original(std::cerr.rdbuf(captured_cerr.rdbuf())) { }
-  redirect_cerr_to_stringstream_ct(redirect_cerr_to_stringstream_ct const&) = delete;
-  redirect_cerr_to_stringstream_ct& operator=(redirect_cerr_to_stringstream_ct const&) = delete;
-  ~redirect_cerr_to_stringstream_ct() { std::cerr.rdbuf(M_original); }
+  RedirectCerrToStringStream() : M_original(std::cerr.rdbuf(captured_cerr.rdbuf())) { }
+  RedirectCerrToStringStream(RedirectCerrToStringStream const&) = delete;
+  RedirectCerrToStringStream& operator=(RedirectCerrToStringStream const&) = delete;
+  ~RedirectCerrToStringStream() { std::cerr.rdbuf(M_original); }
 };
 
 // Commit pending stdout-like debug output before a forced-cerr debug line.
@@ -189,7 +189,7 @@ void recursive_continued(unsigned int depth)
 void run_continued_scenario(libcwd_ctest::PendingStream& captured)
 {
   captured_output = &captured;
-  redirect_cerr_to_stringstream_ct redirect_cerr;
+  RedirectCerrToStringStream redirect_cerr;
 
   Debug(main_reached());
   ForAllDebugChannels(if (debugChannel.is_on()) debugChannel.off(););

@@ -32,16 +32,16 @@ void open_plugin1()
 // depends on location_libtest2.so through location_libtest1_touch(), so the
 // loader should bring libtest2 in automatically as libtest1's private needed
 // library before this constructor runs.
-class location_libtest1_lifecycle_ct
+class location_libtest1_LifeCycle
 {
  public:
-  location_libtest1_lifecycle_ct()
+  location_libtest1_LifeCycle()
   {
     libcwd_ctest::location_loading::library_loaded("location_libtest1.so");
     open_plugin1();
   }
 
-  ~location_libtest1_lifecycle_ct()
+  ~location_libtest1_LifeCycle()
   {
     libcwd_ctest::location_loading::library_unloaded("location_libtest1.so");
     if (plugin1_handle)
@@ -52,7 +52,7 @@ class location_libtest1_lifecycle_ct
   }
 };
 
-location_libtest1_lifecycle_ct location_libtest1_lifecycle;
+location_libtest1_LifeCycle location_libtest1_lifecycle;
 
 } // namespace
 

@@ -14,7 +14,7 @@ namespace libcwd {
  * \sa \ref chapter_custom_debug_h
  */
 inline
-channel_ct::channel_ct(char const* label, bool add_to_channel_list)
+Channel::Channel(char const* label, bool add_to_channel_list)
 {
   LIBCWD_TSD_DECLARATION;
   NS_initialize(label LIBCWD_COMMA_TSD, add_to_channel_list);
@@ -22,7 +22,7 @@ channel_ct::channel_ct(char const* label, bool add_to_channel_list)
 
 inline
 bool
-channel_ct::is_on(LIBCWD_TSD_PARAM) const
+Channel::is_on(LIBCWD_TSD_PARAM) const
 {
   return (__libcwd_tsd.off_cnt_array[WNS_index] < 0);
 }
@@ -32,7 +32,7 @@ channel_ct::is_on(LIBCWD_TSD_PARAM) const
  */
 inline
 bool
-channel_ct::is_on() const
+Channel::is_on() const
 {
   LIBCWD_TSD_DECLARATION;
   return is_on(LIBCWD_TSD);
@@ -43,7 +43,7 @@ channel_ct::is_on() const
  */
 inline
 char const*
-channel_ct::get_label() const
+Channel::get_label() const
 {
   return WNS_label;
 }

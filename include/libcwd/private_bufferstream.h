@@ -16,7 +16,7 @@ namespace libcwd::_private_ {
 
 // This is a pseudo stringstream that allows the stringbuf to be changed on
 // the fly.
-class bufferstream_ct : public std::ostream
+class BufferStream : public std::ostream
 {
 public:
   using char_type = char;
@@ -33,8 +33,8 @@ public:
 
 public:
   explicit
-  bufferstream_ct(stringbuf_type* sb) : std::basic_ostream<char, std::char_traits<char> >(sb), M_stringbuf(sb) { }
-  ~bufferstream_ct() { }
+  BufferStream(stringbuf_type* sb) : std::basic_ostream<char, std::char_traits<char> >(sb), M_stringbuf(sb) { }
+  ~BufferStream() { }
 
   stringbuf_type* rdbuf() const { return M_stringbuf; }
   string_type str() const { return M_stringbuf->str(); }

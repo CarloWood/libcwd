@@ -24,7 +24,7 @@ namespace {
 [[gnu::noinline]] bool report_call_site(char const* scenario, unsigned int expected_line, char const* expected_function)
 {
   char const* addr = static_cast<char const*>(__builtin_return_address(0)) + libcwd::builtin_return_address_offset;
-  libcwd::location_ct const location(addr);
+  libcwd::Location const location(addr);
 
   Dout(dc::notice, scenario << ": " << location << " (expected line: " << expected_line << ")");
 

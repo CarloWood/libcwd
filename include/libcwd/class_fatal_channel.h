@@ -17,17 +17,17 @@
 namespace libcwd {
 
 namespace _private_ {
-struct debug_channels_ct;
+struct DebugChannels;
 } // namespace _private_
 
 //===================================================================================================
-// class fatal_channel_ct
+// class FatalChannel
 //
 // A debug channel with a special characteristic: It terminates the application.
 //
 
-class fatal_channel_ct {
-  friend struct _private_::debug_channels_ct;
+class FatalChannel {
+  friend struct _private_::DebugChannels;
 
 private:
   char WNS_label[max_label_len_c + 1];				// +1 for zero termination.
@@ -46,7 +46,7 @@ public:
   // MT: All channel objects must be global so that `WNS_maskbit' is zero
   //     at the start of the program and initialization occurs before other
   //     threads share the object.
-  explicit fatal_channel_ct(char const* lbl, control_flag_t maskbit);
+  explicit FatalChannel(char const* lbl, control_flag_t maskbit);
     // Construct a special debug channel with label `lbl' and control bit `cb'.
 
   // MT: May only be called from the constructors of global objects (or single threaded functions).

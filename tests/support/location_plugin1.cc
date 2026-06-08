@@ -8,15 +8,15 @@ namespace {
 // lifecycle tracking for a DSO that is not a static link dependency of the test
 // executable. The destructor mirrors the constructor and performs only a
 // dc::notice logging side effect after main has initialized output.
-class location_plugin1_lifecycle_ct
+class location_plugin1_LifeCycle
 {
  public:
-  location_plugin1_lifecycle_ct() { libcwd_ctest::location_loading::library_loaded("location_plugin1.so"); }
+  location_plugin1_LifeCycle() { libcwd_ctest::location_loading::library_loaded("location_plugin1.so"); }
 
-  ~location_plugin1_lifecycle_ct() { libcwd_ctest::location_loading::library_unloaded("location_plugin1.so"); }
+  ~location_plugin1_LifeCycle() { libcwd_ctest::location_loading::library_unloaded("location_plugin1.so"); }
 };
 
-location_plugin1_lifecycle_ct location_plugin1_lifecycle;
+location_plugin1_LifeCycle location_plugin1_lifecycle;
 
 } // namespace
 
