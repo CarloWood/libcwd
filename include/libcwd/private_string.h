@@ -16,7 +16,7 @@
 namespace libcwd::_private_ {
 
 // String type used by private libcwd implementation code.
-typedef ::std::string string;
+using string = ::std::string;
 
 } // namespace libcwd::_private_
 

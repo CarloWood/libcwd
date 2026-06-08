@@ -60,7 +60,7 @@ namespace libcwd {
  * This type is used together with the bit masks \ref show_objectfile,
  * \ref show_function and \ref show_path.
  */
-typedef unsigned short int location_format_t;
+using location_format_t = unsigned short int;
 
 location_format_t const show_path = 1;        //!< Show the full source path when printing a location.
 location_format_t const show_objectfile = 2;  //!< Show the shared library or executable that owns the location.

@@ -19,14 +19,14 @@ namespace libcwd::_private_ {
 class bufferstream_ct : public std::ostream
 {
 public:
-  typedef char char_type;
-  typedef std::char_traits<char> traits_type;
-  typedef ::std::allocator<char_type> allocator_type;
-  typedef traits_type::int_type int_type;
-  typedef traits_type::pos_type pos_type;
-  typedef traits_type::off_type off_type;
-  typedef std::basic_string<char_type, traits_type, allocator_type> string_type;
-  typedef std::basic_stringbuf<char_type, traits_type, allocator_type> stringbuf_type;
+  using char_type = char;
+  using traits_type = std::char_traits<char>;
+  using allocator_type = ::std::allocator<char_type>;
+  using int_type = traits_type::int_type;
+  using pos_type = traits_type::pos_type;
+  using off_type = traits_type::off_type;
+  using string_type = std::basic_string<char_type, traits_type, allocator_type>;
+  using stringbuf_type = std::basic_stringbuf<char_type, traits_type, allocator_type>;
 
 public:
   stringbuf_type* M_stringbuf;

@@ -38,7 +38,7 @@ namespace libcwd {
 class buffer_ct : public std::stringbuf
 {
  private:
-  typedef pos_type streampos_t;
+  using streampos_t = pos_type;
   streampos_t position;
   // These two are protected by the ostream lock of a debug object.
   bool unfinished_already_printed;
@@ -83,7 +83,7 @@ void buffer_ct::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, debug_ct& debug
   // ends_on_newline	: This output ends on a newline.
   // possible_nonewline_cf	: When `ends_on_newline' is false, then that was caused by the use of nonewline_cf.
 
-  typedef char* msgbuf_t;
+  using msgbuf_t = char*;
   msgbuf_t msgbuf;
   bool const queue_msg = false;
   int const extra_size = 0;

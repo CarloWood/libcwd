@@ -88,7 +88,7 @@ template<class T>
 
 template<class PRINTABLE_OBJECT>
   class cwprint_using_tct {
-    typedef void (PRINTABLE_OBJECT::* print_on_method_t)(std::ostream&) const;
+    using print_on_method_t = void (PRINTABLE_OBJECT::*)(std::ostream&) const;
   private:
     PRINTABLE_OBJECT const& M_printable_object;
     print_on_method_t M_print_on_method;

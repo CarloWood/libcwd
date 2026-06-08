@@ -39,7 +39,7 @@ namespace libcwd {
 
 template<class X, bool array = false>	// Use array == true when `ptr' was allocated with new [].
   class lockable_auto_ptr {
-    typedef X element_type;
+    using element_type = X;
 
     private:
     template<class Y, bool ARRAY> friend class lockable_auto_ptr;

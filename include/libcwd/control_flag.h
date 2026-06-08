@@ -18,7 +18,7 @@ namespace libcwd {
 /** \{ */
 
 /** The type that is used for control flags and control flag mask. */
-typedef unsigned int control_flag_t;
+using control_flag_t = unsigned int;
 
 // The control bits:
 //! Omit the default new line at the end

@@ -93,8 +93,8 @@ struct allocator_rebind
 template <typename Allocator>
 class qualifier
 {
-  typedef typename allocator_rebind<Allocator>::template alloc<char> char_Allocator;
-  typedef std::basic_string<char, std::char_traits<char>, char_Allocator> string_type;
+  using char_Allocator = typename allocator_rebind<Allocator>::template alloc<char>;
+  using string_type = std::basic_string<char, std::char_traits<char>, char_Allocator>;
 
  private:
   char M_qualifier1;
@@ -165,14 +165,14 @@ class qualifier
 template <typename Allocator>
 class qualifier_list
 {
-  typedef typename allocator_rebind<Allocator>::template alloc<char> char_Allocator;
-  typedef std::basic_string<char, std::char_traits<char>, char_Allocator> string_type;
+  using char_Allocator = typename allocator_rebind<Allocator>::template alloc<char>;
+  using string_type = std::basic_string<char, std::char_traits<char>, char_Allocator>;
 
  private:
   mutable bool M_printing_suppressed;
-  typedef qualifier<Allocator> qual;
-  typedef typename allocator_rebind<Allocator>::template alloc<qual> qual_Allocator;
-  typedef std::vector<qual, qual_Allocator> qual_vector;
+  using qual = qualifier<Allocator>;
+  using qual_Allocator = typename allocator_rebind<Allocator>::template alloc<qual>;
+  using qual_vector = std::vector<qual, qual_Allocator>;
   qual_vector M_qualifier_starts;
   session<Allocator>& M_demangler;
 
@@ -278,8 +278,8 @@ template <typename Allocator>
 class session
 {
   friend class qualifier_list<Allocator>;
-  typedef typename allocator_rebind<Allocator>::template alloc<char> char_Allocator;
-  typedef std::basic_string<char, std::char_traits<char>, char_Allocator> string_type;
+  using char_Allocator = typename allocator_rebind<Allocator>::template alloc<char>;
+  using string_type = std::basic_string<char, std::char_traits<char>, char_Allocator>;
 
  private:
   char const* M_str;
@@ -295,8 +295,8 @@ class session
   bool M_name_is_conversion_operator;
   bool M_template_args_need_space;
   string_type M_function_name;
-  typedef typename allocator_rebind<Allocator>::template alloc<int> int_Allocator;
-  typedef typename allocator_rebind<Allocator>::template alloc<substitution_st> subst_Allocator;
+  using int_Allocator = typename allocator_rebind<Allocator>::template alloc<int>;
+  using subst_Allocator = typename allocator_rebind<Allocator>::template alloc<substitution_st>;
   std::vector<int, int_Allocator> M_template_arg_pos;
   int M_template_arg_pos_offset;
   std::vector<substitution_st, subst_Allocator> M_substitutions_pos;
@@ -1211,9 +1211,9 @@ bool session<Allocator>::decode_expression(string_type& output)
         //
         // Example:
         //
-        // struct B { typedef int t; };
+        // struct B { using t = int; };
         // struct A : public B { static int t[2]; };
-        // template<int i, int j> struct C { typedef int q; };
+        // template<int i, int j> struct C { using q = int; };
         // template<int i, typename T>
         //   void f(typename C<sizeof (typename T::t),
         //                     sizeof (T::t)>::q) { }
@@ -1228,17 +1228,15 @@ bool session<Allocator>::decode_expression(string_type& output)
         //
         if (M_implementation_details.get_style_sizeof_typename())
         {
-          // We can only get here inside a template parameter,
-          // so this is syntactically correct if the given type is
-          // a typedef.  The only disadvantage is that it is inconsistent
-          // with all other places where the 'typename' keyword should be
-          // used and we don't.
+          // We can only get here inside a template parameter, so this
+          // is syntactically correct if the given type is a typedef.
+          // The only disadvantage is that it is inconsistent with all other
+          // places where the 'typename' keyword should be used and we don't.
           // With this, the above example will demangle as
           // void f<5, A>(C<sizeof (typename T::t), sizeof (T::t)>::q)
           if (current() == 'N' || // <nested-name>
                                   // This should be a safe bet.
-              (current() == 'S' && next_peek() == 't')) // std::something, guess that
-                                                        // this involves a typedef.
+              (current() == 'S' && next_peek() == 't')) // std::something, guess that this involves a typedef.
             output += "typename ";
         }
         if (!decode_type(output))
@@ -2500,8 +2498,8 @@ int session<Allocator>::decode_encoding(string_type& output, char const* in, int
 template <typename Allocator>
 struct demangle
 {
-  typedef typename demangler::allocator_rebind<Allocator>::template alloc<char> char_Allocator;
-  typedef std::basic_string<char, std::char_traits<char>, char_Allocator> string_type;
+  using char_Allocator = typename demangler::allocator_rebind<Allocator>::template alloc<char>;
+  using string_type = std::basic_string<char, std::char_traits<char>, char_Allocator>;
   static string_type symbol(char const* in, demangler::implementation_details const& id);
   static string_type type(char const* in, demangler::implementation_details const& id);
 };
@@ -2517,7 +2515,7 @@ typename demangle<Allocator>::string_type demangle<Allocator>::symbol(char const
   // <mangled-name> ::= _Z <encoding>
   // <mangled-name> ::= _GLOBAL_ _<type>_ <disambiguation part>
   //                    <type> can be I or D (GNU extension)
-  typedef demangler::session<Allocator> demangler_type;
+  using demangler_type = demangler::session<Allocator>;
   string_type result;
   bool failure = (input[0] != '_');
 

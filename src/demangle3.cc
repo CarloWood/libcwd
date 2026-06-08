@@ -665,7 +665,7 @@ bool implementation_details::decode_real(char* output, unsigned long* input, siz
   return true;
 }
 
-typedef __gnu_cxx::demangler::session<std::allocator<char>> session_type;
+using session_type = __gnu_cxx::demangler::session<std::allocator<char>>;
 
 //
 // demangle_symbol
