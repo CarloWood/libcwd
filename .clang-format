@@ -6,6 +6,8 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 QualifierAlignment: Right
 BreakBeforeBraces: Custom
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
 BraceWrapping:
   AfterClass: true
   AfterStruct: true
