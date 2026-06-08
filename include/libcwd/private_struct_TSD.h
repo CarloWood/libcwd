@@ -86,7 +86,7 @@ public:
   int do_off_array[LIBCWD_DO_MAX]{};	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX]{};// Thread Specific Data of Debug Objects or NULL when no debug object.
 
-  // Release per-thread debug-object data owned by this TSD and mark the thread-list entry as terminating.
+  // Release per-thread debug-object data owned by this TSD.
   //
   // TSD_st::instance() continues to return this object while cleanup runs so diagnostics emitted during
   // cleanup see the same per-thread state. A second cleanup attempt is ignored.

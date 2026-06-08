@@ -2,14 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 #include "cwd_sys.h"
-#include "libcwd/debug.h"
-#include <libcwd/core_dump.h>
-#include "threadsafe/AIReadWriteMutex.h"
-#include "threadsafe/threadsafe.h"
+#include <libcwd/private_struct_TSD.h>
 
-#include <thread>
-#include <unistd.h>
-#include "cwd_debug.h"
+#include <atomic>
+#include <mutex>
 
 namespace libcwd {
 namespace _private_ {
@@ -67,8 +63,9 @@ TSD_st& TSD_st::instance()
   if (current_tsd)
     return *current_tsd;
 
-  // We don't necessarily need ~TSD_cleanup_guard() to be called for the main thread.
-  if (main_thread_tsd)                  // This is true if this is NOT the main thread; otherwise it is false.
+  // Under the main-thread-first assumption, a first-use access after main_thread_tsd was set belongs to a
+  // worker thread and therefore needs the cleanup guard to delete its TSD at thread exit.
+  if (main_thread_tsd)
     (void)current_tsd_cleanup_guard;
 
   current_tsd = new TSD_st;
@@ -106,7 +103,7 @@ TSD_st::~TSD_st()
     cleanup_routine();
 }
 
-// Release the debug-object TSD owned by this thread and mark the thread as terminating.
+// Release the debug-object TSD owned by this thread.
 //
 // Unlike the old pthread-key implementation, portable C++ does not allow delaying this destructor through
 // repeated native key-destructor iterations. Therefore this cleanup runs when the C++ thread_local cleanup
