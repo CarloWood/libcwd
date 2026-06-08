@@ -7,7 +7,6 @@
 
 #include "libraries_debug.h"
 #include "private_assert.h"
-#include "private_threading.h"
 #include "class_location.h"
 #include <string>
 #include <iomanip>

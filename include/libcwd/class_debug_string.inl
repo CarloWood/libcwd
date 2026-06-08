@@ -2,7 +2,6 @@
 #define LIBCWD_CLASS_DEBUG_STRING_INL
 
 #include "class_debug_string.h"
-#include "private_threading.h"
 #include <cstddef>		// Needed for size_t
 
 namespace libcwd {

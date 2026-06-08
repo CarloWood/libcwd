@@ -1213,7 +1213,7 @@ bool debug_ct::NS_init(LIBCWD_TSD_PARAM)
   new (_private_::WST_dummy_laf) laf_ct(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
   WNS_index = S_index_count++;
 #if CWDEBUG_DEBUGT
-  LIBCWD_ASSERT(!_private_::WST_multi_threaded); // Only the first thread should be initializing debug_ct objects.
+  LIBCWD_ASSERT(!_private_::WST_multi_threaded.load(std::memory_order_relaxed)); // Only the first thread should be initializing debug_ct objects.
 #endif
   LIBCWD_ASSERT(__libcwd_tsd.do_array[WNS_index] == NULL);
   debug_tsd_st& tsd(*(__libcwd_tsd.do_array[WNS_index] = new debug_tsd_st));

@@ -2,7 +2,6 @@
 #define LIBCWD_CLASS_CHANNEL_INL
 
 #include "class_channel.h"
-#include "private_threading.h"
 
 namespace libcwd {
 

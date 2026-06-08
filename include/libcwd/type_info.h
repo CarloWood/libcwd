@@ -10,7 +10,6 @@
 #ifndef LIBCWD_TYPE_INFO_H
 #define LIBCWD_TYPE_INFO_H
 
-#include "private_threading.h"
 #include <typeinfo>		// Needed for typeid()
 #include <cstddef>		// Needed for size_t
 

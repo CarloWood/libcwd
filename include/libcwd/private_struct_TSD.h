@@ -78,7 +78,6 @@ public:
 #if CWDEBUG_LOCATION
   location_format_t format{};		// Determines how to print location_ct to an ostream.
 #endif
-  int terminating = 0;
   bool lock_interface_is_locked = false; // Set while writing debugout to the final ostream if ostream_state_ct::mutex_ was locked.
   bool recursive_fatal = false;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
@@ -102,9 +101,6 @@ public:
 private:
   bool initialized = false;
   bool cleaning_up = false;
-
-public:
-  void thread_destructed();
 
 //-------------------------------------------------------
 // Static data and methods.

@@ -2,7 +2,6 @@
 #define LIBCWD_SET_OSTREAM_INL
 
 #include "private_lock_interface.h"
-#include "private_threading.h"
 
 namespace libcwd {
 

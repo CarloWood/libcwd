@@ -4,7 +4,6 @@
 #include "cwd_sys.h"
 #include "libcwd/debug.h"
 #include <libcwd/core_dump.h>
-#include <libcwd/private_threading.h>
 #include "threadsafe/AIReadWriteMutex.h"
 #include "threadsafe/threadsafe.h"
 

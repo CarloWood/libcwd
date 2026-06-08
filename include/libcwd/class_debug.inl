@@ -7,6 +7,7 @@
 #include "class_channel.inl"
 #include "class_fatal_channel.inl"
 #include "class_debug_string.inl"
+#include "core_dump.h"
 
 #include <ostream>
 
