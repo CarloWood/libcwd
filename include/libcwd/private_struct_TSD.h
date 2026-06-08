@@ -49,7 +49,6 @@ struct TSD_st;
 
 // These includes use the above macros.
 #include "struct_debug_tsd.h"
-#include "private_thread.h"
 
 namespace libcwd {
 
@@ -74,23 +73,18 @@ location_format_t const show_function = 4;    //!< Show the mangled function nam
 namespace _private_ {
 
 extern int WST_initializing_TSD;
-class thread_ct;
 
 struct TSD_st {
 public:
 #if CWDEBUG_LOCATION
   location_format_t format{};		// Determines how to print location_ct to an ostream.
 #endif
-  ThreadList::list_type::iterator thread_iter;  // Persistant thread specific data (might even stay after this object is destructed),
-  bool thread_iter_valid = false;               // only valid when thread_iter_valid is true.
-  thread_ct* target_thread = nullptr;
   int terminating = 0;
   bool lock_interface_is_locked = false; // Set while writing debugout to the final ostream if ostream_state_ct::mutex_ was locked.
   bool recursive_fatal = false;			// Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
   bool recursive_assert = false;	// Detect loop involving LIBCWD_ASSERT.
 #endif
-  std::thread::id tid;			// Thread ID.
   int do_off_array[LIBCWD_DO_MAX]{};	// Thread Specific on/off counter for Debug Objects.
   debug_tsd_st* do_array[LIBCWD_DO_MAX]{};// Thread Specific Data of Debug Objects or NULL when no debug object.
 
