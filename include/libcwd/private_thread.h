@@ -32,12 +32,10 @@ class thread_ct
 {
  public:
   std::thread::id tid;			// Thread ID of the thread represented by this entry.
-  bool M_zombie = false;
   bool M_terminating = false;
 
   void initialize(LIBCWD_TSD_PARAM);	// May only be called after the object reached its final place in memory.
   void terminated(ThreadsWat wat LIBCWD_COMMA_TSD_PARAM);
-  bool is_zombie() const { return M_zombie; }
   void terminating() { M_terminating = true; }
   bool is_terminating() const { return M_terminating; }
 };
