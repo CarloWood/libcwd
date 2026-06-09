@@ -54,22 +54,22 @@ Channel demangler("DEMANGLER");
 #define _GLIBCXX_DEMANGLER_DOUT(cntrl, data) __Dout(cntrl, data)
 #define _GLIBCXX_DEMANGLER_DOUT_ENTERING(x)       \
   __Dout(dc::demangler | continued_cf | flush_cf, \
-         "Entering " << x << "(\"" << &M_str[M_pos] << "\", \"" << output << "\") ")
+         "Entering " << x << "(\"" << &str_[pos_] << "\", \"" << output << "\") ")
 #define _GLIBCXX_DEMANGLER_RETURN                                    \
   do                                                                 \
   {                                                                  \
-    if (M_result)                                                    \
-      __Dout(dc::finish, '[' << M_pos << "; \"" << output << "\"]"); \
+    if (result_)                                                    \
+      __Dout(dc::finish, '[' << pos_ << "; \"" << output << "\"]"); \
     else                                                             \
       __Dout(dc::finish, "(failed)");                                \
-    return M_result;                                                 \
+    return result_;                                                 \
   } while (0)
 #define _GLIBCXX_DEMANGLER_FAILURE     \
   do                                   \
   {                                    \
-    if (M_result)                      \
+    if (result_)                      \
     {                                  \
-      M_result = false;                \
+      result_ = false;                \
       __Dout(dc::finish, "[failure]"); \
     }                                  \
     else                               \
@@ -82,16 +82,16 @@ Channel demangler("DEMANGLER");
     __Dout(dc::demangler | continued_cf | flush_cf, "Entering " << x);                                    \
     if (qualifiers)                                                                                       \
       __Dout(dc::continued, " [with qualifiers: " << *qualifiers << ']');                                 \
-    __Dout(dc::continued, "(\"" << &M_str[M_pos] << "\", \"" << prefix << "\", \"" << postfix << "\") "); \
+    __Dout(dc::continued, "(\"" << &str_[pos_] << "\", \"" << prefix << "\", \"" << postfix << "\") "); \
   } while (0)
 #define _GLIBCXX_DEMANGLER_RETURN2                                                          \
   do                                                                                        \
   {                                                                                         \
-    if (M_result)                                                                           \
-      __Dout(dc::finish, '[' << M_pos << "; \"" << prefix << "\", \"" << postfix << "\"]"); \
+    if (result_)                                                                           \
+      __Dout(dc::finish, '[' << pos_ << "; \"" << prefix << "\", \"" << postfix << "\"]"); \
     else                                                                                    \
       __Dout(dc::finish, "(failed)");                                                       \
-    return M_result;                                                                        \
+    return result_;                                                                        \
   } while (0)
 #define _GLIBCXX_DEMANGLER_DOUT_ENTERING3(x)                                  \
   do                                                                          \
@@ -160,11 +160,11 @@ struct decimal_float_data
 class decimal_float
 {
  private:
-  decimal_float_data M_data;
+  decimal_float_data data_;
 
  private:
-  void M_do_overflow(unsigned long prev_borrow);
-  void M_do_carry();
+  void do_overflow(unsigned long prev_borrow);
+  void do_carry();
 
  public:
   void set_2pow2pow(int power);
@@ -232,23 +232,23 @@ decimal_float_data const constants[] = {
 
 // Handle excess digits in the most significant
 // element of the mantissa array.
-void decimal_float::M_do_overflow(unsigned long prev_borrow)
+void decimal_float::do_overflow(unsigned long prev_borrow)
 {
-  // assert(M_data.mantissa[mantissa_size_c - 1] > 9999);
+  // assert(data_.mantissa[mantissa_size_c - 1] > 9999);
 
   // Even after shifting the excess digits right,
-  // M_data.mantissa[mantissa_size_c - 1] will still be
+  // data_.mantissa[mantissa_size_c - 1] will still be
   // larger than 999.
-  M_data.max_precision_reached = true;
+  data_.max_precision_reached = true;
 
   // Count the excess digits and update the exponent
   // already in order to keep the value constant.
   unsigned long divider = 10;
-  ++M_data.exponent;
+  ++data_.exponent;
   while (prev_borrow >= divider)
   {
     divider *= 10;
-    ++M_data.exponent;
+    ++data_.exponent;
   }
 
   // Finally, shift the value in the mantissa a few
@@ -256,56 +256,56 @@ void decimal_float::M_do_overflow(unsigned long prev_borrow)
   unsigned long multiplier = 10000 / divider;
   for (int i = mantissa_size_c - 1; i >= 0; --i)
   {
-    unsigned long borrow = M_data.mantissa[i] % divider;
+    unsigned long borrow = data_.mantissa[i] % divider;
     if (i == 0)
-      M_data.mantissa[i] += divider / 2; // Round off.
-    M_data.mantissa[i] /= divider;
-    M_data.mantissa[i] += prev_borrow * multiplier;
+      data_.mantissa[i] += divider / 2; // Round off.
+    data_.mantissa[i] /= divider;
+    data_.mantissa[i] += prev_borrow * multiplier;
     prev_borrow = borrow;
   }
 }
 
 // Handle excess digits in the elements of the mantissa array.
-void decimal_float::M_do_carry()
+void decimal_float::do_carry()
 {
   for (int i = 0; i < mantissa_size_c - 1; ++i)
   {
-    if (M_data.mantissa[i] >= 10000)
+    if (data_.mantissa[i] >= 10000)
     {
-      M_data.mantissa[i + 1] += M_data.mantissa[i] / 10000;
-      M_data.mantissa[i] %= 10000;
+      data_.mantissa[i + 1] += data_.mantissa[i] / 10000;
+      data_.mantissa[i] %= 10000;
     }
   }
-  if (M_data.mantissa[mantissa_size_c - 1] >= 10000)
-    M_do_overflow(0);
+  if (data_.mantissa[mantissa_size_c - 1] >= 10000)
+    do_overflow(0);
 }
 
 // Initialize the object to a value of 2 ** (2 ** power).
 inline void decimal_float::set_2pow2pow(int power)
 {
   // assert(0 <= power && power <= 10);
-  std::memcpy(&M_data, &constants[p1 + power], sizeof(decimal_float_data));
+  std::memcpy(&data_, &constants[p1 + power], sizeof(decimal_float_data));
 }
 
 // Initialize the object to a value of 2 ** power.
 inline void decimal_float::set_2pow(int power)
 {
   // assert(power == 0 || power == 1);
-  std::memcpy(&M_data, &constants[power], sizeof(decimal_float_data));
+  std::memcpy(&data_, &constants[power], sizeof(decimal_float_data));
 }
 
 // Initialize the object to a value of 2 ** (1 - (2 ** (expsize - 1))).
 inline void decimal_float::set_expstart(int expsize)
 {
   // assert(expsize <= 11 && expsize >= 5);
-  std::memcpy(&M_data, &constants[m1023 + 11 - expsize], sizeof(decimal_float_data));
+  std::memcpy(&data_, &constants[m1023 + 11 - expsize], sizeof(decimal_float_data));
 }
 
 // Initialize the object to zero.  Must have the same exponent as m0.
 inline void decimal_float::set_zero()
 {
-  std::memcpy(&M_data, &constants[m0], sizeof(decimal_float_data));
-  M_data.mantissa[0] = 0;
+  std::memcpy(&data_, &constants[m0], sizeof(decimal_float_data));
+  data_.mantissa[0] = 0;
 }
 
 // Divide the value of this object by two in one of two possible ways:
@@ -316,27 +316,27 @@ void decimal_float::divide_by_two(bool decrement_exponent)
 {
   if (decrement_exponent)
   {
-    for (int i = 0; i < mantissa_size_c; ++i) M_data.mantissa[i] *= 5;
-    M_do_carry();
-    --M_data.exponent;
+    for (int i = 0; i < mantissa_size_c; ++i) data_.mantissa[i] *= 5;
+    do_carry();
+    --data_.exponent;
   }
   else
   {
-    unsigned long prev_borrow = M_data.mantissa[mantissa_size_c - 1] % 2;
-    if ((M_data.mantissa[mantissa_size_c - 1] /= 2) < 1000)
-      M_data.max_precision_reached = false;
+    unsigned long prev_borrow = data_.mantissa[mantissa_size_c - 1] % 2;
+    if ((data_.mantissa[mantissa_size_c - 1] /= 2) < 1000)
+      data_.max_precision_reached = false;
     for (int i = mantissa_size_c - 2; i >= 0; --i)
     {
-      unsigned long borrow = M_data.mantissa[i] % 2;
-      M_data.mantissa[i] /= 2;
-      M_data.mantissa[i] += prev_borrow * 5000;
+      unsigned long borrow = data_.mantissa[i] % 2;
+      data_.mantissa[i] /= 2;
+      data_.mantissa[i] += prev_borrow * 5000;
       prev_borrow = borrow;
     }
     if (prev_borrow)
     {
       // Round off.
-      if (++M_data.mantissa[0] == 10000)
-        M_do_carry();
+      if (++data_.mantissa[0] == 10000)
+        do_carry();
     }
   }
 }
@@ -347,22 +347,22 @@ void decimal_float::divide_by_two(bool decrement_exponent)
 // another object that is being divided by two.
 bool decimal_float::decrement_exponent()
 {
-  if (M_data.max_precision_reached)
+  if (data_.max_precision_reached)
     return false;
-  for (int i = 0; i < mantissa_size_c; ++i) M_data.mantissa[i] *= 10;
-  M_do_carry();
-  if (M_data.mantissa[mantissa_size_c - 1] >= 1000)
-    M_data.max_precision_reached = true;
-  --M_data.exponent;
+  for (int i = 0; i < mantissa_size_c; ++i) data_.mantissa[i] *= 10;
+  do_carry();
+  if (data_.mantissa[mantissa_size_c - 1] >= 1000)
+    data_.max_precision_reached = true;
+  --data_.exponent;
   return true;
 }
 
 // Add two decimal_floats that have the same exponent.
 decimal_float& decimal_float::operator+=(decimal_float const& term)
 {
-  // assert(M_data.exponent == term.M_data.exponent);
-  for (int i = 0; i < mantissa_size_c; ++i) M_data.mantissa[i] += term.M_data.mantissa[i];
-  M_do_carry();
+  // assert(data_.exponent == term.data_.exponent);
+  for (int i = 0; i < mantissa_size_c; ++i) data_.mantissa[i] += term.data_.mantissa[i];
+  do_carry();
   return *this;
 }
 
@@ -373,13 +373,13 @@ decimal_float& decimal_float::operator*=(decimal_float const& factor)
   // that contain zero (of either factor), but stop counting if we reach
   // mantissa_size_c - 1.
   int zero_digits = 0;
-  while (M_data.mantissa[mantissa_size_c - 1 - zero_digits] == 0)
+  while (data_.mantissa[mantissa_size_c - 1 - zero_digits] == 0)
     if (++zero_digits == mantissa_size_c - 1)
       break;
   if (zero_digits < mantissa_size_c - 1)
   {
     int offset = mantissa_size_c - 1 + zero_digits;
-    while (factor.M_data.mantissa[offset - zero_digits] == 0)
+    while (factor.data_.mantissa[offset - zero_digits] == 0)
       if (++zero_digits == mantissa_size_c - 1)
         break;
   }
@@ -390,10 +390,10 @@ decimal_float& decimal_float::operator*=(decimal_float const& factor)
   unsigned long tmp_mantissa[mantissa_size_c];
   unsigned long* this_mantissa;
   if (zero_digits == 0)
-    this_mantissa = M_data.mantissa;
+    this_mantissa = data_.mantissa;
   else
   {
-    std::memcpy(tmp_mantissa, M_data.mantissa, sizeof(tmp_mantissa));
+    std::memcpy(tmp_mantissa, data_.mantissa, sizeof(tmp_mantissa));
     this_mantissa = tmp_mantissa;
   }
 
@@ -401,23 +401,23 @@ decimal_float& decimal_float::operator*=(decimal_float const& factor)
   // called that way - it gets a bit complicated here) to, heh, what works.
   int lss = mantissa_size_c - 1 - zero_digits;
   // Now hold your breath...
-  M_data.exponent += factor.M_data.exponent + 4 * lss;
+  data_.exponent += factor.data_.exponent + 4 * lss;
   unsigned long sum = 0;
-  for (int i = 0; i < lss; ++i) sum += this_mantissa[i] * factor.M_data.mantissa[lss - 1 - i];
+  for (int i = 0; i < lss; ++i) sum += this_mantissa[i] * factor.data_.mantissa[lss - 1 - i];
   sum += 5000; // Round off.
   sum /= 10000;
   for (int j = 0; j < mantissa_size_c; ++j)
   {
     int loop_bgn = std::max(0, lss + j - (mantissa_size_c - 1));
     int loop_end = std::min(mantissa_size_c - 1, lss + j);
-    for (int i = loop_bgn; i <= loop_end; ++i) sum += this_mantissa[i] * factor.M_data.mantissa[lss + j - i];
-    M_data.mantissa[j] = sum;
+    for (int i = loop_bgn; i <= loop_end; ++i) sum += this_mantissa[i] * factor.data_.mantissa[lss + j - i];
+    data_.mantissa[j] = sum;
     sum /= 10000;
-    M_data.mantissa[j] -= 10000 * sum;
+    data_.mantissa[j] -= 10000 * sum;
   }
   // ... ahhh. Ok. And do overflow management when needed.
   if (sum > 0)
-    M_do_overflow(sum);
+    do_overflow(sum);
   return *this;
 }
 
@@ -429,7 +429,7 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
 {
   // First do the round off.
   decimal_float tmp(*this);
-  if (!M_data.max_precision_reached)
+  if (!data_.max_precision_reached)
   {
     // In this case we are probably exact, so we
     // don't really need to round off.  Because leading
@@ -438,7 +438,7 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
     for (int i = mantissa_size_c - 1; i >= 0; --i)
       for (unsigned long shift = 1000; shift; shift /= 10)
       {
-        if (M_data.mantissa[i] >= shift)
+        if (data_.mantissa[i] >= shift)
         {
           i = 0;
           break;
@@ -454,9 +454,9 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
     int cutr = cut % 4;
     unsigned long shift = 10;
     while (cutr--) shift *= 10;
-    tmp.M_data.mantissa[cuti] += shift / 2; // Round off.
-    if (tmp.M_data.mantissa[cuti] >= 10000)
-      tmp.M_do_carry();
+    tmp.data_.mantissa[cuti] += shift / 2; // Round off.
+    if (tmp.data_.mantissa[cuti] >= 10000)
+      tmp.do_carry();
   }
 
   bool leading = true;
@@ -464,7 +464,7 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
   int tz = 0;
   for (int i = mantissa_size_c - 1; i >= 0 && precision; --i)
   {
-    unsigned long digit = tmp.M_data.mantissa[i];
+    unsigned long digit = tmp.data_.mantissa[i];
     for (int shift = 1000; shift; shift /= 10)
     {
       int d = digit / shift;
@@ -490,7 +490,7 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
       }
     }
   }
-  e += tmp.M_data.exponent;
+  e += tmp.data_.exponent;
   if (e != 0)
   {
     *p++ = 'e';
