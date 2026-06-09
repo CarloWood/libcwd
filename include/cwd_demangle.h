@@ -169,53 +169,53 @@ class qualifier_list
   using string_type = std::basic_string<char, std::char_traits<char>, char_Allocator>;
 
  private:
-  mutable bool M_printing_suppressed;
+  mutable bool printing_suppressed_;
   using qual = qualifier<Allocator>;
   using qual_Allocator = typename allocator_rebind<Allocator>::template alloc<qual>;
   using qual_vector = std::vector<qual, qual_Allocator>;
-  qual_vector M_qualifier_starts;
-  session<Allocator>& M_demangler;
+  qual_vector qualifier_starts_;
+  session<Allocator>& demangler_;
 
   void decode_KVrA(string_type& prefix, string_type& postfix, int cvq,
                    typename qual_vector::const_reverse_iterator const& iter_array) const;
 
  public:
-  qualifier_list(session<Allocator>& demangler_obj) : M_printing_suppressed(false), M_demangler(demangler_obj) { }
+  qualifier_list(session<Allocator>& demangler_obj) : printing_suppressed_(false), demangler_(demangler_obj) { }
 
   void add_qualifier_start(simple_qualifier_nt simple_qualifier, int start_pos, int inside_substitution)
   {
-    M_qualifier_starts.push_back(qualifier<Allocator>(start_pos, simple_qualifier, inside_substitution));
+    qualifier_starts_.push_back(qualifier<Allocator>(start_pos, simple_qualifier, inside_substitution));
   }
 
   void add_qualifier_start(cv_qualifier_nt cv_qualifier, int start_pos, int count, int inside_substitution)
   {
-    M_qualifier_starts.push_back(
-        qualifier<Allocator>(start_pos, cv_qualifier, &M_demangler.str_[start_pos], count, inside_substitution));
+    qualifier_starts_.push_back(
+        qualifier<Allocator>(start_pos, cv_qualifier, &demangler_.str_[start_pos], count, inside_substitution));
   }
 
   void add_qualifier_start(param_qualifier_nt param_qualifier, int start_pos, string_type optional_type,
                            int inside_substitution)
   {
-    M_qualifier_starts.push_back(qualifier<Allocator>(start_pos, param_qualifier, optional_type, inside_substitution));
+    qualifier_starts_.push_back(qualifier<Allocator>(start_pos, param_qualifier, optional_type, inside_substitution));
   }
 
   void decode_qualifiers(string_type& prefix, string_type& postfix,
                          bool member_function_pointer_qualifiers = false) const;
 
-  bool suppressed() const { return M_printing_suppressed; }
+  bool suppressed() const { return printing_suppressed_; }
 
-  void printing_suppressed() { M_printing_suppressed = true; }
+  void printing_suppressed() { printing_suppressed_ = true; }
 
-  size_t size() const { return M_qualifier_starts.size(); }
+  size_t size() const { return qualifier_starts_.size(); }
 
 #if _GLIBCXX_DEMANGLER_CWDEBUG
   friend std::ostream& operator<<(std::ostream& os, qualifier_list const& list)
   {
-    typename qual_vector::const_iterator iter = list.M_qualifier_starts.begin();
-    if (iter != list.M_qualifier_starts.end())
+    typename qual_vector::const_iterator iter = list.qualifier_starts_.begin();
+    if (iter != list.qualifier_starts_.end())
     {
       os << "{ " << *iter;
-      while (++iter != list.M_qualifier_starts.end()) os << ", " << *iter;
+      while (++iter != list.qualifier_starts_.end()) os << ", " << *iter;
       os << " }";
     }
     else
@@ -228,7 +228,7 @@ class qualifier_list
 struct implementation_details
 {
  private:
-  unsigned int M_style;
+  unsigned int style_;
 
  public:
   // The following flags change the behaviour of the demangler.  The
@@ -260,13 +260,13 @@ struct implementation_details
   // types inside a 'sizeof':			sizeof (typename X::t)
 
  public:
-  implementation_details(unsigned int style_flags = 0) : M_style(style_flags) { }
+  implementation_details(unsigned int style_flags = 0) : style_(style_flags) { }
   virtual ~implementation_details() { }
-  bool get_style_void() const { return (M_style & style_void); }
-  bool get_style_literal() const { return (M_style & style_literal); }
-  bool get_style_literal_int() const { return (M_style & style_literal_int); }
-  bool get_style_compact_expr_ops() const { return (M_style & style_compact_expr_ops); }
-  bool get_style_sizeof_typename() const { return (M_style & style_sizeof_typename); }
+  bool get_style_void() const { return (style_ & style_void); }
+  bool get_style_literal() const { return (style_ & style_literal); }
+  bool get_style_literal_int() const { return (style_ & style_literal_int); }
+  bool get_style_compact_expr_ops() const { return (style_ & style_compact_expr_ops); }
+  bool get_style_sizeof_typename() const { return (style_ & style_sizeof_typename); }
   // This can be overridden by user implementations.
   virtual bool decode_real(char* /* output */, unsigned long* /* input */, size_t /* size_of_real */) const
   {
@@ -1583,7 +1583,7 @@ void qualifier_list<Allocator>::decode_KVrA(string_type& prefix, string_type& po
   if ((cvq & cvq_A))
   {
     int n = cvq >> 5;
-    for (typename qual_vector::const_reverse_iterator iter = iter_array; iter != M_qualifier_starts.rend(); ++iter)
+    for (typename qual_vector::const_reverse_iterator iter = iter_array; iter != qualifier_starts_.rend(); ++iter)
     {
       switch ((*iter).first_qualifier())
       {
@@ -1619,15 +1619,15 @@ void qualifier_list<Allocator>::decode_qualifiers(string_type& prefix, string_ty
   _GLIBCXX_DEMANGLER_DOUT_ENTERING3("decode_qualifiers");
   int cvq = 0;
   typename qual_vector::const_reverse_iterator iter_array;
-  for (typename qual_vector::const_reverse_iterator iter = M_qualifier_starts.rbegin();
-       iter != M_qualifier_starts.rend(); ++iter)
+  for (typename qual_vector::const_reverse_iterator iter = qualifier_starts_.rbegin();
+       iter != qualifier_starts_.rend(); ++iter)
   {
     if (!member_function_pointer_qualifiers && !(*iter).part_of_substitution())
     {
-      int saved_inside_substitution = M_demangler.inside_substitution_;
-      M_demangler.inside_substitution_ = 0;
-      M_demangler.add_substitution((*iter).get_start_pos(), type);
-      M_demangler.inside_substitution_ = saved_inside_substitution;
+      int saved_inside_substitution = demangler_.inside_substitution_;
+      demangler_.inside_substitution_ = 0;
+      demangler_.add_substitution((*iter).get_start_pos(), type);
+      demangler_.inside_substitution_ = saved_inside_substitution;
     }
     char qualifier_char = (*iter).first_qualifier();
     for (; qualifier_char; qualifier_char = (*iter).next_qualifier())
@@ -1694,7 +1694,7 @@ void qualifier_list<Allocator>::decode_qualifiers(string_type& prefix, string_ty
   }
   if (cvq)
     decode_KVrA(prefix, postfix, cvq | cvq_last, iter_array);
-  M_printing_suppressed = false;
+  printing_suppressed_ = false;
   _GLIBCXX_DEMANGLER_RETURN3;
 }
 

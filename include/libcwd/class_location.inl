@@ -20,7 +20,7 @@ inline
 Location::Location(void const* addr) : known_(false)
 {
   LIBCWD_TSD_DECLARATION;
-  M_pc_location(addr LIBCWD_COMMA_TSD);
+  pc_location(addr LIBCWD_COMMA_TSD);
 }
 
 /*
@@ -30,7 +30,7 @@ Location::Location(void const* addr) : known_(false)
 inline
 Location::Location(void const* addr LIBCWD_COMMA_TSD_PARAM) : known_(false)
 {
-  M_pc_location(addr LIBCWD_COMMA_TSD);
+  pc_location(addr LIBCWD_COMMA_TSD);
 }
 
 /**
@@ -56,7 +56,7 @@ Location::pc_location(void const* addr)
 {
   clear();
   LIBCWD_TSD_DECLARATION;
-  M_pc_location(addr LIBCWD_COMMA_TSD);
+  pc_location(addr LIBCWD_COMMA_TSD);
 }
 
 inline

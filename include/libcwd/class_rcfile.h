@@ -49,16 +49,16 @@ public:
   virtual ~RcFile() { }
 
 private:
-  void M_print_delayed_msg(int env_var, std::string const& value) const;
+  void print_delayed_msg(int env_var, std::string const& value) const;
   void set_all_channels_on();
   void set_all_channels_off(bool warning_on);
 
   static bool S_exists(char const* name);
-  std::string M_determine_rcfile_name();
+  std::string determine_rcfile_name();
 
   enum action_nt { toggle, on, off };
-  void M_process_channel(Channel& debugChannel, std::string const& mask, action_nt const action);
-  void M_process_channels(std::string list, action_nt const action);
+  void process_channel(Channel& debugChannel, std::string const& mask, action_nt const action);
+  void process_channels(std::string list, action_nt const action);
 
 public:
   /**

@@ -57,11 +57,11 @@ class Location {
 protected:
   ObjectFileName const* object_file_name_;          //!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
   char const* function_name_;                           //!< Pointer to static string containing the mangled function name of this location.
-  lockable_auto_ptr<char, true> filepath_;     //!< The full source file name of this location.&nbsp; Allocated in `M_pc_location' using new [].
+  lockable_auto_ptr<char, true> filepath_;     //!< The full source file name of this location.&nbsp; Allocated in `pc_location' using new [].
   union {
     char const* filename_;                     //!< Points inside filepath_ just after the last '/' or to the beginning.
-    void const* initialization_delayed_;       //!< If object_file_name_ == NULL and function_name_ points to pre_libcwd_initialization_c_, then this is the address that M_pc_location was called with.
-    void const* unknown_pc_;                   //!< If object_file_name_ == NULL and function_name_ points to unknown_function_c, then this is the address that M_pc_location was called with.
+    void const* initialization_delayed_;       //!< If object_file_name_ == NULL and function_name_ points to pre_libcwd_initialization_c_, then this is the address that pc_location was called with.
+    void const* unknown_pc_;                   //!< If object_file_name_ == NULL and function_name_ points to unknown_function_c, then this is the address that pc_location was called with.
   };
   unsigned int line_;                          //!< The line number of this location.
   bool known_;                                 //!< Set when filepath_ (and filename_) point to valid data and line_ contains a valid line number.
@@ -124,7 +124,7 @@ public:
   void pc_location(void const* pc);
 
   // Only public because libcwd calls it directly.
-  void M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM);
+  void pc_location(void const* pc LIBCWD_COMMA_TSD_PARAM);
 
   /**
    * \brief Clear the current object (set the location to 'unknown').

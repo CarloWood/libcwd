@@ -591,7 +591,7 @@ void ObjectFile::realize_symbols() const
 
 // On the lifetime of the returned object.
 //
-// There are only two callers of this function, `libcwd::Location::M_pc_location` and
+// There are only two callers of this function, `libcwd::Location::pc_location` and
 // `libcwd::pc_mangled_function_name`. Both first call
 //     object_file = find_object_file(addr)
 //     symbol = object_file->find_symbol(addr)
