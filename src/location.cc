@@ -8,9 +8,9 @@
 
 namespace libcwd {
 
-char const* const Location::S_uninitialized_location_ct_c = "<uninitialized Location>";
-char const* const Location::S_pre_libcwd_initialization_c = "<pre libcwd initialization>";
-char const* const Location::S_cleared_location_ct_c = "<cleared location ct>";
+char const* const Location::uninitialized_location_ct_c_ = "<uninitialized Location>";
+char const* const Location::pre_libcwd_initialization_c_ = "<pre libcwd initialization>";
+char const* const Location::cleared_location_ct_c_ = "<cleared location ct>";
 
 //
 // Location::M_pc_location
@@ -19,25 +19,25 @@ char const* const Location::S_cleared_location_ct_c = "<cleared location ct>";
 //
 // Like `pc_function', this function looks up the symbol (function) that
 // belongs to the address `addr' and stores the pointer to the name of that symbol
-// in the member `M_func'.  When no symbol could be found then `M_func' is set to
+// in the member `function_name_'.  When no symbol could be found then `function_name_' is set to
 // `libcwd::unknown_function_c'.
 //
 // If a symbol is found then this function attempts to lookup source file and line number
-// nearest to the given address.  The result - if any - is put into `M_filepath' (source
-// file) and `M_line' (line number), and `M_filename' is set to point to the filename
-// part of `M_filepath'.
+// nearest to the given address.  The result - if any - is put into `filepath_' (source
+// file) and `line_' (line number), and `filename_' is set to point to the filename
+// part of `filepath_'.
 //
 void Location::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 {
-  LIBCWD_ASSERT(!M_known);
+  LIBCWD_ASSERT(!known_);
 
   using namespace dwarf;
 
   if (!ensure_initialization(LIBCWD_TSD))
   {
-    M_object_file = nullptr;
-    M_func = S_pre_libcwd_initialization_c;
-    M_initialization_delayed = addr;
+    object_file_name_ = nullptr;
+    function_name_ = pre_libcwd_initialization_c_;
+    initialization_delayed_ = addr;
     return;
   }
 
@@ -48,40 +48,40 @@ void Location::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
 
   ObjectFileInterface const* object_file = find_object_file(addr LIBCWD_COMMA_TSD);
 
-  M_initialization_delayed = nullptr;
+  initialization_delayed_ = nullptr;
   if (!object_file)
   {
     Dout(dc::elfutils, "No object file for address " << addr);
-    M_object_file = nullptr;
-    M_func = unknown_function_c;
-    M_unknown_pc = addr;
+    object_file_name_ = nullptr;
+    function_name_ = unknown_function_c;
+    unknown_pc_ = addr;
     return;
   }
 
-  M_object_file = &object_file->get_object_file();
+  object_file_name_ = &object_file->get_object_file();
 
   uintptr_t int_addr = reinterpret_cast<uintptr_t>(addr);
   SymbolRangeInterface const* symbol = object_file->find_symbol(int_addr);
   if (!symbol)
   {
-    M_func = unknown_function_c;
-    M_unknown_pc = addr;
+    function_name_ = unknown_function_c;
+    unknown_pc_ = addr;
     return;
   }
 
   LocationLookupResult const location = symbol->lookup_location(int_addr, object_file->get_lbase());
-  M_func = location.function_name();
-  M_known = location.known;
-  if (M_known)
-    M_line = location.line;
+  function_name_ = location.function_name();
+  known_ = location.known;
+  if (known_)
+    line_ = location.line;
 
-  if (location.filepath) // Might still be true even if M_known is false (if we couldn't find a line number).
+  if (location.filepath) // Might still be true even if known_ is false (if we couldn't find a line number).
   {
     size_t len = strlen(location.filepath);
-    M_filepath = lockable_auto_ptr<char, true>(new char[len + 1]); // LEAK5
-    strcpy(M_filepath.get(), location.filepath);
-    char const* last_slash = strrchr(M_filepath.get(), '/');
-    M_filename = last_slash ? last_slash + 1 : M_filepath.get();
+    filepath_ = lockable_auto_ptr<char, true>(new char[len + 1]); // LEAK5
+    strcpy(filepath_.get(), location.filepath);
+    char const* last_slash = strrchr(filepath_.get(), '/');
+    filename_ = last_slash ? last_slash + 1 : filepath_.get();
   }
 }
 
@@ -90,31 +90,31 @@ void Location::M_pc_location(void const* addr LIBCWD_COMMA_TSD_PARAM)
  */
 void Location::clear()
 {
-  if (M_known)
+  if (known_)
   {
-    M_known = false;
-    if (M_filepath.is_owner())
+    known_ = false;
+    if (filepath_.is_owner())
     {
       LIBCWD_TSD_DECLARATION;
-      M_filepath.reset();
+      filepath_.reset();
     }
   }
-  M_object_file = nullptr;
-  M_func = S_cleared_location_ct_c;
+  object_file_name_ = nullptr;
+  function_name_ = cleared_location_ct_c_;
 }
 
 Location::Location(Location const& prototype)
 {
-  if ((M_known = prototype.M_known))
+  if ((known_ = prototype.known_))
   {
-    M_filepath = prototype.M_filepath;
-    M_filename = prototype.M_filename;
-    M_line = prototype.M_line;
+    filepath_ = prototype.filepath_;
+    filename_ = prototype.filename_;
+    line_ = prototype.line_;
   }
   else
-    M_initialization_delayed = prototype.M_initialization_delayed;
-  M_object_file = prototype.M_object_file;
-  M_func = prototype.M_func;
+    initialization_delayed_ = prototype.initialization_delayed_;
+  object_file_name_ = prototype.object_file_name_;
+  function_name_ = prototype.function_name_;
 }
 
 Location& Location::operator=(Location const& prototype)
@@ -122,30 +122,30 @@ Location& Location::operator=(Location const& prototype)
   if (this != &prototype)
   {
     clear();
-    if ((M_known = prototype.M_known))
+    if ((known_ = prototype.known_))
     {
-      M_filepath = prototype.M_filepath;
-      M_filename = prototype.M_filename;
-      M_line = prototype.M_line;
+      filepath_ = prototype.filepath_;
+      filename_ = prototype.filename_;
+      line_ = prototype.line_;
     }
     else
-      M_initialization_delayed = prototype.M_initialization_delayed;
-    M_object_file = prototype.M_object_file;
-    M_func = prototype.M_func;
+      initialization_delayed_ = prototype.initialization_delayed_;
+    object_file_name_ = prototype.object_file_name_;
+    function_name_ = prototype.function_name_;
   }
   return *this;
 }
 
 void Location::print_filepath_on(std::ostream& os) const
 {
-  LIBCWD_ASSERT(M_known);
-  os << M_filepath.get();
+  LIBCWD_ASSERT(known_);
+  os << filepath_.get();
 }
 
 void Location::print_filename_on(std::ostream& os) const
 {
-  LIBCWD_ASSERT(M_known);
-  os << M_filename;
+  LIBCWD_ASSERT(known_);
+  os << filename_;
 }
 
 } // namespace libcwd

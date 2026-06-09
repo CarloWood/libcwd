@@ -17,7 +17,7 @@ namespace libcwd {
  * \brief Construct a location for address \p addr.
  */
 inline
-Location::Location(void const* addr) : M_known(false)
+Location::Location(void const* addr) : known_(false)
 {
   LIBCWD_TSD_DECLARATION;
   M_pc_location(addr LIBCWD_COMMA_TSD);
@@ -28,7 +28,7 @@ Location::Location(void const* addr) : M_known(false)
  * taking a thread-specific-data argument.
  */
 inline
-Location::Location(void const* addr LIBCWD_COMMA_TSD_PARAM) : M_known(false)
+Location::Location(void const* addr LIBCWD_COMMA_TSD_PARAM) : known_(false)
 {
   M_pc_location(addr LIBCWD_COMMA_TSD);
 }
@@ -43,7 +43,7 @@ Location::~Location()
 }
 
 inline
-Location::Location() : M_func(S_uninitialized_location_ct_c), M_object_file(NULL), M_known(false)
+Location::Location() : function_name_(uninitialized_location_ct_c_), object_file_name_(NULL), known_(false)
 {
 }
 
@@ -63,30 +63,30 @@ inline
 bool
 Location::is_known() const
 {
-  return M_known;
+  return known_;
 }
 
 inline
 std::string
 Location::file() const
 {
-  LIBCWD_ASSERT( M_known );
-  return M_filename;
+  LIBCWD_ASSERT( known_ );
+  return filename_;
 }
 
 inline
 unsigned int
 Location::line() const
 {
-  LIBCWD_ASSERT( M_known );
-  return M_line;
+  LIBCWD_ASSERT( known_ );
+  return line_;
 }
 
 inline
 char const*
 Location::mangled_function_name() const
 {
-  return M_func;
+  return function_name_;
 }
 
 inline
@@ -104,20 +104,20 @@ namespace _private_ {
 template<class OSTREAM>
   void print_location_on(OSTREAM& os, Location const& location)
   {
-    if (location.M_known)
+    if (location.known_)
     {
       LIBCWD_TSD_DECLARATION;
       if ((__libcwd_tsd.format & show_objectfile))
-	os << location.M_object_file->filename() << ':';
+	os << location.object_file_name_->filename() << ':';
       if ((__libcwd_tsd.format & show_function))
-	os << location.M_func << ':';
+	os << location.function_name_ << ':';
       if ((__libcwd_tsd.format & show_path))
-	os << location.M_filepath.get() << ':' << std::dec << location.M_line;
+	os << location.filepath_.get() << ':' << std::dec << location.line_;
       else
-	os << location.M_filename << ':' << std::dec << location.M_line;
+	os << location.filename_ << ':' << std::dec << location.line_;
     }
-    else if (location.M_object_file)
-      os << location.M_object_file->filename() << ':' << location.M_func;
+    else if (location.object_file_name_)
+      os << location.object_file_name_->filename() << ':' << location.function_name_;
     else
       os << "<unknown object file> (at " << location.unknown_pc() << ')';
   }

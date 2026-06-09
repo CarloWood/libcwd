@@ -80,7 +80,7 @@ ThreadSpecificData& ThreadSpecificData::instance()
 //static
 ThreadSpecificData& ThreadSpecificData::S_create(ThreadSpecificData& real_tsd)
 {
-  real_tsd.initialized = true;
+  real_tsd.initialized_ = true;
 
   if (!main_thread_tsd)
     main_thread_tsd = &real_tsd;
@@ -99,7 +99,7 @@ ThreadSpecificData& ThreadSpecificData::S_create(ThreadSpecificData& real_tsd)
 // idempotent, so explicit or recursive cleanup attempts are harmless.
 ThreadSpecificData::~ThreadSpecificData()
 {
-  if (initialized)
+  if (initialized_)
     cleanup_routine();
 }
 
@@ -110,21 +110,21 @@ ThreadSpecificData::~ThreadSpecificData()
 // guard is destroyed; while it runs, recursive instance() calls still return this same TSD object.
 void ThreadSpecificData::cleanup_routine()
 {
-  if (cleaning_up)
+  if (cleaning_up_)
     return;
-  cleaning_up = true;
+  cleaning_up_ = true;
 
   for (int i = 0; i < LIBCWD_DO_MAX; ++i)
-    if (do_array[i])
+    if (debug_object_array[i])
     {
-      DebugObject_ThreadSpecificData* ptr = do_array[i];
-      do_off_array[i] = 0; // Turn all debugging off!  Now, hopefully, we won't use do_array[i] anymore.
-      do_array[i] = NULL; // So we won't free it again.
+      DebugObject_ThreadSpecificData* ptr = debug_object_array[i];
+      debug_object_off_array[i] = 0; // Turn all debugging off!  Now, hopefully, we won't use debug_object_array[i] anymore.
+      debug_object_array[i] = NULL; // So we won't free it again.
       ptr->tsd_initialized = false;
       delete ptr; // Free debug object TSD.
     }
 
-  initialized = false;
+  initialized_ = false;
 }
 
 // End of Thread Specific Data

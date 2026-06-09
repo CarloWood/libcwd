@@ -30,22 +30,22 @@ class Channel;
  */
 class RcFile {
 private:
-  std::string M_konsole_command;			// How to execute a command in a window.
-  std::string M_gdb_bin;				// Path to 'gdb'.
+  std::string konsole_command_;			// How to execute a command in a window.
+  std::string gdb_bin_;				// Path to 'gdb'.
 
-  char const* M_rcname;					// Name of rcfile.
-  bool M_env_set;					// Whether or not LIBCWD_RCFILE_NAME is set.
-  bool M_read_called;
+  char const* rcname_;					// Name of rcfile.
+  bool env_set_;					// Whether or not LIBCWD_RCFILE_NAME is set.
+  bool read_called_;
 
 #if CWDEBUG_LOCATION
-  bool M_elfutils_on;
+  bool elfutils_on_;
 #endif
 
 public:
   /**
    * \brief Construct a rcfile object.
    */
-  RcFile() : M_env_set(false), M_read_called(false) { }
+  RcFile() : env_set_(false), read_called_(false) { }
   virtual ~RcFile() { }
 
 private:
@@ -68,15 +68,15 @@ public:
   /**
    * \brief Returns the command line string as set with the 'xterm' keyword.
    */
-  std::string const& konsole_command() const { return M_konsole_command; }
+  std::string const& konsole_command() const { return konsole_command_; }
   /**
    * \brief Returns the command line string as set with the 'gdb_bin' keyword.
    */
-  std::string const& gdb_bin() const { return M_gdb_bin; }
+  std::string const& gdb_bin() const { return gdb_bin_; }
   /**
    * \brief Returns true when this object is initialized.
    */
-  bool read_called() const { return M_read_called; }
+  bool read_called() const { return read_called_; }
 
 protected:
   /**

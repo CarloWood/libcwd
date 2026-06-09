@@ -12,10 +12,10 @@ namespace libcwd {
 inline
 DebugString::DebugString(DebugString const& ds)
 {
-  NS_internal_init(ds.M_str, ds.M_size);
-  if (M_capacity < ds.M_capacity)
-    reserve(ds.M_capacity);
-  M_default_capacity = ds.M_default_capacity;
+  NS_internal_init(ds.str_, ds.size_);
+  if (capacity_ < ds.capacity_)
+    reserve(ds.capacity_);
+  default_capacity_ = ds.default_capacity_;
 }
 
 /**
@@ -58,7 +58,7 @@ inline
 size_t
 DebugString::size() const
 {
-  return M_size;
+  return size_;
 }
 
 /**
@@ -68,7 +68,7 @@ inline
 size_t
 DebugString::capacity() const
 {
-  return M_capacity;
+  return capacity_;
 }
 
 /**
@@ -78,7 +78,7 @@ inline
 char const*
 DebugString::c_str() const
 {
-  return M_str;
+  return str_;
 }
 
 /**

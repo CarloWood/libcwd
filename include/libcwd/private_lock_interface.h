@@ -23,12 +23,12 @@ public:
 template<class T>
   class lock_interface_tct : public LockInterfaceBase {
     private:
-      T* ptr;
-      virtual int try_lock() { return ptr->try_lock(); }
-      virtual void lock() { ptr->lock(); }
-      virtual void unlock() { ptr->unlock(); }
+      T* mutex_;
+      virtual int try_lock() { return mutex_->try_lock(); }
+      virtual void lock() { mutex_->lock(); }
+      virtual void unlock() { mutex_->unlock(); }
     public:
-      lock_interface_tct(T* mutex) : ptr(mutex) { }
+      lock_interface_tct(T* mutex) : mutex_(mutex) { }
   };
 
 }  // namespace libcwd::_private_

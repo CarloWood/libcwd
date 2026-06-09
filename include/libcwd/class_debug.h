@@ -109,10 +109,10 @@ protected:
 #else
 public: // Only public because macro LibcwDout needs acces, don't access this directly.
 #endif
-  int index;
+  int index_;
     // Assigned during initialization before this debug object is made visible to other threads.
     // Public only because LibcwDout needs direct access; do not access this directly.
-  static int index_count;
+  static int index_count_;
 
 protected:
   //-------------------------------------------------------------------------------------------------
@@ -262,7 +262,7 @@ public:
   void always_flush_off();
 
   struct OnOffState {
-    int _off;
+    int off_cnt;
 #if CWDEBUG_DEBUGOUTPUT
     bool first_time;
 #endif

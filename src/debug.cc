@@ -119,7 +119,7 @@ void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug
   if (debug_object.newlineless_tsd_ && debug_object.newlineless_tsd_ != &__libcwd_tsd)
   {
     _private_::ThreadSpecificData const* newlineless_tsd = static_cast<_private_::ThreadSpecificData const*>(debug_object.newlineless_tsd_);
-    DebugString const& color_off = newlineless_tsd->do_array[debug_object.index]->color_off;
+    DebugString const& color_off = newlineless_tsd->debug_object_array[debug_object.index_]->color_off;
     size_t color_off_size = color_off.size();
     if (color_off_size > 0)
       locked_os->write(color_off.c_str(), color_off_size);
@@ -706,62 +706,62 @@ alignas(OutputState) static unsigned char WST_dummy_output_state[sizeof(OutputSt
 
 size_t DebugString::calculate_capacity(size_t size)
 {
-  size_t capacity_plus_one = M_default_capacity + 1; // For the terminating zero.
+  size_t capacity_plus_one = default_capacity_ + 1; // For the terminating zero.
   while (size >= capacity_plus_one) capacity_plus_one *= 2;
   return capacity_plus_one - 1;
 }
 
 void DebugString::NS_internal_init(char const* str, size_t len)
 {
-  M_default_capacity = min_capacity;
-  M_str = (char*)malloc((M_default_capacity = M_capacity = calculate_capacity(len)) +
+  default_capacity_ = min_capacity;
+  str_ = (char*)malloc((default_capacity_ = capacity_ = calculate_capacity(len)) +
                         1); // Add one for the terminating zero. LEAK46
-  strncpy(M_str, str, len);
-  M_size = len;
-  M_str[M_size] = 0;
+  strncpy(str_, str, len);
+  size_ = len;
+  str_[size_] = 0;
 }
 
 // This is called with alloc checking off.
 void DebugString::deinitialize()
 {
-  free(M_str);
-  M_str = NULL;
+  free(str_);
+  str_ = NULL;
 }
 
 // This is called with alloc checking on (or off).
 DebugString::~DebugString()
 {
 #if CWDEBUG_DEBUG
-  LIBCWD_ASSERT(M_str == NULL); // Need to call DebugString::deinitialize() before destructor.
+  LIBCWD_ASSERT(str_ == NULL); // Need to call DebugString::deinitialize() before destructor.
                                 // But not in the non-threaded case, see DebugObject_ThreadSpecificData::~DebugObject_ThreadSpecificData.
 #endif
 }
 
 void DebugString::internal_assign(char const* str, size_t len)
 {
-  if (len > M_capacity || (M_capacity > M_default_capacity && len < M_default_capacity))
-    M_str = (char*)realloc(M_str, (M_capacity = calculate_capacity(len)) + 1);
-  strncpy(M_str, str, len);
-  M_size = len;
-  M_str[M_size] = 0;
+  if (len > capacity_ || (capacity_ > default_capacity_ && len < default_capacity_))
+    str_ = (char*)realloc(str_, (capacity_ = calculate_capacity(len)) + 1);
+  strncpy(str_, str, len);
+  size_ = len;
+  str_[size_] = 0;
 }
 
 void DebugString::internal_append(char const* str, size_t len)
 {
-  if (M_size + len > M_capacity || (M_capacity > M_default_capacity && M_size + len < M_default_capacity))
-    M_str = (char*)realloc(M_str, (M_capacity = calculate_capacity(M_size + len)) + 1);
-  strncpy(M_str + M_size, str, len);
-  M_size += len;
-  M_str[M_size] = 0;
+  if (size_ + len > capacity_ || (capacity_ > default_capacity_ && size_ + len < default_capacity_))
+    str_ = (char*)realloc(str_, (capacity_ = calculate_capacity(size_ + len)) + 1);
+  strncpy(str_ + size_, str, len);
+  size_ += len;
+  str_[size_] = 0;
 }
 
 void DebugString::internal_prepend(char const* str, size_t len)
 {
-  if (M_size + len > M_capacity || (M_capacity > M_default_capacity && M_size + len < M_default_capacity))
-    M_str = (char*)realloc(M_str, (M_capacity = calculate_capacity(M_size + len)) + 1);
-  memmove(M_str + len, M_str, M_size + 1);
-  strncpy(M_str, str, len);
-  M_size += len;
+  if (size_ + len > capacity_ || (capacity_ > default_capacity_ && size_ + len < default_capacity_))
+    str_ = (char*)realloc(str_, (capacity_ = calculate_capacity(size_ + len)) + 1);
+  memmove(str_ + len, str_, size_ + 1);
+  strncpy(str_, str, len);
+  size_ += len;
 }
 
 /**
@@ -769,21 +769,21 @@ void DebugString::internal_prepend(char const* str, size_t len)
  */
 void DebugString::reserve(size_t size)
 {
-  if (size < M_size)
+  if (size < size_)
     return;
   LIBCWD_TSD_DECLARATION;
-  M_default_capacity = min_capacity;
-  M_str = (char*)realloc(M_str, (M_default_capacity = M_capacity = calculate_capacity(size)) + 1);
+  default_capacity_ = min_capacity;
+  str_ = (char*)realloc(str_, (default_capacity_ = capacity_ = calculate_capacity(size)) + 1);
 }
 
 void DebugString::internal_swallow(DebugString const& ds)
 {
   // `this' and `ds' are both initialized.
-  free(M_str);
-  M_str = ds.M_str;
-  M_size = ds.M_size;
-  M_capacity = ds.M_capacity;
-  M_default_capacity = ds.M_default_capacity;
+  free(str_);
+  str_ = ds.str_;
+  size_ = ds.size_;
+  capacity_ = ds.capacity_;
+  default_capacity_ = ds.default_capacity_;
 }
 
 /** \addtogroup group_formatting */
@@ -795,10 +795,10 @@ void DebugString::internal_swallow(DebugString const& ds)
 void DebugObject::push_margin()
 {
   LIBCWD_TSD_DECLARATION;
-  DebugStringStackElement* current_margin_stack = LIBCWD_TSD_MEMBER(M_margin_stack);
+  DebugStringStackElement* current_margin_stack = LIBCWD_TSD_MEMBER(margin_stack);
   void* new_debug_string = malloc(sizeof(DebugStringStackElement));
-  LIBCWD_TSD_MEMBER(M_margin_stack) = new (new_debug_string) DebugStringStackElement(LIBCWD_TSD_MEMBER(margin));
-  LIBCWD_TSD_MEMBER(M_margin_stack)->next = current_margin_stack;
+  LIBCWD_TSD_MEMBER(margin_stack) = new (new_debug_string) DebugStringStackElement(LIBCWD_TSD_MEMBER(margin));
+  LIBCWD_TSD_MEMBER(margin_stack)->next = current_margin_stack;
 }
 
 /**
@@ -807,12 +807,12 @@ void DebugObject::push_margin()
 void DebugObject::pop_margin()
 {
   LIBCWD_TSD_DECLARATION;
-  if (!LIBCWD_TSD_MEMBER(M_margin_stack))
+  if (!LIBCWD_TSD_MEMBER(margin_stack))
     DoutFatal(dc::core, "Calling `DebugObject::pop_margin' more often than `DebugObject::push_margin'.");
-  DebugStringStackElement* next = LIBCWD_TSD_MEMBER(M_margin_stack)->next;
-  LIBCWD_TSD_MEMBER(margin).internal_swallow(LIBCWD_TSD_MEMBER(M_margin_stack)->debug_string);
-  free(LIBCWD_TSD_MEMBER(M_margin_stack));
-  LIBCWD_TSD_MEMBER(M_margin_stack) = next;
+  DebugStringStackElement* next = LIBCWD_TSD_MEMBER(margin_stack)->next;
+  LIBCWD_TSD_MEMBER(margin).internal_swallow(LIBCWD_TSD_MEMBER(margin_stack)->debug_string);
+  free(LIBCWD_TSD_MEMBER(margin_stack));
+  LIBCWD_TSD_MEMBER(margin_stack) = next;
 }
 
 /**
@@ -821,10 +821,10 @@ void DebugObject::pop_margin()
 void DebugObject::push_marker()
 {
   LIBCWD_TSD_DECLARATION;
-  DebugStringStackElement* current_marker_stack = LIBCWD_TSD_MEMBER(M_marker_stack);
+  DebugStringStackElement* current_marker_stack = LIBCWD_TSD_MEMBER(marker_stack);
   void* new_debug_string = malloc(sizeof(DebugStringStackElement));
-  LIBCWD_TSD_MEMBER(M_marker_stack) = new (new_debug_string) DebugStringStackElement(LIBCWD_TSD_MEMBER(marker));
-  LIBCWD_TSD_MEMBER(M_marker_stack)->next = current_marker_stack;
+  LIBCWD_TSD_MEMBER(marker_stack) = new (new_debug_string) DebugStringStackElement(LIBCWD_TSD_MEMBER(marker));
+  LIBCWD_TSD_MEMBER(marker_stack)->next = current_marker_stack;
 }
 
 /**
@@ -833,12 +833,12 @@ void DebugObject::push_marker()
 void DebugObject::pop_marker()
 {
   LIBCWD_TSD_DECLARATION;
-  if (!LIBCWD_TSD_MEMBER(M_marker_stack))
+  if (!LIBCWD_TSD_MEMBER(marker_stack))
     DoutFatal(dc::core, "Calling `DebugObject::pop_marker' more often than `DebugObject::push_marker'.");
-  DebugStringStackElement* next = LIBCWD_TSD_MEMBER(M_marker_stack)->next;
-  LIBCWD_TSD_MEMBER(marker).internal_swallow(LIBCWD_TSD_MEMBER(M_marker_stack)->debug_string);
-  free(LIBCWD_TSD_MEMBER(M_marker_stack));
-  LIBCWD_TSD_MEMBER(M_marker_stack) = next;
+  DebugStringStackElement* next = LIBCWD_TSD_MEMBER(marker_stack)->next;
+  LIBCWD_TSD_MEMBER(marker).internal_swallow(LIBCWD_TSD_MEMBER(marker_stack)->debug_string);
+  free(LIBCWD_TSD_MEMBER(marker_stack));
+  LIBCWD_TSD_MEMBER(marker_stack) = next;
 }
 
 /** \} */
@@ -855,8 +855,8 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
   // of while generating the "<unfinished>" (see next `if' block).
   if ((channel_set.mask & (continued_maskbit | finish_maskbit)))
   {
-    current_->err = errno; // Always keep the last errno as set at the start of LibcwDout()
-    if (!(current_->mask & continued_expected_maskbit))
+    current->err = errno; // Always keep the last errno as set at the start of LibcwDout()
+    if (!(current->mask & continued_expected_maskbit))
     {
       std::ostream* const preferred_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
       std::ostream* target_os;
@@ -895,12 +895,12 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
 #endif
     }
 #if CWDEBUG_DEBUG
-    // MT: current_ != _private_::WST_dummy_output_state, otherwise we didn't pass the previous if.
-    LIBCWD_ASSERT(current_ != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
+    // MT: current != _private_::WST_dummy_output_state, otherwise we didn't pass the previous if.
+    LIBCWD_ASSERT(current != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
 #endif
-    current_->mask = channel_set.mask; // New bits might have been added
-    if ((current_->mask & finish_maskbit))
-      current_->mask &= ~continued_expected_maskbit;
+    current->mask = channel_set.mask; // New bits might have been added
+    if ((current->mask & finish_maskbit))
+      current->mask &= ~continued_expected_maskbit;
     return;
   }
 
@@ -908,24 +908,24 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
   DEBUGDEBUG_CERR("Entering DebugObject::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object));
 
   // Is this an interrupting debug output (in the middle of a continued debug output)?
-  if ((current_->mask & continued_cf_maskbit) && unfinished_expected)
+  if ((current->mask & continued_cf_maskbit) && unfinished_expected)
   {
 #if CWDEBUG_DEBUG
-    // MT: if current_ == _private_::WST_dummy_output_state then
-    //     (current_->mask & continued_cf_maskbit) is false and this if is skipped.
-    LIBCWD_ASSERT(current_ != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
+    // MT: if current == _private_::WST_dummy_output_state then
+    //     (current->mask & continued_cf_maskbit) is false and this if is skipped.
+    LIBCWD_ASSERT(current != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
 #endif
     int saved_errno = errno; // The writeto below changes errno.
     // And write out what is in the buffer till now.
     std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
-    current_->buffer.writeto(
+    current->buffer.writeto(
         target_os LIBCWD_COMMA_TSD, debug_object,
         true, // This thread requests an <unfinished> because of previous, unfinished 'continued' output.
         false // Don't flush.
         COMMA_IFTHREADS(true) // This output ends on a newline by itself.
         COMMA_IFTHREADS(false)); // The newline is not missing as a result of nonewline_cf.
     // Truncate the buffer to its prefix and append "<continued>" to it already.
-    current_->buffer.restore_position();
+    current->buffer.restore_position();
     DebugString const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
     size_t color_off_size = color_off.size();
     if (color_off_size > 0)
@@ -940,31 +940,31 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
     }
     else
       current_bufferstream->write("<continued> ", 12); // therefore we repeat the space here.
-    current_->buffer.continued();
+    current->buffer.continued();
     errno = saved_errno;
   }
 
   // Is this a nested debug output (the first of a series in the middle of another debug output)?
-  // MT: if current_ == _private_::WST_dummy_output_state then
+  // MT: if current == _private_::WST_dummy_output_state then
   //     start_expected is true and this if is skipped.
   if (!start_expected)
   {
-    // Put current_ stringstream on the stack.
-    output_state_stack.push(current_);
+    // Put current stringstream on the stack.
+    output_state_stack.push(current);
 
     // Indent nested debug output with 4 extra spaces.
     indent += 4;
 
     // If the previous target was written to cerr, then
     // write this interrupting output to cerr too.
-    channel_set.mask |= (current_->mask & cerr_cf);
+    channel_set.mask |= (current->mask & cerr_cf);
   }
 
   // Create a new output state.
   DEBUGDEBUG_CERR("creating new OutputState");
-  current_ = new OutputState(channel_set.mask, channel_set.label, errno); // LEAK5: This allocation + Location.
-  DEBUGDEBUG_CERR("current_ = " << (void*)current_);
-  current_bufferstream = &current_->bufferstream;
+  current = new OutputState(channel_set.mask, channel_set.label, errno); // LEAK5: This allocation + Location.
+  DEBUGDEBUG_CERR("current = " << (void*)current);
+  current_bufferstream = &current->bufferstream;
   DEBUGDEBUG_CERR("OutputState created");
 
   // Without a new nested Dout() call, we expect to see a finish() call: The finish belonging to *this* Dout() call.
@@ -1012,7 +1012,7 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
   {
     // If this is continued debug output, then it makes sense to remember the prefix length,
     // just in case we need indeed to output <continued> data.
-    current_->buffer.store_position();
+    current->buffer.store_position();
   }
 
   --LIBCWD_DO_TSD_MEMBER_OFF(debug_object);
@@ -1022,25 +1022,25 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
 void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSetData& /*UNUSED, */ LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUG
-  LIBCWD_ASSERT(current_ != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
+  LIBCWD_ASSERT(current != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
 #endif
-  std::ostream* target_os = (current_->mask & cerr_cf) ? &std::cerr : nullptr;
+  std::ostream* target_os = (current->mask & cerr_cf) ? &std::cerr : nullptr;
 
   // Skip `finish()' for a `continued' debug output.
-  if ((current_->mask & continued_cf_maskbit) && !(current_->mask & finish_maskbit))
+  if ((current->mask & continued_cf_maskbit) && !(current->mask & finish_maskbit))
   {
     // Allow a subsequent Dout(dc::continued (or dc::finish), ...).
-    current_->mask |= continued_expected_maskbit;
-    if ((current_->mask & continued_maskbit))
+    current->mask |= continued_expected_maskbit;
+    if ((current->mask & continued_maskbit))
       unfinished_expected = true;
     // If the `flush_cf' control flag is set, flush the ostream at every `finish()' though.
-    if (debug_object.always_flush_is_on() || (current_->mask & flush_cf) != 0)
+    if (debug_object.always_flush_is_on() || (current->mask & flush_cf) != 0)
     {
       // Write buffer to ostream.
       // Flush ostream.  Note that in the case of nested debug output this `os' can be an stringstream,
       // in that case, no actual flushing is done until the debug output to the real ostream has
       // finished.
-      current_->buffer.writeto(
+      current->buffer.writeto(
           target_os LIBCWD_COMMA_TSD, debug_object,
           false, // This thread requests <unfinished> because of previous, unfinished 'continued' output.
           true // Flush ostream after printing this.
@@ -1054,15 +1054,15 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
   DEBUGDEBUG_CERR("Entering DebugObject::finish(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object));
 
   // Handle control flags, if any:
-  if ((current_->mask & error_cf))
+  if ((current->mask & error_cf))
   {
     // strerror[_r] can call malloc (in gettext()).
     char error_text_buf[512];
     char const* error_text;
 #ifdef _GNU_SOURCE
-    error_text = strerror_r(current_->err, error_text_buf, sizeof(error_text_buf));
+    error_text = strerror_r(current->err, error_text_buf, sizeof(error_text_buf));
 #else // POSIX
-    if (strerror_r(current_->err, error_text_buf, sizeof(error_text_buf)) == -1)
+    if (strerror_r(current->err, error_text_buf, sizeof(error_text_buf)) == -1)
     {
       if (errno == ERANGE)
         error_text = "<libcwd: Oops, error text longer than 512 characters>";
@@ -1072,9 +1072,9 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
     else
       error_text = error_text_buf;
 #endif
-    *current_bufferstream << ": " << strerrno(current_->err) << " (" << error_text << ')';
+    *current_bufferstream << ": " << strerrno(current->err) << " (" << error_text << ')';
   }
-  if (!(current_->mask & nonewline_cf))
+  if (!(current->mask & nonewline_cf))
   {
     DebugString const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
     size_t color_off_size = color_off.size();
@@ -1084,15 +1084,15 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
   }
 
   // Handle control flags, if any:
-  if (current_->mask != 0)
+  if (current->mask != 0)
   {
-    if ((current_->mask & (coredump_maskbit | fatal_maskbit)))
+    if ((current->mask & (coredump_maskbit | fatal_maskbit)))
     {
-      current_->buffer.writeto(
+      current->buffer.writeto(
           target_os LIBCWD_COMMA_TSD, debug_object,
           false, // This thread requests <unfinished> because of previous, unfinished 'continued' output.
           !__libcwd_tsd.recursive_fatal // Flush ostream after printing this when there is no recursive loop yet.
-               COMMA_IFTHREADS(!(current_->mask & nonewline_cf)) // Whether or not this output ends on a newline.
+               COMMA_IFTHREADS(!(current->mask & nonewline_cf)) // Whether or not this output ends on a newline.
            COMMA_IFTHREADS(true)); // If the newline is missing, then it is missing because of the use of nonewline_cf.
       __libcwd_tsd.recursive_fatal = true;
       if (!_private_::claim_fatal_termination_ownership())
@@ -1102,15 +1102,15 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
         for (;;)
           std::this_thread::sleep_for(std::chrono::hours(24));
       }
-      if ((current_->mask & coredump_maskbit))
+      if ((current->mask & coredump_maskbit))
         std::abort();   // core dump.
       _Exit(254); // Exit without calling global destructors.
     }
-    if ((current_->mask & wait_cf))
+    if ((current->mask & wait_cf))
     {
-      current_->buffer.writeto(
+      current->buffer.writeto(
           target_os LIBCWD_COMMA_TSD, debug_object, false,
-          debug_object.interactive_ COMMA_IFTHREADS(!(current_->mask & nonewline_cf)) COMMA_IFTHREADS(true));
+          debug_object.interactive_ COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
       _private_::LockInterfaceBase* locked_mutex;
       std::ostream* locked_os;
       locked_os = debug_object.ostream_state_.get_locked_os(target_os, &locked_mutex);
@@ -1124,20 +1124,20 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
         locked_mutex->unlock();
     }
     else
-      current_->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object, false,
-                              debug_object.always_flush_is_on() || (current_->mask & flush_cf != 0)
-                                                                       COMMA_IFTHREADS(!(current_->mask & nonewline_cf))
+      current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object, false,
+                              debug_object.always_flush_is_on() || (current->mask & flush_cf != 0)
+                                                                       COMMA_IFTHREADS(!(current->mask & nonewline_cf))
                                                                            COMMA_IFTHREADS(true));
   }
   else
-    current_->buffer.writeto(
+    current->buffer.writeto(
         target_os LIBCWD_COMMA_TSD, debug_object, false,
-        debug_object.always_flush_is_on() COMMA_IFTHREADS(!(current_->mask & nonewline_cf)) COMMA_IFTHREADS(true));
+        debug_object.always_flush_is_on() COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
 
-  DEBUGDEBUG_CERR("Deleting `current_' " << (void*)current_);
-  control_flag_t mask = current_->mask; // Keep this.
-  delete current_;
-  DEBUGDEBUG_CERR("Done deleting `current_'");
+  DEBUGDEBUG_CERR("Deleting `current' " << (void*)current);
+  control_flag_t mask = current->mask; // Keep this.
+  delete current;
+  DEBUGDEBUG_CERR("Done deleting `current'");
 
   if (start_expected)
   {
@@ -1149,16 +1149,16 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
   // Restore previous buffer as being the current one, if any.
   if (output_state_stack.size())
   {
-    current_ = output_state_stack.top();
-    DEBUGDEBUG_CERR("current_ = " << (void*)current_);
-    current_bufferstream = &current_->bufferstream;
+    current = output_state_stack.top();
+    DEBUGDEBUG_CERR("current = " << (void*)current);
+    current_bufferstream = &current->bufferstream;
     if (debug_object.always_flush_is_on() || (mask & flush_cf != 0))
-      current_->mask |= flush_cf; // Propagate flush to real ostream.
+      current->mask |= flush_cf; // Propagate flush to real ostream.
   }
   else
   {
-    current_ = reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state); // Used (MT: read-only!) in next DebugObject::start().
-    DEBUGDEBUG_CERR("current_ = " << (void*)current_);
+    current = reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state); // Used (MT: read-only!) in next DebugObject::start().
+    DEBUGDEBUG_CERR("current = " << (void*)current);
     current_bufferstream = NULL;
   }
 
@@ -1181,7 +1181,7 @@ void DebugObject_ThreadSpecificData::fatal_finish(DebugObject& debug_object, Cha
 }
 #pragma clang diagnostic pop
 
-int DebugObject::index_count = 0;
+int DebugObject::index_count_ = 0;
 
 bool DebugObject::NS_init(LIBCWD_TSD_PARAM)
 {
@@ -1208,12 +1208,12 @@ bool DebugObject::NS_init(LIBCWD_TSD_PARAM)
 
   _private_::DebugObjects::instance().add_if_missing(this);
   new (_private_::WST_dummy_output_state) OutputState(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
-  index = index_count++;
+  index_ = index_count_++;
 #if CWDEBUG_DEBUGT
   LIBCWD_ASSERT(!_private_::WST_multi_threaded.load(std::memory_order_relaxed)); // Only the first thread should be initializing DebugObject objects.
 #endif
-  LIBCWD_ASSERT(__libcwd_tsd.do_array[index] == NULL);
-  DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.do_array[index] = new DebugObject_ThreadSpecificData));
+  LIBCWD_ASSERT(__libcwd_tsd.debug_object_array[index_] == NULL);
+  DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.debug_object_array[index_] = new DebugObject_ThreadSpecificData));
   tsd.init();
 
 #if CWDEBUG_DEBUGOUTPUT
@@ -1239,10 +1239,10 @@ void DebugObject_ThreadSpecificData::init()
   start_expected = true; // Of course, we start with expecting the beginning of a debug output.
   unfinished_expected = false;
 
-  // `current_' needs to be non-zero (saving us a check in start()) and
-  // current_.mask needs to be 0 to avoid a crash in start():
-  current_ = reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state);
-  DEBUGDEBUG_CERR("current_ = " << (void*)current_);
+  // `current' needs to be non-zero (saving us a check in start()) and
+  // current->mask needs to be 0 to avoid a crash in start():
+  current = reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state);
+  DEBUGDEBUG_CERR("current = " << (void*)current);
   current_bufferstream = NULL;
   output_state_stack.init();
   continued_stack.init();
@@ -1254,8 +1254,8 @@ void DebugObject_ThreadSpecificData::init()
   first_time = true;
 #endif
   off_count = 0;
-  M_margin_stack = NULL;
-  M_marker_stack = NULL;
+  margin_stack = NULL;
+  marker_stack = NULL;
   indent = 0;
 
   tsd_initialized = true;
@@ -1268,8 +1268,8 @@ void debug_tsd_init(LIBCWD_TSD_PARAM)
 {
   // clang-format off
   ForAllDebugObjects(
-    LIBCWD_ASSERT(__libcwd_tsd.do_array[(debugObject).index] == NULL);
-    DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.do_array[(debugObject).index] = new DebugObject_ThreadSpecificData));
+    LIBCWD_ASSERT(__libcwd_tsd.debug_object_array[(debugObject).index_] == NULL);
+    DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.debug_object_array[(debugObject).index_] = new DebugObject_ThreadSpecificData));
     tsd.init();
     LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;
   );
@@ -1491,9 +1491,9 @@ ContinuedChannelSet& ChannelSetBootstrap::operator|(ContinuedChannel const& cdc)
   if ((on = !debug_object_tsd_ptr->off_count))
   {
     DEBUGDEBUG_CERR("Channel is switched on (off_count is 0)");
-    debug_object_tsd_ptr->current_->mask |= cdc.get_maskbit(); // We continue with the current_ channel
-    mask = debug_object_tsd_ptr->current_->mask;
-    label = debug_object_tsd_ptr->current_->label;
+    debug_object_tsd_ptr->current->mask |= cdc.get_maskbit(); // We continue with the current channel
+    mask = debug_object_tsd_ptr->current->mask;
+    label = debug_object_tsd_ptr->current->label;
     if (cdc.get_maskbit() == finish_maskbit)
     {
       debug_object_tsd_ptr->off_count = debug_object_tsd_ptr->continued_stack.top();
@@ -1545,7 +1545,7 @@ void DebugObject::force_on(DebugObject::OnOffState& state)
 #else
   [[maybe_unused]] bool success = NS_init(LIBCWD_TSD);
 #endif
-  state._off = LIBCWD_TSD_MEMBER_OFF;
+  state.off_cnt = LIBCWD_TSD_MEMBER_OFF;
 #if CWDEBUG_DEBUGOUTPUT
   state.first_time = LIBCWD_TSD_MEMBER(first_time);
 #endif
@@ -1561,7 +1561,7 @@ void DebugObject::restore(DebugObject::OnOffState const& state)
 #endif
   if (LIBCWD_TSD_MEMBER_OFF != -1)
     core_dump(); // off() and on() where called and not in equal pairs.
-  LIBCWD_TSD_MEMBER_OFF = state._off; // Restore.
+  LIBCWD_TSD_MEMBER_OFF = state.off_cnt; // Restore.
 }
 
 void Channel::force_on(Channel::OnOffState& state, char const* label)

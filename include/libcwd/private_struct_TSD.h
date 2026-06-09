@@ -35,11 +35,11 @@ struct ThreadSpecificData;
 #define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE	// Idem, but as second or higher parameter.
 #define LIBCWD_TSD_DECLARATION ::libcwd::_private_::ThreadSpecificData& __libcwd_tsd(::libcwd::_private_::ThreadSpecificData::instance())
 							// Declaration of local `__libcwd_tsd' structure reference.
-#define LIBCWD_DO_TSD(debug_object) (*__libcwd_tsd.do_array[(debug_object).index])
+#define LIBCWD_DO_TSD(debug_object) (*__libcwd_tsd.debug_object_array[(debug_object).index_])
 							// For use inside class DebugObject to access member `m'.
-#define LIBCWD_TSD_MEMBER_OFF (__libcwd_tsd.do_off_array[index])
+#define LIBCWD_TSD_MEMBER_OFF (__libcwd_tsd.debug_object_off_array[index_])
 							// For use inside class DebugObject to access member `_off'.
-#define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) (__libcwd_tsd.do_off_array[(debug_object).index])
+#define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) (__libcwd_tsd.debug_object_off_array[(debug_object).index_])
 							// To access member _off of debug object.
 
 
@@ -83,8 +83,8 @@ public:
 #if CWDEBUG_DEBUG
   bool recursive_assert = false;	// Detect loop involving LIBCWD_ASSERT.
 #endif
-  int do_off_array[LIBCWD_DO_MAX]{};	// Thread Specific on/off counter for Debug Objects.
-  DebugObject_ThreadSpecificData* do_array[LIBCWD_DO_MAX]{};// Thread Specific Data of Debug Objects or NULL when no debug object.
+  int debug_object_off_array[LIBCWD_DO_MAX]{};	// Thread Specific on/off counter for Debug Objects.
+  DebugObject_ThreadSpecificData* debug_object_array[LIBCWD_DO_MAX]{};// Thread Specific Data of Debug Objects or NULL when no debug object.
 
   // Release per-thread debug-object data owned by this TSD.
   //
@@ -99,15 +99,15 @@ public:
   // object is retained until process termination so global destructors can still use libcwd.
   ~ThreadSpecificData();
 private:
-  bool initialized = false;
-  bool cleaning_up = false;
+  bool initialized_ = false;
+  bool cleaning_up_ = false;
 
 //-------------------------------------------------------
 // Static data and methods.
 private:
   // Initialize tsd as the active TSD for the current thread.
   //
-  // The initialized flag is set before subsystem initialization so recursive instance() calls reuse the
+  // The initialized_ flag is set before subsystem initialization so recursive instance() calls reuse the
   // partially initialized object instead of starting a second initialization path.
   static ThreadSpecificData& S_create(ThreadSpecificData& tsd);
 

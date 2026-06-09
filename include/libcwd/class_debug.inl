@@ -315,7 +315,7 @@ inline
 bool
 DebugObject::is_on(LIBCWD_TSD_PARAM) const
 {
-  return __libcwd_tsd.do_off_array[index] == -1;
+  return __libcwd_tsd.debug_object_off_array[index_] == -1;
 }
 
 /**

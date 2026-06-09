@@ -33,10 +33,10 @@ class DebugString {
   friend class DebugObject;			// Needs access to the private functions.
   friend struct DebugObject_ThreadSpecificData;
 private:
-  char* M_str;					// Pointer to malloc-ed (zero terminated) string.
-  size_t M_size;				// Size of string (exclusive terminating zero).
-  size_t M_capacity;				// Size of allocated area (excl. terminating zero).
-  size_t M_default_capacity;			// Current minimum capacity as set with `reserve'.
+  char* str_;					// Pointer to malloc-ed (zero terminated) string.
+  size_t size_;				// Size of string (exclusive terminating zero).
+  size_t capacity_;				// Size of allocated area (excl. terminating zero).
+  size_t default_capacity_;			// Current minimum capacity as set with `reserve'.
   static constexpr size_t min_capacity = 64;	// Minimum capacity.
 
   size_t calculate_capacity(size_t);

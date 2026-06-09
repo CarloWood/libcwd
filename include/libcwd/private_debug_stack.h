@@ -21,9 +21,9 @@ namespace libcwd::_private_ {
 template<typename T>		// T must be a builtin type.
   struct debug_stack_tst {
   private:
-    T st[64];
-    T* p;
-    T* end;
+    T stack_[64];
+    T* current_;
+    T* end_;
   public:
     void init();
     void push(T ptr);

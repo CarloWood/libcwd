@@ -43,14 +43,14 @@ void RcFile::M_print_delayed_msg(int env_var, std::string const& value) const
 std::string RcFile::M_determine_rcfile_name()
 {
   // Can be overridden with the environment variable LIBCWD_RCFILE_NAME
-  if (!(M_rcname = getenv("LIBCWD_RCFILE_NAME")))
-    M_rcname = ".libcwdrc"; // Default rcfile name.
+  if (!(rcname_ = getenv("LIBCWD_RCFILE_NAME")))
+    rcname_ = ".libcwdrc"; // Default rcfile name.
   else
-    M_env_set = true;
+    env_set_ = true;
   std::string rcfile_name;
   // Does this file exist in the current directory?
-  if (S_exists(M_rcname))
-    rcfile_name = M_rcname;
+  if (S_exists(rcname_))
+    rcfile_name = rcname_;
   else
   {
     // Does it exist in $HOME/?
@@ -61,7 +61,7 @@ std::string RcFile::M_determine_rcfile_name()
     {
       std::string env_candidate = env_home;
       env_candidate += '/';
-      env_candidate += M_rcname;
+      env_candidate += rcname_;
       if (S_exists(env_candidate.c_str()))
       {
         homedir = env_home;
@@ -82,18 +82,18 @@ std::string RcFile::M_determine_rcfile_name()
       {
         rcfile_name = homedir;
         rcfile_name += '/';
-        rcfile_name += M_rcname;
+        rcfile_name += rcname_;
       }
     }
     if (!homedir || !S_exists(rcfile_name.c_str()))
     {
       if (!homedir)
         homedir = "$HOME";
-      if (M_env_set)
+      if (env_set_)
       {
-        M_print_delayed_msg(0, M_rcname);
+        M_print_delayed_msg(0, rcname_);
         DoutFatal(dc::fatal, "read_rcfile: Could not read $LIBCWD_RCFILE_NAME (\""
-                                 << M_rcname << "\") from either \".\" or \"" << homedir << "\".");
+                                 << rcname_ << "\") from either \".\" or \"" << homedir << "\".");
       }
       else
       {
@@ -101,14 +101,14 @@ std::string RcFile::M_determine_rcfile_name()
         rcfile_name = CW_DATADIR "/libcwd/libcwdrc";
         if (!S_exists(rcfile_name.c_str()))
           DoutFatal(dc::fatal, "read_rcfile: Could not read rcfile \""
-                                   << M_rcname << "\" from either \".\" or \"" << homedir
+                                   << rcname_ << "\" from either \".\" or \"" << homedir
                                    << "\" and could not read default rcfile \"" << rcfile_name << "\" either!");
         else
         {
           bool warning_on = channels::dc::warning.is_on();
           if (!warning_on)
             channels::dc::warning.on();
-          Dout(dc::warning, "Neither ./" << M_rcname << " nor " << homedir << '/' << M_rcname << " exist.");
+          Dout(dc::warning, "Neither ./" << rcname_ << " nor " << homedir << '/' << rcname_ << " exist.");
           Dout(dc::warning, "Using default rcfile \"" << rcfile_name << "\".");
           if (!warning_on)
             channels::dc::warning.off();
@@ -131,14 +131,14 @@ void RcFile::M_process_channel(Channel& debugChannel, std::string const& mask, a
 #if CWDEBUG_LOCATION
     if (label == "ELFUTILS")
     {
-      if (!M_elfutils_on && (action == on || action == toggle))
+      if (!elfutils_on_ && (action == on || action == toggle))
       {
-        M_elfutils_on = true;
+        elfutils_on_ = true;
         Dout(dc::rcfile, "Turned on ELFUTILS");
       }
-      else if (M_elfutils_on && (action == off || action == toggle))
+      else if (elfutils_on_ && (action == off || action == toggle))
       {
-        M_elfutils_on = false;
+        elfutils_on_ = false;
         debugChannel.off();
         Dout(dc::rcfile, "Turned off ELFUTILS");
       }
@@ -194,7 +194,7 @@ void RcFile::set_all_channels_on()
                       if (pos != std::string::npos) label.erase(pos);
                       while (!debugChannel.is_on() && label != "ELFUTILS") debugChannel.on());
 #if CWDEBUG_LOCATION
-  M_elfutils_on = true;
+  elfutils_on_ = true;
 #endif
 }
 
@@ -205,7 +205,7 @@ void RcFile::set_all_channels_off(bool warning_on)
   if (warning_on)
     channels::dc::warning.on();
 #if CWDEBUG_LOCATION
-  M_elfutils_on = false;
+  elfutils_on_ = false;
 #endif
 }
 
@@ -218,7 +218,7 @@ void RcFile::read()
   std::ifstream rc;
 
 #if CWDEBUG_LOCATION
-  M_elfutils_on = libcwd::channels::dc::elfutils.is_on();
+  elfutils_on_ = libcwd::channels::dc::elfutils.is_on();
 #endif
 
   std::array<int, 2> channels_default_set = {0, 0};
@@ -262,16 +262,16 @@ void RcFile::read()
             });
           continue;
         }
-        if (M_env_set)
+        if (env_set_)
         {
           M_print_delayed_msg(rcfiles, name);
-          M_env_set = false; // Don't print message again.
+          env_set_ = false; // Don't print message again.
         }
         Dout(dc::rcfile, name << ':' << lines_read << ": " << keyword << " = " << value);
         if (keyword == "gdb")
-          M_gdb_bin = value;
+          gdb_bin_ = value;
         else if (keyword == "xterm")
-          M_konsole_command = value;
+          konsole_command_ = value;
         else if (keyword == "channels_default")
         {
           if (channels_default_set[rcfiles])
@@ -355,7 +355,7 @@ void RcFile::read()
       name = override_name;
 
     // Handle environment variable LIBCWD_RCFILE_OVERRIDE_NAME.
-    M_env_set = true;
+    env_set_ = true;
   }
 
   // Must balance calls of off with on before calling restore.
@@ -363,10 +363,10 @@ void RcFile::read()
     channels::dc::rcfile.on();
   channels::dc::rcfile.restore(state);
 #if CWDEBUG_LOCATION
-  if (M_elfutils_on)
+  if (elfutils_on_)
     while (!channels::dc::elfutils.is_on()) channels::dc::elfutils.on();
 #endif
-  M_read_called = true;
+  read_called_ = true;
 }
 
 RcFile rcfile;

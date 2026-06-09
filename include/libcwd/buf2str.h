@@ -48,12 +48,12 @@ namespace libcwd {
 
 class buf2str {
 private:
-  char const* M_buf;	//!< Pointer to the start of the buffer.
-  size_t M_size;	//!< The size of the buffer.
+  char const* buf_;	//!< Pointer to the start of the buffer.
+  size_t size_;	//!< The size of the buffer.
 
 public:
   //! Construct \c buf2str object with attributes \a buf and \a size.
-  buf2str(char const* buf, size_t size) : M_buf(buf), M_size(size) { }
+  buf2str(char const* buf, size_t size) : buf_(buf), size_(size) { }
 
 #if __cpp_concepts >= 201907L
   //! Construct \c buf2str object from an object that has data() and size() member functions.
@@ -62,7 +62,7 @@ public:
     { t.data() } -> std::convertible_to<char const*>;
     { t.size() } -> std::convertible_to<size_t>;
   }
-  buf2str(T const& view) : M_buf(view.data()), M_size(view.size()) { }
+  buf2str(T const& view) : buf_(view.data()), size_(view.size()) { }
 #endif
 
   /**
@@ -74,8 +74,8 @@ public:
   std::ostream&
   operator<<(std::ostream& os, buf2str const& __buf2str)
   {
-    size_t size = __buf2str.M_size;
-    for (char const* p1 = __buf2str.M_buf; size > 0; --size, ++p1)
+    size_t size = __buf2str.size_;
+    for (char const* p1 = __buf2str.buf_; size > 0; --size, ++p1)
       os << char2str(*p1);
     return os;
   }

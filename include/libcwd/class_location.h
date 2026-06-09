@@ -55,24 +55,24 @@ extern char const* const unknown_function_c;
  */
 class Location {
 protected:
-  ObjectFileName const* M_object_file;          //!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
-  char const* M_func;                           //!< Pointer to static string containing the mangled function name of this location.
-  lockable_auto_ptr<char, true> M_filepath;     //!< The full source file name of this location.&nbsp; Allocated in `M_pc_location' using new [].
+  ObjectFileName const* object_file_name_;          //!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
+  char const* function_name_;                           //!< Pointer to static string containing the mangled function name of this location.
+  lockable_auto_ptr<char, true> filepath_;     //!< The full source file name of this location.&nbsp; Allocated in `M_pc_location' using new [].
   union {
-    char const* M_filename;                     //!< Points inside M_filepath just after the last '/' or to the beginning.
-    void const* M_initialization_delayed;       //!< If M_object_file == NULL and M_func points to S_pre_libcwd_initialization_c, then this is the address that M_pc_location was called with.
-    void const* M_unknown_pc;                   //!< If M_object_file == NULL and M_func points to unknown_function_c, then this is the address that M_pc_location was called with.
+    char const* filename_;                     //!< Points inside filepath_ just after the last '/' or to the beginning.
+    void const* initialization_delayed_;       //!< If object_file_name_ == NULL and function_name_ points to pre_libcwd_initialization_c_, then this is the address that M_pc_location was called with.
+    void const* unknown_pc_;                   //!< If object_file_name_ == NULL and function_name_ points to unknown_function_c, then this is the address that M_pc_location was called with.
   };
-  unsigned int M_line;                          //!< The line number of this location.
-  bool M_known;                                 //!< Set when M_filepath (and M_filename) point to valid data and M_line contains a valid line number.
+  unsigned int line_;                          //!< The line number of this location.
+  bool known_;                                 //!< Set when filepath_ (and filename_) point to valid data and line_ contains a valid line number.
 private:
 
 protected:
-  // M_func can point to one of these constants, or to libcwd::unknown_function_c
+  // function_name_ can point to one of these constants, or to libcwd::unknown_function_c
   // or to a static string with the mangled function name.
-  static char const* const S_uninitialized_location_ct_c;
-  static char const* const S_pre_libcwd_initialization_c;
-  static char const* const S_cleared_location_ct_c;
+  static char const* const uninitialized_location_ct_c_;
+  static char const* const pre_libcwd_initialization_c_;
+  static char const* const cleared_location_ct_c_;
 
 public:
   explicit Location(void const* addr);
@@ -116,7 +116,7 @@ public:
    * releasing the source-file path owned by this location. Use this when a
    * location is used as a prototype for shorter-lived copies.
    */
-  void lock_ownership() { if (M_known) M_filepath.lock(); }
+  void lock_ownership() { if (known_) filepath_.lock(); }
 
   /**
    * \brief Initialize the current object with the location that corresponds with \a pc.
@@ -159,16 +159,16 @@ public:
   char const* mangled_function_name() const;
 
   /** \brief The size of the file name. */
-  size_t filename_length() const { return M_known ? std::strlen(M_filename) : 0; }
+  size_t filename_length() const { return known_ ? std::strlen(filename_) : 0; }
   /** \brief The size of the full path name. */
-  size_t filepath_length() const { return M_known ? std::strlen(M_filepath.get()) : 0; }
+  size_t filepath_length() const { return known_ ? std::strlen(filepath_.get()) : 0; }
 
   /** \brief Corresponding object file.
    *
    * Returns a pointer to an object representing the shared library or the executable
    * that this location belongs to; only valid if is_known() returns true.
    */
-  ObjectFileName const* object_file() const { return M_object_file; }
+  ObjectFileName const* object_file() const { return object_file_name_; }
 
   // Printing
   /** \brief Write the full path to an ostream. */
@@ -189,8 +189,8 @@ public:
 #endif
 
   // Return the program counter that still needs lazy symbol resolution, if any.
-  bool initialization_delayed() const { return (!M_object_file && M_func == S_pre_libcwd_initialization_c); }
-  void const* unknown_pc() const { return (!M_object_file && M_func == unknown_function_c) ? M_unknown_pc : initialization_delayed() ? M_initialization_delayed : 0; }
+  bool initialization_delayed() const { return (!object_file_name_ && function_name_ == pre_libcwd_initialization_c_); }
+  void const* unknown_pc() const { return (!object_file_name_ && function_name_ == unknown_function_c) ? unknown_pc_ : initialization_delayed() ? initialization_delayed_ : 0; }
 };
 
 //#if (__GNUC__ > 3 || __GNUC_MINOR__ >= 4)

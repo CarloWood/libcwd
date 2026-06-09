@@ -108,42 +108,42 @@ char const* make_label(char const* mangled_name)
   return label;
 }
 
-TypeInfo type_info<void*>::S_value;
+TypeInfo type_info<void*>::value_;
 
-bool type_info<void*>::S_initialized;
+bool type_info<void*>::initialized_;
 
 TypeInfo const& type_info<void*>::value()
 {
-  if (!S_initialized)
+  if (!initialized_)
   {
-    S_value.init(typeid(void*).name(), sizeof(void*), 0 /* unknown */);
-    S_initialized = true;
+    value_.init(typeid(void*).name(), sizeof(void*), 0 /* unknown */);
+    initialized_ = true;
   }
-  return S_value;
+  return value_;
 }
 
 } // namespace _private_
 
 } // namespace libcwd
 
-libcwd::TypeInfo libcwd_type_info_exact<void*>::S_value;
+libcwd::TypeInfo libcwd_type_info_exact<void*>::value_;
 
-bool libcwd_type_info_exact<void*>::S_initialized;
+bool libcwd_type_info_exact<void*>::initialized_;
 
 libcwd::TypeInfo const& libcwd_type_info_exact<void*>::value()
 {
-  if (!S_initialized)
+  if (!initialized_)
   {
 #if __GXX_ABI_VERSION == 0
-    S_value.init(
+    value_.init(
         ::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name() LIBCWD_COMMA_TSD_INSTANCE),
         sizeof(void*), 0 /* unknown */);
 #else
-    S_value.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(),
+    value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(),
                                                          typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE),
                  sizeof(void*), 0 /* unknown */);
 #endif
-    S_initialized = true;
+    initialized_ = true;
   }
-  return S_value;
+  return value_;
 }

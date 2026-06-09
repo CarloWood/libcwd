@@ -27,16 +27,16 @@ namespace libcwd {
 template<class PRINTABLE_OBJECT>
   class cwprint_tct {
   private:
-    PRINTABLE_OBJECT const& M_printable_object;
+    PRINTABLE_OBJECT const& printable_object_;
   public:
-    cwprint_tct(PRINTABLE_OBJECT const& printable_object) : M_printable_object(printable_object) { }
+    cwprint_tct(PRINTABLE_OBJECT const& printable_object) : printable_object_(printable_object) { }
 
     friend
     inline	// Must be defined inside the class declaration in order to avoid a compiler warning.
     std::ostream&
     operator<<(std::ostream& os, cwprint_tct<PRINTABLE_OBJECT> const& __cwprint)
     {
-      __cwprint.M_printable_object.print_on(os);
+      __cwprint.printable_object_.print_on(os);
       return os;
     }
   };
@@ -90,18 +90,18 @@ template<class PRINTABLE_OBJECT>
   class cwprint_using_tct {
     using print_on_method_t = void (PRINTABLE_OBJECT::*)(std::ostream&) const;
   private:
-    PRINTABLE_OBJECT const& M_printable_object;
-    print_on_method_t M_print_on_method;
+    PRINTABLE_OBJECT const& printable_object_;
+    print_on_method_t print_on_method_;
   public:
     cwprint_using_tct(PRINTABLE_OBJECT const& printable_object, print_on_method_t print_on_method) :
-	M_printable_object(printable_object), M_print_on_method(print_on_method) { }
+	printable_object_(printable_object), print_on_method_(print_on_method) { }
 
     friend
     inline	// Must be defined inside the class declaration in order to avoid a compiler warning.
     std::ostream&
     operator<<(std::ostream& os, cwprint_using_tct<PRINTABLE_OBJECT> __cwprint_using)
     {
-      (__cwprint_using.M_printable_object.*__cwprint_using.M_print_on_method)(os);
+      (__cwprint_using.printable_object_.*__cwprint_using.print_on_method_)(os);
       return os;
     }
   };

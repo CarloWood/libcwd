@@ -16,8 +16,8 @@ template<typename T>
   void
   debug_stack_tst<T>::init()
   {
-    p = st - 1;
-    end = st + 63;
+    current_ = stack_ - 1;
+    end_ = stack_ + 63;
   }
 
 template<typename T>
@@ -26,15 +26,15 @@ template<typename T>
   debug_stack_tst<T>::push(T ptr)
   {
 #if CWDEBUG_DEBUG
-    LIBCWD_ASSERT( end != NULL );
+    LIBCWD_ASSERT( end_ != NULL );
 #endif
-    if (p == end)
+    if (current_ == end_)
       core_dump();	// This is really not normal, if you core here you probably did something wrong.
 			// Doing a back trace in gdb should reveal an `infinite' debug output re-entrance loop.
 			// This means that while printing debug output you call a function that makes
 			// your program return to the same line, starting to print out that debug output
 			// again. Try to break this loop somehow.
-    *++p = ptr;
+    *++current_ = ptr;
   }
 
 extern void print_pop_error();
@@ -45,11 +45,11 @@ template<typename T>
   debug_stack_tst<T>::pop()
   {
 #if CWDEBUG_DEBUG
-    LIBCWD_ASSERT( end != NULL );
+    LIBCWD_ASSERT( end_ != NULL );
 #endif
-    if (p == st - 1)
+    if (current_ == stack_ - 1)
       print_pop_error();
-    --p;
+    --current_;
   }
 
 template<typename T>
@@ -58,9 +58,9 @@ template<typename T>
   debug_stack_tst<T>::top() const
   {
 #if CWDEBUG_DEBUG
-    LIBCWD_ASSERT( end != NULL );
+    LIBCWD_ASSERT( end_ != NULL );
 #endif
-    return *p;
+    return *current_;
   }
 
 template<typename T>
@@ -69,9 +69,9 @@ template<typename T>
   debug_stack_tst<T>::size() const
   {
 #if CWDEBUG_DEBUG
-    LIBCWD_ASSERT( end != NULL );
+    LIBCWD_ASSERT( end_ != NULL );
 #endif
-    return p - (st - 1);
+    return current_ - (stack_ - 1);
   }
 
 }  // namespace libcwd::_private_

@@ -45,12 +45,12 @@ struct DebugObject_ThreadSpecificData
   bool first_time;
 #endif
 
-  OutputState* current_;
+  OutputState* current;
     // Current output state.
 
   std::ostream* current_bufferstream;
-    // The stringstream of the current_ output state.
-    // This should be set to current_->bufferstream at all times.
+    // The stringstream of the current output state.
+    // This should be set to current->bufferstream at all times.
 
   _private_::debug_stack_tst<OutputState*> output_state_stack;
     // Store for nested debug calls.
@@ -79,10 +79,10 @@ struct DebugObject_ThreadSpecificData
   DebugString marker;
     // The marker string.
 
-  DebugStringStackElement* M_margin_stack;
+  DebugStringStackElement* margin_stack;
     // Pointer to list of pushed margins.
 
-  DebugStringStackElement* M_marker_stack;
+  DebugStringStackElement* marker_stack;
     // Pointer to list of pushed markers.
 
   unsigned short indent;
