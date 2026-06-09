@@ -60,7 +60,7 @@ protected:
   lockable_auto_ptr<char, true> M_filepath;     //!< The full source file name of this location.&nbsp; Allocated in `M_pc_location' using new [].
   union {
     char const* M_filename;                     //!< Points inside M_filepath just after the last '/' or to the beginning.
-    void const* M_initialization_delayed;       //!< If M_object_file == NULL and M_func points to S_pre_ios_initialization_c or S_pre_libcwd_initialization_c, then this is the address that M_pc_location was called with.
+    void const* M_initialization_delayed;       //!< If M_object_file == NULL and M_func points to S_pre_libcwd_initialization_c, then this is the address that M_pc_location was called with.
     void const* M_unknown_pc;                   //!< If M_object_file == NULL and M_func points to unknown_function_c, then this is the address that M_pc_location was called with.
   };
   unsigned int M_line;                          //!< The line number of this location.
@@ -71,7 +71,6 @@ protected:
   // M_func can point to one of these constants, or to libcwd::unknown_function_c
   // or to a static string with the mangled function name.
   static char const* const S_uninitialized_location_ct_c;
-  static char const* const S_pre_ios_initialization_c;
   static char const* const S_pre_libcwd_initialization_c;
   static char const* const S_cleared_location_ct_c;
 
@@ -190,7 +189,7 @@ public:
 #endif
 
   // Return the program counter that still needs lazy symbol resolution, if any.
-  bool initialization_delayed() const { return (!M_object_file && (M_func == S_pre_ios_initialization_c || M_func == S_pre_libcwd_initialization_c)); }
+  bool initialization_delayed() const { return (!M_object_file && M_func == S_pre_libcwd_initialization_c); }
   void const* unknown_pc() const { return (!M_object_file && M_func == unknown_function_c) ? M_unknown_pc : initialization_delayed() ? M_initialization_delayed : 0; }
 };
 

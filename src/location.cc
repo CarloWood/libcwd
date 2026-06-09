@@ -9,7 +9,6 @@
 namespace libcwd {
 
 char const* const Location::S_uninitialized_location_ct_c = "<uninitialized Location>";
-char const* const Location::S_pre_ios_initialization_c = "<pre ios initialization>";
 char const* const Location::S_pre_libcwd_initialization_c = "<pre libcwd initialization>";
 char const* const Location::S_cleared_location_ct_c = "<cleared location ct>";
 
