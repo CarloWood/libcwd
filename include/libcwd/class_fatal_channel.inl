@@ -17,14 +17,14 @@ inline
 control_flag_t
 FatalChannel::get_maskbit() const
 {
-  return WNS_maskbit;
+  return maskbit_;
 }
 
 inline
 char const*
 FatalChannel::get_label() const
 {
-  return WNS_label;
+  return label_;
 }
 
 } // namespace libcwd

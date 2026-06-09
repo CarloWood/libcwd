@@ -326,8 +326,8 @@ FatalChannel core
 } // namespace dc
 } // namespace channels
 
-/** The special off_channel. */
-Channel const Channel::off_channel
+/** The special channel that is always off. */
+Channel const Channel::off_channel_
 #ifndef HIDE_FROM_DOXYGEN
     ("!NEVER!", false)
 #endif
@@ -538,7 +538,7 @@ void DebugChannels::initialize_channel(Channel& channel, char const* label LIBCW
 void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* label,
                                                  control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM) const
 {
-  channel.WNS_maskbit = maskbit;
+  channel.maskbit_ = maskbit;
 
   size_t label_len = strlen(label);
 
@@ -563,11 +563,11 @@ void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* 
 
   // clang-format off
   PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
-  strncpy(channel.WNS_label, label, label_len);
+  strncpy(channel.label_, label, label_len);
   PRAGMA_DIAGNOSTIC_POP
   // clang-format on
-  std::memset(channel.WNS_label + label_len, ' ', max_label_len_c - label_len);
-  channel.WNS_label[WST_max_len] = '\0';
+  std::memset(channel.label_ + label_len, ' ', max_label_len_c - label_len);
+  channel.label_[WST_max_len] = '\0';
 }
 
 // Invoke callback for each registered public debug channel while holding a registry read lock.
@@ -1365,7 +1365,7 @@ void Channel::NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool add_t
 {
   // This is pretty much identical to FatalChannel::FatalChannel().
 
-  if (WNS_initialized)
+  if (initialized_)
     return; // Already initialized.
 
   DEBUGDEBUG_CERR("Entering `Channel::NS_initialize(\"" << label << "\")'");
@@ -1379,7 +1379,7 @@ void FatalChannel::NS_initialize(char const* label, control_flag_t maskbit LIBCW
 {
   // This is pretty much identical to Channel::NS_initialize().
 
-  if (WNS_maskbit)
+  if (maskbit_)
     return; // Already initialized.
 
   DEBUGDEBUG_CERR("Entering `FatalChannel::NS_initialize(\"" << label << "\")'");
@@ -1391,21 +1391,21 @@ void FatalChannel::NS_initialize(char const* label, control_flag_t maskbit LIBCW
 
 void ContinuedChannel::NS_initialize(control_flag_t maskbit)
 {
-  if (!WNS_maskbit)
-    WNS_maskbit = maskbit;
+  if (!maskbit_)
+    maskbit_ = maskbit;
 }
 
 void Channel::initialize(_private_::ChannelSetsWat wat, char const* label, size_t label_len)
 {
-  WNS_index = ++wat.ref_->next_index_;  // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
+  index_ = ++wat.ref_->next_index_;  // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
   // clang-format off
   PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
-  strncpy(WNS_label, label, label_len);
+  strncpy(label_, label, label_len);
   PRAGMA_DIAGNOSTIC_POP
   // clang-format on
-  std::memset(WNS_label + label_len, ' ', max_label_len_c - label_len);
-  WNS_label[WST_max_len] = '\0';
-  WNS_initialized = true;
+  std::memset(label_ + label_len, ' ', max_label_len_c - label_len);
+  label_[WST_max_len] = '\0';
+  initialized_ = true;
 }
 
 char const AlwaysChannel::label[max_label_len_c + 1] = {'>', '>', '>', '>', '>', '>', '>', '>', '>',
@@ -1419,7 +1419,7 @@ char const AlwaysChannel::label[max_label_len_c + 1] = {'>', '>', '>', '>', '>',
 void Channel::off()
 {
   LIBCWD_TSD_DECLARATION;
-  __libcwd_tsd.off_cnt_array[WNS_index] += 1;
+  __libcwd_tsd.off_cnt_array[index_] += 1;
 }
 
 /**
@@ -1430,9 +1430,9 @@ void Channel::off()
 void Channel::on()
 {
   LIBCWD_TSD_DECLARATION;
-  if (__libcwd_tsd.off_cnt_array[WNS_index] == -1)
+  if (__libcwd_tsd.off_cnt_array[index_] == -1)
     DoutFatal(dc::core, "Calling Channel::on() more often than Channel::off()");
-  __libcwd_tsd.off_cnt_array[WNS_index] -= 1;
+  __libcwd_tsd.off_cnt_array[index_] -= 1;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1568,7 +1568,7 @@ void Channel::force_on(Channel::OnOffState& state, char const* label)
 {
   LIBCWD_TSD_DECLARATION;
   NS_initialize(label LIBCWD_COMMA_TSD, true);
-  int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
+  int& off_cnt(__libcwd_tsd.off_cnt_array[index_]);
   state.off_cnt = off_cnt;
   off_cnt = -1; // Turn channel on.
 }
@@ -1576,7 +1576,7 @@ void Channel::force_on(Channel::OnOffState& state, char const* label)
 void Channel::restore(Channel::OnOffState const& state)
 {
   LIBCWD_TSD_DECLARATION;
-  int& off_cnt(__libcwd_tsd.off_cnt_array[WNS_index]);
+  int& off_cnt(__libcwd_tsd.off_cnt_array[index_]);
   if (off_cnt != -1)
     core_dump(); // off() and on() where called and not in equal pairs.
   off_cnt = state.off_cnt; // Restore.

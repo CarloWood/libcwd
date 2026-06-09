@@ -16,7 +16,7 @@ inline
 control_flag_t
 ContinuedChannel::get_maskbit() const
 {
-  return WNS_maskbit;
+  return maskbit_;
 }
 
 } // namespace libcwd

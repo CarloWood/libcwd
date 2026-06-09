@@ -24,7 +24,7 @@ inline
 bool
 Channel::is_on(LIBCWD_TSD_PARAM) const
 {
-  return (__libcwd_tsd.off_cnt_array[WNS_index] < 0);
+  return (__libcwd_tsd.off_cnt_array[index_] < 0);
 }
 
 /**
@@ -45,10 +45,9 @@ inline
 char const*
 Channel::get_label() const
 {
-  return WNS_label;
+  return label_;
 }
 
 } // namespace libcwd
 
 #endif // LIBCWD_CLASS_CHANNEL_INL
-

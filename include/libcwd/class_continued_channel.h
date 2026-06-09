@@ -25,7 +25,8 @@ namespace libcwd {
 
 class ContinuedChannel {
 private:
-  control_flag_t WNS_maskbit;
+  control_flag_t maskbit_;
+    // Written during initialization before this channel is made visible to other threads.
     // The mask that contains the control bit.
 
 public:
@@ -33,7 +34,7 @@ public:
   // Constructor
   //
 
-  // MT: All channel objects must be global so that `WNS_maskbit' is zero
+  // MT: All channel objects must be global so that `maskbit_' is zero
   //     at the start of the program and initialization occurs before other
   //     threads share the object.
   explicit ContinuedChannel(control_flag_t maskbit);
@@ -51,4 +52,3 @@ public:
 } // namespace libcwd
 
 #endif // LIBCWD_CLASS_CONTINUED_CHANNEL_H
-

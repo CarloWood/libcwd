@@ -30,12 +30,14 @@ class FatalChannel {
   friend struct _private_::DebugChannels;
 
 private:
-  char WNS_label[max_label_len_c + 1];				// +1 for zero termination.
+  char label_[max_label_len_c + 1];				// +1 for zero termination.
+    // Initialized before this channel is made visible to other threads and read-only afterward.
     // A reference name for the represented debug channel
     // This label will be printed in front of each output written to
     // this debug channel.
 
-  control_flag_t WNS_maskbit;
+  control_flag_t maskbit_;
+    // Written during initialization before this channel is made visible to other threads.
     // The mask that contains the control bit.
 
 public:
@@ -43,7 +45,7 @@ public:
   // Constructor
   //
 
-  // MT: All channel objects must be global so that `WNS_maskbit' is zero
+  // MT: All channel objects must be global so that `maskbit_' is zero
   //     at the start of the program and initialization occurs before other
   //     threads share the object.
   explicit FatalChannel(char const* lbl, control_flag_t maskbit);
