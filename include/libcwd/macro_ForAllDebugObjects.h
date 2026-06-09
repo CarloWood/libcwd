@@ -29,7 +29,7 @@ struct DebugObjects
   using callback_type = void (*)(DebugObject&, void*);
 
   class Impl;
-  Impl* impl_;       // Deliberately leaked.
+  Impl* impl;        // Deliberately leaked.
 
   static DebugObjects const& instance();
 

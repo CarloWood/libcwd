@@ -38,11 +38,11 @@ public:
   bool on;
     // Set if at least one of the provided channels is turned on.
 
-  DebugObject_ThreadSpecificData* do_tsd_ptr;
+  DebugObject_ThreadSpecificData* debug_object_tsd_ptr;
     // Thread specific data of current debug object.
 
 #if CWDEBUG_DEBUG
-  ChannelSetData() : do_tsd_ptr(nullptr) { }
+  ChannelSetData() : debug_object_tsd_ptr(nullptr) { }
 #endif
 };
 
@@ -72,7 +72,10 @@ struct ContinuedChannelSet;
 struct ChannelSetBootstrap : public ChannelSetData {
   // Warning: This struct may not have attributes of its own!
 public:
-  ChannelSetBootstrap(DebugObject_ThreadSpecificData& do_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED) { do_tsd_ptr = &do_tsd; }
+  ChannelSetBootstrap(DebugObject_ThreadSpecificData& debug_object_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED)
+  {
+    debug_object_tsd_ptr = &debug_object_tsd;
+  }
 
   //-------------------------------------------------------------------------------------------------
   // Operators that combine channels/control bits.
@@ -86,7 +89,10 @@ public:
 struct FatalChannelSetBootstrap : public ChannelSetData {
   // Warning: This struct may not have attributes of its own!
 public:
-  FatalChannelSetBootstrap(DebugObject_ThreadSpecificData& do_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED) { do_tsd_ptr = &do_tsd; }
+  FatalChannelSetBootstrap(DebugObject_ThreadSpecificData& debug_object_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED)
+  {
+    debug_object_tsd_ptr = &debug_object_tsd;
+  }
 
   //-------------------------------------------------------------------------------------------------
   // Operators that combine channels/control bits.

@@ -29,16 +29,16 @@ public:
   using stringbuf_type = std::basic_stringbuf<char_type, traits_type, allocator_type>;
 
 public:
-  stringbuf_type* M_stringbuf;
+  stringbuf_type* stringbuf;
 
 public:
   explicit
-  BufferStream(stringbuf_type* sb) : std::basic_ostream<char, std::char_traits<char> >(sb), M_stringbuf(sb) { }
+  BufferStream(stringbuf_type* sb) : std::basic_ostream<char, std::char_traits<char> >(sb), stringbuf(sb) { }
   ~BufferStream() { }
 
-  stringbuf_type* rdbuf() const { return M_stringbuf; }
-  string_type str() const { return M_stringbuf->str(); }
-  void str(string_type const& s) { M_stringbuf->str(s); }
+  stringbuf_type* rdbuf() const { return stringbuf; }
+  string_type str() const { return stringbuf->str(); }
+  void str(string_type const& s) { stringbuf->str(s); }
 };
 
 } // namespace libcwd::_private_

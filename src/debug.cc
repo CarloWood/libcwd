@@ -462,7 +462,7 @@ DebugChannels const& DebugChannels::instance()
 Channel* DebugChannels::find(char const* label) const
 {
   Channel* result = nullptr;
-  Impl::channel_sets_ts::rat debug_channels_r(impl_->channel_sets);
+  Impl::channel_sets_ts::rat debug_channels_r(impl->channel_sets);
   for (Channel* debug_channel : debug_channels_r->visible_)
     if (!strncasecmp(label, debug_channel->get_label(), strlen(label)))
       result = debug_channel;
@@ -480,7 +480,7 @@ void DebugChannels::initialize_channel(Channel& channel, char const* label LIBCW
   if (label_len > max_label_len_c) // Only happens for customized channels
     DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
 
-  Impl::channel_sets_ts::wat channels_w(impl_->channel_sets);
+  Impl::channel_sets_ts::wat channels_w(impl->channel_sets);
 
   const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = ' ';
   const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = ' ';
@@ -545,7 +545,7 @@ void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* 
   if (label_len > max_label_len_c) // Only happens for customized channels
     DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
 
-  Impl::channel_sets_ts::wat channels_w(impl_->channel_sets);
+  Impl::channel_sets_ts::wat channels_w(impl->channel_sets);
 
   for (Channel* debug_channel : channels_w->visible_)
     const_cast<char*>(debug_channel->get_label())[WST_max_len] = ' ';
@@ -576,7 +576,7 @@ void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* 
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void DebugChannels::for_each_impl(callback_type callback, void* data) const
 {
-  Impl::channel_sets_ts::rat debug_channels_r(impl_->channel_sets);
+  Impl::channel_sets_ts::rat debug_channels_r(impl->channel_sets);
   for (Channel* debug_channel : debug_channels_r->visible_)
     callback(*debug_channel, data);
 }
@@ -607,7 +607,7 @@ DebugObjects const& DebugObjects::instance()
 // cannot register the same debug object twice.
 void DebugObjects::add_if_missing(DebugObject* debug_object) const
 {
-  Impl::debug_objects_ts::wat debug_objects_w(impl_->debug_objects);
+  Impl::debug_objects_ts::wat debug_objects_w(impl->debug_objects);
   if (std::find(debug_objects_w->begin(), debug_objects_w->end(), debug_object) == debug_objects_w->end())
     debug_objects_w->push_back(debug_object);
 }
@@ -618,7 +618,7 @@ void DebugObjects::add_if_missing(DebugObject* debug_object) const
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void DebugObjects::for_each_impl(callback_type callback, void* data) const
 {
-  Impl::debug_objects_ts::rat debug_objects_r(impl_->debug_objects);
+  Impl::debug_objects_ts::rat debug_objects_r(impl->debug_objects);
   for (DebugObject* debug_object : *debug_objects_r)
     callback(*debug_object, data);
 }
@@ -1454,10 +1454,10 @@ ContinuedChannelSet& ChannelSet::operator|(continued_cf_nt)
 {
 #if CWDEBUG_DEBUG
   DEBUGDEBUG_CERR("continued_cf detected");
-  if (!do_tsd_ptr || !do_tsd_ptr->tsd_initialized)
+  if (!debug_object_tsd_ptr || !debug_object_tsd_ptr->tsd_initialized)
   {
-    if (do_tsd_ptr)
-      DEBUGDEBUG_CERR("&do_tsd_ptr->tsd_initialized == " << (void*)&do_tsd_ptr->tsd_initialized);
+    if (debug_object_tsd_ptr)
+      DEBUGDEBUG_CERR("&debug_object_tsd_ptr->tsd_initialized == " << (void*)&debug_object_tsd_ptr->tsd_initialized);
     FATALDEBUGDEBUG_CERR("Don't use DoutFatal together with continued_cf, use Dout instead.");
     core_dump();
   }
@@ -1465,16 +1465,16 @@ ContinuedChannelSet& ChannelSet::operator|(continued_cf_nt)
   mask |= continued_cf_maskbit;
   if (!on)
   {
-    ++(do_tsd_ptr->off_count);
-    DEBUGDEBUG_CERR("Channel is switched off. Increased off_count to " << do_tsd_ptr->off_count);
+    ++(debug_object_tsd_ptr->off_count);
+    DEBUGDEBUG_CERR("Channel is switched off. Increased off_count to " << debug_object_tsd_ptr->off_count);
   }
   else
   {
-    do_tsd_ptr->continued_stack.push(do_tsd_ptr->off_count);
-    DEBUGDEBUG_CERR("Channel is switched on. Pushed off_count (" << do_tsd_ptr->off_count << ") to stack (size now "
-                                                                 << do_tsd_ptr->continued_stack.size()
+    debug_object_tsd_ptr->continued_stack.push(debug_object_tsd_ptr->off_count);
+    DEBUGDEBUG_CERR("Channel is switched on. Pushed off_count (" << debug_object_tsd_ptr->off_count << ") to stack (size now "
+                                                                 << debug_object_tsd_ptr->continued_stack.size()
                                                                  << ") and set off_count to 0");
-    do_tsd_ptr->off_count = 0;
+    debug_object_tsd_ptr->off_count = 0;
   }
   return *(reinterpret_cast<ContinuedChannelSet*>(this));
 }
@@ -1488,27 +1488,27 @@ ContinuedChannelSet& ChannelSetBootstrap::operator|(ContinuedChannel const& cdc)
     DEBUGDEBUG_CERR("dc::finish detected");
 #endif
 
-  if ((on = !do_tsd_ptr->off_count))
+  if ((on = !debug_object_tsd_ptr->off_count))
   {
     DEBUGDEBUG_CERR("Channel is switched on (off_count is 0)");
-    do_tsd_ptr->current_->mask |= cdc.get_maskbit(); // We continue with the current_ channel
-    mask = do_tsd_ptr->current_->mask;
-    label = do_tsd_ptr->current_->label;
+    debug_object_tsd_ptr->current_->mask |= cdc.get_maskbit(); // We continue with the current_ channel
+    mask = debug_object_tsd_ptr->current_->mask;
+    label = debug_object_tsd_ptr->current_->label;
     if (cdc.get_maskbit() == finish_maskbit)
     {
-      do_tsd_ptr->off_count = do_tsd_ptr->continued_stack.top();
-      do_tsd_ptr->continued_stack.pop();
-      DEBUGDEBUG_CERR("Restoring off_count to " << do_tsd_ptr->off_count << ". Stack size now "
-                                                << do_tsd_ptr->continued_stack.size());
+      debug_object_tsd_ptr->off_count = debug_object_tsd_ptr->continued_stack.top();
+      debug_object_tsd_ptr->continued_stack.pop();
+      DEBUGDEBUG_CERR("Restoring off_count to " << debug_object_tsd_ptr->off_count << ". Stack size now "
+                                                << debug_object_tsd_ptr->continued_stack.size());
     }
   }
   else
   {
-    DEBUGDEBUG_CERR("Channel is switched off (off_count is " << do_tsd_ptr->off_count << ')');
+    DEBUGDEBUG_CERR("Channel is switched off (off_count is " << debug_object_tsd_ptr->off_count << ')');
     if (cdc.get_maskbit() == finish_maskbit)
     {
       DEBUGDEBUG_CERR("` decrementing off_count with 1");
-      --(do_tsd_ptr->off_count);
+      --(debug_object_tsd_ptr->off_count);
     }
   }
   return *reinterpret_cast<ContinuedChannelSet*>(this);
