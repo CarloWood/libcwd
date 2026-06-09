@@ -39,29 +39,29 @@ class Buffer : public std::stringbuf
 {
  private:
   using streampos_t = pos_type;
-  streampos_t position;
+  streampos_t position_;
   // These two are protected by the ostream lock of a debug object.
-  bool unfinished_already_printed;
-  bool continued_needed;
+  bool unfinished_already_printed_;
+  bool continued_needed_;
 
  public:
-  Buffer() : unfinished_already_printed(false), continued_needed(false) { }
+  Buffer() : unfinished_already_printed_(false), continued_needed_(false) { }
   void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug_object, bool request_unfinished,
                bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf));
-  void store_position() { position = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out); }
+  void store_position() { position_ = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out); }
   void restore_position()
   {
-    this->pubseekpos(position, std::ios_base::out);
+    this->pubseekpos(position_, std::ios_base::out);
     this->pubseekpos(0, std::ios_base::in);
-    continued_needed = false;
+    continued_needed_ = false;
   }
-  void continued() { unfinished_already_printed = false; }
+  void continued() { unfinished_already_printed_ = false; }
   void write_prefix_to(std::ostream* os)
   {
     streampos_t old_in_pos = this->pubseekoff(0, std::ios_base::cur, std::ios_base::in);
     this->pubseekpos(0, std::ios_base::in);
     os->put(this->sgetc());
-    int size = position - std::streampos(0);
+    int size = position_ - std::streampos(0);
     for (int c = 1; c < size; ++c) os->put(this->snextc());
     this->pubseekpos(old_in_pos, std::ios_base::in);
   }
@@ -128,8 +128,8 @@ void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug
       if (debug_object.unfinished_oss != this)
       {
         locked_os->write("<unfinished>\n", 13);
-        debug_object.unfinished_oss->unfinished_already_printed = true;
-        debug_object.unfinished_oss->continued_needed = true;
+        debug_object.unfinished_oss->unfinished_already_printed_ = true;
+        debug_object.unfinished_oss->continued_needed_ = true;
       }
     }
     else
@@ -137,9 +137,9 @@ void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug
   }
   DebugString const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
   size_t color_off_size = color_off.size();
-  if (continued_needed && curlen > 0)
+  if (continued_needed_ && curlen > 0)
   {
-    continued_needed = false;
+    continued_needed_ = false;
     write_prefix_to(locked_os);
     if (color_off_size > 0)
       locked_os->write(color_off.c_str(), color_off_size);
@@ -156,7 +156,7 @@ void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug
     continued();
   }
   locked_os->write(msgbuf, curlen);
-  if (request_unfinished && !unfinished_already_printed)
+  if (request_unfinished && !unfinished_already_printed_)
   {
     if (color_off_size > 0)
       locked_os->write(color_off.c_str(), color_off_size);
@@ -164,7 +164,7 @@ void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug
   }
   if (do_flush)
     locked_os->flush();
-  unfinished_already_printed = ends_on_newline;
+  unfinished_already_printed_ = ends_on_newline;
   if (ends_on_newline)
   {
     debug_object.unfinished_oss = NULL;
@@ -436,7 +436,7 @@ struct ChannelSets
 struct DebugChannels::Impl
 {
   using channel_sets_ts = threadsafe::Unlocked<ChannelSets, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  channel_sets_ts channel_sets_;
+  channel_sets_ts channel_sets;
 };
 
 // A helper class to allow passing a wat to Channel::increment_and_assign_index without
@@ -462,7 +462,7 @@ DebugChannels const& DebugChannels::instance()
 Channel* DebugChannels::find(char const* label) const
 {
   Channel* result = nullptr;
-  Impl::channel_sets_ts::rat debug_channels_r(impl_->channel_sets_);
+  Impl::channel_sets_ts::rat debug_channels_r(impl_->channel_sets);
   for (Channel* debug_channel : debug_channels_r->visible_)
     if (!strncasecmp(label, debug_channel->get_label(), strlen(label)))
       result = debug_channel;
@@ -480,7 +480,7 @@ void DebugChannels::initialize_channel(Channel& channel, char const* label LIBCW
   if (label_len > max_label_len_c) // Only happens for customized channels
     DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
 
-  Impl::channel_sets_ts::wat channels_w(impl_->channel_sets_);
+  Impl::channel_sets_ts::wat channels_w(impl_->channel_sets);
 
   const_cast<char*>(channels::dc::core.get_label())[WST_max_len] = ' ';
   const_cast<char*>(channels::dc::fatal.get_label())[WST_max_len] = ' ';
@@ -545,7 +545,7 @@ void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* 
   if (label_len > max_label_len_c) // Only happens for customized channels
     DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
 
-  Impl::channel_sets_ts::wat channels_w(impl_->channel_sets_);
+  Impl::channel_sets_ts::wat channels_w(impl_->channel_sets);
 
   for (Channel* debug_channel : channels_w->visible_)
     const_cast<char*>(debug_channel->get_label())[WST_max_len] = ' ';
@@ -576,7 +576,7 @@ void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* 
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void DebugChannels::for_each_impl(callback_type callback, void* data) const
 {
-  Impl::channel_sets_ts::rat debug_channels_r(impl_->channel_sets_);
+  Impl::channel_sets_ts::rat debug_channels_r(impl_->channel_sets);
   for (Channel* debug_channel : debug_channels_r->visible_)
     callback(*debug_channel, data);
 }
@@ -590,7 +590,7 @@ void DebugChannels::for_each_impl(callback_type callback, void* data) const
 struct DebugObjects::Impl
 {
   using debug_objects_ts = threadsafe::Unlocked<std::vector<DebugObject*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
-  debug_objects_ts debug_objects_;
+  debug_objects_ts debug_objects;
 };
 
 // Return the registry used by every DebugObject object in the process.
@@ -607,7 +607,7 @@ DebugObjects const& DebugObjects::instance()
 // cannot register the same debug object twice.
 void DebugObjects::add_if_missing(DebugObject* debug_object) const
 {
-  Impl::debug_objects_ts::wat debug_objects_w(impl_->debug_objects_);
+  Impl::debug_objects_ts::wat debug_objects_w(impl_->debug_objects);
   if (std::find(debug_objects_w->begin(), debug_objects_w->end(), debug_object) == debug_objects_w->end())
     debug_objects_w->push_back(debug_object);
 }
@@ -618,7 +618,7 @@ void DebugObjects::add_if_missing(DebugObject* debug_object) const
 // read access object is alive, preventing concurrent modifications of the vector during traversal.
 void DebugObjects::for_each_impl(callback_type callback, void* data) const
 {
-  Impl::debug_objects_ts::rat debug_objects_r(impl_->debug_objects_);
+  Impl::debug_objects_ts::rat debug_objects_r(impl_->debug_objects);
   for (DebugObject* debug_object : *debug_objects_r)
     callback(*debug_object, data);
 }

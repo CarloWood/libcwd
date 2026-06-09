@@ -26,22 +26,22 @@ namespace {
 class Argv
 {
  private:
-  char const* const* __argv;
+  char const* const* argv_;
 
  public:
-  Argv(char const* const argv[]) : __argv(argv) { }
+  Argv(char const* const argv[]) : argv_(argv) { }
   void print_on(std::ostream& os) const;
 };
 
 class PrintablePollDummy
 {
  private:
-  struct pollfd const* M_pollfds;
-  size_t M_number_of_fds;
+  struct pollfd const* pollfds_;
+  size_t number_of_fds_;
 
  public:
   PrintablePollDummy(struct pollfd const* pollfds, size_t number_of_fds)
-      : M_pollfds(pollfds), M_number_of_fds(number_of_fds)
+      : pollfds_(pollfds), number_of_fds_(number_of_fds)
   {
   }
   void print_on(std::ostream& os) const;
@@ -119,12 +119,12 @@ static void print_poll_struct_on(std::ostream& os, struct pollfd const& pfd)
 void PrintablePollDummy::print_on(std::ostream& os) const
 {
   os << " [ ";
-  if (M_number_of_fds > 0)
-    print_poll_struct_on(os, M_pollfds[0]);
-  for (size_t i = 1; i < M_number_of_fds; ++i)
+  if (number_of_fds_ > 0)
+    print_poll_struct_on(os, pollfds_[0]);
+  for (size_t i = 1; i < number_of_fds_; ++i)
   {
     os << ", ";
-    print_poll_struct_on(os, M_pollfds[i]);
+    print_poll_struct_on(os, pollfds_[i]);
   }
   os << " ]";
 }
@@ -133,7 +133,7 @@ void PrintablePollDummy::print_on(std::ostream& os) const
 void Argv::print_on(std::ostream& os) const
 {
   os << "[ ";
-  char const* const* p = __argv;
+  char const* const* p = argv_;
   while (*p) os << *p++ << ", ";
   os << "NULL ]";
 }
