@@ -326,8 +326,8 @@ FatalChannel core
 } // namespace dc
 } // namespace channels
 
-/** The special channel that is always off. */
-Channel const Channel::off_channel_
+/** A special channel that is always off. */
+Channel const Channel::s_off_channel
 #ifndef HIDE_FROM_DOXYGEN
     ("!NEVER!", false)
 #endif
@@ -477,8 +477,8 @@ void DebugChannels::initialize_channel(Channel& channel, char const* label LIBCW
 {
   size_t label_len = strlen(label);
 
-  if (label_len > max_label_len_c) // Only happens for customized channels
-    DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
+  if (label_len > max_label_len) // Only happens for customized channels
+    DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len);
 
   Impl::channel_sets_ts::wat channels_w(impl->channel_sets);
 
@@ -542,8 +542,8 @@ void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* 
 
   size_t label_len = strlen(label);
 
-  if (label_len > max_label_len_c) // Only happens for customized channels
-    DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len_c);
+  if (label_len > max_label_len) // Only happens for customized channels
+    DoutFatal(dc::core, "strlen(\"" << label << "\") > " << max_label_len);
 
   Impl::channel_sets_ts::wat channels_w(impl->channel_sets);
 
@@ -566,7 +566,7 @@ void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* 
   strncpy(channel.label_, label, label_len);
   PRAGMA_DIAGNOSTIC_POP
   // clang-format on
-  std::memset(channel.label_ + label_len, ' ', max_label_len_c - label_len);
+  std::memset(channel.label_ + label_len, ' ', max_label_len - label_len);
   channel.label_[WST_max_len] = '\0';
 }
 
@@ -1181,7 +1181,7 @@ void DebugObject_ThreadSpecificData::fatal_finish(DebugObject& debug_object, Cha
 }
 #pragma clang diagnostic pop
 
-int DebugObject::index_count_ = 0;
+int DebugObject::s_index_count_ = 0;
 
 bool DebugObject::NS_init(LIBCWD_TSD_PARAM)
 {
@@ -1208,7 +1208,7 @@ bool DebugObject::NS_init(LIBCWD_TSD_PARAM)
 
   _private_::DebugObjects::instance().add_if_missing(this);
   new (_private_::WST_dummy_output_state) OutputState(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
-  index_ = index_count_++;
+  index_ = s_index_count_++;
 #if CWDEBUG_DEBUGT
   LIBCWD_ASSERT(!_private_::WST_multi_threaded.load(std::memory_order_relaxed)); // Only the first thread should be initializing DebugObject objects.
 #endif
@@ -1403,13 +1403,13 @@ void Channel::initialize(_private_::ChannelSetsWat wat, char const* label, size_
   strncpy(label_, label, label_len);
   PRAGMA_DIAGNOSTIC_POP
   // clang-format on
-  std::memset(label_ + label_len, ' ', max_label_len_c - label_len);
+  std::memset(label_ + label_len, ' ', max_label_len - label_len);
   label_[WST_max_len] = '\0';
   initialized_ = true;
 }
 
-char const AlwaysChannel::label[max_label_len_c + 1] = {'>', '>', '>', '>', '>', '>', '>', '>', '>',
-                                                            '>', '>', '>', '>', '>', '>', '>', 0};
+char const AlwaysChannel::s_label[max_label_len + 1] =
+    {'>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', 0};
 
 /**
  * \brief Turn this channel off.

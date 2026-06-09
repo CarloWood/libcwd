@@ -24,7 +24,7 @@ namespace libcwd {
 
 class AlwaysChannel {
 public:
-  static char const label[];
+  static char const s_label[];
 };
 
 } // namespace libcwd

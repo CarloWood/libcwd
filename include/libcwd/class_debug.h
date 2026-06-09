@@ -112,7 +112,7 @@ public: // Only public because macro LibcwDout needs acces, don't access this di
   int index_;
     // Assigned during initialization before this debug object is made visible to other threads.
     // Public only because LibcwDout needs direct access; do not access this directly.
-  static int index_count_;
+  static int s_index_count_;
 
 protected:
   //-------------------------------------------------------------------------------------------------

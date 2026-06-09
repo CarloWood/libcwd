@@ -76,7 +76,7 @@ class Channel
     // Assigned during initialization before this channel is made visible to other threads.
     // A unique id that is used as index into the TSD array `off_cnt_array'.
 
-  char label_[max_label_len_c + 1];			// +1 for zero termination.
+  char label_[max_label_len + 1];			// +1 for zero termination.
     // Initialized before this channel is made visible to other threads and read-only afterward.
     // A reference name for the represented debug channel
     // This label will be printed in front of each output written to
@@ -86,7 +86,7 @@ class Channel
     // Written during initialization before this channel is made visible to other threads.
     // Set to true when initialized.
 
-  static Channel const off_channel_;
+  static Channel const s_off_channel;
     // Channel that is always off.
 
  public:
@@ -127,7 +127,7 @@ class Channel
   void force_on(OnOffState& state, char const* label);
   void restore(OnOffState const& state);
 
-  Channel const& operator()(bool cond) const { return cond ? *this : off_channel_; }
+  Channel const& operator()(bool cond) const { return cond ? *this : s_off_channel; }
 
  public:
   //---------------------------------------------------------------------------

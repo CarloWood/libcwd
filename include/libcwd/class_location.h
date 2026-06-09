@@ -70,9 +70,9 @@ private:
 protected:
   // function_name_ can point to one of these constants, or to libcwd::unknown_function_c
   // or to a static string with the mangled function name.
-  static char const* const uninitialized_location_ct_c_;
-  static char const* const pre_libcwd_initialization_c_;
-  static char const* const cleared_location_ct_c_;
+  static char const* const s_uninitialized_location_ct;
+  static char const* const s_pre_libcwd_initialization;
+  static char const* const s_cleared_location_ct;
 
 public:
   explicit Location(void const* addr);
@@ -189,7 +189,7 @@ public:
 #endif
 
   // Return the program counter that still needs lazy symbol resolution, if any.
-  bool initialization_delayed() const { return (!object_file_name_ && function_name_ == pre_libcwd_initialization_c_); }
+  bool initialization_delayed() const { return (!object_file_name_ && function_name_ == s_pre_libcwd_initialization); }
   void const* unknown_pc() const { return (!object_file_name_ && function_name_ == unknown_function_c) ? unknown_pc_ : initialization_delayed() ? initialization_delayed_ : 0; }
 };
 

@@ -8,9 +8,9 @@
 
 namespace libcwd {
 
-char const* const Location::uninitialized_location_ct_c_ = "<uninitialized Location>";
-char const* const Location::pre_libcwd_initialization_c_ = "<pre libcwd initialization>";
-char const* const Location::cleared_location_ct_c_ = "<cleared location ct>";
+char const* const Location::s_uninitialized_location_ct = "<uninitialized Location>";
+char const* const Location::s_pre_libcwd_initialization = "<pre libcwd initialization>";
+char const* const Location::s_cleared_location_ct = "<cleared location ct>";
 
 //
 // Location::pc_location
@@ -36,7 +36,7 @@ void Location::pc_location(void const* pc LIBCWD_COMMA_TSD_PARAM)
   if (!ensure_initialization(LIBCWD_TSD))
   {
     object_file_name_ = nullptr;
-    function_name_ = pre_libcwd_initialization_c_;
+    function_name_ = s_pre_libcwd_initialization;
     initialization_delayed_ = pc;
     return;
   }
@@ -100,7 +100,7 @@ void Location::clear()
     }
   }
   object_file_name_ = nullptr;
-  function_name_ = cleared_location_ct_c_;
+  function_name_ = s_cleared_location_ct;
 }
 
 Location::Location(Location const& prototype)

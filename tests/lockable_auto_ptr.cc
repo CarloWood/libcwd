@@ -24,21 +24,21 @@ namespace {
 class tracked_base
 {
  public:
-  static int live_count;
-  static int destroyed_count;
+  static int s_live_count;
+  static int s_destroyed_count;
 
-  tracked_base() { ++live_count; }
+  tracked_base() { ++s_live_count; }
   tracked_base(tracked_base const&) = delete;
   tracked_base& operator=(tracked_base const&) = delete;
   virtual ~tracked_base()
   {
-    --live_count;
-    ++destroyed_count;
+    --s_live_count;
+    ++s_destroyed_count;
   }
 };
 
-int tracked_base::live_count;
-int tracked_base::destroyed_count;
+int tracked_base::s_live_count;
+int tracked_base::s_destroyed_count;
 
 // Derived type used to exercise converting constructors and assignments.
 class tracked_derived : public tracked_base
@@ -51,8 +51,8 @@ class tracked_derived : public tracked_base
 // deletion count would no longer identify the current scenario.
 void reset_tracking()
 {
-  tracked_base::live_count = 0;
-  tracked_base::destroyed_count = 0;
+  tracked_base::s_live_count = 0;
+  tracked_base::s_destroyed_count = 0;
 }
 
 // Check pointer value, debug ownership state, and strict-owner state for ptr.
@@ -89,11 +89,11 @@ bool expect_state(char const* name, libcwd::lockable_auto_ptr<PointerType> const
 // owner failed to delete the object, deleted it more than once, or leaked it.
 bool expect_single_delete(char const* scenario)
 {
-  if (tracked_base::live_count != 0 || tracked_base::destroyed_count != 1)
+  if (tracked_base::s_live_count != 0 || tracked_base::s_destroyed_count != 1)
   {
-    std::cerr << scenario << ": live_count=" << tracked_base::live_count
-              << ", destroyed_count=" << tracked_base::destroyed_count
-              << "; expected live_count=0, destroyed_count=1\n";
+    std::cerr << scenario << ": s_live_count=" << tracked_base::s_live_count
+              << ", s_destroyed_count=" << tracked_base::s_destroyed_count
+              << "; expected s_live_count=0, s_destroyed_count=1\n";
     return false;
   }
   return true;

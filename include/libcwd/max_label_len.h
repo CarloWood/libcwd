@@ -13,7 +13,7 @@
 namespace libcwd {
 
 //! The maximum number of characters that are allowed in a %debug channel label.
-unsigned short const max_label_len_c = 16;
+constexpr unsigned short max_label_len = 16;
 
 } // namespace libcwd
 

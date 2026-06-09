@@ -97,8 +97,8 @@ extern char const* extract_exact_name(char const*, char const* LIBCWD_COMMA_TSD_
 template<typename T>
   struct type_info {
   private:
-    static TypeInfo value_;
-    static bool initialized_;
+    static TypeInfo s_value_;
+    static bool s_initialized_;
   public:
     static TypeInfo const& value();
   };
@@ -108,8 +108,8 @@ template<typename T>
 template<typename T>
   struct type_info<T*> {
   private:
-    static TypeInfo value_;
-    static bool initialized_;
+    static TypeInfo s_value_;
+    static bool s_initialized_;
   public:
     static TypeInfo const& value();
   };
@@ -119,50 +119,50 @@ template<typename T>
 template<>
   struct type_info<void*> {
   private:
-    static TypeInfo value_;
-    static bool initialized_;
+    static TypeInfo s_value_;
+    static bool s_initialized_;
   public:
     static TypeInfo const& value();
   };
 
 // _private_::
 template<typename T>
-  TypeInfo type_info<T>::value_;
+  TypeInfo type_info<T>::s_value_;
 
 // _private_::
 template<typename T>
-  bool type_info<T>::initialized_;
+  bool type_info<T>::s_initialized_;
 
 // _private_::
 template<typename T>
   TypeInfo const& type_info<T>::value()
   {
-    if (!initialized_)
+    if (!s_initialized_)
     {
-      value_.init(typeid(T).name(), sizeof(T), 0);
-      initialized_ = true;
+      s_value_.init(typeid(T).name(), sizeof(T), 0);
+      s_initialized_ = true;
     }
-    return value_;
+    return s_value_;
   }
 
 // _private_::
 template<typename T>
-  TypeInfo type_info<T*>::value_;
+  TypeInfo type_info<T*>::s_value_;
 
 // _private_::
 template<typename T>
-  bool type_info<T*>::initialized_;
+  bool type_info<T*>::s_initialized_;
 
 // _private_::
 template<typename T>
   TypeInfo const& type_info<T*>::value()
   {
-    if (!initialized_)
+    if (!s_initialized_)
     {
-      value_.init(typeid(T*).name(), sizeof(T*), sizeof_ref_v<T>);
-      initialized_ = true;
+      s_value_.init(typeid(T*).name(), sizeof(T*), sizeof_ref_v<T>);
+      s_initialized_ = true;
     }
-    return value_;
+    return s_value_;
   }
 
 } // namespace _private_
@@ -174,8 +174,8 @@ template<typename T>
 template<typename T>
   struct libcwd_type_info_exact {
   private:
-    static ::libcwd::TypeInfo value_;
-    static bool initialized_;
+    static ::libcwd::TypeInfo s_value_;
+    static bool s_initialized_;
   public:
     static ::libcwd::TypeInfo const& value();
   };
@@ -184,8 +184,8 @@ template<typename T>
 template<typename T>
   struct libcwd_type_info_exact<T*> {
   private:
-    static ::libcwd::TypeInfo value_;
-    static bool initialized_;
+    static ::libcwd::TypeInfo s_value_;
+    static bool s_initialized_;
   public:
     static ::libcwd::TypeInfo const& value();
   };
@@ -194,44 +194,44 @@ template<typename T>
 template<>
   struct libcwd_type_info_exact<void*> {
   private:
-    static ::libcwd::TypeInfo value_;
-    static bool initialized_;
+    static ::libcwd::TypeInfo s_value_;
+    static bool s_initialized_;
   public:
     static ::libcwd::TypeInfo const& value();
   };
 
 template<typename T>
-  ::libcwd::TypeInfo libcwd_type_info_exact<T>::value_;
+  ::libcwd::TypeInfo libcwd_type_info_exact<T>::s_value_;
 
 template<typename T>
-  bool libcwd_type_info_exact<T>::initialized_;
+  bool libcwd_type_info_exact<T>::s_initialized_;
 
 template<typename T>
   ::libcwd::TypeInfo const& libcwd_type_info_exact<T>::value()
   {
-    if (!initialized_)
+    if (!s_initialized_)
     {
-      value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(), typeid(T).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T), 0);
-      initialized_ = true;
+      s_value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(), typeid(T).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T), 0);
+      s_initialized_ = true;
     }
-    return value_;
+    return s_value_;
   }
 
 template<typename T>
-  ::libcwd::TypeInfo libcwd_type_info_exact<T*>::value_;
+  ::libcwd::TypeInfo libcwd_type_info_exact<T*>::s_value_;
 
 template<typename T>
-  bool libcwd_type_info_exact<T*>::initialized_;
+  bool libcwd_type_info_exact<T*>::s_initialized_;
 
 template<typename T>
   ::libcwd::TypeInfo const& libcwd_type_info_exact<T*>::value()
   {
-    if (!initialized_)
+    if (!s_initialized_)
     {
-      value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), ::libcwd::_private_::sizeof_ref_v<T>);
-      initialized_ = true;
+      s_value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(), typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE), sizeof(T*), ::libcwd::_private_::sizeof_ref_v<T>);
+      s_initialized_ = true;
     }
-    return value_;
+    return s_value_;
   }
 
 namespace libcwd {

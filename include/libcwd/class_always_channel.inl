@@ -11,7 +11,7 @@ ChannelSet&
 ChannelSetBootstrap::operator|(AlwaysChannel const& adc)
 {
   mask = 0;
-  label = adc.label;
+  label = adc.s_label;
   on = true;
   return *reinterpret_cast<ChannelSet*>(this);
 }
