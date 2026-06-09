@@ -86,7 +86,7 @@ class Channel
     // Written during initialization before this channel is made visible to other threads.
     // Set to true when initialized.
 
-  static Channel const s_off_channel;
+  static Channel const off_channel;
     // Channel that is always off.
 
  public:
@@ -127,7 +127,7 @@ class Channel
   void force_on(OnOffState& state, char const* label);
   void restore(OnOffState const& state);
 
-  Channel const& operator()(bool cond) const { return cond ? *this : s_off_channel; }
+  Channel const& operator()(bool cond) const { return cond ? *this : off_channel; }
 
  public:
   //---------------------------------------------------------------------------

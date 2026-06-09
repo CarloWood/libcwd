@@ -327,7 +327,7 @@ FatalChannel core
 } // namespace channels
 
 /** A special channel that is always off. */
-Channel const Channel::s_off_channel
+Channel const Channel::off_channel
 #ifndef HIDE_FROM_DOXYGEN
     ("!NEVER!", false)
 #endif
@@ -1407,9 +1407,6 @@ void Channel::initialize(_private_::ChannelSetsWat wat, char const* label, size_
   label_[WST_max_len] = '\0';
   initialized_ = true;
 }
-
-char const AlwaysChannel::s_label[max_label_len + 1] =
-    {'>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', 0};
 
 /**
  * \brief Turn this channel off.

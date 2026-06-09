@@ -12,6 +12,7 @@
 
 #include "libcwd/config.h"
 #include "control_flag.h"
+#include "max_label_len.h"
 
 namespace libcwd {
 
@@ -24,10 +25,10 @@ namespace libcwd {
 
 class AlwaysChannel {
 public:
-  static char const s_label[];
+  static constexpr char label[max_label_len + 1] =
+      {'>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', 0};
 };
 
 } // namespace libcwd
 
 #endif // LIBCWD_CLASS_ALWAYS_CHANNEL_H
-

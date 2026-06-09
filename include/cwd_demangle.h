@@ -234,27 +234,27 @@ struct implementation_details
   // The following flags change the behaviour of the demangler.  The
   // default behaviour is that none of these flags is set.
 
-  static unsigned int const style_void = 1;
+  static constexpr unsigned int style_void = 1;
   // Default behaviour:				int f()
   // Use (void) instead of ():			int f(void)
 
-  static unsigned int const style_literal = 2;
+  static constexpr unsigned int style_literal = 2;
   // Default behaviour:				(long)13,
   //						(unsigned long long)19
   // Use extensions 'u', 'l' and 'll' for integral
   // literals (as in template arguments):		13l, 19ull
 
-  static unsigned int const style_literal_int = 4;
+  static constexpr unsigned int style_literal_int = 4;
   // Default behaviour:				4
   // Use also an explicit
   //   cast for int in literals:			(int)4
 
-  static unsigned int const style_compact_expr_ops = 8;
+  static constexpr unsigned int style_compact_expr_ops = 8;
   // Default behaviour:				(i) < (3), sizeof (int)
   // Don't output spaces around
   //   operators in expressions:			(i)<(3), sizeof(int)
 
-  static unsigned int const style_sizeof_typename = 16;
+  static constexpr unsigned int style_sizeof_typename = 16;
   // Default behaviour:				sizeof (X::t)
   // Put 'typename' infront of <nested-name>
   // types inside a 'sizeof':			sizeof (typename X::t)

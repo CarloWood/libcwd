@@ -43,7 +43,7 @@ Location::~Location()
 }
 
 inline
-Location::Location() : function_name_(s_uninitialized_location_ct), object_file_name_(NULL), known_(false)
+Location::Location() : function_name_(uninitialized_location), object_file_name_(NULL), known_(false)
 {
 }
 

@@ -75,7 +75,7 @@ class AIRefCount
 {
  private:
 #if CW_DEBUG
-  static constexpr int s_deleted = -0x6de1e7ed;                 // A negative magic number.
+  static constexpr int deleted_magic = -0x6de1e7ed;             // A negative magic number.
 #endif
   mutable std::atomic<int> m_count;
 
@@ -90,7 +90,7 @@ class AIRefCount
     if (ptr->m_count.fetch_sub(1, std::memory_order_release) == 1)
     {
       std::atomic_thread_fence(std::memory_order_acquire);
-      DEBUG_ONLY(ptr->m_count = s_deleted);
+      DEBUG_ONLY(ptr->m_count = deleted_magic);
       delete ptr;
     }
   }
@@ -99,7 +99,7 @@ class AIRefCount
   int inhibit_deletion(DEBUG_ONLY(bool can_cause_immediate_allow_deletion = true)) const
   {
     int prev_count = m_count.fetch_add(1, std::memory_order_relaxed);
-    // Because m_count is overwritten with s_deleted upon destruction when CWDEBUG is defined, a reference count of
+    // Because m_count is overwritten with deleted_magic upon destruction when CWDEBUG is defined, a reference count of
     // zero means that this object is probably still being constructed and wasn't passed to a boost::intrusive_ptr _yet_.
     // If under those circumstances an intrusive_ptr_add_ref/intrusive_ptr_release pair,
     // that is merely intended to temporarily inhibit deletion, could inadvertently delete
@@ -158,7 +158,7 @@ class AIRefCount
       std::atomic_thread_fence(std::memory_order_acquire);
       if (!defer_delete)
       {
-        DEBUG_ONLY(m_count = s_deleted);
+        DEBUG_ONLY(m_count = deleted_magic);
         delete this;
       }
     }
@@ -187,7 +187,7 @@ class AIRefCount
   // Pretty unreliable, but sometimes useful.
   bool is_destructed() const { int cnt = std::atomic_load_explicit(&m_count, std::memory_order_relaxed); return cnt < 0; }
   // Used when deferred deleting an object.
-  void mark_deleted() const { m_count = s_deleted; }
+  void mark_deleted() const { m_count = deleted_magic; }
 #endif
 #ifdef CWDEBUG
   // Purely for debug code. The returned value suffers from race conditions and is not stable.
