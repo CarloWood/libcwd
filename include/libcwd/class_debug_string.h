@@ -37,7 +37,7 @@ private:
   size_t M_size;				// Size of string (exclusive terminating zero).
   size_t M_capacity;				// Size of allocated area (excl. terminating zero).
   size_t M_default_capacity;			// Current minimum capacity as set with `reserve'.
-  static size_t const min_capacity_c = 64;	// Minimum capacity.
+  static constexpr size_t min_capacity = 64;	// Minimum capacity.
 
   size_t calculate_capacity(size_t);
   void internal_assign(char const* s, size_t l);

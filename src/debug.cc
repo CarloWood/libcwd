@@ -713,7 +713,7 @@ size_t DebugString::calculate_capacity(size_t size)
 
 void DebugString::NS_internal_init(char const* str, size_t len)
 {
-  M_default_capacity = min_capacity_c;
+  M_default_capacity = min_capacity;
   M_str = (char*)malloc((M_default_capacity = M_capacity = calculate_capacity(len)) +
                         1); // Add one for the terminating zero. LEAK46
   strncpy(M_str, str, len);
@@ -772,7 +772,7 @@ void DebugString::reserve(size_t size)
   if (size < M_size)
     return;
   LIBCWD_TSD_DECLARATION;
-  M_default_capacity = min_capacity_c;
+  M_default_capacity = min_capacity;
   M_str = (char*)realloc(M_str, (M_default_capacity = M_capacity = calculate_capacity(size)) + 1);
 }
 
