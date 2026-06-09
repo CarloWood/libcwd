@@ -35,11 +35,11 @@ struct ThreadSpecificData;
 #define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE	// Idem, but as second or higher parameter.
 #define LIBCWD_TSD_DECLARATION ::libcwd::_private_::ThreadSpecificData& __libcwd_tsd(::libcwd::_private_::ThreadSpecificData::instance())
 							// Declaration of local `__libcwd_tsd' structure reference.
-#define LIBCWD_DO_TSD(debug_object) (*__libcwd_tsd.do_array[(debug_object).WNS_index])
+#define LIBCWD_DO_TSD(debug_object) (*__libcwd_tsd.do_array[(debug_object).index])
 							// For use inside class DebugObject to access member `m'.
-#define LIBCWD_TSD_MEMBER_OFF (__libcwd_tsd.do_off_array[WNS_index])
+#define LIBCWD_TSD_MEMBER_OFF (__libcwd_tsd.do_off_array[index])
 							// For use inside class DebugObject to access member `_off'.
-#define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) (__libcwd_tsd.do_off_array[(debug_object).WNS_index])
+#define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) (__libcwd_tsd.do_off_array[(debug_object).index])
 							// To access member _off of debug object.
 
 

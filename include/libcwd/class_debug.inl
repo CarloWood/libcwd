@@ -315,7 +315,7 @@ inline
 bool
 DebugObject::is_on(LIBCWD_TSD_PARAM) const
 {
-  return __libcwd_tsd.do_off_array[WNS_index] == -1;
+  return __libcwd_tsd.do_off_array[index] == -1;
 }
 
 /**
@@ -325,7 +325,7 @@ inline
 void
 DebugObject::always_flush_on()
 {
-  ++m_always_flush;
+  ++always_flush_;
 }
 
 /**
@@ -347,17 +347,17 @@ void
 DebugObject::always_flush_off()
 {
 #if CWDEBUG_DEBUG
-  if (m_always_flush <= 0)
+  if (always_flush_ <= 0)
     core_dump();
 #endif
-  --m_always_flush;
+  --always_flush_;
 }
 
 inline
 bool
 DebugObject::always_flush_is_on() const
 {
-  return m_always_flush > 0;   // 0 means off.
+  return always_flush_ > 0;   // 0 means off.
 }
 
 inline

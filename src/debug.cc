@@ -116,20 +116,20 @@ void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug
                 "documentation/reference-manual/group__group__destination.html).");
     }
   }
-  if (debug_object.newlineless_tsd && debug_object.newlineless_tsd != &__libcwd_tsd)
+  if (debug_object.newlineless_tsd_ && debug_object.newlineless_tsd_ != &__libcwd_tsd)
   {
-    _private_::ThreadSpecificData const* newlineless_tsd = static_cast<_private_::ThreadSpecificData const*>(debug_object.newlineless_tsd);
-    DebugString const& color_off = newlineless_tsd->do_array[debug_object.WNS_index]->color_off;
+    _private_::ThreadSpecificData const* newlineless_tsd = static_cast<_private_::ThreadSpecificData const*>(debug_object.newlineless_tsd_);
+    DebugString const& color_off = newlineless_tsd->do_array[debug_object.index]->color_off;
     size_t color_off_size = color_off.size();
     if (color_off_size > 0)
       locked_os->write(color_off.c_str(), color_off_size);
-    if (debug_object.unfinished_oss)
+    if (debug_object.unfinished_oss_)
     {
-      if (debug_object.unfinished_oss != this)
+      if (debug_object.unfinished_oss_ != this)
       {
         locked_os->write("<unfinished>\n", 13);
-        debug_object.unfinished_oss->unfinished_already_printed_ = true;
-        debug_object.unfinished_oss->continued_needed_ = true;
+        debug_object.unfinished_oss_->unfinished_already_printed_ = true;
+        debug_object.unfinished_oss_->continued_needed_ = true;
       }
     }
     else
@@ -167,16 +167,16 @@ void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug
   unfinished_already_printed_ = ends_on_newline;
   if (ends_on_newline)
   {
-    debug_object.unfinished_oss = NULL;
-    debug_object.newlineless_tsd = NULL;
+    debug_object.unfinished_oss_ = NULL;
+    debug_object.newlineless_tsd_ = NULL;
   }
   else if (curlen > 0)
   {
-    debug_object.newlineless_tsd = &__libcwd_tsd;
+    debug_object.newlineless_tsd_ = &__libcwd_tsd;
     if (possible_nonewline_cf)
-      debug_object.unfinished_oss = NULL;
+      debug_object.unfinished_oss_ = NULL;
     else
-      debug_object.unfinished_oss = this;
+      debug_object.unfinished_oss_ = this;
   }
   if (locked_mutex)
   {
@@ -1110,12 +1110,12 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
     {
       current_->buffer.writeto(
           target_os LIBCWD_COMMA_TSD, debug_object, false,
-          debug_object.interactive COMMA_IFTHREADS(!(current_->mask & nonewline_cf)) COMMA_IFTHREADS(true));
+          debug_object.interactive_ COMMA_IFTHREADS(!(current_->mask & nonewline_cf)) COMMA_IFTHREADS(true));
       _private_::LockInterfaceBase* locked_mutex;
       std::ostream* locked_os;
       locked_os = debug_object.ostream_state_.get_locked_os(target_os, &locked_mutex);
       *locked_os << "(type return)";
-      if (debug_object.interactive)
+      if (debug_object.interactive_)
       {
         *locked_os << std::flush;
         while (std::cin.get() != '\n');
@@ -1181,39 +1181,39 @@ void DebugObject_ThreadSpecificData::fatal_finish(DebugObject& debug_object, Cha
 }
 #pragma clang diagnostic pop
 
-int DebugObject::S_index_count = 0;
+int DebugObject::index_count = 0;
 
 bool DebugObject::NS_init(LIBCWD_TSD_PARAM)
 {
-  if (NS_being_initialized)
+  if (being_initialized_)
     return false;
 
   ST_initialize_globals(LIBCWD_TSD); // Use the constructor of DebugObject to initiate
                                      // the global initialization of libcwd.
 
-  if (WNS_initialized)
+  if (initialized_)
     return true;
 
-  NS_being_initialized = true;
+  being_initialized_ = true;
 
-  unfinished_oss = NULL;
+  unfinished_oss_ = NULL;
 
 #if CWDEBUG_DEBUG
   if (!WST_debug_object_init_magic)
     init_debug_object_init_magic();
-  init_magic = WST_debug_object_init_magic;
-  DEBUGDEBUG_CERR("Set init_magic to " << init_magic);
-  DEBUGDEBUG_CERR("Setting WNS_initialized to true");
+  init_magic_ = WST_debug_object_init_magic;
+  DEBUGDEBUG_CERR("Set init_magic_ to " << init_magic_);
+  DEBUGDEBUG_CERR("Setting initialized_ to true");
 #endif
 
   _private_::DebugObjects::instance().add_if_missing(this);
   new (_private_::WST_dummy_output_state) OutputState(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
-  WNS_index = S_index_count++;
+  index = index_count++;
 #if CWDEBUG_DEBUGT
   LIBCWD_ASSERT(!_private_::WST_multi_threaded.load(std::memory_order_relaxed)); // Only the first thread should be initializing DebugObject objects.
 #endif
-  LIBCWD_ASSERT(__libcwd_tsd.do_array[WNS_index] == NULL);
-  DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.do_array[WNS_index] = new DebugObject_ThreadSpecificData));
+  LIBCWD_ASSERT(__libcwd_tsd.do_array[index] == NULL);
+  DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.do_array[index] = new DebugObject_ThreadSpecificData));
   tsd.init();
 
 #if CWDEBUG_DEBUGOUTPUT
@@ -1226,10 +1226,10 @@ bool DebugObject::NS_init(LIBCWD_TSD_PARAM)
   DEBUGDEBUG_CERR("DebugObject::NS_init(), _off set to " << LIBCWD_TSD_MEMBER_OFF);
 
   set_ostream(&std::cerr); // Write to std::cerr by default.
-  interactive = true; // and thus we're interactive.
+  interactive_ = true; // and thus we're interactive.
 
-  NS_being_initialized = false;
-  WNS_initialized = true;
+  being_initialized_ = false;
+  initialized_ = true;
   return true; // Success.
 }
 
@@ -1268,8 +1268,8 @@ void debug_tsd_init(LIBCWD_TSD_PARAM)
 {
   // clang-format off
   ForAllDebugObjects(
-    LIBCWD_ASSERT(__libcwd_tsd.do_array[(debugObject).WNS_index] == NULL);
-    DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.do_array[(debugObject).WNS_index] = new DebugObject_ThreadSpecificData));
+    LIBCWD_ASSERT(__libcwd_tsd.do_array[(debugObject).index] == NULL);
+    DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.do_array[(debugObject).index] = new DebugObject_ThreadSpecificData));
     tsd.init();
     LIBCWD_DO_TSD_MEMBER_OFF(debugObject) = 0;
   );

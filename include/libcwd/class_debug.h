@@ -109,8 +109,10 @@ protected:
 #else
 public: // Only public because macro LibcwDout needs acces, don't access this directly.
 #endif
-  int WNS_index;
-  static int S_index_count;
+  int index;
+    // Assigned during initialization before this debug object is made visible to other threads.
+    // Public only because LibcwDout needs direct access; do not access this directly.
+  static int index_count;
 
 protected:
   //-------------------------------------------------------------------------------------------------
@@ -121,29 +123,31 @@ protected:
   _private_::OstreamState ostream_state_;
     // Ostream destination and matching external lock, protected as one unit.
 
-  Buffer* unfinished_oss;
-  void const* newlineless_tsd;
+  Buffer* unfinished_oss_;
+  void const* newlineless_tsd_;
 
 private:
   //-------------------------------------------------------------------------------------------------
   // Private attributes:
   //
 
-  bool WNS_initialized;
+  bool initialized_;
+    // Written during initialization before this debug object is made visible to other threads.
     // Set to true when this object is initialized (by a call to NS_init()).
 
-  bool NS_being_initialized;
+  bool being_initialized_;
+    // Only written during single-threaded initialization before concurrent access begins.
     // Set to true when this object is being initialized (by a call to NS_init()).
 
 #if CWDEBUG_DEBUG
-  long init_magic;
-    // Used to check if the trick with `WNS_initialized' really works.
+  long init_magic_;
+    // Used to check if the trick with `initialized_' really works.
 #endif
 
-  bool interactive;
+  bool interactive_;
     // Set true if the last or current debug output is to cerr
 
-  std::atomic<int> m_always_flush{0};
+  std::atomic<int> always_flush_{0};
     // Application-wide flush on/off counter for Debug Objects.
 
 
