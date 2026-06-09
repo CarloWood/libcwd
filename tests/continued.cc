@@ -41,13 +41,13 @@ std::stringstream captured_cerr;
 class RedirectCerrToStringStream
 {
  private:
-  std::streambuf* M_original;
+  std::streambuf* original_;
 
  public:
-  RedirectCerrToStringStream() : M_original(std::cerr.rdbuf(captured_cerr.rdbuf())) { }
+  RedirectCerrToStringStream() : original_(std::cerr.rdbuf(captured_cerr.rdbuf())) { }
   RedirectCerrToStringStream(RedirectCerrToStringStream const&) = delete;
   RedirectCerrToStringStream& operator=(RedirectCerrToStringStream const&) = delete;
-  ~RedirectCerrToStringStream() { std::cerr.rdbuf(M_original); }
+  ~RedirectCerrToStringStream() { std::cerr.rdbuf(original_); }
 };
 
 // Commit pending stdout-like debug output before a forced-cerr debug line.

@@ -34,17 +34,17 @@ namespace {
 class RedirectStream
 {
  private:
-  std::ostream& M_stream;
-  std::streambuf* M_original;
+  std::ostream& stream_;
+  std::streambuf* original_;
 
  public:
   RedirectStream(std::ostream& stream, std::ostream& destination)
-      : M_stream(stream), M_original(stream.rdbuf(destination.rdbuf()))
+      : stream_(stream), original_(stream.rdbuf(destination.rdbuf()))
   {
   }
   RedirectStream(RedirectStream const&) = delete;
   RedirectStream& operator=(RedirectStream const&) = delete;
-  ~RedirectStream() { M_stream.rdbuf(M_original); }
+  ~RedirectStream() { stream_.rdbuf(original_); }
 };
 
 // Execute the legacy do.cc debug-output scenario.

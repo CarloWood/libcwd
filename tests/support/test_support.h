@@ -53,13 +53,13 @@ namespace libcwd_ctest {
 // Copying is disabled to ensure each redirect restores std::cerr exactly once.
 class RedirectCerr {
  private:
-  std::streambuf* M_original;
+  std::streambuf* original_;
 
  public:
-  explicit RedirectCerr(std::ostream& output) : M_original(std::cerr.rdbuf(output.rdbuf())) { }
+  explicit RedirectCerr(std::ostream& output) : original_(std::cerr.rdbuf(output.rdbuf())) { }
   RedirectCerr(RedirectCerr const&) = delete;
   RedirectCerr& operator=(RedirectCerr const&) = delete;
-  ~RedirectCerr() { std::cerr.rdbuf(M_original); }
+  ~RedirectCerr() { std::cerr.rdbuf(original_); }
 };
 
 // Compare captured line-oriented output with a null-terminated array of expected lines.
