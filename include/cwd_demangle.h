@@ -45,12 +45,12 @@ enum substitution_nt
 
 struct Substitution
 {
-  int M_start_pos;
-  substitution_nt M_type;
-  int M_number_of_prefixes;
+  int start_pos;
+  substitution_nt type;
+  int number_of_prefixes;
 
   Substitution(int start_pos, substitution_nt type, int number_of_prefixes) :
-      M_start_pos(start_pos), M_type(type), M_number_of_prefixes(number_of_prefixes)
+      start_pos(start_pos), type(type), number_of_prefixes(number_of_prefixes)
   {
   }
 };
@@ -734,8 +734,8 @@ bool session<Allocator>::decode_substitution(string_type& output, qualifier_list
   ++M_inside_substitution;
   int saved_pos = M_pos;
   Substitution& substitution(M_substitutions_pos[value]);
-  M_pos = substitution.M_start_pos;
-  switch (substitution.M_type)
+  M_pos = substitution.start_pos;
+  switch (substitution.type)
   {
     case type:
       decode_type(output, qualifiers);
@@ -745,7 +745,7 @@ bool session<Allocator>::decode_substitution(string_type& output, qualifier_list
       break;
     case nested_name_prefix:
     case nested_name_template_prefix:
-      for (int cnt = substitution.M_number_of_prefixes; cnt > 0; --cnt)
+      for (int cnt = substitution.number_of_prefixes; cnt > 0; --cnt)
       {
         if (current() == 'I')
         {
@@ -757,7 +757,7 @@ bool session<Allocator>::decode_substitution(string_type& output, qualifier_list
         }
         else
         {
-          if (cnt < substitution.M_number_of_prefixes)
+          if (cnt < substitution.number_of_prefixes)
             output += "::";
           if (current() == 'S')
           {

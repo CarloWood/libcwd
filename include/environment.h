@@ -14,13 +14,13 @@ namespace libcwd {
 
 class Environment {
 private:
-  char const* const* __envp;
+  char const* const* envp_;
 public:
-  Environment(char const* const envp[]) : __envp(envp) { }
+  Environment(char const* const envp[]) : envp_(envp) { }
   void print_on(std::ostream& os) const
   {
     os << "[ ";
-    char const* const* p = __envp;
+    char const* const* p = envp_;
     while(*p)
     {
       os << '"' << buf2str(*p, std::strlen(*p)) << "\", ";
@@ -33,4 +33,3 @@ public:
 } // namespace libcwd
 
 #endif // ENVIRONMENT_H
-
