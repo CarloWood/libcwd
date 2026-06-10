@@ -14,25 +14,26 @@
 
 #if CWDEBUG_LOCATION
 
-#include "private_struct_TSD.h"
 #include "ObjectFileName.h"
 #include "lockable_auto_ptr.h"
+#include "private_struct_TSD.h"
+
 #include <cstring>
-#include <string>
 #include <iosfwd>
+#include <string>
 
 namespace libcwd {
 
 // Forward declaration.
 class Location;
 
-  namespace _private_ {
+namespace _private_ {
 
 // Forward declaration.
-template<class OSTREAM>
-  void print_location_on(OSTREAM& os, Location const& location);
+template <class OSTREAM>
+void print_location_on(OSTREAM& os, Location const& location);
 
-  } // namespace _private_
+} // namespace _private_
 } // namespace libcwd
 
 namespace libcwd {
@@ -53,32 +54,38 @@ extern char const* const unknown_function_c;
  *     Location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) );
  * \endcode
  */
-class Location {
-protected:
-  ObjectFileName const* object_file_name_;          //!< A pointer to an object representing the library or executable that this location belongs to or NULL when not initialized.
-  char const* function_name_;                           //!< Pointer to static string containing the mangled function name of this location.
-  lockable_auto_ptr<char, true> filepath_;     //!< The full source file name of this location.&nbsp; Allocated in `pc_location' using new [].
-  union {
-    char const* filename_;                     //!< Points inside filepath_ just after the last '/' or to the beginning.
-    void const* initialization_delayed_;       //!< If object_file_name_ == NULL and function_name_ points to pre_libcwd_initialization_c_, then this is the address that pc_location was called with.
-    void const* unknown_pc_;                   //!< If object_file_name_ == NULL and function_name_ points to unknown_function_c, then this is the address that pc_location was called with.
+class Location
+{
+ protected:
+  ObjectFileName const* object_file_name_; //!< A pointer to an object representing the library or executable that this
+                                           //!< location belongs to or NULL when not initialized.
+  char const* function_name_; //!< Pointer to static string containing the mangled function name of this location.
+  lockable_auto_ptr<char, true>
+      filepath_; //!< The full source file name of this location.&nbsp; Allocated in `pc_location' using new [].
+  union
+  {
+    char const* filename_; //!< Points inside filepath_ just after the last '/' or to the beginning.
+    void const* initialization_delayed_; //!< If object_file_name_ == NULL and function_name_ points to
+                                         //!< pre_libcwd_initialization_c_, then this is the address that pc_location
+                                         //!< was called with.
+    void const* unknown_pc_; //!< If object_file_name_ == NULL and function_name_ points to unknown_function_c, then
+                             //!< this is the address that pc_location was called with.
   };
-  unsigned int line_;                          //!< The line number of this location.
-  bool known_;                                 //!< Set when filepath_ (and filename_) point to valid data and line_ contains a valid line number.
-private:
-
-protected:
+  unsigned int line_; //!< The line number of this location.
+  bool known_; //!< Set when filepath_ (and filename_) point to valid data and line_ contains a valid line number.
+ private:
+ protected:
   // function_name_ can point to one of these constants, or to libcwd::unknown_function_c
   // or to a static string with the mangled function name.
   static char const uninitialized_location[];
   static char const pre_libcwd_initialization[];
   static char const cleared_location[];
 
-public:
+ public:
   explicit Location(void const* addr);
-      // Construct a location object for address `addr'.
+  // Construct a location object for address `addr'.
   explicit Location(void const* addr LIBCWD_COMMA_TSD_PARAM);
-      // Idem, but with passing the TSD.
+  // Idem, but with passing the TSD.
   ~Location();
 
   /**
@@ -107,7 +114,7 @@ public:
    * target object; call \ref lock_ownership on the source first when the source
    * must remain responsible for releasing the path storage.
    */
-  Location& operator=(Location const& location);		// Assignment operator
+  Location& operator=(Location const& location); // Assignment operator
 
   /**
    * \brief Keep ownership of the stored path in this object.
@@ -116,7 +123,11 @@ public:
    * releasing the source-file path owned by this location. Use this when a
    * location is used as a prototype for shorter-lived copies.
    */
-  void lock_ownership() { if (known_) filepath_.lock(); }
+  void lock_ownership()
+  {
+    if (known_)
+      filepath_.lock();
+  }
 
   /**
    * \brief Initialize the current object with the location that corresponds with \a pc.
@@ -131,12 +142,12 @@ public:
    */
   void clear();
 
-public:
+ public:
   // Accessors
   /**
-    * \brief Returns <CODE>false</CODE> if no source-file:line-number information is known for this location
-    * (or when it is uninitialized or clear()-ed).
-    */
+   * \brief Returns <CODE>false</CODE> if no source-file:line-number information is known for this location
+   * (or when it is uninitialized or clear()-ed).
+   */
   bool is_known() const;
 
   /**
@@ -175,13 +186,12 @@ public:
   void print_filepath_on(std::ostream& os) const;
   /** \brief Write the file name to an ostream. */
   void print_filename_on(std::ostream& os) const;
-  template<class OSTREAM>
-    friend void _private_::print_location_on(OSTREAM& os, Location const& location);
+  template <class OSTREAM>
+  friend void _private_::print_location_on(OSTREAM& os, Location const& location);
 #if (__GNUC__ == 3 && __GNUC_MINOR__ < 4)
   // This doesn't need to be a friend, but g++ 3.3.x and lower are broken.
   // We need to declare an operator<< this way as a workaround.
-  friend std::ostream&
-  operator<<(std::ostream& os, Location const& location)
+  friend std::ostream& operator<<(std::ostream& os, Location const& location)
   {
     _private_::print_location_on(os, location);
     return os;
@@ -190,12 +200,17 @@ public:
 
   // Return the program counter that still needs lazy symbol resolution, if any.
   bool initialization_delayed() const { return (!object_file_name_ && function_name_ == pre_libcwd_initialization); }
-  void const* unknown_pc() const { return (!object_file_name_ && function_name_ == unknown_function_c) ? unknown_pc_ : initialization_delayed() ? initialization_delayed_ : 0; }
+  void const* unknown_pc() const
+  {
+    return (!object_file_name_ && function_name_ == unknown_function_c) ? unknown_pc_
+           : initialization_delayed()                                   ? initialization_delayed_
+                                                                        : 0;
+  }
 };
 
-//#if (__GNUC__ > 3 || __GNUC_MINOR__ >= 4)
-//extern std::ostream& operator<<(std::ostream& os, Location const& location);
-//#endif
+// #if (__GNUC__ > 3 || __GNUC_MINOR__ >= 4)
+// extern std::ostream& operator<<(std::ostream& os, Location const& location);
+// #endif
 
 /** \brief Set the output format of Location.
  *

@@ -11,7 +11,8 @@
 #define LIBCWD_CLASS_DEBUG_STRING_H
 
 #include "libcwd/config.h"
-#include <cstddef>		// Needed for size_t
+
+#include <cstddef> // Needed for size_t
 #include <string>
 
 namespace libcwd {
@@ -29,15 +30,17 @@ class DebugObject;
  *
  * This type is used for the public attributes DebugObject::margin and DebugObject::marker of the %debug object class.
  */
-class DebugString {
-  friend class DebugObject;			// Needs access to the private functions.
+class DebugString
+{
+  friend class DebugObject; // Needs access to the private functions.
   friend struct DebugObject_ThreadSpecificData;
-private:
-  char* str_;					// Pointer to malloc-ed (zero terminated) string.
-  size_t size_;				// Size of string (exclusive terminating zero).
-  size_t capacity_;				// Size of allocated area (excl. terminating zero).
-  size_t default_capacity_;			// Current minimum capacity as set with `reserve'.
-  static constexpr size_t min_capacity = 64;	// Minimum capacity.
+
+ private:
+  char* str_; // Pointer to malloc-ed (zero terminated) string.
+  size_t size_; // Size of string (exclusive terminating zero).
+  size_t capacity_; // Size of allocated area (excl. terminating zero).
+  size_t default_capacity_; // Current minimum capacity as set with `reserve'.
+  static constexpr size_t min_capacity = 64; // Minimum capacity.
 
   size_t calculate_capacity(size_t);
   void internal_assign(char const* s, size_t l);
@@ -45,17 +48,17 @@ private:
   void internal_prepend(char const* s, size_t l);
   void internal_swallow(DebugString const&);
 
-private:
+ private:
   void NS_internal_init(char const* s, size_t l);
   void deinitialize();
   DebugString() { }
   ~DebugString();
 
-private:
+ private:
   friend struct DebugStringStackElement;
   DebugString(DebugString const& ds);
 
-public:
+ public:
   size_t size() const;
   size_t capacity() const;
   void reserve(size_t);
@@ -69,13 +72,14 @@ public:
 };
 
 // Used for the margin and marker stacks.
-struct DebugStringStackElement {
-public:
+struct DebugStringStackElement
+{
+ public:
   DebugStringStackElement* next;
   DebugString debug_string;
   DebugStringStackElement(DebugString const& ds);
 };
 
-}  // namespace libcwd
+} // namespace libcwd
 
 #endif // LIBCWD_CLASS_DEBUG_STRING_H

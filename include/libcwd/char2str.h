@@ -39,15 +39,16 @@ namespace libcwd {
  * \endcode
  */
 
-class char2str {
-private:
-  char c;						//!< The character to be printed.
+class char2str
+{
+ private:
+  char c; //!< The character to be printed.
 
-private:
+ private:
   void print_char_to(std::ostream&) const;
   void print_escaped_char_to(std::ostream&) const;
 
-public:
+ public:
   //! Construct a \c char2str object with attribute \a ci.
   char2str(char ci) : c(ci) { }
 

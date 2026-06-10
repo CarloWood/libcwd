@@ -8,23 +8,18 @@
 
 namespace libcwd {
 
-inline
-FatalChannel::FatalChannel(char const* label, control_flag_t maskbit)
+inline FatalChannel::FatalChannel(char const* label, control_flag_t maskbit)
 {
   LIBCWD_TSD_DECLARATION;
   NS_initialize(label, maskbit LIBCWD_COMMA_TSD);
 }
 
-inline
-control_flag_t
-FatalChannel::get_maskbit() const
+inline control_flag_t FatalChannel::get_maskbit() const
 {
   return maskbit_;
 }
 
-inline
-char const*
-FatalChannel::get_label() const
+inline char const* FatalChannel::get_label() const
 {
   return label_;
 }

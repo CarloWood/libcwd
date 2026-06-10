@@ -8,6 +8,7 @@
 
 #include "libcwd/ObjectFileName.h"
 #include "libcwd/private_struct_TSD.h"
+
 #include <cstdint>
 
 namespace libcwd::dwarf {
@@ -29,18 +30,21 @@ extern bool ensure_initialization(LIBCWD_TSD_PARAM);
 // filepath points to libdw-owned storage and may be set even when known is false.
 struct LocationLookupResult
 {
-  char const* physical_function_name{};         // Enclosing machine-code symbol.
-  char const* effective_function_name{};        // Optional source-level override for reporting.
-  char const* filepath{nullptr};                // Source path, or nullptr when no file is known.
-  unsigned int line;                            // Source line, valid only when known is true.
-  bool known{false};                            // True when filepath and line describe a usable source location.
+  char const* physical_function_name{}; // Enclosing machine-code symbol.
+  char const* effective_function_name{}; // Optional source-level override for reporting.
+  char const* filepath{nullptr}; // Source path, or nullptr when no file is known.
+  unsigned int line; // Source line, valid only when known is true.
+  bool known{false}; // True when filepath and line describe a usable source location.
 
   // Return the function name selected for callers that do not need to inspect
   // why it was selected.
   //
   // This returns effective_function_name when inline-aware lookup has chosen
   // one, otherwise it falls back to physical_function_name.
-  char const* function_name() const { return effective_function_name ? effective_function_name : physical_function_name; }
+  char const* function_name() const
+  {
+    return effective_function_name ? effective_function_name : physical_function_name;
+  }
 };
 
 class SymbolRangeInterface
@@ -62,7 +66,7 @@ class SymbolRangeInterface
 class ObjectFileInterface
 {
  protected:
-  uintptr_t const lbase_;                       // The load address of this object file.
+  uintptr_t const lbase_; // The load address of this object file.
 
   ObjectFileInterface(uintptr_t lbase) : lbase_(lbase) { }
 

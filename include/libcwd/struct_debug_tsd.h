@@ -6,11 +6,12 @@
 #ifndef LIBCWD_STRUCT_DEBUG_TSD_H
 #define LIBCWD_STRUCT_DEBUG_TSD_H
 
-#include "libcwd/config.h"
 #include "class_channel_set.h"
-#include "private_debug_stack.h"
 #include "class_debug_string.h"
+#include "private_debug_stack.h"
 #include "private_struct_TSD.h"
+#include "libcwd/config.h"
+
 #include <iosfwd>
 
 namespace libcwd {
@@ -37,7 +38,7 @@ struct DebugObject_ThreadSpecificData
   friend class DebugObject;
 
   bool tsd_initialized;
-    // Set after initialization is completed.
+  // Set after initialization is completed.
 
 #if CWDEBUG_DEBUGOUTPUT
   // Since we start with _off is -1 instead of 0 when CWDEBUG_DEBUG is set,
@@ -46,48 +47,48 @@ struct DebugObject_ThreadSpecificData
 #endif
 
   OutputState* current;
-    // Current output state.
+  // Current output state.
 
   std::ostream* current_bufferstream;
-    // The stringstream of the current output state.
-    // This should be set to current->bufferstream at all times.
+  // The stringstream of the current output state.
+  // This should be set to current->bufferstream at all times.
 
   _private_::DebugStack<OutputState*> output_state_stack;
-    // Store for nested debug calls.
+  // Store for nested debug calls.
 
   bool start_expected;
-    // Set to true when start() is expected, otherwise we expect a call to finish().
+  // Set to true when start() is expected, otherwise we expect a call to finish().
 
   bool unfinished_expected;
-    // Set to true when start() should cause a <unfinished>.
+  // Set to true when start() should cause a <unfinished>.
 
   int off_count;
-    // Number of nested and switched off continued channels till first switched on continued channel.
+  // Number of nested and switched off continued channels till first switched on continued channel.
 
   _private_::DebugStack<int> continued_stack;
-    // Stores the number of nested and switched off continued channels.
+  // Stores the number of nested and switched off continued channels.
 
   DebugString color_on;
-    // Colorization code for debug output.
+  // Colorization code for debug output.
 
   DebugString color_off;
-    // Undo the effect of color_on.
+  // Undo the effect of color_on.
 
   DebugString margin;
-    // The margin string.
+  // The margin string.
 
   DebugString marker;
-    // The marker string.
+  // The marker string.
 
   DebugStringStackElement* margin_stack;
-    // Pointer to list of pushed margins.
+  // Pointer to list of pushed margins.
 
   DebugStringStackElement* marker_stack;
-    // Pointer to list of pushed markers.
+  // Pointer to list of pushed markers.
 
   unsigned short indent;
-    // Position at which debug message is printed.
-    // A value of 0 means directly behind the marker.
+  // Position at which debug message is printed.
+  // A value of 0 means directly behind the marker.
 
   // Accessed from LibcwdDout.
   void start(DebugObject& debug_object, ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM);

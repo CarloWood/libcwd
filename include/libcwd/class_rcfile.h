@@ -11,8 +11,8 @@
 #define LIBCWD_CLASS_RCFILE_H
 
 #include <iosfwd>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace libcwd {
 
@@ -28,27 +28,28 @@ class Channel;
  * This is the object that is used by
  * <code>\link libcwd::read_rcfile read_rcfile() \endlink</code>.
  */
-class RcFile {
-private:
-  std::string konsole_command_;			// How to execute a command in a window.
-  std::string gdb_bin_;				// Path to 'gdb'.
+class RcFile
+{
+ private:
+  std::string konsole_command_; // How to execute a command in a window.
+  std::string gdb_bin_; // Path to 'gdb'.
 
-  char const* rcname_;					// Name of rcfile.
-  bool env_set_;					// Whether or not LIBCWD_RCFILE_NAME is set.
+  char const* rcname_; // Name of rcfile.
+  bool env_set_; // Whether or not LIBCWD_RCFILE_NAME is set.
   bool read_called_;
 
 #if CWDEBUG_LOCATION
   bool elfutils_on_;
 #endif
 
-public:
+ public:
   /**
    * \brief Construct a rcfile object.
    */
   RcFile() : env_set_(false), read_called_(false) { }
   virtual ~RcFile() { }
 
-private:
+ private:
   void print_delayed_msg(int env_var, std::string const& value) const;
   void set_all_channels_on();
   void set_all_channels_off(bool warning_on);
@@ -56,11 +57,16 @@ private:
   static bool S_exists(char const* name);
   std::string determine_rcfile_name();
 
-  enum action_nt { toggle, on, off };
+  enum action_nt
+  {
+    toggle,
+    on,
+    off
+  };
   void process_channel(Channel& debugChannel, std::string const& mask, action_nt const action);
   void process_channels(std::string list, action_nt const action);
 
-public:
+ public:
   /**
    * \brief Initialize this object by reading the rcfile.
    */
@@ -78,7 +84,7 @@ public:
    */
   bool read_called() const { return read_called_; }
 
-protected:
+ protected:
   /**
    * \brief Virtual function called for unknown keywords.
    *

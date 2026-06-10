@@ -19,4 +19,3 @@ namespace libcwd {
 } // namespace libcwd
 
 #endif // LIBCWD_CORE_DUMP_H
-

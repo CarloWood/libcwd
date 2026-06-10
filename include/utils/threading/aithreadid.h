@@ -7,10 +7,10 @@
 #define UTILS_THREADING_AITHREADID_H
 
 #include "utils/macros.h"
+
 #include <thread>
 
-namespace aithreadid
-{
+namespace aithreadid {
 
 extern std::thread::id const none;
 extern std::thread::id const s_main_thread_id;

@@ -59,21 +59,36 @@ extern std::mutex raw_write_mutex;
     }                                                                                                           \
   } while (0)
 #else // CWDEBUG_DEBUGT
-#define LIBCWD_DEBUGT_ASSERT(expr) do { } while (0)
+#define LIBCWD_DEBUGT_ASSERT(expr) \
+  do                               \
+  {                                \
+  } while (0)
 #endif // CWDEBUG_DEBUGT
 
 #else // !CWDEBUG_DEBUG
 
-#define LIBCWD_DEBUG_ASSERT(expr) do { } while (0)
-#define FATALDEBUGDEBUG_CERR(x) do { } while (0)
-#define LIBCWD_DEBUGT_ASSERT(expr) do { } while (0)
+#define LIBCWD_DEBUG_ASSERT(expr) \
+  do                              \
+  {                               \
+  } while (0)
+#define FATALDEBUGDEBUG_CERR(x) \
+  do                            \
+  {                             \
+  } while (0)
+#define LIBCWD_DEBUGT_ASSERT(expr) \
+  do                               \
+  {                                \
+  } while (0)
 
 #endif // !CWDEBUG_DEBUG
 
 #if CWDEBUG_DEBUGOUTPUT
 #define DEBUGDEBUG_CERR(x) FATALDEBUGDEBUG_CERR(x)
 #else // !CWDEBUG_DEBUGOUTPUT
-#define DEBUGDEBUG_CERR(x) do { } while (0)
+#define DEBUGDEBUG_CERR(x) \
+  do                       \
+  {                        \
+  } while (0)
 #endif // !CWDEBUG_DEBUGOUTPUT
 
 #endif // RAW_WRITE_H

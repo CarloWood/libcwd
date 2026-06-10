@@ -4,15 +4,15 @@
 #define LIBCWD_CLASS_DEBUG_STRING_INL
 
 #include "class_debug_string.h"
-#include <cstddef>		// Needed for size_t
+
+#include <cstddef> // Needed for size_t
 
 namespace libcwd {
 
 /**
  * \brief Copy constructor.
  */
-inline
-DebugString::DebugString(DebugString const& ds)
+inline DebugString::DebugString(DebugString const& ds)
 {
   NS_internal_init(ds.str_, ds.size_);
   if (capacity_ < ds.capacity_)
@@ -23,9 +23,7 @@ DebugString::DebugString(DebugString const& ds)
 /**
  * \brief Assign \a str with size \a len to the string.
  */
-inline
-void
-DebugString::assign(char const* str, size_t len)
+inline void DebugString::assign(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
   internal_assign(str, len);
@@ -34,9 +32,7 @@ DebugString::assign(char const* str, size_t len)
 /**
  * \brief Append \a str with size \a len to the string.
  */
-inline
-void
-DebugString::append(char const* str, size_t len)
+inline void DebugString::append(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
   internal_append(str, len);
@@ -45,9 +41,7 @@ DebugString::append(char const* str, size_t len)
 /**
  * \brief Prepend \a str with size \a len to the string.
  */
-inline
-void
-DebugString::prepend(char const* str, size_t len)
+inline void DebugString::prepend(char const* str, size_t len)
 {
   LIBCWD_TSD_DECLARATION;
   internal_prepend(str, len);
@@ -56,9 +50,7 @@ DebugString::prepend(char const* str, size_t len)
 /**
  * \brief The size of the string.
  */
-inline
-size_t
-DebugString::size() const
+inline size_t DebugString::size() const
 {
   return size_;
 }
@@ -66,9 +58,7 @@ DebugString::size() const
 /**
  * \brief The capacity of the string.
  */
-inline
-size_t
-DebugString::capacity() const
+inline size_t DebugString::capacity() const
 {
   return capacity_;
 }
@@ -76,9 +66,7 @@ DebugString::capacity() const
 /**
  * \brief A zero terminated char const pointer.
  */
-inline
-char const*
-DebugString::c_str() const
+inline char const* DebugString::c_str() const
 {
   return str_;
 }
@@ -86,9 +74,7 @@ DebugString::c_str() const
 /**
  * \brief Assign \a str to the string.
  */
-inline
-void
-DebugString::assign(std::string const& str)
+inline void DebugString::assign(std::string const& str)
 {
   assign(str.data(), str.size());
 }
@@ -96,9 +82,7 @@ DebugString::assign(std::string const& str)
 /**
  * \brief Append \a str to the string.
  */
-inline
-void
-DebugString::append(std::string const& str)
+inline void DebugString::append(std::string const& str)
 {
   append(str.data(), str.size());
 }
@@ -106,15 +90,12 @@ DebugString::append(std::string const& str)
 /**
  * \brief Prepend \a str to the string.
  */
-inline
-void
-DebugString::prepend(std::string const& str)
+inline void DebugString::prepend(std::string const& str)
 {
   prepend(str.data(), str.size());
 }
 
-inline
-DebugStringStackElement::DebugStringStackElement(DebugString const& ds) : debug_string(ds)
+inline DebugStringStackElement::DebugStringStackElement(DebugString const& ds) : debug_string(ds)
 {
 }
 

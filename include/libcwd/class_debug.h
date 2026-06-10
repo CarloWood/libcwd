@@ -10,14 +10,15 @@
 #ifndef LIBCWD_CLASS_DEBUG_H
 #define LIBCWD_CLASS_DEBUG_H
 
-#include "libcwd/config.h"
 #include "class_channel_set.h"
+#include "private_lock_interface.h"
 #include "private_struct_TSD.h"
 #include "struct_debug_tsd.h"
-#include "private_lock_interface.h"
-#include <iosfwd>
+#include "libcwd/config.h"
+
 #include <atomic>
 #include <cstddef>
+#include <iosfwd>
 #include <mutex>
 
 namespace libcwd {
@@ -31,9 +32,11 @@ namespace _private_ {
 struct OstreamState
 {
  private:
-  mutable std::mutex state_mutex_;      // Protects real_os_ and mutex_ as one pair.
-  std::ostream* real_os_{};             // The destination selected with DebugObject::set_ostream. mutex points at the user-provided lock
-  LockInterfaceBase* mutex_{};     // User-provided lock adapter for that stream, or null while the debug object is still limited to single-threaded output.
+  mutable std::mutex state_mutex_; // Protects real_os_ and mutex_ as one pair.
+  std::ostream*
+      real_os_{}; // The destination selected with DebugObject::set_ostream. mutex points at the user-provided lock
+  LockInterfaceBase* mutex_{}; // User-provided lock adapter for that stream, or null while the debug object is still
+                               // limited to single-threaded output.
 
  public:
   // Replace both the ostream and its lock adapter with os and new_mutex.
@@ -101,57 +104,57 @@ struct OstreamState
  *
  * See \ref group_debug_object.
  */
-class DebugObject {
+class DebugObject
+{
   friend void DebugObject_ThreadSpecificData::start(DebugObject&, ChannelSetData& LIBCWD_COMMA_TSD_PARAM);
-  friend void DebugObject_ThreadSpecificData::finish(DebugObject &, ChannelSetData& LIBCWD_COMMA_TSD_PARAM);
+  friend void DebugObject_ThreadSpecificData::finish(DebugObject&, ChannelSetData& LIBCWD_COMMA_TSD_PARAM);
 #ifdef LIBCWD_DOXYGEN
-protected:
+ protected:
 #else
-public: // Only public because macro LibcwDout needs acces, don't access this directly.
+ public: // Only public because macro LibcwDout needs acces, don't access this directly.
 #endif
   int index_;
-    // Assigned during initialization before this debug object is made visible to other threads.
-    // Public only because LibcwDout needs direct access; do not access this directly.
+  // Assigned during initialization before this debug object is made visible to other threads.
+  // Public only because LibcwDout needs direct access; do not access this directly.
   static int s_index_count_;
 
-protected:
+ protected:
   //-------------------------------------------------------------------------------------------------
   // Protected attributes.
   //
 
-  friend class libcwd::Buffer;		// Buffer::writeto() needs access.
+  friend class libcwd::Buffer; // Buffer::writeto() needs access.
   _private_::OstreamState ostream_state_;
-    // Ostream destination and matching external lock, protected as one unit.
+  // Ostream destination and matching external lock, protected as one unit.
 
   Buffer* unfinished_oss_;
   void const* newlineless_tsd_;
 
-private:
+ private:
   //-------------------------------------------------------------------------------------------------
   // Private attributes:
   //
 
   bool initialized_;
-    // Written during initialization before this debug object is made visible to other threads.
-    // Set to true when this object is initialized (by a call to NS_init()).
+  // Written during initialization before this debug object is made visible to other threads.
+  // Set to true when this object is initialized (by a call to NS_init()).
 
   bool being_initialized_;
-    // Only written during single-threaded initialization before concurrent access begins.
-    // Set to true when this object is being initialized (by a call to NS_init()).
+  // Only written during single-threaded initialization before concurrent access begins.
+  // Set to true when this object is being initialized (by a call to NS_init()).
 
 #if CWDEBUG_DEBUG
   long init_magic_;
-    // Used to check if the trick with `initialized_' really works.
+  // Used to check if the trick with `initialized_' really works.
 #endif
 
   bool interactive_;
-    // Set true if the last or current debug output is to cerr
+  // Set true if the last or current debug output is to cerr
 
   std::atomic<int> always_flush_{0};
-    // Application-wide flush on/off counter for Debug Objects.
+  // Application-wide flush on/off counter for Debug Objects.
 
-
-public:
+ public:
   /** \addtogroup group_formatting */
   /** \{ */
 
@@ -199,7 +202,7 @@ public:
 
   /** \} */
 
-public:
+ public:
   //-------------------------------------------------------------------------------------------------
   // Manipulators and accessors for the "format" attributes:
   //
@@ -218,10 +221,10 @@ public:
   // Other accessors
   //
 
-  std::ostream* get_ostream() const;		// The original ostream set with set_ostream.
-  bool has_mutex() const;                       // Returns true if a mutex was (already) set with set_ostream.
+  std::ostream* get_ostream() const; // The original ostream set with set_ostream.
+  bool has_mutex() const; // Returns true if a mutex was (already) set with set_ostream.
 
-private:
+ private:
   //-------------------------------------------------------------------------------------------------
   // Initialization function.
   //
@@ -233,27 +236,27 @@ private:
   friend bool dwarf::ensure_initialization(LIBCWD_TSD_PARAM);
 #endif
   bool NS_init(LIBCWD_TSD_PARAM);
-    // Initialize this object, needed because debug output can be written
-    // from the constructors of (other) global objects.
-    // This will return false when it is called recursively which can happen
-    // as part of initialization of libcwd via a call to malloc while creating
-    // OutputState -> Buffer --> basic_stringbuf.  In that case the initialization
-    // failed thus.  On success, it returns true.
+  // Initialize this object, needed because debug output can be written
+  // from the constructors of (other) global objects.
+  // This will return false when it is called recursively which can happen
+  // as part of initialization of libcwd via a call to malloc while creating
+  // OutputState -> Buffer --> basic_stringbuf.  In that case the initialization
+  // failed thus.  On success, it returns true.
 
-public:
+ public:
   //-------------------------------------------------------------------------------------------------
   // Constructors and destructors.
   //
 
   DebugObject();
 
-public:
+ public:
   //-------------------------------------------------------------------------------------------------
   // Manipulators:
   //
 
   void set_ostream(std::ostream* os);
-  template<class T>
+  template <class T>
   void set_ostream(std::ostream* os, T* mutex);
   void off();
   void on();
@@ -261,7 +264,8 @@ public:
   void always_flush_on();
   void always_flush_off();
 
-  struct OnOffState {
+  struct OnOffState
+  {
     int off_cnt;
 #if CWDEBUG_DEBUGOUTPUT
     bool first_time;
@@ -274,7 +278,7 @@ public:
   bool always_flush_is_on() const;
 };
 
-}  // namespace libcwd
+} // namespace libcwd
 
 #include "set_ostream.inl.h"
 

@@ -10,9 +10,9 @@
 #ifndef LIBCWD_CLASS_CHANNEL_SET_H
 #define LIBCWD_CLASS_CHANNEL_SET_H
 
-#include "libcwd/config.h"
 #include "control_flag.h"
 #include "private_struct_TSD.h"
+#include "libcwd/config.h"
 
 namespace libcwd {
 
@@ -27,19 +27,20 @@ class FatalChannel;
 // The attributes of ChannelSetBootstrap, ChannelSet and ContinuedChannelSet
 //
 
-struct ChannelSetData {
-public:
+struct ChannelSetData
+{
+ public:
   char const* label;
-    // The label of the most left channel that is turned on.
+  // The label of the most left channel that is turned on.
 
   control_flag_t mask;
-    // The bit-wise OR mask of all control flags and special channels.
+  // The bit-wise OR mask of all control flags and special channels.
 
   bool on;
-    // Set if at least one of the provided channels is turned on.
+  // Set if at least one of the provided channels is turned on.
 
   DebugObject_ThreadSpecificData* debug_object_tsd_ptr;
-    // Thread specific data of current debug object.
+  // Thread specific data of current debug object.
 
 #if CWDEBUG_DEBUG
   ChannelSetData() : debug_object_tsd_ptr(nullptr) { }
@@ -69,9 +70,10 @@ class AlwaysChannel;
 struct ChannelSet;
 struct ContinuedChannelSet;
 
-struct ChannelSetBootstrap : public ChannelSetData {
+struct ChannelSetBootstrap : public ChannelSetData
+{
   // Warning: This struct may not have attributes of its own!
-public:
+ public:
   ChannelSetBootstrap(DebugObject_ThreadSpecificData& debug_object_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED)
   {
     debug_object_tsd_ptr = &debug_object_tsd;
@@ -86,9 +88,10 @@ public:
   ContinuedChannelSet& operator|(ContinuedChannel const& cdc);
 };
 
-struct FatalChannelSetBootstrap : public ChannelSetData {
+struct FatalChannelSetBootstrap : public ChannelSetData
+{
   // Warning: This struct may not have attributes of its own!
-public:
+ public:
   FatalChannelSetBootstrap(DebugObject_ThreadSpecificData& debug_object_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED)
   {
     debug_object_tsd_ptr = &debug_object_tsd;
@@ -108,9 +111,10 @@ public:
 // is passed to struct_debug_tsd_st::start().
 //
 
-struct ChannelSet : public ChannelSetData {
+struct ChannelSet : public ChannelSetData
+{
   // Warning: This struct may not have attributes of its own!
-public:
+ public:
   ChannelSet& operator|(control_flag_t cf);
   ChannelSet& operator|(Channel const& dc);
   ChannelSet& operator|(FatalChannel const& fdc);
@@ -123,9 +127,10 @@ public:
 // The channel set type used for a series that starts with dc::continued.
 //
 
-struct ContinuedChannelSet : public ChannelSetData {
+struct ContinuedChannelSet : public ChannelSetData
+{
   // Warning: This struct may not have attributes of its own!
-public:
+ public:
   ContinuedChannelSet& operator|(control_flag_t cf);
 };
 

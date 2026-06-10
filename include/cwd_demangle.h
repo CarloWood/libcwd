@@ -24,7 +24,7 @@
 #define _GLIBCXX_DEMANGLER_FAILURE \
   do                               \
   {                                \
-    result_ = false;              \
+    result_ = false;               \
     return false;                  \
   } while (0)
 #else
@@ -215,7 +215,8 @@ class qualifier_list
     if (iter != list.qualifier_starts_.end())
     {
       os << "{ " << *iter;
-      while (++iter != list.qualifier_starts_.end()) os << ", " << *iter;
+      while (++iter != list.qualifier_starts_.end())
+        os << ", " << *iter;
       os << " }";
     }
     else
@@ -1078,25 +1079,25 @@ struct Entry
 };
 
 Entry const symbol_name_table_c[39] = {{"aa", "operator&&", binary},       {"na", "operator new[]", unary},
-                                          {"le", "operator<=", binary},       {"ad", "operator&", unary},
-                                          {"da", "operator delete[]", unary}, {"ne", "operator!=", binary},
-                                          {"mi=", "operator-", binary},       {"ng", "operator-", unary},
-                                          {"de", "operator*", unary},         {"ml=", "operator*", binary},
-                                          {"mm", "operator--", unary},        {"cl", "operator()", unary},
-                                          {"cm", "operator,", binary},        {"an=", "operator&", binary},
-                                          {"co", "operator~", binary},        {"dl", "operator delete", unary},
-                                          {"ls=", "operator<<", binary},      {"lt", "operator<", binary},
-                                          {"as=", "operator", binary},        {"ge", "operator>=", binary},
-                                          {"nt", "operator!", unary},         {"rm=", "operator%", binary},
-                                          {"eo=", "operator^", binary},       {"nw", "operator new", unary},
-                                          {"eq", "operator==", binary},       {"dv=", "operator/", binary},
-                                          {"qu", "operator?", trinary},       {"rs=", "operator>>", binary},
-                                          {"pl=", "operator+", binary},       {"pm", "operator->*", binary},
-                                          {"oo", "operator||", binary},       {"st", "sizeof", unary},
-                                          {"pp", "operator++", unary},        {"or=", "operator|", binary},
-                                          {"gt", "operator>", binary},        {"ps", "operator+", unary},
-                                          {"pt", "operator->", binary},       {"sz", "sizeof", unary},
-                                          {"ix", "operator[]", unary}};
+                                       {"le", "operator<=", binary},       {"ad", "operator&", unary},
+                                       {"da", "operator delete[]", unary}, {"ne", "operator!=", binary},
+                                       {"mi=", "operator-", binary},       {"ng", "operator-", unary},
+                                       {"de", "operator*", unary},         {"ml=", "operator*", binary},
+                                       {"mm", "operator--", unary},        {"cl", "operator()", unary},
+                                       {"cm", "operator,", binary},        {"an=", "operator&", binary},
+                                       {"co", "operator~", binary},        {"dl", "operator delete", unary},
+                                       {"ls=", "operator<<", binary},      {"lt", "operator<", binary},
+                                       {"as=", "operator", binary},        {"ge", "operator>=", binary},
+                                       {"nt", "operator!", unary},         {"rm=", "operator%", binary},
+                                       {"eo=", "operator^", binary},       {"nw", "operator new", unary},
+                                       {"eq", "operator==", binary},       {"dv=", "operator/", binary},
+                                       {"qu", "operator?", trinary},       {"rs=", "operator>>", binary},
+                                       {"pl=", "operator+", binary},       {"pm", "operator->*", binary},
+                                       {"oo", "operator||", binary},       {"st", "sizeof", unary},
+                                       {"pp", "operator++", unary},        {"or=", "operator|", binary},
+                                       {"gt", "operator>", binary},        {"ps", "operator+", unary},
+                                       {"pt", "operator->", binary},       {"sz", "sizeof", unary},
+                                       {"ix", "operator[]", unary}};
 
 template <typename Allocator>
 bool session<Allocator>::decode_operator_name(string_type& output)
@@ -1619,8 +1620,8 @@ void qualifier_list<Allocator>::decode_qualifiers(string_type& prefix, string_ty
   _GLIBCXX_DEMANGLER_DOUT_ENTERING3("decode_qualifiers");
   int cvq = 0;
   typename qual_vector::const_reverse_iterator iter_array;
-  for (typename qual_vector::const_reverse_iterator iter = qualifier_starts_.rbegin();
-       iter != qualifier_starts_.rend(); ++iter)
+  for (typename qual_vector::const_reverse_iterator iter = qualifier_starts_.rbegin(); iter != qualifier_starts_.rend();
+       ++iter)
   {
     if (!member_function_pointer_qualifiers && !(*iter).part_of_substitution())
     {
@@ -2046,7 +2047,8 @@ bool session<Allocator>::decode_nested_name(string_type& output, string_type& qu
 
   // <CV-qualifiers> ::= [r] [V] [K]  # restrict (C99), volatile, const
   char const* qualifiers_start = &str_[pos_ + 1];
-  for (char c = next(); c == 'K' || c == 'V' || c == 'r'; c = next());
+  for (char c = next(); c == 'K' || c == 'V' || c == 'r'; c = next())
+    ;
   for (char const* qualifier_ptr = &str_[pos_ - 1]; qualifier_ptr >= qualifiers_start; --qualifier_ptr)
     switch (*qualifier_ptr)
     {
@@ -2153,7 +2155,8 @@ bool session<Allocator>::decode_source_name(string_type& output)
   int length = current() - '0';
   if (length < 1 || length > 9)
     _GLIBCXX_DEMANGLER_FAILURE;
-  while (isdigit(next())) length = 10 * length + current() - '0';
+  while (isdigit(next()))
+    length = 10 * length + current() - '0';
   char const* ptr = &str_[pos_];
   if (length > 11 && !strncmp(ptr, "_GLOBAL_", 8) && ptr[9] == 'N' && ptr[8] == ptr[10])
   {
@@ -2421,7 +2424,8 @@ bool session<Allocator>::decode_special_name(string_type& output)
       eat_current();
       if (!decode_type(first))
         _GLIBCXX_DEMANGLER_FAILURE;
-      while (isdigit(current())) eat_current();
+      while (isdigit(current()))
+        eat_current();
       if (eat_current() != '_')
         _GLIBCXX_DEMANGLER_FAILURE;
       if (!decode_type(output))

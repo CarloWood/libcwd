@@ -8,15 +8,12 @@
 
 namespace libcwd {
 
-inline
-ContinuedChannel::ContinuedChannel(control_flag_t maskbit)
+inline ContinuedChannel::ContinuedChannel(control_flag_t maskbit)
 {
   NS_initialize(maskbit);
 }
 
-inline
-control_flag_t
-ContinuedChannel::get_maskbit() const
+inline control_flag_t ContinuedChannel::get_maskbit() const
 {
   return maskbit_;
 }

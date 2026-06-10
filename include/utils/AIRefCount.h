@@ -75,15 +75,12 @@ class AIRefCount
 {
  private:
 #if CW_DEBUG
-  static constexpr int deleted_magic = -0x6de1e7ed;             // A negative magic number.
+  static constexpr int deleted_magic = -0x6de1e7ed; // A negative magic number.
 #endif
   mutable std::atomic<int> m_count;
 
  public:
-  friend void intrusive_ptr_add_ref(AIRefCount const* ptr)
-  {
-    ptr->m_count.fetch_add(1, std::memory_order_relaxed);
-  }
+  friend void intrusive_ptr_add_ref(AIRefCount const* ptr) { ptr->m_count.fetch_add(1, std::memory_order_relaxed); }
 
   friend void intrusive_ptr_release(AIRefCount const* ptr)
   {
@@ -100,14 +97,12 @@ class AIRefCount
   {
     int prev_count = m_count.fetch_add(1, std::memory_order_relaxed);
     // Because m_count is overwritten with deleted_magic upon destruction when CWDEBUG is defined, a reference count of
-    // zero means that this object is probably still being constructed and wasn't passed to a boost::intrusive_ptr _yet_.
-    // If under those circumstances an intrusive_ptr_add_ref/intrusive_ptr_release pair,
-    // that is merely intended to temporarily inhibit deletion, could inadvertently delete
-    // the object while it is still being constructed (at least, before we even got
-    // the chance to pass it to the first boost::intrusive_ptr).
-    // This test can help in detecting that it was not a good idea to call inhibit_deletion
-    // if that can result in a subsequent call to allow_deletion() before that first
-    // boost::intrusive_ptr is created. If that is not possible then you can pass
+    // zero means that this object is probably still being constructed and wasn't passed to a boost::intrusive_ptr
+    // _yet_. If under those circumstances an intrusive_ptr_add_ref/intrusive_ptr_release pair, that is merely intended
+    // to temporarily inhibit deletion, could inadvertently delete the object while it is still being constructed (at
+    // least, before we even got the chance to pass it to the first boost::intrusive_ptr). This test can help in
+    // detecting that it was not a good idea to call inhibit_deletion if that can result in a subsequent call to
+    // allow_deletion() before that first boost::intrusive_ptr is created. If that is not possible then you can pass
     // false to this function.
     //
     // Normally, when this assert fires you should find the function that was
@@ -144,8 +139,9 @@ class AIRefCount
     return prev_count;
   }
 
-  // Balance a call to inhibit_deletion(). Decrements m_count; returns the previous value (mainly for debugging purposes).
-  // If defer_delete is true however, then the object must be deleted by the caller iff the returned value is 1.
+  // Balance a call to inhibit_deletion(). Decrements m_count; returns the previous value (mainly for debugging
+  // purposes). If defer_delete is true however, then the object must be deleted by the caller iff the returned value
+  // is 1.
   int allow_deletion(bool defer_delete = false, int count = 1) const
   {
     // Do not call this function with a count of 0.
@@ -181,20 +177,22 @@ class AIRefCount
   // Returns true if there is only one reference to this object left.
   // If this function returns true it is therefore guaranteed to stay true,
   // but if it returns false it might become true shortly afterwards.
-//  utils::FuzzyBool unique() const { return std::atomic_load_explicit(&m_count, std::memory_order_relaxed) == 1 ? fuzzy::True : fuzzy::WasFalse; }
+  //  utils::FuzzyBool unique() const { return std::atomic_load_explicit(&m_count, std::memory_order_relaxed) == 1 ?
+  //  fuzzy::True : fuzzy::WasFalse; }
 
 #if CW_DEBUG
   // Pretty unreliable, but sometimes useful.
-  bool is_destructed() const { int cnt = std::atomic_load_explicit(&m_count, std::memory_order_relaxed); return cnt < 0; }
+  bool is_destructed() const
+  {
+    int cnt = std::atomic_load_explicit(&m_count, std::memory_order_relaxed);
+    return cnt < 0;
+  }
   // Used when deferred deleting an object.
   void mark_deleted() const { m_count = deleted_magic; }
 #endif
 #ifdef CWDEBUG
   // Purely for debug code. The returned value suffers from race conditions and is not stable.
-  int read_count_racy() const
-  {
-    return m_count.load(std::memory_order_relaxed);
-  }
+  int read_count_racy() const { return m_count.load(std::memory_order_relaxed); }
 #endif
 };
 

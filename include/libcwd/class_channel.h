@@ -10,10 +10,11 @@
 #ifndef LIBCWD_CLASS_CHANNEL_H
 #define LIBCWD_CLASS_CHANNEL_H
 
-#include "libcwd/config.h"
-#include "max_label_len.h"
 #include "control_flag.h"
+#include "max_label_len.h"
 #include "private_struct_TSD.h"
+#include "libcwd/config.h"
+
 #include <atomic>
 
 namespace libcwd {
@@ -73,21 +74,20 @@ class Channel
 {
  private:
   int index_;
-    // Assigned during initialization before this channel is made visible to other threads.
-    // A unique id that is used as index into the TSD array `off_cnt_array'.
+  // Assigned during initialization before this channel is made visible to other threads.
+  // A unique id that is used as index into the TSD array `off_cnt_array'.
 
-  char label_[max_label_len + 1];			// +1 for zero termination.
-    // Initialized before this channel is made visible to other threads and read-only afterward.
-    // A reference name for the represented debug channel
-    // This label will be printed in front of each output written to
-    // this debug channel.
+  char label_[max_label_len + 1]; // +1 for zero termination.
+                                  // Initialized before this channel is made visible to other threads and read-only
+                                  // afterward. A reference name for the represented debug channel This label will be
+                                  // printed in front of each output written to this debug channel.
 
   bool initialized_;
-    // Written during initialization before this channel is made visible to other threads.
-    // Set to true when initialized.
+  // Written during initialization before this channel is made visible to other threads.
+  // Set to true when initialized.
 
   static Channel const off_channel;
-    // Channel that is always off.
+  // Channel that is always off.
 
  public:
   //---------------------------------------------------------------------------
@@ -101,8 +101,8 @@ class Channel
 
   // MT: May only be called from the constructors of global objects (or single threaded functions).
   void NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool add_to_channel_list);
-    // Force initialization in case the constructor of this global object
-    // wasn't called yet. Does nothing when the object was already initialized.
+  // Force initialization in case the constructor of this global object
+  // wasn't called yet. Does nothing when the object was already initialized.
 
  private:
   // MT: Take advantage of the public debug-channel registry write lock to prevent
@@ -120,7 +120,8 @@ class Channel
   void off();
   void on();
 
-  struct OnOffState {
+  struct OnOffState
+  {
     int off_cnt;
   };
 

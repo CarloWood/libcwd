@@ -10,9 +10,9 @@
 #ifndef LIBCWD_CLASS_ALWAYS_CHANNEL_H
 #define LIBCWD_CLASS_ALWAYS_CHANNEL_H
 
-#include "libcwd/config.h"
 #include "control_flag.h"
 #include "max_label_len.h"
+#include "libcwd/config.h"
 
 namespace libcwd {
 
@@ -23,10 +23,11 @@ namespace libcwd {
 // and cannot be turned off.
 //
 
-class AlwaysChannel {
-public:
-  static constexpr char label[max_label_len + 1] =
-      {'>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '>', 0};
+class AlwaysChannel
+{
+ public:
+  static constexpr char label[max_label_len + 1] = {'>', '>', '>', '>', '>', '>', '>', '>', '>',
+                                                    '>', '>', '>', '>', '>', '>', '>', 0};
 };
 
 } // namespace libcwd

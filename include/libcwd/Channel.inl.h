@@ -15,16 +15,13 @@ namespace libcwd {
  *
  * \sa \ref chapter_custom_debug_h
  */
-inline
-Channel::Channel(char const* label, bool add_to_channel_list)
+inline Channel::Channel(char const* label, bool add_to_channel_list)
 {
   LIBCWD_TSD_DECLARATION;
   NS_initialize(label LIBCWD_COMMA_TSD, add_to_channel_list);
 }
 
-inline
-bool
-Channel::is_on(LIBCWD_TSD_PARAM) const
+inline bool Channel::is_on(LIBCWD_TSD_PARAM) const
 {
   return (__libcwd_tsd.off_cnt_array[index_] < 0);
 }
@@ -32,9 +29,7 @@ Channel::is_on(LIBCWD_TSD_PARAM) const
 /**
  * \brief Returns `true' if the channel is active.
  */
-inline
-bool
-Channel::is_on() const
+inline bool Channel::is_on() const
 {
   LIBCWD_TSD_DECLARATION;
   return is_on(LIBCWD_TSD);
@@ -43,9 +38,7 @@ Channel::is_on() const
 /**
  * \brief Pointer to the label of the %debug channel.
  */
-inline
-char const*
-Channel::get_label() const
+inline char const* Channel::get_label() const
 {
   return label_;
 }

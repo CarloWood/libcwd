@@ -10,8 +10,8 @@
 #ifndef LIBCWD_CLASS_CONTINUED_CHANNEL_H
 #define LIBCWD_CLASS_CONTINUED_CHANNEL_H
 
-#include "libcwd/config.h"
 #include "control_flag.h"
+#include "libcwd/config.h"
 
 namespace libcwd {
 
@@ -23,13 +23,14 @@ namespace libcwd {
 // debug output interrupted the start, indicated with `continued_cf').
 //
 
-class ContinuedChannel {
-private:
+class ContinuedChannel
+{
+ private:
   control_flag_t maskbit_;
-    // Written during initialization before this channel is made visible to other threads.
-    // The mask that contains the control bit.
+  // Written during initialization before this channel is made visible to other threads.
+  // The mask that contains the control bit.
 
-public:
+ public:
   //-------------------------------------------------------------------------------------------------
   // Constructor
   //
@@ -38,14 +39,14 @@ public:
   //     at the start of the program and initialization occurs before other
   //     threads share the object.
   explicit ContinuedChannel(control_flag_t maskbit);
-    // Construct a continued debug channel with extra control bit `cb'.
+  // Construct a continued debug channel with extra control bit `cb'.
 
   // MT: May only be called from the constructors of global objects (or single threaded functions).
   void NS_initialize(control_flag_t maskbit);
-    // Force initialization in case the constructor of this global object
-    // wasn't called yet.  Does nothing when the object was already initialized.
+  // Force initialization in case the constructor of this global object
+  // wasn't called yet.  Does nothing when the object was already initialized.
 
-public:
+ public:
   control_flag_t get_maskbit() const;
 };
 

@@ -10,9 +10,10 @@
 #ifndef LIBCWD_MACRO_FORALLDEBUGCHANNELS_H
 #define LIBCWD_MACRO_FORALLDEBUGCHANNELS_H
 
-#include "libcwd/config.h"
 #include "control_flag.h"
 #include "private_assert.h"
+#include "libcwd/config.h"
+
 #include <type_traits>
 
 //===================================================================================================
@@ -31,7 +32,7 @@ struct DebugChannels
   using callback_type = void (*)(Channel&, void*);
 
   class Impl;
-  Impl* impl;        // Deliberately leaked.
+  Impl* impl; // Deliberately leaked.
 
   static DebugChannels const& instance();
 
@@ -58,7 +59,7 @@ struct DebugChannels
   //
   // A read lock is held until all callbacks have returned. The callback receives debugChannel as a
   // Channel reference; it must not try to register another debug channel while iterating.
-  template<typename Func>
+  template <typename Func>
   void for_each(Func&& func) const
   {
     using func_type = std::remove_reference_t<Func>;
@@ -73,14 +74,16 @@ static_assert(std::is_trivial_v<DebugChannels>, "DebugChannels must be trivial t
 } // namespace _private_
 } // namespace libcwd
 
-#define LibcwdForAllDebugChannels(dc_namespace, STATEMENT...) \
-       do { \
-	 ::libcwd::_private_::DebugChannels::instance().for_each([&](::libcwd::Channel& debugChannel) { \
-	   using namespace ::libcwd; \
-	   using namespace dc_namespace; \
-	   { STATEMENT; } \
-	 }); \
-       } \
-       while(0)
+#define LibcwdForAllDebugChannels(dc_namespace, STATEMENT...)                                      \
+  do                                                                                               \
+  {                                                                                                \
+    ::libcwd::_private_::DebugChannels::instance().for_each([&](::libcwd::Channel& debugChannel) { \
+      using namespace ::libcwd;                                                                    \
+      using namespace dc_namespace;                                                                \
+      {                                                                                            \
+        STATEMENT;                                                                                 \
+      }                                                                                            \
+    });                                                                                            \
+  } while (0)
 
 #endif // LIBCWD_MACRO_FORALLDEBUGCHANNELS_H

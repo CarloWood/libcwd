@@ -17,37 +17,37 @@ namespace libcwd {
 
 #define LIBCWD_WRITE_TO_CURRENT_OSS(data) (*LIBCWD_DO_TSD_MEMBER(libcw_do, current_bufferstream)) << data
 
-#define LIBCWD_Dout(cntrl, data)                                                      \
-  do                                                                                  \
-  {                                                                                   \
-    if (LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0)                                       \
-    {                                                                                 \
-      bool on;                                                                        \
+#define LIBCWD_Dout(cntrl, data)                                                 \
+  do                                                                             \
+  {                                                                              \
+    if (LIBCWD_DO_TSD_MEMBER_OFF(libcw_do) < 0)                                  \
+    {                                                                            \
+      bool on;                                                                   \
       ChannelSetBootstrap channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD); \
-      {                                                                               \
-        using namespace channels;                                                     \
-        on = (channel_set | cntrl).on;                                                \
-      }                                                                               \
-      if (on)                                                                         \
-      {                                                                               \
-        LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);        \
-        LIBCWD_WRITE_TO_CURRENT_OSS(data);                                            \
-        LIBCWD_DO_TSD(libcw_do).finish(libcw_do, channel_set LIBCWD_COMMA_TSD);       \
-      }                                                                               \
-    }                                                                                 \
+      {                                                                          \
+        using namespace channels;                                                \
+        on = (channel_set | cntrl).on;                                           \
+      }                                                                          \
+      if (on)                                                                    \
+      {                                                                          \
+        LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);   \
+        LIBCWD_WRITE_TO_CURRENT_OSS(data);                                       \
+        LIBCWD_DO_TSD(libcw_do).finish(libcw_do, channel_set LIBCWD_COMMA_TSD);  \
+      }                                                                          \
+    }                                                                            \
   } while (0)
 
-#define LIBCWD_DoutFatal(cntrl, data)                                               \
-  do                                                                                \
-  {                                                                                 \
-    ChannelSetBootstrap channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD); \
-    {                                                                               \
-      using namespace dc_namespace;                                                 \
-      channel_set & cntrl;                                                          \
-    }                                                                               \
-    LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);          \
-    LIBCWD_WRITE_TO_CURRENT_OSS(data);                                              \
-    LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD);   \
+#define LIBCWD_DoutFatal(cntrl, data)                                             \
+  do                                                                              \
+  {                                                                               \
+    ChannelSetBootstrap channel_set(LIBCWD_DO_TSD(libcw_do) LIBCWD_COMMA_TSD);    \
+    {                                                                             \
+      using namespace dc_namespace;                                               \
+      channel_set & cntrl;                                                        \
+    }                                                                             \
+    LIBCWD_DO_TSD(libcw_do).start(libcw_do, channel_set LIBCWD_COMMA_TSD);        \
+    LIBCWD_WRITE_TO_CURRENT_OSS(data);                                            \
+    LIBCWD_DO_TSD(libcw_do).fatal_finish(libcw_do, channel_set LIBCWD_COMMA_TSD); \
   } while (0)
 
 } // namespace libcwd

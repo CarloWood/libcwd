@@ -18,7 +18,7 @@ namespace libcwd::_private_ {
 // the fly.
 class BufferStream : public std::ostream
 {
-public:
+ public:
   using char_type = char;
   using traits_type = std::char_traits<char>;
   using allocator_type = ::std::allocator<char_type>;
@@ -28,12 +28,11 @@ public:
   using string_type = std::basic_string<char_type, traits_type, allocator_type>;
   using stringbuf_type = std::basic_stringbuf<char_type, traits_type, allocator_type>;
 
-private:
+ private:
   stringbuf_type* stringbuf_;
 
-public:
-  explicit
-  BufferStream(stringbuf_type* sb) : std::basic_ostream<char, std::char_traits<char> >(sb), stringbuf_(sb) { }
+ public:
+  explicit BufferStream(stringbuf_type* sb) : std::basic_ostream<char, std::char_traits<char>>(sb), stringbuf_(sb) { }
   ~BufferStream() { }
 
   stringbuf_type* rdbuf() const { return stringbuf_; }

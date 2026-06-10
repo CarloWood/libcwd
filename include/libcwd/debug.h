@@ -101,18 +101,16 @@
  * <b>Examples:</b>
  *
  * \code
- * Debug( main_reached() );			        // Must be called at the top of main. Does configuration consistency check.
- * Debug( dc::notice.on() );				// Switch debug channel NOTICE on.
- * Debug( libcw_do.on() );				// Turn all debugging temporally off.
- * Debug( list_channels_on(libcw_do) );			// List all debug channels.
- * Debug( libcw_do.set_ostream(&std::cout) );		// Use std::cout as debug output stream.
- * Debug( libcw_do.set_ostream(&std::cout, &mutex) );	// use `mutex' as lock for std::cout.
+ * Debug( main_reached() );			        // Must be called at the top of main. Does configuration
+ * consistency check. Debug( dc::notice.on() );				// Switch debug channel NOTICE on. Debug(
+ * libcw_do.on() );				// Turn all debugging temporally off. Debug( list_channels_on(libcw_do)
+ * );			// List all debug channels. Debug( libcw_do.set_ostream(&std::cout) );		// Use std::cout
+ * as debug output stream. Debug( libcw_do.set_ostream(&std::cout, &mutex) );	// use `mutex' as lock for std::cout.
  * Debug( libcw_do.inc_indent(4) );			// Increment indentation by 4 spaces.
  * Debug( libcw_do.get_ostream()->flush() );		// Flush the current debug output stream.
  * \endcode
  */
-#define Debug(STATEMENTS...) \
-    LibcwDebug(LIBCWD_DEBUGCHANNELS, STATEMENTS)
+#define Debug(STATEMENTS...) LibcwDebug(LIBCWD_DEBUGCHANNELS, STATEMENTS)
 
 /** \def Dout
  *
@@ -141,8 +139,7 @@
  * Dout(dc::notice|blank_label_cf, "The content of the object is: " << std::hex << obj);
  * \endcode
  */
-#define Dout(cntrl, ...) \
-    LibcwDout(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
+#define Dout(cntrl, ...) LibcwDout(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 /**
  * \def DoutFatal
@@ -151,8 +148,7 @@
  * \brief Macro for writing fatal %debug output to the default %debug object
  * \link libcwd::libcw_do libcw_do \endlink.
  */
-#define DoutFatal(cntrl, ...) \
-    LibcwDoutFatal(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
+#define DoutFatal(cntrl, ...) LibcwDoutFatal(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 /**
  * \def ForAllDebugChannels
@@ -177,8 +173,7 @@
  *
  * which turns all channels off.
  */
-#define ForAllDebugChannels(STATEMENT...) \
-    LibcwdForAllDebugChannels(LIBCWD_DEBUGCHANNELS, STATEMENT)
+#define ForAllDebugChannels(STATEMENT...) LibcwdForAllDebugChannels(LIBCWD_DEBUGCHANNELS, STATEMENT)
 
 /**
  * \def ForAllDebugObjects
@@ -196,8 +191,7 @@
  *
  * would set the output stream of all %debug objects to <CODE>std::cerr</CODE>.
  */
-#define ForAllDebugObjects(STATEMENT...) \
-    LibcwdForAllDebugObjects(LIBCWD_DEBUGCHANNELS, STATEMENT)
+#define ForAllDebugObjects(STATEMENT...) LibcwdForAllDebugObjects(LIBCWD_DEBUGCHANNELS, STATEMENT)
 
 // Finally, in order for Dout() to be usable, we need this.
 #include <iostream>

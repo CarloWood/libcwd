@@ -30,41 +30,40 @@
 // The global debug channels used by libcwd.
 //
 
-#include "class_channel.h"
-#include "class_fatal_channel.h"
-#include "class_continued_channel.h"
 #include "class_always_channel.h"
+#include "class_channel.h"
+#include "class_continued_channel.h"
+#include "class_fatal_channel.h"
 
 namespace libcwd {
 
 namespace channels {
 
-  /** \brief This namespace contains the standard %debug %channels of libcwd.
-   *
-   * Custom %debug %channels should be added in another namespace in order to
-   * avoid the possibility of collisions with %channels defined in other libraries.
-   *
-   * \sa \ref chapter_custom_debug_h
-   */
-  namespace dc {
-    extern Channel debug;
-    extern Channel notice;
-    extern Channel system;
-    extern Channel warning;
+/** \brief This namespace contains the standard %debug %channels of libcwd.
+ *
+ * Custom %debug %channels should be added in another namespace in order to
+ * avoid the possibility of collisions with %channels defined in other libraries.
+ *
+ * \sa \ref chapter_custom_debug_h
+ */
+namespace dc {
+extern Channel debug;
+extern Channel notice;
+extern Channel system;
+extern Channel warning;
 #if CWDEBUG_LOCATION
-    extern Channel elfutils;
+extern Channel elfutils;
 #endif
-    extern FatalChannel fatal;
-    extern FatalChannel core;
-    extern ContinuedChannel continued;
-    extern ContinuedChannel finish;
-    extern AlwaysChannel always;
+extern FatalChannel fatal;
+extern FatalChannel core;
+extern ContinuedChannel continued;
+extern ContinuedChannel finish;
+extern AlwaysChannel always;
 
-  } // namespace dc
+} // namespace dc
 } // namespace channels
 
 } // namespace libcwd
-
 
 //===================================================================================================
 // The global debug object
@@ -106,12 +105,9 @@ extern bool test_main_reached();
 // For use in (libcwd) library header files: do not redefine these!
 // Developers of libraries are recommended to define their own macro names,
 // see "Libraries" on reference-manual/group__chapter__custom__debug__h.html
-#define __Debug(STATEMENTS...) \
-    LibcwDebug(::libcwd::channels, STATEMENTS)
-#define __Dout(cntrl, data) \
-    LibcwDout(::libcwd::channels, ::libcwd::libcw_do, cntrl, data)
-#define __DoutFatal(cntrl, data) \
-    LibcwDoutFatal(::libcwd::channels, ::libcwd::libcw_do, cntrl, data)
+#define __Debug(STATEMENTS...) LibcwDebug(::libcwd::channels, STATEMENTS)
+#define __Dout(cntrl, data) LibcwDout(::libcwd::channels, ::libcwd::libcw_do, cntrl, data)
+#define __DoutFatal(cntrl, data) LibcwDoutFatal(::libcwd::channels, ::libcwd::libcw_do, cntrl, data)
 
 //===================================================================================================
 // Miscellaneous
@@ -129,29 +125,29 @@ using std::operator<<;
 
 // Make the inserter functions of libcwd accessible in global namespace.
 namespace libcwd_inserters {
-  using libcwd::operator<<;
+using libcwd::operator<<;
 } // namespace libcwd_inserters
 using namespace libcwd_inserters;
 
+#include "attach_gdb.h"
+#include "class_rcfile.h"
+#include "demangle.h"
 #include "macro_ForAllDebugChannels.h"
 #include "macro_ForAllDebugObjects.h"
 #include "private_environ.h"
-#include "class_rcfile.h"
-#include "attach_gdb.h"
-#include "demangle.h"
 
 // Include the inline functions.
-#include "Channel.inl.h"		// Debug channels.
-#include "FatalChannel.inl.h"
-#include "ContinuedChannel.inl.h"
 #include "AlwaysChannel.inl.h"
-#include "DebugObject.inl.h"		// Debug objects (DebugObject).
-#include "DebugString.inl.h"            // Public member of DebugObject.
-#include "ChannelSet.inl.h"	        // Used in macro Dout et al.
+#include "Channel.inl.h" // Debug channels.
+#include "ChannelSet.inl.h" // Used in macro Dout et al.
+#include "ContinuedChannel.inl.h"
+#include "DebugObject.inl.h" // Debug objects (DebugObject).
+#include "DebugString.inl.h" // Public member of DebugObject.
+#include "FatalChannel.inl.h"
 #include "Location.inl.h"
 
 // Include optional features.
-#if CWDEBUG_LOCATION			// --enable-location
+#if CWDEBUG_LOCATION // --enable-location
 #include "elfutils.h"
 #endif
 

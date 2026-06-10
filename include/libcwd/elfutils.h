@@ -10,8 +10,8 @@
 #ifndef LIBCWD_ELFUTILS_H
 #define LIBCWD_ELFUTILS_H
 
-#include "libcwd/config.h"
 #include "class_location.h"
 #include "pc_mangled_function_name.h"
+#include "libcwd/config.h"
 
 #endif // LIBCWD_ELFUTILS_H

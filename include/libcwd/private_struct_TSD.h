@@ -10,8 +10,8 @@
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #define LIBCWD_PRIVATE_STRUCT_TSD_H
 
-#include "libcwd/config.h"
 #include "private_assert.h"
+#include "libcwd/config.h"
 
 namespace libcwd::_private_ {
 struct ThreadSpecificData;
@@ -21,27 +21,27 @@ struct ThreadSpecificData;
 // or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
 // Several helper macros keep those signatures compact:
 
-#define LIBCWD_TSD __libcwd_tsd				// Optional `__libcwd_tsd' parameter (foo() or foo(__libcwd_tsd)).
-#define LIBCWD_COMMA_TSD , LIBCWD_TSD			// Idem, but as second or higher parameter.
+#define LIBCWD_TSD __libcwd_tsd // Optional `__libcwd_tsd' parameter (foo() or foo(__libcwd_tsd)).
+#define LIBCWD_COMMA_TSD , LIBCWD_TSD // Idem, but as second or higher parameter.
 #define LIBCWD_TSD_PARAM ::libcwd::_private_::ThreadSpecificData& __libcwd_tsd
-							// Optional function parameter (foo() or foo(ThreadSpecificData& __libcwd_tsd)).
+  // Optional function parameter (foo() or foo(ThreadSpecificData& __libcwd_tsd)).
 #define LIBCWD_TSD_PARAM_UNUSED ::libcwd::_private_::ThreadSpecificData&
-							// Same without parameter.
-#define LIBCWD_COMMA_TSD_PARAM , LIBCWD_TSD_PARAM	// Idem, but as second or higher parameter.
+  // Same without parameter.
+#define LIBCWD_COMMA_TSD_PARAM , LIBCWD_TSD_PARAM // Idem, but as second or higher parameter.
 #define LIBCWD_COMMA_TSD_PARAM_UNUSED , LIBCWD_TSD_PARAM_UNUSED
-							// Idem, without parameter.
+  // Idem, without parameter.
 #define LIBCWD_TSD_INSTANCE ::libcwd::_private_::ThreadSpecificData::instance()
-							// For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
-#define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE	// Idem, but as second or higher parameter.
-#define LIBCWD_TSD_DECLARATION ::libcwd::_private_::ThreadSpecificData& __libcwd_tsd(::libcwd::_private_::ThreadSpecificData::instance())
-							// Declaration of local `__libcwd_tsd' structure reference.
+  // For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
+#define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE // Idem, but as second or higher parameter.
+#define LIBCWD_TSD_DECLARATION \
+  ::libcwd::_private_::ThreadSpecificData& __libcwd_tsd(::libcwd::_private_::ThreadSpecificData::instance())
+  // Declaration of local `__libcwd_tsd' structure reference.
 #define LIBCWD_DO_TSD(debug_object) (*__libcwd_tsd.debug_object_array[(debug_object).index_])
-							// For use inside class DebugObject to access member `m'.
+  // For use inside class DebugObject to access member `m'.
 #define LIBCWD_TSD_MEMBER_OFF (__libcwd_tsd.debug_object_off_array[index_])
-							// For use inside class DebugObject to access member `_off'.
+  // For use inside class DebugObject to access member `_off'.
 #define LIBCWD_DO_TSD_MEMBER_OFF(debug_object) (__libcwd_tsd.debug_object_off_array[(debug_object).index_])
-							// To access member _off of debug object.
-
+  // To access member _off of debug object.
 
 #define LIBCWD_DO_TSD_MEMBER(debug_object, m) (LIBCWD_DO_TSD(debug_object).m)
 #define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
@@ -62,9 +62,9 @@ namespace libcwd {
  */
 using location_format_t = unsigned short int;
 
-location_format_t const show_path = 1;        //!< Show the full source path when printing a location.
-location_format_t const show_objectfile = 2;  //!< Show the shared library or executable that owns the location.
-location_format_t const show_function = 4;    //!< Show the mangled function name for the location.
+location_format_t const show_path = 1; //!< Show the full source path when printing a location.
+location_format_t const show_objectfile = 2; //!< Show the shared library or executable that owns the location.
+location_format_t const show_function = 4; //!< Show the mangled function name for the location.
 
 /** \} */ // End of group 'group_locations'
 #endif
@@ -73,45 +73,49 @@ namespace _private_ {
 
 extern int WST_initializing_TSD;
 
-struct ThreadSpecificData {
-public:
+struct ThreadSpecificData
+{
+ public:
 #if CWDEBUG_LOCATION
-  location_format_t format{};		// Determines how to print Location to an ostream.
+  location_format_t format{}; // Determines how to print Location to an ostream.
 #endif
-  bool lock_interface_is_locked = false; // Set while writing debugout to the final ostream if OstreamState::mutex_ was locked.
-  bool recursive_fatal = false;			// Detect loop involving dc::fatal or dc::core.
+  bool lock_interface_is_locked =
+      false; // Set while writing debugout to the final ostream if OstreamState::mutex_ was locked.
+  bool recursive_fatal = false; // Detect loop involving dc::fatal or dc::core.
 #if CWDEBUG_DEBUG
-  bool recursive_assert = false;	// Detect loop involving LIBCWD_ASSERT.
+  bool recursive_assert = false; // Detect loop involving LIBCWD_ASSERT.
 #endif
-  int debug_object_off_array[LIBCWD_DO_MAX]{};	// Thread Specific on/off counter for Debug Objects.
-  DebugObject_ThreadSpecificData* debug_object_array[LIBCWD_DO_MAX]{};// Thread Specific Data of Debug Objects or NULL when no debug object.
+  int debug_object_off_array[LIBCWD_DO_MAX]{}; // Thread Specific on/off counter for Debug Objects.
+  DebugObject_ThreadSpecificData*
+      debug_object_array[LIBCWD_DO_MAX]{}; // Thread Specific Data of Debug Objects or NULL when no debug object.
 
   // Release per-thread debug-object data owned by this TSD.
   //
   // ThreadSpecificData::instance() continues to return this object while cleanup runs so diagnostics emitted during
   // cleanup see the same per-thread state. A second cleanup attempt is ignored.
   void cleanup_routine();
-  int off_cnt_array[LIBCWD_DC_MAX]{};	// Thread Specific Data of Debug Channels.
+  int off_cnt_array[LIBCWD_DC_MAX]{}; // Thread Specific Data of Debug Channels.
 
   // Destroy this TSD object.
   //
   // Worker-thread TSD objects are deleted by a thread_local cleanup guard at thread exit. The main-thread
   // object is retained until process termination so global destructors can still use libcwd.
   ~ThreadSpecificData();
-private:
+
+ private:
   bool initialized_ = false;
   bool cleaning_up_ = false;
 
-//-------------------------------------------------------
-// Static data and methods.
-private:
+  //-------------------------------------------------------
+  // Static data and methods.
+ private:
   // Initialize tsd as the active TSD for the current thread.
   //
   // The initialized_ flag is set before subsystem initialization so recursive instance() calls reuse the
   // partially initialized object instead of starting a second initialization path.
   static ThreadSpecificData& S_create(ThreadSpecificData& tsd);
 
-public:
+ public:
   // Return the TSD object for the calling thread, creating it on first use.
   static ThreadSpecificData& instance();
 };

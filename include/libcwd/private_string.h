@@ -11,6 +11,7 @@
 #define LIBCWD_PRIVATE_STRING_H
 
 #include "libcwd/config.h"
+
 #include <string>
 
 namespace libcwd::_private_ {

@@ -15,7 +15,8 @@
 #define LIBCWD_BUF2STR_H
 
 #include "char2str.h"
-#include <cstddef>		// Needed for size_t
+
+#include <cstddef> // Needed for size_t
 #include <iosfwd>
 #if __cpp_concepts >= 201907L
 #include <concepts>
@@ -46,33 +47,33 @@ namespace libcwd {
  * \endcode
  */
 
-class buf2str {
-private:
-  char const* buf_;	//!< Pointer to the start of the buffer.
-  size_t size_;	//!< The size of the buffer.
+class buf2str
+{
+ private:
+  char const* buf_; //!< Pointer to the start of the buffer.
+  size_t size_; //!< The size of the buffer.
 
-public:
+ public:
   //! Construct \c buf2str object with attributes \a buf and \a size.
   buf2str(char const* buf, size_t size) : buf_(buf), size_(size) { }
 
 #if __cpp_concepts >= 201907L
   //! Construct \c buf2str object from an object that has data() and size() member functions.
-  template<typename T>
-  requires requires(T const& t) {
-    { t.data() } -> std::convertible_to<char const*>;
-    { t.size() } -> std::convertible_to<size_t>;
+  template <typename T>
+    requires requires(T const& t) {
+      { t.data() } -> std::convertible_to<char const*>;
+      { t.size() } -> std::convertible_to<size_t>;
+    }
+  buf2str(T const& view) : buf_(view.data()), size_(view.size())
+  {
   }
-  buf2str(T const& view) : buf_(view.data()), size_(view.size()) { }
 #endif
 
   /**
    * \brief Write the contents of the buffer represented by \a __buf2str
    * to the \c ostream \a os, escaping non-printable characters.
    */
-  friend
-  inline
-  std::ostream&
-  operator<<(std::ostream& os, buf2str const& __buf2str)
+  friend inline std::ostream& operator<<(std::ostream& os, buf2str const& __buf2str)
   {
     size_t size = __buf2str.size_;
     for (char const* p1 = __buf2str.buf_; size > 0; --size, ++p1)

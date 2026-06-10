@@ -37,8 +37,8 @@ class ObjectFileRegistry;
 class ObjectFileName
 {
  private:
-  char const* filepath_;        // The full path to the object file (internally allocated and leaking memory).
-  char const* filename_;	// Points inside filepath_ just after the last '/' or to the beginning.
+  char const* filepath_; // The full path to the object file (internally allocated and leaking memory).
+  char const* filename_; // Points inside filepath_ just after the last '/' or to the beginning.
   mutable bool no_debug_line_sections_;
 
  protected:

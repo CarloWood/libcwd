@@ -8,7 +8,12 @@
 #define ForAllDebugObjects(STATEMENT...)
 #define LibcwDebug(dc_namespace, STATEMENT...)
 #define LibcwDout(dc_namespace, d, cntrl, data)
-#define LibcwDoutFatal(dc_namespace, d, cntrl, data) do { ::std::cerr << data << ::std::endl; ::std::exit(EXIT_FAILURE); } while(1)
+#define LibcwDoutFatal(dc_namespace, d, cntrl, data) \
+  do                                                 \
+  {                                                  \
+    ::std::cerr << data << ::std::endl;              \
+    ::std::exit(EXIT_FAILURE);                       \
+  } while (1)
 #define LibcwdForAllDebugChannels(dc_namespace, STATEMENT...)
 #define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...)
 #define NEW(x) new x

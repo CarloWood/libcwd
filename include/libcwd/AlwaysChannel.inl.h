@@ -8,9 +8,7 @@
 
 namespace libcwd {
 
-inline
-ChannelSet&
-ChannelSetBootstrap::operator|(AlwaysChannel const& adc)
+inline ChannelSet& ChannelSetBootstrap::operator|(AlwaysChannel const& adc)
 {
   mask = 0;
   label = adc.label;

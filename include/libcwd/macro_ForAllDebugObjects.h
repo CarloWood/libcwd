@@ -10,8 +10,9 @@
 #ifndef LIBCWD_MACRO_FORALLDEBUGOBJECTS_H
 #define LIBCWD_MACRO_FORALLDEBUGOBJECTS_H
 
-#include "libcwd/config.h"
 #include "private_assert.h"
+#include "libcwd/config.h"
+
 #include <type_traits>
 
 //===================================================================================================
@@ -29,7 +30,7 @@ struct DebugObjects
   using callback_type = void (*)(DebugObject&, void*);
 
   class Impl;
-  Impl* impl;        // Deliberately leaked.
+  Impl* impl; // Deliberately leaked.
 
   static DebugObjects const& instance();
 
@@ -44,7 +45,7 @@ struct DebugObjects
   // A read lock is held until all callbacks have returned. The callback receives debugObject as a
   // DebugObject reference; it must not try to register another debug object because that would require
   // upgrading the registry lock while this read access is still alive.
-  template<typename Func>
+  template <typename Func>
   void for_each(Func&& func) const
   {
     using func_type = std::remove_reference_t<Func>;
@@ -59,14 +60,16 @@ static_assert(std::is_trivial_v<DebugObjects>, "DebugObjects must be trivial to 
 } // namespace _private_
 } // namespace libcwd
 
-#define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...) \
-       do { \
-	 ::libcwd::_private_::DebugObjects::instance().for_each([&](::libcwd::DebugObject& debugObject) { \
-	   using namespace ::libcwd; \
-	   using namespace dc_namespace; \
-	   { STATEMENT; } \
-	 }); \
-       } \
-       while(0)
+#define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...)                                         \
+  do                                                                                                 \
+  {                                                                                                  \
+    ::libcwd::_private_::DebugObjects::instance().for_each([&](::libcwd::DebugObject& debugObject) { \
+      using namespace ::libcwd;                                                                      \
+      using namespace dc_namespace;                                                                  \
+      {                                                                                              \
+        STATEMENT;                                                                                   \
+      }                                                                                              \
+    });                                                                                              \
+  } while (0)
 
 #endif // LIBCWD_MACRO_FORALLDEBUGOBJECTS_H
