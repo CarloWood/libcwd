@@ -12,7 +12,7 @@ set_property(TARGET cwd APPEND PROPERTY COMPATIBLE_INTERFACE_STRING cwd_MAJOR_VE
 target_sources(cwd
     PRIVATE
        "debug.cxx"
-       "demangle3.cxx"
+       "demangle.cxx"
        "dwarf.cxx"
        "environ.cxx"
        "location.cxx"

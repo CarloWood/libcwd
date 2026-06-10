@@ -23,7 +23,7 @@ The direct use of these functions should be avoided, instead use the function ty
 */
 
 //
-// This file has been tested with gcc-3.x
+// This file has been tested with gcc-3.x ... gcc-16.x.
 //
 // The description of how the mangling is done in the new ABI was found on
 // http://www.codesourcery.com/cxx-abi/abi.html#mangling revision 1.74.
