@@ -4,9 +4,8 @@
 // with a real ostream lock installed before the worker threads run.
 
 #include "cwd_sys.h"
-#include "test_support.h"
-
 #include "StartingGate.h"
+#include "test_support.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -76,7 +75,7 @@ std::string fB()
 void thread_main(int thread_index, utils::threading::StartingGate& starting_gate)
 {
   // Set margin on both debug objects.
-  char buf[5];  // 'T', '[01]', '[0-9]', '[ AB]', '\0'
+  char buf[5]; // 'T', '[01]', '[0-9]', '[ AB]', '\0'
   std::snprintf(buf, sizeof(buf), "T%02d ", thread_index);
   Debug(libcw_do.margin().assign(buf, sizeof(buf) - 1));
   Debug(extra_do.margin().assign(buf, sizeof(buf) - 1));
@@ -105,12 +104,14 @@ void thread_main(int thread_index, utils::threading::StartingGate& starting_gate
   for (int wA = 0; wA < 8; ++wA)
     for (int wB = 0; wB < 8; ++wB)
     {
-      Dout(dc::notice|conf_flush_cf(wA & 1)|continued_cf, "Calling fA(): " << start_nestingA() << fA() << stop_nestingA() << what(wA, 1) << ' ');
-      DoutB(dc::notice|conf_flush_cf(wB & 1)|continued_cf, "Calling fB(): " << start_nestingB() << fB() << stop_nestingB() << what(wB, 1) << ' ');
-      Dout(dc::continued|conf_flush_cf(wA & 2), "cont" << what(wA, 2));
-      DoutB(dc::continued|conf_flush_cf(wB & 2), "cont" << what(wB, 2));
-      Dout(dc::finish|conf_flush_cf(wA & 4), " finish" << what(wA, 4));
-      DoutB(dc::finish|conf_flush_cf(wB & 4), " finish" << what(wB, 4));
+      Dout(dc::notice | conf_flush_cf(wA & 1) | continued_cf,
+           "Calling fA(): " << start_nestingA() << fA() << stop_nestingA() << what(wA, 1) << ' ');
+      DoutB(dc::notice | conf_flush_cf(wB & 1) | continued_cf,
+            "Calling fB(): " << start_nestingB() << fB() << stop_nestingB() << what(wB, 1) << ' ');
+      Dout(dc::continued | conf_flush_cf(wA & 2), "cont" << what(wA, 2));
+      DoutB(dc::continued | conf_flush_cf(wB & 2), "cont" << what(wB, 2));
+      Dout(dc::finish | conf_flush_cf(wA & 4), " finish" << what(wA, 4));
+      DoutB(dc::finish | conf_flush_cf(wB & 4), " finish" << what(wB, 4));
     }
 }
 
@@ -130,8 +131,9 @@ struct ParsedLine
 
 std::ostream& operator<<(std::ostream& os, ParsedLine const& parsed_line)
 {
-  os << parsed_line.margin << parsed_line.label << parsed_line.marker << std::string(parsed_line.indent - parsed_line.stars, ' ')
-     << std::string(parsed_line.stars, '<') << parsed_line.text;
+  os << parsed_line.margin << parsed_line.label << parsed_line.marker
+     << std::string(parsed_line.indent - parsed_line.stars, ' ') << std::string(parsed_line.stars, '<')
+     << parsed_line.text;
   return os;
 }
 
@@ -144,9 +146,9 @@ ParsedLine parse_line(std::string const& line)
   // per-thread indentation and message text. The function throws on malformed
   // input so the CTest fails immediately if concurrent output corrupts a line or
   // if libcwd changes the expected prefix shape.
-  constexpr std::size_t margin_size = 4;       // "T%02d "
-  constexpr std::size_t label_size = 8;        // "NOTICE  "
-  constexpr std::size_t marker_size = 4;       // "M%02d[AB]"
+  constexpr std::size_t margin_size = 4; // "T%02d "
+  constexpr std::size_t label_size = 8; // "NOTICE  "
+  constexpr std::size_t marker_size = 4; // "M%02d[AB]"
   constexpr std::size_t prefix_size = margin_size + label_size + marker_size;
 
   if (line.size() < prefix_size)
@@ -193,7 +195,8 @@ ParsedLine parse_line(std::string const& line)
 int parse_two_digits(std::string const& text, std::size_t offset, char const* field_name, std::string const& raw_line)
 {
   if (text[offset] < '0' || text[offset] > '9' || text[offset + 1] < '0' || text[offset + 1] > '9')
-    throw std::runtime_error(std::string(field_name) + " does not contain two decimal digits in line `" + raw_line + "'");
+    throw std::runtime_error(std::string(field_name) + " does not contain two decimal digits in line `" + raw_line +
+                             "'");
 
   return (text[offset] - '0') * 10 + text[offset + 1] - '0';
 }
@@ -218,9 +221,12 @@ bool return_value_suffix_is_valid(std::string const& suffix, bool end_on_unfinis
          suffix == "flushed";
 }
 
+// clang-format off
+
 // Check second/third continued-output suffix.
 //
 // For example,
+//
 // T13 NOTICE  M13A             Calling fA(): [<unfinished>
 // T13 NOTICE  ****M13A                 Entering fA()
 // T13 NOTICE  M13A             <continued> fA return value] flushed <unfinished>
@@ -236,9 +242,7 @@ bool continued_text_is_valid(std::string const& text, bool end_on_unfinished)
   if (!end_on_unfinished)
   {
     // Second <continued> (starts with `cont`) that is finished.
-    return text == "cont finish" ||
-           text == "cont finish flushed" ||
-           text == "cont flushed finish" ||
+    return text == "cont finish" || text == "cont finish flushed" || text == "cont flushed finish" ||
            text == "cont flushed finish flushed" ||
     // Third <continued>.
            text == " finish" || text == " finish flushed";
@@ -249,6 +253,8 @@ bool continued_text_is_valid(std::string const& text, bool end_on_unfinished)
   //     <continued> cont<unfinished>
   return text == "cont flushed" || text == "cont";
 }
+
+// clang-format on
 
 // Validate that one parsed debug-output line carries the per-thread state that
 // threaded_debug_output assigned before the worker passed the starting gate.
@@ -310,7 +316,8 @@ bool validate_thread_fields(ParsedLine const& parsed, char expected_marker_suffi
     if (parsed.text != expected_text)
     {
       std::cerr << stream_name << " line has `Calling' text for the wrong debug object or in the wrong form; "
-                << "expected text `" << expected_text << "' got `" << parsed.text << "' in line: `" << raw_line << "'\n";
+                << "expected text `" << expected_text << "' got `" << parsed.text << "' in line: `" << raw_line
+                << "'\n";
       return false;
     }
     else if (!parsed.end_on_unfinished)
@@ -325,7 +332,8 @@ bool validate_thread_fields(ParsedLine const& parsed, char expected_marker_suffi
     if (parsed.text != expected_text)
     {
       std::cerr << stream_name << " line has `Entering' text for the wrong debug object or in the wrong form; "
-                << "expected text `" << expected_text << "' got `" << parsed.text << "' in line: `" << raw_line << "'\n";
+                << "expected text `" << expected_text << "' got `" << parsed.text << "' in line: `" << raw_line
+                << "'\n";
       return false;
     }
   }

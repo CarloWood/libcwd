@@ -38,8 +38,8 @@ class RedirectStream
   std::streambuf* original_;
 
  public:
-  RedirectStream(std::ostream& stream, std::ostream& destination)
-      : stream_(stream), original_(stream.rdbuf(destination.rdbuf()))
+  RedirectStream(std::ostream& stream, std::ostream& destination) :
+      stream_(stream), original_(stream.rdbuf(destination.rdbuf()))
   {
   }
   RedirectStream(RedirectStream const&) = delete;

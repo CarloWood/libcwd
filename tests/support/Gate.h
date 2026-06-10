@@ -22,7 +22,7 @@ class Gate : public std::mutex
   void wait()
   {
     std::unique_lock<std::mutex> lk(*this);
-    m_condition_variable.wait(lk, [this](){ return m_open; });
+    m_condition_variable.wait(lk, [this]() { return m_open; });
   }
 
   void open()

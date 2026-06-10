@@ -149,9 +149,11 @@ int main()
 
   std::vector<std::thread> thread_pool;
   thread_pool.reserve(number_of_threads);
-  for (int i = 0; i < number_of_threads; ++i) thread_pool.emplace_back(thread_main);
+  for (int i = 0; i < number_of_threads; ++i)
+    thread_pool.emplace_back(thread_main);
 
-  for (std::thread& thread : thread_pool) thread.join();
+  for (std::thread& thread : thread_pool)
+    thread.join();
 
   captured.sync();
 

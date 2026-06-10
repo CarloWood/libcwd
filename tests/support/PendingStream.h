@@ -41,10 +41,7 @@ class PendingStreamBuf : public std::streambuf
   }
 
   // Append s directly to the output buffer, bypassing pending.
-  void write_direct(std::string_view s)
-  {
-    output_ << s;
-  }
+  void write_direct(std::string_view s) { output_ << s; }
 
   // ostream that writes directly into the output buffer.
   std::ostream& direct_ostream() { return output_; }
@@ -76,7 +73,7 @@ class PendingStreamBuf : public std::streambuf
   {
     check_locked();
     if (ch != traits_type::eof())
-        pending_.put(static_cast<char>(ch));
+      pending_.put(static_cast<char>(ch));
     return ch;
   }
 
@@ -101,7 +98,7 @@ class PendingStreamBuf : public std::streambuf
     output_ << pending_.str();
     pending_.str({});
     pending_.clear();
-    return 0;              // 0 = success
+    return 0; // 0 = success
   }
 
  private:
@@ -122,7 +119,6 @@ class PendingStreamBuf : public std::streambuf
   std::atomic_bool lock_violation_detected_;
 };
 
-
 // ---------------------------------------------------------------------------
 // PendingStream
 //
@@ -136,16 +132,15 @@ class PendingStreamBuf : public std::streambuf
 class PendingStream : public std::ostream
 {
  public:
-  PendingStream(libcwd::DebugObject& debug_object)
-      : std::ostream(&buf_)   // wire our streambuf into the base ostream
+  PendingStream(libcwd::DebugObject& debug_object) : std::ostream(&buf_) // wire our streambuf into the base ostream
   {
     buf_.require_locked_by(&output_mutex_);
     debug_object.set_ostream(static_cast<std::ostream*>(this), &output_mutex_);
   }
 
   // Not copyable (streams never are), but moveable if needed.
-  PendingStream(const PendingStream&)            = delete;
-  PendingStream& operator=(const PendingStream&) = delete;
+  PendingStream(PendingStream const&) = delete;
+  PendingStream& operator=(PendingStream const&) = delete;
 
   // Write test-side data through the pending ostream while holding the same
   // mutex that libcwd uses for this stream.
@@ -154,7 +149,7 @@ class PendingStream : public std::ostream
   // weakening the streambuf check that every ostream operation must happen
   // while output_mutex_ is locked. The value may be a normal printable object
   // or an ostream manipulator such as std::flush or std::endl.
-  template<typename T>
+  template <typename T>
   PendingStream& operator<<(T&& value)
   {
     std::lock_guard<AIMutex> lock(output_mutex_);
@@ -198,7 +193,7 @@ class PendingStream : public std::ostream
 
   // Convenience: peek at raw buffer strings without going through streams.
   std::string pending_str() const { return buf_.pending(); }
-  std::string output_str()  const { return buf_.output(); }
+  std::string output_str() const { return buf_.output(); }
 
   // Return whether the stream buffer observed any std::ostream operation that
   // did not hold this PendingStream's AIMutex.

@@ -2,8 +2,7 @@
 
 #include "Gate.h"
 
-namespace utils::threading
-{
+namespace utils::threading {
 
 // Block threads until `stalls' threads are ready.
 //

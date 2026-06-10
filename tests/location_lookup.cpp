@@ -33,8 +33,8 @@ class A
 
 A::A()
 {
-  Dout(dc::notice, "A::A(): called from "
-                       << Location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset));
+  Dout(dc::notice,
+       "A::A(): called from " << Location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset));
 call_site_test:
   test(&&call_site_test);
 }
@@ -46,7 +46,8 @@ std::vector<std::string> split_lines(std::string const& text)
   std::vector<std::string> lines;
   std::istringstream input(text);
   std::string line;
-  while (std::getline(input, line)) lines.push_back(line);
+  while (std::getline(input, line))
+    lines.push_back(line);
   return lines;
 }
 
@@ -61,7 +62,7 @@ int main()
   Debug(dc::notice.on());
 
   delete new A;
-  int const expected_line = __LINE__ - 1;       // Previous line calls A::A().
+  int const expected_line = __LINE__ - 1; // Previous line calls A::A().
 
   Dout(dc::notice, "expected_line = " << expected_line);
 

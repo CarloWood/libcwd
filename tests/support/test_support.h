@@ -51,7 +51,8 @@ namespace libcwd_ctest {
 // original stream buffer in the destructor. The object has no ownership of the
 // destination stream; callers must keep that stream alive until destruction.
 // Copying is disabled to ensure each redirect restores std::cerr exactly once.
-class RedirectCerr {
+class RedirectCerr
+{
  private:
   std::streambuf* original_;
 

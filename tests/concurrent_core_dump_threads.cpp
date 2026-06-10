@@ -10,9 +10,8 @@
 // also checks that the fatal debug message reached stderr before termination.
 
 #include "cwd_sys.h"
-#include "test_support.h"
-
 #include "StartingGate.h"
+#include "test_support.h"
 
 #include <algorithm>
 #include <cerrno>
@@ -23,12 +22,12 @@
 #include <mutex>
 #include <string>
 #include <string_view>
+#include <thread>
+#include <vector>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <thread>
 #include <unistd.h>
-#include <vector>
 
 namespace {
 
@@ -204,7 +203,8 @@ int main()
   if (abort_markers.size() != 1)
   {
     std::cerr << "expected exactly one SIGABRT marker, got " << abort_markers.size() << "\n"
-              << "child stderr was:\n" << captured_stderr;
+              << "child stderr was:\n"
+              << captured_stderr;
     return EXIT_FAILURE;
   }
 
@@ -217,7 +217,8 @@ int main()
   if (!WIFSIGNALED(child_status) || WTERMSIG(child_status) != SIGABRT)
   {
     std::cerr << "expected child to exit due to signal SIGABRT; instead got status=" << child_status
-              << "\nchild stderr was:\n" << captured_stderr;
+              << "\nchild stderr was:\n"
+              << captured_stderr;
     return EXIT_FAILURE;
   }
 
