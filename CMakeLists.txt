@@ -168,6 +168,7 @@ find_library(LIBELF elf REQUIRED)
 
 add_subdirectory(utils)
 add_subdirectory(src)
+add_subdirectory(doc)
 
 install(TARGETS cwd
   EXPORT libcwdTargets
