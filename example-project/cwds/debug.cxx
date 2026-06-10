@@ -1,3 +1,5 @@
+# clang-format off
+
 #include <sys.h>                        // Needed for platform-specific code
 
 #ifdef CWDEBUG
@@ -6,8 +8,8 @@
 #include <cstdio>                       // Needed for sprintf
 #include <iomanip>                      // Needed for setfill
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
 #include <unistd.h>                     // Needed for pipe
 #ifdef USE_LIBCW
 #include <libcw/memleak.h>		// memleak_filter
@@ -90,7 +92,7 @@ void save_dc_states()
     return;
   }
   second_time = true;
-  ForAllDebugChannels( set_state(debugChannel.get_label(), debugChannel.is_on()) );
+  ForAllDebugChannels(set_state(debugChannel.get_label(), debugChannel.is_on()));
 }
 
 } // anonymous namespace
@@ -161,7 +163,7 @@ void init_thread(std::string thread_name, libcwd::thread_init_t thread_init)
   if (thread_init != libcwd::debug_off)
   {
     // Turn on debug output.
-    Debug( libcw_do.on() );
+    Debug(libcw_do.on());
   }
 
   if (!libcwd::libcw_do.has_mutex())
