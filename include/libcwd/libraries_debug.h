@@ -141,14 +141,14 @@ using namespace libcwd_inserters;
 #include "demangle.h"
 
 // Include the inline functions.
-#include "class_channel.inl"		// Debug channels.
-#include "class_fatal_channel.inl"
-#include "class_continued_channel.inl"
-#include "class_always_channel.inl"
-#include "class_debug.inl"		// Debug objects (DebugObject).
-#include "class_debug_string.inl"       // Public member of DebugObject.
-#include "class_channel_set.inl"	// Used in macro Dout et al.
-#include "class_location.inl"
+#include "Channel.inl.h"		// Debug channels.
+#include "FatalChannel.inl.h"
+#include "ContinuedChannel.inl.h"
+#include "AlwaysChannel.inl.h"
+#include "DebugObject.inl.h"		// Debug objects (DebugObject).
+#include "DebugString.inl.h"            // Public member of DebugObject.
+#include "ChannelSet.inl.h"	        // Used in macro Dout et al.
+#include "Location.inl.h"
 
 // Include optional features.
 #if CWDEBUG_LOCATION			// --enable-location

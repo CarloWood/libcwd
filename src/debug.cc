@@ -4,14 +4,14 @@
 #include "cwd_sys.h"
 #include <libcwd/config.h>
 #include "macros.h"
-#include "private_debug_stack.inl"
+#include "private_DebugStack.inl.h"
 #include "threadsafe/AIReadWriteMutex.h"
 #include "threadsafe/threadsafe.h"
 #if CWDEBUG_LOCATION
 #include "cwd_dwarf.h"
 #endif
 #include "libcwd/debug.h"
-#include <libcwd/class_location.inl>
+#include <libcwd/Location.inl.h>
 #include <libcwd/private_bufferstream.h>
 #include <libcwd/strerrno.h>
 

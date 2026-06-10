@@ -5,7 +5,6 @@
 
 #include "environment.h"
 #include <libcwd/buf2str.h>
-#include <libcwd/cwprint.h>
 #include <libcwd/debug.h>
 #include <libcwd/private_assert.h>
 #include <libcwd/private_string.h>

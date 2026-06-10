@@ -14,7 +14,7 @@ namespace libcwd::_private_ {
 template<typename T>
   inline
   void
-  debug_stack_tst<T>::init()
+  DebugStack<T>::init()
   {
     current_ = stack_ - 1;
     end_ = stack_ + 63;
@@ -23,7 +23,7 @@ template<typename T>
 template<typename T>
   inline
   void
-  debug_stack_tst<T>::push(T ptr)
+  DebugStack<T>::push(T ptr)
   {
 #if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end_ != NULL );
@@ -42,7 +42,7 @@ extern void print_pop_error();
 template<typename T>
   inline
   void
-  debug_stack_tst<T>::pop()
+  DebugStack<T>::pop()
   {
 #if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end_ != NULL );
@@ -55,7 +55,7 @@ template<typename T>
 template<typename T>
   inline
   T
-  debug_stack_tst<T>::top() const
+  DebugStack<T>::top() const
   {
 #if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end_ != NULL );
@@ -66,7 +66,7 @@ template<typename T>
 template<typename T>
   inline
   size_t
-  debug_stack_tst<T>::size() const
+  DebugStack<T>::size() const
   {
 #if CWDEBUG_DEBUG
     LIBCWD_ASSERT( end_ != NULL );

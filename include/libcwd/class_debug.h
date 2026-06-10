@@ -276,6 +276,6 @@ public:
 
 }  // namespace libcwd
 
-#include "set_ostream.inl"
+#include "set_ostream.inl.h"
 
 #endif // LIBCWD_CLASS_DEBUG_H

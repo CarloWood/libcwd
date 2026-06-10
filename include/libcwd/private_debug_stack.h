@@ -19,7 +19,7 @@ namespace libcwd::_private_ {
 // The size of 64 should be MORE then enough.
 
 template<typename T>		// T must be a builtin type.
-  struct debug_stack_tst {
+  struct DebugStack {
   private:
     T stack_[64];
     T* current_;

@@ -4,9 +4,9 @@
 #include "class_debug.h"
 #include "class_channel.h"
 #include "class_fatal_channel.h"
-#include "class_channel.inl"
-#include "class_fatal_channel.inl"
-#include "class_debug_string.inl"
+#include "Channel.inl.h"
+#include "FatalChannel.inl.h"
+#include "DebugString.inl.h"
 #include "core_dump.h"
 
 #include <ostream>

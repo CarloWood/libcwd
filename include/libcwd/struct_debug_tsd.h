@@ -52,7 +52,7 @@ struct DebugObject_ThreadSpecificData
     // The stringstream of the current output state.
     // This should be set to current->bufferstream at all times.
 
-  _private_::debug_stack_tst<OutputState*> output_state_stack;
+  _private_::DebugStack<OutputState*> output_state_stack;
     // Store for nested debug calls.
 
   bool start_expected;
@@ -64,7 +64,7 @@ struct DebugObject_ThreadSpecificData
   int off_count;
     // Number of nested and switched off continued channels till first switched on continued channel.
 
-  _private_::debug_stack_tst<int> continued_stack;
+  _private_::DebugStack<int> continued_stack;
     // Stores the number of nested and switched off continued channels.
 
   DebugString color_on;

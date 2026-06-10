@@ -1,24 +1,12 @@
 #ifndef LIBCWD_CLASS_CHANNEL_SET_INL
 #define LIBCWD_CLASS_CHANNEL_SET_INL
 
-#ifndef LIBCWD_CLASS_CHANNEL_SET_H
 #include "class_channel_set.h"
-#endif
-#ifndef LIBCWD_CLASS_CHANNEL_H
 #include "class_channel.h"
-#endif
-#ifndef LIBCWD_CLASS_FATAL_CHANNEL_H
 #include "class_fatal_channel.h"
-#endif
-#ifndef LIBCWD_CONTROL_FLAG_H
 #include "control_flag.h"
-#endif
-#ifndef LIBCWD_CLASS_CHANNEL_INL
-#include "class_channel.inl"
-#endif
-#ifndef LIBCWD_CLASS_FATAL_CHANNEL_INL
-#include "class_fatal_channel.inl"
-#endif
+#include "Channel.inl.h"
+#include "FatalChannel.inl.h"
 
 namespace libcwd {
 
