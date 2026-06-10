@@ -23,6 +23,7 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AlignTrailingComments:
   Kind: Never
+CommentPragmas: '^static$'
 SortIncludes: CaseSensitive
 SpacesBeforeTrailingComments: 1
 SpaceInEmptyBraces: Block

@@ -118,7 +118,8 @@ void ThreadSpecificData::cleanup_routine()
     if (debug_object_array[i])
     {
       DebugObject_ThreadSpecificData* ptr = debug_object_array[i];
-      debug_object_off_array[i] = 0; // Turn all debugging off!  Now, hopefully, we won't use debug_object_array[i] anymore.
+      debug_object_off_array[i] =
+          0; // Turn all debugging off!  Now, hopefully, we won't use debug_object_array[i] anymore.
       debug_object_array[i] = NULL; // So we won't free it again.
       ptr->tsd_initialized = false;
       delete ptr; // Free debug object TSD.

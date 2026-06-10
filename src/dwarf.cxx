@@ -83,8 +83,8 @@ class PTLoadSegment
   uint32_t flags_;
 
  public:
-  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags)
-      : object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags)
+  PTLoadSegment(ObjectFile const* object_file, uintptr_t start_addr, uintptr_t end_addr, uint32_t flags) :
+      object_file_(object_file), start_addr_(start_addr), end_addr_(end_addr), flags_(flags)
   {
   }
 
@@ -183,8 +183,8 @@ class ObjectFileRegistry
     uintptr_t target_lbase_; // When non-zero, create an ObjectFile only for the DSO with this load base.
     mutable ObjectFile const* object_file_{}; // Set to the ObjectFile aggregate for target_lbase_.
 
-    CallBackData(std::string const& executable_path, uintptr_t target_lbase = 0)
-        : executable_path_(executable_path), target_lbase_(target_lbase)
+    CallBackData(std::string const& executable_path, uintptr_t target_lbase = 0) :
+        executable_path_(executable_path), target_lbase_(target_lbase)
     {
     }
   };
@@ -201,7 +201,7 @@ class ObjectFileRegistry
   static ObjectFile const* find_object_file(uintptr_t addr);
 };
 
-// static
+//static
 ObjectFileRegistry::object_files_ts& ObjectFileRegistry::object_files_map()
 {
   static object_files_ts* map = new object_files_ts; // Intentionally leaked to avoid deinitialization order fiasco.
@@ -405,7 +405,7 @@ class ObjectFile final : public ObjectFileInterface
   object_file_data_ts::wat write_locked_data() const { return object_file_data_ts::wat{object_file_data_}; }
 };
 
-// static
+//static
 std::atomic_bool ObjectFileRegistry::s_object_files_initialized_ = false;
 
 namespace {
@@ -647,7 +647,7 @@ SymbolRange const* ObjectFileData::get_symbol_range_from_function_symbols_map(ui
   return symbol;
 }
 
-// static
+//static
 void ObjectFileRegistry::register_initial_object_files()
 {
   ForceLoadingDebugOutput scoped_;
@@ -676,7 +676,7 @@ void ObjectFileRegistry::register_initial_object_files()
   } // Unlock object_files_map().
 }
 
-// static
+//static
 ObjectFile const* ObjectFileRegistry::iterate_program_headers(CallBackData const& data)
 {
   // From https://man7.org/linux/man-pages/man3/dl_iterate_phdr.3.html:
@@ -692,7 +692,7 @@ ObjectFile const* ObjectFileRegistry::iterate_program_headers(CallBackData const
   return data.object_file_;
 }
 
-// static
+//static
 int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data)
 {
   CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
@@ -776,7 +776,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void
   return target_lbase_only;
 }
 
-// static
+//static
 ObjectFile const* ObjectFileRegistry::find_registered_object_file(uintptr_t lbase,
                                                                   object_files_ts::wat const& object_files_w)
 {
@@ -793,7 +793,7 @@ ObjectFile const* ObjectFileRegistry::find_registered_object_file(uintptr_t lbas
   return nullptr;
 }
 
-// static
+//static
 ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lbase)
 {
   // Locks object_files_map().
@@ -807,7 +807,7 @@ ObjectFile const* ObjectFileRegistry::register_object_file_at_lbase(uintptr_t lb
   return existing_object_file ? existing_object_file : iterate_program_headers(data);
 }
 
-// static
+//static
 ObjectFile const* ObjectFileRegistry::find_object_file(uintptr_t addr)
 {
   // The object file found.
@@ -924,8 +924,8 @@ struct ObjectFileData::LoadFunctionSymbolRangesContext
   uintptr_t lbase_;
   std::size_t symbol_count_{};
 
-  LoadFunctionSymbolRangesContext(ObjectFileData* object_file_data, uintptr_t lbase)
-      : object_file_data_(object_file_data), lbase_(lbase)
+  LoadFunctionSymbolRangesContext(ObjectFileData* object_file_data, uintptr_t lbase) :
+      object_file_data_(object_file_data), lbase_(lbase)
   {
   }
 };
@@ -976,7 +976,7 @@ void ObjectFileData::load_function_symbols(uintptr_t lbase)
 // owning ObjectFileData and keeps traversal going so all defining subprograms in
 // the compilation unit are cached.
 //
-// static
+//static
 int ObjectFileData::cb_load_function_symbol(Dwarf_Die* func_die, void* arg)
 {
   LoadFunctionSymbolRangesContext* context = static_cast<LoadFunctionSymbolRangesContext*>(arg);
@@ -1148,7 +1148,7 @@ void ObjectFileData::add_elf_function_symbol(GElf_Sym const& sym, char const* na
 // linker symbol used by existing Location callers; the GNU/MIPS spelling and DW_AT_name
 // are fallbacks for older or non-C++ producer output.
 //
-// static
+//static
 char const* ObjectFileData::function_symbol_name(Dwarf_Die* func_die)
 {
   return function_die_name(func_die);

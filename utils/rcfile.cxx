@@ -364,7 +364,8 @@ void RcFile::read()
   channels::dc::rcfile.restore(state);
 #if CWDEBUG_LOCATION
   if (elfutils_on_)
-    while (!channels::dc::elfutils.is_on()) channels::dc::elfutils.on();
+    while (!channels::dc::elfutils.is_on())
+      channels::dc::elfutils.on();
 #endif
   read_called_ = true;
 }

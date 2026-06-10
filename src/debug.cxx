@@ -62,7 +62,8 @@ class Buffer : public std::stringbuf
     this->pubseekpos(0, std::ios_base::in);
     os->put(this->sgetc());
     int size = position_ - std::streampos(0);
-    for (int c = 1; c < size; ++c) os->put(this->snextc());
+    for (int c = 1; c < size; ++c)
+      os->put(this->snextc());
     this->pubseekpos(old_in_pos, std::ios_base::in);
   }
 };
@@ -72,7 +73,7 @@ extern std::atomic_bool WST_multi_threaded;
 } // namespace _private_
 
 void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug_object, bool request_unfinished,
-                        bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf))
+                     bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf))
 {
   // os			: The ostream that we need to write to.
   // __libcwd_tsd		: The Thread Specific context.
@@ -118,7 +119,8 @@ void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug
   }
   if (debug_object.newlineless_tsd_ && debug_object.newlineless_tsd_ != &__libcwd_tsd)
   {
-    _private_::ThreadSpecificData const* newlineless_tsd = static_cast<_private_::ThreadSpecificData const*>(debug_object.newlineless_tsd_);
+    _private_::ThreadSpecificData const* newlineless_tsd =
+        static_cast<_private_::ThreadSpecificData const*>(debug_object.newlineless_tsd_);
     DebugString const& color_off = newlineless_tsd->debug_object_array[debug_object.index_]->color_off;
     size_t color_off_size = color_off.size();
     if (color_off_size > 0)
@@ -222,8 +224,8 @@ void version_check_failed()
 DebugObject libcw_do;
 
 namespace {
-std::atomic<unsigned short int> WST_max_len = 8;        // The length of the longest label.  Is adjusted automatically
-                                                        // if a custom channel has a longer label.
+std::atomic<unsigned short int> WST_max_len = 8; // The length of the longest label.  Is adjusted automatically
+                                                 // if a custom channel has a longer label.
 } // namespace
 
 namespace channels {
@@ -417,7 +419,7 @@ bool claim_fatal_termination_ownership()
 {
   bool expected = false;
   return fatal_termination_started.compare_exchange_strong(expected, true, std::memory_order_acq_rel,
-                                                          std::memory_order_acquire);
+                                                           std::memory_order_acquire);
 }
 
 struct ChannelSets
@@ -473,7 +475,7 @@ Channel* DebugChannels::find(char const* label) const
 //
 // The ChannelSets wat protects visible channels, hidden channels, label width updates, and next_index_.
 void DebugChannels::initialize_channel(Channel& channel, char const* label LIBCWD_COMMA_TSD_PARAM,
-                                           bool add_to_channel_list) const
+                                       bool add_to_channel_list) const
 {
   size_t label_len = strlen(label);
 
@@ -536,7 +538,7 @@ void DebugChannels::initialize_channel(Channel& channel, char const* label LIBCW
 // Fatal channels are not inserted into the registry, but their label width still contributes to the
 // shared WST_max_len value used when formatting all registered channel labels.
 void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* label,
-                                                 control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM) const
+                                             control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM) const
 {
   channel.maskbit_ = maskbit;
 
@@ -589,7 +591,8 @@ void DebugChannels::for_each_impl(callback_type callback, void* data) const
 // raw access to the registry without holding the corresponding threadsafe access object.
 struct DebugObjects::Impl
 {
-  using debug_objects_ts = threadsafe::Unlocked<std::vector<DebugObject*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
+  using debug_objects_ts =
+      threadsafe::Unlocked<std::vector<DebugObject*>, threadsafe::policy::ReadWrite<AIReadWriteMutex>>;
   debug_objects_ts debug_objects;
 };
 
@@ -663,7 +666,8 @@ class OutputState
 
 static inline void write_whitespace_to(std::ostream& os, unsigned int size)
 {
-  for (unsigned int i = size; i > 0; --i) os.put(' ');
+  for (unsigned int i = size; i > 0; --i)
+    os.put(' ');
 }
 
 namespace _private_ {
@@ -707,7 +711,8 @@ alignas(OutputState) static unsigned char WST_dummy_output_state[sizeof(OutputSt
 size_t DebugString::calculate_capacity(size_t size)
 {
   size_t capacity_plus_one = default_capacity_ + 1; // For the terminating zero.
-  while (size >= capacity_plus_one) capacity_plus_one *= 2;
+  while (size >= capacity_plus_one)
+    capacity_plus_one *= 2;
   return capacity_plus_one - 1;
 }
 
@@ -715,7 +720,7 @@ void DebugString::NS_internal_init(char const* str, size_t len)
 {
   default_capacity_ = min_capacity;
   str_ = (char*)malloc((default_capacity_ = capacity_ = calculate_capacity(len)) +
-                        1); // Add one for the terminating zero. LEAK46
+                       1); // Add one for the terminating zero. LEAK46
   strncpy(str_, str, len);
   size_ = len;
   str_[size_] = 0;
@@ -732,8 +737,10 @@ void DebugString::deinitialize()
 DebugString::~DebugString()
 {
 #if CWDEBUG_DEBUG
-  LIBCWD_ASSERT(str_ == NULL); // Need to call DebugString::deinitialize() before destructor.
-                                // But not in the non-threaded case, see DebugObject_ThreadSpecificData::~DebugObject_ThreadSpecificData.
+  LIBCWD_ASSERT(
+      str_ ==
+      NULL); // Need to call DebugString::deinitialize() before destructor.
+             // But not in the non-threaded case, see DebugObject_ThreadSpecificData::~DebugObject_ThreadSpecificData.
 #endif
 }
 
@@ -843,7 +850,8 @@ void DebugObject::pop_marker()
 
 /** \} */
 
-void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM)
+void DebugObject_ThreadSpecificData::start(DebugObject& debug_object,
+                                           ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
   // Initialisation of the TSD part should be done from LIBCWD_TSD_DECLARATION inside Dout et al.
@@ -868,10 +876,9 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
       do
       {
         have_target = debug_object.ostream_state_.try_lock_os(preferred_os, &target_os, &target_mutex);
-        if (!have_target)       // mutex exists, but could not immediately be locked.
+        if (!have_target) // mutex exists, but could not immediately be locked.
           nanosleep(&t, NULL);
-      }
-      while (!have_target && ++count < 40);
+      } while (!have_target && ++count < 40);
       DebugString const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
       size_t color_off_size = color_off.size();
       if (have_target)
@@ -886,10 +893,9 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
         debug_object.ostream_state_.write_color_off_newline(preferred_os, color_off.c_str(), color_off_size);
       char const* channame = (channel_set.mask & finish_maskbit) ? "finish" : "continued";
 #if CWDEBUG_LOCATION
-      DoutFatal(dc::core,
-                "Using `dc::" << channame << "' in "
-                              << Location((char*)__builtin_return_address(0) + builtin_return_address_offset)
-                              << " without (first using) a matching `continued_cf'.");
+      DoutFatal(dc::core, "Using `dc::" << channame << "' in "
+                                        << Location((char*)__builtin_return_address(0) + builtin_return_address_offset)
+                                        << " without (first using) a matching `continued_cf'.");
 #else
       DoutFatal(dc::core, "Using `dc::" << channame << "' without (first using) a matching `continued_cf'.");
 #endif
@@ -1019,7 +1025,8 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object, ChannelSet
   DEBUGDEBUG_CERR("Leaving DebugObject::start(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object));
 }
 
-void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSetData& /*UNUSED, */ LIBCWD_COMMA_TSD_PARAM)
+void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
+                                            ChannelSetData& /*UNUSED, */ LIBCWD_COMMA_TSD_PARAM)
 {
 #if CWDEBUG_DEBUG
   LIBCWD_ASSERT(current != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
@@ -1103,7 +1110,7 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
           std::this_thread::sleep_for(std::chrono::hours(24));
       }
       if ((current->mask & coredump_maskbit))
-        std::abort();   // core dump.
+        std::abort(); // core dump.
       _Exit(254); // Exit without calling global destructors.
     }
     if ((current->mask & wait_cf))
@@ -1118,7 +1125,8 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
       if (debug_object.interactive_)
       {
         *locked_os << std::flush;
-        while (std::cin.get() != '\n');
+        while (std::cin.get() != '\n')
+          ;
       }
       if (locked_mutex)
         locked_mutex->unlock();
@@ -1157,7 +1165,8 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
   }
   else
   {
-    current = reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state); // Used (MT: read-only!) in next DebugObject::start().
+    current = reinterpret_cast<OutputState*>(
+        _private_::WST_dummy_output_state); // Used (MT: read-only!) in next DebugObject::start().
     DEBUGDEBUG_CERR("current = " << (void*)current);
     current_bufferstream = NULL;
   }
@@ -1171,7 +1180,8 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object, ChannelSe
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winfinite-recursion"
-void DebugObject_ThreadSpecificData::fatal_finish(DebugObject& debug_object, ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM)
+void DebugObject_ThreadSpecificData::fatal_finish(DebugObject& debug_object,
+                                                  ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM)
 {
   finish(debug_object, channel_set LIBCWD_COMMA_TSD);
   DoutFatal(dc::core,
@@ -1207,10 +1217,12 @@ bool DebugObject::NS_init(LIBCWD_TSD_PARAM)
 #endif
 
   _private_::DebugObjects::instance().add_if_missing(this);
-  new (_private_::WST_dummy_output_state) OutputState(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
+  new (_private_::WST_dummy_output_state)
+      OutputState(0, channels::dc::debug.get_label(), 0); // Leaks 24 bytes of memory
   index_ = s_index_count_++;
 #if CWDEBUG_DEBUGT
-  LIBCWD_ASSERT(!_private_::WST_multi_threaded.load(std::memory_order_relaxed)); // Only the first thread should be initializing DebugObject objects.
+  LIBCWD_ASSERT(!_private_::WST_multi_threaded.load(
+      std::memory_order_relaxed)); // Only the first thread should be initializing DebugObject objects.
 #endif
   LIBCWD_ASSERT(__libcwd_tsd.debug_object_array[index_] == NULL);
   DebugObject_ThreadSpecificData& tsd(*(__libcwd_tsd.debug_object_array[index_] = new DebugObject_ThreadSpecificData));
@@ -1259,8 +1271,8 @@ void DebugObject_ThreadSpecificData::init()
   indent = 0;
 
   tsd_initialized = true;
-  DEBUGDEBUG_CERR("Leaving DebugObject_ThreadSpecificData::init (this == " << (void*)this
-                                                         << "); &tsd_initialized == " << (void*)&tsd_initialized);
+  DEBUGDEBUG_CERR("Leaving DebugObject_ThreadSpecificData::init (this == " << (void*)this << "); &tsd_initialized == "
+                                                                           << (void*)&tsd_initialized);
 }
 
 namespace _private_ {
@@ -1292,7 +1304,8 @@ DebugObject_ThreadSpecificData::~DebugObject_ThreadSpecificData()
     return;
   // Sanity checks:
   if (continued_stack.size())
-    DoutFatal(dc::core | cerr_cf, "Destructing DebugObject_ThreadSpecificData with a non-empty continued_stack (missing dc::finish?)");
+    DoutFatal(dc::core | cerr_cf,
+              "Destructing DebugObject_ThreadSpecificData with a non-empty continued_stack (missing dc::finish?)");
   if (output_state_stack.size())
     DoutFatal(dc::core | cerr_cf, "Destructing DebugObject_ThreadSpecificData with a non-empty output_state_stack");
 }
@@ -1397,7 +1410,9 @@ void ContinuedChannel::NS_initialize(control_flag_t maskbit)
 
 void Channel::initialize(_private_::ChannelSetsWat wat, char const* label, size_t label_len)
 {
-  index_ = ++wat.ref_->next_index_;  // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
+  index_ =
+      ++wat.ref_
+            ->next_index_; // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
   // clang-format off
   PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
   strncpy(label_, label, label_len);
@@ -1468,9 +1483,9 @@ ContinuedChannelSet& ChannelSet::operator|(continued_cf_nt)
   else
   {
     debug_object_tsd_ptr->continued_stack.push(debug_object_tsd_ptr->off_count);
-    DEBUGDEBUG_CERR("Channel is switched on. Pushed off_count (" << debug_object_tsd_ptr->off_count << ") to stack (size now "
-                                                                 << debug_object_tsd_ptr->continued_stack.size()
-                                                                 << ") and set off_count to 0");
+    DEBUGDEBUG_CERR("Channel is switched on. Pushed off_count ("
+                    << debug_object_tsd_ptr->off_count << ") to stack (size now "
+                    << debug_object_tsd_ptr->continued_stack.size() << ") and set off_count to 0");
     debug_object_tsd_ptr->off_count = 0;
   }
   return *(reinterpret_cast<ContinuedChannelSet*>(this));
@@ -1600,7 +1615,7 @@ void DebugObject::set_ostream(std::ostream* os)
 #endif
 #if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION;
-  LIBCWD_ASSERT( LIBCWD_TSD_MEMBER(tsd_initialized) );
+  LIBCWD_ASSERT(LIBCWD_TSD_MEMBER(tsd_initialized));
 #endif
   ostream_state_.set_ostream(os);
 }

@@ -24,7 +24,8 @@ bool match(char const* mask, size_t masklen, char const* name)
       return false;
     --masklen;
   }
-  while (--masklen > 0 && *++m == '*');
+  while (--masklen > 0 && *++m == '*')
+    ;
   if (masklen == 0)
     return true;
   while (*n != *m || !match(m, masklen, n))

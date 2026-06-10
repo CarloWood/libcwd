@@ -39,8 +39,8 @@ class PrintablePollDummy
   size_t number_of_fds_;
 
  public:
-  PrintablePollDummy(struct pollfd const* pollfds, size_t number_of_fds)
-      : pollfds_(pollfds), number_of_fds_(number_of_fds)
+  PrintablePollDummy(struct pollfd const* pollfds, size_t number_of_fds) :
+      pollfds_(pollfds), number_of_fds_(number_of_fds)
   {
   }
   void print_on(std::ostream& os) const;
@@ -133,7 +133,8 @@ void Argv::print_on(std::ostream& os) const
 {
   os << "[ ";
   char const* const* p = argv_;
-  while (*p) os << *p++ << ", ";
+  while (*p)
+    os << *p++ << ", ";
   os << "NULL ]";
 }
 

@@ -55,42 +55,42 @@ Channel demangler("DEMANGLER");
 #define _GLIBCXX_DEMANGLER_DOUT_ENTERING(x)       \
   __Dout(dc::demangler | continued_cf | flush_cf, \
          "Entering " << x << "(\"" << &str_[pos_] << "\", \"" << output << "\") ")
-#define _GLIBCXX_DEMANGLER_RETURN                                    \
-  do                                                                 \
-  {                                                                  \
+#define _GLIBCXX_DEMANGLER_RETURN                                   \
+  do                                                                \
+  {                                                                 \
     if (result_)                                                    \
       __Dout(dc::finish, '[' << pos_ << "; \"" << output << "\"]"); \
-    else                                                             \
-      __Dout(dc::finish, "(failed)");                                \
+    else                                                            \
+      __Dout(dc::finish, "(failed)");                               \
     return result_;                                                 \
   } while (0)
 #define _GLIBCXX_DEMANGLER_FAILURE     \
   do                                   \
   {                                    \
-    if (result_)                      \
+    if (result_)                       \
     {                                  \
-      result_ = false;                \
+      result_ = false;                 \
       __Dout(dc::finish, "[failure]"); \
     }                                  \
     else                               \
       __Dout(dc::finish, "(failed)");  \
     return false;                      \
   } while (0)
-#define _GLIBCXX_DEMANGLER_DOUT_ENTERING2(x)                                                              \
-  do                                                                                                      \
-  {                                                                                                       \
-    __Dout(dc::demangler | continued_cf | flush_cf, "Entering " << x);                                    \
-    if (qualifiers)                                                                                       \
-      __Dout(dc::continued, " [with qualifiers: " << *qualifiers << ']');                                 \
+#define _GLIBCXX_DEMANGLER_DOUT_ENTERING2(x)                                                            \
+  do                                                                                                    \
+  {                                                                                                     \
+    __Dout(dc::demangler | continued_cf | flush_cf, "Entering " << x);                                  \
+    if (qualifiers)                                                                                     \
+      __Dout(dc::continued, " [with qualifiers: " << *qualifiers << ']');                               \
     __Dout(dc::continued, "(\"" << &str_[pos_] << "\", \"" << prefix << "\", \"" << postfix << "\") "); \
   } while (0)
-#define _GLIBCXX_DEMANGLER_RETURN2                                                          \
-  do                                                                                        \
-  {                                                                                         \
+#define _GLIBCXX_DEMANGLER_RETURN2                                                         \
+  do                                                                                       \
+  {                                                                                        \
     if (result_)                                                                           \
       __Dout(dc::finish, '[' << pos_ << "; \"" << prefix << "\", \"" << postfix << "\"]"); \
-    else                                                                                    \
-      __Dout(dc::finish, "(failed)");                                                       \
+    else                                                                                   \
+      __Dout(dc::finish, "(failed)");                                                      \
     return result_;                                                                        \
   } while (0)
 #define _GLIBCXX_DEMANGLER_DOUT_ENTERING3(x)                                  \
@@ -316,7 +316,8 @@ void decimal_float::divide_by_two(bool decrement_exponent)
 {
   if (decrement_exponent)
   {
-    for (int i = 0; i < mantissa_size_c; ++i) data_.mantissa[i] *= 5;
+    for (int i = 0; i < mantissa_size_c; ++i)
+      data_.mantissa[i] *= 5;
     do_carry();
     --data_.exponent;
   }
@@ -349,7 +350,8 @@ bool decimal_float::decrement_exponent()
 {
   if (data_.max_precision_reached)
     return false;
-  for (int i = 0; i < mantissa_size_c; ++i) data_.mantissa[i] *= 10;
+  for (int i = 0; i < mantissa_size_c; ++i)
+    data_.mantissa[i] *= 10;
   do_carry();
   if (data_.mantissa[mantissa_size_c - 1] >= 1000)
     data_.max_precision_reached = true;
@@ -361,7 +363,8 @@ bool decimal_float::decrement_exponent()
 decimal_float& decimal_float::operator+=(decimal_float const& term)
 {
   // assert(data_.exponent == term.data_.exponent);
-  for (int i = 0; i < mantissa_size_c; ++i) data_.mantissa[i] += term.data_.mantissa[i];
+  for (int i = 0; i < mantissa_size_c; ++i)
+    data_.mantissa[i] += term.data_.mantissa[i];
   do_carry();
   return *this;
 }
@@ -403,14 +406,16 @@ decimal_float& decimal_float::operator*=(decimal_float const& factor)
   // Now hold your breath...
   data_.exponent += factor.data_.exponent + 4 * lss;
   unsigned long sum = 0;
-  for (int i = 0; i < lss; ++i) sum += this_mantissa[i] * factor.data_.mantissa[lss - 1 - i];
+  for (int i = 0; i < lss; ++i)
+    sum += this_mantissa[i] * factor.data_.mantissa[lss - 1 - i];
   sum += 5000; // Round off.
   sum /= 10000;
   for (int j = 0; j < mantissa_size_c; ++j)
   {
     int loop_bgn = std::max(0, lss + j - (mantissa_size_c - 1));
     int loop_end = std::min(mantissa_size_c - 1, lss + j);
-    for (int i = loop_bgn; i <= loop_end; ++i) sum += this_mantissa[i] * factor.data_.mantissa[lss + j - i];
+    for (int i = loop_bgn; i <= loop_end; ++i)
+      sum += this_mantissa[i] * factor.data_.mantissa[lss + j - i];
     data_.mantissa[j] = sum;
     sum /= 10000;
     data_.mantissa[j] -= 10000 * sum;
@@ -453,7 +458,8 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
     int cuti = cut / 4;
     int cutr = cut % 4;
     unsigned long shift = 10;
-    while (cutr--) shift *= 10;
+    while (cutr--)
+      shift *= 10;
     tmp.data_.mantissa[cuti] += shift / 2; // Round off.
     if (tmp.data_.mantissa[cuti] >= 10000)
       tmp.do_carry();
@@ -481,7 +487,8 @@ void decimal_float::print_to_with_precision(char* buf, int precision) const
         {
           if (p == buf + 1)
             *p++ = '.';
-          while (tz--) *p++ = '0';
+          while (tz--)
+            *p++ = '0';
           *p++ = d + '0';
           tz = 0;
         }
@@ -564,7 +571,8 @@ void print_IEEE_fp(char* buf, unsigned long* words, int nbits_exponent, int nbit
   else
   {
     fraction_nonzero |= (words[nelem_fraction - 1] & mask_last_elem);
-    for (int i = 1; i < nelem_fraction - 1; ++i) fraction_nonzero |= words[i];
+    for (int i = 1; i < nelem_fraction - 1; ++i)
+      fraction_nonzero |= words[i];
   }
   if (exponent == exponent_mask && fraction_nonzero)
   {

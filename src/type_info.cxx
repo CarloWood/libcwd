@@ -140,8 +140,8 @@ libcwd::TypeInfo const& libcwd_type_info_exact<void*>::value()
         sizeof(void*), 0 /* unknown */);
 #else
     s_value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(),
-                                                         typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE),
-                 sizeof(void*), 0 /* unknown */);
+                                                          typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE),
+                  sizeof(void*), 0 /* unknown */);
 #endif
     s_initialized_ = true;
   }
