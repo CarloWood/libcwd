@@ -31,8 +31,6 @@
 
 extern "C" int raise(int);
 
-#define COMMA_IFTHREADS(x) , x
-
 namespace libcwd {
 
 class Buffer : public std::stringbuf
@@ -47,7 +45,7 @@ class Buffer : public std::stringbuf
  public:
   Buffer() : unfinished_already_printed_(false), continued_needed_(false) { }
   void writeto(std::ostream* os, LIBCWD_TSD_PARAM, DebugObject& debug_object, bool request_unfinished,
-               bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf));
+               bool do_flush, bool ends_on_newline, bool possible_nonewline_cf);
   void store_position() { position_ = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out); }
   void restore_position()
   {
@@ -73,7 +71,7 @@ extern std::atomic_bool WST_multi_threaded;
 } // namespace _private_
 
 void Buffer::writeto(std::ostream* os, LIBCWD_TSD_PARAM, DebugObject& debug_object, bool request_unfinished,
-                     bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf))
+                     bool do_flush, bool ends_on_newline, bool possible_nonewline_cf)
 {
   // os			: The ostream that we need to write to.
   // __libcwd_tsd		: The Thread Specific context.
@@ -928,8 +926,8 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object,
         target_os, LIBCWD_TSD, debug_object,
         true, // This thread requests an <unfinished> because of previous, unfinished 'continued' output.
         false // Don't flush.
-        COMMA_IFTHREADS(true) // This output ends on a newline by itself.
-        COMMA_IFTHREADS(false)); // The newline is not missing as a result of nonewline_cf.
+       , true // This output ends on a newline by itself.
+       , false); // The newline is not missing as a result of nonewline_cf.
     // Truncate the buffer to its prefix and append "<continued>" to it already.
     current->buffer.restore_position();
     DebugString const& color_off = LIBCWD_DO_TSD_MEMBER(debug_object, color_off);
@@ -1051,8 +1049,8 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
           target_os, LIBCWD_TSD, debug_object,
           false, // This thread requests <unfinished> because of previous, unfinished 'continued' output.
           true // Flush ostream after printing this.
-          COMMA_IFTHREADS(false) // This output does not end on a newline.
-          COMMA_IFTHREADS(false)); // The newline is not missing as a result of nonewline_cf.
+         , false // This output does not end on a newline.
+         , false); // The newline is not missing as a result of nonewline_cf.
     }
     return;
   }
@@ -1099,8 +1097,8 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
           target_os, LIBCWD_TSD, debug_object,
           false, // This thread requests <unfinished> because of previous, unfinished 'continued' output.
           !__libcwd_tsd.recursive_fatal // Flush ostream after printing this when there is no recursive loop yet.
-               COMMA_IFTHREADS(!(current->mask & nonewline_cf)) // Whether or not this output ends on a newline.
-           COMMA_IFTHREADS(true)); // If the newline is missing, then it is missing because of the use of nonewline_cf.
+              , !(current->mask & nonewline_cf) // Whether or not this output ends on a newline.
+          , true); // If the newline is missing, then it is missing because of the use of nonewline_cf.
       __libcwd_tsd.recursive_fatal = true;
       if (!_private_::claim_fatal_termination_ownership())
       {
@@ -1117,7 +1115,7 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
     {
       current->buffer.writeto(
           target_os, LIBCWD_TSD, debug_object, false,
-          debug_object.interactive_ COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
+          debug_object.interactive_, !(current->mask & nonewline_cf), true);
       _private_::LockInterfaceBase* locked_mutex;
       std::ostream* locked_os;
       locked_os = debug_object.ostream_state_.get_locked_os(target_os, &locked_mutex);
@@ -1134,13 +1132,13 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
     else
       current->buffer.writeto(target_os, LIBCWD_TSD, debug_object, false,
                               debug_object.always_flush_is_on() || (current->mask & flush_cf != 0)
-                                                                       COMMA_IFTHREADS(!(current->mask & nonewline_cf))
-                                                                           COMMA_IFTHREADS(true));
+                                                                      , !(current->mask & nonewline_cf)
+                                                                          , true);
   }
   else
     current->buffer.writeto(
         target_os, LIBCWD_TSD, debug_object, false,
-        debug_object.always_flush_is_on() COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
+        debug_object.always_flush_is_on(), !(current->mask & nonewline_cf), true);
 
   DEBUGDEBUG_CERR("Deleting `current' " << (void*)current);
   control_flag_t mask = current->mask; // Keep this.
