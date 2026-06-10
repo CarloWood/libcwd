@@ -8,7 +8,7 @@ set(tutorial_static_pages
   tut2
   tut3
   tut4
-  tut8
+  tut6
 )
 
 set(tutorial_html_outputs)

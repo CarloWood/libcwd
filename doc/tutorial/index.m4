@@ -74,7 +74,7 @@ __PARAGRAPH(2, 5.4, [[Formatting Debug Output]], [[tut5.html#Formatting]])
 __PARAGRAPH(3, 5.4.1, [[Control Flags]], [[tut5.html#Control]])
 __PARAGRAPH(3, 5.4.2, [[Methods Of The Debug Object]], [[tut5.html#Methods]])
 __PAGE_END
-__PAGE(7, [[Tutorial 6 : Debugging Threaded Applications]], tut8.html)
+__PAGE(7, [[Tutorial 6 : Debugging Threaded Applications]], tut6.html)
 __TOC_END
 __PAGEEND
 __PAGEFOOTER

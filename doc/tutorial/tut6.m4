@@ -3,7 +3,7 @@ __HTMLHEADER
 __PAGEHEADER
 __PAGESTART
 
-<H2>Tutorial 8: Debugging Threaded Applications</H2>
+<H2>Tutorial 6: Debugging Threaded Applications</H2>
 
 <P>Libcwd is always built with thread support.&nbsp; For example:</P>
 
