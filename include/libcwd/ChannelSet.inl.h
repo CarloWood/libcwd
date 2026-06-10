@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2001-2004, 2018, 2020, 2026 Carlo Wood
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #ifndef LIBCWD_CLASS_CHANNEL_SET_INL
