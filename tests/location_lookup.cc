@@ -69,7 +69,7 @@ int main()
   std::cout << "Captured output:\n" << captured.output_str() << std::endl;
 
   std::vector<std::string> lines = split_lines(captured.output_str());
-  std::regex location_re(R"(^NOTICE  : A::A\(\): called from .*location_lookup\.cc:([0-9]+)$)");
+  std::regex location_re(R"(^NOTICE  : A::A\(\): called from .*location_lookup\.cpp:([0-9]+)$)");
   std::regex caller_re(R"(^NOTICE  : test\(\): called from A::A\(\)$)");
   std::regex expected_re(R"(^NOTICE  : expected_line = ([0-9]+)$)");
 

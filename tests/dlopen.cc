@@ -54,8 +54,8 @@ bool compare_dlopen_output(std::istream& captured)
 {
   char const* expected[] = {
       "^NOTICE  : global_test_symbol\\(false\\): "
-      ".*dlopen_module\\.so:_Z18global_test_symbolb:dlopen_module\\.cc:([0-9]+) \\(expected line: \\1\\)$",
-      "^NOTICE  : static_test_symbol: .*dlopen_module\\.so:static_test_symbol:dlopen_module\\.cc:([0-9]+) \\(expected "
+      ".*dlopen_module\\.so:_Z18global_test_symbolb:dlopen_module\\.cpp:([0-9]+) \\(expected line: \\1\\)$",
+      "^NOTICE  : static_test_symbol: .*dlopen_module\\.so:static_test_symbol:dlopen_module\\.cpp:([0-9]+) \\(expected "
       "line: \\1\\)$",
       nullptr};
 

@@ -34,9 +34,9 @@ namespace {
     Dout(dc::notice, scenario << ": location is unknown");
     return false;
   }
-  if (location.file() != "dlopen_module.cc")
+  if (location.file() != "dlopen_module.cpp")
   {
-    Dout(dc::notice, scenario << ": file was " << location.file() << ", expected dlopen_module.cc");
+    Dout(dc::notice, scenario << ": file was " << location.file() << ", expected dlopen_module.cpp");
     success = false;
   }
   if (location.line() != expected_line)

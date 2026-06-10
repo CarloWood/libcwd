@@ -36,10 +36,10 @@ int volatile inlined_side_effect_sink;
     std::cerr << "inlined body location is unknown\n";
     ok = false;
   }
-  else if (location.file() != "location_inlined_function_body.cc" || location.line() != expected_line)
+  else if (location.file() != "location_inlined_function_body.cpp" || location.line() != expected_line)
   {
     std::cerr << "inlined body location mismatch: got " << location.file() << ':' << location.line()
-              << ", expected location_inlined_function_body.cc:" << expected_line << '\n';
+              << ", expected location_inlined_function_body.cpp:" << expected_line << '\n';
     ok = false;
   }
 

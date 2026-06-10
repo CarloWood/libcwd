@@ -46,7 +46,7 @@ bool expect_location(char const* scenario, libcwd::Location const& location, cha
 bool probe_plain_line()
 {
   unsigned int const expected_line = __LINE__ + 1;
-  return expect_call_site("plain line", "location_cache_scenarios.cc", expected_line);
+  return expect_call_site("plain line", "location_cache_scenarios.cpp", expected_line);
 }
 
 bool probe_line_directive()
@@ -54,7 +54,7 @@ bool probe_line_directive()
 #line 700 "location_cache_virtual_file.cc"
   unsigned int const expected_line = __LINE__ + 1;
   bool const result = expect_call_site("line directive", "location_cache_virtual_file.cc", expected_line);
-#line 56 "location_cache_scenarios.cc"
+#line 56 "location_cache_scenarios.cpp"
   return result;
 }
 
@@ -79,7 +79,7 @@ bool probe_inline_body_source()
     std::cerr << "inline body: location is unknown\n";
     return false;
   }
-  if (!ends_with(location.file(), "location_cache_scenarios.cc") || location.line() == expansion_line)
+  if (!ends_with(location.file(), "location_cache_scenarios.cpp") || location.line() == expansion_line)
   {
     std::cerr << "inline body: got " << location.file() << ':' << location.line()
               << ", expected inline function source near line " << inline_function_definition_line

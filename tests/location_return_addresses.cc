@@ -23,10 +23,10 @@ bool expect_call_site(char const* scenario, void const* return_address, unsigned
     return false;
   }
 
-  if (location.file() != "location_return_addresses.cc" || location.line() != expected_line)
+  if (location.file() != "location_return_addresses.cpp" || location.line() != expected_line)
   {
     std::cerr << scenario << ": got " << location.file() << ':' << location.line()
-              << ", expected location_return_addresses.cc:" << expected_line << '\n';
+              << ", expected location_return_addresses.cpp:" << expected_line << '\n';
     return false;
   }
 

@@ -1,4 +1,4 @@
-// default-argument call sites used by location_default_argument_functions.cc.
+// default-argument call sites used by location_default_argument_functions.cpp.
 //
 // g has default arguments that call y_default and arg2_i, arg2_i is nested inside
 // another inline helper, and f calls g with explicit arguments arg_g1 and arg_g2.

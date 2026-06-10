@@ -1,4 +1,4 @@
-add_library(ctest_support STATIC support/test_support.cc)
+add_library(ctest_support STATIC support/test_support.cpp)
 target_include_directories(ctest_support
   PUBLIC
     ${CMAKE_SOURCE_DIR}
@@ -9,83 +9,83 @@ target_include_directories(ctest_support
 target_link_libraries(ctest_support PUBLIC cwd)
 target_compile_options(ctest_support PRIVATE -g)
 
-add_executable(basic_debug_output basic_debug_output.cc)
+add_executable(basic_debug_output basic_debug_output.cpp)
 target_link_libraries(basic_debug_output PRIVATE ctest_support)
 target_compile_options(basic_debug_output PRIVATE -g)
 
-add_executable(flush flush.cc)
+add_executable(flush flush.cpp)
 target_link_libraries(flush PRIVATE ctest_support)
 target_compile_options(flush PRIVATE -g)
 
-add_executable(continued continued.cc)
+add_executable(continued continued.cpp)
 target_link_libraries(continued PRIVATE ctest_support)
 target_compile_options(continued PRIVATE -g)
 
-add_executable(cf cf.cc)
+add_executable(cf cf.cpp)
 target_link_libraries(cf PRIVATE ctest_support)
 target_compile_options(cf PRIVATE -g)
 
-add_executable(demangler demangler.cc)
+add_executable(demangler demangler.cpp)
 target_link_libraries(demangler PRIVATE ctest_support)
 target_compile_options(demangler PRIVATE -g)
 
-add_executable(do do.cc)
+add_executable(do do.cpp)
 target_link_libraries(do PRIVATE ctest_support)
 target_compile_options(do PRIVATE -g)
 
-add_executable(colors_debug_output colors_debug_output.cc)
+add_executable(colors_debug_output colors_debug_output.cpp)
 target_link_libraries(colors_debug_output PRIVATE ctest_support)
 target_compile_options(colors_debug_output PRIVATE -g)
 
-add_executable(threaded_debug_output threaded_debug_output.cc)
+add_executable(threaded_debug_output threaded_debug_output.cpp)
 target_link_libraries(threaded_debug_output PRIVATE ctest_support)
 target_compile_options(threaded_debug_output PRIVATE -g)
 
-add_executable(concurrent_core_dump_threads concurrent_core_dump_threads.cc)
+add_executable(concurrent_core_dump_threads concurrent_core_dump_threads.cpp)
 target_link_libraries(concurrent_core_dump_threads PRIVATE ctest_support Threads::Threads)
 target_compile_options(concurrent_core_dump_threads PRIVATE -g)
 
-add_executable(dc dc.cc)
+add_executable(dc dc.cpp)
 target_link_libraries(dc PRIVATE ctest_support)
 target_compile_options(dc PRIVATE -g)
 
-add_executable(hello_world_debug_channel hello_world_debug_channel.cc)
+add_executable(hello_world_debug_channel hello_world_debug_channel.cpp)
 target_link_libraries(hello_world_debug_channel PRIVATE ctest_support)
 target_compile_options(hello_world_debug_channel PRIVATE -g)
 
-add_executable(mangling_symbols mangling_symbols.cc)
+add_executable(mangling_symbols mangling_symbols.cpp)
 target_link_libraries(mangling_symbols PRIVATE ctest_support)
 target_compile_options(mangling_symbols PRIVATE -g)
 
-add_executable(location_lookup location_lookup.cc)
+add_executable(location_lookup location_lookup.cpp)
 target_link_libraries(location_lookup PRIVATE ctest_support)
 target_compile_options(location_lookup PRIVATE -g)
 
-add_executable(location_cache_scenarios location_cache_scenarios.cc)
+add_executable(location_cache_scenarios location_cache_scenarios.cpp)
 target_link_libraries(location_cache_scenarios PRIVATE ctest_support)
 target_compile_options(location_cache_scenarios PRIVATE -g -O2)
 
-add_executable(location_line_directives location_line_directives.cc)
+add_executable(location_line_directives location_line_directives.cpp)
 target_link_libraries(location_line_directives PRIVATE ctest_support)
 target_compile_options(location_line_directives PRIVATE -g)
 
-add_executable(location_return_addresses location_return_addresses.cc)
+add_executable(location_return_addresses location_return_addresses.cpp)
 target_link_libraries(location_return_addresses PRIVATE ctest_support)
 target_compile_options(location_return_addresses PRIVATE -g -O0)
 
-add_executable(location_default_argument_functions location_default_argument_functions.cc support/location_default_argument_functions_cu.cc)
+add_executable(location_default_argument_functions location_default_argument_functions.cpp support/location_default_argument_functions_cu.cpp)
 target_link_libraries(location_default_argument_functions PRIVATE ctest_support)
 target_compile_options(location_default_argument_functions PRIVATE -g -O0)
 
-add_executable(location_inlined_function_body location_inlined_function_body.cc)
+add_executable(location_inlined_function_body location_inlined_function_body.cpp)
 target_link_libraries(location_inlined_function_body PRIVATE ctest_support)
 target_compile_options(location_inlined_function_body PRIVATE -g -O2)
 
-add_executable(location_from_global_object location_from_global_object.cc)
+add_executable(location_from_global_object location_from_global_object.cpp)
 target_link_libraries(location_from_global_object PRIVATE ctest_support)
 target_compile_options(location_from_global_object PRIVATE -g)
 
-add_executable(symbol_range_overlaps symbol_range_overlaps.cc)
+add_executable(symbol_range_overlaps symbol_range_overlaps.cpp)
 target_include_directories(symbol_range_overlaps
   PRIVATE
     ${CMAKE_SOURCE_DIR}
@@ -95,15 +95,15 @@ target_include_directories(symbol_range_overlaps
 target_link_libraries(symbol_range_overlaps PRIVATE cwd)
 target_compile_options(symbol_range_overlaps PRIVATE -g)
 
-add_executable(nodebug_output nodebug_output.cc)
+add_executable(nodebug_output nodebug_output.cpp)
 target_link_libraries(nodebug_output PRIVATE ctest_support)
 target_compile_options(nodebug_output PRIVATE -g0)
 
-add_executable(type_info type_info.cc)
+add_executable(type_info type_info.cpp)
 target_link_libraries(type_info PRIVATE ctest_support)
 target_compile_options(type_info PRIVATE -g)
 
-add_executable(dlopen dlopen.cc)
+add_executable(dlopen dlopen.cpp)
 target_link_libraries(dlopen PRIVATE ctest_support ${CMAKE_DL_LIBS})
 target_compile_options(dlopen PRIVATE -g -O0)
 target_compile_definitions(dlopen PRIVATE "DLOPEN_MODULE_PATH=\"$<TARGET_FILE:dlopen_module>\"")
@@ -121,10 +121,10 @@ function(configure_location_loading_library target_name)
   set_target_properties(${target_name} PROPERTIES PREFIX "")
 endfunction()
 
-add_library(location_libtest2 SHARED support/location_libtest2.cc)
+add_library(location_libtest2 SHARED support/location_libtest2.cpp)
 configure_location_loading_library(location_libtest2)
 
-add_library(dlopen_module SHARED support/dlopen_module.cc)
+add_library(dlopen_module SHARED support/dlopen_module.cpp)
 target_include_directories(dlopen_module
   PRIVATE
     ${CMAKE_SOURCE_DIR}
@@ -137,24 +137,24 @@ target_compile_options(dlopen_module PRIVATE -g -O0)
 set_target_properties(dlopen_module PROPERTIES PREFIX "")
 add_dependencies(dlopen dlopen_module)
 
-add_library(location_plugin1 SHARED support/location_plugin1.cc)
+add_library(location_plugin1 SHARED support/location_plugin1.cpp)
 configure_location_loading_library(location_plugin1)
 
-add_library(location_plugin2 SHARED support/location_plugin2.cc)
+add_library(location_plugin2 SHARED support/location_plugin2.cpp)
 configure_location_loading_library(location_plugin2)
 
-add_library(location_libtest1 SHARED support/location_libtest1.cc)
+add_library(location_libtest1 SHARED support/location_libtest1.cpp)
 configure_location_loading_library(location_libtest1)
 target_link_libraries(location_libtest1 PRIVATE location_libtest2 ${CMAKE_DL_LIBS})
 target_compile_definitions(location_libtest1 PRIVATE "LOCATION_PLUGIN1_PATH=\"$<TARGET_FILE:location_plugin1>\"")
 add_dependencies(location_libtest1 location_plugin1)
 
-add_executable(location_loading_fixture location_loading_fixture.cc)
+add_executable(location_loading_fixture location_loading_fixture.cpp)
 target_link_libraries(location_loading_fixture PRIVATE ctest_support location_libtest1 ${CMAKE_DL_LIBS} AICxx::threadsafe)
 target_compile_definitions(location_loading_fixture PRIVATE "LOCATION_PLUGIN2_PATH=\"$<TARGET_FILE:location_plugin2>\"")
 add_dependencies(location_loading_fixture location_plugin2)
 
-add_executable(lockable_auto_ptr lockable_auto_ptr.cc)
+add_executable(lockable_auto_ptr lockable_auto_ptr.cpp)
 target_link_libraries(lockable_auto_ptr PRIVATE ctest_support)
 target_compile_options(lockable_auto_ptr PRIVATE -g)
 

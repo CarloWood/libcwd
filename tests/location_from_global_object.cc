@@ -83,7 +83,7 @@ int main()
   char const* expected_debug[] = {
       R"(^>>>>>>>>: We are now at location_from_global_object:_ZN12_GLOBAL__N_112GlobalObjectC[12]Ev.*$)",
       "NOTICE  : Hello World<unfinished>",
-      ">>>>>>>>:     We are now at location_from_global_object:GlobalObject:location_from_global_object.cc:57",
+      ">>>>>>>>:     We are now at location_from_global_object:GlobalObject:location_from_global_object.cpp:57",
       "NOTICE  : <continued> Hello World: 0 (Success)", nullptr};
 
   bool const cout_ok = libcwd_ctest::matches_expected_output(captured_cout, expected_cout);

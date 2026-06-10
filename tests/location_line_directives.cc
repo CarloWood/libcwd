@@ -40,7 +40,7 @@ bool expect_location(char const* scenario, libcwd::Location const& location, cha
 
 bool probe_physical_line()
 {
-  return expect_location("physical line", caller_location(), "location_line_directives.cc", __LINE__);
+  return expect_location("physical line", caller_location(), "location_line_directives.cpp", __LINE__);
 }
 
 bool probe_line_directives()
@@ -50,7 +50,7 @@ bool probe_line_directives()
   ok = expect_location("#line foo.c", caller_location(), "foo.c", __LINE__) && ok;
 #line 300 "bar.c"
   ok = expect_location("#line bar.c", caller_location(), "bar.c", __LINE__) && ok;
-#line 52 "location_line_directives.cc"
+#line 52 "location_line_directives.cpp"
   return ok;
 }
 
