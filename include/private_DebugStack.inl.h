@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef PRIVATE_DEBUG_STACK_INL
 #define PRIVATE_DEBUG_STACK_INL
 

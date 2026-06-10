@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef LIBCWD_TESTSUITE_CTEST_SUPPORT_GATE_H
+#define LIBCWD_TESTSUITE_CTEST_SUPPORT_GATE_H
+
 #include <condition_variable>
 #include <mutex>
 
@@ -36,3 +39,5 @@ class Gate : public std::mutex
 };
 
 } // namespace utils::threading
+
+#endif // LIBCWD_TESTSUITE_CTEST_SUPPORT_GATE_H

@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef LIBCWD_CLASS_DEBUG_STRING_INL
 #define LIBCWD_CLASS_DEBUG_STRING_INL
 

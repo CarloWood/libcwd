@@ -4,7 +4,7 @@
 #pragma once
 
 #ifndef LIBCWD_SYS_H
-#error "You need to #include "sys.h" at the top of every source file (which in turn should #include "sys.h")."
+#error You need to #include "sys.h" at the top of every source file (which in turn should #include "sys.h").
 #endif
 
 #ifndef LIBCWD_CLASS_RCFILE_H

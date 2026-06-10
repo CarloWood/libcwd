@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2001-2004, 2007, 2013, 2018-2020, 2023, 2026 Carlo Wood
 // SPDX-License-Identifier: MIT
 
+#pragma once
+
 #ifndef RAW_WRITE_H
 #define RAW_WRITE_H
 

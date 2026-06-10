@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef LIBCWD_TESTSUITE_CTEST_SUPPORT_STARTING_GATE_H
+#define LIBCWD_TESTSUITE_CTEST_SUPPORT_STARTING_GATE_H
+
 #include "Gate.h"
 
 namespace utils::threading {
@@ -24,3 +27,5 @@ class StartingGate
 };
 
 } // namespace utils::threading
+
+#endif // LIBCWD_TESTSUITE_CTEST_SUPPORT_STARTING_GATE_H

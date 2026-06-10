@@ -22,12 +22,12 @@
 // that comes with the source code of libcwd (or is included in the documentation that comes with
 // the rpm (ie: /usr/doc/libcwd-1.0/example-project) for a description of the content of "debug.h".
 // Note1: CWDEBUG should be defined on the compiler commandline, for example: g++ -DCWDEBUG ...
-#error "You are including <libcwd/debug.h> while CWDEBUG is not defined.  See the comments in this header file for more information."
+#error You are including <libcwd/debug.h> while CWDEBUG is not defined.  See the comments in this header file for more information.
 
 #else // CWDEBUG (normal usage of this file):
 
 #ifndef LIBCWD_SYS_H
-#error "You need to #include "sys.h" at the top of every source file (which in turn should #include "sys.h")."
+#error You need to #include "sys.h" at the top of every source file (which in turn should #include "sys.h").
 #endif
 
 #if defined(LIBCWD_DEFAULT_DEBUGCHANNELS) && defined(DEBUGCHANNELS)
@@ -51,7 +51,7 @@
 // header of that library.
 // More information for library authors that use libcwd can be found on
 // http://carlowood.github.io/libcwd/reference-manual/group__chapter__custom__debug__h.html
-#error "DEBUGCHANNELS is defined while previously it was not defined.  See the comments in this header file for more information."
+#error DEBUGCHANNELS is defined while previously it was not defined.  See the comments in this header file for more information.
 #endif
 
 #endif // CWDEBUG

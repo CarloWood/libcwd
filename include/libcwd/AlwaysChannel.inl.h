@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef LIBCWD_CLASS_ALWAYS_CHANNEL_INL
 #define LIBCWD_CLASS_ALWAYS_CHANNEL_INL
 

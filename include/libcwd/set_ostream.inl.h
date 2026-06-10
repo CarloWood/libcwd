@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef LIBCWD_SET_OSTREAM_INL
 #define LIBCWD_SET_OSTREAM_INL
 

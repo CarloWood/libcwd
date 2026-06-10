@@ -13,7 +13,7 @@
 #include <sstream>
 
 #ifndef CWDEBUG
-#error "CWDEBUG not defined"
+#error CWDEBUG not defined
 #endif
 
 libcwd::DebugObject my_own_do;

@@ -16,8 +16,10 @@ extern Channel custom;
 NAMESPACE_DEBUG_CHANNELS_END
 
 // And define them in a .cpp file like:
-//NAMESPACE_DEBUG_CHANNELS_START
-//Channel custom("CUSTOM");
-//NAMESPACE_DEBUG_CHANNELS_END
+#if -0 // .cpp example
+NAMESPACE_DEBUG_CHANNELS_START
+Channel custom("CUSTOM");
+NAMESPACE_DEBUG_CHANNELS_END
+#endif // example
 
 #endif // CWDEBUG

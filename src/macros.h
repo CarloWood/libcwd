@@ -3,6 +3,9 @@
 
 #pragma once
 
+#ifndef LIBCWD_MACROS_H
+#define LIBCWD_MACROS_H
+
 #if defined(__GNUC__) && __GNUC__ >= 8 && !defined(__clang__) // clang doesn't have a -Wclass-memaccess warning.
 #define PRAGMA_DIAGNOSTIC_PUSH_IGNORE_class_memaccess \
   _Pragma("GCC diagnostic push") \
@@ -43,3 +46,5 @@
 #define PRAGMA_DIAGNOSTIC_POP \
   _Pragma("GCC diagnostic pop")
 #endif
+
+#endif // LIBCWD_MACROS_H

@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef LIBCWD_TESTSUITE_CTEST_SUPPORT_PENDING_STREAM_H
+#define LIBCWD_TESTSUITE_CTEST_SUPPORT_PENDING_STREAM_H
+
 #include "threadsafe/AIMutex.h"
 #include "libcwd/class_debug.h"
 
@@ -215,3 +218,5 @@ class PendingStream : public std::ostream
 };
 
 } // namespace libcwd_ctest
+
+#endif // LIBCWD_TESTSUITE_CTEST_SUPPORT_PENDING_STREAM_H
