@@ -11,14 +11,14 @@ set_property(TARGET cwd APPEND PROPERTY COMPATIBLE_INTERFACE_STRING cwd_MAJOR_VE
 
 target_sources(cwd
     PRIVATE
-        debug.cc
-        demangle3.cc
-        dwarf.cc
-        environ.cc
-        location.cc
-        strerrno.cc
-        threading.cc
-        type_info.cc
+       "debug.cxx"
+       "demangle3.cxx"
+       "dwarf.cxx"
+       "environ.cxx"
+       "location.cxx"
+       "strerrno.cxx"
+       "threading.cxx"
+       "type_info.cxx"
 )
 
 file(GLOB PUBLIC_HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/libcwd/*.h")

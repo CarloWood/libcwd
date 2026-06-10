@@ -4,12 +4,12 @@ set_property(TARGET libcwd_utils_ObjLib PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_sources(libcwd_utils_ObjLib
     PRIVATE
-        "attach_gdb.cc"
-        "buf2str.cc"
-        "char2str.cc"
-        "exec_prog.cc"
-        "match.cc"
-        "rcfile.cc"
+        "attach_gdb.cxx"
+        "buf2str.cxx"
+        "char2str.cxx"
+        "exec_prog.cxx"
+        "match.cxx"
+        "rcfile.cxx"
 )
 
 # Require support for C++17.
