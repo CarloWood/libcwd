@@ -16,7 +16,7 @@
 
 #include "ObjectFileName.h"
 #include "lockable_auto_ptr.h"
-#include "private_struct_TSD.h"
+#include "private/ThreadSpecificData.h"
 
 #include <cstring>
 #include <iosfwd>

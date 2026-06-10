@@ -9,7 +9,7 @@
 
 #include "Location.h"
 #include "libraries_debug.h"
-#include "private_assert.h"
+#include "LIBCWD_ASSERT.h"
 
 #include <iomanip>
 #include <string>

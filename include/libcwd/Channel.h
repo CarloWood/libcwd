@@ -12,7 +12,7 @@
 
 #include "control_flag.h"
 #include "max_label_len.h"
-#include "private_struct_TSD.h"
+#include "private/ThreadSpecificData.h"
 #include "libcwd/config.h"
 
 #include <atomic>

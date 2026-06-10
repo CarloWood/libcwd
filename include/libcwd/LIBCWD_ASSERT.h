@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file libcwd/private_assert.h
+/** \file libcwd/LIBCWD_ASSERT.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 

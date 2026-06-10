@@ -6,8 +6,7 @@
 #include "Environment.h"
 #include <libcwd/buf2str.h>
 #include <libcwd/debug.h>
-#include <libcwd/private_assert.h>
-#include <libcwd/private_string.h>
+#include <libcwd/LIBCWD_ASSERT.h>
 
 #include <cerrno> // Needed for errno
 #include <fstream>

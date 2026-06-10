@@ -7,7 +7,7 @@
 #define CWD_DWARF_H
 
 #include "libcwd/ObjectFileName.h"
-#include "libcwd/private_struct_TSD.h"
+#include "libcwd/private/ThreadSpecificData.h"
 
 #include <cstdint>
 

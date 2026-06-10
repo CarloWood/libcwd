@@ -10,7 +10,7 @@
 #ifndef LIBCWD_MACRO_FORALLDEBUGOBJECTS_H
 #define LIBCWD_MACRO_FORALLDEBUGOBJECTS_H
 
-#include "private_assert.h"
+#include "LIBCWD_ASSERT.h"
 #include "libcwd/config.h"
 
 #include <type_traits>

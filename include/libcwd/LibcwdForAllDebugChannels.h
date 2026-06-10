@@ -11,7 +11,7 @@
 #define LIBCWD_MACRO_FORALLDEBUGCHANNELS_H
 
 #include "control_flag.h"
-#include "private_assert.h"
+#include "LIBCWD_ASSERT.h"
 #include "libcwd/config.h"
 
 #include <type_traits>

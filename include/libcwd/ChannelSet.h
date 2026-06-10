@@ -11,7 +11,7 @@
 #define LIBCWD_CLASS_CHANNEL_SET_H
 
 #include "control_flag.h"
-#include "private_struct_TSD.h"
+#include "private/ThreadSpecificData.h"
 #include "libcwd/config.h"
 
 namespace libcwd {

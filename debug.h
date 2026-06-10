@@ -3,7 +3,7 @@
 
 #define CW_DEBUG 1
 
-#include "libcwd/private_struct_TSD.h"
+#include "libcwd/private/ThreadSpecificData.h"
 #include "libcwd/LibcwdForAllDebugObjects.h"
 
 // Required for threadsafe.

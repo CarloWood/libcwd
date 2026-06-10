@@ -8,8 +8,8 @@
 
 #include "ChannelSet.h"
 #include "DebugString.h"
-#include "private_debug_stack.h"
-#include "private_struct_TSD.h"
+#include "private/DebugStack.h"
+#include "private/ThreadSpecificData.h"
 #include "libcwd/config.h"
 
 #include <iosfwd>

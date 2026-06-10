@@ -4,8 +4,8 @@
 #define PRIVATE_DEBUG_STACK_INL
 
 #include "libcwd/core_dump.h"
-#include "libcwd/private_assert.h"
-#include "libcwd/private_debug_stack.h"
+#include "libcwd/LIBCWD_ASSERT.h"
+#include "libcwd/private/DebugStack.h"
 
 #include <cstddef> // Needed for size_t
 

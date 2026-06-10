@@ -10,7 +10,7 @@
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
 #define LIBCWD_PRIVATE_STRUCT_TSD_H
 
-#include "private_assert.h"
+#include "libcwd/LIBCWD_ASSERT.h"
 #include "libcwd/config.h"
 
 namespace libcwd::_private_ {
@@ -47,7 +47,7 @@ struct ThreadSpecificData;
 #define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
 
 // These includes use the above macros.
-#include "DebugObject_ThreadSpecificData.h"
+#include "libcwd/DebugObject_ThreadSpecificData.h"
 
 namespace libcwd {
 

@@ -11,8 +11,8 @@
 #define LIBCWD_CLASS_DEBUG_H
 
 #include "ChannelSet.h"
-#include "private_lock_interface.h"
-#include "private_struct_TSD.h"
+#include "private/LockInterface.h"
+#include "private/ThreadSpecificData.h"
 #include "DebugObject_ThreadSpecificData.h"
 #include "libcwd/config.h"
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "cwd_sys.h"
-#include <libcwd/private_struct_TSD.h>
+#include <libcwd/private/ThreadSpecificData.h>
 
 #include <atomic>
 #include <mutex>

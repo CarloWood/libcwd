@@ -17,7 +17,7 @@
 #define LIBCWD_ASSERT(x)
 #endif
 #else // CWDEBUG
-#include "private_assert.h"
+#include "LIBCWD_ASSERT.h"
 #endif // CWDEBUG
 
 namespace libcwd {

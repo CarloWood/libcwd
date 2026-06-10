@@ -35,7 +35,7 @@ The direct use of these functions should be avoided, instead use the function ty
 #include "cwd_sys.h"
 #include "libcwd/debug.h"
 #include "libcwd/demangle.h"
-#include "libcwd/private_assert.h"
+#include "libcwd/LIBCWD_ASSERT.h"
 
 #include <limits>
 #include "cwd_debug.h"

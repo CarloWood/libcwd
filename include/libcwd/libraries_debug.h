@@ -134,7 +134,7 @@ using namespace libcwd_inserters;
 #include "demangle.h"
 #include "LibcwdForAllDebugChannels.h"
 #include "LibcwdForAllDebugObjects.h"
-#include "private_environ.h"
+#include "private/environ.h"
 
 // Include the inline functions.
 #include "AlwaysChannel.inl.h"

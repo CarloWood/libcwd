@@ -3,7 +3,7 @@
 #ifndef LIBCWD_SET_OSTREAM_INL
 #define LIBCWD_SET_OSTREAM_INL
 
-#include "private_lock_interface.h"
+#include "private/LockInterface.h"
 
 namespace libcwd {
 

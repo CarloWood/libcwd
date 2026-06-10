@@ -12,7 +12,7 @@
 #endif
 #include "libcwd/debug.h"
 #include <libcwd/Location.inl.h>
-#include <libcwd/private_bufferstream.h>
+#include <libcwd/private/BufferStream.h>
 #include <libcwd/strerrno.h>
 
 #include <algorithm>
