@@ -57,6 +57,10 @@ cw_option(EnableLibcwdDebugt
           "Enable debugging of threading debugging code in libcwd itself" OFF
           "OptionEnableLibcwdDebug" OFF
 )
+cw_option(EnableBuildTesting
+          "Build test executables" ${CW_BUILD_TYPE_IS_NOT_RELEASE}
+          "BUILD_TESTING" OFF
+)
 
 if (OptionEnableGlibCxxDebug)
   set(CW_CONFIG_GLIBCXX_DEBUG 1)
@@ -243,6 +247,6 @@ target_compile_definitions(threadsafe_ObjLib
     "-DCW_DEBUG=1"
 )
 
-if (BUILD_TESTING)
+if (OptionEnableBuildTesting)
   add_subdirectory(tests)
 endif ()
