@@ -18,10 +18,10 @@ void attach_gdb()
 
 #include <cerrno>
 #include <cstdlib>
+#include <ctime>
 #include <fstream>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <unistd.h>
 
 int libcwd_attach_gdb_hook = 0;
@@ -59,14 +59,16 @@ void attach_gdb()
     case -1:
       Debug(libcw_do.on());
       DoutFatal(dc::fatal | error_cf, "fork()");
-    case 0: {
+    case 0:
+    {
       int ret = system(command2);
       _exit(ret == -1 ? 255 // system failed (ie, fork failed).
             : WIFSIGNALED(ret) && (WTERMSIG(ret) == SIGINT || WTERMSIG(ret) == SIGQUIT)
                 ? 126 // Terminated by signal (127 means that /bin/sh failed).
                 : WEXITSTATUS(ret)); // Return value of command2.
     }
-    default: {
+    default:
+    {
       Debug(libcw_do.on());
       struct timespec t = {0, 100000000};
       int loop = 0;

@@ -8,13 +8,18 @@
 #define LIBCWD_CONFIG_H
 
 //
+// clang-format off
+//
 // DO NOT CHANGE THIS FILE
 //
 // The defines in this file are configuration options chosen during
 // compilation of libcwd.  To change these options, rerun CMake with
 // the appropriate -D options. In order to be sure that a program is linking
 // with a library that was compiled with the same header file, call
-// Debug( main_reached() ); at the top of main() in your program.
+//
+//   Debug(main_reached());
+//
+// at the top of main() in your program.
 //
 
 /**
@@ -25,11 +30,11 @@
  * You can list cached options with \shellcommand cmake -LAH <build-dir> \endshellcommand.
  *
  * This section describes the CMake options specific to libcwd.&nbsp;
- * The name of the macros that are related to the respective features are given between parenthesis after the option.&nbsp;
- * You can not define these macros yourself, you may only use them in an <CODE>\#if ... \#endif</CODE> test.&nbsp;
- * The macros are always defined; when the corresponding CMake option was enabled then the macro is defined to <code>1</code>,
- * otherwise it is defined to 0.&nbsp;
- * This makes it possible for the compiler to warn you when you made a typo in the name of a macro.
+ * The name of the macros that are related to the respective features are given between parenthesis after the
+ * option.&nbsp; You can not define these macros yourself, you may only use them in an <CODE>\#if ... \#endif</CODE>
+ * test.&nbsp; The macros are always defined; when the corresponding CMake option was enabled then the macro is defined
+ * to <code>1</code>, otherwise it is defined to 0.&nbsp; This makes it possible for the compiler to warn you when you
+ * made a typo in the name of a macro.
  *
  * <b>Example:</b>
  *
@@ -142,9 +147,10 @@
 // Configuration defines that are needed by public headers.
 //
 
-#define LIBCWD_DO_MAX 8                         // Maximal total number of debug objects in a single application.
-#define LIBCWD_DC_MAX 256                       // Maximal total number of debug channels in a single application.
-                                                // Costs 4 kb of memory per channel (exclusive the actual channels).
+#define LIBCWD_DO_MAX 8 // Maximal total number of debug objects in a single application.
+#define LIBCWD_DC_MAX \
+  256 // Maximal total number of debug channels in a single application.
+      // Costs 4 kb of memory per channel (exclusive the actual channels).
 
 /** \defgroup enable_debugt --enable-debugt (CWDEBUG_DEBUGT)
  * \ingroup group_configuration
@@ -174,21 +180,20 @@
 #ifdef __cplusplus
 namespace libcwd {
 
-static unsigned long const config_signature_header_c =
-	(
+static unsigned long const config_signature_header_c = (
 #if CWDEBUG_LOCATION
-	4|
+    4 |
 #endif
 #if CWDEBUG_DEBUG
-	16|
+    16 |
 #endif
 #if CWDEBUG_DEBUGT
-	64|
+    64 |
 #endif
 #if CWDEBUG_DEBUGOUTPUT
-	256|
+    256 |
 #endif
-	(512 * (@VERSION_MAJOR@ + 128 * (@VERSION_MINOR@ + 128 * @VERSION_REVISION@))));
+    (512 * (@VERSION_MAJOR@ + 128 * (@VERSION_MINOR@ + 128 * @VERSION_REVISION@))));
 
 extern unsigned long get_config_signature_lib_c() __attribute__((const));
 extern void conf_check_failed();
@@ -205,12 +210,11 @@ extern void internal_main_reached();
  * add the following line to the beginning of <CODE>main()</CODE>:
  *
  * \code
- * Debug( main_reached() );
+ * Debug(main_reached());
  * \endcode
  */
-inline
-void
-main_reached() {
+inline void main_reached()
+{
   if (get_config_signature_lib_c() != config_signature_header_c)
   {
     if (get_config_signature_lib_c() / 512 != config_signature_header_c / 512)

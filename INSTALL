@@ -53,11 +53,6 @@ When running `cmake` each option and its value is printed (unless forced to OFF)
 often a value is forced or has a default. Recommended is to only set an option if
 you're not happy with the default.
 
-Memory allocation debugging support has been removed. The legacy
-CWDEBUG_ALLOC, CWDEBUG_MAGIC, CWDEBUG_MARKER, and CWDEBUG_DEBUGM macros are
-still defined by installed headers for source compatibility, but they are
-always 0 and there are no CMake options to enable them.
-
 Trouble
 =======
 

@@ -62,13 +62,13 @@ void* thread_function(void* arguments)
   // Set Thread Specific on/off flags of the debug channels.
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   // And for the debug object.
-  Debug( libcw_do.on() );
+  Debug(libcw_do.on());
   // Set a margin.
 #ifdef CWDEBUG
   char margin[16];
   sprintf(margin, "%-10lu ", pthread_self());
 #endif
-  Debug( libcw_do.margin().assign(margin, 11) );
+  Debug(libcw_do.margin().assign(margin, 11));
 
   Dout(dc::notice, "Entering thread " &lt;&lt; pthread_self());
   // ... do stuff
@@ -86,21 +86,21 @@ int main()
   // (Read <A HREF ="http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8">http://gcc.gnu.org/onlinedocs/libstdc++/27_io/howto.html#8</A> for an explanation.)
   std::ios::sync_with_stdio(false);
   // Do header files and library match?
-  Debug( main_reached() );
+  Debug(main_reached());
   // Send debug output to std::cout.
-  Debug( libcw_do.set_ostream(&std::cout, &cout_mutex) );
+  Debug(libcw_do.set_ostream(&std::cout, &cout_mutex));
   // Turn debug object on.
-  Debug( libcw_do.on() );
+  Debug(libcw_do.on());
   // Set a margin.
 #ifdef CWDEBUG
   char margin[16];
   sprintf(margin, "%-10lu ", pthread_self());
 #endif
-  Debug( libcw_do.margin().assign(margin, 11) );
+  Debug(libcw_do.margin().assign(margin, 11));
   // Turn all debug channels on.
   ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
   // List all channels.
-  Debug( list_channels_on(libcw_do) );
+  Debug(list_channels_on(libcw_do));
 
   // Create and join a few threads...
   int const number_of_threads = 4;

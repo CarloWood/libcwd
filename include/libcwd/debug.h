@@ -101,13 +101,14 @@
  * <b>Examples:</b>
  *
  * \code
- * Debug( main_reached() );			        // Must be called at the top of main. Does configuration
- * consistency check. Debug( dc::notice.on() );				// Switch debug channel NOTICE on. Debug(
- * libcw_do.on() );				// Turn all debugging temporally off. Debug( list_channels_on(libcw_do)
- * );			// List all debug channels. Debug( libcw_do.set_ostream(&std::cout) );		// Use std::cout
- * as debug output stream. Debug( libcw_do.set_ostream(&std::cout, &mutex) );	// use `mutex' as lock for std::cout.
- * Debug( libcw_do.inc_indent(4) );			// Increment indentation by 4 spaces.
- * Debug( libcw_do.get_ostream()->flush() );		// Flush the current debug output stream.
+ * Debug(main_reached());			        // Must be called at the top of main. Does configuration
+ * consistency check. Debug( dc::notice.on() );		// Switch debug channel NOTICE on.
+ * Debug(libcw_do.on() );				// Turn all debugging temporally off.
+ * Debug(list_channels_on(libcw_do));			// List all debug channels.
+ * Debug(libcw_do.set_ostream(&std::cout));		// Use std::cout as debug output stream.
+ * Debug(libcw_do.set_ostream(&std::cout, &mutex));	// use `mutex' as lock for std::cout.
+ * Debug(libcw_do.inc_indent(4));			// Increment indentation by 4 spaces.
+ * Debug(libcw_do.get_ostream()->flush());		// Flush the current debug output stream.
  * \endcode
  */
 #define Debug(STATEMENTS...) LibcwDebug(LIBCWD_DEBUGCHANNELS, STATEMENTS)
@@ -161,14 +162,14 @@
  * For example,
  *
  * \code
- * ForAllDebugChannels( while (!debugChannel.is_on()) debugChannel.on() );
+ * ForAllDebugChannels(while (!debugChannel.is_on()) debugChannel.on());
  * \endcode
  *
  * which turns all %channels on.&nbsp;
  * And
  *
  * \code
- * ForAllDebugChannels( if (debugChannel.is_on()) debugChannel.off() );
+ * ForAllDebugChannels(if (debugChannel.is_on()) debugChannel.off());
  * \endcode
  *
  * which turns all channels off.
@@ -186,7 +187,7 @@
  * For example,
  *
  * \code
- * ForAllDebugObjects( debugObject.set_ostream(&std::cerr, &cerr_mutex) );
+ * ForAllDebugObjects(debugObject.set_ostream(&std::cerr, &cerr_mutex));
  * \endcode
  *
  * would set the output stream of all %debug objects to <CODE>std::cerr</CODE>.

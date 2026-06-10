@@ -13,7 +13,7 @@
 #elif defined(__aarch64__)
   asm volatile("yield" ::: "memory");
 #else
-#error "Please extent utils/cpu_relax.h for your architecture."
+#error Please extent utils/cpu_relax.h for your architecture.
 #endif
 }
 

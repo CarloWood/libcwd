@@ -18,9 +18,11 @@ BraceWrapping:
   BeforeElse: true
   BeforeCatch: true
   AfterNamespace: false
+  AfterCaseLabel: true
 AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
+ReflowComments: false
 AlignTrailingComments:
   Kind: Never
 CommentPragmas: '^static$'

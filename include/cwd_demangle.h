@@ -627,7 +627,8 @@ bool session<Allocator>::decode_substitution(string_type& output, qualifier_list
   {
     switch (c)
     {
-      case 'a': {
+      case 'a':
+      {
         output += "std::allocator";
         if (!inside_template_args_)
         {
@@ -641,7 +642,8 @@ bool session<Allocator>::decode_substitution(string_type& output, qualifier_list
           qualifiers->printing_suppressed();
         _GLIBCXX_DEMANGLER_RETURN;
       }
-      case 'b': {
+      case 'b':
+      {
         output += "std::basic_string";
         if (!inside_template_args_)
         {
@@ -1236,7 +1238,7 @@ bool session<Allocator>::decode_expression(string_type& output)
           // With this, the above example will demangle as
           // void f<5, A>(C<sizeof (typename T::t), sizeof (T::t)>::q)
           if (current() == 'N' || // <nested-name>
-                                  // This should be a safe bet.
+              // This should be a safe bet.
               (current() == 'S' && next_peek() == 't')) // std::something, guess that this involves a typedef.
             output += "typename ";
         }
@@ -1567,7 +1569,7 @@ static int const cvq_r = 4; // Saw at least one r
 static int const cvq_A = 8; // Saw at least one A
 static int const cvq_last = 16; // No remaining qualifiers.
 static int const cvq_A_cnt = 32; // Bit 5 and higher represent the
-                                 //   number of A's in the series.
+//   number of A's in the series.
 // In the function below, iter_array points to the first (right most)
 // A in the series, if any.
 template <typename Allocator>
@@ -1592,7 +1594,8 @@ void qualifier_list<Allocator>::decode_KVrA(string_type& prefix, string_type& po
         case 'V':
         case 'r':
           break;
-        case 'A': {
+        case 'A':
+        {
           string_type index = (*iter).get_optional_type();
           if (--n == 0 && (cvq & cvq_last))
             postfix = " [" + index + "]" + postfix;
@@ -1726,7 +1729,8 @@ bool session<Allocator>::decode_type_with_postfix(string_type& prefix, string_ty
         continue;
       case 'K':
       case 'V':
-      case 'r': {
+      case 'r':
+      {
         char c;
         int count = 0;
         do
@@ -1737,7 +1741,8 @@ bool session<Allocator>::decode_type_with_postfix(string_type& prefix, string_ty
         qualifiers->add_qualifier_start(cv_qualifier, start_pos, count, inside_substitution_);
         continue;
       }
-      case 'U': {
+      case 'U':
+      {
         eat_current();
         string_type source_name;
         if (!decode_source_name(source_name))
@@ -1748,7 +1753,8 @@ bool session<Allocator>::decode_type_with_postfix(string_type& prefix, string_ty
         qualifiers->add_qualifier_start(vendor_extension, start_pos, source_name, inside_substitution_);
         continue;
       }
-      case 'A': {
+      case 'A':
+      {
         // <array-type> ::= A <positive dimension number> _ <element type>
         //              ::= A [<dimension expression>] _ <element type>
         //
@@ -1772,7 +1778,8 @@ bool session<Allocator>::decode_type_with_postfix(string_type& prefix, string_ty
         qualifiers->add_qualifier_start(array, start_pos, index, inside_substitution_);
         continue;
       }
-      case 'M': {
+      case 'M':
+      {
         // <pointer-to-member-type> ::= M <class type> <member type>
         // <Q>M<C> or <Q>M<C><Q2>F<R><B>E
         eat_current();
@@ -1866,7 +1873,8 @@ bool session<Allocator>::decode_type_with_postfix(string_type& prefix, string_ty
     int start_pos = pos_;
     switch (current())
     {
-      case 'F': {
+      case 'F':
+      {
         // <function-type> ::= F [Y] <bare-function-type> E
         //
         // Note that g++ never generates the 'Y', but we try to

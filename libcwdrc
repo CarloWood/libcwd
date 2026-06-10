@@ -6,8 +6,8 @@
 #
 # int main()
 # {
-#   Debug( libcw_do.on() );
-#   Debug( read_rcfile() );
+#   Debug(libcw_do.on());
+#   Debug(read_rcfile());
 
 # Note: the recommended way to libcwd is by using gitache and cwds.
 # In that case you should put at the top of main what is described
