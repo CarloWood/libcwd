@@ -106,8 +106,8 @@ struct OstreamState
  */
 class DebugObject
 {
-  friend void DebugObject_ThreadSpecificData::start(DebugObject&, ChannelSetData& LIBCWD_COMMA_TSD_PARAM);
-  friend void DebugObject_ThreadSpecificData::finish(DebugObject&, ChannelSetData& LIBCWD_COMMA_TSD_PARAM);
+  friend void DebugObject_ThreadSpecificData::start(DebugObject&, ChannelSetData&, LIBCWD_TSD_PARAM);
+  friend void DebugObject_ThreadSpecificData::finish(DebugObject&, ChannelSetData&, LIBCWD_TSD_PARAM);
 #ifdef LIBCWD_DOXYGEN
  protected:
 #else

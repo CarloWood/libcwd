@@ -18,21 +18,16 @@ struct ThreadSpecificData;
 } // namespace libcwd::_private_
 
 // The active thread's TSD is passed as a local variable (see LIBCWD_TSD_DECLARATION)
-// or function parameter (LIBCWD_TSD_PARAM and LIBCWD_COMMA_TSD_PARAM).
+// or function parameter (LIBCWD_TSD_PARAM).
 // Several helper macros keep those signatures compact:
 
 #define LIBCWD_TSD __libcwd_tsd // Optional `__libcwd_tsd' parameter (foo() or foo(__libcwd_tsd)).
-#define LIBCWD_COMMA_TSD , LIBCWD_TSD // Idem, but as second or higher parameter.
 #define LIBCWD_TSD_PARAM ::libcwd::_private_::ThreadSpecificData& __libcwd_tsd
   // Optional function parameter (foo() or foo(ThreadSpecificData& __libcwd_tsd)).
 #define LIBCWD_TSD_PARAM_UNUSED ::libcwd::_private_::ThreadSpecificData&
   // Same without parameter.
-#define LIBCWD_COMMA_TSD_PARAM , LIBCWD_TSD_PARAM // Idem, but as second or higher parameter.
-#define LIBCWD_COMMA_TSD_PARAM_UNUSED , LIBCWD_TSD_PARAM_UNUSED
-  // Idem, without parameter.
 #define LIBCWD_TSD_INSTANCE ::libcwd::_private_::ThreadSpecificData::instance()
   // For directly passing the `__libcwd_tsd' instance to a function (foo(TSD::instance())).
-#define LIBCWD_COMMA_TSD_INSTANCE , LIBCWD_TSD_INSTANCE // Idem, but as second or higher parameter.
 #define LIBCWD_TSD_DECLARATION \
   ::libcwd::_private_::ThreadSpecificData& __libcwd_tsd(::libcwd::_private_::ThreadSpecificData::instance())
   // Declaration of local `__libcwd_tsd' structure reference.

@@ -828,7 +828,7 @@ ObjectFile const* ObjectFileRegistry::find_object_file(uintptr_t addr)
   return object_file;
 }
 
-ObjectFileInterface const* find_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM)
+ObjectFileInterface const* find_object_file(void const* addr, LIBCWD_TSD_PARAM)
 {
   if (!ensure_initialization(LIBCWD_TSD))
     return nullptr;
@@ -1399,7 +1399,7 @@ char const* pc_mangled_function_name(void const* pc)
   LIBCWD_TSD_DECLARATION;
 
   // The call to find_object_file also load the symbols for the object file (if not already done before).
-  ObjectFile const* object_file = static_cast<ObjectFile const*>(find_object_file(pc LIBCWD_COMMA_TSD));
+  ObjectFile const* object_file = static_cast<ObjectFile const*>(find_object_file(pc, LIBCWD_TSD));
   if (!object_file)
     return unknown_function_c;
 

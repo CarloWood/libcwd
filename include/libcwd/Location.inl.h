@@ -22,16 +22,16 @@ namespace libcwd {
 inline Location::Location(void const* addr) : known_(false)
 {
   LIBCWD_TSD_DECLARATION;
-  pc_location(addr LIBCWD_COMMA_TSD);
+  pc_location(addr, LIBCWD_TSD);
 }
 
 /*
  * Construct a location for address addr,
  * taking a thread-specific-data argument.
  */
-inline Location::Location(void const* addr LIBCWD_COMMA_TSD_PARAM) : known_(false)
+inline Location::Location(void const* addr, LIBCWD_TSD_PARAM) : known_(false)
 {
-  pc_location(addr LIBCWD_COMMA_TSD);
+  pc_location(addr, LIBCWD_TSD);
 }
 
 /**
@@ -53,7 +53,7 @@ inline void Location::pc_location(void const* addr)
 {
   clear();
   LIBCWD_TSD_DECLARATION;
-  pc_location(addr LIBCWD_COMMA_TSD);
+  pc_location(addr, LIBCWD_TSD);
 }
 
 inline bool Location::is_known() const

@@ -52,7 +52,7 @@ class FatalChannel
   // Construct a special debug channel with label `lbl' and control bit `cb'.
 
   // MT: May only be called from the constructors of global objects (or single threaded functions).
-  void NS_initialize(char const* lbl, control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM);
+  void NS_initialize(char const* lbl, control_flag_t maskbit, LIBCWD_TSD_PARAM);
   // Force initialization in case the constructor of this global object
   // wasn't called yet.  Does nothing when the object was already initialized.
 

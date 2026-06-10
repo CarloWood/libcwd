@@ -93,7 +93,7 @@ class TypeInfo
 
 namespace _private_ {
 
-extern char const* extract_exact_name(char const*, char const* LIBCWD_COMMA_TSD_PARAM);
+extern char const* extract_exact_name(char const*, char const*, LIBCWD_TSD_PARAM);
 
 //-------------------------------------------------------------------------------------------------
 // type_info_of
@@ -229,7 +229,7 @@ template <typename T>
   if (!s_initialized_)
   {
     s_value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T>).name(),
-                                                          typeid(T).name() LIBCWD_COMMA_TSD_INSTANCE),
+                                                          typeid(T).name(), LIBCWD_TSD_INSTANCE),
                   sizeof(T), 0);
     s_initialized_ = true;
   }
@@ -248,7 +248,7 @@ template <typename T>
   if (!s_initialized_)
   {
     s_value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<T*>).name(),
-                                                          typeid(T*).name() LIBCWD_COMMA_TSD_INSTANCE),
+                                                          typeid(T*).name(), LIBCWD_TSD_INSTANCE),
                   sizeof(T*), ::libcwd::_private_::sizeof_ref_v<T>);
     s_initialized_ = true;
   }

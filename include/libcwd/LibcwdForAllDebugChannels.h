@@ -46,14 +46,14 @@ struct DebugChannels
   //
   // The registry write lock is held while WST_max_len, channel labels, and the sorted registry are
   // updated so concurrent global-channel initialization cannot observe a partially updated label width.
-  void initialize_channel(Channel& channel, char const* label LIBCWD_COMMA_TSD_PARAM, bool add_to_channel_list) const;
+  void initialize_channel(Channel& channel, char const* label, LIBCWD_TSD_PARAM, bool add_to_channel_list) const;
 
   // Initialize a built-in fatal channel without adding it to the public channel registry.
   //
   // The function updates the shared label width while holding the same write lock used for normal
   // channel registration. The fatal channel itself remains write-once/read-mostly state.
   void initialize_fatal_channel(FatalChannel& channel, char const* label,
-                                control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM) const;
+                                control_flag_t maskbit, LIBCWD_TSD_PARAM) const;
 
   // Invoke func for each public debug channel currently registered in the registry.
   //

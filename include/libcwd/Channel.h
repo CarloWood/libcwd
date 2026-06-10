@@ -100,7 +100,7 @@ class Channel
   explicit Channel(char const* label, bool add_to_channel_list = true);
 
   // MT: May only be called from the constructors of global objects (or single threaded functions).
-  void NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool add_to_channel_list);
+  void NS_initialize(char const* label, LIBCWD_TSD_PARAM, bool add_to_channel_list);
   // Force initialization in case the constructor of this global object
   // wasn't called yet. Does nothing when the object was already initialized.
 

@@ -25,7 +25,7 @@ extern void demangle_type(char const* in, std::string& out);
 // For internal use only
 
 #if __GXX_ABI_VERSION == 0
-char const* extract_exact_name(char const* encap_mangled_name LIBCWD_COMMA_TSD_PARAM)
+char const* extract_exact_name(char const* encap_mangled_name, LIBCWD_TSD_PARAM)
 {
   size_t len = strlen(encap_mangled_name + 27); // Strip "Q22libcwd_type_info_exact1Z" from the beginning.
   char* exact_name = new char[len + 1]; // LEAK58
@@ -62,7 +62,7 @@ char const* skip_substitution(char const* const ptr, char const* const begin)
 // 22libcwd_type_info_exactIRKN4evio14AcceptedSocketI23MyAcceptedSocketDecoderNS0_12OutputStreamEEEE
 // stripped_mangled_name =                         N4evio14AcceptedSocketI23MyAcceptedSocketDecoderNS _12OutputStreamEEE
 // where the space in the latter is not really there (just added for alignment)               -------^
-char const* extract_exact_name(char const* encap_mangled_name, char const* stripped_mangled_name LIBCWD_COMMA_TSD_PARAM)
+char const* extract_exact_name(char const* encap_mangled_name, char const* stripped_mangled_name, LIBCWD_TSD_PARAM)
 {
   encap_mangled_name += 25; // Strip "22libcwd_type_info_exactI" from the beginning.
   // encap_mangled_name now points to the qualifiers string (if any) "RK".
@@ -136,11 +136,11 @@ libcwd::TypeInfo const& libcwd_type_info_exact<void*>::value()
   {
 #if __GXX_ABI_VERSION == 0
     s_value_.init(
-        ::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name() LIBCWD_COMMA_TSD_INSTANCE),
+        ::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(), LIBCWD_TSD_INSTANCE),
         sizeof(void*), 0 /* unknown */);
 #else
     s_value_.init(::libcwd::_private_::extract_exact_name(typeid(libcwd_type_info_exact<void*>).name(),
-                                                          typeid(void*).name() LIBCWD_COMMA_TSD_INSTANCE),
+                                                          typeid(void*).name(), LIBCWD_TSD_INSTANCE),
                   sizeof(void*), 0 /* unknown */);
 #endif
     s_initialized_ = true;

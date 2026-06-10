@@ -84,7 +84,7 @@ class Location
  public:
   explicit Location(void const* addr);
   // Construct a location object for address `addr'.
-  explicit Location(void const* addr LIBCWD_COMMA_TSD_PARAM);
+  explicit Location(void const* addr, LIBCWD_TSD_PARAM);
   // Idem, but with passing the TSD.
   ~Location();
 
@@ -135,7 +135,7 @@ class Location
   void pc_location(void const* pc);
 
   // Only public because libcwd calls it directly.
-  void pc_location(void const* pc LIBCWD_COMMA_TSD_PARAM);
+  void pc_location(void const* pc, LIBCWD_TSD_PARAM);
 
   /**
    * \brief Clear the current object (set the location to 'unknown').

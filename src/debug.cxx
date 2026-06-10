@@ -46,7 +46,7 @@ class Buffer : public std::stringbuf
 
  public:
   Buffer() : unfinished_already_printed_(false), continued_needed_(false) { }
-  void writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug_object, bool request_unfinished,
+  void writeto(std::ostream* os, LIBCWD_TSD_PARAM, DebugObject& debug_object, bool request_unfinished,
                bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf));
   void store_position() { position_ = this->pubseekoff(0, std::ios_base::cur, std::ios_base::out); }
   void restore_position()
@@ -72,7 +72,7 @@ namespace _private_ {
 extern std::atomic_bool WST_multi_threaded;
 } // namespace _private_
 
-void Buffer::writeto(std::ostream* os LIBCWD_COMMA_TSD_PARAM, DebugObject& debug_object, bool request_unfinished,
+void Buffer::writeto(std::ostream* os, LIBCWD_TSD_PARAM, DebugObject& debug_object, bool request_unfinished,
                      bool do_flush COMMA_IFTHREADS(bool ends_on_newline) COMMA_IFTHREADS(bool possible_nonewline_cf))
 {
   // os			: The ostream that we need to write to.
@@ -345,19 +345,19 @@ void ST_initialize_globals(LIBCWD_TSD_PARAM)
 
   // Fatal channels need to be marked fatal, otherwise we get into an endless loop
   // when they are used before they are created.
-  channels::dc::core.NS_initialize("COREDUMP", coredump_maskbit LIBCWD_COMMA_TSD);
-  channels::dc::fatal.NS_initialize("FATAL", fatal_maskbit LIBCWD_COMMA_TSD);
+  channels::dc::core.NS_initialize("COREDUMP", coredump_maskbit, LIBCWD_TSD);
+  channels::dc::fatal.NS_initialize("FATAL", fatal_maskbit, LIBCWD_TSD);
   // Initialize other debug channels that might be used before we reach main().
-  channels::dc::debug.NS_initialize("DEBUG" LIBCWD_COMMA_TSD, true);
+  channels::dc::debug.NS_initialize("DEBUG", LIBCWD_TSD, true);
   channels::dc::continued.NS_initialize(continued_maskbit);
   channels::dc::finish.NS_initialize(finish_maskbit);
 #if CWDEBUG_LOCATION
-  channels::dc::elfutils.NS_initialize("ELFUTILS" LIBCWD_COMMA_TSD, true);
+  channels::dc::elfutils.NS_initialize("ELFUTILS", LIBCWD_TSD, true);
 #endif
   // What the heck, initialize all other debug channels too
-  channels::dc::warning.NS_initialize("WARNING" LIBCWD_COMMA_TSD, true);
-  channels::dc::notice.NS_initialize("NOTICE" LIBCWD_COMMA_TSD, true);
-  channels::dc::system.NS_initialize("SYSTEM" LIBCWD_COMMA_TSD, true);
+  channels::dc::warning.NS_initialize("WARNING", LIBCWD_TSD, true);
+  channels::dc::notice.NS_initialize("NOTICE", LIBCWD_TSD, true);
+  channels::dc::system.NS_initialize("SYSTEM", LIBCWD_TSD, true);
 
   if (!libcw_do.NS_init(LIBCWD_TSD)) // Initialize debug code.
     DoutFatal(dc::core, "Calling DebugObject::NS_init recursively from ST_initialize_globals");
@@ -474,7 +474,7 @@ Channel* DebugChannels::find(char const* label) const
 // Initialize channel and register it in either the public or hidden registry.
 //
 // The ChannelSets wat protects visible channels, hidden channels, label width updates, and next_index_.
-void DebugChannels::initialize_channel(Channel& channel, char const* label LIBCWD_COMMA_TSD_PARAM,
+void DebugChannels::initialize_channel(Channel& channel, char const* label, LIBCWD_TSD_PARAM,
                                        bool add_to_channel_list) const
 {
   size_t label_len = strlen(label);
@@ -538,7 +538,7 @@ void DebugChannels::initialize_channel(Channel& channel, char const* label LIBCW
 // Fatal channels are not inserted into the registry, but their label width still contributes to the
 // shared WST_max_len value used when formatting all registered channel labels.
 void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* label,
-                                             control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM) const
+                                             control_flag_t maskbit, LIBCWD_TSD_PARAM) const
 {
   channel.maskbit_ = maskbit;
 
@@ -851,7 +851,7 @@ void DebugObject::pop_marker()
 /** \} */
 
 void DebugObject_ThreadSpecificData::start(DebugObject& debug_object,
-                                           ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM)
+                                           ChannelSetData& channel_set, LIBCWD_TSD_PARAM)
 {
 #if CWDEBUG_DEBUG || CWDEBUG_DEBUGT
   // Initialisation of the TSD part should be done from LIBCWD_TSD_DECLARATION inside Dout et al.
@@ -925,7 +925,7 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object,
     // And write out what is in the buffer till now.
     std::ostream* target_os = (channel_set.mask & cerr_cf) ? &std::cerr : nullptr;
     current->buffer.writeto(
-        target_os LIBCWD_COMMA_TSD, debug_object,
+        target_os, LIBCWD_TSD, debug_object,
         true, // This thread requests an <unfinished> because of previous, unfinished 'continued' output.
         false // Don't flush.
         COMMA_IFTHREADS(true) // This output ends on a newline by itself.
@@ -1026,7 +1026,7 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object,
 }
 
 void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
-                                            ChannelSetData& /*UNUSED, */ LIBCWD_COMMA_TSD_PARAM)
+                                            ChannelSetData& /*UNUSED, */, LIBCWD_TSD_PARAM)
 {
 #if CWDEBUG_DEBUG
   LIBCWD_ASSERT(current != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
@@ -1048,7 +1048,7 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
       // in that case, no actual flushing is done until the debug output to the real ostream has
       // finished.
       current->buffer.writeto(
-          target_os LIBCWD_COMMA_TSD, debug_object,
+          target_os, LIBCWD_TSD, debug_object,
           false, // This thread requests <unfinished> because of previous, unfinished 'continued' output.
           true // Flush ostream after printing this.
           COMMA_IFTHREADS(false) // This output does not end on a newline.
@@ -1096,7 +1096,7 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
     if ((current->mask & (coredump_maskbit | fatal_maskbit)))
     {
       current->buffer.writeto(
-          target_os LIBCWD_COMMA_TSD, debug_object,
+          target_os, LIBCWD_TSD, debug_object,
           false, // This thread requests <unfinished> because of previous, unfinished 'continued' output.
           !__libcwd_tsd.recursive_fatal // Flush ostream after printing this when there is no recursive loop yet.
                COMMA_IFTHREADS(!(current->mask & nonewline_cf)) // Whether or not this output ends on a newline.
@@ -1116,7 +1116,7 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
     if ((current->mask & wait_cf))
     {
       current->buffer.writeto(
-          target_os LIBCWD_COMMA_TSD, debug_object, false,
+          target_os, LIBCWD_TSD, debug_object, false,
           debug_object.interactive_ COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
       _private_::LockInterfaceBase* locked_mutex;
       std::ostream* locked_os;
@@ -1132,14 +1132,14 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
         locked_mutex->unlock();
     }
     else
-      current->buffer.writeto(target_os LIBCWD_COMMA_TSD, debug_object, false,
+      current->buffer.writeto(target_os, LIBCWD_TSD, debug_object, false,
                               debug_object.always_flush_is_on() || (current->mask & flush_cf != 0)
                                                                        COMMA_IFTHREADS(!(current->mask & nonewline_cf))
                                                                            COMMA_IFTHREADS(true));
   }
   else
     current->buffer.writeto(
-        target_os LIBCWD_COMMA_TSD, debug_object, false,
+        target_os, LIBCWD_TSD, debug_object, false,
         debug_object.always_flush_is_on() COMMA_IFTHREADS(!(current->mask & nonewline_cf)) COMMA_IFTHREADS(true));
 
   DEBUGDEBUG_CERR("Deleting `current' " << (void*)current);
@@ -1181,9 +1181,9 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winfinite-recursion"
 void DebugObject_ThreadSpecificData::fatal_finish(DebugObject& debug_object,
-                                                  ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM)
+                                                  ChannelSetData& channel_set, LIBCWD_TSD_PARAM)
 {
-  finish(debug_object, channel_set LIBCWD_COMMA_TSD);
+  finish(debug_object, channel_set, LIBCWD_TSD);
   DoutFatal(dc::core,
             "Don't use `DoutFatal' together with `continued_cf', use `Dout' instead.  (This message can also occur "
             "when using DoutFatal correctly but from the constructor of a global object).");
@@ -1374,7 +1374,7 @@ void list_channels_on(DebugObject& debug_object)
   }
 }
 
-void Channel::NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool add_to_channel_list)
+void Channel::NS_initialize(char const* label, LIBCWD_TSD_PARAM, bool add_to_channel_list)
 {
   // This is pretty much identical to FatalChannel::FatalChannel().
 
@@ -1383,12 +1383,12 @@ void Channel::NS_initialize(char const* label LIBCWD_COMMA_TSD_PARAM, bool add_t
 
   DEBUGDEBUG_CERR("Entering `Channel::NS_initialize(\"" << label << "\")'");
 
-  _private_::DebugChannels::instance().initialize_channel(*this, label LIBCWD_COMMA_TSD, add_to_channel_list);
+  _private_::DebugChannels::instance().initialize_channel(*this, label, LIBCWD_TSD, add_to_channel_list);
 
   DEBUGDEBUG_CERR("Leaving `Channel::NS_initialize(\"" << label << "\")");
 }
 
-void FatalChannel::NS_initialize(char const* label, control_flag_t maskbit LIBCWD_COMMA_TSD_PARAM)
+void FatalChannel::NS_initialize(char const* label, control_flag_t maskbit, LIBCWD_TSD_PARAM)
 {
   // This is pretty much identical to Channel::NS_initialize().
 
@@ -1397,7 +1397,7 @@ void FatalChannel::NS_initialize(char const* label, control_flag_t maskbit LIBCW
 
   DEBUGDEBUG_CERR("Entering `FatalChannel::NS_initialize(\"" << label << "\")'");
 
-  _private_::DebugChannels::instance().initialize_fatal_channel(*this, label, maskbit LIBCWD_COMMA_TSD);
+  _private_::DebugChannels::instance().initialize_fatal_channel(*this, label, maskbit, LIBCWD_TSD);
 
   DEBUGDEBUG_CERR("Leaving `FatalChannel::NS_initialize(\"" << label << "\")");
 }
@@ -1579,7 +1579,7 @@ void DebugObject::restore(DebugObject::OnOffState const& state)
 void Channel::force_on(Channel::OnOffState& state, char const* label)
 {
   LIBCWD_TSD_DECLARATION;
-  NS_initialize(label LIBCWD_COMMA_TSD, true);
+  NS_initialize(label, LIBCWD_TSD, true);
   int& off_cnt(__libcwd_tsd.off_cnt_array[index_]);
   state.off_cnt = off_cnt;
   off_cnt = -1; // Turn channel on.

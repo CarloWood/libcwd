@@ -27,7 +27,7 @@ char const Location::cleared_location[] = "<cleared location ct>";
 // file) and `line_' (line number), and `filename_' is set to point to the filename
 // part of `filepath_'.
 //
-void Location::pc_location(void const* pc LIBCWD_COMMA_TSD_PARAM)
+void Location::pc_location(void const* pc, LIBCWD_TSD_PARAM)
 {
   LIBCWD_ASSERT(!known_);
 
@@ -46,7 +46,7 @@ void Location::pc_location(void const* pc LIBCWD_COMMA_TSD_PARAM)
   // memory allocation support was removed from libcwd.
   LIBCWD_ASSERT(!__libcwd_tsd.lock_interface_is_locked);
 
-  ObjectFileInterface const* object_file = find_object_file(pc LIBCWD_COMMA_TSD);
+  ObjectFileInterface const* object_file = find_object_file(pc, LIBCWD_TSD);
 
   initialization_delayed_ = nullptr;
   if (!object_file)

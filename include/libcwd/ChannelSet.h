@@ -73,7 +73,7 @@ class ChannelSetBootstrap : public ChannelSetData
 {
   // Warning: This struct may not have attributes of its own!
  public:
-  ChannelSetBootstrap(DebugObject_ThreadSpecificData& debug_object_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED)
+  ChannelSetBootstrap(DebugObject_ThreadSpecificData& debug_object_tsd, LIBCWD_TSD_PARAM_UNUSED)
   {
     debug_object_tsd_ptr = &debug_object_tsd;
   }
@@ -91,7 +91,7 @@ class FatalChannelSetBootstrap : public ChannelSetData
 {
   // Warning: This struct may not have attributes of its own!
  public:
-  FatalChannelSetBootstrap(DebugObject_ThreadSpecificData& debug_object_tsd LIBCWD_COMMA_TSD_PARAM_UNUSED)
+  FatalChannelSetBootstrap(DebugObject_ThreadSpecificData& debug_object_tsd, LIBCWD_TSD_PARAM_UNUSED)
   {
     debug_object_tsd_ptr = &debug_object_tsd;
   }

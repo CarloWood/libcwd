@@ -91,9 +91,9 @@ struct DebugObject_ThreadSpecificData
   // A value of 0 means directly behind the marker.
 
   // Accessed from LibcwdDout.
-  void start(DebugObject& debug_object, ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM);
-  void finish(DebugObject& debug_object, ChannelSetData& /*channel_set*/ LIBCWD_COMMA_TSD_PARAM);
-  [[noreturn]] void fatal_finish(DebugObject& debug_object, ChannelSetData& channel_set LIBCWD_COMMA_TSD_PARAM);
+  void start(DebugObject& debug_object, ChannelSetData& channel_set, LIBCWD_TSD_PARAM);
+  void finish(DebugObject& debug_object, ChannelSetData& /*channel_set*/, LIBCWD_TSD_PARAM);
+  [[noreturn]] void fatal_finish(DebugObject& debug_object, ChannelSetData& channel_set, LIBCWD_TSD_PARAM);
 
   // Initialization and de-initialization.
   void init();

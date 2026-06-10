@@ -81,7 +81,7 @@ class ObjectFileInterface
 //
 // The returned interface remains owned by dwarf's object-file registry and
 // is valid until the object is unregistered due to a call to dlclose.
-extern ObjectFileInterface const* find_object_file(void const* addr LIBCWD_COMMA_TSD_PARAM);
+extern ObjectFileInterface const* find_object_file(void const* addr, LIBCWD_TSD_PARAM);
 
 } // namespace libcwd::dwarf
 

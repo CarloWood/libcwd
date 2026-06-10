@@ -18,7 +18,7 @@ namespace libcwd {
 inline Channel::Channel(char const* label, bool add_to_channel_list)
 {
   LIBCWD_TSD_DECLARATION;
-  NS_initialize(label LIBCWD_COMMA_TSD, add_to_channel_list);
+  NS_initialize(label, LIBCWD_TSD, add_to_channel_list);
 }
 
 inline bool Channel::is_on(LIBCWD_TSD_PARAM) const
