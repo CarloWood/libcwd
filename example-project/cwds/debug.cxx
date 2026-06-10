@@ -10,6 +10,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <unistd.h>                     // Needed for pipe
 #ifdef USE_LIBCW
 #include <libcw/memleak.h>		// memleak_filter
@@ -23,7 +24,7 @@
 #include <debug.h>
 
 namespace libcwd {
-pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
+std::mutex cout_mutex;
 namespace _private_ {
 // Non-const pointer - but do NOT write to it.
 // main_thread_tsd is defined in libcwd v1.1.1 and higher (libcwd.so.5.1), or see libcwd github (added 23 apr 2019).
@@ -184,10 +185,8 @@ void init_thread(std::string thread_name, libcwd::thread_init_t thread_init)
   else if (!first_thread)			// So far, the application has only one thread.  So don't add a thread id.
   {
     std::ostringstream margin;
-    union { pthread_t pt; size_t size; } convert;
-    convert.pt = pthread_self();
     // Set the thread id in the margin.
-    margin << std::hex << std::setw(12) << convert.size << ' ';
+    margin << std::hex << std::setw(12) << std::this_thread::get_id() << ' ';
     Debug(libcw_do.margin().assign(margin.str()));
     threads_created = true;
   }

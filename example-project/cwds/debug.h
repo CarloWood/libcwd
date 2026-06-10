@@ -6,6 +6,7 @@
 /// @cond Doxygen_Suppress
 
 #include <iostream>
+#include <mutex>
 #include <cstdlib>              // std::exit, EXIT_FAILURE
 
 #define Debug(x) do { } while(0)
@@ -361,7 +362,7 @@ class DebugPipedOStringStream : public HelperPipeBufs, public std::ostream
 };
 
 namespace libcwd {
-extern pthread_mutex_t cout_mutex;
+extern std::mutex cout_mutex;
 } // namespace libcwd
 
 /**
