@@ -30,15 +30,6 @@ inline bool is_single_threaded(std::thread::id& thread_id)
   return first_call;
 }
 
-// Debugging function.
-// Usage:
-//
-//   assert(in_main_thread());                          // Fails if this is not the main thread. Only use after main() was reached.
-inline bool in_main_thread()
-{
-  return s_main_thread_id == std::this_thread::get_id();
-}
-
 } // namespace aithreadid
 
 #endif // UTILS_THREADING_AITHREADID_H

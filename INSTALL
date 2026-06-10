@@ -49,9 +49,9 @@ The following boolean variables can be set to ON or OFF on the command line,
    EnableLibcwdDebugOutput : Enable debug output of EnableLibcwdDebug.
    EnableLibcwdDebugt   : Enable debugging of threading debugging code in libcwd itself.
 
-When running `cmake` each option and its value is printed (unless forced to OFF);
-often a value is forced or has a default. Recommended is to only set an option if
-you're not happy with the default.
+When running `cmake --log-level=STATUS` each option and its value is printed (unless
+forced to OFF); often a value is forced or has a default. Recommended is to only set
+an option if you're not happy with the default.
 
 Trouble
 =======
