@@ -3,7 +3,7 @@
 #ifndef LIBCWD_CLASS_CONTINUED_CHANNEL_INL
 #define LIBCWD_CLASS_CONTINUED_CHANNEL_INL
 
-#include "class_continued_channel.h"
+#include "ContinuedChannel.h"
 #include "control_flag.h"
 
 namespace libcwd {

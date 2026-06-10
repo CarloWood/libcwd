@@ -5,9 +5,9 @@
 
 #include "Channel.inl.h"
 #include "FatalChannel.inl.h"
-#include "class_channel.h"
-#include "class_channel_set.h"
-#include "class_fatal_channel.h"
+#include "Channel.h"
+#include "ChannelSet.h"
+#include "FatalChannel.h"
 #include "control_flag.h"
 
 namespace libcwd {

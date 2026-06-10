@@ -7,7 +7,7 @@
 
 #if CWDEBUG_LOCATION
 
-#include "class_location.h"
+#include "Location.h"
 #include "libraries_debug.h"
 #include "private_assert.h"
 
@@ -111,7 +111,7 @@ void print_location_on(OSTREAM& os, Location const& location)
 
 } // namespace _private_
 
-#if !(__GNUC__ == 3 && __GNUC_MINOR__ < 4) // See class_location.h
+#if !(__GNUC__ == 3 && __GNUC_MINOR__ < 4) // See Location.h
 /**
  * \brief Write \a location to ostream \a os.
  * \ingroup group_locations

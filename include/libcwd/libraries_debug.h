@@ -30,10 +30,10 @@
 // The global debug channels used by libcwd.
 //
 
-#include "class_always_channel.h"
-#include "class_channel.h"
-#include "class_continued_channel.h"
-#include "class_fatal_channel.h"
+#include "AlwaysChannel.h"
+#include "Channel.h"
+#include "ContinuedChannel.h"
+#include "FatalChannel.h"
 
 namespace libcwd {
 
@@ -69,7 +69,7 @@ extern AlwaysChannel always;
 // The global debug object
 //
 
-#include "class_debug.h"
+#include "DebugObject.h"
 
 namespace libcwd {
 
@@ -130,10 +130,10 @@ using libcwd::operator<<;
 using namespace libcwd_inserters;
 
 #include "attach_gdb.h"
-#include "class_rcfile.h"
+#include "RcFile.h"
 #include "demangle.h"
-#include "macro_ForAllDebugChannels.h"
-#include "macro_ForAllDebugObjects.h"
+#include "LibcwdForAllDebugChannels.h"
+#include "LibcwdForAllDebugObjects.h"
 #include "private_environ.h"
 
 // Include the inline functions.

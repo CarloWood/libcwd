@@ -4,7 +4,7 @@
 #define LIBCWD_TESTSUITE_CTEST_SUPPORT_PENDING_STREAM_H
 
 #include "threadsafe/AIMutex.h"
-#include "libcwd/class_debug.h"
+#include "libcwd/DebugObject.h"
 
 #include <atomic>
 #include <iostream>

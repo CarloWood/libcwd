@@ -3,7 +3,7 @@
 #ifndef LIBCWD_CLASS_DEBUG_STRING_INL
 #define LIBCWD_CLASS_DEBUG_STRING_INL
 
-#include "class_debug_string.h"
+#include "DebugString.h"
 
 #include <cstddef> // Needed for size_t
 

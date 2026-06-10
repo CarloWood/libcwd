@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file class_fatal_channel.h
+/** \file FatalChannel.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 

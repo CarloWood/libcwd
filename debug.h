@@ -4,7 +4,7 @@
 #define CW_DEBUG 1
 
 #include "libcwd/private_struct_TSD.h"
-#include "libcwd/macro_ForAllDebugObjects.h"
+#include "libcwd/LibcwdForAllDebugObjects.h"
 
 // Required for threadsafe.
 #define ASSERT(x) LIBCWD_ASSERT(x)

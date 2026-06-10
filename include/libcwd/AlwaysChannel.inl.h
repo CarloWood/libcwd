@@ -3,7 +3,7 @@
 #ifndef LIBCWD_CLASS_ALWAYS_CHANNEL_INL
 #define LIBCWD_CLASS_ALWAYS_CHANNEL_INL
 
-#include "class_always_channel.h"
+#include "AlwaysChannel.h"
 #include "control_flag.h"
 
 namespace libcwd {

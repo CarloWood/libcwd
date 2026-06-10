@@ -3,7 +3,7 @@
 
 #include "cwd_sys.h"
 #include "cwd_dwarf.h"
-#include "libcwd/class_location.h"
+#include "libcwd/Location.h"
 #include "libcwd/debug.h"
 
 namespace libcwd {

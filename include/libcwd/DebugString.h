@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file class_debug_string.h
+/** \file DebugString.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 

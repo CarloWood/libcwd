@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file class_location.h
+/** \file Location.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
@@ -45,7 +45,7 @@ namespace libcwd {
 extern char const* const unknown_function_c;
 
 /**
- * \class Location class_location.h libcwd/debug.h
+ * \class Location Location.h libcwd/debug.h
  * \brief A source file location.
  *
  * The normal usage of this class is to print file-name:line-number information as follows:

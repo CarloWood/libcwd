@@ -3,7 +3,7 @@
 
 #if CWDEBUG_LOCATION
 
-#include "environment.h"
+#include "Environment.h"
 #include <libcwd/buf2str.h>
 #include <libcwd/debug.h>
 #include <libcwd/private_assert.h>

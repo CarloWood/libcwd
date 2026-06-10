@@ -3,7 +3,7 @@
 #ifndef LIBCWD_CLASS_CHANNEL_INL
 #define LIBCWD_CLASS_CHANNEL_INL
 
-#include "class_channel.h"
+#include "Channel.h"
 
 namespace libcwd {
 

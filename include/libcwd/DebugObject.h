@@ -3,17 +3,17 @@
 
 #pragma once
 
-/** \file class_debug.h
+/** \file DebugObject.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_CLASS_DEBUG_H
 #define LIBCWD_CLASS_DEBUG_H
 
-#include "class_channel_set.h"
+#include "ChannelSet.h"
 #include "private_lock_interface.h"
 #include "private_struct_TSD.h"
-#include "struct_debug_tsd.h"
+#include "DebugObject_ThreadSpecificData.h"
 #include "libcwd/config.h"
 
 #include <atomic>

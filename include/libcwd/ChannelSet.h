@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file class_channel_set.h
+/** \file ChannelSet.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
@@ -29,7 +29,6 @@ class FatalChannel;
 
 struct ChannelSetData
 {
- public:
   char const* label;
   // The label of the most left channel that is turned on.
 
@@ -48,7 +47,7 @@ struct ChannelSetData
 };
 
 //===================================================================================================
-// struct ChannelSetBootstrap
+// class ChannelSetBootstrap
 //
 // This is the left-most type of channel 'control' series
 // existing of <ChannelSetBootstrap>|<one or more channels>|<optional control flags>.
@@ -67,10 +66,10 @@ class Channel;
 class FatalChannel;
 class ContinuedChannel;
 class AlwaysChannel;
-struct ChannelSet;
-struct ContinuedChannelSet;
+class ChannelSet;
+class ContinuedChannelSet;
 
-struct ChannelSetBootstrap : public ChannelSetData
+class ChannelSetBootstrap : public ChannelSetData
 {
   // Warning: This struct may not have attributes of its own!
  public:
@@ -88,7 +87,7 @@ struct ChannelSetBootstrap : public ChannelSetData
   ContinuedChannelSet& operator|(ContinuedChannel const& cdc);
 };
 
-struct FatalChannelSetBootstrap : public ChannelSetData
+class FatalChannelSetBootstrap : public ChannelSetData
 {
   // Warning: This struct may not have attributes of its own!
  public:
@@ -104,16 +103,16 @@ struct FatalChannelSetBootstrap : public ChannelSetData
 };
 
 //===================================================================================================
-// struct ChannelSet
+// class ChannelSet
 //
 // The debug output target; a combination of channels and control bits.
 // The final result of a series of <channel>|<control flag>|...
 // is passed to struct_debug_tsd_st::start().
 //
 
-struct ChannelSet : public ChannelSetData
+class ChannelSet : public ChannelSetData
 {
-  // Warning: This struct may not have attributes of its own!
+  // Warning: This class may not have attributes of its own!
  public:
   ChannelSet& operator|(control_flag_t cf);
   ChannelSet& operator|(Channel const& dc);
@@ -122,14 +121,14 @@ struct ChannelSet : public ChannelSetData
 };
 
 //===================================================================================================
-// struct ContinuedChannelSet
+// class ContinuedChannelSet
 //
 // The channel set type used for a series that starts with dc::continued.
 //
 
-struct ContinuedChannelSet : public ChannelSetData
+class ContinuedChannelSet : public ChannelSetData
 {
-  // Warning: This struct may not have attributes of its own!
+  // Warning: This class may not have attributes of its own!
  public:
   ContinuedChannelSet& operator|(control_flag_t cf);
 };

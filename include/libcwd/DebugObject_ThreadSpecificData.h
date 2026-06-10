@@ -6,8 +6,8 @@
 #ifndef LIBCWD_STRUCT_DEBUG_TSD_H
 #define LIBCWD_STRUCT_DEBUG_TSD_H
 
-#include "class_channel_set.h"
-#include "class_debug_string.h"
+#include "ChannelSet.h"
+#include "DebugString.h"
 #include "private_debug_stack.h"
 #include "private_struct_TSD.h"
 #include "libcwd/config.h"

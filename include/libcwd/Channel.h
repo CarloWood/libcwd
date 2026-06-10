@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file class_channel.h
+/** \file Channel.h
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 
@@ -25,7 +25,7 @@ struct ChannelSetsWat;
 } // namespace _private_
 
 /**
- * \class Channel class_channel.h libcwd/debug.h
+ * \class Channel Channel.h libcwd/debug.h
  * \ingroup group_debug_channels
  *
  * \brief This object represents a debug channel, it has a fixed label.

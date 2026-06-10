@@ -3,7 +3,7 @@
 #ifndef LIBCWD_CLASS_FATAL_CHANNEL_INL
 #define LIBCWD_CLASS_FATAL_CHANNEL_INL
 
-#include "class_fatal_channel.h"
+#include "FatalChannel.h"
 #include "control_flag.h"
 
 namespace libcwd {

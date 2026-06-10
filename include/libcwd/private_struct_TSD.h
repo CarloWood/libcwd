@@ -47,7 +47,7 @@ struct ThreadSpecificData;
 #define LIBCWD_TSD_MEMBER(m) LIBCWD_DO_TSD_MEMBER(*this, m)
 
 // These includes use the above macros.
-#include "struct_debug_tsd.h"
+#include "DebugObject_ThreadSpecificData.h"
 
 namespace libcwd {
 
