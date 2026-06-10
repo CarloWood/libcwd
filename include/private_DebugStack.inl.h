@@ -18,7 +18,7 @@ template <typename T>
 inline void DebugStack<T>::init()
 {
   current_ = stack_ - 1;
-  end_ = stack_ + 63;
+  end_ = stack_ + max_size - 1;
 }
 
 template <typename T>

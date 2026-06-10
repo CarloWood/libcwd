@@ -22,8 +22,11 @@ namespace libcwd::_private_ {
 template <typename T> // T must be a builtin type.
 struct DebugStack
 {
+ public:
+  static constexpr int max_size = 64;
+
  private:
-  T stack_[64];
+  T stack_[max_size];
   T* current_;
   T* end_;
 
