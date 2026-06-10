@@ -1,4 +1,4 @@
-# clang-format off
+// clang-format off
 
 #include <sys.h>                        // Needed for platform-specific code
 

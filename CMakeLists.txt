@@ -95,6 +95,7 @@ set(VERSION_REVISION ${PROJECT_VERSION_PATCH})
 
 include(CW_DEFINE_TYPE)
 include(CheckPrototypeDefinition)
+include(GNUInstallDirs)
 
 include(CheckIncludeFileCXX)
 check_include_file_cxx("sys/resource.h" HAVE_SYS_RESOURCE_H)
@@ -131,7 +132,7 @@ else ()
 endif ()
 
 # Needed for subst-config.h.in, then used in subdirectory utils.
-set(libcwd_datadir "${CMAKE_INSTALL_PREFIX}/share")
+set(libcwd_datadir "${CMAKE_INSTALL_FULL_DATADIR}")
 
 configure_file("cmake-config.h.in" "config.h")
 configure_file("include/libcwd/config.h.in" "include/libcwd/config.h" @ONLY)
@@ -168,12 +169,27 @@ find_library(LIBELF elf REQUIRED)
 add_subdirectory(utils)
 add_subdirectory(src)
 
-include(GNUInstallDirs)
-
 install(TARGETS cwd
   EXPORT libcwdTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libcwd
+)
+
+# Install both checked-in public libcwd headers and generated configuration headers.
+# The libcwd header tree contains nested private headers, so a directory install preserves subdirectories.
+install(
+  DIRECTORY
+    "${CMAKE_SOURCE_DIR}/include/libcwd/"
+  DESTINATION
+    ${CMAKE_INSTALL_INCLUDEDIR}/libcwd
+  FILES_MATCHING
+    PATTERN "*.h"
+)
+install(
+  FILES
+    "${CMAKE_BINARY_DIR}/include/libcwd/config.h"
+    "${CMAKE_BINARY_DIR}/include/libcwd/sys.h"
+  DESTINATION
+    ${CMAKE_INSTALL_INCLUDEDIR}/libcwd
 )
 
 include(CMakePackageConfigHelpers)
@@ -188,7 +204,7 @@ configure_file(cmake/libcwdConfig.cmake
   COPYONLY
 )
 
-set(ConfigPackageLocation lib/cmake/libcwd)
+set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/libcwd)
 install(EXPORT libcwdTargets
   FILE
     libcwdTargets.cmake
@@ -210,27 +226,40 @@ install(
   FILES
     libcwdrc
   DESTINATION
-    "${libcwd_datadir}/libcwd"
+    "${CMAKE_INSTALL_DATADIR}/libcwd"
 )
 
 # PkgConfig
-set(prefix      ${CMAKE_INSTALL_PREFIX})
+set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix \${prefix})
-set(includedir  \${prefix}/include)
-if (${UNIX})
-  set(libdir    \${exec_prefix}/lib)
+if (IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+  set(includedir ${CMAKE_INSTALL_INCLUDEDIR})
+else ()
+  set(includedir \${prefix}/${CMAKE_INSTALL_INCLUDEDIR})
 endif ()
-if (${WIN32})
-  set(libdir    \${exec_prefix}/bin)
+if (IS_ABSOLUTE "${CMAKE_INSTALL_DATADIR}")
+  set(datadir ${CMAKE_INSTALL_DATADIR})
+else ()
+  set(datadir \${prefix}/${CMAKE_INSTALL_DATADIR})
+endif ()
+if (WIN32)
+  set(_libcwd_pc_libdir_default ${CMAKE_INSTALL_BINDIR})
+else ()
+  set(_libcwd_pc_libdir_default ${CMAKE_INSTALL_LIBDIR})
+endif ()
+if (IS_ABSOLUTE "${_libcwd_pc_libdir_default}")
+  set(libdir ${_libcwd_pc_libdir_default})
+else ()
+  set(libdir \${exec_prefix}/${_libcwd_pc_libdir_default})
 endif ()
 string (REPLACE ";" " -D" _TMP_STR "${cwd_compile_definitions}")
 set(PCCFLAGS "-D${_TMP_STR}")
 configure_file(${libcwd_SOURCE_DIR}/libcwd.pc.in ${libcwd_BINARY_DIR}/libcwd.pc @ONLY)
 install(
   FILES
-    ${CMAKE_BINARY_DIR}/libcwd.pc
+    ${CMAKE_CURRENT_BINARY_DIR}/libcwd.pc
   DESTINATION
-    lib${LIB_SUFFIX}/pkgconfig
+    ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
 add_subdirectory(include/threadsafe)

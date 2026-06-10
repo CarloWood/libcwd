@@ -21,12 +21,6 @@ target_sources(cwd
        "type_info.cxx"
 )
 
-file(GLOB PUBLIC_HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/libcwd/*.h")
-file(GLOB PUBLIC_HEADERS_INL RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "include/libcwd/*.inl.h")
-list(APPEND PUBLIC_HEADERS "${PUBLIC_HEADERS_INL}")
-list(APPEND PUBLIC_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/include/libcwd/sys.h" "${CMAKE_CURRENT_BINARY_DIR}/include/libcwd/config.h")
-set_target_properties(cwd PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
-
 target_compile_definitions(cwd
     PUBLIC
         "${cwd_compile_definitions}"
@@ -39,7 +33,7 @@ target_include_directories(cwd
       "${CMAKE_SOURCE_DIR}/include"
       "${CMAKE_SOURCE_DIR}"
     INTERFACE
-        "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
 target_link_libraries(cwd
