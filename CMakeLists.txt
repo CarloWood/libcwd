@@ -228,6 +228,16 @@ install(
   DESTINATION
     "${CMAKE_INSTALL_DATADIR}/libcwd"
 )
+install(
+  FILES
+    LICENSE
+    README
+    INSTALL
+    NEWS
+    README.threads
+  DESTINATION
+    ${CMAKE_INSTALL_DOCDIR}
+)
 
 # PkgConfig
 set(prefix ${CMAKE_INSTALL_PREFIX})
