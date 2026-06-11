@@ -1433,9 +1433,9 @@ void Channel::off()
 }
 
 /**
- * \brief Cancel one call to `off()'.
+ * \brief Cancel one call to `off()`.
  *
- * The channel is turned on when on() is called as often as off() was called before.
+ * The channel is turned on when `on()` is called as often as `off()` was called before.
  */
 void Channel::on()
 {
@@ -1596,7 +1596,7 @@ void Channel::restore(Channel::OnOffState const& state)
  * \brief Set output device (single threaded applications).
  * \ingroup group_destination
  *
- * Assign a new \c ostream to this %debug object (default is <CODE>std::cerr</CODE>).
+ * Assign a new \c ostream to this %debug object (default is `std::cerr`).
  * For use in single threaded applications only.
  */
 void DebugObject::set_ostream(std::ostream* os)

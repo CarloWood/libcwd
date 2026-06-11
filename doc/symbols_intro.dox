@@ -1,11 +1,6 @@
 /*!
 \addtogroup chapter_symbols_intro Program Symbols Access And Interpretation: Introduction
 \ingroup book_symbols
-*/
-/*!
-\page page_symbols_intro
-\ingroup chapter_symbols_intro
-
 Libcwd reads the symbol table of the application and of each
 of the linked object files upon initialization.&nbsp;
 It then allows you to translate program counter addresses to
@@ -40,4 +35,3 @@ Note that calling \ref libcwd::demangle_symbol costs cpu every time you call it,
 initialization of libcwd; \ref libcwd::type_info_of<> merely returns a static pointer.
 
 */
-

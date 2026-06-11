@@ -1,10 +1,5 @@
 /*!
 \addtogroup group_function Function objects
-*/
-/*!
-\page page_function
-\ingroup group_function
-
 <hr><h2>Defining and initializing <code>Function</code> objects</h2>
 
 <h4>Defining</h4>

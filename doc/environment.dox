@@ -1,25 +1,18 @@
 /*!
 \defgroup chapter_environment Environment Variables
 \ingroup book_start
-*/
-/*!
-\page page_environment
-\ingroup chapter_environment
+<dl>
+<dt>LIBCWD_NO_STARTUP_MSGS</dt><dd>Don't print anything before main().</dd>
 
-<dl compact>
-<dt>LIBCWD_NO_STARTUP_MSGS<dd>Don't print anything before main().
-
-<dt>LIBCWD_PRINT_LOADING<dd>Print messages about loading
+<dt>LIBCWD_PRINT_LOADING</dt><dd>Print messages about loading
 the shared libraries, even when this is done before libcw_do
-is turned on (except when LIBCWD_NO_STARTUP_MSGS is defined).
+is turned on (except when LIBCWD_NO_STARTUP_MSGS is defined).</dd>
 
-<dt>LIBCWD_RCFILE_NAME<dd>Use the name $LIBCWD_RCFILE_NAME
-as rcfile name instead of the default <TT>.libcwdrc</TT>.
-</dl>
+<dt>LIBCWD_RCFILE_NAME</dt><dd>Use the name $LIBCWD_RCFILE_NAME
+as rcfile name instead of the default <TT>.libcwdrc</TT>.</dd>
 
-<dt>LIBCWD_RCFILE_OVERRIDE_NAME<dd>Read the rcfile $LIBCWD_RCFILE_OVERRIDE_NAME
-to override values read from <TT>.libcwdrc</TT>. See also \ref chapter_rcfile .
+<dt>LIBCWD_RCFILE_OVERRIDE_NAME</dt><dd>Read the rcfile $LIBCWD_RCFILE_OVERRIDE_NAME
+to override values read from <TT>.libcwdrc</TT>. See also \ref chapter_rcfile .</dd>
 </dl>
 
 */
-

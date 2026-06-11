@@ -1,11 +1,6 @@
 /*!
 \addtogroup group_formatting Format Of The Debug Output
 \ingroup book_writing
-*/
-/*!
-\page page_formatting
-\ingroup group_formatting
-
 <hr><h2>Detailed Description</h2>
 
 All debug output is written in the following format:
@@ -20,7 +15,7 @@ The &lt;marker&gt; field can be used to identify regions (for example with a ver
 The &lt;indentation&gt; field consists of spaces and is intended to make %debug output better readable by grouping lines of %debug output
 as an easier alternative than using the marker field for that purpose.
 
-The &lt;label&gt; field exists of the channel label (as passed to the constructor of a \link libcwd::Channel Channel \endlink)
+The &lt;label&gt; field exists of the channel label (as passed to the constructor of a \ref libcwd::Channel "Channel")
 padded by spaces to make this field constant in width (it is padded to the length of the longest existing channel label),
 followed by the marker, which is by default a colon plus a final space; for example "NOTICE&nbsp;:&nbsp;".
 
@@ -53,4 +48,3 @@ Outputs
 </PRE>
 
 */
-

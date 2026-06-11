@@ -35,19 +35,16 @@ You can use the following templates for a quick start:
 This %debug.h file is for applications; for more detailed information and for information
 for library developers who want to use libcwd, please also read \ref chapter_custom_debug_h.
 
-\subsection custom_debug_cc Step 3: Creating the custom source file
+\subsection cwds_submodule Step 3: Adding the cwds submodule
+
+Add the git submodule <CODE>cwds</CODE> in the root of your project.&nbsp;
+See the \htmlonly<A HREF="https://github.com/CarloWood/cwds#adding-the-cwds-submodule-to-a-project">cwds setup instructions</A>\endhtmlonly
+\latexonly cwds setup instructions\endlatexonly for the exact commands.
 
 If you added one or more custom %debug %channels to your namespace
-<CODE>DEBUGCHANNELS</CODE> in your custom "debug.h", then of course you
-also need to add the definition somewhere.&nbsp;
-You can do that anywhere, or you could add a special source file for it.&nbsp;
-
-\par debug.cc example template
-\include "debug.cc"
-\htmlonly &laquo;<A HREF="../external/debug.cc">download</A>&raquo;\endhtmlonly
-
-The above is just an example of course.&nbsp; But if you'd use it, then you
-would initialize libcwd by including the following at the top of main:
+<CODE>DEBUGCHANNELS</CODE> in your custom "debug.h", then define those
+channels in one of your project source files.&nbsp; The initialization code
+at the top of main then looks like:
 
 \code
 int main()

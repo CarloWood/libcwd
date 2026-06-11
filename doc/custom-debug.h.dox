@@ -6,9 +6,8 @@
 \ingroup book_start
 */
 /*!
-\page page_custom_debug_h
-\ingroup chapter_custom_debug_h
-
+\addtogroup chapter_custom_debug_h
+\{
 \section debug_channels_and_namespace Debug channels and namespace
 
 \subsection applications Applications
@@ -115,7 +114,8 @@ the .cpp files (that \#include "debug.h") of your library itself, then looks lik
  &nbsp;
  \#include &lt;iostream&gt;     // std::cerr
  \#include &lt;cstdlib&gt;      // std::exit, EXIT_FAILURE
-\include nodebug.h \#endif // CWDEBUG
+\include nodebug.h
+ \#endif // CWDEBUG
  &nbsp;
  \#define LIBEXAMPLE_INTERNAL		// See above.
  \#include &lt;libexample/debug.h&gt;	// The debug<b></b>.h shown above.
@@ -169,7 +169,7 @@ Make a debug header file that contains:
 \htmlonly
 <DIV class="normal">
 \endhtmlonly
-The hiding mechanism of the above `cascading' of debug channel declarations of libraries works as follows.&nbsp;
+The hiding mechanism of the above "cascading" of debug channel declarations of libraries works as follows.&nbsp;
 The debug macros use a using-directive to include the scope LIBCWD_DEBUGCHANNELS, which is set to DEBUGCHANNELS
 if you defined that and to libcwd::channels otherwise.&nbsp;
 All debug channels are specified as <CODE>dc::channelname</CODE> in the source code and the namespace \c dc will
@@ -186,4 +186,5 @@ redefining it in <CODE>application::debug::channels::dc</CODE> itself, either as
 </DIV>
 \endhtmlonly
 
+\}
 */

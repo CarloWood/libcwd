@@ -1,11 +1,6 @@
 /*!
 \defgroup group_fatal_output Fatal Debug Output
 \ingroup book_writing
-*/
-/*!
-\page page_fatal_output
-\ingroup group_fatal_output
-
 <hr><h2>Detailed Description</h2>
 
 Often an application needs to be terminated when a fatal error occurs (whether or not CWDEBUG

@@ -30,6 +30,7 @@ cmake
 
 cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -S . -B build
 cmake --build build
+cmake --build build --target doc        # Generate documentation (open build/doc/index.html).
 sudo make -C build install
 
 Options

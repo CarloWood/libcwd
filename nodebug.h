@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2001-2002, 2004, 2026 Carlo Wood
-// SPDX-License-Identifier: MIT
-
 #define Debug(STATEMENT...)
 #define Dout(cntrl, data)
 #define DoutFatal(cntrl, data) LibcwDoutFatal(, , cntrl, data)

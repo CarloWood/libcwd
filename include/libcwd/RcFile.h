@@ -19,7 +19,7 @@ namespace libcwd {
 class Channel;
 
 /**
- * \class RcFile class_rcfile.h libcwd/debug.h
+ * \class RcFile RcFile.h libcwd/debug.h
  * \ingroup chapter_rcfile
  *
  * \brief This object represents a runtime configuration file.

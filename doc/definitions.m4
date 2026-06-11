@@ -41,7 +41,7 @@ define(__PAGEHEADER, [[
 </TABLE>]])dnl
 dnl
 define(__PAGEFOOTER, [[
-<ADDRESS>Copyright &copy; 2001, 2002 Carlo Wood.&nbsp; All rights reserved.</ADDRESS>]])dnl
+<ADDRESS>Copyright &copy; 2001, 2002, 2026 Carlo Wood.&nbsp; All rights reserved.</ADDRESS>]])dnl
 dnl
 define(__PAGESTART, [[
 <DIV class="body">]])dnl

@@ -3,21 +3,19 @@
 \ingroup book_writing
 */
 /*!
-\page page_debug_channels
-\ingroup group_debug_channels
-
+\addtogroup group_debug_channels
+\{
 <hr><h2>Detailed Description</h2>
 
 Whenever debug output is written, one or more <i>debug channels</i> must be specified.&nbsp;
 The debug output is then written to the ostream of the debug object
 unless the debug object is turned off or when all specified <i>debug channels</i> are off.&nbsp;
-Each <i>debug channel</i> can be turned \link libcwd::Channel::on on \endlink
-and \link libcwd::Channel::off off \endlink independently.&nbsp;
+Each <i>debug channel</i> can be turned on and off independently.&nbsp;
 
 Libcwd has defined six <i>debug channels</i> in namespace \link libcwd::channels::dc channels::dc \endlink
 (See \ref group_default_dc).&nbsp;
 New <i>debug channels</i> can be defined by the user, which is as simple as creating
-a new \link libcwd::Channel Channel \endlink object.
+a new Channel object.
 
 Example,
 
@@ -31,7 +29,7 @@ This declaration must be inside the namespace \ref DEBUGCHANNELS.
 
 Multiple <i>debug channels</i> can be given by using
 <CODE>operator|</CODE> between the channel names.&nbsp;
-This shouldn't be read as `or' but merely
+This shouldn't be read as \`or' but merely
 be seen as the bit-wise OR operation on the bit-masks that these
 channels actually represent.
 
@@ -78,5 +76,5 @@ HELLO : Hello World!
 KERNEL: This is written when either the kernel or io channel is turned on.</PRE>
 \endexampleoutput
 
+\}
 */
-

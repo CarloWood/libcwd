@@ -30,7 +30,7 @@ inline bool Channel::is_on(LIBCWD_TSD_PARAM) const
 }
 
 /**
- * \brief Returns `true' if the channel is active.
+ * \brief Returns `true` if the channel is active.
  */
 inline bool Channel::is_on() const
 {

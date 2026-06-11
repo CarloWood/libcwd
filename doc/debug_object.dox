@@ -1,11 +1,6 @@
 /*!
 \defgroup group_debug_object The Output Device (Debug Object)
 \ingroup book_writing
-*/
-/*!
-\page page_debug_object
-\ingroup group_debug_object
-
 <hr><h2>Detailed Description</h2>
 
 Libcwd declares a %debug class (\ref libcwd::DebugObject "DebugObject") which can be assigned an <code>ostream</code>
@@ -25,4 +20,3 @@ For each %debug object it is possible to set a margin and a marker string and to
 The methods used for setting or changing these prefix formatting attributes are listed in \ref group_formatting.
 
 */
-

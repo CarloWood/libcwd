@@ -1,11 +1,6 @@
 /*!
 \defgroup chapter_nesting Nesting Debug Output
 \ingroup book_writing
-*/
-/*!
-\page page_nesting
-\ingroup chapter_nesting
-
 \section section_nesting_calling Calling functions inside Dout
 
 Consider the following code:

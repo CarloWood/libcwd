@@ -1,10 +1,7 @@
-/* Add this at the top of your main() to have a quick start.	*/
+/* Add this at the top of your main().	        */
 
-  Debug(myproject::debug::init());		// This is a custom function defined
-						// in example-project/debug.cc.
+  Debug(NAMESPACE_DEBUG::init());		// This function is defined by cwds.
 
 /* Add this at the start of each new thread.	*/
 
-  Debug(myproject::debug::thread_init());	// This is a custom function defined
-						// in example-project/debug.cc.
-
+  Debug(NAMESPACE_DEBUG::thread_init());	// This function is defined by cwds.

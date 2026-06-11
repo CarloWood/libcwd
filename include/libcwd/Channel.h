@@ -39,7 +39,7 @@ struct ChannelSetsWat;
  * Each %debug channel can be turned on and off independently.&nbsp;
  *
  * Multiple %debug %channels can be given by using <CODE>operator|</CODE> between the channel names.&nbsp;
- * This shouldn't be read as `or' but merely be seen as the bit-wise OR operation on the bit-masks
+  * This shouldn't be read as \`or' but merely be seen as the bit-wise OR operation on the bit-masks
  * that these %channels actually represent.
  *
  * <b>Example:</b>
@@ -75,7 +75,7 @@ class Channel
  private:
   int index_;
   // Assigned during initialization before this channel is made visible to other threads.
-  // A unique id that is used as index into the TSD array `off_cnt_array'.
+  // A unique id that is used as index into the TSD array `off_cnt_array`.
 
   char label_[max_label_len + 1]; // +1 for zero termination.
                                   // Initialized before this channel is made visible to other threads and read-only
@@ -94,7 +94,7 @@ class Channel
   // Constructor
   //
 
-  // MT: All channel objects must be global so that `initialized_' is false
+  // MT: All channel objects must be global so that `initialized_` is false
   //     at the start of the program and initialization occurs before other threads
   //     share the object.
   explicit Channel(char const* label, bool add_to_channel_list = true);

@@ -1,7 +1,3 @@
 /*!
 \defgroup chapter_gdb Helper functions for within gdb
 */
-/*!
-\page page_gdb
-\ingroup chapter_gdb
-*/
