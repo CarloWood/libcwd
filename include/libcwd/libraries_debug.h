@@ -18,7 +18,7 @@
 
 #include "libcwd/config.h"
 
-// See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html for more information on -D_GLIBCXX_DEBUG
+// See https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html#debug_mode.using.mode for more information on -D_GLIBCXX_DEBUG
 #if defined(_GLIBCXX_DEBUG) && !CWDEBUG_GLIBCXX_DEBUG
 #error Libcwd was not compiled with -D_GLIBCXX_DEBUG while your application is. Please reconfigure libcwd with --enable-glibcxx-debug.
 #endif

@@ -38,7 +38,7 @@ if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif ()
 
 cw_option(EnableGlibCxxDebug
-          "compile libcwd with -D_GLIBCXX_DEBUG. See http://gcc.gnu.org/onlinedocs/libstdc++/debug.html" OFF
+          "compile libcwd with -D_GLIBCXX_DEBUG. See https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html#debug_mode.using.mode" OFF
           "" OFF
 )
 cw_option(EnableLibcwdLocation

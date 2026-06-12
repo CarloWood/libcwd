@@ -1,0 +1,114 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * Minimal local Doxygen Awesome bootstrap for libcwd's static landing page.
+ *
+ * This file intentionally provides the shared color, spacing, typography, and
+ * dark-mode custom properties used by Doxygen Awesome without changing the
+ * existing generated reference manual or tutorial structure during this
+ * objective. Later documentation objectives can replace this bootstrap with the
+ * complete upstream Doxygen Awesome stylesheet and wire it into Doxygen itself.
+ */
+
+:root {
+  --primary-color: #1779c4;
+  --primary-dark-color: #335c80;
+  --primary-light-color: #70b1e9;
+  --on-primary-color: #ffffff;
+  --link-color: var(--primary-color);
+  --page-background-color: #ffffff;
+  --page-foreground-color: #2f4153;
+  --page-secondary-foreground-color: #6f7e8e;
+  --separator-color: #dedede;
+  --side-nav-background: #fbfbfb;
+  --code-background: #f5f5f5;
+  --code-foreground: var(--page-foreground-color);
+  --border-radius-small: 5px;
+  --border-radius-medium: 8px;
+  --border-radius-large: 10px;
+  --spacing-small: 5px;
+  --spacing-medium: 10px;
+  --spacing-large: 16px;
+  --spacing-xlarge: 20px;
+  --box-shadow: 0 2px 8px 0 rgba(0, 0, 0, .075);
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-family-monospace: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --page-font-size: 15.6px;
+  --navigation-font-size: 14.4px;
+  --content-line-height: 27px;
+  --content-maxwidth: 1050px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --primary-color: #1982d2;
+    --primary-dark-color: #86a9c4;
+    --primary-light-color: #4779ac;
+    --box-shadow: 0 2px 8px 0 rgba(0, 0, 0, .35);
+    --page-background-color: #1c1d1f;
+    --page-foreground-color: #d2dbde;
+    --page-secondary-foreground-color: #859399;
+    --separator-color: #38393b;
+    --side-nav-background: #252628;
+    --code-background: #2a2c2f;
+  }
+}
+
+html {
+  background: var(--page-background-color);
+  color: var(--page-foreground-color);
+  font-family: var(--font-family);
+  font-size: var(--page-font-size);
+}
+
+body {
+  margin: 0;
+  background: var(--page-background-color);
+  color: var(--page-foreground-color);
+}
+
+a:link,
+a:visited,
+a:hover,
+a:focus,
+a:active {
+  color: var(--link-color);
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code,
+pre,
+kbd,
+samp,
+.code,
+.filename {
+  font-family: var(--font-family-monospace);
+}
+
+code,
+.code,
+.filename {
+  background: var(--code-background);
+  color: var(--code-foreground);
+  border: 1px solid var(--separator-color);
+  border-radius: var(--border-radius-small);
+  padding: 2px 6px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  line-height: 1.2;
+}
+
+p,
+li,
+dd {
+  line-height: var(--content-line-height);
+}

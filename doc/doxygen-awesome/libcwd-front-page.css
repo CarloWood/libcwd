@@ -1,0 +1,215 @@
+/*
+ * Landing-page layer for the local Doxygen Awesome bootstrap.
+ *
+ * The selectors are specific to doc/index.html so that these styles can be
+ * shared as offline assets without altering the reference manual, tutorial,
+ * quick reference, or any generated Doxygen pages in this objective.
+ */
+
+.site-header {
+  border-bottom: 1px solid var(--separator-color);
+  background: var(--page-background-color);
+}
+
+.site-header__inner,
+.landing-main,
+.site-footer {
+  box-sizing: border-box;
+  max-width: var(--content-maxwidth);
+  margin: 0 auto;
+  padding: var(--spacing-xlarge);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-large);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-small);
+}
+
+.brand__name {
+  color: var(--page-foreground-color);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  text-decoration: none;
+}
+
+.brand__mark {
+  color: #d92323;
+}
+
+.brand__tagline,
+.hero__summary,
+.section-note,
+.release-date {
+  color: var(--page-secondary-foreground-color);
+}
+
+.top-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-small);
+  justify-content: flex-end;
+}
+
+.top-nav a,
+.card-grid a,
+.hero__actions a {
+  border-radius: var(--border-radius-small);
+  text-decoration: none;
+}
+
+.top-nav a {
+  padding: 7px var(--spacing-medium);
+}
+
+.top-nav a:hover,
+.top-nav a:focus {
+  background: var(--primary-color);
+  color: var(--on-primary-color);
+}
+
+.hero {
+  display: grid;
+  gap: var(--spacing-large);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  align-items: start;
+  padding: calc(2 * var(--spacing-xlarge)) 0;
+}
+
+.hero h1 {
+  margin: 0 0 var(--spacing-large);
+  font-size: clamp(2.1rem, 5vw, 4rem);
+}
+
+.hero__summary {
+  max-width: 65ch;
+  font-size: 1.08rem;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-medium);
+  margin-top: var(--spacing-large);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-medium) var(--spacing-large);
+  background: var(--primary-color);
+  color: var(--on-primary-color) !important;
+  box-shadow: var(--box-shadow);
+}
+
+.button--secondary {
+  background: var(--code-background);
+  color: var(--page-foreground-color) !important;
+  border: 1px solid var(--separator-color);
+}
+
+.status-card,
+.content-card,
+.news-section {
+  border: 1px solid var(--separator-color);
+  border-radius: var(--border-radius-large);
+  background: var(--side-nav-background);
+  box-shadow: var(--box-shadow);
+}
+
+.status-card,
+.content-card {
+  padding: var(--spacing-large);
+}
+
+.status-card dl {
+  margin: 0;
+}
+
+.status-card div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-medium);
+  padding: var(--spacing-small) 0;
+  border-bottom: 1px solid var(--separator-color);
+}
+
+.status-card div:last-child {
+  border-bottom: 0;
+}
+
+.status-card dt {
+  color: var(--page-secondary-foreground-color);
+}
+
+.status-card dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-large);
+  margin: var(--spacing-large) 0 calc(2 * var(--spacing-xlarge));
+}
+
+.content-card a {
+  font-size: 1.15rem;
+}
+
+.content-card p {
+  margin-bottom: 0;
+}
+
+.news-section {
+  padding: var(--spacing-xlarge);
+}
+
+.release-items {
+  margin-top: var(--spacing-large);
+}
+
+.release-items .release-date {
+  margin-top: var(--spacing-large);
+  padding-top: var(--spacing-large);
+  border-top: 1px solid var(--separator-color);
+  color: var(--page-secondary-foreground-color);
+  font-size: 1rem;
+}
+
+.release-items .release-date:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.release-items p.news {
+  margin: var(--spacing-small) 0 var(--spacing-medium);
+}
+
+.site-footer {
+  color: var(--page-secondary-foreground-color);
+  border-top: 1px solid var(--separator-color);
+}
+
+@media (max-width: 760px) {
+  .site-header__inner,
+  .hero {
+    display: block;
+  }
+
+  .top-nav {
+    justify-content: flex-start;
+    margin-top: var(--spacing-large);
+  }
+}

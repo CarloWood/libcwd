@@ -52,7 +52,7 @@
  * \par Description
  *
  * Compile libcwd itself with -D_GLIBCXX_DEBUG.
- * See "The libstdc++ debug mode" on http://gcc.gnu.org/onlinedocs/libstdc++/debug.html.
+ * See "Chapter 17. Debug Mode" on https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html
  *
  * Note that this flag changes the sizes and behavior of standard class templates such
  * as std::vector, and therefore you can only link code compiled with debug mode and
