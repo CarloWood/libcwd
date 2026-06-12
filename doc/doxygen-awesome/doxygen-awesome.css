@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: MIT */
 /*
- * Minimal local Doxygen Awesome bootstrap for libcwd's static landing page.
+ * Minimal local Doxygen Awesome bootstrap for libcwd documentation pages.
  *
  * This file intentionally provides the shared color, spacing, typography, and
  * dark-mode custom properties used by Doxygen Awesome without changing the
  * existing generated reference manual or tutorial structure during this
  * objective. Later documentation objectives can replace this bootstrap with the
- * complete upstream Doxygen Awesome stylesheet and wire it into Doxygen itself.
+ * complete upstream Doxygen Awesome stylesheet.
  */
 
 :root {
@@ -32,14 +32,14 @@
   --box-shadow: 0 2px 8px 0 rgba(0, 0, 0, .075);
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   --font-family-monospace: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-  --page-font-size: 15.6px;
+  --page-font-size: 17px;
   --navigation-font-size: 14.4px;
-  --content-line-height: 27px;
+  --content-line-height: 29px;
   --content-maxwidth: 1050px;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  html:not(.light-mode) {
     color-scheme: dark;
     --primary-color: #1982d2;
     --primary-dark-color: #86a9c4;
@@ -54,6 +54,20 @@
   }
 }
 
+html.dark-mode {
+  color-scheme: dark;
+  --primary-color: #1982d2;
+  --primary-dark-color: #86a9c4;
+  --primary-light-color: #4779ac;
+  --box-shadow: 0 2px 8px 0 rgba(0, 0, 0, .35);
+  --page-background-color: #1c1d1f;
+  --page-foreground-color: #d2dbde;
+  --page-secondary-foreground-color: #859399;
+  --separator-color: #38393b;
+  --side-nav-background: #252628;
+  --code-background: #2a2c2f;
+}
+
 html {
   background: var(--page-background-color);
   color: var(--page-foreground-color);
@@ -65,6 +79,10 @@ body {
   margin: 0;
   background: var(--page-background-color);
   color: var(--page-foreground-color);
+  font-size-adjust: none;
+  word-spacing: normal;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 a:link,
@@ -97,6 +115,14 @@ code,
   border: 1px solid var(--separator-color);
   border-radius: var(--border-radius-small);
   padding: 2px 6px;
+}
+
+code em,
+span.tt em,
+.code em,
+.filename em {
+  font-size: .75em;
+  white-space: nowrap;
 }
 
 h1,

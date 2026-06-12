@@ -16,17 +16,46 @@ set(top_srcdir ${CMAKE_SOURCE_DIR})
 set(srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 set(top_builddir ${CMAKE_BINARY_DIR})
 
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md")
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md" release_note_headings REGEX "^## .+")
+list(GET release_note_headings 0 latest_release_heading)
+string(REGEX REPLACE "^##[ 	]+(.+)$" "\\1" LATEST_RELEASE_DATE "${latest_release_heading}")
+
 configure_file(doxygen.config.in doxygen.config @ONLY)
 configure_file(html.header.in html.header @ONLY)
 configure_file(html.footer.in html.footer @ONLY)
+configure_file(frontpage.config.in frontpage.config @ONLY)
+configure_file(frontpage.header.in frontpage.header @ONLY)
+configure_file(frontpage.footer.in frontpage.footer @ONLY)
+configure_file(about-libcwd.md about-libcwd.md @ONLY)
+
+set(doc_front_pages
+  "${CMAKE_CURRENT_BINARY_DIR}/index.html"
+  "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html"
+)
+add_custom_command(
+  OUTPUT ${doc_front_pages}
+  COMMAND ${DOXYGEN_EXECUTABLE} frontpage.config
+  COMMAND /bin/sh -c "for f in md_*release-notes.html; do if test -f \"$f\"; then mv \"$f\" release-notes.html; break; fi; done"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/frontpage.config"
+    "${CMAKE_CURRENT_BINARY_DIR}/frontpage.header"
+    "${CMAKE_CURRENT_BINARY_DIR}/frontpage.footer"
+    "${CMAKE_CURRENT_BINARY_DIR}/about-libcwd.md"
+    "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md"
+  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+  VERBATIM
+)
+add_custom_target(doc-front-pages DEPENDS ${doc_front_pages})
 
 add_custom_target(doc-assets
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/index.html" "${CMAKE_CURRENT_BINARY_DIR}/index.html"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md" "${CMAKE_CURRENT_BINARY_DIR}/release-notes.md"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-awesome" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-examples" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-examples"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/images" "${CMAKE_CURRENT_BINARY_DIR}/images"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/scripts" "${CMAKE_CURRENT_BINARY_DIR}/scripts"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/www" "${CMAKE_CURRENT_BINARY_DIR}/www"
+  DEPENDS doc-front-pages
 )
 
 set(doc_style_browsers netscape4 netscape6 mozilla konqueror ie)

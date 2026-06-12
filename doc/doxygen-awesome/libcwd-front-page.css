@@ -1,43 +1,62 @@
 /*
  * Landing-page layer for the local Doxygen Awesome bootstrap.
  *
- * The selectors are specific to doc/index.html so that these styles can be
- * shared as offline assets without altering the reference manual, tutorial,
- * quick reference, or any generated Doxygen pages in this objective.
+ * This stylesheet follows the sidebar-only documentation layout used by the
+ * DuMux Doxygen site: a fixed full-height navigation column, a scrollable
+ * content pane, and a fixed footer below that pane. The search field is shown
+ * for layout parity, but whole-site search will only become functional once a
+ * later objective wires all pages into one Doxygen search index.
  */
 
-.site-header {
-  border-bottom: 1px solid var(--separator-color);
-  background: var(--page-background-color);
+:root {
+  --site-sidebar-width: 335px;
+  --site-footer-height: 42px;
+  --sidebar-background: #1e3a52;
+  --sidebar-foreground: #f1fdff;
+  --sidebar-muted-foreground: #c8d9df;
+  --sidebar-brand-background: rgb(147, 153, 236);
+  --brand-font-size: 32pt;
+  --brand-version-cap-center-offset: calc(var(--brand-font-size) * .08);
+  --page-font-size: 17px;
+  --content-line-height: 29px;
 }
 
-.site-header__inner,
-.landing-main,
-.site-footer {
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.site-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
   box-sizing: border-box;
-  max-width: var(--content-maxwidth);
-  margin: 0 auto;
-  padding: var(--spacing-xlarge);
+  width: var(--site-sidebar-width);
+  overflow-y: auto;
+  background: var(--sidebar-background);
+  color: var(--sidebar-foreground);
 }
 
-.site-header__inner {
-  display: flex;
+.sidebar-brand {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-medium);
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-large);
+  padding: var(--spacing-medium) var(--spacing-large);
+  background: var(--sidebar-brand-background);
 }
 
-.brand {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-small);
-}
-
-.brand__name {
-  color: var(--page-foreground-color);
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: -.03em;
+.brand__name,
+.brand__name:link,
+.brand__name:visited,
+.brand__name:hover,
+.brand__name:focus,
+.brand__name:active {
+  color: black;
+  font-family: lucidux sans, avantgarde, sans-serif;
+  font-size: var(--brand-font-size);
+  font-weight: bold;
+  line-height: 1;
   text-decoration: none;
 }
 
@@ -45,134 +64,242 @@
   color: #d92323;
 }
 
-.brand__tagline,
-.hero__summary,
-.section-note,
-.release-date {
-  color: var(--page-secondary-foreground-color);
+.brand__version {
+  color: black;
+  font-weight: 700;
+  line-height: 1;
+  transform: translateY(var(--brand-version-cap-center-offset));
+  white-space: nowrap;
 }
 
-.top-nav {
-  display: flex;
-  flex-wrap: wrap;
+.brand__tagline {
+  margin: 0;
+  padding: var(--spacing-small) var(--spacing-large) var(--spacing-medium);
+  color: var(--sidebar-muted-foreground);
+}
+
+.sidebar-tools {
+  padding: 0 var(--spacing-large) var(--spacing-large);
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--spacing-small);
-  justify-content: flex-end;
+  align-items: center;
 }
 
-.top-nav a,
-.card-grid a,
-.hero__actions a {
+.search-form input[type="search"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 7px var(--spacing-medium);
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: var(--border-radius-medium);
+  background: var(--sidebar-foreground);
+  color: #203040;
+  font: inherit;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+doxygen-awesome-dark-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: var(--border-radius-medium);
+  background: rgba(0, 0, 0, .18);
+  cursor: pointer;
+}
+
+doxygen-awesome-dark-mode-toggle:hover,
+doxygen-awesome-dark-mode-toggle:focus {
+  border-color: var(--sidebar-foreground);
+}
+
+doxygen-awesome-dark-mode-toggle svg {
+  display: block;
+}
+
+.side-nav {
+  padding: 0 var(--spacing-large) var(--spacing-large);
+}
+
+.side-nav details {
+  margin-bottom: var(--spacing-medium);
+}
+
+.side-nav summary {
+  cursor: pointer;
+  color: var(--sidebar-foreground);
+  font-weight: 700;
+  line-height: var(--content-line-height);
+}
+
+.side-nav a,
+.side-nav a:link,
+.side-nav a:visited,
+.side-nav a:hover,
+.side-nav a:focus,
+.side-nav a:active {
+  display: block;
+  margin: 2px 0 2px var(--spacing-large);
+  padding: 4px var(--spacing-small);
   border-radius: var(--border-radius-small);
+  color: var(--sidebar-muted-foreground);
+  font-weight: 500;
   text-decoration: none;
 }
 
-.top-nav a {
-  padding: 7px var(--spacing-medium);
+.side-nav a[aria-current="page"],
+.side-nav a:hover,
+.side-nav a:focus {
+  background: rgba(255, 255, 255, .12);
+  color: var(--sidebar-foreground);
 }
 
-.top-nav a:hover,
-.top-nav a:focus {
-  background: var(--primary-color);
-  color: var(--on-primary-color);
-}
-
-.hero {
+.content-frame {
   display: grid;
-  gap: var(--spacing-large);
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-  align-items: start;
-  padding: calc(2 * var(--spacing-xlarge)) 0;
+  grid-template-rows: minmax(0, 1fr) var(--site-footer-height);
+  height: 100vh;
+  margin-left: var(--site-sidebar-width);
+  background: var(--page-background-color);
 }
 
-.hero h1 {
-  margin: 0 0 var(--spacing-large);
-  font-size: clamp(2.1rem, 5vw, 4rem);
+.landing-main {
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: var(--spacing-xlarge);
 }
 
-.hero__summary {
-  max-width: 65ch;
-  font-size: 1.08rem;
-}
-
-.hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-medium);
-  margin-top: var(--spacing-large);
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-medium) var(--spacing-large);
-  background: var(--primary-color);
-  color: var(--on-primary-color) !important;
-  box-shadow: var(--box-shadow);
-}
-
-.button--secondary {
-  background: var(--code-background);
-  color: var(--page-foreground-color) !important;
-  border: 1px solid var(--separator-color);
-}
-
-.status-card,
-.content-card,
-.news-section {
-  border: 1px solid var(--separator-color);
-  border-radius: var(--border-radius-large);
-  background: var(--side-nav-background);
-  box-shadow: var(--box-shadow);
-}
-
-.status-card,
-.content-card {
-  padding: var(--spacing-large);
-}
-
-.status-card dl {
-  margin: 0;
-}
-
-.status-card div {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--spacing-medium);
-  padding: var(--spacing-small) 0;
+.header {
   border-bottom: 1px solid var(--separator-color);
+  margin-bottom: var(--spacing-large);
 }
 
-.status-card div:last-child {
-  border-bottom: 0;
+.headertitle .title {
+  max-width: var(--content-maxwidth);
+  padding: var(--spacing-medium) 0;
+  font-size: 225%;
+  font-weight: 600;
 }
 
-.status-card dt {
+.contents {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: var(--spacing-large);
+  align-items: flex-start;
+  max-width: var(--content-maxwidth);
+}
+
+.textblock {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.toc {
+  position: sticky;
+  top: 0;
+  flex: 0 0 220px;
+  max-height: calc(100vh - var(--site-footer-height) - 2 * var(--spacing-xlarge));
+  overflow: auto;
+  padding: 0 0 0 var(--spacing-large);
+  border-left: 1px solid var(--separator-color);
+}
+
+.toc h3 {
+  margin-top: 0;
+  font-size: var(--navigation-font-size);
+}
+
+.toc ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.toc li {
+  margin: var(--spacing-small) 0;
+  line-height: 1.25;
+}
+
+.toc a {
+  text-decoration: none;
+}
+
+.overview-section,
+.contents-section,
+.news-section {
+  max-width: var(--content-maxwidth);
+  margin-bottom: calc(2 * var(--spacing-xlarge));
+}
+
+.overview-section h1 {
+  margin-top: 0;
+}
+
+.overview-section p {
+  max-width: 76ch;
+}
+
+.status-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--spacing-medium);
+  max-width: 900px;
+  margin: var(--spacing-large) 0 0;
+}
+
+.status-list div {
+  padding: var(--spacing-medium);
+  border: 1px solid var(--separator-color);
+  border-radius: var(--border-radius-medium);
+  background: var(--side-nav-background);
+}
+
+.status-list dt {
   color: var(--page-secondary-foreground-color);
 }
 
-.status-card dd {
-  margin: 0;
+.status-list dd {
+  margin: var(--spacing-small) 0 0;
   font-weight: 600;
-  text-align: right;
 }
 
-.card-grid {
+.doc-links {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--spacing-large);
-  margin: var(--spacing-large) 0 calc(2 * var(--spacing-xlarge));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-medium);
+  max-width: 900px;
+  margin: var(--spacing-large) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.content-card a {
-  font-size: 1.15rem;
+.doc-links a {
+  display: block;
+  padding: var(--spacing-medium);
+  border: 1px solid var(--separator-color);
+  border-radius: var(--border-radius-medium);
+  background: var(--side-nav-background);
+  text-decoration: none;
 }
 
-.content-card p {
-  margin-bottom: 0;
-}
-
-.news-section {
-  padding: var(--spacing-xlarge);
+.doc-links a:hover,
+.doc-links a:focus {
+  border-color: var(--primary-color);
 }
 
 .release-items {
@@ -198,18 +325,52 @@
 }
 
 .site-footer {
-  color: var(--page-secondary-foreground-color);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--site-footer-height);
+  padding: var(--spacing-small) var(--spacing-xlarge);
   border-top: 1px solid var(--separator-color);
+  background: var(--page-background-color);
+  color: var(--page-secondary-foreground-color);
+}
+
+.site-footer p {
+  margin: 0;
 }
 
 @media (max-width: 760px) {
-  .site-header__inner,
-  .hero {
+  html,
+  body {
+    height: auto;
+    overflow: auto;
+  }
+
+  .site-sidebar {
+    position: static;
+    width: auto;
+  }
+
+  .content-frame {
+    display: block;
+    height: auto;
+    margin-left: 0;
+  }
+
+  .landing-main {
+    overflow: visible;
+  }
+
+  .contents {
     display: block;
   }
 
-  .top-nav {
-    justify-content: flex-start;
-    margin-top: var(--spacing-large);
+  .toc {
+    position: static;
+    max-height: none;
+    margin-bottom: var(--spacing-large);
+    padding: var(--spacing-medium);
+    border: 1px solid var(--separator-color);
+    border-radius: var(--border-radius-medium);
   }
 }
