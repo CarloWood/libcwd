@@ -1,5 +1,6 @@
 /*!
 \addtogroup group_function Function objects
+\ingroup book_symbols
 <hr><h2>Defining and initializing <code>Function</code> objects</h2>
 
 <h4>Defining</h4>

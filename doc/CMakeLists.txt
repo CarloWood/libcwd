@@ -126,7 +126,7 @@ add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reference-manual/index.html"
   COMMAND ${CMAKE_COMMAND} -E rm -rf reference-manual
   COMMAND ${DOXYGEN_EXECUTABLE} doxygen.config
-  COMMAND /bin/sh -c "if test -f reference-manual/preparation.html; then mv reference-manual/preparation.html reference-manual/preparation.tmp && sed -e 's/href=\"debug_8h\.html\">debug\.h/href=\"#preparation_step2\">debug.h/' -e 's/\"sys\.h\"/\"<a class=\"code\" href=\"#preparation_step2\">sys.h<\\/a>\"/' reference-manual/preparation.tmp > reference-manual/preparation.html && rm reference-manual/preparation.tmp; fi"
+  COMMAND /bin/sh -c "if test -f reference-manual/group__preparation.html; then mv reference-manual/group__preparation.html reference-manual/group__preparation.tmp && sed -e 's/href=\"debug_8h\.html\">debug\.h/href=\"#preparation_step2\">debug.h/' -e 's/\"sys\.h\"/\"<a class=\"code\" href=\"#preparation_step2\">sys.h<\\/a>\"/' reference-manual/group__preparation.tmp > reference-manual/group__preparation.html && rm reference-manual/group__preparation.tmp; fi"
   COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' reference-manual/*.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   DEPENDS

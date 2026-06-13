@@ -1,6 +1,5 @@
 /*!
-\defgroup group_debug_channels Controlling The Output Level (Debug Channels)
-\ingroup book_writing
+\addtogroup group_debug_channels
 */
 /*!
 \addtogroup group_debug_channels

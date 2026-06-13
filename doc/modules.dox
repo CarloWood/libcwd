@@ -3,13 +3,26 @@
  *
  * \brief Start here when installing libcwd, preparing the project-local debug headers, selecting CMake configuration
  * options, or checking the environment variables that can influence runtime behavior.
- *
- * \details
- * - \ref downloading
- * - \ref preparation
- * - \ref chapter_custom_debug_h
- * - \ref group_configuration
- * - \ref chapter_environment
+ */
+
+/** \defgroup downloading Downloading
+ * \ingroup book_start
+ */
+
+/** \defgroup preparation Preparation
+ * \ingroup book_start
+ */
+
+/** \defgroup chapter_custom_debug_h The Custom debug.h File
+ * \ingroup book_start
+ */
+
+/** \defgroup group_configuration Configuration Options And Macros
+ * \ingroup book_start
+ */
+
+/** \defgroup chapter_environment Environment Variables
+ * \ingroup book_start
  */
 
 /**
@@ -17,18 +30,54 @@
  *
  * \brief This chapter collects the output destination, debug object, debug channel, control flag, formatting, fatal output,
  * nesting, and helper utility documentation used while writing debug output.
- *
- * \details
- * - \ref book_writing_intro
- * - \ref page_why_macro
- * - \ref group_destination
- * - \ref group_debug_object
- * - \ref group_debug_channels
- * - \ref group_control_flags
- * - \ref group_formatting
- * - \ref group_fatal_output
- * - \ref chapter_nesting
- * - \ref group_special
+ */
+
+/** \defgroup book_writing_intro Writing Debug Output: Introduction
+ * \ingroup book_writing
+ */
+
+/** \defgroup page_why_macro Design Consideration Concerning Macros
+ * \ingroup book_writing
+ */
+
+/** \defgroup group_destination Setting The Output Destination
+ * \ingroup book_writing
+ */
+
+/** \defgroup group_debug_object The Output Device (Debug Object)
+ * \ingroup book_writing
+ */
+
+/** \defgroup chapter_custom_do Custom Debug Objects
+ * \ingroup group_debug_object
+ */
+
+/** \defgroup group_debug_channels Controlling The Output Level (Debug Channels)
+ * \ingroup book_writing
+ */
+
+/** \defgroup group_default_dc Predefined Debug Channels
+ * \ingroup group_debug_channels
+ */
+
+/** \defgroup group_control_flags Control Flags
+ * \ingroup book_writing
+ */
+
+/** \defgroup group_formatting Format Of The Debug Output
+ * \ingroup book_writing
+ */
+
+/** \defgroup group_fatal_output Fatal Debug Output
+ * \ingroup book_writing
+ */
+
+/** \defgroup chapter_nesting Nesting Debug Output
+ * \ingroup book_writing
+ */
+
+/** \defgroup group_special Special Functions And Utilities
+ * \ingroup book_writing
  */
 
 /**
@@ -36,12 +85,22 @@
  *
  * \brief This chapter covers source locations, symbol lookup, demangling, and type introspection facilities backed by the
  * DWARF and ELF information available to libcwd.
- *
- * \details
- * - \ref chapter_symbols_intro
- * - \ref group_locations
- * - \ref group_type_info
- * - \ref group_demangle
+ */
+
+/** \defgroup chapter_symbols_intro Program Symbols Access And Interpretation: Introduction
+ * \ingroup book_symbols
+ */
+
+/** \defgroup group_locations Source-file:Line-number Information
+ * \ingroup book_symbols
+ */
+
+/** \defgroup group_type_info Getting Type Information Of Types And Symbols
+ * \ingroup book_symbols
+ */
+
+/** \defgroup group_demangle demangle_type() and demangle_symbol()
+ * \ingroup group_type_info
  */
 
 /**
@@ -49,10 +108,20 @@
  *
  * \brief This chapter gathers runtime support that does not belong to ordinary debug output, including rcfile processing,
  * attaching gdb, forcing core dumps, and helper functions for gdb sessions.
- *
- * \details
- * - \ref chapter_rcfile
- * - \ref chapter_attach_gdb
- * - \ref chapter_core_dump
- * - \ref chapter_gdb
+ */
+
+/** \defgroup chapter_rcfile Runtime Configuration File (rcfile)
+ * \ingroup book_runtime
+ */
+
+/** \defgroup chapter_attach_gdb Starting A gdb Session From A Running Program
+ * \ingroup book_runtime
+ */
+
+/** \defgroup chapter_core_dump Making The Program Dump Core
+ * \ingroup book_runtime
+ */
+
+/** \defgroup chapter_gdb Helper functions for within gdb
+ * \ingroup book_runtime
  */

@@ -959,11 +959,36 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @top_srcdir@/src/debug.cxx \
+INPUT                  = @srcdir@/modules.dox \
+                         @srcdir@/downloading.dox \
+                         @srcdir@/preparation.dox \
+                         @srcdir@/custom-debug.h.dox \
+                         @top_builddir@/include/libcwd/config.h \
+                         @srcdir@/environment.dox \
+                         @srcdir@/writing_intro.dox \
+                         @srcdir@/why_macro.dox \
+                         @srcdir@/destination.dox \
+                         @srcdir@/debug_object.dox \
+                         @srcdir@/custom_do.dox \
+                         @srcdir@/debug_channels.dox \
+                         @top_srcdir@/src/debug.cxx \
+                         @srcdir@/control_flags.dox \
+                         @srcdir@/formatting.dox \
+                         @srcdir@/fatal_output.dox \
+                         @srcdir@/nested.dox \
+                         @srcdir@/special.dox \
+                         @srcdir@/symbols_intro.dox \
+                         @srcdir@/locations.dox \
+                         @srcdir@/type_info.dox \
+                         @top_srcdir@/src/demangle.cxx \
+                         @srcdir@/function.dox \
+                         @srcdir@/rcfile.dox \
+                         @srcdir@/attach_gdb.dox \
+                         @srcdir@/core_dump.dox \
+                         @srcdir@/gdb.dox \
                          @srcdir@ \
                          @top_srcdir@/include/libcwd \
-                         @top_builddir@/include/libcwd \
-                         @top_srcdir@/src/demangle.cxx
+                         @top_builddir@/include/libcwd
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1020,7 +1045,7 @@ RECURSIVE              = NO
 # Note that relative paths are relative to the directory from which Doxygen is
 # run.
 
-EXCLUDE                =
+EXCLUDE                = @srcdir@/mainpage.dox
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

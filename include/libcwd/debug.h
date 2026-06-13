@@ -42,7 +42,7 @@
 // with the source code of libcwd (or is included in the documentation that comes with the rpm
 // (ie: /usr/doc/libcwd-1.0/example-project) for a description of the content of "debug.h".
 // More information for end-application users can be found on
-// http://carlowood.github.io/libcwd/reference-manual/preparation.html
+// http://carlowood.github.io/libcwd/reference-manual/group__preparation.html
 //
 // Third-party libraries should never include <libcwd/debug.h> but also not "debug.h".  They
 // should include <libcwd/libraries_debug.h> (and not use Dout et al in their headers).  If you

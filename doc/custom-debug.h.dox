@@ -2,8 +2,7 @@
 #define debug somethingelse
 
 /*!
-\defgroup chapter_custom_debug_h The Custom debug.h File
-\ingroup book_start
+\addtogroup chapter_custom_debug_h
 */
 /*!
 \addtogroup chapter_custom_debug_h
