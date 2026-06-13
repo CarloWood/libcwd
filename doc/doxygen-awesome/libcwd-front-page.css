@@ -7,9 +7,9 @@ html {
   --page-font-size: 17px;
   --content-line-height: 29px;
   --side-nav-fixed-width: 335px;
-  --top-height: calc(var(--brand-font-size) + var(--page-font-size) +
-    var(--spacing-medium) + var(--spacing-medium) + var(--spacing-small) + var(--spacing-medium) +
-    var(--spacing-large) + var(--searchbar-height));
+  --top-height: calc(var(--brand-font-size) + var(--page-font-size) + var(--brand-tagline-gap) +
+    var(--spacing-medium) + var(--spacing-medium) + var(--spacing-large) + var(--spacing-large) +
+    var(--searchbar-height));
   --side-nav-background: #1e3a52;
   --side-nav-foreground: #f1fdff;
   --sidebar-muted-foreground: #c8d9df;
@@ -19,6 +19,7 @@ html {
   --searchbar-border-radius: var(--border-radius-medium);
   --sidebar-brand-background: rgb(147, 153, 236);
   --brand-font-size: 32pt;
+  --brand-tagline-gap: calc(var(--brand-font-size) * .05);
   --brand-version-cap-center-offset: calc(var(--brand-font-size) * .08);
 }
 
@@ -45,7 +46,8 @@ span.tt em,
 #projectalign {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--spacing-medium);
+  column-gap: var(--spacing-medium);
+  row-gap: var(--brand-tagline-gap);
   align-items: center;
   box-sizing: border-box;
   width: 100%;
@@ -96,32 +98,52 @@ span.tt em,
 }
 
 #projectbrief {
-  margin: 0;
-  padding: var(--spacing-small) var(--spacing-large) var(--spacing-medium);
-  color: var(--sidebar-muted-foreground);
+  grid-column: 1 / -1;
+  align-self: start;
+  padding: 0;
+  color: #5e502f;
+  font-size: 80%;
+  line-height: 1;
 }
 
-#searcharea {
-  display: flex;
-  gap: var(--spacing-small);
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  padding: 0 var(--spacing-large) var(--spacing-large);
-}
+/* Doxygen Awesome creates the desktop search box in #searchBoxPos2 through Doxygen's menu.js.
+   Keep that canonical search form in the same sidebar slot that the old handcrafted #searcharea occupied. */
+@media screen and (min-width: 768px) {
+  #main-nav {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 var(--spacing-large) var(--spacing-large);
+  }
 
-#searcharea #MSearchBox {
-  margin: 0;
-  width: calc(100% - var(--searchbar-height) - var(--spacing-small));
-}
+  #main-menu {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+  }
 
-#searcharea #MSearchField {
-  width: calc(100% - 64px);
-}
+  #main-menu > #searchBoxPos2 {
+    display: flex !important;
+    float: none !important;
+    gap: var(--spacing-small);
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0;
+  }
 
-#searcharea doxygen-awesome-dark-mode-toggle {
-  flex: 0 0 var(--searchbar-height);
-  margin: 0;
+  #main-menu > #searchBoxPos2 #MSearchBox {
+    margin: 0;
+    width: calc(100% - var(--searchbar-height) - var(--spacing-small));
+  }
+
+  #main-menu > #searchBoxPos2 #MSearchField {
+    width: calc(100% - 64px);
+  }
+
+  #main-menu > #searchBoxPos2 doxygen-awesome-dark-mode-toggle {
+    flex: 0 0 var(--searchbar-height);
+    margin: 0;
+  }
 }
 
 #nav-tree a,
