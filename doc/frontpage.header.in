@@ -4,48 +4,35 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Carlo Wood">
-  <meta name="description" content="libcwd is a C++ debugging support library with ostream debug output, debug channels, memory allocation checks, source locations, and demangled type names.">
+  <meta name="description" content="libcwd is a C++ debugging support library with ostream debug output, debug channels, source locations, and demangled type names.">
   <title>$projectname: $title</title>
+  <link href="$relpath^tabs.css" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="$relpath^jquery.js"></script>
   <script type="text/javascript" src="$relpath^dynsections.js"></script>
+  <script type="text/javascript" src="$relpath^doxygen-awesome/doxygen-awesome-darkmode-toggle.js"></script>
+  <script type="text/javascript" src="$relpath^doxygen-awesome/doxygen-awesome-fragment-copy-button.js"></script>
+  <script type="text/javascript" src="$relpath^doxygen-awesome/doxygen-awesome-paragraph-link.js"></script>
+  <script type="text/javascript" src="$relpath^doxygen-awesome/doxygen-awesome-interactive-toc.js"></script>
+  <script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init();
+    DoxygenAwesomeDarkModeToggle.init();
+    DoxygenAwesomeParagraphLink.init();
+    DoxygenAwesomeInteractiveToc.init();
+  </script>
+  $treeview
+  $search
+  <link href="$relpath^$stylesheet" rel="stylesheet" type="text/css">
   <link rel="stylesheet" href="$relpath^doxygen-awesome/doxygen-awesome.css">
+  <link rel="stylesheet" href="$relpath^doxygen-awesome/doxygen-awesome-sidebar-only.css">
+  <link rel="stylesheet" href="$relpath^doxygen-awesome/doxygen-awesome-sidebar-only-darkmode-toggle.css">
   <link rel="stylesheet" href="$relpath^doxygen-awesome/libcwd-front-page.css">
 </head>
 <body>
-<aside class="site-sidebar" aria-label="Site navigation">
-  <div class="sidebar-brand">
-    <a class="brand__name" href="$relpath^index.html">libcw<span class="brand__mark">d</span></a>
-    <span class="brand__version">version $projectnumber</span>
-  </div>
-  <p class="brand__tagline">The C++ Debugging Support Library</p>
-
-  <div class="sidebar-tools">
-    <form class="search-form" role="search" action="$relpath^reference-manual/search.html">
-      <label class="visually-hidden" for="site-search">Search</label>
-      <input id="site-search" name="query" type="search" placeholder="Search" aria-label="Search documentation">
-      <doxygen-awesome-dark-mode-toggle title="Toggle Light/Dark Mode"></doxygen-awesome-dark-mode-toggle>
-    </form>
-  </div>
-
-  <nav class="side-nav">
-    <details open>
-      <summary>Getting Started</summary>
-      <a href="$relpath^index.html">About libcwd</a>
-      <a href="$relpath^release-notes.html">Release notes</a>
-      <a href="$relpath^www/quickreference.html">Quick Reference</a>
-    </details>
-    <details open>
-      <summary>Documentation</summary>
-      <a href="$relpath^tutorial/index.html">Tutorial</a>
-      <a href="$relpath^reference-manual/index.html">Reference Manual</a>
-    </details>
-    <details>
-      <summary>Project</summary>
-      <a href="https://github.com/CarloWood/libcwd">github</a>
-      <a href="https://github.com/CarloWood/libcwd/releases">Download</a>
-    </details>
-  </nav>
-</aside>
-<div class="content-frame">
-  <main class="landing-main" id="content">
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+  <div id="projectalign">
+    <div id="projectname"><a class="brand__name" href="$relpath^index.html"><span class="brand__letters">libcw</span><span class="brand__mark">d</span></a><span id="projectnumber">version $projectnumber</span></div>
+  </div>
+  <div id="projectbrief" class="brand__tagline">The C++ Debugging Support Library</div>
+  <div id="searcharea">$searchbox</div>
+</div>

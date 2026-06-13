@@ -27,7 +27,9 @@ configure_file(html.footer.in html.footer @ONLY)
 configure_file(frontpage.config.in frontpage.config @ONLY)
 configure_file(frontpage.header.in frontpage.header @ONLY)
 configure_file(frontpage.footer.in frontpage.footer @ONLY)
+configure_file(frontpage.layout.xml.in frontpage.layout.xml @ONLY)
 configure_file(about-libcwd.md about-libcwd.md @ONLY)
+configure_file(release-notes.md release-notes.md COPYONLY)
 
 set(doc_front_pages
   "${CMAKE_CURRENT_BINARY_DIR}/index.html"
@@ -35,21 +37,27 @@ set(doc_front_pages
 )
 add_custom_command(
   OUTPUT ${doc_front_pages}
+  COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html dir_*.html files.html"
   COMMAND ${DOXYGEN_EXECUTABLE} frontpage.config
-  COMMAND /bin/sh -c "for f in md_*release-notes.html; do if test -f \"$f\"; then mv \"$f\" release-notes.html; break; fi; done"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/frontpage.config"
     "${CMAKE_CURRENT_BINARY_DIR}/frontpage.header"
     "${CMAKE_CURRENT_BINARY_DIR}/frontpage.footer"
+    "${CMAKE_CURRENT_BINARY_DIR}/frontpage.layout.xml"
     "${CMAKE_CURRENT_BINARY_DIR}/about-libcwd.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/release-notes.md"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   VERBATIM
 )
 add_custom_target(doc-front-pages DEPENDS ${doc_front_pages})
 
 add_custom_target(doc-assets
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md" "${CMAKE_CURRENT_BINARY_DIR}/release-notes.md"
+  COMMAND ${CMAKE_COMMAND} -E rm -rf
+          "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome"
+          "${CMAKE_CURRENT_BINARY_DIR}/doxygen-examples"
+          "${CMAKE_CURRENT_BINARY_DIR}/images"
+          "${CMAKE_CURRENT_BINARY_DIR}/scripts"
+          "${CMAKE_CURRENT_BINARY_DIR}/www"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-awesome" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-examples" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-examples"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/images" "${CMAKE_CURRENT_BINARY_DIR}/images"

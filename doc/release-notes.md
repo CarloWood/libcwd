@@ -1,4 +1,4 @@
-# Release notes
+@page release-notes Release notes
 
 ## ?? June 2026
 

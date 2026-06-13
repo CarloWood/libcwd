@@ -8,24 +8,28 @@ DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = @PACKAGE_NAME@
 PROJECT_NUMBER         = @PACKAGE_VERSION@
 PROJECT_BRIEF          = "The C++ Debugging Support Library"
-OUTPUT_DIRECTORY       = @top_builddir@/doc
+OUTPUT_DIRECTORY       = .
 
 MARKDOWN_SUPPORT       = YES
 TOC_INCLUDE_HEADINGS   = 4
-INPUT                  = @top_builddir@/doc/about-libcwd.md \
-                         @srcdir@/release-notes.md
+INPUT                  = about-libcwd.md \
+                         release-notes.md
 FILE_PATTERNS          = *.md
-USE_MDFILE_AS_MAINPAGE = @top_builddir@/doc/about-libcwd.md
+USE_MDFILE_AS_MAINPAGE = about-libcwd.md
 
 GENERATE_HTML          = YES
 HTML_OUTPUT            = .
 HTML_FILE_EXTENSION    = .html
-HTML_HEADER            = @top_builddir@/doc/frontpage.header
-HTML_FOOTER            = @top_builddir@/doc/frontpage.footer
+HTML_HEADER            = frontpage.header
+HTML_FOOTER            = frontpage.footer
+LAYOUT_FILE            = frontpage.layout.xml
 HTML_COLORSTYLE        = LIGHT
-SEARCHENGINE           = NO
-GENERATE_TREEVIEW      = NO
-DISABLE_INDEX          = YES
+SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = NO
+GENERATE_TREEVIEW      = YES
+TREEVIEW_WIDTH         = 335
+DISABLE_INDEX          = NO
+SHOW_FILES             = NO
 
 GENERATE_LATEX         = NO
 GENERATE_XML           = NO
