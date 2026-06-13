@@ -176,6 +176,9 @@ span.tt em,
 }
 
 div.contents {
+  width: min(100%, var(--content-maxwidth));
+  margin-right: auto;
+  margin-left: min(100px, max(0px, calc((100% - var(--content-maxwidth)) / 2)));
   padding-right: 0;
   padding-left: 0;
 }
