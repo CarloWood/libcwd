@@ -30,10 +30,11 @@ TREEVIEW_WIDTH         = 335
 GENERATE_TREEVIEW      = YES
 DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
-HTML_EXTRA_FILES       = doxygen-awesome-darkmode-toggle.js
-HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css \
-                         doxygen-awesome-css/doxygen-awesome-sidebar-only.css \
-                         doxygen-awesome-sidebar-only-darkmode-toggle.css
+HTML_EXTRA_FILES       = @srcdir@/images/doxygen.svg \
+                         @srcdir@/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js
+HTML_EXTRA_STYLESHEET  = @srcdir@/doxygen-awesome-css/doxygen-awesome.css \
+                         @srcdir@/doxygen-awesome-css/doxygen-awesome-sidebar-only.css \
+                         @srcdir@/doxygen-awesome-css/doxygen-awesome-sidebar-only-darkmode-toggle.css
 SHOW_FILES             = NO
 
 GENERATE_LATEX         = NO
