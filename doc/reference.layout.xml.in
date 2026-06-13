@@ -1,0 +1,30 @@
+<doxygenlayout version="1.0">
+  <navindex>
+    <tab type="user" url="../index.html" visible="yes" title="About libcwd" intro="" />
+    <tab type="user" url="../release-notes.html" visible="yes" title="Release notes" intro="" />
+    <tab type="user" url="../tutorial/index.html" visible="yes" title="Tutorial" intro="" />
+    <tab type="user" url="../www/quickreference.html" visible="yes" title="Quick Reference" intro="" />
+    <tab type="usergroup" visible="yes" title="Reference Manual" intro="">
+      <tab type="mainpage" visible="yes" title="Overview" intro="" />
+      <tab type="user" url="manual_start.html" visible="yes" title="Configuration, Installation And Getting Started" intro="" />
+      <tab type="user" url="manual_writing.html" visible="yes" title="Writing Debug Output" intro="" />
+      <tab type="user" url="manual_symbols.html" visible="yes" title="DWARF/ELF Symbol And Type Introspection" intro="" />
+      <tab type="user" url="manual_runtime.html" visible="yes" title="Miscellaneous Runtime" intro="" />
+    </tab>
+    <tab type="topics" visible="yes" title="API Groups" intro="" />
+    <tab type="namespaces" visible="yes" title="Namespaces" intro="">
+      <tab type="namespacelist" visible="yes" title="Namespace List" intro="" />
+      <tab type="namespacemembers" visible="yes" title="Namespace Members" intro="" />
+    </tab>
+    <tab type="classes" visible="yes" title="Classes" intro="">
+      <tab type="classlist" visible="yes" title="Class List" intro="" />
+      <tab type="classindex" visible="$ALPHABETICAL_INDEX" title="Class Index" intro="" />
+      <tab type="hierarchy" visible="yes" title="Class Hierarchy" intro="" />
+      <tab type="classmembers" visible="yes" title="Class Members" intro="" />
+    </tab>
+    <tab type="files" visible="yes" title="Files" intro="">
+      <tab type="filelist" visible="yes" title="File List" intro="" />
+      <tab type="globals" visible="yes" title="File Members" intro="" />
+    </tab>
+  </navindex>
+</doxygenlayout>

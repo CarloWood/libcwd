@@ -1,0 +1,66 @@
+/*!
+
+\page manual_start Configuration, Installation And Getting Started
+
+This chapter map gathers the existing getting-started and configuration material for installing libcwd, preparing an
+application to use libcwd, choosing build-time options, and understanding environment variables.
+
+<ul>
+  <li>\subpage downloading
+  <li>\subpage preparation
+  <li>\ref chapter_custom_debug_h
+  <li>\ref group_configuration
+  <li>\ref chapter_environment
+</ul>
+
+\page manual_writing Writing Debug Output
+
+This chapter map gathers the existing material used when adding debug output to a program, including destinations,
+debug objects, channels, control flags, formatting, fatal output, nesting, and helper utilities.
+
+<ul>
+  <li>\ref book_writing_intro
+  <li>\subpage page_why_macro
+  <li>\ref group_destination
+  <li>\ref group_debug_object
+  <ul>
+    <li>\ref chapter_custom_do
+  </ul>
+  <li>\ref group_debug_channels
+  <ul>
+    <li>\ref group_default_dc
+  </ul>
+  <li>\ref group_control_flags
+  <li>\ref group_formatting
+  <li>\ref group_fatal_output
+  <li>\ref chapter_nesting
+  <li>\ref group_special
+</ul>
+
+\page manual_symbols DWARF/ELF Symbol And Type Introspection
+
+This chapter map gathers the existing Program Symbols Access And Interpretation material for source locations, symbol
+lookup, demangling, and type introspection facilities backed by the DWARF and ELF information available to libcwd.
+
+<ul>
+  <li>\ref chapter_symbols_intro
+  <li>\ref group_locations
+  <li>\ref group_type_info
+  <ul>
+    <li>\ref group_demangle
+  </ul>
+</ul>
+
+\page manual_runtime Miscellaneous Runtime
+
+This chapter map gathers the existing runtime support material that does not belong to ordinary debug output,
+including rcfile processing, attaching gdb, forcing core dumps, and helper functions for gdb sessions.
+
+<ul>
+  <li>\ref chapter_rcfile
+  <li>\ref chapter_attach_gdb
+  <li>\ref chapter_core_dump
+  <li>\ref chapter_gdb
+</ul>
+
+*/

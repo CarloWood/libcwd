@@ -24,6 +24,7 @@ string(REGEX REPLACE "^##[ 	]+(.+)$" "\\1" LATEST_RELEASE_DATE "${latest_release
 configure_file(doxygen.config.in doxygen.config @ONLY)
 configure_file(html.header.in html.header @ONLY)
 configure_file(html.footer.in html.footer @ONLY)
+configure_file(reference.layout.xml.in reference.layout.xml @ONLY)
 configure_file(frontpage.config.in frontpage.config @ONLY)
 configure_file(frontpage.header.in frontpage.header @ONLY)
 configure_file(frontpage.footer.in frontpage.footer @ONLY)
@@ -114,7 +115,7 @@ add_custom_command(
 )
 add_custom_target(doc-external DEPENDS ${doc_external_files})
 
-file(GLOB doc_reference_inputs
+file(GLOB doc_reference_inputs CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/*.dox"
   "${CMAKE_SOURCE_DIR}/include/libcwd/*.h"
   "${CMAKE_SOURCE_DIR}/include/libcwd/*.inl.h"
@@ -132,6 +133,7 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/doxygen.config"
     "${CMAKE_CURRENT_BINARY_DIR}/html.header"
     "${CMAKE_CURRENT_BINARY_DIR}/html.footer"
+    "${CMAKE_CURRENT_BINARY_DIR}/reference.layout.xml"
     doc-assets
     doc-styles
     doc-external

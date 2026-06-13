@@ -2,9 +2,23 @@
 
 \mainpage Reference Manual: Table Of Contents
 
+The libcwd reference manual is organized as a Doxygen-native chapter map.
+The chapter pages below preserve the API group relationships used by the generated reference sections while keeping
+the manual in the same site navigation as the landing pages, tutorial, quick reference, and release notes.
+
+<h2>Configuration, Installation And Getting Started</h2>
+<ul>
+  <li>\subpage downloading
+  <li>\subpage preparation
+  <li>\ref chapter_custom_debug_h
+  <li>\ref group_configuration
+  <li>\ref chapter_environment
+</ul>
+
 <h2>Writing Debug Output</h2>
 <ul>
   <li>\ref book_writing_intro
+  <li>\subpage page_why_macro
   <li>\ref group_destination
   <li>\ref group_debug_object
   <ul>
@@ -37,13 +51,6 @@
   <li>\ref chapter_attach_gdb
   <li>\ref chapter_core_dump
   <li>\ref chapter_gdb
-</ul>
-
-<h2>Configuration, Installation And Getting Started</h2>
-<ul>
-  <li>\ref chapter_custom_debug_h
-  <li>\ref group_configuration
-  <li>\ref chapter_environment
 </ul>
 
 */

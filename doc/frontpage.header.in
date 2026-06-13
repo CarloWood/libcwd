@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="$relpath^doxygen-awesome-css/doxygen-awesome-sidebar-only-darkmode-toggle.css">
   <link rel="stylesheet" href="$relpath^css/libcwd-front-page.css">
   <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js"></script>
+  <script type="text/javascript" src="$relpath^scripts/libcwd-doxygen-theme.js"></script>
   <script type="text/javascript">
     DoxygenAwesomeFragmentCopyButton.init();
     DoxygenAwesomeParagraphLink.init();

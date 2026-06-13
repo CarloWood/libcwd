@@ -1,7 +1,58 @@
-/** \addtogroup book_writing Writing Debug Output */
+/**
+ * \defgroup book_start Configuration, Installation And Getting Started
+ *
+ * \brief Start here when installing libcwd, preparing the project-local debug headers, selecting CMake configuration
+ * options, or checking the environment variables that can influence runtime behavior.
+ *
+ * \details
+ * - \ref downloading
+ * - \ref preparation
+ * - \ref chapter_custom_debug_h
+ * - \ref group_configuration
+ * - \ref chapter_environment
+ */
 
-/** \addtogroup book_runtime Miscellaneous Runtime */
+/**
+ * \defgroup book_writing Writing Debug Output
+ *
+ * \brief This chapter collects the output destination, debug object, debug channel, control flag, formatting, fatal output,
+ * nesting, and helper utility documentation used while writing debug output.
+ *
+ * \details
+ * - \ref book_writing_intro
+ * - \ref page_why_macro
+ * - \ref group_destination
+ * - \ref group_debug_object
+ * - \ref group_debug_channels
+ * - \ref group_control_flags
+ * - \ref group_formatting
+ * - \ref group_fatal_output
+ * - \ref chapter_nesting
+ * - \ref group_special
+ */
 
-/** \addtogroup book_symbols Program Symbols Access And Interpretation */
+/**
+ * \defgroup book_symbols Program Symbols Access And Interpretation
+ *
+ * \brief This chapter covers source locations, symbol lookup, demangling, and type introspection facilities backed by the
+ * DWARF and ELF information available to libcwd.
+ *
+ * \details
+ * - \ref chapter_symbols_intro
+ * - \ref group_locations
+ * - \ref group_type_info
+ * - \ref group_demangle
+ */
 
-/** \addtogroup book_start Configuration, Installation And Getting Started */
+/**
+ * \defgroup book_runtime Miscellaneous Runtime
+ *
+ * \brief This chapter gathers runtime support that does not belong to ordinary debug output, including rcfile processing,
+ * attaching gdb, forcing core dumps, and helper functions for gdb sessions.
+ *
+ * \details
+ * - \ref chapter_rcfile
+ * - \ref chapter_attach_gdb
+ * - \ref chapter_core_dump
+ * - \ref chapter_gdb
+ */

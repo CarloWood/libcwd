@@ -1,3 +1,4 @@
 /*!
 \defgroup chapter_core_dump Making The Program Dump Core
+\ingroup book_runtime
 */
