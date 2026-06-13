@@ -112,7 +112,7 @@ span.tt em,
   #main-nav {
     box-sizing: border-box;
     width: 100%;
-    padding: 0 var(--spacing-large) var(--spacing-large);
+    padding: 16px var(--spacing-large) var(--spacing-large);
   }
 
   #main-menu {
@@ -151,13 +151,26 @@ span.tt em,
   color: var(--side-nav-foreground) !important;
 }
 
-#nav-tree .selected a {
-  color: var(--primary-light-color) !important;
+/* Doxygen emits a project-root tree item above the configured navigation tabs.
+   Hide that redundant root row while keeping its children as the visible top-level navigation. */
+#nav-tree-contents > ul > li:first-child > .item {
+  display: none;
 }
 
-#nav-tree-contents > ul > li:first-child > div > a {
-  opacity: 1;
-  pointer-events: auto;
+#nav-tree-contents > ul > li:first-child > .children_ul {
+  display: block !important;
+}
+
+#nav-tree-contents > ul > li:first-child > .children_ul > li > .item > a > .arrow {
+  padding-left: 0 !important;
+}
+
+#nav-tree-contents > ul > li:first-child > .children_ul > li > .item > .arrow {
+  width: 16px !important;
+}
+
+#nav-tree .selected a {
+  color: var(--primary-light-color) !important;
 }
 
 #nav-path {
