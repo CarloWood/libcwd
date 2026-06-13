@@ -26,7 +26,7 @@ libcwd-1.2.1 is released.
 libcwd-1.1.2 is released.
 Fixed a bug in reading the DWARF4 .debug_info header, leading under certain circumstances
 to a crash in `objfile_ct::load_dwarf()` before reaching main when having configured
-libcwd with `--enable-location` (autotools) or `-DEnableLibcwdLocation:BOOL=ON` (cmake).
+libcwd with `--enable-location` (autotools) or `‑DEnableLibcwdLocation:BOOL=ON` (cmake).
 Added support for cmake.
 The recommended way to use libcwd in a cmake project is now to use
 [gitache](https://github.com/CarloWood/gitache) and [cwds](https://github.com/CarloWood/cwds).
@@ -504,7 +504,7 @@ but `LIBCWD_PRINT_LOADING`.
 libcwd-0.99.16 is released.
 Five months of non-stop, hard work, but here it finally is: libcwd is now thread-safe!
 In order to get a thread-safe version you have to use the configuration option
-`--enable-libcwd-threading`.
+`‑‑enable‑libcwd‑threading`.
 This release also contains new documentation that was generated with
 [doxygen](http://www.doxygen.org); no more slow on-line browsing,
 now you can read the reference manual locally.
@@ -519,7 +519,7 @@ for details about these API changes!
 
 libcwd-0.99.15 is released.
 This release contains one API change: you now *must* define `CWDEBUG` when compiling.
-Using `-DDEBUG` will not work any longer.
+Using `‑DDEBUG` will not work any longer.
 A few major bugs have been fixed in this release.  Two demangle bugs, a bug related to symbol
 name lookup and a compilation error (gcc-3.0 couldn't find the header file `gthr-default.h`,
 which is actually a bug in the header files of the compiler).
