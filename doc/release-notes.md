@@ -1,5 +1,6 @@
 @page release-notes Release notes
 
+@anchor latest
 ## ?? June 2026
 
 Release of libcwd-2.0.0.

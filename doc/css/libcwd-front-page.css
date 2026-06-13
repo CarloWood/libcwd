@@ -116,6 +116,7 @@ span.tt em,
     box-sizing: border-box;
     width: 100%;
     padding: 16px var(--spacing-large) var(--spacing-large);
+    background: black;
   }
 
   #main-menu {
@@ -197,13 +198,24 @@ div.header .headertitle .title {
   padding-left: var(--content-text-inline-padding);
 }
 
-div.contents .textblock > :not(hr) {
+div.contents .textblock {
   box-sizing: border-box;
   padding-right: var(--content-text-inline-padding);
   padding-left: var(--content-text-inline-padding);
 }
 
+div.contents .textblock > :not(hr) {
+  box-sizing: border-box;
+}
+
+div.contents .textblock > ul,
+div.contents .textblock > ol {
+  padding-left: 1.25em;
+}
+
 div.contents .textblock > hr {
+  margin-right: calc(-1 * var(--content-text-inline-padding));
+  margin-left: calc(-1 * var(--content-text-inline-padding));
   box-shadow: none;
 }
 
