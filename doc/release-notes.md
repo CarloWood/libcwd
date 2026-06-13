@@ -17,10 +17,12 @@ what check_configuration() did, which therefore no longer exists.
 
 For a more detailed list, see the NEWS file.
 
+---
 ## 2 November 2024
 
 libcwd-1.2.1 is released.
 
+---
 ## 28 March 2021
 
 libcwd-1.1.2 is released.
@@ -31,6 +33,7 @@ Added support for cmake.
 The recommended way to use libcwd in a cmake project is now to use
 [gitache](https://github.com/CarloWood/gitache) and [cwds](https://github.com/CarloWood/cwds).
 
+---
 ## 7 Sept 2019
 
 libcwd-1.1.1 is released.
@@ -42,6 +45,7 @@ address to location lookups to fail for addresses inside the main executable).
 Added support for `aligned_alloc`, yet another allocation library function that was added
 around 2011 — I just never tried to use it before now (and nobody else reported missing support either).
 
+---
 ## 22 Sept 2016
 
 libcwd-1.0.6 is released.
@@ -56,6 +60,7 @@ This version further adds a per-invocation debug channel control by
 allowing to pass a conditional to a debug channel: `Dout(dc::notice(cond), ...)`
 which then will only print debug output if `cond` is true (and `dc::notice` is on).
 
+---
 ## 2 Jun 2010
 
 libcwd-1.0.4 is released.
@@ -64,6 +69,7 @@ with the lastest libc (2.10) because that calls dlopen before calling malloc et 
 It also fixes a bug in the internal read/write lock implementation that theoretically
 could lead to dead locking of libcwd.
 
+---
 ## 28 Jul 2009
 
 libcwd-1.0.3 is released.
@@ -77,6 +83,7 @@ but it is flagged as a 'zombie'. As soon as the last memory allocation is delete
 its `memblk_map_ct` is deleted (cleanup) but the `thread_ct` was not
 removed from the thread list, causing a crash the next call to `search_in_maps_of_other_threads`.
 
+---
 ## 23 Jan 2008
 
 libcwd-1.0.0 is released.
@@ -95,6 +102,7 @@ major version has been set to 1 (it was 99 before). I do not expect
 this to change again (I will not change the existing API, or remove
 interfaces-- not that this has happened in the past years anyway).
 
+---
 ## 7 Jul 2007
 
 libcwd-0.99.47 is released.
@@ -103,6 +111,7 @@ myself now, finally. It wasn't much work at all; so, to all those people
 who have mailed me in the past about support for 64 bit: WHY DO YOU THINK
 IT IS OPEN SOURCE?
 
+---
 ## 21 May 2007
 
 libcwd-0.99.46 is released.
@@ -116,6 +125,7 @@ a small overrun would not be detected in that case. This has been fixed.
 Finally, this version was again updated to work with the current
 SVN version of gcc (4.3).
 
+---
 ## 9 Nov 2006
 
 libcwd-0.99.45 is released.
@@ -134,6 +144,7 @@ works fine with gcc 3.3 or higher.
 Support for libbfd (--enable-libbfd) has been completely
 removed; I don't think anyone was using it anyway.
 
+---
 ## 23 May 2006
 
 libcwd-0.99.44 is released.
@@ -154,6 +165,7 @@ that could cause a COREDUMP for a self-"collision" of a shared
 library at start up, namely when one tried to dlopen a library is
 already linked to the application in the normal way.
 
+---
 ## 13 Dec 2005
 
 libcwd-0.99.43 is released.
@@ -162,11 +174,13 @@ of shared libraries. On some systems, this bug resulted in not finding
 a shared object for a given address, finding the wrong one, or even
 core dumping on start up.
 
+---
 ## 27 Nov 2005
 
 libcwd-0.99.42 is released.
 Compiler warning fix for g++ 4.x in private_allocator.h.
 
+---
 ## 26 Nov 2005
 
 libcwd-0.99.41 is released.
@@ -180,11 +194,13 @@ Finally, the .spec file was fixed so that
 '`rpmbuild -ta libcwd-0.99.41.tar.gz`'
 should work again on the latest Fedora release (that uses a new version of rpm).
 
+---
 ## 31 May 2005
 
 libcwd-0.99.40 is released.
 This release adds support for g++-4.0.0.
 
+---
 ## 8 Oct 2004
 
 libcwd-0.99.39 is released.
@@ -207,6 +223,7 @@ these days, especially for a package that crashes immediately the first
 time you try a 'Hello World'!  Thanks to him also Gentoo users can use libcwd
 from now on.
 
+---
 ## 24 Sep 2004
 
 libcwd-0.99.38 is released.
@@ -224,6 +241,7 @@ getting the following error when starting an application linked with libcwd:
 
 Then you should certainly upgrade as this release will fix that.
 
+---
 ## 15 Jul 2004
 
 libcwd-0.99.37 is released.
@@ -258,11 +276,13 @@ This line now also always shows the location where the allocator is called from.
 This release fixes the --disable-alloc configure flag and adds
 support for gcc version 3.4.1 (needed for threaded applications).
 
+---
 ## 24 Jun 2004
 
 libcwd-0.99.36 is released.
 A very minor bug fix release.
 
+---
 ## 23 Jun 2004
 
 libcwd-0.99.35 is released.
@@ -273,6 +293,7 @@ Library authors who use libcwd will need to carefully read the NEWS file
 and [The Custom debug.h File / Libraries](reference-manual/group__chapter__custom__debug__h.html#libraries)
 paragraph in the reference manual, because the way that it has been set up has been changed.
 
+---
 ## 27 May 2004
 
 libcwd-0.99.34 is released.
@@ -284,6 +305,7 @@ in the .debug_abbrev section.  Finally, there turned out to exist two global ini
 order fiasco bugs for the non-threaded case; one showing on debian and one showing on gentoo.
 All reported bugs have been fixed.
 
+---
 ## 23 Apr 2004
 
 libcwd-0.99.33 is released.
@@ -295,6 +317,7 @@ Both can only be called from within gdb.  The first prints information about the
 allocation (if any) under the pointer `ptr` and the second causes gdb to stop
 as soon as the memory allocation under `ptr` is deleted or freed.
 
+---
 ## 22 Feb 2004
 
 libcwd-0.99.32 is released.
@@ -308,6 +331,7 @@ should be on or off for example) and the second opens an xterm with an attached 
 allowing you to start to debug the application from that point (especially handy for threaded
 applications).
 
+---
 ## 28 Jun 2003
 
 libcwd-0.99.31 is released.
@@ -324,6 +348,7 @@ You will need at least g++ 3.2.1 in order to get threading to work when you
 have an NPTL enabled glibc, this is due to a bug in NPTL-0.35 but that bug
 doesn't cause any problems with g++ 3.2.1 and higher.
 
+---
 ## 21 May 2003
 
 libcwd-0.99.30 is released.
@@ -334,6 +359,7 @@ that caused allocations done between two `list_allocations_on()`'s
 using the same filter (or none at all, which uses the default filter) to be
 randomly filtered (depending on an uninitialized boolean).
 
+---
 ## 3 May 2003
 
 libcwd-0.99.29 is released.
@@ -345,6 +371,7 @@ All allocations inside `Dout()` et al are now non-internal!
 Finally there were a few minor bug fixes.
 Please read the `NEWS` file as usual, for more details.
 
+---
 ## 12 February 2003
 
 libcwd-0.99.28 is released.
@@ -358,6 +385,7 @@ Finally, this release fixes a bug where dlopen() could only read
 libraries with an absolute path, failing for libraries that
 reside somewhere in `LD_LIBRARY_PATH`.
 
+---
 ## 16 November 2002
 
 libcwd-0.99.27 is released.
@@ -366,12 +394,14 @@ when reading a shared library whose last compilation unit did not contain a .deb
 And linking with a libcwd that was configured with --disable-alloc would lead to an undefined reference.
 Finally, demangling of _GLOBAL_* functions have been fixed.
 
+---
 ## 13 September 2002
 
 libcwd-0.99.26 is released.
 This release contains some bug fixes and a new 'overview of allocated memory' filter class extension:
 `ooam_filter_ct::hide_unknown_locations(bool)`.
 
+---
 ## 5 September 2002
 
 libcwd-0.99.25 is released.
@@ -389,6 +419,7 @@ Finally, `Channel::get_label()` has been changed to be zero
 terminated.  The fact that it was not (deliberately), wasn't very
 clearly documented.
 
+---
 ## 19 August 2002
 
 libcwd-0.99.24 is released.
@@ -396,12 +427,14 @@ This release fixes multi-threading problems among which writing continued
 debug output: the label of each output line will now really always start
 on a new line.
 
+---
 ## 18 July 2002
 
 Today an excellent [review](http://www.kuro5hin.org/story/2002/7/18/3313/01429) of C++ tools appeared on the front page of
 [kuro5hin.org](http://www.kuro5hin.org/) in which libcwd
 received positive critics.
 
+---
 ## 17 July 2002
 
 libcwd-0.99.23 is released.
@@ -416,6 +449,7 @@ Three minor bugs have been fixed: two related to the use
 of dlclose() and one that caused the full path of location source
 files to be incomplete when using gcc 3.x.
 
+---
 ## 21 June 2002
 
 libcwd-0.99.22 is released.
@@ -426,6 +460,7 @@ AllocTag for reallocated blocks, and libstdc++ doesn't use realloc
 at all.
 I now ran into it because I am playing with libgtkmm.
 
+---
 ## 18 June 2002
 
 libcwd-0.99.21 is released.
@@ -438,6 +473,7 @@ The advantage of that is that in general a
 call to new/malloc etc. will not cause a thread to
 have to wait for other threads anymore.
 
+---
 ## 24 May 2002
 
 libcwd-0.99.20 is released.
@@ -457,6 +493,7 @@ Support for non-threaded applications on solaris 2.8 has been added as well.
 Please contact me if you are interested in making threads work too on this OS.
 The same holds for FreeBSD.
 
+---
 ## 23 April 2002
 
 libcwd-0.99.19 is released.
@@ -471,6 +508,7 @@ of a location source file at which the allocation took place, the time at
 which the allocation was made and/or the name of the shared library an allocation
 belongs to.  Detailed information can be found in the [reference manual](reference-manual/group__group__alloc__format.html).
 
+---
 ## 11 March 2002
 
 libcwd-0.99.18 is released.
@@ -479,6 +517,7 @@ configure option related macros (`DEBUGMALLOC, DEBUGDEBUG` etc) have been
 renamed and are defined to 0 or 1 instead of being undefined or defined.
 As always, read the NEWS file!
 
+---
 ## 10 March 2002
 
 A project has been created on [sourceforge](http://sourceforge.net/projects/libcwd/)
@@ -488,6 +527,7 @@ This means that libcwd also has a new home page now (you're probably looking at 
 
 **Bookmark this page!**
 
+---
 ## 18 February 2002
 
 libcwd-0.99.17 is released.
@@ -499,6 +539,7 @@ Errata: There is a typo in the documentation.
 The environment variable isn't `LIBCWD_ALWAYS_PRINT_LOADING`
 but `LIBCWD_PRINT_LOADING`.
 
+---
 ## 13 February 2002
 
 libcwd-0.99.16 is released.
@@ -515,6 +556,7 @@ If you are upgrading from a previous version:
 **Read the NEWS file that comes with the source distribution**
 for details about these API changes!
 
+---
 ## 22 September 2001
 
 libcwd-0.99.15 is released.
@@ -530,6 +572,7 @@ This version of libcwd has been tested (for the first time) with a single thread
 qt application.  Another major problem was an erronous assertion in the ELF
 symbol lookup code that failed on glibc-2.2.4, making libcwd unusable with that version.
 
+---
 ## 28 August 2001
 
 libcwd-0.99.14 is released.
@@ -541,6 +584,7 @@ fruitful discussions with him before, and now he joined the coding forces in ord
 problem.  We're hoping to make libcwd thread-safe in the foreseeable future.  In the meantime you
 can see what we're doing using CVS and the unstable alpha branch:`branch-threading`.
 
+---
 ## 20 August 2001
 
 libcwd-0.99.13 is released.
@@ -569,12 +613,14 @@ Secondly, the debug channel `dc::warning` is turned on by default - which will c
 if you try to turn it on yourself at the start of `main()`: You have to remove an explicit
 `Debug( dc::warning.on() )` if you have one.
 
+---
 ## 1 August 2001
 
 libcwd-0.99.12 is released.
 This release fixes the bug that libcwd was accessing recently freed memory.
 In all that time this never lead to a crash for me, amazing.
 
+---
 ## 31 July 2001
 
 libcwd-0.99.11 is released.
@@ -583,6 +629,7 @@ Debug channel `dc::stabs` was renamed *back* to
 differently by renaming the configure option `--enable-libcwd-bfd`
 into `--enable-libcwd-libbfd`.
 
+---
 ## 31 July 2001
 
 libcwd-0.99.10 is released.
@@ -598,6 +645,7 @@ any other license but the GPL (unlike the LGPL and QPL)), you are not allowed to
 that are linked against `libbfd` because you could only do so under the GPL and that violates the license of libcwd (QPL).
 I trust that this is not a problem as these are purely test-executables.
 
+---
 ## 9 July 2001
 
 libcwd-0.99.9 is released.
@@ -614,6 +662,7 @@ If there is anything you would like to be added, or when you find a bug, **mail 
 But if you are just a happy user without any complaint, I'd really love to hear from you too!
 Click [here](http://www.xs4all.nl/~carlo17/anti/spam/bots/dont/like/deep/dirs/mail2.html?libcwd) and drop me mail!
 
+---
 ## 29 May 2001
 
 libcwd-0.99.8 is released.
@@ -657,6 +706,7 @@ Finally, it is known that many operating systems can't deal with shared C++ libr
 means that those operating systems are broken, I decided to fix this problem by removing all global objects in the next
 release.  So, if libcwd core dumps on you for even very simple programs then please try 0.99.9 when it gets released.
 
+---
 ## 2 March 2001
 
 libcwd-0.99.7 is released.
@@ -667,6 +717,7 @@ has been removed because `ostream::vform` isn't conforming to the Standard and i
 libstdc++ version 3.
 Note that this release still doesn't work with libstdc++ version 3, hopefully the next release will.
 
+---
 ## 10 February 2001
 
 libcwd-0.99.6 is released.
@@ -691,6 +742,7 @@ a bug that could cause a core dump when memory was allocated from the constructo
 a global object that was initialized before libcwd was initialized, this has only been
 reported for solaris.
 
+---
 ## 29 January 2001
 
 libcwd-0.99.5 is released.
@@ -704,6 +756,7 @@ Secondly, `DoutFatal` doesn't have a default
 debug channel anymore and `dc::fatal`,
 which was the default in prior releases, must explicitly be specified.
 
+---
 ## 11 October 2000
 
 libcwd-0.99.4 is released.
@@ -714,6 +767,7 @@ All reported bugs (two) have been fixed, as well as a third that showed
 up while I wrote the testsuite: a locked `lockable_auto_ptr`
 does *not* transfer ownership anymore when using the assignment operator.
 
+---
 ## 13 September 2000
 
 libcwd-0.99.3 is released.
@@ -726,6 +780,7 @@ The autoconf/automake configuration setup has been improved;
 also the configuration on FreeBSD should work out of the box now (assuming you have binutils installed).
 Finally, a `.spec` file for building an RPM has been added to this release.
 
+---
 ## 29 August 2000
 
 libcwd-0.99.2 is released.  Added autoconf/automake/libtool for configuration.
@@ -733,19 +788,23 @@ This obsoletes the need for the [prototype](http://www.xs4all.nl/~carlo17/protot
 The source file `demangle.cc` was completely rewritten and now supports demangling of
 [symbols](bfd.html#demangle) as well as types.
 
+---
 ## 15 August 2000
 
 libcwd-0.99.1 is released.  Apart from a few minor bug fixes, support for FreeBSD has been added!
 
+---
 ## 08 August 2000
 
 The web site has been improved in order to give new visitors a quicker overview:
 libcwd now has its own home page.  A page with features and "screenshots" was added.
 
+---
 ## 04 August 2000
 
 First public announcement of libcwd on freshmeat.
 
+---
 ## 23 July 2000
 
 First public release of libcwd on sourceforge.

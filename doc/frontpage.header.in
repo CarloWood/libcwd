@@ -9,16 +9,10 @@
   <link href="$relpath^tabs.css" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="$relpath^jquery.js"></script>
   <script type="text/javascript" src="$relpath^dynsections.js"></script>
-  <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js"></script>
+  <!--script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js"></script> --!>
   <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-fragment-copy-button.js"></script>
   <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-paragraph-link.js"></script>
   <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-interactive-toc.js"></script>
-  <script type="text/javascript">
-    DoxygenAwesomeFragmentCopyButton.init();
-    DoxygenAwesomeDarkModeToggle.init();
-    DoxygenAwesomeParagraphLink.init();
-    DoxygenAwesomeInteractiveToc.init();
-  </script>
   $treeview
   $search
   <link href="$relpath^$stylesheet" rel="stylesheet" type="text/css">
@@ -26,6 +20,15 @@
   <link rel="stylesheet" href="$relpath^doxygen-awesome-css/doxygen-awesome-sidebar-only.css">
   <link rel="stylesheet" href="$relpath^doxygen-awesome-css/doxygen-awesome-sidebar-only-darkmode-toggle.css">
   <link rel="stylesheet" href="$relpath^css/libcwd-front-page.css">
+  <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js"></script>
+  <script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init();
+    DoxygenAwesomeParagraphLink.init();
+    DoxygenAwesomeInteractiveToc.init();
+    DoxygenAwesomeDarkModeToggle.lightModeIcon = '🌞';
+    DoxygenAwesomeDarkModeToggle.darkModeIcon = '🌘';
+    DoxygenAwesomeDarkModeToggle.init();
+  </script>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->

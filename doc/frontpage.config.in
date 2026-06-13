@@ -11,7 +11,7 @@ PROJECT_BRIEF          = "The C++ Debugging Support Library"
 OUTPUT_DIRECTORY       = .
 
 MARKDOWN_SUPPORT       = YES
-TOC_INCLUDE_HEADINGS   = 4
+TOC_INCLUDE_HEADINGS   = 0
 INPUT                  = about-libcwd.md \
                          release-notes.md
 FILE_PATTERNS          = *.md
@@ -30,8 +30,10 @@ TREEVIEW_WIDTH         = 335
 GENERATE_TREEVIEW      = YES
 DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
+HTML_EXTRA_FILES       = doxygen-awesome-darkmode-toggle.js
 HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css \
-                         doxygen-awesome-css/doxygen-awesome-sidebar-only.css
+                         doxygen-awesome-css/doxygen-awesome-sidebar-only.css \
+                         doxygen-awesome-sidebar-only-darkmode-toggle.css
 SHOW_FILES             = NO
 
 GENERATE_LATEX         = NO
