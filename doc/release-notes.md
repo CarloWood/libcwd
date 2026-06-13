@@ -108,7 +108,7 @@ IT IS OPEN SOURCE?
 libcwd-0.99.46 is released.
 A new configure option was added, `--enable-glibcxx-debug`,
 that will cause libcwd to be compiled with
-[-D_GLIBCXX_DEBUG](https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html#debug_mode.using.mode).
+[‑D_GLIBCXX_DEBUG](https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html#debug_mode.using.mode).
 When using magic numbers, but no redzone around allocations (the default),
 the one to three bytes directly following the allocation till the next
 alignment with a multiple of sizeof(size_t) were not checked. Thus,
