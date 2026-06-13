@@ -20,7 +20,7 @@ html {
   --header-foreground: var(--side-nav-foreground);
   --searchbar-background: var(--side-nav-foreground);
   --searchbar-border-radius: var(--border-radius-medium);
-  --sidebar-brand-background: rgb(147, 153, 236);
+  --sidebar-brand-background: #98b4e3;
   --brand-font-size: 32pt;
   --brand-tagline-gap: calc(var(--brand-font-size) * .05);
   --brand-version-cap-center-offset: calc(var(--brand-font-size) * .08);
@@ -98,6 +98,7 @@ span.tt em,
   color: black;
   font-weight: 700;
   line-height: 1;
+  padding-right: var(--spacing-small);
   transform: translateY(var(--brand-version-cap-center-offset));
   white-space: nowrap;
 }
