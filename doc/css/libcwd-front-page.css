@@ -12,8 +12,8 @@ html {
   --side-nav-fixed-width: 335px;
   --top-height: calc(var(--brand-font-size) + var(--page-font-size) + var(--brand-tagline-gap) +
     var(--spacing-medium) + var(--spacing-medium) + var(--spacing-large) + var(--spacing-large) +
-    var(--searchbar-height));
-  --side-nav-background: #1e3a52;
+    var(--searchbar-height) + 2px);
+  --side-nav-background: #1c263f;
   --side-nav-foreground: #f1fdff;
   --sidebar-muted-foreground: #c8d9df;
   --header-background: var(--side-nav-background);
@@ -27,7 +27,7 @@ html {
 }
 
 html.dark-mode {
-  --side-nav-background: #1e3a52;
+  --side-nav-background: #1c263f;
   --side-nav-foreground: #f1fdff;
   --header-background: var(--side-nav-background);
   --header-foreground: var(--side-nav-foreground);
@@ -54,7 +54,9 @@ span.tt em,
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  padding: var(--spacing-medium) var(--spacing-large);
+  padding-top: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #000;
   background: var(--sidebar-brand-background);
 }
 
@@ -116,7 +118,10 @@ span.tt em,
     box-sizing: border-box;
     width: 100%;
     padding: 16px var(--spacing-large) var(--spacing-large);
-    background: black;
+    background-image: url("../images/main-nav-background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   #main-menu {
@@ -174,7 +179,7 @@ span.tt em,
 }
 
 #nav-tree .selected a {
-  color: var(--primary-light-color) !important;
+  color: #fce5ac !important;
 }
 
 div.header .headertitle,
