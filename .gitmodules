@@ -6,3 +6,6 @@
 	path = include/threadsafe
 	url = https://github.com/CarloWood/threadsafe.git
 	branch = master
+[submodule "doc/doxygen-awesome-css"]
+	path = doc/doxygen-awesome-css
+	url = github-carlo:CarloWood/doxygen-awesome-css.git

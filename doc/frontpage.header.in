@@ -9,10 +9,10 @@
   <link href="$relpath^tabs.css" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="$relpath^jquery.js"></script>
   <script type="text/javascript" src="$relpath^dynsections.js"></script>
-  <script type="text/javascript" src="$relpath^doxygen-awesome/doxygen-awesome-darkmode-toggle.js"></script>
-  <script type="text/javascript" src="$relpath^doxygen-awesome/doxygen-awesome-fragment-copy-button.js"></script>
-  <script type="text/javascript" src="$relpath^doxygen-awesome/doxygen-awesome-paragraph-link.js"></script>
-  <script type="text/javascript" src="$relpath^doxygen-awesome/doxygen-awesome-interactive-toc.js"></script>
+  <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js"></script>
+  <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-fragment-copy-button.js"></script>
+  <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-paragraph-link.js"></script>
+  <script type="text/javascript" src="$relpath^doxygen-awesome-css/doxygen-awesome-interactive-toc.js"></script>
   <script type="text/javascript">
     DoxygenAwesomeFragmentCopyButton.init();
     DoxygenAwesomeDarkModeToggle.init();
@@ -22,10 +22,10 @@
   $treeview
   $search
   <link href="$relpath^$stylesheet" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="$relpath^doxygen-awesome/doxygen-awesome.css">
-  <link rel="stylesheet" href="$relpath^doxygen-awesome/doxygen-awesome-sidebar-only.css">
-  <link rel="stylesheet" href="$relpath^doxygen-awesome/doxygen-awesome-sidebar-only-darkmode-toggle.css">
-  <link rel="stylesheet" href="$relpath^doxygen-awesome/libcwd-front-page.css">
+  <link rel="stylesheet" href="$relpath^doxygen-awesome-css/doxygen-awesome.css">
+  <link rel="stylesheet" href="$relpath^doxygen-awesome-css/doxygen-awesome-sidebar-only.css">
+  <link rel="stylesheet" href="$relpath^doxygen-awesome-css/doxygen-awesome-sidebar-only-darkmode-toggle.css">
+  <link rel="stylesheet" href="$relpath^css/libcwd-front-page.css">
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->

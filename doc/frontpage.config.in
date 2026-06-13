@@ -23,12 +23,15 @@ HTML_FILE_EXTENSION    = .html
 HTML_HEADER            = frontpage.header
 HTML_FOOTER            = frontpage.footer
 LAYOUT_FILE            = frontpage.layout.xml
-HTML_COLORSTYLE        = LIGHT
+HTML_COLORSTYLE        = LIGHT # required with Doxygen >= 1.9.5
 SEARCHENGINE           = YES
 SERVER_BASED_SEARCH    = NO
-GENERATE_TREEVIEW      = YES
 TREEVIEW_WIDTH         = 335
+GENERATE_TREEVIEW      = YES
 DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css \
+                         doxygen-awesome-css/doxygen-awesome-sidebar-only.css
 SHOW_FILES             = NO
 
 GENERATE_LATEX         = NO

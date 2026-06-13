@@ -53,13 +53,14 @@ add_custom_target(doc-front-pages DEPENDS ${doc_front_pages})
 
 add_custom_target(doc-assets
   COMMAND ${CMAKE_COMMAND} -E rm -rf
-          "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome"
+          "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css"
           "${CMAKE_CURRENT_BINARY_DIR}/doxygen-examples"
           "${CMAKE_CURRENT_BINARY_DIR}/images"
           "${CMAKE_CURRENT_BINARY_DIR}/scripts"
           "${CMAKE_CURRENT_BINARY_DIR}/www"
-  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-awesome" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-awesome-css" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-examples" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-examples"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/css" "${CMAKE_CURRENT_BINARY_DIR}/css"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/images" "${CMAKE_CURRENT_BINARY_DIR}/images"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/scripts" "${CMAKE_CURRENT_BINARY_DIR}/scripts"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/www" "${CMAKE_CURRENT_BINARY_DIR}/www"
