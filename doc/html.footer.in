@@ -2,7 +2,7 @@
   <ul>
     $navpath
     <li class="footer">Copyright &copy; 2001-2004, 2026 Carlo Wood. All rights reserved.
-      $generatedby <a href="https://www.doxygen.org/index.html"><img class="footer" src="$relpath^../images/doxygen.svg" width="104" height="31" alt="doxygen"/></a> $doxygenversion.</li>
+      $generatedby <a href="https://www.doxygen.org/index.html"><img class="footer" src="$relpath^images/doxygen.svg" width="104" height="31" alt="doxygen"/></a> $doxygenversion.</li>
   </ul>
 </div>
 </body>

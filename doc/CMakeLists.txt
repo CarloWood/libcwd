@@ -24,33 +24,9 @@ string(REGEX REPLACE "^##[ 	]+(.+)$" "\\1" LATEST_RELEASE_DATE "${latest_release
 configure_file(doxygen.config.in doxygen.config @ONLY)
 configure_file(html.header.in html.header @ONLY)
 configure_file(html.footer.in html.footer @ONLY)
-configure_file(reference.layout.xml.in reference.layout.xml @ONLY)
-configure_file(frontpage.config.in frontpage.config @ONLY)
-configure_file(frontpage.header.in frontpage.header @ONLY)
-configure_file(frontpage.footer.in frontpage.footer @ONLY)
-configure_file(frontpage.layout.xml.in frontpage.layout.xml @ONLY)
+configure_file(doxygen.layout.xml.in doxygen.layout.xml @ONLY)
 configure_file(about-libcwd.md about-libcwd.md @ONLY)
 configure_file(release-notes.md release-notes.md COPYONLY)
-
-set(doc_front_pages
-  "${CMAKE_CURRENT_BINARY_DIR}/index.html"
-  "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html"
-)
-add_custom_command(
-  OUTPUT ${doc_front_pages}
-  COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html dir_*.html files.html"
-  COMMAND ${DOXYGEN_EXECUTABLE} frontpage.config
-  DEPENDS
-    "${CMAKE_CURRENT_BINARY_DIR}/frontpage.config"
-    "${CMAKE_CURRENT_BINARY_DIR}/frontpage.header"
-    "${CMAKE_CURRENT_BINARY_DIR}/frontpage.footer"
-    "${CMAKE_CURRENT_BINARY_DIR}/frontpage.layout.xml"
-    "${CMAKE_CURRENT_BINARY_DIR}/about-libcwd.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/release-notes.md"
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-  VERBATIM
-)
-add_custom_target(doc-front-pages DEPENDS ${doc_front_pages})
 
 add_custom_target(doc-assets
   COMMAND ${CMAKE_COMMAND} -E rm -rf
@@ -65,7 +41,6 @@ add_custom_target(doc-assets
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/images" "${CMAKE_CURRENT_BINARY_DIR}/images"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/scripts" "${CMAKE_CURRENT_BINARY_DIR}/scripts"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/www" "${CMAKE_CURRENT_BINARY_DIR}/www"
-  DEPENDS doc-front-pages
 )
 
 set(doc_style_browsers netscape4 netscape6 mozilla konqueror ie)
@@ -116,6 +91,7 @@ add_custom_command(
 add_custom_target(doc-external DEPENDS ${doc_external_files})
 
 file(GLOB doc_reference_inputs CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.md"
   "${CMAKE_CURRENT_SOURCE_DIR}/*.dox"
   "${CMAKE_SOURCE_DIR}/include/libcwd/*.h"
   "${CMAKE_SOURCE_DIR}/include/libcwd/*.inl.h"
@@ -123,30 +99,36 @@ file(GLOB doc_reference_inputs CONFIGURE_DEPENDS
   "${CMAKE_SOURCE_DIR}/src/*.cxx"
 )
 add_custom_command(
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reference-manual/index.html"
+  OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/index.html"
+    "${CMAKE_CURRENT_BINARY_DIR}/topics.html"
+    "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html"
   COMMAND ${CMAKE_COMMAND} -E rm -rf reference-manual
+  COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html"
   COMMAND ${DOXYGEN_EXECUTABLE} doxygen.config
-  COMMAND /bin/sh -c "if test -f reference-manual/group__preparation.html; then mv reference-manual/group__preparation.html reference-manual/group__preparation.tmp && sed -e 's/href=\"debug_8h\.html\">debug\.h/href=\"#preparation_step2\">debug.h/' -e 's/\"sys\.h\"/\"<a class=\"code\" href=\"#preparation_step2\">sys.h<\\/a>\"/' reference-manual/group__preparation.tmp > reference-manual/group__preparation.html && rm reference-manual/group__preparation.tmp; fi"
-  COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' reference-manual/*.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
+  COMMAND /bin/sh -c "if test -f group__preparation.html; then mv group__preparation.html group__preparation.tmp && sed -e 's/href=\"debug_8h\.html\">debug\.h/href=\"#preparation_step2\">debug.h/' -e 's/\"sys\.h\"/\"<a class=\"code\" href=\"#preparation_step2\">sys.h<\\/a>\"/' group__preparation.tmp > group__preparation.html && rm group__preparation.tmp; fi"
+  COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' *.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/doxygen.config"
+    "${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml"
     "${CMAKE_CURRENT_BINARY_DIR}/html.header"
     "${CMAKE_CURRENT_BINARY_DIR}/html.footer"
-    "${CMAKE_CURRENT_BINARY_DIR}/reference.layout.xml"
+    "${CMAKE_CURRENT_BINARY_DIR}/about-libcwd.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/release-notes.md"
     doc-assets
     doc-styles
     doc-external
     ${doc_reference_inputs}
   VERBATIM
 )
-add_custom_target(doc-reference-manual DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/reference-manual/index.html")
+add_custom_target(doc-site DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/index.html" "${CMAKE_CURRENT_BINARY_DIR}/topics.html" "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html")
 
 add_subdirectory(tutorial)
 
 add_custom_target(doc
   DEPENDS
-    doc-reference-manual
+    doc-site
     doc-styles
     doc-tutorial
 )

@@ -9,7 +9,7 @@ and demangled type names.
 
 - [Tutorial](tutorial/index.html)
 - [Quick Reference](www/quickreference.html)
-- [Reference Manual](reference-manual/index.html)
+- [Reference Manual](topics.html)
 
 ## Project status
 

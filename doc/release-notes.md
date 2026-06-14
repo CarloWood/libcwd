@@ -291,7 +291,7 @@ This release fixes a bug related to making memory allocations invisible.
 Before it was not possible to make an allocation invisible that was allocated
 with realloc(3) due to an assertion failure.
 Library authors who use libcwd will need to carefully read the NEWS file
-and [The Custom debug.h File / Libraries](reference-manual/group__chapter__custom__debug__h.html#libraries)
+and [The Custom debug.h File / Libraries](group__chapter__custom__debug__h.html#libraries)
 paragraph in the reference manual, because the way that it has been set up has been changed.
 
 ---
@@ -312,8 +312,8 @@ All reported bugs have been fixed.
 libcwd-0.99.33 is released.
 Added support for gcc version 3.4.0.  The latest gcc CVS version 3.5 is working again.
 Two new features have been added:
-[`debug_alloc(ptr)`](reference-manual/group__chapter__gdb.html#a1)
-and [`debug_watch(ptr)`](reference-manual/group__chapter__gdb.html#a0).
+[`debug_alloc(ptr)`](group__chapter__gdb.html#a1)
+and [`debug_watch(ptr)`](group__chapter__gdb.html#a0).
 Both can only be called from within gdb.  The first prints information about the memory
 allocation (if any) under the pointer `ptr` and the second causes gdb to stop
 as soon as the memory allocation under `ptr` is deleted or freed.
@@ -325,8 +325,8 @@ libcwd-0.99.32 is released.
 This release fixes a possible deadlock during initialization, in the threaded case.
 The latest gcc CVS version 3.4 and 3.5 are working again.
 Two new features have been added:
-[`read_rcfile()`](reference-manual/group__chapter__rcfile.html)
-and [`attach_gdb()`](reference-manual/group__chapter__attach__gdb.html).
+[`read_rcfile()`](group__chapter__rcfile.html)
+and [`attach_gdb()`](group__chapter__attach__gdb.html).
 The first reads initialization from an rcfile (allowing to set which debug channels
 should be on or off for example) and the second opens an xterm with an attached gdb session in it,
 allowing you to start to debug the application from that point (especially handy for threaded
@@ -507,7 +507,7 @@ to certain shared libraries; restricting the memory allocations shown to a
 given time interval in which they were allocated; and showing the full path
 of a location source file at which the allocation took place, the time at
 which the allocation was made and/or the name of the shared library an allocation
-belongs to.  Detailed information can be found in the [reference manual](reference-manual/group__group__alloc__format.html).
+belongs to.  Detailed information can be found in the [reference manual](group__group__alloc__format.html).
 
 ---
 ## 11 March 2002

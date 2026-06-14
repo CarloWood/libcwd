@@ -112,7 +112,7 @@ void Buffer::writeto(std::ostream* os, LIBCWD_TSD_PARAM, DebugObject& debug_obje
       DoutFatal(dc::core,
                 "When using multiple threads, you must provide a locking mechanism for the debug output stream.  "
                 "You can pass a pointer to a mutex with `DebugObject::set_ostream' (see "
-                "documentation/reference-manual/group__group__destination.html).");
+                "documentation/group__group__destination.html).");
     }
   }
   if (debug_object.newlineless_tsd_ && debug_object.newlineless_tsd_ != &__libcwd_tsd)
@@ -1605,11 +1605,11 @@ void DebugObject::set_ostream(std::ostream* os)
 #if CWDEBUG_LOCATION
     Dout(dc::warning, Location((char*)__builtin_return_address(0) + builtin_return_address_offset)
                           << ": You should passing a locking mechanism to `set_ostream' for the ostream (see "
-                             "documentation/reference-manual/group__group__destination.html)");
+                             "documentation/group__group__destination.html)");
 #else
     DoutFatal(dc::core,
               "You must pass a locking mechanism to `set_ostream' for the ostream (see "
-              "documentation/reference-manual/group__group__destination.html)");
+              "documentation/group__group__destination.html)");
 #endif
 #if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION;

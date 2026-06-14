@@ -122,7 +122,7 @@ void print_location_on(OSTREAM& os, Location const& location)
  * Write the contents of a Location object to an ostream in the form <i>source-file</i>:<i>line-number</i>,
  * or writes <i>objectfile</i>:<i>mangledfuncname</i> when the location is unknown.
  * If the <i>source-file</i>:<i>line-number</i> is known, then it may be prepended by the object file
- * and/or the mangled function name anyway if this was requested through \ref location_format.
+ * and/or the mangled function name anyway if this was requested through \ref libcwd::location_format.
  * That function can also be used to cause the <i>source-file</i> to be printed with its full path.
  */
 inline std::ostream& operator<<(std::ostream& os, Location const& location)
