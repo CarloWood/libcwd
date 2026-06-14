@@ -24,7 +24,6 @@
 
 /**
  * \addtogroup group_configuration Configuration Options And Macros
- * \ingroup book_start
  *
  * Libcwd uses CMake for configuration.&nbsp;
  * You can list cached options with \shellcommand cmake -LAH <build-dir> \endshellcommand.
@@ -201,7 +200,7 @@ extern void version_check_failed();
 extern void internal_main_reached();
 
 /**
- * \ingroup chapter_special
+ * \ingroup group_special
  *
  * \brief Check if the linked library belongs to the header files being used.
  *

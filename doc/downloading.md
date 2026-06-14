@@ -1,7 +1,3 @@
-/*!
-
-\addtogroup downloading
+@page downloading Downloading
 
 Download libcwd from github at https://github.com/CarloWood/libcwd/releases
-
-*/

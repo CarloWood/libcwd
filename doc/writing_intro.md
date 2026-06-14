@@ -1,6 +1,4 @@
-/*!
-\addtogroup book_writing_intro
-\section section_writing_into_introduction Introduction
+@page book_writing_intro Writing Debug Output: Introduction
 
 Libcwd is an <code>ostream</code> oriented debug output facility.&nbsp;
 The class libcwd::DebugObject is associated with a single <code>ostream</code>.&nbsp;
@@ -27,5 +25,3 @@ Dout(dc::notice|blank_label_cf|flush_cf, "Total count: " << count << "; Average:
 In this example <code>dc::notice</code> is one of the \ref group_default_dc "predefined" debug channels.&nbsp;
 Debug channels are intended to control the amount of output of your application:
 you can switch the channels on and off.
-
-*/

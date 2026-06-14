@@ -1,7 +1,8 @@
-/*!
-\addtogroup group_function Function objects
-\ingroup book_symbols
-<hr><h2>Defining and initializing <code>Function</code> objects</h2>
+@page function_objects Function objects
+
+Generated API reference: @ref group_function.
+
+<h2>Defining and initializing <code>Function</code> objects</h2>
 
 <h4>Defining</h4>
 
@@ -152,5 +153,3 @@ You'll have to explicitely do so yourself if you want to
 keep track of the fact that the current function exited
 (otherwise subsequential calls to y() could think that it
 still was called from f()).
-
-*/

@@ -1,6 +1,4 @@
-/*!
-
-\addtogroup page_why_macro
+@page page_why_macro Design Consideration Concerning Macros
 
 This page describes why we use a macro instead of an inline
 function for <CODE>Dout()</CODE>.
@@ -118,5 +116,3 @@ Example:
     return false;
   }
 \endcode
-
-*/

@@ -1,12 +1,9 @@
-/*!
-
-\addtogroup preparation
-\section preparation_section Preparation
+@page preparation Preparation
 
 This page describes the preparations that you need to perform
 before starting to use libcwd in your applications source code.
 
-\subsection installation Step 1: Installing libcwd
+\section installation Step 1: Installing libcwd
 
 Binary distributions should be installed the usual way.
 
@@ -17,7 +14,7 @@ file that is included in the source distribution.<BR>
 See also: \ref group_configuration
 
 \anchor preparation_step2
-\subsection header_files Step 2: Creating the custom header files
+\section header_files Step 2: Creating the custom header files
 
 You need to add two custom header files to your application.<BR>
 The recommended names are "debug.h" and "sys.h".
@@ -35,7 +32,7 @@ You can use the following templates for a quick start:
 This %debug.h file is for applications; for more detailed information and for information
 for library developers who want to use libcwd, please also read \ref chapter_custom_debug_h.
 
-\subsection cwds_submodule Step 3: Adding the cwds submodule
+\section cwds_submodule Step 3: Adding the cwds submodule
 
 Add the git submodule <CODE>cwds</CODE> in the root of your project.&nbsp;
 See the \htmlonly<A HREF="https://github.com/CarloWood/cwds#adding-the-cwds-submodule-to-a-project">cwds setup instructions</A>\endhtmlonly
@@ -56,4 +53,3 @@ int main()
 \endcode
 
 And every thread would call <code>myproject::debug::init_thread();</code> when started.
-*/

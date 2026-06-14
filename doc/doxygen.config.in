@@ -19,40 +19,44 @@ TOC_INCLUDE_HEADINGS   = 5
 USE_MDFILE_AS_MAINPAGE = about-libcwd.md
 
 INPUT                  = about-libcwd.md \
-                         release-notes.md \
-                         @srcdir@/modules.dox \
-                         @srcdir@/downloading.dox \
-                         @srcdir@/preparation.dox \
-                         @srcdir@/custom-debug.h.dox \
-                         @top_builddir@/include/libcwd/config.h \
-                         @srcdir@/environment.dox \
-                         @srcdir@/writing_intro.dox \
-                         @srcdir@/why_macro.dox \
-                         @srcdir@/destination.dox \
-                         @srcdir@/debug_object.dox \
-                         @srcdir@/custom_do.dox \
-                         @srcdir@/debug_channels.dox \
-                         @top_srcdir@/src/debug.cxx \
-                         @srcdir@/control_flags.dox \
-                         @srcdir@/formatting.dox \
-                         @srcdir@/fatal_output.dox \
-                         @srcdir@/nested.dox \
-                         @srcdir@/special.dox \
-                         @srcdir@/symbols_intro.dox \
-                         @srcdir@/locations.dox \
-                         @srcdir@/type_info.dox \
-                         @top_srcdir@/src/demangle.cxx \
-                         @srcdir@/function.dox \
-                         @srcdir@/rcfile.dox \
-                         @srcdir@/attach_gdb.dox \
-                         @srcdir@/core_dump.dox \
-                         @srcdir@/gdb.dox \
-                         @srcdir@/namespaces.dox \
-                         @top_srcdir@/include/libcwd \
-                         @top_builddir@/include/libcwd
+                          release-notes.md \
+                          @srcdir@/reference-manual.md \
+                          @srcdir@/chapter-getting-started.md \
+                          @srcdir@/chapter-writing-debug-output.md \
+                          @srcdir@/chapter-symbols.md \
+                          @srcdir@/chapter-runtime.md \
+                          @srcdir@/reference-groups.md \
+                          @srcdir@/downloading.md \
+                          @srcdir@/preparation.md \
+                          @srcdir@/custom-debug.h.md \
+                          @top_builddir@/include/libcwd/config.h \
+                          @srcdir@/environment.md \
+                          @srcdir@/writing_intro.md \
+                          @srcdir@/why_macro.md \
+                          @srcdir@/destination.md \
+                          @srcdir@/debug_object.md \
+                          @srcdir@/custom_do.md \
+                          @srcdir@/debug_channels.md \
+                          @top_srcdir@/src/debug.cxx \
+                          @srcdir@/control_flags.md \
+                          @srcdir@/formatting.md \
+                          @srcdir@/fatal_output.md \
+                          @srcdir@/nested.md \
+                          @srcdir@/special.md \
+                          @srcdir@/symbols_intro.md \
+                          @srcdir@/locations.md \
+                          @srcdir@/type_info.md \
+                          @top_srcdir@/src/demangle.cxx \
+                          @srcdir@/function.md \
+                          @srcdir@/rcfile.md \
+                          @srcdir@/attach_gdb.md \
+                          @srcdir@/core_dump.md \
+                          @srcdir@/gdb.md \
+                          @srcdir@/namespaces.h \
+                          @top_srcdir@/include/libcwd \
+                          @top_builddir@/include/libcwd
 FILE_PATTERNS          = *.md \
-                         *.dox \
-                         *.h \
+                          *.h \
                          *.inl \
                          *.cxx
 RECURSIVE              = NO

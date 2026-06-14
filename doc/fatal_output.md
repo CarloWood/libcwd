@@ -1,6 +1,6 @@
-/*!
-\addtogroup group_fatal_output
-<hr><h2>Detailed Description</h2>
+@page fatal_output Fatal Debug Output
+
+Generated API reference: @ref group_fatal_output.
 
 Often an application needs to be terminated when a fatal error occurs (whether or not CWDEBUG
 is defined).&nbsp; Libcwd defines for these cases the macro DoutFatal.
@@ -35,5 +35,3 @@ the second terminates by raising SIGABORT, causing the application to core dump.
 \sa \ref group_default_dc
  \n \ref group_control_flags
  \n \link chapter_custom_do Defining your own debug objects \endlink
-
-*/

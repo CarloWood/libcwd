@@ -1,5 +1,5 @@
-/*!
-\addtogroup chapter_nesting
+@page chapter_nesting Nesting Debug Output
+
 \section section_nesting_calling Calling functions inside Dout
 
 Consider the following code:
@@ -86,5 +86,3 @@ NOTICE: &lt;continued&gt; .&lt;unfinished&gt;</PRE>
 \endexampleoutput
 
 etc.
-
-*/

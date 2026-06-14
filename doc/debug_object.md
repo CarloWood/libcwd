@@ -1,6 +1,6 @@
-/*!
-\addtogroup group_debug_object
-<hr><h2>Detailed Description</h2>
+@page debug_object The Output Device (Debug Object)
+
+Generated API reference: @ref group_debug_object.
 
 Libcwd declares a %debug class (\ref libcwd::DebugObject "DebugObject") which can be assigned an <code>ostream</code>
  to which %debug output will be written.&nbsp;
@@ -17,5 +17,3 @@ two or more different output devices at the same time (for instance, the screen 
 
 For each %debug object it is possible to set a margin and a marker string and to set the size of the current indentation.&nbsp;
 The methods used for setting or changing these prefix formatting attributes are listed in \ref group_formatting.
-
-*/

@@ -92,7 +92,7 @@ add_custom_target(doc-external DEPENDS ${doc_external_files})
 
 file(GLOB doc_reference_inputs CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/*.md"
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.dox"
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_SOURCE_DIR}/include/libcwd/*.h"
   "${CMAKE_SOURCE_DIR}/include/libcwd/*.inl.h"
   "${CMAKE_SOURCE_DIR}/include/libcwd/private/*.h"
@@ -102,11 +102,12 @@ add_custom_command(
   OUTPUT
     "${CMAKE_CURRENT_BINARY_DIR}/index.html"
     "${CMAKE_CURRENT_BINARY_DIR}/topics.html"
+    "${CMAKE_CURRENT_BINARY_DIR}/reference-manual.html"
     "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html"
   COMMAND ${CMAKE_COMMAND} -E rm -rf reference-manual
-  COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html"
+  COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html group__book*.html group__downloading.html group__preparation.html group__page__why__macro.html group__chapter__custom__debug__h.html group__book__writing__intro.html group__chapter__custom__do.html group__chapter__nesting.html group__chapter__symbols__intro.html group__chapter__environment.html group__chapter__attach__gdb.html group__chapter__gdb.html"
   COMMAND ${DOXYGEN_EXECUTABLE} doxygen.config
-  COMMAND /bin/sh -c "if test -f group__preparation.html; then mv group__preparation.html group__preparation.tmp && sed -e 's/href=\"debug_8h\.html\">debug\.h/href=\"#preparation_step2\">debug.h/' -e 's/\"sys\.h\"/\"<a class=\"code\" href=\"#preparation_step2\">sys.h<\\/a>\"/' group__preparation.tmp > group__preparation.html && rm group__preparation.tmp; fi"
+  COMMAND /bin/sh -c "if test -f preparation.html; then mv preparation.html preparation.tmp && sed -e 's/href=\"debug_8h\.html\">debug\.h/href=\"#preparation_step2\">debug.h/' -e 's/\"sys\.h\"/\"<a class=\"code\" href=\"#preparation_step2\">sys.h<\\/a>\"/' preparation.tmp > preparation.html && rm preparation.tmp; fi"
   COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' *.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   DEPENDS
@@ -122,7 +123,7 @@ add_custom_command(
     ${doc_reference_inputs}
   VERBATIM
 )
-add_custom_target(doc-site DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/index.html" "${CMAKE_CURRENT_BINARY_DIR}/topics.html" "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html")
+add_custom_target(doc-site DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/index.html" "${CMAKE_CURRENT_BINARY_DIR}/topics.html" "${CMAKE_CURRENT_BINARY_DIR}/reference-manual.html" "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html")
 
 add_subdirectory(tutorial)
 

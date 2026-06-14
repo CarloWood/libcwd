@@ -1,10 +1,6 @@
-/*!
-\addtogroup group_debug_channels
-*/
-/*!
-\addtogroup group_debug_channels
-\{
-<hr><h2>Detailed Description</h2>
+@page debug_channels Controlling The Output Level (Debug Channels)
+
+Generated API reference: @ref group_debug_channels.
 
 Whenever debug output is written, one or more <i>debug channels</i> must be specified.&nbsp;
 The debug output is then written to the ostream of the debug object
@@ -74,6 +70,3 @@ gives as result
 HELLO : Hello World!
 KERNEL: This is written when either the kernel or io channel is turned on.</PRE>
 \endexampleoutput
-
-\}
-*/

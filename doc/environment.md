@@ -1,5 +1,5 @@
-/*!
-\addtogroup chapter_environment
+@page chapter_environment Environment Variables
+
 <dl>
 <dt>LIBCWD_NO_STARTUP_MSGS</dt><dd>Don't print anything before main().</dd>
 
@@ -13,5 +13,3 @@ as rcfile name instead of the default <TT>.libcwdrc</TT>.</dd>
 <dt>LIBCWD_RCFILE_OVERRIDE_NAME</dt><dd>Read the rcfile $LIBCWD_RCFILE_OVERRIDE_NAME
 to override values read from <TT>.libcwdrc</TT>. See also \ref chapter_rcfile .</dd>
 </dl>
-
-*/

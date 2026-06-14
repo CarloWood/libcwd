@@ -1,5 +1,5 @@
-/*!
-\addtogroup chapter_attach_gdb
+@page chapter_attach_gdb Starting A gdb Session From A Running Program
+
 A running program can initiate a gdb session by calling the function <code>attach_gdb()</code>.
 
 For example,
@@ -19,7 +19,5 @@ and starts the gdb session inside it.
 After exiting gdb the application will continue running.
 
 In order for <code>attach_gdb()</code> to work, you will need to call
-<code>\link chapter_rcfile read_rcfile() \endlink</code>
+<code>\link rcfile read_rcfile() \endlink</code>
 at the start of your application.
-
-*/

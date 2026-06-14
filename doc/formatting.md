@@ -1,7 +1,6 @@
-/*!
-\addtogroup group_formatting Format Of The Debug Output
-\ingroup book_writing
-<hr><h2>Detailed Description</h2>
+@page formatting Format Of The Debug Output
+
+Generated API reference: @ref group_formatting.
 
 All debug output is written in the following format:
 
@@ -46,5 +45,3 @@ Outputs
 *** NOTICE  : |     This line is indented 4 spaces
 *** NOTICE  : |       This line is indented 6 spaces
 </PRE>
-
-*/

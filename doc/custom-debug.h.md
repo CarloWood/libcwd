@@ -1,12 +1,5 @@
-// Work around for bug in doxygen.
-#define debug somethingelse
+@page chapter_custom_debug_h The Custom debug.h File
 
-/*!
-\addtogroup chapter_custom_debug_h
-*/
-/*!
-\addtogroup chapter_custom_debug_h
-\{
 \section debug_channels_and_namespace Debug channels and namespace
 
 \subsection applications Applications
@@ -184,6 +177,3 @@ redefining it in <CODE>application::debug::channels::dc</CODE> itself, either as
 \htmlonly
 </DIV>
 \endhtmlonly
-
-\}
-*/

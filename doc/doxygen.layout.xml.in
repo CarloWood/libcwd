@@ -7,7 +7,8 @@
     <tab type="user" url="release-notes.html" visible="yes" title="Release notes" intro="" />
     <tab type="user" url="tutorial/index.html" visible="yes" title="Tutorial" intro="" />
     <tab type="user" url="www/quickreference.html" visible="yes" title="Quick Reference" intro="" />
-    <tab type="topics" visible="yes" title="Reference Manual" intro="" />
+    <tab type="user" url="reference-manual.html" visible="yes" title="Reference Manual" intro="" />
+    <tab type="topics" visible="yes" title="API Groups" intro="" />
     <tab type="namespaces" visible="yes" title="Namespaces" intro="">
       <tab type="namespacelist" visible="yes" title="Namespace List" intro=""/>
       <tab type="namespacemembers" visible="yes" title="Namespace Members" intro=""/>
@@ -195,7 +196,7 @@
       <friends visible="yes" title=""/>
       <membergroups visible="yes"/>
     </memberdecl>
-    <detaileddescription visible="yes" title=""/>
+    <detaileddescription visible="yes" title="Overview"/>
     <memberdef>
       <pagedocs/>
       <inlineclasses visible="yes" title=""/>

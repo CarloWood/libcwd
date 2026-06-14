@@ -1,6 +1,5 @@
-/*!
-\addtogroup chapter_symbols_intro Program Symbols Access And Interpretation: Introduction
-\ingroup book_symbols
+@page chapter_symbols_intro Program Symbols Access And Interpretation: Introduction
+
 Libcwd reads the symbol table of the application and of each
 of the linked object files upon initialization.&nbsp;
 It then allows you to translate program counter addresses to
@@ -33,5 +32,3 @@ Dout(dc::notice, "We are in Foo<" << type_info_of<TYPE>().demangled_name() << ">
 Note that calling \ref libcwd::demangle_symbol costs cpu every time you call it, but using
 \ref libcwd::type_info_of<> does not cost any cpu: the demangling is done once, during the
 initialization of libcwd; \ref libcwd::type_info_of<> merely returns a static pointer.
-
-*/

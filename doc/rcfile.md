@@ -1,5 +1,7 @@
-/*!
-\addtogroup chapter_rcfile
+@page rcfile Runtime Configuration File (rcfile)
+
+Generated API reference: @ref chapter_rcfile.
+
 In order to use <code>\link chapter_attach_gdb attach_gdb() \endlink</code> and/or to read debug channel states
 from an external file, you should call <code>read_rcfile()</code>,
 for example,
@@ -45,5 +47,3 @@ If the environment variable \link chapter_environment LIBCWD_RCFILE_OVERRIDE_NAM
 is set, it will be read after the above file where any setting overwrites a previous one.
 Using <code>channels_on</code> even once, in this file, will reset all previously turned on channels,
 although additional <code>channels_on</code> lines accumulate again.
-
-*/
