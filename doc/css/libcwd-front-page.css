@@ -225,10 +225,16 @@ div.contents .textblock > hr {
   box-shadow: none;
 }
 
-#nav-path {
-  min-height: 42px;
-}
-
 #nav-path .footer {
   white-space: normal;
+}
+
+/* The release notes page is a chronological list with one heading per release.
+   Suppress Doxygen's page outline there so the side panel does not become a long duplicate date index. */
+#container:has(.textblock > p > a#latest) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+#container:has(.textblock > p > a#latest) #page-nav {
+  display: none !important;
 }
