@@ -1,9 +1,29 @@
-# About libcwd
+# Introduction
 
 Libcwd is a thread-safe, full-featured debugging support library for C++ developers.
 It includes ostream-based debug output with custom debug channels and devices,
 as well as run-time support for printing <span class="tt"><em>source-file</em>:<em>line-number</em></span> information
 and demangled type names.
+
+* For example printing demangled template types:
+```
+STATEFULTASK  :   Entering AIStatefulTask::run(default_handler = <immediate>, 0, condition = 0x0 (), on_abort = do_nothing) [0x55ef1f233fc0]
+STATEFULTASK  :         | Running state bs_initialize [0x55ef1f233fc0]
+VULKAN        :         | Entering SynchronousWindow::initialize_impl() [0x55ef1f233fc0]
+VULKAN        :         |   Entering vulkan::Application::add(0x55ef1f233fc0)
+NOTICE        :         |   Entering Window::frame_rate_interval() [0x55ef1f233fc0]
+STATEFULTASK  :         | Running state bs_multiplex / SynchronousWindow_xcb_connection [0x55ef1f233fc0]
+BROKER        :         | Entering Broker<task::XcbConnection, void>::run({":0.0"}, callback)
+STATEFULTASK  :         |   Entering statefultask::create<task::XcbConnection, bool&>(0)
+STATEFULTASK  :         |     Returning task pointer 0x55ef1f0ab870.
+NOTICE        :         |   Entering ConnectionData::set_display_name(":0.0")
+BROKER        :         |   Wake up Broker to run the newly created task.
+STATEFULTASK  :         | Entering AIStatefulTask::wait(0x1 (connection_set_up)) [0x55ef1f233fc0]
+STATEFULTASK  : Entering statefultask::create<vulkan::task::AsyncSemaphoreWatcher, bool>(0)
+STATEFULTASK  :   Returning task pointer 0x55ef1ef93dc0.
+```
+* Multi-threaded debug output with colors:
+![Image showing colored debug output](images/colored_debug_output.png)
 
 ## Documentation
 
