@@ -1,9 +1,5 @@
 @page reference-manual Reference Manual
 
-The reference manual is organized as prose chapters with links to the generated API reference groups.
-The chapter pages below preserve the existing user-facing explanations while the API group pages collect classes,
-functions, macros, and variables documented in the source tree with `@ingroup` and `@addtogroup`.
-
 ## Chapters
 
 - @subpage chapter-getting-started

@@ -5,7 +5,12 @@ It includes ostream-based debug output with custom debug channels and devices,
 as well as run-time support for printing <span class="tt"><em>source-file</em>:<em>line-number</em></span> information
 and demangled type names.
 
-* For example printing demangled template types:
+## Examples
+
+* printing demangled template types:
+@htmlonly
+<div class="about-example-output">
+@endhtmlonly
 ```
 STATEFULTASK  :   Entering AIStatefulTask::run(default_handler = <immediate>, 0, condition = 0x0 (), on_abort = do_nothing) [0x55ef1f233fc0]
 STATEFULTASK  :         | Running state bs_initialize [0x55ef1f233fc0]
@@ -22,14 +27,33 @@ STATEFULTASK  :         | Entering AIStatefulTask::wait(0x1 (connection_set_up))
 STATEFULTASK  : Entering statefultask::create<vulkan::task::AsyncSemaphoreWatcher, bool>(0)
 STATEFULTASK  :   Returning task pointer 0x55ef1ef93dc0.
 ```
-* Multi-threaded debug output with colors:
+@htmlonly
+</div>
+@endhtmlonly
+* multi-threaded debug output with colors:
 ![Image showing colored debug output](images/colored_debug_output.png)
+
+* printing <span class="tt"><em>source-file</em>:<em>line-number</em></span> locations from `__builtin_return_address` or labels:
+@htmlonly
+<div class="about-example-output">
+@endhtmlonly
+```
+17: NOTICE  : Calling f() from main: location_default_argument_functions.cpp:82 (expected: 82)
+17: NOTICE  : calling g(arg_g1(), arg_g2()) from f: location_default_argument_functions_cu.cpp:44 (expected: 44)
+17: NOTICE  : arg2_i() was called from 0x45f2 --> location_default_argument_functions_cu.cpp:44
+17: NOTICE  : arg_g2() was called from 0x460b --> location_default_argument_functions_cu.cpp:44
+17: NOTICE  : arg_g1() was called from 0x4617 --> location_default_argument_functions_cu.cpp:44
+17: NOTICE  : g(1, 1, 1) was called from location_default_argument_functions_cu.cpp:44
+```
+@htmlonly
+</div>
+@endhtmlonly
 
 ## Documentation
 
 - [Tutorial](tutorial/index.html)
 - [Quick Reference](www/quickreference.html)
-- [Reference Manual](topics.html)
+- [Reference Manual](reference-manual.html)
 
 ## Project status
 

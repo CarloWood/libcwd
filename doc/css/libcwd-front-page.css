@@ -42,6 +42,21 @@ span.tt em,
   white-space: nowrap;
 }
 
+.about-example-output div.fragment .line,
+.about-example-output pre.fragment {
+  font-family: Hack, "DejaVu Sans Mono", monospace !important;
+  font-size: smaller !important;
+  line-height: normal !important;
+}
+
+.about-example-output div.fragment .line a,
+.about-example-output div.fragment .line span,
+.about-example-output pre.fragment a,
+.about-example-output pre.fragment span {
+  font-family: inherit !important;
+  font-size: inherit !important;
+}
+
 #titlearea {
   padding: 0;
 }
