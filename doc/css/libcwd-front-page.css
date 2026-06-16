@@ -178,6 +178,7 @@ span.tt em,
 
 /* Doxygen emits a project-root tree item above the configured navigation tabs.
    Hide that redundant root row while keeping its children as the visible top-level navigation. */
+/*
 #nav-tree-contents > ul > li:first-child > .item {
   display: none;
 }
@@ -193,6 +194,7 @@ span.tt em,
 #nav-tree-contents > ul > li:first-child > .children_ul > li > .item > .arrow {
   width: 16px !important;
 }
+*/
 
 #nav-tree .selected a {
   color: #fce5ac !important;

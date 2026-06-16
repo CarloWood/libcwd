@@ -1,11 +1,11 @@
-// Piggyback on cwds
-
 #pragma once
 
+// Define this if you want to use a different namespace than ::debug for this.
 #define NAMESPACE_DEBUG myproject::debug
 #define NAMESPACE_DEBUG_START namespace NAMESPACE_DEBUG {
 #define NAMESPACE_DEBUG_END }
 
+// Piggyback on cwds
 #include "cwds/debug.h"
 
 #ifdef CWDEBUG
@@ -15,11 +15,10 @@ NAMESPACE_DEBUG_CHANNELS_START
 extern Channel custom;
 NAMESPACE_DEBUG_CHANNELS_END
 
-// And define them in a .cpp file like:
-#if -0 // .cpp example
-NAMESPACE_DEBUG_CHANNELS_START
-Channel custom("CUSTOM");
-NAMESPACE_DEBUG_CHANNELS_END
-#endif // example
+// Don't forget to define them in a TU:
+//
+//   NAMESPACE_DEBUG_CHANNELS_START
+//   Channel custom("CUSTOM");
+//   NAMESPACE_DEBUG_CHANNELS_END
 
 #endif // CWDEBUG

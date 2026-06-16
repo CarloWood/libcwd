@@ -90,11 +90,15 @@ add_custom_command(
 )
 add_custom_target(doxygen-layout
   COMMAND ${DOXYGEN_EXECUTABLE} -l doxygen.layout.xml.in
+  COMMAND ${CMAKE_COMMAND} -E env sh -c
+          "sed 's|<tab type=\"mainpage\" visible=\"yes\" title=\"\"|<tab type=\"mainpage\" visible=\"yes\" title=\"MAINPAGE\"|' doxygen.layout.xml.in > doxygen.layout.xml"
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml.in
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml
+             ${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml.in
   COMMENT "Generating Doxygen layout file"
   VERBATIM
 )
+
 add_custom_target(doc-external DEPENDS ${doc_external_files})
 
 file(GLOB doc_reference_inputs CONFIGURE_DEPENDS
@@ -105,17 +109,25 @@ file(GLOB doc_reference_inputs CONFIGURE_DEPENDS
   "${CMAKE_SOURCE_DIR}/include/libcwd/private/*.h"
   "${CMAKE_SOURCE_DIR}/src/*.cxx"
 )
+
+set(doc_site_stamp "${CMAKE_CURRENT_BINARY_DIR}/doc-site.stamp")
+
+set(doc_site_byproducts
+  "${CMAKE_CURRENT_BINARY_DIR}/index.html"
+  "${CMAKE_CURRENT_BINARY_DIR}/topics.html"
+  "${CMAKE_CURRENT_BINARY_DIR}/reference-manual.html"
+  "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html"
+)
+
 add_custom_command(
-  OUTPUT
-    "${CMAKE_CURRENT_BINARY_DIR}/index.html"
-    "${CMAKE_CURRENT_BINARY_DIR}/topics.html"
-    "${CMAKE_CURRENT_BINARY_DIR}/reference-manual.html"
-    "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html"
+  OUTPUT "${doc_site_stamp}"
+  BYPRODUCTS ${doc_site_byproducts}
   COMMAND ${CMAKE_COMMAND} -E rm -rf reference-manual
   COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html group__book*.html group__downloading.html group__preparation.html group__page__why__macro.html group__chapter__custom__debug__h.html group__book__writing__intro.html group__chapter__custom__do.html group__chapter__nesting.html group__chapter__symbols__intro.html group__chapter__environment.html group__chapter__attach__gdb.html group__chapter__gdb.html chapter-getting-started.html chapter-getting-started.js chapter-writing-debug-output.html chapter-writing-debug-output.js chapter-symbols.html chapter-symbols.js chapter-runtime.html chapter-runtime.js"
   COMMAND ${DOXYGEN_EXECUTABLE} doxygen.config
-  COMMAND /bin/sh -c "if test -f preparation.html; then mv preparation.html preparation.tmp && sed -e 's/href=\"debug_8h\.html\">debug\.h/href=\"#preparation_step2\">debug.h/' -e 's/\"sys\.h\"/\"<a class=\"code\" href=\"#preparation_step2\">sys.h<\\/a>\"/' preparation.tmp > preparation.html && rm preparation.tmp; fi"
   COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' *.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
+  COMMAND /bin/sh -c "echo 'NAVTREE[0][0] = \"libcwd 2.0\";' >> \"${CMAKE_CURRENT_BINARY_DIR}/navtreedata.js\""
+  COMMAND ${CMAKE_COMMAND} -E touch "${doc_site_stamp}"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/doxygen.config"
@@ -126,7 +138,10 @@ add_custom_command(
     ${doc_reference_inputs}
   VERBATIM
 )
-add_custom_target(doc-site DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/index.html" "${CMAKE_CURRENT_BINARY_DIR}/topics.html" "${CMAKE_CURRENT_BINARY_DIR}/reference-manual.html" "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html")
+
+add_custom_target(doc-site
+  DEPENDS "${doc_site_stamp}"
+)
 
 add_subdirectory(tutorial)
 
@@ -134,5 +149,6 @@ add_custom_target(doc
   DEPENDS
     doc-site
     doc-styles
+    doc-external
     doc-tutorial
 )

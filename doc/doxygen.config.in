@@ -21,6 +21,10 @@ USE_MDFILE_AS_MAINPAGE = Introduction.md
 INPUT                  = Introduction.md \
                           @srcdir@/release-notes.md \
                           @srcdir@/reference-manual.md \
+                          @srcdir@/reference-manual-getting-started.md \
+                          @srcdir@/reference-manual-writing-debug-output.md \
+                          @srcdir@/reference-manual-symbols.md \
+                          @srcdir@/reference-manual-runtime.md \
                           @srcdir@/reference-groups.md \
                           @srcdir@/downloading.md \
                           @srcdir@/preparation.md \
