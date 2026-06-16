@@ -11,24 +11,22 @@ if (NOT DOXYGEN_EXECUTABLE OR NOT M4_EXECUTABLE OR NOT AWK_EXECUTABLE)
   return()
 endif ()
 
-set(PACKAGE_NAME ${PROJECT_NAME})
-set(PACKAGE_VERSION ${PROJECT_VERSION})
-set(top_srcdir ${CMAKE_SOURCE_DIR})
-set(srcdir ${CMAKE_CURRENT_SOURCE_DIR})
-set(top_builddir ${CMAKE_BINARY_DIR})
-
-# Extract the last release date from release-notes.md (which is in the first ## header).
+# Extract @LATEST_RELEASE_DATE@ from release-notes.md (which is in the first ## header).
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md")
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md" release_note_headings REGEX "^## .+")
 list(GET release_note_headings 0 latest_release_heading)
 string(REGEX REPLACE "^##[ 	]+(.+)$" "\\1" LATEST_RELEASE_DATE "${latest_release_heading}")
 
-configure_file(doxygen.config.in     doxygen.config     @ONLY)
-configure_file(html.header.in        html.header        @ONLY)
-configure_file(html.footer.in        html.footer        @ONLY)
-configure_file(doxygen.layout.xml.in doxygen.layout.xml @ONLY)
-configure_file(Introduction.md.in    Introduction.md    @ONLY)
-configure_file(release-notes.md      release-notes.md   COPYONLY)
+# Replace @PACKAGE_NAME@ @PACKAGE_VERSION@ @srcdir@ @top_builddir@ and @top_srcdir@ in doxygen.config.in.
+set(PACKAGE_NAME ${PROJECT_NAME})
+set(PACKAGE_VERSION ${PROJECT_VERSION})
+set(srcdir ${CMAKE_CURRENT_SOURCE_DIR})
+set(top_builddir ${CMAKE_BINARY_DIR})
+set(top_srcdir ${CMAKE_SOURCE_DIR})
+configure_file(doxygen.config.in doxygen.config @ONLY)
+
+# Replace @PACKAGE_VERSION@ and @LATEST_RELEASE_DATE@ in Introduction.md.in.
+configure_file(Introduction.md.in Introduction.md @ONLY)
 
 add_custom_target(doc-assets
   COMMAND ${CMAKE_COMMAND} -E rm -rf
@@ -114,11 +112,7 @@ add_custom_command(
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/doxygen.config"
-    "${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml"
-    "${CMAKE_CURRENT_BINARY_DIR}/html.header"
-    "${CMAKE_CURRENT_BINARY_DIR}/html.footer"
     "${CMAKE_CURRENT_BINARY_DIR}/Introduction.md"
-    "${CMAKE_CURRENT_BINARY_DIR}/release-notes.md"
     doc-assets
     doc-styles
     doc-external

@@ -19,7 +19,7 @@ TOC_INCLUDE_HEADINGS   = 5
 USE_MDFILE_AS_MAINPAGE = Introduction.md
 
 INPUT                  = Introduction.md \
-                          release-notes.md \
+                          @srcdir@/release-notes.md \
                           @srcdir@/reference-manual.md \
                           @srcdir@/reference-groups.md \
                           @srcdir@/downloading.md \
@@ -92,9 +92,9 @@ PREDEFINED             = CWDEBUG \
 GENERATE_HTML          = YES
 HTML_OUTPUT            = .
 HTML_FILE_EXTENSION    = .html
-HTML_HEADER            = html.header
-HTML_FOOTER            = html.footer
-LAYOUT_FILE            = doxygen.layout.xml
+HTML_HEADER            = @srcdir@/html.header
+HTML_FOOTER            = @srcdir@/html.footer
+LAYOUT_FILE            = @srcdir@/doxygen.layout.xml
 HTML_EXTRA_FILES       = @srcdir@/images/doxygen.svg \
                          @srcdir@/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js
 HTML_EXTRA_STYLESHEET  = @srcdir@/doxygen-awesome-css/doxygen-awesome.css \
