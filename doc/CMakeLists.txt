@@ -17,18 +17,18 @@ set(top_srcdir ${CMAKE_SOURCE_DIR})
 set(srcdir ${CMAKE_CURRENT_SOURCE_DIR})
 set(top_builddir ${CMAKE_BINARY_DIR})
 
+# Extract the last release date from release-notes.md (which is in the first ## header).
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md")
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/release-notes.md" release_note_headings REGEX "^## .+")
 list(GET release_note_headings 0 latest_release_heading)
 string(REGEX REPLACE "^##[ 	]+(.+)$" "\\1" LATEST_RELEASE_DATE "${latest_release_heading}")
 
-configure_file(doxygen.config.in doxygen.config @ONLY)
-configure_file(html.header.in html.header @ONLY)
-configure_file(html.footer.in html.footer @ONLY)
+configure_file(doxygen.config.in     doxygen.config     @ONLY)
+configure_file(html.header.in        html.header        @ONLY)
+configure_file(html.footer.in        html.footer        @ONLY)
 configure_file(doxygen.layout.xml.in doxygen.layout.xml @ONLY)
-
-configure_file(Introduction.md Introduction.md @ONLY)
-configure_file(release-notes.md release-notes.md COPYONLY)
+configure_file(Introduction.md.in    Introduction.md    @ONLY)
+configure_file(release-notes.md      release-notes.md   COPYONLY)
 
 add_custom_target(doc-assets
   COMMAND ${CMAKE_COMMAND} -E rm -rf

@@ -1,4 +1,4 @@
-set(tutorial_definition_file "${CMAKE_CURRENT_SOURCE_DIR}/../definitions.m4")
+set(tutorial_definition_file "${CMAKE_CURRENT_SOURCE_DIR}/definitions.m4")
 
 set(tutorial_static_pages
   index
@@ -17,7 +17,7 @@ foreach(tutorial_page ${tutorial_static_pages})
   set(tutorial_output "${CMAKE_CURRENT_BINARY_DIR}/${tutorial_page}.html")
   add_custom_command(
     OUTPUT "${tutorial_output}"
-    COMMAND /bin/sh -c "\"${M4_EXECUTABLE}\" -D__TUTORIAL=1 -I \"${CMAKE_CURRENT_SOURCE_DIR}/..\" \"${tutorial_input}\" > \"${tutorial_output}\""
+    COMMAND /bin/sh -c "\"${M4_EXECUTABLE}\" -D__TUTORIAL=1 -I \"${CMAKE_CURRENT_SOURCE_DIR}\" \"${tutorial_input}\" > \"${tutorial_output}\""
     DEPENDS
       "${tutorial_input}"
       "${tutorial_definition_file}"
@@ -101,7 +101,7 @@ add_custom_command(
 set(tutorial_tut5_html "${CMAKE_CURRENT_BINARY_DIR}/tut5.html")
 add_custom_command(
   OUTPUT "${tutorial_tut5_html}"
-  COMMAND /bin/sh -c "\"${M4_EXECUTABLE}\" -D__TUTORIAL=1 -I \"${CMAKE_CURRENT_SOURCE_DIR}/..\" \"${tutorial_tut5_m4}\" > \"${tutorial_tut5_html}\""
+  COMMAND /bin/sh -c "\"${M4_EXECUTABLE}\" -D__TUTORIAL=1 -I \"${CMAKE_CURRENT_SOURCE_DIR}\" \"${tutorial_tut5_m4}\" > \"${tutorial_tut5_html}\""
   DEPENDS
     "${tutorial_tut5_m4}"
     "${tutorial_definition_file}"
