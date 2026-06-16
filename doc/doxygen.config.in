@@ -16,15 +16,11 @@ ALIASES                = "exampleoutput=\htmlonly<DIV class=example-output>\endh
 
 MARKDOWN_SUPPORT       = YES
 TOC_INCLUDE_HEADINGS   = 5
-USE_MDFILE_AS_MAINPAGE = about-libcwd.md
+USE_MDFILE_AS_MAINPAGE = Introduction.md
 
-INPUT                  = about-libcwd.md \
+INPUT                  = Introduction.md \
                           release-notes.md \
                           @srcdir@/reference-manual.md \
-                          @srcdir@/chapter-getting-started.md \
-                          @srcdir@/chapter-writing-debug-output.md \
-                          @srcdir@/chapter-symbols.md \
-                          @srcdir@/chapter-runtime.md \
                           @srcdir@/reference-groups.md \
                           @srcdir@/downloading.md \
                           @srcdir@/preparation.md \

@@ -23,7 +23,8 @@ configure_file(doxygen.config.in doxygen.config @ONLY)
 configure_file(html.header.in html.header @ONLY)
 configure_file(html.footer.in html.footer @ONLY)
 configure_file(doxygen.layout.xml.in doxygen.layout.xml @ONLY)
-configure_file(about-libcwd.md about-libcwd.md @ONLY)
+
+configure_file(Introduction.md Introduction.md @ONLY)
 configure_file(release-notes.md release-notes.md COPYONLY)
 
 add_custom_target(doc-assets
@@ -103,7 +104,7 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/reference-manual.html"
     "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html"
   COMMAND ${CMAKE_COMMAND} -E rm -rf reference-manual
-  COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html group__book*.html group__downloading.html group__preparation.html group__page__why__macro.html group__chapter__custom__debug__h.html group__book__writing__intro.html group__chapter__custom__do.html group__chapter__nesting.html group__chapter__symbols__intro.html group__chapter__environment.html group__chapter__attach__gdb.html group__chapter__gdb.html"
+  COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html group__book*.html group__downloading.html group__preparation.html group__page__why__macro.html group__chapter__custom__debug__h.html group__book__writing__intro.html group__chapter__custom__do.html group__chapter__nesting.html group__chapter__symbols__intro.html group__chapter__environment.html group__chapter__attach__gdb.html group__chapter__gdb.html chapter-getting-started.html chapter-getting-started.js chapter-writing-debug-output.html chapter-writing-debug-output.js chapter-symbols.html chapter-symbols.js chapter-runtime.html chapter-runtime.js"
   COMMAND ${DOXYGEN_EXECUTABLE} doxygen.config
   COMMAND /bin/sh -c "if test -f preparation.html; then mv preparation.html preparation.tmp && sed -e 's/href=\"debug_8h\.html\">debug\.h/href=\"#preparation_step2\">debug.h/' -e 's/\"sys\.h\"/\"<a class=\"code\" href=\"#preparation_step2\">sys.h<\\/a>\"/' preparation.tmp > preparation.html && rm preparation.tmp; fi"
   COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' *.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
@@ -113,7 +114,7 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml"
     "${CMAKE_CURRENT_BINARY_DIR}/html.header"
     "${CMAKE_CURRENT_BINARY_DIR}/html.footer"
-    "${CMAKE_CURRENT_BINARY_DIR}/about-libcwd.md"
+    "${CMAKE_CURRENT_BINARY_DIR}/Introduction.md"
     "${CMAKE_CURRENT_BINARY_DIR}/release-notes.md"
     doc-assets
     doc-styles
