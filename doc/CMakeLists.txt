@@ -1,8 +1,11 @@
 find_program(DOXYGEN_EXECUTABLE doxygen)
+# These two are needed for the tutorial.
+find_program(M4_EXECUTABLE m4)
+find_program(AWK_EXECUTABLE awk)
 
-if (NOT DOXYGEN_EXECUTABLE)
+if (NOT DOXYGEN_EXECUTABLE OR NOT M4_EXECUTABLE OR NOT AWK_EXECUTABLE)
   add_custom_target(doc
-    COMMAND ${CMAKE_COMMAND} -E echo "Documentation tools are missing: doxygen=${DOXYGEN_EXECUTABLE}"
+    COMMAND ${CMAKE_COMMAND} -E echo "Documentation tools are missing: doxygen=${DOXYGEN_EXECUTABLE}, m4=${M4_EXECUTABLE}, awk=${AWK_EXECUTABLE}"
     COMMAND ${CMAKE_COMMAND} -E false
   )
   return()
