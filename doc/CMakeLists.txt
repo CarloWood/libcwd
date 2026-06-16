@@ -88,6 +88,13 @@ add_custom_command(
     "${CMAKE_SOURCE_DIR}/libcwdrc"
   VERBATIM
 )
+add_custom_target(doxygen-layout
+  COMMAND ${DOXYGEN_EXECUTABLE} -l doxygen.layout.xml.in
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml.in
+  COMMENT "Generating Doxygen layout file"
+  VERBATIM
+)
 add_custom_target(doc-external DEPENDS ${doc_external_files})
 
 file(GLOB doc_reference_inputs CONFIGURE_DEPENDS
