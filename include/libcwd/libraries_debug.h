@@ -35,18 +35,8 @@
 #include "ContinuedChannel.h"
 #include "FatalChannel.h"
 
-namespace libcwd {
+namespace libcwd::channels::dc {
 
-namespace channels {
-
-/** \brief This namespace contains the standard %debug %channels of libcwd.
- *
- * Custom %debug %channels should be added in another namespace in order to
- * avoid the possibility of collisions with %channels defined in other libraries.
- *
- * \sa \ref chapter_custom_debug_h
- */
-namespace dc {
 extern Channel debug;
 extern Channel notice;
 extern Channel system;
@@ -60,10 +50,7 @@ extern ContinuedChannel continued;
 extern ContinuedChannel finish;
 extern AlwaysChannel always;
 
-} // namespace dc
-} // namespace channels
-
-} // namespace libcwd
+} // namespace libcwd::channels::dc
 
 //===================================================================================================
 // The global debug object

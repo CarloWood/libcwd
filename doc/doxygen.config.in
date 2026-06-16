@@ -48,7 +48,7 @@ INPUT                  = Introduction.md \
                           @srcdir@/attach_gdb.md \
                           @srcdir@/core_dump.md \
                           @srcdir@/gdb.md \
-                          @srcdir@/namespaces.h \
+                          @srcdir@/namespaces.md \
                           @top_srcdir@/include/libcwd \
                           @top_builddir@/include/libcwd
 FILE_PATTERNS          = *.md \
