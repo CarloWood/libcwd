@@ -1,6 +1,5 @@
-@page formatting Format Of The Debug Output
-
-Generated API reference: @ref group_formatting.
+@addtogroup group_formatting Format Of The Debug Output
+@ingroup reference-manual-writing-debug-output
 
 All debug output is written in the following format:
 
@@ -14,17 +13,17 @@ The &lt;marker&gt; field can be used to identify regions (for example with a ver
 The &lt;indentation&gt; field consists of spaces and is intended to make %debug output better readable by grouping lines of %debug output
 as an easier alternative than using the marker field for that purpose.
 
-The &lt;label&gt; field exists of the channel label (as passed to the constructor of a \ref libcwd::Channel "Channel")
+The &lt;label&gt; field exists of the channel label (as passed to the constructor of a @ref libcwd::Channel "Channel")
 padded by spaces to make this field constant in width (it is padded to the length of the longest existing channel label),
 followed by the marker, which is by default a colon plus a final space; for example "NOTICE&nbsp;:&nbsp;".
 
-The &lt;data&gt; field represents the second field of the \ref Dout macro, written to the %debug ostream with the operator<< inserters.
+The &lt;data&gt; field represents the second field of the @ref Dout macro, written to the %debug ostream with the operator<< inserters.
 
 Finally, the &lt;suffix&gt; field is by default a new-line, optionally followed by a flush.&nbsp;
 The %debug control flag error_cf however, causes an error message to be inserted first.&nbsp;
 The suffix field could become for example ":&nbsp;EAGAIN&nbsp;(Try&nbsp;again)\\n".
 
-\sa group_control_flags
+@sa group_control_flags
 
 <b>Example:</b>
 

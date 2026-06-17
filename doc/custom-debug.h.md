@@ -1,4 +1,5 @@
-@page chapter_custom_debug_h The Custom debug.h File
+@addtogroup chapter_custom_debug_h The Custom debug.h File
+@ingroup reference-manual-getting-started
 
 \section debug_channels_and_namespace Debug channels and namespace
 
@@ -10,7 +11,7 @@ If you are writing an end-application then you are still urged to create a heade
 called %debug.h and use \em that in your source files, instead of including <libcwd/debug.h> directly.&nbsp;
 You will benefit greatly from this in terms on flexibility (trust me).
 
-\sa \ref preparation
+@sa @ref preparation
 
 \subsection libraries Libraries
 

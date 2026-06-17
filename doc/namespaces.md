@@ -15,7 +15,7 @@ If you want to define additional %debug %channels, next to the ones already \lin
 by libcwd, then the macro DEBUGCHANNELS must be defined in the custom \link preparation debug.h \endlink
 header file of your application (or library) prior to including `<libcwd/debug.h>`.
 
-\sa \ref preparation
+@sa @ref preparation
 
 \namespace libcwd::channels::dc
 \brief This namespace contains the standard %debug %channels of libcwd.
@@ -23,4 +23,4 @@ header file of your application (or library) prior to including `<libcwd/debug.h
 Custom %debug %channels should be added in another namespace in order to
 avoid the possibility of collisions with %channels defined in other libraries.
 
-\sa \ref chapter_custom_debug_h
+@sa @ref chapter_custom_debug_h

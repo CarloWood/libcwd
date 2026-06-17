@@ -1,10 +1,11 @@
-@page reference-manual-symbols Symbols Access And Interpretation
+@addtogroup reference-manual-symbols Symbols Access And Interpretation
+@ingroup reference-manual
 
 This chapter covers source locations, symbol lookup, demangling, and type introspection facilities backed by the DWARF
 and ELF information available to libcwd.
 
-- @subpage chapter_symbols_intro
-- @subpage locations
-- @subpage type_info
+- @ref chapter_symbols_intro
+- @ref group_locations
+- @ref group_type_info
   - @ref group_demangle
-- @subpage function_objects
+- @ref function_objects

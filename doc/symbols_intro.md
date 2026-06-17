@@ -1,4 +1,5 @@
-@page chapter_symbols_intro Program Symbols Access And Interpretation: Introduction
+@addtogroup chapter_symbols_intro Program Symbols Access And Interpretation: Introduction
+@ingroup reference-manual-symbols
 
 Libcwd reads the symbol table of the application and of each
 of the linked object files upon initialization.&nbsp;
@@ -29,6 +30,6 @@ Dout(dc::notice, "This function was called from " << demangled_function_name << 
 Dout(dc::notice, "We are in Foo<" << type_info_of<TYPE>().demangled_name() << ">::f()");
 \endcode
 
-Note that calling \ref libcwd::demangle_symbol costs cpu every time you call it, but using
-\ref libcwd::type_info_of<> does not cost any cpu: the demangling is done once, during the
-initialization of libcwd; \ref libcwd::type_info_of<> merely returns a static pointer.
+Note that calling @ref libcwd::demangle_symbol costs cpu every time you call it, but using
+@ref libcwd::type_info_of<> does not cost any cpu: the demangling is done once, during the
+initialization of libcwd; @ref libcwd::type_info_of<> merely returns a static pointer.

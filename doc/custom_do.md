@@ -1,10 +1,11 @@
-@page chapter_custom_do Custom Debug Objects
+@addtogroup chapter_custom_do Custom Debug Objects
+@ingroup group_debug_object
 
 Each %debug object is associated with one <code>ostream</code>.&nbsp;
-The default %debug output macros \ref Dout and \ref DoutFatal use the \em default debug object libcwd::libcw_do.&nbsp;
+The default %debug output macros @ref Dout and @ref DoutFatal use the \em default debug object libcwd::libcw_do.&nbsp;
 Other %debug objects may be created as global objects;
 it is convenient to define new macros for each (custom) %debug object using the generic macros
-\ref LibcwDout and \ref LibcwDoutFatal.
+@ref LibcwDout and @ref LibcwDoutFatal.
 
 For example, add something like the following to your own \link chapter_custom_debug_h "debug.h" \endlink file:
 
@@ -19,5 +20,4 @@ extern libcwd::DebugObject my_debug_object;
 #endif // !CWDEBUG
 \endcode
 
-\sa \ref group_debug_object
-\sa \ref libcwd::libcw_do
+@sa @ref libcwd::libcw_do

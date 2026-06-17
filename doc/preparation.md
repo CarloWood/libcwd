@@ -1,4 +1,5 @@
-@page preparation Preparation
+@addtogroup preparation Preparation
+@ingroup reference-manual-getting-started
 
 This page describes the preparations that you need to perform
 before starting to use libcwd in your applications source code.
@@ -11,7 +12,7 @@ If you are installing libcwd from source then please read the
 \htmlonly<A HREF="external/INSTALL">\endhtmlonly
 INSTALL\htmlonly</A> \endhtmlonly
 file that is included in the source distribution.<BR>
-See also: \ref group_configuration
+See also: @ref group_configuration
 
 \anchor preparation_step2
 # Step 2: Creating the custom header files {#header_files}
@@ -30,7 +31,7 @@ You can use the following templates for a quick start:
 \htmlonly &laquo;<A HREF="external/debug.h">download</A>&raquo;\endhtmlonly
 
 This %debug.h file is for applications; for more detailed information and for information
-for library developers who want to use libcwd, please also read \ref chapter_custom_debug_h.
+for library developers who want to use libcwd, please also read @ref chapter_custom_debug_h.
 
 # Step 3: Adding the cwds submodule {#cwds_submodule}
 

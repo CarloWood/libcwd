@@ -1,18 +1,19 @@
-@page book_writing_intro Writing Debug Output: Introduction
+@addtogroup book_writing_intro Writing Debug Output: Introduction
+@ingroup reference-manual-writing-debug-output
 
 Libcwd is an <code>ostream</code> oriented debug output facility.&nbsp;
 The class libcwd::DebugObject is associated with a single <code>ostream</code>.&nbsp;
 
-Libcwd defines and internally uses only one object of that class, called a \ref group_debug_object "debug object",
+Libcwd defines and internally uses only one object of that class, called a @ref group_debug_object "debug object",
 being libcwd::libcw_do.&nbsp;
 
-Debug output is written using \ref page_why_macro "macros" (\ref Dout and \ref DoutFatal),
+Debug output is written using @ref page_why_macro "macros" (@ref Dout and @ref DoutFatal),
 both of which are defined to use libcwd::libcw_do.&nbsp;
-More general macros exist (\ref LibcwDout and \ref LibcwDoutFatal) that allow you
-to use a different (\ref chapter_custom_do "custom") debug object.
+More general macros exist (@ref LibcwDout and @ref LibcwDoutFatal) that allow you
+to use a different (@ref chapter_custom_do "custom") debug object.
 
-\ref Dout and \ref DoutFatal take two arguments: the first argument is used to specify
-\ref group_debug_channels "debug channels" and \ref group_control_flags "control flags"
+@ref Dout and @ref DoutFatal take two arguments: the first argument is used to specify
+@ref group_debug_channels "debug channels" and @ref group_control_flags "control flags"
 while the second argument should be a series of objects seperated by <code><<</code>
 that you want to write to the <code>ostream</code>.
 
@@ -22,6 +23,6 @@ For example,
 Dout(dc::notice|blank_label_cf|flush_cf, "Total count: " << count << "; Average: " << average);
 \endcode
 
-In this example <code>dc::notice</code> is one of the \ref group_default_dc "predefined" debug channels.&nbsp;
+In this example <code>dc::notice</code> is one of the @ref group_default_dc "predefined" debug channels.&nbsp;
 Debug channels are intended to control the amount of output of your application:
 you can switch the channels on and off.

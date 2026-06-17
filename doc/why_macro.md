@@ -1,4 +1,5 @@
-@page page_why_macro Design Consideration Concerning Macros
+@addtogroup page_why_macro Design Consideration Concerning Macros
+@ingroup book_writing_intro
 
 This page describes why we use a macro instead of an inline
 function for <CODE>Dout()</CODE>.

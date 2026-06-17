@@ -1,9 +1,9 @@
-@page reference-manual Reference Manual
+@addtogroup reference-manual Reference Manual
 
-- @subpage reference-manual-getting-started
-- @subpage reference-manual-writing-debug-output
-- @subpage reference-manual-symbols
-- @subpage reference-manual-runtime
+- @ref reference-manual-getting-started
+- @ref reference-manual-writing-debug-output
+- @ref reference-manual-symbols
+- @ref reference-manual-runtime
 
 #### Generated API groups
 

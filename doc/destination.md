@@ -1,6 +1,5 @@
-@page destination Setting The Output Destination
-
-Generated API reference: @ref group_destination.
+@addtogroup group_destination Setting The Output Destination
+@ingroup reference-manual-writing-debug-output
 
 Basically, a %debug object (\link libcwd::DebugObject DebugObject \endlink) is a pointer to an ostream
 with a few extra attributes added to give it an internal state for \link libcwd::DebugObject::on() on \endlink

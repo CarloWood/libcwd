@@ -1,4 +1,5 @@
-@page function_objects Function objects
+@addtogroup function_objects Function objects
+@ingroup reference-manual
 
 Generated API reference: @ref group_function.
 

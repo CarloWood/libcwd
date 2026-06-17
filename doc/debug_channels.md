@@ -1,6 +1,5 @@
-@page debug_channels Controlling The Output Level (Debug Channels)
-
-Generated API reference: @ref group_debug_channels.
+@addtogroup group_debug_channels Controlling The Output Level (Debug Channels)
+@ingroup reference-manual-writing-debug-output
 
 Whenever debug output is written, one or more <i>debug channels</i> must be specified.&nbsp;
 The debug output is then written to the ostream of the debug object
@@ -8,7 +7,7 @@ unless the debug object is turned off or when all specified <i>debug channels</i
 Each <i>debug channel</i> can be turned on and off independently.&nbsp;
 
 Libcwd has defined six <i>debug channels</i> in namespace \link libcwd::channels::dc channels::dc \endlink
-(See \ref group_default_dc).&nbsp;
+(See @ref group_default_dc).&nbsp;
 New <i>debug channels</i> can be defined by the user, which is as simple as creating
 a new Channel object.
 
@@ -20,7 +19,7 @@ namespace dc {
 }
 \endcode
 
-This declaration must be inside the namespace \ref DEBUGCHANNELS.
+This declaration must be inside the namespace @ref DEBUGCHANNELS.
 
 Multiple <i>debug channels</i> can be given by using
 <CODE>operator|</CODE> between the channel names.&nbsp;
@@ -28,7 +27,7 @@ This shouldn't be read as \`or' but merely
 be seen as the bit-wise OR operation on the bit-masks that these
 channels actually represent.
 
-\sa group_control_flags
+@sa group_control_flags
 
 <b>Example:</b>
 

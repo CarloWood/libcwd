@@ -1,6 +1,5 @@
-@page rcfile Runtime Configuration File (rcfile)
-
-Generated API reference: @ref chapter_rcfile.
+@addtogroup chapter_rcfile Runtime Configuration File (rcfile)
+@ingroup reference-manual-runtime
 
 In order to use <code>\link chapter_attach_gdb attach_gdb() \endlink</code> and/or to read debug channel states
 from an external file, you should call <code>read_rcfile()</code>,
