@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file libcwd/buf2str.h
+/** @file
  *
  * \brief Definition of utility class buf2str.
  *

@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file libcwd/libraries_debug.h
+/** @file
  *
  * \brief This is the header file that third-party library headers should include.
  *

@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file Location.h
+/** @file
  * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
  */
 

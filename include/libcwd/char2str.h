@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file libcwd/char2str.h
+/** @file
  *
  * \brief Definition of utility class char2str.
  *

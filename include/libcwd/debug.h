@@ -3,7 +3,7 @@
 
 #pragma once
 
-/** \file libcwd/debug.h
+/** @file
  *
  * \brief This is the main header file of libcwd.
  *
