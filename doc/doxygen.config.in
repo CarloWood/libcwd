@@ -19,42 +19,11 @@ TOC_INCLUDE_HEADINGS   = 5
 USE_MDFILE_AS_MAINPAGE = Introduction.md
 
 INPUT                  = Introduction.md \
-                          @srcdir@/release-notes.md \
-                          @srcdir@/reference-manual.md \
-                          @srcdir@/reference-manual-getting-started.md \
-                          @srcdir@/reference-manual-writing-debug-output.md \
-                          @srcdir@/reference-manual-symbols.md \
-                          @srcdir@/reference-manual-runtime.md \
-                          @srcdir@/reference-groups.md \
-                          @srcdir@/downloading.md \
-                          @srcdir@/preparation.md \
-                          @srcdir@/custom-debug.h.md \
-                          @top_builddir@/include/libcwd/config.h \
-                          @srcdir@/environment.md \
-                          @srcdir@/writing_intro.md \
-                          @srcdir@/why_macro.md \
-                          @srcdir@/destination.md \
-                          @srcdir@/debug_object.md \
-                          @srcdir@/custom_do.md \
-                          @srcdir@/debug_channels.md \
-                          @top_srcdir@/src/debug.cxx \
-                          @srcdir@/control_flags.md \
-                          @srcdir@/formatting.md \
-                          @srcdir@/fatal_output.md \
-                          @srcdir@/nested.md \
-                          @srcdir@/special.md \
-                          @srcdir@/symbols_intro.md \
-                          @srcdir@/locations.md \
-                          @srcdir@/type_info.md \
-                          @top_srcdir@/src/demangle.cxx \
-                          @srcdir@/function.md \
-                          @srcdir@/rcfile.md \
-                          @srcdir@/attach_gdb.md \
-                          @srcdir@/core_dump.md \
-                          @srcdir@/gdb.md \
-                          @srcdir@/namespaces.md \
-                          @top_srcdir@/include/libcwd \
-                          @top_builddir@/include/libcwd
+                         @srcdir@ \
+                         @top_srcdir@/src \
+                         @top_srcdir@/include/libcwd \
+                         @top_srcdir@/include/libcwd/private \
+                         @top_builddir@/include/libcwd
 FILE_PATTERNS          = *.md \
                           *.h \
                          *.inl \

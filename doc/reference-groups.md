@@ -1,3 +1,5 @@
+@defgroup reference-manual Reference Manual
+
 @defgroup group_configuration Configuration Options And Macros
 @ingroup reference-manual-getting-started
 @brief Generated API reference for libcwd CMake options and the preprocessor macros that expose those choices.
