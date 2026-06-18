@@ -7,8 +7,8 @@
 #include <atomic>
 #include <mutex>
 
-namespace libcwd {
-namespace _private_ {
+#ifndef HIDE_FROM_DOXYGEN
+namespace libcwd::_private_ {
 
 std::atomic_bool WST_multi_threaded = false;
 
@@ -131,5 +131,5 @@ void ThreadSpecificData::cleanup_routine()
 // End of Thread Specific Data
 //===================================================================================================
 
-} // namespace _private_
-} // namespace libcwd
+} // namespace libcwd::_private_
+#endif // HIDE_FROM_DOXYGEN

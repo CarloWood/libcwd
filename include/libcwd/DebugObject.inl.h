@@ -128,7 +128,9 @@ inline bool DebugObject::has_mutex() const
   return has_mutex;
 }
 
-inline _private_::LockInterfaceBase* _private_::OstreamState::replace_with(std::ostream* os,
+#ifndef HIDE_FROM_DOXYGEN
+namespace _private_ {
+inline LockInterfaceBase* OstreamState::replace_with(std::ostream* os,
                                                                            LockInterfaceBase* new_mutex)
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
@@ -144,7 +146,7 @@ inline _private_::LockInterfaceBase* _private_::OstreamState::replace_with(std::
   return old_mutex;
 }
 
-inline void _private_::OstreamState::set_ostream(std::ostream* os)
+inline void OstreamState::set_ostream(std::ostream* os)
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
   LockInterfaceBase* old_mutex = mutex_;
@@ -157,19 +159,19 @@ inline void _private_::OstreamState::set_ostream(std::ostream* os)
   }
 }
 
-inline std::ostream* _private_::OstreamState::read_real_os() const
+inline std::ostream* OstreamState::read_real_os() const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
   return real_os_;
 }
 
-inline bool _private_::OstreamState::has_mutex() const
+inline bool OstreamState::has_mutex() const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
   return mutex_ != nullptr;
 }
 
-inline std::ostream* _private_::OstreamState::get_locked_os(std::ostream* os,
+inline std::ostream* OstreamState::get_locked_os(std::ostream* os,
                                                             LockInterfaceBase** locked_mutex_out) const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
@@ -183,7 +185,7 @@ inline std::ostream* _private_::OstreamState::get_locked_os(std::ostream* os,
   return locked_os;
 }
 
-inline bool _private_::OstreamState::try_lock_os(std::ostream* os, std::ostream** locked_os_out,
+inline bool OstreamState::try_lock_os(std::ostream* os, std::ostream** locked_os_out,
                                                  LockInterfaceBase** locked_mutex_out) const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
@@ -195,7 +197,7 @@ inline bool _private_::OstreamState::try_lock_os(std::ostream* os, std::ostream*
   return true;
 }
 
-inline void _private_::OstreamState::write_color_off_newline(std::ostream* os, char const* color_off,
+inline void OstreamState::write_color_off_newline(std::ostream* os, char const* color_off,
                                                              std::size_t color_off_size) const
 {
   std::lock_guard<std::mutex> lock(state_mutex_);
@@ -204,6 +206,9 @@ inline void _private_::OstreamState::write_color_off_newline(std::ostream* os, c
     target_os->write(color_off, color_off_size);
   target_os->put('\n');
 }
+
+} // namespace _private_
+#endif // HIDE_FROM_DOXYGEN
 
 /** \} */
 

@@ -404,6 +404,7 @@ void initialize()
   ST_initialize_globals(LIBCWD_TSD);
 }
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace _private_ {
 
 static std::atomic<bool> fatal_termination_started{false};
@@ -625,6 +626,7 @@ void DebugObjects::for_each_impl(callback_type callback, void* data) const
 }
 
 } // namespace _private_
+#endif // HIDE_FROM_DOXYGEN
 
 #if CWDEBUG_DEBUG
 static long WST_debug_object_init_magic = 0;

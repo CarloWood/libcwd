@@ -12,6 +12,7 @@
 
 #include "libcwd/config.h"
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace libcwd::_private_ {
 
 // This is a pseudo stringstream that allows the stringbuf to be changed on
@@ -41,5 +42,6 @@ class BufferStream : public std::ostream
 };
 
 } // namespace libcwd::_private_
+#endif // HIDE_FROM_DOXYGEN
 
 #endif // LIBCWD_PRIVATE_BUFFERSTREAM_H

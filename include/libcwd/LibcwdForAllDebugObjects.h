@@ -23,6 +23,7 @@ namespace libcwd {
 
 class DebugObject;
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace _private_ {
 
 struct DebugObjects
@@ -58,6 +59,8 @@ struct DebugObjects
 static_assert(std::is_trivial_v<DebugObjects>, "DebugObjects must be trivial to survive static destruction");
 
 } // namespace _private_
+#endif // HIDE_FROM_DOXYGEN
+
 } // namespace libcwd
 
 #define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...)                                         \

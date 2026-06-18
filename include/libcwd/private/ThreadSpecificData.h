@@ -64,6 +64,7 @@ location_format_t const show_function = 4; //!< Show the mangled function name f
 /** \} */ // End of group 'group_locations'
 #endif
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace _private_ {
 
 extern int WST_initializing_TSD;
@@ -119,6 +120,8 @@ struct ThreadSpecificData
 // and is accessed through a reference to `__libcwd_tsd'.
 
 } // namespace _private_
+#endif // HIDE_FROM_DOXYGEN
+
 } // namespace libcwd
 
 #endif // LIBCWD_PRIVATE_STRUCT_TSD_H

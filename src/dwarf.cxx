@@ -271,6 +271,7 @@ InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, uintptr
 
 } // namespace
 
+#ifndef HIDE_FROM_DOXYGEN
 LocationLookupResult SymbolRange::lookup_location(uintptr_t addr, uintptr_t lbase) const
 {
   LocationLookupResult result;
@@ -307,6 +308,7 @@ LocationLookupResult SymbolRange::lookup_location(uintptr_t addr, uintptr_t lbas
   result.known = have_lineno;
   return result;
 }
+#endif // HIDE_FROM_DOXYGEN
 
 // class ObjectFileData
 //

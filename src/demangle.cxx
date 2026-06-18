@@ -648,6 +648,7 @@ namespace libcwd {
 static char const* main_in;
 #endif
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace _private_ {
 
 class implementation_details : public __gnu_cxx::demangler::implementation_details
@@ -779,6 +780,8 @@ void demangle_type(char const* input, std::string& output)
 }
 
 } // namespace _private_
+#endif // HIDE_FROM_DOXYGEN
+
 } // namespace libcwd
 
 #ifdef STANDALONE

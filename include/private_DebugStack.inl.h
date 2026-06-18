@@ -12,6 +12,7 @@
 
 #include <cstddef> // Needed for size_t
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace libcwd::_private_ {
 
 // Stack implementation that doesn't have a constructor.
@@ -71,5 +72,6 @@ inline size_t DebugStack<T>::size() const
 }
 
 } // namespace libcwd::_private_
+#endif // HIDE_FROM_DOXYGEN
 
 #endif // PRIVATE_DEBUG_STACK_INL

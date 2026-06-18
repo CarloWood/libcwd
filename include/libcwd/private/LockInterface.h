@@ -10,6 +10,7 @@
 #ifndef LIBCWD_PRIVATE_LOCK_INTERFACE_H
 #define LIBCWD_PRIVATE_LOCK_INTERFACE_H
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace libcwd::_private_ {
 
 class LockInterfaceBase
@@ -35,5 +36,6 @@ class LockInterface : public LockInterfaceBase
 };
 
 } // namespace libcwd::_private_
+#endif // HIDE_FROM_DOXYGEN
 
 #endif // LIBCWD_PRIVATE_LOCK_INTERFACE_H

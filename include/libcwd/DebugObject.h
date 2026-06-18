@@ -25,6 +25,7 @@ namespace libcwd {
 
 class Buffer;
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace _private_ {
 
 // Store the ostream destination together with the lock that protects writes to it.
@@ -84,6 +85,7 @@ struct OstreamState
 };
 
 } // namespace _private_
+#endif // HIDE_FROM_DOXYGEN
 
 //===================================================================================================
 // class DebugObject

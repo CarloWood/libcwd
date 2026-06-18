@@ -25,6 +25,7 @@ namespace libcwd {
 class Channel;
 class FatalChannel;
 
+#ifndef HIDE_FROM_DOXYGEN
 namespace _private_ {
 
 struct DebugChannels
@@ -72,6 +73,8 @@ struct DebugChannels
 static_assert(std::is_trivial_v<DebugChannels>, "DebugChannels must be trivial to survive static destruction");
 
 } // namespace _private_
+#endif // HIDE_FROM_DOXYGEN
+
 } // namespace libcwd
 
 #define LibcwdForAllDebugChannels(dc_namespace, STATEMENT...)                                      \
