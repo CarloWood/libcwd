@@ -1,5 +1,4 @@
-@addtogroup book_writing_intro Writing Debug Output: Introduction
-@ingroup reference-manual-writing-debug-output
+@addtogroup book_writing_intro
 
 Libcwd is an <code>ostream</code> oriented debug output facility.&nbsp;
 The class libcwd::DebugObject is associated with a single <code>ostream</code>.&nbsp;

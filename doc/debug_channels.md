@@ -1,5 +1,4 @@
-@addtogroup group_debug_channels Controlling The Output Level (Debug Channels)
-@ingroup reference-manual-writing-debug-output
+@addtogroup group_debug_channels
 
 Whenever debug output is written, one or more <i>debug channels</i> must be specified.&nbsp;
 The debug output is then written to the ostream of the debug object

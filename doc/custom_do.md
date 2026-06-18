@@ -1,5 +1,4 @@
-@addtogroup chapter_custom_do Custom Debug Objects
-@ingroup group_debug_object
+@addtogroup chapter_custom_do
 
 Each %debug object is associated with one <code>ostream</code>.&nbsp;
 The default %debug output macros @ref Dout and @ref DoutFatal use the \em default debug object libcwd::libcw_do.&nbsp;

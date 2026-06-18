@@ -1,5 +1,4 @@
-@addtogroup group_debug_object The Output Device (Debug Object)
-@ingroup reference-manual-writing-debug-output
+@addtogroup group_debug_object
 
 Libcwd declares a %debug class (@ref libcwd::DebugObject "DebugObject") which can be assigned an <code>ostream</code>
  to which %debug output will be written.&nbsp;

@@ -1,5 +1,4 @@
-@addtogroup group_formatting Format Of The Debug Output
-@ingroup reference-manual-writing-debug-output
+@addtogroup group_formatting
 
 All debug output is written in the following format:
 

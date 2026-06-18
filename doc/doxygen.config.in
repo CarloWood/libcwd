@@ -98,7 +98,7 @@ HTML_OUTPUT            = .
 HTML_FILE_EXTENSION    = .html
 HTML_HEADER            = @srcdir@/html.header
 HTML_FOOTER            = @srcdir@/html.footer
-LAYOUT_FILE            = doxygen.layout.xml.in
+LAYOUT_FILE            = doxygen.layout.xml
 HTML_EXTRA_FILES       = @srcdir@/images/doxygen.svg \
                          @srcdir@/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js
 HTML_EXTRA_STYLESHEET  = @srcdir@/doxygen-awesome-css/doxygen-awesome.css \

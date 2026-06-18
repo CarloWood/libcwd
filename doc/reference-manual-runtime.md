@@ -1,5 +1,4 @@
-@addtogroup reference-manual-runtime Miscellaneous Runtime
-@ingroup reference-manual
+@addtogroup reference-manual-runtime
 
 This chapter gathers runtime support that does not belong to ordinary debug output, including rcfile processing,
 attaching gdb, forcing core dumps, and helper functions for gdb sessions.

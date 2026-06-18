@@ -1,5 +1,4 @@
-@addtogroup chapter_custom_debug_h The Custom debug.h File
-@ingroup reference-manual-getting-started
+@addtogroup chapter_custom_debug_h
 
 \section debug_channels_and_namespace Debug channels and namespace
 

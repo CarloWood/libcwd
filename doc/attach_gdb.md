@@ -1,5 +1,4 @@
-@addtogroup chapter_attach_gdb Starting A gdb Session From A Running Program
-@ingroup reference-manual-runtime
+@addtogroup chapter_attach_gdb
 
 A running program can initiate a gdb session by calling the function <code>attach_gdb()</code>.
 

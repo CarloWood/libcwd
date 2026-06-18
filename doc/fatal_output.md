@@ -1,5 +1,4 @@
-@addtogroup group_fatal_output Fatal Debug Output
-@ingroup reference-manual-writing-debug-output
+@addtogroup group_fatal_output
 
 Often an application needs to be terminated when a fatal error occurs (whether or not CWDEBUG
 is defined).&nbsp; Libcwd defines for these cases the macro DoutFatal.

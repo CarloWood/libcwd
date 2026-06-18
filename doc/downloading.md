@@ -1,5 +1,4 @@
-@addtogroup downloading Downloading
-@ingroup reference-manual-getting-started
+@addtogroup downloading
 
 The source code repository lives on [github](https://github.com/CarloWood/libcwd.git).
 

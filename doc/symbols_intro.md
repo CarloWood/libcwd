@@ -1,5 +1,4 @@
-@addtogroup chapter_symbols_intro Program Symbols Access And Interpretation: Introduction
-@ingroup reference-manual-symbols
+@addtogroup chapter_symbols_intro
 
 Libcwd reads the symbol table of the application and of each
 of the linked object files upon initialization.&nbsp;

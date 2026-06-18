@@ -1,5 +1,4 @@
-@addtogroup preparation Preparation
-@ingroup reference-manual-getting-started
+@addtogroup preparation
 
 This page describes the preparations that you need to perform
 before starting to use libcwd in your applications source code.

@@ -1,5 +1,4 @@
-@addtogroup chapter_environment Environment Variables
-@ingroup reference-manual-getting-started
+@addtogroup chapter_environment
 
 <dl>
 <dt>LIBCWD_NO_STARTUP_MSGS</dt><dd>Don't print anything before main().</dd>
