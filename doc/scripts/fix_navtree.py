@@ -213,12 +213,6 @@ def fix_navtree(filepath):
     if topics_js_delete and os.path.exists(topics_js_path):
         os.remove(topics_js_path)
 
-    if remove_topics:
-        print("Successfully moved 'Reference Manual' to root level "
-              "and removed the empty 'Topics' tab.")
-    else:
-        print("Successfully moved 'Reference Manual' to root level.")
-
 
 if __name__ == "__main__":
     fix_navtree(sys.argv[1])
