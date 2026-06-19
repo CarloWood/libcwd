@@ -90,11 +90,11 @@ add_custom_command(
 )
 add_custom_target(doxygen-layout
   COMMAND ${DOXYGEN_EXECUTABLE} -l doxygen.layout.xml.in
-  COMMAND ${CMAKE_COMMAND} -E env sh -c
-          "sed 's|<tab type=\"mainpage\" visible=\"yes\" title=\"\"|<tab type=\"mainpage\" visible=\"yes\" title=\"MAINPAGE\"|' doxygen.layout.xml.in > doxygen.layout.xml"
+  COMMAND /bin/sh "${CMAKE_CURRENT_SOURCE_DIR}/scripts/reference-manual-layout.sh" 2>&1
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml
              ${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml.in
+  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/reference-manual-layout.sh"
   COMMENT "Generating Doxygen layout file"
   VERBATIM
 )

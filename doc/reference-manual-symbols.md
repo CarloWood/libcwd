@@ -7,4 +7,4 @@ and ELF information available to libcwd.
 - @ref group_locations
 - @ref group_type_info
   - @ref group_demangle
-- @ref function_objects
+- @ref group_function

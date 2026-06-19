@@ -1,6 +1,4 @@
-@addtogroup function_objects
-
-Generated API reference: @ref group_function.
+@addtogroup group_function
 
 <h2>Defining and initializing <code>Function</code> objects</h2>
 
