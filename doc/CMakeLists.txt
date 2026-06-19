@@ -1,11 +1,12 @@
 find_program(DOXYGEN_EXECUTABLE doxygen)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 # These two are needed for the tutorial.
 find_program(M4_EXECUTABLE m4)
 find_program(AWK_EXECUTABLE awk)
 
-if (NOT DOXYGEN_EXECUTABLE OR NOT M4_EXECUTABLE OR NOT AWK_EXECUTABLE)
+if (NOT DOXYGEN_EXECUTABLE OR NOT M4_EXECUTABLE OR NOT AWK_EXECUTABLE OR NOT Python3_EXECUTABLE)
   add_custom_target(doc
-    COMMAND ${CMAKE_COMMAND} -E echo "Documentation tools are missing: doxygen=${DOXYGEN_EXECUTABLE}, m4=${M4_EXECUTABLE}, awk=${AWK_EXECUTABLE}"
+    COMMAND ${CMAKE_COMMAND} -E echo "Documentation tools are missing: doxygen=${DOXYGEN_EXECUTABLE}, m4=${M4_EXECUTABLE}, awk=${AWK_EXECUTABLE}, python3=${Python3_EXECUTABLE}"
     COMMAND ${CMAKE_COMMAND} -E false
   )
   return()
@@ -74,6 +75,7 @@ set(doc_external_files
   "${CMAKE_CURRENT_BINARY_DIR}/external/debug.h"
   "${CMAKE_CURRENT_BINARY_DIR}/external/libcwdrc"
 )
+
 add_custom_command(
   OUTPUT ${doc_external_files}
   COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/external"
@@ -86,16 +88,6 @@ add_custom_command(
     "${CMAKE_SOURCE_DIR}/example-project/sys.h"
     "${CMAKE_SOURCE_DIR}/example-project/debug.h"
     "${CMAKE_SOURCE_DIR}/libcwdrc"
-  VERBATIM
-)
-add_custom_target(doxygen-layout
-  COMMAND ${DOXYGEN_EXECUTABLE} -l doxygen.layout.xml.in
-  COMMAND /bin/sh "${CMAKE_CURRENT_SOURCE_DIR}/scripts/reference-manual-layout.sh" 2>&1
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml
-             ${CMAKE_CURRENT_BINARY_DIR}/doxygen.layout.xml.in
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/reference-manual-layout.sh"
-  COMMENT "Generating Doxygen layout file"
   VERBATIM
 )
 
@@ -127,6 +119,9 @@ add_custom_command(
   COMMAND ${DOXYGEN_EXECUTABLE} doxygen.config
   COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' *.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
   COMMAND /bin/sh -c "echo 'NAVTREE[0][0] = \"libcwd 2.0\";' >> \"${CMAKE_CURRENT_BINARY_DIR}/navtreedata.js\""
+  COMMAND ${Python3_EXECUTABLE}
+          ${CMAKE_CURRENT_SOURCE_DIR}/scripts/fix_navtree.py
+          ${CMAKE_CURRENT_BINARY_DIR}/navtreedata.js
   COMMAND ${CMAKE_COMMAND} -E touch "${doc_site_stamp}"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   DEPENDS
