@@ -99,8 +99,5 @@
 @ingroup reference-manual-runtime
 @brief Generated API reference for helpers that deliberately terminate the program with a core dump.
 
-@defgroup chapter_gdb Helper functions for within gdb
-@ingroup reference-manual-runtime
-
 @defgroup group_function Function Objects
 @ingroup reference-manual
