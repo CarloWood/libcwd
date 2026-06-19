@@ -115,8 +115,8 @@ add_custom_command(
   OUTPUT "${doc_site_stamp}"
   BYPRODUCTS ${doc_site_byproducts}
   COMMAND ${CMAKE_COMMAND} -E rm -rf reference-manual
-  COMMAND /bin/sh -c "rm -f md_*release-notes*.html pages.html doxygen_crawl.html usergroup*.html group__book*.html group__downloading.html group__preparation.html group__page__why__macro.html group__chapter__custom__debug__h.html group__book__writing__intro.html group__chapter__custom__do.html group__chapter__nesting.html group__chapter__symbols__intro.html group__chapter__environment.html group__chapter__attach__gdb.html group__chapter__gdb.html chapter-getting-started.html chapter-getting-started.js chapter-writing-debug-output.html chapter-writing-debug-output.js chapter-symbols.html chapter-symbols.js chapter-runtime.html chapter-runtime.js"
   COMMAND ${DOXYGEN_EXECUTABLE} doxygen.config
+  COMMAND /bin/sh -c "rm -f ${CMAKE_CURRENT_BINARY_DIR}/topics.html"
   COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' *.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
   COMMAND /bin/sh -c "echo 'NAVTREE[0][0] = \"libcwd 2.0\";' >> \"${CMAKE_CURRENT_BINARY_DIR}/navtreedata.js\""
   COMMAND ${Python3_EXECUTABLE}

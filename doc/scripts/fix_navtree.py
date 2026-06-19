@@ -6,6 +6,11 @@ script promotes the 'Reference Manual' group out of 'Topics' to a direct child
 of the root node (rendered as 'libcwd 2.0'), so it appears at the top level of
 the sidebar instead of nested under Topics.
 
+When, after the move, 'Topics' is left without any children, the empty 'Topics'
+tab is dropped entirely and 'Reference Manual' takes its slot. (If 'Topics'
+still had other children it is kept, and 'Reference Manual' is inserted just
+before it instead.)
+
 The navigation tree is split across several generated files:
 
   navtreedata.js   - the top levels of the tree (var NAVTREE = [...]). A node
@@ -16,9 +21,10 @@ The navigation tree is split across several generated files:
   navtreeindex*.js - a map from every page URL to its tree path, used by
                      doxygen's navtree.js for panel synchronization.
 
-Moving 'Reference Manual' therefore touches all three: remove it from topics.js,
-insert it among the root's children in navtreedata.js, and rewrite the tree
-paths in navtreeindex*.js so the current-page highlight stays correct.
+So promoting 'Reference Manual' touches all three: remove it from topics.js,
+place it among (or in place of) the root's children in navtreedata.js, and
+rewrite the tree paths in navtreeindex*.js so the current-page highlight stays
+correct.
 
 The script is invoked with the path to navtreedata.js; the other files are
 expected alongside it.
@@ -49,7 +55,7 @@ def _load_array_var(content, var_name):
 def _splice(content, match, replacement):
     """Replace the text of match.group(1) inside content, leaving the rest intact.
 
-    Used to rewrite only one JS array/object within a file while preserving the
+    Used to rewrite only one JS array within a file while preserving the
     surrounding license header, other variables, and appended overrides.
     """
     return content[:match.start(1)] + replacement + content[match.end(1):]
@@ -95,13 +101,13 @@ def fix_navtree(filepath):
     # 'Reference Manual' is a child of 'Topics'. Those children are either inline
     # (a list) or, when doxygen stored a string, lazy-loaded from <ref>.js -- in
     # which case 'Topics' points at topics.js, where 'Reference Manual' really
-    # lives. Either way we record rm_child_index, the child position RM occupied
-    # inside Topics (needed to remap the navtreeindex paths below).
+    # lives. We record rm_child_index (RM's position inside Topics) and
+    # remaining_count (how many children Topics has left), both needed below.
     ref_manual_node = None
     rm_child_index = None
     topics_js_path = None
-    topics_js_content = None
-    pending_writes = []  # (path, new_content) pairs, applied only on success
+    topics_js_content = None      # staged new content for topics.js, when kept
+    remaining_count = None
 
     if isinstance(topics_ref, list):
         for j, group in enumerate(topics_ref):
@@ -109,6 +115,7 @@ def fix_navtree(filepath):
                 ref_manual_node = topics_ref.pop(j)
                 rm_child_index = j
                 break
+        remaining_count = len(topics_ref)
     elif isinstance(topics_ref, str):
         topics_js_path = os.path.join(doc_dir, topics_ref + ".js")
         if os.path.exists(topics_js_path):
@@ -121,6 +128,7 @@ def fix_navtree(filepath):
                         ref_manual_node = topics_children.pop(j)
                         rm_child_index = j
                         break
+                remaining_count = len(topics_children)
                 topics_js_content = _splice(
                     topics_js_content, topics_js_match,
                     json.dumps(topics_children, separators=(',', ': ')))
@@ -134,45 +142,61 @@ def fix_navtree(filepath):
         print("Could not find 'Reference Manual' inside 'Topics'.")
         return
 
-    # Re-parent Reference Manual as a direct child of the root node, placed
-    # right before 'Topics'. 'Topics' and every tab after it shift down by one.
-    root_children.insert(topics_index, ref_manual_node)
+    # If Topics is now empty, drop it and let Reference Manual take its slot so
+    # every later tab keeps its index (and its navtreeindex paths stay valid).
+    # Otherwise keep Topics and insert Reference Manual just before it.
+    remove_topics = (remaining_count == 0)
+    topics_js_delete = False
+    if remove_topics:
+        root_children[topics_index] = ref_manual_node
+        if topics_js_path is not None:
+            topics_js_delete = True           # topics.js is now an orphan
+            topics_js_content = None
+    else:
+        root_children.insert(topics_index, ref_manual_node)
 
-    # Stage the file writes. navtreedata.js keeps everything except the NAVTREE
-    # array; topics.js keeps everything except the removed child.
-    pending_writes.append((filepath, _splice(
+    # Stage the file writes (applied only once everything succeeded).
+    pending_writes = [(filepath, _splice(
         navtree_content, navtree_match,
-        json.dumps(navtree, separators=(',', ': ')))))
-    if topics_js_path is not None and topics_js_content is not None:
+        json.dumps(navtree, separators=(',', ': '))))]
+    if topics_js_content is not None:         # only when Topics is kept + lazy-loaded
         pending_writes.append((topics_js_path, topics_js_content))
 
     # --- Rewrite the per-page tree paths in navtreeindex{0,1}.js so that    ---
     # --- panel synchronization keeps highlighting the current page.          ---
     #
-    # Before the move, Reference Manual was Topics's child rm_child_index, so
-    # every page in its subtree had a path [topics_index, rm_child_index, ...].
-    # It now sits at the root level at index topics_index, so those paths become
-    # [topics_index, ...] (one level shallower). 'Topics' itself and every later
-    # tab shifted down by one, so any path at or past topics_index that is not
-    # part of the Reference Manual subtree is incremented (and siblings of RM
-    # within the old Topics node are renumbered accordingly).
+    # Reference Manual was Topics's child rm_child_index, so every page in its
+    # subtree had a path [topics_index, rm_child_index, ...]; it now sits at the
+    # root level at index topics_index, so those become [topics_index, ...].
+    # When Topics is removed, the 'topics.html' entry (path [topics_index]) is
+    # dropped and every other path is unchanged. When Topics is kept, Topics and
+    # every later tab shift down by one instead.
     def remap_path(path):
-        if not path or path[0] < topics_index:
+        if not path:
             return path
-        if path[0] > topics_index:
+        if len(path) >= 2 and path[0] == topics_index and path[1] == rm_child_index:
+            return [topics_index] + path[2:]     # Reference Manual subtree
+        if remove_topics:
+            if len(path) == 1 and path[0] == topics_index:
+                return None                      # the 'Topics' node is gone
+            return path                          # later tabs keep their indices
+        if path[0] == topics_index:              # Topics itself or a sibling
+            return [topics_index + 1] + path[1:]
+        if path[0] > topics_index:               # a later tab
             return [path[0] + 1] + path[1:]
-        # path[0] == topics_index: Topics itself or one of its (former) children.
-        if len(path) == 1:
-            return [topics_index + 1]                       # Topics itself
-        if path[1] == rm_child_index:
-            return [topics_index] + path[2:]                # Reference Manual subtree
-        if path[1] > rm_child_index:                        # a later Topics sibling
-            return [topics_index + 1, path[1] - 1] + path[2:]
-        return [topics_index + 1] + path[1:]                # an earlier Topics sibling
+        return path
 
-    def rewrite_path(match):
-        ints = [int(x) for x in match.group(1).split(',') if x != '']
-        return '[' + ','.join(str(x) for x in remap_path(ints)) + ']'
+    # Match a whole `"url":[path],\n` entry so we can both rewrite the path and
+    # drop an entry entirely (when remap_path returns None).
+    entry_re = re.compile(r'"([^"]+)"\s*:\s*(\[[\d,]*\])(,?)[ \t]*\n?')
+
+    def rewrite_entry(match):
+        ints = json.loads(match.group(2))
+        new_path = remap_path(ints)
+        if new_path is None:
+            return ''                            # remove the entry
+        return '"%s":[%s]%s\n' % (
+            match.group(1), ','.join(str(x) for x in new_path), match.group(3))
 
     for name in ("navtreeindex0.js", "navtreeindex1.js"):
         idx_path = os.path.join(doc_dir, name)
@@ -180,15 +204,20 @@ def fix_navtree(filepath):
             continue
         with open(idx_path, 'r', encoding='utf-8') as f:
             idx_content = f.read()
-        idx_content = re.sub(r'\[([\d,]*)\]', rewrite_path, idx_content)
+        idx_content = entry_re.sub(rewrite_entry, idx_content)
         pending_writes.append((idx_path, idx_content))
 
-    # Apply all writes only once everything succeeded.
     for path, content in pending_writes:
         with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
+    if topics_js_delete and os.path.exists(topics_js_path):
+        os.remove(topics_js_path)
 
-    print("Successfully moved 'Reference Manual' to root level.")
+    if remove_topics:
+        print("Successfully moved 'Reference Manual' to root level "
+              "and removed the empty 'Topics' tab.")
+    else:
+        print("Successfully moved 'Reference Manual' to root level.")
 
 
 if __name__ == "__main__":

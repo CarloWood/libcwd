@@ -1,6 +1,5 @@
-<!-- This file determines the navigation tree structure and the order in which siblings appear in it -->
-
 @defgroup reference-manual Reference Manual
+@internal This file determines the navigation tree structure and the order in which siblings appear in it. @endinternal
 
 @defgroup reference-manual-getting-started Configuration, Installation And Getting Started
 @ingroup reference-manual
