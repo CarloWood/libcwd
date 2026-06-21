@@ -12,12 +12,15 @@ The main feature of Version 2 of this library is debug output. There is also sup
 
 @defgroup downloading Downloading
 @ingroup reference-manual-getting-started
+@brief Where to obtain the libcwd source code.
 
 @defgroup preparation Preparation
 @ingroup reference-manual-getting-started
+@brief Getting an application ready to use libcwd.
 
 @defgroup chapter_custom_debug_h The Custom debug.h File
 @ingroup reference-manual-getting-started
+@brief How to organize debug-channel namespaces, especially for libraries.
 
 @defgroup group_configuration Configuration Options And Macros
 @ingroup reference-manual-getting-started
@@ -25,6 +28,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 
 @defgroup chapter_environment Environment Variables
 @ingroup reference-manual-getting-started
+@brief Environment variables that affect libcwd's startup behavior and rcfile lookup.
 
   <!-- Writing Debug Output -->
 @defgroup reference-manual-writing-debug-output Writing Debug Output
@@ -33,9 +37,11 @@ The main feature of Version 2 of this library is debug output. There is also sup
 
 @defgroup book_writing_intro Introduction
 @ingroup reference-manual-writing-debug-output
+@brief Introduction to libcwd's ostream-based debug output.
 
 @defgroup page_why_macro Design Consideration Concerning Macros
 @ingroup book_writing_intro
+@brief Why `Dout` and friends are implemented as macros rather than inline functions.
 
 @defgroup group_destination Setting The Output Destination
 @ingroup reference-manual-writing-debug-output
@@ -47,10 +53,11 @@ The main feature of Version 2 of this library is debug output. There is also sup
 
 @defgroup chapter_custom_do Custom Debug Objects
 @ingroup group_debug_object
+@brief How to create additional debug objects, for writing to more than one ostream.
 
 @defgroup group_debug_channels Controlling The Output Level (Debug Channels)
 @ingroup reference-manual-writing-debug-output
-@brief Generated API reference for debug channels that can be turned on and off independently.
+@brief Controlling which debug output is emitted by toggling channels on and off.
 
 @defgroup group_default_dc Predefined Debug Channels
 @ingroup group_debug_channels
@@ -58,22 +65,23 @@ The main feature of Version 2 of this library is debug output. There is also sup
 
 @defgroup group_control_flags Control Flags
 @ingroup reference-manual-writing-debug-output
-@brief Generated API reference for flags that alter how a debug output statement is written.
+@brief Modifying the behavior of a single debug output statement.
 
 @defgroup group_formatting Format Of The Debug Output
 @ingroup reference-manual-writing-debug-output
-@brief Generated API reference for margins, markers, indentation, and other debug-output formatting helpers.
+@brief Customizing the layout of debug output (margins, markers, indentation).
 
 @defgroup group_fatal_output Fatal Debug Output
 @ingroup reference-manual-writing-debug-output
-@brief Generated API reference for output facilities that terminate the application after printing a fatal message.
+@brief Printing a fatal message and terminating the application.
 
 @defgroup chapter_nesting Nesting Debug Output
 @ingroup reference-manual-writing-debug-output
+@brief Keeping debug output readable when it is nested or split over several calls.
 
 @defgroup group_special Special Functions And Utilities
 @ingroup reference-manual-writing-debug-output
-@brief Generated API reference for miscellaneous runtime helpers used with libcwd debug output.
+@brief Miscellaneous helper functions and macros for debug output.
 
   <!-- Symbols Access And Interpretation -->
 @defgroup reference-manual-symbols Function Symbols, Types And Locations.
@@ -82,14 +90,15 @@ The main feature of Version 2 of this library is debug output. There is also sup
 
 @defgroup chapter_symbols_intro Introduction
 @ingroup reference-manual-symbols
+@brief Introduction to resolving addresses to function and source locations and demangled names.
 
 @defgroup group_locations Source-file:Line-number Information
 @ingroup reference-manual-symbols
-@brief Generated API reference for translating program locations to source-file and line-number information.
+@brief Translating a program address into its source file and line number.
 
 @defgroup group_type_info Getting Type Information Of Types And Symbols
 @ingroup reference-manual-symbols
-@brief Generated API reference for symbol, type, and demangling support.
+@brief Introspecting types and symbols, and demangling their names, at run time.
 
 @defgroup group_demangle demangle_type() and demangle_symbol()
 @ingroup group_type_info
@@ -97,6 +106,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 
 @defgroup group_function Function Objects
 @ingroup reference-manual-symbols
+@brief How to define, initialize, search, and label `Function` objects.
 
   <!-- Miscellaneous Runtime -->
 @defgroup reference-manual-runtime Miscellaneous Runtime
