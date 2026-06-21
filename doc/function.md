@@ -1,48 +1,48 @@
 @addtogroup group_function
 
-<h2>Defining and initializing <code>Function</code> objects</h2>
+## Defining and initializing `Function` objects
 
-<h4>Defining</h4>
+### Defining
 
-<code>Function</code> objects need to be defined as static or global objects
+`Function` objects need to be defined as static or global objects
 otherwise they will be re-initialized every time you call the
-<code>Function::init()</code> method.
+`Function::init()` method.
 
-\code
-Function f1;			// Global `Function' instance.
+```cpp
+Function f1;            // Global `Function' instance.
 
 void f()
 {
-  static Function f2;		// Static `Function' instance.
+  static Function f2;   // Static `Function' instance.
   f2.init();
 }
-\endcode
+```
 
-Each <code>Function</code> instance needs to be initialized at least once before
+Each `Function` instance needs to be initialized at least once before
 it can be used.  There are several ways to do this all of which
-use the overloaded <code>Function::init()</code> method.
+use the overloaded `Function::init()` method.
 
-When you try to use an uninitialized <code>Function</code> object,
+When you try to use an uninitialized `Function` object,
 the program will fail by default (exit with an error
 message).  If you don't want that then you can add a
 flag to its constructor:
 
-\code
+```cpp
 Function f1(Function::nofail);
-\endcode
+```
 
-<h4>Initializing</h4>
+### Initializing
 
-First of all, it is possible to assign the <em>current function</em> to
-a <code>Function</code> object like so:
+First of all, it is possible to assign the *current function* to
+a `Function` object like so:
 
-\code
+```cpp
 void f()
 {
-  f1.init();					// f1 represents the current function, f().
+  f1.init();            // f1 represents the current function, f().
   // ...
 }
-\endcode
+```
 
 If this function is a template function (or a method in
 a templated class) then it is possible that it covers
@@ -53,23 +53,23 @@ will lead to one instance per template function
 instantiation.
 
 In order to be able to refer to it later in that case
-you must use another <code>Function</code> to alias for
+you must use another `Function` to alias for
 the static instance:
 
-\code
+```cpp
 template<typename T>
-  void f(T const& a)
-  {
-    static Function sf;				// Do NOT call sf.init()!
-    f1.init(sf);				// f1 represents all `void f<T>(T const&)'
-    						//   template function instantiations that
-    // ...					//   have been called so far.
-  }
-\endcode
+void f(T const& a)
+{
+  static Function sf;   // Do NOT call sf.init()!
+  f1.init(sf);          // f1 represents all `void f<T>(T const&)'
+                        //   template function instantiations that
+  // ...                //   have been called so far.
+}
+```
 
-Note that in this case the <em>static</em> object must <b>not</b> be initialized!
+Note that in this case the *static* object must **not** be initialized!
 
-<h4>Searches</h4>
+### Searches
 
 If you need to refer to functions that are not called yet, or when
 those functions are part of third party libraries, then you'll need
@@ -83,42 +83,35 @@ put early in main() of course.  All of them will print
 debug output about what they are looking up and what they
 found.  By default they will fail when nothing is found.
 
-\code
-  f1.init(Function::regexp("^int g(.*)$"));	  // f1 represents all functions 'g' returning an int.
+```cpp
+  f1.init(Function::regexp("^int g(.*)$")); // f1 represents all functions 'g' returning an int.
 
-  f1.init(Function::exactmatch("int h()"));	  // f1 represents the function 'int h()'.
+  f1.init(Function::exactmatch("int h()")); // f1 represents the function 'int h()'.
 
   f1.init(Function::mangled("_ZTv0_n12_NSoD0Ev"); // Look up by mangled name (exact matches only).
-\endcode
+```
 
-The \c mangled lookup is the fastest.  It looks
-for both, C++ as well as C functions, so you could
-use it to look for C functions skipping the cpu
-intensive demangling that way.
-However, you can also specifically
-specify that the function you are looking for has
-C linkage by passing a flag to the search.
+The \c mangled lookup is the fastest.
+It looks for both, C++ as well as C functions, so you could use it to look for C functions skipping the cpu intensive demangling that way.
+However, you can also specifically specify that the function you are looking for has C linkage by passing a flag to the search.
 
 Flags are always the right-most parameter.
 
-\code
+```cpp
   f1.init(Function::regexp("malloc"), Function::c_linkage);
-\endcode
+```
 
-\c regexp and \c exactmatch look only for C++ functions
-by default.
+\c regexp and \c exactmatch look only for C++ functions by default.
 
-<h4>Labels</h4>
+### Labels
 
-It's possible to link an arbitrary
-<em>label</em> (an unsigned integer constant) to a \c Function object.
-This can be useful when you want to specifically mark
-a \c Function temporarily; you are allowed to reassign
-labels and/or remove the labels again.
+It's possible to link an arbitrary *label* (an unsigned integer constant) to a \c Function object.
+This can be useful when you want to specifically mark a \c Function temporarily;
+you are allowed to reassign labels and/or remove the labels again.
 
 For example,
 
-\code
+```cpp
 // Add this to debug.h.
 enum function_labels {
   f_x,
@@ -128,26 +121,23 @@ enum function_labels {
 // Elsewhere...
 void f()
 {
-  f1.init();					// f1 represents the current function
-  f1.label(f_x);				//   and assign the label f_x to it.
+  f1.init();            // f1 represents the current function
+  f1.label(f_x);        // and assign the label f_x to it.
 
   x();
 
-  f1.label(f_y);				// Change the label, setting it to f_y.
+  f1.label(f_y);        // Change the label, setting it to f_y.
 
   y();
 
   f1.rmlabel();
 }
-\endcode
+```
 
-Functions x() and y() can retrieve the label set on f1,
-and as such find out whether this function (f1) called x()
-or y().  This might be needed when for example x() also
-calls y().
+Functions `x()` and `y()` can retrieve the label set on `f1`,
+and as such find out whether this function (`f1`) called `x()` or `y()`.
+This might be needed when for example `x()` also calls `y()`.
 
-<b>Important</b>: The label is not removed when you exit function f()!
-You'll have to explicitely do so yourself if you want to
-keep track of the fact that the current function exited
-(otherwise subsequential calls to y() could think that it
-still was called from f()).
+**Important**: The label is not removed when you exit function `f()`!
+You'll have to explicitely do so yourself if you want to keep track of the fact that the current function exited
+(otherwise subsequential calls to `y()` could think that it still was called from `f()`).

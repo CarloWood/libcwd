@@ -60,6 +60,10 @@ PRE.example-output {
   font-size: var(--page-font-size);
 }
 
+.filename {
+  font-family: courier, monospace;
+}
+
 .about-example-output div.fragment .line,
 .about-example-output pre.fragment {
   font-family: Hack, "DejaVu Sans Mono", monospace !important;

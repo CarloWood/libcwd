@@ -24,9 +24,9 @@ The suffix field could become for example ":&nbsp;EAGAIN&nbsp;(Try&nbsp;again)\\
 
 @sa group_control_flags
 
-<b>Example:</b>
+**Example:**
 
-\code
+```cpp
 Debug( libcw_do.margin().assign("*** ", 4) );
 Debug( libcw_do.marker().assign(": | ", 4) );
 Dout(dc::notice, "This line is not indented");
@@ -34,7 +34,7 @@ Debug( libcw_do.set_indent(4) );
 Dout(dc::notice, "This line is indented 4 spaces");
 Debug( libcw_do.inc_indent(2) );
 Dout(dc::notice, "This line is indented 6 spaces");
-\endcode
+```
 
 Outputs
 

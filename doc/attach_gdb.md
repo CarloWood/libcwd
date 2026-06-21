@@ -1,16 +1,16 @@
 @addtogroup chapter_attach_gdb
 
-A running program can initiate a gdb session by calling the function <code>attach_gdb()</code>.
+A running program can initiate a gdb session by calling the function `attach_gdb()`.
 
 For example,
 
 ```cpp
 Debug(
-  if (counter == 31523 && ptr == (void*)0x40013fa0)	// When to start debugging?
+  if (counter == 31523 && ptr == (void*)0x40013fa0) // When to start debugging?
     attach_gdb();
 );
 
-ptr->foobar++;	// The debugging will start at this line.
+ptr->foobar++;  // The debugging will start at this line.
 ```
 
 The function `attach_gdb()` opens an xterm (or whatever is configured in the rcfile)

@@ -10,9 +10,11 @@ PROJECT_BRIEF          = "The C++ Debugging Support Library"
 OUTPUT_DIRECTORY       = .
 
 ALIASES                = "exampleoutput=\htmlonly<DIV class=example-output>\endhtmlonly" \
-                         endexampleoutput=\htmlonly</DIV>\endhtmlonly \
+                         "endexampleoutput=\htmlonly</DIV>\endhtmlonly" \
                          "shellcommand=\htmlonly<SPAN class=shell-command>\endhtmlonly" \
-                         endshellcommand=\htmlonly</SPAN>\endhtmlonly
+                         "endshellcommand=\htmlonly</SPAN>\endhtmlonly" \
+                         "filename=\htmlonly<SPAN class=filename>\endhtmlonly" \
+                         "endfilename=\htmlonly</SPAN>\endhtmlonly"
 
 MARKDOWN_SUPPORT       = YES
 TOC_INCLUDE_HEADINGS   = 5

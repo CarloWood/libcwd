@@ -1,75 +1,73 @@
 @addtogroup page_why_macro
 
 This page describes why we use a macro instead of an inline
-function for <CODE>Dout()</CODE>.
+function for `Dout()`.
 
-Good C++ code whenever possible, should not use macros but <CODE>inline</CODE> functions which
-have the advantage of type checking, overloading and easier debugging with a debugger.&nbsp;
-It is therefore a very relevant question to ask why a macro was used for <CODE>Dout()</CODE>.
+Good C++ code whenever possible, should not use macros but `inline` functions which
+have the advantage of type checking, overloading and easier debugging with a debugger.
+It is therefore a very relevant question to ask why a macro was used for `Dout()`.
 
 Using a macro has its advantages however:
 
-<OL>
-  <LI>It inlines the debug code even when we don't use optimization.
-  <LI>It allows us to use tricks that make the code run faster when debug code is included.
-  <LI>It allows us to omit variables in the program that are only used for debugging and which are written to a debug <CODE>ostream</CODE>.
-  <LI>It compiles faster when debugging is omitted.
-  <LI>No optimization is needed to really get rid of the debug code when debugging is omitted.
-</OL>
+* It inlines the debug code even when we don't use optimization.
+* It allows us to use tricks that make the code run faster when debug code is included.
+* It allows us to omit variables in the program that are only used for debugging and which are written to a debug `ostream`.
+* It compiles faster when debugging is omitted.
+* No optimization is needed to really get rid of the debug code when debugging is omitted.
 
-Points 1, 2 and 3 are the most important reasons that lead to the decision to use a macro.&nbsp;
-Please note that  the author of %libcwd used the alternative for <B>two years</B> before finally deciding
-to <B>rewrite</B> the debug facility, being convinced that it was better to do it the way it is done now.&nbsp;
+Points 1, 2 and 3 are the most important reasons that lead to the decision to use a macro.
+Please note that  the author of %libcwd used the alternative for **two years** before finally deciding
+to **rewrite** the debug facility, being convinced that it was better to do it the way it is done now.
 While points 4 and 5 are trivial, the first three advantages might need some explanation:
 
-1. Usually a developer won't use compiler optimization because that makes debugging harder.&nbsp;
+1. Usually a developer won't use compiler optimization because that makes debugging harder.
 In most cases the debug code will be compiled and used <em>without</em> compiler optimization; implying
-the fact that no inlining is done.&nbsp;
+the fact that no inlining is done.
 Moreover, we expect to use a lot of inserter operators and without
-optimization, each of these will be called.&nbsp;
+optimization, each of these will be called.
 [ Note that when omitting debug code we can't get rid of the content of all
-<CODE>%operator<<</CODE> functions because they might be used for
+`%operator<<` functions because they might be used for
 non-debug code too, so we'd need to use a trick and write to
-something else than an <CODE>ostream</CODE> (let's say to a class <CODE>no_dstream</CODE>).&nbsp;
-Each call to <CODE>template<class T> no_dstream %operator<<(T) { };</CODE> would actually be done(!),
+something else than an `ostream` (let's say to a class `no_dstream`).
+Each call to `template<class T> no_dstream %operator<<(T) { };` would actually be done(!),
 without inlining (point&nbsp;5&nbsp;above)&nbsp;].
 
 2. Let's develop step by step an example where we write debug output.
 
-Let's start with writing some example debug output to <CODE>cerr</CODE>.
+Let's start with writing some example debug output to `cerr`.
 
-\code
+```cpp
 std::cerr << "i = " << i << "; j = " << j << "; s = " << s << std::endl;
-\endcode
+```
 
-This line calls seven functions.&nbsp; If we want to save CPU time when we
-<B>don't</B> want to write this output, then we need to test
+This line calls seven functions. If we want to save CPU time when we
+**don't** want to write this output, then we need to test
 whether the debugging output (for this specific channel) is turned
-on or off <B>before</B> calling the <CODE>%operator<<()</CODE>'s.&nbsp;
+on or off **before** calling the `%operator<<()`'s.
 After all, such an operator call can use a lot of CPU time for arbitrary objects.
 
-We cannot pass <CODE>"i = " << i << "; j = " << j << "; s = " << s << std::endl</CODE>
-to an inline function without causing all <CODE>%operator<<</CODE>
-functions to be called.&nbsp;
-The only way, not using a macro, to achieve that no <CODE>%operator<<</CODE> is called is by not calling them
-in the first place: We can't write to an <CODE>ostream</CODE>.&nbsp;
-It is necessary to write to a new class (let's call that class <CODE>dstream</CODE>) which
+We cannot pass `"i = " << i << "; j = " << j << "; s = " << s << std::endl`
+to an inline function without causing all `%operator<<`
+functions to be called.
+The only way, not using a macro, to achieve that no `%operator<<` is called is by not calling them
+in the first place: We can't write to an `ostream`.
+It is necessary to write to a new class (let's call that class `dstream`) which
 checks if the debug channel we are writing to is turned on before
-calling the <CODE>ostream %operator<<()</CODE>:
+calling the `ostream %operator<<()`:
 
-\code
+```cpp
 template<class T>
-  inline dstream&
-  operator<<(dstream& ds, T const& data)
-  {
-    if (on)
-      std::cerr << data;
-  }
-\endcode
+inline dstream&
+operator<<(dstream& ds, T const& data)
+{
+  if (on)
+    std::cerr << data;
+}
+```
 
 Nevertheless, even with inlining (often requiring the highest level of optimization), most compilers would turn that into:
 
-\code
+```cpp
 if (on)
   std::cerr << "i = ";
 if (on)
@@ -84,35 +82,32 @@ if (on)
   std::cerr << s;
 if (on)
   std::cerr << std::endl;
-\endcode
+```
 
-checking <CODE>on</CODE> seven times.
+checking `on` seven times.
 
 With a macro we can easily achieve the best result, even without any optimization:
 
-\code
+```cpp
 if (on)
   std::cerr << "i = " << i << "; j = " << j << "; s = " << s << std::endl;
-\endcode
+```
 
-3. Sometimes a variable is specific to debug code and only being used for writing to a debug ostream.&nbsp;
-When the debug is omitted and inline functions are used for the <CODE>Dout()</CODE> calls, then these
-variables still need to exist: they are passed to the <CODE>Dout()</CODE>
-function (or actually, to the <CODE>no_dstream %operator<<()</CODE>'s).&nbsp;
+3. Sometimes a variable is specific to debug code and only being used for writing to a debug ostream.
+When the debug is omitted and inline functions are used for the `Dout()` calls, then these
+variables still need to exist: they are passed to the `Dout()`
+function (or actually, to the `no_dstream %operator<<()`'s).
 Using a macro allows one to really get rid of such variables by
-surrounding them with <CODE>\#ifdef CWDEBUG ... \#endif</CODE> preprocessor directives.
+surrounding them with `#ifdef CWDEBUG ... #endif` preprocessor directives.
 
 Example:
 
-\code
-  if (need_close)
-  {
-    Dout(dc::system|continued_cf, "close(" << __fd << ") = ");
-#ifdef CWDEBUG
-    int ret =
-#endif
-    ::close(__fd);
-    Dout(dc::finish|cond_error_cf(ret < 0), ret);
-    return false;
-  }
-\endcode
+```cpp
+if (need_close)
+{
+  Dout(dc::system|continued_cf, "close(" << __fd << ") = ");
+  [[maybe_unused]] int ret = ::close(__fd);
+  Dout(dc::finish|cond_error_cf(ret < 0), ret);
+  return false;
+}
+```

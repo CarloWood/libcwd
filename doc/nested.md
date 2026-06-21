@@ -4,7 +4,7 @@
 
 Consider the following code:
 
-\code
+```cpp
 int foobar() __attribute__ ((const));
 
 int foobar()
@@ -20,7 +20,7 @@ int main()
       << ", aint that nice?" );
   return foobar();
 }
-\endcode
+```
 
 This code would start a new debug message before the previous debug message is finished.&nbsp;
 Libcwd detects this and will output:
@@ -35,15 +35,15 @@ Note the indentation and the fact that the printing of the label KERNEL was dela
 
 \section using_continued Using continued_cf, dc::continued and dc::finish
 
-In the previous section <CODE>foobar()</CODE> was a const function: it didn't matter
+In the previous section `foobar()` was a const function: it didn't matter
 whether or not it was called for the functionality of the application.  But when
 it does matter, then one might want to do something like this:
 
-\code
+```cpp
 Dout( dc::kernel|flush_cf|continued_cf, "Generating tables... " );
 generate_tables();
 Dout( dc::finish, "done" );
-\endcode
+```
 
 If generate_tables() would not print debug messages, then the output will look like:
 
@@ -61,7 +61,7 @@ KERNEL: &lt;continued&gt; done</PRE>
 
 Finally, it is also possible to split a debug line into more than two parts by using the special dc::continued debug channel.
 
-\code
+```cpp
 Dout( dc::notice|flush_cf|continued_cf, "Generating tables." );
 for(int i = 0; i < 8; ++i)
 {
@@ -69,7 +69,7 @@ for(int i = 0; i < 8; ++i)
   Dout( dc::continued, '.' );
 }
 Dout( dc::finish, " done" );
-\endcode
+```
 
 When generate_table(i) doesn't print debug messages, then the output will look like:
 

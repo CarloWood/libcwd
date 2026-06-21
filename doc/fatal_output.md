@@ -1,34 +1,34 @@
 @addtogroup group_fatal_output
 
-Often an application needs to be terminated when a fatal error occurs (whether or not CWDEBUG
-is defined).&nbsp; Libcwd defines for these cases the macro DoutFatal.
+Often an application needs to be terminated when a fatal error occurs (whether or not `CWDEBUG` is defined).
+Libcwd defines for these cases the macro DoutFatal.
 
 This allows you to write
 
-\code
+```cpp
 if (error)
   DoutFatal(dc::core|error_cf, "An error occurred");
-\endcode
+```
 
 instead of the equivalent
 
-\code
+```cpp
 if (error)
 {
   Dout(dc::core|error_cf, "An error occurred");
   std::cerr << "An error occurred" << std::endl;
   exit(254);
 }
-\endcode
+```
 
 The big difference with Dout is that DoutFatal is not replaced with white space when
-the macro CWDEBUG is not defined.
+the macro `CWDEBUG` is not defined.
 
 There are two %debug %channels that can be used together with DoutFatal:
 \link libcwd::channels::dc::fatal dc::fatal \endlink and
-\link libcwd::channels::dc::core dc::core \endlink.&nbsp;
-The first terminates by calling <CODE>exit(254)</CODE>,
-the second terminates by raising SIGABORT, causing the application to core dump.
+\link libcwd::channels::dc::core dc::core \endlink.
+The first terminates by calling `exit(254)`,
+the second terminates by raising `SIGABORT`, causing the application to core dump.
 
 @sa @ref group_default_dc
  \n @ref group_control_flags

@@ -7,9 +7,9 @@ function names, source file names and line numbers.&nbsp;
 You can also print demangled names of any symbol or type, making
 the debug output better human readable.&nbsp;
 
-<b>Example 1: printing the location that a function was called from:</b>
+**Example 1: printing the location that a function was called from:**
 
-\code
+```cpp
 #ifdef CWDEBUG
 // Get the location that we were called from.
 libcwd::Location location((char*)__builtin_return_address(0)
@@ -20,14 +20,14 @@ libcwd::demangle_symbol(location.mangled_function_name(), demangled_function_nam
 // Print it.
 Dout(dc::notice, "This function was called from " << demangled_function_name << '(' << location << ')');
 #endif
-\endcode
+```
 
-<b>Example 2: Printing the demangled name of the current (template) function:</b>
+**Example 2: Printing the demangled name of the current (template) function:**
 
-\code
+```cpp
 // If we are in template Foo<TYPE>::f()
 Dout(dc::notice, "We are in Foo<" << type_info_of<TYPE>().demangled_name() << ">::f()");
-\endcode
+```
 
 Note that calling @ref libcwd::demangle_symbol costs cpu every time you call it, but using
 @ref libcwd::type_info_of<> does not cost any cpu: the demangling is done once, during the

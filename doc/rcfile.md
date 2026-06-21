@@ -1,47 +1,32 @@
 @addtogroup chapter_rcfile
 
-In order to use <code>\link chapter_attach_gdb attach_gdb() \endlink</code> and/or to read debug channel states
-from an external file, you should call <code>read_rcfile()</code>,
+In order to use \link chapter_attach_gdb attach_gdb() \endlink and/or to read debug channel states
+from an external file, you should call `read_rcfile()`,
 for example,
 
-\code
+```cpp
 int main()
 {
-  Debug( libcw_do.on() );		// In order to get RCFILE messages.
+  Debug( libcw_do.on() );       // In order to get RCFILE messages.
   Debug( read_rcfile() );
-\endcode
+```
 
-<code>read_rcfile()</code> can be used to turn on or off debug <em>channels</em>, but you still have to turn on the
-debug <em>object</em>(s); in particular the debug object <code>\link libcwd::libcw_do libcw_do \endlink</code>
+`read_rcfile()` can be used to turn on or off debug *channels*, but you still have to turn on the
+debug *object*(s); in particular the debug object \link libcwd::libcw_do libcw_do \endlink
 that is used to print WARNING messages in case something is wrong with your rcfile.
 
 The default rcfile is
-\htmlonly
-<SPAN class="filename">
-\endhtmlonly
-.libcwdrc
-\htmlonly
-</SPAN>
-\endhtmlonly
-(you can change that by setting
+\filename .libcwdrc \endfilename (you can change that by setting
 the environment variable \link chapter_environment LIBCWD_RCFILE_NAME \endlink
-).&nbsp;
-The application will first attempt to read this file from the <em>current directory</em>.&nbsp;
-If that fails then it will try to read the rcfile from the users <em>home directory</em>.&nbsp;
-If that fails too then it will fall back to reading
-\htmlonly
-<SPAN class="filename">
-\endhtmlonly
-<install-prefix>/share/libcwd/libcwdrc
-\htmlonly
-</SPAN>
-\endhtmlonly
-.&nbsp;
-You can use the latter as a template and/or \htmlonly<A HREF="../external/libcwdrc">\endhtmlonly
-example\htmlonly</A>\endhtmlonly\n
+).
+The application will first attempt to read this file from the *current directory*.
+If that fails then it will try to read the rcfile from the users *home directory*.
+If that fails too then it will fall back to reading \filename ${CMAKE_INSTALL_DATADIR}/libcwd \endfilename.
+You can use the latter as a template and/or
+\htmlonly<A HREF="../external/libcwdrc">\endhtmlonly example\htmlonly</A>\endhtmlonly
 file for writing your own rcfile.
 
 If the environment variable \link chapter_environment LIBCWD_RCFILE_OVERRIDE_NAME \endlink
 is set, it will be read after the above file where any setting overwrites a previous one.
-Using <code>channels_on</code> even once, in this file, will reset all previously turned on channels,
-although additional <code>channels_on</code> lines accumulate again.
+Using `channels_on` even once, in this file, will reset all previously turned on channels,
+although additional `channels_on` lines accumulate again.
