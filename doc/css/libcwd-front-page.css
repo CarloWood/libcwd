@@ -42,6 +42,24 @@ span.tt em,
   white-space: nowrap;
 }
 
+/* Styling for the \exampleoutput and \shellcommand Doxygen aliases defined in
+   doxygen.config.in. Restored from the legacy doc/styles/main.css, with the
+   defines.h macros resolved: FOREGROUND_COLOR_EXAMPLE -> #2323DC,
+   BACKGROUND_COLOR_EXAMPLE -> inherit, NORMAL_SIZE -> the page body size. */
+.example-output {
+  color: #2323DC;
+  background-color: inherit;
+}
+
+PRE.example-output {
+  margin-left: 30px;
+}
+
+.shell-command {
+  font-family: fixed, monospace;
+  font-size: var(--page-font-size);
+}
+
 .about-example-output div.fragment .line,
 .about-example-output pre.fragment {
   font-family: Hack, "DejaVu Sans Mono", monospace !important;
