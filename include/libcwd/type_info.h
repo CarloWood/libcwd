@@ -47,7 +47,7 @@ size_t sizeof_ref_v = sizeof_ref<T>::value;
 } // namespace _private_
 
 /**
- * \brief Class that holds type information for debugging purposes.&nbsp;
+ * \brief Class that holds type information for debugging purposes.
  * Returned by type_info_of().
  * \ingroup group_type_info
  */
@@ -272,15 +272,15 @@ inline TypeInfo const& type_info_of(T const&);
  * This specialization allows to specify a type without an object
  * (for example by calling: <CODE>type_info_of<int const>()</CODE>).
  *
- * As it doesn't ignore top-level qualifiers it is best suited to print for example template parameters.&nbsp;
+ * As it doesn't ignore top-level qualifiers it is best suited to print for example template parameters.
  * For example,
- * \code
+ * ```cpp
  * template<typename T>
- *   void Foo::func(T const&)
- *   {
- *     Dout(dc::notice, "Calling Foo::func(" << type_info_of<T const&>().demangled_name() << ')');
- *   }
- * \endcode
+ * void Foo::func(T const&)
+ * {
+ *   Dout(dc::notice, "Calling Foo::func(" << type_info_of<T const&>().demangled_name() << ')');
+ * }
+ * ```
  */
 template <typename T>
 inline TypeInfo const& type_info_of()

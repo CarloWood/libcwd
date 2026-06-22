@@ -13,7 +13,7 @@ namespace libcwd {
 /**
  * \brief Construct a new %debug channel with name \a label.
  *
- * A newly created channel is off by default (except \ref libcwd::channels::dc::warning "dc::warning").&nbsp;
+ * A newly created channel is off by default (except \ref libcwd::channels::dc::warning "dc::warning").
  * All channel objects must be global objects.
  *
  * \sa \ref chapter_custom_debug_h

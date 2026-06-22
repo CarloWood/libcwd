@@ -272,9 +272,9 @@ Channel warning
 
 /** A special channel that is always turned on.
  *
- * This channel is <EM>%always</EM> on;
- * it can not be turned off.&nbsp;
- * It is not in the list of \ref ForAllDebugChannels "debug channels".&nbsp;
+ * This channel is *%always* on;
+ * it can not be turned off.
+ * It is not in the list of \ref ForAllDebugChannels "debug channels".
  * When used with a label it will print as many '>'
  * characters as the size of the largest real channel.
  */
@@ -680,19 +680,19 @@ alignas(OutputState) static unsigned char WST_dummy_output_state[sizeof(OutputSt
  *
  * \brief Dump core of current thread.
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * Debug( core_dump() );
- * \endcode
+ * ```
  *
- * Normally you don't call <code>core_dump()</code> directly though.
+ * Normally you don't call `core_dump()` directly though.
  * Instead you'd do for example:
  *
- * \code
+ * ```cpp
  * if (error_condition)
  *   DoutFatal(dc::core, "Something went wrong");
- * \endcode
+ * ```
  */
 [[noreturn]] void core_dump()
 {
@@ -1317,8 +1317,8 @@ DebugObject_ThreadSpecificData::~DebugObject_ThreadSpecificData()
  * \brief Find %debug channel with label \a label.
  *
  * \return A pointer to the %debug channel object whose name starts with \a label.
- * &nbsp;If there is more than one such %debug %channel, the object with the lexicographically
- * largest name is returned.&nbsp; When no %debug channel could be found, NULL is returned.
+ * If there is more than one such %debug %channel, the object with the lexicographically
+ * largest name is returned. When no %debug channel could be found, NULL is returned.
  */
 Channel* find_channel(char const* label)
 {
@@ -1333,11 +1333,11 @@ Channel* find_channel(char const* label)
  *
  * \brief List all %debug %channels to a given %debug object.
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * Dout( list_channels_on(libcw_do) );   // libcw_do is the (default) debug object of libcwd.
- * \endcode
+ * ```
  *
  * Example of output:
  *

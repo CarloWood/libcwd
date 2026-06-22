@@ -1,6 +1,6 @@
 @addtogroup chapter_nesting
 
-\section section_nesting_calling Calling functions inside Dout
+@section section_nesting_calling Calling functions inside Dout
 
 Consider the following code:
 
@@ -33,7 +33,7 @@ KERNEL: The value of foobar() = 2, aint that nice?</PRE>
 
 Note the indentation and the fact that the printing of the label KERNEL was delayed.
 
-\section using_continued Using continued_cf, dc::continued and dc::finish
+@section using_continued Using continued_cf, dc::continued and dc::finish
 
 In the previous section `foobar()` was a const function: it didn't matter
 whether or not it was called for the functionality of the application.  But when

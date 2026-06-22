@@ -1,25 +1,25 @@
 @addtogroup chapter_custom_debug_h
 
-\section debug_channels_and_namespace Debug channels and namespace
+@section debug_channels_and_namespace Debug channels and namespace
 
-\subsection applications Applications
+@subsection applications Applications
 
 User applications have less strict requirements than libraries, because nobody else will link with it.
 The developer of an application directly controls and checks and resolves name collisions when needed.
 If you are writing an end-application then you are still urged to create a header file
-called %debug.h and use \em that in your source files, instead of including <libcwd/debug.h> directly.
+called %debug.h and use *that* in your source files, instead of including `<libcwd/debug.h>` directly.
 You will benefit greatly from this in terms on flexibility (trust me).
 
 @sa @ref preparation
 
-\subsection libraries Libraries
+@subsection libraries Libraries
 
 If you are developing a library that uses libcwd then do not put your debug channels in the
 libcwd::channels::dc namespace.
 The correct way to declare new debug channels is by putting them in a namespace of the library itself.
 Also end-applications will benefit by using this method (in terms of flexibility).
 
-The following code would define a debug channel \c warp in the namespace \c libexample:
+The following code would define a debug channel `warp` in the namespace `libexample`:
 
 ```cpp
 // This is some .cpp file of your library.
@@ -84,7 +84,7 @@ extern libcwd::Channel warp;
 ```
 
 The second "debug.h", which would not be installed but only be included when compiling
-the .cpp files (that \#include "debug.h") of your library itself, then looks like this:
+the .cpp files (that `#include "debug.h"`) of your library itself, then looks like this:
 
 \htmlonly
 <div class="fragment">
@@ -112,13 +112,13 @@ include nodebug.h
 </div>
 \endhtmlonly
 
-\subsection header_files_of_libraries Header files of libraries
+@subsection header_files_of_libraries Header files of libraries
 
 Don't use Dout etc. in header files of libraries, instead use (for example) LibExampleDout etc., as shown above.
-If you want to use Dout etc. in your \em source files then you can do so
-after first including the "debug.h" as shown above.
+If you want to use Dout etc. in your *source* files then you can do so
+after first including the `"debug.h"` as shown above.
 
-\subsection debug_channel_name_collisions Debug channel name collisions
+@subsection debug_channel_name_collisions Debug channel name collisions
 
 The reason that libcwd uses the convention to put debug channels in the namespace dc
 is to avoid collisions between debug channel names of libraries.
@@ -150,10 +150,10 @@ static libcwd::Channel& foobar2(lib2::channels::dc::foobar);
 The hiding mechanism of the above "cascading" of debug channel declarations of libraries works as follows.
 The debug macros use a using-directive to include the scope `LIBCWD_DEBUGCHANNELS`, which is set to `DEBUGCHANNELS`
 if you defined that and to `libcwd::channels` otherwise.
-All debug channels are specified as `dc::channelname` in the source code and the namespace \c dc will
+All debug channels are specified as `dc::channelname` in the source code and the `namespace dc` will
 be uniquely defined.
-For instance, in the case of the above example, when writing `dc::%notice` the \c dc will be unambiguously
-resolved to `application::debug::channels::dc`, because it is the only \c dc name space in LIBCWD_DEBUGCHANNELS
+For instance, in the case of the above example, when writing `dc::%notice` the `dc` will be unambiguously
+resolved to `application::debug::channels::dc`, because it is the only `dc` namespace in `LIBCWD_DEBUGCHANNELS`
 (`application::debug::channels`).
 The C++ standard states: "During the lookup of a name qualified by a namespace name, declarations that would otherwise be made
 visible by a using-directive can be hidden by declarations with the same name in the namespace containing the using-directive;".

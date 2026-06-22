@@ -48,11 +48,11 @@ extern char const* const unknown_function_c;
  * \class Location Location.h libcwd/debug.h
  * \brief A source file location.
  *
- * The normal usage of this class is to print file-name:line-number information as follows:
- * \code
+ * The normal usage of this class is to print *source-name*:*line-number* information as follows:
+ * ```cpp
  * Dout(dc::notice, "Called from " <<
  *     Location((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset) );
- * \endcode
+ * ```
  */
 class Location
 {
@@ -61,7 +61,7 @@ class Location
                                            //!< location belongs to or NULL when not initialized.
   char const* function_name_; //!< Pointer to static string containing the mangled function name of this location.
   lockable_auto_ptr<char, true>
-      filepath_; //!< The full source file name of this location.&nbsp; Allocated in `pc_location' using new [].
+      filepath_; //!< The full source file name of this location. Allocated in `pc_location' using new [].
   union
   {
     char const* filename_; //!< Points inside filepath_ just after the last '/' or to the beginning.
@@ -145,7 +145,7 @@ class Location
  public:
   // Accessors
   /**
-   * \brief Returns <CODE>false</CODE> if no source-file:line-number information is known for this location
+   * \brief Returns <CODE>false</CODE> if no *source-file*:*line-number* information is known for this location
    * (or when it is uninitialized or clear()-ed).
    */
   bool is_known() const;

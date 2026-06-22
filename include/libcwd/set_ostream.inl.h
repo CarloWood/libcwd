@@ -14,15 +14,15 @@ namespace libcwd {
  * \brief Set output device and provide external lock.
  * \ingroup group_destination
  *
- * Assign a new \c ostream to this %debug object.&nbsp;
+ * Assign a new \c ostream to this %debug object.
  * The \c ostream will only be written to after obtaining the lock
  * that is passed as second argument.  Each \c ostream needs to have
- * a unique lock.&nbsp; If the application also writes directly
+ * a unique lock. If the application also writes directly
  * to the same \c ostream then use the same lock.
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * MyLock lock;
  *
  * // Uses MyLock::lock(), MyLock::try_lock() and MyLock::unlock().
@@ -31,7 +31,7 @@ namespace libcwd {
  * lock.lock();
  * std::cerr << "The application uses cerr too\n";
  * lock.unlock();
- * \endcode
+ * ```
  */
 template <class T>
 void DebugObject::set_ostream(std::ostream* os, T* mutex)

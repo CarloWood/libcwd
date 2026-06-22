@@ -5,7 +5,7 @@
 \addtogroup group_demangle demangle_type() and demangle_symbol()
 \ingroup group_type_info
 
-Libcwd comes with its own demangler functions.&nbsp;
+Libcwd comes with its own demangler functions.
 
 demangle_type() writes the \em mangled type name \p input
 to the string \p output; \p input should be the mangled name

@@ -91,7 +91,7 @@ f1.init(Function::exactmatch("int h()")); // f1 represents the function 'int h()
 f1.init(Function::mangled("_ZTv0_n12_NSoD0Ev"); // Look up by mangled name (exact matches only).
 ```
 
-The \c mangled lookup is the fastest.
+The `mangled` lookup is the fastest.
 It looks for both, C++ as well as C functions, so you could use it to look for C functions skipping the cpu intensive demangling that way.
 However, you can also specifically specify that the function you are looking for has C linkage by passing a flag to the search.
 
@@ -101,12 +101,12 @@ Flags are always the right-most parameter.
 f1.init(Function::regexp("malloc"), Function::c_linkage);
 ```
 
-\c regexp and \c exactmatch look only for C++ functions by default.
+`regexp` and `exactmatch` look only for C++ functions by default.
 
 ### Labels
 
-It's possible to link an arbitrary *label* (an unsigned integer constant) to a \c Function object.
-This can be useful when you want to specifically mark a \c Function temporarily;
+It's possible to link an arbitrary *label* (an unsigned integer constant) to a `Function` object.
+This can be useful when you want to specifically mark a `Function` temporarily;
 you are allowed to reassign labels and/or remove the labels again.
 
 For example,

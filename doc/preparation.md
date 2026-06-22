@@ -13,7 +13,7 @@ INSTALL\htmlonly</A> \endhtmlonly
 file that is included in the source distribution.<BR>
 See also: @ref group_configuration
 
-\anchor preparation_step2
+@anchor preparation_step2
 # Step 2: Creating the custom header files {#header_files}
 
 You need to add two custom header files to your application.<BR>
@@ -21,12 +21,12 @@ The recommended names are `"%debug.h"` and `"%sys.h"`.
 
 You can use the following templates for a quick start:
 
-\par sys.h example template
-\include "external/sys.h"
+@par sys.h example template
+@include "external/sys.h"
 \htmlonly &laquo;<A HREF="external/sys.h">download</A>&raquo;\endhtmlonly
 
-\par debug.h example template
-\include "external/debug.h"
+@par debug.h example template
+@include "external/debug.h"
 \htmlonly &laquo;<A HREF="external/debug.h">download</A>&raquo;\endhtmlonly
 
 This %debug.h file is for applications; for more detailed information and for information
@@ -34,13 +34,13 @@ for library developers who want to use libcwd, please also read @ref chapter_cus
 
 # Step 3: Adding the cwds submodule {#cwds_submodule}
 
-Add the git submodule `cwds` in the root of your project.&nbsp;
+Add the git submodule `cwds` in the root of your project.
 See the \htmlonly<A HREF="https://github.com/CarloWood/cwds#adding-the-cwds-submodule-to-a-project">cwds setup instructions</A>\endhtmlonly
 \latexonly cwds setup instructions\endlatexonly for the exact commands.
 
 If you added one or more custom %debug %channels to your namespace
 `DEBUGCHANNELS` in your custom "debug.h", then define those
-channels in one of your project source files.&nbsp; The initialization code
+channels in one of your project source files. The initialization code
 at the top of main then looks like:
 
 ```cpp

@@ -7,7 +7,7 @@
  *
  * \brief This is the main header file of libcwd.
  *
- * Don't include this header file directly.&nbsp;
+ * Don't include this header file directly.
  * Instead use a \link chapter_custom_debug_h custom debug.h \endlink header file that includes this file,
  * that will allow others to compile your application without having libcwd installed.
  */
@@ -80,7 +80,7 @@
 /**
  * \brief The namespace containing the current %debug %channels (dc) namespace.
  *
- * This macro is internally used by libcwd macros to include the chosen set of %debug %channels.&nbsp;
+ * This macro is internally used by libcwd macros to include the chosen set of %debug %channels.
  * For details please read section \ref chapter_custom_debug_h.
  */
 #define DEBUGCHANNELS
@@ -98,9 +98,9 @@
  * use the the full scopes for debug channels and utility functions provided by
  * libcwd.
  *
- * <b>Examples:</b>
+ * **Examples:**
  *
- * \code
+ * ```cpp
  * Debug(main_reached());			        // Must be called at the top of main. Does configuration
  * consistency check. Debug( dc::notice.on() );		// Switch debug channel NOTICE on.
  * Debug(libcw_do.on() );				// Turn all debugging temporally off.
@@ -109,7 +109,7 @@
  * Debug(libcw_do.set_ostream(&std::cout, &mutex));	// use `mutex' as lock for std::cout.
  * Debug(libcw_do.inc_indent(4));			// Increment indentation by 4 spaces.
  * Debug(libcw_do.get_ostream()->flush());		// Flush the current debug output stream.
- * \endcode
+ * ```
  */
 #define Debug(STATEMENTS...) LibcwDebug(LIBCWD_DEBUGCHANNELS, STATEMENTS)
 
@@ -118,12 +118,12 @@
  * \brief Macro for writing %debug output.
  *
  * This macro is used for writing %debug output to the default %debug object
- * \link libcwd::libcw_do libcw_do \endlink.&nbsp;
+ * \link libcwd::libcw_do libcw_do \endlink.
  * No code is generated when the macro CWDEBUG is not defined, in that case the macro
  * Dout is replaced by white space.
  *
- * The macro \ref Dout uses libcwds debug object \link libcwd::libcw_do libcw_do \endlink.&nbsp;
- * You will have to define your own macro when you want to use a second debug object.&nbsp;
+ * The macro \ref Dout uses libcwds debug object \link libcwd::libcw_do libcw_do \endlink.
+ * You will have to define your own macro when you want to use a second debug object.
  * Read chapter \ref page_why_macro for an explanation of why a macro was used instead of an inline function.
  *
  * \sa \ref group_control_flags
@@ -132,13 +132,13 @@
  *  \n \link chapter_custom_do Defining your own debug objects \endlink
  *  \n \ref chapter_nesting "Nested debug calls"
  *
- * <b>Examples:</b>
+ * **Examples:**
  *
- * \code
+ * ```cpp
  * Dout(dc::notice, "Hello World");
  * Dout(dc::warning, "Out of memory in function " << func_name);
  * Dout(dc::notice|blank_label_cf, "The content of the object is: " << std::hex << obj);
- * \endcode
+ * ```
  */
 #define Dout(cntrl, ...) LibcwDout(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
@@ -161,16 +161,16 @@
  *
  * For example,
  *
- * \code
+ * ```cpp
  * ForAllDebugChannels(while (!debugChannel.is_on()) debugChannel.on());
- * \endcode
+ * ```
  *
- * which turns all %channels on.&nbsp;
+ * which turns all %channels on.
  * And
  *
- * \code
+ * ```cpp
  * ForAllDebugChannels(if (debugChannel.is_on()) debugChannel.off());
- * \endcode
+ * ```
  *
  * which turns all channels off.
  */
@@ -186,9 +186,9 @@
  *
  * For example,
  *
- * \code
+ * ```cpp
  * ForAllDebugObjects(debugObject.set_ostream(&std::cerr, &cerr_mutex));
- * \endcode
+ * ```
  *
  * would set the output stream of all %debug objects to <CODE>std::cerr</CODE>.
  */

@@ -102,7 +102,7 @@ struct OstreamState
  * \class DebugObject debug.h libcwd/debug.h
  * \ingroup group_debug_object
  *
- * \brief The %Debug Object class, this object represents one output device (<code>ostream</code>).
+ * \brief The %Debug Object class, this object represents one output device (`ostream`).
  *
  * See \ref group_debug_object.
  */
@@ -163,7 +163,7 @@ class DebugObject
   /**
    * \brief Colorization code
    *
-   * This is printed before the margin.&nbsp;
+   * This is printed before the margin.
    * The color_on string can be manipulated directly using the methods of class DebugString.
    */
   DebugString& color_on();
@@ -172,7 +172,7 @@ class DebugObject
   /**
    * \brief Turn colorization off
    *
-   * This is printed before the newline.&nbsp;
+   * This is printed before the newline.
    * The color_off string can be manipulated directly using the methods of class DebugString.
    */
   DebugString& color_off();
@@ -181,7 +181,7 @@ class DebugObject
   /**
    * \brief The margin
    *
-   * This is printed before the label.&nbsp;
+   * This is printed before the label.
    * The margin can be manipulated directly using the methods of class DebugString.
    *
    * \sa push_margin()
@@ -193,7 +193,7 @@ class DebugObject
   /**
    * \brief The marker
    *
-   * This is printed after the label.&nbsp;
+   * This is printed after the label.
    * The marker can be manipulated directly using the methods of class DebugString.
    *
    * \sa push_marker()

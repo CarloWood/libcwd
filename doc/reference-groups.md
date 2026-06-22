@@ -1,6 +1,6 @@
 @defgroup reference-manual Reference Manual
 
-The main feature of Version 2 of this library is debug output. There is also support for locations (filename:line-number). As a first-time user, you should read the **Tutorial**, whereas this reference manual is intended to refresh your mind. Nevertheless, it also has a section on **Getting Started** with an overview of prerequisites and configuration options.
+The main feature of Version 2 of this library is debug output. There is also support for locations (*source-file*:*line-number*). As a first-time user, you should read the **Tutorial**, whereas this reference manual is intended to refresh your mind. Nevertheless, it also has a section on **Getting Started** with an overview of prerequisites and configuration options.
 
 @internal This file determines the navigation tree structure and the order in which siblings appear in it. @endinternal
 <!-- Reference Manual -->

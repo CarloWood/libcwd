@@ -24,9 +24,9 @@ class Channel;
  *
  * \brief This object represents a runtime configuration file.
  *
- * Libcwd contains one object of this type, <code>libcwd::rcfile</code>.
+ * Libcwd contains one object of this type, `libcwd::rcfile`.
  * This is the object that is used by
- * <code>\link libcwd::read_rcfile read_rcfile() \endlink</code>.
+ * <span class="tt">@link libcwd::read_rcfile read_rcfile()@endlink</span>.
  */
 class RcFile
 {
@@ -91,7 +91,7 @@ class RcFile
    * By using this class as a base and overriding this function
    * it is possible to extend the keywords that are recognized.
    *
-   * This function should return \c true when the keyword is <em>not</em> handled.
+   * This function should return \c true when the keyword is *not* handled.
    * The default behaviour is to always return \c true.
    */
   virtual bool unknown_keyword(std::string const& keyword, std::string const& value);

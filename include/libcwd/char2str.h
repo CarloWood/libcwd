@@ -30,13 +30,13 @@ namespace libcwd {
  *
  * \sa libcwd::buf2str
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * char c = '\f';
  *
  * Dout(dc::notice, "The variable c contains: '" << char2str(c) << '\'');
- * \endcode
+ * ```
  */
 
 class char2str

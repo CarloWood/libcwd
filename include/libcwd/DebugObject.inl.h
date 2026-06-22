@@ -246,15 +246,15 @@ inline void DebugObject::off()
  * Calls to off() and on() has to be done in pairs (first off() then on()).
  * These pairs can be nested.
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * int i = 0;
  * Debug( libcw_do.off() );
  * Dout( dc::notice, "Adding one to " << i++ );
  * Debug( libcw_do.on() );
  * Dout( dc::notice, "i == " << i );
- * \endcode
+ * ```
  *
  * Outputs:
  *
@@ -295,13 +295,13 @@ inline void DebugObject::always_flush_on()
  * Calls to always_flush_on() and always_flush_off() has to be done in pairs (first on() then off()).
  * These pairs can be nested.
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * Debug( libcw_do.always_flush_on() );
  * Dout( dc::notice, "This is flushed.");
  * Debug( libcw_do.always_flush_off() );
- * \endcode
+ * ```
  */
 inline void DebugObject::always_flush_off()
 {

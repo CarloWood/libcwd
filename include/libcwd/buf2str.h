@@ -37,14 +37,14 @@ namespace libcwd {
  *
  * \sa libcwd::char2str
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * char const* buf = "\e[31m;Hello\e[0m;\n";
  * size_t size = strlen(buf);
  *
  * Dout(dc::notice, "The buffer contains: \"" << buf2str(buf, size) << '"');
- * \endcode
+ * ```
  */
 
 class buf2str
@@ -59,11 +59,11 @@ class buf2str
 
 #if __cpp_concepts >= 201907L
   //! Construct \c buf2str object from an object that has data() and size() member functions.
-  template <typename T>
-    requires requires(T const& t) {
-      { t.data() } -> std::convertible_to<char const*>;
-      { t.size() } -> std::convertible_to<size_t>;
-    }
+  template<typename T>
+  requires requires(T const& t) {
+    { t.data() } -> std::convertible_to<char const*>;
+    { t.size() } -> std::convertible_to<size_t>;
+  }
   buf2str(T const& view) : buf_(view.data()), size_(view.size())
   {
   }

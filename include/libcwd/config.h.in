@@ -23,26 +23,26 @@
 //
 
 /**
- * \addtogroup group_configuration Configuration Options And Macros
+ * \addtogroup group_configuration
  *
- * Libcwd uses CMake for configuration.&nbsp;
+ * Libcwd uses CMake for configuration.
  * You can list cached options with \shellcommand cmake -LAH <build-dir> \endshellcommand.
  *
- * This section describes the CMake options specific to libcwd.&nbsp;
+ * This section describes the CMake options specific to libcwd.
  * The name of the macros that are related to the respective features are given between parenthesis after the
- * option.&nbsp; You can not define these macros yourself, you may only use them in an <CODE>\#if ... \#endif</CODE>
- * test.&nbsp; The macros are always defined; when the corresponding CMake option was enabled then the macro is defined
- * to <code>1</code>, otherwise it is defined to 0.&nbsp; This makes it possible for the compiler to warn you when you
+ * option. You can not define these macros yourself, you may only use them in an `#if ... #endif`
+ * test. The macros are always defined; when the corresponding CMake option was enabled then the macro is defined
+ * to `1`, otherwise it is defined to 0. This makes it possible for the compiler to warn you when you
  * made a typo in the name of a macro.
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * // Use '#if' not '#ifdef'.
  * #if CWDEBUG_LOCATION
  * Dout(dc::notice, "Called from " << libcwd::Location(__builtin_return_address(0)));
  * #endif
- * \endcode
+ * ```
  */
 
 /** \defgroup enable_glibcxx_debug --enable-glibcxx_debug (CWDEBUG_GLIBCXX_DEBUG)
@@ -79,7 +79,7 @@
  *
  * \par Description
  *
- * Adds code that supports source-file:line-number lookup.&nbsp;
+ * Adds code that supports *source-file*:*line-number* lookup.
  * This will load debugging symbols at the start of a program allowing
  * one to print source file / line number information.<BR><BR>
  * It provides an interface, allowing applications that link
@@ -92,7 +92,7 @@
  *
  * \par CMake option
  *
- * This is enabled by default.&nbsp;
+ * This is enabled by default.
  * Use \shellcommand cmake -DEnableLibcwdLocation=OFF ... \endshellcommand to disable it.
  *
  * \sa \ref group_locations
@@ -105,7 +105,7 @@
  *
  * \par Description
  *
- * Turns on internal consistency checks of libcwd.&nbsp;
+ * Turns on internal consistency checks of libcwd.
  * The use of these checks can slow down libcwd and are mainly intended for the maintainer of libcwd.
  *
  * \par When to use it
@@ -114,7 +114,7 @@
  *
  * \par Configure option
  *
- * This is disabled by default.&nbsp;
+ * This is disabled by default.
  * Use \shellcommand cmake -DEnableLibcwdDebug=ON ... \endshellcommand to enable it.
  */
 
@@ -126,7 +126,7 @@
  * \par Description
  *
  * When \ref enable_debug is enabled, this turns on a lot of extra debugging
- * output concerning the internal state of libcwd.&nbsp;
+ * output concerning the internal state of libcwd.
  * This will not be usefull to you unless you manage to let the program
  * coredump even before it reaches main().
  *
@@ -136,7 +136,7 @@
  *
  * \par CMake option
  *
- * This is disabled by default.&nbsp;
+ * This is disabled by default.
  * Use \shellcommand cmake -DEnableLibcwdDebug=ON -DEnableLibcwdDebugOutput=ON ... \endshellcommand to enable it.
  */
 
@@ -156,7 +156,7 @@
  *
  * \par Description
  *
- * Turns on extra diagnostics related to libcwds threading critical areas.&nbsp;
+ * Turns on extra diagnostics related to libcwds threading critical areas.
  * The checks are intended for developers who are changing internal locking or thread-lifetime code.
  *
  * \par When to use it
@@ -166,7 +166,7 @@
  *
  * \par CMake option
  *
- * This is disabled by default.&nbsp;
+ * This is disabled by default.
  * Use \shellcommand cmake -DEnableLibcwdDebug=ON -DEnableLibcwdDebugt=ON ... \endshellcommand to enable it.
  */
 
@@ -205,12 +205,12 @@ extern void internal_main_reached();
  * \brief Check if the linked library belongs to the header files being used.
  *
  * In order to be sure that the libcwd header files that are being used
- * belong to the libcwd.so shared object that the application linked with,
- * add the following line to the beginning of <CODE>main()</CODE>:
+ * belong to the \filename libcwd.so \endfilename shared object that the application linked with,
+ * add the following line to the beginning of `main()`:
  *
- * \code
+ * ```cpp
  * Debug(main_reached());
- * \endcode
+ * ```
  */
 inline void main_reached()
 {

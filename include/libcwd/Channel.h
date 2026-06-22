@@ -32,21 +32,21 @@ struct ChannelSetsWat;
  * A debug channel can be viewed upon as a single bit: on or off.
  *
  * Whenever %debug output is written, one or more %debug %channels must be specified (as first
- * parameter of the \ref Dout macro).&nbsp;
+ * parameter of the \ref Dout macro).
  * The %debug output is then written to the \link group_destination ostream \endlink of the
  * \link DebugObject debug object \endlink unless the %debug object
- * is turned off or when all specified %debug %channels are off.&nbsp;
- * Each %debug channel can be turned on and off independently.&nbsp;
+ * is turned off or when all specified %debug %channels are off.
+ * Each %debug channel can be turned on and off independently.
  *
- * Multiple %debug %channels can be given by using <CODE>operator|</CODE> between the channel names.&nbsp;
+ * Multiple %debug %channels can be given by using `operator|` between the channel names.
   * This shouldn't be read as \`or' but merely be seen as the bit-wise OR operation on the bit-masks
  * that these %channels actually represent.
  *
- * <b>Example:</b>
+ * **Example:**
  *
- * \code
+ * ```cpp
  * Dout( dc::notice, "Libcwd is a great library" );
- * \endcode
+ * ```
  *
  * gives as result
  *
@@ -56,11 +56,11 @@ struct ChannelSetsWat;
  *
  * and
  *
- * \code
+ * ```cpp
  * Dout( dc::hello, "Hello World!" );
  * Dout( dc::kernel|dc::io, "This is written when either the kernel"
  *     "or io channel is turned on." );
- * \endcode
+ * ```
  *
  * gives as result
  *

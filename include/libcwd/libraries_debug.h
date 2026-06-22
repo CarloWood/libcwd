@@ -7,7 +7,7 @@
  *
  * \brief This is the header file that third-party library headers should include.
  *
- * Don't include this header file directly.&nbsp;
+ * Don't include this header file directly.
  * See \ref libraries "The Custom debug.h File - libraries" for more information.
  */
 
