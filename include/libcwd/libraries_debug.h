@@ -5,10 +5,10 @@
 
 /** @file
  *
- * \brief This is the header file that third-party library headers should include.
+ * @brief This is the header file that third-party library headers should include.
  *
  * Don't include this header file directly.
- * See \ref libraries "The Custom debug.h File - libraries" for more information.
+ * See @ref libraries "The Custom debug.h File - libraries" for more information.
  */
 
 #ifndef LIBCWD_LIBRARIES_DEBUG_H
@@ -62,7 +62,7 @@ namespace libcwd {
 
 extern DebugObject libcw_do;
 
-/** \brief Initialize libcwd global state before normal dynamic initialization reaches libcw_do.
+/** @brief Initialize libcwd global state before normal dynamic initialization reaches libcw_do.
  *
  * This entry point is intended for constructors of user global objects that
  * need libcwd to be usable before libcwd::libcw_do's own constructor has run.

@@ -1,7 +1,7 @@
 #pragma once
 
-/** \file libcwd/config.h
- * Do not include this header file directly, instead include "\ref preparation_step2 "debug.h"".
+/** @file libcwd/config.h
+ * Do not include this header file directly, instead include "@ref preparation_step2 "debug.h"".
  */
 
 #ifndef LIBCWD_CONFIG_H
@@ -23,7 +23,7 @@
 //
 
 /**
- * \addtogroup group_configuration
+ * @addtogroup group_configuration
  *
  * Libcwd uses CMake for configuration.
  * You can list cached options with \shellcommand cmake -LAH <build-dir> \endshellcommand.
@@ -45,10 +45,10 @@
  * ```
  */
 
-/** \defgroup enable_glibcxx_debug --enable-glibcxx_debug (CWDEBUG_GLIBCXX_DEBUG)
- * \ingroup group_configuration
+/** @defgroup enable_glibcxx_debug --enable-glibcxx_debug (CWDEBUG_GLIBCXX_DEBUG)
+ * @ingroup group_configuration
  *
- * \par Description
+ * @par Description
  *
  * Compile libcwd itself with -D_GLIBCXX_DEBUG.
  * See "Chapter 17. Debug Mode" on https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html
@@ -60,13 +60,13 @@
  * custom debug.cc and libcwd, and most likely in many other cases-- libcwd enforces
  * that every compilation unit that includes libcwd/debug.h uses the same mode.
  *
- * \par When to use it
+ * @par When to use it
  *
  * It is a good idea to use this if you suspect problems related to iterators.
  * The disadvantage is that you need to compile your applications also with
  * -D_GLIBCXX_DEBUG and that this debug mode comes with a speed penality.
  *
- * \par CMake option
+ * @par CMake option
  *
  * This is disabled by default.
  * Use \shellcommand cmake -DEnableGlibCxxDebug=ON ... \endshellcommand to enable it.
@@ -74,10 +74,10 @@
 
 #define CWDEBUG_GLIBCXX_DEBUG @CW_CONFIG_GLIBCXX_DEBUG@
 
-/** \defgroup enable_location --enable-location (CWDEBUG_LOCATION)
- * \ingroup group_configuration
+/** @defgroup enable_location --enable-location (CWDEBUG_LOCATION)
+ * @ingroup group_configuration
  *
- * \par Description
+ * @par Description
  *
  * Adds code that supports *source-file*:*line-number* lookup.
  * This will load debugging symbols at the start of a program allowing
@@ -85,34 +85,34 @@
  * It provides an interface, allowing applications that link
  * with libcwd to print debugging information using the symbol table.
  *
- * \par When to use it
+ * @par When to use it
  *
  * As a developer, especially when you want debug output to include source
  * file and line number information.
  *
- * \par CMake option
+ * @par CMake option
  *
  * This is enabled by default.
  * Use \shellcommand cmake -DEnableLibcwdLocation=OFF ... \endshellcommand to disable it.
  *
- * \sa \ref group_locations
+ * @sa @ref group_locations
  */
 
 #define CWDEBUG_LOCATION @CW_CONFIG_LOCATION@
 
-/** \defgroup enable_debug --enable-debug (CWDEBUG_DEBUG)
- * \ingroup group_configuration
+/** @defgroup enable_debug --enable-debug (CWDEBUG_DEBUG)
+ * @ingroup group_configuration
  *
- * \par Description
+ * @par Description
  *
  * Turns on internal consistency checks of libcwd.
  * The use of these checks can slow down libcwd and are mainly intended for the maintainer of libcwd.
  *
- * \par When to use it
+ * @par When to use it
  *
  * When you think you found a bug in libcwd.
  *
- * \par Configure option
+ * @par Configure option
  *
  * This is disabled by default.
  * Use \shellcommand cmake -DEnableLibcwdDebug=ON ... \endshellcommand to enable it.
@@ -120,21 +120,21 @@
 
 #define CWDEBUG_DEBUG @CW_CONFIG_DEBUG@
 
-/** \defgroup enable_debug_output --enable-debug-output (CWDEBUG_DEBUGOUTPUT)
- * \ingroup group_configuration
+/** @defgroup enable_debug_output --enable-debug-output (CWDEBUG_DEBUGOUTPUT)
+ * @ingroup group_configuration
  *
- * \par Description
+ * @par Description
  *
- * When \ref enable_debug is enabled, this turns on a lot of extra debugging
+ * When @ref enable_debug is enabled, this turns on a lot of extra debugging
  * output concerning the internal state of libcwd.
  * This will not be usefull to you unless you manage to let the program
  * coredump even before it reaches main().
  *
- * \par When to use it
+ * @par When to use it
  *
  * Never, unless you are a developer of libcwd.
  *
- * \par CMake option
+ * @par CMake option
  *
  * This is disabled by default.
  * Use \shellcommand cmake -DEnableLibcwdDebug=ON -DEnableLibcwdDebugOutput=ON ... \endshellcommand to enable it.
@@ -151,20 +151,20 @@
   256 // Maximal total number of debug channels in a single application.
       // Costs 4 kb of memory per channel (exclusive the actual channels).
 
-/** \defgroup enable_debugt --enable-debugt (CWDEBUG_DEBUGT)
- * \ingroup group_configuration
+/** @defgroup enable_debugt --enable-debugt (CWDEBUG_DEBUGT)
+ * @ingroup group_configuration
  *
- * \par Description
+ * @par Description
  *
  * Turns on extra diagnostics related to libcwds threading critical areas.
  * The checks are intended for developers who are changing internal locking or thread-lifetime code.
  *
- * \par When to use it
+ * @par When to use it
  *
  * Never, unless you are a developer of libcwd.
  * If someone requests it then I might extend this to a user interface however.
  *
- * \par CMake option
+ * @par CMake option
  *
  * This is disabled by default.
  * Use \shellcommand cmake -DEnableLibcwdDebug=ON -DEnableLibcwdDebugt=ON ... \endshellcommand to enable it.
@@ -200,9 +200,9 @@ extern void version_check_failed();
 extern void internal_main_reached();
 
 /**
- * \ingroup group_special
+ * @ingroup group_special
  *
- * \brief Check if the linked library belongs to the header files being used.
+ * @brief Check if the linked library belongs to the header files being used.
  *
  * In order to be sure that the libcwd header files that are being used
  * belong to the \filename libcwd.so \endfilename shared object that the application linked with,

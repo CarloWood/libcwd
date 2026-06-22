@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_CLASS_DEBUG_STRING_H
@@ -25,8 +25,8 @@ struct DebugObject_ThreadSpecificData;
 class DebugObject;
 
 /**
- * \brief A string class used for the %debug output margin and marker.
- * \ingroup group_formatting
+ * @brief A string class used for the %debug output margin and marker.
+ * @ingroup group_formatting
  *
  * This type is used for the public attributes DebugObject::margin and DebugObject::marker of the %debug object class.
  */

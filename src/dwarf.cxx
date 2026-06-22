@@ -41,7 +41,7 @@ extern std::atomic_bool WST_multi_threaded;
 // New debug channels.
 namespace channels {
 namespace dc {
-/** \addtogroup group_default_dc */
+/** @addtogroup group_default_dc */
 /** \{ */
 
 /** The ELFUTILS channel. */
@@ -1381,16 +1381,16 @@ ObjectFileName::ObjectFileName(char const* filepath) : no_debug_line_sections_(f
     filename_ = filepath_;
 }
 
-/** \addtogroup group_locations */
+/** @addtogroup group_locations */
 /** \{ */
 
 char const* const unknown_function_c = "<unknown function>";
 
 /**
- * \brief Find the mangled function name of the address \a addr.
+ * @brief Find the mangled function name of the address @p addr.
  *
- * \returns the same pointer that is returned by Location::mangled_function_name() on success,
- * otherwise \ref unknown_function_c is returned.
+ * @returns the same pointer that is returned by Location::mangled_function_name() on success,
+ * otherwise @ref unknown_function_c is returned.
  *
  * Note: the returned pointer is invalidated by calling dlclose(3) on the DSO that contains the returned function!
  */

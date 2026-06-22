@@ -18,7 +18,7 @@
 
 namespace libcwd {
 
-/** \addtogroup group_formatting */
+/** @addtogroup group_formatting */
 /** \{ */
 
 inline DebugString& DebugObject::color_on()
@@ -70,7 +70,7 @@ inline DebugString const& DebugObject::marker() const
 }
 
 /**
- * \brief Set number of spaces to indent.
+ * @brief Set number of spaces to indent.
  */
 inline void DebugObject::set_indent(unsigned short i)
 {
@@ -79,7 +79,7 @@ inline void DebugObject::set_indent(unsigned short i)
 }
 
 /**
- * \brief Increment number of spaces to indent.
+ * @brief Increment number of spaces to indent.
  */
 inline void DebugObject::inc_indent(unsigned short i)
 {
@@ -88,7 +88,7 @@ inline void DebugObject::inc_indent(unsigned short i)
 }
 
 /**
- * \brief Decrement number of spaces to indent.
+ * @brief Decrement number of spaces to indent.
  */
 inline void DebugObject::dec_indent(unsigned short i)
 {
@@ -98,7 +98,7 @@ inline void DebugObject::dec_indent(unsigned short i)
 }
 
 /**
- * \brief Get the current indentation.
+ * @brief Get the current indentation.
  */
 inline unsigned short DebugObject::get_indent() const
 {
@@ -108,11 +108,11 @@ inline unsigned short DebugObject::get_indent() const
 
 /** \} */
 
-/** \addtogroup group_destination */
+/** @addtogroup group_destination */
 /** \{ */
 
 /**
- * \brief Get the \c ostream device as set with set_ostream().
+ * @brief Get the `ostream` device as set with set_ostream().
  */
 inline std::ostream* DebugObject::get_ostream() const
 {
@@ -213,12 +213,12 @@ inline void OstreamState::write_color_off_newline(std::ostream* os, char const* 
 /** \} */
 
 /**
- * \brief Constructor
+ * @brief Constructor
  *
  * A %debug object must be global.
  *
- * \sa group_debug_object
- * \sa chapter_custom_do
+ * @sa group_debug_object
+ * @sa chapter_custom_do
  */
 inline DebugObject::DebugObject()
 {
@@ -232,7 +232,7 @@ inline DebugObject::DebugObject()
 }
 
 /**
- * \brief Turn this %debug object off.
+ * @brief Turn this %debug object off.
  */
 inline void DebugObject::off()
 {
@@ -241,7 +241,7 @@ inline void DebugObject::off()
 }
 
 /**
- * \brief Cancel last call to off().
+ * @brief Cancel last call to off().
  *
  * Calls to off() and on() has to be done in pairs (first off() then on()).
  * These pairs can be nested.
@@ -261,7 +261,7 @@ inline void DebugObject::off()
  * <PRE class="example-output">NOTICE : i == 0
  * </PRE>
  *
- * Note that the statement <CODE>i++</CODE> was never executed.
+ * Note that the statement `i++` was never executed.
  */
 inline void DebugObject::on()
 {
@@ -282,7 +282,7 @@ inline bool DebugObject::is_on(LIBCWD_TSD_PARAM) const
 }
 
 /**
- * \brief Turn always-flush for this %debug object on.
+ * @brief Turn always-flush for this %debug object on.
  */
 inline void DebugObject::always_flush_on()
 {
@@ -290,7 +290,7 @@ inline void DebugObject::always_flush_on()
 }
 
 /**
- * \brief Cancel last call to always_flush_on().
+ * @brief Cancel last call to always_flush_on().
  *
  * Calls to always_flush_on() and always_flush_off() has to be done in pairs (first on() then off()).
  * These pairs can be nested.

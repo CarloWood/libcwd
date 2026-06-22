@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_MACRO_LIBCWD_MACROS_H
@@ -21,12 +21,12 @@
 //
 
 /**
- * \brief General debug macro.
+ * @brief General debug macro.
  *
- * This macro allows one to implement a customized "\ref Debug",
+ * This macro allows one to implement a customized "@ref Debug",
  * using a custom %debug channel namespace.
  *
- * \sa \ref chapter_custom_debug_h
+ * @sa @ref chapter_custom_debug_h
  */
 #define LibcwDebug(dc_namespace, STATEMENTS...) \
   do                                            \
@@ -68,12 +68,12 @@ extern "C" ssize_t write(int fd, void const* buf, size_t count);
 #endif
 
 /**
- * \brief General debug output macro.
+ * @brief General debug output macro.
  *
- * This macro allows one to implement a customized "\ref Dout", using
- * a custom \ref group_debug_object "debug object" and/or channel namespace.
+ * This macro allows one to implement a customized "@ref Dout", using
+ * a custom @ref group_debug_object "debug object" and/or channel namespace.
  *
- * \sa \ref chapter_custom_debug_h
+ * @sa @ref chapter_custom_debug_h
  */
 #define LibcwDout(dc_namespace, debug_obj, cntrl, ...)                                \
   LibcwDoutScopeBegin(dc_namespace, debug_obj, cntrl) LibcwDoutStream << __VA_ARGS__; \
@@ -129,12 +129,12 @@ extern "C" ssize_t write(int fd, void const* buf, size_t count);
 #endif // !LIBCWD_LibcwDoutFatalScopeBegin_MARKER
 
 /**
- * \brief General fatal debug output macro.
+ * @brief General fatal debug output macro.
  *
- * This macro allows one to implement a customized "\ref DoutFatal", using
- * a custom \ref group_debug_object "debug object" and/or channel namespace.
+ * This macro allows one to implement a customized "@ref DoutFatal", using
+ * a custom @ref group_debug_object "debug object" and/or channel namespace.
  *
- * \sa \ref chapter_custom_debug_h
+ * @sa @ref chapter_custom_debug_h
  */
 #define LibcwDoutFatal(dc_namespace, debug_obj, cntrl, ...)                                     \
   LibcwDoutFatalScopeBegin(dc_namespace, debug_obj, cntrl) LibcwDoutFatalStream << __VA_ARGS__; \

@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_CLASS_LOCATION_H
@@ -38,15 +38,15 @@ void print_location_on(OSTREAM& os, Location const& location);
 
 namespace libcwd {
 
-/** \addtogroup group_locations */
+/** @addtogroup group_locations */
 /** \{ */
 
-/** \brief This constant (pointer) is returned by Location::mangled_function_name() when no function is known. */
+/** @brief This constant (pointer) is returned by Location::mangled_function_name() when no function is known. */
 extern char const* const unknown_function_c;
 
 /**
- * \class Location Location.h libcwd/debug.h
- * \brief A source file location.
+ * @class Location Location.h libcwd/debug.h
+ * @brief A source file location.
  *
  * The normal usage of this class is to print *source-name*:*line-number* information as follows:
  * ```cpp
@@ -89,35 +89,35 @@ class Location
   ~Location();
 
   /**
-   * \brief The default constructor.
+   * @brief The default constructor.
    *
    * Constructs an unknown location object.
-   * Use \ref pc_location to initialize the object.
+   * Use @ref pc_location to initialize the object.
    */
   Location();
 
   /**
-   * \brief Copy constructor.
+   * @brief Copy constructor.
    *
    * Constructs a location that is equivalent to the location passed as argument.
    * Copies share the stored source-file path. By default, ownership of that path
-   * moves to the copy; call \ref lock_ownership on the prototype first when the
+   * moves to the copy; call @ref lock_ownership on the prototype first when the
    * prototype must remain responsible for releasing the path storage.
    */
   Location(Location const& location);
 
   /**
-   * \brief Assignment operator.
+   * @brief Assignment operator.
    *
    * Assigns the value of the location passed to the current object. Copies share
    * the stored source-file path. By default, ownership of that path moves to the
-   * target object; call \ref lock_ownership on the source first when the source
+   * target object; call @ref lock_ownership on the source first when the source
    * must remain responsible for releasing the path storage.
    */
   Location& operator=(Location const& location); // Assignment operator
 
   /**
-   * \brief Keep ownership of the stored path in this object.
+   * @brief Keep ownership of the stored path in this object.
    *
    * Prevents a subsequent copy or assignment from taking over responsibility for
    * releasing the source-file path owned by this location. Use this when a
@@ -130,7 +130,7 @@ class Location
   }
 
   /**
-   * \brief Initialize the current object with the location that corresponds with \a pc.
+   * @brief Initialize the current object with the location that corresponds with @p pc.
    */
   void pc_location(void const* pc);
 
@@ -138,30 +138,30 @@ class Location
   void pc_location(void const* pc, LIBCWD_TSD_PARAM);
 
   /**
-   * \brief Clear the current object (set the location to 'unknown').
+   * @brief Clear the current object (set the location to 'unknown').
    */
   void clear();
 
  public:
   // Accessors
   /**
-   * \brief Returns <CODE>false</CODE> if no *source-file*:*line-number* information is known for this location
+   * @brief Returns `false` if no *source-file*:*line-number* information is known for this location
    * (or when it is uninitialized or clear()-ed).
    */
   bool is_known() const;
 
   /**
-   * \brief The source file name (without path).
+   * @brief The source file name (without path).
    *
    * We don't allow to retrieve a pointer to the allocated character string because
    * that is dangerous as the memory that it is pointing to could be deleted.
    */
   std::string file() const;
 
-  /** \brief Return the line number; only valid if is_known() returns true. */
+  /** @brief Return the line number; only valid if is_known() returns true. */
   unsigned int line() const;
 
-  /** \brief Returns the mangled function name or \ref unknown_function_c when no function could be found.
+  /** @brief Returns the mangled function name or @ref unknown_function_c when no function could be found.
    *
    * Two other strings that can be returned are "<uninitialized Location>" and
    * "<cleared Location>", the idea is to never print that: you should know it when a
@@ -169,12 +169,12 @@ class Location
    */
   char const* mangled_function_name() const;
 
-  /** \brief The size of the file name. */
+  /** @brief The size of the file name. */
   size_t filename_length() const { return known_ ? std::strlen(filename_) : 0; }
-  /** \brief The size of the full path name. */
+  /** @brief The size of the full path name. */
   size_t filepath_length() const { return known_ ? std::strlen(filepath_.get()) : 0; }
 
-  /** \brief Corresponding object file.
+  /** @brief Corresponding object file.
    *
    * Returns a pointer to an object representing the shared library or the executable
    * that this location belongs to; only valid if is_known() returns true.
@@ -182,9 +182,9 @@ class Location
   ObjectFileName const* object_file() const { return object_file_name_; }
 
   // Printing
-  /** \brief Write the full path to an ostream. */
+  /** @brief Write the full path to an ostream. */
   void print_filepath_on(std::ostream& os) const;
-  /** \brief Write the file name to an ostream. */
+  /** @brief Write the file name to an ostream. */
   void print_filename_on(std::ostream& os) const;
   template <class OSTREAM>
   friend void _private_::print_location_on(OSTREAM& os, Location const& location);
@@ -212,18 +212,18 @@ class Location
 // extern std::ostream& operator<<(std::ostream& os, Location const& location);
 // #endif
 
-/** \brief Set the output format of Location.
+/** @brief Set the output format of Location.
  *
  * This function can be used to specify the format of how a Location will be printed
  * when it is written to an ostream.  The format is thread-specific: only the calling
  * thread will be influenced.
  *
- * The argument \a format is a bit-wise OR-ed value of three possible bit masks:
- * \c show_function : Include the mangled function name.
- * \c show_object : Include the name of the shared library or the executable name.
- * \c show_path : Print the full path of the source file.
+ * The argument @p format is a bit-wise OR-ed value of three possible bit masks:
+ * `show_function` : Include the mangled function name.
+ * `show_object` : Include the name of the shared library or the executable name.
+ * `show_path` : Print the full path of the source file.
  *
- * \returns the previous value of the format.
+ * @returns the previous value of the format.
  */
 location_format_t location_format(location_format_t format);
 

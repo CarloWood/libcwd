@@ -20,7 +20,7 @@
 namespace libcwd {
 
 /**
- * \brief Construct a location for address \p addr.
+ * @brief Construct a location for address @p addr.
  */
 inline Location::Location(void const* addr) : known_(false)
 {
@@ -38,7 +38,7 @@ inline Location::Location(void const* addr, LIBCWD_TSD_PARAM) : known_(false)
 }
 
 /**
- * \brief Destructor.
+ * @brief Destructor.
  */
 inline Location::~Location()
 {
@@ -50,7 +50,7 @@ inline Location::Location() : function_name_(uninitialized_location), object_fil
 }
 
 /**
- * \brief Point this location to a different program counter address.
+ * @brief Point this location to a different program counter address.
  */
 inline void Location::pc_location(void const* addr)
 {
@@ -116,13 +116,13 @@ void print_location_on(OSTREAM& os, Location const& location)
 
 #if !(__GNUC__ == 3 && __GNUC_MINOR__ < 4) // See Location.h
 /**
- * \brief Write \a location to ostream \a os.
- * \ingroup group_locations
+ * @brief Write @p location to ostream @p os.
+ * @ingroup group_locations
  *
  * Write the contents of a Location object to an ostream in the form *source-file*:*line-number*,
  * or writes *objectfile*:*mangledfuncname* when the location is unknown.
  * If the *source-file*:*line-number* is known, then it may be prepended by the object file
- * and/or the mangled function name anyway if this was requested through \ref libcwd::location_format.
+ * and/or the mangled function name anyway if this was requested through @ref libcwd::location_format.
  * That function can also be used to cause the *source-file* to be printed with its full path.
  */
 inline std::ostream& operator<<(std::ostream& os, Location const& location)

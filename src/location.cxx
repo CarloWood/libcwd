@@ -86,7 +86,7 @@ void Location::pc_location(void const* pc, LIBCWD_TSD_PARAM)
 }
 
 /**
- * \brief Reset this location object (frees memory).
+ * @brief Reset this location object (frees memory).
  */
 void Location::clear()
 {

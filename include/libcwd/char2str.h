@@ -5,10 +5,10 @@
 
 /** @file
  *
- * \brief Definition of utility class char2str.
+ * @brief Definition of utility class char2str.
  *
  * This header file provides the declaration and definition of utility class
- * \link libcwd::char2str char2str \endlink.
+ * @link libcwd::char2str char2str @endlink.
  */
 
 #ifndef LIBCWD_CHAR2STR_H
@@ -19,16 +19,16 @@
 namespace libcwd {
 
 /**
- * \class char2str char2str.h libcwd/char2str.h
- * \ingroup group_special
+ * @class char2str char2str.h libcwd/char2str.h
+ * @ingroup group_special
  *
- * \brief Print a \c char to a %debug ostream, escaping non-printable characters as needed.
+ * @brief Print a `char` to a %debug ostream, escaping non-printable characters as needed.
  *
- * Prints the character \a c (see example below) to an ostream, converting it into a printable
- * sequence when needed using the octal representation or one of \c \\a, \c \\b, \c \\t, \c \\n,
- * \c \\f, \c \\r, \c \\e or \c \\\\.
+ * Prints the character @p c (see example below) to an ostream, converting it into a printable
+ * sequence when needed using the octal representation or one of `\a`, `\b`, `\t`, `\n`,
+ * `\f`, `\r`, `\e` or `\\`.
  *
- * \sa libcwd::buf2str
+ * @sa libcwd::buf2str
  *
  * **Example:**
  *
@@ -49,11 +49,11 @@ class char2str
   void print_escaped_char_to(std::ostream&) const;
 
  public:
-  //! Construct a \c char2str object with attribute \a ci.
+  //! Construct a `char2str` object with attribute @p ci.
   char2str(char ci) : c(ci) { }
 
   /**
-   * \brief Write the character represented by \a c2s to the \c ostream \a os,
+   * @brief Write the character represented by @p c2s to the `ostream` @p os,
    * escaping it when it is a non-printable character.
    */
   friend inline std::ostream& operator<<(std::ostream& os, char2str const c2s)

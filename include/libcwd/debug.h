@@ -5,10 +5,10 @@
 
 /** @file
  *
- * \brief This is the main header file of libcwd.
+ * @brief This is the main header file of libcwd.
  *
  * Don't include this header file directly.
- * Instead use a \link chapter_custom_debug_h custom debug.h \endlink header file that includes this file,
+ * Instead use a @link chapter_custom_debug_h custom debug.h @endlink header file that includes this file,
  * that will allow others to compile your application without having libcwd installed.
  */
 
@@ -78,23 +78,23 @@
 
 // This is only here for the documentation.  The user will define DEBUGCHANNELS, not LIBCWD_DEBUGCHANNELS.
 /**
- * \brief The namespace containing the current %debug %channels (dc) namespace.
+ * @brief The namespace containing the current %debug %channels (dc) namespace.
  *
  * This macro is internally used by libcwd macros to include the chosen set of %debug %channels.
- * For details please read section \ref chapter_custom_debug_h.
+ * For details please read section @ref chapter_custom_debug_h.
  */
 #define DEBUGCHANNELS
 #endif // LIBCWD_DOXYGEN
 
 // For use in applications
-/** \def Debug
+/** @def Debug
  *
- * \brief Encapsulation macro for general debugging code.
+ * @brief Encapsulation macro for general debugging code.
  *
  * The parameter of this macro can be arbitrary code that will be eliminated
- * from the application when the macro CWDEBUG is \em not defined.
+ * from the application when the macro CWDEBUG is *not* defined.
  *
- * It uses the namespaces \ref DEBUGCHANNELS and libcwd, making it unnecessary to
+ * It uses the namespaces @ref DEBUGCHANNELS and libcwd, making it unnecessary to
  * use the the full scopes for debug channels and utility functions provided by
  * libcwd.
  *
@@ -106,31 +106,31 @@
  * Debug(libcw_do.on() );				// Turn all debugging temporally off.
  * Debug(list_channels_on(libcw_do));			// List all debug channels.
  * Debug(libcw_do.set_ostream(&std::cout));		// Use std::cout as debug output stream.
- * Debug(libcw_do.set_ostream(&std::cout, &mutex));	// use `mutex' as lock for std::cout.
+ * Debug(libcw_do.set_ostream(&std::cout, &mutex));	// use ‛mutex' as lock for std::cout.
  * Debug(libcw_do.inc_indent(4));			// Increment indentation by 4 spaces.
  * Debug(libcw_do.get_ostream()->flush());		// Flush the current debug output stream.
  * ```
  */
 #define Debug(STATEMENTS...) LibcwDebug(LIBCWD_DEBUGCHANNELS, STATEMENTS)
 
-/** \def Dout
+/** @def Dout
  *
- * \brief Macro for writing %debug output.
+ * @brief Macro for writing %debug output.
  *
  * This macro is used for writing %debug output to the default %debug object
- * \link libcwd::libcw_do libcw_do \endlink.
+ * @link libcwd::libcw_do libcw_do @endlink.
  * No code is generated when the macro CWDEBUG is not defined, in that case the macro
  * Dout is replaced by white space.
  *
- * The macro \ref Dout uses libcwds debug object \link libcwd::libcw_do libcw_do \endlink.
+ * The macro @ref Dout uses libcwds debug object @link libcwd::libcw_do libcw_do @endlink.
  * You will have to define your own macro when you want to use a second debug object.
- * Read chapter \ref page_why_macro for an explanation of why a macro was used instead of an inline function.
+ * Read chapter @ref page_why_macro for an explanation of why a macro was used instead of an inline function.
  *
- * \sa \ref group_control_flags
- *  \n \ref group_default_dc
- *  \n \link chapter_custom_debug_h Defining your own debug channels \endlink
- *  \n \link chapter_custom_do Defining your own debug objects \endlink
- *  \n \ref chapter_nesting "Nested debug calls"
+ * @sa @ref group_control_flags
+ *  @n @ref group_default_dc
+ *  @n @link chapter_custom_debug_h Defining your own debug channels @endlink
+ *  @n @link chapter_custom_do Defining your own debug objects @endlink
+ *  @n @ref chapter_nesting "Nested debug calls"
  *
  * **Examples:**
  *
@@ -143,21 +143,21 @@
 #define Dout(cntrl, ...) LibcwDout(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 /**
- * \def DoutFatal
- * \ingroup group_fatal_output
+ * @def DoutFatal
+ * @ingroup group_fatal_output
  *
- * \brief Macro for writing fatal %debug output to the default %debug object
- * \link libcwd::libcw_do libcw_do \endlink.
+ * @brief Macro for writing fatal %debug output to the default %debug object
+ * @link libcwd::libcw_do libcw_do @endlink.
  */
 #define DoutFatal(cntrl, ...) LibcwDoutFatal(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 /**
- * \def ForAllDebugChannels
- * \ingroup group_special
+ * @def ForAllDebugChannels
+ * @ingroup group_special
  *
- * \brief Looping over all debug channels.
+ * @brief Looping over all debug channels.
  *
- * The macro \c ForAllDebugChannels allows you to run over all %debug %channels.
+ * The macro `ForAllDebugChannels` allows you to run over all %debug %channels.
  *
  * For example,
  *
@@ -177,12 +177,12 @@
 #define ForAllDebugChannels(STATEMENT...) LibcwdForAllDebugChannels(LIBCWD_DEBUGCHANNELS, STATEMENT)
 
 /**
- * \def ForAllDebugObjects
- * \ingroup group_special
+ * @def ForAllDebugObjects
+ * @ingroup group_special
  *
- * \brief Looping over all debug objects.
+ * @brief Looping over all debug objects.
  *
- * The macro \c ForAllDebugObjects allows you to run over all %debug objects.
+ * The macro `ForAllDebugObjects` allows you to run over all %debug objects.
  *
  * For example,
  *
@@ -190,7 +190,7 @@
  * ForAllDebugObjects(debugObject.set_ostream(&std::cerr, &cerr_mutex));
  * ```
  *
- * would set the output stream of all %debug objects to <CODE>std::cerr</CODE>.
+ * would set the output stream of all %debug objects to `std::cerr`.
  */
 #define ForAllDebugObjects(STATEMENT...) LibcwdForAllDebugObjects(LIBCWD_DEBUGCHANNELS, STATEMENT)
 

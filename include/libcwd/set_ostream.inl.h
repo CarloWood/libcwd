@@ -11,14 +11,14 @@
 namespace libcwd {
 
 /**
- * \brief Set output device and provide external lock.
- * \ingroup group_destination
+ * @brief Set output device and provide external lock.
+ * @ingroup group_destination
  *
- * Assign a new \c ostream to this %debug object.
- * The \c ostream will only be written to after obtaining the lock
- * that is passed as second argument.  Each \c ostream needs to have
+ * Assign a new `ostream` to this %debug object.
+ * The `ostream` will only be written to after obtaining the lock
+ * that is passed as second argument.  Each `ostream` needs to have
  * a unique lock. If the application also writes directly
- * to the same \c ostream then use the same lock.
+ * to the same `ostream` then use the same lock.
  *
  * **Example:**
  *

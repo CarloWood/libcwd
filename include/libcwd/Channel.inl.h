@@ -11,12 +11,12 @@
 namespace libcwd {
 
 /**
- * \brief Construct a new %debug channel with name \a label.
+ * @brief Construct a new %debug channel with name @p label.
  *
- * A newly created channel is off by default (except \ref libcwd::channels::dc::warning "dc::warning").
+ * A newly created channel is off by default (except @ref libcwd::channels::dc::warning "dc::warning").
  * All channel objects must be global objects.
  *
- * \sa \ref chapter_custom_debug_h
+ * @sa @ref chapter_custom_debug_h
  */
 inline Channel::Channel(char const* label, bool add_to_channel_list)
 {
@@ -30,7 +30,7 @@ inline bool Channel::is_on(LIBCWD_TSD_PARAM) const
 }
 
 /**
- * \brief Returns `true` if the channel is active.
+ * @brief Returns `true` if the channel is active.
  */
 inline bool Channel::is_on() const
 {
@@ -39,7 +39,7 @@ inline bool Channel::is_on() const
 }
 
 /**
- * \brief Pointer to the label of the %debug channel.
+ * @brief Pointer to the label of the %debug channel.
  */
 inline char const* Channel::get_label() const
 {

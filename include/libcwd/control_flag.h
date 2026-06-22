@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_CONTROL_FLAG_H
@@ -14,7 +14,7 @@
 
 namespace libcwd {
 
-/** \addtogroup group_control_flags */
+/** @addtogroup group_control_flags */
 /** \{ */
 
 /** The type that is used for control flags and control flag mask. */
@@ -61,58 +61,58 @@ control_flag_t const coredump_maskbit = 0x2000;
 control_flag_t const continued_maskbit = 0x4000;
 control_flag_t const finish_maskbit = 0x8000;
 
-//! \a continued_cf has its own type for overloading purposes.
+//! @p continued_cf has its own type for overloading purposes.
 enum continued_cf_nt
 {
-  continued_cf //!< Start a \ref using_continued "continued" %debug output.
+  continued_cf //!< Start a @ref using_continued "continued" %debug output.
 };
 
-//! Returns nonewline_cf if \a cond is true.
+//! Returns nonewline_cf if @p cond is true.
 inline control_flag_t cond_nonewline_cf(bool cond)
 {
   return cond ? nonewline_cf : 0;
 }
-//! Returns noprefix_cf if \a cond is true.
+//! Returns noprefix_cf if @p cond is true.
 inline control_flag_t cond_noprefix_cf(bool cond)
 {
   return cond ? noprefix_cf : 0;
 }
-//! Returns nolabel_cf if \a cond is true.
+//! Returns nolabel_cf if @p cond is true.
 inline control_flag_t cond_nolabel_cf(bool cond)
 {
   return cond ? nolabel_cf : 0;
 }
-//! Returns blank_margin_cf if \a cond is true.
+//! Returns blank_margin_cf if @p cond is true.
 inline control_flag_t conf_blank_margin_cf(bool cond)
 {
   return cond ? blank_margin_cf : 0;
 }
-//! Returns blank_label_cf if \a cond is true.
+//! Returns blank_label_cf if @p cond is true.
 inline control_flag_t conf_blank_label_cf(bool cond)
 {
   return cond ? blank_label_cf : 0;
 }
-//! Returns blank_marker_cf if \a cond is true.
+//! Returns blank_marker_cf if @p cond is true.
 inline control_flag_t conf_blank_marker_cf(bool cond)
 {
   return cond ? blank_marker_cf : 0;
 }
-//! Returns cerr_cf if \a cond is true.
+//! Returns cerr_cf if @p cond is true.
 inline control_flag_t conf_cerr_cf(bool cond)
 {
   return cond ? cerr_cf : 0;
 }
-//! Returns flush_cf if \a cond is true.
+//! Returns flush_cf if @p cond is true.
 inline control_flag_t conf_flush_cf(bool cond)
 {
   return cond ? flush_cf : 0;
 }
-//! Returns wait_cf if \a cond is true.
+//! Returns wait_cf if @p cond is true.
 inline control_flag_t conf_wait_cf(bool cond)
 {
   return cond ? wait_cf : 0;
 }
-//! Returns error_cf if \a cond is true.
+//! Returns error_cf if @p cond is true.
 inline control_flag_t cond_error_cf(bool cond)
 {
   return cond ? error_cf : 0;

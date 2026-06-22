@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_DEMANGLE_H
@@ -14,7 +14,7 @@
 
 namespace libcwd {
 
-/** \addtogroup group_demangle */
+/** @addtogroup group_demangle */
 /** \{ */
 
 extern void demangle_type(char const* input, std::string& output);

@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_CLASS_DEBUG_H
@@ -99,12 +99,12 @@ struct OstreamState
 // a constructor of their own!
 
 /**
- * \class DebugObject debug.h libcwd/debug.h
- * \ingroup group_debug_object
+ * @class DebugObject debug.h libcwd/debug.h
+ * @ingroup group_debug_object
  *
- * \brief The %Debug Object class, this object represents one output device (`ostream`).
+ * @brief The %Debug Object class, this object represents one output device (`ostream`).
  *
- * See \ref group_debug_object.
+ * See @ref group_debug_object.
  */
 class DebugObject
 {
@@ -157,11 +157,11 @@ class DebugObject
   // Application-wide flush on/off counter for Debug Objects.
 
  public:
-  /** \addtogroup group_formatting */
+  /** @addtogroup group_formatting */
   /** \{ */
 
   /**
-   * \brief Colorization code
+   * @brief Colorization code
    *
    * This is printed before the margin.
    * The color_on string can be manipulated directly using the methods of class DebugString.
@@ -170,7 +170,7 @@ class DebugObject
   DebugString const& color_on() const;
 
   /**
-   * \brief Turn colorization off
+   * @brief Turn colorization off
    *
    * This is printed before the newline.
    * The color_off string can be manipulated directly using the methods of class DebugString.
@@ -179,25 +179,25 @@ class DebugObject
   DebugString const& color_off() const;
 
   /**
-   * \brief The margin
+   * @brief The margin
    *
    * This is printed before the label.
    * The margin can be manipulated directly using the methods of class DebugString.
    *
-   * \sa push_margin()
-   *  \n pop_margin()
+   * @sa push_margin()
+   *  @n pop_margin()
    */
   DebugString& margin();
   DebugString const& margin() const;
 
   /**
-   * \brief The marker
+   * @brief The marker
    *
    * This is printed after the label.
    * The marker can be manipulated directly using the methods of class DebugString.
    *
-   * \sa push_marker()
-   *  \n pop_marker()
+   * @sa push_marker()
+   *  @n pop_marker()
    */
   DebugString& marker();
   DebugString const& marker() const;

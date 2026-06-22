@@ -13,7 +13,7 @@
 namespace libcwd {
 
 /**
- * \brief Copy constructor.
+ * @brief Copy constructor.
  */
 inline DebugString::DebugString(DebugString const& ds)
 {
@@ -24,7 +24,7 @@ inline DebugString::DebugString(DebugString const& ds)
 }
 
 /**
- * \brief Assign \a str with size \a len to the string.
+ * @brief Assign @p str with size @p len to the string.
  */
 inline void DebugString::assign(char const* str, size_t len)
 {
@@ -33,7 +33,7 @@ inline void DebugString::assign(char const* str, size_t len)
 }
 
 /**
- * \brief Append \a str with size \a len to the string.
+ * @brief Append @p str with size @p len to the string.
  */
 inline void DebugString::append(char const* str, size_t len)
 {
@@ -42,7 +42,7 @@ inline void DebugString::append(char const* str, size_t len)
 }
 
 /**
- * \brief Prepend \a str with size \a len to the string.
+ * @brief Prepend @p str with size @p len to the string.
  */
 inline void DebugString::prepend(char const* str, size_t len)
 {
@@ -51,7 +51,7 @@ inline void DebugString::prepend(char const* str, size_t len)
 }
 
 /**
- * \brief The size of the string.
+ * @brief The size of the string.
  */
 inline size_t DebugString::size() const
 {
@@ -59,7 +59,7 @@ inline size_t DebugString::size() const
 }
 
 /**
- * \brief The capacity of the string.
+ * @brief The capacity of the string.
  */
 inline size_t DebugString::capacity() const
 {
@@ -67,7 +67,7 @@ inline size_t DebugString::capacity() const
 }
 
 /**
- * \brief A zero terminated char const pointer.
+ * @brief A zero terminated char const pointer.
  */
 inline char const* DebugString::c_str() const
 {
@@ -75,7 +75,7 @@ inline char const* DebugString::c_str() const
 }
 
 /**
- * \brief Assign \a str to the string.
+ * @brief Assign @p str to the string.
  */
 inline void DebugString::assign(std::string const& str)
 {
@@ -83,7 +83,7 @@ inline void DebugString::assign(std::string const& str)
 }
 
 /**
- * \brief Append \a str to the string.
+ * @brief Append @p str to the string.
  */
 inline void DebugString::append(std::string const& str)
 {
@@ -91,7 +91,7 @@ inline void DebugString::append(std::string const& str)
 }
 
 /**
- * \brief Prepend \a str to the string.
+ * @brief Prepend @p str to the string.
  */
 inline void DebugString::prepend(std::string const& str)
 {

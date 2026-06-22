@@ -19,10 +19,10 @@ namespace libcwd {
 class Channel;
 
 /**
- * \class RcFile RcFile.h libcwd/debug.h
- * \ingroup chapter_rcfile
+ * @class RcFile RcFile.h libcwd/debug.h
+ * @ingroup chapter_rcfile
  *
- * \brief This object represents a runtime configuration file.
+ * @brief This object represents a runtime configuration file.
  *
  * Libcwd contains one object of this type, `libcwd::rcfile`.
  * This is the object that is used by
@@ -44,7 +44,7 @@ class RcFile
 
  public:
   /**
-   * \brief Construct a rcfile object.
+   * @brief Construct a rcfile object.
    */
   RcFile() : env_set_(false), read_called_(false) { }
   virtual ~RcFile() { }
@@ -68,31 +68,31 @@ class RcFile
 
  public:
   /**
-   * \brief Initialize this object by reading the rcfile.
+   * @brief Initialize this object by reading the rcfile.
    */
   void read();
   /**
-   * \brief Returns the command line string as set with the 'xterm' keyword.
+   * @brief Returns the command line string as set with the 'xterm' keyword.
    */
   std::string const& konsole_command() const { return konsole_command_; }
   /**
-   * \brief Returns the command line string as set with the 'gdb_bin' keyword.
+   * @brief Returns the command line string as set with the 'gdb_bin' keyword.
    */
   std::string const& gdb_bin() const { return gdb_bin_; }
   /**
-   * \brief Returns true when this object is initialized.
+   * @brief Returns true when this object is initialized.
    */
   bool read_called() const { return read_called_; }
 
  protected:
   /**
-   * \brief Virtual function called for unknown keywords.
+   * @brief Virtual function called for unknown keywords.
    *
    * By using this class as a base and overriding this function
    * it is possible to extend the keywords that are recognized.
    *
-   * This function should return \c true when the keyword is *not* handled.
-   * The default behaviour is to always return \c true.
+   * This function should return `true` when the keyword is *not* handled.
+   * The default behaviour is to always return `true`.
    */
   virtual bool unknown_keyword(std::string const& keyword, std::string const& value);
 };
@@ -100,9 +100,9 @@ class RcFile
 extern RcFile rcfile;
 
 /**
- * \brief Calls libcwd::rcfile.read().
+ * @brief Calls libcwd::rcfile.read().
  *
- * \sa group_rcfile
+ * @sa group_rcfile
  */
 inline void read_rcfile()
 {

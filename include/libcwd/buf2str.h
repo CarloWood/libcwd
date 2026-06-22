@@ -5,10 +5,10 @@
 
 /** @file
  *
- * \brief Definition of utility class buf2str.
+ * @brief Definition of utility class buf2str.
  *
  * This header file provides the declaration and definition of utility class
- * \link libcwd::buf2str buf2str \endlink.
+ * @link libcwd::buf2str buf2str @endlink.
  */
 
 #ifndef LIBCWD_BUF2STR_H
@@ -25,17 +25,17 @@
 namespace libcwd {
 
 /**
- * \class buf2str buf2str.h libcwd/buf2str.h
- * \ingroup group_special
+ * @class buf2str buf2str.h libcwd/buf2str.h
+ * @ingroup group_special
  *
- * \brief Print a (\c char) buffer with a given size to a %debug ostream, escaping non-printable
+ * @brief Print a (`char`) buffer with a given size to a %debug ostream, escaping non-printable
  * characters.
  *
- * Converts \a size characters from character buffer pointed to by \a buf into all printable
+ * Converts @p size characters from character buffer pointed to by @p buf into all printable
  * characters by either printing the character itself, the octal representation or one of
- * \c \\a, \c \\b, \c \\t, \c \\n, \c \\f, \c \\r, \c \\e or \c \\\\.
+ * `\a`, `\b`, `\t`, `\n`, `\f`, `\r`, `\e` or `\\`.
  *
- * \sa libcwd::char2str
+ * @sa libcwd::char2str
  *
  * **Example:**
  *
@@ -54,11 +54,11 @@ class buf2str
   size_t size_; //!< The size of the buffer.
 
  public:
-  //! Construct \c buf2str object with attributes \a buf and \a size.
+  //! Construct `buf2str` object with attributes @p buf and @p size.
   buf2str(char const* buf, size_t size) : buf_(buf), size_(size) { }
 
 #if __cpp_concepts >= 201907L
-  //! Construct \c buf2str object from an object that has data() and size() member functions.
+  //! Construct `buf2str` object from an object that has data() and size() member functions.
   template<typename T>
   requires requires(T const& t) {
     { t.data() } -> std::convertible_to<char const*>;
@@ -70,8 +70,8 @@ class buf2str
 #endif
 
   /**
-   * \brief Write the contents of the buffer represented by \a __buf2str
-   * to the \c ostream \a os, escaping non-printable characters.
+   * @brief Write the contents of the buffer represented by @p __buf2str
+   * to the `ostream` @p os, escaping non-printable characters.
    */
   friend inline std::ostream& operator<<(std::ostream& os, buf2str const& __buf2str)
   {

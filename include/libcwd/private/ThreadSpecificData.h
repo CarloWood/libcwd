@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_PRIVATE_STRUCT_TSD_H
@@ -47,13 +47,13 @@ struct ThreadSpecificData;
 namespace libcwd {
 
 #if CWDEBUG_LOCATION
-/** \addtogroup group_locations */
+/** @addtogroup group_locations */
 /** \{ */
 
-/** \brief The type of the argument of location_format
+/** @brief The type of the argument of location_format
  *
- * This type is used together with the bit masks \ref show_objectfile,
- * \ref show_function and \ref show_path.
+ * This type is used together with the bit masks @ref show_objectfile,
+ * @ref show_function and @ref show_path.
  */
 using location_format_t = unsigned short int;
 

@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: MIT
 
 /*!
-\addtogroup group_demangle demangle_type() and demangle_symbol()
-\ingroup group_type_info
+@addtogroup group_demangle demangle_type() and demangle_symbol()
+@ingroup group_type_info
 
 Libcwd comes with its own demangler functions.
 
-demangle_type() writes the \em mangled type name \p input
-to the string \p output; \p input should be the mangled name
-as returned by <CODE>typeid(OBJECT).name()</CODE> (using gcc-2.95.1 or higher).
+demangle_type() writes the *mangled* type name @p input
+to the string @p output; @p input should be the mangled name
+as returned by `typeid(OBJECT).name()` (using gcc-2.95.1 or higher).
 
-demangle_symbol() writes the \em mangled symbol name \p input
-to the string \p output; \p input should be the mangled name
-as returned by <CODE>elfxx::asymbol_st::name</CODE>
+demangle_symbol() writes the *mangled* symbol name @p input
+to the string @p output; @p input should be the mangled name
+as returned by `elfxx::asymbol_st::name`
 which is what is returned by
 Location::mangled_function_name()
 and pc_mangled_function_name().
@@ -802,11 +802,11 @@ int main(int argc, char* argv[])
 
 namespace libcwd {
 
-/** \addtogroup group_demangle */
+/** @addtogroup group_demangle */
 /** \{ */
 
 /**
- * \brief Demangle mangled symbol name \p input and write the result to string \p output.
+ * @brief Demangle mangled symbol name @p input and write the result to string @p output.
  */
 void demangle_symbol(char const* input, std::string& output)
 {
@@ -819,7 +819,7 @@ void demangle_symbol(char const* input, std::string& output)
 }
 
 /**
- * \brief Demangle mangled type name \p input and write the result to string \p output.
+ * @brief Demangle mangled type name @p input and write the result to string @p output.
  */
 void demangle_type(char const* input, std::string& output)
 {

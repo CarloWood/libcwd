@@ -212,11 +212,11 @@ void version_check_failed()
 }
 
 /**
- * \brief The default %debug object.
+ * @brief The default %debug object.
  *
- * The %debug object that is used by default by \ref Dout and \ref DoutFatal, the only %debug object used by libcwd
+ * The %debug object that is used by default by @ref Dout and @ref DoutFatal, the only %debug object used by libcwd
  * itself.
- * \sa \ref chapter_custom_do
+ * @sa @ref chapter_custom_do
  */
 
 DebugObject libcw_do;
@@ -230,8 +230,8 @@ namespace channels {
 namespace dc {
 
 /**
- * \addtogroup group_default_dc Predefined Debug Channels
- * \ingroup group_debug_channels
+ * @addtogroup group_default_dc Predefined Debug Channels
+ * @ingroup group_debug_channels
  *
  * These are the default %debug %channels pre-defined in libcwd.
  */
@@ -274,7 +274,7 @@ Channel warning
  *
  * This channel is *%always* on;
  * it can not be turned off.
- * It is not in the list of \ref ForAllDebugChannels "debug channels".
+ * It is not in the list of @ref ForAllDebugChannels "debug channels".
  * When used with a label it will print as many '>'
  * characters as the size of the largest real channel.
  */
@@ -283,7 +283,7 @@ AlwaysChannel always;
 /** A special channel to continue to
  * write a previous %debug channel.
  *
- * \sa \ref using_continued
+ * @sa @ref using_continued
  */
 ContinuedChannel continued
 #ifndef HIDE_FROM_DOXYGEN
@@ -292,9 +292,9 @@ ContinuedChannel continued
         ;
 
 /** A special channel to finish writing
- * <EM>%continued</EM> %debug output.
+ * *%continued* %debug output.
  *
- * \sa \ref using_continued
+ * @sa @ref using_continued
  */
 ContinuedChannel finish
 #ifndef HIDE_FROM_DOXYGEN
@@ -304,7 +304,7 @@ ContinuedChannel finish
 
 /** The special FATAL channel.
  *
- * \sa DoutFatal
+ * @sa DoutFatal
  */
 FatalChannel fatal
 #ifndef HIDE_FROM_DOXYGEN
@@ -314,7 +314,7 @@ FatalChannel fatal
 
 /** The special COREDUMP channel.
  *
- * \sa DoutFatal
+ * @sa DoutFatal
  */
 FatalChannel core
 #ifndef HIDE_FROM_DOXYGEN
@@ -675,10 +675,10 @@ alignas(OutputState) static unsigned char WST_dummy_output_state[sizeof(OutputSt
 } // namespace _private_
 
 /**
- * \fn void core_dump()
- * \ingroup chapter_core_dump
+ * @fn void core_dump()
+ * @ingroup chapter_core_dump
  *
- * \brief Dump core of current thread.
+ * @brief Dump core of current thread.
  *
  * **Example:**
  *
@@ -772,7 +772,7 @@ void DebugString::internal_prepend(char const* str, size_t len)
 }
 
 /**
- * \brief Reserve memory for the string in advance.
+ * @brief Reserve memory for the string in advance.
  */
 void DebugString::reserve(size_t size)
 {
@@ -793,11 +793,11 @@ void DebugString::internal_swallow(DebugString const& ds)
   default_capacity_ = ds.default_capacity_;
 }
 
-/** \addtogroup group_formatting */
+/** @addtogroup group_formatting */
 /** \{ */
 
 /**
- * \brief Push the current margin on a stack.
+ * @brief Push the current margin on a stack.
  */
 void DebugObject::push_margin()
 {
@@ -809,7 +809,7 @@ void DebugObject::push_margin()
 }
 
 /**
- * \brief Pop margin from the stack.
+ * @brief Pop margin from the stack.
  */
 void DebugObject::pop_margin()
 {
@@ -823,7 +823,7 @@ void DebugObject::pop_margin()
 }
 
 /**
- * \brief Push the current marker on a stack.
+ * @brief Push the current marker on a stack.
  */
 void DebugObject::push_marker()
 {
@@ -835,7 +835,7 @@ void DebugObject::push_marker()
 }
 
 /**
- * \brief Pop marker from the stack.
+ * @brief Pop marker from the stack.
  */
 void DebugObject::pop_marker()
 {
@@ -1311,12 +1311,12 @@ DebugObject_ThreadSpecificData::~DebugObject_ThreadSpecificData()
 }
 
 /**
- * \fn Channel* find_channel(char const* label)
- * \ingroup group_special
+ * @fn Channel* find_channel(char const* label)
+ * @ingroup group_special
  *
- * \brief Find %debug channel with label \a label.
+ * @brief Find %debug channel with label @p label.
  *
- * \return A pointer to the %debug channel object whose name starts with \a label.
+ * @return A pointer to the %debug channel object whose name starts with @p label.
  * If there is more than one such %debug %channel, the object with the lexicographically
  * largest name is returned. When no %debug channel could be found, NULL is returned.
  */
@@ -1328,10 +1328,10 @@ Channel* find_channel(char const* label)
 }
 
 /**
- * \fn void list_channels_on(DebugObject& debug_object)
- * \ingroup group_special
+ * @fn void list_channels_on(DebugObject& debug_object)
+ * @ingroup group_special
  *
- * \brief List all %debug %channels to a given %debug object.
+ * @brief List all %debug %channels to a given %debug object.
  *
  * **Example:**
  *
@@ -1353,7 +1353,7 @@ Channel* find_channel(char const* label)
  * BAR     : Enabled</PRE>
  * \endexampleoutput
  *
- * Where FOO and BAR are \link preparation user defined channels \endlink in this example.
+ * Where FOO and BAR are @link preparation user defined channels @endlink in this example.
  */
 void list_channels_on(DebugObject& debug_object)
 {
@@ -1424,9 +1424,9 @@ void Channel::initialize(_private_::ChannelSetsWat wat, char const* label, size_
 }
 
 /**
- * \brief Turn this channel off.
+ * @brief Turn this channel off.
  *
- * \sa on()
+ * @sa on()
  */
 void Channel::off()
 {
@@ -1435,7 +1435,7 @@ void Channel::off()
 }
 
 /**
- * \brief Cancel one call to `off()`.
+ * @brief Cancel one call to `off()`.
  *
  * The channel is turned on when `on()` is called as often as `off()` was called before.
  */
@@ -1595,10 +1595,10 @@ void Channel::restore(Channel::OnOffState const& state)
 }
 
 /**
- * \brief Set output device (single threaded applications).
- * \ingroup group_destination
+ * @brief Set output device (single threaded applications).
+ * @ingroup group_destination
  *
- * Assign a new \c ostream to this %debug object (default is `std::cerr`).
+ * Assign a new `ostream` to this %debug object (default is `std::cerr`).
  * For use in single threaded applications only.
  */
 void DebugObject::set_ostream(std::ostream* os)

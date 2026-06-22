@@ -12,8 +12,8 @@
 namespace libcwd {
 
 /**
- * \brief Returned by type_info_of() for unknown types.
- * \ingroup group_type_info
+ * @brief Returned by type_info_of() for unknown types.
+ * @ingroup group_type_info
  */
 TypeInfo const unknown_type_info_c(0);
 

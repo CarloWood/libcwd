@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include \ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
  */
 
 #ifndef LIBCWD_TYPE_INFO_H
@@ -47,9 +47,9 @@ size_t sizeof_ref_v = sizeof_ref<T>::value;
 } // namespace _private_
 
 /**
- * \brief Class that holds type information for debugging purposes.
+ * @brief Class that holds type information for debugging purposes.
  * Returned by type_info_of().
- * \ingroup group_type_info
+ * @ingroup group_type_info
  */
 class TypeInfo
 {
@@ -60,19 +60,19 @@ class TypeInfo
   char const* demangled_name_; //!< Demangled type name of T.
  public:
   /**
-   * \brief Default constructor.
-   * \internal
+   * @brief Default constructor.
+   * @internal
    */
   TypeInfo() { }
   /**
-   * \brief Constructor used for unknown_type_info_c.
-   * \internal
+   * @brief Constructor used for unknown_type_info_c.
+   * @internal
    */
   TypeInfo(int) : type_size_(0), dereferenced_type_size_(0), name_(NULL), demangled_name_("<unknown type>") { }
   /**
-   * \brief Construct a TypeInfo object for a type (T) with encoding \a type_encoding, size \a s and size of reference
-   * \a rs.
-   * \internal
+   * @brief Construct a TypeInfo object for a type (T) with encoding @p type_encoding, size @p s and size of reference
+   * @p rs.
+   * @internal
    */
   void init(char const* type_encoding, size_t s, size_t rs)
   {
@@ -83,7 +83,7 @@ class TypeInfo
   }
   //! The demangled type name.
   char const* demangled_name() const { return demangled_name_; }
-  //! The encoded type name (as returned by <CODE>typeid(T).%name()</CODE>).
+  //! The encoded type name (as returned by `typeid(T).name()`).
   char const* name() const { return name_; }
   //! sizeof(T).
   size_t size() const { return type_size_; }
@@ -257,7 +257,7 @@ template <typename T>
 
 namespace libcwd {
 
-/** \addtogroup group_type_info */
+/** @addtogroup group_type_info */
 /** \{ */
 
 #ifndef LIBCWD_DOXYGEN
@@ -267,10 +267,10 @@ inline TypeInfo const& type_info_of(T const&);
 #endif
 
 /**
- * \brief Get type information of a given class or type.
+ * @brief Get type information of a given class or type.
  *
  * This specialization allows to specify a type without an object
- * (for example by calling: <CODE>type_info_of<int const>()</CODE>).
+ * (for example by calling: `type_info_of<int const>()`).
  *
  * As it doesn't ignore top-level qualifiers it is best suited to print for example template parameters.
  * For example,
@@ -289,10 +289,10 @@ inline TypeInfo const& type_info_of()
 }
 
 /**
- * \brief Get type information of a given class \em instance.
+ * @brief Get type information of a given class *instance*.
  *
  * This template is used by passing an object to it, top level CV-qualifiers (and a possible reference)
- * are ignored in the same way as does \c typeid() (see 5.2.8 Type identification of the ISO C++ standard).
+ * are ignored in the same way as does `typeid()` (see 5.2.8 Type identification of the ISO C++ standard).
  */
 template <typename T>
 inline TypeInfo const& type_info_of(

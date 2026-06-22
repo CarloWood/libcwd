@@ -139,10 +139,10 @@ char const* const strerrno_table_c[] = {
 } // namespace
 
 /**
- * \brief Returns a pointer to a string literal that contains the usual macro name of \a err.
+ * @brief Returns a pointer to a string literal that contains the usual macro name of @p err.
  *
  * For example, `strerrno(EAGAIN)` returns `"EAGAIN"`.
- * When \p err is unknown then the string `"UNKNOWN ERROR"` is returned.
+ * When @p err is unknown then the string `"UNKNOWN ERROR"` is returned.
  */
 char const* strerrno(unsigned int err)
 {
