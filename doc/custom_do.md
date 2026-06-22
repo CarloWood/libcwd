@@ -6,7 +6,7 @@ Other %debug objects may be created as global objects;
 it is convenient to define new macros for each (custom) %debug object using the generic macros
 @ref LibcwDout and @ref LibcwDoutFatal.
 
-For example, add something like the following to your own \link chapter_custom_debug_h "debug.h" \endlink file:
+For example, add something like the following to your own @link chapter_custom_debug_h "debug.h" @endlink file:
 
 ```cpp
 #ifdef CWDEBUG

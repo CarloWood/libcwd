@@ -19,5 +19,5 @@ and starts the gdb session inside it.
 After exiting gdb the application will continue running.
 
 In order for `attach_gdb()` to work, you will need to call
-<span class="tt">\link chapter_rcfile read_rcfile() \endlink</span>
+<span class="tt">@link chapter_rcfile read_rcfile()@endlink</span>
 at the start of your application.

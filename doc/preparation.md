@@ -43,12 +43,10 @@ If you added one or more custom %debug %channels to your namespace
 channels in one of your project source files.&nbsp; The initialization code
 at the top of main then looks like:
 
-```
+```cpp
 int main()
 {
-#ifdef CWDEBUG
-  myproject::debug::init();
-#endif
+  Debug(myproject::debug::init());
 // ...
 ```
 

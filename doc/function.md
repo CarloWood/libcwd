@@ -84,11 +84,11 @@ debug output about what they are looking up and what they
 found.  By default they will fail when nothing is found.
 
 ```cpp
-  f1.init(Function::regexp("^int g(.*)$")); // f1 represents all functions 'g' returning an int.
+f1.init(Function::regexp("^int g(.*)$")); // f1 represents all functions 'g' returning an int.
 
-  f1.init(Function::exactmatch("int h()")); // f1 represents the function 'int h()'.
+f1.init(Function::exactmatch("int h()")); // f1 represents the function 'int h()'.
 
-  f1.init(Function::mangled("_ZTv0_n12_NSoD0Ev"); // Look up by mangled name (exact matches only).
+f1.init(Function::mangled("_ZTv0_n12_NSoD0Ev"); // Look up by mangled name (exact matches only).
 ```
 
 The \c mangled lookup is the fastest.
@@ -98,7 +98,7 @@ However, you can also specifically specify that the function you are looking for
 Flags are always the right-most parameter.
 
 ```cpp
-  f1.init(Function::regexp("malloc"), Function::c_linkage);
+f1.init(Function::regexp("malloc"), Function::c_linkage);
 ```
 
 \c regexp and \c exactmatch look only for C++ functions by default.

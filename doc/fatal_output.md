@@ -25,11 +25,11 @@ The big difference with Dout is that DoutFatal is not replaced with white space 
 the macro `CWDEBUG` is not defined.
 
 There are two %debug %channels that can be used together with DoutFatal:
-\link libcwd::channels::dc::fatal dc::fatal \endlink and
-\link libcwd::channels::dc::core dc::core \endlink.
+<span class="tt">@link libcwd::channels::dc::fatal dc::fatal@endlink</span> and
+<span class="tt">@link libcwd::channels::dc::core dc::core@endlink</span>.
 The first terminates by calling `exit(254)`,
 the second terminates by raising `SIGABORT`, causing the application to core dump.
 
 @sa @ref group_default_dc
  \n @ref group_control_flags
- \n \link chapter_custom_do Defining your own debug objects \endlink
+ \n @link chapter_custom_do Defining your own debug objects @endlink

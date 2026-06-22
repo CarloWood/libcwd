@@ -5,20 +5,17 @@ The debug output is then written to the ostream of the debug object
 unless the debug object is turned off or when all specified *debug channels* are off.
 Each *debug channel* can be turned on and off independently.
 
-Libcwd has defined six *debug channels* in namespace \link libcwd::channels::dc channels::dc \endlink
-(See @ref group_default_dc).
-New *debug channels* can be defined by the user, which is as simple as creating
-a new Channel object.
+Libcwd has defined six *debug channels* in namespace libcwd::channels::dc (See @ref group_default_dc).
+New *debug channels* can be defined by the user in namespace @ref DEBUGCHANNELS,
+which is as simple as creating a new <span class="tt">@link libcwd::Channel Channel@endlink</span> object.
 
 Example,
 
 ```cpp
-namespace dc {
+namespace DEBUGCHANNELS::dc {
 Channel mychan("MYLABEL");
 }
 ```
-
-This declaration must be inside the namespace @ref DEBUGCHANNELS.
 
 Multiple *debug channels* can be given by using `operator|` between the channel names.
 This shouldn't be read as \`or' but merely be seen as the bit-wise
