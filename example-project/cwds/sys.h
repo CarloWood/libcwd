@@ -12,7 +12,7 @@
 #endif
 
 // Used when building with cmake, because cmake isn't using a project-root config.h for its definitions.
-// Currently only the submodules utils, threadpool and fastprimes have a config.h (todo: automate this too).
+// Currently only the submodules utils, threadpool, fastprimes and cairowindow have a config.h (todo: automate this).
 #ifdef HAVE_UTILS_CONFIG_H
 #include <utils/config.h>
 #endif
