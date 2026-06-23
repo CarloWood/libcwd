@@ -26,7 +26,9 @@ The direct use of these functions should be avoided, instead use the function ty
 // This file has been tested with gcc-3.x ... gcc-16.x.
 //
 // The description of how the mangling is done in the new ABI was found on
-// http://www.codesourcery.com/cxx-abi/abi.html#mangling revision 1.74.
+// http://www.codesourcery.com/cxx-abi/abi.html#mangling revision 1.74,
+// which no longer exists. The canonical definition of the "Itanium C++ ABI"
+// can currently be found at http://itanium-cxx-abi.github.io/cxx-abi/
 //
 // To compile a standalone demangler:
 // g++ -g -DSTANDALONE -DCWDEBUG -Iinclude demangle3.cc -Wl,--rpath,`pwd`/.libs -L.libs -lcwd -o c++filt

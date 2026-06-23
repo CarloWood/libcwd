@@ -6,7 +6,7 @@ __PAGESTART
 <H1>Tutorial</H1>
 
 <P><FONT class="hello">Hello</FONT>,
-my name is <A HREF="http://carlowood.github.io/" TARGET="_blank">Carlo Wood</A>
+my name is <A HREF="https://carlowood.github.io/" TARGET="_blank">Carlo Wood</A>
 and I will guide you through a few example programs in order to help familiarize you
 with&nbsp;<code>libcwd</code>.</P>
 

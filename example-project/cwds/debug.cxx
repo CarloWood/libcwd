@@ -218,27 +218,6 @@ void init()
   // shared libcwd object that you linked with.
   libcwd::main_reached();
 
-#if CWDEBUG_ALLOC && defined(USE_LIBCW)
-  // Tell the memory leak detector which parts of the code are
-  // expected to leak so that we won't get an alarm for those.
-  {
-    std::vector<std::pair<std::string, std::string> > hide_list;
-    hide_list.push_back(std::pair<std::string, std::string>("libdl.so.2", "_dlerror_run"));
-    hide_list.push_back(std::pair<std::string, std::string>("libstdc++.so.6", "__cxa_get_globals"));
-    // The following is actually necessary because of a bug in glibc
-    // (see http://sources.redhat.com/bugzilla/show_bug.cgi?id=311).
-    hide_list.push_back(std::pair<std::string, std::string>("libc.so.6", "dl_open_worker"));
-    memleak_filter().hide_functions_matching(hide_list);
-  }
-  {
-    std::vector<std::string> hide_list;
-    // Also because of http://sources.redhat.com/bugzilla/show_bug.cgi?id=311
-    hide_list.push_back(std::string("ld-linux.so.2"));
-    memleak_filter().hide_objectfiles_matching(hide_list);
-  }
-  memleak_filter().set_flags(libcwd::show_objectfile|libcwd::show_function);
-#endif
-
 #ifdef NO_SYNC_WITH_STDIO_FALSE
 #warning "NO_SYNC_WITH_STDIO_FALSE is now the default."
 #endif

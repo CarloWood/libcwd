@@ -2,7 +2,7 @@
 
 #ifndef CWDEBUG
 
-// No need to document this.  See http://carlowood.github.io/libcwd/ for more info.
+// No need to document this.  See https://carlowood.github.io/libcwd/ for more info.
 /// @cond Doxygen_Suppress
 
 #include <iostream>
@@ -91,7 +91,7 @@
 /**
  * The namespace in which the @c dc namespace is declared.
  *
- * <A HREF="http://carlowood.github.io/libcwd/">Libcwd</A> demands that this macro is defined
+ * <A HREF="https://carlowood.github.io/libcwd/">Libcwd</A> demands that this macro is defined
  * before <libcwd/debug.h> is included and must be the name of the namespace containing
  * the @c dc (Debug Channels) namespace.
  *

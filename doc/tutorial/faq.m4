@@ -251,7 +251,7 @@ machinery.&nbsp; Others might think more in the lines of: lets start with settin
 <P>Good question.&nbsp; It can't be because I wasn't creative, I am very creative.&nbsp;
 Note that I didn't think of <EM>Object</EM> as in OOP (<EM>that</EM> would be uncreative)
 but more along the lines of an <EM>object</EM>, like in science fiction stories -- objects
-you can't get around.&nbsp; The monolith of <A HREF="http://uk.imdb.com/Title?0062622" target="_blank">2001: A Space Odyssey</A>
+you can't get around.&nbsp; The monolith of <A HREF="https://www.imdb.com/title/tt0062622/" target="_blank">2001: A Space Odyssey</A>
 is a good example I guess.</P>
 
 <P>Unlike the monolith however, a Debug Object is not mysterious at all.&nbsp; Basically it

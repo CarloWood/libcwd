@@ -41,14 +41,15 @@ cmake
 
 The following boolean variables can be set to ON or OFF on the command line,
 
-   EnableGlibCxxDebug   : Compile libcwd with -D_GLIBCXX_DEBUG.
-                          See https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html#debug_mode.using.mode
-   EnableLibcwdLocation : Enable the ability to lookup source file and line
-                          number, you might need this on a non-ELF system.
+   EnableGlibCxxDebug      : Compile libcwd with -D_GLIBCXX_DEBUG.
+                             See https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode_using.html#debug_mode.using.mode
+   EnableLibcwdLocation    : Enable the ability to lookup source file and line
+                             number, you might need this on a non-ELF system.
+   EnableBuildTesting      : Compile the CTest testsuite.
 (you do not want to use these):
-   EnableLibcwdDebug    : Enable debugging of libcwd itself.
+   EnableLibcwdDebug       : Enable debugging of libcwd itself.
    EnableLibcwdDebugOutput : Enable debug output of EnableLibcwdDebug.
-   EnableLibcwdDebugt   : Enable debugging of threading debugging code in libcwd itself.
+   EnableLibcwdDebugt      : Enable debugging of threading debugging code in libcwd itself.
 
 When running `cmake --log-level=STATUS` each option and its value is printed (unless
 forced to OFF); often a value is forced or has a default. Recommended is to only set
