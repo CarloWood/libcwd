@@ -9,11 +9,6 @@
 #include <boost/preprocessor/expand.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
-#if defined(CWDEBUG) && !defined(LIBCWD_SYS_H)
-// We need sys.h included because that includes config.h, which defines HAVE_BUILTIN_EXPECT.
-#error #include "sys.h" at the top of every source file!
-#endif
-
 #if HAVE_BUILTIN_EXPECT
 #define AI_LIKELY(EXPR) __builtin_expect(static_cast<bool>(EXPR), true)
 #define AI_UNLIKELY(EXPR) __builtin_expect(static_cast<bool>(EXPR), false)

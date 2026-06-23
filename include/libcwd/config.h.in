@@ -179,7 +179,19 @@
 #ifdef __cplusplus
 namespace libcwd {
 
-static unsigned long const config_signature_header_c = (
+#if CWDEBUG_LOCATION
+/**
+ * @brief Offset to __builtin_return_address() needed to get the correct line number from Location for the call site.
+ *
+ * @par Example
+ * ```cpp
+ * libcwd::Location loc((char*)__builtin_return_address(0) + libcwd::builtin_return_address_offset);
+ * ```
+ */
+inline constexpr int builtin_return_address_offset = @CW_CONFIG_BUILTIN_RETURN_ADDRESS_OFFSET@;
+#endif
+
+inline constexpr unsigned long config_signature_header_c = (
 #if CWDEBUG_LOCATION
     4 |
 #endif

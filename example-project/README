@@ -1,6 +1,6 @@
 This is a minimal example project using libcwd.
 
-This example project only works of you already compiled and *installed* libcwd!
+This example project only works if you already compiled and *installed* libcwd!
 If libcwd was installed with an uncommon prefix then CMake can still find it
 if you add `<install_prefix>/lib/cmake/libcwd` to CMAKE_PREFIX_PATH.
 

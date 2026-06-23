@@ -6,8 +6,8 @@
 //=============================================================================
 // Macros that are normally a part of cwds.
 
-// Test sources include sys.h first, optionally define namespace selection macros
-// such as NAMESPACE_DEBUG, and then include this header.
+// Test sources include cwd_sys.h first, optionally define namespace selection
+// macros such as NAMESPACE_DEBUG, and then include this header.
 //
 // This configures libcwd's DEBUGCHANNELS before including <libcwd/debug.h>,
 // declares the application debug-channel namespace, and exposes

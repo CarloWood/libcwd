@@ -26,10 +26,6 @@
 
 #else // CWDEBUG (normal usage of this file):
 
-#ifndef LIBCWD_SYS_H
-#error You need to #include "sys.h" at the top of every source file (which in turn should #include "sys.h").
-#endif
-
 #if defined(LIBCWD_DEFAULT_DEBUGCHANNELS) && defined(DEBUGCHANNELS)
 // If you run into this error then you included <libcwd/debug.h> (or any other libcwd header file)
 // without defining DEBUGCHANNELS, and later (the moment of this error) you included it with

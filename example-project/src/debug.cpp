@@ -1,4 +1,3 @@
-#include "sys.h"
 #include "debug.h"
 
 #ifdef CWDEBUG

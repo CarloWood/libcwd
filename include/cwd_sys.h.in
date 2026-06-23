@@ -6,20 +6,6 @@
 #include "../config.h"
 
 //
-// Use all GNU extensions.
-//
-#if !defined(_GNU_SOURCE) && defined(CW_NEED__GNU_SOURCE)
-#define _GNU_SOURCE
-#endif
-
-//
-// Some OS use _THREAD_SAFE instead of _REENTRANT
-//
-#ifdef _REENTRANT
-#define _THREAD_SAFE
-#endif
-
-//
 // typedefs
 //
 // getgroups_t          : The type of the array argument to getgroups
@@ -33,7 +19,5 @@
 // /usr/include/bits/resource.h:109: warning: `RLIM_INFINITY' redefined
 // Word around (if any):
 @CW_SYS_REDEFINES_FIX@
-
-#include "libcwd/sys.h"
 
 #endif // SYS_H
