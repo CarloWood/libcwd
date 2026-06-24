@@ -236,19 +236,66 @@ struct InlineScopeLookupResult
   bool found{false}; // True when addr is covered by an inline scope.
 };
 
-// Inspect the DWARF scope chain for runtime address addr in cu_die using lbase as the load base.
+// Find the name of the innermost DW_TAG_inlined_subroutine whose address range covers the
+// CU-relative address cu_addr, by recursively walking the DIE subtree rooted at die.
 //
-// dwarf_getscopes returns scopes from innermost to outermost, so the first
-// DW_TAG_inlined_subroutine is the inline body that should override the physical
-// machine-code symbol for source-level reporting. The returned function_name is
-// borrowed from libdw and may be null when the inline scope exists but carries no
-// resolvable name. The only side effects are libdw's temporary scope allocation,
-// which is released before returning, and optional debug-channel diagnostics.
-InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, uintptr_t addr, uintptr_t lbase)
+// die is normally the enclosing subprogram DIE and cu_addr equals addr - lbase. A borrowed
+// mangled name is returned, or nullptr when no covering inline is found. Among nested inlines
+// the most deeply nested one wins. This only reads DIE attributes via libdw; it allocates no
+// memory and performs no I/O.
+char const* innermost_inline_name_by_pc(Dwarf_Die* die, Dwarf_Addr cu_addr)
+{
+  Dwarf_Die child;
+  if (dwarf_child(die, &child) != 0)
+    return nullptr;
+  do
+  {
+    int const tag = dwarf_tag(&child);
+    if (tag == DW_TAG_inlined_subroutine)
+    {
+      // dwarf_haspc returns 1 when cu_addr lies inside this DIE's (possibly multi-range) coverage.
+      if (dwarf_haspc(&child, cu_addr) == 1)
+      {
+        // An inline nested inside this one is more specific and therefore wins.
+        char const* nested = innermost_inline_name_by_pc(&child, cu_addr);
+        return nested ? nested : function_die_name(&child);
+      }
+    }
+    else if (tag == DW_TAG_subprogram || tag == DW_TAG_lexical_block)
+    {
+      // A DW_TAG_inlined_subroutine can only be nested inside a subprogram, a lexical block,
+      // or another inlined_subroutine (handled above), so only those containers need descending into.
+      // Note that this descent is by DIE type only -- a container's own address range is never
+      // consulted here; coverage is decided on each inlined_subroutine child by dwarf_haspc above.
+      // That is why a range-less concrete subprogram (i.e. a fully-inlined subprogram, which clang
+      // emits without any DW_AT_low_pc of its own) is still traversed.
+
+      // Recursively traverse inlined subroutines.
+      if (char const* nested = innermost_inline_name_by_pc(&child, cu_addr))
+        return nested;
+    }
+  } while (dwarf_siblingof(&child, &child) == 0);
+  return nullptr;
+}
+
+// Resolve the inline function name, if any, that should override the physical machine-code
+// symbol for runtime address addr, using cu_die for the compilation unit, subprogram_die for
+// the enclosing subprogram and lbase as the load base.
+//
+// The primary path uses dwarf_getscopes(), which returns the scope chain innermost-first, so
+// the first DW_TAG_inlined_subroutine is the inline body. That path is supplemented by a manual
+// fallback walk of subprogram_die: dwarf_getscopes does not descend into a concrete subprogram
+// that has no own address coverage, and at least clang emits such subprograms when their entire
+// body is an inlined function (leaving the range on the nested DW_TAG_inlined_subroutine). The
+// returned function_name is borrowed from libdw and may be null when an inline scope exists but
+// carries no resolvable name. Side effects are limited to libdw's temporary scope allocation,
+// released before returning, and optional debug-channel diagnostics.
+InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, Dwarf_Die* subprogram_die, uintptr_t addr, uintptr_t lbase)
 {
   InlineScopeLookupResult result;
+  Dwarf_Addr const cu_addr = static_cast<Dwarf_Addr>(addr - lbase);
   Dwarf_Die* scopes = nullptr;
-  int const nscopes = dwarf_getscopes(cu_die, static_cast<Dwarf_Addr>(addr - lbase), &scopes);
+  int const nscopes = dwarf_getscopes(cu_die, cu_addr, &scopes);
   if (nscopes < 0)
     Dout(dc::elfutils, "dwarf_getscopes failed for address 0x" << std::hex << addr << ": " << dwarf_errmsg(-1));
   else
@@ -266,6 +313,19 @@ InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, uintptr
     }
 
   std::free(scopes);
+
+  // Fallback for range-less concrete subprograms (e.g. clang): walk the subprogram's inlined
+  // children directly when dwarf_getscopes found no covering inline name.
+  if (!result.function_name && subprogram_die && subprogram_die->addr)
+  {
+    if (char const* name = innermost_inline_name_by_pc(subprogram_die, cu_addr))
+    {
+      result.found = true;
+      result.function_name = name;
+      Dout(dc::elfutils, "inline scope for address 0x" << std::hex << addr << " resolved by fallback walk to " << name);
+    }
+  }
+
   return result;
 }
 
@@ -281,7 +341,7 @@ LocationLookupResult SymbolRange::lookup_location(uintptr_t addr, uintptr_t lbas
   if (!die_.addr || dwarf_diecu(const_cast<Dwarf_Die*>(&die_), &cu_die, NULL, NULL) == nullptr)
     return result;
 
-  InlineScopeLookupResult const inline_scope = lookup_innermost_inline_scope(&cu_die, addr, lbase);
+  InlineScopeLookupResult const inline_scope = lookup_innermost_inline_scope(&cu_die, const_cast<Dwarf_Die*>(&die_), addr, lbase);
   if (inline_scope.function_name)
     result.effective_function_name = inline_scope.function_name;
 
