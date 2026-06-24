@@ -9,6 +9,7 @@ libcwd-2.0
         - Complete rewrite of ELF/DWARF debug information loading code;
           dc::bfd was renamed to dc::elfutils.
         - No longer using cwm4 as build dependency. Now using cmake-aicxx.
+        - The header libcwd/sys.h has been removed (cwds still requires it).
         - The header libcwd/cwprint.h has been removed.
         - Released under the MIT license.
 

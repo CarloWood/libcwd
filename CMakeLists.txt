@@ -95,6 +95,7 @@ set(VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(VERSION_REVISION ${PROJECT_VERSION_PATCH})
 
 include(CW_DEFINE_TYPE)
+include(CW_HAVE_BUILTIN_EXPECT)
 include(CheckPrototypeDefinition)
 include(GNUInstallDirs)
 
@@ -124,6 +125,9 @@ check_function_exists(getgroups HAVE_GETGROUPS)
 if (HAVE_GETGROUPS)
   CW_DEFINE_TYPE(gid_t getgroups_t)
 endif()
+
+# Detect compiler builtins used by include/utils/macros.h (AI_LIKELY/AI_UNLIKELY).
+CW_HAVE_BUILTIN_EXPECT()
 
 # Set a decent default value in case we don't have the right libraries.
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "sparc")
