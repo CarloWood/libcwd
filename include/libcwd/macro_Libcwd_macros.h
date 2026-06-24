@@ -28,13 +28,13 @@
  *
  * @sa @ref chapter_custom_debug_h
  */
-#define LibcwDebug(dc_namespace, STATEMENTS...) \
+#define LibcwDebug(dc_namespace, ...)           \
   do                                            \
   {                                             \
     using namespace ::libcwd;                   \
     using namespace dc_namespace;               \
     {                                           \
-      STATEMENTS;                               \
+      __VA_ARGS__;                              \
     }                                           \
   } while (0)
 

@@ -13,8 +13,7 @@ namespace libcwd {
 
 inline FatalChannel::FatalChannel(char const* label, control_flag_t maskbit)
 {
-  LIBCWD_TSD_DECLARATION;
-  NS_initialize(label, maskbit, LIBCWD_TSD);
+  NS_initialize(label, maskbit);
 }
 
 inline control_flag_t FatalChannel::get_maskbit() const

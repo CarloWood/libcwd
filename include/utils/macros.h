@@ -6,6 +6,8 @@
 #ifndef UTILS_MACROS_H
 #define UTILS_MACROS_H
 
+#include <libcwd/config.h>     // Needed for HAVE_BUILTIN_EXPECT.
+
 #include <boost/preprocessor/expand.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
@@ -54,6 +56,20 @@
 
 #define PRAGMA_DIAGNOSTIC_PUSH_IGNORE(warn_option) \
   _Pragma("GCC diagnostic push") _Pragma(BOOST_PP_STRINGIZE(GCC diagnostic ignored BOOST_PP_EXPAND(warn_option)))
+
+#if defined(__GNUC__) && defined(__clang__) // gcc doesn't have a -Winfinite-recursion.
+#define PRAGMA_DIAGNOSTIC_PUSH_IGNORE_infinite_recursion \
+  _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Winfinite-recursion\"")
+#else
+#define PRAGMA_DIAGNOSTIC_PUSH_IGNORE_infinite_recursion _Pragma("GCC diagnostic push")
+#endif
+
+#if defined(__GNUC__) && !defined(__clang__) // clang doesn't have a -Wstringop-truncation.
+#define PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_truncation \
+  _Pragma("GCC diagnostic push") _Pragma("GCC diagnostic ignored \"-Wstringop-truncation\"")
+#else
+#define PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_truncation _Pragma("GCC diagnostic push")
+#endif
 
 #define PRAGMA_DIAGNOSTIC_POP _Pragma("GCC diagnostic pop")
 

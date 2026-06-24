@@ -13,10 +13,10 @@
 #include <cstddef>
 
 extern int a;
-extern int arg_g1(int expected_line), arg_g2(int expected_line), y_default(int expected_line),
-    arg2_i(int expected_line);
+extern int arg_g1(unsigned int expected_line), arg_g2(unsigned int expected_line),
+       y_default(unsigned int expected_line), arg2_i(unsigned int expected_line);
 
-int expected_line; // Expected call line of default argument initialization functions.
+unsigned int expected_line; // Expected call line of default argument initialization functions.
 
 inline int i(int x, int y)
 {

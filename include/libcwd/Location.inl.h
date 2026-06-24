@@ -45,7 +45,7 @@ inline Location::~Location()
   clear();
 }
 
-inline Location::Location() : function_name_(uninitialized_location), object_file_name_(NULL), known_(false)
+inline Location::Location() : object_file_name_(NULL), function_name_(uninitialized_location), known_(false)
 {
 }
 

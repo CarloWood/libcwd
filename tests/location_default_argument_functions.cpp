@@ -22,7 +22,7 @@ uintptr_t executable_load_base();
 int a = -12345;
 uintptr_t base = executable_load_base();
 
-int y_default(int expected_line)
+int y_default(unsigned int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::Location const y_default_loc(addr);
@@ -31,7 +31,7 @@ int y_default(int expected_line)
   return y_default_loc.line() == expected_line;
 }
 
-int arg2_i(int expected_line)
+int arg2_i(unsigned int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::Location const arg2_i_loc(addr);
@@ -40,7 +40,7 @@ int arg2_i(int expected_line)
   return arg2_i_loc.line() == expected_line;
 }
 
-int arg_g1(int expected_line)
+int arg_g1(unsigned int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::Location const arg_g1_loc(addr);
@@ -51,7 +51,7 @@ int arg_g1(int expected_line)
   return arg_g1_loc.line() == expected_line || arg_g1_loc.line() == expected_line - 1;
 }
 
-int arg_g2(int expected_line)
+int arg_g2(unsigned int expected_line)
 {
   char const* addr = (char const*)__builtin_return_address(0) + libcwd::builtin_return_address_offset;
   libcwd::Location const arg_g2_loc(addr);

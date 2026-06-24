@@ -28,7 +28,6 @@ inline DebugString::DebugString(DebugString const& ds)
  */
 inline void DebugString::assign(char const* str, size_t len)
 {
-  LIBCWD_TSD_DECLARATION;
   internal_assign(str, len);
 }
 
@@ -37,7 +36,6 @@ inline void DebugString::assign(char const* str, size_t len)
  */
 inline void DebugString::append(char const* str, size_t len)
 {
-  LIBCWD_TSD_DECLARATION;
   internal_append(str, len);
 }
 
@@ -46,7 +44,6 @@ inline void DebugString::append(char const* str, size_t len)
  */
 inline void DebugString::prepend(char const* str, size_t len)
 {
-  LIBCWD_TSD_DECLARATION;
   internal_prepend(str, len);
 }
 

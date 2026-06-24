@@ -3,7 +3,7 @@
 
 #include "cwd_sys.h"
 #include <libcwd/config.h>
-#include "macros.h"
+#include "utils/macros.h"
 #include "private_DebugStack.inl.h"
 #include "threadsafe/AIReadWriteMutex.h"
 #include "threadsafe/threadsafe.h"
@@ -343,8 +343,8 @@ void ST_initialize_globals(LIBCWD_TSD_PARAM)
 
   // Fatal channels need to be marked fatal, otherwise we get into an endless loop
   // when they are used before they are created.
-  channels::dc::core.NS_initialize("COREDUMP", coredump_maskbit, LIBCWD_TSD);
-  channels::dc::fatal.NS_initialize("FATAL", fatal_maskbit, LIBCWD_TSD);
+  channels::dc::core.NS_initialize("COREDUMP", coredump_maskbit);
+  channels::dc::fatal.NS_initialize("FATAL", fatal_maskbit);
   // Initialize other debug channels that might be used before we reach main().
   channels::dc::debug.NS_initialize("DEBUG", LIBCWD_TSD, true);
   channels::dc::continued.NS_initialize(continued_maskbit);
@@ -537,7 +537,7 @@ void DebugChannels::initialize_channel(Channel& channel, char const* label, LIBC
 // Fatal channels are not inserted into the registry, but their label width still contributes to the
 // shared WST_max_len value used when formatting all registered channel labels.
 void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* label,
-                                             control_flag_t maskbit, LIBCWD_TSD_PARAM) const
+                                             control_flag_t maskbit) const
 {
   channel.maskbit_ = maskbit;
 
@@ -563,7 +563,7 @@ void DebugChannels::initialize_fatal_channel(FatalChannel& channel, char const* 
     const_cast<char*>(debug_channel->get_label())[WST_max_len] = '\0';
 
   // clang-format off
-  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
+  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_truncation
   strncpy(channel.label_, label, label_len);
   PRAGMA_DIAGNOSTIC_POP
   // clang-format on
@@ -778,7 +778,6 @@ void DebugString::reserve(size_t size)
 {
   if (size < size_)
     return;
-  LIBCWD_TSD_DECLARATION;
   default_capacity_ = min_capacity;
   str_ = (char*)realloc(str_, (default_capacity_ = capacity_ = calculate_capacity(size)) + 1);
 }
@@ -1026,7 +1025,7 @@ void DebugObject_ThreadSpecificData::start(DebugObject& debug_object,
 }
 
 void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
-                                            ChannelSetData& /*UNUSED, */, LIBCWD_TSD_PARAM)
+                                            ChannelSetData& /*UNUSED*/, LIBCWD_TSD_PARAM)
 {
 #if CWDEBUG_DEBUG
   LIBCWD_ASSERT(current != reinterpret_cast<OutputState*>(_private_::WST_dummy_output_state));
@@ -1133,9 +1132,8 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
     }
     else
       current->buffer.writeto(target_os, LIBCWD_TSD, debug_object, false,
-                              debug_object.always_flush_is_on() || (current->mask & flush_cf != 0)
-                                                                      , !(current->mask & nonewline_cf)
-                                                                          , true);
+          debug_object.always_flush_is_on() || ((current->mask & flush_cf) != 0),
+          !(current->mask & nonewline_cf), true);
   }
   else
     current->buffer.writeto(
@@ -1160,7 +1158,7 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
     current = output_state_stack.top();
     DEBUGDEBUG_CERR("current = " << (void*)current);
     current_bufferstream = &current->bufferstream;
-    if (debug_object.always_flush_is_on() || (mask & flush_cf != 0))
+    if (debug_object.always_flush_is_on() || ((mask & flush_cf) != 0))
       current->mask |= flush_cf; // Propagate flush to real ostream.
   }
   else
@@ -1178,8 +1176,7 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
   DEBUGDEBUG_CERR("Leaving DebugObject::finish(), _off became " << LIBCWD_DO_TSD_MEMBER_OFF(debug_object));
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winfinite-recursion"
+PRAGMA_DIAGNOSTIC_PUSH_IGNORE_infinite_recursion
 void DebugObject_ThreadSpecificData::fatal_finish(DebugObject& debug_object,
                                                   ChannelSetData& channel_set, LIBCWD_TSD_PARAM)
 {
@@ -1189,7 +1186,7 @@ void DebugObject_ThreadSpecificData::fatal_finish(DebugObject& debug_object,
             "when using DoutFatal correctly but from the constructor of a global object).");
   _Exit(1); // This is never reached, but g++ 3.3.x -O2 thinks it is.
 }
-#pragma clang diagnostic pop
+PRAGMA_DIAGNOSTIC_POP
 
 int DebugObject::s_index_count_ = 0;
 
@@ -1388,7 +1385,7 @@ void Channel::NS_initialize(char const* label, LIBCWD_TSD_PARAM, bool add_to_cha
   DEBUGDEBUG_CERR("Leaving `Channel::NS_initialize(\"" << label << "\")");
 }
 
-void FatalChannel::NS_initialize(char const* label, control_flag_t maskbit, LIBCWD_TSD_PARAM)
+void FatalChannel::NS_initialize(char const* label, control_flag_t maskbit)
 {
   // This is pretty much identical to Channel::NS_initialize().
 
@@ -1397,7 +1394,7 @@ void FatalChannel::NS_initialize(char const* label, control_flag_t maskbit, LIBC
 
   DEBUGDEBUG_CERR("Entering `FatalChannel::NS_initialize(\"" << label << "\")'");
 
-  _private_::DebugChannels::instance().initialize_fatal_channel(*this, label, maskbit, LIBCWD_TSD);
+  _private_::DebugChannels::instance().initialize_fatal_channel(*this, label, maskbit);
 
   DEBUGDEBUG_CERR("Leaving `FatalChannel::NS_initialize(\"" << label << "\")");
 }
@@ -1414,7 +1411,7 @@ void Channel::initialize(_private_::ChannelSetsWat wat, char const* label, size_
       ++wat.ref_
             ->next_index_; // Don't use index 0, it is used to make sure that uninitialized channels appear to be off.
   // clang-format off
-  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_overflow
+  PRAGMA_DIAGNOSTIC_PUSH_IGNORE_stringop_truncation
   strncpy(label_, label, label_len);
   PRAGMA_DIAGNOSTIC_POP
   // clang-format on

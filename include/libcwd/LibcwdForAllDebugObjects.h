@@ -30,7 +30,7 @@ struct DebugObjects
 {
   using callback_type = void (*)(DebugObject&, void*);
 
-  class Impl;
+  struct Impl;
   Impl* impl; // Deliberately leaked.
 
   static DebugObjects const& instance();
@@ -63,14 +63,14 @@ static_assert(std::is_trivial_v<DebugObjects>, "DebugObjects must be trivial to 
 
 } // namespace libcwd
 
-#define LibcwdForAllDebugObjects(dc_namespace, STATEMENT...)                                         \
+#define LibcwdForAllDebugObjects(dc_namespace, /*STATEMENT*/...)                                     \
   do                                                                                                 \
   {                                                                                                  \
     ::libcwd::_private_::DebugObjects::instance().for_each([&](::libcwd::DebugObject& debugObject) { \
       using namespace ::libcwd;                                                                      \
       using namespace dc_namespace;                                                                  \
       {                                                                                              \
-        STATEMENT;                                                                                   \
+        __VA_ARGS__;                                                                                 \
       }                                                                                              \
     });                                                                                              \
   } while (0)

@@ -107,7 +107,7 @@
  * Debug(libcw_do.get_ostream()->flush());		// Flush the current debug output stream.
  * ```
  */
-#define Debug(STATEMENTS...) LibcwDebug(LIBCWD_DEBUGCHANNELS, STATEMENTS)
+#define Debug(/*STATEMENTS*/...) LibcwDebug(LIBCWD_DEBUGCHANNELS, __VA_ARGS__)
 
 /** @def Dout
  *
@@ -170,7 +170,7 @@
  *
  * which turns all channels off.
  */
-#define ForAllDebugChannels(STATEMENT...) LibcwdForAllDebugChannels(LIBCWD_DEBUGCHANNELS, STATEMENT)
+#define ForAllDebugChannels(/*STATEMENT*/...) LibcwdForAllDebugChannels(LIBCWD_DEBUGCHANNELS, __VA_ARGS__)
 
 /**
  * @def ForAllDebugObjects
@@ -188,7 +188,7 @@
  *
  * would set the output stream of all %debug objects to `std::cerr`.
  */
-#define ForAllDebugObjects(STATEMENT...) LibcwdForAllDebugObjects(LIBCWD_DEBUGCHANNELS, STATEMENT)
+#define ForAllDebugObjects(/*STATEMENT*/...) LibcwdForAllDebugObjects(LIBCWD_DEBUGCHANNELS, __VA_ARGS__)
 
 // Finally, in order for Dout() to be usable, we need this.
 #include <iostream>

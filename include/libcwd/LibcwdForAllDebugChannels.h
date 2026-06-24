@@ -32,7 +32,7 @@ struct DebugChannels
 {
   using callback_type = void (*)(Channel&, void*);
 
-  class Impl;
+  struct Impl;
   Impl* impl; // Deliberately leaked.
 
   static DebugChannels const& instance();
@@ -54,7 +54,7 @@ struct DebugChannels
   // The function updates the shared label width while holding the same write lock used for normal
   // channel registration. The fatal channel itself remains write-once/read-mostly state.
   void initialize_fatal_channel(FatalChannel& channel, char const* label,
-                                control_flag_t maskbit, LIBCWD_TSD_PARAM) const;
+                                control_flag_t maskbit) const;
 
   // Invoke func for each public debug channel currently registered in the registry.
   //
@@ -77,14 +77,14 @@ static_assert(std::is_trivial_v<DebugChannels>, "DebugChannels must be trivial t
 
 } // namespace libcwd
 
-#define LibcwdForAllDebugChannels(dc_namespace, STATEMENT...)                                      \
+#define LibcwdForAllDebugChannels(dc_namespace, ...)                                               \
   do                                                                                               \
   {                                                                                                \
     ::libcwd::_private_::DebugChannels::instance().for_each([&](::libcwd::Channel& debugChannel) { \
       using namespace ::libcwd;                                                                    \
       using namespace dc_namespace;                                                                \
       {                                                                                            \
-        STATEMENT;                                                                                 \
+        __VA_ARGS__;                                                                               \
       }                                                                                            \
     });                                                                                            \
   } while (0)

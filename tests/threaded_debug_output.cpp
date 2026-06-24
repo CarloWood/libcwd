@@ -22,10 +22,7 @@ namespace {
 
 constexpr int number_of_threads = 16;
 
-std::mutex output_mutex;
-
 libcwd::DebugObject extra_do;
-std::mutex extra_output_mutex;
 #define DoutB(cntrl, data) LibcwDout(::libcwd::channels, extra_do, cntrl, data)
 
 char start_nestingA()

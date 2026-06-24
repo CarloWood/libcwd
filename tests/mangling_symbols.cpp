@@ -226,7 +226,6 @@ void scopetype_const_member_function_pointer_const_example_template_name_ttypes(
 {
 }
 
-scopetype const st = {};
 template <class ScopetypeConst>
 void possiblescopetype_const(ScopetypeConst&)
 {

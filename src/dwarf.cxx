@@ -695,7 +695,7 @@ ObjectFile const* ObjectFileRegistry::iterate_program_headers(CallBackData const
 }
 
 //static
-int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t size, void* call_back_data)
+int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t /*UNUSED*/, void* call_back_data)
 {
   CallBackData const* data = static_cast<CallBackData const*>(call_back_data);
   uintptr_t const lbase = static_cast<uintptr_t>(info->dlpi_addr);
@@ -1374,7 +1374,6 @@ namespace libcwd {
 
 ObjectFileName::ObjectFileName(char const* filepath) : no_debug_line_sections_(false)
 {
-  LIBCWD_TSD_DECLARATION;
   filepath_ = strcpy((char*)malloc(strlen(filepath) + 1), filepath); // LEAK8
   filename_ = strrchr(filepath_, '/') + 1;
   if (filename_ == (char const*)1)

@@ -94,10 +94,7 @@ void Location::clear()
   {
     known_ = false;
     if (filepath_.is_owner())
-    {
-      LIBCWD_TSD_DECLARATION;
       filepath_.reset();
-    }
   }
   object_file_name_ = nullptr;
   function_name_ = cleared_location;

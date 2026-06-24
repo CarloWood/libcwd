@@ -27,6 +27,13 @@ target_compile_definitions(cwd
         VERSION="${PROJECT_VERSION}"
 )
 
+if (CW_BUILD_TYPE_IS_NOT_RELEASE)
+  # Check if compiler is GCC, Clang, or AppleClang.
+  if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    target_compile_options(cwd PRIVATE -Wall -Wextra -Wpedantic -Wundef -Werror)
+  endif ()
+endif ()
+
 target_include_directories(cwd
     PRIVATE
       "${CMAKE_BINARY_DIR}/include"

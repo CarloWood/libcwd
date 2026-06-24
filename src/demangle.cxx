@@ -812,12 +812,9 @@ namespace libcwd {
  */
 void demangle_symbol(char const* input, std::string& output)
 {
-  LIBCWD_TSD_DECLARATION;
-  {
-    std::string result;
-    _private_::demangle_symbol(input, result);
-    output.append(result.data(), result.size());
-  }
+  std::string result;
+  _private_::demangle_symbol(input, result);
+  output.append(result.data(), result.size());
 }
 
 /**
@@ -825,12 +822,9 @@ void demangle_symbol(char const* input, std::string& output)
  */
 void demangle_type(char const* input, std::string& output)
 {
-  LIBCWD_TSD_DECLARATION;
-  {
-    std::string result;
-    _private_::demangle_type(input, result);
-    output.append(result.data(), result.size());
-  }
+  std::string result;
+  _private_::demangle_type(input, result);
+  output.append(result.data(), result.size());
 }
 
 /** \} */
