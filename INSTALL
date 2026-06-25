@@ -4,8 +4,9 @@ Quick start
 Libcwd requires CMake, which can be used to configure, build, *and* install
 libcwd.
 
-However, you SHOULD use gitache to get/configure/compile libcwd and you very
-likely want to use the git submodule cwds too (which in turn requires cmake-aicxx).
+However, it is highly recommended to instead use gitache to
+get/configure/compile libcwd, and you very likely want to use the git
+submodule cwds too (which in turn requires cmake-aicxx).
 
 Libcwd installs one library, named libcwd, with thread support always enabled.
 Use `set(GITACHE_PACKAGES libcwd)`.
@@ -13,13 +14,14 @@ Use `set(GITACHE_PACKAGES libcwd)`.
 gitache
 -------
 
-See documentation of cwds here:
+See the documentation of cwds here:
 https://github.com/CarloWood/cwds?tab=readme-ov-file#adding-the-cwds-submodule-to-a-project
+
+Only if you can't or do not want to use gitache, then the following
+to paragraphs apply.
 
 git
 ---
-
-Only if you can't or do not want to use gitache, then the following applies.
 
 If you obtained the source code from git, then first run `./autogen.sh`
 to initialize/update the required git submodules and print the CMake
@@ -28,10 +30,11 @@ commands for a local build.
 cmake
 -----
 
-cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -S . -B build
-cmake --build build
-cmake --build build --target doc        # Generate documentation (open build/doc/index.html).
-sudo make -C build install
+mkdir "$BUILDDIR"
+cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -S . -B "$BUILDDIR"
+cmake --build "$BUILDDIR"
+cmake --build "$BUILDDIR" --target doc  # Generate documentation (open file://$BUILDDIR/doc/index.html).
+sudo cmake --install "$BUILDDIR" --prefix /usr/local
 
 Options
 =======
