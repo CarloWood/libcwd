@@ -7,8 +7,9 @@ for example,
 ```cpp
 int main()
 {
-  Debug( libcw_do.on() );       // In order to get RCFILE messages.
-  Debug( read_rcfile() );
+  Debug(reached_main());
+  Debug(libcw_do.on());     // In order to get RCFILE messages.
+  Debug(read_rcfile());
 ```
 
 `read_rcfile()` can be used to turn on or off debug *channels*, but you still have to turn on the

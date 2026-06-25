@@ -612,7 +612,7 @@ Please manually remove the old `<sys.h>` if you install libcwd over an old insta
 only way to be sure that you are not accidently including it somewhere.
 Secondly, the debug channel `dc::warning` is turned on by default - which will cause a core dump
 if you try to turn it on yourself at the start of `main()`: You have to remove an explicit
-`Debug( dc::warning.on() )` if you have one.
+`Debug(dc::warning.on())` if you have one.
 
 ---
 ## 1 August 2001

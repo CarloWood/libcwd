@@ -52,8 +52,8 @@ If extra debugging code is needed to test the library itself then use a library
 specific define like <CODE>DEBUG_YOURLIB</CODE>.</P>
 
 <P>Finally, in order for others to be able to compile your application without having
-libcwd installed, you need to include a custom "debug.h" and "sys.h" as is described
-in chapter <A HREF="../reference-manual/preparation.html#preparation">Preparation</A> of
+libcwd installed, you need to include a custom "debug.h" as is described
+in chapter <A HREF="../reference-manual/group__preparation.html#header_files">Preparation</A> of
 the <A HREF="../reference-manual/index.html">Reference Manual</A> and in <A HREF="tut2.html">tutorial 2</A>.</P>
 
 __PAGEEND

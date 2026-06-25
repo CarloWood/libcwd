@@ -51,7 +51,6 @@ and channels turned off, just as at the start of <CODE>main()</CODE>.</P>
 thread is printing the output.&nbsp; For example:</P>
 
 <PRE>
-#include "sys.h"	// See <A HREF="../reference-manual/preparation.html">documentation/reference-manual/preparation.html</A>
 #include "debug.h"
 #include &lt;iostream&gt;
 #include &lt;cstdio&gt;
@@ -60,7 +59,7 @@ thread is printing the output.&nbsp; For example:</P>
 void* thread_function(void* arguments)
 {
   // Set Thread Specific on/off flags of the debug channels.
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
+  ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on(););
   // And for the debug object.
   Debug(libcw_do.on());
   // Set a margin.
@@ -97,7 +96,7 @@ int main()
 #endif
   Debug(libcw_do.margin().assign(margin, 11));
   // Turn all debug channels on.
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on(); );
+  ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on());
   // List all channels.
   Debug(list_channels_on(libcw_do));
 
@@ -120,7 +119,6 @@ int main()
   }
 
   Dout(dc::notice, "Exiting from main()");
-  return 0;
 }
 </PRE>
 

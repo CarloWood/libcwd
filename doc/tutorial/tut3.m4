@@ -13,14 +13,14 @@ uses it to write its debug output to.</P>
 
 <P>Compile as: <CODE>g++ -DCWDEBUG log_file.cc -lcwd -o log_file</CODE></P>
 <PRE>
-#include &quot;sys.h&quot;		// See tutorial 2.
 #include &lt;fstream&gt;
 #include &quot;debug.h&quot;		// See tutorial 2.
 
 int main()
 {
-  Debug( dc::notice.on() );
-  Debug( libcw_do.on() );
+  Debug(main_reached());
+  Debug(dc::notice.on());
+  Debug(libcw_do.on());
 
 #ifdef CWDEBUG
   std::ofstream file;
@@ -28,11 +28,9 @@ int main()
 #endif
 
   // Set the ostream related with libcw_do to `file':&nbsp;&nbsp;
-  <SPAN class="highlight">Debug( libcw_do.set_ostream(&amp;file) );</SPAN>
+  <SPAN class="highlight">Debug(libcw_do.set_ostream(&amp;file));</SPAN>
 
   Dout(dc::notice, "Hippopotamus are heavy");
-
-  return 0;
 }
 </PRE>
 

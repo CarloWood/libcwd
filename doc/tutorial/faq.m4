@@ -29,38 +29,6 @@ Note that GNU g++ 3.x already defines this macro currently itself as a hack
 to get the libstdc++ headers work properly, hence the test with <CODE>#ifndef</CODE>
 is always needed (see <A HREF="http://gcc.gnu.org/ml/gcc/2002-02/msg00996.html">http://gcc.gnu.org/ml/gcc/2002-02/msg00996.html</A>).</P>
 
-<A name="sys.h"></A>
-<H3>2. Why do I have to include &quot;libcwd/sys.h&quot; as first header file?</H3>
-
-<P>This header file is used to fix operating systems bugs, including bugs
-in the system header files.&nbsp; The only way it can do this is when it
-is included before <EM>any</EM> other header file, including system header
-files.</P>
-
-<P>Any project should have one header file that is included at the top of every source file.&nbsp;
-If you already have one then you can add <CODE>#include&nbsp;&lt;libcwd/sys.h&gt;</CODE> to that file.&nbsp;
-Otherwise you should add such a header file: its a Good Thing(tm) to have.</P>
-
-<P>Because this must be included in <EM>every</EM> source file as very first
-header file, it would make no sense to include it also in another
-header file; so it isn't.&nbsp; As a result, forgetting this header file
-or including any other libcwd header file before including libcwd/sys.h,
-will definitely lead to compile errors in that header file.&nbsp;</P>
-
-<A name="dir"></A>
-<H3>3. Why do I need to type &quot;<SPAN class="H3code">libcwd/sys.h</SPAN>&quot;
-and not just &quot;<SPAN class="H3code">sys.h</SPAN>&quot;?</H3>
-
-<P>The header file names of libcwd are not unique.&nbsp; In order to uniquely
-identify which header file needs to be included the &quot;libcwd/&quot; part
-is needed.</P>
-
-<P>Never use the compiler option <SPAN class="code"><SPAN class="command-line-parameter">-I</SPAN>
-<SPAN class="command-line-variable">/usr/include/libcwd</SPAN></SPAN> so you can skip
-the &quot;libcwd/&quot; part in your <SPAN class="code">#include</SPAN>
-directives.&nbsp; There is no garantee that there isn't a header file name
-collision in that case.</P>
-
 <A name="debug.h"></A>
 <H3>4. What is defined <EM>exactly</EM> in <SPAN class="H3code">libcwd/debug.h</SPAN>?</H3>
 
@@ -82,13 +50,13 @@ when the macro <SPAN class="code">CWDEBUG</SPAN> is defined. 2) It includes the 
 
 <P>As a result, you don't have to add <SPAN class="code">#ifdef CWDEBUG ... #endif</SPAN> around the code and
 in most cases you don't have to type <SPAN class="code">libcwd</SPAN>.&nbsp;
-The expression <SPAN class="code">Debug( STATEMENT );</SPAN> is equivalent with:</P>
+The expression <SPAN class="code">Debug(STATEMENT);</SPAN> is equivalent with:</P>
 
 <PRE class="code">
 #ifdef CWDEBUG
   do {
     using namespace ::libcwd;
-    using namespace DEBUGCHANNELS;
+    using namespace LIBCWD_DEBUGCHANNELS;       // DEBUGCHANNELS if defined, otherwise libcwd::channels.
     { STATEMENT; }
   } while(0);
 #endif
@@ -149,10 +117,10 @@ achieved by calling the methods <SPAN class="code">off()</SPAN> and <SPAN class=
 
 <PRE class="code">
   // Make sure no notice debug output is generated:
-  Debug( dc::notice.off() );
+  Debug(dc::notice.off());
   do_something_noisy();
   // ... do stuff ...
-  Debug( dc::notice.on() );
+  Debug(dc::notice.on());
 </PRE>
 
 <P>This will work even when `do stuff' calls a function that also turns <SPAN class="code">dc::notice</SPAN> off and on:
@@ -201,9 +169,9 @@ This can be achieved by calling the methods <SPAN class="code">off()</SPAN> and 
 
 <PRE class="code">
   // Disable all debug output to `libcw_do':
-  Debug( libcw_do.off() );
+  Debug(libcw_do.off());
   // ... do stuff ...
-  Debug( libcw_do.on() );
+  Debug(libcw_do.on());
 </PRE>
 
 <P>This will work even when `do stuff' calls a function that also turns <SPAN class="code">libcw_do</SPAN> off and on:
@@ -219,7 +187,7 @@ For example, changing the <SPAN class="code">ostream</SPAN> of <SPAN class="code
 default <SPAN class="code">cerr</SPAN> to <SPAN class="code">cout</SPAN>:</P>
 
 <PRE class="code">
-  Debug( libcw_do.set_ostream(&cout) );
+  Debug(libcw_do.set_ostream(&cout)); // Does not change the mutex that is currently in use.
 </PRE>
 
 <P>See also <A HREF="tut3.html">tutorial 3</A>.</P>

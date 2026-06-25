@@ -13,53 +13,20 @@ to <CODE>cerr</CODE> is:</P>
 <P>Compile as: <SPAN class="shell-command">g++ -g -DCWDEBUG hello_world.cc -lcwd -o hello_world</SPAN></P>
 
 <PRE>
-// These four lines should actually be part of a custom &quot;sys.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
-#ifndef _GNU_SOURCE                     // Already defined by g++ 3.0 and higher.
-#define _GNU_SOURCE                     // This must be defined before including &lt;libcwd/sys.h&gt;
-#endif
-#include &lt;libcwd/sys.h&gt;                 // This must be the first header file
 // This line should actually be part of a custom &quot;debug.h&quot; file.&nbsp; See <A HREF="tut2.html">tutorial 2</A>.
 #include &lt;libcwd/debug.h&gt;
 
 int main()
 {
-  Debug( dc::notice.on() );             // Turn on the NOTICE Debug Channel.
-  Debug( libcw_do.on() );               // Turn on the default Debug Object.
+  Debug(main_reached());        // Mandatory call to notify the library that main() was reached.
+  Debug(dc::notice.on());       // Turn on the NOTICE Debug Channel.
+  Debug(libcw_do.on());         // Turn on the default Debug Object.
 
   Dout(dc::notice, "Hello World");
-
-  return 0;
 }
 </PRE>
 
 <P>Each of the lines of code in this first example program are explained below:</P>
-
-<H3><CODE>#define _GNU_SOURCE</CODE></H3>
-
-<P>This define is necessary to tell the system headers that you
-want to use the GNU extensions (see /usr/include/features.h).&nbsp;
-In order to make you explicitely aware of the fact that it is
-defined, libcwd does not define this macro itself (which it could do inside &lt;libcwd/sys.h&gt;),
-but forces you to define it when using libcwd.&nbsp;
-Note that you only really have to define it when you compiled libcwd with
-threading support.&nbsp;
-If you do not define this macro and libcwd needs it, then you will get
-a compile error in &lt;libcwd/sys.h&gt; telling you so.</P>
-
-<DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
-<LI><A HREF="faq.html#GNU_SOURCE">Won't this define make my code non-portable?</A></LI>
-</UL></DIV>
-
-<H3><CODE>#include &lt;libcwd/sys.h&gt;</CODE></H3>
-
-<P>This must be the very first header file that is included; even before system header files.&nbsp;
-Every source file that includes other libcwd headers must include it.</P>
-
-<DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
-<LI><A HREF="faq.html#sys.h">Why?</A></LI>
-<LI><A HREF="faq.html#dir">Why do I need to type "<CODE>libcwd/sys.h</CODE>"
-and not just "<CODE>sys.h</CODE>"?</LI></A>
-</UL></DIV>
 
 <H3><CODE>#include &lt;libcwd/debug.h&gt;</CODE></H3>
 
@@ -72,8 +39,17 @@ the debug object <CODE>libcw_do</CODE> and the debug channel <CODE>dc::notice</C
 <LI><A HREF="faq.html#macros">Why are you using macros for <CODE>Debug</CODE> and <CODE>Dout</CODE>?</A></LI>
 </UL></DIV>
 
+<A NAME="main_reached""></A>
+<H3><CODE>Debug(main_reached());</CODE></H3>
+
+<P>This call checks that the libcwd header files that are being used
+belong to the \filename libcwd.so \endfilename shared object that the application linked with.
+It is also required before any debug info can be loaded of the respective loaded shared objects.</P>
+
+<P>
+
 <A NAME="turn_on_channel"></A>
-<H3><CODE>Debug( dc::notice.on() );</CODE></H3>
+<H3><CODE>Debug(dc::notice.on());</CODE></H3>
 
 <P>This turns on the <I><U>D</U>ebug <U>C</U>hannel</I> <CODE><U>dc</U>::notice</CODE>.&nbsp;
 Without this line, the code <CODE>Dout(dc::notice, "Hello World")</CODE> would output
@@ -86,7 +62,7 @@ nothing: all <I>Debug Channels</I> are <EM>off</EM> by default, at start up.</P>
 <LI><A HREF="faq.html#Channel">Why do you call it a Debug <EM>Channel</EM>? What <EM>is</EM> a Debug Channel?</A></LI>
 </UL></DIV>
 
-<H3><CODE>Debug( libcw_do.on() );</CODE></H3>
+<H3><CODE>Debug(libcw_do.on());</CODE></H3>
 
 <P>This turns on the <I><U>D</U>ebug <U>O</U>bject</I> <CODE>libcw_<U>do</U></CODE>.&nbsp;
 Without this line, the code <CODE>Dout(dc::notice, "Hello World")</CODE> would output

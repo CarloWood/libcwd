@@ -22,29 +22,6 @@
 // at the top of main() in your program.
 //
 
-/**
- * @addtogroup group_configuration
- *
- * Libcwd uses CMake for configuration.
- * You can list cached options with \shellcommand cmake -LAH <build-dir> \endshellcommand.
- *
- * This section describes the CMake options specific to libcwd.
- * The name of the macros that are related to the respective features are given between parenthesis after the
- * option. You can not define these macros yourself, you may only use them in an `#if ... #endif`
- * test. The macros are always defined; when the corresponding CMake option was enabled then the macro is defined
- * to `1`, otherwise it is defined to 0. This makes it possible for the compiler to warn you when you
- * made a typo in the name of a macro.
- *
- * **Example:**
- *
- * ```cpp
- * // Use '#if' not '#ifdef'.
- * #if CWDEBUG_LOCATION
- * Dout(dc::notice, "Called from " << libcwd::Location(__builtin_return_address(0)));
- * #endif
- * ```
- */
-
 /** @defgroup enable_glibcxx_debug `EnableGlibCxxDebug` (`CWDEBUG_GLIBCXX_DEBUG`)
  * @ingroup group_configuration
  *

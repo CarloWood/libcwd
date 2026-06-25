@@ -9,12 +9,6 @@ __PAGESTART
 In the example below we create a debug channel <CODE>dc::ghost</CODE>
 that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 
-<P>Create a file <CODE>"sys.h"</CODE> that is part of your application and put in it:</P>
-<PRE>
-#ifdef HAVE_CONFIG_H		// This is just an example of what you could do
-#include "config.h"		//   when using autoconf for your project.
-#endif
-</PRE>
 <P>Create a file <CODE>"debug.h"</CODE> that is part of your application and put in it:</P>
 <PRE>
 #ifndef DEBUG_H
@@ -68,7 +62,6 @@ namespace myproject {
 <P>Finally write the program:</P>
 <P class="download">[<A HREF="channel.cc">download</A>]</P>
 <PRE>
-#include "sys.h"
 #include "debug.h"
 
 // Actual definition of `ghost'
@@ -82,13 +75,13 @@ namespace debug_channels {	// Actually, you will need a series of
 
 int main()
 {
-  Debug( dc::ghost.on() );			// Remember: don't forget to turn
-  Debug( libcw_do.on() );			//   the debug Channel and Object on!
+  Debug(main_reached());
+  Debug(dc::ghost.on());                        // Remember: don't forget to turn
+  Debug(libcw_do.on());                         //   the debug Channel and Object on!
 
   for (int i = 0; i &lt; 4; ++i)
     Dout(<SPAN class="highlight">dc::ghost</SPAN>, "i = " &lt;&lt; i);		// We can write more than just
 						// "Hello World" to the ostream :)
-  return 0;
 }
 </PRE>
 

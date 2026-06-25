@@ -791,13 +791,13 @@ void demangle_type(char const* input, std::string& output)
 
 int main(int argc, char* argv[])
 {
+  Debug(main_reached());
   Debug(libcw_do.on());
   Debug(dc::demangler.on());
   std::string out;
   libcwd::main_in = argv[1];
   libcwd::demangle_symbol(argv[1], out);
   std::cout << out << std::endl;
-  return 0;
 }
 
 #endif // STANDALONE

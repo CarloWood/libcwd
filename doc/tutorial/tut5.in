@@ -30,13 +30,13 @@ the following code prints a list of all channels after they have been turned on.
 <P class="download">[<A HREF="examples5/test5.1.1.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.1.1.cc -->
-#include &quot;sys.h&quot;		// See tutorial 2
 #include &quot;debug.h&quot;
 
 int main()
 {
+  Debug(main_reached());
   // Turn on debug object `libcw_do'.
-  Debug( libcw_do.on() );
+  Debug(libcw_do.on());
 
   // Turn on all debug channels that are off.
   <SPAN class="highlight">ForAllDebugChannels(</SPAN>
@@ -45,9 +45,7 @@ int main()
   <SPAN class="highlight">);</SPAN>
 
   // Print a listing of all debug channels to debug object `libcw_do'.
-  Debug( <SPAN class="highlight">list_channels_on(</SPAN>libcw_do<SPAN class="highlight">)</SPAN> );
-
-  return 0;
+  Debug(<SPAN class="highlight">list_channels_on(</SPAN>libcw_do<SPAN class="highlight">)</SPAN>);
 }
 <!-- END CODE examples5/test5.1.1.cc -->
 </PRE>
@@ -157,7 +155,6 @@ namespace example {
 <P class="download">[<A HREF="examples5/debug.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/debug.cc -->
-#include &quot;sys.h&quot;	// See tutorial 2
 #include &quot;debug.h&quot;
 
 #ifdef CWDEBUG
@@ -194,18 +191,16 @@ of the custom debug channels that we defined in the previous paragraph.</P>
 <P class="download">[<A HREF="examples5/test5.3.1.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.3.1.cc -->
-#include &quot;sys.h&quot;		// See &sect; 2
 #include &quot;debug.h&quot;		// See &sect; 5.2
 
 int main()
 {
+  Debug(main_reached());
   // Start with everything turned on:
-  Debug( libcw_do.on() );
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
+  Debug(libcw_do.on());
+  ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on());
 
   Dout(dc::elephant|dc::owl, "The elephant is called Dumbo, the owl is called Einstein.");
-
-  return 0;
 }
 <!-- END CODE examples5/test5.3.1.cc -->
 </PRE>
@@ -223,19 +218,17 @@ int main()
 <P class="download">[<A HREF="examples5/test5.3.2.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.3.2.cc -->
-#include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
 int main()
 {
+  Debug(main_reached());
   // Start with everything turned on:
-  Debug( libcw_do.on() );
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
+  Debug(libcw_do.on());
+  ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on());
 
-  <SPAN class="highlight">Debug( dc::elephant.off() );</SPAN>
+  <SPAN class="highlight">Debug(dc::elephant.off());</SPAN>
   Dout(dc::elephant|dc::owl, "The elephant is called Dumbo, the owl is called Einstein.");
-
-  return 0;
 }
 <!-- END CODE examples5/test5.3.2.cc -->
 </PRE>
@@ -266,18 +259,16 @@ each output is suppressed in the first call:</P>
 <P class="download">[<A HREF="examples5/test5.4.1.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.4.1.cc -->
-#include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
 int main()
 {
-  Debug( libcw_do.on() );
-  Debug( dc::notice.on() );
+  Debug(main_reached());
+  Debug(libcw_do.on());
+  Debug(dc::notice.on());
 
   Dout(dc::notice|nonewline_cf, "Hello, ");
   Dout(dc::notice, "World");
-
-  return 0;
 }
 <!-- END CODE examples5/test5.4.1.cc -->
 </PRE>
@@ -294,18 +285,16 @@ int main()
 <P class="download">[<A HREF="examples5/test5.4.2.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.4.2.cc -->
-#include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
 int main()
 {
-  Debug( libcw_do.on() );
-  Debug( dc::notice.on() );
+  Debug(main_reached());
+  Debug(libcw_do.on());
+  Debug(dc::notice.on());
 
   Dout(dc::notice|nonewline_cf, "Hello, ");
   Dout(dc::notice|<SPAN class="highlight">noprefix_cf</SPAN>, "World");
-
-  return 0;
 }
 <!-- END CODE examples5/test5.4.2.cc -->
 </PRE>
@@ -328,7 +317,6 @@ is printed first.&nbsp; After the call returns we print the results.</P>
 <P class="download">[<A HREF="examples5/test5.4.3.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.4.3.cc -->
-#include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
 #include &lt;cstdlib&gt;
@@ -347,8 +335,9 @@ std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const* bufp
 
 int main(int argc, char* argv[])
 {
-  Debug( libcw_do.on() );
-  Debug( dc::notice.on() );
+  Debug(main_reached());
+  Debug(libcw_do.on());
+  Debug(dc::notice.on());
 
   if (argc != 2)
   {
@@ -367,8 +356,6 @@ int main(int argc, char* argv[])
 
   Dout(dc::notice|noprefix_cf|cond_error_cf(ret != 0),
        &amp;buf &lt;&lt; &quot;) = &quot; &lt;&lt; ret);
-
-  return 0;
 }
 <!-- END CODE examples5/test5.4.3.cc -->
 </PRE>
@@ -400,7 +387,6 @@ ourselfs that allocates memory (as certain system calls could do too!):</P>
 <P class="download">[<A HREF="examples5/test5.4.4.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.4.4.cc -->
-#include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
 #include &lt;cstdlib&gt;
@@ -427,8 +413,9 @@ int stat_with_buf_alloc(char const* file_name, struct stat*& bufp)
 
 int main(int argc, char* argv[])
 {
-  Debug( libcw_do.on() );
-  Debug( dc::notice.on() );
+  Debug(main_reached());
+  Debug(libcw_do.on());
+  Debug(dc::notice.on());
 
   if (argc != 2)
   {
@@ -449,7 +436,6 @@ int main(int argc, char* argv[])
        bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret);
 
   <SPAN class="highlight">delete bufp;</SPAN>
-  return 0;
 }
 <!-- END CODE examples5/test5.4.4.cc -->
 </PRE>
@@ -470,7 +456,6 @@ which are designed especially for <EM>interrupted debug output</EM>:</P>
 <P class="download">[<A HREF="examples5/test5.4.5.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.4.5.cc -->
-#include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
 #include &lt;cstdlib&gt;
@@ -497,8 +482,9 @@ int stat_with_buf_alloc(char const* file_name, struct stat*& bufp)
 
 int main(int argc, char* argv[])
 {
-  Debug( libcw_do.on() );
-  Debug( dc::notice.on() );
+  Debug(main_reached());
+  Debug(libcw_do.on());
+  Debug(dc::notice.on());
 
   if (argc != 2)
   {
@@ -518,7 +504,6 @@ int main(int argc, char* argv[])
        bufp &lt;&lt; &quot;) = &quot; &lt;&lt; ret);
 
   delete bufp;
-  return 0;
 }
 <!-- END CODE examples5/test5.4.5.cc -->
 </PRE>
@@ -538,26 +523,24 @@ Consider the following example:</P>
 <P class="download">[<A HREF="examples5/test5.4.6.cc">download</A>]</P>
 <PRE>
 <!-- START CODE examples5/test5.4.6.cc -->
-#include &quot;sys.h&quot;
 #include &quot;debug.h&quot;
 
 int main()
 {
-  Debug( libcw_do.on() );
-  ForAllDebugChannels( if (!debugChannel.is_on()) debugChannel.on() );
 
-  Debug( libcw_do.<SPAN class="highlight">margin().assign(</SPAN>"&lt;-- margin --&gt;", 14<SPAN class="highlight">)</SPAN> );
-  Debug( libcw_do.<SPAN class="highlight">marker().assign(</SPAN>"&lt;-- marker --&gt;", 14<SPAN class="highlight">)</SPAN> );
+  Debug(libcw_do.on());
+  ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on());
+
+  Debug(libcw_do.<SPAN class="highlight">margin().assign(</SPAN>"&lt;-- margin --&gt;", 14<SPAN class="highlight">)</SPAN>);
+  Debug(libcw_do.<SPAN class="highlight">marker().assign(</SPAN>"&lt;-- marker --&gt;", 14<SPAN class="highlight">)</SPAN>);
   Dout(dc::cat|dc::mouse, "The cat chases the mouse.");
   Dout(dc::mouse|dc::elephant, "The mouse chases the elephant.");
   Dout(dc::notice|<SPAN class="highlight">nolabel_cf</SPAN>, "Setting indentation to 8 spaces:");
   Dout(dc::notice|<SPAN class="highlight">blank_label_cf</SPAN>, "&lt;------&gt;");
-  Debug( libcw_do.<SPAN class="highlight">set_indent(8)</SPAN> );
+  Debug(libcw_do.<SPAN class="highlight">set_indent(8)</SPAN>);
   Dout(dc::cat, "The cat sleeps.");
   Dout(dc::elephant, "The elephant looks around:");
   Dout(dc::elephant|<SPAN class="highlight">blank_label_cf|blank_marker_cf</SPAN>, "where did the mouse go?");
-
-  return 0;
 }
 <!-- END CODE examples5/test5.4.6.cc -->
 </PRE>
