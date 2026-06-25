@@ -60,7 +60,13 @@ namespace {
 // if the surrounding test build gains optimization flags later.
 [[gnu::noinline]] static bool static_test_symbol()
 {
-  return report_call_site("static_test_symbol", __LINE__, "static_test_symbol");
+  return report_call_site("static_test_symbol", __LINE__,
+#ifdef __clang__
+      "_ZN12_GLOBAL__N_118static_test_symbolEv"
+#else
+      "static_test_symbol"
+#endif
+      );
 }
 
 } // namespace

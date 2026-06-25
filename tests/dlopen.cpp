@@ -53,10 +53,8 @@ bool resolve_global_test_symbol(void* handle, module_function_type& function)
 bool compare_dlopen_output(std::istream& captured)
 {
   char const* expected[] = {
-      "^NOTICE  : global_test_symbol\\(false\\): "
-      ".*dlopen_module\\.so:_Z18global_test_symbolb:dlopen_module\\.cpp:([0-9]+) \\(expected line: \\1\\)$",
-      "^NOTICE  : static_test_symbol: .*dlopen_module\\.so:static_test_symbol:dlopen_module\\.cpp:([0-9]+) \\(expected "
-      "line: \\1\\)$",
+      R"(^NOTICE  : global_test_symbol\(false\): .*dlopen_module\.so:_Z18global_test_symbolb:dlopen_module\.cpp:([0-9]+) \(expected line: \1\)$)",
+      R"(^NOTICE  : static_test_symbol: .*dlopen_module\.so:(_ZN12_GLOBAL__N_118static_test_symbolEv|static_test_symbol):dlopen_module\.cpp:([0-9]+) \(expected line: \2\)$)",
       nullptr};
 
   return libcwd_ctest::matches_expected_output(captured, expected);
