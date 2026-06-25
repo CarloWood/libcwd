@@ -34,17 +34,27 @@ inline bool g(int x, int y = y_default(expected_line), int z = i(12345, arg2_i(e
   return x == 1 && y == 1 && z == 1;
 }
 
+extern uintptr_t base;
+
 // clang-format off
 bool f()
 {
-  libcwd::Location const g_loc(&&g_call_location);
-  expected_line = __LINE__ + 3; // Same as line below g_call_location.
+  void* pc = &&g_call_location;
+  uintptr_t offset = reinterpret_cast<uintptr_t>(pc) - base;
+  Dout(dc::always, "f: base = 0x" << std::hex << base << ", pc = " << pc << ", pc - base = 0x" << offset);
+
+  libcwd::Location const g_loc(pc);
+  expected_line = __LINE__ + 7; // Line 47 : 47 -> 54; the line below g_call_location.
+  unsigned int expected_g_loc_line = expected_line;
+#ifdef __clang__
+  expected_g_loc_line = expected_line + 1; // The expected line that of the first instruction after g_call_location, which is the call to arg_g1.
+#endif
   Dout(dc::notice, "calling g(arg_g1(), arg_g2()) from f: " << g_loc << " (expected: " << expected_line << ")");
 g_call_location:
-  auto result_g = g(            // Line 44 : this is the location from which the default argument initializing functions are called from.
-          arg_g1(__LINE__),     // Line 45 : this is where arg_g1 is called from.
-          arg_g2(__LINE__)      // Line 46 : this is where arg_g2 is called from.
+  auto result_g = g(            // Line 54 : this is the location from which the default argument initializing functions are called from.
+          arg_g1(__LINE__),     // Line 55 : this is where arg_g1 is called from.
+          arg_g2(__LINE__)      // Line 56 : this is where arg_g2 is called from.
       );
-  return g_loc.line() == expected_line && result_g;
+  return g_loc.line() == expected_g_loc_line && result_g;
 }
 // clang-format on

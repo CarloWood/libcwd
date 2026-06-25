@@ -69,13 +69,18 @@ int main()
   Debug(libcw_do.on());
   Debug(dc::notice.on());
 
-  Dout(dc::always, "base = 0x" << std::hex << base);
+  void* pc = &&f_call_location;
+  uintptr_t offset = reinterpret_cast<uintptr_t>(pc) - base;
+  Dout(dc::always, "main: base = 0x" << std::hex << base << ", pc = " << pc << ", pc - base = 0x" << offset);
 
   // Print the source location for an address inside main. This preserves the
   // original intent of this test: exercising location lookup for code in this
   // function without relying on the removed allocation-debugging malloc channel
   // to report the allocation call site as a side effect.
-  libcwd::Location const f_loc(&&f_call_location);
+  libcwd::Location const f_loc(pc);
+  // gcc resolves the address of f_call_location to the line following it.
+  // In the case of clang libcwd resolves that address to the line of first instruction after the label.
+  // In this case that is the same line in both cases.
   int const expected_line = __LINE__ + 3;
   Dout(dc::notice, "Calling f() from main: " << f_loc << " (expected: " << expected_line << ")");
 f_call_location:

@@ -73,7 +73,83 @@ void Location::pc_location(void const* pc, LIBCWD_TSD_PARAM)
   function_name_ = location.function_name();
   known_ = location.known;
   if (known_)
+  {
+#ifdef __clang__
+    // Running CTest `location_default_argument_functions` gives, for example:
+    //
+    //   > $BUILDDIR/tests/location_default_argument_functions
+    //   >>>>>>>>: base = 0x55bb903d5000, pc = 0x55bb903d81d9, pc - base = 0x31d9
+    //
+    // That offset is genuily mapped to line number 0 by clang:
+    //
+    //   > eu-addr2line -e $BUILDDIR/tests/location_default_argument_functions -sa 0x31d9 0x31dd
+    //   0x00000000000031d9
+    //   location_default_argument_functions.cpp:0:3
+    //   0x00000000000031dd
+    //   location_default_argument_functions.cpp:84:16
+    //
+    // This seems to be a bug because address 0x31d9 is part of a return statement of user code.
+    // The user code for location_default_argument_functions is:
+    //
+    //     libcwd::Location const f_loc(&&f_call_location);
+    //     int const expected_line = __LINE__ + 3;
+    //     Dout(dc::notice, "Calling f() from main: " << f_loc << " (expected: " << expected_line << ")");
+    //   f_call_location:
+    //     return f_loc.line() == expected_line && f() ? EXIT_SUCCESS : EXIT_FAILURE;
+    //
+    // The disassembly gives:
+    //
+    //   > eu-objdump -d $BUILDDIR/tests/location_default_argument_functions | grep -B1 -A1 '31d9:'
+    //       31d7:    eb 00                    jmp     0x31d9
+    //       31d9:    48 8d 7d c8              lea     -0x38(%rbp),%rdi
+    //       31dd:    e8 2e 02 00 00           callq   0x3410
+    //
+    // The Location lookup in f(), defined in support/location_default_argument_functions_cu.cpp is:
+    //
+    //     libcwd::Location const g_loc(&&g_call_location);
+    //     expected_line = __LINE__ + 3; // Same as line below g_call_location.
+    //     Dout(dc::notice, "calling g(arg_g1(), arg_g2()) from f: " << g_loc << " (expected: " << expected_line << ")");
+    //   g_call_location:
+    //     auto result_g = g(            // Line 50
+    //             arg_g1(__LINE__),     // Line 51
+    //             arg_g2(__LINE__)      // Line 52
+    //         );
+    //
+    // This function prints:
+    //
+    //   >>>>>>>>: f: base = 0x55d5b809d000, pc = 0x55d5b80a0d98, pc - base = 0x3d98
+    //
+    //   >eu-addr2line -e $BUILDDIR/tests/location_default_argument_functions -sa 0x3d98 0x3d9d
+    //   0x0000000000003d98
+    //   location_default_argument_functions_cu.cpp:0:3
+    //   0x0000000000003d9d
+    //   location_default_argument_functions_cu.cpp:51:11
+    //
+    //   >eu-objdump -d $BUILDDIR/tests/location_default_argument_functions | grep -B1 -A1 '3d98:'
+    //       3d96:    eb 00                    jmp     0x3d98
+    //       3d98:    bf 33 00 00 00           mov     $0x33,%edi
+    //       3d9d:    e8 fe ea ff ff           callq   0x28a0
+    //
+    // Thus, in this case we lose the resolution of the `mov     $0x33,%edi` and the next
+    // instruction is the call to `arg_g1`, line 51, which is obviously done before the call to `g`.
+
+    if (location.line == 0)
+    {
+      line_ = 0;
+      // Add skip bytes to the address in an attempt to find the next instruction.
+      for (int skip = 4; line_ == 0 && skip <= 8; ++skip)
+      {
+        LocationLookupResult const location_plus_skip = symbol->lookup_location(int_addr + skip, object_file->get_lbase());
+        if (function_name_ != location_plus_skip.function_name() || !location_plus_skip.known)
+          break;
+        line_ = location_plus_skip.line;
+      }
+    }
+    else
+#endif // __clang__
+
     line_ = location.line;
+  }
 
   if (location.filepath) // Might still be true even if known_ is false (if we couldn't find a line number).
   {
