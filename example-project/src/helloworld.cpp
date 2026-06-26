@@ -5,8 +5,9 @@
 
 int main()
 {
-  // 'myproject::debug' is a namespace that was defined in debug.h.
-  Debug(myproject::debug::init());
+  // NAMESPACE_DEBUG was set to the namespace 'myproject::debug',
+  // a namespace that was defined in "debug.h".
+  Debug(NAMESPACE_DEBUG::init());
 
 #ifdef CWDEBUG
   if (!DEBUGCHANNELS::dc::custom.is_on())

@@ -46,8 +46,8 @@ at the top of main then looks like:
 ```cpp
 int main()
 {
-  Debug(myproject::debug::init());
+  Debug(NAMESPACE_DEBUG::init());
 // ...
 ```
 
-And every thread would call `myproject::debug::init_thread();` when started.
+And every thread would call `NAMESPACE_DEBUG::init_thread();` when started.

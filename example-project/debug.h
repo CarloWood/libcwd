@@ -2,8 +2,6 @@
 
 // Define this if you want to use a different namespace than ::debug for this.
 #define NAMESPACE_DEBUG myproject::debug
-#define NAMESPACE_DEBUG_START namespace NAMESPACE_DEBUG {
-#define NAMESPACE_DEBUG_END }
 
 // Piggyback on cwds
 #include "cwds/debug.h"
