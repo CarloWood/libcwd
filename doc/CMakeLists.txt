@@ -163,21 +163,25 @@ set(doc_site_stamp "${CMAKE_CURRENT_BINARY_DIR}/doc-site.stamp")
 # is never produced (or that the command deletes) makes ninja see a permanently
 # missing output and needlessly re-run doxygen whenever the build graph is
 # re-evaluated. Hence topics.html (deleted below by fix_navtree.py's cleanup)
-# and reference-manual.html (doxygen emits the group page as
-# group__reference-manual.html, not this name) are intentionally absent.
+# and group__reference-manual.html (doxygen emits the group page as
+# group__reference-manual.html but we rename it to this name) are intentionally absent.
 set(doc_site_byproducts
   "${CMAKE_CURRENT_BINARY_DIR}/index.html"
   "${CMAKE_CURRENT_BINARY_DIR}/release-notes.html"
+  "${CMAKE_CURRENT_BINARY_DIR}/reference-manual.html"
 )
 
 add_custom_command(
   OUTPUT "${doc_site_stamp}"
   BYPRODUCTS ${doc_site_byproducts}
-  COMMAND ${CMAKE_COMMAND} -E rm -rf reference-manual
   COMMAND ${DOXYGEN_EXECUTABLE} doxygen.config
   COMMAND /bin/sh -c "rm -f ${CMAKE_CURRENT_BINARY_DIR}/topics.html"
   COMMAND /bin/sh -c "for i in `grep -l '<h2>Modules</h2>' *.html 2>/dev/null`; do mv \"$i\" \"$i.tmp\" && sed -e 's%<h2>Modules</h2>%<h2>Related</h2>%' \"$i.tmp\" > \"$i\" && rm \"$i.tmp\"; done"
   COMMAND /bin/sh -c "echo 'NAVTREE[0][0] = \"libcwd 2.0\";' >> \"${CMAKE_CURRENT_BINARY_DIR}/navtreedata.js\""
+  COMMAND /bin/sh -c "mv ${CMAKE_CURRENT_BINARY_DIR}/group__reference-manual.html ${CMAKE_CURRENT_BINARY_DIR}/reference-manual.html"
+  COMMAND ${Python3_EXECUTABLE}
+          ${CMAKE_CURRENT_SOURCE_DIR}/scripts/fix_reference-manual.py
+          ${CMAKE_CURRENT_BINARY_DIR}/navtreedata.js
   COMMAND ${Python3_EXECUTABLE}
           ${CMAKE_CURRENT_SOURCE_DIR}/scripts/fix_navtree.py
           ${CMAKE_CURRENT_BINARY_DIR}/navtreedata.js

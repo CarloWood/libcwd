@@ -22,6 +22,7 @@ USE_MDFILE_AS_MAINPAGE = Introduction.md
 
 INPUT                  = Introduction.md \
                          @srcdir@ \
+                         @srcdir@/reference-manual \
                          @top_srcdir@/src \
                          @top_srcdir@/include/libcwd \
                          @top_srcdir@/include/libcwd/private \
