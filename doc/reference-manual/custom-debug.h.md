@@ -87,17 +87,16 @@ The second "debug.h", which would not be installed but only be included when com
 the .cpp files (that `#include "debug.h"`) of your library itself, then looks like this:
 
 \htmlonly
-<div class="fragment">
+<div class="doxygen-awesome-fragment-wrapper">
 \endhtmlonly
-<PRE>\#ifndef DEBUG_H
+<PRE class="fragment">\#ifndef DEBUG_H
 \#define DEBUG_H
 &nbsp;
 \#ifndef CWDEBUG
 &nbsp;
 \#include &lt;iostream&gt;           // std::cerr
 \#include &lt;cstdlib&gt;            // std::exit, EXIT_FAILURE
-include nodebug.h
-\#endif // CWDEBUG
+\verbinclude "nodebug.h"\#endif // CWDEBUG
 &nbsp;
 \#define LIBEXAMPLE_INTERNAL   // See above.
 \#include &lt;libexample/debug.h&gt; // The %debug.h shown above.

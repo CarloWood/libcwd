@@ -83,6 +83,7 @@
 #endif // LIBCWD_DOXYGEN
 
 // For use in applications
+// clang-format off
 /** @def Debug
  *
  * @brief Encapsulation macro for general debugging code.
@@ -97,14 +98,14 @@
  * **Examples:**
  *
  * ```cpp
- * Debug(main_reached());			        // Must be called at the top of main. Does configuration
- * consistency check. Debug( dc::notice.on() );		// Switch debug channel NOTICE on.
- * Debug(libcw_do.on() );				// Turn all debugging temporarily off.
- * Debug(list_channels_on(libcw_do));			// List all debug channels.
- * Debug(libcw_do.set_ostream(&std::cout));		// Use std::cout as debug output stream.
- * Debug(libcw_do.set_ostream(&std::cout, &mutex));	// use ‛mutex' as lock for std::cout.
- * Debug(libcw_do.inc_indent(4));			// Increment indentation by 4 spaces.
- * Debug(libcw_do.get_ostream()->flush());		// Flush the current debug output stream.
+ * Debug(main_reached());                           // Must be called at the top of main. Does configuration consistency check.
+ * Debug(dc::notice.on());                          // Switch debug channel NOTICE on.
+ * Debug(libcw_do.on());                            // Turn all debugging temporarily off.
+ * Debug(list_channels_on(libcw_do));               // List all debug channels.
+ * Debug(libcw_do.set_ostream(&std::cout));         // Use std::cout as debug output stream.
+ * Debug(libcw_do.set_ostream(&std::cout, &mutex)); // use ‛mutex' as lock for std::cout.
+ * Debug(libcw_do.inc_indent(4));                   // Increment indentation by 4 spaces.
+ * Debug(libcw_do.get_ostream()->flush());          // Flush the current debug output stream.
  * ```
  */
 #define Debug(/*STATEMENTS*/...) LibcwDebug(LIBCWD_DEBUGCHANNELS, __VA_ARGS__)
@@ -189,6 +190,7 @@
  */
 #define ForAllDebugObjects(/*STATEMENT*/...) LibcwdForAllDebugObjects(LIBCWD_DEBUGCHANNELS, __VA_ARGS__)
 
+// clang-format on
 // Finally, in order for Dout() to be usable, we need this.
 #include <iostream>
 

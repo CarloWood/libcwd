@@ -79,6 +79,11 @@ PRE.example-output {
   font-size: inherit !important;
 }
 
+pre.fragment div.doxygen-awesome-fragment-wrapper pre.fragment {
+  padding: 0;
+  border: 0;
+}
+
 #titlearea {
   padding: 0;
 }
