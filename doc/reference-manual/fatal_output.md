@@ -1,4 +1,4 @@
-@addtogroup group_fatal_output
+@addtogroup fatal-debug-output
 
 Often an application needs to be terminated when a fatal error occurs (whether or not `CWDEBUG` is defined).
 Libcwd defines for these cases the macro DoutFatal.
@@ -30,6 +30,6 @@ There are two %debug %channels that can be used together with DoutFatal:
 The first terminates by calling `exit(254)`,
 the second terminates by raising `SIGABORT`, causing the application to core dump.
 
-@sa @ref group_default_dc
- \n @ref group_control_flags
+@sa @ref predefined-debug-channels
+ \n @ref control-flags
  \n @link chapter_custom_do Defining your own debug objects @endlink

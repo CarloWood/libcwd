@@ -18,7 +18,7 @@
 
 namespace libcwd {
 
-/** @addtogroup group_formatting */
+/** @addtogroup format-of-the-debug-output */
 /** \{ */
 
 inline DebugString& DebugObject::color_on()
@@ -108,7 +108,7 @@ inline unsigned short DebugObject::get_indent() const
 
 /** \} */
 
-/** @addtogroup group_destination */
+/** @addtogroup setting-the-output-destination */
 /** \{ */
 
 /**
@@ -217,7 +217,7 @@ inline void OstreamState::write_color_off_newline(std::ostream* os, char const* 
  *
  * A %debug object must be global.
  *
- * @sa group_debug_object
+ * @sa the-output-device-debug-object
  * @sa chapter_custom_do
  */
 inline DebugObject::DebugObject()

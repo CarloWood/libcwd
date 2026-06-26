@@ -19,7 +19,7 @@ namespace dwarf {
 class ObjectFileRegistry;
 } // namespace dwarf
 
-/** @addtogroup group_locations */
+/** @addtogroup source-file-line-number-information */
 /** \{ */
 
 /**
@@ -56,7 +56,7 @@ class ObjectFileName
   bool has_no_debug_line_sections() const { return no_debug_line_sections_; }
 };
 
-/** \} */ // End of group 'group_locations'
+/** \} */ // End of group 'source-file-line-number-information'
 
 } // namespace libcwd
 

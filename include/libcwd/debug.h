@@ -122,8 +122,8 @@
  * You will have to define your own macro when you want to use a second debug object.
  * Read chapter @ref page_why_macro for an explanation of why a macro was used instead of an inline function.
  *
- * @sa @ref group_control_flags
- *  @n @ref group_default_dc
+ * @sa @ref control-flags
+ *  @n @ref predefined-debug-channels
  *  @n @link chapter_custom_debug_h Defining your own debug channels @endlink
  *  @n @link chapter_custom_do Defining your own debug objects @endlink
  *  @n @ref chapter_nesting "Nested debug calls"
@@ -140,7 +140,7 @@
 
 /**
  * @def DoutFatal
- * @ingroup group_fatal_output
+ * @ingroup fatal-debug-output
  *
  * @brief Macro for writing fatal %debug output to the default %debug object
  * @link libcwd::libcw_do libcw_do @endlink.
@@ -149,7 +149,7 @@
 
 /**
  * @def ForAllDebugChannels
- * @ingroup group_special
+ * @ingroup special-functions-and-utilities
  *
  * @brief Looping over all debug channels.
  *
@@ -174,7 +174,7 @@
 
 /**
  * @def ForAllDebugObjects
- * @ingroup group_special
+ * @ingroup special-functions-and-utilities
  *
  * @brief Looping over all debug objects.
  *

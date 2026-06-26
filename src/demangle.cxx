@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MIT
 
 /*!
-@addtogroup group_demangle demangle_type() and demangle_symbol()
-@ingroup group_type_info
+@addtogroup demangle_type-and-demangle_symbol demangle_type() and demangle_symbol()
+@ingroup getting-type-information-of-types-and-symbols
 
 Libcwd comes with its own demangler functions.
 
@@ -804,7 +804,7 @@ int main(int argc, char* argv[])
 
 namespace libcwd {
 
-/** @addtogroup group_demangle */
+/** @addtogroup demangle_type-and-demangle_symbol */
 /** \{ */
 
 /**

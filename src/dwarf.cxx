@@ -41,7 +41,7 @@ extern std::atomic_bool WST_multi_threaded;
 // New debug channels.
 namespace channels {
 namespace dc {
-/** @addtogroup group_default_dc */
+/** @addtogroup predefined-debug-channels */
 /** \{ */
 
 /** The ELFUTILS channel. */
@@ -1440,7 +1440,7 @@ ObjectFileName::ObjectFileName(char const* filepath) : no_debug_line_sections_(f
     filename_ = filepath_;
 }
 
-/** @addtogroup group_locations */
+/** @addtogroup source-file-line-number-information */
 /** \{ */
 
 char const* const unknown_function_c = "<unknown function>";
@@ -1471,7 +1471,7 @@ char const* pc_mangled_function_name(void const* pc)
   return symbol->name();
 }
 
-/** \} */ // End of group 'group_locations'.
+/** \} */ // End of group 'source-file-line-number-information'.
 
 } // namespace libcwd
 

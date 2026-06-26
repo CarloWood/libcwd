@@ -1,4 +1,4 @@
-@addtogroup group_function
+@addtogroup function-objects
 
 ## Defining and initializing `Function` objects
 

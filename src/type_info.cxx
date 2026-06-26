@@ -13,7 +13,7 @@ namespace libcwd {
 
 /**
  * @brief Returned by type_info_of() for unknown types.
- * @ingroup group_type_info
+ * @ingroup getting-type-information-of-types-and-symbols
  */
 TypeInfo const unknown_type_info_c(0);
 

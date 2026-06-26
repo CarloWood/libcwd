@@ -23,7 +23,7 @@
 //
 
 /** @defgroup enable_glibcxx_debug `EnableGlibCxxDebug` (`CWDEBUG_GLIBCXX_DEBUG`)
- * @ingroup group_configuration
+ * @ingroup configuration-options-and-macros
  *
  * @par Description
  *
@@ -52,7 +52,7 @@
 #define CWDEBUG_GLIBCXX_DEBUG @CW_CONFIG_GLIBCXX_DEBUG@
 
 /** @defgroup enable_location `EnableLibcwdLocation` (`CWDEBUG_LOCATION`)
- * @ingroup group_configuration
+ * @ingroup configuration-options-and-macros
  *
  * @par Description
  *
@@ -72,13 +72,13 @@
  * This is enabled by default.
  * Use \shellcommand cmake -DEnableLibcwdLocation=OFF ... \endshellcommand to disable it.
  *
- * @sa @ref group_locations
+ * @sa @ref source-file-line-number-information
  */
 
 #define CWDEBUG_LOCATION @CW_CONFIG_LOCATION@
 
 /** @defgroup enable_debug `EnableLibcwdDebug` (`CWDEBUG_DEBUG`)
- * @ingroup group_configuration
+ * @ingroup configuration-options-and-macros
  *
  * @par Description
  *
@@ -98,7 +98,7 @@
 #define CWDEBUG_DEBUG @CW_CONFIG_DEBUG@
 
 /** @defgroup enable_debug_output `EnableLibcwdDebugOutput` (`CWDEBUG_DEBUGOUTPUT`)
- * @ingroup group_configuration
+ * @ingroup configuration-options-and-macros
  *
  * @par Description
  *
@@ -129,7 +129,7 @@
       // Costs 4 kb of memory per channel (exclusive the actual channels).
 
 /** @defgroup enable_debugt `EnableLibcwdDebugt` (`CWDEBUG_DEBUGT`)
- * @ingroup group_configuration
+ * @ingroup configuration-options-and-macros
  *
  * @par Description
  *
@@ -189,7 +189,7 @@ extern void version_check_failed();
 extern void internal_main_reached();
 
 /**
- * @ingroup group_special
+ * @ingroup special-functions-and-utilities
  *
  * @brief Check if the linked library belongs to the header files being used.
  *

@@ -20,7 +20,7 @@ namespace libcwd {
 
 /**
  * @class char2str char2str.h libcwd/char2str.h
- * @ingroup group_special
+ * @ingroup special-functions-and-utilities
  *
  * @brief Print a `char` to a %debug ostream, escaping non-printable characters as needed.
  *

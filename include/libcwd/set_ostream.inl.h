@@ -12,7 +12,7 @@ namespace libcwd {
 
 /**
  * @brief Set output device and provide external lock.
- * @ingroup group_destination
+ * @ingroup setting-the-output-destination
  *
  * Assign a new `ostream` to this %debug object.
  * The `ostream` will only be written to after obtaining the lock

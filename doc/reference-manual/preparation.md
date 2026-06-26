@@ -11,7 +11,7 @@ If you are installing libcwd from source then please read the
 \htmlonly<A HREF="external/INSTALL">\endhtmlonly
 INSTALL\htmlonly</A> \endhtmlonly
 file that is included in the source distribution.<BR>
-See also: @ref group_configuration
+See also: @ref configuration-options-and-macros
 
 @anchor preparation_step2
 # Step 2: Creating the custom header files {#header_files}

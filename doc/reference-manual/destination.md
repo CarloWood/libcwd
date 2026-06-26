@@ -1,9 +1,9 @@
-@addtogroup group_destination
+@addtogroup setting-the-output-destination
 
 Basically, a %debug object (<span class="tt">@link libcwd::DebugObject DebugObject@endlink</span>) is a pointer to an ostream
 with a few extra attributes added to give it an internal state for @link libcwd::DebugObject::on() on @endlink
 (pass output on) and @link libcwd::DebugObject::off() off @endlink (don't pass output on)
-as well as some @link group_formatting formatting @endlink information of how to write the
+as well as some @link format-of-the-debug-output formatting @endlink information of how to write the
 data that is passed on to its ostream.
 
 The methods of <span class="tt">@link libcwd::DebugObject DebugObject@endlink</span> given here allow you to set

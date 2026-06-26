@@ -3,7 +3,7 @@
 Libcwd is an `ostream` oriented debug output facility.
 The class libcwd::DebugObject is associated with a single `ostream`.
 
-Libcwd defines and internally uses only one object of that class, called a @ref group_debug_object "debug object",
+Libcwd defines and internally uses only one object of that class, called a @ref the-output-device-debug-object "debug object",
 being `libcwd::libcw_do`.
 
 Debug output is written using @ref page_why_macro "macros" (@ref Dout and @ref DoutFatal),
@@ -12,7 +12,7 @@ More general macros exist (@ref LibcwDout and @ref LibcwDoutFatal) that allow yo
 to use a different (@ref chapter_custom_do "custom") debug object.
 
 @ref Dout and @ref DoutFatal take two arguments: the first argument is used to specify
-@ref group_debug_channels "debug channels" and @ref group_control_flags "control flags"
+@ref controlling-the-output-level-debug-channels "debug channels" and @ref control-flags "control flags"
 while the second argument should be a series of objects seperated by `<<` that you want to write to the `ostream`.
 
 For example,
@@ -21,6 +21,6 @@ For example,
 Dout(dc::notice|blank_label_cf|flush_cf, "Total count: " << count << "; Average: " << average);
 ```
 
-In this example `dc::notice` is one of the @ref group_default_dc "predefined" debug channels.
+In this example `dc::notice` is one of the @ref predefined-debug-channels "predefined" debug channels.
 Debug channels are intended to control the amount of output of your application:
 you can switch the channels on and off.

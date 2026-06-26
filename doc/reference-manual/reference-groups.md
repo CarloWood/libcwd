@@ -22,7 +22,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-getting-started
 @brief How to organize debug-channel namespaces, especially for libraries.
 
-@defgroup group_configuration Configuration Options And Macros
+@defgroup configuration-options-and-macros Configuration Options And Macros
 @ingroup reference-manual-getting-started
 @brief CMake options and the preprocessor macros that expose those choices.
 
@@ -43,35 +43,35 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup book_writing_intro
 @brief Why `Dout` and friends are implemented as macros rather than inline functions.
 
-@defgroup group_destination Setting The Output Destination
+@defgroup setting-the-output-destination Setting The Output Destination
 @ingroup reference-manual-writing-debug-output
 @brief Selecting or inspecting the ostream used by a debug object.
 
-@defgroup group_debug_object The Output Device (Debug Object)
+@defgroup the-output-device-debug-object The Output Device (Debug Object)
 @ingroup reference-manual-writing-debug-output
 @brief Documentation of `class libcwd::DebugObject` and the default debug object `libcwd::libcw_do`.
 
 @defgroup chapter_custom_do Custom Debug Objects
-@ingroup group_debug_object
+@ingroup the-output-device-debug-object
 @brief How to create additional debug objects, for writing to more than one ostream.
 
-@defgroup group_debug_channels Controlling The Output Level (Debug Channels)
+@defgroup controlling-the-output-level-debug-channels Controlling The Output Level (Debug Channels)
 @ingroup reference-manual-writing-debug-output
 @brief Controlling which debug output is emitted by toggling channels on and off.
 
-@defgroup group_default_dc Predefined Debug Channels
-@ingroup group_debug_channels
+@defgroup predefined-debug-channels Predefined Debug Channels
+@ingroup controlling-the-output-level-debug-channels
 @brief Generated API reference for the debug channels supplied by libcwd.
 
-@defgroup group_control_flags Control Flags
+@defgroup control-flags Control Flags
 @ingroup reference-manual-writing-debug-output
 @brief Modifying the behavior of a single debug output statement.
 
-@defgroup group_formatting Format Of The Debug Output
+@defgroup format-of-the-debug-output Format Of The Debug Output
 @ingroup reference-manual-writing-debug-output
 @brief Customizing the layout of debug output (margins, markers, indentation).
 
-@defgroup group_fatal_output Fatal Debug Output
+@defgroup fatal-debug-output Fatal Debug Output
 @ingroup reference-manual-writing-debug-output
 @brief Printing a fatal message and terminating the application.
 
@@ -79,7 +79,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-writing-debug-output
 @brief Keeping debug output readable when it is nested or split over several calls.
 
-@defgroup group_special Special Functions And Utilities
+@defgroup special-functions-and-utilities Special Functions And Utilities
 @ingroup reference-manual-writing-debug-output
 @brief Miscellaneous helper functions and macros for debug output.
 
@@ -92,19 +92,19 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-symbols
 @brief Introduction to resolving addresses to function and source locations and demangled names.
 
-@defgroup group_locations Source-File:Line-Number Information
+@defgroup source-file-line-number-information Source-File:Line-Number Information
 @ingroup reference-manual-symbols
 @brief Translating a program address into its source file and line number.
 
-@defgroup group_type_info Getting Type Information Of Types And Symbols
+@defgroup getting-type-information-of-types-and-symbols Getting Type Information Of Types And Symbols
 @ingroup reference-manual-symbols
 @brief Introspecting types and symbols, and demangling their names, at run time.
 
-@defgroup group_demangle demangle_type() and demangle_symbol()
-@ingroup group_type_info
+@defgroup demangle_type-and-demangle_symbol demangle_type() and demangle_symbol()
+@ingroup getting-type-information-of-types-and-symbols
 @brief Generated API reference for demangling C++ type and symbol names.
 
-@defgroup group_function Function Objects
+@defgroup function-objects Function Objects
 @ingroup reference-manual-symbols
 @brief How to define, initialize, search, and label `Function` objects.
 

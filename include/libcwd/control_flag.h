@@ -14,7 +14,7 @@
 
 namespace libcwd {
 
-/** @addtogroup group_control_flags */
+/** @addtogroup control-flags */
 /** \{ */
 
 /** The type that is used for control flags and control flag mask. */

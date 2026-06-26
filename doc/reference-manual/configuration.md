@@ -1,4 +1,4 @@
-@addtogroup group_configuration
+@addtogroup configuration-options-and-macros
 
 Libcwd uses CMake for configuration.
 You can list cached options with \shellcommand cmake -LAH <build-dir> \endshellcommand.

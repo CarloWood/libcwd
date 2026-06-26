@@ -38,7 +38,7 @@ void print_location_on(OSTREAM& os, Location const& location);
 
 namespace libcwd {
 
-/** @addtogroup group_locations */
+/** @addtogroup source-file-line-number-information */
 /** \{ */
 
 /** @brief This constant (pointer) is returned by Location::mangled_function_name() when no function is known. */
@@ -227,7 +227,7 @@ class Location
  */
 location_format_t location_format(location_format_t format);
 
-/** \} */ // End of group 'group_locations'
+/** \} */ // End of group 'source-file-line-number-information'
 
 } // namespace libcwd
 

@@ -49,7 +49,7 @@ size_t sizeof_ref_v = sizeof_ref<T>::value;
 /**
  * @brief Class that holds type information for debugging purposes.
  * Returned by type_info_of().
- * @ingroup group_type_info
+ * @ingroup getting-type-information-of-types-and-symbols
  */
 class TypeInfo
 {
@@ -261,7 +261,7 @@ template <typename T>
 
 namespace libcwd {
 
-/** @addtogroup group_type_info */
+/** @addtogroup getting-type-information-of-types-and-symbols */
 /** \{ */
 
 #ifndef LIBCWD_DOXYGEN

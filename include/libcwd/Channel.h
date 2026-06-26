@@ -26,14 +26,14 @@ struct ChannelSetsWat;
 
 /**
  * @class Channel Channel.h libcwd/debug.h
- * @ingroup group_debug_channels
+ * @ingroup controlling-the-output-level-debug-channels
  *
  * @brief This object represents a debug channel, it has a fixed label.
  * A debug channel can be viewed upon as a single bit: on or off.
  *
  * Whenever %debug output is written, one or more %debug %channels must be specified (as first
  * parameter of the @ref Dout macro).
- * The %debug output is then written to the @link group_destination ostream @endlink of the
+ * The %debug output is then written to the @link setting-the-output-destination ostream @endlink of the
  * @link DebugObject debug object @endlink unless the %debug object
  * is turned off or when all specified %debug %channels are off.
  * Each %debug channel can be turned on and off independently.

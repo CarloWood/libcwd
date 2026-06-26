@@ -47,7 +47,7 @@ struct ThreadSpecificData;
 namespace libcwd {
 
 #if CWDEBUG_LOCATION
-/** @addtogroup group_locations */
+/** @addtogroup source-file-line-number-information */
 /** \{ */
 
 /** @brief The type of the argument of location_format
@@ -61,7 +61,7 @@ location_format_t const show_path = 1; //!< Show the full source path when print
 location_format_t const show_objectfile = 2; //!< Show the shared library or executable that owns the location.
 location_format_t const show_function = 4; //!< Show the mangled function name for the location.
 
-/** \} */ // End of group 'group_locations'
+/** \} */ // End of group 'source-file-line-number-information'
 #endif
 
 #ifndef HIDE_FROM_DOXYGEN

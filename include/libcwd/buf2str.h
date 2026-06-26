@@ -26,7 +26,7 @@ namespace libcwd {
 
 /**
  * @class buf2str buf2str.h libcwd/buf2str.h
- * @ingroup group_special
+ * @ingroup special-functions-and-utilities
  *
  * @brief Print a (`char`) buffer with a given size to a %debug ostream, escaping non-printable
  * characters.

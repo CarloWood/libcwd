@@ -100,11 +100,11 @@ struct OstreamState
 
 /**
  * @class DebugObject debug.h libcwd/debug.h
- * @ingroup group_debug_object
+ * @ingroup the-output-device-debug-object
  *
  * @brief The %Debug Object class, this object represents one output device (`ostream`).
  *
- * See @ref group_debug_object.
+ * See @ref the-output-device-debug-object.
  */
 class DebugObject
 {
@@ -157,7 +157,7 @@ class DebugObject
   // Application-wide flush on/off counter for Debug Objects.
 
  public:
-  /** @addtogroup group_formatting */
+  /** @addtogroup format-of-the-debug-output */
   /** \{ */
 
   /**

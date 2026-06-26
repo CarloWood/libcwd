@@ -26,7 +26,7 @@ class DebugObject;
 
 /**
  * @brief A string class used for the %debug output margin and marker.
- * @ingroup group_formatting
+ * @ingroup format-of-the-debug-output
  *
  * This type is used for the public attributes DebugObject::margin and DebugObject::marker of the %debug object class.
  */

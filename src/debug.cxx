@@ -230,8 +230,8 @@ namespace channels {
 namespace dc {
 
 /**
- * @addtogroup group_default_dc Predefined Debug Channels
- * @ingroup group_debug_channels
+ * @addtogroup predefined-debug-channels Predefined Debug Channels
+ * @ingroup controlling-the-output-level-debug-channels
  *
  * These are the default %debug %channels pre-defined in libcwd.
  */
@@ -792,7 +792,7 @@ void DebugString::internal_swallow(DebugString const& ds)
   default_capacity_ = ds.default_capacity_;
 }
 
-/** @addtogroup group_formatting */
+/** @addtogroup format-of-the-debug-output */
 /** \{ */
 
 /**
@@ -1309,7 +1309,7 @@ DebugObject_ThreadSpecificData::~DebugObject_ThreadSpecificData()
 
 /**
  * @fn Channel* find_channel(char const* label)
- * @ingroup group_special
+ * @ingroup special-functions-and-utilities
  *
  * @brief Find %debug channel with label @p label.
  *
@@ -1326,7 +1326,7 @@ Channel* find_channel(char const* label)
 
 /**
  * @fn void list_channels_on(DebugObject& debug_object)
- * @ingroup group_special
+ * @ingroup special-functions-and-utilities
  *
  * @brief List all %debug %channels to a given %debug object.
  *
@@ -1593,7 +1593,7 @@ void Channel::restore(Channel::OnOffState const& state)
 
 /**
  * @brief Set output device (single threaded applications).
- * @ingroup group_destination
+ * @ingroup setting-the-output-destination
  *
  * Assign a new `ostream` to this %debug object (default is `std::cerr`).
  * For use in single threaded applications only.

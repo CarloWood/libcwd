@@ -1,4 +1,4 @@
-@addtogroup group_formatting
+@addtogroup format-of-the-debug-output
 
 All debug output is written in the following format:
 
@@ -22,7 +22,7 @@ Finally, the &lt;suffix&gt; field is by default a new-line, optionally followed 
 The %debug control flag error_cf however, causes an error message to be inserted first.&nbsp;
 The suffix field could become for example ":&nbsp;EAGAIN&nbsp;(Try&nbsp;again)\\n".
 
-@sa group_control_flags
+@sa control-flags
 
 **Example:**
 

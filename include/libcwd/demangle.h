@@ -14,7 +14,7 @@
 
 namespace libcwd {
 
-/** @addtogroup group_demangle */
+/** @addtogroup demangle_type-and-demangle_symbol */
 /** \{ */
 
 extern void demangle_type(char const* input, std::string& output);

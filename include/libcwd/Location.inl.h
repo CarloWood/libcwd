@@ -117,7 +117,7 @@ void print_location_on(OSTREAM& os, Location const& location)
 #if !(__GNUC__ == 3 && __GNUC_MINOR__ < 4) // See Location.h
 /**
  * @brief Write @p location to ostream @p os.
- * @ingroup group_locations
+ * @ingroup source-file-line-number-information
  *
  * Write the contents of a Location object to an ostream in the form *source-file*:*line-number*,
  * or writes *objectfile*:*mangledfuncname* when the location is unknown.

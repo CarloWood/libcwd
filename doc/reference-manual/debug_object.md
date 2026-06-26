@@ -1,10 +1,10 @@
-@addtogroup group_debug_object
+@addtogroup the-output-device-debug-object
 
 Libcwd declares a %debug class (@ref libcwd::DebugObject "DebugObject")
 which can be assigned an `ostream` to which %debug output will be written.
 Such a %debug object can dynamically be turned @link libcwd::DebugObject::on on @endlink
 and @link libcwd::DebugObject::off off @endlink.
-When the %debug object is turned off, no %debug output is written to its @link group_destination ostream @endlink;
+When the %debug object is turned off, no %debug output is written to its @link setting-the-output-destination ostream @endlink;
 in fact, the data that otherwise would be written is not even evaluated (see @ref libcwd::DebugObject::on "example").
 The %debug code can also completely be omitted, by not defining the macro CWDEBUG.
 
@@ -13,4 +13,4 @@ However, it is possible to @link chapter_custom_do create more @endlink %debug o
 two or more different output devices at the same time (for instance, the screen and a file).
 
 For each %debug object it is possible to set a margin and a marker string and to set the size of the current indentation.
-The methods used for setting or changing these prefix formatting attributes are listed in @ref group_formatting.
+The methods used for setting or changing these prefix formatting attributes are listed in @ref format-of-the-debug-output.
