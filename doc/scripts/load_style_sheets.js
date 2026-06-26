@@ -15,14 +15,14 @@ with (document)
     {
       rootpos = location.pathname.lastIndexOf("/tutorial/");
       if (rootpos != -1) 
-	rootpath = location.pathname.substring(0,rootpos) + "/";
+        rootpath = location.pathname.substring(0,rootpos) + "/";
       else
       {
-	rootpos = location.pathname.lastIndexOf("/");
-	if (rootpos != -1) 
-	  rootpath = location.pathname.substring(0,rootpos) + "/";
-	else
-	  rootpath = "/";
+        rootpos = location.pathname.lastIndexOf("/");
+        if (rootpos != -1) 
+          rootpath = location.pathname.substring(0,rootpos) + "/";
+        else
+          rootpath = "/";
       }
     }
   }
@@ -36,20 +36,20 @@ with (document)
     else
     {
       if (is_netscape6)
-	styles_path = rootpath + "styles/netscape6/";
+        styles_path = rootpath + "styles/netscape6/";
       else
       {
-	if (is_konqueror)
-	  styles_path = rootpath + "styles/konqueror/";
-	else
-	{
-	  if (is_ie)
-	    styles_path = rootpath + "styles/ie/";
-	  else if (is_mozilla5up || is_gecko)
-	    styles_path = rootpath + "styles/mozilla/";
-	  else
-	    styles_path = rootpath + "styles/ie/";
-	}
+        if (is_konqueror)
+          styles_path = rootpath + "styles/konqueror/";
+        else
+        {
+          if (is_ie)
+            styles_path = rootpath + "styles/ie/";
+          else if (is_mozilla5up || is_gecko)
+            styles_path = rootpath + "styles/mozilla/";
+          else
+            styles_path = rootpath + "styles/ie/";
+        }
       }
     }
   }

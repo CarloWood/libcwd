@@ -36,8 +36,8 @@ ChangeLog:
 
 2002-02-07: bclary - modified xbDebug.prototype.close to not null
             the debug window reference. This can cause problems with
-	          Internet Explorer if the page is refreshed. These issues will
-	          be addressed at a later date.
+            Internet Explorer if the page is refreshed. These issues will
+            be addressed at a later date.
 */
 
 function xbDebug()

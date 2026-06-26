@@ -14,7 +14,7 @@ uses it to write its debug output to.</P>
 <P>Compile as: <CODE>g++ -DCWDEBUG log_file.cc -lcwd -o log_file</CODE></P>
 <PRE>
 #include &lt;fstream&gt;
-#include &quot;debug.h&quot;		// See tutorial 2.
+#include &quot;debug.h&quot;    // See tutorial 2.
 
 int main()
 {

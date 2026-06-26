@@ -10,8 +10,8 @@ var is_minor = parseFloat(navigator.appVersion);
 
 // Note: Opera and WebTV spoof Mozilla.  We do strict client detection.
 var is_mozilla  = ((agt.indexOf('mozilla')!=-1) && (agt.indexOf('spoofer')==-1)
-	    && (agt.indexOf('compatible') == -1) && (agt.indexOf('opera')==-1)
-	    && (agt.indexOf('webtv')==-1) && (agt.indexOf('hotjava')==-1));
+            && (agt.indexOf('compatible') == -1) && (agt.indexOf('opera')==-1)
+            && (agt.indexOf('webtv')==-1) && (agt.indexOf('hotjava')==-1));
 var is_mozilla2 = (is_mozilla && (is_major == 2));
 var is_mozilla3 = (is_mozilla && (is_major == 3));
 var is_mozilla4 = (is_mozilla && (is_major == 4));

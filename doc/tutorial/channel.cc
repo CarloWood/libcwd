@@ -23,5 +23,5 @@ int main()
 
   for (int i = 0; i < 4; ++i)
     Dout(dc::ghost, "i = " << i);       // We can write more than just
-					// "Hello World" to the ostream :)
+                                        // "Hello World" to the ostream :)
 }

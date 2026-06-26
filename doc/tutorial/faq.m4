@@ -90,7 +90,7 @@ namespace myapplication {
       namespace dc {
         using namespace ::libcwd::channels::dc;
         extern ::libcwd::Channel mychannel;
-	// ... more channels here
+        // ... more channels here
       }
     }
   }
@@ -270,7 +270,7 @@ looks so much better), which would break code like:</P>
   if (error)
     ;
     ;
-  else		// &lt;-- syntax error
+  else  // &lt;-- syntax error
     cout &lt;&lt; "Everything is ok\n";
 </PRE>
 

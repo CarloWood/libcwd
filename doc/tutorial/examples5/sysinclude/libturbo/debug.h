@@ -4,10 +4,10 @@ namespace turbo {
   namespace debug {
     namespace channels {
       namespace dc {
-	using namespace libcwd;
-	using namespace libcwd::channels::dc;
-	extern Channel turbo;
-	extern Channel foobar;
+        using namespace libcwd;
+        using namespace libcwd::channels::dc;
+        extern Channel turbo;
+        extern Channel foobar;
       }
     }
   }

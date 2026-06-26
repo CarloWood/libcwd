@@ -45,11 +45,11 @@ namespace myproject {
   namespace debug {
     namespace channels {
       namespace dc {
-	using namespace ::libcwd::channels::dc;
+        using namespace ::libcwd::channels::dc;
 
-	// Add the declaration of new debug channels here
-	// and their definition in a custom debug.cc file.
-	extern ::libcwd::Channel custom;
+        // Add the declaration of new debug channels here
+        // and their definition in a custom debug.cc file.
+        extern ::libcwd::Channel custom;
 
       } // namespace dc
     } // namespace DEBUGCHANNELS
@@ -65,9 +65,9 @@ namespace myproject {
 #include "debug.h"
 
 // Actual definition of `ghost'
-namespace debug_channels {	// Actually, you will need a series of
-				// "namespace xyz {" here, to match whatever
-				// DEBUGCHANNELS is.
+namespace debug_channels {      // Actually, you will need a series of
+                                // "namespace xyz {" here, to match whatever
+                                // DEBUGCHANNELS is.
   namespace dc {
     libcwd::Channel <SPAN class="highlight">ghost</SPAN>("GHOST");
   }
@@ -80,8 +80,8 @@ int main()
   Debug(libcw_do.on());                         //   the debug Channel and Object on!
 
   for (int i = 0; i &lt; 4; ++i)
-    Dout(<SPAN class="highlight">dc::ghost</SPAN>, "i = " &lt;&lt; i);		// We can write more than just
-						// "Hello World" to the ostream :)
+    Dout(<SPAN class="highlight">dc::ghost</SPAN>, "i = " &lt;&lt; i);  // We can write more than just
+                                                                        // "Hello World" to the ostream :)
 }
 </PRE>
 
