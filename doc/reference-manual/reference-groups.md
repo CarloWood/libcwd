@@ -18,7 +18,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-getting-started
 @brief Getting an application ready to use libcwd.
 
-@defgroup chapter_custom_debug_h The Custom "debug.h" File
+@defgroup the-custom-debug-h-file The Custom "debug.h" File
 @ingroup reference-manual-getting-started
 @brief How to organize debug-channel namespaces, especially for libraries.
 
@@ -26,7 +26,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-getting-started
 @brief CMake options and the preprocessor macros that expose those choices.
 
-@defgroup chapter_environment Environment Variables
+@defgroup environment-variables Environment Variables
 @ingroup reference-manual-getting-started
 @brief Environment variables that affect libcwd's startup behavior and rcfile lookup.
 
@@ -51,7 +51,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-writing-debug-output
 @brief Documentation of `class libcwd::DebugObject` and the default debug object `libcwd::libcw_do`.
 
-@defgroup chapter_custom_do Custom Debug Objects
+@defgroup custom-debug-objects Custom Debug Objects
 @ingroup the-output-device-debug-object
 @brief How to create additional debug objects, for writing to more than one ostream.
 
@@ -75,7 +75,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-writing-debug-output
 @brief Printing a fatal message and terminating the application.
 
-@defgroup chapter_nesting Nesting Debug Output
+@defgroup nesting-debug-output Nesting Debug Output
 @ingroup reference-manual-writing-debug-output
 @brief Keeping debug output readable when it is nested or split over several calls.
 
@@ -88,7 +88,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual
 @brief API documentation related to accessing DWARF debug info and ELF symbols.
 
-@defgroup chapter_symbols_intro Introduction (Types And Symbols)
+@defgroup introduction-types-and-symbols Introduction (Types And Symbols)
 @ingroup reference-manual-symbols
 @brief Introduction to resolving addresses to function and source locations and demangled names.
 
@@ -113,14 +113,14 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual
 @brief Supplementary Documentation
 
-@defgroup chapter_rcfile Runtime Configuration File (rcfile)
+@defgroup runtime-configuration-file-rcfile Runtime Configuration File (rcfile)
 @ingroup reference-manual-runtime
 @brief Using `read_rcfile()`.
 
-@defgroup chapter_attach_gdb Starting A gdb Session From A Running Program
+@defgroup starting-a-gdb-session-from-a-running-program Starting A gdb Session From A Running Program
 @ingroup reference-manual-runtime
 @brief Using `attach_gdb()`.
 
-@defgroup chapter_core_dump Making The Program Dump Core
+@defgroup making-the-program-dump-core Making The Program Dump Core
 @ingroup reference-manual-runtime
 @brief Using `core_dump()`.

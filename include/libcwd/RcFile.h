@@ -16,7 +16,7 @@ class Channel;
 
 /**
  * @class RcFile RcFile.h libcwd/debug.h
- * @ingroup chapter_rcfile
+ * @ingroup runtime-configuration-file-rcfile
  *
  * @brief This object represents a runtime configuration file.
  *

@@ -216,7 +216,7 @@ void version_check_failed()
  *
  * The %debug object that is used by default by @ref Dout and @ref DoutFatal, the only %debug object used by libcwd
  * itself.
- * @sa @ref chapter_custom_do
+ * @sa @ref custom-debug-objects
  */
 
 DebugObject libcw_do;
@@ -676,7 +676,7 @@ alignas(OutputState) static unsigned char WST_dummy_output_state[sizeof(OutputSt
 
 /**
  * @fn void core_dump()
- * @ingroup chapter_core_dump
+ * @ingroup making-the-program-dump-core
  *
  * @brief Dump core of current thread.
  *

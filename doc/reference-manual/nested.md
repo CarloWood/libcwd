@@ -1,4 +1,4 @@
-@addtogroup chapter_nesting
+@addtogroup nesting-debug-output
 
 @section section_nesting_calling Calling functions inside Dout
 

@@ -8,7 +8,7 @@
  * @brief This is the main header file of libcwd.
  *
  * Don't include this header file directly.
- * Instead use a @link chapter_custom_debug_h custom debug.h @endlink header file that includes this file,
+ * Instead use a @link the-custom-debug-h-file custom debug.h @endlink header file that includes this file,
  * that will allow others to compile your application without having libcwd installed.
  */
 
@@ -77,7 +77,7 @@
  * @brief The namespace containing the current %debug %channels (dc) namespace.
  *
  * This macro is internally used by libcwd macros to include the chosen set of %debug %channels.
- * For details please read section @ref chapter_custom_debug_h.
+ * For details please read section @ref the-custom-debug-h-file.
  */
 #define DEBUGCHANNELS
 #endif // LIBCWD_DOXYGEN
@@ -124,9 +124,9 @@
  *
  * @sa @ref control-flags
  *  @n @ref predefined-debug-channels
- *  @n @link chapter_custom_debug_h Defining your own debug channels @endlink
- *  @n @link chapter_custom_do Defining your own debug objects @endlink
- *  @n @ref chapter_nesting "Nested debug calls"
+ *  @n @link the-custom-debug-h-file Defining your own debug channels @endlink
+ *  @n @link custom-debug-objects Defining your own debug objects @endlink
+ *  @n @ref nesting-debug-output "Nested debug calls"
  *
  * **Examples:**
  *

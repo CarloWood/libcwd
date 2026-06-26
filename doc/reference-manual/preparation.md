@@ -30,7 +30,7 @@ You can use the following templates for a quick start:
 \htmlonly &laquo;<A HREF="external/debug.h">download</A>&raquo;\endhtmlonly
 
 This %debug.h file is for applications; for more detailed information and for information
-for library developers who want to use libcwd, please also read @ref chapter_custom_debug_h.
+for library developers who want to use libcwd, please also read @ref the-custom-debug-h-file.
 
 # Step 3: Adding the cwds submodule {#cwds_submodule}
 

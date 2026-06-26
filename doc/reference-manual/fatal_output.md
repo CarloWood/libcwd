@@ -32,4 +32,4 @@ the second terminates by raising `SIGABORT`, causing the application to core dum
 
 @sa @ref predefined-debug-channels
  \n @ref control-flags
- \n @link chapter_custom_do Defining your own debug objects @endlink
+ \n @link custom-debug-objects Defining your own debug objects @endlink

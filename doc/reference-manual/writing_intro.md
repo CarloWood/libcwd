@@ -9,7 +9,7 @@ being `libcwd::libcw_do`.
 Debug output is written using @ref page_why_macro "macros" (@ref Dout and @ref DoutFatal),
 both of which are defined to use `libcwd::libcw_do`.
 More general macros exist (@ref LibcwDout and @ref LibcwDoutFatal) that allow you
-to use a different (@ref chapter_custom_do "custom") debug object.
+to use a different (@ref custom-debug-objects "custom") debug object.
 
 @ref Dout and @ref DoutFatal take two arguments: the first argument is used to specify
 @ref controlling-the-output-level-debug-channels "debug channels" and @ref control-flags "control flags"

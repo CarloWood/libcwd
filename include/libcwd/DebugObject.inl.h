@@ -218,7 +218,7 @@ inline void OstreamState::write_color_off_newline(std::ostream* os, char const* 
  * A %debug object must be global.
  *
  * @sa the-output-device-debug-object
- * @sa chapter_custom_do
+ * @sa custom-debug-objects
  */
 inline DebugObject::DebugObject()
 {

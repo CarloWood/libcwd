@@ -26,7 +26,7 @@
  * This macro allows one to implement a customized "@ref Debug",
  * using a custom %debug channel namespace.
  *
- * @sa @ref chapter_custom_debug_h
+ * @sa @ref the-custom-debug-h-file
  */
 #define LibcwDebug(dc_namespace, ...)           \
   do                                            \
@@ -73,7 +73,7 @@ extern "C" ssize_t write(int fd, void const* buf, size_t count);
  * This macro allows one to implement a customized "@ref Dout", using
  * a custom @ref the-output-device-debug-object "debug object" and/or channel namespace.
  *
- * @sa @ref chapter_custom_debug_h
+ * @sa @ref the-custom-debug-h-file
  */
 #define LibcwDout(dc_namespace, debug_obj, cntrl, ...)                                \
   LibcwDoutScopeBegin(dc_namespace, debug_obj, cntrl) LibcwDoutStream << __VA_ARGS__; \
@@ -134,7 +134,7 @@ extern "C" ssize_t write(int fd, void const* buf, size_t count);
  * This macro allows one to implement a customized "@ref DoutFatal", using
  * a custom @ref the-output-device-debug-object "debug object" and/or channel namespace.
  *
- * @sa @ref chapter_custom_debug_h
+ * @sa @ref the-custom-debug-h-file
  */
 #define LibcwDoutFatal(dc_namespace, debug_obj, cntrl, ...)                                     \
   LibcwDoutFatalScopeBegin(dc_namespace, debug_obj, cntrl) LibcwDoutFatalStream << __VA_ARGS__; \

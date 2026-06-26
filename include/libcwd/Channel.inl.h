@@ -16,7 +16,7 @@ namespace libcwd {
  * A newly created channel is off by default (except @ref libcwd::channels::dc::warning "dc::warning").
  * All channel objects must be global objects.
  *
- * @sa @ref chapter_custom_debug_h
+ * @sa @ref the-custom-debug-h-file
  */
 inline Channel::Channel(char const* label, bool add_to_channel_list)
 {

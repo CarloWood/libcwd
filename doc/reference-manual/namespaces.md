@@ -23,4 +23,4 @@ header file of your application (or library) prior to including `<libcwd/debug.h
 Custom %debug %channels should be added in another namespace in order to
 avoid the possibility of collisions with %channels defined in other libraries.
 
-@sa @ref chapter_custom_debug_h
+@sa @ref the-custom-debug-h-file

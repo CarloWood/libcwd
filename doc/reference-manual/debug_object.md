@@ -9,7 +9,7 @@ in fact, the data that otherwise would be written is not even evaluated (see @re
 The %debug code can also completely be omitted, by not defining the macro CWDEBUG.
 
 Libcwd defines and uses only one %debug object: @ref libcwd::libcw_do "libcw_do" (the _do stands for %Debug Object).
-However, it is possible to @link chapter_custom_do create more @endlink %debug objects which would allow one to write %debug output to
+However, it is possible to @link custom-debug-objects create more @endlink %debug objects which would allow one to write %debug output to
 two or more different output devices at the same time (for instance, the screen and a file).
 
 For each %debug object it is possible to set a margin and a marker string and to set the size of the current indentation.

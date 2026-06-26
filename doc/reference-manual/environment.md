@@ -1,4 +1,4 @@
-@addtogroup chapter_environment
+@addtogroup environment-variables
 
 <dl>
 <dt>LIBCWD_NO_STARTUP_MSGS</dt><dd>Don't print anything before main().</dd>
@@ -11,5 +11,5 @@ is turned on (except when LIBCWD_NO_STARTUP_MSGS is defined).</dd>
 as rcfile name instead of the default <TT>.libcwdrc</TT>.</dd>
 
 <dt>LIBCWD_RCFILE_OVERRIDE_NAME</dt><dd>Read the rcfile $LIBCWD_RCFILE_OVERRIDE_NAME
-to override values read from <TT>.libcwdrc</TT>. See also @ref chapter_rcfile .</dd>
+to override values read from <TT>.libcwdrc</TT>. See also @ref runtime-configuration-file-rcfile .</dd>
 </dl>

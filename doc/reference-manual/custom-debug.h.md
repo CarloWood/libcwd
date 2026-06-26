@@ -1,4 +1,4 @@
-@addtogroup chapter_custom_debug_h
+@addtogroup the-custom-debug-h-file
 
 @section debug_channels_and_namespace Debug channels and namespace
 

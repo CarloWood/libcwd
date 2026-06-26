@@ -1,4 +1,4 @@
-@addtogroup chapter_attach_gdb
+@addtogroup starting-a-gdb-session-from-a-running-program
 
 A running program can initiate a gdb session by calling the function `attach_gdb()`.
 
@@ -19,5 +19,5 @@ and starts the gdb session inside it.
 After exiting gdb the application will continue running.
 
 In order for `attach_gdb()` to work, you will need to call
-<span class="tt">@link chapter_rcfile read_rcfile()@endlink</span>
+<span class="tt">@link runtime-configuration-file-rcfile read_rcfile()@endlink</span>
 at the start of your application.
