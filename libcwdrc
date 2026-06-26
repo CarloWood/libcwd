@@ -22,7 +22,7 @@ silent = off
 channels_default = off
 
 # Toggle (turn on) channels matching these masks.
-# This must be a comma seperated list of channel label masks
+# This must be a comma separated list of channel label masks
 # that will be matched case insensitive against the labels
 # of the channels.
 channels_toggle = M*,ELFUTILS, n*tice

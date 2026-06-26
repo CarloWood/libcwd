@@ -25,7 +25,7 @@ extern std::mutex raw_write_mutex;
 #endif
 
 // The difference between DEBUGDEBUG_CERR and FATALDEBUGDEBUG_CERR is that the latter is not suppressed
-// when --disable-debug-output is used because a fatal error occured anyway, so this can't
+// when --disable-debug-output is used because a fatal error occurred anyway, so this can't
 // disturb the testsuite.
 #define FATALDEBUGDEBUG_CERR(x)                                                        \
   do                                                                                   \

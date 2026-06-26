@@ -13,7 +13,7 @@ to use a different (@ref custom-debug-objects "custom") debug object.
 
 @ref Dout and @ref DoutFatal take two arguments: the first argument is used to specify
 @ref controlling-the-output-level-debug-channels "debug channels" and @ref control-flags "control flags"
-while the second argument should be a series of objects seperated by `<<` that you want to write to the `ostream`.
+while the second argument should be a series of objects separated by `<<` that you want to write to the `ostream`.
 
 For example,
 

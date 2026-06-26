@@ -110,7 +110,7 @@ with the source distribution of libcwd for a Real Life example.</P>
 
 <P>Debug channels can be switched on and off at any time.&nbsp; At the start of your program you should
 turn on the channels of your choice by calling <SPAN class="code">Debug(dc::<EM>channel</EM>.on())</SPAN>
-<EM>once</EM>.&nbsp; Sometimes you want to temporally turn off certain channels: you want to make
+<EM>once</EM>.&nbsp; Sometimes you want to temporarily turn off certain channels: you want to make
 sure that no debug output is written to that particular debug channel, at that moment.&nbsp; This can be
 achieved by calling the methods <SPAN class="code">off()</SPAN> and <SPAN class="code">on()</SPAN> in
 <EM>pairs</EM> and in that order.&nbsp; For example:</P>
@@ -163,7 +163,7 @@ extern libcwd::DebugObject <SPAN class="highlight">my_debug_object</SPAN>;
 
 <P>Debug objects can be switched on and off at any time.&nbsp; At the start of your program you should
 turn on the debug object(s) by calling <SPAN class="code">Debug(<EM>debugobject</EM>.on())</SPAN>
-<EM>once</EM>.&nbsp; Sometimes you want to temporally turn off all debug output.&nbsp;
+<EM>once</EM>.&nbsp; Sometimes you want to temporarily turn off all debug output.&nbsp;
 This can be achieved by calling the methods <SPAN class="code">off()</SPAN> and <SPAN class="code">on()</SPAN> in
 <EM>pairs</EM> and in that order.&nbsp; For example:</P>
 
@@ -244,13 +244,13 @@ whitespace but still has to be a statement: it must be a single semi-colon then.
 
 <PRE class="code">
   if (error)
-    Dout(dc::notice, "An error occured");
+    Dout(dc::notice, "An error occurred");
 
   exit(0);
   cerr &lt;&lt; "We should never reach this\n";
 </PRE>
 
-<P>If the complete line <SPAN class="code">Dout(dc::notice, "An error occured");</SPAN>,
+<P>If the complete line <SPAN class="code">Dout(dc::notice, "An error occurred");</SPAN>,
 including semi-colon is removed (replaced with whitespace), then the line
 <SPAN class="code">exit(0);</SPAN> would be executed only when <SPAN class="code">error</SPAN>
 is <SPAN class="code">true</SPAN>!&nbsp; And when the semi-colon would be included in
@@ -259,7 +259,7 @@ looks so much better), which would break code like:</P>
 
 <PRE class="code">
   if (error)
-    Dout(dc::notice, "An error occured");
+    Dout(dc::notice, "An error occurred");
   else
     cout &lt;&lt; "Everything is ok\n";
 </PRE>

@@ -1120,7 +1120,7 @@ libcwd-0.99.20
 	and although only used with alloc checking off this DID lead,
 	under special circumstances, to a deadlock in list_allocations_on.
 
-	When an error occured during a call to dlopen (a macro to
+	When an error occurred during a call to dlopen (a macro to
 	__libcwd_dlopen) the call to dlerror would cause a deadlock
 	because it calls malloc which causes a location lookup
 	which uses the same mutex as is already set in __libcwd_dlopen.
@@ -1303,7 +1303,7 @@ libcwd-0.99.17
 	list_channels_on didn't print the margin.
 
 	Fixed a deadlock in object_file_ct::find_nearest_line().
-	The deadlock occured when debug output written from
+	The deadlock occurred when debug output written from
 	load_dwarf/load_stabs, which must be done with userspace
 	allocations, caused a recursive entry into this function.
 
@@ -1771,7 +1771,7 @@ libcwd-0.99.6
 	There was 'static initialisation order fiasco' bug that appeared
 	mainly on solaris (linux always first initializes the shared
 	libraries and only then constructs global objects of the application).
-	The bug occured in most cases when a memory allocation was done in the
+	The bug occurred in most cases when a memory allocation was done in the
 	constructor of a global object while the global objects of libcwd were
 	not initialized yet.  The main problem was that a debub object
 	(libcw_do) was NOT turned off before initialisation.  This fix allows
@@ -1830,7 +1830,7 @@ libcwd-0.99.4
 	now a locked lockable_auto_ptr does NOT transfer ownership
 	when using the assignment operator (as was documented).
 
-	Libcwd got into an endless loop when a fatal error occured
+	Libcwd got into an endless loop when a fatal error occurred
 	before the fatal debug channels where initialized.  This
 	happened for instance when a hard limit for the core size
 	is set.
@@ -1847,7 +1847,7 @@ libcwd-0.99.3
 	in iomanip.h has been used.  It turned out that not only
 	gcc-2.95.2 but even snap shot 2.96-20000724 has problems with
 	the (ISO C++ correct) construct that was used.  The new
-	work around works better and is not any longer dependend on the
+	work around works better and is not any longer dependent on the
 	value of CXXFLAGS.
 
 	Support for solaris has been added.  Tests were done on a 

@@ -99,7 +99,7 @@
  * ```cpp
  * Debug(main_reached());			        // Must be called at the top of main. Does configuration
  * consistency check. Debug( dc::notice.on() );		// Switch debug channel NOTICE on.
- * Debug(libcw_do.on() );				// Turn all debugging temporally off.
+ * Debug(libcw_do.on() );				// Turn all debugging temporarily off.
  * Debug(list_channels_on(libcw_do));			// List all debug channels.
  * Debug(libcw_do.set_ostream(&std::cout));		// Use std::cout as debug output stream.
  * Debug(libcw_do.set_ostream(&std::cout, &mutex));	// use ‛mutex' as lock for std::cout.

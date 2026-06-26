@@ -479,7 +479,7 @@ have to wait for other threads anymore.
 
 libcwd-0.99.20 is released.
 This release fixes three (possible) deadlocks in `list_allocations_on`,
-one in `dlopen` (when an error occured during loading),
+one in `dlopen` (when an error occurred during loading),
 and one during core dumping (`COREDUMP`) in
 `pthread_kill_other_threads_np`.
 Furthermore a bug was fixed in relation to the use of the control flag
@@ -712,7 +712,7 @@ release.  So, if libcwd core dumps on you for even very simple programs then ple
 
 libcwd-0.99.7 is released.
 This release includes a work-around for the compiler crash in `lockable_auto_ptr.h`
-that occured with g++-2.95.x.
+that occurred with g++-2.95.x.
 There are a few other changes however; most notably, the support for the macro `Dout_vform`
 has been removed because `ostream::vform` isn't conforming to the Standard and is gone in
 libstdc++ version 3.
