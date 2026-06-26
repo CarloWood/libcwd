@@ -7,7 +7,7 @@ for example,
 ```cpp
 int main()
 {
-  Debug(reached_main());
+  Debug(main_reached());
   Debug(libcw_do.on());     // In order to get RCFILE messages.
   Debug(read_rcfile());
 ```
