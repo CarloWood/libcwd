@@ -6,9 +6,9 @@ The main feature of Version 2 of this library is debug output. There is also sup
 <!-- Reference Manual -->
 
   <!-- Configuration, Installation And Getting Started -->
-@defgroup reference-manual-getting-started Configuration, Installation And Getting Started
+@defgroup reference-manual-getting-started Getting Started
 @ingroup reference-manual
-@brief Prerequisites for using libcwd.
+@brief Configuration and other prerequisites for using libcwd.
 
 @defgroup downloading Downloading
 @ingroup reference-manual-getting-started
@@ -18,7 +18,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-getting-started
 @brief Getting an application ready to use libcwd.
 
-@defgroup chapter_custom_debug_h The Custom debug.h File
+@defgroup chapter_custom_debug_h The Custom "debug.h" File
 @ingroup reference-manual-getting-started
 @brief How to organize debug-channel namespaces, especially for libraries.
 
@@ -35,7 +35,7 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual
 @brief API documentation related to producing debug output.
 
-@defgroup book_writing_intro Introduction
+@defgroup book_writing_intro Introduction (Debug Output)
 @ingroup reference-manual-writing-debug-output
 @brief Introduction to libcwd's ostream-based debug output.
 
@@ -88,11 +88,11 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual
 @brief API documentation related to accessing DWARF debug info and ELF symbols.
 
-@defgroup chapter_symbols_intro Introduction
+@defgroup chapter_symbols_intro Introduction (Types And Symbols)
 @ingroup reference-manual-symbols
 @brief Introduction to resolving addresses to function and source locations and demangled names.
 
-@defgroup group_locations Source-file:Line-number Information
+@defgroup group_locations Source-File:Line-Number Information
 @ingroup reference-manual-symbols
 @brief Translating a program address into its source file and line number.
 
