@@ -40,7 +40,7 @@ Go and read the <A HREF="../reference-manual/index.html">Reference Manual</A> to
 
 <P>Because it is the only way to easy remove debugging code from an application as function of a macro
 and because it allows for the fastest possible code even without optimisation, which is often the case
-while debugging.&nbsp; A more detailed explanation is given in the <A HREF="../reference-manual/page_why_macro.html">Reference Manual</A>.</P>
+while debugging.</P>
 
 <A name="Debug"></A>
 <H3>6. Why do I need to type the <SPAN class="H3code">Debug(&nbsp;&nbsp;)</SPAN> around it?</H3>

@@ -120,7 +120,6 @@
  *
  * The macro @ref Dout uses libcwds debug object @link libcwd::libcw_do libcw_do @endlink.
  * You will have to define your own macro when you want to use a second debug object.
- * Read chapter @ref page_why_macro for an explanation of why a macro was used instead of an inline function.
  *
  * @sa @ref control-flags
  *  @n @ref predefined-debug-channels

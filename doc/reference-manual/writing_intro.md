@@ -6,7 +6,7 @@ The class libcwd::DebugObject is associated with a single `ostream`.
 Libcwd defines and internally uses only one object of that class, called a @ref the-output-device-debug-object "debug object",
 being `libcwd::libcw_do`.
 
-Debug output is written using @ref page_why_macro "macros" (@ref Dout and @ref DoutFatal),
+Debug output is written using macros (@ref Dout and @ref DoutFatal),
 both of which are defined to use `libcwd::libcw_do`.
 More general macros exist (@ref LibcwDout and @ref LibcwDoutFatal) that allow you
 to use a different (@ref custom-debug-objects "custom") debug object.

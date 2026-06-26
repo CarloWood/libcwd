@@ -39,10 +39,6 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-writing-debug-output
 @brief Introduction to libcwd's ostream-based debug output.
 
-@defgroup page_why_macro Design Consideration Concerning Macros
-@ingroup book_writing_intro
-@brief Why `Dout` and friends are implemented as macros rather than inline functions.
-
 @defgroup setting-the-output-destination Setting The Output Destination
 @ingroup reference-manual-writing-debug-output
 @brief Selecting or inspecting the ostream used by a debug object.
