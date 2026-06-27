@@ -293,6 +293,7 @@ include(AICxxSubmodules)
 target_compile_definitions(cwds_ObjLib
   PRIVATE
     ${cwd_compile_definitions}
+    NAMESPACE_DEBUG=cwds_api_surface::debug
 )
 
 if (OptionEnableBuildTesting)
