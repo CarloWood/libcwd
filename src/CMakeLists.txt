@@ -53,3 +53,5 @@ target_link_libraries(cwd
         "${LIBDW}"
         "${LIBELF}"
 )
+
+add_subdirectory(utils)

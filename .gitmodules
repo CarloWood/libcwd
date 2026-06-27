@@ -8,4 +8,9 @@
 	branch = master
 [submodule "doc/doxygen-awesome-css"]
 	path = doc/doxygen-awesome-css
-	url = github-carlo:CarloWood/doxygen-awesome-css.git
+	url = https://github.com/CarloWood/doxygen-awesome-css.git
+	branch = main
+[submodule "cwds"]
+	path = cwds
+	url = https://github.com/CarloWood/cwds.git
+	branch = master

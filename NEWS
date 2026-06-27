@@ -1,19 +1,27 @@
 libcwd-2.0
+
+        - Released under the MIT license.
         - Uses CMake for configuration and building (support for autotools has been removed).
         - Support for memory allocation debugging has been removed.
+        - libcwd_r.so was renamed to libcwd.so
+        - Complete rewrite of ELF/DWARF debug information loading code;
+        - No longer explicitly defines _GNU_SOURCE, _REENTRANT or _THREAD_SAFE
+          (they are still defined by normal means).
+        - The header libcwd/sys.h has been removed (cwds still requires a #include "sys.h").
+        - The header libcwd/cwprint.h has been removed.
+        - Several classes have been renamed: channel_ct -> Channel and location_ct -> Location
+          being the most important ones.
+        - No longer defines LIBCWD_THREAD_SAFE (in fact, this can be used to detect that
+          you're using version 2 - of course, the library is fully thread-safe still).
         - No longer demangle to f(void). Instead demangle to f().
+        - No longer using cwm4 as build dependency. Now using cmake-aicxx.
         - Now has a CTest-backed testsuite.
         - Debug(main_reached()) must now be called at the top of main. It also does
           what check_configuration() did, which therefore no longer exists.
-        - libcwd_r.so was renamed to libcwd.so
-        - Complete rewrite of ELF/DWARF debug information loading code;
           dc::bfd was renamed to dc::elfutils.
-        - No longer using cwm4 as build dependency. Now using cmake-aicxx.
-        - The header libcwd/sys.h has been removed (cwds still requires it).
-        - The header libcwd/cwprint.h has been removed.
-        - Released under the MIT license.
 
 libcwd-1.1.3
+
         Added debug_ct::always_flush_on() and always_flush_off().
         Can be nested. When on() is called more often than off()
         then all debug output of all threads will be flushed as

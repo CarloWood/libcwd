@@ -75,9 +75,12 @@
 /// Insert a comma followed by debug code, only when debugging.
 #define COMMA_CWDEBUG_ONLY(...) , __VA_ARGS__
 
+// The user should set NAMESPACE_DEBUG to a (nested) namespace name.
 #ifndef NAMESPACE_DEBUG
 #define NAMESPACE_DEBUG debug
 #endif
+
+// I can not think of a reason that the user needs to define this; but we'll keep the #ifndef, so that that is possible.
 #ifndef NAMESPACE_DEBUG_START
 #define NAMESPACE_DEBUG_START namespace NAMESPACE_DEBUG {
 #define NAMESPACE_DEBUG_END }
