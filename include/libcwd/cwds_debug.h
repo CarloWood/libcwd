@@ -1,5 +1,9 @@
 #pragma once
 
+/** @file
+ * Do not include this header file directly, instead include @ref the-custom-debug-h-file "debug.h".
+ */
+
 //=============================================================================
 // Macros that are normally a part of cwds.
 

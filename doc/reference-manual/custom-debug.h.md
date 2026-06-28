@@ -7,10 +7,8 @@
 User applications have less strict requirements than libraries, because nobody else will link with it.
 The developer of an application directly controls and checks and resolves name collisions when needed.
 If you are writing an end-application then you are still urged to create a header file
-called %debug.h and use *that* in your source files, instead of including `<libcwd/debug.h>` directly.
-You will benefit greatly from this in terms on flexibility (trust me).
-
-@sa @ref preparation
+called `%debug.h` and use *that* in your source files, instead of including `<libcwd/debug.h>` directly.
+You will benefit greatly from this in terms on flexibility.
 
 @subsection libraries Libraries
 

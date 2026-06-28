@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref the-custom-debug-h-file "debug.h".
  */
 
 #ifndef LIBCWD_CLASS_CHANNEL_H
@@ -34,7 +34,7 @@ struct ChannelSetsWat;
  * Whenever %debug output is written, one or more %debug %channels must be specified (as first
  * parameter of the @ref Dout macro).
  * The %debug output is then written to the @link setting-the-output-destination ostream @endlink of the
- * @link DebugObject debug object @endlink unless the %debug object
+ * @link libcwd::DebugObject debug object @endlink unless the %debug object
  * is turned off or when all specified %debug %channels are off.
  * Each %debug channel can be turned on and off independently.
  *

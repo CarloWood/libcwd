@@ -4,7 +4,7 @@
 #pragma once
 
 /** @file
- * Do not include this header file directly, instead include @ref preparation_step2 "debug.h".
+ * Do not include this header file directly, instead include @ref the-custom-debug-h-file "debug.h".
  */
 
 #ifndef LIBCWD_DEMANGLE_H
