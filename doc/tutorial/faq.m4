@@ -81,7 +81,7 @@ header file.&nbsp; The following template is a good start for such a <SPAN class
 #ifndef MY_DEBUG_H
 #define MY_DEBUG_H
 
-#define DEBUGCHANNELS ::myapplication::debug::channels
+#define DEBUGCHANNELS myapplication::debug::channels
 #include &lt;libcwd/debug.h&gt;
 
 namespace myapplication {

@@ -37,7 +37,7 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 // name of the namespace containing your `dc' namespace (see below).
 // You can use any namespace(s) you like, except existing namespaces
 // (like ::, ::std and ::libcwd).
-#define DEBUGCHANNELS ::myproject::debug::channels
+#define DEBUGCHANNELS myproject::debug::channels
 #endif
 #include &lt;libcwd/debug.h&gt;
 

@@ -95,7 +95,7 @@ the rules as mentioned in the <A HREF="../group__chapter__custom__debug__h.html#
 #ifdef CWDEBUG
 
 #ifndef DEBUGCHANNELS   // This test is only necessary in libraries
-#define DEBUGCHANNELS ::example::debug::channels
+#define DEBUGCHANNELS example::debug::channels
 #endif
 #include &lt;libbooster/debug.h&gt;     // Note that these will include
 #include &lt;libturbo/debug.h&gt;       //   libcwd/debug.h for us.

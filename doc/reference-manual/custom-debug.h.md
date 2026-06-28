@@ -132,7 +132,7 @@ Then you can rename these channels as follows.
 Make a debug header file that contains:
 
 ```cpp
-#define DEBUGCHANNELS ::application::channels
+#define DEBUGCHANNELS application::channels
 #include <lib1/debug.h>
 #include <lib2/debug.h>
 namespace DEBUGCHANNELS::dc {
