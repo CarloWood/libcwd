@@ -15,6 +15,7 @@ target_sources(cwd
        "demangle.cxx"
        "dwarf.cxx"
        "environ.cxx"
+       "init_functions.cxx"
        "location.cxx"
        "strerrno.cxx"
        "threading.cxx"

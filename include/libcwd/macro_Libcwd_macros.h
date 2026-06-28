@@ -32,7 +32,7 @@
   do                                            \
   {                                             \
     using namespace ::libcwd;                   \
-    using namespace dc_namespace;               \
+    using namespace ::dc_namespace;             \
     {                                           \
       __VA_ARGS__;                              \
     }                                           \
@@ -148,7 +148,7 @@ extern "C" ssize_t write(int fd, void const* buf, size_t count);
     using namespace ::libcwd;                                                                                 \
     ::libcwd::FatalChannelSetBootstrap __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj), LIBCWD_TSD);            \
     {                                                                                                         \
-      using namespace dc_namespace;                                                                           \
+      using namespace ::dc_namespace;                                                                         \
       __libcwd_channel_set | cntrl;                                                                           \
     }                                                                                                         \
     ::libcwd::DebugObject& __libcwd_debug_object(debug_obj);                                                  \

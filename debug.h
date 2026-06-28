@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Carlo Wood
 // SPDX-License-Identifier: MIT
 
-#define CW_DEBUG 1
+// This file is included by threadsafe.
 
-#include "libcwd/private/ThreadSpecificData.h"
-#include "libcwd/LibcwdForAllDebugObjects.h"
+#include <libcwd/debug.h>
 
 // Required for threadsafe.
 #define ASSERT(x) LIBCWD_ASSERT(x)

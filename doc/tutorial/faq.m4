@@ -56,7 +56,7 @@ The expression <SPAN class="code">Debug(STATEMENT);</SPAN> is equivalent with:</
 #ifdef CWDEBUG
   do {
     using namespace ::libcwd;
-    using namespace LIBCWD_DEBUGCHANNELS;       // DEBUGCHANNELS if defined, otherwise libcwd::channels.
+    using namespace ::LIBCWD_DEBUGCHANNELS;     // DEBUGCHANNELS if defined, otherwise NAMESPACE_DEBUG::NAMESPACE_CHANNELS.
     { STATEMENT; }
   } while(0);
 #endif

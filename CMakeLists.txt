@@ -286,10 +286,16 @@ target_include_directories(threadsafe_ObjLib
 target_compile_definitions(threadsafe_ObjLib
   PRIVATE
     ${cwd_compile_definitions}
-    "-DCW_DEBUG=1"
 )
 
+# Temporarily compile cwds too.
 include(AICxxSubmodules)
+target_include_directories(cwds_ObjLib
+  PRIVATE
+    "${CMAKE_SOURCE_DIR}"
+    "${CMAKE_SOURCE_DIR}/include"
+    "${CMAKE_BINARY_DIR}/include"
+)
 target_compile_definitions(cwds_ObjLib
   PRIVATE
     ${cwd_compile_definitions}

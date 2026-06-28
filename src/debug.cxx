@@ -1358,7 +1358,7 @@ void list_channels_on(DebugObject& debug_object)
   if (LIBCWD_DO_TSD_MEMBER_OFF(debug_object) < 0)
   {
     _private_::DebugChannels::instance().for_each([&](Channel& debugChannel) {
-      LibcwDoutScopeBegin(LIBCWD_DEBUGCHANNELS, debug_object, dc::always | noprefix_cf);
+      LibcwDoutScopeBegin(debug::channels, debug_object, dc::always | noprefix_cf);
       LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(),
                             LIBCWD_DO_TSD_MEMBER(debug_object, margin).size());
       LibcwDoutStream.write(debugChannel.get_label(), WST_max_len);

@@ -164,8 +164,8 @@ target_compile_options(lockable_auto_ptr PRIVATE -g -Wall -Wextra -Wpedantic -Wu
 # of symbols it pins down.
 add_executable(cwds_api_surface cwds_api_surface.cpp)
 target_include_directories(cwds_api_surface PRIVATE ${CMAKE_BINARY_DIR})
-target_link_libraries(cwds_api_surface PRIVATE ctest_support AICxx::cwds)
-target_compile_options(cwds_api_surface PRIVATE -g -Wall -Wextra -Wpedantic -Wundef -Werror)
+target_link_libraries(cwds_api_surface PRIVATE ctest_support) # AICxx::cwds
+target_compile_options(cwds_api_surface PRIVATE -g -Wall -Wextra -Wundef -Wpedantic -Werror)
 
 add_test(NAME basic_debug_output COMMAND basic_debug_output)
 set_tests_properties(basic_debug_output PROPERTIES

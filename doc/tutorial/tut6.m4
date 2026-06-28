@@ -76,7 +76,7 @@ void* thread_function(void* arguments)
 }
 
 #ifdef CWDEBUG
-pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
+std::mutex cout_mutex;
 #endif
 
 int main()

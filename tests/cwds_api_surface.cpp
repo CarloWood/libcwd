@@ -36,8 +36,7 @@
 // After the migration libcwd will default NAMESPACE_DEBUG to `debug` when this
 // is left unset; here we set a two-level namespace to also cover that case.
 #define NAMESPACE_DEBUG cwds_api_surface::debug
-#include <cwds/debug.h>
-//#include <libcwd/debug.h>
+#include <libcwd/debug.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -69,13 +68,13 @@ void worker(int id, libcwd::thread_init_t mode)
   DoutEntering(dc::notice, "worker " << id << " entered");
 
   {
-    NAMESPACE_DEBUG::Indent const indent(3);
-    NAMESPACE_DEBUG::Mark const marker('|');
+    libcwd::Indent const indent(3);
+    libcwd::Mark const marker('|');
     Dout(dc::api, "worker " << id << " doing scoped work");
   }
 
   // Exercise the char const* constructor of Mark plus explicit end().
-  NAMESPACE_DEBUG::Mark m2("\xE2\x96\xB6"); // UTF-8 for BLACK RIGHT-POINTING TRIANGLE.
+  libcwd::Mark m2("\xE2\x96\xB6"); // UTF-8 for BLACK RIGHT-POINTING TRIANGLE.
   Dout(dc::notice, "worker " << id << " after scope");
   m2.end();
 }
@@ -99,8 +98,8 @@ int main()
   DoutEntering(dc::notice|dc::api, "main()");
 
   {
-    NAMESPACE_DEBUG::Indent const indent(2);
-    NAMESPACE_DEBUG::Mark const marker('M');
+    libcwd::Indent const indent(2);
+    libcwd::Mark const marker('M');
     Dout(dc::notice, "Inside an indented, marked scope in main");
   }
 
