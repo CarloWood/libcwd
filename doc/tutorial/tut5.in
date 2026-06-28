@@ -320,6 +320,7 @@ is printed first.&nbsp; After the call returns we print the results.</P>
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
 #include &lt;cstdlib&gt;
+#include &lt;iostream&gt;
 
 std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
 {
@@ -390,6 +391,7 @@ ourselfs that allocates memory (as certain system calls could do too!):</P>
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
 #include &lt;cstdlib&gt;
+#include &lt;iostream&gt;
 
 std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
 {
@@ -459,6 +461,7 @@ which are designed especially for <EM>interrupted debug output</EM>:</P>
 #include &quot;debug.h&quot;
 #include &lt;sys/stat.h&gt;
 #include &lt;cstdlib&gt;
+#include &lt;iostream&gt;
 
 std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, struct stat const buf)
 {
