@@ -1,0 +1,7 @@
+Normally this is where you'd have the git submodule
+https://github.com/CarloWood/cmake-aicxx added, but
+since libcwd already has that module we're simply
+using a symbolic link to there.
+
+See https://github.com/CarloWood/cmake-aicxx#adding-the-cmake-aicxx-submodule-to-a-project
+for the normal install instructions.

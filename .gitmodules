@@ -11,6 +11,6 @@
 	url = https://github.com/CarloWood/doxygen-awesome-css.git
 	branch = main
 [submodule "cwds"]
-	path = cwds
+	path = example-project/cwds
 	url = https://github.com/CarloWood/cwds.git
 	branch = master
