@@ -10,6 +10,34 @@ If you are writing an end-application then you are still urged to create a heade
 called `%debug.h` and use *that* in your source files, instead of including `<libcwd/debug.h>` directly.
 You will benefit greatly from this in terms on flexibility.
 
+This custom `%debug.h` normally lives in the root of your project; what really matters is that its
+include directory is searched *before* the `cwds` directory, so that a plain `#include "%debug.h"`
+from any source file picks up your version, if it exists, and only includes `cwds/debug.h` if your
+project doesn't define its own `%debug.h`.
+
+The custom `%debug.h` should include `cwds/debug.h` which sets up the surrounding machinery
+(the `Debug`, `Dout` and `ASSERT` macros, the `dc` namespace) for both the `CWDEBUG`
+*and* non-`CWDEBUG` case: turning most macros into no-ops. Furthermore, your `%debug.h` is the place
+where you get to influence that setup *before* it happens.
+
+Having your own `%debug.h` is handy because it is the natural, single point where you can:
+
+- Pick the namespace in which libcwd exposes its application-facing debug utilities by defining
+  `NAMESPACE_DEBUG` (it defaults to `debug` when left undefined).
+  Using a project-specific namespace keeps your debug code cleanly separated from that of any
+  library you link with.
+- Declare project-wide debug channels, so that every translation unit can gain access to them
+  with a simple `#include "%debug.h"`.
+- Add project-specific debug macros, ostream formatters for your own types, or any other helper
+  that you want available wherever you write debug output.
+
+A recommended skeleton defines `NAMESPACE_DEBUG`, includes `cwds/debug.h` to piggy-back on its
+boilerplate, and then declares the project-wide debug channels.
+Note that each declared channel still has to be *defined* in exactly one `.cpp` file:
+
+@include "external/debug.h"
+\htmlonly &laquo;<A HREF="external/debug.h">download</A>&raquo;\endhtmlonly
+
 @subsection libraries Libraries
 
 If you are developing a library that uses libcwd then do not put your debug channels in the
@@ -22,7 +50,7 @@ The following code would define a debug channel `warp` in the namespace `libexam
 ```cpp
 // This is some .cpp file of your library.
 #define DEBUGCHANNELS libexample::channels
-#include "debug.h"
+#include "%debug.h"
 // ...
 #ifdef CWDEBUG
 namespace DEBUGCHANNELS::dc {
@@ -39,7 +67,7 @@ that is only used while compiling your library itself - this one would not be in
 The first one (the %debug.h that will be installed) would look something like this:
 
 ```cpp
-// This is for example <libexample/debug.h>
+// This is for example <libexample/%debug.h>
 #ifndef LIBEXAMPLE_DEBUG_H
 #define LIBEXAMPLE_DEBUG_H
 
@@ -82,7 +110,7 @@ extern libcwd::Channel warp;
 ```
 
 The second "debug.h", which would not be installed but only be included when compiling
-the .cpp files (that `#include "debug.h"`) of your library itself, then looks like this:
+the .cpp files (that `#include "%debug.h"`) of your library itself, then looks like this:
 
 \htmlonly
 <div class="doxygen-awesome-fragment-wrapper">
@@ -113,7 +141,7 @@ the .cpp files (that `#include "debug.h"`) of your library itself, then looks li
 
 Don't use Dout etc. in header files of libraries, instead use (for example) LibExampleDout etc., as shown above.
 If you want to use Dout etc. in your *source* files then you can do so
-after first including the `"debug.h"` as shown above.
+after first including the `"%debug.h"` as shown above.
 
 @subsection debug_channel_name_collisions Debug channel name collisions
 
