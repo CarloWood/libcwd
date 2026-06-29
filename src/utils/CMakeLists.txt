@@ -12,9 +12,9 @@ target_sources(libcwd_utils_ObjLib
         "rcfile.cxx"
 )
 
-# Require support for C++17.
+# Require support for C++20.
 target_compile_features(libcwd_utils_ObjLib
-  PUBLIC cxx_std_17
+  PUBLIC cxx_std_20
 )
 
 target_include_directories(libcwd_utils_ObjLib

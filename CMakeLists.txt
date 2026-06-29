@@ -289,7 +289,8 @@ target_compile_definitions(threadsafe_ObjLib
 )
 
 # Temporarily compile cwds too.
-include(AICxxSubmodules)
+set(AICxxSubmodules TRUE)
+add_subdirectory(example-project/cwds)
 target_include_directories(cwds_ObjLib
   PRIVATE
     "${CMAKE_SOURCE_DIR}"
