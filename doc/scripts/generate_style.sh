@@ -17,7 +17,7 @@ tmp=${output}.tmp
 
 mkdir -p "$(dirname "${output}")"
 
-cat "${source_dir}/${template}" | "${cc}" -I"${source_dir}" -D"${macro}" -E -c - |
+cat "${source_dir}/${template}" | "${cc}" -I"${source_dir}" -D"${macro}" -E - |
   grep -E -v '^(#|$)' > "${tmp}"
 
 mv "${tmp}" "${output}"
