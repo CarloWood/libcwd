@@ -1,0 +1,5 @@
+CUSTOM  : This is debug output, written to a custom channel (see ../debug.h and ./debug.cpp)
+NOTICE  : The following is defined in config.h, which was automatically included by sys.h
+Project name: example version 1.0.0.
+Project description: Example project demonstrating a config.h file, cw_option and custom debug channel.
+ExampleOption was most definitely set!

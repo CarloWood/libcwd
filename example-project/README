@@ -12,7 +12,7 @@ https://github.com/CarloWood/cwds that you'd normally use.
 To configure and build the example project run:
 
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DExampleOption=ON
-    cmake --build build --verbose
+    cmake --build build --parallel --verbose
 
 Note that a Release build will not show the ExampleOption,
 which is due to the fact that it uses `"CW_BUILD_TYPE_IS_NOT_RELEASE" OFF`

@@ -306,3 +306,31 @@ add_test(NAME cwds_api_surface COMMAND cwds_api_surface)
 set_tests_properties(cwds_api_surface PROPERTIES
   ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
 )
+
+# Build example-project as a standalone project (exactly as documented in
+# example-project/README) and verify that its helloworld executable produces the
+# expected output verbatim. Unlike every other test above, this one does NOT
+# build inside the libcwd tree: it runs a nested `cmake` configure/build against
+# an *installed* libcwd, which is the only configuration that catches the
+# example-project failing to compile on its own. The driver script lives in
+# example_project.cmake; the expected output is pinned by
+# example_project_expected.txt.
+#
+# The nested build directory is kept under the outer build tree (never in the
+# source tree) and persists across runs so that repeated invocations are fast.
+set(_example_project_source_dir "${CMAKE_SOURCE_DIR}/example-project")
+set(_example_project_build_dir "${CMAKE_BINARY_DIR}/example-project-build")
+add_test(NAME example_project
+  COMMAND ${CMAKE_COMMAND}
+          -DCMAKE_COMMAND=${CMAKE_COMMAND}
+          -DEXAMPLE_SOURCE_DIR=${_example_project_source_dir}
+          -DBUILD_DIR=${_example_project_build_dir}
+          -DEXPECTED_FILE=${CMAKE_CURRENT_SOURCE_DIR}/example_project_expected.txt
+          -DRCFILE_NAME=libcwdrc_example-project
+          -DPREFIX_PATH=${CMAKE_PREFIX_PATH}
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/example_project.cmake
+)
+set_tests_properties(example_project PROPERTIES
+  TIMEOUT 180
+  RUN_SERIAL TRUE
+)
