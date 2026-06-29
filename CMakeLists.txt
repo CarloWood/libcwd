@@ -288,21 +288,6 @@ target_compile_definitions(threadsafe_ObjLib
     ${cwd_compile_definitions}
 )
 
-# Temporarily compile cwds too.
-set(AICxxSubmodules TRUE)
-add_subdirectory(example-project/cwds)
-target_include_directories(cwds_ObjLib
-  PRIVATE
-    "${CMAKE_SOURCE_DIR}"
-    "${CMAKE_SOURCE_DIR}/include"
-    "${CMAKE_BINARY_DIR}/include"
-)
-target_compile_definitions(cwds_ObjLib
-  PRIVATE
-    ${cwd_compile_definitions}
-    NAMESPACE_DEBUG=cwds_api_surface::debug
-)
-
 if (OptionEnableBuildTesting)
   add_subdirectory(tests)
 endif ()
