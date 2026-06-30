@@ -11,11 +11,11 @@ For example, add something like the following to your own @link the-custom-debug
 ```cpp
 #ifdef CWDEBUG
 extern libcwd::DebugObject my_debug_object;
-#define MyDout(cntrl, data) LibcwDout(DEBUGCHANNELS, my_debug_object, cntrl, data)
-#define MyDoutFatal(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, my_debug_object, cntrl, data)
+#define MyDout(cntrl, ...) LibcwDout(LIBCWD_DEBUGCHANNELS, my_debug_object, cntrl, __VA_ARGS__)
+#define MyDoutFatal(cntrl, ...) LibcwDoutFatal(LIBCWD_DEBUGCHANNELS, my_debug_object, cntrl, __VA_ARGS__)
 #else // !CWDEBUG
-#define MyDout(a, b)
-#define MyDoutFatal(a, b) LibcwDoutFatal(::std,, a, b)
+#define MyDout(a, ...)
+#define MyDoutFatal(a, ...) LibcwDoutFatal(std,, a, __VA_ARGS__)
 #endif // !CWDEBUG
 ```
 

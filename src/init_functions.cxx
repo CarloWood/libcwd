@@ -82,11 +82,11 @@ void save_dc_states()
  * @internal
  *
  * For a given @a dc_label, which must be the exact name (<tt>channel_ct::get_label</tt>) of an
- * existing debug channel, this function returns @c true when the corresponding debug channel was
+ * existing debug channel, this function returns `true` when the corresponding debug channel was
  * <em>on</em> at the startup of the application, directly after reading the libcwd runtime
  * configuration file (.libcwdrc).
  *
- * If the label/channel did not exist at the start of the application, it will return @c false
+ * If the label/channel did not exist at the start of the application, it will return `false`
  * (note that libcwd disallows adding debug channels to modules - so this would probably
  * a bug).
  */

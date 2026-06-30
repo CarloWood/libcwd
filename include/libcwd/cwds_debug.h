@@ -26,10 +26,10 @@
 
 #ifndef NAMESPACE_CHANNELS
 /**
- * The namespace name in which the @c dc namespace is declared.
+ * The namespace name in which the `dc` namespace is declared.
  *
  * Define this macro before <libcwd/debug.h> is included; it must be the name of the namespace containing
- * the @c dc (Debug Channels) namespace. If not defined it defaults to `channels`.
+ * the `dc` (Debug Channels) namespace. If not defined it defaults to `channels`.
  *
  * @sa debug::channels::dc
  */
@@ -53,10 +53,10 @@
 /**
  * @brief The namespace containing the current %debug %channels (dc) namespace.
  *
- * The nested namespace in which the @c dc namespace is declared.
+ * The nested namespace in which the `dc` namespace is declared.
  *
  * Define this macro before <libcwd/debug.h> is included; it must be the name of the namespace containing
- * the @c dc (Debug Channels) namespace. If not defined it defaults to `NAMESPACE_DEBUG::NAMESPACE_CHANNELS`.
+ * the `dc` (Debug Channels) namespace. If not defined it defaults to `NAMESPACE_DEBUG::NAMESPACE_CHANNELS`.
  *
  * @sa debug::channels::dc
  */
