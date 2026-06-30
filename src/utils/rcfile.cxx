@@ -10,7 +10,6 @@
 #include <sys/stat.h> // Needed for 'stat'.
 #include <sys/types.h> // Needed for 'stat', 'getuid' and 'getpwuid'.
 #include <unistd.h> // Needed for 'stat', 'access' and 'getuid'.
-#include "cwd_debug.h"
 #ifdef HAVE_PWD_H
 #include <pwd.h> // Needed for 'getpwuid'.
 #endif

@@ -40,7 +40,6 @@ The direct use of these functions should be avoided, instead use the function ty
 #include "libcwd/LIBCWD_ASSERT.h"
 
 #include <limits>
-#include "cwd_debug.h"
 
 #ifdef STANDALONE
 #ifdef CWDEBUG

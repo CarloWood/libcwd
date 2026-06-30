@@ -16,7 +16,6 @@
 #include <sys/types.h> // Needed for waitpid(2)
 #include <sys/wait.h> //
 #include <unistd.h> // Needed for pipe(2), dup2(2), fork(2), read(2) and close(2)
-#include "cwd_debug.h"
 
 namespace libcwd {
 

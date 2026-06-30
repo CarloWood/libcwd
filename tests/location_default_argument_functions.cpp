@@ -14,7 +14,6 @@
 #include <iomanip>
 #include <iostream>
 #include <dlfcn.h>
-#include "cwd_debug.h"
 
 extern bool f();
 uintptr_t executable_load_base();

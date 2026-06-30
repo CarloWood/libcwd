@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "cwd_sys.h"
+#include "raw_write.h"
 #include <libcwd/config.h>
 #include "utils/macros.h"
 #include "private_DebugStack.inl.h"
@@ -27,7 +28,6 @@
 #endif
 #include <sstream>
 #include <vector>
-#include "cwd_debug.h"
 
 extern "C" int raise(int);
 

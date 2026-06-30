@@ -7,8 +7,6 @@
 #include "libcwd/demangle.h"
 #include "libcwd/type_info.h"
 
-#include "cwd_debug.h"
-
 namespace libcwd {
 
 /**

@@ -4,7 +4,6 @@
 #include "cwd_sys.h"
 
 #include <cstdlib>
-#include "cwd_debug.h"
 
 namespace libcwd::_private_ {
 
