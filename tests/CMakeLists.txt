@@ -334,3 +334,80 @@ set_tests_properties(example_project PROPERTIES
   TIMEOUT 180
   RUN_SERIAL TRUE
 )
+
+#------------------------------------------------------------------------------
+# Tests for the "Libraries" subsection of doc/reference-manual/custom-debug.h.md.
+#
+# These tests reproduce the three code snippets shown in that subsection (a
+# library .cpp that defines a debug channel, an installed <libexample/debug.h>,
+# and an internal non-installed debug.h) and verify that they compile and work
+# correctly in both CWDEBUG and non-CWDEBUG builds.
+#
+# Three ctest entries are created:
+#   library_pattern        — CWDEBUG build: verifies debug output, macros, and
+#                            the LibexampleForAllDebugChannels iteration.
+#   library_pattern_nodebug— non-CWDEBUG build: verifies that the no-op macros
+#                            compile and produce zero output.
+#   library_pattern_error  — verifies the #error guard in <libexample/debug.h>
+#                            fires when the header is included before debug.h.
+#------------------------------------------------------------------------------
+set(_lp_dir "${CMAKE_CURRENT_SOURCE_DIR}/library_pattern")
+
+# --- CWDEBUG library (links against cwd, gets -DCWDEBUG from it) -------------
+add_library(libexample_cwdebug STATIC "${_lp_dir}/src/debug.cc")
+target_include_directories(libexample_cwdebug
+  PRIVATE
+    "${_lp_dir}/internal"
+    "${CMAKE_SOURCE_DIR}/include"
+    "${CMAKE_BINARY_DIR}/include"
+  PUBLIC
+    "${_lp_dir}/include"
+)
+target_link_libraries(libexample_cwdebug PUBLIC cwd)
+target_compile_options(libexample_cwdebug PRIVATE -g -Wall -Wextra -Wpedantic -Werror)
+
+# --- CWDEBUG application -----------------------------------------------------
+add_executable(library_pattern "${_lp_dir}/app/main.cpp")
+target_include_directories(library_pattern PRIVATE
+  "${_lp_dir}/app"
+  "${CMAKE_SOURCE_DIR}/include"
+  "${CMAKE_BINARY_DIR}/include"
+)
+target_link_libraries(library_pattern PRIVATE libexample_cwdebug cwd)
+target_compile_options(library_pattern PRIVATE -g -Wall -Wextra -Wpedantic -Werror)
+
+add_test(NAME library_pattern COMMAND library_pattern)
+set_tests_properties(library_pattern PROPERTIES
+  ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:cwd>:$ENV{LD_LIBRARY_PATH}"
+)
+
+# --- Non-CWDEBUG library (no cwd link, no CWDEBUG define) -------------------
+add_library(libexample_nodebug STATIC "${_lp_dir}/src/debug.cc")
+target_include_directories(libexample_nodebug
+  PRIVATE
+    "${_lp_dir}/internal"
+  PUBLIC
+    "${_lp_dir}/include"
+)
+target_compile_options(libexample_nodebug PRIVATE -g -Wall -Wextra -Wpedantic -Werror)
+
+# --- Non-CWDEBUG application -------------------------------------------------
+add_executable(library_pattern_nodebug "${_lp_dir}/app/main_nodebug.cpp")
+target_include_directories(library_pattern_nodebug PRIVATE "${_lp_dir}/app")
+target_link_libraries(library_pattern_nodebug PRIVATE libexample_nodebug)
+target_compile_options(library_pattern_nodebug PRIVATE -g -Wall -Wextra -Wpedantic -Werror)
+
+add_test(NAME library_pattern_nodebug COMMAND library_pattern_nodebug)
+
+# --- #error compile-failure test ---------------------------------------------
+# Tries to compile error_should_fail.cpp (which includes <libexample/debug.h>
+# without first including "debug.h") and verifies the #error fires.
+add_test(NAME library_pattern_error
+  COMMAND ${CMAKE_COMMAND}
+          -DCXX=${CMAKE_CXX_COMPILER}
+          -DCWD_SRC_INC=${CMAKE_SOURCE_DIR}/include
+          -DCWD_BLD_INC=${CMAKE_BINARY_DIR}/include
+          -DEP_INC=${_lp_dir}/include
+          -DSRC=${_lp_dir}/app/error_should_fail.cpp
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/library_pattern_error.cmake
+)

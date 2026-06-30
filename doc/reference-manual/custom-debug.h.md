@@ -50,7 +50,7 @@ The following code would define a debug channel `warp` in the namespace `libexam
 ```cpp
 // This is some .cpp file of your library.
 #define DEBUGCHANNELS libexample::channels
-#include "%debug.h"
+#include "debug.h"
 // ...
 #ifdef CWDEBUG
 namespace DEBUGCHANNELS::dc {
@@ -67,7 +67,7 @@ that is only used while compiling your library itself - this one would not be in
 The first one (the %debug.h that will be installed) would look something like this:
 
 ```cpp
-// This is for example <libexample/%debug.h>
+// This is for example <libexample/debug.h>
 #ifndef LIBEXAMPLE_DEBUG_H
 #define LIBEXAMPLE_DEBUG_H
 
@@ -83,11 +83,11 @@ extern libcwd::Channel warp;
 // Define private debug output macros for use in header files of the library,
 // there is no reason to do this for normal applications.
 // We use a literal libexample::channels here and not LIBCWD_DEBUGCHANNELS!
-#define LibexampleDebug(STATEMENT...) LibcwDebug(libexample::channels, STATEMENT)
+#define LibexampleDebug(...) LibcwDebug(libexample::channels, __VA_ARGS__)
 #define LibexampleDout(cntrl, data) LibcwDout(libexample::channels, libcwd::libcw_do, cntrl, data)
 #define LibexampleDoutFatal(cntrl, data) LibcwDoutFatal(libexample::channels, libcwd::libcw_do, cntrl, data)
-#define LibexampleForAllDebugChannels(STATEMENT...) LibcwdForAllDebugChannels(libexample::channels, STATEMENT)
-#define LibexampleForAllDebugObjects(STATEMENT...) LibcwdForAllDebugObjects(libexample::channels, STATEMENT)
+#define LibexampleForAllDebugChannels(...) LibcwdForAllDebugChannels(libexample::channels, __VA_ARGS__)
+#define LibexampleForAllDebugObjects(...) LibcwdForAllDebugObjects(libexample::channels, __VA_ARGS__)
 
 // All other macros might be used in header files of libexample, but need to be
 // defined by the debug.h of the application that uses it.
@@ -98,11 +98,11 @@ extern libcwd::Channel warp;
 
 #else
 
-#define LibexampleDebug(STATEMENT...) do { } while(0)
+#define LibexampleDebug(...) do { } while(0)
 #define LibexampleDout(cntrl, data) do { } while(0)
 #define LibexampleDoutFatal(cntrl, data) do { ::std::cerr << data << ::std::endl; ::std::exit(EXIT_FAILURE); } while(1)
-#define LibexampleForAllDebugChannels(STATEMENT...) do { } while(0)
-#define LibexampleForAllDebugObjects(STATEMENT...) do { } while(0)
+#define LibexampleForAllDebugChannels(...) do { } while(0)
+#define LibexampleForAllDebugObjects(...) do { } while(0)
 
 #endif // CWDEBUG
 
