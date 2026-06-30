@@ -13,7 +13,7 @@
 #include <sstream>
 
 libcwd::DebugObject local_debug_object;
-#define MyDout(cntrl, data) LibcwDout(LIBCWD_DEBUGCHANNELS, local_debug_object, cntrl, data)
+#define MyDout(cntrl, ...) LibcwDout(LIBCWD_DEBUGCHANNELS, local_debug_object, cntrl, __VA_ARGS__)
 
 int main()
 {

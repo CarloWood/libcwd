@@ -16,18 +16,14 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 
 #ifndef CWDEBUG
 
-#define AllocTag1(p)
-#define AllocTag2(p, desc)
-#define AllocTag_dynamic_description(p, x)
-#define AllocTag(p, x)
-#define Debug(x)
-#define Dout(a, b)
-#define DoutFatal(a, b) LibcwDoutFatal(::std, , a, b)
-#define ForAllDebugChannels(STATEMENT)
-#define ForAllDebugObjects(STATEMENT)
-#define LibcwDebug(dc_namespace, x)
-#define LibcwDout(a, b, c, d)
-#define LibcwDoutFatal(a, b, c, d) do { ::std::cerr &lt;&lt; d &lt;&lt; ::std::endl; ::std::exit(254); } while(1)
+#define Debug(...)
+#define Dout(a, ...)
+#define DoutFatal(a, ...) LibcwDoutFatal(::std, , a, __VA_ARGS__)
+#define ForAllDebugChannels(...)
+#define ForAllDebugObjects(...)
+#define LibcwDebug(dc_namespace, ...)
+#define LibcwDout(a, b, c, ...)
+#define LibcwDoutFatal(a, b, c, ...) do { ::std::cerr &lt;&lt; __VA_ARGS__ &lt;&lt; ::std::endl; ::std::exit(254); } while(1)
 #define NEW(x) new x
 
 #else // CWDEBUG

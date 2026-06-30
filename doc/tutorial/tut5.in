@@ -142,8 +142,8 @@ namespace example {
 // The file "nodebug.h" is provided in the libcwd source tree and needs to be included
 // in your own package.
 #include "nodebug.h"
-#define MyLibHeaderDout(cntrl, data)
-#define MyLibHeaderDoutFatal(cntrl, data) LibcwDoutFatal(::std, /*nothing*/, cntrl, data)
+#define MyLibHeaderDout(cntrl, ...)
+#define MyLibHeaderDoutFatal(cntrl, ...) LibcwDoutFatal(::std, /*nothing*/, cntrl, __VA_ARGS__)
 
 #endif // !CWDEBUG
 

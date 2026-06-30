@@ -14,7 +14,7 @@
 // without that libcwd installed or used.
 #ifndef CWDEBUG
 #ifndef LIBCWD_ASSERT
-#define LIBCWD_ASSERT(x)
+#define LIBCWD_ASSERT(...)
 #endif
 #else // CWDEBUG
 #include "LIBCWD_ASSERT.h"

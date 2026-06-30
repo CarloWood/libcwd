@@ -150,11 +150,11 @@ It isn't hard at all to define your own macros though; for example add something
 <PRE class="code">
 #ifdef CWDEBUG
 extern libcwd::DebugObject <SPAN class="highlight">my_debug_object</SPAN>;
-#define <SPAN class="highlight">MyDout</SPAN>(cntrl, data) LibcwDout(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, data)
-#define <SPAN class="highlight">MyDoutFatal</SPAN>(cntrl, data) LibcwDoutFatal(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, data)
+#define <SPAN class="highlight">MyDout</SPAN>(cntrl, ...) LibcwDout(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, __VA_ARGS__)
+#define <SPAN class="highlight">MyDoutFatal</SPAN>(cntrl, ...) LibcwDoutFatal(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, __VA_ARGS__)
 #else // !CWDEBUG
-#define <SPAN class="highlight">MyDout</SPAN>(a, b)
-#define <SPAN class="highlight">MyDoutFatal</SPAN>(a, b) LibcwDoutFatal(::std, /*nothing*/, a, b)
+#define <SPAN class="highlight">MyDout</SPAN>(a, ...)
+#define <SPAN class="highlight">MyDoutFatal</SPAN>(a, ...) LibcwDoutFatal(::std, /*nothing*/, a, __VA_ARGS__)
 #endif // !CWDEBUG
 </PRE>
 

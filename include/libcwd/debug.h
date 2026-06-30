@@ -246,6 +246,8 @@ NAMESPACE_DEBUG_START
 using namespace libcwd::init_functions;
 NAMESPACE_DEBUG_END
 
+// Build the LIBCWD_DEBUGCHANNELS::dc facade.
+// Users should insert their debug channels in here.
 NAMESPACE_DEBUG_CHANNELS_START
 using namespace libcwd::channels::dc;
 using libcwd::Channel;

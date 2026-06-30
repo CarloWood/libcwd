@@ -51,11 +51,11 @@ Channel demangler("DEMANGLER");
 } // namespace channels
 } // namespace libcwd
 #endif
-#define _GLIBCXX_DEMANGLER_DEBUG(x) __Debug(x)
-#define _GLIBCXX_DEMANGLER_DOUT(cntrl, data) __Dout(cntrl, data)
-#define _GLIBCXX_DEMANGLER_DOUT_ENTERING(x)       \
+#define _GLIBCXX_DEMANGLER_DEBUG(...) __Debug(__VA_ARGS__)
+#define _GLIBCXX_DEMANGLER_DOUT(cntrl, ...) __Dout(cntrl, __VA_ARGS__)
+#define _GLIBCXX_DEMANGLER_DOUT_ENTERING(...)     \
   __Dout(dc::demangler | continued_cf | flush_cf, \
-         "Entering " << x << "(\"" << &str_[pos_] << "\", \"" << output << "\") ")
+         "Entering " << __VA_ARGS__ << "(\"" << &str_[pos_] << "\", \"" << output << "\") ")
 #define _GLIBCXX_DEMANGLER_RETURN                                   \
   do                                                                \
   {                                                                 \
@@ -77,10 +77,10 @@ Channel demangler("DEMANGLER");
       __Dout(dc::finish, "(failed)");  \
     return false;                      \
   } while (0)
-#define _GLIBCXX_DEMANGLER_DOUT_ENTERING2(x)                                                            \
+#define _GLIBCXX_DEMANGLER_DOUT_ENTERING2(...)                                                          \
   do                                                                                                    \
   {                                                                                                     \
-    __Dout(dc::demangler | continued_cf | flush_cf, "Entering " << x);                                  \
+    __Dout(dc::demangler | continued_cf | flush_cf, "Entering " << __VA_ARGS__);                        \
     if (qualifiers)                                                                                     \
       __Dout(dc::continued, " [with qualifiers: " << *qualifiers << ']');                               \
     __Dout(dc::continued, "(\"" << &str_[pos_] << "\", \"" << prefix << "\", \"" << postfix << "\") "); \
@@ -94,12 +94,12 @@ Channel demangler("DEMANGLER");
       __Dout(dc::finish, "(failed)");                                                      \
     return result_;                                                                        \
   } while (0)
-#define _GLIBCXX_DEMANGLER_DOUT_ENTERING3(x)                                  \
-  do                                                                          \
-  {                                                                           \
-    __Dout(dc::demangler | continued_cf | flush_cf, "Entering " << x);        \
-    __Dout(dc::continued, " [with qualifier list: " << *this << ']');         \
-    __Dout(dc::continued, " (\"" << prefix << "\", \"" << postfix << "\") "); \
+#define _GLIBCXX_DEMANGLER_DOUT_ENTERING3(...)                                   \
+  do                                                                             \
+  {                                                                              \
+    __Dout(dc::demangler | continued_cf | flush_cf, "Entering " << __VA_ARGS__); \
+    __Dout(dc::continued, " [with qualifier list: " << *this << ']');            \
+    __Dout(dc::continued, " (\"" << prefix << "\", \"" << postfix << "\") ");    \
   } while (0)
 #define _GLIBCXX_DEMANGLER_RETURN3                                       \
   do                                                                     \

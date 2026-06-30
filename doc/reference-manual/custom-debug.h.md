@@ -84,8 +84,8 @@ extern libcwd::Channel warp;
 // there is no reason to do this for normal applications.
 // We use a literal libexample::channels here and not LIBCWD_DEBUGCHANNELS!
 #define LibexampleDebug(...) LibcwDebug(libexample::channels, __VA_ARGS__)
-#define LibexampleDout(cntrl, data) LibcwDout(libexample::channels, libcwd::libcw_do, cntrl, data)
-#define LibexampleDoutFatal(cntrl, data) LibcwDoutFatal(libexample::channels, libcwd::libcw_do, cntrl, data)
+#define LibexampleDout(cntrl, ...) LibcwDout(libexample::channels, libcwd::libcw_do, cntrl, __VA_ARGS__)
+#define LibexampleDoutFatal(cntrl, ...) LibcwDoutFatal(libexample::channels, libcwd::libcw_do, cntrl, __VA_ARGS__)
 #define LibexampleForAllDebugChannels(...) LibcwdForAllDebugChannels(libexample::channels, __VA_ARGS__)
 #define LibexampleForAllDebugObjects(...) LibcwdForAllDebugObjects(libexample::channels, __VA_ARGS__)
 
@@ -99,8 +99,8 @@ extern libcwd::Channel warp;
 #else
 
 #define LibexampleDebug(...) do { } while(0)
-#define LibexampleDout(cntrl, data) do { } while(0)
-#define LibexampleDoutFatal(cntrl, data) do { ::std::cerr << data << ::std::endl; ::std::exit(EXIT_FAILURE); } while(1)
+#define LibexampleDout(cntrl, ...) do { } while(0)
+#define LibexampleDoutFatal(cntrl, ...) do { ::std::cerr << __VA_ARGS__ << ::std::endl; ::std::exit(EXIT_FAILURE); } while(1)
 #define LibexampleForAllDebugChannels(...) do { } while(0)
 #define LibexampleForAllDebugObjects(...) do { } while(0)
 

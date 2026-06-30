@@ -23,7 +23,7 @@ namespace {
 constexpr int number_of_threads = 16;
 
 libcwd::DebugObject extra_do;
-#define DoutB(cntrl, data) LibcwDout(libcwd::channels, extra_do, cntrl, data)
+#define DoutB(cntrl, ...) LibcwDout(libcwd::channels, extra_do, cntrl, __VA_ARGS__)
 
 char start_nestingA()
 {
