@@ -48,7 +48,7 @@ void set_state(char const* dc_label, bool is_on)
   std::pair<rcfile_dc_states_type::iterator, bool> res =
       rcfile_dc_states.insert(rcfile_dc_states_type::value_type(std::string(dc_label), is_on));
   if (!res.second)
-    Dout(dc::warning, "Calling set_state() more than once for the same label!");
+    __Dout(dc::warning, "Calling set_state() more than once for the same label!");
   return;
 }
 
@@ -69,7 +69,7 @@ void save_dc_states()
   static bool second_time = false;
   if (second_time)
   {
-    Dout(dc::warning, "Calling save_dc_states() more than once!");
+    __Dout(dc::warning, "Calling save_dc_states() more than once!");
     return;
   }
   second_time = true;
@@ -95,7 +95,7 @@ bool is_on_in_rcfile(char const* dc_label)
   rcfile_dc_states_type::const_iterator iter = rcfile_dc_states.find(std::string(dc_label));
   if (iter == rcfile_dc_states.end())
   {
-    Dout(dc::warning, "is_on_in_rcfile(\"" << dc_label << "\"): \"" << dc_label << "\" is an unknown label!");
+    __Dout(dc::warning, "is_on_in_rcfile(\"" << dc_label << "\"): \"" << dc_label << "\" is an unknown label!");
     return false;
   }
   return iter->second;
@@ -144,7 +144,7 @@ void init_thread(std::string thread_name, thread_init_t thread_init)
   if (thread_init != debug_off)
   {
     // Turn on debug output.
-    Debug(libcw_do.on());
+    __Debug(libcw_do.on());
   }
 
   if (!libcwd::libcw_do.has_mutex())
@@ -154,8 +154,8 @@ void init_thread(std::string thread_name, thread_init_t thread_init)
   if (!thread_name.empty())
   {
     std::string margin = thread_name.substr(0, 15) + std::string(16 - std::min(15UL, thread_name.length()), ' ');
-    Debug(libcw_do.margin().assign(margin));
-    Dout(dc::notice, "Thread started. Set debug margin to \"" << margin << "\".");
+    __Debug(libcw_do.margin().assign(margin));
+    __Dout(dc::notice, "Thread started. Set debug margin to \"" << margin << "\".");
 #ifdef TRACY_ENABLE
     tracy::SetThreadName(thread_name.c_str());
 #else
@@ -169,7 +169,7 @@ void init_thread(std::string thread_name, thread_init_t thread_init)
     convert.pt = pthread_self();
     // Set the thread id in the margin.
     margin << std::hex << std::setw(12) << convert.size << ' ';
-    Debug(libcw_do.margin().assign(margin.str()));
+    __Debug(libcw_do.margin().assign(margin.str()));
     threads_created = true;
   }
   first_thread = false;
@@ -206,9 +206,9 @@ void init()
 
   // This will warn you when you are using header files that do not belong to the
   // shared libcwd object that you linked with.
-  Debug(main_reached());
+  __Debug(main_reached());
 
-  Debug(
+  __Debug(
     libcw_do.on();		// Show which rcfile we are reading!
     ForAllDebugChannels(
       while (debugChannel.is_on())

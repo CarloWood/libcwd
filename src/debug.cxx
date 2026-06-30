@@ -373,8 +373,8 @@ void ST_initialize_globals(LIBCWD_TSD_PARAM)
     // The cast is necessary on platforms where corelim.rlim_max is long long
     // and libstdc++ was not compiled with support for long long.
     if (corelim.rlim_max != 0)
-      Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024)
-                                                             << " kb).  Core dumps might be truncated!");
+      __Dout(dc::warning, "core size is limited (hard limit: " << (unsigned long)(corelim.rlim_max / 1024)
+                                                               << " kb).  Core dumps might be truncated!");
     libcw_do.restore(state);
   }
   if (setrlimit(RLIMIT_CORE, &corelim))
@@ -384,7 +384,7 @@ void ST_initialize_globals(LIBCWD_TSD_PARAM)
   {
     DebugObject::OnOffState state;
     libcw_do.force_on(state);
-    Dout(dc::warning, "Please unlimit core size manually");
+    __Dout(dc::warning, "Please unlimit core size manually");
     libcw_do.restore(state);
   }
 #endif
@@ -1333,7 +1333,7 @@ Channel* find_channel(char const* label)
  * **Example:**
  *
  * ```cpp
- * Dout( list_channels_on(libcw_do) );   // libcw_do is the (default) debug object of libcwd.
+ * Dout(list_channels_on(libcw_do));    // libcw_do is the (default) debug object of libcwd.
  * ```
  *
  * Example of output:
@@ -1358,7 +1358,7 @@ void list_channels_on(DebugObject& debug_object)
   if (LIBCWD_DO_TSD_MEMBER_OFF(debug_object) < 0)
   {
     _private_::DebugChannels::instance().for_each([&](Channel& debugChannel) {
-      LibcwDoutScopeBegin(debug::channels, debug_object, dc::always | noprefix_cf);
+      LibcwDoutScopeBegin(libcwd::channels, debug_object, dc::always | noprefix_cf);
       LibcwDoutStream.write(LIBCWD_DO_TSD_MEMBER(debug_object, margin).c_str(),
                             LIBCWD_DO_TSD_MEMBER(debug_object, margin).size());
       LibcwDoutStream.write(debugChannel.get_label(), WST_max_len);
@@ -1533,14 +1533,14 @@ void assert_fail(char const* expr, char const* file, int line, char const* funct
   {
     if (!__libcwd_tsd.recursive_assert)
     {
-      Debug(libcw_do.get_ostream()->flush());
+      __Debug(libcw_do.get_ostream()->flush());
     }
     FATALDEBUGDEBUG_CERR(file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
     core_dump();
   }
   __libcwd_tsd.recursive_assert = true;
 #endif
-  DoutFatal(dc::core, file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
+  __DoutFatal(dc::core, file << ':' << line << ": " << function << ": Assertion `" << expr << "' failed.\n");
 }
 
 } // namespace _private_
@@ -1550,7 +1550,7 @@ void DebugObject::force_on(DebugObject::OnOffState& state)
   LIBCWD_TSD_DECLARATION;
 #if CWDEBUG_DEBUG
   if (!NS_init(LIBCWD_TSD))
-    DoutFatal(dc::core, "Calling DebugObject::NS_init recursively from DebugObject::force_on");
+    __DoutFatal(dc::core, "Calling DebugObject::NS_init recursively from DebugObject::force_on");
 #else
   [[maybe_unused]] bool success = NS_init(LIBCWD_TSD);
 #endif
@@ -1602,13 +1602,13 @@ void DebugObject::set_ostream(std::ostream* os)
 {
   if (_private_::WST_multi_threaded.load(std::memory_order_relaxed))
 #if CWDEBUG_LOCATION
-    Dout(dc::warning, Location((char*)__builtin_return_address(0) + builtin_return_address_offset)
-                          << ": You should passing a locking mechanism to `set_ostream' for the ostream (see "
-                             "documentation/group__group__destination.html)");
+    __Dout(dc::warning, Location((char*)__builtin_return_address(0) + builtin_return_address_offset) <<
+        ": You should passing a locking mechanism to `set_ostream' for the ostream (see "
+        "documentation/group__group__destination.html)");
 #else
-    DoutFatal(dc::core,
-              "You must pass a locking mechanism to `set_ostream' for the ostream (see "
-              "documentation/group__group__destination.html)");
+    __DoutFatal(dc::core,
+                "You must pass a locking mechanism to `set_ostream' for the ostream (see "
+                "documentation/group__group__destination.html)");
 #endif
 #if CWDEBUG_DEBUG
   LIBCWD_TSD_DECLARATION;

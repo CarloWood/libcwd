@@ -21,8 +21,8 @@ namespace example {
 libcwd::DebugObject my_own_do;
 }
 
-#define MyOwnDout(cntrl, data) LibcwDout(::libcwd::channels, my_own_do, cntrl, data)
-#define ExampleDout(cntrl, data) LibcwDout(::libcwd::channels, example::my_own_do, cntrl, data)
+#define MyOwnDout(cntrl, data) LibcwDout(libcwd::channels, my_own_do, cntrl, data)
+#define ExampleDout(cntrl, data) LibcwDout(libcwd::channels, example::my_own_do, cntrl, data)
 
 namespace {
 

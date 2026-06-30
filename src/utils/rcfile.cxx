@@ -28,15 +28,14 @@ bool RcFile::S_exists(char const* name)
   if (stat(name, &buf) == -1 || !S_ISREG(buf.st_mode))
     return false;
   if (access(name, R_OK) == -1)
-    DoutFatal(dc::fatal | error_cf, "read_rcfile: " << name);
+    __DoutFatal(dc::fatal | error_cf, "read_rcfile: " << name);
   return true;
 }
 
 void RcFile::print_delayed_msg(int env_var, std::string const& value) const
 {
-  Dout(dc::rcfile, "Using environment variable "
-                       << (env_var == 0 ? "LIBCWD_RCFILE_NAME" : "LIBCWD_RCFILE_OVERRIDE_NAME") << " with value \""
-                       << value << "\".");
+  __Dout(dc::rcfile, "Using environment variable " <<
+      (env_var == 0 ? "LIBCWD_RCFILE_NAME" : "LIBCWD_RCFILE_OVERRIDE_NAME") << " with value \"" << value << "\".");
 }
 
 std::string RcFile::determine_rcfile_name()
@@ -91,24 +90,24 @@ std::string RcFile::determine_rcfile_name()
       if (env_set_)
       {
         print_delayed_msg(0, rcname_);
-        DoutFatal(dc::fatal, "read_rcfile: Could not read $LIBCWD_RCFILE_NAME (\""
-                                 << rcname_ << "\") from either \".\" or \"" << homedir << "\".");
+        __DoutFatal(dc::fatal, "read_rcfile: Could not read $LIBCWD_RCFILE_NAME (\"" <<
+            rcname_ << "\") from either \".\" or \"" << homedir << "\".");
       }
       else
       {
         // Fall back to $datadir/libcwd/libcwdrc
         rcfile_name = CW_DATADIR "/libcwd/libcwdrc";
         if (!S_exists(rcfile_name.c_str()))
-          DoutFatal(dc::fatal, "read_rcfile: Could not read rcfile \""
-                                   << rcname_ << "\" from either \".\" or \"" << homedir
-                                   << "\" and could not read default rcfile \"" << rcfile_name << "\" either!");
+          __DoutFatal(dc::fatal, "read_rcfile: Could not read rcfile \"" <<
+              rcname_ << "\" from either \".\" or \"" << homedir <<
+              "\" and could not read default rcfile \"" << rcfile_name << "\" either!");
         else
         {
           bool warning_on = channels::dc::warning.is_on();
           if (!warning_on)
             channels::dc::warning.on();
-          Dout(dc::warning, "Neither ./" << rcname_ << " nor " << homedir << '/' << rcname_ << " exist.");
-          Dout(dc::warning, "Using default rcfile \"" << rcfile_name << "\".");
+          __Dout(dc::warning, "Neither ./" << rcname_ << " nor " << homedir << '/' << rcname_ << " exist.");
+          __Dout(dc::warning, "Using default rcfile \"" << rcfile_name << "\".");
           if (!warning_on)
             channels::dc::warning.off();
         }
@@ -133,13 +132,13 @@ void RcFile::process_channel(Channel& debugChannel, std::string const& mask, act
       if (!elfutils_on_ && (action == on || action == toggle))
       {
         elfutils_on_ = true;
-        Dout(dc::rcfile, "Turned on ELFUTILS");
+        __Dout(dc::rcfile, "Turned on ELFUTILS");
       }
       else if (elfutils_on_ && (action == off || action == toggle))
       {
         elfutils_on_ = false;
         debugChannel.off();
-        Dout(dc::rcfile, "Turned off ELFUTILS");
+        __Dout(dc::rcfile, "Turned off ELFUTILS");
       }
     }
 #endif
@@ -148,20 +147,20 @@ void RcFile::process_channel(Channel& debugChannel, std::string const& mask, act
       do
       {
         debugChannel.on();
-        Dout(dc::rcfile, "Turned on " << label);
+        __Dout(dc::rcfile, "Turned on " << label);
       } while (!debugChannel.is_on());
     }
     else if (debugChannel.is_on() && (action == off || action == toggle))
     {
       debugChannel.off();
-      Dout(dc::rcfile, "Turned off " << label);
+      __Dout(dc::rcfile, "Turned off " << label);
     }
   }
 }
 
 void RcFile::process_channels(std::string list, action_nt const action)
 {
-  Debug(libcw_do.inc_indent(4));
+  __Debug(libcw_do.inc_indent(4));
   while (list.length())
   {
     int pos = list.find_first_not_of(", \t\n\v");
@@ -178,7 +177,7 @@ void RcFile::process_channels(std::string list, action_nt const action)
       break;
     list.erase(0, pos);
   }
-  Debug(libcw_do.dec_indent(4));
+  __Debug(libcw_do.dec_indent(4));
 }
 
 bool RcFile::unknown_keyword(std::string const&, std::string const&)
@@ -188,7 +187,7 @@ bool RcFile::unknown_keyword(std::string const&, std::string const&)
 
 void RcFile::set_all_channels_on()
 {
-  Dout(dc::rcfile, "Turning all channels on by default.");
+  __Dout(dc::rcfile, "Turning all channels on by default.");
   ForAllDebugChannels(std::string label = debugChannel.get_label(); std::string::size_type pos = label.find(' ');
                       if (pos != std::string::npos) label.erase(pos);
                       while (!debugChannel.is_on() && label != "ELFUTILS") debugChannel.on());
@@ -199,7 +198,7 @@ void RcFile::set_all_channels_on()
 
 void RcFile::set_all_channels_off(bool warning_on)
 {
-  Dout(dc::rcfile, "Turning all channels" << (warning_on ? ", except WARNING," : "") << " off by default.");
+  __Dout(dc::rcfile, "Turning all channels" << (warning_on ? ", except WARNING," : "") << " off by default.");
   ForAllDebugChannels(if (debugChannel.is_on()) debugChannel.off());
   if (warning_on)
     channels::dc::warning.on();
@@ -250,12 +249,12 @@ void RcFile::read()
         if (keyword == "silent")
         {
           if (value == "on")
-            Debug(if (dc::rcfile.is_on()) {
+            __Debug(if (dc::rcfile.is_on()) {
               dc::rcfile.off();
               rcfile_on = false;
             });
           else if (value == "off")
-            Debug(if (!dc::rcfile.is_on()) {
+            __Debug(if (!dc::rcfile.is_on()) {
               dc::rcfile.on();
               rcfile_on = true;
             });
@@ -266,7 +265,7 @@ void RcFile::read()
           print_delayed_msg(rcfiles, name);
           env_set_ = false; // Don't print message again.
         }
-        Dout(dc::rcfile, name << ':' << lines_read << ": " << keyword << " = " << value);
+        __Dout(dc::rcfile, name << ':' << lines_read << ": " << keyword << " = " << value);
         if (keyword == "gdb")
           gdb_bin_ = value;
         else if (keyword == "xterm")
@@ -278,7 +277,7 @@ void RcFile::read()
             bool warning_on = channels::dc::warning.is_on();
             if (!warning_on)
               channels::dc::warning.on();
-            Dout(dc::warning, "rcfile: " << name << ':' << lines_read << ": channels_default already set in line "
+            __Dout(dc::warning, "rcfile: " << name << ':' << lines_read << ": channels_default already set in line "
                                          << channels_default_set[rcfiles] << "!  Entry ignored!");
             if (!warning_on)
               channels::dc::warning.off();
@@ -304,8 +303,8 @@ void RcFile::read()
         else if (keyword == "channels_toggle")
         {
           if (!channels_default_set[rcfiles] && !channels_default_set[0])
-            DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read
-                                                 << ": channels_toggle used before channels_default.");
+            __DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read
+                                                   << ": channels_toggle used before channels_default.");
           process_channels(value, toggle);
         }
         else if (keyword == "channels_on")
@@ -338,13 +337,13 @@ void RcFile::read()
         {
           Channel::OnOffState warning_state;
           channels::dc::warning.force_on(warning_state, channels::dc::warning.get_label());
-          Dout(dc::warning, "read_rcfile: " << name << ':' << lines_read << ": Unknown keyword '" << keyword << "'.");
+          __Dout(dc::warning, "read_rcfile: " << name << ':' << lines_read << ": Unknown keyword '" << keyword << "'.");
           channels::dc::warning.restore(warning_state);
         }
       }
     }
     if (syntax_error)
-      DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read << ": syntax error.");
+      __DoutFatal(dc::fatal, "read_rcfile: " << name << ':' << lines_read << ": syntax error.");
     rc.close();
 
     char const* override_name;

@@ -91,7 +91,7 @@ extern "C" ssize_t write(int fd, void const* buf, size_t count);
       ::libcwd::ChannelSetBootstrap __libcwd_channel_set(LIBCWD_DO_TSD(debug_obj), LIBCWD_TSD);                   \
       bool on;                                                                                                    \
       {                                                                                                           \
-        using namespace dc_namespace;                                                                             \
+        using namespace ::dc_namespace;                                                                           \
         on = (__libcwd_channel_set | cntrl).on;                                                                   \
       }                                                                                                           \
       if (on)                                                                                                     \

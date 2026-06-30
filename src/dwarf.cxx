@@ -297,7 +297,7 @@ InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, Dwarf_D
   Dwarf_Die* scopes = nullptr;
   int const nscopes = dwarf_getscopes(cu_die, cu_addr, &scopes);
   if (nscopes < 0)
-    Dout(dc::elfutils, "dwarf_getscopes failed for address 0x" << std::hex << addr << ": " << dwarf_errmsg(-1));
+    __Dout(dc::elfutils, "dwarf_getscopes failed for address 0x" << std::hex << addr << ": " << dwarf_errmsg(-1));
   else
     for (int scope_index = 0; scope_index < nscopes; ++scope_index)
     {
@@ -306,7 +306,7 @@ InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, Dwarf_D
 
       result.found = true;
       result.function_name = function_die_name(&scopes[scope_index]);
-      Dout(dc::elfutils, "inline scope for address 0x"
+      __Dout(dc::elfutils, "inline scope for address 0x"
                              << std::hex << addr << " resolves to "
                              << (result.function_name ? result.function_name : "<unnamed inline function>"));
       break;
@@ -322,7 +322,7 @@ InlineScopeLookupResult lookup_innermost_inline_scope(Dwarf_Die* cu_die, Dwarf_D
     {
       result.found = true;
       result.function_name = name;
-      Dout(dc::elfutils, "inline scope for address 0x" << std::hex << addr << " resolved by fallback walk to " << name);
+      __Dout(dc::elfutils, "inline scope for address 0x" << std::hex << addr << " resolved by fallback walk to " << name);
     }
   }
 
@@ -352,7 +352,7 @@ LocationLookupResult SymbolRange::lookup_location(uintptr_t addr, uintptr_t lbas
   bool have_lineno = false;
   int lineno;
   if (dwarf_lineno(line, &lineno) != 0)
-    Dout(dc::elfutils, "dwarf_lineno failed for address " << addr << ": " << dwarf_errmsg(-1));
+    __Dout(dc::elfutils, "dwarf_lineno failed for address " << addr << ": " << dwarf_errmsg(-1));
   else
   {
     have_lineno = true;
@@ -361,7 +361,7 @@ LocationLookupResult SymbolRange::lookup_location(uintptr_t addr, uintptr_t lbas
 
   if ((result.filepath = dwarf_linesrc(line, nullptr, nullptr)) == nullptr)
   {
-    Dout(dc::elfutils, "dwarf_linesrc failed for address 0x" << std::hex << addr << ": " << dwarf_errmsg(-1));
+    __Dout(dc::elfutils, "dwarf_linesrc failed for address 0x" << std::hex << addr << ": " << dwarf_errmsg(-1));
     return result;
   }
 
@@ -494,7 +494,7 @@ std::string get_debug_info_path(char const* object_file_path)
   Dwfl* dwfl = dwfl_begin(&callbacks);
   if (!dwfl)
   {
-    Dout(dc::warning,
+    __Dout(dc::warning,
          "dwfl_begin failed while looking for debuginfo of \"" << object_file_path << "\": " << dwfl_errmsg(-1));
     return object_file_path;
   }
@@ -508,13 +508,13 @@ std::string get_debug_info_path(char const* object_file_path)
   Dwfl_Module* module = dwfl_report_offline(dwfl, object_file_path, object_file_path, -1);
   if (!module)
   {
-    Dout(dc::warning, "dwfl_report_offline failed for \"" << object_file_path << "\": " << dwfl_errmsg(-1));
+    __Dout(dc::warning, "dwfl_report_offline failed for \"" << object_file_path << "\": " << dwfl_errmsg(-1));
     return object_file_path;
   }
 
   if (dwfl_report_end(dwfl, nullptr, nullptr) != 0)
   {
-    Dout(dc::warning, "dwfl_report_end failed for \"" << object_file_path << "\": " << dwfl_errmsg(-1));
+    __Dout(dc::warning, "dwfl_report_end failed for \"" << object_file_path << "\": " << dwfl_errmsg(-1));
     return object_file_path;
   }
 
@@ -586,8 +586,8 @@ struct ForceLoadingDebugOutput
   {
     if (forced_loading_output)
     {
-      Debug(libcw_do.force_on(do_state));
-      Debug(dc::elfutils.force_on(elfutils_state, "ELFUTILS"));
+      __Debug(libcw_do.force_on(do_state));
+      __Debug(dc::elfutils.force_on(elfutils_state, "ELFUTILS"));
     }
   }
 
@@ -595,8 +595,8 @@ struct ForceLoadingDebugOutput
   {
     if (forced_loading_output)
     {
-      Debug(dc::elfutils.restore(elfutils_state));
-      Debug(libcw_do.restore(do_state));
+      __Debug(dc::elfutils.restore(elfutils_state));
+      __Debug(libcw_do.restore(do_state));
     }
   }
 };
@@ -791,7 +791,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t /*UNUSED*/
   // per-object DWARF state.
   ObjectFile const* object_file = new ObjectFile(lbase, object_filename);
 
-  Dout(dc::elfutils, "Adding PT_LOAD segments for \"" << object_filename << "\" at 0x" << std::hex << lbase
+  __Dout(dc::elfutils, "Adding PT_LOAD segments for \"" << object_filename << "\" at 0x" << std::hex << lbase
                                                       << " pointing to ObjectFile at " << object_file);
 
   // Insert one immutable PTLoadSegment per loadable segment into the end-keyed map.
@@ -819,7 +819,7 @@ int ObjectFileRegistry::cb_dl_iterate_phdr(dl_phdr_info* info, size_t /*UNUSED*/
         ibp.second && (ibp.first == object_files_w->begin() || std::prev(ibp.first)->first <= segment_start) &&
         (std::next(ibp.first) == object_files_w->end() || std::next(ibp.first)->second.start_addr() >= segment_end));
 
-    Dout(dc::elfutils, "    map[" << (void*)segment_end << "] = PTLoadSegment " << ibp.first->second << " ["
+    __Dout(dc::elfutils, "    map[" << (void*)segment_end << "] = PTLoadSegment " << ibp.first->second << " ["
                                   << (void*)segment_start << '-' << (void*)segment_end
                                   << ") flags=" << flags_to_string(phdr.p_flags));
 
@@ -928,12 +928,12 @@ bool ensure_initialization(LIBCWD_TSD_PARAM)
 
 ObjectFileData::ObjectFileData(char const* filename, uintptr_t lbase) : ObjectFileRegistry(filename)
 {
-  Dout(dc::elfutils, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
+  __Dout(dc::elfutils, "new ObjectFile \"" << filename << "\" with load base 0x" << std::hex << lbase);
 }
 
 ObjectFileData::~ObjectFileData()
 {
-  Dout(dc::elfutils, "destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
+  __Dout(dc::elfutils, "destroying ObjectFile \"" << object_file_name_.filepath() << "\".");
   close_dwarf();
 }
 
@@ -952,7 +952,7 @@ ObjectFile const* ObjectFileData::unregister_object_file_ranges(ObjectFile const
       PTLoadSegment const& segment = iter->second;
       if (segment.object_file() == self)
       {
-        Dout(dc::elfutils, "removing map[" << (void*)iter->first << "] = PTLoadSegment " << segment << " for object "
+        __Dout(dc::elfutils, "removing map[" << (void*)iter->first << "] = PTLoadSegment " << segment << " for object "
                                            << this << " (\"" << object_file_name_.filename() << "\")");
         obsolete_object_file = segment.object_file(); // Every segment points to the same ObjectFile.
         iter = object_files_w->erase(iter);
@@ -1015,20 +1015,20 @@ void ObjectFileData::load_function_symbols(uintptr_t lbase)
     Dwarf_Die cu_die_mem;
     Dwarf_Die* cu_die = dwarf_offdie(dwarf_handle_, offset + header_size, &cu_die_mem);
     if (!cu_die)
-      Dout(dc::elfutils, "dwarf_offdie failed for CU at offset " << offset << " in " << object_file_name_.filepath()
+      __Dout(dc::elfutils, "dwarf_offdie failed for CU at offset " << offset << " in " << object_file_name_.filepath()
                                                                  << ": " << dwarf_errmsg(-1));
     else if (dwarf_getfuncs(cu_die, &ObjectFileData::cb_load_function_symbol, &context, 0) < 0)
-      Dout(dc::elfutils, "dwarf_getfuncs failed for CU at offset " << offset << " in " << object_file_name_.filepath()
+      __Dout(dc::elfutils, "dwarf_getfuncs failed for CU at offset " << offset << " in " << object_file_name_.filepath()
                                                                    << ": " << dwarf_errmsg(-1));
 
     offset = next_offset;
   }
 
   if (nextcu_status < 0)
-    Dout(dc::elfutils,
+    __Dout(dc::elfutils,
          "dwarf_nextcu failed while loading symbols from " << object_file_name_.filepath() << ": " << dwarf_errmsg(-1));
 
-  Dout(dc::elfutils,
+  __Dout(dc::elfutils,
        "Loaded " << context.symbol_count_ << " function symbol range(s) from " << object_file_name_.filepath());
 }
 
@@ -1065,7 +1065,7 @@ void ObjectFileData::add_function_symbol(Dwarf_Die* func_die, uintptr_t lbase)
   {
     if (range_offset == -1)
     {
-      Dout(dc::elfutils, "dwarf_ranges failed for function " << name << " in " << object_file_name_.filepath() << ": "
+      __Dout(dc::elfutils, "dwarf_ranges failed for function " << name << " in " << object_file_name_.filepath() << ": "
                                                              << dwarf_errmsg(-1));
       break;
     }
@@ -1109,21 +1109,21 @@ void ObjectFileData::load_elf_function_symbols(uintptr_t lbase, std::string cons
 
   if (elf_version(EV_CURRENT) == EV_NONE)
   {
-    Dout(dc::elfutils, "elf_version failed while loading symbols from " << object_file_path << ": " << elf_errmsg(-1));
+    __Dout(dc::elfutils, "elf_version failed while loading symbols from " << object_file_path << ": " << elf_errmsg(-1));
     return;
   }
 
   int fd = open(object_file_path.c_str(), O_RDONLY);
   if (fd == -1)
   {
-    Dout(dc::elfutils, "failed to open ELF file " << object_file_path << " while loading fallback symbols");
+    __Dout(dc::elfutils, "failed to open ELF file " << object_file_path << " while loading fallback symbols");
     return;
   }
 
   Elf* elf = elf_begin(fd, ELF_C_READ, nullptr);
   if (!elf)
   {
-    Dout(dc::elfutils, "elf_begin failed for " << object_file_path << ": " << elf_errmsg(-1));
+    __Dout(dc::elfutils, "elf_begin failed for " << object_file_path << ": " << elf_errmsg(-1));
     close(fd);
     return;
   }
@@ -1162,7 +1162,7 @@ void ObjectFileData::load_elf_function_symbols(uintptr_t lbase, std::string cons
   elf_end(elf);
   close(fd);
 
-  Dout(dc::elfutils, "Loaded " << symbol_count << " ELF function symbol range(s) from " << object_file_path);
+  __Dout(dc::elfutils, "Loaded " << symbol_count << " ELF function symbol range(s) from " << object_file_path);
 }
 
 // ObjectFileData::add_elf_function_symbol
@@ -1224,30 +1224,30 @@ void ObjectFileData::open_dwarf(uintptr_t lbase, std::string const& debug_info_p
   LIBCWD_ASSERT(!dwarf_symbols_loaded());
 
   bool different_symbols_path = debug_info_path != object_file_name_.filepath();
-  Dout(dc::elfutils | continued_cf,
+  __Dout(dc::elfutils | continued_cf,
        "Loading debug info " << (different_symbols_path ? "for " : "from ") << object_file_name_.filepath());
   if (different_symbols_path)
-    Dout(dc::continued, " (from " << debug_info_path << ")");
-  Dout(dc::continued | flush_cf, " (" << (void*)lbase << ")... ");
+    __Dout(dc::continued, " (from " << debug_info_path << ")");
+  __Dout(dc::continued | flush_cf, " (" << (void*)lbase << ")... ");
 
   dwarf_fd_ = open(debug_info_path.c_str(), O_RDONLY);
 
   if (dwarf_fd_ == -1)
   {
-    Dout(dc::finish | error_cf, "failed to open");
+    __Dout(dc::finish | error_cf, "failed to open");
     return;
   }
 
   dwarf_handle_ = dwarf_begin(dwarf_fd_, DWARF_C_READ);
   if (!dwarf_handle_)
   {
-    Dout(dc::finish, "failed to obtain DWARF handle: " << dwarf_errmsg(-1));
+    __Dout(dc::finish, "failed to obtain DWARF handle: " << dwarf_errmsg(-1));
     close(dwarf_fd_);
     dwarf_fd_ = -1;
     return;
   }
 
-  Dout(dc::finish, "done");
+  __Dout(dc::finish, "done");
 }
 
 void ObjectFileData::close_dwarf()
@@ -1334,7 +1334,7 @@ void* dlopen(char const* name, int flags)
   void* handle = real_dlopen.func(name, flags);
   if (statically_linked)
   {
-    Dout(dc::warning,
+    __Dout(dc::warning,
          "Calling dlopen(3) from statically linked application; this is not going to work if the loaded module uses "
          "libcwd too or when it allocates any memory!");
     return handle;

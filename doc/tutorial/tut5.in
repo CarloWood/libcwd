@@ -131,10 +131,10 @@ namespace example {
 // The following is only necessary for libraries.
 // Libraries should not use Dout() et al. in their own header files,
 // instead we define our own macros here for use in those header files:
-#define MyLibHeaderDout(cntrl, data) \
-      LibcwDout(::example::debug::channels, ::libcwd::libcw_do, cntrl, data)
-#define MyLibHeaderDoutFatal(cntrl, data) \
-      LibcwDoutFatal(::example::debug::channels, ::libcwd::libcw_do, cntrl, data)
+#define MyLibHeaderDout(cntrl, ...) \
+      LibcwDout(example::debug::channels, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
+#define MyLibHeaderDoutFatal(cntrl, ...) \
+      LibcwDoutFatal(example::debug::channels, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 #else // !CWDEBUG
 

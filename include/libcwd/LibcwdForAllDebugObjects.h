@@ -68,7 +68,7 @@ static_assert(std::is_trivial_v<DebugObjects>, "DebugObjects must be trivial to 
   {                                                                                                  \
     ::libcwd::_private_::DebugObjects::instance().for_each([&](::libcwd::DebugObject& debugObject) { \
       using namespace ::libcwd;                                                                      \
-      using namespace dc_namespace;                                                                  \
+      using namespace ::dc_namespace;                                                                \
       {                                                                                              \
         __VA_ARGS__;                                                                                 \
       }                                                                                              \

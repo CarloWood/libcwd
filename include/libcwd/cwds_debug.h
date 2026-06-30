@@ -31,6 +31,8 @@
  * Define this macro before <libcwd/debug.h> is included; it must be the name of the namespace containing
  * the `dc` (Debug Channels) namespace. If not defined it defaults to `channels`.
  *
+ * Note: you probably will never need this.
+ *
  * @sa debug::channels::dc
  */
 #define NAMESPACE_CHANNELS channels
@@ -57,6 +59,8 @@
  *
  * Define this macro before <libcwd/debug.h> is included; it must be the name of the namespace containing
  * the `dc` (Debug Channels) namespace. If not defined it defaults to `NAMESPACE_DEBUG::NAMESPACE_CHANNELS`.
+ *
+ * Note: you probably will never need this (define NAMESPACE_DEBUG instead).
  *
  * @sa debug::channels::dc
  */

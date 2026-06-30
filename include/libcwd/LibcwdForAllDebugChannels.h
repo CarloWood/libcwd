@@ -82,7 +82,7 @@ static_assert(std::is_trivial_v<DebugChannels>, "DebugChannels must be trivial t
   {                                                                                                \
     ::libcwd::_private_::DebugChannels::instance().for_each([&](::libcwd::Channel& debugChannel) { \
       using namespace ::libcwd;                                                                    \
-      using namespace dc_namespace;                                                                \
+      using namespace ::dc_namespace;                                                              \
       {                                                                                            \
         __VA_ARGS__;                                                                               \
       }                                                                                            \
