@@ -21,7 +21,7 @@ extern libcwd::Channel warp;
 
 // Define private debug output macros for use in header files of the library,
 // there is no reason to do this for normal applications.
-// We use a literal libexample::channels here and not LIBCWD_DEBUGCHANNELS!
+// We use a literal libexample::channels here and not LIBCWD_DEBUG_CHANNELS!
 #define LibexampleDebug(...) LibcwDebug(libexample::channels, __VA_ARGS__)
 #define LibexampleDout(cntrl, ...) LibcwDout(libexample::channels, libcwd::libcw_do, cntrl, __VA_ARGS__)
 #define LibexampleDoutFatal(cntrl, ...) LibcwDoutFatal(libexample::channels, libcwd::libcw_do, cntrl, __VA_ARGS__)

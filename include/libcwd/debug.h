@@ -46,7 +46,7 @@
  * The parameter of this macro can be arbitrary code that will be eliminated
  * from the application when the macro CWDEBUG is *not* defined.
  *
- * It uses the namespaces @ref DEBUGCHANNELS and libcwd, making it unnecessary to
+ * It uses the namespaces @ref LIBCWD_DEBUG_CHANNELS and `libcwd`, making it unnecessary to
  * use the the full scopes for debug channels and utility functions provided by
  * libcwd.
  *
@@ -63,7 +63,7 @@
  * Debug(libcw_do.get_ostream()->flush());          // Flush the current debug output stream.
  * ```
  */
-#define Debug(/*STATEMENTS*/...) LibcwDebug(LIBCWD_DEBUGCHANNELS, __VA_ARGS__)
+#define Debug(/*STATEMENTS*/...) LibcwDebug(LIBCWD_DEBUG_CHANNELS, __VA_ARGS__)
 
 /** @def Dout
  *
@@ -91,7 +91,7 @@
  * Dout(dc::notice|blank_label_cf, "The content of the object is: " << std::hex << obj);
  * ```
  */
-#define Dout(cntrl, ...) LibcwDout(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
+#define Dout(cntrl, ...) LibcwDout(LIBCWD_DEBUG_CHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 /**
  * Debugging macro.
@@ -101,7 +101,7 @@
  */
 #define DoutEntering(cntrl, ...)                                                \
   int __cwds_debug_indentation = 2;                                             \
-  LibcwDoutScopeBegin(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl)          \
+  LibcwDoutScopeBegin(LIBCWD_DEBUG_CHANNELS, ::libcwd::libcw_do, cntrl)          \
   LibcwDoutStream << "Entering " << __VA_ARGS__;                                \
   LibcwDoutScopeEnd;                                                            \
   ::libcwd::Indent __cwds_debug_indent(__cwds_debug_indentation);
@@ -113,7 +113,7 @@
  * @brief Macro for writing fatal %debug output to the default %debug object
  * @link libcwd::libcw_do libcw_do @endlink.
  */
-#define DoutFatal(cntrl, ...) LibcwDoutFatal(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
+#define DoutFatal(cntrl, ...) LibcwDoutFatal(LIBCWD_DEBUG_CHANNELS, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 /**
  * @def ForAllDebugChannels
@@ -138,7 +138,7 @@
  *
  * which turns all channels off.
  */
-#define ForAllDebugChannels(/*STATEMENT*/...) LibcwdForAllDebugChannels(LIBCWD_DEBUGCHANNELS, __VA_ARGS__)
+#define ForAllDebugChannels(/*STATEMENT*/...) LibcwdForAllDebugChannels(LIBCWD_DEBUG_CHANNELS, __VA_ARGS__)
 
 /**
  * @def ForAllDebugObjects
@@ -156,7 +156,7 @@
  *
  * would set the output stream of all %debug objects to `std::cerr`.
  */
-#define ForAllDebugObjects(/*STATEMENT*/...) LibcwdForAllDebugObjects(LIBCWD_DEBUGCHANNELS, __VA_ARGS__)
+#define ForAllDebugObjects(/*STATEMENT*/...) LibcwdForAllDebugObjects(LIBCWD_DEBUG_CHANNELS, __VA_ARGS__)
 
 namespace libcwd {
 
@@ -246,7 +246,7 @@ NAMESPACE_DEBUG_START
 using namespace libcwd::init_functions;
 NAMESPACE_DEBUG_END
 
-// Build the LIBCWD_DEBUGCHANNELS::dc facade.
+// Build the LIBCWD_DEBUG_CHANNELS::dc facade.
 // Users should insert their debug channels in here.
 NAMESPACE_DEBUG_CHANNELS_START
 using namespace libcwd::channels::dc;

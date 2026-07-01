@@ -10,7 +10,7 @@ int main()
   Debug(NAMESPACE_DEBUG::init());
 
 #ifdef CWDEBUG
-  if (!LIBCWD_DEBUGCHANNELS::dc::custom.is_on())
+  if (!LIBCWD_DEBUG_CHANNELS::dc::custom.is_on())
     std::cout << "Turn dc::custom on in your ~/.libcwdrc file by adding \"channels_on=custom\"." << std::endl;
 #else
   std::cerr << "This program was compiled without libcwd. Was it detected during configuration? Did you forget to *install* libcwd before running configure on this project?" << std::endl;

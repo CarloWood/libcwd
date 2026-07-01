@@ -17,7 +17,7 @@
 //   Namespace macros (user-definable, with libcwd-provided defaults once moved):
 //     - NAMESPACE_DEBUG, NAMESPACE_DEBUG_START, NAMESPACE_DEBUG_END,
 //       NAMESPACE_CHANNELS
-//     - DEBUGCHANNELS is *not* set here; libcwd must derive it from
+//     - LIBCWD_DEBUG_CHANNELS is *not* set here; libcwd must derive it from
 //       NAMESPACE_DEBUG::NAMESPACE_CHANNELS (as cwds/debug.h does today).
 //
 //   Provided macros / symbols (libcwd must supply after the move):
@@ -29,8 +29,6 @@
 //     - DoutEntering(cntrl, ...)
 //     - NAMESPACE_DEBUG::Indent (RAII indentation)
 //     - NAMESPACE_DEBUG::Mark   (RAII marker; char and char const* ctors, end())
-
-//#include "cwd_sys.h"
 
 // Exercise the custom-debug-namespace path that libraries and applications use.
 // After the migration libcwd will default NAMESPACE_DEBUG to `debug` when this

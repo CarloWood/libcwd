@@ -10,14 +10,14 @@
 
 //--->>>---start verbatim copy of doc/group__the-custom-debug-h-file.html---
 // This is some .cpp file of your library.
-#define DEBUGCHANNELS libexample::channels
+#define LIBCWD_DEBUG_CHANNELS libexample::channels
 #include "debug.h"
 // ...
 #ifdef CWDEBUG
-namespace DEBUGCHANNELS::dc {
+namespace LIBCWD_DEBUG_CHANNELS::dc {
 libcwd::Channel warp("WARP");
 // Add new channels here...
-} // namespace DEBUGCHANNELS::dc
+} // namespace LIBCWD_DEBUG_CHANNELS::dc
 #endif
 //---<<<---end verbatim copy of doc/group__the-custom-debug-h-file.html---
 
@@ -27,13 +27,13 @@ libcwd::Channel warp("WARP");
 // Library implementation that writes through the warp channel.
 //
 // In the CWDEBUG build both LibexampleDout and Dout are available here because
-// the internal debug.h included <libcwd/debug.h>, which sets DEBUGCHANNELS to
-// libexample::channels.  The documentation's "Header files of libraries"
+// the internal debug.h included <libcwd/debug.h>, which sets LIBCWD_DEBUG_CHANNELS
+// to libexample::channels.  The documentation's "Header files of libraries"
 // subsection says source files may use Dout after including "debug.h".
 bool libexample::warp_engine_engage()
 {
   LibexampleDout(dc::warp, "Engaging warp engine via LibexampleDout.");
-  Dout(dc::notice, "Warp engine engage called."); // Uses DEBUGCHANNELS = libexample::channels.
+  Dout(dc::notice, "Warp engine engage called."); // Uses LIBCWD_DEBUG_CHANNELS = libexample::channels.
 
   ForAllDebugChannels(
     Dout(dc::notice, debugChannel.get_label() << " is " << (debugChannel.is_on() ? "ON" : "OFF"));

@@ -13,7 +13,6 @@
   } while (1)
 #define LibcwdForAllDebugChannels(dc_namespace, /*STATEMENT*/...)
 #define LibcwdForAllDebugObjects(dc_namespace, /*STATEMENT*/...)
-#define NEW(x) new x
 #define CWDEBUG_LOCATION 0
 #define CWDEBUG_DEBUG 0
 #define CWDEBUG_DEBUGOUTPUT 0

@@ -16,68 +16,74 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 
 #ifndef CWDEBUG
 
+#include <iostream>
+#include <cstdlib>
+
 #define Debug(...)
-#define Dout(a, ...)
-#define DoutFatal(a, ...) LibcwDoutFatal(::std, , a, __VA_ARGS__)
+#define Dout(cntrl, ...)
+#define DoutFatal(cntrl, ...) LibcwDoutFatal(, , cntrl, __VA_ARGS__)
 #define ForAllDebugChannels(...)
 #define ForAllDebugObjects(...)
 #define LibcwDebug(dc_namespace, ...)
-#define LibcwDout(a, b, c, ...)
-#define LibcwDoutFatal(a, b, c, ...) do { ::std::cerr &lt;&lt; __VA_ARGS__ &lt;&lt; ::std::endl; ::std::exit(254); } while(1)
-#define NEW(x) new x
+#define LibcwDout(dc_namespace, d, cntrl, ...)
+#define LibcwDoutFatal(dc_namespace, d, cntrl, ...) \
+  do                                                \
+  {                                                 \
+    ::std::cerr << __VA_ARGS__ << ::std::endl;      \
+    ::std::exit(EXIT_FAILURE);                      \
+  } while (1)
+#define LibcwdForAllDebugChannels(dc_namespace, ...)
+#define LibcwdForAllDebugObjects(dc_namespace, ...)
+#define CWDEBUG_LOCATION 0
+#define CWDEBUG_DEBUG 0
+#define CWDEBUG_DEBUGOUTPUT 0
+#define CWDEBUG_DEBUGT 0
 
 #else // CWDEBUG
 
-#ifndef DEBUGCHANNELS
-// This must be defined before &lt;libcwd/debug.h&gt; is included and must be the
-// name of the namespace containing your `dc' namespace (see below).
+// This must be defined before &lt;libcwd/debug.h&gt; is included and must
+// be the name of the namespace containing your `dc' namespace (see below).
 // You can use any namespace(s) you like, except existing namespaces
-// (like ::, ::std and ::libcwd).
-#define DEBUGCHANNELS myproject::debug::channels
-#endif
+// (like std or libcwd). It may not start with two colons because it is used
+// for both `namespace LIBCWD_DEBUG_CHANNELS {` as well as
+// `using namespace ::LIBCWD_DEBUG_CHANNELS`: the first namespace is implied
+// to be a global namespace already.
+#define LIBCWD_DEBUG_CHANNELS myproject::debug::channels
 #include &lt;libcwd/debug.h&gt;
 
-namespace myproject {
-  namespace debug {
-    namespace channels {
-      namespace dc {
-        using namespace ::libcwd::channels::dc;
+NAMESPACE_DEBUG_CHANNELS_START
 
-        // Add the declaration of new debug channels here
-        // and their definition in a custom debug.cc file.
-        extern ::libcwd::Channel custom;
+// Add the declaration of new debug channels here
+// and their definition in a custom debug.cpp file.
+extern Channel custom;
 
-      } // namespace dc
-    } // namespace DEBUGCHANNELS
-  }
-}
+NAMESPACE_DEBUG_CHANNELS_END
 
 #endif // CWDEBUG
 #endif // DEBUG_H
 </PRE>
 <P>Finally write the program:</P>
-<P class="download">[<A HREF="channel.cc">download</A>]</P>
+<P class="download">[<A HREF="channel.cpp">download</A>]</P>
 <PRE>
 #include "debug.h"
 
-// Actual definition of `ghost'
-namespace debug_channels {      // Actually, you will need a series of
-                                // "namespace xyz {" here, to match whatever
-                                // DEBUGCHANNELS is.
-  namespace dc {
-    libcwd::Channel <SPAN class="highlight">ghost</SPAN>("GHOST");
-  }
-}
+NAMESPACE_DEBUG_CHANNELS_START          // In this case this is example::channels
+Channel <SPAN class="highlight">ghost</SPAN>("GHOST");                 // Create our own Debug Channel.
+NAMESPACE_DEBUG_CHANNELS_END
 
 int main()
 {
-  Debug(main_reached());
-  Debug(dc::ghost.on());                        // Remember: don't forget to turn
-  Debug(libcw_do.on());                         //   the debug Channel and Object on!
+  Debug(NAMESPACE_DEBUG::init());       // Mandatory call to notify the library that
+                                        // main() was reached, check that the correct
+                                        // headers are being used and to read the rcfile.
+
+  // Lets not forget to turn the debug Channel and Object on!
+  Debug(if (!dc::ghost.is_on()) dc::ghost.on()); // Might already be on due to rcfile.
+  Debug(libcw_do.on());
 
   for (int i = 0; i &lt; 4; ++i)
-    Dout(<SPAN class="highlight">dc::ghost</SPAN>, "i = " &lt;&lt; i);  // We can write more than just
-                                                                        // "Hello World" to the ostream :)
+    Dout(<SPAN class="highlight">dc::ghost</SPAN>, "i = " &lt;&lt; i);       // We can write more than just
+                                        // "Hello World" to the ostream :)
 }
 </PRE>
 

@@ -49,14 +49,14 @@ The following code would define a debug channel `warp` in the namespace `libexam
 
 ```cpp
 // This is some .cpp file of your library.
-#define DEBUGCHANNELS libexample::channels
+#define LIBCWD_DEBUG_CHANNELS libexample::channels
 #include "debug.h"
 // ...
 #ifdef CWDEBUG
-namespace DEBUGCHANNELS::dc {
+namespace LIBCWD_DEBUG_CHANNELS::dc {
 libcwd::Channel warp("WARP");
 // Add new channels here...
-} // namespace DEBUGCHANNELS::dc
+} // namespace LIBCWD_DEBUG_CHANNELS::dc
 #endif
 ```
 
@@ -82,7 +82,7 @@ extern libcwd::Channel warp;
 
 // Define private debug output macros for use in header files of the library,
 // there is no reason to do this for normal applications.
-// We use a literal libexample::channels here and not LIBCWD_DEBUGCHANNELS!
+// We use a literal libexample::channels here and not LIBCWD_DEBUG_CHANNELS!
 #define LibexampleDebug(...) LibcwDebug(libexample::channels, __VA_ARGS__)
 #define LibexampleDout(cntrl, ...) LibcwDout(libexample::channels, libcwd::libcw_do, cntrl, __VA_ARGS__)
 #define LibexampleDoutFatal(cntrl, ...) LibcwDoutFatal(libexample::channels, libcwd::libcw_do, cntrl, __VA_ARGS__)
@@ -126,7 +126,7 @@ the .cpp files (that `#include "%debug.h"`) of your library itself, then looks l
 &nbsp;
 \#define LIBEXAMPLE_INTERNAL   // See above.
 \#include &lt;libexample/debug.h&gt; // The %debug.h shown above.
-\#define DEBUGCHANNELS libexample::channels
+\#define LIBCWD_DEBUG_CHANNELS libexample::channels
 \#ifdef CWDEBUG
 \#include &lt;libcwd/debug.h&gt;
 \#endif
@@ -158,27 +158,27 @@ Then you can rename these channels as follows.
 Make a debug header file that contains:
 
 ```cpp
-#define DEBUGCHANNELS application::channels
+#define LIBCWD_DEBUG_CHANNELS application::channels
 #include <lib1/debug.h>
 #include <lib2/debug.h>
-namespace DEBUGCHANNELS::dc {
+namespace LIBCWD_DEBUG_CHANNELS::dc {
 using namespace lib1::channels::dc;
 using namespace lib2::channels::dc;
 static libcwd::Channel& foobar1(lib1::channels::dc::foobar);
 static libcwd::Channel& foobar2(lib2::channels::dc::foobar);
-} // namespace DEBUGCHANNELS::dc
+} // namespace LIBCWD_DEBUG_CHANNELS::dc
 ```
 
 \htmlonly
 <DIV class="normal">
 \endhtmlonly
 The hiding mechanism of the above "cascading" of debug channel declarations of libraries works as follows.
-The debug macros use a using-directive to include the scope `LIBCWD_DEBUGCHANNELS`, which is set to `DEBUGCHANNELS`
-if you defined that and to `libcwd::channels` otherwise.
+The debug macros use a using-directive to include the scope `LIBCWD_DEBUG_CHANNELS`, which is
+what you defined that or to `libcwd::channels` otherwise.
 All debug channels are specified as `dc::channelname` in the source code and the `namespace dc` will
 be uniquely defined.
 For instance, in the case of the above example, when writing `dc::%notice` the `dc` will be unambiguously
-resolved to `application::debug::channels::dc`, because it is the only `dc` namespace in `LIBCWD_DEBUGCHANNELS`
+resolved to `application::debug::channels::dc`, because it is the only `dc` namespace in `LIBCWD_DEBUG_CHANNELS`
 (`application::debug::channels`).
 The C++ standard states: "During the lookup of a name qualified by a namespace name, declarations that would otherwise be made
 visible by a using-directive can be hidden by declarations with the same name in the namespace containing the using-directive;".

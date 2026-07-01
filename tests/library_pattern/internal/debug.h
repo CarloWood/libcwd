@@ -40,7 +40,7 @@
 
 #define LIBEXAMPLE_INTERNAL   // See above.
 #include <libexample/debug.h> // The debug.h shown above.
-#define DEBUGCHANNELS libexample::channels
+#define LIBCWD_DEBUG_CHANNELS libexample::channels
 #ifdef CWDEBUG
 #include <libcwd/debug.h>
 #endif

@@ -11,6 +11,8 @@ libcwd-2.0
         - The header libcwd/cwprint.h has been removed.
         - Several classes have been renamed: channel_ct -> Channel and location_ct -> Location
           being the most important ones.
+        - Instead of DEBUGCHANNELS, one has to define LIBCWD_DEBUG_CHANNELS.
+        - LIBCWD_DEBUGCHANNELS has been renamed to LIBCWD_DEBUG_CHANNELS.
         - No longer defines LIBCWD_THREAD_SAFE (in fact, this can be used to detect that
           you're using version 2 - of course, the library is fully thread-safe still).
         - No longer demangle to f(void). Instead demangle to f().

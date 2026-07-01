@@ -6,20 +6,24 @@
 // This block should really be part of custom header files!  Please ignore it
 // and read doc/group__preparation.html#header_files instead.
 // "debug.h"
-#define DEBUGCHANNELS example           // Where we'll put our namespace dc.
-namespace DEBUGCHANNELS { }
+#define LIBCWD_DEBUG_CHANNELS example   // Where we'll put our namespace dc.
+                                        // Note this may NOT start with ::.
 #include <libcwd/debug.h>
 //-------------------------------------------------------------------------------
 
-namespace DEBUGCHANNELS::dc {           // Note that `dc` cannot be put in ::.
-libcwd::Channel ghost("GHOST");         // Create our own Debug Channel.
-} // namespace DEBUGCHANNELS::dc
+NAMESPACE_DEBUG_CHANNELS_START          // In this case this is example::channels
+Channel ghost("GHOST");                 // Create our own Debug Channel.
+NAMESPACE_DEBUG_CHANNELS_END
 
 int main()
 {
-  Debug(main_reached());                // Mandatory call to notify the library that main() was reached.
-  Debug(dc::ghost.on());                // Remember: don't forget to turn
-  Debug(libcw_do.on());                 // the debug Channel and Object on!
+  Debug(NAMESPACE_DEBUG::init());       // Mandatory call to notify the library that
+                                        // main() was reached, check that the correct
+                                        // headers are being used and to read the rcfile.
+
+  // Lets not forget to turn the debug Channel and Object on!
+  Debug(if (!dc::ghost.is_on()) dc::ghost.on()); // Might already be on due to rcfile.
+  Debug(libcw_do.on());
 
   for (int i = 0; i < 4; ++i)
     Dout(dc::ghost, "i = " << i);       // We can write more than just

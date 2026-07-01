@@ -56,7 +56,7 @@ The expression <SPAN class="code">Debug(STATEMENT);</SPAN> is equivalent with:</
 #ifdef CWDEBUG
   do {
     using namespace ::libcwd;
-    using namespace ::LIBCWD_DEBUGCHANNELS;     // DEBUGCHANNELS if defined, otherwise NAMESPACE_DEBUG::NAMESPACE_CHANNELS.
+    using namespace ::LIBCWD_DEBUG_CHANNELS; // LIBCWD_DEBUG_CHANNELS as defined, by default NAMESPACE_DEBUG::NAMESPACE_CHANNELS.
     { STATEMENT; }
   } while(0);
 #endif
@@ -65,7 +65,7 @@ The expression <SPAN class="code">Debug(STATEMENT);</SPAN> is equivalent with:</
 <P>Please note that definitions within a <SPAN class="code">Debug()</SPAN> statement will be
 restricted to their own scope.&nbsp;
 Please read the <A HREF="../reference-manual/group__chapter__custom__debug__h.html">Reference Manual</A> for an
-explanation of <SPAN class="code">DEBUGCHANNELS</SPAN>.</P>
+explanation of <SPAN class="code">LIBCWD_DEBUG_CHANNELS</SPAN>.</P>
 
 <A name="DebugChannels"></A>
 <H3>7. Which Debug Channels exist?&nbsp; Can I make my own?</H3>
@@ -81,7 +81,7 @@ header file.&nbsp; The following template is a good start for such a <SPAN class
 #ifndef MY_DEBUG_H
 #define MY_DEBUG_H
 
-#define DEBUGCHANNELS myapplication::debug::channels
+#define LIBCWD_DEBUG_CHANNELS myapplication::debug::channels
 #include &lt;libcwd/debug.h&gt;
 
 namespace myapplication {
@@ -150,8 +150,8 @@ It isn't hard at all to define your own macros though; for example add something
 <PRE class="code">
 #ifdef CWDEBUG
 extern libcwd::DebugObject <SPAN class="highlight">my_debug_object</SPAN>;
-#define <SPAN class="highlight">MyDout</SPAN>(cntrl, ...) LibcwDout(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, __VA_ARGS__)
-#define <SPAN class="highlight">MyDoutFatal</SPAN>(cntrl, ...) LibcwDoutFatal(DEBUGCHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, __VA_ARGS__)
+#define <SPAN class="highlight">MyDout</SPAN>(cntrl, ...) LibcwDout(LIBCWD_DEBUG_CHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, __VA_ARGS__)
+#define <SPAN class="highlight">MyDoutFatal</SPAN>(cntrl, ...) LibcwDoutFatal(LIBCWD_DEBUG_CHANNELS, <SPAN class="highlight">my_debug_object</SPAN>, cntrl, __VA_ARGS__)
 #else // !CWDEBUG
 #define <SPAN class="highlight">MyDout</SPAN>(a, ...)
 #define <SPAN class="highlight">MyDoutFatal</SPAN>(a, ...) LibcwDoutFatal(::std, /*nothing*/, a, __VA_ARGS__)
