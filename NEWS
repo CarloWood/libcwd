@@ -11,16 +11,31 @@ libcwd-2.0
         - The header libcwd/cwprint.h has been removed.
         - Several classes have been renamed: channel_ct -> Channel and location_ct -> Location
           being the most important ones.
-        - Instead of DEBUGCHANNELS, one has to define LIBCWD_DEBUG_CHANNELS.
+        - DoutFatal(dc::fatal, ...) now returns with exit code 180 instead of 254.
+        - Instead of DEBUGCHANNELS, one has to define (and use) LIBCWD_DEBUG_CHANNELS.
         - LIBCWD_DEBUGCHANNELS has been renamed to LIBCWD_DEBUG_CHANNELS.
         - No longer defines LIBCWD_THREAD_SAFE (in fact, this can be used to detect that
           you're using version 2 - of course, the library is fully thread-safe still).
+        - LIBCWD_COMMA_TSD was removed (if you use it, replace it with `, LIBCWD_TSD`).
+        - Replace NAMESPACE_DEBUG::Indent (or debug::Indent) with libcwd::Indent.
+        - Replace NAMESPACE_DEBUG::Mark (or debug::Mark) with libcwd::Mark.
+        - dc::malloc no longer exist (remove any debug output that uses it).
+        - The macros CWDEBUG_ALLOC, CWDEBUG_MAGIC, CWDEBUG_LIBBFD, CWDEBUG_DEBUGM and
+          CWDEBUG_MARKER are no longer defined. Assume they are 0 (and remove the code
+          they #if..#endif).
+        - The macros AllocTag1, AllocTag2, AllocTag_dynamic_description, AllocTag and NEW
+          are no longer defined. Replace NEW(..) -> new .. and delete the rest.
+        - NAMESPACE_DEBUG::threads_created still exist but you need to
+          #include <libcwd/threads_created.h> to use it.
         - No longer demangle to f(void). Instead demangle to f().
         - No longer using cwm4 as build dependency. Now using cmake-aicxx.
         - Now has a CTest-backed testsuite.
         - Debug(main_reached()) must now be called at the top of main. It also does
           what check_configuration() did, which therefore no longer exists.
           dc::bfd was renamed to dc::elfutils.
+        - If you are also using the git submodule `cwds` (and you should) then you
+          must add `#define LIBCWD_VERSION_2` at the top of your "sys.h" file, before
+          including cwds/sys.h.
 
 libcwd-1.1.3
 
