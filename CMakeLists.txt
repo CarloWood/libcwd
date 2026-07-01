@@ -139,7 +139,7 @@ endif ()
 # Needed for subst-config.h.in, then used in subdirectory utils.
 set(libcwd_datadir "${CMAKE_INSTALL_FULL_DATADIR}")
 
-configure_file("cmake-config.h.in" "config.h")
+configure_file("include/cmake-config.h.in" "include/config.h")
 configure_file("include/libcwd/config.h.in" "include/libcwd/config.h" @ONLY)
 configure_file("include/cwd_sys.h.in" "include/cwd_sys.h" @ONLY)
 

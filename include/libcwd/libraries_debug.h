@@ -89,13 +89,6 @@ extern bool test_main_reached();
 
 #include "macro_Libcwd_macros.h"
 
-// For use in (libcwd) library header files: do not redefine these!
-// Developers of libraries are recommended to define their own macro names,
-// see "Libraries" on group__chapter__custom__debug__h.html
-#define __Debug(/*STATEMENTS*/...) LibcwDebug(libcwd::channels, __VA_ARGS__)
-#define __Dout(cntrl, ...) LibcwDout(libcwd::channels, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
-#define __DoutFatal(cntrl, ...) LibcwDoutFatal(libcwd::channels, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
-
 //===================================================================================================
 // Miscellaneous
 //

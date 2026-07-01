@@ -1,5 +1,7 @@
+#include "cwd_sys.h"
 #include <libcwd/init_functions.h>
 #include <libcwd/debug.h>
+#include <utils/macros.h>
 #include <map>
 #include <mutex>
 

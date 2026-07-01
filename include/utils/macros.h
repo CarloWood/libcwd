@@ -6,7 +6,15 @@
 #ifndef UTILS_MACROS_H
 #define UTILS_MACROS_H
 
-#include <libcwd/config.h>     // Needed for HAVE_BUILTIN_EXPECT.
+//#include <config.h>                     // Needed for HAVE_BUILTIN_EXPECT.
+#include <libcwd/macro_Libcwd_macros.h> // Needed for LibcwDebug, LibcwDout, LibcwDoutFatal
+
+// For use in (libcwd) library header files: do not redefine these!
+// Developers of libraries are recommended to define their own macro names,
+// see "Libraries" on group__chapter__custom__debug__h.html
+#define __Debug(/*STATEMENTS*/...) LibcwDebug(libcwd::channels, __VA_ARGS__)
+#define __Dout(cntrl, ...) LibcwDout(libcwd::channels, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
+#define __DoutFatal(cntrl, ...) LibcwDoutFatal(libcwd::channels, ::libcwd::libcw_do, cntrl, __VA_ARGS__)
 
 #include <boost/preprocessor/expand.hpp>
 #include <boost/preprocessor/stringize.hpp>

@@ -1,6 +1,7 @@
 #include "cwd_sys.h"
 #include "match.h"
 #include "libcwd/debug.h"
+#include "utils/macros.h"
 
 #include <algorithm>
 #include <array>

@@ -5,6 +5,7 @@
 #include "cwd_dwarf.h"
 #include "libcwd/Location.h"
 #include "libcwd/debug.h"
+#include "utils/macros.h"
 
 namespace libcwd {
 

@@ -19,7 +19,7 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 #include <iostream>
 #include <cstdlib>
 
-#define Debug(...)
+#define Debug(...) do { } while(0)
 #define Dout(cntrl, ...)
 #define DoutFatal(cntrl, ...) LibcwDoutFatal(, , cntrl, __VA_ARGS__)
 #define ForAllDebugChannels(...)

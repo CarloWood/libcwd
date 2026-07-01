@@ -1,5 +1,6 @@
 #include "cwd_sys.h"
 #include "libcwd/debug.h"
+#include "utils/macros.h"
 
 #ifdef _WIN32
 
