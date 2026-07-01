@@ -26,7 +26,7 @@ namespace libcwd {
  * MyLock lock;
  *
  * // Uses MyLock::lock(), MyLock::try_lock() and MyLock::unlock().
- * Debug( libcw_do.set_ostream(&std::cerr, &lock) );
+ * Debug(libcw_do.set_ostream(&std::cerr, &lock));
  *
  * lock.lock();
  * std::cerr << "The application uses cerr too\n";

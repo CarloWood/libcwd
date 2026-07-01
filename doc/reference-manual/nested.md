@@ -9,15 +9,15 @@ int foobar() __attribute__ ((const));
 
 int foobar()
 {
-  Dout( dc::notice, "Entering foobar()" );
-  Dout( dc::notice, "Leaving foobar()" );
+  Dout(dc::notice, "Entering foobar()");
+  Dout(dc::notice, "Leaving foobar()");
   return 1;
 }
 
 int main()
 {
-  Dout( dc::kernel, "The value of foobar() = " << foobar()
-      << ", aint that nice?" );
+  Dout(dc::kernel, "The value of foobar() = " << foobar()
+      << ", aint that nice?");
   return foobar();
 }
 ```
@@ -40,9 +40,9 @@ whether or not it was called for the functionality of the application.  But when
 it does matter, then one might want to do something like this:
 
 ```cpp
-Dout( dc::kernel|flush_cf|continued_cf, "Generating tables... " );
+Dout(dc::kernel|flush_cf|continued_cf, "Generating tables... ");
 generate_tables();
-Dout( dc::finish, "done" );
+Dout(dc::finish, "done");
 ```
 
 If generate_tables() would not print debug messages, then the output will look like:
@@ -62,13 +62,13 @@ KERNEL: &lt;continued&gt; done</PRE>
 Finally, it is also possible to split a debug line into more than two parts by using the special dc::continued debug channel.
 
 ```cpp
-Dout( dc::notice|flush_cf|continued_cf, "Generating tables." );
-for(int i = 0; i < 8; ++i)
+Dout(dc::notice|flush_cf|continued_cf, "Generating tables.");
+for (int i = 0; i < 8; ++i)
 {
   generate_table(i);
-  Dout( dc::continued, '.' );
+  Dout(dc::continued, '.');
 }
-Dout( dc::finish, " done" );
+Dout(dc::finish, " done");
 ```
 
 When generate_table(i) doesn't print debug messages, then the output will look like:

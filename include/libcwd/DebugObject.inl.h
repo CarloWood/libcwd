@@ -250,10 +250,10 @@ inline void DebugObject::off()
  *
  * ```cpp
  * int i = 0;
- * Debug( libcw_do.off() );
- * Dout( dc::notice, "Adding one to " << i++ );
- * Debug( libcw_do.on() );
- * Dout( dc::notice, "i == " << i );
+ * Debug(libcw_do.off());
+ * Dout(dc::notice, "Adding one to " << i++);
+ * Debug(libcw_do.on());
+ * Dout(dc::notice, "i == " << i);
  * ```
  *
  * Outputs:
@@ -298,9 +298,9 @@ inline void DebugObject::always_flush_on()
  * **Example:**
  *
  * ```cpp
- * Debug( libcw_do.always_flush_on() );
- * Dout( dc::notice, "This is flushed.");
- * Debug( libcw_do.always_flush_off() );
+ * Debug(libcw_do.always_flush_on());
+ * Dout(dc::notice, "This is flushed.");
+ * Debug(libcw_do.always_flush_off());
  * ```
  */
 inline void DebugObject::always_flush_off()

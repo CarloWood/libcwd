@@ -683,7 +683,7 @@ alignas(OutputState) static unsigned char WST_dummy_output_state[sizeof(OutputSt
  * **Example:**
  *
  * ```cpp
- * Debug( core_dump() );
+ * Debug(core_dump();
  * ```
  *
  * Normally you don't call `core_dump()` directly though.

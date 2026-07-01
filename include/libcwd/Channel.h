@@ -45,7 +45,7 @@ struct ChannelSetsWat;
  * **Example:**
  *
  * ```cpp
- * Dout( dc::notice, "Libcwd is a great library" );
+ * Dout(dc::notice, "Libcwd is a great library");
  * ```
  *
  * gives as result
@@ -57,9 +57,9 @@ struct ChannelSetsWat;
  * and
  *
  * ```cpp
- * Dout( dc::hello, "Hello World!" );
- * Dout( dc::kernel|dc::io, "This is written when either the kernel"
- *     "or io channel is turned on." );
+ * Dout(dc::hello, "Hello World!");
+ * Dout(dc::kernel|dc::io, "This is written when either the kernel"
+ *     "or io channel is turned on.");
  * ```
  *
  * gives as result

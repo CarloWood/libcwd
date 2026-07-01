@@ -51,7 +51,7 @@ int main()
   ForAllDebugChannels(if (!debugChannel.is_on()) debugChannel.on(););
   Debug(libcw_do.on());
 
-  // Debug( dc::generate.off() );
+  // Debug(dc::generate.off());
   Dout(dc::notice | flush_cf | continued_cf, "Generating tables part1... ");
   generate_tables(captured);
   Dout(dc::continued, "part2... "); // Should still be flushed (before <sleeping1> is printed).
