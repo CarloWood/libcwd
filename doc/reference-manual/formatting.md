@@ -2,25 +2,27 @@
 
 All debug output is written in the following format:
 
-&lt;margin&gt; &lt;label&gt; &lt;marker&gt; &lt;indentation&gt; &lt;data&gt; &lt;suffix&gt; 
+```
+<margin> <label> <marker> <indentation> <data> <suffix> 
+```
 
-The &lt;margin&gt; field can for instance be used to print the ID of the process or thread
-(useful when writing %debug messages from more than one process or thread to the same ostream device).&nbsp;
+The `<margin>` field can for instance be used to print the ID of the process or thread
+(useful when writing %debug messages from more than one process or thread to the same ostream device).
 
-The &lt;marker&gt; field can be used to identify regions (for example with a vertical line) depending on the current context.&nbsp;
+The `<marker>` field can be used to identify regions (for example with a vertical line) depending on the current context.
 
-The &lt;indentation&gt; field consists of spaces and is intended to make %debug output better readable by grouping lines of %debug output
+The `<indentation>` field consists of spaces and is intended to make %debug output better readable by grouping lines of %debug output
 as an easier alternative than using the marker field for that purpose.
 
-The &lt;label&gt; field exists of the channel label (as passed to the constructor of a @ref libcwd::Channel "Channel")
+The `<label>` field exists of the channel label (as passed to the constructor of a @ref libcwd::Channel "Channel")
 padded by spaces to make this field constant in width (it is padded to the length of the longest existing channel label),
-followed by the marker, which is by default a colon plus a final space; for example "NOTICE&nbsp;:&nbsp;".
+followed by the marker, which is by default a colon plus a final space; for example "NOTICE:".
 
-The &lt;data&gt; field represents the second field of the @ref Dout macro, written to the %debug ostream with the operator<< inserters.
+The `<data>` field represents the second field of the @ref Dout macro, written to the %debug ostream with the `operator<<` inserters.
 
-Finally, the &lt;suffix&gt; field is by default a new-line, optionally followed by a flush.&nbsp;
-The %debug control flag error_cf however, causes an error message to be inserted first.&nbsp;
-The suffix field could become for example ":&nbsp;EAGAIN&nbsp;(Try&nbsp;again)\\n".
+Finally, the `<suffix>` field is by default a new-line, optionally followed by a flush.
+The %debug control flag @ref libcwd::error_cf "error_cf" however, causes an error message to be inserted first.
+The suffix field could become for example <tt>": EAGAIN (Try again)\\n"</tt>.
 
 @sa control-flags
 
