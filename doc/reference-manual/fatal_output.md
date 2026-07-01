@@ -17,7 +17,7 @@ if (error)
 {
   Dout(dc::core|error_cf, "An error occurred");
   std::cerr << "An error occurred" << std::endl;
-  exit(254);
+  _Exit(180);
 }
 ```
 
@@ -27,8 +27,8 @@ the macro `CWDEBUG` is not defined.
 There are two %debug %channels that can be used together with DoutFatal:
 <span class="tt">@link libcwd::channels::dc::fatal dc::fatal@endlink</span> and
 <span class="tt">@link libcwd::channels::dc::core dc::core@endlink</span>.
-The first terminates by calling `exit(254)`,
-the second terminates by raising `SIGABORT`, causing the application to core dump.
+The first terminates by calling `_Exit(180)`,
+the second terminates by `std::abort()`, causing the application to core dump.
 
 @sa @ref predefined-debug-channels
  \n @ref control-flags

@@ -1110,7 +1110,7 @@ void DebugObject_ThreadSpecificData::finish(DebugObject& debug_object,
       }
       if ((current->mask & coredump_maskbit))
         std::abort(); // core dump.
-      _Exit(254); // Exit without calling global destructors.
+      _Exit(180); // Exit without calling global destructors.
     }
     if ((current->mask & wait_cf))
     {
