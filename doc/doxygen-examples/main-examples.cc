@@ -4,4 +4,4 @@
 
 /* Add this at the start of each new thread. */
 
-  Debug(NAMESPACE_DEBUG::thread_init());        // This function is defined by cwds.
+  Debug(NAMESPACE_DEBUG::init_thread());        // This function is defined by cwds.

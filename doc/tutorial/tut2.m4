@@ -24,7 +24,7 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 #define DoutFatal(cntrl, ...) LibcwDoutFatal(, , cntrl, __VA_ARGS__)
 #define ForAllDebugChannels(...)
 #define ForAllDebugObjects(...)
-#define LibcwDebug(dc_namespace, ...)
+#define LibcwDebug(dc_namespace, ...) do { } while(0)
 #define LibcwDout(dc_namespace, d, cntrl, ...)
 #define LibcwDoutFatal(dc_namespace, d, cntrl, ...) \
   do                                                \

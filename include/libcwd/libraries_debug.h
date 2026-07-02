@@ -127,7 +127,7 @@ using namespace libcwd_inserters;
 #include "Location.inl.h"
 
 // Include optional features.
-#if CWDEBUG_LOCATION // --enable-location
+#if CWDEBUG_LOCATION // ‑DEnableLibcwdLocation:BOOL=ON
 #include "elfutils.h"
 #endif
 

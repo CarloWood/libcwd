@@ -18,9 +18,10 @@ to <CODE>cerr</CODE> is:</P>
 
 int main()
 {
-  Debug(main_reached());        // Mandatory call to notify the library that main() was reached.
-  Debug(dc::notice.on());       // Turn on the NOTICE Debug Channel.
-  Debug(libcw_do.on());         // Turn on the default Debug Object.
+  Debug(NAMESPACE_DEBUG::init());
+
+  // dc::notice can be turned on in the .libcwdrc file, but lets make sure it is here.
+  Debug(if (!dc:notice.is_on()) dc::notice.on()); // Turn on the NOTICE Debug Channel.
 
   Dout(dc::notice, "Hello World");
 }
@@ -36,11 +37,10 @@ the debug object <CODE>libcw_do</CODE> and the debug channel <CODE>dc::notice</C
 
 <DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
 <LI><A HREF="faq.html#debug.h">What is defined <EM>exactly</EM> in <CODE>libcwd/debug.h</CODE>?</A></LI>
-<LI><A HREF="faq.html#macros">Why are you using macros for <CODE>Debug</CODE> and <CODE>Dout</CODE>?</A></LI>
 </UL></DIV>
 
 <A NAME="main_reached""></A>
-<H3><CODE>Debug(main_reached());</CODE></H3>
+<H3><CODE>Debug(NAMESPACE_DEBUG::init());</CODE></H3>
 
 <P>This call checks that the libcwd header files that are being used
 belong to the \filename libcwd.so \endfilename shared object that the application linked with.

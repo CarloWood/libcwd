@@ -31,7 +31,7 @@ The direct use of these functions should be avoided, instead use the function ty
 // can currently be found at http://itanium-cxx-abi.github.io/cxx-abi/
 //
 // To compile a standalone demangler:
-// g++ -g -DSTANDALONE -DCWDEBUG -Iinclude demangle3.cc -Wl,--rpath,`pwd`/.libs -L.libs -lcwd -o c++filt
+// g++ -g -DSTANDALONE -DCWDEBUG -Iinclude -I$BUILDDIR/include src/demangle.cxx -Wl,--rpath,$BUILDDIR/src -L$BUILDDIR/src -lcwd -ldw -o c++filt
 //
 
 #include "cwd_sys.h"
@@ -42,6 +42,8 @@ The direct use of these functions should be avoided, instead use the function ty
 #include <limits>
 
 #ifdef STANDALONE
+#include "utils/macros.h"
+
 #ifdef CWDEBUG
 namespace libcwd {
 namespace channels {

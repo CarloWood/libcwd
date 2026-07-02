@@ -19,12 +19,13 @@
 
 // If you run into this error then you included <libcwd/debug.h> (or any other libcwd header file)
 // while the macro CWDEBUG was not defined.  Doing so would cause the compilation of your
-// application to fail on machines that do not have libcwd installed.  Instead you should use:
+// application to fail on machines that do not have libcwd installed. Instead you should use:
 // #include "debug.h"
-// and add a file debug.h to your applications distribution.  Please see the the example-project
-// that comes with the source code of libcwd (or is included in the documentation that comes with
-// the rpm (ie: /usr/doc/libcwd-1.0/example-project) for a description of the content of "debug.h".
-// Note1: CWDEBUG should be defined on the compiler commandline, for example: g++ -DCWDEBUG ...
+// and add a file debug.h to your applications source distribution. Please see the the example-project
+// that comes with the source code of libcwd (and is included in the documentation that comes with
+// a libcwd package (ie: /usr/share/doc/libcwd/example-project) for a description of the content of "debug.h".
+// Note: CWDEBUG should be defined on the compiler commandline, for example: g++ -DCWDEBUG ...
+// which normally happens automatically, simply by linking with libcwd (when using cmake).
 #error You are including <libcwd/debug.h> while CWDEBUG is not defined.  See the comments in this header file for more information.
 
 #endif // CWDEBUG
@@ -54,12 +55,14 @@
  *
  * ```cpp
  * Debug(main_reached());                           // Must be called at the top of main. Does configuration consistency check.
+ *                                                  // Note that normally you should call instead:
+ * Debug(NAMESPACE_DEBUG::init());                  // This already calls main_reached(), as well as read_rcfile(), etc.
  * Debug(dc::notice.on());                          // Switch debug channel NOTICE on.
- * Debug(libcw_do.on());                            // Turn all debugging temporarily off.
- * Debug(list_channels_on(libcw_do));               // List all debug channels.
- * Debug(libcw_do.set_ostream(&std::cout));         // Use std::cout as debug output stream.
+ * Debug(libcw_do.off());                           // Turn all debugging temporarily off.
+ * Debug(list_channels_on(libcw_do));               // List all debug channels (already done by init()).
  * Debug(libcw_do.set_ostream(&std::cout, &mutex)); // use ‛mutex' as lock for std::cout.
- * Debug(libcw_do.inc_indent(4));                   // Increment indentation by 4 spaces.
+ * Debug(libcw_do.set_ostream(&std::cout));         // Use std::cout as debug output stream, leaving the previously configured mutex.
+ * Debug(libcw_do.inc_indent(4));                   // Increment indentation by 4 spaces. Or use the RAI object libcwd::Indent.
  * Debug(libcw_do.get_ostream()->flush());          // Flush the current debug output stream.
  * ```
  */

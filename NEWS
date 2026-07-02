@@ -32,7 +32,9 @@ libcwd-2.0
         - Now has a CTest-backed testsuite.
         - Debug(main_reached()) must now be called at the top of main. It also does
           what check_configuration() did, which therefore no longer exists.
-          dc::bfd was renamed to dc::elfutils.
+          It is highly recommended to *instead* call Debug(NAMESPACE_DEBUG::init()); at
+          the start of main however, that function also calls main_reached() for you.
+        - dc::bfd was renamed to dc::elfutils.
         - If you are also using the git submodule `cwds` (and you should) then you
           must add `#define LIBCWD_VERSION_2` at the top of your "sys.h" file, before
           including cwds/sys.h.

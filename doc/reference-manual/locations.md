@@ -1,5 +1,5 @@
 @addtogroup source-file-line-number-information
 
-When libcwd was configured with @ref enable_location "--enable-location",
-then libcwd allows one to easily obtain source-file &amp; line-number information of a given address
-using the class Location.
+If libcwd is configured with @ref enable_location "‑DEnableLibcwdLocation:BOOL=ON",
+it allows you to easily obtain source-file & line-number information of a given address
+using the `Location` class.

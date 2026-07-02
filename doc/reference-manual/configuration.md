@@ -22,7 +22,7 @@ Dout(dc::notice, "Called from " << libcwd::Location(__builtin_return_address(0))
 ## How to configure libcwd when using gitache
 
 If you're using [gitache](https://github.com/CarloWood/gitache) to **download/configure/compile/install**
-libcwd, put the following content (relative to the root of your project) in `cmake/gitache-configs/libcwd_r.cmake`:
+libcwd, put the following content (relative to the root of your project) in `cmake/gitache-configs/libcwd.cmake`:
 
 ```
 gitache_config(
@@ -38,3 +38,10 @@ Optionally add a `CMAKE_ARGS`. For example, to toggle all default options:
   CMAKE_ARGS
     "-DEnableGlibCxxDebug=ON -DEnableLibcwdLocation=OFF -DEnableLibcwdDebug=ON -DEnableLibcwdDebugOutput=ON"
 ```
+
+Then use `libcwd` as package name in your `CMakeLists.txt`:
+```
+    set(GITACHE_PACKAGES libcwd)
+```
+The only thing that matters here is that the package name matches the `libcwd.cmake` file in `cmake/gitache-configs`.
+You can also use `cmake/gitache-configs/libcwd-2.cmake` and `set(GITACHE_PACKAGES libcwd-2)`.

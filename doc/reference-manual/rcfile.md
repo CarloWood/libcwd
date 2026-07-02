@@ -7,14 +7,34 @@ for example,
 ```cpp
 int main()
 {
+  std::ios::sync_with_stdio(false);
   Debug(main_reached());
   Debug(libcw_do.on());     // In order to get RCFILE messages.
   Debug(read_rcfile());
 ```
 
+Or better yet,
+
+```cpp
+int main()
+{
+  Debug(NAMESPACE_DEBUG::init());
+```
+which does all of the above and more. Use `silent = off` in your rcfile to get debug output about loading the rcfile.
+
+At the start of every new thread you should call `init_thread()`:
+```cpp
+int thread_main()
+{
+  Debug(NAMESPACE_DEBUG::init_thread());
+}
+```
+---
+
 `read_rcfile()` can be used to turn on or off debug *channels*, but you still have to turn on the
-debug *object*(s); in particular the debug object <span class="tt">@link libcwd::libcw_do libcw_do@endlink</span>
-that is used to print WARNING messages in case something is wrong with your rcfile.
+debug *object*(s) (or use `NAMESPACE_DEBUG::init()`); in particular the debug object
+<span class="tt">@link libcwd::libcw_do libcw_do@endlink</span> that is used to print WARNING
+messages in case something is wrong with your rcfile.
 
 The default rcfile is
 \filename .libcwdrc \endfilename (you can change that by setting
