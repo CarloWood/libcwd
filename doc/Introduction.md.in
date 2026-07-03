@@ -60,4 +60,4 @@ STATEFULTASK  :   Returning task pointer 0x55ef1ef93dc0.
 - Current source version: @PACKAGE_VERSION@
 - Latest release news: [@LATEST_RELEASE_DATE@](release-notes.html#latest)
 - Repository: [GitHub](https://github.com/CarloWood/libcwd)
-- Source code: [Download](https://github.com/CarloWood/libcwd/releases)
+- Source code: [Download](group__downloading.html)
