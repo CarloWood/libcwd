@@ -35,39 +35,12 @@ add_custom_target(doc-assets
           "${CMAKE_CURRENT_BINARY_DIR}/doxygen-examples"
           "${CMAKE_CURRENT_BINARY_DIR}/images"
           "${CMAKE_CURRENT_BINARY_DIR}/scripts"
-          "${CMAKE_CURRENT_BINARY_DIR}/www"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-awesome-css" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/doxygen-examples" "${CMAKE_CURRENT_BINARY_DIR}/doxygen-examples"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/css" "${CMAKE_CURRENT_BINARY_DIR}/css"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/images" "${CMAKE_CURRENT_BINARY_DIR}/images"
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/scripts" "${CMAKE_CURRENT_BINARY_DIR}/scripts"
-  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/www" "${CMAKE_CURRENT_BINARY_DIR}/www"
 )
-
-set(doc_style_browsers netscape4 netscape6 mozilla konqueror ie)
-set(doc_style_templates main.css doxygen.css tutorial.css tag-cw.css)
-set(doc_style_outputs)
-foreach(doc_style_browser ${doc_style_browsers})
-  foreach(doc_style_template ${doc_style_templates})
-    set(doc_style_output "${CMAKE_CURRENT_BINARY_DIR}/styles/${doc_style_browser}/${doc_style_template}")
-    add_custom_command(
-      OUTPUT "${doc_style_output}"
-      COMMAND /bin/sh "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_style.sh"
-              "${CMAKE_C_COMPILER}"
-              "${CMAKE_CURRENT_SOURCE_DIR}/styles"
-              "${doc_style_browser}"
-              "${doc_style_template}"
-              "${doc_style_output}"
-      DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/styles/${doc_style_template}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/styles/defines.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_style.sh"
-      VERBATIM
-    )
-    list(APPEND doc_style_outputs "${doc_style_output}")
-  endforeach()
-endforeach()
-add_custom_target(doc-styles DEPENDS ${doc_style_outputs})
 
 set(doc_external_files
   "${CMAKE_CURRENT_BINARY_DIR}/external/INSTALL"
@@ -122,7 +95,15 @@ file(GLOB doc_reference_inputs CONFIGURE_DEPENDS
   # regenerates config.h directly; either way this newer config.h retriggers
   # doxygen.
   "${CMAKE_BINARY_DIR}/include/libcwd/*.h"
+  # INPUT = @srcdir@/tutorial: the static tutorial markdown (tutorial-groups,
+  # tut1..tut4, tut6, faq). tut5.md is generated and tracked separately below.
+  "${CMAKE_CURRENT_SOURCE_DIR}/tutorial/*.md"
 )
+
+# tut5.md is generated into the build tree by the tutorial output-capture
+# pipeline (moo.awk). Doxygen reads it as INPUT, so it must be a real (not
+# order-only) dependency: a regenerated tut5.md has to retrigger doxygen.
+set(doc_tutorial_generated_md "${CMAKE_CURRENT_BINARY_DIR}/tutorial/tut5.md")
 
 # Files doxygen pulls in through EXAMPLE_PATH via \include/\snippet/\example.
 # `nodebug.h` lives at the repo root and is \include'd by doc/custom-debug.h.md;
@@ -197,8 +178,11 @@ add_custom_command(
     ${doc_example_inputs}
     ${doc_doxygen_examples}
     ${doc_doxygen_aux_files}
+    # doc-tutorial generates tutorial/tut5.md (by compiling and running the
+    # example programs); doxygen reads that file, so it must be built first.
+    doc-tutorial
+    "${doc_tutorial_generated_md}"
     doc-assets
-    doc-styles
     doc-external
   VERBATIM
 )
@@ -212,7 +196,6 @@ add_subdirectory(tutorial)
 add_custom_target(doc
   DEPENDS
     doc-site
-    doc-styles
     doc-external
     doc-tutorial
 )

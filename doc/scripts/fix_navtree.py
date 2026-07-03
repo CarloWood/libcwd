@@ -49,7 +49,7 @@ import re
 
 # Group titles (the second argument of their @defgroup line) to hoist from the
 # 'Topics' tab to top-level sidebar entries, in the order they must appear.
-PROMOTE_GROUPS = ["Quick Reference", "Reference Manual"]
+PROMOTE_GROUPS = ["Tutorial", "Quick Reference", "Reference Manual"]
 
 
 def _load_array_var(content, var_name):

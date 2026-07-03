@@ -23,10 +23,16 @@ USE_MDFILE_AS_MAINPAGE = Introduction.md
 INPUT                  = Introduction.md \
                          @srcdir@ \
                          @srcdir@/reference-manual \
+                         @srcdir@/tutorial \
                          @top_srcdir@/src \
                          @top_srcdir@/include/libcwd \
                          @top_srcdir@/include/libcwd/private \
                          @top_builddir@/include/libcwd
+# tut5.md is generated into the build tree (doc/tutorial/tut5.md) by the
+# output-capture pipeline; it cannot live under @srcdir@/tutorial with the
+# static pages, so it is listed separately.  The path is relative to this
+# doxygen.config file (the doc build directory).
+INPUT                  += tutorial/tut5.md
 FILE_PATTERNS          = *.md \
                           *.h \
                          *.inl \
@@ -36,6 +42,7 @@ EXCLUDE_PATTERNS       = timestamp-*.h
 
 EXAMPLE_PATH           = external \
                          @srcdir@/doxygen-examples \
+                         @srcdir@/tutorial \
                          @top_srcdir@
 EXAMPLE_RECURSIVE      = NO
 

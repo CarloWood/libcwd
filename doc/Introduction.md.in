@@ -51,7 +51,7 @@ STATEFULTASK  :   Returning task pointer 0x55ef1ef93dc0.
 
 ## Documentation
 
-- [Tutorial](tutorial/index.html)
+- [Tutorial](group__tutorial.html)
 - [Quick Reference](quick-reference.html)
 - [Reference Manual](reference-manual.html)
 

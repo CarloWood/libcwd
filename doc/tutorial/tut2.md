@@ -1,16 +1,12 @@
-include(definitions.m4)dnl
-__HTMLHEADER
-__PAGEHEADER
-__PAGESTART
+@addtogroup tutorial-channels
 
-<H2>Tutorial 2: Creating your own Debug Channels</H2>
+You can easily create your own debug channels.
+In the example below we create a debug channel `dc::ghost`
+that will use the string "<span class="output">GHOST</span>" as label.
 
-<P>You can easily create your own debug channels.&nbsp;
-In the example below we create a debug channel <CODE>dc::ghost</CODE>
-that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
+Create a file `"debug.h"` that is part of your application and put in it:
 
-<P>Create a file <CODE>"debug.h"</CODE> that is part of your application and put in it:</P>
-<PRE>
+```
 #ifndef DEBUG_H
 #define DEBUG_H
 
@@ -41,7 +37,7 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 
 #else // CWDEBUG
 
-// This must be defined before &lt;libcwd/debug.h&gt; is included and must
+// This must be defined before <libcwd/debug.h> is included and must
 // be the name of the namespace containing your `dc' namespace (see below).
 // You can use any namespace(s) you like, except existing namespaces
 // (like std or libcwd). It may not start with two colons because it is used
@@ -49,7 +45,7 @@ that will use the string "<SPAN class="output">GHOST</SPAN>" as label.</P>
 // `using namespace ::LIBCWD_DEBUG_CHANNELS`: the first namespace is implied
 // to be a global namespace already.
 #define LIBCWD_DEBUG_CHANNELS myproject::debug::channels
-#include &lt;libcwd/debug.h&gt;
+#include <libcwd/debug.h>
 
 NAMESPACE_DEBUG_CHANNELS_START
 
@@ -61,14 +57,15 @@ NAMESPACE_DEBUG_CHANNELS_END
 
 #endif // CWDEBUG
 #endif // DEBUG_H
-</PRE>
-<P>Finally write the program:</P>
-<P class="download">[<A HREF="channel.cpp">download</A>]</P>
-<PRE>
+```
+
+Finally write the program:
+
+```
 #include "debug.h"
 
 NAMESPACE_DEBUG_CHANNELS_START          // In this case this is example::channels
-Channel <SPAN class="highlight">ghost</SPAN>("GHOST");                 // Create our own Debug Channel.
+Channel ghost("GHOST");                 // Create our own Debug Channel.
 NAMESPACE_DEBUG_CHANNELS_END
 
 int main()
@@ -81,36 +78,29 @@ int main()
   Debug(if (!dc::ghost.is_on()) dc::ghost.on()); // Might already be on due to rcfile.
   Debug(libcw_do.on());
 
-  for (int i = 0; i &lt; 4; ++i)
-    Dout(<SPAN class="highlight">dc::ghost</SPAN>, "i = " &lt;&lt; i);       // We can write more than just
+  for (int i = 0; i < 4; ++i)
+    Dout(dc::ghost, "i = " << i);       // We can write more than just
                                         // "Hello World" to the ostream :)
 }
-</PRE>
+```
 
-<P>This program outputs:</P>
+This program outputs:
 
-<PRE class="output">
+```
 GHOST   : i = 0
 GHOST   : i = 1
 GHOST   : i = 2
 GHOST   : i = 3
-</PRE>
+```
 
-<P>Note that when writing a <EM>library</EM> you are highly advised to follow the namespace guideline
-as set forth in the <A HREF="../reference-manual/group__chapter__custom__debug__h.html#libraries">Reference Manual</A>.</P>
+Note that when writing a *library* you are highly advised to follow the namespace guideline
+as set forth in the @ref the-custom-debug-h-file "Reference Manual" (in particular its
+*Libraries* section).
 
-<DIV class="faq-frame"><H4>FAQ</H4><UL class="faq">
-<LI><A HREF="faq.html#label">What is the maximum length of a label?</A></LI>
-<LI><A HREF="faq.html#prefix">Why do I have to use the <CODE>dc::</CODE> prefix?</A></LI>
-<LI><A HREF="faq.html#labelwidth">Why does it print spaces between the label and the colon?&nbsp; How is the field width of the label determined?</A></LI>
-</UL></DIV>
+**FAQ**
 
-__PAGEEND
-<P class="line"><IMG width=870 height=26 src="../images/lines/ghost.png"></P>
-<DIV class="buttons">
-<A HREF="tut1.html"><IMG width=64 height=32 src="../images/buttons/lr_prev.png" border=0></A>
-<A HREF="index.html"><IMG width=64 height=32 src="../images/buttons/lr_index.png" border="0"></A>
-<A HREF="tut3.html"><IMG width=64 height=32 src="../images/buttons/lr_next.png" border="0"></A>
-</DIV>
-__PAGEFOOTER
-__HTMLFOOTER
+- @ref faq_label "What is the maximum length of a label?"
+- @ref faq_prefix "Why do I have to use the `dc::` prefix?"
+- @ref faq_labelwidth "Why does it print spaces between the label and the colon? How is the field width of the label determined?"
+
+Continue with @ref tutorial-ostream.

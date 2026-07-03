@@ -43,5 +43,6 @@ Then use `libcwd` as package name in your `CMakeLists.txt`:
 ```
     set(GITACHE_PACKAGES libcwd)
 ```
-The only thing that matters here is that the package name matches the `libcwd.cmake` file in `cmake/gitache-configs`.
-You can also use `cmake/gitache-configs/libcwd-2.cmake` and `set(GITACHE_PACKAGES libcwd-2)`.
+You must use `libcwd` here for version 2, because gitache sets `<package-name>_ROOT` to where the package is found,
+and that only works with `find_package` if `<package-name>` is the actual library name. For the same reason,
+for version 1 you should continue to use `libcwd_r`.
