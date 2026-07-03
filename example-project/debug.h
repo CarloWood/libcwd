@@ -8,7 +8,10 @@
 
 #ifdef CWDEBUG
 
-// Declare project-wide debug channels here, or in some other (more) appropriate header file.
+// For example, declare project-wide debug channels here.
+// Of course you can also declare them a more appropriate
+// header file, more closely related to the debug channel
+// itself.
 NAMESPACE_DEBUG_CHANNELS_START
 extern Channel custom;
 NAMESPACE_DEBUG_CHANNELS_END

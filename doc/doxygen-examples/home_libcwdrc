@@ -1,0 +1,12 @@
+silent = on
+channels_default = off
+
+# statefultask
+#channels_on = warning,notice,system,statefultask,threadpool,evio,io,tls,demangler,bfd
+#channels_on = action,semaphore,semaphorestats
+
+# cwchessboard
+#channels_on = warning,notice,system,widget,event,place,countboard,clipboard,parser,clip
+
+gdb = /usr/bin/gdb -x $REPOBASE/.gdbinit $GDBCOMMANDFILE
+xterm = konsole --name "attach_gdb" --hide-menubar --nofork --workdir "$PWD" --geometry 165x24-0-0 -e %s

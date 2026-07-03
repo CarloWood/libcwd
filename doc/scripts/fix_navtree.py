@@ -1,39 +1,55 @@
 #!/usr/bin/env python3
 """Post-process doxygen's navigation tree.
 
-doxygen places every @defgroup underneath the 'Topics' (modules) tab. This
-script promotes the 'Reference Manual' group out of 'Topics' to a direct child
-of the root node (rendered as 'libcwd 2.0'), so it appears at the top level of
-the sidebar instead of nested under Topics.
+Doxygen places every @defgroup underneath the 'Topics' (modules) tab. This script
+promotes selected top-level groups out of 'Topics' to direct children of the root
+node (rendered as 'libcwd 2.0'), so they appear at the top level of the sidebar
+instead of nested under Topics.
 
-When, after the move, 'Topics' is left without any children, the empty 'Topics'
-tab is dropped entirely and 'Reference Manual' takes its slot. (If 'Topics'
-still had other children it is kept, and 'Reference Manual' is inserted just
-before it instead.)
+PROMOTE_GROUPS lists, in top-to-bottom display order, the group titles (the human
+readable name from the @defgroup line, not its identifier) that must be hoisted
+out of 'Topics'. For the libcwd site these are the two peer documentation entries
+'Quick Reference' and 'Reference Manual', matching the order used on the front
+page.
+
+After every promoted group has been removed from 'Topics', two outcomes are
+possible:
+
+  * 'Topics' is left without any children -- the empty 'Topics' tab is dropped
+    and the promoted groups take its slot (one slot is reused, the rest are
+    inserted), so every later tab shifts down by (len(PROMOTE_GROUPS) - 1).
+  * 'Topics' still has other children -- it is kept and the promoted groups are
+    inserted just before it, shifting every later tab down by len(PROMOTE_GROUPS).
 
 The navigation tree is split across several generated files:
 
   navtreedata.js   - the top levels of the tree (var NAVTREE = [...]). A node
                      whose third element is a *string* lazy-loads its children
                      from <that string>.js; 'Topics' is such a node.
-  topics.js        - the children of 'Topics' (this is where 'Reference Manual'
-                     actually lives).
+  topics.js        - the children of 'Topics' (this is where the promoted groups
+                     actually live).
   navtreeindex*.js - a map from every page URL to its tree path, used by
                      doxygen's navtree.js for panel synchronization.
 
-So promoting 'Reference Manual' touches all three: remove it from topics.js,
-place it among (or in place of) the root's children in navtreedata.js, and
-rewrite the tree paths in navtreeindex*.js so the current-page highlight stays
-correct.
+So promoting a group touches all three: remove it from topics.js, place it among
+(or in place of) the root's children in navtreedata.js, and rewrite the tree
+paths in navtreeindex*.js so the current-page highlight stays correct.
 
 The script is invoked with the path to navtreedata.js; the other files are
-expected alongside it.
+expected alongside it. It fails loudly (printing a message and returning without
+rewriting anything) when the expected structure is not found, so a doxygen layout
+change is noticed instead of silently producing a broken tree.
 """
 
 import sys
 import os
 import json
 import re
+
+
+# Group titles (the second argument of their @defgroup line) to hoist from the
+# 'Topics' tab to top-level sidebar entries, in the order they must appear.
+PROMOTE_GROUPS = ["Quick Reference", "Reference Manual"]
 
 
 def _load_array_var(content, var_name):
@@ -62,10 +78,11 @@ def _splice(content, match, replacement):
 
 
 def fix_navtree(filepath):
-    """Promote 'Reference Manual' from the 'Topics' tab to a root-level node.
+    """Promote PROMOTE_GROUPS from the 'Topics' tab to root-level nodes.
 
     filepath is the path to navtreedata.js. Returns None; prints a one-line
-    status message describing what was (or was not) done.
+    status message per promoted group (or an explanatory message when the
+    expected structure is missing).
     """
     doc_dir = os.path.dirname(os.path.abspath(filepath))
 
@@ -98,93 +115,131 @@ def fix_navtree(filepath):
         return
     topics_ref = root_children[topics_index][2]
 
-    # 'Reference Manual' is a child of 'Topics'. Those children are either inline
-    # (a list) or, when doxygen stored a string, lazy-loaded from <ref>.js -- in
-    # which case 'Topics' points at topics.js, where 'Reference Manual' really
-    # lives. We record rm_child_index (RM's position inside Topics) and
-    # remaining_count (how many children Topics has left), both needed below.
-    ref_manual_node = None
-    rm_child_index = None
+    # The promoted groups are children of 'Topics'. Those children are either
+    # inline (a list) or, when doxygen stored a string, lazy-loaded from
+    # <ref>.js -- in which case 'Topics' points at topics.js, where the groups
+    # really live. Normalize to a single mutable list we can search and edit:
+    # `topics_children` (the original child list) and `topics_owner` describing
+    # how to persist the leftovers.
     topics_js_path = None
-    topics_js_content = None      # staged new content for topics.js, when kept
-    remaining_count = None
+    topics_js_content = None       # staged rewrite for topics.js, when kept
+    topics_js_match = None         # the regex match for the topics array
 
     if isinstance(topics_ref, list):
-        for j, group in enumerate(topics_ref):
-            if len(group) > 0 and group[0] == "Reference Manual":
-                ref_manual_node = topics_ref.pop(j)
-                rm_child_index = j
-                break
-        remaining_count = len(topics_ref)
+        topics_children = topics_ref
     elif isinstance(topics_ref, str):
         topics_js_path = os.path.join(doc_dir, topics_ref + ".js")
-        if os.path.exists(topics_js_path):
-            with open(topics_js_path, 'r', encoding='utf-8') as f:
-                topics_js_content = f.read()
-            topics_js_match, topics_children = _load_array_var(topics_js_content, topics_ref)
-            if topics_js_match is not None:
-                for j, group in enumerate(topics_children):
-                    if len(group) > 0 and group[0] == "Reference Manual":
-                        ref_manual_node = topics_children.pop(j)
-                        rm_child_index = j
-                        break
-                remaining_count = len(topics_children)
-                topics_js_content = _splice(
-                    topics_js_content, topics_js_match,
-                    json.dumps(topics_children, separators=(',', ': ')))
-            else:
-                print("Could not parse", topics_ref, "array in", topics_js_path)
-                topics_js_content = None
-        else:
+        if not os.path.exists(topics_js_path):
             print("'Topics' references", topics_ref + ".js, which does not exist.")
-
-    if ref_manual_node is None:
-        print("Could not find 'Reference Manual' inside 'Topics'.")
+            return
+        with open(topics_js_path, 'r', encoding='utf-8') as f:
+            topics_js_content = f.read()
+        topics_js_match, topics_children = _load_array_var(topics_js_content, topics_ref)
+        if topics_js_match is None:
+            print("Could not parse", topics_ref, "array in", topics_js_path)
+            return
+    else:
+        print("'Topics' node has an unexpected children field; nothing to do.")
         return
 
-    # If Topics is now empty, drop it and let Reference Manual take its slot so
-    # every later tab keeps its index (and its navtreeindex paths stay valid).
-    # Otherwise keep Topics and insert Reference Manual just before it.
+    # Locate each promoted group inside topics_children, recording the original
+    # child index (needed for navtreeindex path remapping) and the node itself.
+    # All indices are gathered before anything is removed so they refer to the
+    # original layout. A missing group is reported but does not abort the others.
+    promoted = []                  # list of (original_child_index, node), in
+                                   # PROMOTE_GROUPS (display) order
+    found_indices = set()
+    for title in PROMOTE_GROUPS:
+        idx = None
+        for j, group in enumerate(topics_children):
+            if j in found_indices:
+                continue
+            if len(group) > 0 and group[0] == title:
+                idx = j
+                break
+        if idx is None:
+            print("Could not find '%s' inside 'Topics'; skipping it." % title)
+            continue
+        found_indices.add(idx)
+        promoted.append((idx, topics_children[idx]))
+
+    if not promoted:
+        print("None of the promoted groups were found inside 'Topics'.")
+        return
+
+    n = len(promoted)
+    promoted_nodes = [node for (_idx, node) in promoted]
+    promoted_orig_indices = {idx for (idx, _node) in promoted}
+    # Each promoted group lands at root level: the k-th one (0-based) goes to
+    # root_children[topics_index + k].
+    promoted_new_root = {idx: topics_index + k
+                         for (k, (idx, _node)) in enumerate(promoted)}
+
+    remaining_children = [child for j, child in enumerate(topics_children)
+                          if j not in found_indices]
+    remaining_count = len(remaining_children)
+
+    # If Topics is now empty, drop it and let the promoted groups take its slot
+    # (so later tabs keep valid indices). Otherwise keep Topics and insert the
+    # promoted groups just before it.
     remove_topics = (remaining_count == 0)
     topics_js_delete = False
     if remove_topics:
-        root_children[topics_index] = ref_manual_node
+        # Replace the single 'Topics' slot with the promoted nodes.
+        root_children[topics_index:topics_index + 1] = promoted_nodes
         if topics_js_path is not None:
             topics_js_delete = True           # topics.js is now an orphan
             topics_js_content = None
     else:
-        root_children.insert(topics_index, ref_manual_node)
+        # Insert the promoted nodes before 'Topics', which shifts down by n.
+        root_children[topics_index:topics_index] = promoted_nodes
 
     # Stage the file writes (applied only once everything succeeded).
     pending_writes = [(filepath, _splice(
         navtree_content, navtree_match,
         json.dumps(navtree, separators=(',', ': '))))]
-    if topics_js_content is not None:         # only when Topics is kept + lazy-loaded
+    # Only rewrite topics.js when Topics is kept *and* its children were lazy
+    # loaded (inline children were already edited in place through topics_ref).
+    if topics_js_content is not None and topics_js_match is not None:
+        topics_js_content = _splice(
+            topics_js_content, topics_js_match,
+            json.dumps(remaining_children, separators=(',', ': ')))
         pending_writes.append((topics_js_path, topics_js_content))
 
     # --- Rewrite the per-page tree paths in navtreeindex{0,1}.js so that    ---
     # --- panel synchronization keeps highlighting the current page.          ---
     #
-    # Reference Manual was Topics's child rm_child_index, so every page in its
-    # subtree had a path [topics_index, rm_child_index, ...]; it now sits at the
-    # root level at index topics_index, so those become [topics_index, ...].
-    # When Topics is removed, the 'topics.html' entry (path [topics_index]) is
-    # dropped and every other path is unchanged. When Topics is kept, Topics and
-    # every later tab shift down by one instead.
+    # A page that lived under the k-th promoted group had path
+    # [topics_index, orig_idx, ...] and now has [topics_index + k, ...].
+    # The 'Topics' node itself ([topics_index]) is dropped when Topics is
+    # removed, otherwise it shifts to [topics_index + n]. Any tab strictly after
+    # 'Topics' shifts by (n - 1) when Topics is removed (one slot freed, n taken)
+    # or by n when Topics is kept. Remaining children of a kept Topics keep their
+    # subtree but move under the shifted Topics node and have their own child
+    # indices compacted by the promoted groups that sat before them.
+    later_shift = n if not remove_topics else n - 1
+
     def remap_path(path):
         if not path:
             return path
-        if len(path) >= 2 and path[0] == topics_index and path[1] == rm_child_index:
-            return [topics_index] + path[2:]     # Reference Manual subtree
-        if remove_topics:
-            if len(path) == 1 and path[0] == topics_index:
+        if path[0] < topics_index:
+            return path                          # a tab before 'Topics'
+        if path[0] > topics_index:
+            return [path[0] + later_shift] + path[1:]   # a tab after 'Topics'
+        # path[0] == topics_index: Topics itself or one of its subtrees.
+        if len(path) == 1:
+            if remove_topics:
                 return None                      # the 'Topics' node is gone
-            return path                          # later tabs keep their indices
-        if path[0] == topics_index:              # Topics itself or a sibling
-            return [topics_index + 1] + path[1:]
-        if path[0] > topics_index:               # a later tab
-            return [path[0] + 1] + path[1:]
-        return path
+            return [topics_index + n]            # Topics kept, shifted down
+        c = path[1]
+        if c in promoted_new_root:
+            return [promoted_new_root[c]] + path[2:]   # a promoted group's subtree
+        if remove_topics:
+            # No remaining children exist once Topics is dropped.
+            return path
+        # A leftover child of the kept Topics node: compact its child index.
+        shifted_c = c - sum(1 for ci in promoted_orig_indices if ci < c)
+        return [topics_index + n, shifted_c] + path[2:]
 
     # Match a whole `"url":[path],\n` entry so we can both rewrite the path and
     # drop an entry entirely (when remap_path returns None).
@@ -212,6 +267,8 @@ def fix_navtree(filepath):
             f.write(content)
     if topics_js_delete and os.path.exists(topics_js_path):
         os.remove(topics_js_path)
+
+    #print("Promoted %d group(s) from 'Topics' to top-level sidebar entries." % n)
 
 
 if __name__ == "__main__":
