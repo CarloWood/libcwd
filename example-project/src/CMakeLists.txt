@@ -18,5 +18,5 @@ target_include_directories(helloworld
 
 target_link_libraries(helloworld
   PRIVATE
-    AICxx::cwds
+    ${AICXX_OBJECTS_LIST}
 )

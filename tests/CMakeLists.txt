@@ -158,13 +158,11 @@ add_executable(lockable_auto_ptr lockable_auto_ptr.cpp)
 target_link_libraries(lockable_auto_ptr PRIVATE ctest_support)
 target_compile_options(lockable_auto_ptr PRIVATE -g -Wall -Wextra -Wpedantic -Wundef -Werror)
 
-# Specification test for the cwds API being absorbed into libcwd. It is expected
-# to fail to compile until that migration lands; it is a leaf executable so the
-# failure is isolated to this one target. See cwds_api_surface.cpp for the list
-# of symbols it pins down.
+# Specification test for the cwds API being absorbed into libcwd.
+# See cwds_api_surface.cpp for the list of symbols it pins down.
 add_executable(cwds_api_surface cwds_api_surface.cpp)
 target_include_directories(cwds_api_surface PRIVATE ${CMAKE_BINARY_DIR})
-target_link_libraries(cwds_api_surface PRIVATE ctest_support) # AICxx::cwds
+target_link_libraries(cwds_api_surface PRIVATE ctest_support)
 target_compile_options(cwds_api_surface PRIVATE -g -Wall -Wextra -Wundef -Wpedantic -Werror)
 
 add_test(NAME basic_debug_output COMMAND basic_debug_output)
