@@ -23,9 +23,10 @@ target_sources(cwd
 )
 
 target_compile_definitions(cwd
+    PRIVATE
+        VERSION="${PROJECT_VERSION}"
     PUBLIC
         "${cwd_compile_definitions}"
-        VERSION="${PROJECT_VERSION}"
 )
 
 if (CW_BUILD_TYPE_IS_NOT_RELEASE)

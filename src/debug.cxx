@@ -1633,5 +1633,5 @@ bool test_main_reached()
 
 } // namespace libcwd
 
-// This can be used in configure to see if libcwd exists.
+// Expose the libcwd version string as an extern "C" symbol.
 extern "C" char const* const __libcwd_version = VERSION;
