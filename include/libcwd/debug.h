@@ -164,7 +164,7 @@
 namespace libcwd {
 
 /**
- * Interface for marking scopes with indented debug output.
+ * @brief Interface for marking scopes with indented debug output.
  *
  * Creation of the object increments the debug indentation. Destruction
  * of the object automatically decrements the indentation again.
@@ -182,7 +182,7 @@ struct Indent
 };
 
 /**
- * Interface for marking scopes with a marker character.
+ * @brief Interface for marking scopes with a marker character.
  *
  * Creation of the object appends the character and a space to
  * the current marker after first adding the current indentation
