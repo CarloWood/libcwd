@@ -188,6 +188,14 @@ extern void conf_check_failed();
 extern void version_check_failed();
 extern void internal_main_reached();
 
+inline constexpr bool has_location_support() { return config_signature_header_c & 4; }
+inline void get_version(int& major, int& minor, int& revision)
+{
+  major = (config_signature_header_c / 512) % 128;
+  minor = (config_signature_header_c / (512 * 128)) % 128;
+  revision = config_signature_header_c / (512 * 128 * 128);
+}
+
 /**
  * @ingroup special-functions-and-utilities
  *
