@@ -33,6 +33,13 @@ See also: @ref configuration-options-and-macros.
 
 \include main-examples.cc
 
+* Linking with libcwd happens as dependency of the `cwds` submodule; just linking with `${AICXX_OBJECTS_LIST}` also gets `libcwd`.
+```
+target_link_libraries(my_executable PRIVATE ${AICXX_OBJECTS_LIST})
+```
+If you are *not* using `cwds` for some reason then the cmake target for `libcwd` to link with is `Libcwd::cwd`,
+and you'll need a `find_package(libcwd CONFIG)` to make that target available.
+
 # Debug Output
 
 * Add a `.libcwdrc` file to your HOME directory. For example,

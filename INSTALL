@@ -1,24 +1,25 @@
 Quick start
 ===========
 
-Libcwd requires CMake, which can be used to configure, build, *and* install
-libcwd.
+Libcwd requires CMake, which can be used to configure, build, *and* install libcwd.
 
-However, it is highly recommended to instead use gitache to
-get/configure/compile libcwd, and you very likely want to use the git
-submodule cwds too (which in turn requires cmake-aicxx).
+The native target to link with is `Libcwd::cwd`, made available with a
+`find_package(libcwd CONFIG)`, however if you also use `cwds` then that is dragged
+in as dependency and don't need that `find_package` and you only need to link with
+`AICxx::cwds`, or rather use `${AICXX_OBJECTS_LIST}`:
 
-Libcwd installs one library, named libcwd, with thread support always enabled.
-Use `set(GITACHE_PACKAGES libcwd)`.
+Canonical documentation: https://github.com/CarloWood/cwds#adding-the-cwds-submodule-to-a-project
+
+It is highly recommended to use gitache to get/configure/compile libcwd,
+and you very likely want to use the git submodule `cwds` too (which in turn requires `cmake-aicxx`).
 
 gitache
 -------
 
-See the documentation of cwds here:
-https://github.com/CarloWood/cwds?tab=readme-ov-file#adding-the-cwds-submodule-to-a-project
+Libcwd installs one library, named libcwd, with thread support always enabled.
+Use `set(GITACHE_PACKAGES libcwd)`. This is also covered by the cwds documentation, linked above.
 
-Only if you can't or do not want to use gitache, then the following
-to paragraphs apply.
+Only if you can't or do not want to use gitache, then the following two paragraphs apply.
 
 git
 ---
@@ -30,11 +31,19 @@ commands for a local build.
 cmake
 -----
 
-mkdir "$BUILDDIR"
-cmake -DCMAKE_INSTALL_PREFIX="/usr/local" -S . -B "$BUILDDIR"
+# For example,
+REPOROOT="$PWD"                 # The root of the project.
+BUILDDIR="$REPOROOT-build"      # Do an out-of-source build.
+CMAKE_CONFIG="Debug"            # Or Release, etc.
+PREFIX="/usr/local"
+
+# Configure
+cmake -DCMAKE_INSTALL_PREFIX="$PREFIX" -S "$REPOROOT" -B "$BUILDDIR" -DCMAKE_BUILD_TYPE="$CMAKE_CONFIG" -DCMAKE_MESSAGE_LOG_LEVEL=DEBUG
+# Build
 cmake --build "$BUILDDIR"
-cmake --build "$BUILDDIR" --target doc  # Generate documentation (open file://$BUILDDIR/doc/index.html).
-sudo cmake --install "$BUILDDIR" --prefix /usr/local
+cmake --build "$BUILDDIR" --target doc  # Generate documentation (afterwards open file://$BUILDDIR/doc/index.html).
+# Install
+sudo cmake --install "$BUILDDIR" --config "$CMAKE_CONFIG" --prefix "$PREFIX" --parallel $(nproc)
 
 Options
 =======

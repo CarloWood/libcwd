@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25...4.3.3)
+cmake_minimum_required(VERSION 3.17...4.3.4)
 
 project(example
   VERSION 1.0.0
@@ -9,6 +9,9 @@ project(example
 #==============================================================================
 # This project uses aicxx modules.
 include(cmake/aicxx/Project NO_POLICY_SCOPE)
+
+# Note, without using cmake-aicxx (the above include), you'd need:
+# find_package(libcwd CONFIG) - and then link with Libcwd::cwd
 
 #==============================================================================
 # OPTIONS
