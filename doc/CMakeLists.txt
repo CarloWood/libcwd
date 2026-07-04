@@ -199,3 +199,15 @@ add_custom_target(doc
     doc-external
     doc-tutorial
 )
+
+# Publish the built site into a checkout of CarloWood.github.io and commit the
+# delta under libcwd/ only. The destination is taken from the OUTPUT_DIRECTORY
+# environment variable (a checkout of the website repository); the script never
+# writes anywhere else and touches only the libcwd/ subdirectory there. Requires
+# rsync; run as: cmake --build <build> --target syncdoc
+add_custom_target(syncdoc
+  COMMENT "Syncing built documentation into \$OUTPUT_DIRECTORY/libcwd"
+  DEPENDS doc
+  COMMAND /bin/sh "${CMAKE_CURRENT_SOURCE_DIR}/scripts/syncdoc.sh" "${CMAKE_CURRENT_BINARY_DIR}"
+  VERBATIM
+)
