@@ -1,8 +1,18 @@
 How to install and use libcwd
 -----------------------------
 
-Tutorial on How to set up a project to use cmake, libcwd and aicxx git submodules (December 2022):
-https://www.youtube.com/watch?v=uaJdQvt3oo4
+Tutorial on How to set up a project to use cmake and libcwd
+has been added here (July 2026):
+https://www.youtube.com/watch?v=9tQnhOGK0zo
+
+This first shows how to use pure libcwd - then shows what to
+add to your CMakeLists.txt to use gitache to automatically
+fetch libcwd, and finally demonstrates how to add and use
+the git submodules cmake-aicxx and cwds.
+
+THE DIRECTORY `example-project' CONTAINS A COMPLETE EXAMPLE
+that shows how to use libcwd in a cmake project. It might
+be faster to just examine that.
 
 Introduction
 ------------
@@ -12,9 +22,6 @@ applications don't need it.  While still developing, you
 will compile with -DCWDEBUG and link with -lcwd (and add its
 install path to LD_LIBRARY_PATH).  A production version is then
 simply compiled without -DCWDEBUG and not linked with -lcwd.
-
-The directory `example-project' contains a minimal example that
-uses libcwd.
 
 Please read the INSTALL file for a list of other needed
 libraries and tools before attempting to compile libcwd.
