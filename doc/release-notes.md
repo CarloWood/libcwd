@@ -1,20 +1,39 @@
 @page release-notes Release notes
 
 @anchor latest
-## ?? June 2026
+## 4 July 2026
 
 Release of libcwd-2.0.0.
 
-This is the first released of libcwd under the MIT license!
+This is the first release of libcwd under the MIT license!
 
-After that, the biggest change is probably that support for memory allocation debugging has been removed.
+After that, the biggest change is probably that support for memory allocation debugging has been removed
+and several things previously part of [cwds](https://github.com/CarloWood/cwds) have been incorporated into libcwd;
+namely
 
-Other changes include,
+* `NAMESPACE_DEBUG` + `init()` and `init_thread()`.
+* `Indent` and `Mark` (declared under `libcwd` instead of `NAMESPACE_DEBUG`).
 
-- libcwd_r.so was renamed to libcwd.so
-- Debug(main_reached()) must now be called at the top of main. This also does
-what check_configuration() did, which therefore no longer exists.
-- Complete rewrite of ELF/DWARF debug information loading code; dc::bfd was renamed to dc::elfutils.
+Other changes include:
+
+* libcwd_r.so was renamed to libcwd.so
+* Complete rewrite of ELF/DWARF debug information loading code; `dc::bfd` was renamed to `dc::elfutils`.
+* Several classes have been renamed:
+  - `channel_ct` -> `Channel`
+  - `location_ct` -> `Location`
+  - `debug_ct` -> `DebugObject`
+  - `debug_string_ct` -> `DebugString`
+  - `type_info_ct` -> `TypeInfo`
+* `DoutFatal(dc::fatal, ..` now returns 180 as exit code instead of 254.
+* Instead of `DEBUGCHANNELS`, one has to define (and use) `LIBCWD_DEBUG_CHANNELS`.
+* `LIBCWD_DEBUGCHANNELS` has been renamed to `LIBCWD_DEBUG_CHANNELS`.
+
+Things that have been REMOVED:
+
+* Support for memory allocation debugging, and therefore also dc::malloc.
+* Support for autotools.
+* `libcwd/sys.h` has been removed (is no longer required).
+* `libcwd/cwprint.h` has been removed.
 
 For a more detailed list, see the NEWS file.
 
