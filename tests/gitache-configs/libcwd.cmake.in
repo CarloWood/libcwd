@@ -1,0 +1,6 @@
+gitache_config(
+  GIT_REPOSITORY
+    "file://${CMAKE_SOURCE_DIR}"
+  GIT_TAG
+    "master"
+)

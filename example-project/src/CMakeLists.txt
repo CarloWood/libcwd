@@ -10,12 +10,6 @@ add_executable(helloworld
   ../sys.h
 )
 
-target_include_directories(helloworld
-  PRIVATE
-    "${top_srcdir}"
-    "${top_srcdir}/cwds"
-)
-
 target_link_libraries(helloworld
   PRIVATE
     ${AICXX_OBJECTS_LIST}

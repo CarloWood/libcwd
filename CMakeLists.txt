@@ -142,6 +142,7 @@ set(libcwd_datadir "${CMAKE_INSTALL_FULL_DATADIR}")
 configure_file("include/cmake-config.h.in" "include/config.h")
 configure_file("include/libcwd/config.h.in" "include/libcwd/config.h" @ONLY)
 configure_file("include/cwd_sys.h.in" "include/cwd_sys.h" @ONLY)
+configure_file("tests/gitache-configs/libcwd.cmake.in" "tests/gitache-configs/libcwd.cmake")
 
 # Clean up rule for the above generated files and package metadata.
 #

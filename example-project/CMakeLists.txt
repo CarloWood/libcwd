@@ -7,6 +7,13 @@ project(example
 )
 
 #==============================================================================
+# Begin of gitache configuration.
+
+set(GITACHE_PACKAGES libcwd)  # List of requested packages (example).
+include(cmake/aicxx/cmake/StableGitache)
+# End of gitache configuration.
+
+#==============================================================================
 # This project uses aicxx modules.
 include(cmake/aicxx/Project NO_POLICY_SCOPE)
 
