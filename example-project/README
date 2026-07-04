@@ -1,13 +1,18 @@
 This is a minimal example project using libcwd.
 
-This example project only works if you already compiled and *installed* libcwd!
-If libcwd was installed with an uncommon prefix then CMake can still find it
-if you add `<install_prefix>/lib/cmake/libcwd` to CMAKE_PREFIX_PATH.
+This example project uses gitache to fetch libcwd from github, so there
+is no need to have it installed.
 
-Note: The directories cmake-aicxx/ and cwds/ in this example project
-are stripped down minimal versions of the git submodules
+If you have a local install and want to use that, then comment out the
+gitache block in CMakeLists.txt. And in that case, if libcwd was installed
+with an uncommon prefix then CMake can still find it if you add
+`<install_prefix>/lib/cmake/libcwd` to CMAKE_PREFIX_PATH.
+
+Note: The directories cmake/aicxx/ and cwds/ in this example project the git submodules
 https://github.com/CarloWood/cmake-aicxx and
-https://github.com/CarloWood/cwds that you'd normally use.
+https://github.com/CarloWood/cwds
+You will have to add those as submodules to your project as well.
+
 
 To configure and build the example project run:
 
@@ -18,9 +23,11 @@ Note that a Release build will not show the ExampleOption,
 which is due to the fact that it uses `"CW_BUILD_TYPE_IS_NOT_RELEASE" OFF`
 in the CMakeLists.txt file.
 
+
 Then run the example with:
 
     LIBCWD_RCFILE_OVERRIDE_NAME=libcwdrc_example-project build/src/helloworld
 
 Note: You can also not set LIBCWD_RCFILE_OVERRIDE_NAME in which case libcwd will
-use your ~/.libcwdrc and probably not show the CUSTOM debug channel output.
+use your ~/.libcwdrc and probably not show the CUSTOM debug channel output
+unless you turn that on in that file first.
