@@ -44,8 +44,12 @@ namespace libcwd {
 /** @brief This constant (pointer) is returned by Location::mangled_function_name() when no function is known. */
 extern char const* const unknown_function_c;
 
+/** \} */
+
 /**
  * @class Location Location.h libcwd/debug.h
+ * @ingroup source-file-line-number-information
+ *
  * @brief A source file location.
  *
  * The normal usage of this class is to print *source-name*:*line-number* information as follows:
@@ -212,7 +216,12 @@ class Location
 // extern std::ostream& operator<<(std::ostream& os, Location const& location);
 // #endif
 
-/** @brief Set the output format of Location.
+/** @addtogroup source-file-line-number-information */
+/** \{ */
+
+/**
+ * @function location_format
+ * @brief Set the output format of Location.
  *
  * This function can be used to specify the format of how a Location will be printed
  * when it is written to an ostream.  The format is thread-specific: only the calling
