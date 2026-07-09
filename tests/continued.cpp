@@ -217,12 +217,9 @@ void run_continued_scenario(libcwd_ctest::PendingStream& captured)
                                     << nested_foo(with_error, to_cerr) << "\" when I call it.");
   }
 
-  Dout(dc::notice, "`nested_bar(0, 0, 0, 0)' returns the string \"" << nested_bar(false, false, false, false)
-                                                                    << "\" when I call it.");
-  Dout(dc::notice, "`nested_bar(0, 1, 0, 1)' returns the string \"" << nested_bar(false, true, false, true)
-                                                                    << "\" when I call it.");
-  Dout(dc::notice, "`nested_bar(1, 0, 1, 0)' returns the string \"" << nested_bar(true, false, true, false)
-                                                                    << "\" when I call it.");
+  Dout(dc::notice, "`nested_bar(false, false, false, false)' returns the string \"" << nested_bar(false, false, false, false) << "\" when I call it.");
+  Dout(dc::notice, "`nested_bar(false, true, false, true)' returns the string \"" << nested_bar(false, true, false, true) << "\" when I call it.");
+  Dout(dc::notice, "`nested_bar(true, false, true, false)' returns the string \"" << nested_bar(true, false, true, false) << "\" when I call it.");
 
   Dout(dc::run | continued_cf, "Hello ");
   Dout(dc::finish, "World");
@@ -244,9 +241,9 @@ void run_continued_scenario(libcwd_ctest::PendingStream& captured)
   Dout(dc::finish, "library!");
 
   Dout(dc::run | continued_cf, "Libcwd ");
-  Dout(dc::notice, "`nested_foo(0, 0)' returns the string \"" << nested_foo(false, false) << "\" when I call it.");
+  Dout(dc::notice, "`nested_foo(false, false)' returns the string \"" << nested_foo(false, false) << "\" when I call it.");
   Dout(dc::continued, "is an awesome ");
-  Dout(dc::notice, "`nested_foo(0, 1)' returns the string \"" << nested_foo(false, true) << "\" when I call it.");
+  Dout(dc::notice, "`nested_foo(false, true)' returns the string \"" << nested_foo(false, true) << "\" when I call it.");
   Dout(dc::finish, "library!");
 
   recursive_continued(2);
@@ -270,28 +267,28 @@ bool output_matches_expected(libcwd_ctest::PendingStream& captured)
       "^NOTICE  : CERR: This is a single line with an error message behind it written to cerr: 0 \\((Success|Error "
       "0|Undefined error: 0|Unknown error: 0)\\)$",
       "FOO     :     Inside `nested_foo()'",
-      "NOTICE  : `nested_foo(0, 0)' returns the string \"Foo\" when I call it.",
+      "NOTICE  : `nested_foo(false, false)' returns the string \"Foo\" when I call it.",
       "FOO     :     CERR: Inside `nested_foo()'",
-      "NOTICE  : `nested_foo(0, 1)' returns the string \"Foo\" when I call it.",
+      "NOTICE  : `nested_foo(false, true)' returns the string \"Foo\" when I call it.",
       "^FOO     :     Inside `nested_foo\\(\\)': 0 \\((Success|Error 0|Undefined error: 0|Unknown error: 0)\\)$",
-      "NOTICE  : `nested_foo(1, 0)' returns the string \"Foo\" when I call it.",
+      "NOTICE  : `nested_foo(true, false)' returns the string \"Foo\" when I call it.",
       "^FOO     :     CERR: Inside `nested_foo\\(\\)': 0 \\((Success|Error 0|Undefined error: 0|Unknown error: 0)\\)$",
-      "NOTICE  : `nested_foo(1, 1)' returns the string \"Foo\" when I call it.",
+      "NOTICE  : `nested_foo(true, true)' returns the string \"Foo\" when I call it.",
       "BAR     :     Entering `nested_bar()'",
       "FOO     :         Inside `nested_foo()'",
-      "BAR     :     `nested_foo(0, 0)' returns the string \"Foo\" when I call it.",
+      "BAR     :     `nested_foo(false, false)' returns the string \"Foo\" when I call it.",
       "BAR     :     Leaving `nested_bar()'",
-      "NOTICE  : `nested_bar(0, 0, 0, 0)' returns the string \"Bar\" when I call it.",
+      "NOTICE  : `nested_bar(false, false, false, false)' returns the string \"Bar\" when I call it.",
       "BAR     :     CERR: Entering `nested_bar()'",
       "FOO     :         CERR: Inside `nested_foo()'",
-      "BAR     :     CERR: `nested_foo(0, 1)' returns the string \"Foo\" when I call it.",
+      "BAR     :     CERR: `nested_foo(false, true)' returns the string \"Foo\" when I call it.",
       "BAR     :     CERR: Leaving `nested_bar()'",
-      "NOTICE  : `nested_bar(0, 1, 0, 1)' returns the string \"Bar\" when I call it.",
+      "NOTICE  : `nested_bar(false, true, false, true)' returns the string \"Bar\" when I call it.",
       "BAR     :     Entering `nested_bar()': EINVAL (Invalid argument)",
       "^FOO     :         Inside `nested_foo\\(\\)': 0 \\((Success|Error 0|Undefined error: 0|Unknown error: 0)\\)$",
-      "BAR     :     `nested_foo(1, 0)' returns the string \"Foo\" when I call it.: EINVAL (Invalid argument)",
+      "BAR     :     `nested_foo(true, false)' returns the string \"Foo\" when I call it.: EINVAL (Invalid argument)",
       "BAR     :     Leaving `nested_bar()': EINVAL (Invalid argument)",
-      "NOTICE  : `nested_bar(1, 0, 1, 0)' returns the string \"Bar\" when I call it.",
+      "NOTICE  : `nested_bar(true, false, true, false)' returns the string \"Bar\" when I call it.",
       "RUN     : Hello World",
       "RUN     : Libcwd is an awesome library!",
       "RUN     : Libcwd <unfinished>",
@@ -307,10 +304,10 @@ bool output_matches_expected(libcwd_ctest::PendingStream& captured)
       "RUN     : <continued> library!",
       "RUN     : Libcwd <unfinished>",
       "FOO     :         Inside `nested_foo()'",
-      "NOTICE  :     `nested_foo(0, 0)' returns the string \"Foo\" when I call it.",
+      "NOTICE  :     `nested_foo(false, false)' returns the string \"Foo\" when I call it.",
       "RUN     : <continued> is an awesome <unfinished>",
       "FOO     :         CERR: Inside `nested_foo()'",
-      "NOTICE  :     `nested_foo(0, 1)' returns the string \"Foo\" when I call it.",
+      "NOTICE  :     `nested_foo(false, true)' returns the string \"Foo\" when I call it.",
       "RUN     : <continued> library!",
       "RUN     : level 2 begin <unfinished>",
       "FOO     :     interrupt level 2",

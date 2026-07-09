@@ -1,3 +1,8 @@
+libcwd-2.0.1
+
+        - LIBCWD_USING_OSTREAM_PRELUDE now requires a trailing semi-colon (no longer part of the macro).
+        - Writing debug output now by default uses std::boolalpha.
+
 libcwd-2.0
 
         - Released under the MIT license.
