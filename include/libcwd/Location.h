@@ -220,7 +220,7 @@ class Location
 /** \{ */
 
 /**
- * @function location_format
+ * @fn libcwd::location_format(location_format_t format)
  * @brief Set the output format of Location.
  *
  * This function can be used to specify the format of how a Location will be printed

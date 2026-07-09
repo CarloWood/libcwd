@@ -96,6 +96,8 @@ The main feature of Version 2 of this library is debug output. There is also sup
 @ingroup reference-manual-symbols
 @brief Introspecting types and symbols, and demangling their names, at run time.
 
+Requires `#include <libcwd/type_info.h>`.
+
 @defgroup demangle_type-and-demangle_symbol demangle_type() and demangle_symbol()
 @ingroup getting-type-information-of-types-and-symbols
 @brief Generated API reference for demangling C++ type and symbol names.
